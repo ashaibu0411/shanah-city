@@ -1,3 +1,4 @@
+import "./load-project-env";
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "../src/lib/db";

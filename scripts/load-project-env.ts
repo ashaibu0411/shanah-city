@@ -1,5 +1,4 @@
 import { existsSync, readFileSync } from "fs";
-import { defineConfig } from "prisma/config";
 
 function loadEnvFile(path: string) {
   if (!existsSync(path)) return;
@@ -18,14 +17,3 @@ function loadEnvFile(path: string) {
 
 loadEnvFile(".env");
 loadEnvFile(".env.local");
-
-export default defineConfig({
-  schema: "prisma/schema.prisma",
-  migrations: {
-    path: "prisma/migrations",
-    seed: "npx tsx scripts/migrate-json-to-db.ts",
-  },
-  datasource: {
-    url: process.env.DATABASE_URL ?? "postgresql://localhost:5432/shanah_city",
-  },
-});
