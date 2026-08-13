@@ -27,5 +27,6 @@ export async function GET() {
     database,
     blob: env.blob,
     push: env.push,
+    passwordResetEmail: env.passwordResetEmail,
   });
 }

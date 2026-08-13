@@ -37,7 +37,9 @@ export async function requestPasswordReset(email: string) {
       ? genericSuccessMessage()
       : emailResult.reason === "not_configured"
         ? "Password reset email is not configured yet. Ask a leader to help reset your account, or contact admin@shanahcity.org."
-        : genericSuccessMessage(),
+        : emailResult.reason === "send_failed"
+          ? "We could not send the reset email right now. Try again later or contact admin@shanahcity.org."
+          : genericSuccessMessage(),
     ...(process.env.NODE_ENV !== "production" && !emailResult.sent
       ? { devResetUrl: resetUrl }
       : {}),

@@ -31,6 +31,11 @@ export function getEnvStatus() {
       process.env.VAPID_PRIVATE_KEY?.trim() &&
       process.env.VAPID_SUBJECT?.trim(),
   );
+  const passwordResetEmailConfigured = Boolean(
+    process.env.RESEND_API_KEY?.trim() &&
+      (process.env.PASSWORD_RESET_FROM_EMAIL?.trim() ||
+        process.env.RESEND_FROM_EMAIL?.trim()),
+  );
 
   const productionMissing =
     process.env.NODE_ENV === "production" ? missingVars(PRODUCTION_REQUIRED) : [];
@@ -39,6 +44,7 @@ export function getEnvStatus() {
     database: { configured: databaseConfigured },
     blob: { configured: blobConfigured },
     push: { configured: pushConfigured },
+    passwordResetEmail: { configured: passwordResetEmailConfigured },
     production:
       process.env.NODE_ENV === "production"
         ? { ok: productionMissing.length === 0, missing: productionMissing }
