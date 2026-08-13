@@ -1,6 +1,12 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { getUserById, getUsers } from "@/lib/auth-server";
+import { getUserByEmail, getUserById, getUsers } from "@/lib/auth-server";
+import {
+  assertAnotherAdminRemains,
+  assertGroupAdmin,
+  isGroupAdmin,
+  isGroupMember,
+} from "@/lib/group-admin-utils";
 import type {
   Group,
   GroupCategory,
@@ -34,14 +40,6 @@ async function saveGroups(groups: Group[]) {
   await writeJson(GROUPS_FILE, groups);
 }
 
-function isGroupAdmin(group: Group, userId: string) {
-  return group.adminIds.includes(userId);
-}
-
-function isGroupMember(group: Group, userId: string) {
-  return group.memberIds.includes(userId);
-}
-
 function canViewGroup(group: Group, userId?: string) {
   if (group.visibility === "public") return true;
   if (!userId) return false;
@@ -57,11 +55,11 @@ function toSummary(group: Group, userId?: string): GroupSummary {
   };
 }
 
-async function getMemberPreviews(memberIds: string[]): Promise<GroupMemberPreview[]> {
+async function getMemberPreviews(group: Group): Promise<GroupMemberPreview[]> {
   const users = await getUsers();
   const byId = new Map(users.map((user) => [user.id, user]));
 
-  return memberIds
+  return group.memberIds
     .map((id) => {
       const user = byId.get(id);
       if (!user) return null;
@@ -69,6 +67,8 @@ async function getMemberPreviews(memberIds: string[]): Promise<GroupMemberPrevie
         id: user.id,
         name: user.name,
         campusId: user.campusId,
+        isAdmin: group.adminIds.includes(user.id),
+        isCreator: user.id === group.createdBy,
       };
     })
     .filter((member): member is GroupMemberPreview => member !== null);
@@ -108,7 +108,7 @@ export async function getGroupDetail(groupId: string, userId?: string) {
   }
 
   const summary = toSummary(group, userId);
-  const members = await getMemberPreviews(group.memberIds);
+  const members = await getMemberPreviews(group);
 
   return {
     ...summary,
@@ -191,35 +191,8 @@ export async function joinGroup(groupId: string, userId: string) {
   return toSummary(group, userId);
 }
 
-export async function leaveGroup(groupId: string, userId: string) {
-  const groups = await getGroups();
-  const index = groups.findIndex((group) => group.id === groupId);
-  if (index === -1) {
-    throw new Error("Group not found.");
-  }
-
-  const group = groups[index];
-  if (!isGroupMember(group, userId)) {
-    throw new Error("You are not in this group.");
-  }
-
-  if (group.createdBy === userId && group.memberIds.length > 1) {
-    throw new Error("Transfer leadership or delete the group before leaving.");
-  }
-
-  group.memberIds = group.memberIds.filter((id) => id !== userId);
-  group.adminIds = group.adminIds.filter((id) => id !== userId);
-  group.updatedAt = new Date().toISOString();
-
-  if (group.memberIds.length === 0) {
-    groups.splice(index, 1);
-    await saveGroups(groups);
-    return null;
-  }
-
-  groups[index] = group;
-  await saveGroups(groups);
-  return toSummary(group, userId);
+export async function leaveGroup(_groupId: string, _userId: string) {
+  throw new Error("Members cannot leave a group on their own. Ask your group leader to remove you.");
 }
 
 export async function updateGroup(
@@ -316,16 +289,14 @@ export async function removeGroupMember(groupId: string, adminId: string, member
   }
 
   const group = groups[index];
-  if (!isGroupAdmin(group, adminId)) {
-    throw new Error("Only group leaders can remove members.");
-  }
-
-  if (memberId === group.createdBy) {
-    throw new Error("The group creator cannot be removed.");
-  }
+  assertGroupAdmin(group, adminId);
 
   if (!isGroupMember(group, memberId)) {
     throw new Error("That member is not in this group.");
+  }
+
+  if (isGroupAdmin(group, memberId)) {
+    assertAnotherAdminRemains(group, memberId);
   }
 
   group.memberIds = group.memberIds.filter((id) => id !== memberId);
@@ -338,5 +309,101 @@ export async function removeGroupMember(groupId: string, adminId: string, member
   return {
     group: toSummary(group, adminId),
     removedName: member?.name ?? "Member",
+  };
+}
+
+export async function addGroupMember(groupId: string, adminId: string, email: string) {
+  const groups = await getGroups();
+  const index = groups.findIndex((group) => group.id === groupId);
+  if (index === -1) {
+    throw new Error("Group not found.");
+  }
+
+  const group = groups[index];
+  assertGroupAdmin(group, adminId);
+
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) {
+    throw new Error("Enter the member email to add.");
+  }
+
+  const member = await getUserByEmail(normalizedEmail);
+  if (!member) {
+    throw new Error("No member account found for that email.");
+  }
+
+  if (isGroupMember(group, member.id)) {
+    throw new Error(`${member.name} is already in this group.`);
+  }
+
+  group.memberIds = [...group.memberIds, member.id];
+  group.updatedAt = new Date().toISOString();
+  groups[index] = group;
+  await saveGroups(groups);
+
+  return {
+    group: toSummary(group, adminId),
+    addedName: member.name,
+  };
+}
+
+export async function promoteGroupAdmin(groupId: string, adminId: string, memberId: string) {
+  const groups = await getGroups();
+  const index = groups.findIndex((group) => group.id === groupId);
+  if (index === -1) {
+    throw new Error("Group not found.");
+  }
+
+  const group = groups[index];
+  assertGroupAdmin(group, adminId);
+
+  if (!isGroupMember(group, memberId)) {
+    throw new Error("That person must be a group member before becoming a leader.");
+  }
+
+  if (isGroupAdmin(group, memberId)) {
+    return {
+      group: toSummary(group, adminId),
+      promotedName: (await getUserById(memberId))?.name ?? "Member",
+    };
+  }
+
+  group.adminIds = [...group.adminIds, memberId];
+  group.updatedAt = new Date().toISOString();
+  groups[index] = group;
+  await saveGroups(groups);
+
+  const member = await getUserById(memberId);
+  return {
+    group: toSummary(group, adminId),
+    promotedName: member?.name ?? "Member",
+  };
+}
+
+export async function demoteGroupAdmin(groupId: string, adminId: string, memberId: string) {
+  const groups = await getGroups();
+  const index = groups.findIndex((group) => group.id === groupId);
+  if (index === -1) {
+    throw new Error("Group not found.");
+  }
+
+  const group = groups[index];
+  assertGroupAdmin(group, adminId);
+
+  if (!isGroupAdmin(group, memberId)) {
+    throw new Error("That member is not a group leader.");
+  }
+
+  assertAnotherAdminRemains(group, memberId);
+
+  group.adminIds = group.adminIds.filter((id) => id !== memberId);
+  group.updatedAt = new Date().toISOString();
+  groups[index] = group;
+  await saveGroups(groups);
+
+  const member = await getUserById(memberId);
+  return {
+    group: toSummary(group, adminId),
+    demotedName: member?.name ?? "Member",
   };
 }

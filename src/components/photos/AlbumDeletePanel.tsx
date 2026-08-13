@@ -21,8 +21,7 @@ export function AlbumDeletePanel() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const canManage =
-    user?.role === "team" || user?.role === "leader";
+  const canManage = user?.role === "media" || user?.role === "leader";
 
   useEffect(() => {
     if (loading || !canManage) return;

@@ -51,6 +51,8 @@ export const promoteUserRole = (
   userId: string,
   role: NonNullable<MemberProfile["role"]>,
 ) => store().promoteUserRole(userId, role);
+export const updateUserPassword = (userId: string, password: string) =>
+  store().updateUserPassword(userId, password);
 
 export function isLeader(user: PublicMember | null) {
   return user?.role === "leader";

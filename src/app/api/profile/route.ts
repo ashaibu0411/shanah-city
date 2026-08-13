@@ -42,7 +42,12 @@ export async function PATCH(request: Request) {
     }
 
     const email = String(body.email ?? "").trim().toLowerCase();
-    const role = body.role === "team" ? "team" : "leader";
+    const role =
+      body.role === "media"
+        ? "media"
+        : body.role === "team"
+          ? "team"
+          : "leader";
     const target = await getUserByEmail(email);
 
     if (!target) {

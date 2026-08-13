@@ -243,3 +243,11 @@ model MeetingClick {
   @@index([meetingId])
   @@index([userId])
 }
+
+model PasswordResetToken {
+  id        String   @id
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime
+}

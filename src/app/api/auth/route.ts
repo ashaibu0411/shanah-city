@@ -10,18 +10,21 @@ import {
   toPublicMember,
   verifyCredentials,
 } from "@/lib/auth-server";
+import { getGalleryUploadPermissions } from "@/lib/gallery-access-server";
 
 export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   if (!user) {
-    return NextResponse.json({ user: null });
+    return NextResponse.json({ user: null, permissions: { canUploadGallery: false } });
   }
-  const activity = await getActivity(user.id);
-  return NextResponse.json({ user, activity });
+  const [activity, permissions] = await Promise.all([
+    getActivity(user.id),
+    getGalleryUploadPermissions(user),
+  ]);
+  return NextResponse.json({ user, activity, permissions });
 }
-
 export async function POST(request: Request) {
   const body = await request.json();
   const action = body.action ?? "signin";
@@ -36,11 +39,12 @@ export async function POST(request: Request) {
         campusId: body.campusId ?? "colorado",
       });
       const session = await createSession(user.id);
+      const publicUser = toPublicMember(user);
+      const permissions = await getGalleryUploadPermissions(publicUser);
       const response = NextResponse.json(
-        { user: toPublicMember(user) },
+        { user: publicUser, permissions },
         { status: 201 },
-      );
-      response.cookies.set(SESSION_COOKIE, session.token, {
+      );      response.cookies.set(SESSION_COOKIE, session.token, {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",
@@ -62,8 +66,9 @@ export async function POST(request: Request) {
   }
 
   const session = await createSession(user.id);
-  const response = NextResponse.json({ user: toPublicMember(user) });
-  response.cookies.set(SESSION_COOKIE, session.token, {
+  const publicUser = toPublicMember(user);
+  const permissions = await getGalleryUploadPermissions(publicUser);
+  const response = NextResponse.json({ user: publicUser, permissions });  response.cookies.set(SESSION_COOKIE, session.token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

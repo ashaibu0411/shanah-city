@@ -11,8 +11,10 @@ import {
   deleteGroup,
   getGroupDetail,
   joinGroup,
-  leaveGroup,
   listGroupsForUser,
+  addGroupMember,
+  demoteGroupAdmin,
+  promoteGroupAdmin,
   removeGroupMember,
   updateGroup,
 } from "@/lib/group-server";
@@ -79,13 +81,13 @@ export async function POST(request: Request) {
     }
 
     if (action === "leave") {
-      const group = await leaveGroup(groupId, user.id);
-      await recordActivity(
-        user.id,
-        "profile_update",
-        group ? `Left group "${group.name}"` : "Left a group",
+      return NextResponse.json(
+        {
+          error:
+            "Members cannot leave a group on their own. Ask your group leader to remove you.",
+        },
+        { status: 403 },
       );
-      return NextResponse.json({ group });
     }
 
     if (action === "update") {
@@ -113,6 +115,48 @@ export async function POST(request: Request) {
         user.id,
         "profile_update",
         `Removed ${result.removedName} from "${result.group.name}"`,
+      );
+      const group = await getGroupDetail(groupId, user.id);
+      return NextResponse.json({ group });
+    }
+
+    if (action === "add-member") {
+      const email = String(body.email ?? "");
+      const result = await addGroupMember(groupId, user.id, email);
+      await recordActivity(
+        user.id,
+        "profile_update",
+        `Added ${result.addedName} to "${result.group.name}"`,
+      );
+      const group = await getGroupDetail(groupId, user.id);
+      return NextResponse.json({ group });
+    }
+
+    if (action === "promote-admin") {
+      const memberId = String(body.memberId ?? "");
+      if (!memberId) {
+        return NextResponse.json({ error: "Member id is required." }, { status: 400 });
+      }
+      const result = await promoteGroupAdmin(groupId, user.id, memberId);
+      await recordActivity(
+        user.id,
+        "profile_update",
+        `Made ${result.promotedName} a leader of "${result.group.name}"`,
+      );
+      const group = await getGroupDetail(groupId, user.id);
+      return NextResponse.json({ group });
+    }
+
+    if (action === "demote-admin") {
+      const memberId = String(body.memberId ?? "");
+      if (!memberId) {
+        return NextResponse.json({ error: "Member id is required." }, { status: 400 });
+      }
+      const result = await demoteGroupAdmin(groupId, user.id, memberId);
+      await recordActivity(
+        user.id,
+        "profile_update",
+        `Removed ${result.demotedName} as leader of "${result.group.name}"`,
       );
       const group = await getGroupDetail(groupId, user.id);
       return NextResponse.json({ group });

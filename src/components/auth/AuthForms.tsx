@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSafeNextPath } from "@/components/auth/AuthPageShell";
 import { Button, Card } from "@/components/ui";
@@ -34,7 +34,8 @@ export function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = getSafeNextPath(searchParams.get("next"));
-  const { setUser } = useAuth();
+  const resetSuccess = searchParams.get("reset") === "1";
+  const { refresh } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export function SignInForm() {
       return;
     }
 
-    setUser(data.user);
+    await refresh();
     router.push(nextPath);
     router.refresh();
   }
@@ -69,6 +70,12 @@ export function SignInForm() {
       <p className="mt-1 text-sm text-night-600">
         Use the email and password from your member account.
       </p>
+
+      {resetSuccess && (
+        <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Password updated. Sign in with your new password.
+        </p>
+      )}
 
       <form onSubmit={submit} className="mt-6 space-y-4">
         <Field id="sign-in-email" label="Email">
@@ -97,6 +104,12 @@ export function SignInForm() {
           />
         </Field>
 
+        <p className="text-right text-sm">
+          <Link href="/forgot-password" className="font-semibold text-night-800 hover:underline">
+            Forgot password?
+          </Link>
+        </p>
+
         {error && (
           <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
         )}
@@ -123,7 +136,7 @@ export function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = getSafeNextPath(searchParams.get("next"));
-  const { setUser } = useAuth();
+  const { refresh } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -170,7 +183,7 @@ export function SignUpForm() {
       return;
     }
 
-    setUser(data.user);
+    await refresh();
     router.push(nextPath);
     router.refresh();
   }
@@ -284,6 +297,188 @@ export function SignUpForm() {
           Sign in
         </Link>
       </p>
+    </Card>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [devResetUrl, setDevResetUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    setDevResetUrl(null);
+
+    const response = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await response.json();
+    setLoading(false);
+
+    if (!response.ok) {
+      setError(data.error ?? "Could not send reset email.");
+      return;
+    }
+
+    setMessage(data.message ?? "If an account exists for that email, we sent instructions.");
+    if (data.devResetUrl) {
+      setDevResetUrl(data.devResetUrl);
+    }
+  }
+
+  return (
+    <Card>
+      <h2 className="font-display text-2xl font-semibold text-night-900">Forgot password</h2>
+      <p className="mt-1 text-sm text-night-600">
+        Enter your member email and we&apos;ll send a reset link if an account exists.
+      </p>
+
+      <form onSubmit={submit} className="mt-6 space-y-4">
+        <Field id="forgot-email" label="Email">
+          <input
+            id="forgot-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@example.com"
+            required
+            className={inputClassName}
+          />
+        </Field>
+
+        {error && (
+          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        )}
+        {message && (
+          <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</p>
+        )}
+        {devResetUrl && (
+          <p className="rounded-xl bg-sand-100 px-4 py-3 text-sm text-night-700">
+            Dev reset link:{" "}
+            <Link href={devResetUrl} className="font-semibold underline">
+              Reset password
+            </Link>
+          </p>
+        )}
+
+        <Button type="submit" className={`w-full ${loading ? "opacity-70" : ""}`}>
+          {loading ? "Sending..." : "Send reset link"}
+        </Button>
+      </form>
+
+      <p className="mt-4 text-center text-sm text-night-600">
+        <Link href="/sign-in" className="font-semibold text-night-900 hover:underline">
+          Back to sign in
+        </Link>
+      </p>
+    </Card>
+  );
+}
+
+export function ResetPasswordForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") ?? "";
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setError(null);
+
+    if (password.length < 8) {
+      setError("Use a password with at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    const response = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, password }),
+    });
+    const data = await response.json();
+    setLoading(false);
+
+    if (!response.ok) {
+      setError(data.error ?? "Could not reset password.");
+      return;
+    }
+
+    router.push("/sign-in?reset=1");
+    router.refresh();
+  }
+
+  if (!token) {
+    return (
+      <Card>
+        <h2 className="font-display text-2xl font-semibold text-night-900">Invalid link</h2>
+        <p className="mt-2 text-sm text-night-600">
+          This password reset link is missing or expired. Request a new one.
+        </p>
+        <Button href="/forgot-password" className="mt-4">
+          Request reset link
+        </Button>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <h2 className="font-display text-2xl font-semibold text-night-900">Choose a new password</h2>
+      <p className="mt-1 text-sm text-night-600">Use at least 8 characters.</p>
+
+      <form onSubmit={submit} className="mt-6 space-y-4">
+        <Field id="reset-password" label="New password">
+          <input
+            id="reset-password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            minLength={8}
+            required
+            className={inputClassName}
+          />
+        </Field>
+
+        <Field id="reset-confirm" label="Confirm new password">
+          <input
+            id="reset-confirm"
+            type="password"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            minLength={8}
+            required
+            className={inputClassName}
+          />
+        </Field>
+
+        {error && (
+          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        )}
+
+        <Button type="submit" className={`w-full ${loading ? "opacity-70" : ""}`}>
+          {loading ? "Saving..." : "Update password"}
+        </Button>
+      </form>
     </Card>
   );
 }

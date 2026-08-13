@@ -11,7 +11,7 @@ export function PhotoDownloadLog() {
   const [error, setError] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
 
-  const canView = user?.role === "team" || user?.role === "leader";
+  const canView = user?.role === "media" || user?.role === "leader";
 
   useEffect(() => {
     if (loading || !canView) return;

@@ -21,7 +21,7 @@ export type MemberProfile = {
   email: string;
   phone?: string;
   campusId: string;
-  role?: "member" | "leader" | "team";
+  role?: "member" | "leader" | "team" | "media";
   avatarUrl?: string;
   notificationPrefs?: NotificationPrefs;
   passwordHash: string;
@@ -49,7 +49,8 @@ export type ActivityItem = {
     | "devotion_published"
     | "message_sent"
     | "leader_promoted"
-    | "notifications_updated";
+    | "notifications_updated"
+    | "password_reset";
   label: string;
   createdAt: string;
 };

@@ -245,6 +245,20 @@ export async function promoteUserRole(
   return mapDbUserToProfile(user);
 }
 
+export async function updateUserPassword(userId: string, password: string) {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      passwordHash: await bcrypt.hash(password, 10),
+      updatedAt: new Date(),
+    },
+    include: { family: true },
+  });
+
+  await logActivity(userId, "password_reset", "Password reset completed");
+  return mapDbUserToProfile(user);
+}
+
 async function logActivity(
   userId: string,
   type: ActivityItem["type"],

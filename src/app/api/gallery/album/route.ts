@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
-  canUploadGallery,
+  canManageGallery,
   deleteGalleryAlbum,
   getGalleryAlbumCounts,
 } from "@/lib/gallery-server";
@@ -13,9 +13,9 @@ export async function GET() {
     const token = cookieStore.get(SESSION_COOKIE)?.value;
     const user = await getUserFromSession(token);
 
-    if (!canUploadGallery(user, null)) {
+    if (!canManageGallery(user)) {
       return NextResponse.json(
-        { error: "Backend team access required." },
+        { error: "Media team or leader access required." },
         { status: 403 },
       );
     }
@@ -35,11 +35,10 @@ export async function DELETE(request: Request) {
 
     const body = await request.json();
     const album = String(body.album ?? "").trim();
-    const pin = String(body.pin ?? "");
 
-    if (!canUploadGallery(user, pin)) {
+    if (!canManageGallery(user)) {
       return NextResponse.json(
-        { error: "Backend team access required. Sign in as team/leader or use the team PIN." },
+        { error: "Media team or leader access required." },
         { status: 403 },
       );
     }

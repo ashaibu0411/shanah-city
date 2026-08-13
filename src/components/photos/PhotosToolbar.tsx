@@ -7,12 +7,8 @@ type PhotosToolbarProps = {
   photoCount: number;
 };
 
-function canUpload(user: { role?: string } | null) {
-  return user?.role === "team" || user?.role === "leader";
-}
-
 export function PhotosToolbar({ photoCount }: PhotosToolbarProps) {
-  const { user, loading } = useAuth();
+  const { user, permissions, loading } = useAuth();
 
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -22,7 +18,7 @@ export function PhotosToolbar({ photoCount }: PhotosToolbarProps) {
           ? " · view in app; download requires agreement"
           : " · sign in to view member photos"}
       </p>
-      {!loading && canUpload(user) ? (
+      {!loading && permissions.canUploadGallery ? (
         <Button href="/photos/upload" variant="secondary">
           Upload photos
         </Button>

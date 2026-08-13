@@ -23,8 +23,8 @@ export default async function PhotosPage() {
       <PhotoGallery photos={photos} />
 
       <p className="mt-8 text-sm text-night-500">
-        Only team and leader accounts see the upload button. Downloads require sign-in,
-        policy agreement, and are logged for church safety.
+        The upload button appears for media team members (media role or Media Team group).
+        Downloads require sign-in, policy agreement, and are logged for church safety.
       </p>
     </>
   );

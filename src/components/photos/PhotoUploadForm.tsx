@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { galleryAlbums } from "@/lib/gallery-types";
 import { Button, Card } from "@/components/ui";
 
@@ -9,15 +10,15 @@ type UploadMode = "file" | "link";
 
 export function PhotoUploadForm() {
   const router = useRouter();
+  const { user, permissions, loading } = useAuth();
   const [mode, setMode] = useState<UploadMode>("file");
   const [title, setTitle] = useState("");
   const [album, setAlbum] = useState("Community");
   const [uploadedBy, setUploadedBy] = useState("Shanah City Team");
-  const [pin, setPin] = useState("");
   const [externalUrl, setExternalUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,19 +30,19 @@ export function PhotoUploadForm() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    setLoading(true);
+    setFormLoading(true);
     setMessage(null);
     setError(null);
 
     if (mode === "file" && !file) {
       setError("Choose a photo to upload.");
-      setLoading(false);
+      setFormLoading(false);
       return;
     }
 
     if (mode === "link" && !externalUrl.trim()) {
       setError("Paste a Google Photos, OneDrive, or other cloud share link.");
-      setLoading(false);
+      setFormLoading(false);
       return;
     }
 
@@ -49,7 +50,6 @@ export function PhotoUploadForm() {
     formData.append("title", title);
     formData.append("album", album);
     formData.append("uploadedBy", uploadedBy);
-    formData.append("pin", pin);
 
     if (mode === "file" && file) {
       formData.append("file", file);
@@ -63,15 +63,10 @@ export function PhotoUploadForm() {
     });
 
     const data = await response.json();
-    setLoading(false);
+    setFormLoading(false);
 
     if (!response.ok) {
-      setError(
-        data.error ??
-          (response.status === 403
-            ? "Backend team access required."
-            : "Upload failed."),
-      );
+      setError(data.error ?? "Upload failed.");
       return;
     }
 
@@ -87,14 +82,50 @@ export function PhotoUploadForm() {
     router.refresh();
   }
 
+  if (loading) {
+    return (
+      <Card>
+        <p className="text-sm text-night-600">Checking access...</p>
+      </Card>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Card>
+        <h2 className="font-display text-2xl font-semibold text-night-900">Media team upload</h2>
+        <p className="mt-2 text-sm text-night-600">
+          Sign in with a media team account to upload photos.
+        </p>
+        <Button href="/sign-in?next=/photos/upload" className="mt-4">
+          Sign in
+        </Button>
+      </Card>
+    );
+  }
+
+  if (!permissions.canUploadGallery) {
+    return (
+      <Card>
+        <h2 className="font-display text-2xl font-semibold text-night-900">Media team only</h2>
+        <p className="mt-2 text-sm text-night-600">
+          Gallery uploads are for the media team. Ask a leader to assign the{" "}
+          <strong>media</strong> role on your profile, or join the{" "}
+          <strong>Media Team</strong> group on{" "}
+          <a href="/groups" className="font-semibold text-night-800 hover:underline">
+            Groups
+          </a>
+          .
+        </p>
+      </Card>
+    );
+  }
+
   return (
     <Card>
-      <h2 className="font-display text-2xl font-semibold text-night-900">
-        Backend team upload
-      </h2>
+      <h2 className="font-display text-2xl font-semibold text-night-900">Media team upload</h2>
       <p className="mt-2 text-sm text-night-600">
-        Upload a file from your device, or paste a share link from Google Photos,
-        OneDrive, Dropbox, iCloud, or Box.
+        Signed in as {user.name}. Upload a file or paste a cloud share link.
       </p>
 
       <div className="mt-4 flex gap-2 rounded-xl bg-sand-100 p-1">
@@ -159,10 +190,7 @@ export function PhotoUploadForm() {
           </div>
 
           <div>
-            <label
-              htmlFor="uploadedBy"
-              className="text-sm font-semibold text-night-800"
-            >
+            <label htmlFor="uploadedBy" className="text-sm font-semibold text-night-800">
               Uploaded by
             </label>
             <input
@@ -174,21 +202,6 @@ export function PhotoUploadForm() {
           </div>
         </div>
 
-        <div>
-          <label htmlFor="pin" className="text-sm font-semibold text-night-800">
-            Backend team PIN
-          </label>
-          <input
-            id="pin"
-            type="password"
-            value={pin}
-            onChange={(event) => setPin(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            placeholder="Team upload PIN"
-            required
-          />
-        </div>
-
         {mode === "file" ? (
           <div>
             <label htmlFor="photo" className="text-sm font-semibold text-night-800">
@@ -198,9 +211,7 @@ export function PhotoUploadForm() {
               id="photo"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={(event) =>
-                handleFileChange(event.target.files?.[0] ?? null)
-              }
+              onChange={(event) => handleFileChange(event.target.files?.[0] ?? null)}
               className="mt-1 block w-full text-sm text-night-600 file:mr-4 file:rounded-lg file:border-0 file:bg-night-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-sand-50"
             />
             {preview && (
@@ -223,27 +234,18 @@ export function PhotoUploadForm() {
               className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
               placeholder="https://photos.google.com/... or OneDrive / Dropbox link"
             />
-            <p className="mt-2 text-xs leading-relaxed text-night-500">
-              Use a public share link. In Google Photos: Share → Create link. In
-              OneDrive: Share → Copy link. Some cloud links may preview as a link
-              card instead of an image if the provider blocks embedding.
-            </p>
           </div>
         )}
 
         {error && (
-          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
+          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
         )}
         {message && (
-          <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {message}
-          </p>
+          <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</p>
         )}
 
-        <Button type="submit" className={loading ? "opacity-70" : ""}>
-          {loading
+        <Button type="submit" className={formLoading ? "opacity-70" : ""}>
+          {formLoading
             ? mode === "link"
               ? "Adding link..."
               : "Uploading..."

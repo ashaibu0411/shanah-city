@@ -1,6 +1,11 @@
-import { getUserById, getUsers } from "@/lib/auth-server";
+import { getUserByEmail, getUserById, getUsers } from "@/lib/auth-server";
 import { prisma } from "@/lib/db";
-import type {
+import {
+  assertAnotherAdminRemains,
+  assertGroupAdmin,
+  isGroupAdmin,
+  isGroupMember,
+} from "@/lib/group-admin-utils";import type {
   Group,
   GroupCategory,
   GroupDetail,
@@ -50,22 +55,13 @@ function mapGroup(record: {
   };
 }
 
-function isGroupAdmin(group: Group, userId: string) {
-  return group.adminIds.includes(userId);
-}
-
-function isGroupMember(group: Group, userId: string) {
-  return group.memberIds.includes(userId);
-}
-
 function canViewGroup(group: Group, userId?: string) {
   if (group.visibility === "public") return true;
   if (!userId) return false;
   return isGroupMember(group, userId) || isGroupAdmin(group, userId);
 }
 
-function toSummary(group: Group, userId?: string): GroupSummary {
-  return {
+function toSummary(group: Group, userId?: string): GroupSummary {  return {
     ...group,
     memberCount: group.memberIds.length,
     isMember: userId ? isGroupMember(group, userId) : false,
@@ -73,11 +69,11 @@ function toSummary(group: Group, userId?: string): GroupSummary {
   };
 }
 
-async function getMemberPreviews(memberIds: string[]): Promise<GroupMemberPreview[]> {
+async function getMemberPreviews(group: Group): Promise<GroupMemberPreview[]> {
   const users = await getUsers();
   const byId = new Map(users.map((user) => [user.id, user]));
 
-  return memberIds
+  return group.memberIds
     .map((id) => {
       const user = byId.get(id);
       if (!user) return null;
@@ -85,11 +81,12 @@ async function getMemberPreviews(memberIds: string[]): Promise<GroupMemberPrevie
         id: user.id,
         name: user.name,
         campusId: user.campusId,
+        isAdmin: group.adminIds.includes(user.id),
+        isCreator: user.id === group.createdBy,
       };
     })
     .filter((member): member is GroupMemberPreview => member !== null);
 }
-
 export async function getGroups() {
   const records = await prisma.group.findMany();
   return records.map(mapGroup);
@@ -130,8 +127,7 @@ export async function getGroupDetail(groupId: string, userId?: string) {
   }
 
   const summary = toSummary(group, userId);
-  const members = await getMemberPreviews(group.memberIds);
-
+  const members = await getMemberPreviews(group);
   return {
     ...summary,
     members,
@@ -217,39 +213,8 @@ export async function joinGroup(groupId: string, userId: string) {
   return toSummary(mapGroup(updated), userId);
 }
 
-export async function leaveGroup(groupId: string, userId: string) {
-  const record = await prisma.group.findUnique({ where: { id: groupId } });
-  if (!record) {
-    throw new Error("Group not found.");
-  }
-
-  const group = mapGroup(record);
-  if (!isGroupMember(group, userId)) {
-    throw new Error("You are not in this group.");
-  }
-
-  if (group.createdBy === userId && group.memberIds.length > 1) {
-    throw new Error("Transfer leadership or delete the group before leaving.");
-  }
-
-  const memberIds = group.memberIds.filter((id) => id !== userId);
-  const adminIds = group.adminIds.filter((id) => id !== userId);
-
-  if (memberIds.length === 0) {
-    await prisma.group.delete({ where: { id: groupId } });
-    return null;
-  }
-
-  const updated = await prisma.group.update({
-    where: { id: groupId },
-    data: {
-      memberIds,
-      adminIds,
-      updatedAt: new Date(),
-    },
-  });
-
-  return toSummary(mapGroup(updated), userId);
+export async function leaveGroup(_groupId: string, _userId: string) {
+  throw new Error("Members cannot leave a group on their own. Ask your group leader to remove you.");
 }
 
 export async function updateGroup(
@@ -355,16 +320,14 @@ export async function removeGroupMember(groupId: string, adminId: string, member
   }
 
   const group = mapGroup(record);
-  if (!isGroupAdmin(group, adminId)) {
-    throw new Error("Only group leaders can remove members.");
-  }
-
-  if (memberId === group.createdBy) {
-    throw new Error("The group creator cannot be removed.");
-  }
+  assertGroupAdmin(group, adminId);
 
   if (!isGroupMember(group, memberId)) {
     throw new Error("That member is not in this group.");
+  }
+
+  if (isGroupAdmin(group, memberId)) {
+    assertAnotherAdminRemains(group, memberId);
   }
 
   const memberIds = group.memberIds.filter((id) => id !== memberId);
@@ -383,5 +346,108 @@ export async function removeGroupMember(groupId: string, adminId: string, member
   return {
     group: toSummary(mapGroup(updated), adminId),
     removedName: member?.name ?? "Member",
+  };
+}
+
+export async function addGroupMember(groupId: string, adminId: string, email: string) {
+  const record = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!record) {
+    throw new Error("Group not found.");
+  }
+
+  const group = mapGroup(record);
+  assertGroupAdmin(group, adminId);
+
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) {
+    throw new Error("Enter the member email to add.");
+  }
+
+  const member = await getUserByEmail(normalizedEmail);
+  if (!member) {
+    throw new Error("No member account found for that email.");
+  }
+
+  if (isGroupMember(group, member.id)) {
+    throw new Error(`${member.name} is already in this group.`);
+  }
+
+  const updated = await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      memberIds: [...group.memberIds, member.id],
+      updatedAt: new Date(),
+    },
+  });
+
+  return {
+    group: toSummary(mapGroup(updated), adminId),
+    addedName: member.name,
+  };
+}
+
+export async function promoteGroupAdmin(groupId: string, adminId: string, memberId: string) {
+  const record = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!record) {
+    throw new Error("Group not found.");
+  }
+
+  const group = mapGroup(record);
+  assertGroupAdmin(group, adminId);
+
+  if (!isGroupMember(group, memberId)) {
+    throw new Error("That person must be a group member before becoming a leader.");
+  }
+
+  if (isGroupAdmin(group, memberId)) {
+    const member = await getUserById(memberId);
+    return {
+      group: toSummary(group, adminId),
+      promotedName: member?.name ?? "Member",
+    };
+  }
+
+  const updated = await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      adminIds: [...group.adminIds, memberId],
+      updatedAt: new Date(),
+    },
+  });
+
+  const member = await getUserById(memberId);
+  return {
+    group: toSummary(mapGroup(updated), adminId),
+    promotedName: member?.name ?? "Member",
+  };
+}
+
+export async function demoteGroupAdmin(groupId: string, adminId: string, memberId: string) {
+  const record = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!record) {
+    throw new Error("Group not found.");
+  }
+
+  const group = mapGroup(record);
+  assertGroupAdmin(group, adminId);
+
+  if (!isGroupAdmin(group, memberId)) {
+    throw new Error("That member is not a group leader.");
+  }
+
+  assertAnotherAdminRemains(group, memberId);
+
+  const updated = await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      adminIds: group.adminIds.filter((id) => id !== memberId),
+      updatedAt: new Date(),
+    },
+  });
+
+  const member = await getUserById(memberId);
+  return {
+    group: toSummary(mapGroup(updated), adminId),
+    demotedName: member?.name ?? "Member",
   };
 }

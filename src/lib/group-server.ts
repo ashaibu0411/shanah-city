@@ -26,3 +26,9 @@ export const deleteGroup = (groupId: string, userId: string) =>
   store().deleteGroup(groupId, userId);
 export const removeGroupMember = (groupId: string, adminId: string, memberId: string) =>
   store().removeGroupMember(groupId, adminId, memberId);
+export const addGroupMember = (groupId: string, adminId: string, email: string) =>
+  store().addGroupMember(groupId, adminId, email);
+export const promoteGroupAdmin = (groupId: string, adminId: string, memberId: string) =>
+  store().promoteGroupAdmin(groupId, adminId, memberId);
+export const demoteGroupAdmin = (groupId: string, adminId: string, memberId: string) =>
+  store().demoteGroupAdmin(groupId, adminId, memberId);

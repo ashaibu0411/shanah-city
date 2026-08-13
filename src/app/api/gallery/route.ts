@@ -1,15 +1,15 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { canUploadGallery } from "@/lib/gallery-access-server";
 import {
   addGalleryPhoto,
-  canUploadGallery,
   getGalleryPhotos,
   isAllowedImage,
   normalizeExternalPhotoUrl,
   saveUploadedFile,
 } from "@/lib/gallery-server";
-
+import { mediaGroupMatchHint } from "@/lib/media-group";
 export async function GET() {
   const photos = await getGalleryPhotos();
   return NextResponse.json({ photos });
@@ -27,15 +27,19 @@ export async function POST(request: Request) {
     const title = String(formData.get("title") ?? "").trim();
     const album = String(formData.get("album") ?? "Community").trim();
     const uploadedBy = String(formData.get("uploadedBy") ?? "Shanah City Team").trim();
-    const pin = String(formData.get("pin") ?? "");
 
-    if (!canUploadGallery(user, pin)) {
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to upload photos." }, { status: 401 });
+    }
+
+    if (!(await canUploadGallery(user))) {
       return NextResponse.json(
-        { error: "Backend team access required. Sign in as team/leader or use the team upload PIN." },
+        {
+          error: `Media team access required. Ask a leader to assign the media role, or join ${mediaGroupMatchHint()} on Groups.`,
+        },
         { status: 403 },
       );
     }
-
     if (!title) {
       return NextResponse.json({ error: "Title is required." }, { status: 400 });
     }

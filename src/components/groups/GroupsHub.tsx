@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { campuses, getCampus } from "@/lib/site";
-import type { GroupCategory, GroupDetail, GroupSummary } from "@/lib/group-types";
+import type { GroupCategory, GroupDetail, GroupMemberPreview, GroupSummary } from "@/lib/group-types";
+import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { groupCategoryLabels } from "@/lib/group-types";
 import { buildTrackedJoinUrl, isTrackableJoinUrl } from "@/lib/meeting-join-utils";
 import { Button, Card, ExternalLink } from "@/components/ui";
@@ -27,8 +28,15 @@ function formatTime(iso: string) {
   });
 }
 
+function memberRoleLabel(member: GroupMemberPreview) {
+  if (member.isCreator && member.isAdmin) return "Creator · Leader";
+  if (member.isCreator) return "Creator";
+  if (member.isAdmin) return "Leader";
+  return "Member";
+}
+
 export function GroupsHub() {
-  const { user, loading } = useAuth();
+  const { user, loading, refresh } = useAuth();
   const searchParams = useSearchParams();
   const groupFromUrl = searchParams.get("group");
   const [tab, setTab] = useState<Tab>("discover");
@@ -46,6 +54,7 @@ export function GroupsHub() {
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [meetingSchedule, setMeetingSchedule] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
+  const [addMemberEmail, setAddMemberEmail] = useState("");
 
   const filteredGroups = useMemo(() => {
     if (tab === "mine") return myGroups;
@@ -108,8 +117,17 @@ export function GroupsHub() {
     }
 
     await loadLists();
-    if (selectedId && body.groupId) {
+    if (
+      body.action === "join" ||
+      body.action === "remove-member" ||
+      body.action === "add-member"
+    ) {
+      await refresh();
+    }
+    if (body.groupId) {
       await loadDetail(String(body.groupId));
+    } else if (selectedId) {
+      await loadDetail(selectedId);
     }
     return true;
   }
@@ -376,23 +394,11 @@ export function GroupsHub() {
               {user && (
                 <div className="flex flex-wrap gap-2">
                   {detail.isMember ? (
-                    <Button
-                      variant="secondary"
-                      disabled={busy}
-                      onClick={async () => {
-                        const ok = await runAction({
-                          action: "leave",
-                          groupId: detail.id,
-                        });
-                        if (ok) {
-                          setDetail(null);
-                          setSelectedId(null);
-                          setStatus("You left the group.");
-                        }
-                      }}
-                    >
-                      Leave
-                    </Button>
+                    <p className="rounded-xl bg-sand-100 px-3 py-2 text-sm text-night-600">
+                      {detail.isAdmin
+                        ? "Group leaders can add members, assign co-leaders, and remove people below."
+                        : "Only your group leader can remove you from this group."}
+                    </p>
                   ) : (
                     <Button
                       disabled={busy}
@@ -448,45 +454,134 @@ export function GroupsHub() {
               <h3 className="text-sm font-semibold uppercase tracking-wide text-night-500">
                 Members ({detail.members.length})
               </h3>
+
+              {detail.isAdmin && user && (
+                <form
+                  className="mt-3 flex flex-col gap-2 sm:flex-row"
+                  onSubmit={async (event) => {
+                    event.preventDefault();
+                    const ok = await runAction({
+                      action: "add-member",
+                      groupId: detail.id,
+                      email: addMemberEmail,
+                    });
+                    if (ok) {
+                      setAddMemberEmail("");
+                      setStatus(`Added member to ${detail.name}.`);
+                    }
+                  }}
+                >
+                  <input
+                    type="email"
+                    value={addMemberEmail}
+                    onChange={(event) => setAddMemberEmail(event.target.value)}
+                    placeholder="Add member by email"
+                    required
+                    className="min-w-0 flex-1 rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                  />
+                  <Button type="submit" variant="secondary" disabled={busy || !addMemberEmail.trim()}>
+                    Add member
+                  </Button>
+                </form>
+              )}
+
               <div className="mt-3 space-y-2">
-                {detail.members.map((member) => (
+                {detail.members.map((member) => {
+                  const canManageMember =
+                    detail.isAdmin && user && member.id !== user.id;
+                  const leadersAfterChange = remainingAdminCount(detail, member.id);
+                  const canPromote = canManageMember && !member.isAdmin;
+                  const canDemote = canManageMember && member.isAdmin && leadersAfterChange >= 1;
+                  const canRemove =
+                    canManageMember && (!member.isAdmin || leadersAfterChange >= 1);
+
+                  return (
                   <div
                     key={member.id}
-                    className="flex items-center justify-between rounded-xl bg-sand-50 px-3 py-2"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-sand-50 px-3 py-2"
                   >
                     <div>
                       <p className="text-sm font-medium text-night-900">{member.name}</p>
                       <p className="text-xs text-night-500">
-                        {getCampus(member.campusId).city}
-                        {member.id === detail.createdBy ? " · Leader" : ""}
+                        {getCampus(member.campusId).city} · {memberRoleLabel(member)}
                       </p>
                     </div>
-                    {detail.isAdmin &&
-                      user &&
-                      member.id !== user.id &&
-                      member.id !== detail.createdBy && (
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={async () => {
-                            if (
-                              !window.confirm(`Remove ${member.name} from this group?`)
-                            ) {
-                              return;
-                            }
-                            await runAction({
-                              action: "remove-member",
-                              groupId: detail.id,
-                              memberId: member.id,
-                            });
-                          }}
-                          className="text-xs font-semibold text-red-700 underline"
-                        >
-                          Remove
-                        </button>
-                      )}
+                    {canManageMember && (canPromote || canDemote || canRemove) ? (
+                      <div className="flex flex-wrap gap-2">
+                        {canPromote ? (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={async () => {
+                              const ok = await runAction({
+                                action: "promote-admin",
+                                groupId: detail.id,
+                                memberId: member.id,
+                              });
+                              if (ok) {
+                                setStatus(`Made ${member.name} a group leader.`);
+                              }
+                            }}
+                            className="text-xs font-semibold text-night-800 underline"
+                          >
+                            Make leader
+                          </button>
+                        ) : null}
+                        {canDemote ? (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={async () => {
+                              if (
+                                !window.confirm(
+                                  `Remove ${member.name}'s leader role in this group?`,
+                                )
+                              ) {
+                                return;
+                              }
+                              const ok = await runAction({
+                                action: "demote-admin",
+                                groupId: detail.id,
+                                memberId: member.id,
+                              });
+                              if (ok) {
+                                setStatus(`Removed ${member.name} as group leader.`);
+                              }
+                            }}
+                            className="text-xs font-semibold text-night-700 underline"
+                          >
+                            Remove leader role
+                          </button>
+                        ) : null}
+                        {canRemove ? (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={async () => {
+                              if (
+                                !window.confirm(`Remove ${member.name} from this group?`)
+                              ) {
+                                return;
+                              }
+                              const ok = await runAction({
+                                action: "remove-member",
+                                groupId: detail.id,
+                                memberId: member.id,
+                              });
+                              if (ok) {
+                                setStatus(`Removed ${member.name} from ${detail.name}.`);
+                              }
+                            }}
+                            className="text-xs font-semibold text-red-700 underline"
+                          >
+                            Remove
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

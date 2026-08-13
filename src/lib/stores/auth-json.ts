@@ -229,6 +229,18 @@ export async function promoteUserRole(
   return users[index];
 }
 
+export async function updateUserPassword(userId: string, password: string) {
+  const users = await getUsers();
+  const index = users.findIndex((user) => user.id === userId);
+  if (index === -1) return null;
+
+  users[index].passwordHash = await bcrypt.hash(password, 10);
+  users[index].updatedAt = new Date().toISOString();
+  await writeJson(USERS_FILE, users);
+  await logActivity(userId, "password_reset", "Password reset completed");
+  return users[index];
+}
+
 async function logActivity(
   userId: string,
   type: ActivityItem["type"],

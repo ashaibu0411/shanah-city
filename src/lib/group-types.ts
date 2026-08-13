@@ -28,6 +28,8 @@ export type GroupMemberPreview = {
   id: string;
   name: string;
   campusId: string;
+  isAdmin: boolean;
+  isCreator: boolean;
 };
 
 export type GroupSummary = Group & {

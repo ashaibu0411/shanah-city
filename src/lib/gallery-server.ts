@@ -1,6 +1,12 @@
 import path from "path";
 import type { PublicMember } from "@/lib/auth-types";
 import type { GalleryPhoto } from "@/lib/gallery-types";
+import {
+  canManageGallery,
+  canUploadGalleryByRole,
+  canViewGalleryDownloadLog,
+  hasMediaRole,
+} from "@/lib/gallery-permissions";
 import { useDatabase } from "@/lib/use-database";
 import * as galleryDb from "@/lib/stores/gallery-db";
 import * as galleryJson from "@/lib/stores/gallery-json";
@@ -27,23 +33,7 @@ export function isAllowedImage(file: File) {
   return allowed.includes(file.type) && file.size <= 10 * 1024 * 1024;
 }
 
-export function verifyUploadPin(pin: string) {
-  const expected = process.env.GALLERY_UPLOAD_PIN ?? "shanahcity";
-  return pin === expected;
-}
-
-export function canUploadGallery(
-  user: { role?: string } | null,
-  pin?: string | null,
-) {
-  if (user?.role === "team" || user?.role === "leader") return true;
-  if (pin && verifyUploadPin(pin)) return true;
-  return false;
-}
-
-export function canViewGalleryDownloadLog(user: { role?: string } | null) {
-  return user?.role === "team" || user?.role === "leader";
-}
+export { canUploadGalleryByRole, canManageGallery, canViewGalleryDownloadLog, hasMediaRole };
 
 export function guessContentType(filepath: string) {
   const ext = path.extname(filepath).toLowerCase();

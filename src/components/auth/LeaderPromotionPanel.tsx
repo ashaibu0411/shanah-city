@@ -8,7 +8,7 @@ export function LeaderPromotionPanel() {
   const { user, setUser } = useAuth();
   const [pin, setPin] = useState("");
   const [targetEmail, setTargetEmail] = useState("");
-  const [targetRole, setTargetRole] = useState<"leader" | "team">("leader");
+  const [targetRole, setTargetRole] = useState<"leader" | "team" | "media">("media");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -81,11 +81,14 @@ export function LeaderPromotionPanel() {
           />
           <select
             value={targetRole}
-            onChange={(event) => setTargetRole(event.target.value as "leader" | "team")}
+            onChange={(event) =>
+              setTargetRole(event.target.value as "leader" | "team" | "media")
+            }
             className="w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
           >
+            <option value="media">Media (upload gallery photos)</option>
             <option value="leader">Leader (write devotions)</option>
-            <option value="team">Team (upload photos)</option>
+            <option value="team">Team (backend support)</option>
           </select>
           <input
             type="password"
