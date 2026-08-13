@@ -1,0 +1,280 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useApp } from "@/components/app/AppProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { getCampus } from "@/lib/site";
+import type { CommunityPost } from "@/lib/member-types";
+import { Button, Card, SectionTitle } from "@/components/ui";
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function PostCard({
+  post,
+  onUpdate,
+}: {
+  post: CommunityPost;
+  onUpdate: (post: CommunityPost) => void;
+}) {
+  const [commentDraft, setCommentDraft] = useState("");
+  const [showComments, setShowComments] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [reacted, setReacted] = useState(false);
+  const campus = getCampus(post.campusId);
+
+  const typeStyles = {
+    prayer: "bg-violet-100 text-violet-700",
+    praise: "bg-amber-100 text-amber-700",
+    announcement: "bg-blue-100 text-blue-700",
+  };
+
+  async function submitComment() {
+    if (!commentDraft.trim()) return;
+    setLoading(true);
+    const response = await fetch("/api/community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "comment",
+        postId: post.id,
+        author: "You",
+        content: commentDraft.trim(),
+      }),
+    });
+    const data = await response.json();
+    setLoading(false);
+    if (response.ok) {
+      onUpdate(data.post);
+      setCommentDraft("");
+      setShowComments(true);
+    }
+  }
+
+  async function react() {
+    if (reacted) return;
+    const response = await fetch("/api/community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "react", postId: post.id }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      onUpdate(data.post);
+      setReacted(true);
+    }
+  }
+
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${typeStyles[post.type]}`}
+          >
+            {post.type}
+          </span>
+          <h3 className="mt-2 font-semibold text-night-900">{post.author}</h3>
+          <p className="text-xs text-night-500">
+            {campus.name} · {post.timeAgo}
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm leading-relaxed text-night-700">{post.content}</p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <Button variant={reacted ? "primary" : "secondary"} onClick={react}>
+          {post.type === "prayer"
+            ? "🙏 I prayed"
+            : post.type === "announcement"
+              ? "📣 Noted"
+              : "♡ Amen"}{" "}
+          ({post.reactions})
+        </Button>
+        <Button variant="ghost" onClick={() => setShowComments((value) => !value)}>
+          💬 Comment ({post.comments?.length ?? 0})
+        </Button>
+      </div>
+
+      {showComments && (
+        <div className="mt-4 space-y-3 border-t border-night-900/5 pt-4">
+          {(post.comments ?? []).map((comment) => (
+            <div key={comment.id} className="rounded-xl bg-sand-50 p-3">
+              <p className="text-sm font-semibold text-night-900">{comment.author}</p>
+              <p className="mt-1 text-sm text-night-700">{comment.content}</p>
+              <p className="mt-1 text-xs text-night-500">{formatTime(comment.createdAt)}</p>
+            </div>
+          ))}
+
+          <div className="flex gap-2">
+            <input
+              value={commentDraft}
+              onChange={(event) => setCommentDraft(event.target.value)}
+              placeholder="Write a comment..."
+              className="flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+            <Button onClick={submitComment}>{loading ? "..." : "Post"}</Button>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] }) {
+  const [posts, setPosts] = useState(initialPosts);
+  const [draft, setDraft] = useState("");
+  const [announcementDraft, setAnnouncementDraft] = useState("");
+  const [leaderPin, setLeaderPin] = useState("");
+  const [postType, setPostType] = useState<"prayer" | "praise">("prayer");
+  const { campus } = useApp();
+  const { user } = useAuth();
+  const isLeader = user?.role === "leader";
+
+  useEffect(() => {
+    setPosts(initialPosts);
+  }, [initialPosts]);
+
+  function updatePost(updated: CommunityPost) {
+    setPosts((current) =>
+      current.map((post) => (post.id === updated.id ? updated : post)),
+    );
+  }
+
+  async function submitPost() {
+    if (!draft.trim()) return;
+    const response = await fetch("/api/community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        campusId: campus.id,
+        content: draft.trim(),
+        type: postType,
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setPosts((current) => [data.post, ...current]);
+      setDraft("");
+    }
+  }
+
+  async function submitAnnouncement() {
+    if (!announcementDraft.trim()) return;
+    const response = await fetch("/api/community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        campusId: campus.id,
+        content: announcementDraft.trim(),
+        type: "announcement",
+        pin: leaderPin || undefined,
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setPosts((current) => [data.post, ...current]);
+      setAnnouncementDraft("");
+      setLeaderPin("");
+    }
+  }
+
+  return (
+    <div>
+      {user && (
+        <Card className="mb-6 border border-blue-100 bg-blue-50/40">
+          <h3 className="font-display text-lg font-semibold text-night-900">
+            Post a church announcement
+          </h3>
+          <p className="mt-2 text-sm text-night-600">
+            Leaders can broadcast to all members. Everyone with announcements enabled gets a
+            push notification.
+          </p>
+          <textarea
+            value={announcementDraft}
+            onChange={(event) => setAnnouncementDraft(event.target.value)}
+            placeholder="Service update, event reminder, campus news..."
+            className="mt-3 w-full rounded-xl border border-night-900/10 bg-white p-3 text-sm outline-none ring-night-900/5 focus:ring-2"
+            rows={3}
+          />
+          {!isLeader && (
+            <input
+              value={leaderPin}
+              onChange={(event) => setLeaderPin(event.target.value)}
+              type="password"
+              placeholder="Leader PIN (if not a leader account)"
+              className="mt-3 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          )}
+          <div className="mt-3 flex justify-end">
+            <Button onClick={submitAnnouncement} disabled={!announcementDraft.trim()}>
+              Send announcement
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      <Card className="mb-6">
+        <h3 className="font-display text-lg font-semibold text-night-900">
+          Share a prayer or praise
+        </h3>
+        <div className="mt-3 flex gap-2">
+          {(["prayer", "praise"] as const).map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setPostType(type)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                postType === type
+                  ? "bg-night-900 text-sand-50"
+                  : "bg-sand-100 text-night-600"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+        <textarea
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          placeholder="What's on your heart today?"
+          className="mt-3 w-full rounded-xl border border-night-900/10 bg-sand-50 p-3 text-sm outline-none ring-night-900/5 focus:ring-2"
+          rows={3}
+        />
+        <div className="mt-3 flex justify-end">
+          <Button onClick={submitPost}>Post to community</Button>
+        </div>
+      </Card>
+
+      <div className="grid gap-4">
+        {posts.map((post) => (
+          <PostCard key={post.id} post={post} onUpdate={updatePost} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function CommunityPreview({ initialPosts }: { initialPosts: CommunityPost[] }) {
+  return (
+    <section className="mb-8">
+      <SectionTitle title="Community pulse" href="/community" />
+      <div className="grid gap-3">
+        {initialPosts.slice(0, 2).map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            onUpdate={() => undefined}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}

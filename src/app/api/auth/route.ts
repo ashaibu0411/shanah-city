@@ -1,0 +1,86 @@
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import {
+  createSession,
+  createUser,
+  getActivity,
+  getUserFromSession,
+  SESSION_COOKIE,
+  SESSION_DAYS,
+  toPublicMember,
+  verifyCredentials,
+} from "@/lib/auth-server";
+
+export async function GET() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const user = await getUserFromSession(token);
+  if (!user) {
+    return NextResponse.json({ user: null });
+  }
+  const activity = await getActivity(user.id);
+  return NextResponse.json({ user, activity });
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const action = body.action ?? "signin";
+
+  if (action === "signup") {
+    try {
+      const user = await createUser({
+        name: body.name,
+        email: body.email,
+        password: body.password,
+        phone: body.phone,
+        campusId: body.campusId ?? "colorado",
+      });
+      const session = await createSession(user.id);
+      const response = NextResponse.json(
+        { user: toPublicMember(user) },
+        { status: 201 },
+      );
+      response.cookies.set(SESSION_COOKIE, session.token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: SESSION_DAYS * 24 * 60 * 60,
+        path: "/",
+      });
+      return response;
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Sign up failed." },
+        { status: 400 },
+      );
+    }
+  }
+
+  const user = await verifyCredentials(body.email, body.password);
+  if (!user) {
+    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+  }
+
+  const session = await createSession(user.id);
+  const response = NextResponse.json({ user: toPublicMember(user) });
+  response.cookies.set(SESSION_COOKIE, session.token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: SESSION_DAYS * 24 * 60 * 60,
+    path: "/",
+  });
+  return response;
+}
+
+export async function DELETE() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(SESSION_COOKIE, "", { maxAge: 0, path: "/" });
+  if (token) {
+    const { deleteSession } = await import("@/lib/auth-server");
+    await deleteSession(token);
+  }
+  return response;
+}

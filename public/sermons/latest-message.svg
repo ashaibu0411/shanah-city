@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="50%" stop-color="#1a2332"/>
+      <stop offset="100%" stop-color="#405578"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c4a882"/>
+      <stop offset="100%" stop-color="#967652"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <rect x="0" y="0" width="800" height="6" fill="url(#accent)"/>
+  <circle cx="120" cy="120" r="80" fill="#ffffff" opacity="0.06"/>
+  <circle cx="680" cy="360" r="120" fill="#ffffff" opacity="0.04"/>
+  <text x="56" y="72" fill="#c4a882" font-family="Georgia, serif" font-size="18" letter-spacing="4">SHANAH CITY</text>
+  <text x="56" y="210" fill="#faf8f5" font-family="Georgia, serif" font-size="44" font-weight="600">Faith Through</text>
+  <text x="56" y="262" fill="#faf8f5" font-family="Georgia, serif" font-size="44" font-weight="600">the Word</text>
+  <text x="56" y="320" fill="#e8dfd2" font-family="sans-serif" font-size="22">Latest Message</text>
+  <rect x="56" y="350" width="72" height="72" rx="36" fill="#faf8f5" opacity="0.95"/>
+  <polygon points="88,378 88,394 104,386" fill="#1a2332"/>
+</svg>

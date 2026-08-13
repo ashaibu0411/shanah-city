@@ -1,0 +1,141 @@
+export type Campus = {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  timezone: string;
+  pastor: string;
+  serviceTimes: string[];
+  address?: string;
+  isLive?: boolean;
+};
+
+export type LiveStream = {
+  isLive: boolean;
+  title: string;
+  campusId: string;
+  viewerCount: number;
+  scheduledAt?: string;
+  chatEnabled: boolean;
+  youtube: {
+    channelUrl: string;
+    embedUrl: string;
+    videoId?: string;
+    isLive: boolean;
+  };
+  facebook: {
+    isLive: boolean;
+    shanahCity: {
+      pageUrl: string;
+      embedUrl: string;
+      liveEmbedUrl?: string;
+    };
+    shanahRevival: {
+      pageUrl: string;
+      embedUrl: string;
+      liveEmbedUrl?: string;
+    };
+  };
+};
+
+export type SocialAccount = {
+  name: string;
+  url: string;
+  handle?: string;
+};
+
+export type GivingPlatform = {
+  id: string;
+  name: string;
+  description: string;
+  action: "link" | "copy";
+  url?: string;
+  copyValue?: string;
+  copyHint?: string;
+  tone: string;
+};
+
+export type StreamPreview = {
+  id: string;
+  platform: string;
+  label: string;
+  url: string;
+  thumbnail: string;
+  videoId?: string;
+  fallbackThumbnail?: string;
+  handle?: string;
+  embedUrl?: string;
+};
+
+export type MediaClip = {
+  id: string;
+  title: string;
+  platform: "youtube" | "instagram" | "facebook";
+  url: string;
+  videoId?: string;
+  thumbnail?: string;
+  publishedAt?: string;
+};
+
+export type MediaTab = "live" | "clips";
+
+export type Devotion = {
+  id: string;
+  title: string;
+  verse: string;
+  reference: string;
+  readingTime: string;
+  content: string;
+  prayer: string;
+  date: string;
+  published?: boolean;
+  authorId?: string;
+  authorName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type Meeting = {
+  id: string;
+  title: string;
+  campusId: string;
+  host: string;
+  schedule: string;
+  platform: "zoom" | "teams";
+  joinUrl: string;
+  meetingId?: string;
+  passcode?: string;
+};
+
+export type ShopProduct = {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  image: string;
+  description: string;
+  badge?: string;
+};
+
+export type CommunityPost = {
+  id: string;
+  author: string;
+  campusId: string;
+  content: string;
+  timeAgo: string;
+  type: "prayer" | "praise" | "announcement";
+  reactions: number;
+};
+
+export type Leader = {
+  name: string;
+  role: string;
+  ministry?: string;
+};
+
+export type QuickAction = {
+  label: string;
+  href: string;
+  icon: string;
+  color: string;
+};

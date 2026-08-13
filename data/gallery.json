@@ -1,0 +1,50 @@
+[
+  {
+    "id": "upload-1786576535918",
+    "url": "/gallery/uploads/1786576535914-shanah-city-logo.jpeg",
+    "title": "sunday service",
+    "album": "Community",
+    "uploadedAt": "2026-08-12T23:15:35.918Z",
+    "uploadedBy": "Shanah City Team"
+  },
+  {
+    "id": "seed-worship-1",
+    "url": "/gallery/worship.svg",
+    "title": "Sunday Worship",
+    "album": "Worship",
+    "uploadedAt": "2026-08-01T10:00:00.000Z",
+    "uploadedBy": "Shanah City Team"
+  },
+  {
+    "id": "seed-community-1",
+    "url": "/gallery/community.svg",
+    "title": "Fellowship & Community",
+    "album": "Community",
+    "uploadedAt": "2026-08-05T10:00:00.000Z",
+    "uploadedBy": "Shanah City Team"
+  },
+  {
+    "id": "seed-events-1",
+    "url": "/gallery/events.svg",
+    "title": "Church Event",
+    "album": "Events",
+    "uploadedAt": "2026-08-08T10:00:00.000Z",
+    "uploadedBy": "Shanah City Team"
+  },
+  {
+    "id": "seed-youth-1",
+    "url": "/gallery/youth.svg",
+    "title": "Youth Ministry",
+    "album": "Youth",
+    "uploadedAt": "2026-08-10T10:00:00.000Z",
+    "uploadedBy": "Shanah City Team"
+  },
+  {
+    "id": "seed-ministry-1",
+    "url": "/gallery/ministry.svg",
+    "title": "Prayer & Ministry",
+    "album": "Ministry",
+    "uploadedAt": "2026-08-11T10:00:00.000Z",
+    "uploadedBy": "Shanah City Team"
+  }
+]

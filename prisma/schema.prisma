@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                  String         @id
+  name                String
+  email               String         @unique
+  phone               String?
+  campusId            String
+  role                String         @default("member")
+  avatarUrl           String?
+  passwordHash        String
+  pushEnabled         Boolean        @default(true)
+  notifyDevotions     Boolean        @default(true)
+  notifyMessages      Boolean        @default(true)
+  notifyAnnouncements Boolean        @default(true)
+  createdAt           DateTime
+  updatedAt           DateTime
+  family              FamilyMember[]
+  sessions            Session[]
+  activities          ActivityLog[]
+}
+
+model FamilyMember {
+  id           String  @id
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  relationship String
+  birthYear    String?
+  notes        String?
+}
+
+model Session {
+  token     String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}
+
+model ActivityLog {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  label     String
+  createdAt DateTime
+}
+
+model MessageThread {
+  id               String    @id
+  participantAId   String
+  participantBId   String
+  participantNames Json
+  lastMessage      String
+  lastMessageAt    DateTime
+  createdAt        DateTime
+  messages         Message[]
+}
+
+model Message {
+  id         String        @id
+  threadId   String
+  thread     MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId   String
+  senderName String
+  content    String
+  createdAt  DateTime
+  readAt     DateTime?
+}
+
+model UserBlock {
+  id              String   @id
+  blockerId       String
+  blockedUserId   String
+  blockedUserName String
+  createdAt       DateTime
+}
+
+model MessageReport {
+  id               String   @id
+  reporterId       String
+  reporterName     String
+  reportedUserId   String
+  reportedUserName String
+  threadId         String?
+  reason           String
+  status           String   @default("open")
+  createdAt        DateTime
+}
+
+model Group {
+  id              String   @id
+  name            String
+  description     String
+  category        String
+  campusId        String?
+  createdBy       String
+  creatorName     String
+  visibility      String
+  meetingSchedule String?
+  meetingLink     String?
+  memberIds       Json
+  adminIds        Json
+  createdAt       DateTime
+  updatedAt       DateTime
+}
+
+model CommunityPost {
+  id        String    @id
+  author    String
+  campusId  String
+  content   String
+  timeAgo   String
+  type      String
+  reactions Int       @default(0)
+  createdAt DateTime  @default(now())
+  comments  Comment[]
+}
+
+model Comment {
+  id        String        @id
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    String
+  content   String
+  createdAt DateTime
+}
+
+model Devotion {
+  id          String    @id
+  title       String
+  verse       String
+  reference   String
+  readingTime String
+  content     String
+  prayer      String
+  date        String
+  published   Boolean   @default(true)
+  authorId    String?
+  authorName  String?
+  createdAt   DateTime?
+  updatedAt   DateTime?
+}
+
+model PushSubscription {
+  id           String   @id
+  userId       String
+  endpoint     String   @unique
+  subscription Json
+  createdAt    DateTime
+  updatedAt    DateTime
+}
+
+model VolunteerCheckIn {
+  id             String   @id
+  name           String
+  ministry       String
+  checkedInAt    DateTime
+  atChurch       Boolean
+  distanceMeters Float
+}
+
+model KidCheckIn {
+  id           String    @id
+  parentName   String
+  childName    String
+  ageGroup     String
+  service      String
+  notes        String?
+  securityCode String
+  checkedInAt  DateTime
+  checkedOutAt DateTime?
+}
+
+model UnavailabilityRequest {
+  id          String    @id
+  personName  String
+  group       String
+  startDate   String
+  endDate     String
+  reason      String
+  status      String
+  submittedAt DateTime
+  reviewedAt  DateTime?
+  reviewedBy  String?
+}
+
+model GalleryPhoto {
+  id           String   @id
+  url          String
+  title        String
+  album        String
+  uploadedAt   DateTime
+  uploadedBy   String?
+  linkProvider String?
+}
+
+model GalleryDownload {
+  id             String   @id
+  photoId        String
+  photoTitle     String
+  userId         String
+  userName       String
+  userEmail      String
+  downloadedAt   DateTime
+  acceptedPolicy Boolean
+  policyVersion  String
+}
+
+model MediaClip {
+  id          String    @id
+  title       String
+  platform    String
+  url         String
+  videoId     String?
+  thumbnail   String?
+  publishedAt DateTime?
+}
+
+model MeetingClick {
+  id           String   @id
+  userId       String
+  userName     String
+  userEmail    String
+  meetingId    String?
+  meetingTitle String
+  groupId      String?
+  groupName    String?
+  campusId     String?
+  platform     String?
+  source       String
+  joinUrl      String
+  clickedAt    DateTime
+
+  @@index([clickedAt])
+  @@index([groupId])
+  @@index([meetingId])
+  @@index([userId])
+}

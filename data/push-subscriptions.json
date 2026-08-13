@@ -1,0 +1,16 @@
+[
+  {
+    "id": "push-1786578308815",
+    "userId": "user-1786578251521",
+    "endpoint": "https://fcm.googleapis.com/fcm/send/dCTBxjLJAGU:APA91bEYxbcex6Zm1xyUn_C4hhG9Ao4j25obPo6gmnaHzTQxxHRBq82xGj1_G1Wrni1jRSrWFa_UI6bZRWLdejSlke8VaY2ycmdeClvP3y0Cd5IUXbvHDSrhtEFLrQ5UoWcXeQ7ro89g",
+    "subscription": {
+      "endpoint": "https://fcm.googleapis.com/fcm/send/dCTBxjLJAGU:APA91bEYxbcex6Zm1xyUn_C4hhG9Ao4j25obPo6gmnaHzTQxxHRBq82xGj1_G1Wrni1jRSrWFa_UI6bZRWLdejSlke8VaY2ycmdeClvP3y0Cd5IUXbvHDSrhtEFLrQ5UoWcXeQ7ro89g",
+      "expirationTime": null,
+      "keys": {
+        "p256dh": "BKVFYqbFqn4Py2T6dvBqWcyBXCET2as7tYjh14WH3KKttpFNfd7_EgxetneszbQ4DfZBR5DlOe7DLMkEBMnFbD0",
+        "auth": "JSlw0GKQnBWYgQ1IKsI86A"
+      }
+    },
+    "createdAt": "2026-08-12T23:45:08.815Z"
+  }
+]

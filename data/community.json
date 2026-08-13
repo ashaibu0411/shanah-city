@@ -1,0 +1,39 @@
+[
+  {
+    "id": "1",
+    "author": "Shanah City Team",
+    "campusId": "colorado",
+    "content": "Join us this Friday at 7 PM or Sunday at 10 AM for worship! Childcare and activities for all ages.",
+    "timeAgo": "Today",
+    "type": "announcement",
+    "reactions": 52,
+    "comments": []
+  },
+  {
+    "id": "2",
+    "author": "Member",
+    "campusId": "colorado",
+    "content": "Please pray for healing and strength for my family this week. Trusting God completely.",
+    "timeAgo": "2h ago",
+    "type": "prayer",
+    "reactions": 18,
+    "comments": [
+      {
+        "id": "c1",
+        "author": "Mary A.",
+        "content": "Praying with you! God is faithful.",
+        "createdAt": "2026-08-12T15:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "3",
+    "author": "Member",
+    "campusId": "online",
+    "content": "Watched last Sunday's message online — one word from God really can change everything!",
+    "timeAgo": "5h ago",
+    "type": "praise",
+    "reactions": 31,
+    "comments": []
+  }
+]

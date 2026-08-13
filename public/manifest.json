@@ -1,0 +1,16 @@
+{
+  "name": "Shanah City Church",
+  "short_name": "Shanah City",
+  "description": "Shanah City — worship, devotions, and community in Aurora, Colorado, Accra, Ghana, and online worldwide.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf8f5",
+  "theme_color": "#1a2332",
+  "icons": [
+    {
+      "src": "/shanah-city-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-sand-50 text-night-900 antialiased;
+  }
+
+  body[data-shell="mobile"] {
+    @apply bg-sand-100;
+  }
+}
+
+@layer components {
+  body[data-shell="mobile"] .app-main {
+    @apply mx-auto max-w-lg px-4 py-3;
+  }
+
+  body[data-shell="mobile"] .app-main > section:first-child {
+    @apply mt-0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
