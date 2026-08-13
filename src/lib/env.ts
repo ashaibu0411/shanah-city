@@ -1,3 +1,5 @@
+import { isBlobConfigured } from "@/lib/use-blob";
+
 const PRODUCTION_REQUIRED = [
   "DATABASE_URL",
   "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
@@ -23,7 +25,7 @@ export function validateProductionEnv() {
 
 export function getEnvStatus() {
   const databaseConfigured = Boolean(process.env.DATABASE_URL?.trim());
-  const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
+  const blobConfigured = isBlobConfigured();
   const pushConfigured = Boolean(
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() &&
       process.env.VAPID_PRIVATE_KEY?.trim() &&
