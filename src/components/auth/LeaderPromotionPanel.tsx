@@ -31,7 +31,7 @@ export function LeaderPromotionPanel() {
     }
 
     setUser(data.user);
-    setStatus("Your account is now a leader. You can write devotions without entering a PIN each time.");
+    setStatus("Your account is now a leader. You can send church announcements and manage leader tools.");
     setPin("");
   }
 
@@ -87,7 +87,7 @@ export function LeaderPromotionPanel() {
             className="w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
           >
             <option value="media">Media (upload gallery photos)</option>
-            <option value="leader">Leader (write devotions)</option>
+            <option value="leader">Leader (announcements & admin)</option>
             <option value="team">Team (backend support)</option>
           </select>
           <input
@@ -104,8 +104,8 @@ export function LeaderPromotionPanel() {
       ) : (
         <div className="mt-4 space-y-4">
           <p className="text-sm text-night-600">
-            Pastors and leaders can unlock devotion writing permanently by entering the leader PIN
-            once on this account.
+            Pastors and leaders can unlock announcement tools permanently by entering the leader
+            PIN once on this account.
           </p>
           <input
             type="password"

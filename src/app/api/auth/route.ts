@@ -10,18 +10,18 @@ import {
   toPublicMember,
   verifyCredentials,
 } from "@/lib/auth-server";
-import { getGalleryUploadPermissions } from "@/lib/gallery-access-server";
+import { getSessionPermissions } from "@/lib/session-permissions";
 
 export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   if (!user) {
-    return NextResponse.json({ user: null, permissions: { canUploadGallery: false } });
+    return NextResponse.json({ user: null, permissions: { canUploadGallery: false, canWriteDevotions: false } });
   }
   const [activity, permissions] = await Promise.all([
     getActivity(user.id),
-    getGalleryUploadPermissions(user),
+    getSessionPermissions(user),
   ]);
   return NextResponse.json({ user, activity, permissions });
 }
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       });
       const session = await createSession(user.id);
       const publicUser = toPublicMember(user);
-      const permissions = await getGalleryUploadPermissions(publicUser);
+      const permissions = await getSessionPermissions(publicUser);
       const response = NextResponse.json(
         { user: publicUser, permissions },
         { status: 201 },
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
 
   const session = await createSession(user.id);
   const publicUser = toPublicMember(user);
-  const permissions = await getGalleryUploadPermissions(publicUser);
+  const permissions = await getSessionPermissions(publicUser);
   const response = NextResponse.json({ user: publicUser, permissions });  response.cookies.set(SESSION_COOKIE, session.token, {
     httpOnly: true,
     sameSite: "lax",

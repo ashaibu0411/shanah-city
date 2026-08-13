@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MobileTabIcon, navHrefToTabIcon } from "@/components/app/MobileTabIcon";
 import { site } from "@/lib/site";
+import { useAppNavItems } from "@/lib/use-app-nav-items";
 
 const tabs = [
   site.nav[0],
@@ -16,8 +17,9 @@ const tabs = [
 export function MobileNav() {
   const pathname = usePathname();
   const { setMoreMenuOpen } = useAppShell();
-  const moreActive = site.nav
-    .slice(5)
+  const navItems = useAppNavItems();
+  const moreActive = navItems
+    .filter((item) => !tabs.some((tab) => tab.href === item.href))
     .some((item) => item.href === pathname);
 
   return (

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
+import { devotionGroupMatchHint } from "@/lib/devotion-writers-group";
 import type { Devotion } from "@/lib/types";
 
 const emptyForm = {
@@ -18,8 +19,7 @@ const emptyForm = {
 };
 
 export function DevotionAdminPanel() {
-  const { user, loading } = useAuth();
-  const [pin, setPin] = useState("");
+  const { user, loading, permissions } = useAuth();
   const [devotions, setDevotions] = useState<Devotion[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -27,9 +27,9 @@ export function DevotionAdminPanel() {
   const [busy, setBusy] = useState(false);
 
   async function loadDevotions() {
-    if (!user) return;
-    const query = pin ? `?all=1&pin=${encodeURIComponent(pin)}` : "?all=1";
-    const response = await fetch(`/api/devotions${query}`);
+    if (!permissions.canWriteDevotions) return;
+
+    const response = await fetch("/api/devotions?all=1");
     const data = await response.json();
     if (response.ok) {
       setDevotions(data.devotions ?? []);
@@ -40,10 +40,10 @@ export function DevotionAdminPanel() {
   }
 
   useEffect(() => {
-    if (user) {
+    if (permissions.canWriteDevotions) {
       loadDevotions();
     }
-  }, [user, pin]);
+  }, [permissions.canWriteDevotions]);
 
   function startEdit(devotion: Devotion) {
     setEditingId(devotion.id);
@@ -68,11 +68,10 @@ export function DevotionAdminPanel() {
   async function saveDevotion() {
     setBusy(true);
     setStatus("");
-    const payload = { ...form, pin };
     const response = await fetch("/api/devotions", {
       method: editingId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editingId ? { ...payload, id: editingId } : payload),
+      body: JSON.stringify(editingId ? { ...form, id: editingId } : form),
     });
     const data = await response.json();
     setBusy(false);
@@ -89,13 +88,13 @@ export function DevotionAdminPanel() {
 
   async function removeDevotion(id: string) {
     if (!window.confirm("Delete this devotion?")) return;
-    setBusy(true);
+
     const response = await fetch("/api/devotions", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, pin }),
+      body: JSON.stringify({ id }),
     });
-    setBusy(false);
+
     if (response.ok) {
       setStatus("Devotion deleted.");
       await loadDevotions();
@@ -109,15 +108,33 @@ export function DevotionAdminPanel() {
   if (!user) {
     return (
       <Card>
+        <h2 className="font-display text-xl font-semibold text-night-900">Sign in required</h2>
+        <p className="mt-2 text-sm text-night-600">
+          Sign in with your Shanah City account to write devotions.
+        </p>
+        <Button href="/sign-in?next=/admin/devotions" className="mt-4">
+          Sign in
+        </Button>
+      </Card>
+    );
+  }
+
+  if (!permissions.canWriteDevotions) {
+    return (
+      <Card>
         <h2 className="font-display text-xl font-semibold text-night-900">
-          Leader sign-in required
+          Team ZNCF only
         </h2>
         <p className="mt-2 text-sm text-night-600">
-          Sign in with your Shanah City account, then enter the leader PIN to write
-          devotions.
+          Devotion writing is hidden from the main menu and limited to members of{" "}
+          {devotionGroupMatchHint()}. Ask a Team ZNCF leader to add you on{" "}
+          <Link href="/groups" className="font-semibold text-night-800 hover:underline">
+            Groups
+          </Link>
+          .
         </p>
-        <Button href="/sign-in" className="mt-4">
-          Sign in
+        <Button href="/devotions" variant="secondary" className="mt-4">
+          Read devotions
         </Button>
       </Card>
     );
@@ -127,27 +144,11 @@ export function DevotionAdminPanel() {
     <div className="space-y-6">
       <Card>
         <h2 className="font-display text-xl font-semibold text-night-900">
-          Leader access
+          Team ZNCF editor
         </h2>
         <p className="mt-2 text-sm text-night-600">
-          Signed in as <strong>{user.name}</strong>
-          {user.role === "leader" ? " · Leader account" : " · Enter leader PIN below"}
+          Signed in as <strong>{user.name}</strong>. Publish daily devotions for the app.
         </p>
-        {user.role !== "leader" && (
-          <div className="mt-4">
-            <label className="text-sm font-semibold text-night-800">Leader PIN</label>
-            <input
-              type="password"
-              value={pin}
-              onChange={(event) => setPin(event.target.value)}
-              placeholder="Enter leader PIN"
-              className="mt-2 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
-            <Button className="mt-3" variant="secondary" onClick={loadDevotions}>
-              Unlock editor
-            </Button>
-          </div>
-        )}
       </Card>
 
       <Card>
@@ -157,7 +158,7 @@ export function DevotionAdminPanel() {
               {editingId ? "Edit devotion" : "Write a devotion"}
             </h2>
             <p className="mt-1 text-sm text-night-600">
-              Mobile-friendly editor for pastors and leaders.
+              Mobile-friendly editor for Team ZNCF writers.
             </p>
           </div>
           {editingId && (
@@ -222,7 +223,9 @@ export function DevotionAdminPanel() {
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">
-          <Button onClick={saveDevotion}>{busy ? "Saving..." : editingId ? "Update" : "Publish"}</Button>
+          <Button onClick={saveDevotion}>
+            {busy ? "Saving..." : editingId ? "Update" : "Publish"}
+          </Button>
           <Button href="/devotions" variant="secondary">
             View devotions
           </Button>
@@ -252,7 +255,7 @@ export function DevotionAdminPanel() {
                     {devotion.title}
                   </h4>
                   <p className="mt-1 text-sm text-night-600">
-                    {devotion.authorName ?? "Leader"} · {devotion.reference}
+                    {devotion.authorName ?? "Team ZNCF"} · {devotion.reference}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -276,20 +279,11 @@ export function DevotionAdminPanel() {
           ))}
           {devotions.length === 0 && (
             <Card>
-              <p className="text-sm text-night-600">
-                No devotions loaded yet. Sign in, enter the leader PIN if needed, then
-                tap <strong>Unlock editor</strong>.
-              </p>
+              <p className="text-sm text-night-600">No devotions yet. Write your first one above.</p>
             </Card>
           )}
         </div>
       </section>
-
-      <p className="text-center text-xs text-night-500">
-        Need permanent leader access without a PIN? Ask admin to set{" "}
-        <code className="rounded bg-white px-1">role: &quot;leader&quot;</code> on your
-        account in <Link href="/profile" className="font-semibold underline">Profile</Link>.
-      </p>
     </div>
   );
 }

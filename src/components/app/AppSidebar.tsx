@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { site } from "@/lib/site";
+import { useAppNavItems } from "@/lib/use-app-nav-items";
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const navItems = useAppNavItems();
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-night-900/5 bg-white lg:block">
@@ -14,7 +15,7 @@ export function AppSidebar() {
           Menu
         </p>
         <ul className="space-y-1">
-          {site.nav.map((item) => {
+          {navItems.map((item) => {
             const active = pathname === item.href;
             return (
               <li key={item.href}>

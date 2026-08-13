@@ -7,23 +7,25 @@ import { useReadability } from "@/components/app/ReadabilityProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { site } from "@/lib/site";
-
-const primaryTabs = [
-  site.nav[0],
-  site.nav[1],
-  site.nav[2],
-  site.nav[5],
-];
-
-const moreLinks = site.nav.filter(
-  (item) => !primaryTabs.some((tab) => tab.href === item.href),
-);
+import { useAppNavItems } from "@/lib/use-app-nav-items";
 
 export function MobileMoreSheet() {
   const { moreMenuOpen, setMoreMenuOpen } = useAppShell();
   const { textScale, setTextScale } = useReadability();
   const { user, loading } = useAuth();
   const pathname = usePathname();
+  const navItems = useAppNavItems();
+
+  const primaryTabs = [
+    site.nav[0],
+    site.nav[1],
+    site.nav[2],
+    site.nav[5],
+  ];
+
+  const moreLinks = navItems.filter(
+    (item) => !primaryTabs.some((tab) => tab.href === item.href),
+  );
 
   if (!moreMenuOpen) return null;
 

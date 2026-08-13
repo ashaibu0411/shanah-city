@@ -20,7 +20,7 @@ const relationships = [
 
 export function MemberProfile() {
   const router = useRouter();
-  const { user, activity, loading, signOut, setUser } = useAuth();
+  const { user, activity, loading, signOut, setUser, permissions } = useAuth();
   const { setCampusId } = useApp();
 
   const [name, setName] = useState("");
@@ -105,7 +105,7 @@ export function MemberProfile() {
 
       <div className="mb-6 flex flex-wrap gap-3">
         <Button href="/messages">Messages</Button>
-        {user.role === "leader" && (
+        {permissions.canWriteDevotions && (
           <Button href="/admin/devotions" variant="secondary">
             Write devotions
           </Button>

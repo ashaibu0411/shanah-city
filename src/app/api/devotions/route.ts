@@ -1,11 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
-  canManageDevotions,
   getUserFromSession,
   recordActivity,
   SESSION_COOKIE,
 } from "@/lib/auth-server";
+import { canWriteDevotions } from "@/lib/devotion-access-server";
+import { devotionGroupMatchHint } from "@/lib/devotion-writers-group";
 import {
   createDevotion,
   deleteDevotion,
@@ -15,6 +16,8 @@ import {
 } from "@/lib/devotion-server";
 import { notifyNewDevotion } from "@/lib/push-server";
 
+const accessError = `Devotion writing is limited to members of ${devotionGroupMatchHint()}.`;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const includeUnpublished = searchParams.get("all") === "1";
@@ -23,9 +26,8 @@ export async function GET(request: Request) {
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE)?.value;
     const user = await getUserFromSession(token);
-    const pin = searchParams.get("pin");
-    if (!canManageDevotions(user, pin)) {
-      return NextResponse.json({ error: "Leader access required." }, { status: 403 });
+    if (!(await canWriteDevotions(user))) {
+      return NextResponse.json({ error: accessError }, { status: 403 });
     }
     const devotions = await getDevotions({ includeUnpublished: true });
     return NextResponse.json({ devotions, canManage: true });
@@ -41,11 +43,8 @@ export async function POST(request: Request) {
   const user = await getUserFromSession(token);
   const body = await request.json();
 
-  if (!canManageDevotions(user, body.pin)) {
-    return NextResponse.json(
-      { error: "Sign in as a leader or enter the leader PIN." },
-      { status: 403 },
-    );
+  if (!(await canWriteDevotions(user))) {
+    return NextResponse.json({ error: accessError }, { status: 403 });
   }
 
   const title = String(body.title ?? "").trim();
@@ -90,11 +89,8 @@ export async function PATCH(request: Request) {
   const user = await getUserFromSession(token);
   const body = await request.json();
 
-  if (!canManageDevotions(user, body.pin)) {
-    return NextResponse.json(
-      { error: "Sign in as a leader or enter the leader PIN." },
-      { status: 403 },
-    );
+  if (!(await canWriteDevotions(user))) {
+    return NextResponse.json({ error: accessError }, { status: 403 });
   }
 
   const id = String(body.id ?? "");
@@ -132,11 +128,8 @@ export async function DELETE(request: Request) {
   const user = await getUserFromSession(token);
   const body = await request.json();
 
-  if (!canManageDevotions(user, body.pin)) {
-    return NextResponse.json(
-      { error: "Sign in as a leader or enter the leader PIN." },
-      { status: 403 },
-    );
+  if (!(await canWriteDevotions(user))) {
+    return NextResponse.json({ error: accessError }, { status: 403 });
   }
 
   const id = String(body.id ?? "");

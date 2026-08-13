@@ -69,7 +69,6 @@ export const site = {
     { label: "Campuses", href: "/campuses", icon: "◎" },
     { label: "Give", href: "/give", icon: "♢" },
     { label: "Profile", href: "/profile", icon: "☺" },
-    { label: "Write Devotions", href: "/admin/devotions", icon: "✎" },
   ],
   social: {
     youtube: "https://www.youtube.com/@ShanahCity",
@@ -126,6 +125,12 @@ export const site = {
     gradient: "from-blue-500 to-indigo-600",
     hoverGradient: "hover:from-blue-600 hover:to-indigo-700",
   },
+} as const;
+
+export const writeDevotionsNavItem = {
+  label: "Write Devotions",
+  href: "/admin/devotions",
+  icon: "✎",
 } as const;
 
 export const leadership: Leader[] = [
