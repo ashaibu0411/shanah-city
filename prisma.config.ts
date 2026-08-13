@@ -19,6 +19,21 @@ function loadEnvFile(path: string) {
 loadEnvFile(".env");
 loadEnvFile(".env.local");
 
+function getMigrationDatabaseUrl() {
+  const direct =
+    process.env.DIRECT_URL?.trim() || process.env.DIRECT_DATABASE_URL?.trim();
+  if (direct) {
+    return direct;
+  }
+
+  const pooled = process.env.DATABASE_URL?.trim();
+  if (pooled?.includes("-pooler.")) {
+    return pooled.replace("-pooler.", ".");
+  }
+
+  return pooled ?? "postgresql://localhost:5432/shanah_city";
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
@@ -26,6 +41,6 @@ export default defineConfig({
     seed: "npx tsx scripts/migrate-json-to-db.ts",
   },
   datasource: {
-    url: process.env.DATABASE_URL ?? "postgresql://localhost:5432/shanah_city",
+    url: getMigrationDatabaseUrl(),
   },
 });
