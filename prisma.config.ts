@@ -30,6 +30,9 @@ function getMigrationDatabaseUrl() {
   if (pooled?.includes("-pooler.")) {
     return pooled.replace("-pooler.", ".");
   }
+  if (pooled?.includes("-pooler")) {
+    return pooled.replace("-pooler", "");
+  }
 
   return pooled ?? "postgresql://localhost:5432/shanah_city";
 }
