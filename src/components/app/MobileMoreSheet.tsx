@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CampusSelector } from "@/components/app/CampusSelector";
+import { useReadability } from "@/components/app/ReadabilityProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { site } from "@/lib/site";
@@ -20,6 +21,7 @@ const moreLinks = site.nav.filter(
 
 export function MobileMoreSheet() {
   const { moreMenuOpen, setMoreMenuOpen } = useAppShell();
+  const { textScale, setTextScale } = useReadability();
   const { user, loading } = useAuth();
   const pathname = usePathname();
 
@@ -52,6 +54,32 @@ export function MobileMoreSheet() {
               Your campus
             </p>
             <CampusSelector />
+          </div>
+
+          <div className="mb-4 rounded-2xl bg-sand-50 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-night-900">Larger text</p>
+                <p className="text-sm text-night-600">Easier reading across the app</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={textScale === "large"}
+                onClick={() =>
+                  setTextScale(textScale === "large" ? "comfortable" : "large")
+                }
+                className={`relative h-8 w-14 shrink-0 rounded-full transition ${
+                  textScale === "large" ? "bg-night-900" : "bg-night-300"
+                }`}
+              >
+                <span
+                  className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition ${
+                    textScale === "large" ? "left-7" : "left-1"
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-4 gap-3">

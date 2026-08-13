@@ -11,7 +11,7 @@ import type {
 export const site = {
   name: "Shanah City",
   website: "https://shanahcity.org",
-  tagline: "We are changed unto His glorious image.",
+  tagline: "Changing Lives To Higher Levels In God.",
   scripture: "2 Corinthians 3:18",
   mission:
     "Changing lives to higher levels in God.",

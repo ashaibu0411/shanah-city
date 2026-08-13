@@ -1,5 +1,7 @@
 import { AppProvider } from "@/components/app/AppProvider";
 
+import { ReadabilityProvider } from "@/components/app/ReadabilityProvider";
+
 import { AppShellProvider } from "@/components/app/AppShellContext";
 
 import { AuthProvider } from "@/components/auth/AuthProvider";
@@ -23,6 +25,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <AuthProvider>
 
       <AppProvider>
+
+        <ReadabilityProvider>
 
         <AppShellProvider>
 
@@ -59,6 +63,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
         </AppShellProvider>
+
+        </ReadabilityProvider>
 
       </AppProvider>
 

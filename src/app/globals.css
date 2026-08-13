@@ -12,7 +12,37 @@
   }
 
   body[data-shell="mobile"] {
-    @apply bg-sand-100;
+    @apply bg-sand-100 text-base leading-relaxed;
+  }
+
+  body[data-shell="mobile"] .text-xs {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  body[data-shell="mobile"] .text-sm {
+    font-size: 0.9375rem;
+    line-height: 1.375rem;
+  }
+
+  body[data-text-scale="large"] {
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+
+  body[data-text-scale="large"] .text-xs {
+    font-size: 0.875rem;
+    line-height: 1.35rem;
+  }
+
+  body[data-text-scale="large"] .text-sm {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  body[data-text-scale="large"] .text-base {
+    font-size: 1.125rem;
+    line-height: 1.65rem;
   }
 }
 
