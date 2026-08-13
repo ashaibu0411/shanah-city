@@ -127,24 +127,67 @@ export async function notifyNewMessage(input: {
   );
 }
 
+export async function sendPushToAllMembers(
+  payload: { title: string; body: string; url: string },
+  preferenceKey: NotificationTopic,
+  excludeUserId?: string,
+) {
+  const users = await getUsers();
+  const userIds = users
+    .filter((user) => user.id !== excludeUserId)
+    .map((user) => user.id);
+
+  return sendPushToUsers(userIds, payload, preferenceKey);
+}
+
+export async function notifyCommunityPost(input: {
+  authorId?: string;
+  authorName: string;
+  content: string;
+  type: "prayer" | "praise" | "announcement";
+}) {
+  const titles = {
+    prayer: "New prayer on the wall",
+    praise: "New praise shared",
+    announcement: "Church announcement",
+  };
+
+  return sendPushToAllMembers(
+    {
+      title: titles[input.type],
+      body: `${input.authorName}: ${input.content.slice(0, 120)}`,
+      url: "/community",
+    },
+    "announcements",
+    input.authorId,
+  );
+}
+
+export async function notifyNewMediaClip(input: {
+  authorId?: string;
+  title: string;
+}) {
+  return sendPushToAllMembers(
+    {
+      title: "New short video",
+      body: input.title,
+      url: "/live",
+    },
+    "announcements",
+    input.authorId,
+  );
+}
+
 export async function notifyChurchAnnouncement(input: {
   authorId?: string;
   authorName: string;
   content: string;
   campusId?: string;
 }) {
-  const users = await getUsers();
-  const userIds = users
-    .filter((user) => user.id !== input.authorId)
-    .map((user) => user.id);
-
-  return sendPushToUsers(
-    userIds,
-    {
-      title: "Church announcement",
-      body: `${input.authorName}: ${input.content.slice(0, 120)}`,
-      url: "/community",
-    },
-    "announcements",
-  );
+  return notifyCommunityPost({
+    authorId: input.authorId,
+    authorName: input.authorName,
+    content: input.content,
+    type: "announcement",
+  });
 }

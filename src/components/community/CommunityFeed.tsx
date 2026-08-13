@@ -225,6 +225,9 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
         <h3 className="font-display text-lg font-semibold text-night-900">
           Share a prayer or praise
         </h3>
+        <p className="mt-2 text-sm text-night-600">
+          Everyone with community notifications enabled gets a push when you post.
+        </p>
         <div className="mt-3 flex gap-2">
           {(["prayer", "praise"] as const).map((type) => (
             <button

@@ -1,9 +1,9 @@
 import { MediaHub } from "@/components/media/MediaHub";
-import { getMediaBrowseLinks, getMediaClips } from "@/lib/media-clips-server";
+import { getMediaBrowseLinks, listMediaClips } from "@/lib/media-clips-server";
 
 export default async function LivePage() {
   const [clips, browseLinks] = await Promise.all([
-    getMediaClips(),
+    listMediaClips(),
     Promise.resolve(getMediaBrowseLinks()),
   ]);
 

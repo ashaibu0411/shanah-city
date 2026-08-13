@@ -7,7 +7,7 @@ import {
   getCommunityPosts,
   reactToPost,
 } from "@/lib/member-server";
-import { notifyChurchAnnouncement } from "@/lib/push-server";
+import { notifyCommunityPost } from "@/lib/push-server";
 
 export async function GET() {
   const posts = await getCommunityPosts();
@@ -69,14 +69,12 @@ export async function POST(request: Request) {
     comments: [],
   });
 
-  if (postType === "announcement") {
-    await notifyChurchAnnouncement({
-      authorId: user?.id,
-      authorName,
-      content,
-      campusId: post.campusId,
-    });
-  }
+  await notifyCommunityPost({
+    authorId: user?.id,
+    authorName,
+    content,
+    type: postType,
+  });
 
   return NextResponse.json({ post }, { status: 201 });
 }

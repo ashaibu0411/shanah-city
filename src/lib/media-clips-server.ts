@@ -1,45 +1,18 @@
-import { promises as fs } from "fs";
-import path from "path";
 import type { MediaClip } from "@/lib/types";
 import { liveVideoConfig } from "@/lib/live-config";
-import {
-  getYouTubeClipThumbnail,
-  getYouTubeClipWatchUrl,
-} from "@/lib/media-clips-utils";
 import { site } from "@/lib/site";
+import { useDatabase } from "@/lib/use-database";
+import * as mediaClipsDb from "@/lib/stores/media-clips-db";
+import * as mediaClipsJson from "@/lib/stores/media-clips-json";
 
-const CLIPS_FILE = path.join(process.cwd(), "data", "media-clips.json");
+const store = () => (useDatabase() ? mediaClipsDb : mediaClipsJson);
 
-async function readJson<T>(file: string, fallback: T): Promise<T> {
-  try {
-    const raw = await fs.readFile(file, "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
+export const getMediaClips = () => store().getMediaClips();
+export const addMediaClip = (clip: MediaClip) => store().addMediaClip(clip);
 
-function clipsFromEnv(): MediaClip[] {
-  const raw = process.env.NEXT_PUBLIC_YOUTUBE_CLIP_IDS?.trim();
-  if (!raw) return [];
-
-  return raw
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean)
-    .map((videoId, index) => ({
-      id: `youtube-${videoId}`,
-      title: `Shanah City clip ${index + 1}`,
-      platform: "youtube" as const,
-      videoId,
-      url: getYouTubeClipWatchUrl(videoId),
-      thumbnail: getYouTubeClipThumbnail(videoId),
-    }));
-}
-
-export async function getMediaClips() {
-  const stored = await readJson<MediaClip[]>(CLIPS_FILE, []);
-  const fromEnv = clipsFromEnv();
+export async function listMediaClips() {
+  const stored = await getMediaClips();
+  const fromEnv = mediaClipsJson.clipsFromEnv();
 
   const byId = new Map<string, MediaClip>();
   for (const clip of [...stored, ...fromEnv]) {
@@ -51,6 +24,11 @@ export async function getMediaClips() {
     const bTime = b.publishedAt ? Date.parse(b.publishedAt) : 0;
     return bTime - aTime;
   });
+}
+
+export async function publishYouTubeClip(input: { title: string; videoId: string }) {
+  const clip = mediaClipsJson.buildYouTubeClip(input);
+  return addMediaClip(clip);
 }
 
 export function getMediaBrowseLinks() {

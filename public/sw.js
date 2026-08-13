@@ -31,6 +31,9 @@ self.addEventListener("notificationclick", (event) => {
       .then((windowClients) => {
         for (const client of windowClients) {
           if ("focus" in client) {
+            if ("navigate" in client) {
+              return client.navigate(targetUrl).then((next) => next?.focus());
+            }
             return client.focus();
           }
         }

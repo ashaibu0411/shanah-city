@@ -153,12 +153,12 @@ export function PushNotificationSettings() {
         Push notifications
       </h2>
       <p className="mt-2 text-sm text-night-600">
-        Get alerts for church announcements, new devotions, and member messages.
+        Get alerts for community posts, short videos, devotions, and member messages.
       </p>
 
       <div className="mt-4 space-y-3">
         <label className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3 text-sm">
-          <span>Church announcements</span>
+          <span>Community posts &amp; short videos</span>
           <input
             type="checkbox"
             checked={prefs.announcements}

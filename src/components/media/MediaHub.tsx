@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useApp } from "@/components/app/AppProvider";
+import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
 import { MediaClipsGrid } from "@/components/media/MediaClipsGrid";
 import {
   StreamPreviewGrid,
@@ -139,6 +140,7 @@ export function MediaHub({ clips, browseLinks }: MediaHubProps) {
           <p className="mb-4 text-sm text-night-600">
             Quick worship moments, highlights, and encouragement from Shanah City.
           </p>
+          <MediaClipUploadPanel />
           <MediaClipsGrid clips={clips} browseLinks={browseLinks} />
         </section>
       )}
