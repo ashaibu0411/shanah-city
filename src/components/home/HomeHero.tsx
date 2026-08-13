@@ -32,7 +32,6 @@ export function HomeHero() {
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sand-300">
                 {site.name}
               </p>
-              <p className="mt-1 text-sm text-white/70">{site.scripture}</p>
             </div>
           </div>
 
@@ -40,7 +39,7 @@ export function HomeHero() {
             {site.tagline}
           </h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-white/80">
-            {site.mission} Join us in Aurora, Accra, or online — one family,
+            {site.scripture} · Join us in Aurora, Accra, or online — one family,
             one vision.
           </p>
           <p className="mt-3 text-sm italic text-sand-200">{site.welcome}</p>
