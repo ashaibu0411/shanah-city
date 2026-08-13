@@ -1,16 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { GalleryPhoto } from "@/lib/gallery-types";
-import { galleryAlbums } from "@/lib/gallery-types";
+import type { GalleryPhoto, GalleryVisibility } from "@/lib/gallery-types";
 import {
-  getExternalPhotoUrl,
+  galleryAlbums,
+  getGalleryVisibility,
+  isMembersOnlyGalleryPhoto,
+} from "@/lib/gallery-types";
+import {
+  getPhotoDisplayUrl,
   getPhotoDownloadUrl,
   getPhotoSourceLabel,
   isExternalPhotoUrl,
-  isPrivatePhotoUrl,
 } from "@/lib/gallery-utils";
 import { photoUsePolicy } from "@/lib/photo-use-policy";
 import { Button } from "@/components/ui";
@@ -19,12 +22,19 @@ type PhotoGalleryProps = {
   photos: GalleryPhoto[];
 };
 
-export function PhotoGallery({ photos }: PhotoGalleryProps) {
-  const { user, loading } = useAuth();
+export function PhotoGallery({ photos: initialPhotos }: PhotoGalleryProps) {
+  const { user, loading, permissions } = useAuth();
+  const [photos, setPhotos] = useState(initialPhotos);
   const [album, setAlbum] = useState<string>("All");
   const [selected, setSelected] = useState<GalleryPhoto | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [visibilityError, setVisibilityError] = useState<string | null>(null);
+  const [visibilitySaving, setVisibilitySaving] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
+
+  useEffect(() => {
+    setPhotos(initialPhotos);
+  }, [initialPhotos]);
 
   const filtered = useMemo(
     () =>
@@ -35,16 +45,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
   );
 
   function photoSrc(photo: GalleryPhoto) {
-    if (isExternalPhotoUrl(photo.url)) {
-      return user ? getExternalPhotoUrl(photo.url) : "";
-    }
-    if (user) {
-      return `/api/gallery/download?id=${photo.id}&inline=1`;
-    }
-    if (isPrivatePhotoUrl(photo.url)) {
-      return "";
-    }
-    return photo.url;
+    return getPhotoDisplayUrl(photo, user);
   }
 
   async function downloadPhoto(photo: GalleryPhoto) {
@@ -93,6 +94,39 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
     }
   }
 
+  function isLockedForViewer(photo: GalleryPhoto) {
+    return isMembersOnlyGalleryPhoto(photo) && !user;
+  }
+
+  function replacePhoto(updated: GalleryPhoto) {
+    setPhotos((current) =>
+      current.map((photo) => (photo.id === updated.id ? updated : photo)),
+    );
+    setSelected((current) => (current?.id === updated.id ? updated : current));
+  }
+
+  async function updateVisibility(nextVisibility: GalleryVisibility) {
+    if (!selected || !permissions.canUploadGallery) return;
+
+    setVisibilitySaving(true);
+    setVisibilityError(null);
+
+    const response = await fetch("/api/gallery", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: selected.id, visibility: nextVisibility }),
+    });
+    const data = await response.json();
+    setVisibilitySaving(false);
+
+    if (!response.ok) {
+      setVisibilityError(data.error ?? "Could not update visibility.");
+      return;
+    }
+
+    replacePhoto(data.photo as GalleryPhoto);
+  }
+
   return (
     <>
       <div className="mb-6 flex flex-wrap gap-2">
@@ -114,11 +148,11 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
 
       {!loading && !user && (
         <div className="mb-6 rounded-2xl bg-sand-100 p-4 text-sm text-night-700 ring-1 ring-night-900/5">
-          You can browse photos here.{" "}
+          Public photos are visible to everyone. Photos marked private require{" "}
           <Link href="/sign-in?next=/photos" className="font-semibold text-night-900 hover:underline">
-            Sign in
-          </Link>{" "}
-          to download them.
+            sign in
+          </Link>
+          . Downloads always require a member account and policy agreement.
         </div>
       )}
 
@@ -134,13 +168,14 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
               type="button"
               onClick={() => {
                 setDownloadError(null);
+                setVisibilityError(null);
                 setAgreedToPolicy(false);
                 setSelected(photo);
               }}
               className="group overflow-hidden rounded-2xl bg-white text-left ring-1 ring-night-900/5 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-sand-200">
-                {!user && (isPrivatePhotoUrl(photo.url) || isExternalPhotoUrl(photo.url)) ? (
+                {!user && isLockedForViewer(photo) ? (
                   <div className="flex h-full flex-col items-center justify-center bg-night-900 p-4 text-center text-sm text-white">
                     <p className="font-semibold">Members only</p>
                     <p className="mt-1 text-white/70">Sign in to view this photo</p>
@@ -169,6 +204,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
                 </h3>
                 <p className="mt-1 text-xs text-night-500">
                   {photo.uploadedBy ?? "Shanah City"}
+                  {isMembersOnlyGalleryPhoto(photo) ? " · Members only" : " · Public"}
                   {isExternalPhotoUrl(photo.url)
                     ? ` · ${getPhotoSourceLabel(photo)}`
                     : ""}
@@ -195,7 +231,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="relative flex min-h-[240px] items-center justify-center bg-night-900">
-              {!user && (isPrivatePhotoUrl(selected.url) || isExternalPhotoUrl(selected.url)) ? (
+              {isLockedForViewer(selected) ? (
                 <div className="p-8 text-center text-white">
                   <p className="font-display text-xl font-semibold">Sign in to view</p>
                   <p className="mt-2 text-sm text-white/70">
@@ -238,8 +274,34 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
                   {selected.title}
                 </h3>
                 <p className="mt-1 text-sm text-night-500">
-                  {selected.album} · {selected.uploadedBy}
+                  {selected.album} · {selected.uploadedBy} ·{" "}
+                  {isMembersOnlyGalleryPhoto(selected) ? "Members only" : "Public"}
                 </p>
+                {permissions.canUploadGallery && (
+                  <div className="mt-3 max-w-xs">
+                    <label
+                      htmlFor="photo-visibility"
+                      className="text-sm font-semibold text-night-800"
+                    >
+                      Who can view
+                    </label>
+                    <select
+                      id="photo-visibility"
+                      value={getGalleryVisibility(selected)}
+                      onChange={(event) =>
+                        updateVisibility(event.target.value as GalleryVisibility)
+                      }
+                      disabled={visibilitySaving}
+                      className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:opacity-60"
+                    >
+                      <option value="public">Public — anyone can view</option>
+                      <option value="private">Private — signed-in members only</option>
+                    </select>
+                    {visibilityError && (
+                      <p className="mt-2 text-sm text-red-600">{visibilityError}</p>
+                    )}
+                  </div>
+                )}
                 {downloadError && (
                   <p className="mt-2 text-sm text-red-600">{downloadError}</p>
                 )}

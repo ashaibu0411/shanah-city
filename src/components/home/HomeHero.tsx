@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/app/BrandLogo";
 import { campuses, site } from "@/lib/site";
 import { Button } from "@/components/ui";
 
@@ -20,14 +20,7 @@ export function HomeHero() {
       <div className="relative grid gap-8 p-6 md:grid-cols-[1.2fr_1fr] md:p-8 lg:p-10">
         <div>
           <div className="flex items-center gap-4">
-            <Image
-              src="/shanah-city-logo.png"
-              alt={site.name}
-              width={72}
-              height={72}
-              className="h-16 w-16 rounded-2xl bg-white/95 p-1.5 shadow-lg"
-              priority
-            />
+            <BrandLogo size="lg" priority />
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sand-300">
                 {site.name}

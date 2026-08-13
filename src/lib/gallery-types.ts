@@ -1,3 +1,5 @@
+export type GalleryVisibility = "public" | "private";
+
 export type GalleryPhoto = {
   id: string;
   url: string;
@@ -6,7 +8,16 @@ export type GalleryPhoto = {
   uploadedAt: string;
   uploadedBy?: string;
   linkProvider?: string;
+  visibility?: GalleryVisibility;
 };
+
+export function getGalleryVisibility(photo: GalleryPhoto): GalleryVisibility {
+  return photo.visibility === "public" ? "public" : "private";
+}
+
+export function isMembersOnlyGalleryPhoto(photo: GalleryPhoto) {
+  return getGalleryVisibility(photo) === "private";
+}
 
 export type GalleryDownloadRecord = {
   id: string;

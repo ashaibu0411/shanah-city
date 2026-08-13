@@ -9,6 +9,7 @@ import {
   resolvePhotoFilePath,
 } from "@/lib/gallery-server";
 import { photoUsePolicyVersion } from "@/lib/photo-use-policy";
+import { isMembersOnlyGalleryPhoto } from "@/lib/gallery-types";
 import {
   getExternalPhotoUrl,
   isBlobPhotoUrl,
@@ -22,13 +23,6 @@ export async function GET(request: Request) {
     const token = cookieStore.get(SESSION_COOKIE)?.value;
     const user = await getUserFromSession(token);
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "Sign in to download photos." },
-        { status: 401 },
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const photoId = searchParams.get("id");
     const inline = searchParams.get("inline") === "1";
@@ -38,6 +32,27 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Photo id required." }, { status: 400 });
     }
 
+    const photo = await getGalleryPhotoById(photoId);
+    if (!photo) {
+      return NextResponse.json({ error: "Photo not found." }, { status: 404 });
+    }
+
+    const membersOnly = isMembersOnlyGalleryPhoto(photo);
+
+    if (!user && membersOnly) {
+      return NextResponse.json(
+        { error: "Sign in to view this photo." },
+        { status: 401 },
+      );
+    }
+
+    if (!inline && !user) {
+      return NextResponse.json(
+        { error: "Sign in to download photos." },
+        { status: 401 },
+      );
+    }
+
     if (!inline && !agreed) {
       return NextResponse.json(
         { error: "Accept the photo use policy before downloading." },
@@ -45,14 +60,9 @@ export async function GET(request: Request) {
       );
     }
 
-    const photo = await getGalleryPhotoById(photoId);
-    if (!photo) {
-      return NextResponse.json({ error: "Photo not found." }, { status: 404 });
-    }
-
     if (isExternalPhotoUrl(photo.url)) {
       if (!inline) {
-        await logGalleryDownload(photo, user, true, photoUsePolicyVersion);
+        await logGalleryDownload(photo, user!, true, photoUsePolicyVersion);
       }
       return NextResponse.redirect(getExternalPhotoUrl(photo.url));
     }
@@ -86,7 +96,7 @@ export async function GET(request: Request) {
     }
 
     if (!inline) {
-      await logGalleryDownload(photo, user, true, photoUsePolicyVersion);
+      await logGalleryDownload(photo, user!, true, photoUsePolicyVersion);
     }
 
     return new NextResponse(new Uint8Array(buffer), {

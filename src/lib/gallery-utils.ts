@@ -1,4 +1,6 @@
+import type { PublicMember } from "@/lib/auth-types";
 import type { GalleryPhoto } from "@/lib/gallery-types";
+import { isMembersOnlyGalleryPhoto } from "@/lib/gallery-types";
 
 export function isPrivatePhotoUrl(url: string) {
   return url.startsWith("private/");
@@ -16,7 +18,13 @@ export function getExternalPhotoUrl(url: string) {
   return url.replace(/^external:/, "");
 }
 
-export function getPhotoDisplayUrl(photo: GalleryPhoto) {
+export function getPhotoDisplayUrl(photo: GalleryPhoto, user?: PublicMember | null) {
+  const membersOnly = isMembersOnlyGalleryPhoto(photo);
+
+  if (membersOnly && !user) {
+    return "";
+  }
+
   if (isPrivatePhotoUrl(photo.url)) {
     return `/api/gallery/download?id=${photo.id}&inline=1`;
   }
@@ -24,9 +32,21 @@ export function getPhotoDisplayUrl(photo: GalleryPhoto) {
     return getExternalPhotoUrl(photo.url);
   }
   if (isBlobPhotoUrl(photo.url)) {
-    return photo.url;
+    return membersOnly
+      ? `/api/gallery/download?id=${photo.id}&inline=1`
+      : photo.url;
   }
   return photo.url;
+}
+
+export function sanitizeGalleryPhotoForViewer(
+  photo: GalleryPhoto,
+  user: PublicMember | null,
+): GalleryPhoto {
+  if (isMembersOnlyGalleryPhoto(photo) && !user) {
+    return { ...photo, url: "" };
+  }
+  return photo;
 }
 
 export function getPhotoDownloadUrl(photo: GalleryPhoto) {

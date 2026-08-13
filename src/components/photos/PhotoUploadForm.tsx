@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { galleryAlbums } from "@/lib/gallery-types";
+import { galleryAlbums, type GalleryVisibility } from "@/lib/gallery-types";
 import { Button, Card } from "@/components/ui";
 
 type UploadMode = "file" | "link";
@@ -14,6 +14,7 @@ export function PhotoUploadForm() {
   const [mode, setMode] = useState<UploadMode>("file");
   const [title, setTitle] = useState("");
   const [album, setAlbum] = useState("Community");
+  const [visibility, setVisibility] = useState<GalleryVisibility>("private");
   const [uploadedBy, setUploadedBy] = useState("Shanah City Team");
   const [externalUrl, setExternalUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -49,6 +50,7 @@ export function PhotoUploadForm() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("album", album);
+    formData.append("visibility", visibility);
     formData.append("uploadedBy", uploadedBy);
 
     if (mode === "file" && file) {
@@ -190,16 +192,36 @@ export function PhotoUploadForm() {
           </div>
 
           <div>
-            <label htmlFor="uploadedBy" className="text-sm font-semibold text-night-800">
-              Uploaded by
+            <label htmlFor="visibility" className="text-sm font-semibold text-night-800">
+              Who can view
             </label>
-            <input
-              id="uploadedBy"
-              value={uploadedBy}
-              onChange={(event) => setUploadedBy(event.target.value)}
+            <select
+              id="visibility"
+              value={visibility}
+              onChange={(event) =>
+                setVisibility(event.target.value as GalleryVisibility)
+              }
               className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
+            >
+              <option value="public">Public — anyone can view</option>
+              <option value="private">Private — signed-in members only</option>
+            </select>
+            <p className="mt-1 text-xs text-night-500">
+              Downloads still require sign-in and the photo use policy.
+            </p>
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="uploadedBy" className="text-sm font-semibold text-night-800">
+            Uploaded by
+          </label>
+          <input
+            id="uploadedBy"
+            value={uploadedBy}
+            onChange={(event) => setUploadedBy(event.target.value)}
+            className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+          />
         </div>
 
         {mode === "file" ? (

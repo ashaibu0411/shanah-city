@@ -185,6 +185,7 @@ type JsonGalleryPhoto = {
   uploadedAt: string;
   uploadedBy?: string;
   linkProvider?: string;
+  visibility?: string;
 };
 
 type JsonGalleryDownload = {
@@ -761,6 +762,7 @@ async function migrateGallery() {
         uploadedAt: new Date(photo.uploadedAt),
         uploadedBy: photo.uploadedBy || null,
         linkProvider: photo.linkProvider || null,
+        visibility: photo.visibility === "public" ? "public" : "private",
       },
       update: {
         url: photo.url,
@@ -769,6 +771,7 @@ async function migrateGallery() {
         uploadedAt: new Date(photo.uploadedAt),
         uploadedBy: photo.uploadedBy || null,
         linkProvider: photo.linkProvider || null,
+        visibility: photo.visibility === "public" ? "public" : "private",
       },
     });
     photoCount += 1;

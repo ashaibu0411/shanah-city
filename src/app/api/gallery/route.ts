@@ -8,10 +8,19 @@ import {
   isAllowedImage,
   normalizeExternalPhotoUrl,
   saveUploadedFile,
+  updateGalleryPhotoVisibility,
 } from "@/lib/gallery-server";
+import type { GalleryVisibility } from "@/lib/gallery-types";
+import { sanitizeGalleryPhotoForViewer } from "@/lib/gallery-utils";
 import { mediaGroupMatchHint } from "@/lib/media-group";
+
 export async function GET() {
-  const photos = await getGalleryPhotos();
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const user = await getUserFromSession(token);
+  const photos = (await getGalleryPhotos()).map((photo) =>
+    sanitizeGalleryPhotoForViewer(photo, user),
+  );
   return NextResponse.json({ photos });
 }
 
@@ -27,6 +36,9 @@ export async function POST(request: Request) {
     const title = String(formData.get("title") ?? "").trim();
     const album = String(formData.get("album") ?? "Community").trim();
     const uploadedBy = String(formData.get("uploadedBy") ?? "Shanah City Team").trim();
+    const visibilityRaw = String(formData.get("visibility") ?? "private").trim();
+    const visibility: GalleryVisibility =
+      visibilityRaw === "public" ? "public" : "private";
 
     if (!user) {
       return NextResponse.json({ error: "Sign in to upload photos." }, { status: 401 });
@@ -93,6 +105,7 @@ export async function POST(request: Request) {
       album,
       uploadedAt: new Date().toISOString(),
       uploadedBy: user?.name ?? uploadedBy,
+      visibility,
       ...(linkProvider ? { linkProvider } : {}),
     };
 
@@ -101,5 +114,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ photo }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Upload failed." }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
+    const user = await getUserFromSession(token);
+
+    if (!user) {
+      return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+    }
+
+    if (!(await canUploadGallery(user))) {
+      return NextResponse.json(
+        {
+          error: `Media team access required. Ask a leader to assign the media role, or join ${mediaGroupMatchHint()} on Groups.`,
+        },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.json();
+    const id = String(body.id ?? "").trim();
+    const visibilityRaw = String(body.visibility ?? "").trim();
+    const visibility: GalleryVisibility =
+      visibilityRaw === "public" ? "public" : "private";
+
+    if (!id) {
+      return NextResponse.json({ error: "Photo id is required." }, { status: 400 });
+    }
+
+    const photo = await updateGalleryPhotoVisibility(id, visibility);
+    if (!photo) {
+      return NextResponse.json({ error: "Photo not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ photo });
+  } catch {
+    return NextResponse.json({ error: "Could not update photo." }, { status: 500 });
   }
 }

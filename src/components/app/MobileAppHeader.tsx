@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/app/BrandLogo";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
@@ -52,14 +52,7 @@ export function MobileAppHeader() {
                 {getGreeting()} · {campus.city}
               </p>
               <div className="mt-0.5 flex items-center gap-2">
-                <Image
-                  src="/shanah-city-logo.png"
-                  alt={site.name}
-                  width={96}
-                  height={40}
-                  className="h-8 w-auto object-contain"
-                  priority
-                />
+                <BrandLogo size="sm" priority />
                 {anyLive && (
                   <Link href="/live">
                     <Badge variant="live">

@@ -1,7 +1,8 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { PublicMember } from "@/lib/auth-types";
-import type { GalleryDownloadRecord, GalleryPhoto } from "@/lib/gallery-types";
+import type { GalleryDownloadRecord, GalleryPhoto, GalleryVisibility } from "@/lib/gallery-types";
+import { getGalleryVisibility } from "@/lib/gallery-types";
 import { isExternalPhotoUrl, isPrivatePhotoUrl } from "@/lib/gallery-utils";
 
 const GALLERY_FILE = path.join(process.cwd(), "data", "gallery.json");
@@ -37,7 +38,11 @@ async function writeDownloads(records: GalleryDownloadRecord[]) {
 export async function getGalleryPhotos(): Promise<GalleryPhoto[]> {
   await ensureGalleryFile();
   const raw = await fs.readFile(GALLERY_FILE, "utf-8");
-  return JSON.parse(raw) as GalleryPhoto[];
+  const photos = JSON.parse(raw) as GalleryPhoto[];
+  return photos.map((photo) => ({
+    ...photo,
+    visibility: getGalleryVisibility(photo),
+  }));
 }
 
 export async function getGalleryPhotoById(id: string) {
@@ -49,6 +54,26 @@ export async function addGalleryPhoto(photo: GalleryPhoto) {
   const photos = await getGalleryPhotos();
   photos.unshift(photo);
   await fs.writeFile(GALLERY_FILE, JSON.stringify(photos, null, 2));
+}
+
+export async function updateGalleryPhotoVisibility(
+  id: string,
+  visibility: GalleryVisibility,
+) {
+  await ensureGalleryFile();
+  const raw = await fs.readFile(GALLERY_FILE, "utf-8");
+  const photos = JSON.parse(raw) as GalleryPhoto[];
+  const index = photos.findIndex((photo) => photo.id === id);
+  if (index === -1) {
+    return null;
+  }
+
+  photos[index] = {
+    ...photos[index],
+    visibility: visibility === "public" ? "public" : "private",
+  };
+  await fs.writeFile(GALLERY_FILE, JSON.stringify(photos, null, 2));
+  return photos[index];
 }
 
 export async function getGalleryAlbumCounts() {

@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/app/BrandLogo";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -24,14 +24,7 @@ export function TopBar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" className="flex shrink-0 items-center gap-2">
-            <Image
-              src="/shanah-city-logo.png"
-              alt={site.name}
-              width={120}
-              height={48}
-              className="h-10 w-auto object-contain"
-              priority
-            />
+            <BrandLogo size="md" priority />
           </Link>
           {anyLive && pathname !== "/live" && (
             <Link href="/live">

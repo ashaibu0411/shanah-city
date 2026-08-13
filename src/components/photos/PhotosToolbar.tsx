@@ -15,8 +15,8 @@ export function PhotosToolbar({ photoCount }: PhotosToolbarProps) {
       <p className="text-sm text-night-600">
         {photoCount} photo{photoCount === 1 ? "" : "s"} available
         {user
-          ? " · view in app; download requires agreement"
-          : " · sign in to view member photos"}
+          ? " · choose public or private when uploading"
+          : " · public photos visible; private photos need sign-in"}
       </p>
       {!loading && permissions.canUploadGallery ? (
         <Button href="/photos/upload" variant="secondary">

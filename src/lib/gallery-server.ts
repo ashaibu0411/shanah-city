@@ -1,6 +1,6 @@
 import path from "path";
 import type { PublicMember } from "@/lib/auth-types";
-import type { GalleryPhoto } from "@/lib/gallery-types";
+import type { GalleryPhoto, GalleryVisibility } from "@/lib/gallery-types";
 import {
   canManageGallery,
   canUploadGalleryByRole,
@@ -16,6 +16,10 @@ const store = () => (useDatabase() ? galleryDb : galleryJson);
 export const getGalleryPhotos = () => store().getGalleryPhotos();
 export const getGalleryPhotoById = (id: string) => store().getGalleryPhotoById(id);
 export const addGalleryPhoto = (photo: GalleryPhoto) => store().addGalleryPhoto(photo);
+export const updateGalleryPhotoVisibility = (
+  id: string,
+  visibility: GalleryVisibility,
+) => store().updateGalleryPhotoVisibility(id, visibility);
 export const getGalleryAlbumCounts = () => store().getGalleryAlbumCounts();
 export const deleteGalleryAlbum = (albumName: string) => store().deleteGalleryAlbum(albumName);
 export const saveUploadedFile = (file: File) => store().saveUploadedFile(file);

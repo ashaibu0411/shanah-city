@@ -199,6 +199,7 @@ model GalleryPhoto {
   uploadedAt   DateTime
   uploadedBy   String?
   linkProvider String?
+  visibility   String   @default("private")
 }
 
 model GalleryDownload {

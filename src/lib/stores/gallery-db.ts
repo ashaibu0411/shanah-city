@@ -1,7 +1,8 @@
 import { del, list, put } from "@vercel/blob";
 import type { PublicMember } from "@/lib/auth-types";
 import { prisma } from "@/lib/db";
-import type { GalleryDownloadRecord, GalleryPhoto } from "@/lib/gallery-types";
+import type { GalleryDownloadRecord, GalleryPhoto, GalleryVisibility } from "@/lib/gallery-types";
+import { getGalleryVisibility } from "@/lib/gallery-types";
 import {
   isBlobPhotoUrl,
   isExternalPhotoUrl,
@@ -18,6 +19,7 @@ function mapPhoto(record: {
   uploadedAt: Date;
   uploadedBy: string | null;
   linkProvider: string | null;
+  visibility: string;
 }): GalleryPhoto {
   return {
     id: record.id,
@@ -25,6 +27,7 @@ function mapPhoto(record: {
     title: record.title,
     album: record.album,
     uploadedAt: record.uploadedAt.toISOString(),
+    visibility: getGalleryVisibility({ visibility: record.visibility } as GalleryPhoto),
     ...(record.uploadedBy ? { uploadedBy: record.uploadedBy } : {}),
     ...(record.linkProvider ? { linkProvider: record.linkProvider } : {}),
   };
@@ -76,8 +79,25 @@ export async function addGalleryPhoto(photo: GalleryPhoto) {
       uploadedAt: new Date(photo.uploadedAt),
       uploadedBy: photo.uploadedBy ?? null,
       linkProvider: photo.linkProvider ?? null,
+      visibility: getGalleryVisibility(photo),
     },
   });
+}
+
+export async function updateGalleryPhotoVisibility(
+  id: string,
+  visibility: GalleryVisibility,
+) {
+  const normalized = visibility === "public" ? "public" : "private";
+  try {
+    const record = await prisma.galleryPhoto.update({
+      where: { id },
+      data: { visibility: normalized },
+    });
+    return mapPhoto(record);
+  } catch {
+    return null;
+  }
 }
 
 export async function getGalleryAlbumCounts() {
