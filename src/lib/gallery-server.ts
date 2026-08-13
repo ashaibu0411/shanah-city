@@ -22,6 +22,7 @@ export const updateGalleryPhotoVisibility = (
 ) => store().updateGalleryPhotoVisibility(id, visibility);
 export const getGalleryAlbumCounts = () => store().getGalleryAlbumCounts();
 export const deleteGalleryAlbum = (albumName: string) => store().deleteGalleryAlbum(albumName);
+export const deleteGalleryPhoto = (id: string) => store().deleteGalleryPhoto(id);
 export const saveUploadedFile = (file: File) => store().saveUploadedFile(file);
 export const resolvePhotoFilePath = (photo: GalleryPhoto) => store().resolvePhotoFilePath(photo);
 export const logGalleryDownload = (

@@ -10,7 +10,7 @@ export default function PhotoUploadPage() {
       <PageHeader
         eyebrow="Media team"
         title="Upload Photos"
-        description="Restricted to Shanah City media team members. Everyone else can browse and download from the public gallery."
+        description="Choose public or private visibility, upload many photos at once, and manage the gallery."
       />
 
       <PhotoUploadForm />

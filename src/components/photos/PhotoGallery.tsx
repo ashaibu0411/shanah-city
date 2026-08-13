@@ -30,6 +30,8 @@ export function PhotoGallery({ photos: initialPhotos }: PhotoGalleryProps) {
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [visibilityError, setVisibilityError] = useState<string | null>(null);
   const [visibilitySaving, setVisibilitySaving] = useState(false);
+  const [deleteSaving, setDeleteSaving] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
   useEffect(() => {
@@ -127,6 +129,34 @@ export function PhotoGallery({ photos: initialPhotos }: PhotoGalleryProps) {
     replacePhoto(data.photo as GalleryPhoto);
   }
 
+  async function deletePhoto(photo: GalleryPhoto) {
+    if (!permissions.canUploadGallery) return;
+
+    const confirmed = window.confirm(
+      `Delete "${photo.title}" from the gallery? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeleteSaving(true);
+    setDeleteError(null);
+
+    const response = await fetch("/api/gallery", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: photo.id }),
+    });
+    const data = await response.json();
+    setDeleteSaving(false);
+
+    if (!response.ok) {
+      setDeleteError(data.error ?? "Could not delete photo.");
+      return;
+    }
+
+    setPhotos((current) => current.filter((entry) => entry.id !== photo.id));
+    setSelected(null);
+  }
+
   return (
     <>
       <div className="mb-6 flex flex-wrap gap-2">
@@ -169,6 +199,7 @@ export function PhotoGallery({ photos: initialPhotos }: PhotoGalleryProps) {
               onClick={() => {
                 setDownloadError(null);
                 setVisibilityError(null);
+                setDeleteError(null);
                 setAgreedToPolicy(false);
                 setSelected(photo);
               }}
@@ -278,7 +309,7 @@ export function PhotoGallery({ photos: initialPhotos }: PhotoGalleryProps) {
                   {isMembersOnlyGalleryPhoto(selected) ? "Members only" : "Public"}
                 </p>
                 {permissions.canUploadGallery && (
-                  <div className="mt-3 max-w-xs">
+                  <div className="mt-3 max-w-md rounded-xl border border-blue-200 bg-blue-50/60 p-3">
                     <label
                       htmlFor="photo-visibility"
                       className="text-sm font-semibold text-night-800"
@@ -291,8 +322,8 @@ export function PhotoGallery({ photos: initialPhotos }: PhotoGalleryProps) {
                       onChange={(event) =>
                         updateVisibility(event.target.value as GalleryVisibility)
                       }
-                      disabled={visibilitySaving}
-                      className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:opacity-60"
+                      disabled={visibilitySaving || deleteSaving}
+                      className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:opacity-60"
                     >
                       <option value="public">Public — anyone can view</option>
                       <option value="private">Private — signed-in members only</option>
@@ -302,6 +333,7 @@ export function PhotoGallery({ photos: initialPhotos }: PhotoGalleryProps) {
                     )}
                   </div>
                 )}
+                {deleteError && <p className="mt-2 text-sm text-red-600">{deleteError}</p>}
                 {downloadError && (
                   <p className="mt-2 text-sm text-red-600">{downloadError}</p>
                 )}
@@ -320,7 +352,17 @@ export function PhotoGallery({ photos: initialPhotos }: PhotoGalleryProps) {
                   </label>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                {permissions.canUploadGallery && (
+                  <Button
+                    variant="ghost"
+                    className="text-red-700 hover:bg-red-50"
+                    onClick={() => deletePhoto(selected)}
+                    disabled={deleteSaving || visibilitySaving}
+                  >
+                    {deleteSaving ? "Deleting..." : "Delete photo"}
+                  </Button>
+                )}
                 {user ? (
                   <Button
                     variant="secondary"

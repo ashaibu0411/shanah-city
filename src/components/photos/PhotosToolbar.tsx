@@ -20,7 +20,7 @@ export function PhotosToolbar({ photoCount }: PhotosToolbarProps) {
       </p>
       {!loading && permissions.canUploadGallery ? (
         <Button href="/photos/upload" variant="secondary">
-          Upload photos
+          Upload &amp; manage
         </Button>
       ) : null}
       {!loading && !user ? (

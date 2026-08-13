@@ -4,6 +4,7 @@ import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { canUploadGallery } from "@/lib/gallery-access-server";
 import {
   addGalleryPhoto,
+  deleteGalleryPhoto,
   getGalleryPhotos,
   isAllowedImage,
   normalizeExternalPhotoUrl,
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
     }
 
     const photo = {
-      id: `upload-${Date.now()}`,
+      id: `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       url,
       title,
       album,
@@ -154,5 +155,42 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ photo });
   } catch {
     return NextResponse.json({ error: "Could not update photo." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
+    const user = await getUserFromSession(token);
+
+    if (!user) {
+      return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+    }
+
+    if (!(await canUploadGallery(user))) {
+      return NextResponse.json(
+        {
+          error: `Media team access required. Ask a leader to assign the media role, or join ${mediaGroupMatchHint()} on Groups.`,
+        },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.json();
+    const id = String(body.id ?? "").trim();
+
+    if (!id) {
+      return NextResponse.json({ error: "Photo id is required." }, { status: 400 });
+    }
+
+    const photo = await deleteGalleryPhoto(id);
+    if (!photo) {
+      return NextResponse.json({ error: "Photo not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ deleted: true, photo });
+  } catch {
+    return NextResponse.json({ error: "Could not delete photo." }, { status: 500 });
   }
 }

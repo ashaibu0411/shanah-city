@@ -122,6 +122,21 @@ export async function deleteGalleryAlbum(albumName: string) {
   return { album: normalized, deletedCount: toRemove.length };
 }
 
+export async function deleteGalleryPhoto(id: string) {
+  await ensureGalleryFile();
+  const raw = await fs.readFile(GALLERY_FILE, "utf-8");
+  const photos = JSON.parse(raw) as GalleryPhoto[];
+  const photo = photos.find((entry) => entry.id === id);
+  if (!photo) {
+    return null;
+  }
+
+  await deletePhotoFile(photo);
+  const remaining = photos.filter((entry) => entry.id !== id);
+  await fs.writeFile(GALLERY_FILE, JSON.stringify(remaining, null, 2));
+  return photo;
+}
+
 export async function saveUploadedFile(file: File) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);

@@ -159,6 +159,17 @@ export async function deleteGalleryAlbum(albumName: string) {
   return { album: normalized, deletedCount: toRemove.length };
 }
 
+export async function deleteGalleryPhoto(id: string) {
+  const photo = await getGalleryPhotoById(id);
+  if (!photo) {
+    return null;
+  }
+
+  await deletePhotoFile(photo);
+  await prisma.galleryPhoto.delete({ where: { id } });
+  return photo;
+}
+
 export async function saveUploadedFile(file: File) {
   if (useBlobStorage()) {
     const bytes = await file.arrayBuffer();
