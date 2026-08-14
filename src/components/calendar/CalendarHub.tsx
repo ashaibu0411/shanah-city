@@ -161,6 +161,7 @@ function ChurchEventsPanel() {
   const [location, setLocation] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const canManage = user?.role === "leader";
+  const canEditEvents = canManage || pin.length > 0;
 
   async function loadEvents() {
     setLoading(true);
@@ -209,13 +210,28 @@ function ChurchEventsPanel() {
 
   return (
     <>
-      {(canManage || pin) && (
+      {!user ? (
         <Card className="mb-6">
           <h3 className="font-display text-lg font-semibold text-night-900">
             Manage church events
           </h3>
           <p className="mt-1 text-sm text-night-600">
-            Leaders can add or remove events. Non-leaders can enter the leader PIN.
+            Sign in with a leader account, or sign in and use the leader PIN on the next
+            screen.
+          </p>
+          <Button href="/sign-in?next=/calendar" className="mt-4">
+            Sign in
+          </Button>
+        </Card>
+      ) : (
+        <Card className="mb-6">
+          <h3 className="font-display text-lg font-semibold text-night-900">
+            Manage church events
+          </h3>
+          <p className="mt-1 text-sm text-night-600">
+            {canManage
+              ? "You are signed in as a leader — add or remove events below."
+              : "Enter the leader PIN to add or remove events."}
           </p>
           {!canManage && (
             <input
@@ -226,36 +242,44 @@ function ChurchEventsPanel() {
               className="mt-3 w-full max-w-xs rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
           )}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Title"
-              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
-            <input
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              placeholder="Date label (e.g. Every Friday)"
-              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
-            <input
-              value={time}
-              onChange={(event) => setTime(event.target.value)}
-              placeholder="Time"
-              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
-            <input
-              value={location}
-              onChange={(event) => setLocation(event.target.value)}
-              placeholder="Location"
-              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
-          </div>
-          {message && <p className="mt-3 text-sm text-night-600">{message}</p>}
-          <Button className="mt-4" onClick={addEvent}>
-            Add event
-          </Button>
+          {canEditEvents ? (
+            <>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <input
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Title"
+                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <input
+                  value={date}
+                  onChange={(event) => setDate(event.target.value)}
+                  placeholder="Date label (e.g. Every Friday)"
+                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <input
+                  value={time}
+                  onChange={(event) => setTime(event.target.value)}
+                  placeholder="Time"
+                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <input
+                  value={location}
+                  onChange={(event) => setLocation(event.target.value)}
+                  placeholder="Location"
+                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+              </div>
+              {message && <p className="mt-3 text-sm text-night-600">{message}</p>}
+              <Button className="mt-4" onClick={addEvent}>
+                Add event
+              </Button>
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-night-500">
+              The add form appears after you enter the leader PIN.
+            </p>
+          )}
         </Card>
       )}
 
@@ -278,7 +302,7 @@ function ChurchEventsPanel() {
               <p className="mt-2 text-sm text-night-600">
                 {event.time} · {event.location}
               </p>
-              {(canManage || pin) && (
+              {(canManage || pin.length > 0) && (
                 <Button
                   variant="secondary"
                   className="mt-4"
