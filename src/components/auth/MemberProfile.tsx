@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useApp } from "@/components/app/AppProvider";
 import { LeaderPromotionPanel } from "@/components/auth/LeaderPromotionPanel";
+import { DeleteAccountPanel } from "@/components/auth/DeleteAccountPanel";
 import { ProfileAvatarUpload } from "@/components/auth/ProfileAvatarUpload";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { Button, Card, PageHeader } from "@/components/ui";
@@ -229,6 +230,8 @@ export function MemberProfile() {
               </ul>
             )}
           </Card>
+
+          <DeleteAccountPanel />
         </div>
 
         <div className="space-y-6">
