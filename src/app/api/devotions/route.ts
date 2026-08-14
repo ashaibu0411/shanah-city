@@ -14,9 +14,23 @@ import {
   getDevotions,
   updateDevotion,
 } from "@/lib/devotion-server";
+import {
+  estimateReadingTime,
+  resolveDevotionPublishFields,
+  shouldNotifyDevotionPublish,
+  type DevotionPublishMode,
+} from "@/lib/devotion-utils";
 import { notifyNewDevotion } from "@/lib/push-server";
 
 const accessError = `Devotion writing is limited to members of ${devotionGroupMatchHint()}.`;
+
+function parseScheduleBody(body: Record<string, unknown>) {
+  return resolveDevotionPublishFields({
+    publishMode: body.publishMode as DevotionPublishMode | undefined,
+    scheduleDate: body.scheduleDate ? String(body.scheduleDate) : undefined,
+    scheduleTime: body.scheduleTime ? String(body.scheduleTime) : undefined,
+  });
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -60,6 +74,9 @@ export async function POST(request: Request) {
     );
   }
 
+  const schedule = parseScheduleBody(body);
+  const readingTime = estimateReadingTime({ verse, content, prayer });
+
   const devotion = await createDevotion(
     {
       title,
@@ -67,16 +84,23 @@ export async function POST(request: Request) {
       reference,
       content,
       prayer,
-      date: body.date ? String(body.date).trim() : undefined,
-      readingTime: body.readingTime ? String(body.readingTime).trim() : undefined,
-      published: body.published !== false,
+      date: schedule.date,
+      readingTime,
+      published: schedule.published,
+      publishAt: schedule.publishAt,
     },
     { id: user!.id, name: user!.name },
   );
 
-  await recordActivity(user!.id, "devotion_published", `Published "${devotion.title}"`);
+  await recordActivity(
+    user!.id,
+    "devotion_published",
+    schedule.published
+      ? `Saved "${devotion.title}" (${schedule.publishAt ? "scheduled" : "published"})`
+      : `Saved draft "${devotion.title}"`,
+  );
 
-  if (devotion.published !== false) {
+  if (shouldNotifyDevotionPublish(devotion)) {
     await notifyNewDevotion({ title: devotion.title, authorId: user!.id });
   }
 
@@ -103,19 +127,24 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Devotion not found." }, { status: 404 });
   }
 
+  const schedule = parseScheduleBody(body);
+  const verse = body.verse ? String(body.verse).trim() : existing.verse;
+  const content = body.content ? String(body.content).trim() : existing.content;
+  const prayer = body.prayer ? String(body.prayer).trim() : existing.prayer;
+
   const devotion = await updateDevotion(id, {
     title: body.title ? String(body.title).trim() : undefined,
     verse: body.verse ? String(body.verse).trim() : undefined,
     reference: body.reference ? String(body.reference).trim() : undefined,
     content: body.content ? String(body.content).trim() : undefined,
     prayer: body.prayer ? String(body.prayer).trim() : undefined,
-    date: body.date ? String(body.date).trim() : undefined,
-    readingTime: body.readingTime ? String(body.readingTime).trim() : undefined,
-    published:
-      typeof body.published === "boolean" ? body.published : undefined,
+    date: schedule.date,
+    readingTime: estimateReadingTime({ verse, content, prayer }),
+    published: schedule.published,
+    publishAt: schedule.publishAt,
   });
 
-  if (devotion && devotion.published !== false) {
+  if (devotion && shouldNotifyDevotionPublish(devotion)) {
     await notifyNewDevotion({ title: devotion.title, authorId: user!.id });
   }
 

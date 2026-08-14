@@ -1,19 +1,13 @@
 import { prisma } from "@/lib/db";
+import {
+  estimateReadingTime,
+  formatDisplayDateFromInput,
+  isDevotionPubliclyVisible,
+  pickTodayDevotion,
+  sortDevotionsForDisplay,
+  toDateInputValue,
+} from "@/lib/devotion-utils";
 import type { Devotion } from "@/lib/types";
-
-function formatDisplayDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function estimateReadingTime(content: string) {
-  const words = content.trim().split(/\s+/).length;
-  const minutes = Math.max(1, Math.round(words / 180));
-  return `${minutes} min`;
-}
 
 function mapDevotion(record: {
   id: string;
@@ -29,6 +23,7 @@ function mapDevotion(record: {
   authorName: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
+  publishAt: Date | null;
 }): Devotion {
   return {
     id: record.id,
@@ -44,6 +39,7 @@ function mapDevotion(record: {
     authorName: record.authorName ?? undefined,
     createdAt: record.createdAt?.toISOString(),
     updatedAt: record.updatedAt?.toISOString(),
+    publishAt: record.publishAt?.toISOString(),
   };
 }
 
@@ -52,18 +48,18 @@ export async function getDevotions(options?: { includeUnpublished?: boolean }) {
     where: options?.includeUnpublished ? undefined : { published: true },
   });
 
-  return records
-    .map(mapDevotion)
-    .sort((a, b) => {
-      const aTime = new Date(a.updatedAt ?? a.createdAt ?? a.date).getTime();
-      const bTime = new Date(b.updatedAt ?? b.createdAt ?? b.date).getTime();
-      return bTime - aTime;
-    });
+  const mapped = records.map(mapDevotion).sort(sortDevotionsForDisplay);
+
+  if (options?.includeUnpublished) {
+    return mapped;
+  }
+
+  return mapped.filter((devotion) => isDevotionPubliclyVisible(devotion));
 }
 
 export async function getTodayDevotion() {
   const devotions = await getDevotions();
-  return devotions[0] ?? null;
+  return pickTodayDevotion(devotions);
 }
 
 export async function getDevotionById(id: string) {
@@ -75,6 +71,7 @@ export async function createDevotion(
   input: Omit<Devotion, "id" | "createdAt" | "updatedAt" | "date" | "readingTime"> & {
     date?: string;
     readingTime?: string;
+    publishAt?: string | null;
   },
   author: { id: string; name: string },
 ) {
@@ -87,11 +84,20 @@ export async function createDevotion(
       reference: input.reference,
       content: input.content,
       prayer: input.prayer,
-      date: input.date || formatDisplayDate(now.toISOString()),
-      readingTime: input.readingTime || estimateReadingTime(input.content),
+      date:
+        input.date ||
+        formatDisplayDateFromInput(toDateInputValue(now)),
+      readingTime:
+        input.readingTime ||
+        estimateReadingTime({
+          verse: input.verse,
+          content: input.content,
+          prayer: input.prayer,
+        }),
       authorId: author.id,
       authorName: author.name,
       published: input.published ?? true,
+      publishAt: input.publishAt ? new Date(input.publishAt) : null,
       createdAt: now,
       updatedAt: now,
     },
@@ -107,10 +113,10 @@ export async function updateDevotion(
   const existing = await prisma.devotion.findUnique({ where: { id } });
   if (!existing) return null;
 
-  const readingTime =
-    update.content && !update.readingTime
-      ? estimateReadingTime(update.content)
-      : update.readingTime ?? existing.readingTime;
+  const merged = {
+    ...mapDevotion(existing),
+    ...update,
+  };
 
   const record = await prisma.devotion.update({
     where: { id },
@@ -121,10 +127,22 @@ export async function updateDevotion(
       content: update.content,
       prayer: update.prayer,
       date: update.date,
-      readingTime,
+      readingTime:
+        update.readingTime ??
+        estimateReadingTime({
+          verse: merged.verse,
+          content: merged.content,
+          prayer: merged.prayer,
+        }),
       published: update.published,
       authorId: update.authorId,
       authorName: update.authorName,
+      publishAt:
+        update.publishAt === null
+          ? null
+          : update.publishAt
+            ? new Date(update.publishAt)
+            : undefined,
       updatedAt: new Date(),
     },
   });

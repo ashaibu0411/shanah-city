@@ -93,6 +93,7 @@ export type Devotion = {
   authorName?: string;
   createdAt?: string;
   updatedAt?: string;
+  publishAt?: string | null;
 };
 
 export type Meeting = {

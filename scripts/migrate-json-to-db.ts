@@ -132,6 +132,7 @@ type JsonDevotion = {
   authorName?: string;
   createdAt?: string;
   updatedAt?: string;
+  publishAt?: string;
 };
 
 type JsonPushSubscription = {
@@ -571,6 +572,7 @@ async function migrateDevotions() {
   for (const devotion of devotions) {
     const createdAt = devotion.createdAt ? new Date(devotion.createdAt) : null;
     const updatedAt = devotion.updatedAt ? new Date(devotion.updatedAt) : null;
+    const publishAt = devotion.publishAt ? new Date(devotion.publishAt) : null;
     await prisma.devotion.upsert({
       where: { id: devotion.id },
       create: {
@@ -587,6 +589,7 @@ async function migrateDevotions() {
         authorName: devotion.authorName || null,
         createdAt,
         updatedAt,
+        publishAt,
       },
       update: {
         title: devotion.title,
@@ -601,6 +604,7 @@ async function migrateDevotions() {
         authorName: devotion.authorName || null,
         createdAt,
         updatedAt,
+        publishAt,
       },
     });
     count += 1;

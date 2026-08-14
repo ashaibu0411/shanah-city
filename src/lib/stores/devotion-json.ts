@@ -1,5 +1,13 @@
 import { promises as fs } from "fs";
 import path from "path";
+import {
+  estimateReadingTime,
+  formatDisplayDateFromInput,
+  isDevotionPubliclyVisible,
+  pickTodayDevotion,
+  sortDevotionsForDisplay,
+  defaultScheduleDateInput,
+} from "@/lib/devotion-utils";
 import type { Devotion } from "@/lib/types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -19,38 +27,20 @@ async function writeJson<T>(file: string, data: T) {
   await fs.writeFile(file, JSON.stringify(data, null, 2));
 }
 
-function formatDisplayDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function estimateReadingTime(content: string) {
-  const words = content.trim().split(/\s+/).length;
-  const minutes = Math.max(1, Math.round(words / 180));
-  return `${minutes} min`;
-}
-
 export async function getDevotions(options?: { includeUnpublished?: boolean }) {
   const devotions = await readJson<Devotion[]>(DEVOTIONS_FILE, []);
-  const sorted = [...devotions].sort((a, b) => {
-    const aTime = new Date(a.updatedAt ?? a.createdAt ?? a.date).getTime();
-    const bTime = new Date(b.updatedAt ?? b.createdAt ?? b.date).getTime();
-    return bTime - aTime;
-  });
+  const sorted = [...devotions].sort(sortDevotionsForDisplay);
 
   if (options?.includeUnpublished) {
     return sorted;
   }
 
-  return sorted.filter((devotion) => devotion.published !== false);
+  return sorted.filter((devotion) => isDevotionPubliclyVisible(devotion));
 }
 
 export async function getTodayDevotion() {
   const devotions = await getDevotions();
-  return devotions[0] ?? null;
+  return pickTodayDevotion(devotions);
 }
 
 export async function getDevotionById(id: string) {
@@ -62,6 +52,7 @@ export async function createDevotion(
   input: Omit<Devotion, "id" | "createdAt" | "updatedAt" | "date" | "readingTime"> & {
     date?: string;
     readingTime?: string;
+    publishAt?: string | null;
   },
   author: { id: string; name: string },
 ) {
@@ -69,11 +60,18 @@ export async function createDevotion(
   const devotion: Devotion = {
     ...input,
     id: `dev-${Date.now()}`,
-    date: input.date || formatDisplayDate(now),
-    readingTime: input.readingTime || estimateReadingTime(input.content),
+    date: input.date || formatDisplayDateFromInput(defaultScheduleDateInput()),
+    readingTime:
+      input.readingTime ||
+      estimateReadingTime({
+        verse: input.verse,
+        content: input.content,
+        prayer: input.prayer,
+      }),
     authorId: author.id,
     authorName: author.name,
     published: input.published ?? true,
+    publishAt: input.publishAt ?? undefined,
     createdAt: now,
     updatedAt: now,
   };
@@ -92,13 +90,24 @@ export async function updateDevotion(
   const index = devotions.findIndex((devotion) => devotion.id === id);
   if (index === -1) return null;
 
-  devotions[index] = {
+  const merged = {
     ...devotions[index],
     ...update,
+  };
+
+  devotions[index] = {
+    ...merged,
     readingTime:
-      update.content && !update.readingTime
-        ? estimateReadingTime(update.content)
-        : update.readingTime ?? devotions[index].readingTime,
+      update.readingTime ??
+      estimateReadingTime({
+        verse: merged.verse,
+        content: merged.content,
+        prayer: merged.prayer,
+      }),
+    publishAt:
+      update.publishAt === null
+        ? undefined
+        : update.publishAt ?? devotions[index].publishAt,
     updatedAt: new Date().toISOString(),
   };
 

@@ -19,7 +19,7 @@ export default async function DevotionAdminPage() {
       <PageHeader
         eyebrow="Team ZNCF"
         title="Write devotions"
-        description="Only members of the private Team ZNCF group can publish devotions here."
+        description="Schedule devotions with a calendar and time picker. They go live automatically at the chosen time."
       />
       <DevotionAdminPanel />
     </>

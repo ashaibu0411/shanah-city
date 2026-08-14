@@ -1,30 +1,82 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
+import {
+  defaultScheduleDateInput,
+  devotionToPublishMode,
+  devotionToScheduleInputs,
+  estimateReadingTime,
+  formatDisplayDateFromInput,
+  formatScheduleLabel,
+  getDevotionStatus,
+  type DevotionPublishMode,
+} from "@/lib/devotion-utils";
 import { devotionGroupMatchHint } from "@/lib/devotion-writers-group";
 import type { Devotion } from "@/lib/types";
 
-const emptyForm = {
-  title: "",
-  verse: "",
-  reference: "",
-  content: "",
-  prayer: "",
-  date: "",
-  readingTime: "",
-  published: true,
+type DevotionForm = {
+  title: string;
+  verse: string;
+  reference: string;
+  content: string;
+  prayer: string;
+  scheduleDate: string;
+  scheduleTime: string;
+  publishMode: DevotionPublishMode;
 };
+
+function createEmptyForm(): DevotionForm {
+  return {
+    title: "",
+    verse: "",
+    reference: "",
+    content: "",
+    prayer: "",
+    scheduleDate: defaultScheduleDateInput(),
+    scheduleTime: "06:00",
+    publishMode: "schedule",
+  };
+}
+
+function statusLabel(devotion: Devotion) {
+  const status = getDevotionStatus(devotion);
+  if (status === "draft") return "Draft";
+  if (status === "scheduled") return `Scheduled · ${formatScheduleLabel(devotion)}`;
+  return `Live · ${devotion.date}`;
+}
+
+function statusClass(devotion: Devotion) {
+  const status = getDevotionStatus(devotion);
+  if (status === "draft") return "bg-sand-100 text-night-700";
+  if (status === "scheduled") return "bg-amber-100 text-amber-800";
+  return "bg-emerald-100 text-emerald-800";
+}
 
 export function DevotionAdminPanel() {
   const { user, loading, permissions } = useAuth();
   const [devotions, setDevotions] = useState<Devotion[]>([]);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<DevotionForm>(createEmptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const readingTime = useMemo(
+    () =>
+      estimateReadingTime({
+        verse: form.verse,
+        content: form.content,
+        prayer: form.prayer,
+      }),
+    [form.verse, form.content, form.prayer],
+  );
+
+  const displayDate = useMemo(
+    () => formatDisplayDateFromInput(form.scheduleDate),
+    [form.scheduleDate],
+  );
 
   async function loadDevotions() {
     if (!permissions.canWriteDevotions) return;
@@ -46,6 +98,7 @@ export function DevotionAdminPanel() {
   }, [permissions.canWriteDevotions]);
 
   function startEdit(devotion: Devotion) {
+    const schedule = devotionToScheduleInputs(devotion);
     setEditingId(devotion.id);
     setForm({
       title: devotion.title,
@@ -53,25 +106,29 @@ export function DevotionAdminPanel() {
       reference: devotion.reference,
       content: devotion.content,
       prayer: devotion.prayer,
-      date: devotion.date,
-      readingTime: devotion.readingTime,
-      published: devotion.published !== false,
+      scheduleDate: schedule.scheduleDate,
+      scheduleTime: schedule.scheduleTime,
+      publishMode: devotionToPublishMode(devotion),
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function resetForm() {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm(createEmptyForm());
   }
 
   async function saveDevotion() {
     setBusy(true);
     setStatus("");
+
     const response = await fetch("/api/devotions", {
       method: editingId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editingId ? { ...form, id: editingId } : form),
+      body: JSON.stringify({
+        ...form,
+        id: editingId ?? undefined,
+      }),
     });
     const data = await response.json();
     setBusy(false);
@@ -81,7 +138,14 @@ export function DevotionAdminPanel() {
       return;
     }
 
-    setStatus(editingId ? "Devotion updated." : "Devotion published.");
+    if (form.publishMode === "draft") {
+      setStatus("Draft saved.");
+    } else if (form.publishMode === "now") {
+      setStatus("Devotion published now.");
+    } else {
+      setStatus(`Devotion scheduled for ${displayDate} at ${form.scheduleTime}.`);
+    }
+
     resetForm();
     await loadDevotions();
   }
@@ -122,9 +186,7 @@ export function DevotionAdminPanel() {
   if (!permissions.canWriteDevotions) {
     return (
       <Card>
-        <h2 className="font-display text-xl font-semibold text-night-900">
-          Team ZNCF only
-        </h2>
+        <h2 className="font-display text-xl font-semibold text-night-900">Team ZNCF only</h2>
         <p className="mt-2 text-sm text-night-600">
           Devotion writing is hidden from the main menu and limited to members of{" "}
           {devotionGroupMatchHint()}. Ask a Team ZNCF leader to add you on{" "}
@@ -147,7 +209,8 @@ export function DevotionAdminPanel() {
           Team ZNCF editor
         </h2>
         <p className="mt-2 text-sm text-night-600">
-          Signed in as <strong>{user.name}</strong>. Publish daily devotions for the app.
+          Signed in as <strong>{user.name}</strong>. Pick a date and time on the calendar,
+          write the devotion, and schedule it to go live automatically.
         </p>
       </Card>
 
@@ -158,7 +221,7 @@ export function DevotionAdminPanel() {
               {editingId ? "Edit devotion" : "Write a devotion"}
             </h2>
             <p className="mt-1 text-sm text-night-600">
-              Mobile-friendly editor for Team ZNCF writers.
+              Most devotions can be scheduled ahead. Reading time updates automatically.
             </p>
           </div>
           {editingId && (
@@ -172,59 +235,173 @@ export function DevotionAdminPanel() {
           )}
         </div>
 
-        <div className="mt-4 space-y-3">
-          {[
-            ["title", "Title", "text"],
-            ["reference", "Scripture reference", "text"],
-            ["date", "Display date", "text"],
-            ["readingTime", "Reading time", "text"],
-          ].map(([key, label, type]) => (
-            <div key={key}>
-              <label className="text-sm font-semibold text-night-800">{label}</label>
-              <input
-                type={type}
-                value={form[key as keyof typeof form] as string}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, [key]: event.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-              />
-            </div>
-          ))}
+        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+          <p className="text-sm font-semibold text-night-900">When should this go live?</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {(
+              [
+                ["schedule", "Schedule"],
+                ["now", "Publish now"],
+                ["draft", "Save draft"],
+              ] as const
+            ).map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setForm((current) => ({ ...current, publishMode: mode }))}
+                className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                  form.publishMode === mode
+                    ? "bg-night-900 text-sand-50 shadow-sm"
+                    : "bg-white text-night-700 ring-1 ring-night-900/10 hover:bg-sand-50"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-          {[
-            ["verse", "Verse"],
-            ["content", "Reflection"],
-            ["prayer", "Prayer"],
-          ].map(([key, label]) => (
-            <div key={key}>
-              <label className="text-sm font-semibold text-night-800">{label}</label>
-              <textarea
-                value={form[key as keyof typeof form] as string}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, [key]: event.target.value }))
-                }
-                rows={key === "content" ? 5 : 3}
-                className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-              />
-            </div>
-          ))}
+          {form.publishMode !== "draft" && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="scheduleDate" className="text-sm font-semibold text-night-800">
+                  Display date
+                </label>
+                <input
+                  id="scheduleDate"
+                  type="date"
+                  value={form.scheduleDate}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      scheduleDate: event.target.value,
+                    }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <p className="mt-1 text-xs text-night-600">Shows as {displayDate}</p>
+              </div>
 
-          <label className="flex items-center gap-2 text-sm font-medium text-night-700">
+              <div>
+                <label htmlFor="scheduleTime" className="text-sm font-semibold text-night-800">
+                  {form.publishMode === "now" ? "Time (optional)" : "Go-live time"}
+                </label>
+                <input
+                  id="scheduleTime"
+                  type="time"
+                  value={form.scheduleTime}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      scheduleTime: event.target.value,
+                    }))
+                  }
+                  disabled={form.publishMode === "now"}
+                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:bg-sand-100 disabled:text-night-500"
+                />
+                <p className="mt-1 text-xs text-night-600">
+                  {form.publishMode === "now"
+                    ? "Publish now ignores the time picker."
+                    : `Members will see this on ${displayDate} at ${form.scheduleTime}.`}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-white/80 px-3 py-2 text-sm text-night-700 ring-1 ring-night-900/5">
+            <span className="font-semibold text-night-900">Estimated reading time</span>
+            <span>{readingTime}</span>
+            <span className="text-night-500">· updates as you write</span>
+          </div>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          <div>
+            <label htmlFor="title" className="text-sm font-semibold text-night-800">
+              Title
+            </label>
             <input
-              type="checkbox"
-              checked={form.published}
+              id="title"
+              value={form.title}
               onChange={(event) =>
-                setForm((current) => ({ ...current, published: event.target.checked }))
+                setForm((current) => ({ ...current, title: event.target.value }))
               }
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
-            Publish to app and website
-          </label>
+          </div>
+
+          <div>
+            <label htmlFor="reference" className="text-sm font-semibold text-night-800">
+              Scripture reference
+            </label>
+            <input
+              id="reference"
+              value={form.reference}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, reference: event.target.value }))
+              }
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="verse" className="text-sm font-semibold text-night-800">
+              Verse
+            </label>
+            <textarea
+              id="verse"
+              value={form.verse}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, verse: event.target.value }))
+              }
+              rows={3}
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="content" className="text-sm font-semibold text-night-800">
+              Reflection
+            </label>
+            <textarea
+              id="content"
+              value={form.content}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, content: event.target.value }))
+              }
+              rows={5}
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="prayer" className="text-sm font-semibold text-night-800">
+              Prayer
+            </label>
+            <textarea
+              id="prayer"
+              value={form.prayer}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, prayer: event.target.value }))
+              }
+              rows={3}
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          </div>
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">
-          <Button onClick={saveDevotion}>
-            {busy ? "Saving..." : editingId ? "Update" : "Publish"}
+          <Button onClick={saveDevotion} disabled={busy}>
+            {busy
+              ? "Saving..."
+              : form.publishMode === "draft"
+                ? "Save draft"
+                : form.publishMode === "now"
+                  ? editingId
+                    ? "Publish update"
+                    : "Publish now"
+                  : editingId
+                    ? "Update schedule"
+                    : "Schedule devotion"}
           </Button>
           <Button href="/devotions" variant="secondary">
             View devotions
@@ -240,22 +417,24 @@ export function DevotionAdminPanel() {
 
       <section>
         <h3 className="mb-3 font-display text-lg font-semibold text-night-900">
-          Published devotions
+          Devotion queue
         </h3>
         <div className="space-y-3">
           {devotions.map((devotion) => (
             <Card key={devotion.id}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs text-night-500">
-                    {devotion.date}
-                    {devotion.published === false ? " · Draft" : ""}
-                  </p>
-                  <h4 className="mt-1 font-display text-lg font-semibold text-night-900">
+                  <span
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusClass(devotion)}`}
+                  >
+                    {statusLabel(devotion)}
+                  </span>
+                  <h4 className="mt-2 font-display text-lg font-semibold text-night-900">
                     {devotion.title}
                   </h4>
                   <p className="mt-1 text-sm text-night-600">
-                    {devotion.authorName ?? "Team ZNCF"} · {devotion.reference}
+                    {devotion.authorName ?? "Team ZNCF"} · {devotion.reference} ·{" "}
+                    {devotion.readingTime}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -279,7 +458,9 @@ export function DevotionAdminPanel() {
           ))}
           {devotions.length === 0 && (
             <Card>
-              <p className="text-sm text-night-600">No devotions yet. Write your first one above.</p>
+              <p className="text-sm text-night-600">
+                No devotions yet. Schedule your first one above.
+              </p>
             </Card>
           )}
         </div>

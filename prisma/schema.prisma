@@ -146,6 +146,7 @@ model Devotion {
   authorName  String?
   createdAt   DateTime?
   updatedAt   DateTime?
+  publishAt   DateTime?
 }
 
 model PushSubscription {
