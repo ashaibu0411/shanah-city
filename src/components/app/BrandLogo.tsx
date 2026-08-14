@@ -9,22 +9,22 @@ type BrandLogoProps = {
 
 const sizes = {
   sm: {
-    frame: "rounded-lg p-1",
+    frame: "rounded-md border border-white p-px",
     image: "h-7 w-auto",
     width: 96,
     height: 40,
   },
   md: {
-    frame: "rounded-xl p-1",
+    frame: "rounded-lg border border-white p-0.5",
     image: "h-8 w-auto",
     width: 120,
     height: 48,
   },
   lg: {
-    frame: "h-16 w-16 rounded-2xl p-1.5 shadow-lg",
-    image: "h-full w-full",
-    width: 72,
-    height: 72,
+    frame: "rounded-xl border-2 border-white p-0.5 shadow-md",
+    image: "h-12 w-auto sm:h-14",
+    width: 140,
+    height: 56,
   },
 } as const;
 
@@ -37,14 +37,14 @@ export function BrandLogo({
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center bg-white/95 shadow-md ring-1 ring-night-900/5 ${config.frame} ${className}`}
+      className={`inline-flex w-fit shrink-0 items-center justify-center leading-none ${config.frame} ${className}`}
     >
       <Image
         src="/shanah-city-logo.png"
         alt={site.name}
         width={config.width}
         height={config.height}
-        className={`object-contain ${config.image}`}
+        className={`block object-contain ${config.image}`}
         priority={priority}
       />
     </span>
