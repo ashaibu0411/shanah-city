@@ -32,3 +32,4 @@ export const promoteGroupAdmin = (groupId: string, adminId: string, memberId: st
   store().promoteGroupAdmin(groupId, adminId, memberId);
 export const demoteGroupAdmin = (groupId: string, adminId: string, memberId: string) =>
   store().demoteGroupAdmin(groupId, adminId, memberId);
+export const getSignupGroupOptions = () => store().getSignupGroupOptions();

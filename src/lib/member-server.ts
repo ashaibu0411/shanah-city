@@ -1,4 +1,7 @@
 import type { Comment, CommunityPost, UnavailabilityRequest } from "@/lib/member-types";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { getMemberGroupIds } from "@/lib/admin-people-server";
+import { getUserById } from "@/lib/auth-server";
 import { useDatabase } from "@/lib/use-database";
 import * as memberDb from "@/lib/stores/member-db";
 import * as memberJson from "@/lib/stores/member-json";
@@ -6,6 +9,24 @@ import * as memberJson from "@/lib/stores/member-json";
 const store = () => (useDatabase() ? memberDb : memberJson);
 
 export const getCommunityPosts = () => store().getCommunityPosts();
+
+export async function getCommunityPostsForViewer(viewerId?: string | null) {
+  const posts = await getCommunityPosts();
+  if (!viewerId) {
+    return posts.filter((post) => !post.targetGroupId);
+  }
+
+  const viewer = await getUserById(viewerId);
+  if (viewer && (await canManageAsAdmin(viewer))) {
+    return posts;
+  }
+
+  const groupIds = await getMemberGroupIds(viewerId);
+  return posts.filter((post) => {
+    if (!post.targetGroupId) return true;
+    return groupIds.includes(post.targetGroupId);
+  });
+}
 export const saveCommunityPosts = (posts: CommunityPost[]) => store().saveCommunityPosts(posts);
 export const addCommunityPost = (post: CommunityPost) => store().addCommunityPost(post);
 export const addCommentToPost = (postId: string, comment: Comment) =>

@@ -107,20 +107,39 @@ model Group {
   meetingLink     String?
   memberIds       Json
   adminIds        Json
+  requiresApproval Boolean @default(false)
+  isSystem        Boolean @default(false)
+  signupVisible   Boolean @default(true)
   createdAt       DateTime
   updatedAt       DateTime
 }
 
+model GroupJoinRequest {
+  id             String    @id
+  groupId        String
+  groupName      String
+  userId         String
+  userName       String
+  userEmail      String
+  status         String    @default("pending")
+  requestedAt    DateTime
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  reviewedByName String?
+}
+
 model CommunityPost {
-  id        String    @id
-  author    String
-  campusId  String
-  content   String
-  timeAgo   String
-  type      String
-  reactions Int       @default(0)
-  createdAt DateTime  @default(now())
-  comments  Comment[]
+  id              String    @id
+  author          String
+  campusId        String
+  content         String
+  timeAgo         String
+  type            String
+  reactions       Int       @default(0)
+  targetGroupId   String?
+  targetGroupName String?
+  createdAt       DateTime  @default(now())
+  comments        Comment[]
 }
 
 model Comment {
@@ -157,6 +176,8 @@ model ChurchEvent {
   time      String
   location  String
   campusId  String?
+  groupId   String?
+  groupName String?
   published Boolean  @default(true)
   sortOrder Int      @default(0)
   createdAt DateTime

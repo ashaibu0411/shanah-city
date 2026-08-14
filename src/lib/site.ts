@@ -133,6 +133,19 @@ export const writeDevotionsNavItem = {
   icon: "✎",
 } as const;
 
+export const adminNavItem = {
+  label: "Admin",
+  href: "/admin/approvals",
+  icon: "⚙",
+} as const;
+
+export type AppNavItem = {
+  label: string;
+  href: string;
+  icon: string;
+  color?: string;
+};
+
 export const leadership: Leader[] = [
   { name: "Aps. Zaq Nombre", role: "Lead Shepherd" },
   {

@@ -18,6 +18,7 @@ import {
   removeGroupMember,
   updateGroup,
 } from "@/lib/group-server";
+import { requestGroupJoin } from "@/lib/group-join-server";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -75,9 +76,32 @@ export async function POST(request: Request) {
     }
 
     if (action === "join") {
-      const group = await joinGroup(groupId, user.id);
-      await recordActivity(user.id, "profile_update", `Joined group "${group.name}"`);
-      return NextResponse.json({ group });
+      const result = await requestGroupJoin(groupId, {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      });
+      if (result.status === "pending") {
+        return NextResponse.json({
+          group: await getGroupDetail(groupId, user.id),
+          joinStatus: result.status,
+          message: `Your request to join "${result.groupName}" is pending approval.`,
+        });
+      }
+      const group = await getGroupDetail(groupId, user.id);
+      if (result.status === "joined") {
+        await recordActivity(user.id, "profile_update", `Joined group "${result.groupName}"`);
+      }
+      return NextResponse.json({ group, joinStatus: result.status });
+    }
+
+    if (action === "request-join") {
+      const result = await requestGroupJoin(groupId, {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      });
+      return NextResponse.json({ joinStatus: result.status, groupName: result.groupName });
     }
 
     if (action === "leave") {

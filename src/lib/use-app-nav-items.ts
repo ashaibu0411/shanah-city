@@ -2,25 +2,36 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { site, writeDevotionsNavItem } from "@/lib/site";
+import { adminNavItem, site, writeDevotionsNavItem, type AppNavItem } from "@/lib/site";
 
-export function useAppNavItems() {
+export function useAppNavItems(): AppNavItem[] {
   const { permissions } = useAuth();
 
   return useMemo(() => {
-    if (!permissions.canWriteDevotions) {
-      return site.nav;
+    let items: AppNavItem[] = [...site.nav];
+
+    if (permissions.canWriteDevotions) {
+      const profileIndex = items.findIndex((item) => item.href === "/profile");
+      if (profileIndex === -1) {
+        items = [...items, writeDevotionsNavItem];
+      } else {
+        items = [
+          ...items.slice(0, profileIndex),
+          writeDevotionsNavItem,
+          ...items.slice(profileIndex),
+        ];
+      }
     }
 
-    const profileIndex = site.nav.findIndex((item) => item.href === "/profile");
-    if (profileIndex === -1) {
-      return [...site.nav, writeDevotionsNavItem];
+    if (permissions.canManageAdmin) {
+      const profileIndex = items.findIndex((item) => item.href === "/profile");
+      if (profileIndex === -1) {
+        items = [...items, adminNavItem];
+      } else {
+        items = [...items.slice(0, profileIndex), adminNavItem, ...items.slice(profileIndex)];
+      }
     }
 
-    return [
-      ...site.nav.slice(0, profileIndex),
-      writeDevotionsNavItem,
-      ...site.nav.slice(profileIndex),
-    ];
-  }, [permissions.canWriteDevotions]);
+    return items;
+  }, [permissions.canWriteDevotions, permissions.canManageAdmin]);
 }

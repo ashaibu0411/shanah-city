@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getEvents } from "@/lib/event-server";
 
 export async function EventsSection() {
-  const events = await getEvents();
+  const events = await getEvents({ groupId: null });
 
   return (
     <section className="bg-white py-20">

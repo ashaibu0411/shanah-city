@@ -1,16 +1,21 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { canManageDevotions, getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { getGroups } from "@/lib/group-server";
 import {
   addCommentToPost,
   addCommunityPost,
-  getCommunityPosts,
+  getCommunityPostsForViewer,
   reactToPost,
 } from "@/lib/member-server";
 import { notifyCommunityPost } from "@/lib/push-server";
 
 export async function GET() {
-  const posts = await getCommunityPosts();
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const user = await getUserFromSession(token);
+  const posts = await getCommunityPostsForViewer(user?.id);
   return NextResponse.json({ posts });
 }
 
@@ -50,22 +55,39 @@ export async function POST(request: Request) {
   const postType = body.type ?? "prayer";
 
   if (postType === "announcement") {
-    if (!canManageDevotions(user, body.pin)) {
+    if (!(await canManageAsAdmin(user))) {
       return NextResponse.json(
-        { error: "Only leaders can post church announcements." },
+        { error: "Only Admin Group members can post church announcements." },
         { status: 403 },
       );
     }
   }
 
+  let targetGroupId = body.targetGroupId ? String(body.targetGroupId).trim() : undefined;
+  let targetGroupName = body.targetGroupName ? String(body.targetGroupName).trim() : undefined;
+
+  if (postType === "announcement" && targetGroupId) {
+    const groups = await getGroups();
+    const group = groups.find((entry) => entry.id === targetGroupId);
+    if (!group) {
+      return NextResponse.json({ error: "Target group not found." }, { status: 404 });
+    }
+    targetGroupName = group.name;
+  } else if (postType !== "announcement") {
+    targetGroupId = undefined;
+    targetGroupName = undefined;
+  }
+
   const post = await addCommunityPost({
     id: String(Date.now()),
-    author: postType === "announcement" ? authorName : authorName,
+    author: authorName,
     campusId: body.campusId ?? user?.campusId ?? "colorado",
     content,
     timeAgo: "Just now",
     type: postType,
     reactions: 0,
+    targetGroupId,
+    targetGroupName,
     comments: [],
   });
 
@@ -74,6 +96,8 @@ export async function POST(request: Request) {
     authorName,
     content,
     type: postType,
+    targetGroupId,
+    targetGroupName,
   });
 
   return NextResponse.json({ post }, { status: 201 });

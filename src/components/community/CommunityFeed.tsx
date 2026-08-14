@@ -5,6 +5,7 @@ import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getCampus } from "@/lib/site";
 import type { CommunityPost } from "@/lib/member-types";
+import type { SignupGroupOption } from "@/lib/group-types";
 import { Button, Card, SectionTitle } from "@/components/ui";
 
 function formatTime(iso: string) {
@@ -83,6 +84,7 @@ function PostCard({
           <h3 className="mt-2 font-semibold text-night-900">{post.author}</h3>
           <p className="text-xs text-night-500">
             {campus.name} · {post.timeAgo}
+            {post.targetGroupName ? ` · ${post.targetGroupName} only` : ""}
           </p>
         </div>
       </div>
@@ -132,15 +134,24 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
   const [posts, setPosts] = useState(initialPosts);
   const [draft, setDraft] = useState("");
   const [announcementDraft, setAnnouncementDraft] = useState("");
-  const [leaderPin, setLeaderPin] = useState("");
+  const [targetGroupId, setTargetGroupId] = useState("");
+  const [targetGroups, setTargetGroups] = useState<SignupGroupOption[]>([]);
   const [postType, setPostType] = useState<"prayer" | "praise">("prayer");
   const { campus } = useApp();
-  const { user } = useAuth();
-  const isLeader = user?.role === "leader";
+  const { user, permissions } = useAuth();
+  const canAnnounce = permissions.canManageAdmin;
 
   useEffect(() => {
     setPosts(initialPosts);
   }, [initialPosts]);
+
+  useEffect(() => {
+    if (!canAnnounce) return;
+    fetch("/api/groups/signup-options")
+      .then((response) => response.json())
+      .then((data) => setTargetGroups(data.groups ?? []))
+      .catch(() => setTargetGroups([]));
+  }, [canAnnounce]);
 
   function updatePost(updated: CommunityPost) {
     setPosts((current) =>
@@ -168,6 +179,7 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
 
   async function submitAnnouncement() {
     if (!announcementDraft.trim()) return;
+    const selectedGroup = targetGroups.find((group) => group.id === targetGroupId);
     const response = await fetch("/api/community", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -175,28 +187,41 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
         campusId: campus.id,
         content: announcementDraft.trim(),
         type: "announcement",
-        pin: leaderPin || undefined,
+        targetGroupId: targetGroupId || undefined,
+        targetGroupName: selectedGroup?.name,
       }),
     });
     const data = await response.json();
     if (response.ok) {
       setPosts((current) => [data.post, ...current]);
       setAnnouncementDraft("");
-      setLeaderPin("");
+      setTargetGroupId("");
     }
   }
 
   return (
     <div>
-      {user && (
+      {canAnnounce && (
         <Card className="mb-6 border border-blue-100 bg-blue-50/40">
           <h3 className="font-display text-lg font-semibold text-night-900">
             Post a church announcement
           </h3>
           <p className="mt-2 text-sm text-night-600">
-            Leaders can broadcast to all members. Everyone with announcements enabled gets a
-            push notification.
+            Admin Group only — broadcast to the whole church or target one ministry group.
+            Push notifications respect each member&apos;s announcement settings.
           </p>
+          <select
+            value={targetGroupId}
+            onChange={(event) => setTargetGroupId(event.target.value)}
+            className="mt-3 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+          >
+            <option value="">All church members</option>
+            {targetGroups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name} only
+              </option>
+            ))}
+          </select>
           <textarea
             value={announcementDraft}
             onChange={(event) => setAnnouncementDraft(event.target.value)}
@@ -204,15 +229,6 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
             className="mt-3 w-full rounded-xl border border-night-900/10 bg-white p-3 text-sm outline-none ring-night-900/5 focus:ring-2"
             rows={3}
           />
-          {!isLeader && (
-            <input
-              value={leaderPin}
-              onChange={(event) => setLeaderPin(event.target.value)}
-              type="password"
-              placeholder="Leader PIN (if not a leader account)"
-              className="mt-3 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
-          )}
           <div className="mt-3 flex justify-end">
             <Button onClick={submitAnnouncement} disabled={!announcementDraft.trim()}>
               Send announcement

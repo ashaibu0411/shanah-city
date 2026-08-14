@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { getUserByEmail, getUserById, getUsers } from "@/lib/auth-server";
+import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS } from "@/lib/church-groups";
 import {
   assertAnotherAdminRemains,
   assertGroupAdmin,
@@ -33,7 +34,82 @@ async function writeJson<T>(file: string, data: T) {
 }
 
 export async function getGroups() {
+  await ensureChurchGroups();
   return readJson<Group[]>(GROUPS_FILE, []);
+}
+
+async function ensureChurchGroups() {
+  const groups = await readJson<Group[]>(GROUPS_FILE, []);
+  const users = await getUsers();
+  const leaderIds = users.filter((user) => user.role === "leader").map((user) => user.id);
+  const bootstrapEmail = process.env.ADMIN_BOOTSTRAP_EMAIL?.trim().toLowerCase();
+  const bootstrapUser = bootstrapEmail
+    ? users.find((user) => user.email.toLowerCase() === bootstrapEmail)
+    : undefined;
+  const bootstrapIds = [
+    ...leaderIds,
+    ...(bootstrapUser ? [bootstrapUser.id] : []),
+  ];
+  const now = new Date().toISOString();
+  let changed = false;
+
+  for (const seed of CHURCH_MINISTRY_GROUPS) {
+    const index = groups.findIndex((group) => group.id === seed.id);
+    if (index === -1) {
+      const adminIds = seed.id === ADMIN_GROUP_ID ? [...new Set(bootstrapIds)] : [];
+      groups.push({
+        id: seed.id,
+        name: seed.name,
+        description: seed.description,
+        category: seed.category,
+        createdBy: bootstrapIds[0] ?? "system",
+        creatorName: "Shanah City",
+        createdAt: now,
+        updatedAt: now,
+        visibility: seed.visibility,
+        memberIds: seed.id === ADMIN_GROUP_ID ? [...new Set(bootstrapIds)] : [],
+        adminIds,
+        requiresApproval: seed.requiresApproval,
+        isSystem: seed.isSystem,
+        signupVisible: seed.signupVisible,
+      });
+      changed = true;
+      continue;
+    }
+
+    groups[index] = {
+      ...groups[index],
+      name: seed.name,
+      description: seed.description,
+      requiresApproval: seed.requiresApproval,
+      isSystem: seed.isSystem,
+      signupVisible: seed.signupVisible,
+    };
+
+    if (seed.id === ADMIN_GROUP_ID && bootstrapIds.length > 0) {
+      groups[index].memberIds = [...new Set([...groups[index].memberIds, ...bootstrapIds])];
+      groups[index].adminIds = [...new Set([...groups[index].adminIds, ...bootstrapIds])];
+    }
+    changed = true;
+  }
+
+  if (changed) {
+    await saveGroups(groups);
+  }
+}
+
+export async function getSignupGroupOptions() {
+  const groups = await getGroups();
+  return groups
+    .filter((group) => group.signupVisible !== false)
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((group) => ({
+      id: group.id,
+      name: group.name,
+      description: group.description,
+      category: group.category,
+      requiresApproval: group.requiresApproval ?? false,
+    }));
 }
 
 async function saveGroups(groups: Group[]) {
@@ -184,6 +260,12 @@ export async function joinGroup(groupId: string, userId: string) {
     return toSummary(group, userId);
   }
 
+  if (group.requiresApproval) {
+    throw new Error(
+      `Joining "${group.name}" requires approval. Request access from your profile or sign-up.`,
+    );
+  }
+
   group.memberIds = [...group.memberIds, userId];
   group.updatedAt = new Date().toISOString();
   groups[index] = group;
@@ -272,6 +354,10 @@ export async function deleteGroup(groupId: string, userId: string) {
   }
 
   const group = groups[index];
+  if (group.isSystem) {
+    throw new Error("System ministry groups cannot be deleted.");
+  }
+
   if (!isGroupAdmin(group, userId)) {
     throw new Error("Only group leaders can delete this group.");
   }

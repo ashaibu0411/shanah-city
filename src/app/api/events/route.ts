@@ -1,10 +1,9 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import {
-  canManageDevotions,
-  getUserFromSession,
-  SESSION_COOKIE,
-} from "@/lib/auth-server";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { getGroups } from "@/lib/group-server";
+import { isGroupMember } from "@/lib/group-admin-utils";
 import {
   createEvent,
   deleteEvent,
@@ -13,12 +12,17 @@ import {
 } from "@/lib/event-server";
 
 function parseEventBody(body: Record<string, unknown>) {
+  const groupId = body.groupId ? String(body.groupId).trim() : undefined;
+  const groupName = body.groupName ? String(body.groupName).trim() : undefined;
+
   return {
     title: String(body.title ?? "").trim(),
     date: String(body.date ?? "").trim(),
     time: String(body.time ?? "").trim(),
     location: String(body.location ?? "").trim(),
     campusId: body.campusId ? String(body.campusId) : undefined,
+    groupId: groupId || undefined,
+    groupName: groupName || undefined,
     published: body.published === false ? false : true,
   };
 }
@@ -26,20 +30,39 @@ function parseEventBody(body: Record<string, unknown>) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const includeUnpublished = searchParams.get("all") === "1";
+  const groupParam = searchParams.get("groupId");
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const user = await getUserFromSession(token);
+  const isAdmin = await canManageAsAdmin(user);
 
   if (includeUnpublished) {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(SESSION_COOKIE)?.value;
-    const user = await getUserFromSession(token);
-    if (!canManageDevotions(user)) {
-      return NextResponse.json({ error: "Leader access required." }, { status: 403 });
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
     }
     const events = await getEvents({ includeUnpublished: true });
     return NextResponse.json({ events, canManage: true });
   }
 
-  const events = await getEvents();
-  return NextResponse.json({ events });
+  if (groupParam && groupParam !== "church") {
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to view group events." }, { status: 401 });
+    }
+
+    if (!isAdmin) {
+      const groups = await getGroups();
+      const group = groups.find((entry) => entry.id === groupParam);
+      if (!group || !isGroupMember(group, user.id)) {
+        return NextResponse.json({ error: "Group membership required." }, { status: 403 });
+      }
+    }
+
+    const events = await getEvents({ groupId: groupParam });
+    return NextResponse.json({ events, canManage: isAdmin });
+  }
+
+  const events = await getEvents({ groupId: null });
+  return NextResponse.json({ events, canManage: isAdmin });
 }
 
 export async function POST(request: Request) {
@@ -48,8 +71,8 @@ export async function POST(request: Request) {
   const user = await getUserFromSession(token);
   const body = await request.json();
 
-  if (!canManageDevotions(user, body.pin)) {
-    return NextResponse.json({ error: "Leader access required." }, { status: 403 });
+  if (!(await canManageAsAdmin(user))) {
+    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
   }
 
   const input = parseEventBody(body);
@@ -58,6 +81,15 @@ export async function POST(request: Request) {
       { error: "Title, date, time, and location are required." },
       { status: 400 },
     );
+  }
+
+  if (input.groupId) {
+    const groups = await getGroups();
+    const group = groups.find((entry) => entry.id === input.groupId);
+    if (!group) {
+      return NextResponse.json({ error: "Group not found." }, { status: 404 });
+    }
+    input.groupName = group.name;
   }
 
   const event = await createEvent(input);
@@ -70,8 +102,8 @@ export async function PATCH(request: Request) {
   const user = await getUserFromSession(token);
   const body = await request.json();
 
-  if (!canManageDevotions(user, body.pin)) {
-    return NextResponse.json({ error: "Leader access required." }, { status: 403 });
+  if (!(await canManageAsAdmin(user))) {
+    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
   }
 
   const id = String(body.id ?? "");
@@ -85,6 +117,9 @@ export async function PATCH(request: Request) {
     time: body.time ? String(body.time).trim() : undefined,
     location: body.location ? String(body.location).trim() : undefined,
     campusId: body.campusId ? String(body.campusId) : undefined,
+    groupId: body.groupId === null ? null : body.groupId ? String(body.groupId) : undefined,
+    groupName:
+      body.groupName === null ? null : body.groupName ? String(body.groupName) : undefined,
     published: body.published === false ? false : body.published === true ? true : undefined,
   });
 
@@ -101,8 +136,8 @@ export async function DELETE(request: Request) {
   const user = await getUserFromSession(token);
   const body = await request.json();
 
-  if (!canManageDevotions(user, body.pin)) {
-    return NextResponse.json({ error: "Leader access required." }, { status: 403 });
+  if (!(await canManageAsAdmin(user))) {
+    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
   }
 
   const id = String(body.id ?? "");

@@ -104,6 +104,8 @@ export type ChurchEvent = {
   time: string;
   location: string;
   campusId?: string;
+  groupId?: string | null;
+  groupName?: string | null;
   published?: boolean;
   sortOrder?: number;
 };

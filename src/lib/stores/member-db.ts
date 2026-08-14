@@ -29,6 +29,8 @@ function mapCommunityPost(record: {
   timeAgo: string;
   type: string;
   reactions: number;
+  targetGroupId: string | null;
+  targetGroupName: string | null;
   comments: {
     id: string;
     author: string;
@@ -44,6 +46,8 @@ function mapCommunityPost(record: {
     timeAgo: record.timeAgo,
     type: record.type as CommunityPost["type"],
     reactions: record.reactions,
+    targetGroupId: record.targetGroupId ?? undefined,
+    targetGroupName: record.targetGroupName ?? undefined,
     comments: record.comments.map(mapComment),
   };
 }
@@ -151,6 +155,8 @@ export async function saveCommunityPosts(posts: CommunityPost[]) {
           timeAgo: post.timeAgo,
           type: post.type,
           reactions: post.reactions,
+          targetGroupId: post.targetGroupId ?? null,
+          targetGroupName: post.targetGroupName ?? null,
           createdAt: new Date(),
           comments: {
             create: (post.comments ?? []).map((comment) => ({
@@ -176,6 +182,8 @@ export async function addCommunityPost(post: CommunityPost) {
       timeAgo: post.timeAgo,
       type: post.type,
       reactions: post.reactions,
+      targetGroupId: post.targetGroupId ?? null,
+      targetGroupName: post.targetGroupName ?? null,
       createdAt: new Date(),
       comments: {
         create: (post.comments ?? []).map((comment) => ({

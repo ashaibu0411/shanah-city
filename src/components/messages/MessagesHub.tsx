@@ -32,6 +32,7 @@ export function MessagesHub() {
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [showSafety, setShowSafety] = useState(false);
+  const [canStartMessages, setCanStartMessages] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
 
@@ -68,6 +69,7 @@ export function MessagesHub() {
     }
     setThreads(data.threads ?? []);
     setMembers(data.members ?? []);
+    setCanStartMessages(Boolean(data.canStartMessages));
     setStatus("");
   }
 
@@ -257,17 +259,19 @@ export function MessagesHub() {
       <Card className={`${activeThreadId || showNew ? "hidden lg:block" : ""}`}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold text-night-900">Inbox</h2>
-          <button
-            type="button"
-            onClick={() => {
-              setShowNew(true);
-              setActiveThreadId(null);
-              setMessages([]);
-            }}
-            className="rounded-full bg-night-900 px-3 py-1.5 text-xs font-semibold text-sand-50"
-          >
-            New
-          </button>
+          {canStartMessages && (
+            <button
+              type="button"
+              onClick={() => {
+                setShowNew(true);
+                setActiveThreadId(null);
+                setMessages([]);
+              }}
+              className="rounded-full bg-night-900 px-3 py-1.5 text-xs font-semibold text-sand-50"
+            >
+              New
+            </button>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -383,34 +387,40 @@ export function MessagesHub() {
           <div>
             <h2 className="font-display text-lg font-semibold text-night-900">New message</h2>
             <p className="mt-1 text-sm text-night-600">
-              Choose a member from your campus community directory.
+              {canStartMessages
+                ? "Choose a member from the admin member directory."
+                : "Only Admin Group members can start new conversations. You can still reply in existing threads."}
             </p>
-            <select
-              value={newRecipientId}
-              onChange={(event) => setNewRecipientId(event.target.value)}
-              className="mt-4 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            >
-              <option value="">Select a member</option>
-              {members.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.name} · {getCampus(member.campusId).city}
-                </option>
-              ))}
-            </select>
-            <textarea
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              rows={4}
-              placeholder="Write your message..."
-              className="mt-4 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
-            <Button
-              className="mt-4"
-              onClick={() => sendMessage()}
-              disabled={busy || !newRecipientId}
-            >
-              {busy ? "Sending..." : "Send message"}
-            </Button>
+            {canStartMessages ? (
+              <>
+                <select
+                  value={newRecipientId}
+                  onChange={(event) => setNewRecipientId(event.target.value)}
+                  className="mt-4 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                >
+                  <option value="">Select a member</option>
+                  {members.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name} · {getCampus(member.campusId).city}
+                    </option>
+                  ))}
+                </select>
+                <textarea
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  rows={4}
+                  placeholder="Write your message..."
+                  className="mt-4 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <Button
+                  className="mt-4"
+                  onClick={() => sendMessage()}
+                  disabled={busy || !newRecipientId}
+                >
+                  {busy ? "Sending..." : "Send message"}
+                </Button>
+              </>
+            ) : null}
           </div>
         ) : activeThread ? (
           <div className="flex h-full min-h-[420px] flex-col">

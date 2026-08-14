@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import { getUsers } from "@/lib/auth-server";
 import type { NotificationPrefs, NotificationTopic } from "@/lib/auth-types";
+import { getGroups } from "@/lib/group-server";
 import * as pushDb from "@/lib/stores/push-db";
 import * as pushJson from "@/lib/stores/push-json";
 import { useDatabase } from "@/lib/use-database";
@@ -127,6 +128,22 @@ export async function notifyNewMessage(input: {
   );
 }
 
+export async function sendPushToGroupMembers(
+  groupId: string,
+  payload: { title: string; body: string; url: string },
+  preferenceKey: NotificationTopic,
+  excludeUserId?: string,
+) {
+  const groups = await getGroups();
+  const group = groups.find((entry) => entry.id === groupId);
+  if (!group) {
+    return { sent: 0, skipped: 0, configured: isPushConfigured() };
+  }
+
+  const userIds = group.memberIds.filter((memberId) => memberId !== excludeUserId);
+  return sendPushToUsers(userIds, payload, preferenceKey);
+}
+
 export async function sendPushToAllMembers(
   payload: { title: string; body: string; url: string },
   preferenceKey: NotificationTopic,
@@ -145,22 +162,33 @@ export async function notifyCommunityPost(input: {
   authorName: string;
   content: string;
   type: "prayer" | "praise" | "announcement";
+  targetGroupId?: string;
+  targetGroupName?: string;
 }) {
   const titles = {
     prayer: "New prayer on the wall",
     praise: "New praise shared",
-    announcement: "Church announcement",
+    announcement: input.targetGroupName
+      ? `${input.targetGroupName} announcement`
+      : "Church announcement",
   };
 
-  return sendPushToAllMembers(
-    {
-      title: titles[input.type],
-      body: `${input.authorName}: ${input.content.slice(0, 120)}`,
-      url: "/community",
-    },
-    "announcements",
-    input.authorId,
-  );
+  const payload = {
+    title: titles[input.type],
+    body: `${input.authorName}: ${input.content.slice(0, 120)}`,
+    url: "/community",
+  };
+
+  if (input.type === "announcement" && input.targetGroupId) {
+    return sendPushToGroupMembers(
+      input.targetGroupId,
+      payload,
+      "announcements",
+      input.authorId,
+    );
+  }
+
+  return sendPushToAllMembers(payload, "announcements", input.authorId);
 }
 
 export async function notifyNewMediaClip(input: {

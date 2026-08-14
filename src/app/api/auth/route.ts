@@ -15,6 +15,7 @@ import {
   getClientIp,
   rateLimitResponse,
 } from "@/lib/rate-limit-server";
+import { processSignupGroupSelections } from "@/lib/group-join-server";
 import { getSessionPermissions } from "@/lib/session-permissions";
 
 async function checkAuthRateLimit(request: Request, action: string) {
@@ -34,7 +35,7 @@ export async function GET() {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   if (!user) {
-    return NextResponse.json({ user: null, permissions: { canUploadGallery: false, canWriteDevotions: false } });
+    return NextResponse.json({ user: null, permissions: { canUploadGallery: false, canWriteDevotions: false, canManageAdmin: false } });
   }
   const [activity, permissions] = await Promise.all([
     getActivity(user.id),
@@ -60,11 +61,18 @@ export async function POST(request: Request) {
         phone: body.phone,
         campusId: body.campusId ?? "colorado",
       });
+      const groupIds = Array.isArray(body.groupIds)
+        ? body.groupIds.map(String)
+        : [];
+      const ministryResults = await processSignupGroupSelections(
+        { id: user.id, name: user.name, email: user.email },
+        groupIds,
+      );
       const session = await createSession(user.id);
       const publicUser = toPublicMember(user);
       const permissions = await getSessionPermissions(publicUser);
       const response = NextResponse.json(
-        { user: publicUser, permissions },
+        { user: publicUser, permissions, ministryResults },
         { status: 201 },
       );      response.cookies.set(SESSION_COOKIE, session.token, {
         httpOnly: true,

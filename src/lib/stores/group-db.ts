@@ -1,11 +1,13 @@
 import { getUserByEmail, getUserById, getUsers } from "@/lib/auth-server";
+import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS } from "@/lib/church-groups";
 import { prisma } from "@/lib/db";
 import {
   assertAnotherAdminRemains,
   assertGroupAdmin,
   isGroupAdmin,
   isGroupMember,
-} from "@/lib/group-admin-utils";import type {
+} from "@/lib/group-admin-utils";
+import type {
   Group,
   GroupCategory,
   GroupDetail,
@@ -34,6 +36,9 @@ function mapGroup(record: {
   meetingLink: string | null;
   memberIds: unknown;
   adminIds: unknown;
+  requiresApproval: boolean;
+  isSystem: boolean;
+  signupVisible: boolean;
   createdAt: Date;
   updatedAt: Date;
 }): Group {
@@ -50,9 +55,95 @@ function mapGroup(record: {
     visibility: record.visibility as GroupVisibility,
     memberIds: parseStringArray(record.memberIds),
     adminIds: parseStringArray(record.adminIds),
+    requiresApproval: record.requiresApproval,
+    isSystem: record.isSystem,
+    signupVisible: record.signupVisible,
     meetingSchedule: record.meetingSchedule ?? undefined,
     meetingLink: record.meetingLink ?? undefined,
   };
+}
+
+async function ensureChurchGroups() {
+  const users = await getUsers();
+  const leaderIds = users.filter((user) => user.role === "leader").map((user) => user.id);
+  const bootstrapEmail = process.env.ADMIN_BOOTSTRAP_EMAIL?.trim().toLowerCase();
+  const bootstrapUser = bootstrapEmail
+    ? users.find((user) => user.email.toLowerCase() === bootstrapEmail)
+    : undefined;
+  const bootstrapIds = [
+    ...leaderIds,
+    ...(bootstrapUser ? [bootstrapUser.id] : []),
+  ];
+
+  for (const seed of CHURCH_MINISTRY_GROUPS) {
+    const existing = await prisma.group.findUnique({ where: { id: seed.id } });
+    const now = new Date();
+
+    if (!existing) {
+      const adminIds =
+        seed.id === ADMIN_GROUP_ID ? [...new Set(bootstrapIds)] : [];
+      const memberIds =
+        seed.id === ADMIN_GROUP_ID ? [...new Set(bootstrapIds)] : [];
+
+      await prisma.group.create({
+        data: {
+          id: seed.id,
+          name: seed.name,
+          description: seed.description,
+          category: seed.category,
+          campusId: null,
+          createdBy: bootstrapIds[0] ?? "system",
+          creatorName: "Shanah City",
+          visibility: seed.visibility,
+          memberIds,
+          adminIds,
+          requiresApproval: seed.requiresApproval,
+          isSystem: seed.isSystem,
+          signupVisible: seed.signupVisible,
+          createdAt: now,
+          updatedAt: now,
+        },
+      });
+      continue;
+    }
+
+    if (seed.id === ADMIN_GROUP_ID && bootstrapIds.length > 0) {
+      const memberIds = parseStringArray(existing.memberIds);
+      const adminIds = parseStringArray(existing.adminIds);
+      const nextMembers = [...new Set([...memberIds, ...bootstrapIds])];
+      const nextAdmins = [...new Set([...adminIds, ...bootstrapIds])];
+
+      await prisma.group.update({
+        where: { id: seed.id },
+        data: {
+          name: seed.name,
+          description: seed.description,
+          requiresApproval: seed.requiresApproval,
+          isSystem: seed.isSystem,
+          signupVisible: seed.signupVisible,
+          memberIds: nextMembers,
+          adminIds: nextAdmins,
+          updatedAt: now,
+        },
+      });
+    }
+  }
+}
+
+export async function getSignupGroupOptions() {
+  await ensureChurchGroups();
+  const records = await prisma.group.findMany({
+    where: { signupVisible: true },
+    orderBy: { name: "asc" },
+  });
+
+  return records.map((record) => ({
+    id: record.id,
+    name: record.name,
+    description: record.description,
+    category: record.category as GroupCategory,
+    requiresApproval: record.requiresApproval,
+  }));
 }
 
 function canViewGroup(group: Group, userId?: string) {
@@ -88,6 +179,7 @@ async function getMemberPreviews(group: Group): Promise<GroupMemberPreview[]> {
     .filter((member): member is GroupMemberPreview => member !== null);
 }
 export async function getGroups() {
+  await ensureChurchGroups();
   const records = await prisma.group.findMany();
   return records.map(mapGroup);
 }
@@ -201,6 +293,12 @@ export async function joinGroup(groupId: string, userId: string) {
     return toSummary(group, userId);
   }
 
+  if (group.requiresApproval) {
+    throw new Error(
+      `Joining "${group.name}" requires approval. Request access from your profile or sign-up.`,
+    );
+  }
+
   const memberIds = [...group.memberIds, userId];
   const updated = await prisma.group.update({
     where: { id: groupId },
@@ -305,6 +403,10 @@ export async function deleteGroup(groupId: string, userId: string) {
   }
 
   const group = mapGroup(record);
+  if (group.isSystem) {
+    throw new Error("System ministry groups cannot be deleted.");
+  }
+
   if (!isGroupAdmin(group, userId)) {
     throw new Error("Only group leaders can delete this group.");
   }

@@ -105,6 +105,16 @@ export function MemberProfile() {
 
       <div className="mb-6 flex flex-wrap gap-3">
         <Button href="/messages">Messages</Button>
+        {permissions.canManageAdmin && (
+          <Button href="/admin/people" variant="secondary">
+            Member directory
+          </Button>
+        )}
+        {permissions.canManageAdmin && (
+          <Button href="/admin/approvals" variant="secondary">
+            Admin approvals
+          </Button>
+        )}
         {permissions.canWriteDevotions && (
           <Button href="/admin/devotions" variant="secondary">
             Write devotions

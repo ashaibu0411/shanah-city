@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
 import {
   getUserFromSession,
   recordActivity,
@@ -37,7 +38,8 @@ export async function GET(request: Request) {
   }
 
   const threads = await getThreadsForUser(user.id);
-  const members = await getMemberDirectory(user.id);
+  const isAdmin = await canManageAsAdmin(user);
+  const members = isAdmin ? await getMemberDirectory(user.id) : [];
 
   return NextResponse.json({
     threads: threads.map((thread) => ({
@@ -46,6 +48,7 @@ export async function GET(request: Request) {
       otherUserId: getOtherParticipantId(thread, user.id),
     })),
     members,
+    canStartMessages: isAdmin,
     user,
   });
 }
@@ -85,6 +88,13 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Choose a member to message." },
       { status: 400 },
+    );
+  }
+
+  if (!threadId && !(await canManageAsAdmin(user))) {
+    return NextResponse.json(
+      { error: "Only Admin Group members can start new conversations." },
+      { status: 403 },
     );
   }
 

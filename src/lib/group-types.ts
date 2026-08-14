@@ -20,8 +20,33 @@ export type Group = {
   visibility: GroupVisibility;
   memberIds: string[];
   adminIds: string[];
+  requiresApproval?: boolean;
+  isSystem?: boolean;
+  signupVisible?: boolean;
   meetingSchedule?: string;
   meetingLink?: string;
+};
+
+export type GroupJoinRequest = {
+  id: string;
+  groupId: string;
+  groupName: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  status: "pending" | "approved" | "rejected";
+  requestedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewedByName?: string;
+};
+
+export type SignupGroupOption = {
+  id: string;
+  name: string;
+  description: string;
+  category: GroupCategory;
+  requiresApproval: boolean;
 };
 
 export type GroupMemberPreview = {

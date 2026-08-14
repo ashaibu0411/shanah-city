@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSafeNextPath } from "@/components/auth/AuthPageShell";
 import { Button, Card } from "@/components/ui";
+import type { SignupGroupOption } from "@/lib/group-types";
 import { campuses } from "@/lib/site";
 
 function Field({
@@ -137,31 +138,53 @@ export function SignUpForm() {
   const searchParams = useSearchParams();
   const nextPath = getSafeNextPath(searchParams.get("next"));
   const { refresh } = useAuth();
+  const [step, setStep] = useState<"account" | "ministries" | "confirm">("account");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [campusId, setCampusId] = useState("colorado");
+  const [ministryOptions, setMinistryOptions] = useState<SignupGroupOption[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function submit(event: React.FormEvent) {
+  useEffect(() => {
+    fetch("/api/groups/signup-options")
+      .then((response) => response.json())
+      .then((data) => setMinistryOptions(data.groups ?? []))
+      .catch(() => setMinistryOptions([]));
+  }, []);
+
+  function toggleGroup(groupId: string) {
+    setSelectedGroupIds((current) =>
+      current.includes(groupId)
+        ? current.filter((id) => id !== groupId)
+        : [...current, groupId],
+    );
+  }
+
+  function continueToMinistries(event: React.FormEvent) {
     event.preventDefault();
-    setLoading(true);
     setError(null);
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters.");
-      setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
-      setLoading(false);
       return;
     }
+
+    setStep("ministries");
+  }
+
+  async function submitSignup() {
+    setLoading(true);
+    setError(null);
 
     const response = await fetch("/api/auth", {
       method: "POST",
@@ -173,6 +196,7 @@ export function SignUpForm() {
         phone,
         password,
         campusId,
+        groupIds: selectedGroupIds,
       }),
     });
     const data = await response.json();
@@ -188,17 +212,136 @@ export function SignUpForm() {
     router.refresh();
   }
 
+  const selectedGroups = ministryOptions.filter((group) =>
+    selectedGroupIds.includes(group.id),
+  );
+  const pendingGroups = selectedGroups.filter((group) => group.requiresApproval);
+  const instantGroups = selectedGroups.filter((group) => !group.requiresApproval);
+
+  if (step === "ministries") {
+    return (
+      <Card>
+        <h2 className="font-display text-2xl font-semibold text-night-900">
+          Your ministries
+        </h2>
+        <p className="mt-1 text-sm text-night-600">
+          Select the groups you belong to. Leadership groups require admin approval before
+          you receive access.
+        </p>
+
+        <div className="mt-6 space-y-3">
+          {ministryOptions.map((group) => (
+            <label
+              key={group.id}
+              className="flex cursor-pointer items-start gap-3 rounded-xl border border-night-900/10 bg-sand-50 p-4"
+            >
+              <input
+                type="checkbox"
+                checked={selectedGroupIds.includes(group.id)}
+                onChange={() => toggleGroup(group.id)}
+                className="mt-1"
+              />
+              <span>
+                <span className="font-semibold text-night-900">{group.name}</span>
+                {group.requiresApproval && (
+                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                    Approval required
+                  </span>
+                )}
+                <span className="mt-1 block text-sm text-night-600">{group.description}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button variant="secondary" onClick={() => setStep("account")}>
+            Back
+          </Button>
+          <Button onClick={() => setStep("confirm")}>Review selections</Button>
+        </div>
+      </Card>
+    );
+  }
+
+  if (step === "confirm") {
+    return (
+      <Card>
+        <h2 className="font-display text-2xl font-semibold text-night-900">
+          Confirm your profile
+        </h2>
+        <p className="mt-1 text-sm text-night-600">
+          Check your details before creating your account.
+        </p>
+
+        <div className="mt-6 space-y-4 text-sm text-night-700">
+          <p>
+            <strong>Name:</strong> {name}
+          </p>
+          <p>
+            <strong>Email:</strong> {email}
+          </p>
+          <p>
+            <strong>Campus:</strong>{" "}
+            {campuses.find((campus) => campus.id === campusId)?.name ?? campusId}
+          </p>
+          {selectedGroups.length === 0 ? (
+            <p>
+              <strong>Ministries:</strong> None selected — you can join groups later from
+              the Groups page.
+            </p>
+          ) : (
+            <>
+              {instantGroups.length > 0 && (
+                <div>
+                  <strong>Joining now:</strong>
+                  <ul className="mt-1 list-disc pl-5">
+                    {instantGroups.map((group) => (
+                      <li key={group.id}>{group.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {pendingGroups.length > 0 && (
+                <div>
+                  <strong>Pending approval:</strong>
+                  <ul className="mt-1 list-disc pl-5">
+                    {pendingGroups.map((group) => (
+                      <li key={group.id}>{group.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {error && (
+          <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        )}
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button variant="secondary" onClick={() => setStep("ministries")}>
+            Back
+          </Button>
+          <Button onClick={submitSignup} className={loading ? "opacity-70" : ""}>
+            {loading ? "Creating account..." : "Create account"}
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <h2 className="font-display text-2xl font-semibold text-night-900">
         Create your profile
       </h2>
       <p className="mt-1 text-sm text-night-600">
-        Set up your member account in about a minute. You can add family members on
-        your profile after signing up.
+        Step 1 of 3 — account details. Next you&apos;ll choose your ministries.
       </p>
 
-      <form onSubmit={submit} className="mt-6 space-y-4">
+      <form onSubmit={continueToMinistries} className="mt-6 space-y-4">
         <Field id="sign-up-name" label="Full name">
           <input
             id="sign-up-name"
@@ -283,8 +426,8 @@ export function SignUpForm() {
           <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
         )}
 
-        <Button type="submit" className={`w-full ${loading ? "opacity-70" : ""}`}>
-          {loading ? "Creating account..." : "Create account & go to profile"}
+        <Button type="submit" className="w-full">
+          Continue to ministries
         </Button>
       </form>
 

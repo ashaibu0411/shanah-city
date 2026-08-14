@@ -13,7 +13,27 @@ export type CommunityPost = {
   timeAgo: string;
   type: "prayer" | "praise" | "announcement";
   reactions: number;
+  targetGroupId?: string;
+  targetGroupName?: string;
   comments: Comment[];
+};
+
+export type AdminPeopleGroupStatus = {
+  id: string;
+  name: string;
+  status: "member" | "pending";
+};
+
+export type AdminPeopleEntry = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  campusId: string;
+  role?: string;
+  createdAt: string;
+  familyCount: number;
+  groups: AdminPeopleGroupStatus[];
 };
 
 export type VolunteerCheckIn = {

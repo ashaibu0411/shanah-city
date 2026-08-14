@@ -9,6 +9,8 @@ function mapEvent(record: {
   time: string;
   location: string;
   campusId: string | null;
+  groupId: string | null;
+  groupName: string | null;
   published: boolean;
   sortOrder: number;
 }): ChurchEvent {
@@ -19,6 +21,8 @@ function mapEvent(record: {
     time: record.time,
     location: record.location,
     campusId: record.campusId ?? undefined,
+    groupId: record.groupId ?? undefined,
+    groupName: record.groupName ?? undefined,
     published: record.published,
     sortOrder: record.sortOrder,
   };
@@ -53,11 +57,27 @@ async function ensureDefaultEvents() {
   });
 }
 
-export async function getEvents(options?: { includeUnpublished?: boolean }) {
+export async function getEvents(options?: {
+  includeUnpublished?: boolean;
+  groupId?: string | null;
+}) {
   await ensureDefaultEvents();
 
+  const where: {
+    published?: boolean;
+    groupId?: string | null;
+  } = {};
+
+  if (!options?.includeUnpublished) {
+    where.published = true;
+  }
+
+  if (options?.groupId !== undefined) {
+    where.groupId = options.groupId;
+  }
+
   const records = await prisma.churchEvent.findMany({
-    where: options?.includeUnpublished ? undefined : { published: true },
+    where,
     orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
   });
 
@@ -77,6 +97,8 @@ export async function createEvent(
       time: input.time,
       location: input.location,
       campusId: input.campusId ?? null,
+      groupId: input.groupId ?? null,
+      groupName: input.groupName ?? null,
       published: input.published ?? true,
       sortOrder: input.sortOrder ?? events.length,
       createdAt: now,
@@ -99,6 +121,8 @@ export async function updateEvent(id: string, update: Partial<Omit<ChurchEvent, 
       time: update.time,
       location: update.location,
       campusId: update.campusId === undefined ? undefined : update.campusId ?? null,
+      groupId: update.groupId === undefined ? undefined : update.groupId ?? null,
+      groupName: update.groupName === undefined ? undefined : update.groupName ?? null,
       published: update.published,
       sortOrder: update.sortOrder,
       updatedAt: new Date(),
