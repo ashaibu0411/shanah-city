@@ -8,7 +8,7 @@ export function canUploadGalleryByRole(user: { role?: string } | null) {
 }
 
 export function canManageGallery(user: { role?: string } | null) {
-  return user?.role === "media" || user?.role === "leader";
+  return user?.role === "media";
 }
 
 export function canViewGalleryDownloadLog(user: { role?: string } | null) {

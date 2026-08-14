@@ -5,7 +5,6 @@ import type {
   NotificationPrefs,
   PublicMember,
 } from "@/lib/auth-types";
-import { verifyLeaderPin } from "@/lib/member-server";
 import { useDatabase } from "@/lib/use-database";
 import * as authDb from "@/lib/stores/auth-db";
 import * as authJson from "@/lib/stores/auth-json";
@@ -53,17 +52,3 @@ export const promoteUserRole = (
 ) => store().promoteUserRole(userId, role);
 export const updateUserPassword = (userId: string, password: string) =>
   store().updateUserPassword(userId, password);
-
-export function isLeader(user: PublicMember | null) {
-  return user?.role === "leader";
-}
-
-export function canManageDevotions(
-  user: PublicMember | null,
-  pin?: string | null,
-) {
-  if (!user) return false;
-  if (isLeader(user)) return true;
-  if (pin && verifyLeaderPin(pin)) return true;
-  return false;
-}

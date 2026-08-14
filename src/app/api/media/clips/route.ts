@@ -1,14 +1,10 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
-import { hasMediaRole } from "@/lib/gallery-permissions";
+import { canPublishMediaClips } from "@/lib/group-permissions-server";
 import { parseYouTubeVideoId } from "@/lib/media-clips-utils";
 import { listMediaClips, publishYouTubeClip } from "@/lib/media-clips-server";
 import { notifyNewMediaClip } from "@/lib/push-server";
-
-function canPublishClips(user: { role?: string } | null) {
-  return hasMediaRole(user) || user?.role === "leader";
-}
 
 export async function GET() {
   const clips = await listMediaClips();
@@ -24,9 +20,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign in to publish clips." }, { status: 401 });
   }
 
-  if (!canPublishClips(user)) {
+  if (!(await canPublishMediaClips(user))) {
     return NextResponse.json(
-      { error: "Only media team members or leaders can publish short videos." },
+      { error: "Only media team members or Admin Group can publish short videos." },
       { status: 403 },
     );
   }

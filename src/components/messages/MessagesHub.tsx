@@ -17,7 +17,7 @@ type ThreadSummary = {
 };
 
 export function MessagesHub() {
-  const { user, loading } = useAuth();
+  const { user, loading, permissions } = useAuth();
   const searchParams = useSearchParams();
   const threadFromUrl = searchParams.get("thread");
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
@@ -35,7 +35,7 @@ export function MessagesHub() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
 
-  const isStaff = user?.role === "leader" || user?.role === "team";
+  const isStaff = permissions.canManageAdmin;
 
   const activeThread = useMemo(
     () => threads.find((thread) => thread.id === activeThreadId) ?? null,

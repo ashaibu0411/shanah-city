@@ -24,11 +24,31 @@ function RequestForm({
   group: "choir" | "pastors";
   onSubmitted: () => void;
 }) {
+  const { user } = useAuth();
   const [personName, setPersonName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      setPersonName(user.name);
+    }
+  }, [user]);
+
+  if (!user) {
+    return (
+      <Card className="mb-6">
+        <p className="text-sm text-night-600">
+          Sign in and join this ministry group to request time away.
+        </p>
+        <Button href="/sign-in?next=/calendar" className="mt-4">
+          Sign in
+        </Button>
+      </Card>
+    );
+  }
 
   async function submit() {
     const response = await fetch("/api/unavailability", {
@@ -38,7 +58,7 @@ function RequestForm({
     });
     const data = await response.json();
     if (response.ok) {
-      setMessage("Request submitted — waiting for leader approval.");
+      setMessage("Request submitted — waiting for group admin approval.");
       setPersonName("");
       setStartDate("");
       setEndDate("");
@@ -91,14 +111,15 @@ function RequestForm({
   );
 }
 
-function LeaderApproval({
+function GroupAdminApproval({
   requests,
+  canReview,
   onReviewed,
 }: {
   requests: UnavailabilityRequest[];
+  canReview: boolean;
   onReviewed: () => void;
 }) {
-  const [pin, setPin] = useState("");
   const pending = requests.filter((item) => item.status === "pending");
 
   async function review(id: string, status: "approved" | "rejected") {
@@ -109,28 +130,19 @@ function LeaderApproval({
         action: "review",
         id,
         status,
-        pin,
-        reviewedBy: "Leader",
       }),
     });
     onReviewed();
   }
 
-  if (pending.length === 0) return null;
+  if (!canReview || pending.length === 0) return null;
 
   return (
     <Card className="mb-6 border-amber-200 bg-amber-50/40">
-      <h3 className="font-semibold text-night-900">Leader approval</h3>
+      <h3 className="font-semibold text-night-900">Pending approvals</h3>
       <p className="mt-1 text-sm text-night-600">
-        Approve or decline requests. Default PIN: <code>shanahleader</code>
+        Group admins and Admin Group members can approve time-away requests.
       </p>
-      <input
-        type="password"
-        value={pin}
-        onChange={(event) => setPin(event.target.value)}
-        placeholder="Leader PIN"
-        className="mt-3 w-full max-w-xs rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
-      />
       <ul className="mt-4 space-y-3">
         {pending.map((item) => (
           <li key={item.id} className="rounded-xl bg-white p-4 ring-1 ring-night-900/5">
@@ -152,21 +164,22 @@ function LeaderApproval({
 }
 
 function ChurchEventsPanel() {
-  const { user, permissions } = useAuth();
+  const { user } = useAuth();
   const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canManage, setCanManage] = useState(false);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [message, setMessage] = useState<string | null>(null);
-  const canManageAdmin = permissions.canManageAdmin;
 
   async function loadEvents() {
     setLoading(true);
     const response = await fetch("/api/events?groupId=church");
     const data = await response.json();
     setEvents(data.events ?? []);
+    setCanManage(Boolean(data.canManage));
     setLoading(false);
   }
 
@@ -222,7 +235,7 @@ function ChurchEventsPanel() {
             Sign in
           </Button>
         </Card>
-      ) : canManageAdmin ? (
+      ) : canManage ? (
         <Card className="mb-6">
           <h3 className="font-display text-lg font-semibold text-night-900">
             Manage church events
@@ -289,7 +302,7 @@ function ChurchEventsPanel() {
               <p className="mt-2 text-sm text-night-600">
                 {event.time} · {event.location}
               </p>
-              {canManageAdmin && (
+              {canManage && (
                 <Button
                   variant="secondary"
                   className="mt-4"
@@ -313,15 +326,15 @@ function GroupEventsPanel({
   groupId: string;
   groupLabel: string;
 }) {
-  const { user, permissions } = useAuth();
+  const { user } = useAuth();
   const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canManage, setCanManage] = useState(false);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [message, setMessage] = useState<string | null>(null);
-  const canManageAdmin = permissions.canManageAdmin;
 
   async function loadEvents() {
     setLoading(true);
@@ -329,6 +342,7 @@ function GroupEventsPanel({
     const data = await response.json();
     if (response.ok) {
       setEvents(data.events ?? []);
+      setCanManage(Boolean(data.canManage));
       setMessage(null);
     } else {
       setEvents([]);
@@ -393,13 +407,13 @@ function GroupEventsPanel({
 
   return (
     <>
-      {canManageAdmin && (
+      {canManage && (
         <Card className="mb-6">
           <h3 className="font-display text-lg font-semibold text-night-900">
             Manage {groupLabel} events
           </h3>
           <p className="mt-1 text-sm text-night-600">
-            These events are visible only to {groupLabel} members and admins.
+            Group admins can add events visible to {groupLabel} members.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <input
@@ -453,7 +467,7 @@ function GroupEventsPanel({
               <p className="mt-2 text-sm text-night-600">
                 {event.time} · {event.location}
               </p>
-              {canManageAdmin && (
+              {canManage && (
                 <Button
                   variant="secondary"
                   className="mt-4"
@@ -473,12 +487,18 @@ function GroupEventsPanel({
 export function CalendarHub() {
   const [tab, setTab] = useState<CalendarTab>("church");
   const [requests, setRequests] = useState<UnavailabilityRequest[]>([]);
+  const [canReview, setCanReview] = useState(false);
 
-  async function loadRequests(group?: "choir" | "pastors") {
-    const query = group ? `?group=${group}` : "";
-    const response = await fetch(`/api/unavailability${query}`);
+  async function loadRequests(group: "choir" | "pastors") {
+    const response = await fetch(`/api/unavailability?group=${group}`);
     const data = await response.json();
-    setRequests(data.requests);
+    if (response.ok) {
+      setRequests(data.requests ?? []);
+      setCanReview(Boolean(data.canReview));
+    } else {
+      setRequests([]);
+      setCanReview(false);
+    }
   }
 
   useEffect(() => {
@@ -522,7 +542,11 @@ export function CalendarHub() {
         <>
           <GroupEventsPanel groupId={CALENDAR_GROUP_TABS.choir} groupLabel="Choir" />
           <RequestForm group="choir" onSubmitted={() => loadRequests("choir")} />
-          <LeaderApproval requests={requests} onReviewed={() => loadRequests("choir")} />
+          <GroupAdminApproval
+            requests={requests}
+            canReview={canReview}
+            onReviewed={() => loadRequests("choir")}
+          />
           <Card>
             <h3 className="font-display text-lg font-semibold text-night-900">
               Choir availability
@@ -548,7 +572,11 @@ export function CalendarHub() {
         <>
           <GroupEventsPanel groupId={CALENDAR_GROUP_TABS.pastors} groupLabel="Pastors" />
           <RequestForm group="pastors" onSubmitted={() => loadRequests("pastors")} />
-          <LeaderApproval requests={requests} onReviewed={() => loadRequests("pastors")} />
+          <GroupAdminApproval
+            requests={requests}
+            canReview={canReview}
+            onReviewed={() => loadRequests("pastors")}
+          />
           <Card>
             <h3 className="font-display text-lg font-semibold text-night-900">
               Pastor availability

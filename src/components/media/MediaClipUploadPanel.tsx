@@ -3,20 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { hasMediaRole } from "@/lib/gallery-permissions";
 import { Button, Card } from "@/components/ui";
 
 export function MediaClipUploadPanel() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, permissions } = useAuth();
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const canPublish =
-    !loading && user && (hasMediaRole(user) || user.role === "leader");
+  const canPublish = !loading && user && permissions.canUploadGallery;
 
   if (!canPublish) {
     return null;
@@ -53,8 +51,8 @@ export function MediaClipUploadPanel() {
         Publish a short video
       </h3>
       <p className="mt-2 text-sm text-night-600">
-        Media team and leaders can add a YouTube Short. Everyone with community
-        notifications enabled gets a push alert.
+        Media team and Admin Group members can add a YouTube Short. Everyone with
+        community notifications enabled gets a push alert.
       </p>
 
       <form onSubmit={submit} className="mt-4 space-y-3">

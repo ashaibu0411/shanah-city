@@ -1,25 +1,21 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { deleteUserAccount } from "@/lib/account-deletion-server";
 import {
   addFamilyMember,
-  canManageDevotions,
   deleteSession,
-  getUserByEmail,
   getUserFromSession,
-  promoteUserRole,
   removeFamilyMember,
   SESSION_COOKIE,
   toPublicMember,
   updateUserProfile,
   verifyCredentials,
 } from "@/lib/auth-server";
+import { deleteUserAccount } from "@/lib/account-deletion-server";
 import {
   enforceRateLimit,
   getClientIp,
   rateLimitResponse,
 } from "@/lib/rate-limit-server";
-import { verifyLeaderPin } from "@/lib/member-server";
 
 export async function PATCH(request: Request) {
   const cookieStore = await cookies();
@@ -30,44 +26,6 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-
-  if (body.action === "become_leader") {
-    const pin = String(body.pin ?? "");
-    if (!verifyLeaderPin(pin)) {
-      return NextResponse.json({ error: "Invalid leader PIN." }, { status: 403 });
-    }
-
-    const updated = await promoteUserRole(user.id, "leader");
-    return NextResponse.json({
-      user: updated ? toPublicMember(updated) : null,
-    });
-  }
-
-  if (body.action === "promote_member") {
-    const pin = String(body.pin ?? "");
-    if (!canManageDevotions(user, pin)) {
-      return NextResponse.json({ error: "Leader access required." }, { status: 403 });
-    }
-
-    const email = String(body.email ?? "").trim().toLowerCase();
-    const role =
-      body.role === "media"
-        ? "media"
-        : body.role === "team"
-          ? "team"
-          : "leader";
-    const target = await getUserByEmail(email);
-
-    if (!target) {
-      return NextResponse.json({ error: "No member found with that email." }, { status: 404 });
-    }
-
-    const updated = await promoteUserRole(target.id, role);
-    return NextResponse.json({
-      promotedName: updated?.name ?? target.name,
-      role,
-    });
-  }
 
   if (body.action === "add_family") {
     const member = await addFamilyMember(user.id, {

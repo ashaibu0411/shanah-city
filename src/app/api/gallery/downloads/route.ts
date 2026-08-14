@@ -1,10 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
-import {
-  canViewGalleryDownloadLog,
-  getGalleryDownloadLog,
-} from "@/lib/gallery-server";
+import { canViewGalleryDownloadLog } from "@/lib/gallery-access-server";
+import { getGalleryDownloadLog } from "@/lib/gallery-server";
 
 export async function GET() {
   try {
@@ -12,9 +10,9 @@ export async function GET() {
     const token = cookieStore.get(SESSION_COOKIE)?.value;
     const user = await getUserFromSession(token);
 
-    if (!canViewGalleryDownloadLog(user)) {
+    if (!(await canViewGalleryDownloadLog(user))) {
       return NextResponse.json(
-        { error: "Backend team access required." },
+        { error: "Media team or Admin Group access required." },
         { status: 403 },
       );
     }

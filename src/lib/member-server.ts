@@ -49,11 +49,6 @@ export const updateUnavailabilityRequest = (
   update: Partial<UnavailabilityRequest>,
 ) => store().updateUnavailabilityRequest(id, update);
 
-export function verifyLeaderPin(pin: string) {
-  const expected = process.env.LEADER_PIN ?? "shanahleader";
-  return pin === expected;
-}
-
 export function distanceMeters(
   lat1: number,
   lon1: number,

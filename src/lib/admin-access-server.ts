@@ -10,11 +10,11 @@ export async function isAdminGroupMember(userId: string) {
   return isGroupMember(adminGroup, userId);
 }
 
-export async function canManageAsAdmin(user: PublicMember | null) {
+export async function canManageAsAdmin(user: Pick<PublicMember, "id"> | null) {
   if (!user) return false;
   return isAdminGroupMember(user.id);
 }
 
-export async function getAdminPermissions(user: PublicMember | null) {
+export async function getAdminPermissions(user: Pick<PublicMember, "id"> | null) {
   return { canManageAdmin: await canManageAsAdmin(user) };
 }

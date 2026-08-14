@@ -2,11 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
   getUserFromSession,
-  isLeader,
   recordActivity,
   SESSION_COOKIE,
 } from "@/lib/auth-server";
-import {
+import { canViewStaffReports } from "@/lib/group-permissions-server";import {
   blockUser,
   getBlocksForUser,
   unblockUser,
@@ -28,7 +27,7 @@ export async function GET() {
     blocks,
   };
 
-  if (isLeader(user) || user.role === "team") {
+  if (await canViewStaffReports(user)) {
     payload.reports = await getOpenReportsForLeaders();
   }
 

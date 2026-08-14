@@ -27,6 +27,8 @@ export async function GET() {
     database,
     blob: env.blob,
     push: env.push,
+    cron: env.cron,
+    adminBootstrap: env.adminBootstrap,
     passwordResetEmail: env.passwordResetEmail,
   });
 }

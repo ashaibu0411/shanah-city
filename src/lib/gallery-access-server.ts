@@ -1,4 +1,5 @@
 import type { PublicMember } from "@/lib/auth-types";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { hasMediaRole } from "@/lib/gallery-permissions";
 import { getGroupDetail, getGroups } from "@/lib/group-server";
 import {
@@ -27,10 +28,23 @@ export async function canUploadGallery(
   if (!user) {
     return false;
   }
+  if (await canManageAsAdmin(user)) {
+    return true;
+  }
   if (hasMediaRole(user)) {
     return true;
   }
   return userIsInMediaGroup(user.id);
+}
+
+export async function canManageGallery(user: Pick<PublicMember, "id" | "role"> | null) {
+  return canUploadGallery(user);
+}
+
+export async function canViewGalleryDownloadLog(
+  user: Pick<PublicMember, "id" | "role"> | null,
+) {
+  return canManageGallery(user);
 }
 
 export async function getGalleryUploadPermissions(

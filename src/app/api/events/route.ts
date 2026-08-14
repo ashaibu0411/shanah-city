@@ -1,9 +1,13 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import {
+  canManageChurchEvents,
+  canManageGroupEvents,
+} from "@/lib/group-permissions-server";
 import { getGroups } from "@/lib/group-server";
 import { isGroupMember } from "@/lib/group-admin-utils";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
 import {
   createEvent,
   deleteEvent,
@@ -25,6 +29,31 @@ function parseEventBody(body: Record<string, unknown>) {
     groupName: groupName || undefined,
     published: body.published === false ? false : true,
   };
+}
+
+async function assertCanManageEvent(
+  user: Awaited<ReturnType<typeof getUserFromSession>>,
+  groupId?: string | null,
+) {
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  }
+
+  if (groupId) {
+    if (!(await canManageGroupEvents(user, groupId))) {
+      return NextResponse.json(
+        { error: "Group admin or Admin Group access required." },
+        { status: 403 },
+      );
+    }
+    return null;
+  }
+
+  if (!(await canManageChurchEvents(user))) {
+    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
+  }
+
+  return null;
 }
 
 export async function GET(request: Request) {
@@ -58,11 +87,13 @@ export async function GET(request: Request) {
     }
 
     const events = await getEvents({ groupId: groupParam });
-    return NextResponse.json({ events, canManage: isAdmin });
+    const canManage = await canManageGroupEvents(user, groupParam);
+    return NextResponse.json({ events, canManage });
   }
 
   const events = await getEvents({ groupId: null });
-  return NextResponse.json({ events, canManage: isAdmin });
+  const canManage = await canManageChurchEvents(user);
+  return NextResponse.json({ events, canManage });
 }
 
 export async function POST(request: Request) {
@@ -70,18 +101,17 @@ export async function POST(request: Request) {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   const body = await request.json();
-
-  if (!(await canManageAsAdmin(user))) {
-    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
-  }
-
   const input = parseEventBody(body);
+
   if (!input.title || !input.date || !input.time || !input.location) {
     return NextResponse.json(
       { error: "Title, date, time, and location are required." },
       { status: 400 },
     );
   }
+
+  const denied = await assertCanManageEvent(user, input.groupId ?? null);
+  if (denied) return denied;
 
   if (input.groupId) {
     const groups = await getGroups();
@@ -101,15 +131,20 @@ export async function PATCH(request: Request) {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   const body = await request.json();
-
-  if (!(await canManageAsAdmin(user))) {
-    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
-  }
-
   const id = String(body.id ?? "");
+
   if (!id) {
     return NextResponse.json({ error: "Event id is required." }, { status: 400 });
   }
+
+  const existingEvents = await getEvents({ includeUnpublished: true });
+  const existing = existingEvents.find((event) => event.id === id);
+  if (!existing) {
+    return NextResponse.json({ error: "Event not found." }, { status: 404 });
+  }
+
+  const denied = await assertCanManageEvent(user, existing.groupId ?? null);
+  if (denied) return denied;
 
   const event = await updateEvent(id, {
     title: body.title ? String(body.title).trim() : undefined,
@@ -135,12 +170,17 @@ export async function DELETE(request: Request) {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   const body = await request.json();
+  const id = String(body.id ?? "");
 
-  if (!(await canManageAsAdmin(user))) {
-    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
+  const existingEvents = await getEvents({ includeUnpublished: true });
+  const existing = existingEvents.find((event) => event.id === id);
+  if (!existing) {
+    return NextResponse.json({ error: "Event not found." }, { status: 404 });
   }
 
-  const id = String(body.id ?? "");
+  const denied = await assertCanManageEvent(user, existing.groupId ?? null);
+  if (denied) return denied;
+
   const removed = await deleteEvent(id);
   if (!removed) {
     return NextResponse.json({ error: "Event not found." }, { status: 404 });

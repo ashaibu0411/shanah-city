@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useApp } from "@/components/app/AppProvider";
-import { LeaderPromotionPanel } from "@/components/auth/LeaderPromotionPanel";
 import { DeleteAccountPanel } from "@/components/auth/DeleteAccountPanel";
 import { ProfileAvatarUpload } from "@/components/auth/ProfileAvatarUpload";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
@@ -126,7 +125,6 @@ export function MemberProfile() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <PushNotificationSettings />
-          <LeaderPromotionPanel />
           <Card>
             <ProfileAvatarUpload user={user} onUpdated={setUser} />
           </Card>

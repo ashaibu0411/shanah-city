@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { canManageGallery } from "@/lib/gallery-access-server";
 import {
-  canManageGallery,
   deleteGalleryAlbum,
   getGalleryAlbumCounts,
 } from "@/lib/gallery-server";
@@ -13,9 +13,9 @@ export async function GET() {
     const token = cookieStore.get(SESSION_COOKIE)?.value;
     const user = await getUserFromSession(token);
 
-    if (!canManageGallery(user)) {
+    if (!(await canManageGallery(user))) {
       return NextResponse.json(
-        { error: "Media team or leader access required." },
+        { error: "Media team or Admin Group access required." },
         { status: 403 },
       );
     }
@@ -36,9 +36,9 @@ export async function DELETE(request: Request) {
     const body = await request.json();
     const album = String(body.album ?? "").trim();
 
-    if (!canManageGallery(user)) {
+    if (!(await canManageGallery(user))) {
       return NextResponse.json(
-        { error: "Media team or leader access required." },
+        { error: "Media team or Admin Group access required." },
         { status: 403 },
       );
     }
