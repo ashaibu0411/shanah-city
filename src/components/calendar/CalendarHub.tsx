@@ -2,12 +2,40 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
+import { EventCalendarFields } from "@/components/calendar/EventCalendarFields";
+import { MeetingsCalendarPanel } from "@/components/calendar/MeetingsCalendarPanel";
 import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
 import type { UnavailabilityRequest } from "@/lib/member-types";
 import type { ChurchEvent } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
 
-type CalendarTab = "church" | "choir" | "pastors";
+type CalendarTab = "church" | "choir" | "pastors" | "meetings";
+
+function EventDetailCard({
+  event,
+  canManage,
+  onRemove,
+}: {
+  event: ChurchEvent;
+  canManage: boolean;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <div className="rounded-xl bg-sand-50 p-4 ring-1 ring-night-900/5">
+      <p className="text-sm font-medium text-sand-600">{event.date}</p>
+      <h3 className="mt-1 font-display text-lg font-semibold text-night-900">{event.title}</h3>
+      <p className="mt-2 text-sm text-night-600">
+        {event.time} · {event.location}
+      </p>
+      {canManage && (
+        <Button variant="secondary" className="mt-3" onClick={() => onRemove(event.id)}>
+          Remove
+        </Button>
+      )}
+    </div>
+  );
+}
 
 function formatDate(date: string) {
   return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
@@ -172,6 +200,9 @@ function ChurchEventsPanel() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
+  const [startsOn, setStartsOn] = useState("");
+  const [endsOn, setEndsOn] = useState("");
+  const [recurringWeekday, setRecurringWeekday] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
   async function loadEvents() {
@@ -191,7 +222,15 @@ function ChurchEventsPanel() {
     const response = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, date, time, location }),
+      body: JSON.stringify({
+        title,
+        date,
+        time,
+        location,
+        startsOn: startsOn || undefined,
+        endsOn: endsOn || undefined,
+        recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
+      }),
     });
     const data = await response.json();
     if (response.ok) {
@@ -200,6 +239,9 @@ function ChurchEventsPanel() {
       setDate("");
       setTime("");
       setLocation("");
+      setStartsOn("");
+      setEndsOn("");
+      setRecurringWeekday("");
       loadEvents();
     } else {
       setMessage(data.error ?? "Could not add event.");
@@ -268,6 +310,14 @@ function ChurchEventsPanel() {
               placeholder="Location"
               className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
+            <EventCalendarFields
+              startsOn={startsOn}
+              endsOn={endsOn}
+              recurringWeekday={recurringWeekday}
+              onStartsOnChange={setStartsOn}
+              onEndsOnChange={setEndsOn}
+              onRecurringWeekdayChange={setRecurringWeekday}
+            />
           </div>
           {message && <p className="mt-3 text-sm text-night-600">{message}</p>}
           <Button className="mt-4" onClick={addEvent}>
@@ -282,6 +332,14 @@ function ChurchEventsPanel() {
           </p>
         </Card>
       )}
+
+      <CalendarMonthView
+        items={events}
+        emptyDayLabel="No church events on this day."
+        renderItem={(event) => (
+          <EventDetailCard event={event} canManage={canManage} onRemove={removeEvent} />
+        )}
+      />
 
       <div className="grid gap-4">
         {loading ? (
@@ -334,6 +392,9 @@ function GroupEventsPanel({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
+  const [startsOn, setStartsOn] = useState("");
+  const [endsOn, setEndsOn] = useState("");
+  const [recurringWeekday, setRecurringWeekday] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
   async function loadEvents() {
@@ -363,7 +424,16 @@ function GroupEventsPanel({
     const response = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, date, time, location, groupId }),
+      body: JSON.stringify({
+        title,
+        date,
+        time,
+        location,
+        groupId,
+        startsOn: startsOn || undefined,
+        endsOn: endsOn || undefined,
+        recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
+      }),
     });
     const data = await response.json();
     if (response.ok) {
@@ -372,6 +442,9 @@ function GroupEventsPanel({
       setDate("");
       setTime("");
       setLocation("");
+      setStartsOn("");
+      setEndsOn("");
+      setRecurringWeekday("");
       loadEvents();
     } else {
       setMessage(data.error ?? "Could not add event.");
@@ -440,6 +513,14 @@ function GroupEventsPanel({
               placeholder="Location"
               className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
+            <EventCalendarFields
+              startsOn={startsOn}
+              endsOn={endsOn}
+              recurringWeekday={recurringWeekday}
+              onStartsOnChange={setStartsOn}
+              onEndsOnChange={setEndsOn}
+              onRecurringWeekdayChange={setRecurringWeekday}
+            />
           </div>
           {message && <p className="mt-3 text-sm text-night-600">{message}</p>}
           <Button className="mt-4" onClick={addEvent}>
@@ -447,6 +528,14 @@ function GroupEventsPanel({
           </Button>
         </Card>
       )}
+
+      <CalendarMonthView
+        items={events}
+        emptyDayLabel={`No ${groupLabel.toLowerCase()} events on this day.`}
+        renderItem={(event) => (
+          <EventDetailCard event={event} canManage={canManage} onRemove={removeEvent} />
+        )}
+      />
 
       <div className="mb-6 grid gap-4">
         {loading ? (
@@ -515,6 +604,7 @@ export function CalendarHub() {
     { id: "church", label: "Church" },
     { id: "choir", label: "Choir" },
     { id: "pastors", label: "Pastors" },
+    { id: "meetings", label: "Meetings" },
   ];
 
   return (
@@ -597,6 +687,8 @@ export function CalendarHub() {
           </Card>
         </>
       )}
+
+      {tab === "meetings" && <MeetingsCalendarPanel />}
     </div>
   );
 }

@@ -170,18 +170,41 @@ model Devotion {
 }
 
 model ChurchEvent {
-  id        String   @id
-  title     String
-  date      String
-  time      String
-  location  String
-  campusId  String?
-  groupId   String?
-  groupName String?
-  published Boolean  @default(true)
-  sortOrder Int      @default(0)
-  createdAt DateTime
-  updatedAt DateTime
+  id               String   @id
+  title            String
+  date             String
+  time             String
+  location         String
+  campusId         String?
+  groupId          String?
+  groupName        String?
+  startsOn         String?
+  endsOn           String?
+  recurringWeekday Int?
+  published        Boolean  @default(true)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime
+  updatedAt        DateTime
+}
+
+model Meeting {
+  id               String   @id
+  title            String
+  campusId         String
+  host             String
+  schedule         String
+  platform         String
+  joinUrl          String?
+  location         String?
+  meetingId        String?
+  passcode         String?
+  startsOn         String?
+  endsOn           String?
+  recurringWeekday Int?
+  published        Boolean  @default(true)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime
+  updatedAt        DateTime
 }
 
 model RateLimitEntry {

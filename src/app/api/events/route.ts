@@ -18,6 +18,7 @@ import {
 function parseEventBody(body: Record<string, unknown>) {
   const groupId = body.groupId ? String(body.groupId).trim() : undefined;
   const groupName = body.groupName ? String(body.groupName).trim() : undefined;
+  const recurringWeekdayRaw = body.recurringWeekday;
 
   return {
     title: String(body.title ?? "").trim(),
@@ -27,6 +28,12 @@ function parseEventBody(body: Record<string, unknown>) {
     campusId: body.campusId ? String(body.campusId) : undefined,
     groupId: groupId || undefined,
     groupName: groupName || undefined,
+    startsOn: body.startsOn ? String(body.startsOn).trim() : undefined,
+    endsOn: body.endsOn ? String(body.endsOn).trim() : undefined,
+    recurringWeekday:
+      recurringWeekdayRaw === "" || recurringWeekdayRaw == null
+        ? undefined
+        : Number(recurringWeekdayRaw),
     published: body.published === false ? false : true,
   };
 }
@@ -155,6 +162,14 @@ export async function PATCH(request: Request) {
     groupId: body.groupId === null ? null : body.groupId ? String(body.groupId) : undefined,
     groupName:
       body.groupName === null ? null : body.groupName ? String(body.groupName) : undefined,
+    startsOn: body.startsOn === null ? null : body.startsOn ? String(body.startsOn) : undefined,
+    endsOn: body.endsOn === null ? null : body.endsOn ? String(body.endsOn) : undefined,
+    recurringWeekday:
+      body.recurringWeekday === null
+        ? null
+        : body.recurringWeekday != null
+          ? Number(body.recurringWeekday)
+          : undefined,
     published: body.published === false ? false : body.published === true ? true : undefined,
   });
 

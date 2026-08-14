@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { meetings } from "@/lib/site";
 import type { MeetingClickLog } from "@/lib/meeting-click-types";
+import type { Meeting } from "@/lib/types";
 import { Badge, Card } from "@/components/ui";
 
 function formatWhen(iso: string) {
@@ -26,19 +26,18 @@ function sourceLabel(source: MeetingClickLog["source"]) {
   }
 }
 
-export function MeetingClickReport() {
-  const { user } = useAuth();
+export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) {
+  const { user, permissions } = useAuth();
   const [clicks, setClicks] = useState<MeetingClickLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [meetingId, setMeetingId] = useState("");
   const [groupId, setGroupId] = useState("");
 
-  const canView =
-    user?.role === "leader" || user?.role === "team" || Boolean(groupId);
+  const canView = permissions.canManageAdmin || Boolean(groupId);
 
   useEffect(() => {
-    if (!user || (user.role !== "leader" && user.role !== "team" && !groupId)) {
+    if (!user || (!permissions.canManageAdmin && !groupId)) {
       return;
     }
 
@@ -62,7 +61,7 @@ export function MeetingClickReport() {
         setClicks([]);
       })
       .finally(() => setLoading(false));
-  }, [user, meetingId, groupId]);
+  }, [user, meetingId, groupId, permissions.canManageAdmin]);
 
   const summary = useMemo(() => {
     const uniqueMembers = new Set(clicks.map((click) => click.userId));
@@ -76,7 +75,7 @@ export function MeetingClickReport() {
     return null;
   }
 
-  if (user.role !== "leader" && user.role !== "team") {
+  if (!permissions.canManageAdmin && !groupId) {
     return null;
   }
 

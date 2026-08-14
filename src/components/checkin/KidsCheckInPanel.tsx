@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import type { KidCheckIn } from "@/lib/member-types";
 import { KidCheckInLabel, printKidCheckInLabel } from "@/components/checkin/KidCheckInLabel";
 import { Button, Card } from "@/components/ui";
@@ -9,6 +10,7 @@ const ageGroups = ["Nursery (0-2)", "Preschool (3-5)", "Elementary (6-11)", "You
 const services = ["Friday Evening", "Sunday Morning"];
 
 export function KidsCheckInPanel() {
+  const { user } = useAuth();
   const [parentName, setParentName] = useState("");
   const [childName, setChildName] = useState("");
   const [ageGroup, setAgeGroup] = useState(ageGroups[0]);
@@ -29,6 +31,12 @@ export function KidsCheckInPanel() {
         .slice(0, 10),
     );
   }
+
+  useEffect(() => {
+    if (user) {
+      setParentName(user.name);
+    }
+  }, [user]);
 
   useEffect(() => {
     loadActive();

@@ -1,4 +1,4 @@
-import { meetings } from "@/lib/site";
+import { getMeetingById } from "@/lib/meeting-server";
 import { getGroupDetail } from "@/lib/group-server";
 import type { MeetingJoinTarget } from "@/lib/meeting-click-types";
 import { isTrackableJoinUrl } from "@/lib/meeting-join-utils";
@@ -24,8 +24,8 @@ export async function resolveMeetingJoinTarget(input: {
   }
 
   if (input.meetingId) {
-    const meeting = meetings.find((entry) => entry.id === input.meetingId);
-    if (!meeting || !isTrackableJoinUrl(meeting.joinUrl)) {
+    const meeting = await getMeetingById(input.meetingId);
+    if (!meeting?.joinUrl || !isTrackableJoinUrl(meeting.joinUrl)) {
       return null;
     }
 
@@ -33,7 +33,7 @@ export async function resolveMeetingJoinTarget(input: {
       meetingId: meeting.id,
       meetingTitle: meeting.title,
       campusId: meeting.campusId,
-      platform: meeting.platform,
+      platform: meeting.platform === "in-person" ? detectPlatform(meeting.joinUrl) : meeting.platform,
       joinUrl: meeting.joinUrl,
     };
   }

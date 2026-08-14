@@ -106,9 +106,14 @@ export type ChurchEvent = {
   campusId?: string;
   groupId?: string | null;
   groupName?: string | null;
+  startsOn?: string | null;
+  endsOn?: string | null;
+  recurringWeekday?: number | null;
   published?: boolean;
   sortOrder?: number;
 };
+
+export type MeetingPlatform = "in-person" | "zoom" | "teams";
 
 export type Meeting = {
   id: string;
@@ -116,10 +121,16 @@ export type Meeting = {
   campusId: string;
   host: string;
   schedule: string;
-  platform: "zoom" | "teams";
-  joinUrl: string;
-  meetingId?: string;
-  passcode?: string;
+  platform: MeetingPlatform;
+  joinUrl?: string | null;
+  location?: string | null;
+  meetingId?: string | null;
+  passcode?: string | null;
+  startsOn?: string | null;
+  endsOn?: string | null;
+  recurringWeekday?: number | null;
+  published?: boolean;
+  sortOrder?: number;
 };
 
 export type ShopProduct = {

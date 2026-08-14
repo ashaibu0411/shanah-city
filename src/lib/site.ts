@@ -266,6 +266,7 @@ export const meetings: Meeting[] = [
     schedule: "Friday 7:00 PM – 9:30 PM MT",
     platform: "zoom",
     joinUrl: "https://shanahcity.org/contact",
+    recurringWeekday: 5,
   },
   {
     id: "2",
@@ -275,6 +276,7 @@ export const meetings: Meeting[] = [
     schedule: "Sunday 10:00 AM – 12:30 PM MT",
     platform: "zoom",
     joinUrl: "https://shanahcity.org/contact",
+    recurringWeekday: 0,
   },
   {
     id: "3",
@@ -300,8 +302,8 @@ export const meetings: Meeting[] = [
     campusId: "accra",
     host: "Shanah City Accra",
     schedule: "Contact for schedule",
-    platform: "zoom",
-    joinUrl: "https://shanahcity.org/contact",
+    platform: "in-person",
+    location: "Accra, Ghana",
   },
 ];
 
@@ -366,6 +368,7 @@ export const upcomingEvents = [
     date: "Every Friday",
     time: "7:00 PM – 9:30 PM",
     location: site.address,
+    recurringWeekday: 5,
   },
   {
     id: "2",
@@ -373,6 +376,7 @@ export const upcomingEvents = [
     date: "Every Sunday",
     time: "10:00 AM – 12:30 PM",
     location: site.address,
+    recurringWeekday: 0,
   },
   {
     id: "3",

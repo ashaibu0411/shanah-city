@@ -7,7 +7,7 @@ export default function MeetingsPage() {
       <PageHeader
         eyebrow="Connect"
         title="Meetings"
-        description="Join small groups, youth, prayer nights, and leader huddles — Zoom and Teams links in one tap."
+        description="Join in-person gatherings or tap Zoom and Teams links — all in one place."
       />
       <MeetingsList />
     </>

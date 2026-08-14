@@ -1,105 +1,53 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/app/AppProvider";
+import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
+import { MeetingCard } from "@/components/meetings/MeetingCard";
 import { MeetingClickReport } from "@/components/meetings/MeetingClickReport";
-import { meetings, getCampus } from "@/lib/site";
-import { buildTrackedJoinUrl, isTrackableJoinUrl } from "@/lib/meeting-join-utils";
 import type { Meeting } from "@/lib/types";
-import { Badge, Button, Card } from "@/components/ui";
-
-function MeetingCard({ meeting }: { meeting: Meeting }) {
-  const campus = getCampus(meeting.campusId);
-  const isZoom = meeting.platform === "zoom";
-  const isExternal = meeting.joinUrl.includes("shanahcity.org");
-  const isYouTube = meeting.joinUrl.includes("youtube");
-  const trackable = isTrackableJoinUrl(meeting.joinUrl);
-  const joinHref = trackable
-    ? buildTrackedJoinUrl({ meetingId: meeting.id, source: "meetings_page" })
-    : meeting.joinUrl;
-
-  const platformLabel = isYouTube
-    ? "YouTube"
-    : isZoom
-      ? "Zoom"
-      : "Microsoft Teams";
-
-  return (
-    <Card>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Badge variant="outline">{platformLabel}</Badge>
-          <h3 className="mt-2 font-display text-xl font-semibold text-night-900">
-            {meeting.title}
-          </h3>
-          <p className="mt-1 text-sm text-night-600">
-            {campus.name} · {meeting.schedule}
-          </p>
-          <p className="text-sm text-night-500">Host: {meeting.host}</p>
-        </div>
-      </div>
-
-      {meeting.meetingId && (
-        <div className="mt-4 rounded-xl bg-sand-50 p-3 text-sm text-night-600">
-          <p>
-            <span className="font-semibold">ID:</span> {meeting.meetingId}
-          </p>
-          {meeting.passcode && (
-            <p>
-              <span className="font-semibold">Passcode:</span> {meeting.passcode}
-            </p>
-          )}
-        </div>
-      )}
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <a
-          href={joinHref}
-          target={trackable ? "_self" : "_blank"}
-          rel={trackable ? undefined : "noopener noreferrer"}
-        >
-          <Button>
-            {isExternal
-              ? "Contact for details"
-              : isYouTube
-                ? "Watch on YouTube"
-                : `Join on ${platformLabel}`}
-          </Button>
-        </a>
-        {!isExternal && (
-          <Button
-            variant="secondary"
-            onClick={() =>
-              navigator.clipboard.writeText(trackable ? joinHref : meeting.joinUrl)
-            }
-          >
-            Copy link
-          </Button>
-        )}
-      </div>
-      {trackable && (
-        <p className="mt-2 text-xs text-night-500">
-          Join is tracked for signed-in members before opening {platformLabel}.
-        </p>
-      )}
-    </Card>
-  );
-}
+import { Button, Card } from "@/components/ui";
 
 export function MeetingsList() {
   const { campusId } = useApp();
   const [showAll, setShowAll] = useState(false);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [canManage, setCanManage] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadMeetings() {
+      setLoading(true);
+      const response = await fetch("/api/meetings");
+      const data = await response.json();
+      setMeetings(data.meetings ?? []);
+      setCanManage(Boolean(data.canManage));
+      setLoading(false);
+    }
+
+    loadMeetings();
+  }, []);
 
   const filtered = useMemo(
     () =>
       showAll
         ? meetings
         : meetings.filter(
-            (meeting) =>
-              meeting.campusId === campusId || meeting.campusId === "online",
+            (meeting) => meeting.campusId === campusId || meeting.campusId === "online",
           ),
-    [campusId, showAll],
+    [campusId, meetings, showAll],
   );
+
+  async function removeMeeting(id: string) {
+    const response = await fetch("/api/meetings", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (response.ok) {
+      setMeetings((current) => current.filter((meeting) => meeting.id !== id));
+    }
+  }
 
   return (
     <div>
@@ -111,23 +59,54 @@ export function MeetingsList() {
           {showAll ? "Show my campus" : "Show all campuses"}
         </Button>
       </div>
+
+      <CalendarMonthView
+        items={filtered}
+        emptyDayLabel="No meetings on this day."
+        renderItem={(meeting) => <MeetingCard meeting={meeting} compact />}
+      />
+
       <div className="grid gap-4 md:grid-cols-2">
-        {filtered.map((meeting) => (
-          <MeetingCard key={meeting.id} meeting={meeting} />
-        ))}
+        {loading ? (
+          <p className="text-sm text-night-500">Loading meetings…</p>
+        ) : (
+          filtered.map((meeting) => (
+            <MeetingCard
+              key={meeting.id}
+              meeting={meeting}
+              canManage={canManage}
+              onRemove={() => removeMeeting(meeting.id)}
+            />
+          ))
+        )}
       </div>
-      <MeetingClickReport />
+      <MeetingClickReport meetings={meetings} />
     </div>
   );
 }
 
 export function MeetingPreview() {
   const { campusId } = useApp();
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+
+  useEffect(() => {
+    fetch("/api/meetings")
+      .then((response) => response.json())
+      .then((data) => setMeetings(data.meetings ?? []));
+  }, []);
+
   const next = meetings.find(
-    (m) => m.campusId === campusId || m.campusId === "online",
+    (meeting) => meeting.campusId === campusId || meeting.campusId === "online",
   );
 
   if (!next) return null;
+
+  const platformLabel =
+    next.platform === "in-person"
+      ? "In person"
+      : next.platform === "zoom"
+        ? "Zoom"
+        : "Teams";
 
   return (
     <Card href="/meetings" className="mb-8">
@@ -138,7 +117,7 @@ export function MeetingPreview() {
         {next.title}
       </h3>
       <p className="mt-1 text-sm text-night-600">
-        {next.schedule} · {next.platform === "zoom" ? "Zoom" : "Teams"}
+        {next.schedule} · {platformLabel}
       </p>
       <p className="mt-3 text-sm font-semibold text-night-800">
         Tap to see all meeting links →

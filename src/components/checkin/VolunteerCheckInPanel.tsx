@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { site } from "@/lib/site";
 import type { VolunteerCheckIn } from "@/lib/member-types";
 import { Button, Card } from "@/components/ui";
 
 export function VolunteerCheckInPanel() {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [ministry, setMinistry] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,6 +21,12 @@ export function VolunteerCheckInPanel() {
     const data = await response.json();
     setRecent(data.checkins.slice(0, 5));
   }
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+    }
+  }, [user]);
 
   useEffect(() => {
     loadRecent();

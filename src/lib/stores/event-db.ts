@@ -11,6 +11,9 @@ function mapEvent(record: {
   campusId: string | null;
   groupId: string | null;
   groupName: string | null;
+  startsOn: string | null;
+  endsOn: string | null;
+  recurringWeekday: number | null;
   published: boolean;
   sortOrder: number;
 }): ChurchEvent {
@@ -23,6 +26,9 @@ function mapEvent(record: {
     campusId: record.campusId ?? undefined,
     groupId: record.groupId ?? undefined,
     groupName: record.groupName ?? undefined,
+    startsOn: record.startsOn ?? undefined,
+    endsOn: record.endsOn ?? undefined,
+    recurringWeekday: record.recurringWeekday ?? undefined,
     published: record.published,
     sortOrder: record.sortOrder,
   };
@@ -49,6 +55,9 @@ async function ensureDefaultEvents() {
       time: event.time,
       location: event.location,
       campusId: event.campusId ?? null,
+      startsOn: event.startsOn ?? null,
+      endsOn: event.endsOn ?? null,
+      recurringWeekday: event.recurringWeekday ?? null,
       published: event.published ?? true,
       sortOrder: event.sortOrder ?? 0,
       createdAt: now,
@@ -99,6 +108,9 @@ export async function createEvent(
       campusId: input.campusId ?? null,
       groupId: input.groupId ?? null,
       groupName: input.groupName ?? null,
+      startsOn: input.startsOn ?? null,
+      endsOn: input.endsOn ?? null,
+      recurringWeekday: input.recurringWeekday ?? null,
       published: input.published ?? true,
       sortOrder: input.sortOrder ?? events.length,
       createdAt: now,
@@ -123,6 +135,12 @@ export async function updateEvent(id: string, update: Partial<Omit<ChurchEvent, 
       campusId: update.campusId === undefined ? undefined : update.campusId ?? null,
       groupId: update.groupId === undefined ? undefined : update.groupId ?? null,
       groupName: update.groupName === undefined ? undefined : update.groupName ?? null,
+      startsOn: update.startsOn === undefined ? undefined : update.startsOn ?? null,
+      endsOn: update.endsOn === undefined ? undefined : update.endsOn ?? null,
+      recurringWeekday:
+        update.recurringWeekday === undefined
+          ? undefined
+          : update.recurringWeekday ?? null,
       published: update.published,
       sortOrder: update.sortOrder,
       updatedAt: new Date(),
