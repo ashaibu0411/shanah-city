@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { upcomingEvents } from "@/lib/site";
+import { getEvents } from "@/lib/event-server";
 
-export function EventsSection() {
+export async function EventsSection() {
+  const events = await getEvents();
+
   return (
     <section className="bg-white py-20">
       <div className="mx-auto max-w-6xl px-6">
@@ -23,7 +25,7 @@ export function EventsSection() {
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {upcomingEvents.map((event) => (
+          {events.map((event) => (
             <article
               key={event.id}
               className="rounded-2xl border border-night-900/10 bg-sand-50 p-6 transition hover:-translate-y-1 hover:shadow-lg"

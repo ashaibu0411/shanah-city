@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { upcomingEvents } from "@/lib/site";
+import { useAuth } from "@/components/auth/AuthProvider";
 import type { UnavailabilityRequest } from "@/lib/member-types";
+import type { ChurchEvent } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
 
 type CalendarTab = "church" | "choir" | "pastors";
@@ -149,6 +150,151 @@ function LeaderApproval({
   );
 }
 
+function ChurchEventsPanel() {
+  const { user } = useAuth();
+  const [events, setEvents] = useState<ChurchEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [pin, setPin] = useState("");
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [location, setLocation] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const canManage = user?.role === "leader";
+
+  async function loadEvents() {
+    setLoading(true);
+    const response = await fetch("/api/events");
+    const data = await response.json();
+    setEvents(data.events ?? []);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  async function addEvent() {
+    const response = await fetch("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, date, time, location, pin: pin || undefined }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setMessage("Event added.");
+      setTitle("");
+      setDate("");
+      setTime("");
+      setLocation("");
+      loadEvents();
+    } else {
+      setMessage(data.error ?? "Could not add event.");
+    }
+  }
+
+  async function removeEvent(id: string) {
+    const response = await fetch("/api/events", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, pin: pin || undefined }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      loadEvents();
+    } else {
+      setMessage(data.error ?? "Could not delete event.");
+    }
+  }
+
+  return (
+    <>
+      {(canManage || pin) && (
+        <Card className="mb-6">
+          <h3 className="font-display text-lg font-semibold text-night-900">
+            Manage church events
+          </h3>
+          <p className="mt-1 text-sm text-night-600">
+            Leaders can add or remove events. Non-leaders can enter the leader PIN.
+          </p>
+          {!canManage && (
+            <input
+              type="password"
+              value={pin}
+              onChange={(event) => setPin(event.target.value)}
+              placeholder="Leader PIN"
+              className="mt-3 w-full max-w-xs rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          )}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Title"
+              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+            <input
+              value={date}
+              onChange={(event) => setDate(event.target.value)}
+              placeholder="Date label (e.g. Every Friday)"
+              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+            <input
+              value={time}
+              onChange={(event) => setTime(event.target.value)}
+              placeholder="Time"
+              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+            <input
+              value={location}
+              onChange={(event) => setLocation(event.target.value)}
+              placeholder="Location"
+              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          </div>
+          {message && <p className="mt-3 text-sm text-night-600">{message}</p>}
+          <Button className="mt-4" onClick={addEvent}>
+            Add event
+          </Button>
+        </Card>
+      )}
+
+      <div className="grid gap-4">
+        {loading ? (
+          <Card>
+            <p className="text-sm text-night-500">Loading events…</p>
+          </Card>
+        ) : events.length === 0 ? (
+          <Card>
+            <p className="text-sm text-night-500">No events listed yet.</p>
+          </Card>
+        ) : (
+          events.map((event) => (
+            <Card key={event.id}>
+              <p className="text-sm font-medium text-sand-600">{event.date}</p>
+              <h3 className="mt-1 font-display text-xl font-semibold text-night-900">
+                {event.title}
+              </h3>
+              <p className="mt-2 text-sm text-night-600">
+                {event.time} · {event.location}
+              </p>
+              {(canManage || pin) && (
+                <Button
+                  variant="secondary"
+                  className="mt-4"
+                  onClick={() => removeEvent(event.id)}
+                >
+                  Remove
+                </Button>
+              )}
+            </Card>
+          ))
+        )}
+      </div>
+    </>
+  );
+}
+
 export function CalendarHub() {
   const [tab, setTab] = useState<CalendarTab>("church");
   const [requests, setRequests] = useState<UnavailabilityRequest[]>([]);
@@ -195,21 +341,7 @@ export function CalendarHub() {
         ))}
       </div>
 
-      {tab === "church" && (
-        <div className="grid gap-4">
-          {upcomingEvents.map((event) => (
-            <Card key={event.id}>
-              <p className="text-sm font-medium text-sand-600">{event.date}</p>
-              <h3 className="mt-1 font-display text-xl font-semibold text-night-900">
-                {event.title}
-              </h3>
-              <p className="mt-2 text-sm text-night-600">
-                {event.time} · {event.location}
-              </p>
-            </Card>
-          ))}
-        </div>
-      )}
+      {tab === "church" && <ChurchEventsPanel />}
 
       {tab === "choir" && (
         <>

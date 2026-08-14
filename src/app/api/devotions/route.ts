@@ -21,6 +21,7 @@ import {
   type DevotionPublishMode,
 } from "@/lib/devotion-utils";
 import { notifyNewDevotion } from "@/lib/push-server";
+import { markDevotionNotified } from "@/lib/devotion-server";
 
 const accessError = `Devotion writing is limited to members of ${devotionGroupMatchHint()}.`;
 
@@ -102,6 +103,7 @@ export async function POST(request: Request) {
 
   if (shouldNotifyDevotionPublish(devotion)) {
     await notifyNewDevotion({ title: devotion.title, authorId: user!.id });
+    await markDevotionNotified(devotion.id);
   }
 
   return NextResponse.json({ devotion }, { status: 201 });
@@ -146,6 +148,7 @@ export async function PATCH(request: Request) {
 
   if (devotion && shouldNotifyDevotionPublish(devotion)) {
     await notifyNewDevotion({ title: devotion.title, authorId: user!.id });
+    await markDevotionNotified(devotion.id);
   }
 
   return NextResponse.json({ devotion });

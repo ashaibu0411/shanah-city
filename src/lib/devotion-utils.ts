@@ -192,6 +192,7 @@ export function pickTodayDevotion(devotions: Devotion[], now = new Date()) {
 }
 
 export function shouldNotifyDevotionPublish(devotion: Devotion, now = new Date()) {
+  if (devotion.notifiedAt) return false;
   return (
     devotion.published !== false &&
     (!devotion.publishAt || new Date(devotion.publishAt) <= now)

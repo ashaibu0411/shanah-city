@@ -10,7 +10,24 @@ import {
   toPublicMember,
   verifyCredentials,
 } from "@/lib/auth-server";
+import {
+  enforceRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit-server";
 import { getSessionPermissions } from "@/lib/session-permissions";
+
+async function checkAuthRateLimit(request: Request, action: string) {
+  const ip = getClientIp(request);
+  const result = await enforceRateLimit(`auth:${action}:${ip}`, {
+    limit: action === "forgot" ? 5 : 15,
+    windowSeconds: action === "forgot" ? 60 * 60 : 15 * 60,
+  });
+  if (!result.allowed) {
+    return rateLimitResponse(result.retryAfterSeconds);
+  }
+  return null;
+}
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -28,6 +45,11 @@ export async function GET() {
 export async function POST(request: Request) {
   const body = await request.json();
   const action = body.action ?? "signin";
+  const rateLimited = await checkAuthRateLimit(
+    request,
+    action === "signup" ? "signup" : "signin",
+  );
+  if (rateLimited) return rateLimited;
 
   if (action === "signup") {
     try {

@@ -11,16 +11,16 @@ import { QuickActions } from "@/components/home/QuickActions";
 import { MeetingPreview } from "@/components/meetings/MeetingsList";
 import { SermonCard } from "@/components/sermons/SermonCard";
 import { SectionTitle } from "@/components/ui";
-import type { Devotion } from "@/lib/types";
+import type { Devotion, ChurchEvent } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
-import { upcomingEvents } from "@/lib/site";
 
 type HomeViewProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
+  events: ChurchEvent[];
 };
 
-export function HomeView({ posts, todayDevotion }: HomeViewProps) {
+export function HomeView({ posts, todayDevotion, events }: HomeViewProps) {
   const { isMobileApp } = useAppShell();
 
   if (isMobileApp) {
@@ -44,7 +44,7 @@ export function HomeView({ posts, todayDevotion }: HomeViewProps) {
       <section className="mb-8">
         <SectionTitle title="Upcoming" href="/calendar" />
         <div className="grid gap-3 md:grid-cols-3">
-          {upcomingEvents.map((event) => (
+          {events.map((event) => (
             <div
               key={event.id}
               className="rounded-2xl bg-white p-4 ring-1 ring-night-900/5"

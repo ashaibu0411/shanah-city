@@ -147,6 +147,26 @@ model Devotion {
   createdAt   DateTime?
   updatedAt   DateTime?
   publishAt   DateTime?
+  notifiedAt  DateTime?
+}
+
+model ChurchEvent {
+  id        String   @id
+  title     String
+  date      String
+  time      String
+  location  String
+  campusId  String?
+  published Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime
+  updatedAt DateTime
+}
+
+model RateLimitEntry {
+  key     String   @id
+  count   Int
+  resetAt DateTime
 }
 
 model PushSubscription {

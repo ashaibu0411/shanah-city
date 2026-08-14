@@ -94,6 +94,18 @@ export type Devotion = {
   createdAt?: string;
   updatedAt?: string;
   publishAt?: string | null;
+  notifiedAt?: string | null;
+};
+
+export type ChurchEvent = {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  campusId?: string;
+  published?: boolean;
+  sortOrder?: number;
 };
 
 export type Meeting = {

@@ -108,6 +108,10 @@ export async function updateDevotion(
       update.publishAt === null
         ? undefined
         : update.publishAt ?? devotions[index].publishAt,
+    notifiedAt:
+      update.publishAt && new Date(update.publishAt) > new Date()
+        ? undefined
+        : update.notifiedAt ?? devotions[index].notifiedAt,
     updatedAt: new Date().toISOString(),
   };
 
@@ -121,4 +125,19 @@ export async function deleteDevotion(id: string) {
   if (next.length === devotions.length) return false;
   await writeJson(DEVOTIONS_FILE, next);
   return true;
+}
+
+export async function getDevotionsDueForNotification(now = new Date()) {
+  const devotions = await getDevotions({ includeUnpublished: true });
+  return devotions.filter(
+    (devotion) =>
+      devotion.published !== false &&
+      !devotion.notifiedAt &&
+      devotion.publishAt &&
+      new Date(devotion.publishAt) <= now,
+  );
+}
+
+export async function markDevotionNotified(id: string) {
+  return updateDevotion(id, { notifiedAt: new Date().toISOString() });
 }

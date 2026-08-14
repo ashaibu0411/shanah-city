@@ -24,6 +24,7 @@ function mapDevotion(record: {
   createdAt: Date | null;
   updatedAt: Date | null;
   publishAt: Date | null;
+  notifiedAt: Date | null;
 }): Devotion {
   return {
     id: record.id,
@@ -40,6 +41,7 @@ function mapDevotion(record: {
     createdAt: record.createdAt?.toISOString(),
     updatedAt: record.updatedAt?.toISOString(),
     publishAt: record.publishAt?.toISOString(),
+    notifiedAt: record.notifiedAt?.toISOString(),
   };
 }
 
@@ -143,6 +145,10 @@ export async function updateDevotion(
           : update.publishAt
             ? new Date(update.publishAt)
             : undefined,
+      notifiedAt:
+        update.publishAt && new Date(update.publishAt) > new Date()
+          ? null
+          : undefined,
       updatedAt: new Date(),
     },
   });
@@ -157,4 +163,23 @@ export async function deleteDevotion(id: string) {
   } catch {
     return false;
   }
+}
+
+export async function getDevotionsDueForNotification(now = new Date()) {
+  const records = await prisma.devotion.findMany({
+    where: {
+      published: true,
+      notifiedAt: null,
+      publishAt: { not: null, lte: now },
+    },
+  });
+
+  return records.map(mapDevotion);
+}
+
+export async function markDevotionNotified(id: string) {
+  await prisma.devotion.update({
+    where: { id },
+    data: { notifiedAt: new Date() },
+  });
 }
