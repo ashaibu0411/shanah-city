@@ -35,7 +35,15 @@ export async function GET() {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   if (!user) {
-    return NextResponse.json({ user: null, permissions: { canUploadGallery: false, canWriteDevotions: false, canManageAdmin: false } });
+    return NextResponse.json({
+      user: null,
+      permissions: {
+        canUploadGallery: false,
+        canWriteDevotions: false,
+        canManageAdmin: false,
+        canAccessFinance: false,
+      },
+    });
   }
   const [activity, permissions] = await Promise.all([
     getActivity(user.id),

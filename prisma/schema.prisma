@@ -339,3 +339,22 @@ model GivingRecord {
   @@index([userId])
   @@index([fund])
 }
+
+model FinanceWeeklySheet {
+  id              String    @id
+  weekEnding      String    @unique
+  lines           Json
+  notes           String?
+  totalAmount     Float
+  status          String    @default("draft")
+  submittedAt     DateTime?
+  submittedBy     String?
+  submittedByName String?
+  createdBy       String
+  createdByName   String
+  createdAt       DateTime
+  updatedAt       DateTime
+
+  @@index([status])
+  @@index([weekEnding])
+}

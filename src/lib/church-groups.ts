@@ -61,6 +61,16 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     isSystem: true,
   },
   {
+    id: "group-finance",
+    name: "Finance Team",
+    description: "Treasury counters who record weekly offering totals.",
+    category: "other",
+    visibility: "private",
+    requiresApproval: true,
+    signupVisible: true,
+    isSystem: true,
+  },
+  {
     id: "group-frontliners",
     name: "FrontLiners",
     description: "Welcome, ushering, and first-impressions team.",

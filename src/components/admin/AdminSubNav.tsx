@@ -2,15 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/auth/AuthProvider";
 
-const links = [
-  { href: "/admin/approvals", label: "Approvals" },
-  { href: "/admin/people", label: "People" },
-  { href: "/admin/giving", label: "Giving" },
+const adminLinks = [
+  { href: "/admin/approvals", label: "Approvals", adminOnly: true },
+  { href: "/admin/people", label: "People", adminOnly: true },
+  { href: "/admin/giving", label: "Giving", adminOnly: true },
+  { href: "/admin/finance", label: "Finance", adminOnly: false },
 ] as const;
 
 export function AdminSubNav() {
   const pathname = usePathname();
+  const { permissions } = useAuth();
+
+  const links = adminLinks.filter((link) => {
+    if (link.href === "/admin/finance") {
+      return permissions.canAccessFinance;
+    }
+    return permissions.canManageAdmin;
+  });
+
+  if (links.length === 0) return null;
 
   return (
     <nav className="mb-6 flex flex-wrap gap-2">

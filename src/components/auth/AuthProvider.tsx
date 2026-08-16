@@ -15,6 +15,7 @@ type AuthPermissions = {
   canUploadGallery: boolean;
   canWriteDevotions: boolean;
   canManageAdmin: boolean;
+  canAccessFinance: boolean;
 };
 
 type AuthContextValue = {
@@ -31,6 +32,7 @@ const defaultPermissions: AuthPermissions = {
   canUploadGallery: false,
   canWriteDevotions: false,
   canManageAdmin: false,
+  canAccessFinance: false,
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);

@@ -120,6 +120,11 @@ export function MemberProfile() {
             Giving records
           </Button>
         )}
+        {permissions.canAccessFinance && (
+          <Button href="/admin/finance" variant="secondary">
+            Weekly count
+          </Button>
+        )}
         {permissions.canWriteDevotions && (
           <Button href="/admin/devotions" variant="secondary">
             Write devotions
