@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useApp } from "@/components/app/AppProvider";
 import { DeleteAccountPanel } from "@/components/auth/DeleteAccountPanel";
+import { MemberGivingHistory } from "@/components/give/MemberGivingHistory";
 import { ProfileAvatarUpload } from "@/components/auth/ProfileAvatarUpload";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { Button, Card, PageHeader } from "@/components/ui";
@@ -134,6 +135,7 @@ export function MemberProfile() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          <MemberGivingHistory />
           <PushNotificationSettings />
           <Card>
             <ProfileAvatarUpload user={user} onUpdated={setUser} />
@@ -294,7 +296,7 @@ export function MemberProfile() {
           <Card className="bg-night-900 text-sand-50">
             <h2 className="font-display text-lg font-semibold">Member tools</h2>
             <ul className="mt-3 space-y-2 text-sm text-sand-200/90">
-              <li>• Giving history (coming soon for members)</li>
+              <li>• Giving history on your profile</li>
               <li>• Sermon watch history</li>
               <li>• Volunteer hours</li>
               <li>• Event RSVPs</li>

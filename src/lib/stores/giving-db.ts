@@ -13,6 +13,9 @@ function mapRecord(record: {
   givenOn: string;
   campusId: string | null;
   notes: string | null;
+  source: string;
+  stripeSessionId: string | null;
+  stripeInvoiceId: string | null;
   recordedBy: string;
   recordedByName: string;
   createdAt: Date;
@@ -30,6 +33,9 @@ function mapRecord(record: {
     givenOn: record.givenOn,
     campusId: record.campusId ?? undefined,
     notes: record.notes ?? undefined,
+    source: (record.source as GivingRecord["source"]) ?? "manual",
+    stripeSessionId: record.stripeSessionId ?? undefined,
+    stripeInvoiceId: record.stripeInvoiceId ?? undefined,
     recordedBy: record.recordedBy,
     recordedByName: record.recordedByName,
     createdAt: record.createdAt.toISOString(),
@@ -82,6 +88,9 @@ export async function createGivingRecord(input: {
   givenOn: string;
   campusId?: string;
   notes?: string;
+  source?: GivingRecord["source"];
+  stripeSessionId?: string;
+  stripeInvoiceId?: string;
   recordedBy: string;
   recordedByName: string;
 }) {
@@ -99,6 +108,9 @@ export async function createGivingRecord(input: {
       givenOn: input.givenOn,
       campusId: input.campusId ?? null,
       notes: input.notes ?? null,
+      source: input.source ?? "manual",
+      stripeSessionId: input.stripeSessionId ?? null,
+      stripeInvoiceId: input.stripeInvoiceId ?? null,
       recordedBy: input.recordedBy,
       recordedByName: input.recordedByName,
       createdAt: now,
@@ -155,4 +167,14 @@ export async function deleteGivingRecord(id: string) {
   } catch {
     return false;
   }
+}
+
+export async function getGivingRecordByStripeSessionId(stripeSessionId: string) {
+  const record = await prisma.givingRecord.findUnique({ where: { stripeSessionId } });
+  return record ? mapRecord(record) : null;
+}
+
+export async function getGivingRecordByStripeInvoiceId(stripeInvoiceId: string) {
+  const record = await prisma.givingRecord.findUnique({ where: { stripeInvoiceId } });
+  return record ? mapRecord(record) : null;
 }

@@ -13,3 +13,7 @@ export const updateGivingRecord = (
   update: Parameters<typeof givingJson.updateGivingRecord>[1],
 ) => store().updateGivingRecord(id, update);
 export const deleteGivingRecord = (id: string) => store().deleteGivingRecord(id);
+export const getGivingRecordByStripeSessionId = (stripeSessionId: string) =>
+  store().getGivingRecordByStripeSessionId(stripeSessionId);
+export const getGivingRecordByStripeInvoiceId = (stripeInvoiceId: string) =>
+  store().getGivingRecordByStripeInvoiceId(stripeInvoiceId);

@@ -66,6 +66,9 @@ export async function createGivingRecord(input: {
   givenOn: string;
   campusId?: string;
   notes?: string;
+  source?: GivingRecord["source"];
+  stripeSessionId?: string;
+  stripeInvoiceId?: string;
   recordedBy: string;
   recordedByName: string;
 }) {
@@ -83,6 +86,9 @@ export async function createGivingRecord(input: {
     givenOn: input.givenOn,
     campusId: input.campusId,
     notes: input.notes,
+    source: input.source ?? "manual",
+    stripeSessionId: input.stripeSessionId,
+    stripeInvoiceId: input.stripeInvoiceId,
     recordedBy: input.recordedBy,
     recordedByName: input.recordedByName,
     createdAt: now,
@@ -130,4 +136,14 @@ export async function deleteGivingRecord(id: string) {
   if (next.length === records.length) return false;
   await writeJson(GIVING_FILE, next);
   return true;
+}
+
+export async function getGivingRecordByStripeSessionId(stripeSessionId: string) {
+  const records = await readRecords();
+  return records.find((record) => record.stripeSessionId === stripeSessionId) ?? null;
+}
+
+export async function getGivingRecordByStripeInvoiceId(stripeInvoiceId: string) {
+  const records = await readRecords();
+  return records.find((record) => record.stripeInvoiceId === stripeInvoiceId) ?? null;
 }

@@ -1,3 +1,4 @@
+import { GiveCheckoutPanel } from "@/components/give/GiveCheckoutPanel";
 import { GivePlatformGrid } from "@/components/give/GivePlatformGrid";
 import { PageHeader } from "@/components/ui";
 import { givingPlatforms } from "@/lib/giving-links";
@@ -28,9 +29,11 @@ export default function GivePage() {
         <p className="mt-3 leading-relaxed text-night-600">{site.giving.why}</p>
       </div>
 
+      <GiveCheckoutPanel />
+
       <section className="mb-8">
         <h2 className="mb-4 font-display text-xl font-semibold text-night-900">
-          Give online
+          Other online options
         </h2>
         <p className="mb-4 text-sm text-night-600">
           Choose the option that works best for you. PayPal, Cash App, and Venmo open in

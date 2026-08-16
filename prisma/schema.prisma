@@ -330,6 +330,9 @@ model GivingRecord {
   givenOn        String
   campusId       String?
   notes          String?
+  source         String   @default("manual")
+  stripeSessionId String? @unique
+  stripeInvoiceId String? @unique
   recordedBy     String
   recordedByName String
   createdAt      DateTime

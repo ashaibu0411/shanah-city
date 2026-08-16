@@ -16,6 +16,7 @@ export type GivingMethod =
   | "check"
   | "in-person"
   | "website"
+  | "stripe"
   | "other";
 
 export type GivingRecord = {
@@ -30,6 +31,9 @@ export type GivingRecord = {
   givenOn: string;
   campusId?: string | null;
   notes?: string | null;
+  source?: "manual" | "stripe";
+  stripeSessionId?: string | null;
+  stripeInvoiceId?: string | null;
   recordedBy: string;
   recordedByName: string;
   createdAt: string;
@@ -62,8 +66,17 @@ export const GIVING_METHOD_OPTIONS: { value: GivingMethod; label: string }[] = [
   { value: "check", label: "Check" },
   { value: "in-person", label: "In person" },
   { value: "website", label: "Website" },
+  { value: "stripe", label: "Stripe (online)" },
   { value: "other", label: "Other" },
 ];
+
+export const GIVING_CHECKOUT_FUNDS = GIVING_FUND_OPTIONS.filter(
+  (option) => option.value !== "other",
+);
+
+export const GIVING_AMOUNT_PRESETS = [25, 50, 100, 250, 500] as const;
+
+export type GivingCheckoutFrequency = "once" | "monthly";
 
 export function fundLabel(fund: string) {
   return GIVING_FUND_OPTIONS.find((option) => option.value === fund)?.label ?? fund;
