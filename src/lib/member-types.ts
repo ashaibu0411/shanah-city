@@ -24,6 +24,14 @@ export type AdminPeopleGroupStatus = {
   status: "member" | "pending";
 };
 
+export type AdminPeopleFamilyMember = {
+  id: string;
+  name: string;
+  relationship: string;
+  birthYear?: string;
+  notes?: string;
+};
+
 export type AdminPeopleEntry = {
   id: string;
   name: string;
@@ -33,6 +41,7 @@ export type AdminPeopleEntry = {
   role?: string;
   createdAt: string;
   familyCount: number;
+  family: AdminPeopleFamilyMember[];
   groups: AdminPeopleGroupStatus[];
 };
 

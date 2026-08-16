@@ -317,3 +317,25 @@ model PasswordResetToken {
   expiresAt DateTime
   createdAt DateTime
 }
+
+model GivingRecord {
+  id             String   @id
+  userId         String?
+  donorName      String
+  donorEmail     String?
+  amount         Float
+  currency       String   @default("USD")
+  fund           String
+  method         String
+  givenOn        String
+  campusId       String?
+  notes          String?
+  recordedBy     String
+  recordedByName String
+  createdAt      DateTime
+  updatedAt      DateTime
+
+  @@index([givenOn])
+  @@index([userId])
+  @@index([fund])
+}

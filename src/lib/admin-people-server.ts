@@ -45,6 +45,13 @@ export async function getAdminPeopleDirectory(adminId: string): Promise<AdminPeo
         role: user.role,
         createdAt: user.createdAt,
         familyCount: user.family.length,
+        family: user.family.map((member) => ({
+          id: member.id,
+          name: member.name,
+          relationship: member.relationship,
+          birthYear: member.birthYear,
+          notes: member.notes,
+        })),
         groups: [...memberGroups, ...pendingGroups],
       };
     })

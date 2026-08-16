@@ -1,17 +1,17 @@
 import { redirect } from "next/navigation";
-import { AdminPeoplePanel } from "@/components/admin/AdminPeoplePanel";
+import { AdminGivingPanel } from "@/components/admin/AdminGivingPanel";
 import { PageHeader } from "@/components/ui";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { cookies } from "next/headers";
 
-export default async function AdminPeoplePage() {
+export default async function AdminGivingPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
 
   if (!user) {
-    redirect("/sign-in?next=/admin/people");
+    redirect("/sign-in?next=/admin/giving");
   }
 
   const isAdmin = await canManageAsAdmin(user);
@@ -23,10 +23,10 @@ export default async function AdminPeoplePage() {
     <>
       <PageHeader
         eyebrow="Admin Group"
-        title="Member directory"
-        description="Search members, open profiles, edit details, and view family trees."
+        title="Giving records"
+        description="Record gifts manually, filter by date or fund, and export a spreadsheet report."
       />
-      <AdminPeoplePanel />
+      <AdminGivingPanel />
     </>
   );
 }

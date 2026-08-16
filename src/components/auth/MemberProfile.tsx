@@ -115,6 +115,11 @@ export function MemberProfile() {
             Admin approvals
           </Button>
         )}
+        {permissions.canManageAdmin && (
+          <Button href="/admin/giving" variant="secondary">
+            Giving records
+          </Button>
+        )}
         {permissions.canWriteDevotions && (
           <Button href="/admin/devotions" variant="secondary">
             Write devotions
@@ -282,13 +287,22 @@ export function MemberProfile() {
           </Card>
 
           <Card className="bg-night-900 text-sand-50">
-            <h2 className="font-display text-lg font-semibold">Coming soon</h2>
+            <h2 className="font-display text-lg font-semibold">Member tools</h2>
             <ul className="mt-3 space-y-2 text-sm text-sand-200/90">
-              <li>• Giving history</li>
+              <li>• Giving history (coming soon for members)</li>
               <li>• Sermon watch history</li>
               <li>• Volunteer hours</li>
               <li>• Event RSVPs</li>
             </ul>
+            {permissions.canManageAdmin && (
+              <p className="mt-3 text-sm text-sand-200">
+                Admins can record gifts under{" "}
+                <a href="/admin/giving" className="font-semibold underline">
+                  Giving records
+                </a>
+                .
+              </p>
+            )}
             <p className="mt-3 text-xs text-sand-400">
               Member since {new Date(user.createdAt).toLocaleDateString()}
             </p>
