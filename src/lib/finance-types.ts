@@ -10,7 +10,10 @@ export const FINANCE_COUNT_FUNDS = [
 export const FINANCE_COUNT_METHODS = [
   { key: "cash", label: "Cash" },
   { key: "check", label: "Check" },
-  { key: "zelle", label: "Zelle / Venmo" },
+  { key: "zelle", label: "Zelle" },
+  { key: "venmo", label: "Venmo" },
+  { key: "paypal", label: "PayPal" },
+  { key: "cashapp", label: "Cash App" },
   { key: "online", label: "Online (Zeffy / card)" },
 ] as const;
 

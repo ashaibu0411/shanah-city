@@ -165,7 +165,8 @@ export function AdminGivingPanel() {
       <Card className="mb-6">
         <h2 className="font-display text-xl font-semibold text-night-900">Record a gift</h2>
         <p className="mt-1 text-sm text-night-600">
-          Log cash, check, Zelle, Zeffy, and other gifts. Link a member profile when the donor
+          Log cash, check, Zelle, Venmo, PayPal, Cash App, Zeffy, and other gifts. Link a
+          member profile when the donor
           has an account, or enter a guest name.
         </p>
 

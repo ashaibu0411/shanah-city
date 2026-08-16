@@ -33,8 +33,8 @@ export default function GivePage() {
           Give online
         </h2>
         <p className="mb-4 text-sm text-night-600">
-          Choose the option that works best for you. On mobile, Cash App and Venmo
-          open in their apps when installed.
+          Choose the option that works best for you. PayPal, Cash App, and Venmo open in
+          their apps on mobile when installed.
         </p>
         <GivePlatformGrid platforms={givingPlatforms} />
       </section>
