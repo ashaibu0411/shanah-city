@@ -408,3 +408,40 @@ model WorshipSongLibrary {
 
   @@index([title])
 }
+
+model GuestSubmission {
+  id             String    @id
+  name           String
+  email          String?
+  phone          String?
+  visitDate      String?
+  serviceTime    String?
+  isFirstVisit   Boolean   @default(true)
+  notes          String?
+  status         String    @default("new")
+  submittedAt    DateTime
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  reviewedByName String?
+
+  @@index([status])
+  @@index([submittedAt])
+}
+
+model UsherSchedule {
+  id              String    @id
+  serviceDate     String
+  serviceTime     String
+  ushers          Json
+  notes           String?
+  status          String    @default("draft")
+  publishedAt     DateTime?
+  createdBy       String
+  createdByName   String
+  createdAt       DateTime
+  updatedAt       DateTime
+
+  @@unique([serviceDate, serviceTime])
+  @@index([serviceDate])
+  @@index([status])
+}

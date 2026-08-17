@@ -18,6 +18,8 @@ type AuthPermissions = {
   canAccessFinance: boolean;
   canAccessWorshipPlanner: boolean;
   canManageWorshipPlan: boolean;
+  canAccessFrontLiners: boolean;
+  canManageFrontLiners: boolean;
 };
 
 type AuthContextValue = {
@@ -37,6 +39,8 @@ const defaultPermissions: AuthPermissions = {
   canAccessFinance: false,
   canAccessWorshipPlanner: false,
   canManageWorshipPlan: false,
+  canAccessFrontLiners: false,
+  canManageFrontLiners: false,
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);

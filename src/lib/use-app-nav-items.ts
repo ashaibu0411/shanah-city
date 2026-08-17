@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { adminNavItem, site, worshipNavItem, writeDevotionsNavItem, type AppNavItem } from "@/lib/site";
+import { adminNavItem, frontlinersNavItem, site, worshipNavItem, writeDevotionsNavItem, type AppNavItem } from "@/lib/site";
 
 export function useAppNavItems(): AppNavItem[] {
   const { permissions } = useAuth();
@@ -36,6 +36,19 @@ export function useAppNavItems(): AppNavItem[] {
       }
     }
 
+    if (permissions.canAccessFrontLiners) {
+      const profileIndex = items.findIndex((item) => item.href === "/profile");
+      if (profileIndex === -1) {
+        items = [...items, frontlinersNavItem];
+      } else {
+        items = [
+          ...items.slice(0, profileIndex),
+          frontlinersNavItem,
+          ...items.slice(profileIndex),
+        ];
+      }
+    }
+
     if (permissions.canManageAdmin) {
       const profileIndex = items.findIndex((item) => item.href === "/profile");
       if (profileIndex === -1) {
@@ -46,5 +59,5 @@ export function useAppNavItems(): AppNavItem[] {
     }
 
     return items;
-  }, [permissions.canWriteDevotions, permissions.canAccessWorshipPlanner, permissions.canManageAdmin]);
+  }, [permissions.canWriteDevotions, permissions.canAccessWorshipPlanner, permissions.canAccessFrontLiners, permissions.canManageAdmin]);
 }

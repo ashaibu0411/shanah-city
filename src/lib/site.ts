@@ -139,6 +139,12 @@ export const worshipNavItem = {
   icon: "♫",
 } as const;
 
+export const frontlinersNavItem = {
+  label: "FrontLiners",
+  href: "/frontliners",
+  icon: "☺",
+} as const;
+
 export const adminNavItem = {
   label: "Admin",
   href: "/admin/approvals",

@@ -13,6 +13,16 @@ export default function ConnectPage() {
 
       <ConnectHero />
 
+      <div className="mb-6 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 p-8 text-white">
+        <h2 className="font-display text-2xl font-semibold">First time here?</h2>
+        <p className="mt-2 max-w-xl text-sm text-emerald-100">
+          Tell us you came — no account or sign-in needed. Our welcome team will be glad to meet you.
+        </p>
+        <Button href="/guest" className="mt-5 bg-white text-emerald-900 hover:bg-emerald-50">
+          Connect as a guest
+        </Button>
+      </div>
+
       <div className="mb-6 rounded-2xl bg-night-900 p-8 text-sand-50">
         <h2 className="font-display text-2xl font-semibold">Service times</h2>
         <ul className="mt-4 space-y-3">
