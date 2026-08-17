@@ -2,11 +2,26 @@ import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
 
 export const WORSHIP_GROUP_ID = CALENDAR_GROUP_TABS.choir;
 
-export const WORSHIP_SERVICE_TIMES = [
-  { value: "09:00", label: "9:00 AM" },
-  { value: "10:00", label: "10:00 AM" },
-  { value: "11:30", label: "11:30 AM" },
-  { value: "19:00", label: "7:00 PM" },
+/** Lakewood-style multi-service schedule — edit times here as Shanah grows. */
+export const WORSHIP_SERVICE_SCHEDULE = [
+  { value: "09:00", label: "9:00 AM", serviceType: "sunday", kind: "Sunday service" },
+  { value: "10:00", label: "10:00 AM", serviceType: "sunday", kind: "Sunday service" },
+  { value: "11:30", label: "11:30 AM", serviceType: "sunday", kind: "Sunday service" },
+  { value: "19:00", label: "7:00 PM", serviceType: "friday", kind: "Friday worship" },
+] as const;
+
+export const WORSHIP_SERVICE_TIMES = WORSHIP_SERVICE_SCHEDULE.map((slot) => ({
+  value: slot.value,
+  label: slot.label,
+}));
+
+export const WORSHIP_SONG_SEGMENTS = [
+  { value: "opener", label: "Opener / intro" },
+  { value: "worship", label: "Worship set" },
+  { value: "response", label: "Response" },
+  { value: "offering", label: "Offering" },
+  { value: "communion", label: "Communion" },
+  { value: "closing", label: "Closing" },
 ] as const;
 
 export const WORSHIP_ROLES = [
@@ -17,15 +32,24 @@ export const WORSHIP_ROLES = [
   { value: "other", label: "Other" },
 ] as const;
 
-export type WorshipServiceTime = (typeof WORSHIP_SERVICE_TIMES)[number]["value"];
+export type WorshipServiceTime = (typeof WORSHIP_SERVICE_SCHEDULE)[number]["value"];
+export type WorshipServiceType = "sunday" | "friday" | "special";
 export type WorshipRole = (typeof WORSHIP_ROLES)[number]["value"];
+export type WorshipSongSegment = (typeof WORSHIP_SONG_SEGMENTS)[number]["value"];
 
 export type WorshipSong = {
   id: string;
+  librarySongId?: string;
   title: string;
   key: string;
   bpm?: number;
   notes?: string;
+  chartUrl?: string;
+  chartFileName?: string;
+  leaderUserId?: string;
+  leaderName?: string;
+  segment?: WorshipSongSegment;
+  order?: number;
   preparedBy: string[];
 };
 
@@ -40,12 +64,35 @@ export type WorshipServicePlan = {
   id: string;
   serviceDate: string;
   serviceTime: WorshipServiceTime | string;
+  serviceType: WorshipServiceType;
   title?: string | null;
   status: "draft" | "published";
   songs: WorshipSong[];
   team: WorshipTeamMember[];
   rehearsalNotes?: string | null;
+  rehearsalDate?: string | null;
+  rehearsalTime?: string | null;
+  calendarEventId?: string | null;
+  reminderSentAt?: string | null;
   publishedAt?: string | null;
+  createdBy: string;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WorshipLibrarySong = {
+  id: string;
+  title: string;
+  artist?: string | null;
+  defaultKey: string;
+  bpm?: number | null;
+  ccliNumber?: string | null;
+  chartUrl?: string | null;
+  chartFileName?: string | null;
+  notes?: string | null;
+  tags?: string[];
+  useCount: number;
   createdBy: string;
   createdByName: string;
   createdAt: string;
@@ -71,8 +118,32 @@ export function worshipTimeLabel(time: string) {
   return WORSHIP_SERVICE_TIMES.find((entry) => entry.value === time)?.label ?? time;
 }
 
+export function worshipSegmentLabel(segment: string) {
+  return WORSHIP_SONG_SEGMENTS.find((entry) => entry.value === segment)?.label ?? segment;
+}
+
+export function serviceTypeForTime(time: string): WorshipServiceType {
+  const slot = WORSHIP_SERVICE_SCHEDULE.find((entry) => entry.value === time);
+  return (slot?.serviceType as WorshipServiceType) ?? "special";
+}
+
 export function createSongId() {
   return `song-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+export function songFromLibrary(entry: WorshipLibrarySong): WorshipSong {
+  return {
+    id: createSongId(),
+    librarySongId: entry.id,
+    title: entry.title,
+    key: entry.defaultKey,
+    bpm: entry.bpm ?? undefined,
+    notes: entry.notes ?? undefined,
+    chartUrl: entry.chartUrl ?? undefined,
+    chartFileName: entry.chartFileName ?? undefined,
+    segment: "worship",
+    preparedBy: [],
+  };
 }
 
 export function emptyWorshipSong(title = ""): WorshipSong {
@@ -80,19 +151,29 @@ export function emptyWorshipSong(title = ""): WorshipSong {
     id: createSongId(),
     title,
     key: "C",
+    segment: "worship",
     preparedBy: [],
   };
 }
 
 export function normalizeSongs(songs: WorshipSong[] | undefined) {
-  return (songs ?? []).map((song) => ({
-    id: song.id || createSongId(),
-    title: song.title?.trim() ?? "",
-    key: song.key?.trim() || "C",
-    bpm: song.bpm,
-    notes: song.notes?.trim() || undefined,
-    preparedBy: Array.isArray(song.preparedBy) ? [...new Set(song.preparedBy)] : [],
-  }));
+  return (songs ?? [])
+    .map((song, index) => ({
+      id: song.id || createSongId(),
+      librarySongId: song.librarySongId,
+      title: song.title?.trim() ?? "",
+      key: song.key?.trim() || "C",
+      bpm: song.bpm,
+      notes: song.notes?.trim() || undefined,
+      chartUrl: song.chartUrl?.trim() || undefined,
+      chartFileName: song.chartFileName?.trim() || undefined,
+      leaderUserId: song.leaderUserId,
+      leaderName: song.leaderName?.trim() || undefined,
+      segment: song.segment || "worship",
+      order: song.order ?? index + 1,
+      preparedBy: Array.isArray(song.preparedBy) ? [...new Set(song.preparedBy)] : [],
+    }))
+    .sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
 }
 
 export function normalizeTeam(team: WorshipTeamMember[] | undefined) {
@@ -131,6 +212,12 @@ export function nextServiceSundayIso(reference = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+export function suggestedRehearsalDate(serviceDate: string) {
+  const date = new Date(`${serviceDate}T12:00:00`);
+  date.setDate(date.getDate() - 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 export function serviceDateTimeLabel(serviceDate: string, serviceTime: string) {
   const date = new Date(`${serviceDate}T12:00:00`);
   const day = date.toLocaleDateString(undefined, {
@@ -139,4 +226,19 @@ export function serviceDateTimeLabel(serviceDate: string, serviceTime: string) {
     day: "numeric",
   });
   return `${day} · ${worshipTimeLabel(serviceTime)}`;
+}
+
+export function rehearsalDateTimeLabel(rehearsalDate?: string | null, rehearsalTime?: string | null) {
+  if (!rehearsalDate) return "Not scheduled";
+  const time = rehearsalTime ? worshipTimeLabel(rehearsalTime) : "Time TBD";
+  const date = new Date(`${rehearsalDate}T12:00:00`).toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+  return `${date} · ${time}`;
+}
+
+export function combinePlanDateTime(date: string, time: string) {
+  return new Date(`${date}T${time || "19:00"}:00`);
 }

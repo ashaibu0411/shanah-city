@@ -5,7 +5,7 @@ import type {
   WorshipSong,
   WorshipTeamMember,
 } from "@/lib/worship-types";
-import { normalizeSongs, normalizeTeam } from "@/lib/worship-types";
+import { normalizeSongs, normalizeTeam, serviceTypeForTime } from "@/lib/worship-types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const WORSHIP_FILE = path.join(DATA_DIR, "worship-service-plans.json");
@@ -75,10 +75,14 @@ export async function getWorshipPlan(serviceDate: string, serviceTime: string) {
 export async function saveWorshipPlan(input: {
   serviceDate: string;
   serviceTime: string;
+  serviceType?: WorshipServicePlan["serviceType"];
   title?: string;
   songs: WorshipSong[];
   team: WorshipTeamMember[];
   rehearsalNotes?: string;
+  rehearsalDate?: string;
+  rehearsalTime?: string;
+  calendarEventId?: string;
   status: WorshipServicePlan["status"];
   actor: { id: string; name: string };
 }) {
@@ -92,13 +96,22 @@ export async function saveWorshipPlan(input: {
 
   if (index >= 0) {
     const existing = plans[index];
+    const rehearsalChanged =
+      existing.rehearsalDate !== (input.rehearsalDate ?? undefined) ||
+      existing.rehearsalTime !== (input.rehearsalTime ?? undefined);
+
     plans[index] = withNormalized({
       ...existing,
+      serviceType: input.serviceType ?? serviceTypeForTime(input.serviceTime),
       title: input.title,
       songs,
       team,
       rehearsalNotes: input.rehearsalNotes,
+      rehearsalDate: input.rehearsalDate,
+      rehearsalTime: input.rehearsalTime,
+      calendarEventId: input.calendarEventId,
       status: input.status,
+      reminderSentAt: rehearsalChanged ? undefined : existing.reminderSentAt,
       publishedAt:
         input.status === "published"
           ? existing.publishedAt ?? now
@@ -115,11 +128,15 @@ export async function saveWorshipPlan(input: {
     id: `worship-${Date.now()}`,
     serviceDate: input.serviceDate,
     serviceTime: input.serviceTime,
+    serviceType: input.serviceType ?? serviceTypeForTime(input.serviceTime),
     title: input.title,
     status: input.status,
     songs,
     team,
     rehearsalNotes: input.rehearsalNotes,
+    rehearsalDate: input.rehearsalDate,
+    rehearsalTime: input.rehearsalTime,
+    calendarEventId: input.calendarEventId,
     publishedAt: input.status === "published" ? now : undefined,
     createdBy: input.actor.id,
     createdByName: input.actor.name,
@@ -174,6 +191,19 @@ export async function updateWorshipMemberStatus(input: {
   plans[index] = plan;
   await writeJson(WORSHIP_FILE, plans);
   return plan;
+}
+
+export async function markRehearsalReminderSent(serviceDate: string, serviceTime: string) {
+  const plans = await readPlans();
+  const index = plans.findIndex(
+    (plan) => plan.serviceDate === serviceDate && plan.serviceTime === serviceTime,
+  );
+  if (index === -1) return;
+  plans[index] = {
+    ...plans[index],
+    reminderSentAt: new Date().toISOString(),
+  };
+  await writeJson(WORSHIP_FILE, plans);
 }
 
 export async function deleteWorshipPlan(serviceDate: string, serviceTime: string) {

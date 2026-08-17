@@ -222,6 +222,7 @@ export async function updateNotificationPrefs(
       notifyMessages: prefs.messages ?? existing.notificationPrefs?.messages ?? true,
       notifyAnnouncements:
         prefs.announcements ?? existing.notificationPrefs?.announcements ?? true,
+      notifyWorship: prefs.worship ?? existing.notificationPrefs?.worship ?? true,
       updatedAt: new Date(),
     },
     include: { family: true },

@@ -6,6 +6,7 @@ import {
   getConfiguredWorshipGroupId,
 } from "@/lib/worship-access-server";
 import {
+  WORSHIP_SERVICE_SCHEDULE,
   WORSHIP_SERVICE_TIMES,
   type WorshipServiceTime,
   type WorshipSong,
@@ -18,6 +19,8 @@ import {
   saveWorshipPlan,
   updateWorshipMemberStatus,
 } from "@/lib/worship-server";
+import { publishWorshipPlanNotifications } from "@/lib/worship-notify-server";
+import { getEvents } from "@/lib/event-server";
 import { getGroupDetail } from "@/lib/group-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 
@@ -71,7 +74,19 @@ export async function GET(request: Request) {
   const since = searchParams.get("since") ?? undefined;
   const until = searchParams.get("until") ?? undefined;
   const roster = searchParams.get("roster") === "1";
+  const calendarEvents = searchParams.get("calendarEvents") === "1";
   const canManage = await canManageWorshipPlan(auth.user!);
+
+  if (calendarEvents) {
+    if (!canManage) {
+      return NextResponse.json({ error: "Worship leader access required." }, { status: 403 });
+    }
+    const events = await getEvents({ groupId: getConfiguredWorshipGroupId() });
+    const today = new Date().toISOString().slice(0, 10);
+    return NextResponse.json({
+      events: events.filter((event) => !event.date || event.date >= today),
+    });
+  }
 
   if (roster) {
     if (!canManage) {
@@ -89,6 +104,7 @@ export async function GET(request: Request) {
         { value: "other", label: "Other" },
       ],
       serviceTimes: WORSHIP_SERVICE_TIMES,
+      serviceSchedule: WORSHIP_SERVICE_SCHEDULE,
     });
   }
 
@@ -179,9 +195,16 @@ export async function POST(request: Request) {
       songs: parseSongs(body),
       team: parseTeam(body),
       rehearsalNotes: body.rehearsalNotes ? String(body.rehearsalNotes).trim() : undefined,
+      rehearsalDate: body.rehearsalDate ? String(body.rehearsalDate).trim() : undefined,
+      rehearsalTime: body.rehearsalTime ? String(body.rehearsalTime).trim() : undefined,
+      calendarEventId: body.calendarEventId ? String(body.calendarEventId).trim() : undefined,
       status: planStatus,
       actor: { id: auth.user!.id, name: auth.user!.name },
     });
+
+    if (action === "publish") {
+      await publishWorshipPlanNotifications(plan);
+    }
 
     return NextResponse.json({ plan });
   } catch (error) {

@@ -74,6 +74,7 @@ export async function createUser(input: {
       devotions: true,
       messages: true,
       announcements: true,
+      worship: true,
     },
     passwordHash: await bcrypt.hash(input.password, 10),
     family: [],
@@ -207,6 +208,7 @@ export async function updateNotificationPrefs(
     messages: prefs.messages ?? users[index].notificationPrefs?.messages ?? true,
     announcements:
       prefs.announcements ?? users[index].notificationPrefs?.announcements ?? true,
+    worship: prefs.worship ?? users[index].notificationPrefs?.worship ?? true,
   };
   users[index].updatedAt = new Date().toISOString();
   await writeJson(USERS_FILE, users);

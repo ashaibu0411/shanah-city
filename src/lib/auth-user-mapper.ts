@@ -17,6 +17,7 @@ export function mapDbUserToProfile(user: DbUserWithFamily): MemberProfile {
       devotions: user.notifyDevotions,
       messages: user.notifyMessages,
       announcements: user.notifyAnnouncements,
+      worship: user.notifyWorship,
     },
     passwordHash: user.passwordHash,
     family: user.family.map(mapDbFamilyMember),
@@ -42,5 +43,6 @@ export function notificationPrefsToDb(prefs?: Partial<NotificationPrefs>) {
     notifyDevotions: prefs.devotions,
     notifyMessages: prefs.messages,
     notifyAnnouncements: prefs.announcements,
+    notifyWorship: prefs.worship,
   };
 }

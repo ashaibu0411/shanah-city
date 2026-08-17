@@ -5,7 +5,12 @@ import { PageHeader } from "@/components/ui";
 import { canAccessWorshipPlanner } from "@/lib/worship-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 
-export default async function WorshipPlannerPage() {
+export default async function WorshipPlannerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string; time?: string }>;
+}) {
+  const params = await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -23,9 +28,9 @@ export default async function WorshipPlannerPage() {
       <PageHeader
         eyebrow="Shanah City Worship"
         title="Worship planner"
-        description="Plan setlists, track team readiness, and share rehearsal notes for each service."
+        description="Plan setlists, track team readiness, store charts, and share rehearsal notes for each service."
       />
-      <WorshipPlannerPanel />
+      <WorshipPlannerPanel initialDate={params.date} initialTime={params.time} />
     </>
   );
 }

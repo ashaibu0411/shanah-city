@@ -11,9 +11,10 @@ export type NotificationPrefs = {
   devotions: boolean;
   messages: boolean;
   announcements: boolean;
+  worship: boolean;
 };
 
-export type NotificationTopic = "devotions" | "messages" | "announcements";
+export type NotificationTopic = "devotions" | "messages" | "announcements" | "worship";
 
 export type MemberProfile = {
   id: string;

@@ -2,6 +2,10 @@ import webpush from "web-push";
 import { getUsers } from "@/lib/auth-server";
 import type { NotificationPrefs, NotificationTopic } from "@/lib/auth-types";
 import { getGroups } from "@/lib/group-server";
+import {
+  rehearsalDateTimeLabel,
+  serviceDateTimeLabel,
+} from "@/lib/worship-types";
 import * as pushDb from "@/lib/stores/push-db";
 import * as pushJson from "@/lib/stores/push-json";
 import { useDatabase } from "@/lib/use-database";
@@ -61,6 +65,7 @@ export async function sendPushToUsers(
       devotions: user?.notificationPrefs?.devotions ?? true,
       messages: user?.notificationPrefs?.messages ?? true,
       announcements: user?.notificationPrefs?.announcements ?? true,
+      worship: user?.notificationPrefs?.worship ?? true,
     };
 
     if (!prefs.pushEnabled || !prefs[preferenceKey]) {
@@ -203,6 +208,46 @@ export async function notifyNewMediaClip(input: {
     },
     "announcements",
     input.authorId,
+  );
+}
+
+export async function notifyWorshipPlanPublished(input: {
+  teamUserIds: string[];
+  title: string;
+  serviceDate: string;
+  serviceTime: string;
+}) {
+  return sendPushToUsers(
+    input.teamUserIds,
+    {
+      title: "New worship plan published",
+      body: input.title,
+      url: `/worship?date=${encodeURIComponent(input.serviceDate)}&time=${encodeURIComponent(input.serviceTime)}`,
+    },
+    "worship",
+  );
+}
+
+export async function notifyWorshipRehearsalReminder(plan: {
+  team: { userId: string }[];
+  serviceDate: string;
+  serviceTime: string;
+  rehearsalDate?: string | null;
+  rehearsalTime?: string | null;
+  title?: string | null;
+}) {
+  const body = plan.rehearsalDate
+    ? `Rehearsal ${rehearsalDateTimeLabel(plan.rehearsalDate, plan.rehearsalTime)} for ${serviceDateTimeLabel(plan.serviceDate, plan.serviceTime)}`
+    : serviceDateTimeLabel(plan.serviceDate, plan.serviceTime);
+
+  return sendPushToUsers(
+    plan.team.map((member) => member.userId),
+    {
+      title: "Worship rehearsal reminder",
+      body,
+      url: `/worship?date=${encodeURIComponent(plan.serviceDate)}&time=${encodeURIComponent(plan.serviceTime)}`,
+    },
+    "worship",
   );
 }
 

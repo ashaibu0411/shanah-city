@@ -4,19 +4,27 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
+import { WorshipSongLibraryPanel } from "@/components/worship/WorshipSongLibraryPanel";
 import {
   buildTeamReadiness,
   emptyWorshipSong,
   nextServiceSundayIso,
+  rehearsalDateTimeLabel,
   serviceDateTimeLabel,
+  songFromLibrary,
+  suggestedRehearsalDate,
   worshipRoleLabel,
+  worshipSegmentLabel,
   WORSHIP_ROLES,
   WORSHIP_SERVICE_TIMES,
+  WORSHIP_SONG_SEGMENTS,
+  type WorshipLibrarySong,
   type WorshipRole,
   type WorshipServicePlan,
   type WorshipSong,
   type WorshipTeamMember,
 } from "@/lib/worship-types";
+import type { ChurchEvent } from "@/lib/types";
 
 type RosterMember = {
   id: string;
@@ -47,16 +55,27 @@ function ProgressDots({ prepared, total }: { prepared: number; total: number }) 
   );
 }
 
-export function WorshipPlannerPanel() {
+export function WorshipPlannerPanel({
+  initialDate,
+  initialTime,
+}: {
+  initialDate?: string;
+  initialTime?: string;
+} = {}) {
   const { user, permissions } = useAuth();
   const canManage = permissions.canManageWorshipPlan;
-  const [serviceDate, setServiceDate] = useState(nextServiceSundayIso());
-  const [serviceTime, setServiceTime] = useState<string>("10:00");
+  const [tab, setTab] = useState<"plan" | "library">("plan");
+  const [serviceDate, setServiceDate] = useState(initialDate || nextServiceSundayIso());
+  const [serviceTime, setServiceTime] = useState<string>(initialTime || "10:00");
   const [plan, setPlan] = useState<WorshipServicePlan | null>(null);
   const [songs, setSongs] = useState<WorshipSong[]>([]);
   const [team, setTeam] = useState<WorshipTeamMember[]>([]);
   const [title, setTitle] = useState("");
   const [rehearsalNotes, setRehearsalNotes] = useState("");
+  const [rehearsalDate, setRehearsalDate] = useState("");
+  const [rehearsalTime, setRehearsalTime] = useState("19:00");
+  const [calendarEventId, setCalendarEventId] = useState("");
+  const [calendarEvents, setCalendarEvents] = useState<ChurchEvent[]>([]);
   const [status, setStatus] = useState<WorshipServicePlan["status"]>("draft");
   const [roster, setRoster] = useState<RosterMember[]>([]);
   const [upcomingPlans, setUpcomingPlans] = useState<WorshipServicePlan[]>([]);
@@ -87,6 +106,9 @@ export function WorshipPlannerPanel() {
       setTeam(data.plan.team);
       setTitle(data.plan.title ?? "");
       setRehearsalNotes(data.plan.rehearsalNotes ?? "");
+      setRehearsalDate(data.plan.rehearsalDate ?? "");
+      setRehearsalTime(data.plan.rehearsalTime ?? "19:00");
+      setCalendarEventId(data.plan.calendarEventId ?? "");
       setStatus(data.plan.status);
     } else {
       setPlan(null);
@@ -94,6 +116,9 @@ export function WorshipPlannerPanel() {
       setTeam([]);
       setTitle("");
       setRehearsalNotes("");
+      setRehearsalDate(suggestedRehearsalDate(serviceDate));
+      setRehearsalTime("19:00");
+      setCalendarEventId("");
       setStatus("draft");
     }
     setMessage(null);
@@ -117,10 +142,20 @@ export function WorshipPlannerPanel() {
     }
   }
 
+  async function loadCalendarEvents() {
+    if (!canManage) return;
+    const response = await fetch("/api/worship?calendarEvents=1");
+    const data = await response.json();
+    if (response.ok) {
+      setCalendarEvents(data.events ?? []);
+    }
+  }
+
   useEffect(() => {
     loadPlan();
     loadUpcoming();
     loadRoster();
+    loadCalendarEvents();
   }, []);
 
   useEffect(() => {
@@ -140,6 +175,9 @@ export function WorshipPlannerPanel() {
         songs,
         team,
         rehearsalNotes,
+        rehearsalDate,
+        rehearsalTime,
+        calendarEventId: calendarEventId || undefined,
         status,
       }),
     });
@@ -226,8 +264,18 @@ export function WorshipPlannerPanel() {
     ]);
   }
 
+  function addSongFromLibrary(entry: WorshipLibrarySong) {
+    setSongs((current) => [...current, songFromLibrary(entry)]);
+    setTab("plan");
+    setMessage(`${entry.title} added to this service plan.`);
+  }
+
   function removeTeamMember(userId: string) {
     setTeam((current) => current.filter((member) => member.userId !== userId));
+  }
+
+  if (tab === "library" && canManage) {
+    return <WorshipSongLibraryPanel onAddToPlan={addSongFromLibrary} />;
   }
 
   if (loading) {
@@ -250,6 +298,30 @@ export function WorshipPlannerPanel() {
 
   return (
     <>
+      {canManage && (
+        <div className="mb-6 flex flex-wrap gap-2">
+          {(
+            [
+              { id: "plan", label: "Service plan" },
+              { id: "library", label: "Song library" },
+            ] as const
+          ).map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setTab(item.id)}
+              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                tab === item.id
+                  ? "bg-night-900 text-sand-50"
+                  : "bg-white text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <Card className="mb-6 overflow-hidden p-0 ring-1 ring-night-900/10">
         <div className="bg-gradient-to-br from-violet-700 to-indigo-900 px-6 py-5 text-white">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-200">
@@ -302,6 +374,13 @@ export function WorshipPlannerPanel() {
               </span>
             )}
           </div>
+
+          {(plan?.rehearsalDate || rehearsalDate) && (
+            <p className="text-sm text-night-600">
+              Rehearsal:{" "}
+              {rehearsalDateTimeLabel(plan?.rehearsalDate ?? rehearsalDate, plan?.rehearsalTime ?? rehearsalTime)}
+            </p>
+          )}
 
           {plan && (
             <div className="rounded-2xl bg-sand-50 p-4">
@@ -382,6 +461,11 @@ export function WorshipPlannerPanel() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-display text-lg font-semibold text-night-900">Song breakdown</h3>
           {showEditor && (
+            <Button variant="secondary" onClick={() => setTab("library")}>
+              Add from library
+            </Button>
+          )}
+          {showEditor && (
             <Button variant="secondary" onClick={addSong}>
               Add song
             </Button>
@@ -434,13 +518,72 @@ export function WorshipPlannerPanel() {
                         <Button variant="secondary" onClick={() => removeSong(index)}>
                           Remove
                         </Button>
+                        <select
+                          value={song.segment ?? "worship"}
+                          onChange={(event) =>
+                            updateSong(index, {
+                              segment: event.target.value as WorshipSong["segment"],
+                            })
+                          }
+                          className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm md:col-span-2"
+                        >
+                          {WORSHIP_SONG_SEGMENTS.map((segment) => (
+                            <option key={segment.value} value={segment.value}>
+                              {segment.label}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          value={song.leaderUserId ?? ""}
+                          onChange={(event) => {
+                            const leader = team.find((member) => member.userId === event.target.value);
+                            updateSong(index, {
+                              leaderUserId: event.target.value || undefined,
+                              leaderName: leader?.name,
+                            });
+                          }}
+                          className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm md:col-span-2"
+                        >
+                          <option value="">Song leader (optional)</option>
+                          {team.map((member) => (
+                            <option key={member.userId} value={member.userId}>
+                              {member.name}
+                            </option>
+                          ))}
+                        </select>
+                        {song.chartUrl && (
+                          <a
+                            href={song.chartUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs font-semibold text-violet-700 underline md:col-span-4"
+                          >
+                            Chart: {song.chartFileName ?? "Open file"}
+                          </a>
+                        )}
                       </>
                     ) : (
                       <>
                         <div>
-                          <p className="font-semibold text-night-900">{song.title}</p>
+                          <p className="font-semibold text-night-900">
+                            {index + 1}. {song.title}
+                          </p>
+                          <p className="mt-1 text-xs text-night-500">
+                            {worshipSegmentLabel(song.segment ?? "worship")}
+                            {song.leaderName ? ` · Led by ${song.leaderName}` : ""}
+                          </p>
                           {song.notes && (
                             <p className="mt-1 text-xs text-night-500">{song.notes}</p>
+                          )}
+                          {song.chartUrl && (
+                            <a
+                              href={song.chartUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-2 inline-block text-xs font-semibold text-violet-700 underline"
+                            >
+                              Open chord chart
+                            </a>
                           )}
                         </div>
                         <p className="text-sm font-semibold text-night-700">Key {song.key}</p>
@@ -470,6 +613,50 @@ export function WorshipPlannerPanel() {
 
       {showEditor && (
         <>
+          <Card className="mb-6">
+            <h3 className="font-display text-lg font-semibold text-night-900">
+              Rehearsal &amp; calendar
+            </h3>
+            <p className="mt-1 text-sm text-night-600">
+              Team members get a push reminder about 24 hours before rehearsal (if push is enabled).
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className="text-sm text-night-700">
+                <span className="font-semibold">Rehearsal date</span>
+                <input
+                  type="date"
+                  value={rehearsalDate}
+                  onChange={(event) => setRehearsalDate(event.target.value)}
+                  className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                />
+              </label>
+              <label className="text-sm text-night-700">
+                <span className="font-semibold">Rehearsal time</span>
+                <input
+                  type="time"
+                  value={rehearsalTime}
+                  onChange={(event) => setRehearsalTime(event.target.value)}
+                  className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                />
+              </label>
+              <label className="text-sm text-night-700 md:col-span-2">
+                <span className="font-semibold">Link choir calendar event</span>
+                <select
+                  value={calendarEventId}
+                  onChange={(event) => setCalendarEventId(event.target.value)}
+                  className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                >
+                  <option value="">No linked event</option>
+                  {calendarEvents.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.title} · {event.date} {event.time}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </Card>
+
           <Card className="mb-6">
             <h3 className="font-display text-lg font-semibold text-night-900">Team roster</h3>
             <p className="mt-1 text-sm text-night-600">

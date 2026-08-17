@@ -15,3 +15,5 @@ export const updateWorshipMemberStatus = (
 ) => store().updateWorshipMemberStatus(input);
 export const deleteWorshipPlan = (serviceDate: string, serviceTime: string) =>
   store().deleteWorshipPlan(serviceDate, serviceTime);
+export const markRehearsalReminderSent = (serviceDate: string, serviceTime: string) =>
+  store().markRehearsalReminderSent(serviceDate, serviceTime);

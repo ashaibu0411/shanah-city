@@ -35,6 +35,7 @@ export async function GET() {
       devotions: true,
       messages: true,
       announcements: true,
+      worship: true,
     },
   });
 }
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
       messages: typeof body.messages === "boolean" ? body.messages : undefined,
       announcements:
         typeof body.announcements === "boolean" ? body.announcements : undefined,
+      worship: typeof body.worship === "boolean" ? body.worship : undefined,
     });
 
     return NextResponse.json({

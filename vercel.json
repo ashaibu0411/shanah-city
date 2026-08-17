@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/publish-devotions",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/worship-reminders",
+      "schedule": "0 14 * * *"
     }
   ]
 }

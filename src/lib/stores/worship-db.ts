@@ -4,7 +4,11 @@ import type {
   WorshipSong,
   WorshipTeamMember,
 } from "@/lib/worship-types";
-import { normalizeSongs, normalizeTeam } from "@/lib/worship-types";
+import {
+  normalizeSongs,
+  normalizeTeam,
+  serviceTypeForTime,
+} from "@/lib/worship-types";
 
 function parseSongs(value: unknown): WorshipSong[] {
   if (!Array.isArray(value)) return [];
@@ -20,11 +24,16 @@ function mapPlan(record: {
   id: string;
   serviceDate: string;
   serviceTime: string;
+  serviceType: string;
   title: string | null;
   status: string;
   songs: unknown;
   team: unknown;
   rehearsalNotes: string | null;
+  rehearsalDate: string | null;
+  rehearsalTime: string | null;
+  calendarEventId: string | null;
+  reminderSentAt: Date | null;
   publishedAt: Date | null;
   createdBy: string;
   createdByName: string;
@@ -35,11 +44,16 @@ function mapPlan(record: {
     id: record.id,
     serviceDate: record.serviceDate,
     serviceTime: record.serviceTime,
+    serviceType: record.serviceType as WorshipServicePlan["serviceType"],
     title: record.title ?? undefined,
     status: record.status as WorshipServicePlan["status"],
     songs: parseSongs(record.songs),
     team: parseTeam(record.team),
     rehearsalNotes: record.rehearsalNotes ?? undefined,
+    rehearsalDate: record.rehearsalDate ?? undefined,
+    rehearsalTime: record.rehearsalTime ?? undefined,
+    calendarEventId: record.calendarEventId ?? undefined,
+    reminderSentAt: record.reminderSentAt?.toISOString(),
     publishedAt: record.publishedAt?.toISOString(),
     createdBy: record.createdBy,
     createdByName: record.createdByName,
@@ -86,10 +100,14 @@ export async function getWorshipPlan(serviceDate: string, serviceTime: string) {
 export async function saveWorshipPlan(input: {
   serviceDate: string;
   serviceTime: string;
+  serviceType?: WorshipServicePlan["serviceType"];
   title?: string;
   songs: WorshipSong[];
   team: WorshipTeamMember[];
   rehearsalNotes?: string;
+  rehearsalDate?: string;
+  rehearsalTime?: string;
+  calendarEventId?: string;
   status: WorshipServicePlan["status"];
   actor: { id: string; name: string };
 }) {
@@ -105,13 +123,23 @@ export async function saveWorshipPlan(input: {
     },
   });
 
+  const rehearsalChanged =
+    existing &&
+    (existing.rehearsalDate !== (input.rehearsalDate ?? null) ||
+      existing.rehearsalTime !== (input.rehearsalTime ?? null));
+
   const data = {
+    serviceType: input.serviceType ?? serviceTypeForTime(input.serviceTime),
     title: input.title?.trim() || null,
     songs,
     team,
     rehearsalNotes: input.rehearsalNotes?.trim() || null,
+    rehearsalDate: input.rehearsalDate?.trim() || null,
+    rehearsalTime: input.rehearsalTime?.trim() || null,
+    calendarEventId: input.calendarEventId?.trim() || null,
     status: input.status,
     updatedAt: now,
+    reminderSentAt: rehearsalChanged ? null : existing?.reminderSentAt ?? null,
     publishedAt:
       input.status === "published"
         ? existing?.publishedAt ?? now
@@ -197,6 +225,13 @@ export async function updateWorshipMemberStatus(input: {
   });
 
   return mapPlan(record);
+}
+
+export async function markRehearsalReminderSent(serviceDate: string, serviceTime: string) {
+  await prisma.worshipServicePlan.update({
+    where: { serviceDate_serviceTime: { serviceDate, serviceTime } },
+    data: { reminderSentAt: new Date() },
+  });
 }
 
 export async function deleteWorshipPlan(serviceDate: string, serviceTime: string) {

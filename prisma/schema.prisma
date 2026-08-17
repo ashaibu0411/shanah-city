@@ -19,6 +19,7 @@ model User {
   notifyDevotions     Boolean        @default(true)
   notifyMessages      Boolean        @default(true)
   notifyAnnouncements Boolean        @default(true)
+  notifyWorship       Boolean        @default(true)
   createdAt           DateTime
   updatedAt           DateTime
   family              FamilyMember[]
@@ -363,21 +364,47 @@ model FinanceWeeklySheet {
 }
 
 model WorshipServicePlan {
-  id             String    @id
-  serviceDate    String
-  serviceTime    String
-  title          String?
-  status         String    @default("draft")
-  songs          Json
-  team           Json
-  rehearsalNotes String?
-  publishedAt    DateTime?
+  id               String    @id
+  serviceDate      String
+  serviceTime      String
+  serviceType      String    @default("sunday")
+  title            String?
+  status           String    @default("draft")
+  songs            Json
+  team             Json
+  rehearsalNotes   String?
+  rehearsalDate    String?
+  rehearsalTime    String?
+  calendarEventId  String?
+  reminderSentAt   DateTime?
+  publishedAt      DateTime?
+  createdBy        String
+  createdByName    String
+  createdAt        DateTime
+  updatedAt        DateTime
+
+  @@unique([serviceDate, serviceTime])
+  @@index([serviceDate])
+  @@index([status])
+  @@index([calendarEventId])
+}
+
+model WorshipSongLibrary {
+  id             String   @id
+  title          String
+  artist         String?
+  defaultKey     String   @default("C")
+  bpm            Int?
+  ccliNumber     String?
+  chartUrl       String?
+  chartFileName  String?
+  notes          String?
+  tags           Json?
+  useCount       Int      @default(0)
   createdBy      String
   createdByName  String
   createdAt      DateTime
   updatedAt      DateTime
 
-  @@unique([serviceDate, serviceTime])
-  @@index([serviceDate])
-  @@index([status])
+  @@index([title])
 }
