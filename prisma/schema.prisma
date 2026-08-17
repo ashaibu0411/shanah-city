@@ -361,3 +361,23 @@ model FinanceWeeklySheet {
   @@index([status])
   @@index([weekEnding])
 }
+
+model WorshipServicePlan {
+  id             String    @id
+  serviceDate    String
+  serviceTime    String
+  title          String?
+  status         String    @default("draft")
+  songs          Json
+  team           Json
+  rehearsalNotes String?
+  publishedAt    DateTime?
+  createdBy      String
+  createdByName  String
+  createdAt      DateTime
+  updatedAt      DateTime
+
+  @@unique([serviceDate, serviceTime])
+  @@index([serviceDate])
+  @@index([status])
+}

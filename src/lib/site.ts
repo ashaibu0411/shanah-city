@@ -133,6 +133,12 @@ export const writeDevotionsNavItem = {
   icon: "✎",
 } as const;
 
+export const worshipNavItem = {
+  label: "Worship",
+  href: "/worship",
+  icon: "♫",
+} as const;
+
 export const adminNavItem = {
   label: "Admin",
   href: "/admin/approvals",

@@ -42,6 +42,8 @@ export async function GET() {
         canWriteDevotions: false,
         canManageAdmin: false,
         canAccessFinance: false,
+        canAccessWorshipPlanner: false,
+        canManageWorshipPlan: false,
       },
     });
   }

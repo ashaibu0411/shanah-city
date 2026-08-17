@@ -574,6 +574,7 @@ function GroupEventsPanel({
 }
 
 export function CalendarHub() {
+  const { permissions } = useAuth();
   const [tab, setTab] = useState<CalendarTab>("church");
   const [requests, setRequests] = useState<UnavailabilityRequest[]>([]);
   const [canReview, setCanReview] = useState(false);
@@ -630,6 +631,21 @@ export function CalendarHub() {
 
       {tab === "choir" && (
         <>
+          {permissions.canAccessWorshipPlanner && (
+            <Card className="mb-6 bg-violet-50 ring-violet-100">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-display text-lg font-semibold text-night-900">
+                    Worship planner
+                  </h3>
+                  <p className="mt-1 text-sm text-night-600">
+                    Setlists, team readiness, and rehearsal notes for each service.
+                  </p>
+                </div>
+                <Button href="/worship">Open planner</Button>
+              </div>
+            </Card>
+          )}
           <GroupEventsPanel groupId={CALENDAR_GROUP_TABS.choir} groupLabel="Choir" />
           <RequestForm group="choir" onSubmitted={() => loadRequests("choir")} />
           <GroupAdminApproval

@@ -133,7 +133,7 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
   {
     id: "group-choir",
     name: "Shanah Worship (Choir)",
-    description: "Worship team and choir.",
+    description: "Worship team and choir — access the worship planner, setlists, and schedules.",
     category: "choir",
     visibility: "public",
     requiresApproval: false,

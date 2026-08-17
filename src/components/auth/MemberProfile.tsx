@@ -126,6 +126,11 @@ export function MemberProfile() {
             Weekly count
           </Button>
         )}
+        {permissions.canAccessWorshipPlanner && (
+          <Button href="/worship" variant="secondary">
+            Worship planner
+          </Button>
+        )}
         {permissions.canWriteDevotions && (
           <Button href="/admin/devotions" variant="secondary">
             Write devotions

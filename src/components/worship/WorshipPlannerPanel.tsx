@@ -1,0 +1,623 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { Button, Card } from "@/components/ui";
+import {
+  buildTeamReadiness,
+  emptyWorshipSong,
+  nextServiceSundayIso,
+  serviceDateTimeLabel,
+  worshipRoleLabel,
+  WORSHIP_ROLES,
+  WORSHIP_SERVICE_TIMES,
+  type WorshipRole,
+  type WorshipServicePlan,
+  type WorshipSong,
+  type WorshipTeamMember,
+} from "@/lib/worship-types";
+
+type RosterMember = {
+  id: string;
+  name: string;
+};
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+function ProgressDots({ prepared, total }: { prepared: number; total: number }) {
+  const max = Math.max(total, 5);
+  return (
+    <div className="flex gap-1">
+      {Array.from({ length: max }).map((_, index) => (
+        <span
+          key={index}
+          className={`h-2 w-2 rounded-full ${
+            index < prepared ? "bg-emerald-500" : "bg-night-900/10"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function WorshipPlannerPanel() {
+  const { user, permissions } = useAuth();
+  const canManage = permissions.canManageWorshipPlan;
+  const [serviceDate, setServiceDate] = useState(nextServiceSundayIso());
+  const [serviceTime, setServiceTime] = useState<string>("10:00");
+  const [plan, setPlan] = useState<WorshipServicePlan | null>(null);
+  const [songs, setSongs] = useState<WorshipSong[]>([]);
+  const [team, setTeam] = useState<WorshipTeamMember[]>([]);
+  const [title, setTitle] = useState("");
+  const [rehearsalNotes, setRehearsalNotes] = useState("");
+  const [status, setStatus] = useState<WorshipServicePlan["status"]>("draft");
+  const [roster, setRoster] = useState<RosterMember[]>([]);
+  const [upcomingPlans, setUpcomingPlans] = useState<WorshipServicePlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
+  const [hidden, setHidden] = useState(false);
+
+  const readiness = useMemo(() => buildTeamReadiness({ team, songs }), [team, songs]);
+  const myMember = team.find((member) => member.userId === user?.id);
+
+  async function loadPlan() {
+    setLoading(true);
+    const response = await fetch(
+      `/api/worship?serviceDate=${encodeURIComponent(serviceDate)}&serviceTime=${encodeURIComponent(serviceTime)}`,
+    );
+    const data = await response.json();
+    setLoading(false);
+
+    if (!response.ok) {
+      setMessage(data.error ?? "Could not load worship plan.");
+      return;
+    }
+
+    setHidden(Boolean(data.hidden));
+    if (data.plan) {
+      setPlan(data.plan);
+      setSongs(data.plan.songs);
+      setTeam(data.plan.team);
+      setTitle(data.plan.title ?? "");
+      setRehearsalNotes(data.plan.rehearsalNotes ?? "");
+      setStatus(data.plan.status);
+    } else {
+      setPlan(null);
+      setSongs([]);
+      setTeam([]);
+      setTitle("");
+      setRehearsalNotes("");
+      setStatus("draft");
+    }
+    setMessage(null);
+  }
+
+  async function loadUpcoming() {
+    const since = new Date().toISOString().slice(0, 10);
+    const response = await fetch(`/api/worship?since=${since}`);
+    const data = await response.json();
+    if (response.ok) {
+      setUpcomingPlans(data.plans ?? []);
+    }
+  }
+
+  async function loadRoster() {
+    if (!canManage) return;
+    const response = await fetch("/api/worship?roster=1");
+    const data = await response.json();
+    if (response.ok) {
+      setRoster(data.members ?? []);
+    }
+  }
+
+  useEffect(() => {
+    loadPlan();
+    loadUpcoming();
+    loadRoster();
+  }, []);
+
+  useEffect(() => {
+    loadPlan();
+  }, [serviceDate, serviceTime]);
+
+  async function savePlan(action: "save" | "publish" | "unpublish" | "delete") {
+    setMessage(null);
+    const response = await fetch("/api/worship", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action,
+        serviceDate,
+        serviceTime,
+        title,
+        songs,
+        team,
+        rehearsalNotes,
+        status,
+      }),
+    });
+    const data = await response.json();
+
+    if (response.ok) {
+      if (action === "delete") {
+        setMessage("Service plan deleted.");
+      } else if (action === "publish") {
+        setMessage("Plan published for the worship team.");
+      } else if (action === "unpublish") {
+        setMessage("Plan moved back to draft.");
+      } else {
+        setMessage("Plan saved.");
+      }
+      loadPlan();
+      loadUpcoming();
+      return;
+    }
+
+    setMessage(data.error ?? "Could not save worship plan.");
+  }
+
+  async function updateReady(ready: boolean) {
+    const response = await fetch("/api/worship", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "mark_ready",
+        serviceDate,
+        serviceTime,
+        ready,
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setPlan(data.plan);
+      setTeam(data.plan.team);
+      setSongs(data.plan.songs);
+    }
+  }
+
+  async function toggleSongPrepared(songId: string, prepared: boolean) {
+    const response = await fetch("/api/worship", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "toggle_song",
+        serviceDate,
+        serviceTime,
+        songId,
+        prepared,
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setPlan(data.plan);
+      setTeam(data.plan.team);
+      setSongs(data.plan.songs);
+    }
+  }
+
+  function addSong() {
+    setSongs((current) => [...current, emptyWorshipSong()]);
+  }
+
+  function updateSong(index: number, patch: Partial<WorshipSong>) {
+    setSongs((current) =>
+      current.map((song, songIndex) => (songIndex === index ? { ...song, ...patch } : song)),
+    );
+  }
+
+  function removeSong(index: number) {
+    setSongs((current) => current.filter((_, songIndex) => songIndex !== index));
+  }
+
+  function addTeamMember(memberId: string, role: WorshipRole) {
+    const member = roster.find((entry) => entry.id === memberId);
+    if (!member) return;
+    if (team.some((entry) => entry.userId === memberId)) return;
+    setTeam((current) => [
+      ...current,
+      { userId: member.id, name: member.name, role, ready: false },
+    ]);
+  }
+
+  function removeTeamMember(userId: string) {
+    setTeam((current) => current.filter((member) => member.userId !== userId));
+  }
+
+  if (loading) {
+    return <p className="text-sm text-night-500">Loading worship planner…</p>;
+  }
+
+  if (hidden) {
+    return (
+      <Card>
+        <h2 className="font-display text-xl font-semibold text-night-900">Plan not published yet</h2>
+        <p className="mt-2 text-sm text-night-600">
+          Your worship leader has not published this service plan yet. Check back closer to
+          rehearsal or Sunday.
+        </p>
+      </Card>
+    );
+  }
+
+  const showEditor = canManage || !plan;
+
+  return (
+    <>
+      <Card className="mb-6 overflow-hidden p-0 ring-1 ring-night-900/10">
+        <div className="bg-gradient-to-br from-violet-700 to-indigo-900 px-6 py-5 text-white">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-200">
+            Shanah City Worship
+          </p>
+          <h2 className="mt-1 font-display text-2xl font-semibold">Worship planner</h2>
+          <p className="mt-2 text-sm text-violet-100/90">
+            Setlists, team readiness, and rehearsal notes for each service.
+          </p>
+        </div>
+
+        <div className="space-y-4 p-6">
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="text-sm text-night-700">
+              <span className="font-semibold">Service date</span>
+              <input
+                type="date"
+                value={serviceDate}
+                onChange={(event) => setServiceDate(event.target.value)}
+                className="mt-1 block rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              />
+            </label>
+            <div>
+              <p className="text-sm font-semibold text-night-700">Service time</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {WORSHIP_SERVICE_TIMES.map((slot) => (
+                  <button
+                    key={slot.value}
+                    type="button"
+                    onClick={() => setServiceTime(slot.value)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      serviceTime === slot.value
+                        ? "bg-night-900 text-sand-50"
+                        : "bg-sand-100 text-night-700 hover:bg-sand-200"
+                    }`}
+                  >
+                    {slot.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-sm text-night-600">{serviceDateTimeLabel(serviceDate, serviceTime)}</p>
+            {status === "published" ? (
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                Published
+              </span>
+            ) : (
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                Draft
+              </span>
+            )}
+          </div>
+
+          {plan && (
+            <div className="rounded-2xl bg-sand-50 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+                    Team readiness
+                  </p>
+                  <p className="font-display text-2xl font-semibold text-night-900">
+                    {readiness.readyCount} of {readiness.totalCount || "0"} ready
+                  </p>
+                </div>
+                {myMember && (
+                  <Button
+                    variant={myMember.ready ? "secondary" : "primary"}
+                    onClick={() => updateReady(!myMember.ready)}
+                  >
+                    {myMember.ready ? "Mark not ready" : "Mark myself ready"}
+                  </Button>
+                )}
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-night-900/10">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all"
+                  style={{
+                    width:
+                      readiness.totalCount > 0
+                        ? `${(readiness.readyCount / readiness.totalCount) * 100}%`
+                        : "0%",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {plan && readiness.members.length > 0 && (
+        <Card className="mb-6">
+          <h3 className="font-display text-lg font-semibold text-night-900">Member progress</h3>
+          <div className="mt-4 space-y-3">
+            {readiness.members.map((member) => (
+              <div
+                key={member.userId}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-night-900/5 px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 font-semibold text-violet-800">
+                    {initials(member.name)}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-night-900">{member.name}</p>
+                    <p className="text-xs text-night-500">{worshipRoleLabel(member.role)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <ProgressDots prepared={member.songsPrepared} total={member.songsTotal} />
+                  <span className="text-sm font-semibold text-night-700">
+                    {member.songsPrepared}/{member.songsTotal || songs.length}
+                  </span>
+                  {member.ready ? (
+                    <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">
+                      Ready
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-sand-100 px-2 py-1 text-xs font-semibold text-night-600">
+                      Preparing
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      <Card className="mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="font-display text-lg font-semibold text-night-900">Song breakdown</h3>
+          {showEditor && (
+            <Button variant="secondary" onClick={addSong}>
+              Add song
+            </Button>
+          )}
+        </div>
+
+        {songs.length === 0 ? (
+          <p className="mt-4 text-sm text-night-500">
+            {showEditor
+              ? "Add songs for this service setlist."
+              : "No songs listed for this service yet."}
+          </p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {songs.map((song, index) => {
+              const prepared = user ? song.preparedBy.includes(user.id) : false;
+              const teamPreparedCount = song.preparedBy.length;
+              return (
+                <div
+                  key={song.id}
+                  className="rounded-xl border border-night-900/5 p-4"
+                >
+                  <div className="grid gap-3 md:grid-cols-[1fr_100px_100px_auto] md:items-end">
+                    {showEditor ? (
+                      <>
+                        <input
+                          value={song.title}
+                          onChange={(event) => updateSong(index, { title: event.target.value })}
+                          placeholder="Song title"
+                          className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                        />
+                        <input
+                          value={song.key}
+                          onChange={(event) => updateSong(index, { key: event.target.value })}
+                          placeholder="Key"
+                          aria-label="Song key"
+                          className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                        />
+                        <input
+                          value={song.bpm ?? ""}
+                          onChange={(event) =>
+                            updateSong(index, {
+                              bpm: event.target.value ? Number(event.target.value) : undefined,
+                            })
+                          }
+                          placeholder="BPM"
+                          aria-label="Song BPM"
+                          className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                        />
+                        <Button variant="secondary" onClick={() => removeSong(index)}>
+                          Remove
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="font-semibold text-night-900">{song.title}</p>
+                          {song.notes && (
+                            <p className="mt-1 text-xs text-night-500">{song.notes}</p>
+                          )}
+                        </div>
+                        <p className="text-sm font-semibold text-night-700">Key {song.key}</p>
+                        <p className="text-sm text-night-500">{song.bpm ? `${song.bpm} BPM` : "—"}</p>
+                        <div />
+                      </>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <ProgressDots prepared={teamPreparedCount} total={team.length || songs.length} />
+                    {myMember && plan && (
+                      <Button
+                        variant={prepared ? "secondary" : "primary"}
+                        onClick={() => toggleSongPrepared(song.id, !prepared)}
+                      >
+                        {prepared ? "Unmark prepared" : "Mark prepared"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
+      {showEditor && (
+        <>
+          <Card className="mb-6">
+            <h3 className="font-display text-lg font-semibold text-night-900">Team roster</h3>
+            <p className="mt-1 text-sm text-night-600">
+              Pull members from Shanah Worship (Choir) and assign roles for this service.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <select
+                id="roster-add"
+                defaultValue=""
+                className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                onChange={(event) => {
+                  const memberId = event.target.value;
+                  if (!memberId) return;
+                  addTeamMember(memberId, "singer");
+                  event.currentTarget.value = "";
+                }}
+              >
+                <option value="">Add team member…</option>
+                {roster
+                  .filter((member) => !team.some((entry) => entry.userId === member.id))
+                  .map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {team.length === 0 ? (
+                <p className="text-sm text-night-500">No one assigned yet.</p>
+              ) : (
+                team.map((member) => (
+                  <div
+                    key={member.userId}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-sand-50 px-4 py-3"
+                  >
+                    <div>
+                      <p className="font-semibold text-night-900">{member.name}</p>
+                      <select
+                        value={member.role}
+                        onChange={(event) =>
+                          setTeam((current) =>
+                            current.map((entry) =>
+                              entry.userId === member.userId
+                                ? { ...entry, role: event.target.value as WorshipRole }
+                                : entry,
+                            ),
+                          )
+                        }
+                        className="mt-1 rounded-lg border border-night-900/10 bg-white px-2 py-1 text-xs"
+                      >
+                        {WORSHIP_ROLES.map((role) => (
+                          <option key={role.value} value={role.value}>
+                            {role.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <Button variant="secondary" onClick={() => removeTeamMember(member.userId)}>
+                      Remove
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+
+          <Card className="mb-6">
+            <label className="block text-sm font-semibold text-night-700">
+              Rehearsal notes
+              <textarea
+                value={rehearsalNotes}
+                onChange={(event) => setRehearsalNotes(event.target.value)}
+                rows={3}
+                placeholder="Run order, transitions, who leads which song…"
+                className="mt-2 w-full rounded-xl border border-night-900/10 bg-sand-50 p-3 text-sm outline-none ring-night-900/5 focus:ring-2"
+              />
+            </label>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button onClick={() => savePlan("save")}>Save draft</Button>
+              <Button variant="secondary" onClick={() => savePlan("publish")}>
+                Publish for team
+              </Button>
+              {plan && status === "published" && (
+                <Button variant="secondary" onClick={() => savePlan("unpublish")}>
+                  Unpublish
+                </Button>
+              )}
+              {plan && (
+                <Button variant="secondary" onClick={() => savePlan("delete")}>
+                  Delete plan
+                </Button>
+              )}
+            </div>
+          </Card>
+        </>
+      )}
+
+      {!showEditor && plan?.rehearsalNotes && (
+        <Card className="mb-6">
+          <h3 className="font-display text-lg font-semibold text-night-900">Rehearsal notes</h3>
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-night-700">
+            {plan.rehearsalNotes}
+          </p>
+        </Card>
+      )}
+
+      {upcomingPlans.length > 0 && (
+        <Card className="mb-6">
+          <h3 className="font-display text-lg font-semibold text-night-900">Upcoming services</h3>
+          <ul className="mt-4 space-y-2 text-sm">
+            {upcomingPlans.slice(0, 8).map((entry) => (
+              <li key={entry.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setServiceDate(entry.serviceDate);
+                    setServiceTime(entry.serviceTime);
+                  }}
+                  className="font-medium text-night-900 hover:underline"
+                >
+                  {serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)}
+                </button>
+                <span className="ml-2 capitalize text-night-500">{entry.status}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      <p className="text-sm text-night-500">
+        Need access? Join{" "}
+        <Link href="/groups" className="font-semibold text-night-800 underline">
+          Shanah Worship (Choir)
+        </Link>{" "}
+        under Groups. Worship leaders are set by group admins at{" "}
+        <Link href="/calendar" className="font-semibold text-night-800 underline">
+          Calendar → Choir
+        </Link>
+        .
+      </p>
+
+      {message && (
+        <p className="mt-4 rounded-xl bg-sand-100 px-4 py-3 text-sm text-night-700">{message}</p>
+      )}
+    </>
+  );
+}

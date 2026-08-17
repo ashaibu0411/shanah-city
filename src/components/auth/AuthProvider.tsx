@@ -16,6 +16,8 @@ type AuthPermissions = {
   canWriteDevotions: boolean;
   canManageAdmin: boolean;
   canAccessFinance: boolean;
+  canAccessWorshipPlanner: boolean;
+  canManageWorshipPlan: boolean;
 };
 
 type AuthContextValue = {
@@ -33,6 +35,8 @@ const defaultPermissions: AuthPermissions = {
   canWriteDevotions: false,
   canManageAdmin: false,
   canAccessFinance: false,
+  canAccessWorshipPlanner: false,
+  canManageWorshipPlan: false,
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
