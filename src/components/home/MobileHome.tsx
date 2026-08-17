@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { BrandLogo } from "@/components/app/BrandLogo";
+import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { useApp } from "@/components/app/AppProvider";
 import { liveStream, site } from "@/lib/site";
+import { getYouTubeThumbnail, streamPreviews } from "@/lib/streams";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
 
@@ -57,6 +59,11 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
     liveStream.youtube.isLive ||
     liveStream.facebook.isLive;
   const featuredPost = posts[0];
+  const spotlightPreviews = streamPreviews.filter((preview) =>
+    ["youtube", "facebook-city", "instagram-city"].includes(preview.id),
+  );
+  const liveVideoId = liveStream.youtube.videoId?.trim();
+  const liveThumbnail = liveVideoId ? getYouTubeThumbnail(liveVideoId) : null;
 
   return (
     <div className="mobile-home space-y-5 pb-8">
@@ -66,8 +73,10 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
 
         <div className="relative">
           <div className="flex items-center gap-3">
-            <BrandLogo size="sm" priority className="border-white/80 shadow-lg shadow-black/20" />
-            <div>
+            <div className="mobile-home-logo-reveal mobile-home-logo-glow rounded-md">
+              <BrandLogo size="sm" priority className="border-white/80 shadow-lg shadow-black/20" />
+            </div>
+            <div className="mobile-home-fade-up mobile-home-fade-up-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-amber-200/95">
                 {campus.name}
               </p>
@@ -75,13 +84,15 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
             </div>
           </div>
 
-          <h1 className="mobile-home-headline mt-5 font-display text-[1.65rem] font-bold leading-[1.15] tracking-tight text-white drop-shadow-sm">
+          <h1 className="mobile-home-headline mobile-home-fade-up mobile-home-fade-up-2 mt-5 font-display text-[1.65rem] font-bold leading-[1.15] tracking-tight text-white drop-shadow-sm">
             {site.tagline}
           </h1>
 
-          <p className="mt-3 text-sm leading-relaxed text-white/75">{site.welcome}</p>
+          <p className="mobile-home-fade-up mobile-home-fade-up-3 mt-3 text-sm leading-relaxed text-white/75">
+            {site.welcome}
+          </p>
 
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-amber-100 backdrop-blur-md">
+          <div className="mobile-home-fade-up mobile-home-fade-up-4 mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-amber-100 backdrop-blur-md">
             <span className="mobile-home-pulse h-2 w-2 rounded-full bg-amber-300" />
             {site.serviceTimes[1]?.day ?? site.serviceTimes[0].day} ·{" "}
             {site.serviceTimes[1]?.time.split(" – ")[0] ?? site.serviceTimes[0].time.split(" – ")[0]}
@@ -93,12 +104,39 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
         href="/live"
         className="mobile-home-spotlight group relative block overflow-hidden rounded-[1.75rem] shadow-2xl ring-1 ring-white/20"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-rose-600 via-fuchsia-600 to-violet-800" />
-        <div className="mobile-home-spotlight-mesh pointer-events-none absolute inset-0 opacity-90" aria-hidden />
-        <div className="pointer-events-none absolute -left-8 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-yellow-300/40 blur-3xl" />
-        <div className="pointer-events-none absolute -right-6 bottom-0 h-48 w-48 rounded-full bg-cyan-400/35 blur-3xl" />
+        <div className="absolute inset-0">
+          {anyLive && liveThumbnail ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={liveThumbnail}
+              alt=""
+              className="h-full w-full scale-105 object-cover transition duration-700 group-hover:scale-110"
+            />
+          ) : (
+            <div className="grid h-full grid-cols-3">
+              {spotlightPreviews.map((preview) => (
+                <div key={preview.id} className="relative h-full min-h-[12rem] overflow-hidden">
+                  <StreamPreviewImage
+                    preview={preview}
+                    alt=""
+                    className="h-full w-full scale-110 object-cover transition duration-700 group-hover:scale-[1.15]"
+                  />
+                  <div className="absolute inset-0 bg-night-950/25" />
+                  <span className="absolute bottom-2 left-2 rounded-md bg-black/45 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">
+                    {preview.platform}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-        <div className="relative flex min-h-[11.5rem] flex-col justify-between p-5">
+        <div className="absolute inset-0 bg-gradient-to-t from-violet-950 via-fuchsia-900/88 to-rose-600/55" />
+        <div className="mobile-home-spotlight-mesh pointer-events-none absolute inset-0 opacity-80" aria-hidden />
+        <div className="pointer-events-none absolute -left-8 top-1/3 h-40 w-40 rounded-full bg-yellow-300/30 blur-3xl" />
+        <div className="pointer-events-none absolute -right-6 bottom-0 h-48 w-48 rounded-full bg-cyan-400/30 blur-3xl" />
+
+        <div className="relative flex min-h-[14rem] flex-col justify-between p-5">
           <div className="flex flex-wrap items-center gap-2">
             {anyLive ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-red-600 shadow-lg">

@@ -105,6 +105,34 @@
     background-clip: text;
     color: transparent;
   }
+
+  .mobile-home-logo-reveal {
+    animation: mobile-home-logo-reveal 1.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mobile-home-logo-glow {
+    animation: mobile-home-logo-glow 2.4s ease-out 0.35s both;
+  }
+
+  .mobile-home-fade-up {
+    animation: mobile-home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mobile-home-fade-up-1 {
+    animation-delay: 0.12s;
+  }
+
+  .mobile-home-fade-up-2 {
+    animation-delay: 0.22s;
+  }
+
+  .mobile-home-fade-up-3 {
+    animation-delay: 0.32s;
+  }
+
+  .mobile-home-fade-up-4 {
+    animation-delay: 0.42s;
+  }
 }
 
 @keyframes mobile-home-aurora {
@@ -139,11 +167,53 @@
   }
 }
 
+@keyframes mobile-home-logo-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) rotate(-10deg);
+    filter: blur(10px);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.1) rotate(3deg);
+    filter: blur(0);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes mobile-home-logo-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(251, 191, 36, 0);
+  }
+  100% {
+    box-shadow: 0 0 24px rgba(167, 139, 250, 0.35);
+  }
+}
+
+@keyframes mobile-home-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mobile-home-aurora-bg,
   .mobile-home-shimmer,
   .mobile-home-spotlight-mesh,
-  .mobile-home-pulse {
+  .mobile-home-pulse,
+  .mobile-home-logo-reveal,
+  .mobile-home-logo-glow,
+  .mobile-home-fade-up {
     animation: none;
   }
 
