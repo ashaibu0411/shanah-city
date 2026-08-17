@@ -8,12 +8,16 @@ import {
 import {
   WORSHIP_SERVICE_SCHEDULE,
   WORSHIP_SERVICE_TIMES,
+  clonePlanContent,
+  serviceDateTimeLabel,
+  suggestedRehearsalDate,
   type WorshipServiceTime,
   type WorshipSong,
   type WorshipTeamMember,
 } from "@/lib/worship-types";
 import {
   deleteWorshipPlan,
+  findPreviousWorshipPlan,
   getWorshipPlan,
   listWorshipPlans,
   saveWorshipPlan,
@@ -177,6 +181,35 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Service plan not found." }, { status: 404 });
       }
       return NextResponse.json({ ok: true });
+    }
+
+    if (action === "copy_from_previous") {
+      const source = await findPreviousWorshipPlan(serviceDate, serviceTime);
+      if (!source) {
+        return NextResponse.json(
+          { error: "No previous service plan found for this time slot." },
+          { status: 404 },
+        );
+      }
+
+      const cloned = clonePlanContent(source);
+      const plan = await saveWorshipPlan({
+        serviceDate,
+        serviceTime,
+        title: cloned.title,
+        songs: cloned.songs,
+        team: cloned.team,
+        rehearsalNotes: cloned.rehearsalNotes,
+        rehearsalDate: suggestedRehearsalDate(serviceDate),
+        rehearsalTime: source.rehearsalTime ?? "19:00",
+        status: "draft",
+        actor: { id: auth.user!.id, name: auth.user!.name },
+      });
+
+      return NextResponse.json({
+        plan,
+        copiedFrom: serviceDateTimeLabel(source.serviceDate, source.serviceTime),
+      });
     }
 
     let planStatus: "draft" | "published" = "draft";

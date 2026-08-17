@@ -7,6 +7,7 @@ import type {
 import {
   normalizeSongs,
   normalizeTeam,
+  previousSundayIso,
   serviceTypeForTime,
 } from "@/lib/worship-types";
 
@@ -94,6 +95,25 @@ export async function getWorshipPlan(serviceDate: string, serviceTime: string) {
   const record = await prisma.worshipServicePlan.findUnique({
     where: { serviceDate_serviceTime: { serviceDate, serviceTime } },
   });
+  return record ? mapPlan(record) : null;
+}
+
+export async function findPreviousWorshipPlan(serviceDate: string, serviceTime: string) {
+  const prevSundayIso = previousSundayIso(serviceDate);
+
+  const exact = await prisma.worshipServicePlan.findUnique({
+    where: { serviceDate_serviceTime: { serviceDate: prevSundayIso, serviceTime } },
+  });
+  if (exact) return mapPlan(exact);
+
+  const record = await prisma.worshipServicePlan.findFirst({
+    where: {
+      serviceTime,
+      serviceDate: { lt: serviceDate },
+    },
+    orderBy: [{ serviceDate: "desc" }, { serviceTime: "asc" }],
+  });
+
   return record ? mapPlan(record) : null;
 }
 

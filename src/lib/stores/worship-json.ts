@@ -5,7 +5,7 @@ import type {
   WorshipSong,
   WorshipTeamMember,
 } from "@/lib/worship-types";
-import { normalizeSongs, normalizeTeam, serviceTypeForTime } from "@/lib/worship-types";
+import { normalizeSongs, normalizeTeam, previousSundayIso, serviceTypeForTime } from "@/lib/worship-types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const WORSHIP_FILE = path.join(DATA_DIR, "worship-service-plans.json");
@@ -70,6 +70,21 @@ export async function getWorshipPlan(serviceDate: string, serviceTime: string) {
     (entry) => entry.serviceDate === serviceDate && entry.serviceTime === serviceTime,
   );
   return plan ? withNormalized(plan) : null;
+}
+
+export async function findPreviousWorshipPlan(serviceDate: string, serviceTime: string) {
+  const plans = sortPlans(await readPlans());
+  const prevSundayIso = previousSundayIso(serviceDate);
+
+  const exact = plans.find(
+    (plan) => plan.serviceDate === prevSundayIso && plan.serviceTime === serviceTime,
+  );
+  if (exact) return withNormalized(exact);
+
+  const fallback = plans.find(
+    (plan) => plan.serviceTime === serviceTime && plan.serviceDate < serviceDate,
+  );
+  return fallback ? withNormalized(fallback) : null;
 }
 
 export async function saveWorshipPlan(input: {

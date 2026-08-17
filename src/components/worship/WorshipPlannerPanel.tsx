@@ -80,6 +80,7 @@ export function WorshipPlannerPanel({
   const [roster, setRoster] = useState<RosterMember[]>([]);
   const [upcomingPlans, setUpcomingPlans] = useState<WorshipServicePlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copying, setCopying] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [hidden, setHidden] = useState(false);
 
@@ -199,6 +200,42 @@ export function WorshipPlannerPanel({
     }
 
     setMessage(data.error ?? "Could not save worship plan.");
+  }
+
+  async function copyFromLastSunday() {
+    if (songs.length > 0 || team.length > 0) {
+      const confirmed = window.confirm(
+        "Replace the current draft with songs and team from the previous service?",
+      );
+      if (!confirmed) return;
+    }
+
+    setCopying(true);
+    setMessage(null);
+    const response = await fetch("/api/worship", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "copy_from_previous",
+        serviceDate,
+        serviceTime,
+      }),
+    });
+    const data = await response.json();
+    setCopying(false);
+
+    if (response.ok) {
+      setMessage(
+        data.copiedFrom
+          ? `Copied setlist and team from ${data.copiedFrom}. Review and save when ready.`
+          : "Copied from previous service.",
+      );
+      loadPlan();
+      loadUpcoming();
+      return;
+    }
+
+    setMessage(data.error ?? "Could not copy from previous service.");
   }
 
   async function updateReady(ready: boolean) {
@@ -364,6 +401,11 @@ export function WorshipPlannerPanel({
               </div>
             </div>
             <p className="text-sm text-night-600">{serviceDateTimeLabel(serviceDate, serviceTime)}</p>
+            {canManage && (
+              <Button variant="secondary" onClick={copyFromLastSunday} disabled={copying}>
+                {copying ? "Copying…" : "Copy from last Sunday"}
+              </Button>
+            )}
             {status === "published" ? (
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
                 Published

@@ -212,6 +212,30 @@ export function nextServiceSundayIso(reference = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+export function previousSundayIso(serviceDate: string) {
+  const date = new Date(`${serviceDate}T12:00:00`);
+  date.setDate(date.getDate() - 7);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+/** Clone setlist + roster for a new service; resets readiness and song prep tracking. */
+export function clonePlanContent(
+  source: Pick<WorshipServicePlan, "songs" | "team" | "title" | "rehearsalNotes">,
+) {
+  return {
+    title: source.title?.trim() || undefined,
+    songs: normalizeSongs(
+      source.songs.map((song) => ({
+        ...song,
+        id: createSongId(),
+        preparedBy: [],
+      })),
+    ),
+    team: normalizeTeam(source.team.map((member) => ({ ...member, ready: false }))),
+    rehearsalNotes: source.rehearsalNotes?.trim() || undefined,
+  };
+}
+
 export function suggestedRehearsalDate(serviceDate: string) {
   const date = new Date(`${serviceDate}T12:00:00`);
   date.setDate(date.getDate() - 1);
