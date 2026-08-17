@@ -24,6 +24,7 @@ import {
   updateWorshipMemberStatus,
 } from "@/lib/worship-server";
 import { publishWorshipPlanNotifications } from "@/lib/worship-notify-server";
+import { trackLibrarySongUsage } from "@/lib/worship-library-usage-server";
 import { getEvents } from "@/lib/event-server";
 import { getGroupDetail } from "@/lib/group-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
@@ -212,6 +213,70 @@ export async function POST(request: Request) {
       });
     }
 
+    if (action === "copy_to_time") {
+      const targetServiceTime = String(body.targetServiceTime ?? "").trim();
+      if (!targetServiceTime) {
+        return NextResponse.json({ error: "Target service time is required." }, { status: 400 });
+      }
+      if (targetServiceTime === serviceTime) {
+        return NextResponse.json(
+          { error: "Choose a different service time." },
+          { status: 400 },
+        );
+      }
+
+      const existingTarget = await getWorshipPlan(serviceDate, targetServiceTime);
+      if (
+        existingTarget &&
+        (existingTarget.songs.length > 0 || existingTarget.team.length > 0) &&
+        !body.overwrite
+      ) {
+        return NextResponse.json(
+          {
+            error: `${serviceDateTimeLabel(serviceDate, targetServiceTime)} already has a plan.`,
+            needsOverwrite: true,
+          },
+          { status: 409 },
+        );
+      }
+
+      const savedSource = await getWorshipPlan(serviceDate, serviceTime);
+      const sourceContent = savedSource ?? {
+        songs: parseSongs(body),
+        team: parseTeam(body),
+        title: body.title ? String(body.title).trim() : undefined,
+        rehearsalNotes: body.rehearsalNotes ? String(body.rehearsalNotes).trim() : undefined,
+        rehearsalTime: body.rehearsalTime ? String(body.rehearsalTime).trim() : undefined,
+      };
+
+      if (sourceContent.songs.length === 0 && sourceContent.team.length === 0) {
+        return NextResponse.json(
+          { error: "Add songs or team members before copying to another service." },
+          { status: 400 },
+        );
+      }
+
+      const cloned = clonePlanContent(sourceContent);
+      const plan = await saveWorshipPlan({
+        serviceDate,
+        serviceTime: targetServiceTime,
+        title: cloned.title,
+        songs: cloned.songs,
+        team: cloned.team,
+        rehearsalNotes: cloned.rehearsalNotes,
+        rehearsalDate: suggestedRehearsalDate(serviceDate),
+        rehearsalTime: savedSource?.rehearsalTime ?? sourceContent.rehearsalTime ?? "19:00",
+        status: "draft",
+        actor: { id: auth.user!.id, name: auth.user!.name },
+      });
+
+      return NextResponse.json({
+        plan,
+        copiedFrom: serviceDateTimeLabel(serviceDate, serviceTime),
+        copiedTo: serviceDateTimeLabel(serviceDate, targetServiceTime),
+      });
+    }
+
     let planStatus: "draft" | "published" = "draft";
     if (action === "publish") {
       planStatus = "published";
@@ -237,6 +302,7 @@ export async function POST(request: Request) {
 
     if (action === "publish") {
       await publishWorshipPlanNotifications(plan);
+      await trackLibrarySongUsage(plan.songs);
     }
 
     return NextResponse.json({ plan });

@@ -61,3 +61,24 @@
     text-wrap: balance;
   }
 }
+
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+
+  header,
+  aside,
+  nav,
+  .app-main {
+    padding: 0 !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .worship-run-sheet {
+    max-width: none !important;
+  }
+}

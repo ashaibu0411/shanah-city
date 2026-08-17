@@ -81,6 +81,7 @@ export function WorshipPlannerPanel({
   const [upcomingPlans, setUpcomingPlans] = useState<WorshipServicePlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState(false);
+  const [copyTargetTime, setCopyTargetTime] = useState("11:30");
   const [message, setMessage] = useState<string | null>(null);
   const [hidden, setHidden] = useState(false);
 
@@ -163,6 +164,13 @@ export function WorshipPlannerPanel({
     loadPlan();
   }, [serviceDate, serviceTime]);
 
+  useEffect(() => {
+    const otherSlot = WORSHIP_SERVICE_TIMES.find((slot) => slot.value !== serviceTime);
+    if (otherSlot) {
+      setCopyTargetTime(otherSlot.value);
+    }
+  }, [serviceTime]);
+
   async function savePlan(action: "save" | "publish" | "unpublish" | "delete") {
     setMessage(null);
     const response = await fetch("/api/worship", {
@@ -238,6 +246,58 @@ export function WorshipPlannerPanel({
     setMessage(data.error ?? "Could not copy from previous service.");
   }
 
+  async function copyToServiceTime(overwrite = false) {
+    if (songs.length === 0 && team.length === 0) {
+      setMessage("Add songs or team members before copying to another service.");
+      return;
+    }
+
+    setCopying(true);
+    setMessage(null);
+    const response = await fetch("/api/worship", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "copy_to_time",
+        serviceDate,
+        serviceTime,
+        targetServiceTime: copyTargetTime,
+        overwrite,
+        title,
+        songs,
+        team,
+        rehearsalNotes,
+        rehearsalTime,
+      }),
+    });
+    const data = await response.json();
+
+    if (response.status === 409 && data.needsOverwrite) {
+      setCopying(false);
+      const confirmed = window.confirm(
+        `${data.error} Replace it with this setlist and team?`,
+      );
+      if (confirmed) {
+        await copyToServiceTime(true);
+      }
+      return;
+    }
+
+    setCopying(false);
+
+    if (response.ok) {
+      setMessage(
+        data.copiedTo
+          ? `Copied to ${data.copiedTo}. Open that service time to review.`
+          : "Copied to another service time.",
+      );
+      loadUpcoming();
+      return;
+    }
+
+    setMessage(data.error ?? "Could not copy to another service time.");
+  }
+
   async function updateReady(ready: boolean) {
     const response = await fetch("/api/worship", {
       method: "POST",
@@ -289,6 +349,16 @@ export function WorshipPlannerPanel({
 
   function removeSong(index: number) {
     setSongs((current) => current.filter((_, songIndex) => songIndex !== index));
+  }
+
+  function moveSong(index: number, direction: -1 | 1) {
+    setSongs((current) => {
+      const target = index + direction;
+      if (target < 0 || target >= current.length) return current;
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next.map((song, songIndex) => ({ ...song, order: songIndex + 1 }));
+    });
   }
 
   function addTeamMember(memberId: string, role: WorshipRole) {
@@ -405,6 +475,35 @@ export function WorshipPlannerPanel({
               <Button variant="secondary" onClick={copyFromLastSunday} disabled={copying}>
                 {copying ? "Copying…" : "Copy from last Sunday"}
               </Button>
+            )}
+            {canManage && WORSHIP_SERVICE_TIMES.some((slot) => slot.value !== serviceTime) && (
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={copyTargetTime}
+                  onChange={(event) => setCopyTargetTime(event.target.value)}
+                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 text-sm"
+                  aria-label="Target service time"
+                >
+                  {WORSHIP_SERVICE_TIMES.filter((slot) => slot.value !== serviceTime).map((slot) => (
+                    <option key={slot.value} value={slot.value}>
+                      {slot.label}
+                    </option>
+                  ))}
+                </select>
+                <Button variant="secondary" onClick={() => copyToServiceTime()} disabled={copying}>
+                  Copy to time
+                </Button>
+              </div>
+            )}
+            {plan && (
+              <Link
+                href={`/worship/run-sheet?date=${encodeURIComponent(serviceDate)}&time=${encodeURIComponent(serviceTime)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full bg-violet-100 px-4 py-2 text-sm font-semibold text-violet-900 hover:bg-violet-200"
+              >
+                Run sheet
+              </Link>
             )}
             {status === "published" ? (
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
@@ -557,9 +656,25 @@ export function WorshipPlannerPanel({
                           aria-label="Song BPM"
                           className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
                         />
-                        <Button variant="secondary" onClick={() => removeSong(index)}>
-                          Remove
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="secondary"
+                            onClick={() => moveSong(index, -1)}
+                            disabled={index === 0}
+                          >
+                            Up
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            onClick={() => moveSong(index, 1)}
+                            disabled={index === songs.length - 1}
+                          >
+                            Down
+                          </Button>
+                          <Button variant="secondary" onClick={() => removeSong(index)}>
+                            Remove
+                          </Button>
+                        </div>
                         <select
                           value={song.segment ?? "worship"}
                           onChange={(event) =>
