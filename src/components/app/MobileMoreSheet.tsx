@@ -59,28 +59,33 @@ export function MobileMoreSheet() {
           </div>
 
           <div className="mb-4 rounded-2xl bg-sand-50 p-3">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-night-900">Larger text</p>
-                <p className="text-sm text-night-600">Easier reading across the app</p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={textScale === "large"}
-                onClick={() =>
-                  setTextScale(textScale === "large" ? "comfortable" : "large")
-                }
-                className={`relative h-8 w-14 shrink-0 rounded-full transition ${
-                  textScale === "large" ? "bg-night-900" : "bg-night-300"
-                }`}
-              >
-                <span
-                  className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition ${
-                    textScale === "large" ? "left-7" : "left-1"
+            <p className="text-sm font-semibold text-night-900">Text size</p>
+            <p className="mt-0.5 text-sm text-night-600">Applies across the mobile app</p>
+            <div
+              className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-white p-1 ring-1 ring-night-900/10"
+              role="group"
+              aria-label="Text size"
+            >
+              {(
+                [
+                  { id: "comfortable", label: "Standard" },
+                  { id: "large", label: "Large" },
+                  { id: "extraLarge", label: "Extra large" },
+                ] as const
+              ).map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setTextScale(option.id)}
+                  className={`rounded-lg px-2 py-2.5 text-xs font-bold transition ${
+                    textScale === option.id
+                      ? "bg-night-900 text-sand-50 shadow-sm"
+                      : "text-night-600 hover:bg-sand-100"
                   }`}
-                />
-              </button>
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
 

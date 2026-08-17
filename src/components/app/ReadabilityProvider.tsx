@@ -9,7 +9,9 @@ import {
   type ReactNode,
 } from "react";
 
-export type TextScale = "comfortable" | "large";
+export type TextScale = "comfortable" | "large" | "extraLarge";
+
+const TEXT_SCALES: TextScale[] = ["comfortable", "large", "extraLarge"];
 
 type ReadabilityContextValue = {
   textScale: TextScale;
@@ -26,8 +28,8 @@ export function ReadabilityProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "large" || stored === "comfortable") {
-      setTextScaleState(stored);
+    if (stored && TEXT_SCALES.includes(stored as TextScale)) {
+      setTextScaleState(stored as TextScale);
     }
     setReady(true);
   }, []);

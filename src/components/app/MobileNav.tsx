@@ -32,7 +32,7 @@ export function MobileNav() {
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 rounded-2xl px-1 py-2 text-[10px] font-semibold transition ${
+                className={`mobile-nav-link flex flex-col items-center gap-0.5 rounded-2xl px-1 py-2 text-[10px] font-semibold transition ${
                   active ? "text-night-900" : "text-night-400"
                 }`}
               >
@@ -43,7 +43,7 @@ export function MobileNav() {
                 >
                   {iconName ? <MobileTabIcon name={iconName} /> : item.icon}
                 </span>
-                {item.label}
+                <span className="mobile-nav-label">{item.label}</span>
               </Link>
             </li>
           );
@@ -53,7 +53,7 @@ export function MobileNav() {
           <button
             type="button"
             onClick={() => setMoreMenuOpen(true)}
-            className={`flex w-full flex-col items-center gap-0.5 rounded-2xl px-1 py-2 text-[10px] font-semibold transition ${
+            className={`mobile-nav-link flex w-full flex-col items-center gap-0.5 rounded-2xl px-1 py-2 text-[10px] font-semibold transition ${
               moreActive ? "text-night-900" : "text-night-400"
             }`}
           >
@@ -64,7 +64,7 @@ export function MobileNav() {
             >
               <MobileTabIcon name="more" />
             </span>
-            More
+            <span className="mobile-nav-label">More</span>
           </button>
         </li>
       </ul>
