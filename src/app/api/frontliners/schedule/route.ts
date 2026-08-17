@@ -35,7 +35,8 @@ async function requireFrontLinersAccess() {
     return {
       error: NextResponse.json(
         {
-          error: "Join FrontLiners under Groups to access the usher schedule.",
+          error:
+            "Join FrontLiners under Groups for Sunday service team schedules (ushers & greeters).",
         },
         { status: 403 },
       ),

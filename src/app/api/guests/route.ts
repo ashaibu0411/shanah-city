@@ -25,7 +25,7 @@ export async function GET() {
   const user = await getUserFromSession(token);
 
   if (!user || !(await canManageGuestSubmissions(user))) {
-    return NextResponse.json({ error: "FrontLiners leader access required." }, { status: 403 });
+    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
   }
 
   const guests = await listGuestSubmissions();
@@ -77,7 +77,7 @@ export async function PATCH(request: Request) {
   const user = await getUserFromSession(token);
 
   if (!user || !(await canManageGuestSubmissions(user))) {
-    return NextResponse.json({ error: "FrontLiners leader access required." }, { status: 403 });
+    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
   }
 
   const body = await request.json();

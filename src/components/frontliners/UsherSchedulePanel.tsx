@@ -359,11 +359,15 @@ export function UsherSchedulePanel({
       )}
 
       <p className="text-sm text-night-500">
-        Need access? Join{" "}
-        <Link href="/groups" className="font-semibold text-night-800 underline">
-          FrontLiners
-        </Link>{" "}
-        under Groups. Leaders are set by group admins.
+        FrontLiners covers usher &amp; greeter schedules. Choir plans worship at{" "}
+        <Link href="/worship" className="font-semibold text-night-800 underline">
+          Worship
+        </Link>
+        ; media uploads at{" "}
+        <Link href="/photos/upload" className="font-semibold text-night-800 underline">
+          Photos
+        </Link>
+        .
       </p>
 
       {message && (

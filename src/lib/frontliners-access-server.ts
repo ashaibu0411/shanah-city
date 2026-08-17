@@ -48,7 +48,7 @@ export async function canManageFrontLiners(user: PublicMember | null) {
 }
 
 export async function canManageGuestSubmissions(user: PublicMember | null) {
-  return canManageFrontLiners(user);
+  return canManageAsAdmin(user);
 }
 
 export async function getFrontLinersPermissions(user: PublicMember | null) {

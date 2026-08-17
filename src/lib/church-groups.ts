@@ -73,7 +73,7 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
   {
     id: "group-frontliners",
     name: "FrontLiners",
-    description: "Welcome, ushering, and first-impressions team.",
+    description: "Sunday service teams — ushers, greeters, and door volunteers.",
     category: "ministry",
     visibility: "public",
     requiresApproval: false,

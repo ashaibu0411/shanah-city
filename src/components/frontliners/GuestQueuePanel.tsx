@@ -28,10 +28,10 @@ export function GuestQueuePanel() {
   }
 
   useEffect(() => {
-    if (permissions.canManageFrontLiners) {
+    if (permissions.canManageAdmin) {
       loadGuests();
     }
-  }, [permissions.canManageFrontLiners]);
+  }, [permissions.canManageAdmin]);
 
   async function updateStatus(id: string, status: GuestSubmissionStatus) {
     const response = await fetch("/api/guests", {
@@ -46,12 +46,10 @@ export function GuestQueuePanel() {
     }
   }
 
-  if (!permissions.canManageFrontLiners) {
+  if (!permissions.canManageAdmin) {
     return (
       <Card>
-        <p className="text-sm text-night-600">
-          Guest follow-up is managed by FrontLiners group leaders.
-        </p>
+        <p className="text-sm text-night-600">Guest follow-up is managed by the Admin Group.</p>
       </Card>
     );
   }
@@ -64,7 +62,7 @@ export function GuestQueuePanel() {
       <Card className="overflow-hidden p-0 ring-1 ring-night-900/10">
         <div className="bg-gradient-to-br from-emerald-700 to-teal-900 px-6 py-5 text-white">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">
-            Guest follow-up
+            Admin · Guest follow-up
           </p>
           <h2 className="mt-1 font-display text-2xl font-semibold">Guest queue</h2>
           <p className="mt-2 text-sm text-emerald-100/90">

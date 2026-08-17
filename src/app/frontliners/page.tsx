@@ -27,8 +27,8 @@ export default async function FrontLinersPage({
     <>
       <PageHeader
         eyebrow="FrontLiners"
-        title="Welcome & ushering"
-        description="Schedule ushers for each service and follow up with guests."
+        title="Sunday service teams"
+        description="Usher and greeter schedules for each service. Choir uses Worship; media uses Photos & Live."
       />
       <FrontLinersHub initialDate={params.date} initialTime={params.time} />
     </>
