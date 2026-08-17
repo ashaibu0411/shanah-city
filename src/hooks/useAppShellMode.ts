@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isNativeAppPlatform } from "@/lib/native-app";
 
 const MOBILE_QUERY = "(max-width: 1023px)";
 const STANDALONE_QUERY = "(display-mode: standalone)";
@@ -13,9 +14,15 @@ export function useAppShellMode() {
     const standaloneMedia = window.matchMedia(STANDALONE_QUERY);
 
     function update() {
-      const mobile = mobileMedia.matches || standaloneMedia.matches;
+      const native = isNativeAppPlatform();
+      const mobile = native || mobileMedia.matches || standaloneMedia.matches;
       setIsMobileApp(mobile);
       document.body.dataset.shell = mobile ? "mobile" : "website";
+      if (native) {
+        document.body.dataset.native = "true";
+      } else {
+        delete document.body.dataset.native;
+      }
     }
 
     update();

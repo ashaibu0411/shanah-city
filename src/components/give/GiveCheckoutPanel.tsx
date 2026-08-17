@@ -10,6 +10,7 @@ import {
   type GivingCheckoutFrequency,
   type GivingFund,
 } from "@/lib/giving-types";
+import { openExternalUrl } from "@/lib/native-app";
 
 function formatMoney(amount: number) {
   return amount.toLocaleString(undefined, { style: "currency", currency: "USD" });
@@ -49,7 +50,7 @@ export function GiveCheckoutPanel() {
     setSubmitting(false);
 
     if (response.ok && data.url) {
-      window.location.href = data.url;
+      await openExternalUrl(data.url);
       return;
     }
 

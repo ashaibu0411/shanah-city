@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAppShell } from "@/components/app/AppShellContext";
+import { openExternalUrl } from "@/lib/native-app";
 import { site } from "@/lib/site";
 
 function isExternalHref(href: string) {
@@ -17,11 +18,18 @@ export function ExternalLink({
   children: React.ReactNode;
   className?: string;
 }) {
+  async function handleClick(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (!/^https?:\/\//i.test(href)) return;
+    event.preventDefault();
+    await openExternalUrl(href);
+  }
+
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={handleClick}
       className={className}
     >
       {children}

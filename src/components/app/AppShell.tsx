@@ -14,6 +14,7 @@ import { MobileMoreSheet } from "@/components/app/MobileMoreSheet";
 
 import { MobileNav } from "@/components/app/MobileNav";
 
+import { NativeAppBoot } from "@/components/app/NativeAppBoot";
 import { TopBar } from "@/components/app/TopBar";
 
 
@@ -29,6 +30,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <ReadabilityProvider>
 
         <AppShellProvider>
+
+          <NativeAppBoot />
 
           <div className="min-h-screen bg-sand-50">
 
