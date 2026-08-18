@@ -58,26 +58,33 @@ jobs:
           IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
         run: |
           PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
-          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+          printf '%s' "$IOS_PROVISIONING_PROFILE_BASE64" | tr -d '[:space:]' | base64 --decode > "$PROFILE_PATH"
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$(security cms -D -i "$PROFILE_PATH")")
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
           echo "PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
 
-      - name: Prepare export options
+      - name: Normalize signing secrets
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
         run: |
-          sed \
-            -e "s/REPLACE_TEAM_ID/${APPLE_TEAM_ID}/g" \
-            -e "s/REPLACE_PROFILE_NAME/${IOS_PROVISIONING_PROFILE_NAME}/g" \
-            ios/ExportOptions.plist > "$RUNNER_TEMP/ExportOptions.plist"
+          TEAM_ID="$(printf '%s' "$APPLE_TEAM_ID" | tr -d '[:space:]')"
+          PROFILE_NAME="$(printf '%s' "$IOS_PROVISIONING_PROFILE_NAME" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+          if [ -z "$TEAM_ID" ] || [ -z "$PROFILE_NAME" ]; then
+            echo "APPLE_TEAM_ID and IOS_PROVISIONING_PROFILE_NAME must be set."
+            exit 1
+          fi
+          echo "APPLE_TEAM_ID=$TEAM_ID" >> "$GITHUB_ENV"
+          echo "IOS_PROVISIONING_PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+
+      - name: Prepare export options
+        run: |
+          cp ios/ExportOptions.plist "$RUNNER_TEMP/ExportOptions.plist"
+          /usr/libexec/PlistBuddy -c "Set :teamID $APPLE_TEAM_ID" "$RUNNER_TEMP/ExportOptions.plist"
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:$BUNDLE_ID $IOS_PROVISIONING_PROFILE_NAME" "$RUNNER_TEMP/ExportOptions.plist"
 
       - name: Build archive
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
         run: |
           ARCHIVE_PATH="$RUNNER_TEMP/App.xcarchive"
           xcodebuild \
