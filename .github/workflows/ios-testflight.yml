@@ -52,6 +52,19 @@ jobs:
         with:
           p12-file-base64: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
           p12-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          keychain: build-signing
+          keychain-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+
+      - name: Configure signing keychain
+        env:
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$HOME/Library/Keychains/build-signing.keychain-db"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$IOS_CERTIFICATE_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          security default-keychain -s "$KEYCHAIN_PATH"
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning
 
       - name: Install provisioning profile
         env:
@@ -59,24 +72,43 @@ jobs:
         run: |
           PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
           printf '%s' "$IOS_PROVISIONING_PROFILE_BASE64" | tr -d '[:space:]' | base64 --decode > "$PROFILE_PATH"
-          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$(security cms -D -i "$PROFILE_PATH")")
+          PROFILE_PLIST="$(security cms -D -i "$PROFILE_PATH")"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$PROFILE_PLIST")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< "$PROFILE_PLIST")
+          PROFILE_TEAM=$(/usr/libexec/PlistBuddy -c "Print TeamIdentifier:0" /dev/stdin <<< "$PROFILE_PLIST")
+          PROFILE_APP_ID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" /dev/stdin <<< "$PROFILE_PLIST")
+          echo "Installed profile: $PROFILE_NAME"
+          echo "Profile UUID: $PROFILE_UUID"
+          echo "Profile team: $PROFILE_TEAM"
+          echo "Profile app id: $PROFILE_APP_ID"
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
           echo "PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+          echo "IOS_PROVISIONING_PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+          echo "PROFILE_TEAM=$PROFILE_TEAM" >> "$GITHUB_ENV"
 
       - name: Normalize signing secrets
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
         run: |
           TEAM_ID="$(printf '%s' "$APPLE_TEAM_ID" | tr -d '[:space:]')"
-          PROFILE_NAME="$(printf '%s' "$IOS_PROVISIONING_PROFILE_NAME" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-          if [ -z "$TEAM_ID" ] || [ -z "$PROFILE_NAME" ]; then
-            echo "APPLE_TEAM_ID and IOS_PROVISIONING_PROFILE_NAME must be set."
+          if [ -z "$TEAM_ID" ] || [ -z "$IOS_PROVISIONING_PROFILE_NAME" ]; then
+            echo "APPLE_TEAM_ID and a valid provisioning profile are required."
+            exit 1
+          fi
+          if [ "$TEAM_ID" != "$PROFILE_TEAM" ] && [ -n "$PROFILE_TEAM" ]; then
+            echo "Team ID mismatch: secret=$TEAM_ID profile=$PROFILE_TEAM"
             exit 1
           fi
           echo "APPLE_TEAM_ID=$TEAM_ID" >> "$GITHUB_ENV"
-          echo "IOS_PROVISIONING_PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+          SIGNING_IDENTITY="$(security find-identity -v -p codesigning | sed -n 's/ *[^"]*"\(Apple Distribution.*\)"/\1/p' | head -n 1)"
+          if [ -z "$SIGNING_IDENTITY" ]; then
+            echo "No Apple Distribution signing identity found in keychain."
+            security find-identity -v -p codesigning
+            exit 1
+          fi
+          echo "Using signing identity: $SIGNING_IDENTITY"
+          echo "SIGNING_IDENTITY=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
 
       - name: Prepare export options
         run: |
@@ -86,8 +118,6 @@ jobs:
 
       - name: Build archive
         run: |
-          echo "Available signing identities:"
-          security find-identity -v -p codesigning
           ARCHIVE_PATH="$RUNNER_TEMP/App.xcarchive"
           xcodebuild \
             -project "$XCODE_PROJECT" \
@@ -96,10 +126,11 @@ jobs:
             -destination "generic/platform=iOS" \
             -archivePath "$ARCHIVE_PATH" \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
+            CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
             PROVISIONING_PROFILE="$PROFILE_UUID" \
+            PROVISIONING_PROFILE_SPECIFIER="$IOS_PROVISIONING_PROFILE_NAME" \
             archive
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> "$GITHUB_ENV"
 
