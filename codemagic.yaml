@@ -13,7 +13,7 @@ workflows:
         XCODE_SCHEME: App
         CAPACITOR_SERVER_URL: https://shanah-city.vercel.app
       node: 22
-      xcode: latest
+      xcode: 26.2
     triggering:
       events:
         - push
