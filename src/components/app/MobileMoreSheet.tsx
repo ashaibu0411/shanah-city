@@ -146,6 +146,13 @@ export function MobileMoreSheet() {
           >
             Privacy Policy
           </Link>
+          <Link
+            href="/delete-account"
+            onClick={() => setMoreMenuOpen(false)}
+            className="mt-1 block text-center text-xs font-semibold text-night-500 underline"
+          >
+            Delete account
+          </Link>
         </div>
       </div>
     </>
