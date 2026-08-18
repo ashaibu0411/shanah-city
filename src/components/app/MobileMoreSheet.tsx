@@ -138,6 +138,14 @@ export function MobileMoreSheet() {
               </Link>
             </div>
           )}
+
+          <Link
+            href="/privacy"
+            onClick={() => setMoreMenuOpen(false)}
+            className="mt-4 block text-center text-xs font-semibold text-night-500 underline"
+          >
+            Privacy Policy
+          </Link>
         </div>
       </div>
     </>
