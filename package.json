@@ -16,7 +16,8 @@
     "mobile:android": "node scripts/open-android-studio.cjs",
     "mobile:android:setup": "scripts\\open-android.bat",
     "mobile:android:dir": "explorer android",
-    "mobile:ios": "npx cap open ios"
+    "mobile:ios": "npx cap open ios",
+    "mobile:ios:icon": "node scripts/generate-ios-icon.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

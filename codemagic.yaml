@@ -1,0 +1,56 @@
+workflows:
+  shanah-city-ios:
+    name: Shanah City iOS
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: org.shanahcity.app
+      vars:
+        BUNDLE_ID: org.shanahcity.app
+        XCODE_PROJECT: ios/App/App.xcodeproj
+        XCODE_SCHEME: App
+        CAPACITOR_SERVER_URL: https://shanah-city.vercel.app
+      node: 22
+      xcode: latest
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          npm ci
+      - name: Generate iOS app icon
+        script: |
+          node scripts/generate-ios-icon.cjs
+      - name: Sync Capacitor iOS project
+        script: |
+          npx cap sync ios
+      - name: Set up iOS code signing
+        script: |
+          xcode-project use-profiles
+      - name: Build iOS archive
+        script: |
+          xcode-project build-ipa \
+            --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - admin@shanahcity.org
+        notify:
+          success: true
+          failure: true
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
