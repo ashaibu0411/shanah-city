@@ -16,6 +16,7 @@ type MediaClipsGridProps = {
     url: string;
     platform: string;
   }>;
+  compact?: boolean;
 };
 
 function clipThumbnail(clip: MediaClip) {
@@ -24,7 +25,7 @@ function clipThumbnail(clip: MediaClip) {
   return "/streams/youtube-shanah-city.svg";
 }
 
-export function MediaClipsGrid({ clips, browseLinks }: MediaClipsGridProps) {
+export function MediaClipsGrid({ clips, browseLinks, compact }: MediaClipsGridProps) {
   const [activeId, setActiveId] = useState<string | null>(clips[0]?.id ?? null);
 
   const activeClip = useMemo(
@@ -35,13 +36,17 @@ export function MediaClipsGrid({ clips, browseLinks }: MediaClipsGridProps) {
   if (clips.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="rounded-2xl bg-sand-100 p-6 text-sm text-night-700 ring-1 ring-night-900/5">
-          <p className="font-semibold text-night-900">Short clips coming soon</p>
-          <p className="mt-2 leading-relaxed">
-            Add clips in <code className="rounded bg-white px-1">data/media-clips.json</code>{" "}
-            or set <code className="rounded bg-white px-1">NEXT_PUBLIC_YOUTUBE_CLIP_IDS</code> in
-            your env file. Until then, browse new shorts on YouTube and Instagram.
-          </p>
+        <div className="rounded-2xl bg-sand-100 p-5 text-sm text-night-700 ring-1 ring-night-900/5">
+          <p className="font-semibold text-night-900">Clips coming soon</p>
+          {!compact ? (
+            <p className="mt-2 leading-relaxed">
+              Add clips in <code className="rounded bg-white px-1">data/media-clips.json</code>{" "}
+              or set <code className="rounded bg-white px-1">NEXT_PUBLIC_YOUTUBE_CLIP_IDS</code> in
+              your env file. Until then, browse new shorts on YouTube and Instagram.
+            </p>
+          ) : (
+            <p className="mt-2 text-night-600">Browse new shorts on YouTube and Instagram.</p>
+          )}
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {browseLinks.map((link) => (
@@ -126,17 +131,19 @@ export function MediaClipsGrid({ clips, browseLinks }: MediaClipsGridProps) {
         })}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {browseLinks.map((link) => (
-          <ExternalLink
-            key={link.id}
-            href={link.url}
-            className="rounded-full bg-sand-100 px-3 py-1.5 text-xs font-semibold text-night-800 hover:bg-sand-200"
-          >
-            More on {link.label} ↗
-          </ExternalLink>
-        ))}
-      </div>
+      {!compact ? (
+        <div className="flex flex-wrap gap-2">
+          {browseLinks.map((link) => (
+            <ExternalLink
+              key={link.id}
+              href={link.url}
+              className="rounded-full bg-sand-100 px-3 py-1.5 text-xs font-semibold text-night-800 hover:bg-sand-200"
+            >
+              More on {link.label} ↗
+            </ExternalLink>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

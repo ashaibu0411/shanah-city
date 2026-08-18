@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useAppShell } from "@/components/app/AppShellContext";
 import { useApp } from "@/components/app/AppProvider";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
 import { MediaClipsGrid } from "@/components/media/MediaClipsGrid";
+import { MobileMediaHub } from "@/components/media/MobileMediaHub";
 import {
   StreamPreviewGrid,
 } from "@/components/live/StreamPreviewGrid";
@@ -24,6 +26,7 @@ type MediaHubProps = {
 };
 
 export function MediaHub({ clips, browseLinks }: MediaHubProps) {
+  const { isMobileApp } = useAppShell();
   const { campus } = useApp();
   const streamCampus = getCampus(liveStream.campusId);
   const [tab, setTab] = useState<MediaTab>("live");
@@ -33,6 +36,10 @@ export function MediaHub({ clips, browseLinks }: MediaHubProps) {
     liveStream.isLive ||
     liveStream.youtube.isLive ||
     liveStream.facebook.isLive;
+
+  if (isMobileApp) {
+    return <MobileMediaHub clips={clips} browseLinks={browseLinks} />;
+  }
 
   return (
     <>
