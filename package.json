@@ -13,7 +13,9 @@
     "db:seed": "tsx scripts/migrate-json-to-db.ts",
     "mobile:sync": "npx cap sync",
     "mobile:copy": "npx cap copy",
-    "mobile:android": "npx cap open android",
+    "mobile:android": "node scripts/open-android-studio.cjs",
+    "mobile:android:setup": "scripts\\open-android.bat",
+    "mobile:android:dir": "explorer android",
     "mobile:ios": "npx cap open ios"
   },
   "dependencies": {

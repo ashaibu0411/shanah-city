@@ -3,7 +3,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const serverUrl = (
   process.env.CAPACITOR_SERVER_URL?.trim() ||
   process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-  "https://shanahcity.org"
+  "https://shanah-city.vercel.app"
 ).replace(/\/$/, "");
 
 const config: CapacitorConfig = {
