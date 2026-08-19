@@ -8,9 +8,11 @@ import type { GroupCategory, GroupDetail, GroupMemberPreview, GroupSummary } fro
 import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { groupCategoryLabels } from "@/lib/group-types";
 import { buildTrackedJoinUrl, isTrackableJoinUrl } from "@/lib/meeting-join-utils";
+import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { Button, Card, ExternalLink } from "@/components/ui";
 
 type Tab = "discover" | "mine" | "create";
+type DetailSection = "overview" | "chat";
 
 const categories: GroupCategory[] = [
   "ministry",
@@ -39,7 +41,9 @@ export function GroupsHub() {
   const { user, loading, refresh } = useAuth();
   const searchParams = useSearchParams();
   const groupFromUrl = searchParams.get("group");
+  const chatFromUrl = searchParams.get("chat") === "1";
   const [tab, setTab] = useState<Tab>("discover");
+  const [detailSection, setDetailSection] = useState<DetailSection>("overview");
   const [groups, setGroups] = useState<GroupSummary[]>([]);
   const [myGroups, setMyGroups] = useState<GroupSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -80,12 +84,18 @@ export function GroupsHub() {
     }
   }
 
-  async function loadDetail(groupId: string) {
+  async function loadDetail(groupId: string, options?: { openChat?: boolean }) {
     setSelectedId(groupId);
     const response = await fetch(`/api/groups?id=${encodeURIComponent(groupId)}`);
     const data = await response.json();
     if (response.ok) {
-      setDetail(data.group ?? null);
+      const group = data.group ?? null;
+      setDetail(group);
+      if (options?.openChat && group?.isMember) {
+        setDetailSection("chat");
+      } else {
+        setDetailSection("overview");
+      }
     } else {
       setDetail(null);
       setStatus(data.error ?? "Could not load group.");
@@ -95,10 +105,10 @@ export function GroupsHub() {
   useEffect(() => {
     loadLists().then(() => {
       if (groupFromUrl) {
-        loadDetail(groupFromUrl);
+        loadDetail(groupFromUrl, { openChat: chatFromUrl });
       }
     });
-  }, [user, groupFromUrl]);
+  }, [user, groupFromUrl, chatFromUrl]);
 
   async function runAction(body: Record<string, unknown>) {
     setBusy(true);
@@ -299,7 +309,7 @@ export function GroupsHub() {
                   <input
                     value={meetingLink}
                     onChange={(event) => setMeetingLink(event.target.value)}
-                    placeholder="Zoom, Teams, or group chat link"
+                    placeholder="Zoom, Teams, or external chat link"
                     className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
                   />
                 </label>
@@ -415,6 +425,34 @@ export function GroupsHub() {
               )}
             </div>
 
+            {detail.isMember && user && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {(
+                  [
+                    { id: "overview", label: "Overview" },
+                    { id: "chat", label: "Group chat" },
+                  ] as const
+                ).map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setDetailSection(item.id)}
+                    className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                      detailSection === item.id
+                        ? "bg-night-900 text-sand-50"
+                        : "bg-sand-100 text-night-700 hover:bg-sand-200"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {detailSection === "chat" && detail.isMember && user ? (
+              <GroupChatPanel groupId={detail.id} groupName={detail.name} userId={user.id} />
+            ) : (
+              <>
             <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
 
             {(detail.meetingSchedule || detail.meetingLink) && (
@@ -612,6 +650,8 @@ export function GroupsHub() {
                   Delete group
                 </button>
               </div>
+            )}
+              </>
             )}
           </div>
         ) : (

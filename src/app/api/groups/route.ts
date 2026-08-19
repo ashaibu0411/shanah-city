@@ -189,6 +189,8 @@ export async function POST(request: Request) {
     if (action === "delete") {
       const detail = await getGroupDetail(groupId, user.id);
       await deleteGroup(groupId, user.id);
+      const { deleteGroupChatMessagesForGroup } = await import("@/lib/group-chat-server");
+      await deleteGroupChatMessagesForGroup(groupId);
       if (detail) {
         await recordActivity(user.id, "profile_update", `Deleted group "${detail.name}"`);
       }

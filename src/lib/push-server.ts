@@ -133,6 +133,25 @@ export async function notifyNewMessage(input: {
   );
 }
 
+export async function notifyGroupChatMessage(input: {
+  groupId: string;
+  groupName: string;
+  senderId: string;
+  senderName: string;
+  preview: string;
+}) {
+  return sendPushToGroupMembers(
+    input.groupId,
+    {
+      title: input.groupName,
+      body: `${input.senderName}: ${input.preview}`,
+      url: `/groups?group=${encodeURIComponent(input.groupId)}&chat=1`,
+    },
+    "messages",
+    input.senderId,
+  );
+}
+
 export async function sendPushToGroupMembers(
   groupId: string,
   payload: { title: string; body: string; url: string },

@@ -67,6 +67,16 @@ export type GroupDetail = GroupSummary & {
   members: GroupMemberPreview[];
 };
 
+export type GroupChatMessage = {
+  id: string;
+  groupId: string;
+  groupName: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  createdAt: string;
+};
+
 export const groupCategoryLabels: Record<GroupCategory, string> = {
   ministry: "Ministry",
   choir: "Choir & Worship",

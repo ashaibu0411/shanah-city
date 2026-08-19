@@ -411,6 +411,18 @@ model WorshipSongLibrary {
   @@index([title])
 }
 
+model GroupChatMessage {
+  id         String   @id
+  groupId    String
+  groupName  String
+  senderId   String
+  senderName String
+  content    String
+  createdAt  DateTime
+
+  @@index([groupId, createdAt])
+}
+
 model GuestSubmission {
   id             String    @id
   name           String
