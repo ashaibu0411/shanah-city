@@ -32,18 +32,60 @@ export const WORSHIP_ROLES = [
   { value: "other", label: "Other" },
 ] as const;
 
+/** Vocal / instrument parts for choir workspace and “My part” view. */
+export const WORSHIP_PART_ROLES = [
+  { value: "soprano", label: "Soprano", kind: "vocal" as const },
+  { value: "alto", label: "Alto", kind: "vocal" as const },
+  { value: "tenor", label: "Tenor", kind: "vocal" as const },
+  { value: "bass", label: "Bass", kind: "vocal" as const },
+  { value: "drums", label: "Drums", kind: "instrument" as const },
+  { value: "bass-guitar", label: "Bass guitar", kind: "instrument" as const },
+  { value: "electric-guitar", label: "Electric guitar", kind: "instrument" as const },
+  { value: "acoustic-guitar", label: "Acoustic guitar", kind: "instrument" as const },
+  { value: "keys", label: "Keys / piano", kind: "instrument" as const },
+  { value: "other", label: "Other", kind: "instrument" as const },
+] as const;
+
+/** Practice / stem tracks leaders upload so each part can listen in isolation. */
+export const WORSHIP_PRACTICE_REFERENCE_STEMS = [
+  { value: "full", label: "Full mix" },
+  { value: "vocals", label: "All vocals / choir" },
+  { value: "instrumental", label: "Instrumental (minus vocals)" },
+] as const;
+
+export type WorshipPracticeStemRole =
+  | WorshipPartRole
+  | (typeof WORSHIP_PRACTICE_REFERENCE_STEMS)[number]["value"];
+
 export type WorshipServiceTime = (typeof WORSHIP_SERVICE_SCHEDULE)[number]["value"];
 export type WorshipServiceType = "sunday" | "friday" | "special";
 export type WorshipRole = (typeof WORSHIP_ROLES)[number]["value"];
+export type WorshipPartRole = (typeof WORSHIP_PART_ROLES)[number]["value"];
 export type WorshipSongSegment = (typeof WORSHIP_SONG_SEGMENTS)[number]["value"];
+
+export type WorshipSongPart = {
+  role: WorshipPartRole | string;
+  notes: string;
+};
+
+export type WorshipPracticeStem = {
+  role: WorshipPracticeStemRole | string;
+  audioUrl: string;
+  fileName: string;
+  uploadedAt?: string;
+};
 
 export type WorshipSong = {
   id: string;
   librarySongId?: string;
   title: string;
   key: string;
+  originalKey?: string;
   bpm?: number;
   notes?: string;
+  lyrics?: string;
+  parts?: WorshipSongPart[];
+  practiceStems?: WorshipPracticeStem[];
   chartUrl?: string;
   chartFileName?: string;
   leaderUserId?: string;
@@ -57,7 +99,21 @@ export type WorshipTeamMember = {
   userId: string;
   name: string;
   role: WorshipRole;
+  partRole?: WorshipPartRole | string;
   ready: boolean;
+};
+
+export type WorshipRehearsalRecording = {
+  id: string;
+  serviceDate: string;
+  serviceTime: string;
+  title: string;
+  audioUrl: string;
+  fileName: string;
+  durationSeconds?: number;
+  recordedBy: string;
+  recordedByName: string;
+  createdAt: string;
 };
 
 export type WorshipServicePlan = {
@@ -114,6 +170,92 @@ export function worshipRoleLabel(role: string) {
   return WORSHIP_ROLES.find((entry) => entry.value === role)?.label ?? role;
 }
 
+export function worshipPartLabel(role: string) {
+  return WORSHIP_PART_ROLES.find((entry) => entry.value === role)?.label ?? role;
+}
+
+export function defaultSongParts(): WorshipSongPart[] {
+  return WORSHIP_PART_ROLES.map((entry) => ({ role: entry.value, notes: "" }));
+}
+
+export function normalizeSongParts(parts: WorshipSongPart[] | undefined): WorshipSongPart[] {
+  const map = new Map((parts ?? []).map((part) => [part.role, part.notes ?? ""]));
+  return WORSHIP_PART_ROLES.map((entry) => ({
+    role: entry.value,
+    notes: map.get(entry.value)?.trim() ?? "",
+  }));
+}
+
+export function getSongPartNotes(song: WorshipSong, partRole: string) {
+  const part = normalizeSongParts(song.parts).find((entry) => entry.role === partRole);
+  return part?.notes?.trim() ?? "";
+}
+
+export function worshipPracticeStemLabel(role: string) {
+  const reference = WORSHIP_PRACTICE_REFERENCE_STEMS.find((entry) => entry.value === role);
+  if (reference) return reference.label;
+  return worshipPartLabel(role);
+}
+
+export function normalizePracticeStems(stems: WorshipPracticeStem[] | undefined) {
+  return (stems ?? [])
+    .filter((stem) => stem.audioUrl?.trim())
+    .map((stem) => ({
+      role: stem.role,
+      audioUrl: stem.audioUrl.trim(),
+      fileName: stem.fileName?.trim() || "audio",
+      uploadedAt: stem.uploadedAt,
+    }));
+}
+
+export function getSongPracticeStem(song: WorshipSong, role: string) {
+  return normalizePracticeStems(song.practiceStems).find((stem) => stem.role === role);
+}
+
+export function upsertPracticeStem(
+  stems: WorshipPracticeStem[] | undefined,
+  role: string,
+  stem: Omit<WorshipPracticeStem, "role">,
+) {
+  const next = normalizePracticeStems(stems).filter((entry) => entry.role !== role);
+  return [...next, { role, ...stem }];
+}
+
+export function removePracticeStem(stems: WorshipPracticeStem[] | undefined, role: string) {
+  return normalizePracticeStems(stems).filter((entry) => entry.role !== role);
+}
+
+export function listPracticeTracksForPart(song: WorshipSong, partRole: string) {
+  const stems = normalizePracticeStems(song.practiceStems);
+  if (stems.length === 0) return [];
+
+  const orderedRoles = [
+    partRole,
+    "full",
+    "instrumental",
+    "vocals",
+    ...WORSHIP_PART_ROLES.map((entry) => entry.value),
+  ];
+
+  const seen = new Set<string>();
+  const tracks: WorshipPracticeStem[] = [];
+
+  for (const role of orderedRoles) {
+    const stem = stems.find((entry) => entry.role === role);
+    if (!stem || seen.has(stem.role)) continue;
+    seen.add(stem.role);
+    tracks.push(stem);
+  }
+
+  for (const stem of stems) {
+    if (seen.has(stem.role)) continue;
+    seen.add(stem.role);
+    tracks.push(stem);
+  }
+
+  return tracks;
+}
+
 export function worshipTimeLabel(time: string) {
   return WORSHIP_SERVICE_TIMES.find((entry) => entry.value === time)?.label ?? time;
 }
@@ -137,8 +279,11 @@ export function songFromLibrary(entry: WorshipLibrarySong): WorshipSong {
     librarySongId: entry.id,
     title: entry.title,
     key: entry.defaultKey,
+    originalKey: entry.defaultKey,
     bpm: entry.bpm ?? undefined,
     notes: entry.notes ?? undefined,
+    lyrics: undefined,
+    parts: defaultSongParts(),
     chartUrl: entry.chartUrl ?? undefined,
     chartFileName: entry.chartFileName ?? undefined,
     segment: "worship",
@@ -151,6 +296,9 @@ export function emptyWorshipSong(title = ""): WorshipSong {
     id: createSongId(),
     title,
     key: "C",
+    originalKey: "C",
+    lyrics: "",
+    parts: defaultSongParts(),
     segment: "worship",
     preparedBy: [],
   };
@@ -158,21 +306,28 @@ export function emptyWorshipSong(title = ""): WorshipSong {
 
 export function normalizeSongs(songs: WorshipSong[] | undefined) {
   return (songs ?? [])
-    .map((song, index) => ({
-      id: song.id || createSongId(),
-      librarySongId: song.librarySongId,
-      title: song.title?.trim() ?? "",
-      key: song.key?.trim() || "C",
-      bpm: song.bpm,
-      notes: song.notes?.trim() || undefined,
-      chartUrl: song.chartUrl?.trim() || undefined,
-      chartFileName: song.chartFileName?.trim() || undefined,
-      leaderUserId: song.leaderUserId,
-      leaderName: song.leaderName?.trim() || undefined,
-      segment: song.segment || "worship",
-      order: song.order ?? index + 1,
-      preparedBy: Array.isArray(song.preparedBy) ? [...new Set(song.preparedBy)] : [],
-    }))
+    .map((song, index) => {
+      const key = song.key?.trim() || "C";
+      return {
+        id: song.id || createSongId(),
+        librarySongId: song.librarySongId,
+        title: song.title?.trim() ?? "",
+        key,
+        originalKey: song.originalKey?.trim() || key,
+        bpm: song.bpm,
+        notes: song.notes?.trim() || undefined,
+        lyrics: song.lyrics?.trim() || undefined,
+        parts: normalizeSongParts(song.parts),
+        practiceStems: normalizePracticeStems(song.practiceStems),
+        chartUrl: song.chartUrl?.trim() || undefined,
+        chartFileName: song.chartFileName?.trim() || undefined,
+        leaderUserId: song.leaderUserId,
+        leaderName: song.leaderName?.trim() || undefined,
+        segment: song.segment || "worship",
+        order: song.order ?? index + 1,
+        preparedBy: Array.isArray(song.preparedBy) ? [...new Set(song.preparedBy)] : [],
+      };
+    })
     .sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
 }
 
@@ -181,6 +336,7 @@ export function normalizeTeam(team: WorshipTeamMember[] | undefined) {
     userId: member.userId,
     name: member.name.trim(),
     role: member.role,
+    partRole: member.partRole?.trim() || undefined,
     ready: Boolean(member.ready),
   }));
 }

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
 import { WorshipSongLibraryPanel } from "@/components/worship/WorshipSongLibraryPanel";
+import { WorshipMyPartPanel } from "@/components/worship/WorshipMyPartPanel";
+import { WorshipRehearsalRecordings } from "@/components/worship/WorshipRehearsalRecordings";
+import { WorshipSongWorkspace } from "@/components/worship/WorshipSongWorkspace";
 import {
   buildTeamReadiness,
   emptyWorshipSong,
@@ -14,11 +17,14 @@ import {
   songFromLibrary,
   suggestedRehearsalDate,
   worshipRoleLabel,
+  worshipPartLabel,
   worshipSegmentLabel,
+  WORSHIP_PART_ROLES,
   WORSHIP_ROLES,
   WORSHIP_SERVICE_TIMES,
   WORSHIP_SONG_SEGMENTS,
   type WorshipLibrarySong,
+  type WorshipPartRole,
   type WorshipRole,
   type WorshipServicePlan,
   type WorshipSong,
@@ -64,7 +70,7 @@ export function WorshipPlannerPanel({
 } = {}) {
   const { user, permissions } = useAuth();
   const canManage = permissions.canManageWorshipPlan;
-  const [tab, setTab] = useState<"plan" | "library">("plan");
+  const [tab, setTab] = useState<"plan" | "library" | "my-part" | "rehearsals">("plan");
   const [serviceDate, setServiceDate] = useState(initialDate || nextServiceSundayIso());
   const [serviceTime, setServiceTime] = useState<string>(initialTime || "10:00");
   const [plan, setPlan] = useState<WorshipServicePlan | null>(null);
@@ -84,6 +90,7 @@ export function WorshipPlannerPanel({
   const [copyTargetTime, setCopyTargetTime] = useState("11:30");
   const [message, setMessage] = useState<string | null>(null);
   const [hidden, setHidden] = useState(false);
+  const [expandedSongId, setExpandedSongId] = useState<string | null>(null);
 
   const readiness = useMemo(() => buildTeamReadiness({ team, songs }), [team, songs]);
   const myMember = team.find((member) => member.userId === user?.id);
@@ -371,6 +378,77 @@ export function WorshipPlannerPanel({
     ]);
   }
 
+  const plannerTabs = useMemo(() => {
+    const items: Array<{ id: typeof tab; label: string }> = [
+      { id: "plan", label: "Service plan" },
+      { id: "my-part", label: "My part" },
+      { id: "rehearsals", label: "Rehearsals" },
+    ];
+    if (canManage) {
+      items.push({ id: "library", label: "Song library" });
+    }
+    return items;
+  }, [canManage]);
+
+  function ServicePicker() {
+    return (
+      <Card className="mb-6">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="text-sm text-night-700">
+            <span className="font-semibold">Service date</span>
+            <input
+              type="date"
+              value={serviceDate}
+              onChange={(event) => setServiceDate(event.target.value)}
+              className="mt-1 block rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          </label>
+          <div>
+            <p className="text-sm font-semibold text-night-700">Service time</p>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {WORSHIP_SERVICE_TIMES.map((slot) => (
+                <button
+                  key={slot.value}
+                  type="button"
+                  onClick={() => setServiceTime(slot.value)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    serviceTime === slot.value
+                      ? "bg-night-900 text-sand-50"
+                      : "bg-sand-100 text-night-700 hover:bg-sand-200"
+                  }`}
+                >
+                  {slot.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="text-sm text-night-600">{serviceDateTimeLabel(serviceDate, serviceTime)}</p>
+        </div>
+      </Card>
+    );
+  }
+
+  function PlannerTabBar() {
+    return (
+      <div className="mb-6 flex flex-wrap gap-2">
+        {plannerTabs.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setTab(item.id)}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+              tab === item.id
+                ? "bg-night-900 text-sand-50"
+                : "bg-white text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   function addSongFromLibrary(entry: WorshipLibrarySong) {
     setSongs((current) => [...current, songFromLibrary(entry)]);
     setTab("plan");
@@ -382,7 +460,12 @@ export function WorshipPlannerPanel({
   }
 
   if (tab === "library" && canManage) {
-    return <WorshipSongLibraryPanel onAddToPlan={addSongFromLibrary} />;
+    return (
+      <>
+        <PlannerTabBar />
+        <WorshipSongLibraryPanel onAddToPlan={addSongFromLibrary} />
+      </>
+    );
   }
 
   if (loading) {
@@ -391,13 +474,41 @@ export function WorshipPlannerPanel({
 
   if (hidden) {
     return (
-      <Card>
-        <h2 className="font-display text-xl font-semibold text-night-900">Plan not published yet</h2>
-        <p className="mt-2 text-sm text-night-600">
-          Your worship leader has not published this service plan yet. Check back closer to
-          rehearsal or Sunday.
-        </p>
-      </Card>
+      <>
+        <PlannerTabBar />
+        <Card>
+          <h2 className="font-display text-xl font-semibold text-night-900">Plan not published yet</h2>
+          <p className="mt-2 text-sm text-night-600">
+            Your worship leader has not published this service plan yet. Check back closer to
+            rehearsal or Sunday.
+          </p>
+        </Card>
+      </>
+    );
+  }
+
+  if (tab === "my-part") {
+    return (
+      <>
+        <PlannerTabBar />
+        <ServicePicker />
+        <WorshipMyPartPanel songs={songs} member={myMember} />
+      </>
+    );
+  }
+
+  if (tab === "rehearsals") {
+    return (
+      <>
+        <PlannerTabBar />
+        <ServicePicker />
+        <WorshipRehearsalRecordings
+          serviceDate={serviceDate}
+          serviceTime={serviceTime}
+          canManage={canManage}
+          userId={user?.id}
+        />
+      </>
     );
   }
 
@@ -405,29 +516,7 @@ export function WorshipPlannerPanel({
 
   return (
     <>
-      {canManage && (
-        <div className="mb-6 flex flex-wrap gap-2">
-          {(
-            [
-              { id: "plan", label: "Service plan" },
-              { id: "library", label: "Song library" },
-            ] as const
-          ).map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-                tab === item.id
-                  ? "bg-night-900 text-sand-50"
-                  : "bg-white text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <PlannerTabBar />
 
       <Card className="mb-6 overflow-hidden p-0 ring-1 ring-night-900/10">
         <div className="bg-gradient-to-br from-violet-700 to-indigo-900 px-6 py-5 text-white">
@@ -574,7 +663,10 @@ export function WorshipPlannerPanel({
                   </span>
                   <div>
                     <p className="font-semibold text-night-900">{member.name}</p>
-                    <p className="text-xs text-night-500">{worshipRoleLabel(member.role)}</p>
+                    <p className="text-xs text-night-500">
+                      {worshipRoleLabel(member.role)}
+                      {member.partRole ? ` · ${worshipPartLabel(member.partRole)}` : ""}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -761,6 +853,16 @@ export function WorshipPlannerPanel({
                       </Button>
                     )}
                   </div>
+
+                  <WorshipSongWorkspace
+                    song={song}
+                    expanded={expandedSongId === song.id}
+                    onToggle={() =>
+                      setExpandedSongId((current) => (current === song.id ? null : song.id))
+                    }
+                    onChange={(patch) => updateSong(index, patch)}
+                    readOnly={!showEditor}
+                  />
                 </div>
               );
             })}
@@ -854,25 +956,52 @@ export function WorshipPlannerPanel({
                   >
                     <div>
                       <p className="font-semibold text-night-900">{member.name}</p>
-                      <select
-                        value={member.role}
-                        onChange={(event) =>
-                          setTeam((current) =>
-                            current.map((entry) =>
-                              entry.userId === member.userId
-                                ? { ...entry, role: event.target.value as WorshipRole }
-                                : entry,
-                            ),
-                          )
-                        }
-                        className="mt-1 rounded-lg border border-night-900/10 bg-white px-2 py-1 text-xs"
-                      >
-                        {WORSHIP_ROLES.map((role) => (
-                          <option key={role.value} value={role.value}>
-                            {role.label}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        <select
+                          value={member.role}
+                          onChange={(event) =>
+                            setTeam((current) =>
+                              current.map((entry) =>
+                                entry.userId === member.userId
+                                  ? { ...entry, role: event.target.value as WorshipRole }
+                                  : entry,
+                              ),
+                            )
+                          }
+                          className="rounded-lg border border-night-900/10 bg-white px-2 py-1 text-xs"
+                        >
+                          {WORSHIP_ROLES.map((role) => (
+                            <option key={role.value} value={role.value}>
+                              {role.label}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          value={member.partRole ?? ""}
+                          onChange={(event) =>
+                            setTeam((current) =>
+                              current.map((entry) =>
+                                entry.userId === member.userId
+                                  ? {
+                                      ...entry,
+                                      partRole: (event.target.value ||
+                                        undefined) as WorshipPartRole | undefined,
+                                    }
+                                  : entry,
+                              ),
+                            )
+                          }
+                          className="rounded-lg border border-night-900/10 bg-white px-2 py-1 text-xs"
+                          aria-label={`Part for ${member.name}`}
+                        >
+                          <option value="">Assign part…</option>
+                          {WORSHIP_PART_ROLES.map((part) => (
+                            <option key={part.value} value={part.value}>
+                              {part.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <Button variant="secondary" onClick={() => removeTeamMember(member.userId)}>
                       Remove
