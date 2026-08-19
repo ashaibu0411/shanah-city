@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { MediaClip } from "@/lib/types";
 import {
+  buildUploadedClip,
   buildYouTubeClip,
   clipsFromEnv,
 } from "@/lib/stores/media-clips-json";
@@ -57,4 +58,4 @@ export async function addMediaClip(clip: MediaClip) {
   return mapClip(record);
 }
 
-export { buildYouTubeClip, clipsFromEnv };
+export { buildUploadedClip, buildYouTubeClip, clipsFromEnv };

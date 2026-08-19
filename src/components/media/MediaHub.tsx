@@ -2,18 +2,11 @@
 
 import { useState } from "react";
 import { useAppShell } from "@/components/app/AppShellContext";
-import { useApp } from "@/components/app/AppProvider";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
 import { MediaClipsGrid } from "@/components/media/MediaClipsGrid";
+import { MediaLiveStage } from "@/components/media/MediaLiveStage";
 import { MobileMediaHub } from "@/components/media/MobileMediaHub";
-import {
-  StreamPreviewGrid,
-} from "@/components/live/StreamPreviewGrid";
-import { LiveStreamPlayer } from "@/components/live/LiveStreamPlayer";
-import { getCampus, liveStream, site } from "@/lib/site";
-import { streamPreviews } from "@/lib/streams";
-import type { MediaClip, MediaTab, StreamPreview } from "@/lib/types";
-import { Badge, Button, ExternalLink, PageHeader } from "@/components/ui";
+import type { MediaClip, MediaTab } from "@/lib/types";
 
 type MediaHubProps = {
   clips: MediaClip[];
@@ -25,165 +18,75 @@ type MediaHubProps = {
   }>;
 };
 
+function MediaTabs({
+  tab,
+  clipsCount,
+  onChange,
+}: {
+  tab: MediaTab;
+  clipsCount: number;
+  onChange: (tab: MediaTab) => void;
+}) {
+  return (
+    <div className="mb-5 inline-flex rounded-full bg-night-950 p-1 shadow-lg shadow-indigo-950/20">
+      {(
+        [
+          ["live", "Live"],
+          ["clips", "Shorts"],
+        ] as const
+      ).map(([key, label]) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => onChange(key)}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            tab === key
+              ? "bg-gradient-to-r from-amber-300 via-fuchsia-400 to-violet-500 text-night-950 shadow-md"
+              : "text-white/70 hover:text-white"
+          }`}
+        >
+          {label}
+          {key === "clips" && clipsCount > 0 ? (
+            <span className="ml-1.5 text-[10px] opacity-80">{clipsCount}</span>
+          ) : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function MediaHub({ clips, browseLinks }: MediaHubProps) {
   const { isMobileApp } = useAppShell();
-  const { campus } = useApp();
-  const streamCampus = getCampus(liveStream.campusId);
   const [tab, setTab] = useState<MediaTab>("live");
-  const [active, setActive] = useState<StreamPreview | null>(streamPreviews[0]);
-
-  const anyLive =
-    liveStream.isLive ||
-    liveStream.youtube.isLive ||
-    liveStream.facebook.isLive;
 
   if (isMobileApp) {
     return <MobileMediaHub clips={clips} browseLinks={browseLinks} />;
   }
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Media"
-        title="Media & Live"
-        description="Watch live services, browse short clips, and follow Shanah City on YouTube and Instagram."
-      />
+    <div className="space-y-2">
+      <section className="relative mb-5 overflow-hidden rounded-[2rem] bg-night-950 px-6 py-8 text-white shadow-2xl shadow-indigo-950/30">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(251,191,36,0.28),transparent_42%),radial-gradient(circle_at_85%_10%,rgba(244,114,182,0.28),transparent_40%),radial-gradient(circle_at_70%_90%,rgba(99,102,241,0.35),transparent_45%)]" />
+        <div className="relative">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-amber-200/90">Media</p>
+          <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight">Watch Shanah City</h1>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70">
+            Live worship, short highlights, and moments from Aurora and Accra — all in one cinema-style
+            tab.
+          </p>
+        </div>
+      </section>
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        {(
-          [
-            ["live", "Live"],
-            ["clips", "Clips"],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setTab(key)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              tab === key
-                ? "bg-night-900 text-sand-50"
-                : "bg-sand-100 text-night-700 hover:bg-sand-200"
-            }`}
-          >
-            {label}
-            {key === "clips" && clips.length > 0 ? (
-              <span className="ml-1.5 rounded-full bg-white/20 px-1.5 text-[10px]">
-                {clips.length}
-              </span>
-            ) : null}
-          </button>
-        ))}
-      </div>
+      <MediaTabs tab={tab} clipsCount={clips.length} onChange={setTab} />
 
       {tab === "live" ? (
-        <>
-          <div className="overflow-hidden rounded-2xl bg-night-950 shadow-xl ring-1 ring-night-900/10">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-white">
-              <div className="flex items-center gap-3">
-                {anyLive ? (
-                  <Badge variant="live">
-                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                    Live now
-                  </Badge>
-                ) : (
-                  <Badge variant="outline">Next service</Badge>
-                )}
-              </div>
-              <p className="text-sm text-white/70">
-                {streamCampus.name} · {campus.city}
-              </p>
-            </div>
-
-            <div className="aspect-video w-full bg-night-900">
-              {active ? <LiveStreamPlayer preview={active} compact /> : null}
-            </div>
-
-            <div className="p-5 text-white">
-              <h2 className="font-display text-2xl font-semibold">{liveStream.title}</h2>
-              <p className="mt-2 text-sm text-white/70">{liveStream.scheduledAt}</p>
-            </div>
-          </div>
-
-          <section className="mt-6">
-            <h3 className="mb-3 font-display text-lg font-semibold text-night-900">
-              Choose where to watch
-            </h3>
-            <div className="mb-4 flex flex-wrap gap-3">
-              {streamPreviews.map((preview) => (
-                <ExternalLink
-                  key={preview.id}
-                  href={preview.url}
-                  className="inline-flex rounded-xl bg-night-900 px-4 py-2.5 text-sm font-semibold text-sand-50 hover:bg-night-800"
-                >
-                  {preview.platform} · {preview.label} ↗
-                </ExternalLink>
-              ))}
-            </div>
-            <StreamPreviewGrid
-              previews={streamPreviews}
-              activeId={active?.id}
-              onSelect={setActive}
-            />
-          </section>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button href="/community" variant="secondary">
-              Live chat & prayer
-            </Button>
-            <Button href="/give" variant="secondary">
-              Give
-            </Button>
-            <Button variant="secondary" onClick={() => setTab("clips")}>
-              Short clips
-            </Button>
-          </div>
-        </>
+        <MediaLiveStage />
       ) : (
         <section>
-          <h3 className="mb-1 font-display text-lg font-semibold text-night-900">
-            Short clips
-          </h3>
-          <p className="mb-4 text-sm text-night-600">
-            Quick worship moments, highlights, and encouragement from Shanah City.
-          </p>
           <MediaClipUploadPanel />
           <MediaClipsGrid clips={clips} browseLinks={browseLinks} />
         </section>
       )}
-
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl bg-white p-5 ring-1 ring-night-900/5">
-          <h3 className="font-semibold text-night-900">Facebook</h3>
-          <ul className="mt-3 space-y-2 text-sm">
-            {site.social.facebook.map((account) => (
-              <li key={account.url}>
-                <ExternalLink
-                  href={account.url}
-                  className="font-medium text-night-800 hover:underline"
-                >
-                  {account.name} →
-                </ExternalLink>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="rounded-2xl bg-white p-5 ring-1 ring-night-900/5">
-          <h3 className="font-semibold text-night-900">Instagram</h3>
-          <ul className="mt-3 space-y-2 text-sm">
-            {site.social.instagram.map((account) => (
-              <li key={account.url}>
-                <ExternalLink
-                  href={account.url}
-                  className="font-medium text-night-800 hover:underline"
-                >
-                  @{account.handle} · {account.name} →
-                </ExternalLink>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }

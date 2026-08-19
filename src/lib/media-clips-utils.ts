@@ -14,6 +14,20 @@ export function getYouTubeVideoWatchUrl(videoId: string) {
   return `https://www.youtube.com/watch?v=${videoId}`;
 }
 
+export function isUploadedMediaClip(clip: { platform: string; videoId?: string; url: string }) {
+  if (clip.platform === "upload") return true;
+  if (clip.videoId) return false;
+  return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(clip.url);
+}
+
+export function mediaClipPlatformLabel(platform: string) {
+  if (platform === "upload") return "Shanah";
+  if (platform === "youtube") return "YouTube";
+  if (platform === "instagram") return "Instagram";
+  if (platform === "facebook") return "Facebook";
+  return platform;
+}
+
 export function parseYouTubeVideoId(input: string) {
   const trimmed = input.trim();
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {

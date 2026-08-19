@@ -1,0 +1,2 @@
+export const MEDIA_CLIP_MAX_BYTES = 80 * 1024 * 1024;
+export const MEDIA_CLIP_MAX_SECONDS = 180;

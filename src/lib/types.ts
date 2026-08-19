@@ -67,10 +67,12 @@ export type StreamPreview = {
   embedUrl?: string;
 };
 
+export type MediaClipPlatform = "youtube" | "instagram" | "facebook" | "upload";
+
 export type MediaClip = {
   id: string;
   title: string;
-  platform: "youtube" | "instagram" | "facebook";
+  platform: MediaClipPlatform;
   url: string;
   videoId?: string;
   thumbnail?: string;

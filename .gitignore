@@ -51,6 +51,10 @@ yarn-error.log*
 /public/gallery/uploads/*
 !/public/gallery/uploads/.gitkeep
 
+# uploaded media shorts (keep folder)
+/public/uploads/media/*
+!/public/uploads/media/.gitkeep
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

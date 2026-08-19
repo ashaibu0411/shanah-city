@@ -41,6 +41,22 @@ export async function addMediaClip(clip: MediaClip) {
   return clip;
 }
 
+export function buildUploadedClip(input: {
+  title: string;
+  url: string;
+  thumbnail?: string;
+}): MediaClip {
+  const now = new Date().toISOString();
+  return {
+    id: `upload-${Date.now()}`,
+    title: input.title.trim(),
+    platform: "upload",
+    url: input.url,
+    thumbnail: input.thumbnail,
+    publishedAt: now,
+  };
+}
+
 export function buildYouTubeClip(input: {
   videoId: string;
   title: string;

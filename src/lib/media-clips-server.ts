@@ -31,6 +31,15 @@ export async function publishYouTubeClip(input: { title: string; videoId: string
   return addMediaClip(clip);
 }
 
+export async function publishUploadedClip(input: {
+  title: string;
+  url: string;
+  thumbnail?: string;
+}) {
+  const clip = mediaClipsJson.buildUploadedClip(input);
+  return addMediaClip(clip);
+}
+
 export function getMediaBrowseLinks() {
   const channelId = liveVideoConfig.youtubeChannelId;
   const youtubeShortsUrl = channelId
