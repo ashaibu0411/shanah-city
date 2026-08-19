@@ -79,13 +79,38 @@ export async function addKidCheckIn(entry: KidCheckIn) {
   return entry;
 }
 
-export async function checkoutKid(id: string) {
+export async function checkoutKid(id: string, checkedOutBy?: string) {
   const entries = await getKidCheckIns();
   const index = entries.findIndex((entry) => entry.id === id);
   if (index === -1) return null;
   entries[index].checkedOutAt = new Date().toISOString();
+  if (checkedOutBy) {
+    entries[index].checkedOutBy = checkedOutBy;
+  }
   await writeJson("kids-checkins.json", entries);
   return entries[index];
+}
+
+export async function verifyCheckoutKid(
+  id: string,
+  input: { securityCode: string; checkedOutBy: string },
+) {
+  const entries = await getKidCheckIns();
+  const index = entries.findIndex((entry) => entry.id === id);
+  if (index === -1 || entries[index].checkedOutAt) return null;
+  if (entries[index].securityCode !== input.securityCode.trim()) {
+    return { error: "invalid_code" as const };
+  }
+
+  entries[index] = {
+    ...entries[index],
+    checkedOutAt: new Date().toISOString(),
+    checkedOutBy: input.checkedOutBy,
+    pickupVerified: true,
+    pickupVerifiedAt: new Date().toISOString(),
+  };
+  await writeJson("kids-checkins.json", entries);
+  return { checkin: entries[index] };
 }
 
 export async function getUnavailabilityRequests() {

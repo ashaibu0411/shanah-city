@@ -20,6 +20,7 @@ model User {
   notifyMessages      Boolean        @default(true)
   notifyAnnouncements Boolean        @default(true)
   notifyWorship       Boolean        @default(true)
+  notifyKids          Boolean        @default(true)
   createdAt           DateTime
   updatedAt           DateTime
   family              FamilyMember[]
@@ -28,13 +29,16 @@ model User {
 }
 
 model FamilyMember {
-  id           String  @id
-  userId       String
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name         String
-  relationship String
-  birthYear    String?
-  notes        String?
+  id                String  @id
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  relationship      String
+  birthYear         String?
+  notes             String?
+  allergies         String?
+  medicalNotes      String?
+  authorizedPickup  Json?
 }
 
 model Session {
@@ -243,15 +247,57 @@ model VolunteerCheckIn {
 }
 
 model KidCheckIn {
-  id           String    @id
-  parentName   String
-  childName    String
-  ageGroup     String
-  service      String
-  notes        String?
-  securityCode String
-  checkedInAt  DateTime
-  checkedOutAt DateTime?
+  id               String    @id
+  parentName       String
+  parentUserId     String?
+  familyMemberId   String?
+  childName        String
+  ageGroup         String
+  service          String
+  notes            String?
+  allergies        String?
+  medicalNotes     String?
+  authorizedPickup Json?
+  securityCode     String
+  checkedInAt      DateTime
+  checkedOutAt     DateTime?
+  checkedOutBy     String?
+  pickupVerified   Boolean   @default(false)
+  pickupVerifiedAt DateTime?
+}
+
+model KidsLesson {
+  id             String    @id
+  weekStarting   String
+  ageGroup       String
+  title          String
+  content        String
+  status         String    @default("draft")
+  publishedAt    DateTime?
+  createdBy      String
+  createdByName  String
+  createdAt      DateTime
+  updatedAt      DateTime
+
+  @@unique([weekStarting, ageGroup])
+}
+
+model KidsIncident {
+  id             String    @id
+  checkInId      String?
+  childName      String
+  parentUserId   String?
+  ageGroup       String
+  service        String
+  severity       String
+  summary        String
+  details        String?
+  actionTaken    String?
+  reportedBy     String
+  reportedByName String
+  parentNotified Boolean   @default(false)
+  notifiedAt     DateTime?
+  createdAt      DateTime
 }
 
 model UnavailabilityRequest {

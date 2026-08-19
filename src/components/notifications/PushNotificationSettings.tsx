@@ -27,6 +27,7 @@ export function PushNotificationSettings() {
     messages: true,
     announcements: true,
     worship: true,
+    kids: true,
   });
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -40,6 +41,7 @@ export function PushNotificationSettings() {
         messages: true,
         announcements: true,
         worship: true,
+        kids: true,
       },
     );
 
@@ -155,7 +157,7 @@ export function PushNotificationSettings() {
         Push notifications
       </h2>
       <p className="mt-2 text-sm text-night-600">
-        Get alerts for community posts, worship plans, devotions, and member messages.
+        Get alerts for community posts, worship plans, devotions, kids ministry updates, and member messages.
       </p>
 
       <div className="mt-4 space-y-3">
@@ -188,6 +190,17 @@ export function PushNotificationSettings() {
             checked={prefs.devotions}
             onChange={(event) => {
               const next = { ...prefs, devotions: event.target.checked };
+              savePreferences(next);
+            }}
+          />
+        </label>
+        <label className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3 text-sm">
+          <span>Kids ministry updates &amp; incidents</span>
+          <input
+            type="checkbox"
+            checked={prefs.kids}
+            onChange={(event) => {
+              const next = { ...prefs, kids: event.target.checked };
               savePreferences(next);
             }}
           />

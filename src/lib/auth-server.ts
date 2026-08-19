@@ -32,6 +32,11 @@ export const addFamilyMember = (userId: string, member: FamilyMember) =>
   store().addFamilyMember(userId, member);
 export const removeFamilyMember = (userId: string, memberId: string) =>
   store().removeFamilyMember(userId, memberId);
+export const updateFamilyMember = (
+  userId: string,
+  memberId: string,
+  update: Partial<FamilyMember>,
+) => store().updateFamilyMember(userId, memberId, update);
 export const createSession = (userId: string) => store().createSession(userId);
 export const deleteSession = (token: string) => store().deleteSession(token);
 export const getUserFromSession = (token?: string | null) =>

@@ -36,6 +36,7 @@ export async function GET() {
       messages: true,
       announcements: true,
       worship: true,
+      kids: true,
     },
   });
 }
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
       announcements:
         typeof body.announcements === "boolean" ? body.announcements : undefined,
       worship: typeof body.worship === "boolean" ? body.worship : undefined,
+      kids: typeof body.kids === "boolean" ? body.kids : undefined,
     });
 
     return NextResponse.json({

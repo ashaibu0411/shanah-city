@@ -124,6 +124,9 @@ export async function addFamilyMember(userId: string, member: FamilyMember) {
       relationship: member.relationship,
       birthYear: member.birthYear,
       notes: member.notes,
+      allergies: member.allergies ?? null,
+      medicalNotes: member.medicalNotes ?? null,
+      authorizedPickup: member.authorizedPickup ?? undefined,
     },
   });
 
@@ -133,6 +136,39 @@ export async function addFamilyMember(userId: string, member: FamilyMember) {
   });
 
   await logActivity(userId, "family_added", `Added ${member.name} to family`);
+  return loadUser(userId);
+}
+
+export async function updateFamilyMember(
+  userId: string,
+  memberId: string,
+  update: Partial<FamilyMember>,
+) {
+  const existing = await loadUser(userId);
+  if (!existing) return null;
+
+  const member = existing.family.find((item) => item.id === memberId);
+  if (!member) return null;
+
+  await prisma.familyMember.updateMany({
+    where: { id: memberId, userId },
+    data: {
+      name: update.name?.trim(),
+      relationship: update.relationship,
+      birthYear: update.birthYear,
+      notes: update.notes,
+      allergies: update.allergies ?? null,
+      medicalNotes: update.medicalNotes ?? null,
+      authorizedPickup: update.authorizedPickup ?? undefined,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { updatedAt: new Date() },
+  });
+
+  await logActivity(userId, "family_updated", `Updated ${member.name} in family`);
   return loadUser(userId);
 }
 
@@ -223,6 +259,7 @@ export async function updateNotificationPrefs(
       notifyAnnouncements:
         prefs.announcements ?? existing.notificationPrefs?.announcements ?? true,
       notifyWorship: prefs.worship ?? existing.notificationPrefs?.worship ?? true,
+      notifyKids: prefs.kids ?? existing.notificationPrefs?.kids ?? true,
       updatedAt: new Date(),
     },
     include: { family: true },

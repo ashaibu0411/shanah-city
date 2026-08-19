@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { canAccessKidsMinistry } from "@/lib/kids-access-server";
+import { enrichCheckInFromProfile } from "@/lib/kids-server";
 import {
   addKidCheckIn,
   checkoutKid,
@@ -26,7 +28,12 @@ export async function GET() {
   }
 
   const checkins = await getKidCheckIns();
-  return NextResponse.json({ checkins });
+  const isTeacher = await canAccessKidsMinistry(user);
+  const visible = isTeacher
+    ? checkins
+    : checkins.filter((entry) => entry.parentUserId === user.id || entry.parentName === user.name);
+
+  return NextResponse.json({ checkins: visible });
 }
 
 export async function POST(request: Request) {
@@ -50,7 +57,7 @@ export async function POST(request: Request) {
   const body = await request.json();
 
   if (body.action === "checkout") {
-    const entry = await checkoutKid(body.id);
+    const entry = await checkoutKid(String(body.id ?? ""), user.id);
     if (!entry) {
       return NextResponse.json({ error: "Check-in not found." }, { status: 404 });
     }
@@ -61,10 +68,16 @@ export async function POST(request: Request) {
   const childName = String(body.childName ?? "").trim();
   const ageGroup = String(body.ageGroup ?? "").trim();
   const service = String(body.service ?? "").trim();
+  const familyMemberId = body.familyMemberId ? String(body.familyMemberId) : undefined;
 
   if (!parentName || !childName || !ageGroup || !service) {
     return NextResponse.json({ error: "All fields are required." }, { status: 400 });
   }
+
+  const profileExtras = enrichCheckInFromProfile(user, childName);
+  const familyChild = familyMemberId
+    ? user.family.find((member) => member.id === familyMemberId)
+    : undefined;
 
   const entry = await addKidCheckIn({
     id: `kid-${Date.now()}`,
@@ -75,6 +88,11 @@ export async function POST(request: Request) {
     notes: body.notes ? String(body.notes).trim() : undefined,
     securityCode: createSecurityCode(),
     checkedInAt: new Date().toISOString(),
+    parentUserId: user.id,
+    familyMemberId: familyChild?.id ?? profileExtras.familyMemberId,
+    allergies: familyChild?.allergies ?? profileExtras.allergies,
+    medicalNotes: familyChild?.medicalNotes ?? profileExtras.medicalNotes,
+    authorizedPickup: familyChild?.authorizedPickup ?? profileExtras.authorizedPickup,
   });
 
   return NextResponse.json({ checkin: entry }, { status: 201 });

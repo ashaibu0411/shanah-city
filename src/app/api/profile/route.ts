@@ -5,6 +5,7 @@ import {
   deleteSession,
   getUserFromSession,
   removeFamilyMember,
+  updateFamilyMember,
   SESSION_COOKIE,
   toPublicMember,
   updateUserProfile,
@@ -34,6 +35,34 @@ export async function PATCH(request: Request) {
       relationship: body.relationship ?? "other",
       birthYear: body.birthYear ? String(body.birthYear) : undefined,
       notes: body.notes ? String(body.notes).trim() : undefined,
+      allergies: body.allergies ? String(body.allergies).trim() : undefined,
+      medicalNotes: body.medicalNotes ? String(body.medicalNotes).trim() : undefined,
+      authorizedPickup: Array.isArray(body.authorizedPickup)
+        ? body.authorizedPickup.map((contact: { name?: string; phone?: string; relationship?: string }) => ({
+            name: String(contact.name ?? "").trim(),
+            phone: contact.phone ? String(contact.phone).trim() : undefined,
+            relationship: contact.relationship ? String(contact.relationship).trim() : undefined,
+          })).filter((contact: { name: string }) => contact.name)
+        : undefined,
+    });
+    return NextResponse.json({ user: member ? toPublicMember(member) : null });
+  }
+
+  if (body.action === "update_family") {
+    const member = await updateFamilyMember(user.id, String(body.memberId ?? ""), {
+      name: body.name ? String(body.name).trim() : undefined,
+      relationship: body.relationship,
+      birthYear: body.birthYear ? String(body.birthYear) : undefined,
+      notes: body.notes ? String(body.notes).trim() : undefined,
+      allergies: body.allergies !== undefined ? String(body.allergies).trim() : undefined,
+      medicalNotes: body.medicalNotes !== undefined ? String(body.medicalNotes).trim() : undefined,
+      authorizedPickup: Array.isArray(body.authorizedPickup)
+        ? body.authorizedPickup.map((contact: { name?: string; phone?: string; relationship?: string }) => ({
+            name: String(contact.name ?? "").trim(),
+            phone: contact.phone ? String(contact.phone).trim() : undefined,
+            relationship: contact.relationship ? String(contact.relationship).trim() : undefined,
+          })).filter((contact: { name: string }) => contact.name)
+        : undefined,
     });
     return NextResponse.json({ user: member ? toPublicMember(member) : null });
   }

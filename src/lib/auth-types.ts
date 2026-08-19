@@ -1,9 +1,18 @@
+export type AuthorizedPickupContact = {
+  name: string;
+  phone?: string;
+  relationship?: string;
+};
+
 export type FamilyMember = {
   id: string;
   name: string;
   relationship: "spouse" | "child" | "parent" | "sibling" | "other";
   birthYear?: string;
   notes?: string;
+  allergies?: string;
+  medicalNotes?: string;
+  authorizedPickup?: AuthorizedPickupContact[];
 };
 
 export type NotificationPrefs = {
@@ -12,9 +21,10 @@ export type NotificationPrefs = {
   messages: boolean;
   announcements: boolean;
   worship: boolean;
+  kids: boolean;
 };
 
-export type NotificationTopic = "devotions" | "messages" | "announcements" | "worship";
+export type NotificationTopic = "devotions" | "messages" | "announcements" | "worship" | "kids";
 
 export type MemberProfile = {
   id: string;
@@ -46,6 +56,7 @@ export type ActivityItem = {
     | "signup"
     | "profile_update"
     | "family_added"
+    | "family_updated"
     | "signin"
     | "devotion_published"
     | "message_sent"

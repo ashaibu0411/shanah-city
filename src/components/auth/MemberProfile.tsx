@@ -32,6 +32,11 @@ export function MemberProfile() {
   const [relationship, setRelationship] =
     useState<(typeof relationships)[number]["value"]>("child");
   const [birthYear, setBirthYear] = useState("");
+  const [childAllergies, setChildAllergies] = useState("");
+  const [childMedicalNotes, setChildMedicalNotes] = useState("");
+  const [pickupName, setPickupName] = useState("");
+  const [pickupPhone, setPickupPhone] = useState("");
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -65,22 +70,74 @@ export function MemberProfile() {
 
   async function addFamilyMember() {
     if (!memberName.trim()) return;
+    const payload: Record<string, unknown> = {
+      action: "add_family",
+      name: memberName,
+      relationship,
+      birthYear,
+    };
+    if (relationship === "child") {
+      payload.allergies = childAllergies;
+      payload.medicalNotes = childMedicalNotes;
+      if (pickupName.trim()) {
+        payload.authorizedPickup = [
+          {
+            name: pickupName.trim(),
+            phone: pickupPhone.trim() || undefined,
+            relationship: "Authorized pickup",
+          },
+        ];
+      }
+    }
     const response = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "add_family",
-        name: memberName,
-        relationship,
-        birthYear,
-      }),
+      body: JSON.stringify(payload),
     });
     const data = await response.json();
     if (response.ok) {
       setUser(data.user);
       setMemberName("");
       setBirthYear("");
+      setChildAllergies("");
+      setChildMedicalNotes("");
+      setPickupName("");
+      setPickupPhone("");
       setMessage(`${memberName} added to your family.`);
+    }
+  }
+
+  async function saveFamilyMember(memberId: string) {
+    const member = user!.family.find((entry) => entry.id === memberId);
+    if (!member) return;
+    const response = await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "update_family",
+        memberId,
+        allergies: childAllergies,
+        medicalNotes: childMedicalNotes,
+        authorizedPickup: pickupName.trim()
+          ? [
+              {
+                name: pickupName.trim(),
+                phone: pickupPhone.trim() || undefined,
+                relationship: "Authorized pickup",
+              },
+            ]
+          : member.authorizedPickup,
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setUser(data.user);
+      setEditingMemberId(null);
+      setChildAllergies("");
+      setChildMedicalNotes("");
+      setPickupName("");
+      setPickupPhone("");
+      setMessage("Family member updated.");
     }
   }
 
@@ -129,6 +186,11 @@ export function MemberProfile() {
         {permissions.canAccessWorshipPlanner && (
           <Button href="/worship" variant="secondary">
             Worship planner
+          </Button>
+        )}
+        {permissions.canAccessKidsMinistry && (
+          <Button href="/kids-ministry" variant="secondary">
+            Kids ministry
           </Button>
         )}
         {permissions.canWriteDevotions && (
@@ -213,6 +275,34 @@ export function MemberProfile() {
                 className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
               />
             </div>
+            {relationship === "child" && (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <input
+                  value={childAllergies}
+                  onChange={(event) => setChildAllergies(event.target.value)}
+                  placeholder="Allergies (optional)"
+                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <input
+                  value={childMedicalNotes}
+                  onChange={(event) => setChildMedicalNotes(event.target.value)}
+                  placeholder="Medical notes (optional)"
+                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <input
+                  value={pickupName}
+                  onChange={(event) => setPickupName(event.target.value)}
+                  placeholder="Authorized pickup name"
+                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <input
+                  value={pickupPhone}
+                  onChange={(event) => setPickupPhone(event.target.value)}
+                  placeholder="Authorized pickup phone"
+                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+              </div>
+            )}
             <Button className="mt-3" variant="secondary" onClick={addFamilyMember}>
               Add family member
             </Button>
@@ -232,17 +322,77 @@ export function MemberProfile() {
                         {member.relationship}
                         {member.birthYear ? ` · born ${member.birthYear}` : ""}
                       </p>
+                      {member.relationship === "child" && member.allergies && (
+                        <p className="text-amber-700">Allergy: {member.allergies}</p>
+                      )}
+                      {member.relationship === "child" && member.medicalNotes && (
+                        <p className="text-red-700">Medical: {member.medicalNotes}</p>
+                      )}
                     </div>
-                    <button
+                    <div className="flex gap-3">
+                      {member.relationship === "child" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingMemberId(member.id);
+                            setChildAllergies(member.allergies ?? "");
+                            setChildMedicalNotes(member.medicalNotes ?? "");
+                            setPickupName(member.authorizedPickup?.[0]?.name ?? "");
+                            setPickupPhone(member.authorizedPickup?.[0]?.phone ?? "");
+                          }}
+                          className="text-night-700 hover:underline"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
                       type="button"
                       onClick={() => removeMember(member.id)}
                       className="text-red-600 hover:underline"
                     >
                       Remove
                     </button>
+                    </div>
                   </li>
                 ))}
               </ul>
+            )}
+            {editingMemberId && (
+              <div className="mt-4 rounded-xl border border-night-900/10 bg-sand-50 p-4">
+                <p className="text-sm font-medium text-night-900">Update child safety info</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <input
+                    value={childAllergies}
+                    onChange={(event) => setChildAllergies(event.target.value)}
+                    placeholder="Allergies"
+                    className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                  />
+                  <input
+                    value={childMedicalNotes}
+                    onChange={(event) => setChildMedicalNotes(event.target.value)}
+                    placeholder="Medical notes"
+                    className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                  />
+                  <input
+                    value={pickupName}
+                    onChange={(event) => setPickupName(event.target.value)}
+                    placeholder="Authorized pickup name"
+                    className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                  />
+                  <input
+                    value={pickupPhone}
+                    onChange={(event) => setPickupPhone(event.target.value)}
+                    placeholder="Authorized pickup phone"
+                    className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                  />
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Button onClick={() => saveFamilyMember(editingMemberId)}>Save child info</Button>
+                  <Button variant="secondary" onClick={() => setEditingMemberId(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
             )}
           </Card>
 
@@ -260,6 +410,13 @@ export function MemberProfile() {
                   Kids check-in →
                 </a>
               </li>
+              {permissions.canAccessKidsMinistry && (
+                <li>
+                  <a href="/kids-ministry" className="font-medium text-night-800 hover:underline">
+                    Kids ministry dashboard →
+                  </a>
+                </li>
+              )}
               <li>
                 <a href="/give" className="font-medium text-night-800 hover:underline">
                   Give →

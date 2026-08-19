@@ -57,13 +57,21 @@ export type VolunteerCheckIn = {
 export type KidCheckIn = {
   id: string;
   parentName: string;
+  parentUserId?: string;
+  familyMemberId?: string;
   childName: string;
   ageGroup: string;
   service: string;
   notes?: string;
+  allergies?: string;
+  medicalNotes?: string;
+  authorizedPickup?: import("@/lib/kids-types").AuthorizedPickupContact[];
   securityCode: string;
   checkedInAt: string;
   checkedOutAt?: string;
+  checkedOutBy?: string;
+  pickupVerified?: boolean;
+  pickupVerifiedAt?: string;
 };
 
 export type ChurchEvent = {

@@ -73,24 +73,43 @@ function mapVolunteerCheckIn(record: {
 function mapKidCheckIn(record: {
   id: string;
   parentName: string;
+  parentUserId: string | null;
+  familyMemberId: string | null;
   childName: string;
   ageGroup: string;
   service: string;
   notes: string | null;
+  allergies: string | null;
+  medicalNotes: string | null;
+  authorizedPickup: unknown;
   securityCode: string;
   checkedInAt: Date;
   checkedOutAt: Date | null;
+  checkedOutBy: string | null;
+  pickupVerified: boolean;
+  pickupVerifiedAt: Date | null;
 }): KidCheckIn {
+  const authorizedPickup = Array.isArray(record.authorizedPickup)
+    ? (record.authorizedPickup as KidCheckIn["authorizedPickup"])
+    : undefined;
   return {
     id: record.id,
     parentName: record.parentName,
+    parentUserId: record.parentUserId ?? undefined,
+    familyMemberId: record.familyMemberId ?? undefined,
     childName: record.childName,
     ageGroup: record.ageGroup,
     service: record.service,
     notes: record.notes ?? undefined,
+    allergies: record.allergies ?? undefined,
+    medicalNotes: record.medicalNotes ?? undefined,
+    authorizedPickup,
     securityCode: record.securityCode,
     checkedInAt: record.checkedInAt.toISOString(),
     checkedOutAt: record.checkedOutAt?.toISOString(),
+    checkedOutBy: record.checkedOutBy ?? undefined,
+    pickupVerified: record.pickupVerified,
+    pickupVerifiedAt: record.pickupVerifiedAt?.toISOString(),
   };
 }
 
@@ -263,10 +282,15 @@ export async function addKidCheckIn(entry: KidCheckIn) {
     data: {
       id: entry.id,
       parentName: entry.parentName,
+      parentUserId: entry.parentUserId ?? null,
+      familyMemberId: entry.familyMemberId ?? null,
       childName: entry.childName,
       ageGroup: entry.ageGroup,
       service: entry.service,
       notes: entry.notes,
+      allergies: entry.allergies ?? null,
+      medicalNotes: entry.medicalNotes ?? null,
+      authorizedPickup: entry.authorizedPickup ?? undefined,
       securityCode: entry.securityCode,
       checkedInAt: new Date(entry.checkedInAt),
     },
@@ -274,15 +298,40 @@ export async function addKidCheckIn(entry: KidCheckIn) {
   return mapKidCheckIn(created);
 }
 
-export async function checkoutKid(id: string) {
+export async function checkoutKid(id: string, checkedOutBy?: string) {
   const existing = await prisma.kidCheckIn.findUnique({ where: { id } });
   if (!existing) return null;
 
   const updated = await prisma.kidCheckIn.update({
     where: { id },
-    data: { checkedOutAt: new Date() },
+    data: {
+      checkedOutAt: new Date(),
+      checkedOutBy: checkedOutBy ?? null,
+    },
   });
   return mapKidCheckIn(updated);
+}
+
+export async function verifyCheckoutKid(
+  id: string,
+  input: { securityCode: string; checkedOutBy: string },
+) {
+  const existing = await prisma.kidCheckIn.findUnique({ where: { id } });
+  if (!existing || existing.checkedOutAt) return null;
+  if (existing.securityCode !== input.securityCode.trim()) {
+    return { error: "invalid_code" as const };
+  }
+
+  const updated = await prisma.kidCheckIn.update({
+    where: { id },
+    data: {
+      checkedOutAt: new Date(),
+      checkedOutBy: input.checkedOutBy,
+      pickupVerified: true,
+      pickupVerifiedAt: new Date(),
+    },
+  });
+  return { checkin: mapKidCheckIn(updated) };
 }
 
 export async function getUnavailabilityRequests() {

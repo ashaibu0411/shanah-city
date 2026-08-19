@@ -46,6 +46,8 @@ export async function GET() {
         canManageWorshipPlan: false,
         canAccessFrontLiners: false,
         canManageFrontLiners: false,
+        canAccessKidsMinistry: false,
+        canManageKidsMinistry: false,
       },
     });
   }

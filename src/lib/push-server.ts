@@ -66,6 +66,7 @@ export async function sendPushToUsers(
       messages: user?.notificationPrefs?.messages ?? true,
       announcements: user?.notificationPrefs?.announcements ?? true,
       worship: user?.notificationPrefs?.worship ?? true,
+      kids: user?.notificationPrefs?.kids ?? true,
     };
 
     if (!prefs.pushEnabled || !prefs[preferenceKey]) {

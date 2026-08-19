@@ -39,7 +39,11 @@ export const addVolunteerCheckIn = (
 export const getKidCheckIns = () => store().getKidCheckIns();
 export const addKidCheckIn = (entry: Parameters<typeof memberJson.addKidCheckIn>[0]) =>
   store().addKidCheckIn(entry);
-export const checkoutKid = (id: string) => store().checkoutKid(id);
+export const checkoutKid = (id: string, checkedOutBy?: string) => store().checkoutKid(id, checkedOutBy);
+export const verifyCheckoutKid = (
+  id: string,
+  input: { securityCode: string; checkedOutBy: string },
+) => store().verifyCheckoutKid(id, input);
 export const getUnavailabilityRequests = () => store().getUnavailabilityRequests();
 export const addUnavailabilityRequest = (
   request: Parameters<typeof memberJson.addUnavailabilityRequest>[0],

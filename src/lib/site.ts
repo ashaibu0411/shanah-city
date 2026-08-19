@@ -147,6 +147,12 @@ export const frontlinersNavItem = {
   icon: "☺",
 } as const;
 
+export const kidsMinistryNavItem = {
+  label: "Kids Ministry",
+  href: "/kids-ministry",
+  icon: "✿",
+} as const;
+
 export const adminNavItem = {
   label: "Admin",
   href: "/admin/approvals",

@@ -75,6 +75,7 @@ export async function createUser(input: {
       messages: true,
       announcements: true,
       worship: true,
+      kids: true,
     },
     passwordHash: await bcrypt.hash(input.password, 10),
     family: [],
@@ -131,6 +132,29 @@ export async function addFamilyMember(userId: string, member: FamilyMember) {
   users[index].updatedAt = new Date().toISOString();
   await writeJson(USERS_FILE, users);
   await logActivity(userId, "family_added", `Added ${member.name} to family`);
+  return users[index];
+}
+
+export async function updateFamilyMember(
+  userId: string,
+  memberId: string,
+  update: Partial<FamilyMember>,
+) {
+  const users = await getUsers();
+  const index = users.findIndex((user) => user.id === userId);
+  if (index === -1) return null;
+
+  const memberIndex = users[index].family.findIndex((member) => member.id === memberId);
+  if (memberIndex === -1) return null;
+
+  users[index].family[memberIndex] = {
+    ...users[index].family[memberIndex],
+    ...update,
+    name: update.name?.trim() ?? users[index].family[memberIndex].name,
+  };
+  users[index].updatedAt = new Date().toISOString();
+  await writeJson(USERS_FILE, users);
+  await logActivity(userId, "family_updated", `Updated family member`);
   return users[index];
 }
 
@@ -209,6 +233,7 @@ export async function updateNotificationPrefs(
     announcements:
       prefs.announcements ?? users[index].notificationPrefs?.announcements ?? true,
     worship: prefs.worship ?? users[index].notificationPrefs?.worship ?? true,
+    kids: prefs.kids ?? users[index].notificationPrefs?.kids ?? true,
   };
   users[index].updatedAt = new Date().toISOString();
   await writeJson(USERS_FILE, users);

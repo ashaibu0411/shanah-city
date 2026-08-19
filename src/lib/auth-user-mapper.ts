@@ -18,6 +18,7 @@ export function mapDbUserToProfile(user: DbUserWithFamily): MemberProfile {
       messages: user.notifyMessages,
       announcements: user.notifyAnnouncements,
       worship: user.notifyWorship,
+      kids: user.notifyKids,
     },
     passwordHash: user.passwordHash,
     family: user.family.map(mapDbFamilyMember),
@@ -27,12 +28,18 @@ export function mapDbUserToProfile(user: DbUserWithFamily): MemberProfile {
 }
 
 function mapDbFamilyMember(member: DbFamilyMember): FamilyMember {
+  const authorizedPickup = Array.isArray(member.authorizedPickup)
+    ? (member.authorizedPickup as FamilyMember["authorizedPickup"])
+    : undefined;
   return {
     id: member.id,
     name: member.name,
     relationship: member.relationship as FamilyMember["relationship"],
     birthYear: member.birthYear ?? undefined,
     notes: member.notes ?? undefined,
+    allergies: member.allergies ?? undefined,
+    medicalNotes: member.medicalNotes ?? undefined,
+    authorizedPickup,
   };
 }
 
@@ -44,5 +51,6 @@ export function notificationPrefsToDb(prefs?: Partial<NotificationPrefs>) {
     notifyMessages: prefs.messages,
     notifyAnnouncements: prefs.announcements,
     notifyWorship: prefs.worship,
+    notifyKids: prefs.kids,
   };
 }

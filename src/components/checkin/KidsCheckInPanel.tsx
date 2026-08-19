@@ -6,15 +6,18 @@ import type { KidCheckIn } from "@/lib/member-types";
 import { KidCheckInLabel, printKidCheckInLabel } from "@/components/checkin/KidCheckInLabel";
 import { Button, Card } from "@/components/ui";
 
-const ageGroups = ["Nursery (0-2)", "Preschool (3-5)", "Elementary (6-11)", "Youth (12+)"];
-const services = ["Friday Evening", "Sunday Morning"];
+import { KIDS_AGE_GROUPS, KIDS_SERVICES } from "@/lib/kids-types";
+
+const ageGroups = [...KIDS_AGE_GROUPS];
+const services = [...KIDS_SERVICES];
 
 export function KidsCheckInPanel() {
   const { user } = useAuth();
   const [parentName, setParentName] = useState("");
   const [childName, setChildName] = useState("");
-  const [ageGroup, setAgeGroup] = useState(ageGroups[0]);
-  const [service, setService] = useState(services[1]);
+  const [familyMemberId, setFamilyMemberId] = useState("");
+  const [ageGroup, setAgeGroup] = useState<string>(ageGroups[0]);
+  const [service, setService] = useState<string>(services[1]);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -38,6 +41,16 @@ export function KidsCheckInPanel() {
     }
   }, [user]);
 
+  const familyChildren = user?.family.filter((member) => member.relationship === "child") ?? [];
+
+  function selectFamilyChild(memberId: string) {
+    setFamilyMemberId(memberId);
+    const member = familyChildren.find((entry) => entry.id === memberId);
+    if (member) {
+      setChildName(member.name);
+    }
+  }
+
   useEffect(() => {
     loadActive();
   }, []);
@@ -50,7 +63,14 @@ export function KidsCheckInPanel() {
     const response = await fetch("/api/checkin/kids", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ parentName, childName, ageGroup, service, notes }),
+      body: JSON.stringify({
+        parentName,
+        childName,
+        ageGroup,
+        service,
+        notes,
+        familyMemberId: familyMemberId || undefined,
+      }),
     });
     const data = await response.json();
     setLoading(false);
@@ -63,6 +83,7 @@ export function KidsCheckInPanel() {
     setLastLabel(data.checkin);
     setMessage(`${childName} checked in. Print the label below and attach it for pickup.`);
     setChildName("");
+    setFamilyMemberId("");
     setNotes("");
     loadActive();
 
@@ -99,12 +120,38 @@ export function KidsCheckInPanel() {
             placeholder="Parent / guardian name"
             className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
           />
-          <input
-            value={childName}
-            onChange={(event) => setChildName(event.target.value)}
-            placeholder="Child's name"
-            className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-          />
+          {familyChildren.length > 0 ? (
+            <select
+              value={familyMemberId}
+              onChange={(event) => selectFamilyChild(event.target.value)}
+              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            >
+              <option value="">Select child from family</option>
+              {familyChildren.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              value={childName}
+              onChange={(event) => setChildName(event.target.value)}
+              placeholder="Child's name"
+              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          )}
+          {familyChildren.length > 0 && (
+            <input
+              value={childName}
+              onChange={(event) => {
+                setChildName(event.target.value);
+                setFamilyMemberId("");
+              }}
+              placeholder="Or type child's name"
+              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 sm:col-span-2"
+            />
+          )}
           <select
             value={ageGroup}
             onChange={(event) => setAgeGroup(event.target.value)}
@@ -186,6 +233,9 @@ export function KidsCheckInPanel() {
                   <p className="text-night-500">
                     {entry.ageGroup} · {entry.service} · Code {entry.securityCode ?? "----"}
                   </p>
+                  {entry.allergies && (
+                    <p className="text-amber-700">Allergy: {entry.allergies}</p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button
