@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Devotion } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
+import { RichTextContent } from "@/components/ui/RichTextContent";
 
 export function DevotionPreview({ devotion }: { devotion: Devotion }) {
   const [completed, setCompleted] = useState(false);
@@ -27,15 +28,17 @@ export function DevotionPreview({ devotion }: { devotion: Devotion }) {
       </div>
 
       <blockquote className="mt-4 border-l-4 border-sand-400 pl-4 italic text-night-700">
-        &ldquo;{devotion.verse}&rdquo;
+        &ldquo;
+        <RichTextContent text={devotion.verse} />
+        &rdquo;
         <footer className="mt-2 not-italic text-sm font-semibold text-night-500">
           — {devotion.reference}
         </footer>
       </blockquote>
 
-      <p className="mt-4 text-sm leading-relaxed text-night-600">
-        {devotion.content}
-      </p>
+      <div className="mt-4 text-sm leading-relaxed text-night-600">
+        <RichTextContent text={devotion.content} />
+      </div>
 
       <div className="mt-5 flex flex-wrap gap-3">
         <Button onClick={() => setCompleted(true)}>
@@ -68,15 +71,17 @@ export function DevotionCard({ devotion }: { devotion: Devotion }) {
       </div>
 
       <blockquote className="mt-4 text-sm italic text-night-700">
-        &ldquo;{devotion.verse}&rdquo; — {devotion.reference}
+        &ldquo;
+        <RichTextContent text={devotion.verse} />
+        &rdquo; — {devotion.reference}
       </blockquote>
 
       {expanded && (
         <div className="mt-4 space-y-3 text-sm text-night-600">
-          <p>{devotion.content}</p>
+          <RichTextContent text={devotion.content} className="block" />
           <p className="rounded-xl bg-sand-50 p-3">
             <span className="font-semibold text-night-800">Prayer: </span>
-            {devotion.prayer}
+            <RichTextContent text={devotion.prayer} />
           </p>
         </div>
       )}

@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/app/BrandLogo";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { useApp } from "@/components/app/AppProvider";
 import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail, streamPreviews } from "@/lib/streams";
+import { pickTodayDevotion } from "@/lib/devotion-utils";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
 
@@ -47,7 +49,22 @@ type MobileHomeProps = {
 
 export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
   const { campus } = useApp();
-  const devotion = todayDevotion;
+  const [devotion, setDevotion] = useState<Devotion | null>(todayDevotion);
+
+  useEffect(() => {
+    setDevotion(todayDevotion);
+  }, [todayDevotion]);
+
+  useEffect(() => {
+    fetch("/api/devotions", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data.devotions)) {
+          setDevotion(pickTodayDevotion(data.devotions));
+        }
+      })
+      .catch(() => undefined);
+  }, []);
   const anyLive =
     liveStream.isLive ||
     liveStream.youtube.isLive ||

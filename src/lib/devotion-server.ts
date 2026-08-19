@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { useDatabase } from "@/lib/use-database";
 import * as devotionDb from "@/lib/stores/devotion-db";
 import * as devotionJson from "@/lib/stores/devotion-json";
@@ -6,7 +7,10 @@ const store = () => (useDatabase() ? devotionDb : devotionJson);
 
 export const getDevotions = (options?: Parameters<typeof devotionJson.getDevotions>[0]) =>
   store().getDevotions(options);
-export const getTodayDevotion = () => store().getTodayDevotion();
+export const getTodayDevotion = () => {
+  noStore();
+  return store().getTodayDevotion();
+};
 export const getDevotionById = (id: string) => store().getDevotionById(id);
 export const createDevotion = (
   input: Parameters<typeof devotionJson.createDevotion>[0],

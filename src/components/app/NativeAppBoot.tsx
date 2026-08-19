@@ -15,6 +15,14 @@ export function NativeAppBoot() {
 
       document.body.dataset.native = "true";
 
+      if ("serviceWorker" in navigator) {
+        try {
+          await navigator.serviceWorker.register("/sw.js");
+        } catch {
+          // Push may still require browser/PWA support on some devices.
+        }
+      }
+
       try {
         await StatusBar.setStyle({ style: Style.Light });
         await StatusBar.setBackgroundColor({ color: "#1a2332" });

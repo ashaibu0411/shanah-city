@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import {
   getUserFromSession,
@@ -49,7 +50,10 @@ export async function GET(request: Request) {
   }
 
   const devotions = await getDevotions();
-  return NextResponse.json({ devotions });
+  return NextResponse.json(
+    { devotions },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }
 
 export async function POST(request: Request) {
@@ -106,6 +110,9 @@ export async function POST(request: Request) {
     await markDevotionNotified(devotion.id);
   }
 
+  revalidatePath("/");
+  revalidatePath("/devotions");
+
   return NextResponse.json({ devotion }, { status: 201 });
 }
 
@@ -151,6 +158,9 @@ export async function PATCH(request: Request) {
     await markDevotionNotified(devotion.id);
   }
 
+  revalidatePath("/");
+  revalidatePath("/devotions");
+
   return NextResponse.json({ devotion });
 }
 
@@ -169,6 +179,9 @@ export async function DELETE(request: Request) {
   if (!removed) {
     return NextResponse.json({ error: "Devotion not found." }, { status: 404 });
   }
+
+  revalidatePath("/");
+  revalidatePath("/devotions");
 
   return NextResponse.json({ ok: true });
 }

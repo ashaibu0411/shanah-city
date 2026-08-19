@@ -7,8 +7,10 @@ export function estimateReadingTime(parts: {
   content?: string;
   prayer?: string;
 }) {
+  const stripMarkers = (value: string) => value.replace(/[*_]/g, "");
   const text = [parts.verse, parts.content, parts.prayer]
     .filter(Boolean)
+    .map((part) => stripMarkers(part ?? ""))
     .join(" ");
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   const minutes = Math.max(1, Math.round(words / 180));
@@ -177,7 +179,7 @@ export function pickTodayDevotion(devotions: Devotion[], now = new Date()) {
   }
 
   const todayKey = toDateInputValue(now);
-  const matchToday = visible.find((devotion) => {
+  const todays = visible.filter((devotion) => {
     if (devotion.publishAt) {
       return toDateInputValue(devotion.publishAt) === todayKey;
     }
@@ -188,7 +190,8 @@ export function pickTodayDevotion(devotions: Devotion[], now = new Date()) {
     return false;
   });
 
-  return matchToday ?? visible[0];
+  // Prefer the newest devotion for today; otherwise show the newest live devotion.
+  return todays[0] ?? visible[0];
 }
 
 export function shouldNotifyDevotionPublish(devotion: Devotion, now = new Date()) {

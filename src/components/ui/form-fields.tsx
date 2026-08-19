@@ -1,5 +1,6 @@
 "use client";
 
+import { forwardRef } from "react";
 import type { ClipboardEvent, InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 const fieldClassName =
@@ -55,22 +56,20 @@ type FormTextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "valu
   onValueChange: (value: string) => void;
 };
 
-export function FormTextarea({
-  value,
-  onValueChange,
-  className = "",
-  ...props
-}: FormTextareaProps) {
-  return (
-    <textarea
-      {...props}
-      value={value}
-      onChange={(event) => onValueChange(event.target.value)}
-      onPaste={handlePaste(value, onValueChange)}
-      autoComplete="off"
-      autoCorrect="on"
-      spellCheck
-      className={`${fieldClassName} ${className}`.trim()}
-    />
-  );
-}
+export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
+  function FormTextarea({ value, onValueChange, className = "", ...props }, ref) {
+    return (
+      <textarea
+        {...props}
+        ref={ref}
+        value={value}
+        onChange={(event) => onValueChange(event.target.value)}
+        onPaste={handlePaste(value, onValueChange)}
+        autoComplete="off"
+        autoCorrect="on"
+        spellCheck
+        className={`${fieldClassName} ${className}`.trim()}
+      />
+    );
+  },
+);

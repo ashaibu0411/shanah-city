@@ -3,6 +3,8 @@ import { getTodayDevotion } from "@/lib/devotion-server";
 import { getEvents } from "@/lib/event-server";
 import { getCommunityPostsForViewer } from "@/lib/member-server";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const [posts, todayDevotion, events] = await Promise.all([
     getCommunityPostsForViewer(null),

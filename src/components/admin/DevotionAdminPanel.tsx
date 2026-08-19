@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
-import { FormInput, FormTextarea } from "@/components/ui/form-fields";
+import { FormInput } from "@/components/ui/form-fields";
+import { RichTextArea } from "@/components/ui/RichTextArea";
 import {
   defaultScheduleDateInput,
   devotionToPublishMode,
@@ -142,9 +143,13 @@ export function DevotionAdminPanel() {
     if (form.publishMode === "draft") {
       setStatus("Draft saved.");
     } else if (form.publishMode === "now") {
-      setStatus("Devotion published now.");
+      setStatus(
+        "Devotion published now. Home and Devotions will update immediately. Push alerts go to other members with notifications enabled (not to you as the author).",
+      );
     } else {
-      setStatus(`Devotion scheduled for ${displayDate} at ${form.scheduleTime}.`);
+      setStatus(
+        `Devotion scheduled for ${displayDate} at ${form.scheduleTime}. Push alerts send when it goes live.`,
+      );
     }
 
     resetForm();
@@ -339,41 +344,29 @@ export function DevotionAdminPanel() {
             />
           </div>
 
-          <div>
-            <label htmlFor="verse" className="text-sm font-semibold text-night-800">
-              Verse
-            </label>
-            <FormTextarea
-              id="verse"
-              value={form.verse}
-              onValueChange={(verse) => setForm((current) => ({ ...current, verse }))}
-              rows={3}
-            />
-          </div>
+          <RichTextArea
+            id="verse"
+            label="Verse"
+            value={form.verse}
+            onValueChange={(verse) => setForm((current) => ({ ...current, verse }))}
+            rows={3}
+          />
 
-          <div>
-            <label htmlFor="content" className="text-sm font-semibold text-night-800">
-              Reflection
-            </label>
-            <FormTextarea
-              id="content"
-              value={form.content}
-              onValueChange={(content) => setForm((current) => ({ ...current, content }))}
-              rows={5}
-            />
-          </div>
+          <RichTextArea
+            id="content"
+            label="Reflection"
+            value={form.content}
+            onValueChange={(content) => setForm((current) => ({ ...current, content }))}
+            rows={5}
+          />
 
-          <div>
-            <label htmlFor="prayer" className="text-sm font-semibold text-night-800">
-              Prayer
-            </label>
-            <FormTextarea
-              id="prayer"
-              value={form.prayer}
-              onValueChange={(prayer) => setForm((current) => ({ ...current, prayer }))}
-              rows={3}
-            />
-          </div>
+          <RichTextArea
+            id="prayer"
+            label="Prayer"
+            value={form.prayer}
+            onValueChange={(prayer) => setForm((current) => ({ ...current, prayer }))}
+            rows={3}
+          />
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">

@@ -2,6 +2,8 @@ import { DevotionCard, DevotionPreview } from "@/components/devotions/DevotionCa
 import { PageHeader } from "@/components/ui";
 import { getDevotions } from "@/lib/devotion-server";
 
+export const dynamic = "force-dynamic";
+
 export default async function DevotionsPage() {
   const devotions = await getDevotions();
 
