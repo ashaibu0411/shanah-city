@@ -14,7 +14,7 @@ import { Button, Card } from "@/components/ui";
 export function VolunteerCheckInPanel() {
   const { user } = useAuth();
   const [name, setName] = useState("");
-  const [ministry, setMinistry] = useState(FRONTLINER_ARRIVAL_TEAMS[0]);
+  const [ministry, setMinistry] = useState<string>(FRONTLINER_ARRIVAL_TEAMS[0]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
