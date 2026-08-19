@@ -48,8 +48,7 @@ export function DevotionListenPlayer({ devotion, compact = false }: DevotionList
           </p>
         )}
         <p className="mb-3 text-sm text-night-600">
-          Play continues if you leave this page. Use your device controls to pause from the
-          background.
+          Play continues if you leave this page or switch apps. Use Pause here or your phone’s media controls.
         </p>
         <div className="flex flex-wrap gap-2">
           {!current ? (
@@ -83,8 +82,8 @@ export function DevotionListenPlayer({ devotion, compact = false }: DevotionList
     <div className={compact ? "" : "rounded-2xl bg-sand-50 p-4"}>
       {!compact && (
         <p className="mb-3 text-sm text-night-600">
-          Choose a voice, then play. Audio keeps going if you move to another page. Natural or
-          Online voices usually sound warmer than basic device voices.
+          Choose a voice, then play. Audio keeps going if you move to another page or switch apps.
+          Natural or Online voices usually sound warmer than basic device voices.
         </p>
       )}
 

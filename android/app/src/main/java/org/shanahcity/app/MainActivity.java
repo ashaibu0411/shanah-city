@@ -21,11 +21,21 @@ public class MainActivity extends BridgeActivity {
   @Override
   public void onPause() {
     super.onPause();
-    // Keep JS/TTS running so devotion audio can continue in the background.
+    keepWebViewAlive();
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    keepWebViewAlive();
+  }
+
+  private void keepWebViewAlive() {
     if (getBridge() == null) return;
     WebView webView = getBridge().getWebView();
-    if (webView != null) {
-      webView.onResume();
-    }
+    if (webView == null) return;
+    // Keep JS/TTS running so devotion audio can continue in another app.
+    webView.onResume();
+    webView.resumeTimers();
   }
 }

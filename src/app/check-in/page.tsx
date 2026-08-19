@@ -15,7 +15,7 @@ export default function CheckInPage() {
       <PageHeader
         eyebrow="Serve & family"
         title="Check-in"
-        description="Volunteers clock in at the church address. Parents check kids into children's ministry."
+        description="FrontLiners report their Sunday arrival time. Parents check kids into children's ministry."
       />
 
       {loading ? (
@@ -26,7 +26,7 @@ export default function CheckInPage() {
             Sign in to check in
           </h2>
           <p className="mt-2 text-sm text-night-600">
-            Volunteer clock-in and kids check-in are available to signed-in members only.
+            Sunday arrival and kids check-in are available to signed-in members only.
           </p>
           <div className="mt-4 flex gap-3">
             <Button href="/sign-in?next=/check-in">Sign in</Button>
@@ -39,7 +39,7 @@ export default function CheckInPage() {
         <>
           <div className="mb-6 flex gap-2">
             {([
-              { id: "volunteer", label: "Volunteers" },
+              { id: "volunteer", label: "FrontLiners" },
               { id: "kids", label: "Kids" },
             ] as const).map((item) => (
               <button

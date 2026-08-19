@@ -8,6 +8,10 @@ import {
   rateLimitResponse,
 } from "@/lib/rate-limit-server";
 import { site } from "@/lib/site";
+import {
+  findTodaysVolunteerArrival,
+  volunteerArrivalId,
+} from "@/lib/volunteer-checkin";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
   const user = await getUserFromSession(token);
 
   if (!user) {
-    return NextResponse.json({ error: "Sign in to clock in." }, { status: 401 });
+    return NextResponse.json({ error: "Sign in to report your arrival." }, { status: 401 });
   }
 
   const ip = getClientIp(request);
@@ -51,7 +55,7 @@ export async function POST(request: Request) {
   }
 
   if (Number.isNaN(lat) || Number.isNaN(lng)) {
-    return NextResponse.json({ error: "Location is required to clock in." }, { status: 400 });
+    return NextResponse.json({ error: "Location is required to report your arrival." }, { status: 400 });
   }
 
   const location = isAtChurch(
@@ -64,15 +68,20 @@ export async function POST(request: Request) {
   if (!location.atChurch) {
     return NextResponse.json(
       {
-        error: `You must be at the church to clock in. You are about ${location.distanceMeters}m away.`,
+        error: `You must be at the church to report your arrival. You are about ${location.distanceMeters}m away.`,
         distanceMeters: location.distanceMeters,
       },
       { status: 403 },
     );
   }
 
+  const existing = findTodaysVolunteerArrival(await getVolunteerCheckIns(), user);
+  if (existing) {
+    return NextResponse.json({ checkin: existing, alreadyReported: true });
+  }
+
   const entry = await addVolunteerCheckIn({
-    id: String(Date.now()),
+    id: volunteerArrivalId(user.id),
     name,
     ministry,
     checkedInAt: new Date().toISOString(),
@@ -80,5 +89,5 @@ export async function POST(request: Request) {
     distanceMeters: location.distanceMeters,
   });
 
-  return NextResponse.json({ checkin: entry }, { status: 201 });
+  return NextResponse.json({ checkin: entry, alreadyReported: false }, { status: 201 });
 }

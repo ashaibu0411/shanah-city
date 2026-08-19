@@ -26,8 +26,7 @@ import {
   type DevotionTtsVoiceOption,
 } from "@/lib/devotion-tts-utils";
 
-const SILENT_WAV =
-  "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+const KEEP_ALIVE_SRC = "/silence.wav";
 
 type DevotionPlayerContextValue = {
   devotion: Devotion | null;
@@ -117,18 +116,32 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startKeepAlive = useCallback(() => {
-    void keepAliveRef.current?.play().catch(() => undefined);
+    const keepAlive = keepAliveRef.current;
+    if (keepAlive) {
+      keepAlive.loop = true;
+      keepAlive.muted = false;
+      keepAlive.volume = 1;
+      if (keepAlive.src && !keepAlive.src.endsWith("silence.wav")) {
+        keepAlive.src = KEEP_ALIVE_SRC;
+      }
+      void keepAlive.play().catch(() => undefined);
+    }
     if (keepAliveTimerRef.current != null) {
       window.clearInterval(keepAliveTimerRef.current);
     }
     keepAliveTimerRef.current = window.setInterval(() => {
       if (!playingRef.current || pausedRef.current) return;
+      void keepAliveRef.current?.play().catch(() => undefined);
       if (typeof window === "undefined" || !window.speechSynthesis) return;
-      if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+        return;
+      }
+      if (window.speechSynthesis.speaking) {
         window.speechSynthesis.pause();
         window.speechSynthesis.resume();
       }
-    }, 12000);
+    }, 8000);
   }, []);
 
   const cancelTts = useCallback(() => {
@@ -314,6 +327,20 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const resumeSpeaking = useCallback(() => {
+    if (!playingRef.current || pausedRef.current) return;
+    void keepAliveRef.current?.play().catch(() => undefined);
+    void audioRef.current?.play().catch(() => undefined);
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+      return;
+    }
+    if (!window.speechSynthesis.speaking) {
+      speakCurrentChunk();
+    }
+  }, [speakCurrentChunk]);
+
   const isCurrent = useCallback((id: string) => devotion?.id === id && playing, [devotion, playing]);
 
   useEffect(() => {
@@ -354,28 +381,25 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const onVisibility = () => {
-      if (document.visibilityState !== "visible") return;
       if (!playingRef.current || pausedRef.current) return;
-      if (typeof window !== "undefined" && window.speechSynthesis?.paused) {
-        window.speechSynthesis.resume();
-      }
-      void audioRef.current?.play().catch(() => undefined);
+      resumeSpeaking();
     };
     document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
+    window.addEventListener("pagehide", onVisibility);
+    window.addEventListener("pageshow", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onVisibility);
+      window.removeEventListener("pageshow", onVisibility);
+    };
+  }, [resumeSpeaking]);
 
   useEffect(() => {
     if (!isNativeAppPlatform()) return;
     let handle: { remove: () => Promise<void> } | undefined;
     void import("@capacitor/app").then(({ App }) => {
-      void App.addListener("appStateChange", ({ isActive }) => {
-        if (!isActive || !playingRef.current || pausedRef.current) return;
-        if (typeof window !== "undefined" && window.speechSynthesis?.paused) {
-          window.speechSynthesis.resume();
-        }
-        void audioRef.current?.play().catch(() => undefined);
-        void keepAliveRef.current?.play().catch(() => undefined);
+      void App.addListener("appStateChange", () => {
+        resumeSpeaking();
       }).then((listener) => {
         handle = listener;
       });
@@ -383,7 +407,7 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     return () => {
       void handle?.remove();
     };
-  }, []);
+  }, [resumeSpeaking]);
 
   useEffect(() => {
     return () => {
@@ -432,7 +456,7 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
   return (
     <DevotionPlayerContext.Provider value={value}>
       <audio ref={audioRef} className="hidden" playsInline preload="none" />
-      <audio ref={keepAliveRef} className="hidden" loop playsInline src={SILENT_WAV} />
+      <audio ref={keepAliveRef} className="hidden" loop playsInline src={KEEP_ALIVE_SRC} />
       {children}
     </DevotionPlayerContext.Provider>
   );

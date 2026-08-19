@@ -1,5 +1,6 @@
 "use client";
 
+import { VolunteerCheckInPanel } from "@/components/checkin/VolunteerCheckInPanel";
 import { UsherSchedulePanel } from "@/components/frontliners/UsherSchedulePanel";
 
 export function FrontLinersHub({
@@ -9,5 +10,10 @@ export function FrontLinersHub({
   initialDate?: string;
   initialTime?: string;
 }) {
-  return <UsherSchedulePanel initialDate={initialDate} initialTime={initialTime} />;
+  return (
+    <div className="space-y-8">
+      <VolunteerCheckInPanel />
+      <UsherSchedulePanel initialDate={initialDate} initialTime={initialTime} />
+    </div>
+  );
 }

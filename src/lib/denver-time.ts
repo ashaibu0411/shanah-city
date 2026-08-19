@@ -48,3 +48,16 @@ export function isDenverWeekday(date = new Date()) {
   const weekday = getZonedDateParts(date).weekday;
   return weekday >= 1 && weekday <= 5;
 }
+
+export function isDenverSunday(date = new Date()) {
+  return getZonedDateParts(date).weekday === 0;
+}
+
+export function formatDenverTime(value: string | Date) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return date.toLocaleTimeString("en-US", {
+    timeZone: "America/Denver",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
