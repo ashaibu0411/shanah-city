@@ -62,7 +62,7 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
     site.serviceTimes[1]?.time.split(" – ")[0] ?? site.serviceTimes[0].time.split(" – ")[0];
 
   return (
-    <div className="mobile-home space-y-4 pb-8">
+    <div className="mobile-home space-y-4">
       <section className="mobile-home-aurora relative overflow-hidden rounded-[1.75rem] p-5 text-white shadow-2xl shadow-indigo-950/40 ring-1 ring-white/10">
         <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
         <div className="mobile-home-shimmer pointer-events-none absolute inset-0 opacity-40" aria-hidden />
@@ -143,7 +143,7 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
       {devotion && (
         <Link
           href="/devotions"
-          className="flex items-center justify-between gap-3 overflow-hidden rounded-2xl bg-white p-4 shadow-md ring-1 ring-night-900/5 transition active:scale-[0.99]"
+          className="mobile-card flex items-center justify-between gap-3 overflow-hidden rounded-2xl p-4 transition active:scale-[0.99]"
         >
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-wide text-amber-700/80">
@@ -176,7 +176,7 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
       {featuredPost && (
         <Link
           href="/community"
-          className="block rounded-2xl bg-white p-4 ring-1 ring-night-900/5 transition active:scale-[0.99]"
+          className="mobile-card block rounded-2xl p-4 transition active:scale-[0.99]"
         >
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-bold text-night-900">Community</p>
@@ -190,7 +190,7 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
 
       <Link
         href="/guest"
-        className="flex items-center justify-between rounded-2xl border border-emerald-300/60 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900 transition active:scale-[0.99]"
+        className="mobile-card flex items-center justify-between rounded-2xl border border-emerald-300/60 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-3 text-sm font-semibold text-emerald-900 transition active:scale-[0.99]"
       >
         First time here?
         <span className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white">

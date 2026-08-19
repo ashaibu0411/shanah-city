@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MobilePageHero } from "@/components/app/MobilePageHero";
 import { LiveStreamPlayer } from "@/components/live/LiveStreamPlayer";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
@@ -40,16 +41,21 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
     liveStream.facebook.isLive;
 
   return (
-    <div className="space-y-4 pb-4">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-bold text-night-900">Media</h1>
+    <div className="space-y-4">
+      <MobilePageHero
+        eyebrow="Media"
+        title="Watch live worship"
+        description="Stream services, browse clips, and follow Shanah City on YouTube and social."
+      >
         {anyLive ? (
           <Badge variant="live">
-            <span className="h-1.5 w-1.5 rounded-full bg-white" />
-            Live
+            <span className="mobile-pulse h-1.5 w-1.5 rounded-full bg-white" />
+            Live now
           </Badge>
-        ) : null}
-      </div>
+        ) : (
+          <span className="mobile-chip inline-flex">YouTube · Facebook · Instagram</span>
+        )}
+      </MobilePageHero>
 
       <div className="flex gap-2">
         {(
@@ -62,11 +68,7 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
             key={key}
             type="button"
             onClick={() => setTab(key)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              tab === key
-                ? "bg-night-900 text-sand-50"
-                : "bg-sand-100 text-night-700"
-            }`}
+            className={tab === key ? "mobile-tab-pill-active" : "mobile-tab-pill"}
           >
             {label}
             {key === "clips" && clips.length > 0 ? (
@@ -78,11 +80,12 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
 
       {tab === "live" ? (
         <>
-          <div className="overflow-hidden rounded-2xl bg-night-950 shadow-lg ring-1 ring-night-900/10">
-            <div className="aspect-video w-full bg-night-900">
+          <div className="mobile-spotlight-shell bg-night-950 shadow-2xl shadow-indigo-950/30">
+            <div className="relative aspect-video w-full bg-night-900">
               {active ? <LiveStreamPlayer preview={active} compact /> : null}
+              <div className="mobile-spotlight-mesh pointer-events-none absolute inset-0 opacity-60" aria-hidden />
             </div>
-            <div className="border-t border-white/10 px-4 py-3 text-white">
+            <div className="relative border-t border-white/10 bg-gradient-to-r from-violet-950 via-fuchsia-950/95 to-indigo-950 px-4 py-3 text-white">
               <p className="truncate font-display text-lg font-semibold">
                 {anyLive ? liveStream.title : active.label}
               </p>
@@ -98,13 +101,13 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
                   key={preview.id}
                   type="button"
                   onClick={() => setActive(preview)}
-                  className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition ${
+                  className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition active:scale-[0.98] ${
                     selected
-                      ? "bg-night-900 text-sand-50"
-                      : "bg-white text-night-800 ring-1 ring-night-900/10"
+                      ? "bg-gradient-to-br from-violet-600 to-fuchsia-700 text-white shadow-lg shadow-violet-500/30"
+                      : "mobile-card bg-white text-night-800"
                   }`}
                 >
-                  <span className="relative h-8 w-12 overflow-hidden rounded-md bg-night-900">
+                  <span className="relative h-8 w-12 overflow-hidden rounded-md bg-night-900 ring-1 ring-white/10">
                     <StreamPreviewImage
                       preview={preview}
                       alt=""
@@ -119,7 +122,7 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
 
           <ExternalLink
             href={active.url}
-            className="flex w-full items-center justify-center rounded-xl bg-sand-100 px-4 py-3 text-sm font-semibold text-night-900 ring-1 ring-night-900/5"
+            className="flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-fuchsia-500/25 transition active:scale-[0.99]"
           >
             Open on {active.platform} ↗
           </ExternalLink>
@@ -132,14 +135,14 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
       )}
 
       {tab === "live" ? (
-        <div className="rounded-2xl bg-sand-100 p-4 ring-1 ring-night-900/5">
-          <p className="text-xs font-bold uppercase tracking-wide text-night-500">Follow</p>
+        <div className="mobile-card rounded-[1.25rem] p-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-violet-700/80">Follow</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {followLinks.map((link) => (
               <ExternalLink
                 key={link.url}
                 href={link.url}
-                className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-night-800 ring-1 ring-night-900/10"
+                className="rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-indigo-500/20"
               >
                 {link.label}
               </ExternalLink>

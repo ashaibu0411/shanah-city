@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CampusSelector } from "@/components/app/CampusSelector";
+import { mobileActionTone } from "@/components/app/mobile-premium";
 import { useReadability } from "@/components/app/ReadabilityProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -37,32 +38,36 @@ export function MobileMoreSheet() {
         className="fixed inset-0 z-50 bg-night-950/40 backdrop-blur-[2px] lg:hidden"
         onClick={() => setMoreMenuOpen(false)}
       />
-      <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl ring-1 ring-night-900/10 lg:hidden">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-night-900/15" />
-        <div className="mx-auto max-w-lg">
+      <div className="fixed inset-x-0 bottom-0 z-50 overflow-hidden rounded-t-[1.75rem] bg-gradient-to-b from-night-950 via-indigo-950 to-night-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl ring-1 ring-white/10 lg:hidden">
+        <div className="mobile-shimmer pointer-events-none absolute inset-0 opacity-20" aria-hidden />
+        <div className="relative mx-auto max-w-lg">
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display text-lg font-semibold text-night-900">More</h2>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200/80">Explore</p>
+              <h2 className="mobile-headline font-display text-xl font-bold">More</h2>
+            </div>
             <button
               type="button"
               onClick={() => setMoreMenuOpen(false)}
-              className="rounded-full px-3 py-1 text-sm font-semibold text-night-600 hover:bg-sand-100"
+              className="rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white ring-1 ring-white/15"
             >
               Done
             </button>
           </div>
 
-          <div className="mb-4 rounded-2xl bg-sand-50 p-3">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-night-500">
+          <div className="mb-4 rounded-2xl bg-white/10 p-3 ring-1 ring-white/10 backdrop-blur-md">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-100/80">
               Your campus
             </p>
             <CampusSelector />
           </div>
 
-          <div className="mb-4 rounded-2xl bg-sand-50 p-3">
-            <p className="text-sm font-semibold text-night-900">Text size</p>
-            <p className="mt-0.5 text-sm text-night-600">Applies across the mobile app</p>
+          <div className="mb-4 rounded-2xl bg-white/10 p-3 ring-1 ring-white/10 backdrop-blur-md">
+            <p className="text-sm font-semibold text-white">Text size</p>
+            <p className="mt-0.5 text-sm text-white/65">Applies across the mobile app</p>
             <div
-              className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-white p-1 ring-1 ring-night-900/10"
+              className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-night-950/40 p-1 ring-1 ring-white/10"
               role="group"
               aria-label="Text size"
             >
@@ -79,8 +84,8 @@ export function MobileMoreSheet() {
                   onClick={() => setTextScale(option.id)}
                   className={`rounded-lg px-2 py-2.5 text-xs font-bold transition ${
                     textScale === option.id
-                      ? "bg-night-900 text-sand-50 shadow-sm"
-                      : "text-night-600 hover:bg-sand-100"
+                      ? "bg-gradient-to-br from-amber-400 to-fuchsia-600 text-white shadow-md"
+                      : "text-white/70 hover:bg-white/10"
                   }`}
                 >
                   {option.label}
@@ -90,17 +95,18 @@ export function MobileMoreSheet() {
           </div>
 
           <div className="grid grid-cols-4 gap-3">
-            {moreLinks.map((item) => {
+            {moreLinks.map((item, index) => {
               const active = pathname === item.href;
+              const tone = mobileActionTone(index);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMoreMenuOpen(false)}
-                  className={`flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition ${
+                  className={`flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition active:scale-[0.97] ${
                     active
-                      ? "bg-night-900 text-sand-50"
-                      : "bg-sand-50 text-night-700 hover:bg-sand-100"
+                      ? `bg-gradient-to-br ${tone} text-white shadow-lg`
+                      : "bg-white/95 text-night-800 ring-1 ring-night-900/8"
                   }`}
                 >
                   <span className="text-lg">{item.icon}</span>
@@ -125,14 +131,14 @@ export function MobileMoreSheet() {
               <Link
                 href="/sign-in"
                 onClick={() => setMoreMenuOpen(false)}
-                className="rounded-2xl bg-sand-100 px-4 py-3 text-center text-sm font-semibold text-night-900"
+                className="rounded-2xl bg-white/15 px-4 py-3 text-center text-sm font-semibold text-white ring-1 ring-white/15"
               >
                 Sign in
               </Link>
               <Link
                 href="/sign-up"
                 onClick={() => setMoreMenuOpen(false)}
-                className="rounded-2xl bg-night-900 px-4 py-3 text-center text-sm font-semibold text-sand-50"
+                className="rounded-2xl bg-gradient-to-r from-amber-400 to-fuchsia-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-lg"
               >
                 Join
               </Link>
@@ -142,14 +148,14 @@ export function MobileMoreSheet() {
           <Link
             href="/privacy"
             onClick={() => setMoreMenuOpen(false)}
-            className="mt-4 block text-center text-xs font-semibold text-night-500 underline"
+            className="mt-4 block text-center text-xs font-semibold text-white/55 underline"
           >
             Privacy Policy
           </Link>
           <Link
             href="/delete-account"
             onClick={() => setMoreMenuOpen(false)}
-            className="mt-1 block text-center text-xs font-semibold text-night-500 underline"
+            className="mt-1 block text-center text-xs font-semibold text-white/55 underline"
           >
             Delete account
           </Link>

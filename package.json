@@ -17,7 +17,9 @@
     "mobile:android:setup": "scripts\\open-android.bat",
     "mobile:android:dir": "explorer android",
     "mobile:ios": "npx cap open ios",
-    "mobile:ios:icon": "node scripts/generate-ios-icon.cjs"
+    "mobile:ios:icon": "node scripts/generate-ios-icon.cjs",
+    "mobile:ios:screenshots": "node scripts/capture-app-store-screenshots.cjs && node scripts/compose-app-store-screenshots.cjs",
+    "mobile:ios:screenshots:ipad": "node scripts/compose-app-store-ipad-screenshots.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

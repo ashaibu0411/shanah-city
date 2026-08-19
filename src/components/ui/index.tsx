@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAppShell } from "@/components/app/AppShellContext";
+import { MobilePageHero } from "@/components/app/MobilePageHero";
 import { openExternalUrl } from "@/lib/native-app";
 import { site } from "@/lib/site";
 
@@ -65,7 +66,10 @@ type CardProps = {
 };
 
 export function Card({ children, className = "", href }: CardProps) {
-  const classes = `rounded-2xl bg-white p-5 shadow-sm ring-1 ring-night-900/5 transition hover:shadow-md ${className}`;
+  const { isMobileApp } = useAppShell();
+  const classes = `${
+    isMobileApp ? "mobile-card active:scale-[0.995]" : ""
+  } rounded-2xl bg-white p-5 shadow-sm ring-1 ring-night-900/5 transition hover:shadow-md ${className}`;
 
   if (href) {
     if (isExternalHref(href)) {
@@ -146,7 +150,9 @@ export function PageHeader({
   const { isMobileApp } = useAppShell();
 
   if (isMobileApp) {
-    return null;
+    return (
+      <MobilePageHero eyebrow={eyebrow} title={title} description={description} />
+    );
   }
 
   return (
@@ -175,15 +181,27 @@ export function SectionTitle({
   href?: string;
   linkLabel?: string;
 }) {
+  const { isMobileApp } = useAppShell();
+
   return (
     <div className="mb-4 flex items-center justify-between">
-      <h2 className="font-display text-xl font-semibold text-night-900">
+      <h2
+        className={
+          isMobileApp
+            ? "mobile-section-title"
+            : "font-display text-xl font-semibold text-night-900"
+        }
+      >
         {title}
       </h2>
       {href && (
         <Link
           href={href}
-          className="text-sm font-semibold text-night-600 hover:text-night-900"
+          className={`text-sm font-semibold ${
+            isMobileApp
+              ? "rounded-full bg-white/80 px-3 py-1 text-violet-700 ring-1 ring-night-900/10"
+              : "text-night-600 hover:text-night-900"
+          }`}
         >
           {linkLabel} →
         </Link>
