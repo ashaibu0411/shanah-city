@@ -18,6 +18,42 @@ type CalendarMonthViewProps<T extends CalendarPlannable> = {
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+function itemTime(item: CalendarPlannable) {
+  return item.time?.trim() || item.schedule?.trim() || "";
+}
+
+function EventText({
+  item,
+  inverted = false,
+  compact = false,
+}: {
+  item: CalendarPlannable;
+  inverted?: boolean;
+  compact?: boolean;
+}) {
+  const time = itemTime(item);
+  return (
+    <div
+      className={`rounded-md px-1.5 py-1 ${
+        inverted ? "bg-white/12 text-sand-50" : "bg-violet-50 text-night-900"
+      }`}
+    >
+      {time ? (
+        <p className={`font-semibold leading-tight ${compact ? "text-[10px]" : "text-xs"}`}>
+          {time}
+        </p>
+      ) : null}
+      <p
+        className={`leading-snug ${compact ? "line-clamp-3 text-[11px]" : "text-sm"} ${
+          inverted ? "text-sand-50" : "text-night-800"
+        }`}
+      >
+        {item.title}
+      </p>
+    </div>
+  );
+}
+
 export function CalendarMonthView<T extends CalendarPlannable>({
   items,
   renderItem,
@@ -51,6 +87,15 @@ export function CalendarMonthView<T extends CalendarPlannable>({
   }
 
   const selectedItems = selectedDate ? (itemsByDate.get(selectedDate) ?? []) : [];
+  const agendaDays = cells
+    .filter((cell): cell is { day: number; isoDate: string } => Boolean(cell.isoDate && cell.day))
+    .map((cell) => ({
+      ...cell,
+      dayItems: itemsByDate.get(cell.isoDate) ?? [],
+    }))
+    .filter((cell) => cell.dayItems.length > 0);
+
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   return (
     <div className="mb-6 space-y-4">
@@ -87,64 +132,129 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-semibold uppercase tracking-wide text-night-500">
-          {WEEKDAY_HEADERS.map((label) => (
-            <div key={label} className="py-2">
-              {label}
+        <div className="mt-4 hidden overflow-x-auto lg:block">
+          <div className="min-w-[64rem]">
+            <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-semibold uppercase tracking-wide text-night-500">
+              {WEEKDAY_HEADERS.map((label) => (
+                <div key={label} className="py-2">
+                  {label}
+                </div>
+              ))}
             </div>
-          ))}
+            <div className="grid grid-cols-7 gap-1.5">
+              {cells.map((cell, index) => {
+                if (cell.day == null || !cell.isoDate) {
+                  return <div key={`empty-${index}`} className="min-h-[10rem] rounded-xl bg-sand-50/40" />;
+                }
+
+                const dayItems = itemsByDate.get(cell.isoDate) ?? [];
+                const isSelected = selectedDate === cell.isoDate;
+                const isToday = cell.isoDate === todayKey;
+
+                return (
+                  <button
+                    key={cell.isoDate}
+                    type="button"
+                    onClick={() => setSelectedDate(cell.isoDate!)}
+                    className={`min-h-[10rem] rounded-xl border p-2 text-left transition ${
+                      isSelected
+                        ? "border-night-900 bg-night-900 text-sand-50"
+                        : "border-night-900/10 bg-white hover:bg-sand-50"
+                    }`}
+                  >
+                    <span
+                      className={`text-sm font-semibold ${
+                        isToday && !isSelected ? "text-amber-700" : ""
+                      }`}
+                    >
+                      {cell.day}
+                    </span>
+                    <div className="mt-1.5 space-y-1">
+                      {dayItems.slice(0, 4).map((item) => (
+                        <EventText
+                          key={item.id}
+                          item={item}
+                          inverted={isSelected}
+                          compact
+                        />
+                      ))}
+                      {dayItems.length > 4 && (
+                        <p className={`text-[11px] font-semibold ${isSelected ? "text-sand-200" : "text-night-500"}`}>
+                          +{dayItems.length - 4} more
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-1">
-          {cells.map((cell, index) => {
-            if (cell.day == null || !cell.isoDate) {
-              return <div key={`empty-${index}`} className="min-h-24 rounded-xl bg-sand-50/40" />;
-            }
-
-            const dayItems = itemsByDate.get(cell.isoDate) ?? [];
-            const isSelected = selectedDate === cell.isoDate;
-            const isToday =
-              cell.isoDate ===
-              `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-
-            return (
-              <button
-                key={cell.isoDate}
-                type="button"
-                onClick={() => setSelectedDate(cell.isoDate!)}
-                className={`min-h-24 rounded-xl border p-2 text-left transition ${
-                  isSelected
-                    ? "border-night-900 bg-night-900 text-sand-50"
-                    : "border-night-900/10 bg-white hover:bg-sand-50"
-                }`}
-              >
-                <span
-                  className={`text-sm font-semibold ${
-                    isToday && !isSelected ? "text-amber-700" : ""
+        <div className="mt-4 lg:hidden">
+          <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-wide text-night-500">
+            {WEEKDAY_HEADERS.map((label) => (
+              <div key={label} className="py-1">
+                {label.slice(0, 1)}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {cells.map((cell, index) => {
+              if (cell.day == null || !cell.isoDate) {
+                return <div key={`empty-${index}`} className="h-10 rounded-lg bg-sand-50/40" />;
+              }
+              const count = itemsByDate.get(cell.isoDate)?.length ?? 0;
+              const isSelected = selectedDate === cell.isoDate;
+              const isToday = cell.isoDate === todayKey;
+              return (
+                <button
+                  key={cell.isoDate}
+                  type="button"
+                  onClick={() => setSelectedDate(cell.isoDate!)}
+                  className={`h-10 rounded-lg text-sm font-semibold ${
+                    isSelected
+                      ? "bg-night-900 text-white"
+                      : isToday
+                        ? "bg-amber-100 text-amber-900"
+                        : count > 0
+                          ? "bg-violet-50 text-night-900"
+                          : "bg-white text-night-700 ring-1 ring-night-900/5"
                   }`}
                 >
                   {cell.day}
-                </span>
-                <div className="mt-1 space-y-1">
-                  {dayItems.slice(0, 3).map((item) => (
-                    <p
-                      key={item.id}
-                      className={`truncate text-[11px] leading-tight ${
-                        isSelected ? "text-sand-100" : "text-night-700"
-                      }`}
-                    >
-                      {item.title}
-                    </p>
-                  ))}
-                  {dayItems.length > 3 && (
-                    <p className={`text-[10px] ${isSelected ? "text-sand-200" : "text-night-500"}`}>
-                      +{dayItems.length - 3} more
-                    </p>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+                  {count > 0 ? (
+                    <span className="mx-auto mt-0.5 block h-1 w-1 rounded-full bg-current opacity-70" />
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 space-y-4">
+            {agendaDays.length === 0 ? (
+              <p className="text-sm text-night-500">No events this month.</p>
+            ) : (
+              agendaDays.map((day) => (
+                <section key={day.isoDate}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDate(day.isoDate)}
+                    className="mb-2 text-left"
+                  >
+                    <h4 className="font-display text-base font-semibold text-night-900">
+                      {formatSelectedDay(day.isoDate)}
+                    </h4>
+                  </button>
+                  <div className="space-y-2">
+                    {day.dayItems.map((item) => (
+                      <EventText key={item.id} item={item} />
+                    ))}
+                  </div>
+                </section>
+              ))
+            )}
+          </div>
         </div>
       </Card>
 

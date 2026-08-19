@@ -6,6 +6,7 @@ export type CalendarPlannable = {
   id: string;
   title: string;
   date?: string;
+  time?: string;
   schedule?: string;
   startsOn?: string | null;
   endsOn?: string | null;
