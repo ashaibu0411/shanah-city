@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { Devotion } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
-import { RichTextContent } from "@/components/ui/RichTextContent";
+import { DevotionBody } from "@/components/devotions/DevotionBody";
 import { DevotionListenPlayer } from "@/components/devotions/DevotionListenPlayer";
 
 type DevotionMode = "read" | "listen";
@@ -38,6 +38,23 @@ function ModeToggle({
   );
 }
 
+function DevotionActions({
+  completed,
+  onComplete,
+  extra,
+}: {
+  completed: boolean;
+  onComplete: () => void;
+  extra?: ReactNode;
+}) {
+  return (
+    <div className="mt-5 flex flex-wrap gap-3">
+      <Button onClick={onComplete}>{completed ? "Completed" : "Mark as read"}</Button>
+      {extra}
+    </div>
+  );
+}
+
 export function DevotionPreview({ devotion }: { devotion: Devotion }) {
   const [completed, setCompleted] = useState(false);
   const [mode, setMode] = useState<DevotionMode>("read");
@@ -63,41 +80,28 @@ export function DevotionPreview({ devotion }: { devotion: Devotion }) {
         </div>
       </div>
 
-      {mode === "listen" ? (
+      {mode === "listen" && (
         <div className="mt-4">
           <DevotionListenPlayer devotion={devotion} />
         </div>
-      ) : (
-        <>
-          <blockquote className="mt-4 border-l-4 border-sand-400 pl-4 italic text-night-700">
-            &ldquo;
-            <RichTextContent text={devotion.verse} />
-            &rdquo;
-            <footer className="mt-2 not-italic text-sm font-semibold text-night-500">
-              — {devotion.reference}
-            </footer>
-          </blockquote>
-
-          <div className="mt-4 text-sm leading-relaxed text-night-600">
-            <RichTextContent text={devotion.content} />
-          </div>
-        </>
       )}
 
-      <div className="mt-5 flex flex-wrap gap-3">
-        <Button onClick={() => setCompleted(true)}>
-          {completed ? "Completed" : "Mark as read"}
-        </Button>
-        <Button href="/devotions" variant="secondary">
-          All devotions
-        </Button>
-      </div>
+      <DevotionBody devotion={devotion} className="mt-4" />
+
+      <DevotionActions
+        completed={completed}
+        onComplete={() => setCompleted(true)}
+        extra={
+          <Button href="/devotions" variant="secondary">
+            All devotions
+          </Button>
+        }
+      />
     </Card>
   );
 }
 
 export function DevotionCard({ devotion }: { devotion: Devotion }) {
-  const [expanded, setExpanded] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [mode, setMode] = useState<DevotionMode>("read");
 
@@ -118,46 +122,15 @@ export function DevotionCard({ devotion }: { devotion: Devotion }) {
         </div>
       </div>
 
-      {mode === "listen" ? (
+      {mode === "listen" && (
         <div className="mt-4">
-          <blockquote className="text-sm italic text-night-700">
-            &ldquo;
-            <RichTextContent text={devotion.verse} />
-            &rdquo; — {devotion.reference}
-          </blockquote>
-          <div className="mt-4">
-            <DevotionListenPlayer devotion={devotion} />
-          </div>
+          <DevotionListenPlayer devotion={devotion} />
         </div>
-      ) : (
-        <>
-          <blockquote className="mt-4 text-sm italic text-night-700">
-            &ldquo;
-            <RichTextContent text={devotion.verse} />
-            &rdquo; — {devotion.reference}
-          </blockquote>
-
-          {expanded && (
-            <div className="mt-4 space-y-3 text-sm text-night-600">
-              <RichTextContent text={devotion.content} className="block" />
-              <p className="rounded-xl bg-sand-50 p-3">
-                <span className="font-semibold text-night-800">Prayer: </span>
-                <RichTextContent text={devotion.prayer} />
-              </p>
-            </div>
-          )}
-        </>
       )}
 
+      <DevotionBody devotion={devotion} className="mt-4" />
+
       <div className="mt-4 flex flex-wrap gap-2">
-        {mode === "read" && (
-          <Button
-            variant="secondary"
-            onClick={() => setExpanded((value) => !value)}
-          >
-            {expanded ? "Show less" : "Read full"}
-          </Button>
-        )}
         <Button onClick={() => setCompleted(true)}>
           {completed ? "✓ Done" : "Mark read"}
         </Button>

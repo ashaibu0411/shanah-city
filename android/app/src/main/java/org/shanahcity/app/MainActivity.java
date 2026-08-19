@@ -14,6 +14,18 @@ public class MainActivity extends BridgeActivity {
       // Keep long-press paste/copy menus working inside form fields.
       webView.setOnLongClickListener(view -> false);
       webView.setLongClickable(true);
+      webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+    }
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    // Keep JS/TTS running so devotion audio can continue in the background.
+    if (getBridge() == null) return;
+    WebView webView = getBridge().getWebView();
+    if (webView != null) {
+      webView.onResume();
     }
   }
 }

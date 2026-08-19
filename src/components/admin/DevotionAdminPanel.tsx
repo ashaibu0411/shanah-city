@@ -413,8 +413,8 @@ export function DevotionAdminPanel() {
           <div className="rounded-2xl border border-night-900/10 bg-sand-50/70 p-4">
             <p className="text-sm font-semibold text-night-900">Audio version (optional)</p>
             <p className="mt-1 text-xs text-night-600">
-              Upload a recording for members who prefer to listen. MP3, M4A, WAV, OGG, or WEBM up to
-              25 MB. Without an upload, members can still use Listen mode with device text-to-speech.
+              Upload a recording for anyone who prefers to listen. MP3, M4A, WAV, OGG, or WEBM up to
+              25 MB. Without an upload, listeners can still use Listen mode with device text-to-speech.
             </p>
 
             {form.audioUrl ? (

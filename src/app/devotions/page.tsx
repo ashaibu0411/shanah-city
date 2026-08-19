@@ -1,4 +1,4 @@
-import { DevotionCard, DevotionPreview } from "@/components/devotions/DevotionCard";
+import { DevotionCard } from "@/components/devotions/DevotionCard";
 import { PageHeader } from "@/components/ui";
 import { getDevotions } from "@/lib/devotion-server";
 
@@ -12,13 +12,19 @@ export default async function DevotionsPage() {
       <PageHeader
         eyebrow="Daily"
         title="Devotions"
-        description="Start each day with scripture, reflection, and prayer — built for a daily habit."
+        description="Start each day with scripture, reflection, and prayer. Anyone can read or listen — no account needed."
       />
-      <div className="grid gap-4">
-        {devotions.map((devotion) => (
-          <DevotionCard key={devotion.id} devotion={devotion} />
-        ))}
-      </div>
+      {devotions.length === 0 ? (
+        <p className="rounded-2xl bg-white p-5 text-sm text-night-600 ring-1 ring-night-900/5">
+          No published devotion yet. Check back soon.
+        </p>
+      ) : (
+        <div className="grid gap-4">
+          {devotions.map((devotion) => (
+            <DevotionCard key={devotion.id} devotion={devotion} />
+          ))}
+        </div>
+      )}
     </>
   );
 }

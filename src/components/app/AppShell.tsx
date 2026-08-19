@@ -15,6 +15,8 @@ import { MobileMoreSheet } from "@/components/app/MobileMoreSheet";
 import { MobileNav } from "@/components/app/MobileNav";
 
 import { NativeAppBoot } from "@/components/app/NativeAppBoot";
+import { DevotionMiniPlayer } from "@/components/devotions/DevotionMiniPlayer";
+import { DevotionPlayerProvider } from "@/components/devotions/DevotionPlayerProvider";
 import { TopBar } from "@/components/app/TopBar";
 
 
@@ -30,6 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <ReadabilityProvider>
 
         <AppShellProvider>
+          <DevotionPlayerProvider>
 
           <NativeAppBoot />
 
@@ -59,12 +62,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
 
+            <DevotionMiniPlayer />
             <MobileNav />
 
             <MobileMoreSheet />
 
           </div>
 
+          </DevotionPlayerProvider>
         </AppShellProvider>
 
         </ReadabilityProvider>
