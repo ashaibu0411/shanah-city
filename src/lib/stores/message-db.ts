@@ -204,6 +204,20 @@ export async function sendDirectMessage(input: {
     where: { id: threadId },
   });
 
+  if (!existingThread) {
+    await prisma.messageThread.create({
+      data: {
+        id: threadId,
+        participantAId,
+        participantBId,
+        participantNames,
+        lastMessage: "",
+        lastMessageAt: now,
+        createdAt: now,
+      },
+    });
+  }
+
   const messageRecord = await prisma.message.create({
     data: {
       id: `msg-${Date.now()}`,
@@ -219,38 +233,23 @@ export async function sendDirectMessage(input: {
   });
 
   const message = mapMessage(messageRecord);
-  let thread: MessageThread;
+  const updatedNames = existingThread
+    ? {
+        ...(existingThread.participantNames as Record<string, string>),
+        ...participantNames,
+      }
+    : participantNames;
 
-  if (!existingThread) {
-    const created = await prisma.messageThread.create({
-      data: {
-        id: threadId,
-        participantAId,
-        participantBId,
-        participantNames,
-        lastMessage: previewForMessage(message),
-        lastMessageAt: now,
-        createdAt: now,
-      },
-    });
-    thread = mapThread(created);
-  } else {
-    const updatedNames = {
-      ...(existingThread.participantNames as Record<string, string>),
-      ...participantNames,
-    };
-    const updated = await prisma.messageThread.update({
-      where: { id: threadId },
-      data: {
-        lastMessage: previewForMessage(message),
-        lastMessageAt: now,
-        participantNames: updatedNames,
-      },
-    });
-    thread = mapThread(updated);
-  }
+  const updated = await prisma.messageThread.update({
+    where: { id: threadId },
+    data: {
+      lastMessage: previewForMessage(message),
+      lastMessageAt: now,
+      participantNames: updatedNames,
+    },
+  });
 
-  return { thread, message };
+  return { thread: mapThread(updated), message };
 }
 
 export async function editDirectMessage(input: {
