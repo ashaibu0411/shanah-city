@@ -13,3 +13,5 @@ export const updateEvent = (
   update: Parameters<typeof eventJson.updateEvent>[1],
 ) => store().updateEvent(id, update);
 export const deleteEvent = (id: string) => store().deleteEvent(id);
+export const upsertEvent = (event: Parameters<typeof eventJson.upsertEvent>[0]) =>
+  store().upsertEvent(event);

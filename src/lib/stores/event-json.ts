@@ -94,3 +94,23 @@ export async function deleteEvent(id: string) {
   await writeJson(EVENTS_FILE, next);
   return true;
 }
+
+export async function upsertEvent(event: ChurchEvent) {
+  const events = await readEvents();
+  const index = events.findIndex((item) => item.id === event.id);
+  if (index === -1) {
+    events.push({
+      ...event,
+      published: event.published ?? true,
+      sortOrder: event.sortOrder ?? events.length,
+    });
+  } else {
+    events[index] = {
+      ...events[index],
+      ...event,
+      id: events[index].id,
+    };
+  }
+  await writeJson(EVENTS_FILE, events);
+  return events.find((item) => item.id === event.id)!;
+}

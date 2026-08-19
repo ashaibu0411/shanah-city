@@ -6,6 +6,7 @@ import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
 import { EventCalendarFields } from "@/components/calendar/EventCalendarFields";
 import { MeetingsCalendarPanel } from "@/components/calendar/MeetingsCalendarPanel";
 import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
+import { isOutlookSyncedEventId } from "@/lib/calendar-utils";
 import type { UnavailabilityRequest } from "@/lib/member-types";
 import type { ChurchEvent } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
@@ -28,11 +29,15 @@ function EventDetailCard({
       <p className="mt-2 text-sm text-night-600">
         {event.time} · {event.location}
       </p>
-      {canManage && (
+      {isOutlookSyncedEventId(event.id) ? (
+        <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-violet-700">
+          Synced from Outlook
+        </p>
+      ) : canManage ? (
         <Button variant="secondary" className="mt-3" onClick={() => onRemove(event.id)}>
           Remove
         </Button>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -204,13 +209,20 @@ function ChurchEventsPanel() {
   const [endsOn, setEndsOn] = useState("");
   const [recurringWeekday, setRecurringWeekday] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [outlookConfigured, setOutlookConfigured] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   async function loadEvents() {
     setLoading(true);
-    const response = await fetch("/api/events?groupId=church");
-    const data = await response.json();
+    const [eventsResponse, syncResponse] = await Promise.all([
+      fetch("/api/events?groupId=church"),
+      fetch("/api/events/sync"),
+    ]);
+    const data = await eventsResponse.json();
+    const syncData = await syncResponse.json().catch(() => ({ configured: false }));
     setEvents(data.events ?? []);
     setCanManage(Boolean(data.canManage));
+    setOutlookConfigured(Boolean(syncData.configured));
     setLoading(false);
   }
 
@@ -262,6 +274,21 @@ function ChurchEventsPanel() {
     }
   }
 
+  async function syncOutlook() {
+    setSyncing(true);
+    const response = await fetch("/api/events/sync", { method: "POST" });
+    const data = await response.json();
+    setSyncing(false);
+    if (response.ok) {
+      setMessage(
+        `Outlook synced. ${data.created} new, ${data.updated} updated, ${data.removed} removed.`,
+      );
+      loadEvents();
+    } else {
+      setMessage(data.error ?? "Could not sync Outlook.");
+    }
+  }
+
   return (
     <>
       {!user ? (
@@ -283,8 +310,25 @@ function ChurchEventsPanel() {
             Manage church events
           </h3>
           <p className="mt-1 text-sm text-night-600">
-            You are in the Admin Group — add or remove public church events below.
+            Church events can sync from the Outlook calendar on admin@shanahcity.org. You can
+            still add one-off events here.
           </p>
+          <div className="mt-4 rounded-2xl bg-violet-50 p-4 ring-1 ring-violet-100">
+            <p className="text-sm font-semibold text-night-900">Outlook calendar</p>
+            <p className="mt-1 text-sm text-night-600">
+              {outlookConfigured
+                ? "Connected. Changes in Outlook appear here after a daily sync, or tap Sync now."
+                : "Not connected yet. Publish the church calendar from Outlook and add OUTLOOK_CALENDAR_ICS_URL in Vercel."}
+            </p>
+            <Button
+              className="mt-3"
+              variant="secondary"
+              disabled={syncing || !outlookConfigured}
+              onClick={syncOutlook}
+            >
+              {syncing ? "Syncing..." : "Sync now from Outlook"}
+            </Button>
+          </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <input
               value={title}
@@ -360,7 +404,11 @@ function ChurchEventsPanel() {
               <p className="mt-2 text-sm text-night-600">
                 {event.time} · {event.location}
               </p>
-              {canManage && (
+              {isOutlookSyncedEventId(event.id) ? (
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-violet-700">
+                  Synced from Outlook
+                </p>
+              ) : canManage ? (
                 <Button
                   variant="secondary"
                   className="mt-4"
@@ -368,7 +416,7 @@ function ChurchEventsPanel() {
                 >
                   Remove
                 </Button>
-              )}
+              ) : null}
             </Card>
           ))
         )}

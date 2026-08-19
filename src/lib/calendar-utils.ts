@@ -1,3 +1,7 @@
+export function isOutlookSyncedEventId(id: string) {
+  return id.startsWith("outlook-");
+}
+
 export type CalendarPlannable = {
   id: string;
   title: string;

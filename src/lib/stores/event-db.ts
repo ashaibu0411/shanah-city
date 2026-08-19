@@ -158,3 +158,44 @@ export async function deleteEvent(id: string) {
     return false;
   }
 }
+
+export async function upsertEvent(event: ChurchEvent) {
+  const now = new Date();
+  const record = await prisma.churchEvent.upsert({
+    where: { id: event.id },
+    create: {
+      id: event.id,
+      title: event.title,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      campusId: event.campusId ?? null,
+      groupId: event.groupId ?? null,
+      groupName: event.groupName ?? null,
+      startsOn: event.startsOn ?? null,
+      endsOn: event.endsOn ?? null,
+      recurringWeekday: event.recurringWeekday ?? null,
+      published: event.published ?? true,
+      sortOrder: event.sortOrder ?? 0,
+      createdAt: now,
+      updatedAt: now,
+    },
+    update: {
+      title: event.title,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      campusId: event.campusId ?? null,
+      groupId: event.groupId ?? null,
+      groupName: event.groupName ?? null,
+      startsOn: event.startsOn ?? null,
+      endsOn: event.endsOn ?? null,
+      recurringWeekday: event.recurringWeekday ?? null,
+      published: event.published ?? true,
+      sortOrder: event.sortOrder,
+      updatedAt: now,
+    },
+  });
+
+  return mapEvent(record);
+}

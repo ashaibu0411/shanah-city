@@ -7,7 +7,7 @@ export default function CalendarPage() {
       <PageHeader
         eyebrow="Schedule"
         title="Calendars"
-        description="Church events, choir availability, and pastor schedules — all in one place."
+        description="Church events sync from Outlook. Choir and pastor calendars stay in the app."
       />
       <CalendarHub />
     </>
