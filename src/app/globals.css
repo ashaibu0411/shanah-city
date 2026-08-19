@@ -75,7 +75,10 @@
   }
 
   body[data-shell="mobile"] .mobile-nav-label {
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.88);
   }
 
   body[data-shell="mobile"] .mobile-nav-link.text-white .mobile-nav-label {
@@ -83,11 +86,11 @@
   }
 
   body[data-shell="mobile"][data-text-scale="large"] .mobile-nav-label {
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
   }
 
   body[data-shell="mobile"][data-text-scale="extraLarge"] .mobile-nav-label {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
   }
 
   body[data-text-scale="large"] {
@@ -135,12 +138,12 @@
   body[data-shell="mobile"] .app-main {
     @apply mx-auto max-w-lg px-4 pt-3;
     /* Clear fixed bottom tab bar + home indicator */
-    padding-bottom: calc(6.75rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(7.25rem + env(safe-area-inset-bottom, 0px));
   }
 
   body[data-shell="mobile"][data-text-scale="large"] .app-main,
   body[data-shell="mobile"][data-text-scale="extraLarge"] .app-main {
-    padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
   }
 
   body[data-shell="mobile"] .app-main > section:first-child {
