@@ -46,8 +46,34 @@ export const PROTECTED_MEETING_IDS = new Set([
   FRONTLINERS_MEETING_ID,
 ]);
 
+export const TRACKED_JOIN_MEETING_IDS = new Set([
+  SHIFT_YOUR_MORNING_ID,
+  SHIFT_YOUR_EVENING_ID,
+]);
+
 export function isAutomatedReminderMeeting(id: string) {
   return Boolean(AUTOMATED_MEETING_REMINDERS[id]);
+}
+
+export function isTrackedJoinMeeting(id?: string | null) {
+  return Boolean(id && TRACKED_JOIN_MEETING_IDS.has(id));
+}
+
+export const LEGACY_MEETING_IDS = new Set(["1", "2", "3", "4", "5"]);
+
+export const LEGACY_MEETING_TITLES = new Set([
+  "friday evening service",
+  "sunday morning service",
+  "prayer ministry",
+  "watch online",
+  "accra campus service",
+]);
+
+export function isLegacyMeeting(meeting: Pick<Meeting, "id" | "title" | "joinUrl">) {
+  if (LEGACY_MEETING_IDS.has(meeting.id)) return true;
+  if (LEGACY_MEETING_TITLES.has(meeting.title.trim().toLowerCase())) return true;
+  const joinUrl = meeting.joinUrl?.trim().toLowerCase() ?? "";
+  return joinUrl.includes("shanahcity.org/contact");
 }
 
 export function isProtectedMeetingId(id: string) {

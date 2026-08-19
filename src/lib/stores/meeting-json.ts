@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { meetings as seedMeetings } from "@/lib/site";
-import { applyCanonicalMeeting, canonicalMeetings } from "@/lib/meeting-catalog";
+import { applyCanonicalMeeting, canonicalMeetings, isLegacyMeeting } from "@/lib/meeting-catalog";
 import { parseRecurringWeekdays } from "@/lib/meeting-utils";
 import type { Meeting } from "@/lib/types";
 
@@ -50,11 +50,10 @@ async function ensureCanonicalMeetings(meetings: Meeting[]) {
     }
   }
 
-  const prayerIndex = next.findIndex(
-    (meeting) => meeting.id === "3" && meeting.title === "Prayer Ministry",
-  );
-  if (prayerIndex !== -1) {
-    next[prayerIndex] = { ...next[prayerIndex], published: false };
+  for (const meeting of next) {
+    if (isLegacyMeeting(meeting)) {
+      meeting.published = false;
+    }
   }
 
   return next;
@@ -83,7 +82,9 @@ export async function getMeetings(options?: { includeUnpublished?: boolean }) {
   if (options?.includeUnpublished) {
     return meetings;
   }
-  return meetings.filter((meeting) => meeting.published !== false);
+  return meetings.filter(
+    (meeting) => meeting.published !== false && !isLegacyMeeting(meeting),
+  );
 }
 
 export async function createMeeting(

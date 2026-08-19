@@ -5,6 +5,13 @@ import {
   canViewMeetingClickReport,
   getMeetingClicks,
 } from "@/lib/meeting-click-server";
+import {
+  SHIFT_YOUR_EVENING_ID,
+  SHIFT_YOUR_MORNING_ID,
+  isTrackedJoinMeeting,
+} from "@/lib/meeting-catalog";
+
+const PRAYER_MEETING_IDS = [SHIFT_YOUR_MORNING_ID, SHIFT_YOUR_EVENING_ID];
 
 export async function GET(request: Request) {
   try {
@@ -14,17 +21,20 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const meetingId = searchParams.get("meetingId") ?? undefined;
-    const groupId = searchParams.get("groupId") ?? undefined;
     const since = searchParams.get("since") ?? undefined;
     const limit = Number(searchParams.get("limit") ?? "100");
 
-    if (!(await canViewMeetingClickReport(user, groupId))) {
+    if (!(await canViewMeetingClickReport(user))) {
       return NextResponse.json({ error: "Leader or group admin access required." }, { status: 403 });
+    }
+
+    if (meetingId && !isTrackedJoinMeeting(meetingId)) {
+      return NextResponse.json({ clicks: [] });
     }
 
     const clicks = await getMeetingClicks({
       meetingId,
-      groupId,
+      meetingIds: meetingId ? undefined : PRAYER_MEETING_IDS,
       since,
       limit: Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 500) : 100,
     });

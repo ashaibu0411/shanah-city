@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/db";
 import { meetings as seedMeetings } from "@/lib/site";
 import {
-  applyCanonicalMeeting,
   canonicalMeetings,
   isAutomatedReminderMeeting,
+  isLegacyMeeting,
 } from "@/lib/meeting-catalog";
 import {
   parseRecurringWeekdays,
@@ -96,46 +96,70 @@ async function ensureDefaultMeetings() {
   });
 }
 
+async function retireLegacyMeetings(now: Date) {
+  await prisma.meeting.updateMany({
+    where: {
+      OR: [
+        { id: { in: ["1", "2", "3", "4", "5"] } },
+        {
+          title: {
+            in: [
+              "Friday Evening Service",
+              "Sunday Morning Service",
+              "Prayer Ministry",
+              "Watch Online",
+              "Accra Campus Service",
+            ],
+          },
+        },
+      ],
+      NOT: {
+        id: { in: canonicalMeetings().map((meeting) => meeting.id) },
+      },
+    },
+    data: { published: false, updatedAt: now },
+  });
+}
+
 async function ensureCanonicalMeetings() {
   await ensureDefaultMeetings();
 
   const now = new Date();
-  for (const canonical of canonicalMeetings()) {
-    const existing = await prisma.meeting.findUnique({
-      where: { id: canonical.id },
-    });
-
-    if (!existing) {
-      await prisma.meeting.create({
-        data: meetingWriteData(canonical, now),
+  try {
+    for (const canonical of canonicalMeetings()) {
+      const existing = await prisma.meeting.findUnique({
+        where: { id: canonical.id },
       });
-      continue;
+
+      if (!existing) {
+        await prisma.meeting.create({
+          data: meetingWriteData(canonical, now),
+        });
+        continue;
+      }
+
+      await prisma.meeting.update({
+        where: { id: canonical.id },
+        data: {
+          title: canonical.title,
+          campusId: canonical.campusId,
+          host: canonical.host,
+          schedule: canonical.schedule,
+          platform: canonical.platform,
+          joinUrl: canonical.joinUrl ?? null,
+          meetingId: canonical.meetingId ?? null,
+          recurringWeekday: canonical.recurringWeekday ?? null,
+          recurringWeekdays: serializeRecurringWeekdays(canonical.recurringWeekdays),
+          published: true,
+          sortOrder: canonical.sortOrder ?? existing.sortOrder,
+          notifyEnabled: isAutomatedReminderMeeting(canonical.id) ? undefined : false,
+          updatedAt: now,
+        },
+      });
     }
-
-    await prisma.meeting.update({
-      where: { id: canonical.id },
-      data: {
-        title: canonical.title,
-        campusId: canonical.campusId,
-        host: canonical.host,
-        schedule: canonical.schedule,
-        platform: canonical.platform,
-        joinUrl: canonical.joinUrl ?? null,
-        meetingId: canonical.meetingId ?? null,
-        recurringWeekday: canonical.recurringWeekday ?? null,
-        recurringWeekdays: serializeRecurringWeekdays(canonical.recurringWeekdays),
-        published: true,
-        sortOrder: canonical.sortOrder ?? existing.sortOrder,
-        notifyEnabled: isAutomatedReminderMeeting(canonical.id) ? undefined : false,
-        updatedAt: now,
-      },
-    });
+  } finally {
+    await retireLegacyMeetings(now);
   }
-
-  await prisma.meeting.updateMany({
-    where: { id: "3", title: "Prayer Ministry" },
-    data: { published: false, updatedAt: now },
-  });
 }
 
 export async function getMeetings(options?: { includeUnpublished?: boolean }) {
@@ -147,7 +171,11 @@ export async function getMeetings(options?: { includeUnpublished?: boolean }) {
     orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
   });
 
-  return records.map(mapMeeting);
+  const meetings = records.map(mapMeeting);
+  if (options?.includeUnpublished) {
+    return meetings;
+  }
+  return meetings.filter((meeting) => !isLegacyMeeting(meeting));
 }
 
 export async function createMeeting(

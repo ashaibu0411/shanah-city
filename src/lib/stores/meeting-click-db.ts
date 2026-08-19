@@ -81,6 +81,7 @@ export async function logMeetingClick(input: {
 
 export async function getMeetingClicks(options?: {
   meetingId?: string;
+  meetingIds?: string[];
   groupId?: string;
   userId?: string;
   since?: string;
@@ -88,7 +89,11 @@ export async function getMeetingClicks(options?: {
 }) {
   const clicks = await prisma.meetingClick.findMany({
     where: {
-      meetingId: options?.meetingId,
+      meetingId: options?.meetingId
+        ? options.meetingId
+        : options?.meetingIds
+          ? { in: options.meetingIds }
+          : undefined,
       groupId: options?.groupId,
       userId: options?.userId,
       clickedAt: options?.since ? { gte: new Date(options.since) } : undefined,

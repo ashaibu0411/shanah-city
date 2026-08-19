@@ -5,6 +5,7 @@ import {
   logMeetingClick,
   parseMeetingClickSource,
 } from "@/lib/meeting-click-server";
+import { shouldTrackMeetingJoin } from "@/lib/meeting-join-utils";
 import { resolveMeetingJoinTarget } from "@/lib/meeting-join";
 
 export async function GET(request: Request) {
@@ -23,13 +24,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Meeting link not found." }, { status: 404 });
     }
 
+    if (!shouldTrackMeetingJoin(target.meetingId)) {
+      return NextResponse.redirect(target.joinUrl);
+    }
+
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE)?.value;
     const user = await getUserFromSession(token);
 
     if (!user) {
-      const next = `${searchParams.toString() ? `/api/meetings/join?${searchParams.toString()}` : "/meetings"}`;
-      return NextResponse.redirect(new URL(`/sign-in?next=${encodeURIComponent(next)}`, request.url));
+      const next = searchParams.toString()
+        ? `/api/meetings/join?${searchParams.toString()}`
+        : "/meetings";
+      return NextResponse.redirect(
+        new URL(`/sign-in?next=${encodeURIComponent(next)}`, request.url),
+      );
     }
 
     await logMeetingClick({
@@ -38,8 +47,6 @@ export async function GET(request: Request) {
       userEmail: user.email,
       meetingId: target.meetingId,
       meetingTitle: target.meetingTitle,
-      groupId: target.groupId,
-      groupName: target.groupName,
       campusId: target.campusId,
       platform: target.platform,
       source,

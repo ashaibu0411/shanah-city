@@ -55,6 +55,7 @@ export async function logMeetingClick(input: {
 
 export async function getMeetingClicks(options?: {
   meetingId?: string;
+  meetingIds?: string[];
   groupId?: string;
   userId?: string;
   since?: string;
@@ -63,10 +64,14 @@ export async function getMeetingClicks(options?: {
   const clicks = await readJson<MeetingClickLog[]>(CLICKS_FILE, []);
   const sinceMs = options?.since ? new Date(options.since).getTime() : null;
   const limit = options?.limit ?? 100;
+  const allowedIds = options?.meetingIds;
 
   return clicks
     .filter((click) => {
       if (options?.meetingId && click.meetingId !== options.meetingId) {
+        return false;
+      }
+      if (allowedIds && (!click.meetingId || !allowedIds.includes(click.meetingId))) {
         return false;
       }
       if (options?.groupId && click.groupId !== options.groupId) {

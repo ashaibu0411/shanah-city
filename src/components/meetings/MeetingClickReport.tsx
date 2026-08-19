@@ -2,6 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import {
+  SHIFT_YOUR_EVENING_ID,
+  SHIFT_YOUR_MORNING_ID,
+  isTrackedJoinMeeting,
+} from "@/lib/meeting-catalog";
 import type { MeetingClickLog } from "@/lib/meeting-click-types";
 import type { Meeting } from "@/lib/types";
 import { Badge, Card } from "@/components/ui";
@@ -17,8 +22,6 @@ function formatWhen(iso: string) {
 
 function sourceLabel(source: MeetingClickLog["source"]) {
   switch (source) {
-    case "group_page":
-      return "Group page";
     case "push":
       return "Push notification";
     default:
@@ -32,18 +35,28 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [meetingId, setMeetingId] = useState("");
-  const [groupId, setGroupId] = useState("");
 
-  const canView = permissions.canManageAdmin || Boolean(groupId);
+  const prayerMeetings = useMemo(
+    () =>
+      meetings.filter((meeting) => isTrackedJoinMeeting(meeting.id)).sort((left, right) => {
+        if (left.id === SHIFT_YOUR_MORNING_ID) return -1;
+        if (right.id === SHIFT_YOUR_MORNING_ID) return 1;
+        if (left.id === SHIFT_YOUR_EVENING_ID) return -1;
+        if (right.id === SHIFT_YOUR_EVENING_ID) return 1;
+        return left.title.localeCompare(right.title);
+      }),
+    [meetings],
+  );
+
+  const canView = permissions.canManageAdmin;
 
   useEffect(() => {
-    if (!user || (!permissions.canManageAdmin && !groupId)) {
+    if (!user || !canView) {
       return;
     }
 
     const params = new URLSearchParams({ limit: "50" });
     if (meetingId) params.set("meetingId", meetingId);
-    if (groupId) params.set("groupId", groupId);
 
     setLoading(true);
     setError(null);
@@ -61,7 +74,7 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
         setClicks([]);
       })
       .finally(() => setLoading(false));
-  }, [user, meetingId, groupId, permissions.canManageAdmin]);
+  }, [user, meetingId, canView]);
 
   const summary = useMemo(() => {
     const uniqueMembers = new Set(clicks.map((click) => click.userId));
@@ -75,22 +88,19 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
     return null;
   }
 
-  if (!permissions.canManageAdmin && !groupId) {
-    return null;
-  }
-
   return (
     <Card className="mt-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-sand-600">
-            Join report
+            Prayer join report
           </p>
           <h2 className="mt-1 font-display text-xl font-semibold text-night-900">
             Who clicked to join
           </h2>
           <p className="mt-1 text-sm text-night-600">
-            Tracks signed-in members when they use a tracked Join button (not copy/paste of the raw Zoom URL).
+            Tracks signed-in members for Shift Your Morning (Mon–Fri, 8am MST) and Shift Your
+            Evening (Tue–Thu, 8pm MST). Other meetings are not tracked.
           </p>
         </div>
         <div className="flex gap-2 text-sm text-night-600">
@@ -104,30 +114,21 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 max-w-md">
         <label className="text-sm text-night-700">
-          <span className="font-semibold">Filter by meeting</span>
+          <span className="font-semibold">Filter by prayer meeting</span>
           <select
             value={meetingId}
             onChange={(event) => setMeetingId(event.target.value)}
             className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 text-sm"
           >
-            <option value="">All meetings</option>
-            {meetings.map((meeting) => (
+            <option value="">Morning and evening</option>
+            {prayerMeetings.map((meeting) => (
               <option key={meeting.id} value={meeting.id}>
                 {meeting.title}
               </option>
             ))}
           </select>
-        </label>
-        <label className="text-sm text-night-700">
-          <span className="font-semibold">Filter by group id</span>
-          <input
-            value={groupId}
-            onChange={(event) => setGroupId(event.target.value.trim())}
-            placeholder="group-1234567890"
-            className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 text-sm"
-          />
         </label>
       </div>
 
@@ -137,7 +138,7 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
       )}
 
       {!loading && !error && clicks.length === 0 && (
-        <p className="mt-4 text-sm text-night-500">No tracked joins yet.</p>
+        <p className="mt-4 text-sm text-night-500">No tracked prayer joins yet.</p>
       )}
 
       {!loading && clicks.length > 0 && (
@@ -147,7 +148,7 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
               <tr>
                 <th className="py-2 pr-4">When</th>
                 <th className="py-2 pr-4">Member</th>
-                <th className="py-2 pr-4">Meeting / group</th>
+                <th className="py-2 pr-4">Meeting</th>
                 <th className="py-2 pr-4">Source</th>
               </tr>
             </thead>
@@ -161,9 +162,6 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
                   </td>
                   <td className="py-3 pr-4">
                     <p className="font-medium text-night-900">{click.meetingTitle}</p>
-                    {click.groupName && (
-                      <p className="text-xs text-night-500">Group · {click.groupName}</p>
-                    )}
                     {click.platform && (
                       <span className="mt-1 inline-block">
                         <Badge variant="outline">{click.platform}</Badge>

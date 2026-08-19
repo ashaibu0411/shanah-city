@@ -7,6 +7,7 @@ import {
   SHIFT_YOUR_EVENING_ID,
   SHIFT_YOUR_MORNING_ID,
   isAutomatedReminderMeeting,
+  isTrackedJoinMeeting,
 } from "@/lib/meeting-catalog";
 import { buildTrackedJoinUrl, isTrackableJoinUrl } from "@/lib/meeting-join-utils";
 import { meetingHasJoinLink } from "@/lib/meeting-utils";
@@ -77,7 +78,8 @@ export function MeetingCard({
   const joinUrl = meeting.joinUrl ?? "";
   const hasJoinLink = meetingHasJoinLink(meeting);
   const isYouTube = joinUrl.includes("youtube");
-  const trackable = hasJoinLink && isTrackableJoinUrl(joinUrl);
+  const trackable =
+    hasJoinLink && isTrackableJoinUrl(joinUrl) && isTrackedJoinMeeting(meeting.id);
   const joinHref = trackable
     ? buildTrackedJoinUrl({ meetingId: meeting.id, source: "meetings_page" })
     : joinUrl;
@@ -183,6 +185,11 @@ export function MeetingCard({
           </Button>
         )}
       </div>
+      {trackable && (
+        <p className="mt-2 text-xs text-night-500">
+          Join is tracked for signed-in members so we can see who came to prayer.
+        </p>
+      )}
 
       {showReminderToggle && reminder && (
         <div className="mt-4 rounded-xl bg-white/90 p-3 ring-1 ring-night-900/10">

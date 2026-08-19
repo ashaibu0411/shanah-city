@@ -7,7 +7,6 @@ import { campuses, getCampus } from "@/lib/site";
 import type { GroupCategory, GroupDetail, GroupMemberPreview, GroupSummary } from "@/lib/group-types";
 import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { groupCategoryLabels } from "@/lib/group-types";
-import { buildTrackedJoinUrl, isTrackableJoinUrl } from "@/lib/meeting-join-utils";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { Button, Card, ExternalLink } from "@/components/ui";
 
@@ -472,24 +471,12 @@ export function GroupsHub() {
                 {detail.meetingLink && (
                   <p className={detail.meetingSchedule ? "mt-2" : ""}>
                     <span className="font-semibold">Link:</span>{" "}
-                    {isTrackableJoinUrl(detail.meetingLink) ? (
-                      <a
-                        href={buildTrackedJoinUrl({
-                          groupId: detail.id,
-                          source: "group_page",
-                        })}
-                        className="font-semibold text-night-900 underline"
-                      >
-                        Open meeting link
-                      </a>
-                    ) : (
-                      <ExternalLink
-                        href={detail.meetingLink}
-                        className="font-semibold text-night-900 underline"
-                      >
-                        Open meeting link
-                      </ExternalLink>
-                    )}
+                    <ExternalLink
+                      href={detail.meetingLink}
+                      className="font-semibold text-night-900 underline"
+                    >
+                      Open meeting link
+                    </ExternalLink>
                   </p>
                 )}
               </div>

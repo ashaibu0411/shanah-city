@@ -8,6 +8,7 @@ import {
 } from "@/lib/worship-types";
 import * as pushDb from "@/lib/stores/push-db";
 import * as pushJson from "@/lib/stores/push-json";
+import { isTrackedJoinMeeting } from "@/lib/meeting-catalog";
 import { useDatabase } from "@/lib/use-database";
 
 const store = () => (useDatabase() ? pushDb : pushJson);
@@ -292,11 +293,14 @@ export async function notifyScheduledMeeting(input: {
   platform?: string;
 }) {
   const joinLabel = input.platform === "teams" ? "Teams" : "Zoom";
+  const url = isTrackedJoinMeeting(input.id)
+    ? `/api/meetings/join?meetingId=${encodeURIComponent(input.id)}&source=push`
+    : "/meetings";
   return sendPushToAllMembers(
     {
       title: input.title.toUpperCase(),
       body: `${input.schedule}. Tap to join on ${joinLabel}.`,
-      url: `/api/meetings/join?meetingId=${encodeURIComponent(input.id)}&source=push`,
+      url,
     },
     "announcements",
   );

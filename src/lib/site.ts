@@ -291,49 +291,7 @@ export {
   shiftYourMorningMeeting,
 } from "./meeting-catalog";
 
-export const meetings: Meeting[] = [
-  ...canonicalMeetings(),
-  {
-    id: "1",
-    title: "Friday Evening Service",
-    campusId: "colorado",
-    host: "Shanah City Worship",
-    schedule: "Friday 7:00 PM – 9:30 PM MST",
-    platform: "zoom",
-    recurringWeekday: 5,
-    sortOrder: 6,
-  },
-  {
-    id: "2",
-    title: "Sunday Morning Service",
-    campusId: "colorado",
-    host: "Shanah City Worship",
-    schedule: "Sunday 10:00 AM – 12:30 PM MST",
-    platform: "zoom",
-    recurringWeekday: 0,
-    sortOrder: 7,
-  },
-  {
-    id: "4",
-    title: "Watch Online",
-    campusId: "online",
-    host: "Shanah City Team",
-    schedule: "Friday & Sunday services",
-    platform: "teams",
-    joinUrl: "https://www.youtube.com/@ShanahCity",
-    sortOrder: 8,
-  },
-  {
-    id: "5",
-    title: "Accra Campus Service",
-    campusId: "accra",
-    host: "Shanah City Accra",
-    schedule: "Contact campus for service times",
-    platform: "in-person",
-    location: "Accra, Ghana",
-    sortOrder: 9,
-  },
-];
+export const meetings: Meeting[] = canonicalMeetings();
 
 export const shopProducts: ShopProduct[] = [
   {

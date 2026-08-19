@@ -1,4 +1,5 @@
 import type { MeetingClickSource } from "@/lib/meeting-click-types";
+import { isTrackedJoinMeeting } from "@/lib/meeting-catalog";
 
 export function isTrackableJoinUrl(joinUrl: string) {
   const normalized = joinUrl.trim().toLowerCase();
@@ -6,6 +7,10 @@ export function isTrackableJoinUrl(joinUrl: string) {
     return false;
   }
   return normalized.startsWith("http://") || normalized.startsWith("https://");
+}
+
+export function shouldTrackMeetingJoin(meetingId?: string | null) {
+  return isTrackedJoinMeeting(meetingId);
 }
 
 export function buildTrackedJoinUrl(input: {

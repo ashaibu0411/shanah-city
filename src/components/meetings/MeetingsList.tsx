@@ -163,25 +163,21 @@ export function MeetingsList() {
         </>
       )}
 
-      <SectionTitle title="More gatherings" />
-      <div className="grid gap-4 md:grid-cols-2">
-        {loading ? (
-          <p className="text-sm text-night-500">Loading meetings…</p>
-        ) : others.length === 0 ? (
-          <Card>
-            <p className="text-sm text-night-500">No other meetings for this campus yet.</p>
-          </Card>
-        ) : (
-          others.map((meeting) => (
-            <MeetingCard
-              key={meeting.id}
-              meeting={meeting}
-              canManage={canManage}
-              onRemove={() => removeMeeting(meeting.id)}
-            />
-          ))
-        )}
-      </div>
+      {others.length > 0 && (
+        <>
+          <SectionTitle title="More gatherings" />
+          <div className="grid gap-4 md:grid-cols-2">
+            {others.map((meeting) => (
+              <MeetingCard
+                key={meeting.id}
+                meeting={meeting}
+                canManage={canManage}
+                onRemove={() => removeMeeting(meeting.id)}
+              />
+            ))}
+          </div>
+        </>
+      )}
       <MeetingClickReport meetings={meetings} />
     </div>
   );
