@@ -6,6 +6,8 @@ const store = () => (useDatabase() ? worshipSongLibraryDb : worshipSongLibraryJs
 
 export const listWorshipLibrarySongs = (query?: string) => store().listWorshipLibrarySongs(query);
 export const getWorshipLibrarySong = (id: string) => store().getWorshipLibrarySong(id);
+export const getWorshipLibrarySongByYouTubeVideoId = (videoId: string) =>
+  store().getWorshipLibrarySongByYouTubeVideoId(videoId);
 export const saveWorshipLibrarySong = (
   input: Parameters<typeof worshipSongLibraryJson.saveWorshipLibrarySong>[0],
 ) => store().saveWorshipLibrarySong(input);

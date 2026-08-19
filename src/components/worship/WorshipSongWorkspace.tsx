@@ -8,6 +8,7 @@ import {
   type WorshipSongPart,
 } from "@/lib/worship-types";
 import { WorshipPracticeStemEditor } from "@/components/worship/WorshipPracticeStemEditor";
+import { WorshipYouTubeReference } from "@/components/worship/WorshipYouTubeReference";
 
 type WorshipSongWorkspaceProps = {
   song: WorshipSong;
@@ -193,6 +194,14 @@ export function WorshipSongWorkspace({
               })}
             </div>
           </div>
+
+          {song.youtubeVideoId && (
+            <WorshipYouTubeReference
+              videoId={song.youtubeVideoId}
+              title={song.title}
+              compact={readOnly}
+            />
+          )}
 
           <WorshipPracticeStemEditor
             song={song}

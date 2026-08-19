@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/ui";
 import { WorshipPracticePlayer } from "@/components/worship/WorshipPracticePlayer";
+import { WorshipYouTubeReference } from "@/components/worship/WorshipYouTubeReference";
 import {
   getSongPartNotes,
   worshipPartLabel,
@@ -119,6 +120,10 @@ export function WorshipMyPartPanel({ songs, member }: WorshipMyPartPanelProps) {
               )}
 
               <WorshipPracticePlayer song={song} partRole={member.partRole!} />
+
+              {song.youtubeVideoId && (
+                <WorshipYouTubeReference videoId={song.youtubeVideoId} title={song.title} />
+              )}
             </Card>
           );
         })

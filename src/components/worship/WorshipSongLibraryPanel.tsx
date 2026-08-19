@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Button, Card } from "@/components/ui";
+import { WorshipYouTubeReference } from "@/components/worship/WorshipYouTubeReference";
+import { getYouTubeClipThumbnail } from "@/lib/media-clips-utils";
 import type { WorshipLibrarySong } from "@/lib/worship-types";
 
 type WorshipSongLibraryPanelProps = {
@@ -12,6 +14,8 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
   const [songs, setSongs] = useState<WorshipLibrarySong[]>([]);
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<WorshipLibrarySong | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeVideoId, setYoutubeVideoId] = useState("");
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState("");
   const [defaultKey, setDefaultKey] = useState("C");
@@ -22,6 +26,7 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
   const [chartFileName, setChartFileName] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [lookingUp, setLookingUp] = useState(false);
 
   async function loadSongs(search = query) {
     const params = search ? `?q=${encodeURIComponent(search)}` : "";
@@ -38,6 +43,8 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
 
   function resetForm() {
     setEditing(null);
+    setYoutubeUrl("");
+    setYoutubeVideoId("");
     setTitle("");
     setArtist("");
     setDefaultKey("C");
@@ -50,6 +57,8 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
 
   function startEdit(song: WorshipLibrarySong) {
     setEditing(song);
+    setYoutubeUrl(song.youtubeUrl ?? "");
+    setYoutubeVideoId(song.youtubeVideoId ?? "");
     setTitle(song.title);
     setArtist(song.artist ?? "");
     setDefaultKey(song.defaultKey);
@@ -58,6 +67,42 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
     setNotes(song.notes ?? "");
     setChartUrl(song.chartUrl ?? "");
     setChartFileName(song.chartFileName ?? "");
+  }
+
+  async function lookupYouTube() {
+    if (!youtubeUrl.trim()) {
+      setMessage("Paste a YouTube link first.");
+      return;
+    }
+
+    setLookingUp(true);
+    setMessage(null);
+    const response = await fetch("/api/worship/songs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "lookup_youtube", url: youtubeUrl.trim() }),
+    });
+    const data = await response.json();
+    setLookingUp(false);
+
+    if (!response.ok) {
+      setMessage(data.error ?? "Could not load YouTube video.");
+      return;
+    }
+
+    const { lookup, existing } = data;
+    setYoutubeVideoId(lookup.videoId);
+    setYoutubeUrl(lookup.watchUrl);
+    if (lookup.title) setTitle(lookup.title);
+    if (lookup.artist) setArtist(lookup.artist);
+
+    if (existing) {
+      startEdit(existing);
+      setMessage("This YouTube song is already in the library — loaded for editing.");
+      return;
+    }
+
+    setMessage("YouTube details loaded. Set the key and save to library.");
   }
 
   async function saveSong() {
@@ -76,11 +121,21 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
         notes,
         chartUrl,
         chartFileName,
+        youtubeUrl: youtubeUrl || undefined,
+        youtubeVideoId: youtubeVideoId || undefined,
       }),
     });
     const data = await response.json();
     if (response.ok) {
-      setMessage(editing ? "Song updated." : "Song added to library.");
+      setMessage(
+        data.mergedExisting
+          ? "This YouTube song was already in the library — details updated."
+          : editing
+            ? "Song updated."
+            : youtubeVideoId
+              ? "YouTube song added to library."
+              : "Song added to library.",
+      );
       resetForm();
       loadSongs();
     } else {
@@ -117,12 +172,15 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
     }
   }
 
+  const canSave = Boolean(title.trim() || youtubeVideoId || youtubeUrl.trim());
+
   return (
     <div className="space-y-6">
       <Card>
         <h3 className="font-display text-lg font-semibold text-night-900">Song library</h3>
         <p className="mt-1 text-sm text-night-600">
-          Reuse favorites across services. Store default keys, CCLI numbers, and chord charts.
+          Most songs come from Shanah City YouTube. Paste a link to import, then reuse across
+          services with keys, charts, and part tracks.
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -146,16 +204,33 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
                 key={song.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-night-900/5 px-4 py-3"
               >
-                <div>
-                  <p className="font-semibold text-night-900">{song.title}</p>
-                  <p className="text-xs text-night-500">
-                    Key {song.defaultKey}
-                    {song.artist ? ` · ${song.artist}` : ""}
-                    {song.ccliNumber ? ` · CCLI ${song.ccliNumber}` : ""}
-                    {song.useCount > 0 ? ` · Used ${song.useCount}×` : ""}
-                  </p>
+                <div className="flex min-w-0 items-start gap-3">
+                  {song.youtubeVideoId ? (
+                    <img
+                      src={getYouTubeClipThumbnail(song.youtubeVideoId)}
+                      alt=""
+                      className="h-12 w-20 shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-20 shrink-0 items-center justify-center rounded-lg bg-sand-100 text-[10px] font-semibold uppercase tracking-wide text-night-500">
+                      Song
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-semibold text-night-900">{song.title}</p>
+                    <p className="text-xs text-night-500">
+                      Key {song.defaultKey}
+                      {song.artist ? ` · ${song.artist}` : ""}
+                      {song.youtubeVideoId ? " · YouTube" : ""}
+                      {song.ccliNumber ? ` · CCLI ${song.ccliNumber}` : ""}
+                      {song.useCount > 0 ? ` · Used ${song.useCount}×` : ""}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {song.youtubeVideoId && (
+                    <WorshipYouTubeReference videoId={song.youtubeVideoId} compact />
+                  )}
                   {song.chartUrl && (
                     <a
                       href={song.chartUrl}
@@ -186,8 +261,35 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
 
       <Card>
         <h3 className="font-display text-lg font-semibold text-night-900">
-          {editing ? "Edit library song" : "Add library song"}
+          {editing ? "Edit library song" : "Add from YouTube or manually"}
         </h3>
+        <p className="mt-1 text-sm text-night-600">
+          Paste a YouTube worship video, live recording, or rehearsal track. We pull the title
+          automatically — you add the service key and chart.
+        </p>
+
+        <div className="mt-4 rounded-xl bg-red-50 p-4 ring-1 ring-red-100">
+          <label className="block text-sm font-semibold text-night-800">YouTube link</label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <input
+              value={youtubeUrl}
+              onChange={(event) => setYoutubeUrl(event.target.value)}
+              placeholder="https://www.youtube.com/watch?v=… or youtu.be/…"
+              className="min-w-[240px] flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+            />
+            <Button variant="secondary" onClick={lookupYouTube} disabled={lookingUp}>
+              {lookingUp ? "Loading…" : "Load from YouTube"}
+            </Button>
+          </div>
+          {youtubeVideoId && (
+            <p className="mt-2 text-xs text-night-600">Video ID: {youtubeVideoId}</p>
+          )}
+        </div>
+
+        {youtubeVideoId && (
+          <WorshipYouTubeReference videoId={youtubeVideoId} title={title || undefined} />
+        )}
+
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <input
             value={title}
@@ -226,7 +328,7 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
             rows={2}
             className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm md:col-span-2"
           />
-          <label className="md:col-span-2 text-sm text-night-700">
+          <label className="text-sm text-night-700 md:col-span-2">
             <span className="font-semibold">Chord chart (PDF or image)</span>
             <input
               type="file"
@@ -244,7 +346,7 @@ export function WorshipSongLibraryPanel({ onAddToPlan }: WorshipSongLibraryPanel
           </label>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button onClick={saveSong} disabled={!title.trim()}>
+          <Button onClick={saveSong} disabled={!canSave}>
             {editing ? "Update song" : "Save to library"}
           </Button>
           {editing && (

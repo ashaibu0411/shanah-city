@@ -8,6 +8,8 @@ function mapSong(record: {
   defaultKey: string;
   bpm: number | null;
   ccliNumber: string | null;
+  youtubeVideoId: string | null;
+  youtubeUrl: string | null;
   chartUrl: string | null;
   chartFileName: string | null;
   notes: string | null;
@@ -25,6 +27,8 @@ function mapSong(record: {
     defaultKey: record.defaultKey,
     bpm: record.bpm ?? undefined,
     ccliNumber: record.ccliNumber ?? undefined,
+    youtubeVideoId: record.youtubeVideoId ?? undefined,
+    youtubeUrl: record.youtubeUrl ?? undefined,
     chartUrl: record.chartUrl ?? undefined,
     chartFileName: record.chartFileName ?? undefined,
     notes: record.notes ?? undefined,
@@ -49,6 +53,7 @@ export async function listWorshipLibrarySongs(query?: string) {
       (song) =>
         song.title.toLowerCase().includes(needle) ||
         song.artist?.toLowerCase().includes(needle) ||
+        song.youtubeVideoId?.toLowerCase().includes(needle) ||
         song.tags?.some((tag) => tag.toLowerCase().includes(needle)),
     );
   }
@@ -61,6 +66,13 @@ export async function getWorshipLibrarySong(id: string) {
   return record ? mapSong(record) : null;
 }
 
+export async function getWorshipLibrarySongByYouTubeVideoId(videoId: string) {
+  const record = await prisma.worshipSongLibrary.findFirst({
+    where: { youtubeVideoId: videoId },
+  });
+  return record ? mapSong(record) : null;
+}
+
 export async function saveWorshipLibrarySong(input: {
   id?: string;
   title: string;
@@ -68,6 +80,8 @@ export async function saveWorshipLibrarySong(input: {
   defaultKey: string;
   bpm?: number;
   ccliNumber?: string;
+  youtubeVideoId?: string;
+  youtubeUrl?: string;
   chartUrl?: string;
   chartFileName?: string;
   notes?: string;
@@ -81,6 +95,8 @@ export async function saveWorshipLibrarySong(input: {
     defaultKey: input.defaultKey.trim() || "C",
     bpm: input.bpm ?? null,
     ccliNumber: input.ccliNumber?.trim() || null,
+    youtubeVideoId: input.youtubeVideoId?.trim() || null,
+    youtubeUrl: input.youtubeUrl?.trim() || null,
     chartUrl: input.chartUrl?.trim() || null,
     chartFileName: input.chartFileName?.trim() || null,
     notes: input.notes?.trim() || null,

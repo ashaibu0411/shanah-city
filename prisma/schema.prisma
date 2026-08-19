@@ -396,6 +396,8 @@ model WorshipSongLibrary {
   defaultKey     String   @default("C")
   bpm            Int?
   ccliNumber     String?
+  youtubeVideoId String?
+  youtubeUrl     String?
   chartUrl       String?
   chartFileName  String?
   notes          String?

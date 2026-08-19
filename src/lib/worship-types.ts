@@ -86,6 +86,8 @@ export type WorshipSong = {
   lyrics?: string;
   parts?: WorshipSongPart[];
   practiceStems?: WorshipPracticeStem[];
+  youtubeVideoId?: string;
+  youtubeUrl?: string;
   chartUrl?: string;
   chartFileName?: string;
   leaderUserId?: string;
@@ -144,6 +146,8 @@ export type WorshipLibrarySong = {
   defaultKey: string;
   bpm?: number | null;
   ccliNumber?: string | null;
+  youtubeVideoId?: string | null;
+  youtubeUrl?: string | null;
   chartUrl?: string | null;
   chartFileName?: string | null;
   notes?: string | null;
@@ -284,6 +288,8 @@ export function songFromLibrary(entry: WorshipLibrarySong): WorshipSong {
     notes: entry.notes ?? undefined,
     lyrics: undefined,
     parts: defaultSongParts(),
+    youtubeVideoId: entry.youtubeVideoId ?? undefined,
+    youtubeUrl: entry.youtubeUrl ?? undefined,
     chartUrl: entry.chartUrl ?? undefined,
     chartFileName: entry.chartFileName ?? undefined,
     segment: "worship",
@@ -319,6 +325,8 @@ export function normalizeSongs(songs: WorshipSong[] | undefined) {
         lyrics: song.lyrics?.trim() || undefined,
         parts: normalizeSongParts(song.parts),
         practiceStems: normalizePracticeStems(song.practiceStems),
+        youtubeVideoId: song.youtubeVideoId?.trim() || undefined,
+        youtubeUrl: song.youtubeUrl?.trim() || undefined,
         chartUrl: song.chartUrl?.trim() || undefined,
         chartFileName: song.chartFileName?.trim() || undefined,
         leaderUserId: song.leaderUserId,

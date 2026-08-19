@@ -34,6 +34,7 @@ export async function listWorshipLibrarySongs(query?: string) {
       (song) =>
         song.title.toLowerCase().includes(needle) ||
         song.artist?.toLowerCase().includes(needle) ||
+        song.youtubeVideoId?.toLowerCase().includes(needle) ||
         song.tags?.some((tag) => tag.toLowerCase().includes(needle)),
     );
   }
@@ -46,6 +47,11 @@ export async function getWorshipLibrarySong(id: string) {
   return songs.find((song) => song.id === id) ?? null;
 }
 
+export async function getWorshipLibrarySongByYouTubeVideoId(videoId: string) {
+  const songs = await readSongs();
+  return songs.find((song) => song.youtubeVideoId === videoId) ?? null;
+}
+
 export async function saveWorshipLibrarySong(input: {
   id?: string;
   title: string;
@@ -53,6 +59,8 @@ export async function saveWorshipLibrarySong(input: {
   defaultKey: string;
   bpm?: number;
   ccliNumber?: string;
+  youtubeVideoId?: string;
+  youtubeUrl?: string;
   chartUrl?: string;
   chartFileName?: string;
   notes?: string;
@@ -68,6 +76,8 @@ export async function saveWorshipLibrarySong(input: {
     defaultKey: input.defaultKey.trim() || "C",
     bpm: input.bpm,
     ccliNumber: input.ccliNumber?.trim(),
+    youtubeVideoId: input.youtubeVideoId?.trim(),
+    youtubeUrl: input.youtubeUrl?.trim(),
     chartUrl: input.chartUrl?.trim(),
     chartFileName: input.chartFileName?.trim(),
     notes: input.notes?.trim(),
