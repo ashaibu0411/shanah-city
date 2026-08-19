@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BrandLogo } from "@/components/app/BrandLogo";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { useApp } from "@/components/app/AppProvider";
 import { liveStream, site } from "@/lib/site";
@@ -85,17 +84,7 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
         <div className="mobile-home-shimmer pointer-events-none absolute inset-0 opacity-40" aria-hidden />
 
         <div className="relative">
-          <div className="flex items-center gap-3">
-            <div className="mobile-home-logo-reveal mobile-home-logo-glow rounded-md">
-              <BrandLogo size="sm" priority className="border-white/80 shadow-lg shadow-black/20" />
-            </div>
-            <div className="mobile-home-fade-up mobile-home-fade-up-1 min-w-0">
-              <p className="truncate text-sm font-semibold text-white">{site.name}</p>
-              <p className="truncate text-xs text-white/60">{campus.city}</p>
-            </div>
-          </div>
-
-          <h1 className="mobile-home-headline mobile-home-fade-up mobile-home-fade-up-2 mt-4 font-display text-[1.45rem] font-bold leading-tight tracking-tight text-white">
+          <h1 className="mobile-home-headline mobile-home-fade-up mobile-home-fade-up-2 font-display text-[1.45rem] font-bold leading-tight tracking-tight text-white">
             {site.tagline}
           </h1>
 

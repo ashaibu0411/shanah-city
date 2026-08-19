@@ -5,7 +5,6 @@ import { BrandLogo } from "@/components/app/BrandLogo";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
-import { useApp } from "@/components/app/AppProvider";
 import { liveStream, site } from "@/lib/site";
 import { Badge } from "@/components/ui";
 
@@ -33,7 +32,6 @@ const pageTitles: Record<string, string> = {
 
 export function MobileAppHeader() {
   const pathname = usePathname();
-  const { campus } = useApp();
   const { user, loading } = useAuth();
   const title = pageTitles[pathname] ?? site.name;
   const isHome = pathname === "/";
@@ -49,9 +47,7 @@ export function MobileAppHeader() {
         <div className="min-w-0 flex-1">
           {isHome ? (
             <>
-              <p className="text-xs font-medium text-white/60">
-                {getGreeting()} · {campus.city}
-              </p>
+              <p className="text-xs font-medium text-white/60">{getGreeting()}</p>
               <div className="mt-0.5 flex items-center gap-2">
                 <BrandLogo size="sm" priority />
                 {anyLive && (
