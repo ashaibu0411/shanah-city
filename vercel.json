@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/worship-reminders",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/morning-prayer",
+      "schedule": "0 14,15 * * 1-5"
+    },
+    {
+      "path": "/api/cron/evening-prayer",
+      "schedule": "0 2,3 * * *"
     }
   ]
 }

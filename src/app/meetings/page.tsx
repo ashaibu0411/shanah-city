@@ -7,7 +7,7 @@ export default function MeetingsPage() {
       <PageHeader
         eyebrow="Connect"
         title="Meetings"
-        description="Join in-person gatherings or tap Zoom and Teams links — all in one place."
+        description="Morning prayer is Monday–Friday at 8:00 AM MST. Evening prayer is Tuesday–Thursday at 8:00 PM MST. Monthly gatherings and service links are below."
       />
       <MeetingsList />
     </>

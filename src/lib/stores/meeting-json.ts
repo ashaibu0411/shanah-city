@@ -1,17 +1,25 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { meetings as seedMeetings } from "@/lib/site";
+import { applyCanonicalMeeting, canonicalMeetings } from "@/lib/meeting-catalog";
+import { parseRecurringWeekdays } from "@/lib/meeting-utils";
 import type { Meeting } from "@/lib/types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const MEETINGS_FILE = path.join(DATA_DIR, "meetings.json");
 
-function defaultMeetings(): Meeting[] {
-  return seedMeetings.map((meeting, index) => ({
+function normalizeMeeting(meeting: Meeting, index = 0): Meeting {
+  return {
     ...meeting,
-    published: true,
-    sortOrder: index,
-  }));
+    recurringWeekdays: parseRecurringWeekdays(meeting.recurringWeekdays),
+    notifyEnabled: meeting.notifyEnabled ?? false,
+    published: meeting.published ?? true,
+    sortOrder: meeting.sortOrder ?? index,
+  };
+}
+
+function defaultMeetings(): Meeting[] {
+  return seedMeetings.map((meeting, index) => normalizeMeeting(meeting, index));
 }
 
 async function readJson<T>(file: string, fallback: T): Promise<T> {
@@ -28,14 +36,38 @@ async function writeJson<T>(file: string, data: T) {
   await fs.writeFile(file, JSON.stringify(data, null, 2));
 }
 
+async function ensureCanonicalMeetings(meetings: Meeting[]) {
+  const next = meetings.map((meeting, index) => normalizeMeeting(meeting, index));
+
+  for (const canonical of canonicalMeetings()) {
+    const existingIndex = next.findIndex((meeting) => meeting.id === canonical.id);
+    const existing = existingIndex === -1 ? undefined : next[existingIndex];
+    const updated = normalizeMeeting(applyCanonicalMeeting(existing, canonical));
+    if (existingIndex === -1) {
+      next.push(updated);
+    } else {
+      next[existingIndex] = updated;
+    }
+  }
+
+  const prayerIndex = next.findIndex(
+    (meeting) => meeting.id === "3" && meeting.title === "Prayer Ministry",
+  );
+  if (prayerIndex !== -1) {
+    next[prayerIndex] = { ...next[prayerIndex], published: false };
+  }
+
+  return next;
+}
+
 async function readMeetings() {
   const meetings = await readJson<Meeting[]>(MEETINGS_FILE, []);
-  if (meetings.length === 0) {
-    const seeded = defaultMeetings();
-    await writeJson(MEETINGS_FILE, seeded);
-    return seeded;
+  const source = meetings.length === 0 ? defaultMeetings() : meetings;
+  const next = await ensureCanonicalMeetings(source);
+  if (JSON.stringify(next) !== JSON.stringify(source)) {
+    await writeJson(MEETINGS_FILE, next);
   }
-  return meetings;
+  return next;
 }
 
 function sortMeetings(meetings: Meeting[]) {
@@ -58,12 +90,15 @@ export async function createMeeting(
   input: Omit<Meeting, "id" | "sortOrder"> & { sortOrder?: number },
 ) {
   const meetings = await readMeetings();
-  const meeting: Meeting = {
-    ...input,
-    id: `meeting-${Date.now()}`,
-    published: input.published ?? true,
-    sortOrder: input.sortOrder ?? meetings.length,
-  };
+  const meeting = normalizeMeeting(
+    {
+      ...input,
+      id: `meeting-${Date.now()}`,
+      published: input.published ?? true,
+      sortOrder: input.sortOrder ?? meetings.length,
+    },
+    input.sortOrder ?? meetings.length,
+  );
   meetings.push(meeting);
   await writeJson(MEETINGS_FILE, meetings);
   return meeting;
@@ -74,7 +109,7 @@ export async function updateMeeting(id: string, update: Partial<Omit<Meeting, "i
   const index = meetings.findIndex((meeting) => meeting.id === id);
   if (index === -1) return null;
 
-  meetings[index] = { ...meetings[index], ...update };
+  meetings[index] = normalizeMeeting({ ...meetings[index], ...update }, index);
   await writeJson(MEETINGS_FILE, meetings);
   return meetings[index];
 }

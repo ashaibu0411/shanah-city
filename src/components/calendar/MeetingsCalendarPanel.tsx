@@ -7,6 +7,11 @@ import { MeetingCard } from "@/components/meetings/MeetingCard";
 import { MeetingClickReport } from "@/components/meetings/MeetingClickReport";
 import { WEEKDAY_OPTIONS } from "@/lib/calendar-utils";
 import { campuses } from "@/lib/site";
+import {
+  MANUAL_PUSH_MEETING_IDS,
+  isAutomatedReminderMeeting,
+  isProtectedMeetingId,
+} from "@/lib/meeting-catalog";
 import type { Meeting, MeetingPlatform } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
 
@@ -28,6 +33,8 @@ export function MeetingsCalendarPanel() {
   const [startsOn, setStartsOn] = useState("");
   const [endsOn, setEndsOn] = useState("");
   const [recurringWeekday, setRecurringWeekday] = useState("");
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [pushStatus, setPushStatus] = useState<Record<string, string>>({});
 
   async function loadMeetings() {
     setLoading(true);
@@ -84,6 +91,42 @@ export function MeetingsCalendarPanel() {
     }
   }
 
+  async function toggleReminder(id: string, notifyEnabled: boolean) {
+    const response = await fetch("/api/meetings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, notifyEnabled }),
+    });
+    if (response.ok) {
+      loadMeetings();
+    }
+  }
+
+  async function sendPush(id: string) {
+    setSendingId(id);
+    setPushStatus((current) => ({ ...current, [id]: "" }));
+    const response = await fetch("/api/meetings/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const data = await response.json();
+    setSendingId(null);
+    if (response.ok) {
+      setPushStatus((current) => ({
+        ...current,
+        [id]: data.configured
+          ? `Sent to ${data.sent} device${data.sent === 1 ? "" : "s"}.`
+          : "Push is not configured on the server yet.",
+      }));
+    } else {
+      setPushStatus((current) => ({
+        ...current,
+        [id]: data.error ?? "Could not send notification.",
+      }));
+    }
+  }
+
   async function removeMeeting(id: string) {
     const response = await fetch("/api/meetings", {
       method: "DELETE",
@@ -105,16 +148,14 @@ export function MeetingsCalendarPanel() {
         emptyDayLabel="No meetings scheduled on this day."
         renderItem={(meeting) => (
           <div key={meeting.id} className="rounded-xl bg-sand-50 p-4 ring-1 ring-night-900/5">
-            <MeetingCard meeting={meeting} compact />
-            {canManage && (
-              <Button
-                variant="secondary"
-                className="mt-3"
-                onClick={() => removeMeeting(meeting.id)}
-              >
-                Remove meeting
-              </Button>
-            )}
+            <MeetingCard
+              meeting={meeting}
+              compact
+              canManage={canManage}
+              onRemove={
+                isProtectedMeetingId(meeting.id) ? undefined : () => removeMeeting(meeting.id)
+              }
+            />
           </div>
         )}
       />
@@ -248,8 +289,23 @@ export function MeetingsCalendarPanel() {
             <MeetingCard
               key={meeting.id}
               meeting={meeting}
+              featured={isAutomatedReminderMeeting(meeting.id)}
               canManage={canManage}
-              onRemove={() => removeMeeting(meeting.id)}
+              sendingPush={sendingId === meeting.id}
+              pushStatus={pushStatus[meeting.id]}
+              onRemove={
+                isProtectedMeetingId(meeting.id) ? undefined : () => removeMeeting(meeting.id)
+              }
+              onToggleReminder={
+                isAutomatedReminderMeeting(meeting.id)
+                  ? (enabled) => toggleReminder(meeting.id, enabled)
+                  : undefined
+              }
+              onSendPush={
+                MANUAL_PUSH_MEETING_IDS.has(meeting.id)
+                  ? () => sendPush(meeting.id)
+                  : undefined
+              }
             />
           ))
         )}

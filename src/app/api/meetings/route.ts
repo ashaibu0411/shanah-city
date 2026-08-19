@@ -9,6 +9,7 @@ import {
   updateMeeting,
 } from "@/lib/meeting-server";
 import type { MeetingPlatform } from "@/lib/types";
+import { isProtectedMeetingId } from "@/lib/meeting-catalog";
 
 function parseMeetingBody(body: Record<string, unknown>) {
   const platform = String(body.platform ?? "zoom").trim() as MeetingPlatform;
@@ -30,6 +31,7 @@ function parseMeetingBody(body: Record<string, unknown>) {
       recurringWeekdayRaw === "" || recurringWeekdayRaw == null
         ? undefined
         : Number(recurringWeekdayRaw),
+    notifyEnabled: typeof body.notifyEnabled === "boolean" ? body.notifyEnabled : undefined,
     published: body.published === false ? false : true,
   };
 }
@@ -50,8 +52,8 @@ function validateMeetingInput(input: ReturnType<typeof parseMeetingBody>) {
     return null;
   }
 
-  if (!input.joinUrl) {
-    return "Join link is required for Zoom or Teams meetings.";
+  if (input.platform !== "zoom" && input.platform !== "teams") {
+    return "Platform must be in-person, zoom, or teams.";
   }
 
   return null;
@@ -102,6 +104,14 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Meeting id is required." }, { status: 400 });
   }
 
+  if (typeof body.notifyEnabled === "boolean" && body.title == null) {
+    const meeting = await updateMeeting(id, { notifyEnabled: body.notifyEnabled });
+    if (!meeting) {
+      return NextResponse.json({ error: "Meeting not found." }, { status: 404 });
+    }
+    return NextResponse.json({ meeting });
+  }
+
   const input = parseMeetingBody(body);
   const validationError = validateMeetingInput(input);
   if (validationError) {
@@ -129,6 +139,13 @@ export async function DELETE(request: Request) {
   const id = String(body.id ?? "");
   if (!id) {
     return NextResponse.json({ error: "Meeting id is required." }, { status: 400 });
+  }
+
+  if (isProtectedMeetingId(id)) {
+    return NextResponse.json(
+      { error: "This meeting is managed by the church calendar. Pause reminders instead of deleting it." },
+      { status: 400 },
+    );
   }
 
   const removed = await deleteMeeting(id);

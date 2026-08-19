@@ -1,5 +1,14 @@
 import { prisma } from "@/lib/db";
 import { meetings as seedMeetings } from "@/lib/site";
+import {
+  applyCanonicalMeeting,
+  canonicalMeetings,
+  isAutomatedReminderMeeting,
+} from "@/lib/meeting-catalog";
+import {
+  parseRecurringWeekdays,
+  serializeRecurringWeekdays,
+} from "@/lib/meeting-utils";
 import type { Meeting } from "@/lib/types";
 
 function mapMeeting(record: {
@@ -16,6 +25,9 @@ function mapMeeting(record: {
   startsOn: string | null;
   endsOn: string | null;
   recurringWeekday: number | null;
+  recurringWeekdays: string | null;
+  notifyEnabled: boolean;
+  lastNotifiedOn: string | null;
   published: boolean;
   sortOrder: number;
 }): Meeting {
@@ -33,6 +45,9 @@ function mapMeeting(record: {
     startsOn: record.startsOn ?? undefined,
     endsOn: record.endsOn ?? undefined,
     recurringWeekday: record.recurringWeekday ?? undefined,
+    recurringWeekdays: parseRecurringWeekdays(record.recurringWeekdays),
+    notifyEnabled: record.notifyEnabled,
+    lastNotifiedOn: record.lastNotifiedOn ?? undefined,
     published: record.published,
     sortOrder: record.sortOrder,
   };
@@ -42,8 +57,33 @@ function defaultMeetings(): Meeting[] {
   return seedMeetings.map((meeting, index) => ({
     ...meeting,
     published: true,
-    sortOrder: index,
+    sortOrder: meeting.sortOrder ?? index,
   }));
+}
+
+function meetingWriteData(meeting: Meeting, now: Date) {
+  return {
+    id: meeting.id,
+    title: meeting.title,
+    campusId: meeting.campusId,
+    host: meeting.host,
+    schedule: meeting.schedule,
+    platform: meeting.platform,
+    joinUrl: meeting.joinUrl ?? null,
+    location: meeting.location ?? null,
+    meetingId: meeting.meetingId ?? null,
+    passcode: meeting.passcode ?? null,
+    startsOn: meeting.startsOn ?? null,
+    endsOn: meeting.endsOn ?? null,
+    recurringWeekday: meeting.recurringWeekday ?? null,
+    recurringWeekdays: serializeRecurringWeekdays(meeting.recurringWeekdays),
+    notifyEnabled: meeting.notifyEnabled ?? false,
+    lastNotifiedOn: meeting.lastNotifiedOn ?? null,
+    published: meeting.published ?? true,
+    sortOrder: meeting.sortOrder ?? 0,
+    createdAt: now,
+    updatedAt: now,
+  };
 }
 
 async function ensureDefaultMeetings() {
@@ -52,30 +92,54 @@ async function ensureDefaultMeetings() {
 
   const now = new Date();
   await prisma.meeting.createMany({
-    data: defaultMeetings().map((meeting) => ({
-      id: meeting.id,
-      title: meeting.title,
-      campusId: meeting.campusId,
-      host: meeting.host,
-      schedule: meeting.schedule,
-      platform: meeting.platform,
-      joinUrl: meeting.joinUrl ?? null,
-      location: meeting.location ?? null,
-      meetingId: meeting.meetingId ?? null,
-      passcode: meeting.passcode ?? null,
-      startsOn: meeting.startsOn ?? null,
-      endsOn: meeting.endsOn ?? null,
-      recurringWeekday: meeting.recurringWeekday ?? null,
-      published: meeting.published ?? true,
-      sortOrder: meeting.sortOrder ?? 0,
-      createdAt: now,
-      updatedAt: now,
-    })),
+    data: defaultMeetings().map((meeting) => meetingWriteData(meeting, now)),
+  });
+}
+
+async function ensureCanonicalMeetings() {
+  await ensureDefaultMeetings();
+
+  const now = new Date();
+  for (const canonical of canonicalMeetings()) {
+    const existing = await prisma.meeting.findUnique({
+      where: { id: canonical.id },
+    });
+
+    if (!existing) {
+      await prisma.meeting.create({
+        data: meetingWriteData(canonical, now),
+      });
+      continue;
+    }
+
+    await prisma.meeting.update({
+      where: { id: canonical.id },
+      data: {
+        title: canonical.title,
+        campusId: canonical.campusId,
+        host: canonical.host,
+        schedule: canonical.schedule,
+        platform: canonical.platform,
+        joinUrl: canonical.joinUrl ?? null,
+        meetingId: canonical.meetingId ?? null,
+        recurringWeekday: canonical.recurringWeekday ?? null,
+        recurringWeekdays: serializeRecurringWeekdays(canonical.recurringWeekdays),
+        published: true,
+        sortOrder: canonical.sortOrder ?? existing.sortOrder,
+        notifyEnabled: isAutomatedReminderMeeting(canonical.id) ? undefined : false,
+        updatedAt: now,
+      },
+    });
+  }
+
+  await prisma.meeting.updateMany({
+    where: { id: "3", title: "Prayer Ministry" },
+    data: { published: false, updatedAt: now },
   });
 }
 
 export async function getMeetings(options?: { includeUnpublished?: boolean }) {
-  await ensureDefaultMeetings();
+  await ensureCanonicalMeetings();
 
   const where = options?.includeUnpublished ? {} : { published: true };
   const records = await prisma.meeting.findMany({
@@ -106,6 +170,9 @@ export async function createMeeting(
       startsOn: input.startsOn ?? null,
       endsOn: input.endsOn ?? null,
       recurringWeekday: input.recurringWeekday ?? null,
+      recurringWeekdays: serializeRecurringWeekdays(input.recurringWeekdays),
+      notifyEnabled: input.notifyEnabled ?? false,
+      lastNotifiedOn: input.lastNotifiedOn ?? null,
       published: input.published ?? true,
       sortOrder: input.sortOrder ?? meetings.length,
       createdAt: now,
@@ -138,6 +205,13 @@ export async function updateMeeting(id: string, update: Partial<Omit<Meeting, "i
         update.recurringWeekday === undefined
           ? undefined
           : update.recurringWeekday ?? null,
+      recurringWeekdays:
+        update.recurringWeekdays === undefined
+          ? undefined
+          : serializeRecurringWeekdays(update.recurringWeekdays),
+      notifyEnabled: update.notifyEnabled,
+      lastNotifiedOn:
+        update.lastNotifiedOn === undefined ? undefined : update.lastNotifiedOn ?? null,
       published: update.published,
       sortOrder: update.sortOrder,
       updatedAt: new Date(),
@@ -157,7 +231,7 @@ export async function deleteMeeting(id: string) {
 }
 
 export async function getMeetingById(id: string) {
-  await ensureDefaultMeetings();
+  await ensureCanonicalMeetings();
   const record = await prisma.meeting.findUnique({ where: { id } });
   return record ? mapMeeting(record) : null;
 }

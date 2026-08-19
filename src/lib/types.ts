@@ -131,6 +131,9 @@ export type Meeting = {
   startsOn?: string | null;
   endsOn?: string | null;
   recurringWeekday?: number | null;
+  recurringWeekdays?: number[] | null;
+  notifyEnabled?: boolean;
+  lastNotifiedOn?: string | null;
   published?: boolean;
   sortOrder?: number;
 };

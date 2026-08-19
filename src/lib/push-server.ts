@@ -284,3 +284,20 @@ export async function notifyChurchAnnouncement(input: {
     type: "announcement",
   });
 }
+
+export async function notifyScheduledMeeting(input: {
+  id: string;
+  title: string;
+  schedule: string;
+  platform?: string;
+}) {
+  const joinLabel = input.platform === "teams" ? "Teams" : "Zoom";
+  return sendPushToAllMembers(
+    {
+      title: input.title.toUpperCase(),
+      body: `${input.schedule}. Tap to join on ${joinLabel}.`,
+      url: `/api/meetings/join?meetingId=${encodeURIComponent(input.id)}&source=push`,
+    },
+    "announcements",
+  );
+}

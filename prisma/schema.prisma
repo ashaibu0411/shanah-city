@@ -203,23 +203,26 @@ model ChurchEvent {
 }
 
 model Meeting {
-  id               String   @id
-  title            String
-  campusId         String
-  host             String
-  schedule         String
-  platform         String
-  joinUrl          String?
-  location         String?
-  meetingId        String?
-  passcode         String?
-  startsOn         String?
-  endsOn           String?
-  recurringWeekday Int?
-  published        Boolean  @default(true)
-  sortOrder        Int      @default(0)
-  createdAt        DateTime
-  updatedAt        DateTime
+  id                 String   @id
+  title              String
+  campusId           String
+  host               String
+  schedule           String
+  platform           String
+  joinUrl            String?
+  location           String?
+  meetingId          String?
+  passcode           String?
+  startsOn           String?
+  endsOn             String?
+  recurringWeekday   Int?
+  recurringWeekdays  String?
+  notifyEnabled      Boolean  @default(false)
+  lastNotifiedOn     String?
+  published          Boolean  @default(true)
+  sortOrder          Int      @default(0)
+  createdAt          DateTime
+  updatedAt          DateTime
 }
 
 model RateLimitEntry {

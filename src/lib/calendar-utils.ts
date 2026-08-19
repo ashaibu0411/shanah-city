@@ -2,9 +2,11 @@ export type CalendarPlannable = {
   id: string;
   title: string;
   date?: string;
+  schedule?: string;
   startsOn?: string | null;
   endsOn?: string | null;
   recurringWeekday?: number | null;
+  recurringWeekdays?: number[] | null;
 };
 
 const WEEKDAY_LABELS = [
@@ -39,7 +41,7 @@ export function inferRecurringWeekday(item: CalendarPlannable): number | null {
     return item.recurringWeekday;
   }
 
-  const label = (item.date ?? "").toLowerCase();
+  const label = `${item.date ?? ""} ${item.schedule ?? ""}`.toLowerCase();
   if (label.includes("sunday")) return 0;
   if (label.includes("monday")) return 1;
   if (label.includes("tuesday")) return 2;
@@ -50,6 +52,51 @@ export function inferRecurringWeekday(item: CalendarPlannable): number | null {
   return null;
 }
 
+function inferWeekdayRange(item: CalendarPlannable): number[] | null {
+  const label = `${item.date ?? ""} ${item.schedule ?? ""}`.toLowerCase();
+  const hasRangeMark =
+    label.includes("–") ||
+    label.includes("-") ||
+    label.includes("through") ||
+    label.includes("to");
+  const mentionsTuesdayToThursday =
+    label.includes("tuesday") && label.includes("thursday") && hasRangeMark;
+  if (mentionsTuesdayToThursday) {
+    return [2, 3, 4];
+  }
+  const mentionsMondayToFriday =
+    label.includes("monday") && label.includes("friday") && hasRangeMark;
+  if (mentionsMondayToFriday || label.includes("weekday")) {
+    return [1, 2, 3, 4, 5];
+  }
+  return null;
+}
+
+function inferMonthlyWeekday(item: CalendarPlannable): number | null {
+  const label = `${item.date ?? ""} ${item.schedule ?? ""}`.toLowerCase();
+  if (!label.includes("first")) return null;
+  if (label.includes("sunday")) return 0;
+  if (label.includes("monday")) return 1;
+  if (label.includes("tuesday")) return 2;
+  if (label.includes("wednesday")) return 3;
+  if (label.includes("thursday")) return 4;
+  if (label.includes("friday")) return 5;
+  if (label.includes("saturday")) return 6;
+  return null;
+}
+
+function recurringWeekdaysFor(item: CalendarPlannable): number[] {
+  if (Array.isArray(item.recurringWeekdays) && item.recurringWeekdays.length > 0) {
+    return item.recurringWeekdays.filter((day) => day >= 0 && day <= 6);
+  }
+
+  const range = inferWeekdayRange(item);
+  if (range) return range;
+
+  const weekday = inferRecurringWeekday(item);
+  return weekday == null ? [] : [weekday];
+}
+
 export function getDatesInMonth(
   item: CalendarPlannable,
   year: number,
@@ -57,6 +104,19 @@ export function getDatesInMonth(
 ): string[] {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const dates: string[] = [];
+  const monthlyWeekday = inferMonthlyWeekday(item);
+
+  if (monthlyWeekday != null && !item.startsOn) {
+    for (let day = 1; day <= Math.min(7, daysInMonth); day += 1) {
+      if (new Date(year, month, day).getDay() === monthlyWeekday) {
+        dates.push(toIsoDate(year, month, day));
+        break;
+      }
+    }
+    return dates;
+  }
+
+  const weekdays = recurringWeekdaysFor(item);
 
   if (item.startsOn) {
     const rangeStart = parseIsoDate(item.startsOn);
@@ -64,19 +124,20 @@ export function getDatesInMonth(
     for (let day = 1; day <= daysInMonth; day += 1) {
       const current = new Date(year, month, day);
       if (current >= rangeStart && current <= rangeEnd) {
-        dates.push(toIsoDate(year, month, day));
+        if (weekdays.length === 0 || weekdays.includes(current.getDay())) {
+          dates.push(toIsoDate(year, month, day));
+        }
       }
     }
     return dates;
   }
 
-  const weekday = inferRecurringWeekday(item);
-  if (weekday == null) {
+  if (weekdays.length === 0) {
     return dates;
   }
 
   for (let day = 1; day <= daysInMonth; day += 1) {
-    if (new Date(year, month, day).getDay() === weekday) {
+    if (weekdays.includes(new Date(year, month, day).getDay())) {
       dates.push(toIsoDate(year, month, day));
     }
   }
