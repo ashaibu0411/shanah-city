@@ -33,6 +33,7 @@ export function MessagesHub() {
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [newRecipientId, setNewRecipientId] = useState("");
+  const [memberSearch, setMemberSearch] = useState("");
   const [showNew, setShowNew] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
@@ -54,6 +55,30 @@ export function MessagesHub() {
     () => blocks.some((block) => block.blockedUserId === activeOtherUserId),
     [blocks, activeOtherUserId],
   );
+
+  const selectedRecipient = useMemo(
+    () => members.find((member) => member.id === newRecipientId) ?? null,
+    [members, newRecipientId],
+  );
+
+  const matchingMembers = useMemo(() => {
+    const query = memberSearch.trim().toLowerCase();
+    if (query.length < 1) return [];
+
+    return members
+      .filter((member) => member.name.toLowerCase().includes(query))
+      .slice(0, 8);
+  }, [members, memberSearch]);
+
+  function selectRecipient(member: MemberDirectoryEntry) {
+    setNewRecipientId(member.id);
+    setMemberSearch(member.name);
+  }
+
+  function clearRecipient() {
+    setNewRecipientId("");
+    setMemberSearch("");
+  }
 
   async function loadBlocks() {
     const response = await fetch("/api/messages/block");
@@ -106,6 +131,7 @@ export function MessagesHub() {
           setActiveThreadId(null);
           setMessages([]);
           if (memberNameFromUrl) {
+            setMemberSearch(decodeURIComponent(memberNameFromUrl));
             setStatus(`Start a private message with ${decodeURIComponent(memberNameFromUrl)}.`);
           }
         }
@@ -285,6 +311,7 @@ export function MessagesHub() {
     setDraft("");
     setShowNew(false);
     setNewRecipientId("");
+    setMemberSearch("");
     await loadInbox();
     await loadThread(data.thread.id);
   }
@@ -414,6 +441,8 @@ export function MessagesHub() {
               setShowNew(true);
               setActiveThreadId(null);
               setMessages([]);
+              setNewRecipientId("");
+              setMemberSearch("");
             }}
             className="rounded-full bg-night-900 px-3 py-1.5 text-xs font-semibold text-sand-50"
           >
@@ -523,6 +552,8 @@ export function MessagesHub() {
               setShowNew(false);
               setShowReport(false);
               setMessages([]);
+              setNewRecipientId("");
+              setMemberSearch("");
             }}
             className="mb-4 text-sm font-semibold text-night-600 lg:hidden"
           >
@@ -534,20 +565,63 @@ export function MessagesHub() {
           <div>
             <h2 className="font-display text-lg font-semibold text-night-900">New message</h2>
             <p className="mt-1 text-sm text-night-600">
-              Choose a member from your campus community directory.
+              Search for a member by name to start a private conversation.
             </p>
-            <select
-              value={newRecipientId}
-              onChange={(event) => setNewRecipientId(event.target.value)}
-              className="mt-4 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            >
-              <option value="">Select a member</option>
-              {members.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.name} · {getCampus(member.campusId).city}
-                </option>
-              ))}
-            </select>
+            <div className="relative mt-4">
+              <input
+                type="search"
+                value={memberSearch}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setMemberSearch(value);
+                  if (
+                    selectedRecipient &&
+                    value.trim().toLowerCase() !== selectedRecipient.name.toLowerCase()
+                  ) {
+                    setNewRecipientId("");
+                  }
+                }}
+                placeholder="Search by name..."
+                className="w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              />
+
+              {selectedRecipient && (
+                <div className="mt-3 flex items-center justify-between rounded-xl bg-sand-50 px-3 py-2.5 text-sm">
+                  <div>
+                    <p className="font-semibold text-night-900">{selectedRecipient.name}</p>
+                    <p className="text-night-500">{getCampus(selectedRecipient.campusId).city}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearRecipient}
+                    className="text-xs font-semibold text-night-600 underline"
+                  >
+                    Change
+                  </button>
+                </div>
+              )}
+
+              {memberSearch.trim() && !selectedRecipient && matchingMembers.length > 0 && (
+                <ul className="absolute z-10 mt-2 max-h-56 w-full overflow-y-auto rounded-xl border border-night-900/10 bg-white py-1 shadow-lg">
+                  {matchingMembers.map((member) => (
+                    <li key={member.id}>
+                      <button
+                        type="button"
+                        onClick={() => selectRecipient(member)}
+                        className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:bg-sand-50"
+                      >
+                        <span className="font-medium text-night-900">{member.name}</span>
+                        <span className="text-night-500">{getCampus(member.campusId).city}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {memberSearch.trim() && !selectedRecipient && matchingMembers.length === 0 && (
+                <p className="mt-2 text-sm text-night-500">No members match that name.</p>
+              )}
+            </div>
             <div className="mt-4">
               <ChatComposer
                 value={draft}
