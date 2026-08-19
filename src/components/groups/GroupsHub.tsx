@@ -398,6 +398,8 @@ export function GroupsHub() {
                   {detail.campusId ? ` · ${getCampus(detail.campusId).name}` : ""}
                   {" · "}
                   {detail.visibility === "public" ? "Public" : "Private"}
+                  {" · "}
+                  {detail.members.length} member{detail.members.length === 1 ? "" : "s"}
                 </p>
               </div>
 
@@ -450,7 +452,12 @@ export function GroupsHub() {
             )}
 
             {detailSection === "chat" && detail.isMember && user ? (
-              <GroupChatPanel groupId={detail.id} groupName={detail.name} userId={user.id} />
+              <GroupChatPanel
+                groupId={detail.id}
+                groupName={detail.name}
+                userId={user.id}
+                memberCount={detail.members.length}
+              />
             ) : (
               <>
             <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
@@ -544,7 +551,16 @@ export function GroupsHub() {
                         {getCampus(member.campusId).city} · {memberRoleLabel(member)}
                       </p>
                     </div>
-                    {canManageMember && (canPromote || canDemote || canRemove) ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {detail.isMember && user && member.id !== user.id && (
+                        <Button
+                          variant="secondary"
+                          href={`/messages?member=${encodeURIComponent(member.id)}&name=${encodeURIComponent(member.name)}`}
+                        >
+                          Message
+                        </Button>
+                      )}
+                      {canManageMember && (canPromote || canDemote || canRemove) ? (
                       <div className="flex flex-wrap gap-2">
                         {canPromote ? (
                           <button
@@ -616,7 +632,8 @@ export function GroupsHub() {
                           </button>
                         ) : null}
                       </div>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </div>
                   );
                 })}

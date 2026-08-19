@@ -97,12 +97,20 @@ export type MessageThread = {
   createdAt: string;
 };
 
+import type { ChatMessageReaction } from "@/lib/chat-utils";
+
 export type DirectMessage = {
   id: string;
   threadId: string;
   senderId: string;
   senderName: string;
   content: string;
+  reactions?: ChatMessageReaction[];
+  attachmentUrl?: string;
+  attachmentType?: string;
+  attachmentName?: string;
+  editedAt?: string;
+  deletedAt?: string;
   createdAt: string;
   readAt?: string;
 };

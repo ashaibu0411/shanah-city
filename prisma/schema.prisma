@@ -65,14 +65,20 @@ model MessageThread {
 }
 
 model Message {
-  id         String        @id
-  threadId   String
-  thread     MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  senderId   String
-  senderName String
-  content    String
-  createdAt  DateTime
-  readAt     DateTime?
+  id             String        @id
+  threadId       String
+  thread         MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId       String
+  senderName     String
+  content        String
+  reactions      Json?
+  attachmentUrl  String?
+  attachmentType String?
+  attachmentName String?
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime
+  readAt         DateTime?
 }
 
 model UserBlock {
@@ -90,6 +96,8 @@ model MessageReport {
   reportedUserId   String
   reportedUserName String
   threadId         String?
+  groupId          String?
+  messageId        String?
   reason           String
   status           String   @default("open")
   createdAt        DateTime
@@ -164,6 +172,8 @@ model Devotion {
   published   Boolean   @default(true)
   authorId    String?
   authorName  String?
+  audioUrl    String?
+  audioName   String?
   createdAt   DateTime?
   updatedAt   DateTime?
   publishAt   DateTime?
@@ -412,15 +422,53 @@ model WorshipSongLibrary {
 }
 
 model GroupChatMessage {
-  id         String   @id
-  groupId    String
-  groupName  String
-  senderId   String
-  senderName String
-  content    String
-  createdAt  DateTime
+  id             String   @id
+  groupId        String
+  groupName      String
+  senderId       String
+  senderName     String
+  content        String
+  reactions      Json?
+  attachmentUrl  String?
+  attachmentType String?
+  attachmentName String?
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime
 
   @@index([groupId, createdAt])
+}
+
+model GroupChatReadState {
+  id         String   @id
+  groupId    String
+  userId     String
+  lastReadAt DateTime
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+}
+
+model ChatTypingIndicator {
+  id          String   @id
+  channelType String
+  channelId   String
+  userId      String
+  userName    String
+  expiresAt   DateTime
+
+  @@unique([channelType, channelId, userId])
+  @@index([channelType, channelId])
+}
+
+model ChatAttachmentMeta {
+  id          String   @id
+  ownerId     String
+  groupId     String?
+  threadId    String?
+  contentType String
+  filename    String
+  createdAt   DateTime
 }
 
 model GuestSubmission {

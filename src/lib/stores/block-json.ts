@@ -103,6 +103,8 @@ export async function reportMember(input: {
   reportedUserId: string;
   reportedUserName: string;
   threadId?: string;
+  groupId?: string;
+  messageId?: string;
   reason: string;
 }) {
   const reason = input.reason.trim();
@@ -118,6 +120,8 @@ export async function reportMember(input: {
     reportedUserId: input.reportedUserId,
     reportedUserName: input.reportedUserName,
     threadId: input.threadId,
+    groupId: input.groupId,
+    messageId: input.messageId,
     reason,
     createdAt: new Date().toISOString(),
     status: "open",

@@ -91,6 +91,8 @@ export type Devotion = {
   published?: boolean;
   authorId?: string;
   authorName?: string;
+  audioUrl?: string;
+  audioName?: string;
   createdAt?: string;
   updatedAt?: string;
   publishAt?: string | null;

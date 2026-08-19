@@ -21,6 +21,8 @@ function mapDevotion(record: {
   published: boolean;
   authorId: string | null;
   authorName: string | null;
+  audioUrl: string | null;
+  audioName: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   publishAt: Date | null;
@@ -38,6 +40,8 @@ function mapDevotion(record: {
     published: record.published,
     authorId: record.authorId ?? undefined,
     authorName: record.authorName ?? undefined,
+    audioUrl: record.audioUrl ?? undefined,
+    audioName: record.audioName ?? undefined,
     createdAt: record.createdAt?.toISOString(),
     updatedAt: record.updatedAt?.toISOString(),
     publishAt: record.publishAt?.toISOString(),
@@ -99,6 +103,8 @@ export async function createDevotion(
       authorId: author.id,
       authorName: author.name,
       published: input.published ?? true,
+      audioUrl: input.audioUrl ?? null,
+      audioName: input.audioName ?? null,
       publishAt: input.publishAt ? new Date(input.publishAt) : null,
       createdAt: now,
       updatedAt: now,
@@ -110,7 +116,10 @@ export async function createDevotion(
 
 export async function updateDevotion(
   id: string,
-  update: Partial<Omit<Devotion, "id" | "createdAt">>,
+  update: Partial<Omit<Devotion, "id" | "createdAt" | "audioUrl" | "audioName">> & {
+    audioUrl?: string | null;
+    audioName?: string | null;
+  },
 ) {
   const existing = await prisma.devotion.findUnique({ where: { id } });
   if (!existing) return null;
@@ -139,6 +148,8 @@ export async function updateDevotion(
       published: update.published,
       authorId: update.authorId,
       authorName: update.authorName,
+      audioUrl: update.audioUrl === null ? null : update.audioUrl,
+      audioName: update.audioName === null ? null : update.audioName,
       publishAt:
         update.publishAt === null
           ? null

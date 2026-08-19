@@ -28,6 +28,8 @@ type DevotionForm = {
   scheduleDate: string;
   scheduleTime: string;
   publishMode: DevotionPublishMode;
+  audioUrl?: string;
+  audioName?: string;
 };
 
 function createEmptyForm(): DevotionForm {
@@ -64,6 +66,7 @@ export function DevotionAdminPanel() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [audioBusy, setAudioBusy] = useState(false);
 
   const readingTime = useMemo(
     () =>
@@ -111,6 +114,8 @@ export function DevotionAdminPanel() {
       scheduleDate: schedule.scheduleDate,
       scheduleTime: schedule.scheduleTime,
       publishMode: devotionToPublishMode(devotion),
+      audioUrl: devotion.audioUrl,
+      audioName: devotion.audioName,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -130,6 +135,8 @@ export function DevotionAdminPanel() {
       body: JSON.stringify({
         ...form,
         id: editingId ?? undefined,
+        audioUrl: form.audioUrl ?? null,
+        audioName: form.audioName ?? null,
       }),
     });
     const data = await response.json();
@@ -154,6 +161,41 @@ export function DevotionAdminPanel() {
 
     resetForm();
     await loadDevotions();
+  }
+
+  async function uploadAudio(file: File | null) {
+    if (!file) return;
+    setAudioBusy(true);
+    setStatus("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetch("/api/devotions/audio", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await response.json();
+    setAudioBusy(false);
+
+    if (!response.ok) {
+      setStatus(data.error ?? "Could not upload audio.");
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      audioUrl: data.audioUrl,
+      audioName: data.audioName,
+    }));
+    setStatus("Audio uploaded. Save the devotion to attach it.");
+  }
+
+  function removeAudio() {
+    setForm((current) => ({
+      ...current,
+      audioUrl: undefined,
+      audioName: undefined,
+    }));
   }
 
   async function removeDevotion(id: string) {
@@ -367,6 +409,45 @@ export function DevotionAdminPanel() {
             onValueChange={(prayer) => setForm((current) => ({ ...current, prayer }))}
             rows={3}
           />
+
+          <div className="rounded-2xl border border-night-900/10 bg-sand-50/70 p-4">
+            <p className="text-sm font-semibold text-night-900">Audio version (optional)</p>
+            <p className="mt-1 text-xs text-night-600">
+              Upload a recording for members who prefer to listen. MP3, M4A, WAV, OGG, or WEBM up to
+              25 MB. Without an upload, members can still use Listen mode with device text-to-speech.
+            </p>
+
+            {form.audioUrl ? (
+              <div className="mt-3 space-y-2">
+                <p className="text-sm font-medium text-night-800">
+                  {form.audioName ?? "Attached audio"}
+                </p>
+                <audio controls preload="metadata" className="w-full" src={form.audioUrl}>
+                  Your browser does not support audio playback.
+                </audio>
+                <button
+                  type="button"
+                  onClick={removeAudio}
+                  className="text-xs font-semibold text-red-700 underline"
+                >
+                  Remove audio
+                </button>
+              </div>
+            ) : (
+              <div className="mt-3">
+                <input
+                  type="file"
+                  accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm"
+                  disabled={audioBusy}
+                  onChange={(event) => uploadAudio(event.target.files?.[0] ?? null)}
+                  className="block w-full text-sm text-night-700 file:mr-3 file:rounded-full file:border-0 file:bg-night-900 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-sand-50"
+                />
+                {audioBusy && (
+                  <p className="mt-2 text-xs text-night-500">Uploading audio…</p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">
@@ -415,6 +496,7 @@ export function DevotionAdminPanel() {
                   <p className="mt-1 text-sm text-night-600">
                     {devotion.authorName ?? "Team ZNCF"} · {devotion.reference} ·{" "}
                     {devotion.readingTime}
+                    {devotion.audioUrl ? " · Audio" : ""}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2">

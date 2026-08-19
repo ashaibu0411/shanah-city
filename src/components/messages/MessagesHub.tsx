@@ -7,6 +7,9 @@ import { getCampus } from "@/lib/site";
 import type { UserBlock, MessageReport } from "@/lib/block-types";
 import type { DirectMessage, MemberDirectoryEntry } from "@/lib/member-types";
 import { Button, Card } from "@/components/ui";
+import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComposer";
+import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
+import type { ChatTypingUser } from "@/lib/chat-utils";
 
 type ThreadSummary = {
   id: string;
@@ -20,6 +23,8 @@ export function MessagesHub() {
   const { user, loading, permissions } = useAuth();
   const searchParams = useSearchParams();
   const threadFromUrl = searchParams.get("thread");
+  const memberFromUrl = searchParams.get("member");
+  const memberNameFromUrl = searchParams.get("name");
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [members, setMembers] = useState<MemberDirectoryEntry[]>([]);
   const [blocks, setBlocks] = useState<UserBlock[]>([]);
@@ -33,6 +38,8 @@ export function MessagesHub() {
   const [reportReason, setReportReason] = useState("");
   const [showSafety, setShowSafety] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [attachmentBusy, setAttachmentBusy] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<ChatTypingUser[]>([]);
   const [status, setStatus] = useState("");
 
   const isStaff = permissions.canManageAdmin;
@@ -79,6 +86,7 @@ export function MessagesHub() {
     const data = await response.json();
     if (response.ok) {
       setMessages(data.messages ?? []);
+      setTypingUsers(data.typingUsers ?? []);
     } else {
       setStatus(data.error ?? "Could not load conversation.");
       setMessages([]);
@@ -90,10 +98,65 @@ export function MessagesHub() {
       Promise.all([loadInbox(), loadBlocks()]).then(() => {
         if (threadFromUrl) {
           loadThread(threadFromUrl);
+          return;
+        }
+        if (memberFromUrl && memberFromUrl !== user.id) {
+          setNewRecipientId(memberFromUrl);
+          setShowNew(true);
+          setActiveThreadId(null);
+          setMessages([]);
+          if (memberNameFromUrl) {
+            setStatus(`Start a private message with ${decodeURIComponent(memberNameFromUrl)}.`);
+          }
         }
       });
     }
-  }, [user, threadFromUrl]);
+  }, [user, threadFromUrl, memberFromUrl, memberNameFromUrl]);
+
+  useEffect(() => {
+    if (!activeThreadId || showNew) return;
+    const timer = window.setInterval(async () => {
+      const response = await fetch(
+        `/api/messages?threadId=${encodeURIComponent(activeThreadId)}`,
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setMessages(data.messages ?? []);
+        setTypingUsers(data.typingUsers ?? []);
+      }
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [activeThreadId, showNew]);
+
+  async function uploadAttachment(
+    file: File,
+    options?: { threadId?: string },
+  ): Promise<PendingAttachment | null> {
+    setAttachmentBusy(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    if (options?.threadId) {
+      formData.append("threadId", options.threadId);
+    }
+    const response = await fetch("/api/chat/attachment", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await response.json();
+    setAttachmentBusy(false);
+
+    if (!response.ok) {
+      setStatus(data.error ?? "Could not upload image.");
+      return null;
+    }
+
+    return {
+      attachmentUrl: data.attachmentUrl,
+      attachmentType: data.attachmentType,
+      attachmentName: data.attachmentName,
+      previewUrl: `/api/chat/attachment?id=${encodeURIComponent(data.attachmentUrl.slice("chat:".length))}`,
+    };
+  }
 
   async function blockMember(userId: string, userName: string) {
     if (!window.confirm(`Block ${userName}? They will not be able to message you.`)) {
@@ -189,8 +252,11 @@ export function MessagesHub() {
     }
   }
 
-  async function sendMessage(options?: { recipientId?: string; recipientName?: string }) {
-    if (!draft.trim()) return;
+  async function sendMessage(
+    options?: { recipientId?: string; recipientName?: string },
+    attachment?: PendingAttachment,
+  ) {
+    if (!draft.trim() && !attachment) return;
     setBusy(true);
     setStatus("");
 
@@ -203,6 +269,9 @@ export function MessagesHub() {
         threadId: activeThreadId ?? undefined,
         recipientId: options?.recipientId ?? recipient?.id ?? newRecipientId,
         recipientName: options?.recipientName ?? recipient?.name ?? "Member",
+        attachmentUrl: attachment?.attachmentUrl,
+        attachmentType: attachment?.attachmentType,
+        attachmentName: attachment?.attachmentName,
       }),
     });
     const data = await response.json();
@@ -218,6 +287,88 @@ export function MessagesHub() {
     setNewRecipientId("");
     await loadInbox();
     await loadThread(data.thread.id);
+  }
+
+  async function toggleReaction(messageId: string, emoji: string) {
+    if (!activeThreadId) return;
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "react",
+        threadId: activeThreadId,
+        messageId,
+        emoji,
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setMessages((current) =>
+        current.map((message) => (message.id === messageId ? data.message : message)),
+      );
+    }
+  }
+
+  async function sendTyping(isTyping: boolean) {
+    if (!activeThreadId) return;
+    await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "typing",
+        threadId: activeThreadId,
+        isTyping,
+      }),
+    });
+  }
+
+  async function editMessage(messageId: string, content: string) {
+    if (!activeThreadId) return;
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "edit",
+        threadId: activeThreadId,
+        messageId,
+        content,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      setStatus(data.error ?? "Could not edit message.");
+      return;
+    }
+    setMessages((current) =>
+      current.map((message) => (message.id === messageId ? data.message : message)),
+    );
+  }
+
+  async function deleteMessage(messageId: string) {
+    if (!activeThreadId) return;
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "delete",
+        threadId: activeThreadId,
+        messageId,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      setStatus(data.error ?? "Could not delete message.");
+      return;
+    }
+    setMessages((current) =>
+      current.map((message) => (message.id === messageId ? data.message : message)),
+    );
+  }
+
+  function typingLabel(users: ChatTypingUser[]) {
+    if (users.length === 0) return "";
+    if (users.length === 1) return `${users[0].userName} is typing…`;
+    return `${users[0].userName} is typing…`;
   }
 
   function formatTime(iso: string) {
@@ -397,20 +548,18 @@ export function MessagesHub() {
                 </option>
               ))}
             </select>
-            <textarea
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              rows={4}
-              placeholder="Write your message..."
-              className="mt-4 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
-            <Button
-              className="mt-4"
-              onClick={() => sendMessage()}
-              disabled={busy || !newRecipientId}
-            >
-              {busy ? "Sending..." : "Send message"}
-            </Button>
+            <div className="mt-4">
+              <ChatComposer
+                value={draft}
+                onChange={setDraft}
+                onSend={(attachment) => sendMessage(undefined, attachment)}
+                busy={busy}
+                disabled={!newRecipientId}
+                placeholder="Write your message..."
+                sendLabel="Send message"
+                allowAttachment={false}
+              />
+            </div>
           </div>
         ) : activeThread ? (
           <div className="flex h-full min-h-[420px] flex-col">
@@ -421,6 +570,11 @@ export function MessagesHub() {
                     {activeThread.otherName}
                   </h2>
                   <p className="text-sm text-night-500">Private member conversation</p>
+                  {typingLabel(typingUsers) && (
+                    <p className="mt-1 text-xs font-medium text-violet-700">
+                      {typingLabel(typingUsers)}
+                    </p>
+                  )}
                   {isActiveBlocked && (
                     <p className="mt-1 text-xs font-medium text-red-700">
                       You blocked this member. Unblock them to send messages again.
@@ -501,70 +655,55 @@ export function MessagesHub() {
             </div>
 
             <div className="flex-1 space-y-3 overflow-y-auto py-4">
-              {messages.map((message) => {
-                const mine = message.senderId === user.id;
-                return (
-                  <div
-                    key={message.id}
-                    className={`flex ${mine ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
-                        mine
-                          ? "bg-night-900 text-sand-50"
-                          : "bg-sand-100 text-night-800"
-                      }`}
-                    >
-                      {!mine && (
-                        <p className="mb-1 text-xs font-semibold opacity-70">
-                          {message.senderName}
-                        </p>
-                      )}
-                      <p>{message.content}</p>
-                      <p className="mt-2 text-[10px] opacity-60">
-                        {formatTime(message.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+              {messages.map((message) => (
+                <ChatMessageBubble
+                  key={message.id}
+                  mine={message.senderId === user.id}
+                  senderName={message.senderName}
+                  content={message.content}
+                  createdAtLabel={formatTime(message.createdAt)}
+                  reactions={message.reactions}
+                  currentUserId={user.id}
+                  onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                  attachmentUrl={message.attachmentUrl}
+                  editedAt={message.editedAt}
+                  deletedAt={message.deletedAt}
+                  readAt={message.readAt}
+                  showReadReceipt
+                  canEdit={message.senderId === user.id}
+                  canDelete={message.senderId === user.id}
+                  onEdit={(content) => editMessage(message.id, content)}
+                  onDelete={() => deleteMessage(message.id)}
+                />
+              ))}
               {messages.length === 0 && (
                 <p className="text-sm text-night-500">Start the conversation below.</p>
               )}
             </div>
 
             <div className="border-t border-night-900/5 pt-4">
-              <div className="flex gap-2">
-                <input
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder={
-                    isActiveBlocked
-                      ? "Unblock to send messages..."
-                      : "Type a message..."
-                  }
-                  disabled={isActiveBlocked}
-                  className="flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:opacity-50"
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey && !isActiveBlocked) {
-                      event.preventDefault();
-                      sendMessage({
-                        recipientName: activeThread.otherName,
-                      });
-                    }
-                  }}
-                />
-                <Button
-                  onClick={() =>
-                    sendMessage({
+              <ChatComposer
+                value={draft}
+                onChange={setDraft}
+                onSend={(attachment) =>
+                  sendMessage(
+                    {
                       recipientName: activeThread.otherName,
-                    })
-                  }
-                  disabled={busy || isActiveBlocked}
-                >
-                  Send
-                </Button>
-              </div>
+                    },
+                    attachment,
+                  )
+                }
+                busy={busy}
+                disabled={isActiveBlocked}
+                placeholder={
+                  isActiveBlocked ? "Unblock to send messages..." : "Type a message..."
+                }
+                onTyping={sendTyping}
+                onPickAttachment={(file) =>
+                  uploadAttachment(file, { threadId: activeThreadId ?? undefined })
+                }
+                attachmentBusy={attachmentBusy}
+              />
             </div>
           </div>
         ) : (

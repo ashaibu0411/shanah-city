@@ -71,6 +71,8 @@ export async function createDevotion(
     authorId: author.id,
     authorName: author.name,
     published: input.published ?? true,
+    audioUrl: input.audioUrl,
+    audioName: input.audioName,
     publishAt: input.publishAt ?? undefined,
     createdAt: now,
     updatedAt: now,
@@ -84,7 +86,10 @@ export async function createDevotion(
 
 export async function updateDevotion(
   id: string,
-  update: Partial<Omit<Devotion, "id" | "createdAt">>,
+  update: Partial<Omit<Devotion, "id" | "createdAt" | "audioUrl" | "audioName">> & {
+    audioUrl?: string | null;
+    audioName?: string | null;
+  },
 ) {
   const devotions = await getDevotions({ includeUnpublished: true });
   const index = devotions.findIndex((devotion) => devotion.id === id);
@@ -108,6 +113,14 @@ export async function updateDevotion(
       update.publishAt === null
         ? undefined
         : update.publishAt ?? devotions[index].publishAt,
+    audioUrl:
+      update.audioUrl === null
+        ? undefined
+        : update.audioUrl ?? devotions[index].audioUrl,
+    audioName:
+      update.audioName === null
+        ? undefined
+        : update.audioName ?? devotions[index].audioName,
     notifiedAt:
       update.publishAt && new Date(update.publishAt) > new Date()
         ? undefined

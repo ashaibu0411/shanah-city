@@ -24,6 +24,8 @@ function mapReport(record: {
   reportedUserId: string;
   reportedUserName: string;
   threadId: string | null;
+  groupId: string | null;
+  messageId: string | null;
   reason: string;
   status: string;
   createdAt: Date;
@@ -35,6 +37,8 @@ function mapReport(record: {
     reportedUserId: record.reportedUserId,
     reportedUserName: record.reportedUserName,
     threadId: record.threadId ?? undefined,
+    groupId: record.groupId ?? undefined,
+    messageId: record.messageId ?? undefined,
     reason: record.reason,
     status: record.status as MessageReport["status"],
     createdAt: record.createdAt.toISOString(),
@@ -124,6 +128,8 @@ export async function reportMember(input: {
   reportedUserId: string;
   reportedUserName: string;
   threadId?: string;
+  groupId?: string;
+  messageId?: string;
   reason: string;
 }) {
   const reason = input.reason.trim();
@@ -139,6 +145,8 @@ export async function reportMember(input: {
       reportedUserId: input.reportedUserId,
       reportedUserName: input.reportedUserName,
       threadId: input.threadId,
+      groupId: input.groupId,
+      messageId: input.messageId,
       reason,
       status: "open",
       createdAt: new Date(),

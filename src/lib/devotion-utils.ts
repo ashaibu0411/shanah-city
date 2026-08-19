@@ -201,3 +201,7 @@ export function shouldNotifyDevotionPublish(devotion: Devotion, now = new Date()
     (!devotion.publishAt || new Date(devotion.publishAt) <= now)
   );
 }
+
+export function devotionHasAudio(devotion: Devotion) {
+  return Boolean(devotion.audioUrl?.trim());
+}

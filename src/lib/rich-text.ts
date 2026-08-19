@@ -43,3 +43,12 @@ export function applyRichTextFormat(
   const marker = format === "bold" ? "**" : "*";
   return wrapRichTextSelection(value, selectionStart, selectionEnd, marker);
 }
+
+export function richTextToPlain(text: string) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/_(.+?)_/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}

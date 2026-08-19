@@ -81,6 +81,8 @@ export async function POST(request: Request) {
 
   const schedule = parseScheduleBody(body);
   const readingTime = estimateReadingTime({ verse, content, prayer });
+  const audioUrl = body.audioUrl ? String(body.audioUrl).trim() : undefined;
+  const audioName = body.audioName ? String(body.audioName).trim() : undefined;
 
   const devotion = await createDevotion(
     {
@@ -93,6 +95,8 @@ export async function POST(request: Request) {
       readingTime,
       published: schedule.published,
       publishAt: schedule.publishAt,
+      audioUrl,
+      audioName,
     },
     { id: user!.id, name: user!.name },
   );
@@ -151,6 +155,18 @@ export async function PATCH(request: Request) {
     readingTime: estimateReadingTime({ verse, content, prayer }),
     published: schedule.published,
     publishAt: schedule.publishAt,
+    audioUrl:
+      body.audioUrl === null
+        ? null
+        : body.audioUrl
+          ? String(body.audioUrl).trim()
+          : undefined,
+    audioName:
+      body.audioName === null
+        ? null
+        : body.audioName
+          ? String(body.audioName).trim()
+          : undefined,
   });
 
   if (devotion && shouldNotifyDevotionPublish(devotion)) {

@@ -4,6 +4,7 @@ import {
   hasMessagingBlock,
   getMessagingBlockReason,
 } from "@/lib/block-server";
+import { normalizeChatReactions, toggleChatReaction, validateChatContent } from "@/lib/chat-utils";
 import { prisma } from "@/lib/db";
 import type {
   DirectMessage,
@@ -45,6 +46,12 @@ function mapMessage(record: {
   senderId: string;
   senderName: string;
   content: string;
+  reactions?: unknown;
+  attachmentUrl: string | null;
+  attachmentType: string | null;
+  attachmentName: string | null;
+  editedAt: Date | null;
+  deletedAt: Date | null;
   createdAt: Date;
   readAt: Date | null;
 }): DirectMessage {
@@ -54,9 +61,23 @@ function mapMessage(record: {
     senderId: record.senderId,
     senderName: record.senderName,
     content: record.content,
+    reactions: normalizeChatReactions(
+      Array.isArray(record.reactions) ? (record.reactions as DirectMessage["reactions"]) : [],
+    ),
+    ...(record.attachmentUrl ? { attachmentUrl: record.attachmentUrl } : {}),
+    ...(record.attachmentType ? { attachmentType: record.attachmentType } : {}),
+    ...(record.attachmentName ? { attachmentName: record.attachmentName } : {}),
+    ...(record.editedAt ? { editedAt: record.editedAt.toISOString() } : {}),
+    ...(record.deletedAt ? { deletedAt: record.deletedAt.toISOString() } : {}),
     createdAt: record.createdAt.toISOString(),
     ...(record.readAt ? { readAt: record.readAt.toISOString() } : {}),
   };
+}
+
+function previewForMessage(message: DirectMessage) {
+  if (message.deletedAt) return "Message deleted";
+  if (message.attachmentUrl && !message.content.trim()) return "Photo";
+  return message.content.slice(0, 120);
 }
 
 export async function getMemberDirectory(currentUserId: string) {
@@ -116,6 +137,8 @@ export async function getMessagesForThread(threadId: string, userId: string) {
   const otherId = thread.participantIds.find((id) => id !== userId);
   if (otherId && (await hasMessagingBlock(userId, otherId))) return null;
 
+  await markThreadRead(threadId, userId);
+
   const messageRecords = await prisma.message.findMany({
     where: { threadId },
     orderBy: { createdAt: "asc" },
@@ -127,6 +150,22 @@ export async function getMessagesForThread(threadId: string, userId: string) {
   };
 }
 
+export async function markThreadRead(threadId: string, userId: string) {
+  const record = await prisma.messageThread.findUnique({ where: { id: threadId } });
+  if (!record) return;
+  const participantIds = [record.participantAId, record.participantBId];
+  if (!participantIds.includes(userId)) return;
+
+  await prisma.message.updateMany({
+    where: {
+      threadId,
+      senderId: { not: userId },
+      readAt: null,
+    },
+    data: { readAt: new Date() },
+  });
+}
+
 export async function sendDirectMessage(input: {
   senderId: string;
   senderName: string;
@@ -134,11 +173,11 @@ export async function sendDirectMessage(input: {
   recipientName: string;
   content: string;
   threadId?: string;
+  attachmentUrl?: string;
+  attachmentType?: string;
+  attachmentName?: string;
 }) {
-  const content = input.content.trim();
-  if (!content) {
-    throw new Error("Message cannot be empty.");
-  }
+  const content = validateChatContent(input.content, Boolean(input.attachmentUrl));
 
   const blockReason = await getMessagingBlockReason(
     input.senderId,
@@ -165,7 +204,23 @@ export async function sendDirectMessage(input: {
     where: { id: threadId },
   });
 
+  const messageRecord = await prisma.message.create({
+    data: {
+      id: `msg-${Date.now()}`,
+      threadId,
+      senderId: input.senderId,
+      senderName: input.senderName,
+      content,
+      attachmentUrl: input.attachmentUrl,
+      attachmentType: input.attachmentType,
+      attachmentName: input.attachmentName,
+      createdAt: now,
+    },
+  });
+
+  const message = mapMessage(messageRecord);
   let thread: MessageThread;
+
   if (!existingThread) {
     const created = await prisma.messageThread.create({
       data: {
@@ -173,7 +228,7 @@ export async function sendDirectMessage(input: {
         participantAId,
         participantBId,
         participantNames,
-        lastMessage: content,
+        lastMessage: previewForMessage(message),
         lastMessageAt: now,
         createdAt: now,
       },
@@ -187,7 +242,7 @@ export async function sendDirectMessage(input: {
     const updated = await prisma.messageThread.update({
       where: { id: threadId },
       data: {
-        lastMessage: content,
+        lastMessage: previewForMessage(message),
         lastMessageAt: now,
         participantNames: updatedNames,
       },
@@ -195,18 +250,117 @@ export async function sendDirectMessage(input: {
     thread = mapThread(updated);
   }
 
-  const messageRecord = await prisma.message.create({
-    data: {
-      id: `msg-${Date.now()}`,
-      threadId,
-      senderId: input.senderId,
-      senderName: input.senderName,
-      content,
-      createdAt: now,
-    },
+  return { thread, message };
+}
+
+export async function editDirectMessage(input: {
+  threadId: string;
+  messageId: string;
+  userId: string;
+  content: string;
+}) {
+  const content = validateChatContent(input.content, false);
+  const thread = await prisma.messageThread.findUnique({ where: { id: input.threadId } });
+  if (!thread) return null;
+  const participantIds = [thread.participantAId, thread.participantBId];
+  if (!participantIds.includes(input.userId)) return null;
+
+  const message = await prisma.message.findFirst({
+    where: { id: input.messageId, threadId: input.threadId },
+  });
+  if (!message) return null;
+  if (message.senderId !== input.userId) {
+    throw new Error("You can only edit your own messages.");
+  }
+  if (message.deletedAt) {
+    throw new Error("Deleted messages cannot be edited.");
+  }
+
+  const updated = await prisma.message.update({
+    where: { id: message.id },
+    data: { content, editedAt: new Date() },
   });
 
-  return { thread, message: mapMessage(messageRecord) };
+  const mapped = mapMessage(updated);
+  const latest = await prisma.message.findFirst({
+    where: { threadId: input.threadId, deletedAt: null },
+    orderBy: { createdAt: "desc" },
+  });
+  if (latest?.id === updated.id) {
+    await prisma.messageThread.update({
+      where: { id: input.threadId },
+      data: { lastMessage: previewForMessage(mapped) },
+    });
+  }
+
+  return mapped;
+}
+
+export async function deleteDirectMessage(input: {
+  threadId: string;
+  messageId: string;
+  userId: string;
+}) {
+  const thread = await prisma.messageThread.findUnique({ where: { id: input.threadId } });
+  if (!thread) return null;
+  const participantIds = [thread.participantAId, thread.participantBId];
+  if (!participantIds.includes(input.userId)) return null;
+
+  const message = await prisma.message.findFirst({
+    where: { id: input.messageId, threadId: input.threadId },
+  });
+  if (!message) return null;
+  if (message.senderId !== input.userId) {
+    throw new Error("You can only delete your own messages.");
+  }
+
+  const updated = await prisma.message.update({
+    where: { id: message.id },
+    data: { content: "", deletedAt: new Date() },
+  });
+
+  const latest = await prisma.message.findFirst({
+    where: { threadId: input.threadId, deletedAt: null },
+    orderBy: { createdAt: "desc" },
+  });
+
+  await prisma.messageThread.update({
+    where: { id: input.threadId },
+    data: { lastMessage: latest ? previewForMessage(mapMessage(latest)) : "Message deleted" },
+  });
+
+  return mapMessage(updated);
+}
+
+export async function toggleDirectMessageReaction(input: {
+  threadId: string;
+  messageId: string;
+  userId: string;
+  userName: string;
+  emoji: string;
+}) {
+  const thread = await prisma.messageThread.findUnique({ where: { id: input.threadId } });
+  if (!thread) return null;
+  const participantIds = [thread.participantAId, thread.participantBId];
+  if (!participantIds.includes(input.userId)) return null;
+
+  const message = await prisma.message.findFirst({
+    where: { id: input.messageId, threadId: input.threadId },
+  });
+  if (!message) return null;
+
+  const reactions = toggleChatReaction(
+    normalizeChatReactions(Array.isArray(message.reactions) ? (message.reactions as DirectMessage["reactions"]) : []),
+    input.emoji,
+    { id: input.userId, name: input.userName },
+  );
+
+  const updated = await prisma.message.update({
+    where: { id: message.id },
+    data: { reactions },
+  });
+
+  return mapMessage(updated);
 }
 
 export function getOtherParticipant(thread: MessageThread, userId: string) {

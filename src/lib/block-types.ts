@@ -13,6 +13,8 @@ export type MessageReport = {
   reportedUserId: string;
   reportedUserName: string;
   threadId?: string;
+  groupId?: string;
+  messageId?: string;
   reason: string;
   createdAt: string;
   status: "open" | "reviewed";

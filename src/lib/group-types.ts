@@ -1,3 +1,5 @@
+import type { ChatMessageReaction } from "@/lib/chat-utils";
+
 export type GroupCategory =
   | "ministry"
   | "choir"
@@ -74,7 +76,14 @@ export type GroupChatMessage = {
   senderId: string;
   senderName: string;
   content: string;
+  reactions?: ChatMessageReaction[];
+  attachmentUrl?: string;
+  attachmentType?: string;
+  attachmentName?: string;
+  editedAt?: string;
+  deletedAt?: string;
   createdAt: string;
+  seenCount?: number;
 };
 
 export const groupCategoryLabels: Record<GroupCategory, string> = {

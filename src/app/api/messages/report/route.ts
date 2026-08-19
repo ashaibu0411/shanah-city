@@ -22,6 +22,8 @@ export async function POST(request: Request) {
   const reportedUserId = String(body.userId ?? "");
   let reportedUserName = String(body.userName ?? "Member").trim();
   const threadId = body.threadId ? String(body.threadId) : undefined;
+  const groupId = body.groupId ? String(body.groupId) : undefined;
+  const messageId = body.messageId ? String(body.messageId) : undefined;
   const reason = String(body.reason ?? "").trim();
   const alsoBlock = body.alsoBlock !== false;
 
@@ -43,6 +45,8 @@ export async function POST(request: Request) {
       reportedUserId,
       reportedUserName,
       threadId,
+      groupId,
+      messageId,
       reason:
         reason ||
         `Member reported ${reportedUserName} for inappropriate messages. Church office: ${site.email}`,
