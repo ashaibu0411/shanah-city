@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
+import { FormInput, FormTextarea } from "@/components/ui/form-fields";
 import {
   defaultScheduleDateInput,
   devotionToPublishMode,
@@ -266,17 +267,16 @@ export function DevotionAdminPanel() {
                 <label htmlFor="scheduleDate" className="text-sm font-semibold text-night-800">
                   Display date
                 </label>
-                <input
+                <FormInput
                   id="scheduleDate"
                   type="date"
                   value={form.scheduleDate}
-                  onChange={(event) =>
+                  onValueChange={(scheduleDate) =>
                     setForm((current) => ({
                       ...current,
-                      scheduleDate: event.target.value,
+                      scheduleDate,
                     }))
                   }
-                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
                 />
                 <p className="mt-1 text-xs text-night-600">Shows as {displayDate}</p>
               </div>
@@ -285,18 +285,18 @@ export function DevotionAdminPanel() {
                 <label htmlFor="scheduleTime" className="text-sm font-semibold text-night-800">
                   {form.publishMode === "now" ? "Time (optional)" : "Go-live time"}
                 </label>
-                <input
+                <FormInput
                   id="scheduleTime"
                   type="time"
                   value={form.scheduleTime}
-                  onChange={(event) =>
+                  onValueChange={(scheduleTime) =>
                     setForm((current) => ({
                       ...current,
-                      scheduleTime: event.target.value,
+                      scheduleTime,
                     }))
                   }
                   disabled={form.publishMode === "now"}
-                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:bg-sand-100 disabled:text-night-500"
+                  className="disabled:bg-sand-100 disabled:text-night-500"
                 />
                 <p className="mt-1 text-xs text-night-600">
                   {form.publishMode === "now"
@@ -319,13 +319,10 @@ export function DevotionAdminPanel() {
             <label htmlFor="title" className="text-sm font-semibold text-night-800">
               Title
             </label>
-            <input
+            <FormInput
               id="title"
               value={form.title}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, title: event.target.value }))
-              }
-              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              onValueChange={(title) => setForm((current) => ({ ...current, title }))}
             />
           </div>
 
@@ -333,13 +330,12 @@ export function DevotionAdminPanel() {
             <label htmlFor="reference" className="text-sm font-semibold text-night-800">
               Scripture reference
             </label>
-            <input
+            <FormInput
               id="reference"
               value={form.reference}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, reference: event.target.value }))
+              onValueChange={(reference) =>
+                setForm((current) => ({ ...current, reference }))
               }
-              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
           </div>
 
@@ -347,14 +343,11 @@ export function DevotionAdminPanel() {
             <label htmlFor="verse" className="text-sm font-semibold text-night-800">
               Verse
             </label>
-            <textarea
+            <FormTextarea
               id="verse"
               value={form.verse}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, verse: event.target.value }))
-              }
+              onValueChange={(verse) => setForm((current) => ({ ...current, verse }))}
               rows={3}
-              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
           </div>
 
@@ -362,14 +355,11 @@ export function DevotionAdminPanel() {
             <label htmlFor="content" className="text-sm font-semibold text-night-800">
               Reflection
             </label>
-            <textarea
+            <FormTextarea
               id="content"
               value={form.content}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, content: event.target.value }))
-              }
+              onValueChange={(content) => setForm((current) => ({ ...current, content }))}
               rows={5}
-              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
           </div>
 
@@ -377,14 +367,11 @@ export function DevotionAdminPanel() {
             <label htmlFor="prayer" className="text-sm font-semibold text-night-800">
               Prayer
             </label>
-            <textarea
+            <FormTextarea
               id="prayer"
               value={form.prayer}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, prayer: event.target.value }))
-              }
+              onValueChange={(prayer) => setForm((current) => ({ ...current, prayer }))}
               rows={3}
-              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
           </div>
         </div>

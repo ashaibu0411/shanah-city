@@ -68,8 +68,8 @@ type CardProps = {
 export function Card({ children, className = "", href }: CardProps) {
   const { isMobileApp } = useAppShell();
   const classes = `${
-    isMobileApp ? "mobile-card active:scale-[0.995]" : ""
-  } rounded-2xl bg-white p-5 shadow-sm ring-1 ring-night-900/5 transition hover:shadow-md ${className}`;
+    isMobileApp ? "mobile-card" : ""
+  } ${isMobileApp && href ? "active:scale-[0.995]" : ""} rounded-2xl bg-white p-5 shadow-sm ring-1 ring-night-900/5 transition hover:shadow-md ${className}`;
 
   if (href) {
     if (isExternalHref(href)) {
