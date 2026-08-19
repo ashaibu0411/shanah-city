@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/app/BrandLogo";
+import { HomeTagline } from "@/components/home/HomeTagline";
 import { campuses, site } from "@/lib/site";
 import { Button } from "@/components/ui";
 
@@ -21,21 +22,13 @@ export function HomeHero() {
         <div>
           <div className="flex items-center gap-4">
             <BrandLogo size="lg" priority />
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sand-300">
-                {site.name}
-              </p>
-            </div>
           </div>
 
-          <h1 className="mt-6 font-display text-3xl font-semibold leading-tight text-balance md:text-4xl lg:text-[2.75rem]">
-            {site.tagline}
-          </h1>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-white/80">
-            {site.scripture} · Join us in Aurora, Accra, or online — one family,
-            one vision.
+          <HomeTagline size="desktop" />
+          <p className="mt-4 max-w-xl font-sans text-base leading-relaxed text-white/80">
+            Join us in Aurora, Accra, or online — one family, one vision.
           </p>
-          <p className="mt-3 text-sm italic text-sand-200">{site.welcome}</p>
+          <p className="mt-3 font-sans text-sm italic text-sand-200">{site.welcome}</p>
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Button href="/live" className="bg-sand-400 text-night-950 hover:bg-sand-300">

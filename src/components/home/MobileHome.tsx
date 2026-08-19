@@ -7,6 +7,7 @@ import { useApp } from "@/components/app/AppProvider";
 import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail, streamPreviews } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
+import { HomeTagline } from "@/components/home/HomeTagline";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
 
@@ -84,9 +85,7 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
         <div className="mobile-home-shimmer pointer-events-none absolute inset-0 opacity-40" aria-hidden />
 
         <div className="relative">
-          <h1 className="mobile-home-headline mobile-home-fade-up mobile-home-fade-up-2 font-display text-[1.45rem] font-bold leading-tight tracking-tight text-white">
-            {site.tagline}
-          </h1>
+          <HomeTagline size="mobile" />
 
           <div className="mobile-home-fade-up mobile-home-fade-up-3 mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-amber-100 backdrop-blur-md">
             Sun {nextService} · {campus.city}
@@ -133,7 +132,7 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
             </span>
           ) : null}
 
-          <p className="font-display text-xl font-bold leading-tight text-white">
+          <p className="font-sans text-xl font-bold leading-tight text-white">
             {anyLive ? liveStream.title : "Watch live"}
           </p>
 
@@ -155,7 +154,7 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
             <p className="text-[11px] font-bold uppercase tracking-wide text-amber-700/80">
               Today · {devotion.readingTime}
             </p>
-            <p className="mt-1 truncate font-display text-lg font-bold text-night-900">
+            <p className="mt-1 truncate font-sans text-lg font-bold text-night-900">
               {devotion.title}
             </p>
           </div>

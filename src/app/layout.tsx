@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Playfair_Display } from "next/font/google";
+import { Cormorant_Garamond, DM_Sans, Playfair_Display } from "next/font/google";
 import { AppShell } from "@/components/app/AppShell";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -12,6 +12,12 @@ const sans = DM_Sans({
 const display = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-display",
+});
+
+const homeHero = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-home-hero",
 });
 
 export const metadata: Metadata = {
@@ -41,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${display.variable} font-sans`}>
+      <body className={`${sans.variable} ${display.variable} ${homeHero.variable} font-sans`}>
         <AppShell>{children}</AppShell>
       </body>
     </html>

@@ -278,7 +278,7 @@
   }
 
   body[data-shell="mobile"] .mobile-section-title {
-    @apply font-display text-lg font-bold text-night-900;
+    @apply font-sans text-lg font-bold text-night-900;
   }
 }
 
