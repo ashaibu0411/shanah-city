@@ -1,12 +1,36 @@
 import {
   addFamilyMember,
   removeFamilyMember,
+  updateFamilyMember,
   updateUserProfile,
 } from "@/lib/auth-server";
-import type { MemberProfile } from "@/lib/auth-types";
+import type { AuthorizedPickupContact, FamilyMember, MemberProfile } from "@/lib/auth-types";
 import { getAdminPeopleDirectory } from "@/lib/admin-people-server";
 
 const roles: NonNullable<MemberProfile["role"]>[] = ["member", "leader", "team", "media"];
+
+function parseAuthorizedPickup(value: unknown): AuthorizedPickupContact[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value
+    .map((contact) => ({
+      name: String((contact as { name?: string }).name ?? "").trim(),
+      phone: (contact as { phone?: string }).phone
+        ? String((contact as { phone?: string }).phone).trim()
+        : undefined,
+      relationship: (contact as { relationship?: string }).relationship
+        ? String((contact as { relationship?: string }).relationship).trim()
+        : undefined,
+    }))
+    .filter((contact) => contact.name);
+}
+
+function childSafetyFields(body: Record<string, unknown>) {
+  return {
+    allergies: body.allergies !== undefined ? String(body.allergies).trim() : undefined,
+    medicalNotes: body.medicalNotes !== undefined ? String(body.medicalNotes).trim() : undefined,
+    authorizedPickup: parseAuthorizedPickup(body.authorizedPickup),
+  };
+}
 
 export async function getAdminPerson(adminId: string, userId: string) {
   const people = await getAdminPeopleDirectory(adminId);
@@ -34,13 +58,35 @@ export async function updateAdminPerson(
     const user = await addFamilyMember(userId, {
       id: `fam-${Date.now()}`,
       name,
-      relationship: (body.relationship as MemberProfile["family"][number]["relationship"]) ?? "other",
+      relationship: (body.relationship as FamilyMember["relationship"]) ?? "other",
       birthYear: body.birthYear ? String(body.birthYear) : undefined,
       notes: body.notes ? String(body.notes).trim() : undefined,
+      ...childSafetyFields(body),
     });
 
     if (!user) {
       throw new Error("Could not add family member.");
+    }
+
+    return getAdminPerson(adminId, userId);
+  }
+
+  if (action === "update_family") {
+    const memberId = String(body.memberId ?? "");
+    if (!memberId) {
+      throw new Error("Family member id is required.");
+    }
+
+    const user = await updateFamilyMember(userId, memberId, {
+      name: body.name ? String(body.name).trim() : undefined,
+      relationship: body.relationship as FamilyMember["relationship"] | undefined,
+      birthYear: body.birthYear ? String(body.birthYear) : undefined,
+      notes: body.notes !== undefined ? String(body.notes).trim() : undefined,
+      ...childSafetyFields(body),
+    });
+
+    if (!user) {
+      throw new Error("Could not update family member.");
     }
 
     return getAdminPerson(adminId, userId);

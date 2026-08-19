@@ -24,6 +24,9 @@ export function KidsCheckInPanel() {
   const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState<KidCheckIn[]>([]);
   const [lastLabel, setLastLabel] = useState<KidCheckIn | null>(null);
+  const [checkoutTargetId, setCheckoutTargetId] = useState<string | null>(null);
+  const [checkoutCode, setCheckoutCode] = useState("");
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   async function loadActive() {
     const response = await fetch("/api/checkin/kids");
@@ -91,14 +94,32 @@ export function KidsCheckInPanel() {
   }
 
   async function checkOut(id: string) {
-    await fetch("/api/checkin/kids", {
+    if (!checkoutCode.trim()) {
+      setCheckoutError("Enter the pickup security code from your label.");
+      return;
+    }
+
+    setLoading(true);
+    setCheckoutError(null);
+    const response = await fetch("/api/checkin/kids", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "checkout", id }),
+      body: JSON.stringify({ action: "checkout", id, securityCode: checkoutCode.trim() }),
     });
+    const data = await response.json();
+    setLoading(false);
+
+    if (!response.ok) {
+      setCheckoutError(data.error ?? "Check-out failed.");
+      return;
+    }
+
     if (lastLabel?.id === id) {
       setLastLabel(null);
     }
+    setCheckoutTargetId(null);
+    setCheckoutCode("");
+    setMessage(`${data.checkin.childName} checked out successfully.`);
     loadActive();
   }
 
@@ -236,20 +257,64 @@ export function KidsCheckInPanel() {
                   {entry.allergies && (
                     <p className="text-amber-700">Allergy: {entry.allergies}</p>
                   )}
+                  {entry.medicalNotes && (
+                    <p className="text-red-700">Medical: {entry.medicalNotes}</p>
+                  )}
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setLastLabel(entry);
-                      printKidCheckInLabel(entry);
-                    }}
-                  >
-                    Reprint
-                  </Button>
-                  <Button variant="secondary" onClick={() => checkOut(entry.id)}>
-                    Check out
-                  </Button>
+                <div className="flex w-full flex-col gap-2 sm:w-auto">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setLastLabel(entry);
+                        printKidCheckInLabel(entry);
+                      }}
+                    >
+                      Reprint
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setCheckoutTargetId(entry.id);
+                        setCheckoutCode("");
+                        setCheckoutError(null);
+                      }}
+                    >
+                      Check out
+                    </Button>
+                  </div>
+                  {checkoutTargetId === entry.id && (
+                    <div className="rounded-xl border border-night-900/10 bg-white p-3">
+                      <p className="text-xs text-night-600">
+                        Enter the security code from your pickup label.
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <input
+                          value={checkoutCode}
+                          onChange={(event) => setCheckoutCode(event.target.value)}
+                          placeholder="Security code"
+                          className="min-w-[120px] flex-1 rounded-lg border border-night-900/10 px-3 py-2 text-sm"
+                        />
+                        <Button onClick={() => checkOut(entry.id)} disabled={loading}>
+                          Verify pickup
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCheckoutTargetId(null);
+                            setCheckoutCode("");
+                            setCheckoutError(null);
+                          }}
+                          className="text-xs font-semibold text-night-600 underline"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      {checkoutError && (
+                        <p className="mt-2 text-xs text-red-700">{checkoutError}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </li>
             ))}

@@ -51,6 +51,9 @@ export async function getAdminPeopleDirectory(adminId: string): Promise<AdminPeo
           relationship: member.relationship,
           birthYear: member.birthYear,
           notes: member.notes,
+          allergies: member.allergies,
+          medicalNotes: member.medicalNotes,
+          authorizedPickup: member.authorizedPickup,
         })),
         groups: [...memberGroups, ...pendingGroups],
       };

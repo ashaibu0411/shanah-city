@@ -30,6 +30,9 @@ export type AdminPeopleFamilyMember = {
   relationship: string;
   birthYear?: string;
   notes?: string;
+  allergies?: string;
+  medicalNotes?: string;
+  authorizedPickup?: import("@/lib/kids-types").AuthorizedPickupContact[];
 };
 
 export type AdminPeopleEntry = {

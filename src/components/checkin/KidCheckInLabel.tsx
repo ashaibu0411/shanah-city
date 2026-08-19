@@ -8,6 +8,17 @@ type KidCheckInLabelProps = {
   printId?: string;
 };
 
+function safetyAlerts(checkIn: KidCheckIn) {
+  const alerts: { label: string; value: string; tone: "amber" | "red" }[] = [];
+  if (checkIn.allergies?.trim()) {
+    alerts.push({ label: "Allergy alert", value: checkIn.allergies.trim(), tone: "amber" });
+  }
+  if (checkIn.medicalNotes?.trim()) {
+    alerts.push({ label: "Medical alert", value: checkIn.medicalNotes.trim(), tone: "red" });
+  }
+  return alerts;
+}
+
 export function KidCheckInLabel({ checkIn, printId = "kid-checkin-label" }: KidCheckInLabelProps) {
   const checkedInTime = new Date(checkIn.checkedInAt).toLocaleString(undefined, {
     weekday: "short",
@@ -16,6 +27,7 @@ export function KidCheckInLabel({ checkIn, printId = "kid-checkin-label" }: KidC
     hour: "numeric",
     minute: "2-digit",
   });
+  const alerts = safetyAlerts(checkIn);
 
   return (
     <div
@@ -33,6 +45,24 @@ export function KidCheckInLabel({ checkIn, printId = "kid-checkin-label" }: KidC
         <p className="text-xs font-semibold uppercase tracking-wider text-night-500">Child</p>
         <p className="mt-1 font-display text-3xl font-semibold">{checkIn.childName}</p>
       </div>
+
+      {alerts.length > 0 && (
+        <div className="mb-4 space-y-2">
+          {alerts.map((alert) => (
+            <div
+              key={alert.label}
+              className={`rounded-xl px-3 py-2 text-sm ${
+                alert.tone === "amber"
+                  ? "bg-amber-100 text-amber-950"
+                  : "bg-red-100 text-red-950"
+              }`}
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide">{alert.label}</p>
+              <p className="mt-1 font-medium">{alert.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="rounded-xl bg-sand-50 p-3">
@@ -77,6 +107,16 @@ export function printKidCheckInLabel(checkIn: KidCheckIn) {
     hour: "numeric",
     minute: "2-digit",
   });
+  const alerts = safetyAlerts(checkIn)
+    .map(
+      (alert) => `
+        <div class="alert ${alert.tone}">
+          <span>${alert.label}</span>
+          <strong>${alert.value.replace(/</g, "&lt;")}</strong>
+        </div>
+      `,
+    )
+    .join("");
 
   const printWindow = window.open("", "_blank", "width=480,height=720");
   if (!printWindow) return;
@@ -93,6 +133,11 @@ export function printKidCheckInLabel(checkIn: KidCheckIn) {
           .brand small { letter-spacing: 0.15em; text-transform: uppercase; color: #967652; font-weight: 700; }
           .child { text-align: center; padding: 16px 0; }
           .child h1 { margin: 8px 0 0; font-size: 28px; }
+          .alerts { margin-bottom: 12px; }
+          .alert { border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: 13px; }
+          .alert span { display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; }
+          .alert.amber { background: #fef3c7; color: #78350f; }
+          .alert.red { background: #fee2e2; color: #991b1b; }
           .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; }
           .box { background: #faf8f5; border-radius: 10px; padding: 10px; }
           .box.full { grid-column: span 2; }
@@ -112,6 +157,7 @@ export function printKidCheckInLabel(checkIn: KidCheckIn) {
             <span>CHILD</span>
             <h1>${checkIn.childName}</h1>
           </div>
+          ${alerts ? `<div class="alerts">${alerts}</div>` : ""}
           <div class="grid">
             <div class="box"><span>Room</span>${checkIn.ageGroup}</div>
             <div class="box"><span>Service</span>${checkIn.service}</div>

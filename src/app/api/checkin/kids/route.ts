@@ -5,8 +5,8 @@ import { canAccessKidsMinistry } from "@/lib/kids-access-server";
 import { enrichCheckInFromProfile } from "@/lib/kids-server";
 import {
   addKidCheckIn,
-  checkoutKid,
   getKidCheckIns,
+  verifyCheckoutKid,
 } from "@/lib/member-server";
 import {
   enforceRateLimit,
@@ -57,11 +57,45 @@ export async function POST(request: Request) {
   const body = await request.json();
 
   if (body.action === "checkout") {
-    const entry = await checkoutKid(String(body.id ?? ""), user.id);
-    if (!entry) {
+    const id = String(body.id ?? "").trim();
+    const securityCode = String(body.securityCode ?? "").trim();
+
+    if (!id) {
+      return NextResponse.json({ error: "Check-in id is required." }, { status: 400 });
+    }
+    if (!securityCode) {
+      return NextResponse.json(
+        { error: "Enter the pickup security code from your label." },
+        { status: 400 },
+      );
+    }
+
+    const checkins = await getKidCheckIns();
+    const existing = checkins.find((entry) => entry.id === id);
+    if (!existing || existing.checkedOutAt) {
       return NextResponse.json({ error: "Check-in not found." }, { status: 404 });
     }
-    return NextResponse.json({ checkin: entry });
+
+    const isTeacher = await canAccessKidsMinistry(user);
+    const isParent =
+      existing.parentUserId === user.id || existing.parentName === user.name;
+    if (!isTeacher && !isParent) {
+      return NextResponse.json({ error: "You cannot check out this child." }, { status: 403 });
+    }
+
+    const result = await verifyCheckoutKid(id, {
+      securityCode,
+      checkedOutBy: user.id,
+    });
+
+    if (!result) {
+      return NextResponse.json({ error: "Check-in not found." }, { status: 404 });
+    }
+    if ("error" in result) {
+      return NextResponse.json({ error: "Security code does not match." }, { status: 403 });
+    }
+
+    return NextResponse.json({ checkin: result.checkin });
   }
 
   const parentName = String(body.parentName ?? user.name).trim();
