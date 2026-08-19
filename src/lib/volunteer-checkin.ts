@@ -1,13 +1,22 @@
 import { getZonedDateParts } from "@/lib/denver-time";
 import type { VolunteerCheckIn } from "@/lib/member-types";
 
-export const FRONTLINER_ARRIVAL_TEAMS = [
+export const VOLUNTEER_MINISTRIES = [
   "Usher",
   "Greeter",
   "Usher lead",
   "Parking",
-  "Other FrontLiners",
+  "Hospitality",
+  "Kids Ministry",
+  "Worship / Choir",
+  "Media",
+  "Prayer Ministry",
+  "Security",
+  "Pastors",
+  "Other",
 ] as const;
+
+export const FRONTLINER_ARRIVAL_TEAMS = VOLUNTEER_MINISTRIES;
 
 export function volunteerArrivalDateKey(checkedInAt: string | Date) {
   return getZonedDateParts(
