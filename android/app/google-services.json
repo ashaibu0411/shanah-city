@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "847228899245",
+    "project_id": "shanah-city",
+    "storage_bucket": "shanah-city.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:847228899245:android:874dd7f79ce7355b87db24",
+        "android_client_info": {
+          "package_name": "org.shanahcity.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3b5Tcx4e-PgkUKMa0YzUun8P6HUj8Feg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
