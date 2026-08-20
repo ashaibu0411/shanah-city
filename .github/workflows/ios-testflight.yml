@@ -1,5 +1,7 @@
 name: iOS TestFlight
 
+# App Store profile must include aps-environment (Push Notifications).
+
 on:
   workflow_dispatch:
   push:
