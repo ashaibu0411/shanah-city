@@ -78,6 +78,9 @@ export async function sendPushToUsers(
   const nativeTokens = nativeConfigured ? await store().getNativePushTokens() : [];
   let sent = 0;
   let skipped = 0;
+  let webSent = 0;
+  let nativeSent = 0;
+  const errors: string[] = [];
 
   for (const userId of userIds) {
     const user = users.find((item) => item.id === userId);
@@ -109,9 +112,13 @@ export async function sendPushToUsers(
           JSON.stringify(payload),
         );
         sent += 1;
-      } catch {
+        webSent += 1;
+      } catch (error) {
         await store().removePushSubscription(userId, record.endpoint);
         skipped += 1;
+        errors.push(
+          `web:${error instanceof Error ? error.message : "send failed"}`,
+        );
       }
     }
 
@@ -119,16 +126,27 @@ export async function sendPushToUsers(
       try {
         await sendNativePush(record, payload);
         sent += 1;
+        nativeSent += 1;
       } catch (error) {
         if (shouldDropNativeToken(error)) {
           await store().removeNativePushToken(userId, record.token);
         }
         skipped += 1;
+        errors.push(
+          `${record.platform}:${error instanceof Error ? error.message : "send failed"}`,
+        );
       }
     }
   }
 
-  return { sent, skipped, configured: true };
+  return {
+    sent,
+    skipped,
+    webSent,
+    nativeSent,
+    errors: errors.slice(0, 3),
+    configured: true,
+  };
 }
 
 export async function notifyNewDevotion(input: {

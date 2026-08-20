@@ -9,6 +9,7 @@ import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
 import { CampusSelector } from "@/components/app/CampusSelector";
 import { liveStream, site } from "@/lib/site";
 import { Badge, ExternalLink } from "@/components/ui";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export function TopBar() {
   const pathname = usePathname();
@@ -38,6 +39,7 @@ export function TopBar() {
 
         <div className="flex items-center gap-2 md:gap-4">
           <CampusSelector />
+          {!loading && user ? <NotificationBell /> : null}
           <Link
             href="/shop"
             className="relative rounded-xl p-2 text-night-700 transition hover:bg-white"

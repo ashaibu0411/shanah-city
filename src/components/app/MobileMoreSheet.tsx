@@ -9,6 +9,7 @@ import { useAppShell } from "@/components/app/AppShellContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { site } from "@/lib/site";
 import { useAppNavItems } from "@/lib/use-app-nav-items";
+import { useNotifications } from "@/lib/use-notifications";
 
 export function MobileMoreSheet() {
   const { moreMenuOpen, setMoreMenuOpen } = useAppShell();
@@ -16,6 +17,7 @@ export function MobileMoreSheet() {
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const navItems = useAppNavItems();
+  const { total: unreadTotal } = useNotifications();
 
   const primaryTabs = [
     site.nav[0],
@@ -103,7 +105,7 @@ export function MobileMoreSheet() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMoreMenuOpen(false)}
-                  className={`flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition active:scale-[0.97] ${
+                  className={`relative flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition active:scale-[0.97] ${
                     active
                       ? `bg-gradient-to-br ${tone} text-white shadow-lg`
                       : "bg-white/95 text-night-800 ring-1 ring-night-900/8"
@@ -113,6 +115,11 @@ export function MobileMoreSheet() {
                   <span className="text-[10px] font-semibold leading-tight">
                     {item.label}
                   </span>
+                  {item.href === "/messages" && unreadTotal > 0 && (
+                    <span className="absolute right-2 top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                      {unreadTotal > 99 ? "99+" : unreadTotal}
+                    </span>
+                  )}
                 </Link>
               );
             })}

@@ -47,15 +47,35 @@ export function PushNotificationSettings() {
       },
     );
 
-    fetch("/api/push")
-      .then((response) => response.json())
-      .then((data) => {
-        setConfigured(Boolean(data.configured));
-        setPublicKey(data.publicKey ?? "");
-        setEnabled(Boolean(data.subscribed));
-        setDeviceCounts(data.devices ?? { web: 0, native: 0 });
-      })
-      .catch(() => undefined);
+    void refreshPushStatus();
+  }, [user]);
+
+  async function refreshPushStatus() {
+    try {
+      const response = await fetch("/api/push", { credentials: "include" });
+      const data = await response.json();
+      setConfigured(Boolean(data.configured));
+      setPublicKey(data.publicKey ?? "");
+      setEnabled(Boolean(data.subscribed));
+      setDeviceCounts(data.devices ?? { web: 0, native: 0 });
+    } catch {
+      // Ignore transient fetch errors.
+    }
+  }
+
+  useEffect(() => {
+    if (!user) return;
+    const onFocus = () => {
+      void refreshPushStatus();
+    };
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("shanah-push-synced", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("shanah-push-synced", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
   }, [user]);
 
   async function savePreferences(nextPrefs: NotificationPrefs) {
@@ -84,20 +104,19 @@ export function PushNotificationSettings() {
       try {
         const { registerNativePush } = await import("@/lib/native-push-client");
         const result = await registerNativePush();
+        await refreshPushStatus();
         setBusy(false);
         if (!result.ok) {
           setStatus(
             result.reason === "denied"
               ? "Notification permission was denied."
-              : "Could not enable push notifications on this phone.",
+              : "error" in result && result.error
+                ? result.error
+                : "Could not register this phone for push. Open Profile again after signing in.",
           );
           return;
         }
         setEnabled(true);
-        setDeviceCounts((current) => ({
-          ...current,
-          native: Math.max(current.native, 1),
-        }));
         setStatus("Push notifications enabled on this phone.");
       } catch {
         setBusy(false);
@@ -278,8 +297,15 @@ export function PushNotificationSettings() {
           {deviceCounts.native > 0 && deviceCounts.web > 0 ? " · " : ""}
           {deviceCounts.web > 0 ? "browser" : ""}
           {deviceCounts.native === 0 && deviceCounts.web === 0
-            ? "waiting for device registration..."
+            ? "still syncing — reopen Profile in a few seconds"
             : ""}
+          {isNativeAppPlatform() && enabled && deviceCounts.native === 0 ? (
+            <>
+              {" "}
+              · Phone token not on server yet. Force-close and reopen the app, or tap Enable
+              again.
+            </>
+          ) : null}
         </p>
       )}
 

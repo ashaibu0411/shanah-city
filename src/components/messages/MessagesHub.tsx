@@ -10,6 +10,7 @@ import { Button } from "@/components/ui";
 import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComposer";
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
 import type { ChatTypingUser } from "@/lib/chat-utils";
+import { notifyNotificationsChanged } from "@/lib/use-notifications";
 
 type ThreadSummary = {
   id: string;
@@ -154,6 +155,7 @@ export function MessagesHub() {
     setThreads(data.threads ?? []);
     setMembers(data.members ?? []);
     setStatus("");
+    notifyNotificationsChanged();
   }
 
   async function loadThread(threadId: string) {
@@ -165,6 +167,7 @@ export function MessagesHub() {
     if (response.ok) {
       setMessages(data.messages ?? []);
       setTypingUsers(data.typingUsers ?? []);
+      notifyNotificationsChanged();
     } else {
       setStatus(data.error ?? "Could not load conversation.");
       setMessages([]);

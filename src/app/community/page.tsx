@@ -1,4 +1,5 @@
 import { CommunityFeed } from "@/components/community/CommunityFeed";
+import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { PageHeader } from "@/components/ui";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getCommunityPostsForViewer } from "@/lib/member-server";
@@ -17,6 +18,7 @@ export default async function CommunityPage() {
         title="Community"
         description="Pray for one another, share praise reports, and comment on posts across the Shanah City family."
       />
+      <MarkFeedRead feed="community" />
       <CommunityFeed initialPosts={posts} />
     </>
   );

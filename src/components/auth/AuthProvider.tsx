@@ -71,9 +71,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
     void import("@/lib/native-push-client").then(async (nativePush) => {
-      if (!nativePush.isNativePushOptedOut()) {
-        await nativePush.ensureNativePushRegistered();
-      }
+      if (nativePush.isNativePushOptedOut()) return;
+      await nativePush.ensureNativePushRegistered();
+      await nativePush.watchNativePushResync(() => {
+        window.dispatchEvent(new Event("shanah-push-synced"));
+      });
     });
   }, [loading, user]);
 

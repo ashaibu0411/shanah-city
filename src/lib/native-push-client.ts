@@ -51,6 +51,7 @@ export async function syncNativePushToken() {
 
   const response = await fetch("/api/push", {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       action: "native-subscribe",
@@ -146,6 +147,13 @@ export async function registerNativePush() {
     if (sync.ok) {
       return { ok: true as const };
     }
+    // Re-registering usually will not fire another registration event when a token
+    // is already cached locally — retry the server sync instead of waiting 15s.
+    return {
+      ok: false as const,
+      reason: sync.reason ?? "server",
+      error: "error" in sync ? sync.error : undefined,
+    };
   }
 
   return new Promise<{ ok: true } | { ok: false; reason: string }>((resolve) => {
@@ -227,14 +235,64 @@ export async function startNativePushListeners() {
 
 export async function ensureNativePushRegistered() {
   if (typeof window === "undefined" || !Capacitor.isNativePlatform() || isNativePushOptedOut()) {
-    return { ok: false as const };
+    return { ok: false as const, reason: "not-native" as const };
   }
 
   await startNativePushListeners();
-  const sync = await syncNativePushToken();
-  if (sync.ok) {
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const sync = await syncNativePushToken();
+    if (sync.ok) {
+      return { ok: true as const };
+    }
+    if (sync.reason === "no-token") {
+      break;
+    }
+    if (attempt < 2) {
+      await new Promise((resolve) => window.setTimeout(resolve, 750));
+    }
+  }
+
+  const result = await registerNativePush();
+  if (result.ok) {
     return { ok: true as const };
   }
 
-  return registerNativePush();
+  const retry = await syncNativePushToken();
+  if (retry.ok) {
+    return { ok: true as const };
+  }
+
+  return result;
+}
+
+let resumeListenerReady = false;
+
+export async function watchNativePushResync(onSynced?: () => void) {
+  if (typeof window === "undefined" || !Capacitor.isNativePlatform() || resumeListenerReady) {
+    return;
+  }
+
+  resumeListenerReady = true;
+  const { App } = await import("@capacitor/app");
+
+  const resync = async () => {
+    if (isNativePushOptedOut()) return;
+    const result = await ensureNativePushRegistered();
+    if (result.ok) {
+      onSynced?.();
+    }
+  };
+
+  await App.addListener("appStateChange", ({ isActive }) => {
+    if (isActive) {
+      void resync();
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      void resync();
+    }
+  });
 }

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { WorshipPlannerPanel } from "@/components/worship/WorshipPlannerPanel";
+import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { PageHeader } from "@/components/ui";
 import { canAccessWorshipPlanner } from "@/lib/worship-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
@@ -30,6 +31,7 @@ export default async function WorshipPlannerPage({
         title="Worship planner"
         description="Plan setlists, track team readiness, store charts, and share rehearsal notes for each service."
       />
+      <MarkFeedRead feed="worship" />
       <WorshipPlannerPanel initialDate={params.date} initialTime={params.time} />
     </>
   );

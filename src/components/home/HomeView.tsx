@@ -10,25 +10,29 @@ import { MobileHome } from "@/components/home/MobileHome";
 import { QuickActions } from "@/components/home/QuickActions";
 import { MeetingPreview } from "@/components/meetings/MeetingsList";
 import { SermonCard } from "@/components/sermons/SermonCard";
+import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import { SectionTitle } from "@/components/ui";
 import type { Devotion, ChurchEvent } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
+import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 type HomeViewProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
   events: ChurchEvent[];
+  urgentAlert: UrgentAlert | null;
 };
 
-export function HomeView({ posts, todayDevotion, events }: HomeViewProps) {
+export function HomeView({ posts, todayDevotion, events, urgentAlert }: HomeViewProps) {
   const { isMobileApp } = useAppShell();
 
   if (isMobileApp) {
-    return <MobileHome posts={posts} todayDevotion={todayDevotion} />;
+    return <MobileHome posts={posts} todayDevotion={todayDevotion} urgentAlert={urgentAlert} />;
   }
 
   return (
     <>
+      <UrgentAlertBanner alert={urgentAlert} />
       <HomeHero />
       <LiveBanner />
       <QuickActions />

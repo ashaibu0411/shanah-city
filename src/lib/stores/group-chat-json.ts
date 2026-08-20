@@ -226,3 +226,49 @@ export async function toggleGroupChatReaction(input: {
   await writeJson(CHAT_FILE, all);
   return mapExtras(updated);
 }
+
+function previewGroupMessage(message: GroupChatMessage) {
+  if (message.deletedAt) return "Message deleted";
+  if (message.attachmentUrl && !message.content.trim()) return "Photo";
+  return message.content.slice(0, 120);
+}
+
+export async function getUnreadGroupChatSummary(
+  userId: string,
+  groups: { id: string; name: string; memberIds: string[] }[],
+) {
+  const memberGroups = groups.filter((group) => group.memberIds.includes(userId));
+  if (memberGroups.length === 0) return [];
+
+  const [messages, states] = await Promise.all([readMessages(), readReadStates()]);
+  const lastReadByGroup = new Map(
+    states.filter((state) => state.userId === userId).map((state) => [state.groupId, state.lastReadAt]),
+  );
+
+  const items = [];
+  for (const group of memberGroups) {
+    const lastReadMs = Date.parse(lastReadByGroup.get(group.id) ?? "0");
+    const unread = messages.filter((message) => {
+      if (message.groupId !== group.id) return false;
+      if (message.senderId === userId) return false;
+      return Date.parse(message.createdAt) > lastReadMs;
+    });
+    if (unread.length === 0) continue;
+
+    const sorted = [...unread].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+    const latest = mapExtras(sorted[0]);
+    items.push({
+      id: `group-${group.id}`,
+      type: "group_chat" as const,
+      title: group.name,
+      body: `${latest.senderName}: ${previewGroupMessage(latest)}`,
+      href: `/groups?group=${encodeURIComponent(group.id)}&chat=1`,
+      count: unread.length,
+      at: latest.createdAt,
+    });
+  }
+
+  return items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+}

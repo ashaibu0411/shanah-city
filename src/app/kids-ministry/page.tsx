@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { KidsMinistryPanel } from "@/components/kids/KidsMinistryPanel";
+import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { PageHeader } from "@/components/ui";
 import { canAccessKidsMinistry } from "@/lib/kids-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
@@ -30,6 +31,7 @@ export default async function KidsMinistryPage({
         title="Teacher dashboard"
         description="Room roster, pickup verification, weekly lessons, and incident logs for Shanah Kids."
       />
+      <MarkFeedRead feed="kids" />
       <KidsMinistryPanel initialWeek={params.week} initialService={params.service} />
     </>
   );

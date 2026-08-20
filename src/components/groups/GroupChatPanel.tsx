@@ -6,6 +6,7 @@ import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
 import type { UserBlock } from "@/lib/block-types";
 import type { GroupChatMessage } from "@/lib/group-types";
 import type { ChatTypingUser } from "@/lib/chat-utils";
+import { notifyNotificationsChanged } from "@/lib/use-notifications";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -89,6 +90,7 @@ export function GroupChatPanel({
       return data.messages ?? [];
     });
     setStatus("");
+    notifyNotificationsChanged();
   }
 
   useEffect(() => {

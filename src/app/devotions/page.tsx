@@ -1,4 +1,5 @@
 import { DevotionCard } from "@/components/devotions/DevotionCard";
+import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { PageHeader } from "@/components/ui";
 import { getDevotions } from "@/lib/devotion-server";
 
@@ -14,6 +15,7 @@ export default async function DevotionsPage() {
         title="Devotions"
         description="Start each day with scripture, reflection, and prayer. Anyone can read or listen — no account needed."
       />
+      <MarkFeedRead feed="devotions" />
       {devotions.length === 0 ? (
         <p className="rounded-2xl bg-white p-5 text-sm text-night-600 ring-1 ring-night-900/5">
           No published devotion yet. Check back soon.

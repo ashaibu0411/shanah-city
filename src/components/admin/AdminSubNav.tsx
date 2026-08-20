@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 
 const adminLinks = [
   { href: "/admin/approvals", label: "Approvals", adminOnly: true },
+  { href: "/admin/alerts", label: "Urgent", adminOnly: true },
   { href: "/admin/guests", label: "Guests", adminOnly: true },
   { href: "/admin/people", label: "People", adminOnly: true },
   { href: "/admin/giving", label: "Giving", adminOnly: true },

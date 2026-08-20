@@ -335,3 +335,44 @@ export function getOtherParticipant(thread: MessageThread, userId: string) {
 export function getOtherParticipantId(thread: MessageThread, userId: string) {
   return thread.participantIds.find((id) => id !== userId) ?? null;
 }
+
+export async function getUnreadDirectMessageSummary(userId: string) {
+  const threads = await getThreadsForUser(userId);
+  if (threads.length === 0) return [];
+
+  const messages = await readJson<DirectMessage[]>(MESSAGES_FILE, []);
+  const unread = messages.filter(
+    (message) =>
+      message.senderId !== userId &&
+      !message.readAt &&
+      threads.some((thread) => thread.id === message.threadId),
+  );
+
+  const byThread = new Map<string, DirectMessage[]>();
+  for (const message of unread) {
+    const bucket = byThread.get(message.threadId) ?? [];
+    bucket.push(message);
+    byThread.set(message.threadId, bucket);
+  }
+
+  const items = [];
+  for (const thread of threads) {
+    const threadMessages = byThread.get(thread.id);
+    if (!threadMessages?.length) continue;
+    const sorted = [...threadMessages].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+    const latest = sorted[0];
+    items.push({
+      id: `dm-${thread.id}`,
+      type: "direct_message" as const,
+      title: getOtherParticipant(thread, userId),
+      body: previewForMessage(mapMessage(latest)),
+      href: `/messages?thread=${encodeURIComponent(thread.id)}`,
+      count: threadMessages.length,
+      at: latest.createdAt,
+    });
+  }
+
+  return items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+}

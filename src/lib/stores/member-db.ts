@@ -31,6 +31,7 @@ function mapCommunityPost(record: {
   reactions: number;
   targetGroupId: string | null;
   targetGroupName: string | null;
+  createdAt: Date;
   comments: {
     id: string;
     author: string;
@@ -48,6 +49,7 @@ function mapCommunityPost(record: {
     reactions: record.reactions,
     targetGroupId: record.targetGroupId ?? undefined,
     targetGroupName: record.targetGroupName ?? undefined,
+    createdAt: record.createdAt.toISOString(),
     comments: record.comments.map(mapComment),
   };
 }
@@ -203,7 +205,7 @@ export async function addCommunityPost(post: CommunityPost) {
       reactions: post.reactions,
       targetGroupId: post.targetGroupId ?? null,
       targetGroupName: post.targetGroupName ?? null,
-      createdAt: new Date(),
+      createdAt: post.createdAt ? new Date(post.createdAt) : new Date(),
       comments: {
         create: (post.comments ?? []).map((comment) => ({
           id: comment.id,

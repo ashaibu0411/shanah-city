@@ -89,6 +89,7 @@ export async function POST(request: Request) {
     targetGroupId,
     targetGroupName,
     comments: [],
+    createdAt: new Date().toISOString(),
   });
 
   await notifyCommunityPost({

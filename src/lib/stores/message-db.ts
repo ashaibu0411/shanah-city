@@ -371,3 +371,43 @@ export function getOtherParticipant(thread: MessageThread, userId: string) {
 export function getOtherParticipantId(thread: MessageThread, userId: string) {
   return thread.participantIds.find((id) => id !== userId) ?? null;
 }
+
+export async function getUnreadDirectMessageSummary(userId: string) {
+  const threads = await getThreadsForUser(userId);
+  if (threads.length === 0) return [];
+
+  const threadIds = threads.map((thread) => thread.id);
+  const unreadMessages = await prisma.message.findMany({
+    where: {
+      threadId: { in: threadIds },
+      senderId: { not: userId },
+      readAt: null,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const byThread = new Map<string, typeof unreadMessages>();
+  for (const message of unreadMessages) {
+    const bucket = byThread.get(message.threadId) ?? [];
+    bucket.push(message);
+    byThread.set(message.threadId, bucket);
+  }
+
+  const items = [];
+  for (const thread of threads) {
+    const messages = byThread.get(thread.id);
+    if (!messages?.length) continue;
+    const latest = messages[0];
+    items.push({
+      id: `dm-${thread.id}`,
+      type: "direct_message" as const,
+      title: getOtherParticipant(thread, userId),
+      body: previewForMessage(mapMessage(latest)),
+      href: `/messages?thread=${encodeURIComponent(thread.id)}`,
+      count: messages.length,
+      at: latest.createdAt.toISOString(),
+    });
+  }
+
+  return items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+}

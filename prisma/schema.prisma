@@ -565,3 +565,34 @@ model UsherSchedule {
   @@index([serviceDate])
   @@index([status])
 }
+
+model FeedReadState {
+  id         String   @id
+  userId     String
+  feedKey    String
+  lastReadAt DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, feedKey])
+}
+
+model UrgentAlert {
+  id            String    @id
+  title         String
+  message       String
+  href          String?
+  ctaLabel      String?
+  imageUrl      String?
+  videoUrl      String?
+  active        Boolean   @default(false)
+  startsAt      DateTime?
+  expiresAt     DateTime?
+  createdBy     String
+  createdByName String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([active])
+  @@index([expiresAt])
+}

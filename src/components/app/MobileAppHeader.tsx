@@ -5,6 +5,7 @@ import { BrandLogo } from "@/components/app/BrandLogo";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { liveStream, site } from "@/lib/site";
 import { Badge } from "@/components/ui";
 
@@ -70,7 +71,10 @@ export function MobileAppHeader() {
           )}
         </div>
 
-        <MemberAvatarLink user={user} loading={loading} />
+        <div className="flex shrink-0 items-center gap-1">
+          {!loading && user ? <NotificationBell variant="light" /> : null}
+          <MemberAvatarLink user={user} loading={loading} />
+        </div>
       </div>
     </header>
   );

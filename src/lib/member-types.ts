@@ -16,6 +16,7 @@ export type CommunityPost = {
   targetGroupId?: string;
   targetGroupName?: string;
   comments: Comment[];
+  createdAt?: string;
 };
 
 export type AdminPeopleGroupStatus = {

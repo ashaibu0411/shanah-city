@@ -1,4 +1,5 @@
 import { MediaHub } from "@/components/media/MediaHub";
+import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { getMediaBrowseLinks, listMediaClips } from "@/lib/media-clips-server";
 
 export const dynamic = "force-dynamic";
@@ -9,5 +10,10 @@ export default async function LivePage() {
     Promise.resolve(getMediaBrowseLinks()),
   ]);
 
-  return <MediaHub clips={clips} browseLinks={browseLinks} />;
+  return (
+    <>
+      <MarkFeedRead feed="media" />
+      <MediaHub clips={clips} browseLinks={browseLinks} />
+    </>
+  );
 }

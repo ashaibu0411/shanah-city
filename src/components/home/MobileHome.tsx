@@ -8,8 +8,10 @@ import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail, streamPreviews } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import { HomeTagline } from "@/components/home/HomeTagline";
+import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
+import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 const mobileQuickActions = [
   {
@@ -45,9 +47,10 @@ const mobileQuickActions = [
 type MobileHomeProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
+  urgentAlert: UrgentAlert | null;
 };
 
-export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
+export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProps) {
   const { campus } = useApp();
   const [devotion, setDevotion] = useState<Devotion | null>(todayDevotion);
 
@@ -80,6 +83,7 @@ export function MobileHome({ posts, todayDevotion }: MobileHomeProps) {
 
   return (
     <div className="mobile-home space-y-4">
+      <UrgentAlertBanner alert={urgentAlert} variant="mobile" />
       <section className="mobile-home-aurora relative overflow-hidden rounded-[1.75rem] p-5 text-white shadow-2xl shadow-indigo-950/40 ring-1 ring-white/10">
         <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
         <div className="mobile-home-shimmer pointer-events-none absolute inset-0 opacity-40" aria-hidden />

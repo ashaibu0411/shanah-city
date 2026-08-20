@@ -18,9 +18,6 @@ export function NativeAppBoot() {
 
       try {
         await nativePush.startNativePushListeners();
-        if (!nativePush.isNativePushOptedOut()) {
-          await nativePush.registerNativePush();
-        }
       } catch {
         // Native push needs Firebase (Android) and APNs (iOS) setup.
       }

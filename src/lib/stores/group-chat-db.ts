@@ -223,3 +223,49 @@ export async function toggleGroupChatReaction(input: {
 
   return mapMessage(updated);
 }
+
+function previewGroupMessage(message: GroupChatMessage) {
+  if (message.deletedAt) return "Message deleted";
+  if (message.attachmentUrl && !message.content.trim()) return "Photo";
+  return message.content.slice(0, 120);
+}
+
+export async function getUnreadGroupChatSummary(
+  userId: string,
+  groups: { id: string; name: string; memberIds: string[] }[],
+) {
+  const memberGroups = groups.filter((group) => group.memberIds.includes(userId));
+  if (memberGroups.length === 0) return [];
+
+  const states = await prisma.groupChatReadState.findMany({
+    where: { userId },
+  });
+  const lastReadByGroup = new Map(states.map((state) => [state.groupId, state.lastReadAt]));
+
+  const items = [];
+  for (const group of memberGroups) {
+    const lastRead = lastReadByGroup.get(group.id) ?? new Date(0);
+    const unreadMessages = await prisma.groupChatMessage.findMany({
+      where: {
+        groupId: group.id,
+        senderId: { not: userId },
+        createdAt: { gt: lastRead },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    if (unreadMessages.length === 0) continue;
+
+    const latest = mapMessage(unreadMessages[0]);
+    items.push({
+      id: `group-${group.id}`,
+      type: "group_chat" as const,
+      title: group.name,
+      body: `${latest.senderName}: ${previewGroupMessage(latest)}`,
+      href: `/groups?group=${encodeURIComponent(group.id)}&chat=1`,
+      count: unreadMessages.length,
+      at: latest.createdAt,
+    });
+  }
+
+  return items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+}
