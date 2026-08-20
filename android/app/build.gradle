@@ -1,5 +1,11 @@
 apply plugin: 'com.android.application'
 
+def ciKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH") ?: "release.keystore"
+def hasCiSigning =
+        System.getenv("ANDROID_KEYSTORE_PASSWORD") != null &&
+        System.getenv("ANDROID_KEY_ALIAS") != null &&
+        System.getenv("ANDROID_KEY_PASSWORD") != null
+
 android {
     namespace = "org.shanahcity.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,10 +22,23 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (hasCiSigning) {
+                storeFile file(ciKeystorePath)
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasCiSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
