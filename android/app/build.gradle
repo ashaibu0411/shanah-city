@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 
-def ciKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH") ?: "release.keystore"
 def hasCiSigning =
         System.getenv("ANDROID_KEYSTORE_PASSWORD") != null &&
         System.getenv("ANDROID_KEY_ALIAS") != null &&
@@ -25,7 +24,7 @@ android {
     signingConfigs {
         release {
             if (hasCiSigning) {
-                storeFile file(ciKeystorePath)
+                storeFile file("release.keystore")
                 storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias System.getenv("ANDROID_KEY_ALIAS")
                 keyPassword System.getenv("ANDROID_KEY_PASSWORD")
