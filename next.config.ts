@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowSVG: true,
   },
+  serverExternalPackages: ["firebase-admin"],
 };
 
 export default nextConfig;

@@ -10,10 +10,15 @@ import * as pushDb from "@/lib/stores/push-db";
 import * as pushJson from "@/lib/stores/push-json";
 import { isTrackedJoinMeeting } from "@/lib/meeting-catalog";
 import { useDatabase } from "@/lib/use-database";
+import {
+  isNativePushConfigured,
+  sendNativePush,
+  shouldDropNativeToken,
+} from "@/lib/native-push-server";
 
 const store = () => (useDatabase() ? pushDb : pushJson);
 
-export type { StoredPushSubscription } from "@/lib/stores/push-json";
+export type { StoredNativePushToken, StoredPushSubscription } from "@/lib/stores/push-json";
 
 export const getPushSubscriptions = () => store().getPushSubscriptions();
 export const savePushSubscription = (
@@ -22,21 +27,33 @@ export const savePushSubscription = (
 ) => store().savePushSubscription(userId, subscription);
 export const removePushSubscription = (userId: string, endpoint?: string) =>
   store().removePushSubscription(userId, endpoint);
+export const getNativePushTokens = () => store().getNativePushTokens();
+export const saveNativePushToken = (
+  userId: string,
+  token: string,
+  platform: "ios" | "android",
+) => store().saveNativePushToken(userId, token, platform);
+export const removeNativePushToken = (userId: string, token?: string) =>
+  store().removeNativePushToken(userId, token);
 
 export function getVapidPublicKey() {
   return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 }
 
-export function isPushConfigured() {
+function isWebPushConfigured() {
   return Boolean(
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
-      process.env.VAPID_PRIVATE_KEY &&
-      process.env.VAPID_SUBJECT,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() &&
+      process.env.VAPID_PRIVATE_KEY?.trim() &&
+      process.env.VAPID_SUBJECT?.trim(),
   );
 }
 
+export function isPushConfigured() {
+  return isWebPushConfigured() || isNativePushConfigured();
+}
+
 function configureWebPush() {
-  if (!isPushConfigured()) return false;
+  if (!isWebPushConfigured()) return false;
   webpush.setVapidDetails(
     process.env.VAPID_SUBJECT!,
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
@@ -50,12 +67,15 @@ export async function sendPushToUsers(
   payload: { title: string; body: string; url: string },
   preferenceKey: NotificationTopic,
 ) {
-  if (!configureWebPush()) {
+  const webConfigured = configureWebPush();
+  const nativeConfigured = isNativePushConfigured();
+  if (!webConfigured && !nativeConfigured) {
     return { sent: 0, skipped: userIds.length, configured: false };
   }
 
   const users = await getUsers();
-  const subscriptions = await store().getPushSubscriptions();
+  const subscriptions = webConfigured ? await store().getPushSubscriptions() : [];
+  const nativeTokens = nativeConfigured ? await store().getNativePushTokens() : [];
   let sent = 0;
   let skipped = 0;
 
@@ -76,7 +96,8 @@ export async function sendPushToUsers(
     }
 
     const userSubs = subscriptions.filter((item) => item.userId === userId);
-    if (userSubs.length === 0) {
+    const userTokens = nativeTokens.filter((item) => item.userId === userId);
+    if (userSubs.length === 0 && userTokens.length === 0) {
       skipped += 1;
       continue;
     }
@@ -90,6 +111,18 @@ export async function sendPushToUsers(
         sent += 1;
       } catch {
         await store().removePushSubscription(userId, record.endpoint);
+        skipped += 1;
+      }
+    }
+
+    for (const record of userTokens) {
+      try {
+        await sendNativePush(record, payload);
+        sent += 1;
+      } catch (error) {
+        if (shouldDropNativeToken(error)) {
+          await store().removeNativePushToken(userId, record.token);
+        }
         skipped += 1;
       }
     }

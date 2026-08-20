@@ -8,19 +8,21 @@ export function NativeAppBoot() {
     if (!isNativeAppPlatform()) return;
 
     async function bootNativeShell() {
-      const [{ SplashScreen }, { StatusBar, Style }] = await Promise.all([
+      const [{ SplashScreen }, { StatusBar, Style }, nativePush] = await Promise.all([
         import("@capacitor/splash-screen"),
         import("@capacitor/status-bar"),
+        import("@/lib/native-push-client"),
       ]);
 
       document.body.dataset.native = "true";
 
-      if ("serviceWorker" in navigator) {
-        try {
-          await navigator.serviceWorker.register("/sw.js");
-        } catch {
-          // Push may still require browser/PWA support on some devices.
+      try {
+        await nativePush.startNativePushListeners();
+        if (!nativePush.isNativePushOptedOut()) {
+          await nativePush.registerNativePush();
         }
+      } catch {
+        // Native push needs Firebase (Android) and APNs (iOS) setup.
       }
 
       try {

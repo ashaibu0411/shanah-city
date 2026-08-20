@@ -240,6 +240,15 @@ model PushSubscription {
   updatedAt    DateTime
 }
 
+model NativePushToken {
+  id        String   @id
+  userId    String
+  token     String   @unique
+  platform  String
+  createdAt DateTime
+  updatedAt DateTime
+}
+
 model VolunteerCheckIn {
   id             String   @id
   name           String

@@ -7,10 +7,13 @@ import {
   updateNotificationPrefs,
 } from "@/lib/auth-server";
 import {
+  getNativePushTokens,
   getPushSubscriptions,
   getVapidPublicKey,
   isPushConfigured,
+  removeNativePushToken,
   removePushSubscription,
+  saveNativePushToken,
   savePushSubscription,
 } from "@/lib/push-server";
 
@@ -24,7 +27,10 @@ export async function GET() {
   }
 
   const subscriptions = await getPushSubscriptions();
-  const subscribed = subscriptions.some((item) => item.userId === user.id);
+  const nativeTokens = await getNativePushTokens();
+  const subscribed =
+    subscriptions.some((item) => item.userId === user.id) ||
+    nativeTokens.some((item) => item.userId === user.id);
 
   return NextResponse.json({
     configured: isPushConfigured(),
@@ -83,6 +89,21 @@ export async function POST(request: Request) {
     });
   }
 
+  if (body.action === "native-subscribe") {
+    const token = String(body.token ?? "").trim();
+    const platform = body.platform === "ios" ? "ios" : body.platform === "android" ? "android" : "";
+    if (!token || !platform) {
+      return NextResponse.json({ error: "Native push token is required." }, { status: 400 });
+    }
+
+    await saveNativePushToken(user.id, token, platform);
+    const updated = await updateNotificationPrefs(user.id, { pushEnabled: true });
+    return NextResponse.json({
+      ok: true,
+      user: updated ? toPublicMember(updated) : user,
+    });
+  }
+
   return NextResponse.json({ error: "Unknown action." }, { status: 400 });
 }
 
@@ -96,6 +117,7 @@ export async function DELETE() {
   }
 
   await removePushSubscription(user.id);
+  await removeNativePushToken(user.id);
   const updated = await updateNotificationPrefs(user.id, { pushEnabled: false });
 
   return NextResponse.json({

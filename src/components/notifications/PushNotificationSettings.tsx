@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
 import type { NotificationPrefs } from "@/lib/auth-types";
+import { isNativeAppPlatform } from "@/lib/native-app";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -70,8 +71,32 @@ export function PushNotificationSettings() {
     setStatus(null);
 
     if (!("Notification" in window) || !("serviceWorker" in navigator)) {
-      setStatus("Push notifications are not supported on this browser.");
-      setBusy(false);
+      if (!isNativeAppPlatform()) {
+        setStatus("Push notifications are not supported on this browser.");
+        setBusy(false);
+        return;
+      }
+    }
+
+    if (isNativeAppPlatform()) {
+      try {
+        const { registerNativePush } = await import("@/lib/native-push-client");
+        const result = await registerNativePush();
+        setBusy(false);
+        if (!result.ok) {
+          setStatus(
+            result.reason === "denied"
+              ? "Notification permission was denied."
+              : "Could not enable push notifications on this phone.",
+          );
+          return;
+        }
+        setEnabled(true);
+        setStatus("Push notifications enabled on this phone.");
+      } catch {
+        setBusy(false);
+        setStatus("Could not enable push notifications on this phone.");
+      }
       return;
     }
 
@@ -139,6 +164,13 @@ export function PushNotificationSettings() {
       // Continue removing server-side subscription.
     }
 
+    try {
+      const { unregisterNativePush } = await import("@/lib/native-push-client");
+      await unregisterNativePush();
+    } catch {
+      // Browser path has no native token to clear.
+    }
+
     const response = await fetch("/api/push", { method: "DELETE" });
     const data = await response.json();
     setBusy(false);
@@ -157,7 +189,7 @@ export function PushNotificationSettings() {
         Push notifications
       </h2>
       <p className="mt-2 text-sm text-night-600">
-        Get alerts for community posts, worship plans, devotions, kids ministry updates, and member messages.
+        Get alerts for community posts, worship plans, devotions, kids ministry updates, and member messages — including the Play Store and TestFlight apps.
       </p>
 
       <div className="mt-4 space-y-3">
@@ -232,8 +264,8 @@ export function PushNotificationSettings() {
 
       {!configured && (
         <p className="mt-3 text-xs text-night-500">
-          Server push keys are not set yet. Add VAPID keys to `.env.local` and restart the dev
-          server.
+          Server push is not configured yet. Add VAPID keys for the website, plus Firebase and
+          APNs keys for the phone apps.
         </p>
       )}
 

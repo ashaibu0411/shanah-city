@@ -68,6 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (loading || !user) return;
+    void import("@/lib/native-push-client").then(({ syncNativePushToken }) => {
+      void syncNativePushToken();
+    });
+  }, [loading, user]);
+
   const signOut = useCallback(async () => {
     await fetch("/api/auth", { method: "DELETE" });
     setUser(null);

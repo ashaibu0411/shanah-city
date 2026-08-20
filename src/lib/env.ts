@@ -27,11 +27,18 @@ export function validateProductionEnv() {
 export function getEnvStatus() {
   const databaseConfigured = Boolean(process.env.DATABASE_URL?.trim());
   const blobConfigured = isBlobConfigured();
-  const pushConfigured = Boolean(
+  const webPushConfigured = Boolean(
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() &&
       process.env.VAPID_PRIVATE_KEY?.trim() &&
       process.env.VAPID_SUBJECT?.trim(),
   );
+  const androidPushConfigured = Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim());
+  const iosPushConfigured = Boolean(
+    process.env.APNS_KEY_P8?.trim() &&
+      process.env.APNS_KEY_ID?.trim() &&
+      process.env.APNS_TEAM_ID?.trim(),
+  );
+  const pushConfigured = webPushConfigured || androidPushConfigured || iosPushConfigured;
   const cronConfigured = Boolean(process.env.CRON_SECRET?.trim());
   const adminBootstrapConfigured = Boolean(process.env.ADMIN_BOOTSTRAP_EMAIL?.trim());
   const passwordResetEmailConfigured = Boolean(
@@ -48,7 +55,12 @@ export function getEnvStatus() {
   return {
     database: { configured: databaseConfigured },
     blob: { configured: blobConfigured },
-    push: { configured: pushConfigured },
+    push: {
+      configured: pushConfigured,
+      web: webPushConfigured,
+      android: androidPushConfigured,
+      ios: iosPushConfigured,
+    },
     cron: { configured: cronConfigured },
     adminBootstrap: { configured: adminBootstrapConfigured },
     passwordResetEmail: { configured: passwordResetEmailConfigured },
