@@ -6,7 +6,9 @@ const TOKEN_KEY = "shanah-native-push-token";
 const PLATFORM_KEY = "shanah-native-push-platform";
 const OPT_OUT_KEY = "shanah-native-push-opt-out";
 
-function storeToken(token: string, platform: "ios" | "android") {
+type NativePushPlatform = "ios" | "android";
+
+function storeToken(token: string, platform: NativePushPlatform) {
   window.localStorage.setItem(TOKEN_KEY, token);
   window.localStorage.setItem(PLATFORM_KEY, platform);
 }
@@ -34,11 +36,18 @@ export async function unregisterNativePush() {
 }
 
 export async function syncNativePushToken() {
-  if (typeof window === "undefined" || !Capacitor.isNativePlatform()) return false;
-  if (isNativePushOptedOut()) return false;
+  if (typeof window === "undefined" || !Capacitor.isNativePlatform()) {
+    return { ok: false, reason: "not-native" as const };
+  }
+  if (isNativePushOptedOut()) {
+    return { ok: false, reason: "opted-out" as const };
+  }
+
   const token = window.localStorage.getItem(TOKEN_KEY);
   const platform = window.localStorage.getItem(PLATFORM_KEY);
-  if (!token || (platform !== "ios" && platform !== "android")) return false;
+  if (!token || (platform !== "ios" && platform !== "android")) {
+    return { ok: false, reason: "no-token" as const };
+  }
 
   const response = await fetch("/api/push", {
     method: "POST",
@@ -49,12 +58,68 @@ export async function syncNativePushToken() {
       platform,
     }),
   });
-  return response.ok;
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    return {
+      ok: false,
+      reason: "server" as const,
+      error: typeof data.error === "string" ? data.error : "Could not save push token.",
+    };
+  }
+
+  return { ok: true as const };
 }
 
 function openPushUrl(url: string | undefined) {
   if (!url) return;
   window.location.assign(url);
+}
+
+function showForegroundNotification(input: {
+  title?: string | null;
+  body?: string | null;
+  url?: string;
+}) {
+  if (typeof window === "undefined") return;
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+  const title = input.title?.trim() || "Shanah City";
+  const body = input.body?.trim() || "You have a new update.";
+  const url = input.url || "/";
+
+  try {
+    const notification = new Notification(title, {
+      body,
+      icon: "/shanah-city-logo.png",
+      badge: "/shanah-city-logo.png",
+      data: { url },
+    });
+    notification.onclick = () => {
+      notification.close();
+      openPushUrl(url);
+    };
+  } catch {
+    // Some WebViews block Notification even after permission is granted.
+  }
+}
+
+let listenersReady = false;
+let pendingRegistration:
+  | {
+      resolve: (value: { ok: true } | { ok: false; reason: string }) => void;
+      timeoutId: number;
+    }
+  | null = null;
+
+async function persistRegistration(token: string, platform: NativePushPlatform) {
+  if (isNativePushOptedOut()) return { ok: false as const, reason: "opted-out" };
+  storeToken(token, platform);
+  const sync = await syncNativePushToken();
+  if (!sync.ok) {
+    return { ok: false as const, reason: sync.reason ?? "server" };
+  }
+  return { ok: true as const };
 }
 
 export async function registerNativePush() {
@@ -63,19 +128,47 @@ export async function registerNativePush() {
   }
 
   window.localStorage.removeItem(OPT_OUT_KEY);
+  await startNativePushListeners();
+
   const { PushNotifications } = await import("@capacitor/push-notifications");
   const permission = await PushNotifications.requestPermissions();
   if (permission.receive !== "granted") {
     return { ok: false, reason: "denied" as const };
   }
 
-  await PushNotifications.register();
-  return { ok: true as const };
+  const existingToken = window.localStorage.getItem(TOKEN_KEY);
+  const existingPlatform = window.localStorage.getItem(PLATFORM_KEY);
+  if (
+    existingToken &&
+    (existingPlatform === "ios" || existingPlatform === "android")
+  ) {
+    const sync = await syncNativePushToken();
+    if (sync.ok) {
+      return { ok: true as const };
+    }
+  }
+
+  return new Promise<{ ok: true } | { ok: false; reason: string }>((resolve) => {
+    if (pendingRegistration) {
+      window.clearTimeout(pendingRegistration.timeoutId);
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      pendingRegistration = null;
+      resolve({ ok: false, reason: "timeout" });
+    }, 15000);
+
+    pendingRegistration = { resolve, timeoutId };
+    void PushNotifications.register();
+  });
 }
 
 export async function startNativePushListeners() {
-  if (typeof window === "undefined" || !Capacitor.isNativePlatform()) return;
+  if (typeof window === "undefined" || !Capacitor.isNativePlatform() || listenersReady) {
+    return;
+  }
 
+  listenersReady = true;
   const { PushNotifications } = await import("@capacitor/push-notifications");
   await PushNotifications.removeAllListeners();
 
@@ -96,17 +189,52 @@ export async function startNativePushListeners() {
 
   await PushNotifications.addListener("registration", async ({ value }) => {
     if (isNativePushOptedOut()) return;
-    const platform = Capacitor.getPlatform() === "ios" ? "ios" : "android";
-    storeToken(value, platform);
-    await syncNativePushToken();
+    const platform: NativePushPlatform =
+      Capacitor.getPlatform() === "ios" ? "ios" : "android";
+    const result = await persistRegistration(value, platform);
+
+    if (pendingRegistration) {
+      window.clearTimeout(pendingRegistration.timeoutId);
+      pendingRegistration.resolve(
+        result.ok ? { ok: true } : { ok: false, reason: result.reason },
+      );
+      pendingRegistration = null;
+    }
   });
 
   await PushNotifications.addListener("registrationError", () => {
-    // Permission or Firebase/APNs setup failed; web push may still work.
+    if (pendingRegistration) {
+      window.clearTimeout(pendingRegistration.timeoutId);
+      pendingRegistration.resolve({ ok: false, reason: "registration-error" });
+      pendingRegistration = null;
+    }
+  });
+
+  await PushNotifications.addListener("pushNotificationReceived", (notification) => {
+    const data = notification.data as { url?: string } | undefined;
+    showForegroundNotification({
+      title: notification.title,
+      body: notification.body,
+      url: data?.url,
+    });
   });
 
   await PushNotifications.addListener("pushNotificationActionPerformed", (event) => {
     const data = event.notification.data as { url?: string } | undefined;
     openPushUrl(data?.url);
   });
+}
+
+export async function ensureNativePushRegistered() {
+  if (typeof window === "undefined" || !Capacitor.isNativePlatform() || isNativePushOptedOut()) {
+    return { ok: false as const };
+  }
+
+  await startNativePushListeners();
+  const sync = await syncNativePushToken();
+  if (sync.ok) {
+    return { ok: true as const };
+  }
+
+  return registerNativePush();
 }

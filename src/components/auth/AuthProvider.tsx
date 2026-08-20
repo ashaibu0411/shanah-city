@@ -70,8 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading || !user) return;
-    void import("@/lib/native-push-client").then(({ syncNativePushToken }) => {
-      void syncNativePushToken();
+    void import("@/lib/native-push-client").then(async (nativePush) => {
+      if (!nativePush.isNativePushOptedOut()) {
+        await nativePush.ensureNativePushRegistered();
+      }
     });
   }, [loading, user]);
 

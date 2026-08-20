@@ -28,14 +28,18 @@ export async function GET() {
 
   const subscriptions = await getPushSubscriptions();
   const nativeTokens = await getNativePushTokens();
-  const subscribed =
-    subscriptions.some((item) => item.userId === user.id) ||
-    nativeTokens.some((item) => item.userId === user.id);
+  const userWebSubs = subscriptions.filter((item) => item.userId === user.id);
+  const userNativeTokens = nativeTokens.filter((item) => item.userId === user.id);
+  const subscribed = userWebSubs.length > 0 || userNativeTokens.length > 0;
 
   return NextResponse.json({
     configured: isPushConfigured(),
     publicKey: getVapidPublicKey(),
     subscribed,
+    devices: {
+      web: userWebSubs.length,
+      native: userNativeTokens.length,
+    },
     preferences: user.notificationPrefs ?? {
       pushEnabled: true,
       devotions: true,

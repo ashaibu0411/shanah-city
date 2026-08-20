@@ -25,6 +25,7 @@ type ChatMessageBubbleProps = {
   canReport?: boolean;
   canBlock?: boolean;
   isBlocked?: boolean;
+  density?: "default" | "compact";
   onEdit?: (content: string) => Promise<void> | void;
   onDelete?: () => Promise<void> | void;
   onReport?: () => void;
@@ -51,6 +52,7 @@ export function ChatMessageBubble({
   canReport = false,
   canBlock = false,
   isBlocked = false,
+  density = "default",
   onEdit,
   onDelete,
   onReport,
@@ -78,15 +80,25 @@ export function ChatMessageBubble({
     setEditing(false);
   }
 
+  const compact = density === "compact";
+
   return (
-    <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[85%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
+    <div className={`flex ${mine ? "justify-end" : "justify-start"} ${compact ? "px-3" : ""}`}>
+      <div
+        className={`${compact ? "max-w-[78%]" : "max-w-[85%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}
+      >
         <div
-          className={`rounded-2xl px-4 py-3 text-sm ${
-            mine ? "bg-night-900 text-sand-50" : "bg-sand-100 text-night-800"
+          className={`text-sm ${
+            compact
+              ? mine
+                ? "rounded-[22px] rounded-br-md bg-gradient-to-br from-[#7c3aed] via-[#a855f7] to-[#ec4899] px-3.5 py-2 text-white shadow-sm"
+                : "rounded-[22px] rounded-bl-md bg-[#efefef] px-3.5 py-2 text-[#262626]"
+              : mine
+                ? "rounded-2xl bg-night-900 px-4 py-3 text-sand-50"
+                : "rounded-2xl bg-sand-100 px-4 py-3 text-night-800"
           } ${deletedAt ? "italic opacity-70" : ""}`}
         >
-          {!mine && senderName && (
+          {!mine && senderName && !compact && (
             <p className="mb-1 text-xs font-semibold opacity-70">{senderName}</p>
           )}
 
@@ -135,11 +147,15 @@ export function ChatMessageBubble({
             </>
           )}
 
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] opacity-60">
+          <div
+            className={`mt-1 flex flex-wrap items-center gap-1.5 ${
+              compact ? "text-[10px] text-night-500" : "text-[10px] opacity-60"
+            } ${mine && compact ? "justify-end text-white/75" : ""}`}
+          >
             <span>{createdAtLabel}</span>
             {editedAt && !deletedAt && <span>· edited</span>}
             {showReadReceipt && mine && !deletedAt && (
-              <span>{readAt ? "· Read" : "· Delivered"}</span>
+              <span>{readAt ? "· Seen" : "· Delivered"}</span>
             )}
             {showSeenCount && mine && !deletedAt && typeof seenCount === "number" && seenCount > 0 && (
               <span>· Seen by {seenCount}</span>
@@ -148,11 +164,13 @@ export function ChatMessageBubble({
         </div>
 
         {hasActions && (
-          <div className="relative mt-1">
+          <div className={`relative ${compact ? "mt-0.5" : "mt-1"}`}>
             <button
               type="button"
               onClick={() => setShowActions((current) => !current)}
-              className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-night-500 hover:bg-sand-50"
+              className={`rounded-full font-semibold text-night-500 hover:bg-sand-50 ${
+                compact ? "px-1.5 py-0 text-[9px]" : "px-2 py-0.5 text-[10px]"
+              }`}
             >
               •••
             </button>

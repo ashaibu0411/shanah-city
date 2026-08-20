@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getCampus } from "@/lib/site";
 import type { UserBlock, MessageReport } from "@/lib/block-types";
 import type { DirectMessage, MemberDirectoryEntry } from "@/lib/member-types";
-import { Button, Card } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComposer";
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
 import type { ChatTypingUser } from "@/lib/chat-utils";
@@ -18,6 +18,57 @@ type ThreadSummary = {
   lastMessage: string;
   lastMessageAt: string;
 };
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
+function formatInboxTime(iso: string) {
+  const date = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  if (diffMs < 86_400_000) {
+    return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+  if (diffMs < 604_800_000) {
+    return date.toLocaleDateString(undefined, { weekday: "short" });
+  }
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function formatBubbleTime(iso: string) {
+  return new Date(iso).toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function formatDetailTime(iso: string) {
+  return new Date(iso).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function MemberAvatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
+  const sizeClass = size === "sm" ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm";
+  return (
+    <div
+      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 font-semibold text-white shadow-sm`}
+      aria-hidden
+    >
+      {initials(name)}
+    </div>
+  );
+}
 
 export function MessagesHub() {
   const { user, loading, permissions } = useAuth();
@@ -42,6 +93,8 @@ export function MessagesHub() {
   const [attachmentBusy, setAttachmentBusy] = useState(false);
   const [typingUsers, setTypingUsers] = useState<ChatTypingUser[]>([]);
   const [status, setStatus] = useState("");
+  const [showChatMenu, setShowChatMenu] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const isStaff = permissions.canManageAdmin;
 
@@ -153,6 +206,10 @@ export function MessagesHub() {
     }, 5000);
     return () => window.clearInterval(timer);
   }, [activeThreadId, showNew]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, typingUsers]);
 
   async function uploadAttachment(
     file: File,
@@ -398,412 +455,502 @@ export function MessagesHub() {
     return `${users[0].userName} is typing…`;
   }
 
-  function formatTime(iso: string) {
-    return new Date(iso).toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
+  function closeChatView() {
+    setActiveThreadId(null);
+    setShowNew(false);
+    setShowReport(false);
+    setShowChatMenu(false);
+    setMessages([]);
+    setNewRecipientId("");
+    setMemberSearch("");
   }
 
+  function openNewMessage() {
+    setShowNew(true);
+    setActiveThreadId(null);
+    setShowChatMenu(false);
+    setMessages([]);
+    setNewRecipientId("");
+    setMemberSearch("");
+  }
+
+  const statusTone =
+    status.includes("blocked") ||
+    status.includes("Report") ||
+    status.includes("unblocked")
+      ? "success"
+      : status
+        ? "error"
+        : null;
+
   if (loading) {
-    return <Card>Loading account...</Card>;
+    return (
+      <div className="flex h-[calc(100dvh-5rem)] items-center justify-center rounded-2xl border border-night-900/8 bg-white">
+        <p className="text-sm text-night-500">Loading messages…</p>
+      </div>
+    );
   }
 
   if (!user) {
     return (
-      <Card>
+      <div className="rounded-2xl border border-night-900/8 bg-white px-6 py-10 text-center">
         <h2 className="font-display text-xl font-semibold text-night-900">
           Sign in to message members
         </h2>
         <p className="mt-2 text-sm text-night-600">
           Connect privately with other Shanah City members after you create an account.
         </p>
-        <div className="mt-4 flex gap-3">
+        <div className="mt-5 flex justify-center gap-3">
           <Button href="/sign-in">Sign in</Button>
           <Button href="/sign-up" variant="secondary">
             Create account
           </Button>
         </div>
-      </Card>
+      </div>
     );
   }
 
+  const showInbox = !activeThreadId && !showNew;
+  const showChatPane = Boolean(activeThread || showNew);
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-      <Card className={`${activeThreadId || showNew ? "hidden lg:block" : ""}`}>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-night-900">Inbox</h2>
-          <button
-            type="button"
-            onClick={() => {
-              setShowNew(true);
-              setActiveThreadId(null);
-              setMessages([]);
-              setNewRecipientId("");
-              setMemberSearch("");
-            }}
-            className="rounded-full bg-night-900 px-3 py-1.5 text-xs font-semibold text-sand-50"
-          >
-            New
-          </button>
-        </div>
-
-        <div className="space-y-2">
-          {threads.map((thread) => (
+    <div className="flex h-[calc(100dvh-5rem)] overflow-hidden rounded-2xl border border-night-900/8 bg-white shadow-sm md:h-[calc(100dvh-11rem)]">
+      <aside
+        className={`flex w-full shrink-0 flex-col border-night-900/8 lg:w-[min(100%,360px)] lg:border-r ${
+          showInbox ? "flex" : "hidden lg:flex"
+        }`}
+      >
+        <div className="flex items-center justify-between border-b border-night-900/8 px-4 py-3">
+          <h2 className="font-display text-base font-semibold tracking-tight text-night-900">
+            {user.name?.split(" ")[0] ?? "Messages"}
+          </h2>
+          <div className="flex items-center gap-1">
             <button
-              key={thread.id}
               type="button"
-              onClick={() => loadThread(thread.id)}
-              className={`w-full rounded-2xl px-3 py-3 text-left transition ${
-                activeThreadId === thread.id
-                  ? "bg-night-900 text-sand-50"
-                  : "bg-sand-50 hover:bg-sand-100"
-              }`}
+              onClick={() => setShowSafety((value) => !value)}
+              className="rounded-full px-2 py-1.5 text-xs font-semibold text-night-600 hover:bg-sand-50"
             >
-              <p className="font-semibold">{thread.otherName}</p>
-              <p className="mt-1 line-clamp-1 text-sm opacity-80">{thread.lastMessage}</p>
-              <p className="mt-1 text-[11px] opacity-60">{formatTime(thread.lastMessageAt)}</p>
+              Safety
             </button>
-          ))}
-          {threads.length === 0 && (
-            <p className="rounded-2xl bg-sand-50 px-3 py-4 text-sm text-night-600">
-              No conversations yet. Tap <strong>New</strong> to message a member.
-            </p>
-          )}
+            <button
+              type="button"
+              onClick={openNewMessage}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-lg text-night-900 hover:bg-sand-50"
+              aria-label="New message"
+            >
+              ✎
+            </button>
+          </div>
         </div>
 
-        <div className="mt-6 border-t border-night-900/5 pt-4">
-          <button
-            type="button"
-            onClick={() => setShowSafety((value) => !value)}
-            className="flex w-full items-center justify-between text-left text-sm font-semibold text-night-700"
-          >
-            Safety & blocked members
-            <span className="text-xs text-night-400">{showSafety ? "Hide" : "Show"}</span>
-          </button>
-
-          {showSafety && (
-            <div className="mt-3 space-y-3">
-              <p className="text-xs text-night-500">
-                Block someone to stop them from messaging you. Report harassment so church
-                leaders can follow up.
-              </p>
-              {blocks.length === 0 ? (
-                <p className="rounded-xl bg-sand-50 px-3 py-2 text-xs text-night-600">
-                  No blocked members.
-                </p>
-              ) : (
-                blocks.map((block) => (
+        {showSafety && (
+          <div className="border-b border-night-900/8 bg-sand-50/80 px-4 py-3">
+            <p className="text-[11px] text-night-500">
+              Block someone to stop messages. Report harassment for church leaders to review.
+            </p>
+            {blocks.length === 0 ? (
+              <p className="mt-2 text-xs text-night-600">No blocked members.</p>
+            ) : (
+              <div className="mt-2 space-y-1.5">
+                {blocks.map((block) => (
                   <div
                     key={block.id}
-                    className="flex items-center justify-between rounded-xl bg-sand-50 px-3 py-2"
+                    className="flex items-center justify-between rounded-xl bg-white px-3 py-2"
                   >
-                    <div>
-                      <p className="text-sm font-medium text-night-900">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-night-900">
                         {block.blockedUserName}
                       </p>
-                      <p className="text-[11px] text-night-500">
-                        Blocked {formatTime(block.createdAt)}
+                      <p className="text-[10px] text-night-500">
+                        Blocked {formatDetailTime(block.createdAt)}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => unblockMember(block.blockedUserId, block.blockedUserName)}
                       disabled={busy}
-                      className="text-xs font-semibold text-night-700 underline"
+                      className="shrink-0 text-xs font-semibold text-[#0095f6]"
                     >
                       Unblock
                     </button>
                   </div>
-                ))
-              )}
-
-              {isStaff && reports.length > 0 && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">
-                    Open reports ({reports.length})
-                  </p>
-                  <div className="mt-2 space-y-2">
-                    {reports.slice(0, 5).map((report) => (
-                      <div key={report.id} className="text-xs text-amber-950">
-                        <p className="font-semibold">
-                          {report.reportedUserName} · reported by {report.reporterName}
-                        </p>
-                        <p className="mt-0.5 opacity-80">{report.reason}</p>
-                        <p className="mt-0.5 opacity-60">{formatTime(report.createdAt)}</p>
-                      </div>
-                    ))}
-                  </div>
+                ))}
+              </div>
+            )}
+            {isStaff && reports.length > 0 && (
+              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                  Open reports ({reports.length})
+                </p>
+                <div className="mt-1.5 space-y-1.5">
+                  {reports.slice(0, 5).map((report) => (
+                    <div key={report.id} className="text-[11px] text-amber-950">
+                      <p className="font-semibold">
+                        {report.reportedUserName} · {report.reporterName}
+                      </p>
+                      <p className="opacity-80">{report.reason}</p>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-      </Card>
-
-      <Card className={`${!activeThreadId && !showNew ? "hidden lg:block" : ""}`}>
-        {(activeThread || showNew) && (
-          <button
-            type="button"
-            onClick={() => {
-              setActiveThreadId(null);
-              setShowNew(false);
-              setShowReport(false);
-              setMessages([]);
-              setNewRecipientId("");
-              setMemberSearch("");
-            }}
-            className="mb-4 text-sm font-semibold text-night-600 lg:hidden"
-          >
-            ← Back to inbox
-          </button>
+              </div>
+            )}
+          </div>
         )}
 
-        {showNew ? (
-          <div>
-            <h2 className="font-display text-lg font-semibold text-night-900">New message</h2>
-            <p className="mt-1 text-sm text-night-600">
-              Search for a member by name to start a private conversation.
-            </p>
-            <div className="relative mt-4">
-              <input
-                type="search"
-                value={memberSearch}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setMemberSearch(value);
-                  if (
-                    selectedRecipient &&
-                    value.trim().toLowerCase() !== selectedRecipient.name.toLowerCase()
-                  ) {
-                    setNewRecipientId("");
-                  }
-                }}
-                placeholder="Search by name..."
-                className="w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-              />
-
-              {selectedRecipient && (
-                <div className="mt-3 flex items-center justify-between rounded-xl bg-sand-50 px-3 py-2.5 text-sm">
-                  <div>
-                    <p className="font-semibold text-night-900">{selectedRecipient.name}</p>
-                    <p className="text-night-500">{getCampus(selectedRecipient.campusId).city}</p>
+        <div className="flex-1 overflow-y-auto">
+          {threads.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+              <p className="text-sm font-medium text-night-900">No messages yet</p>
+              <p className="mt-1 text-xs text-night-500">
+                Tap the pencil to start a conversation.
+              </p>
+              <button
+                type="button"
+                onClick={openNewMessage}
+                className="mt-4 rounded-full bg-[#0095f6] px-4 py-2 text-xs font-semibold text-white"
+              >
+                New message
+              </button>
+            </div>
+          ) : (
+            threads.map((thread) => {
+              const active = activeThreadId === thread.id;
+              return (
+                <button
+                  key={thread.id}
+                  type="button"
+                  onClick={() => loadThread(thread.id)}
+                  className={`flex w-full items-center gap-3 border-b border-night-900/5 px-4 py-2.5 text-left transition hover:bg-sand-50/80 ${
+                    active ? "bg-sand-50" : ""
+                  }`}
+                >
+                  <MemberAvatar name={thread.otherName} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="truncate text-sm font-semibold text-night-900">
+                        {thread.otherName}
+                      </p>
+                      <span className="shrink-0 text-[11px] text-night-400">
+                        {formatInboxTime(thread.lastMessageAt)}
+                      </span>
+                    </div>
+                    <p className="truncate text-[13px] text-night-500">{thread.lastMessage}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={clearRecipient}
-                    className="text-xs font-semibold text-night-600 underline"
-                  >
-                    Change
-                  </button>
-                </div>
-              )}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </aside>
 
-              {memberSearch.trim() && !selectedRecipient && matchingMembers.length > 0 && (
-                <ul className="absolute z-10 mt-2 max-h-56 w-full overflow-y-auto rounded-xl border border-night-900/10 bg-white py-1 shadow-lg">
-                  {matchingMembers.map((member) => (
-                    <li key={member.id}>
-                      <button
-                        type="button"
-                        onClick={() => selectRecipient(member)}
-                        className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:bg-sand-50"
-                      >
-                        <span className="font-medium text-night-900">{member.name}</span>
-                        <span className="text-night-500">{getCampus(member.campusId).city}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+      <section
+        className={`min-w-0 flex-1 flex-col bg-white ${
+          showChatPane ? "flex" : "hidden lg:flex"
+        }`}
+      >
+        {showNew ? (
+          <>
+            <header className="flex items-center gap-3 border-b border-night-900/8 px-3 py-2.5">
+              <button
+                type="button"
+                onClick={closeChatView}
+                className="rounded-full p-1.5 text-lg text-night-800 hover:bg-sand-50 lg:hidden"
+                aria-label="Back to inbox"
+              >
+                ←
+              </button>
+              <h2 className="flex-1 text-sm font-semibold text-night-900">New message</h2>
+            </header>
 
-              {memberSearch.trim() && !selectedRecipient && matchingMembers.length === 0 && (
-                <p className="mt-2 text-sm text-night-500">No members match that name.</p>
-              )}
-            </div>
-            <div className="mt-4">
-              <ChatComposer
-                value={draft}
-                onChange={setDraft}
-                onSend={(attachment) => sendMessage(undefined, attachment)}
-                busy={busy}
-                disabled={!newRecipientId}
-                placeholder="Write your message..."
-                sendLabel="Send message"
-                allowAttachment={false}
-              />
-            </div>
-          </div>
-        ) : activeThread ? (
-          <div className="flex h-full min-h-[420px] flex-col">
-            <div className="border-b border-night-900/5 pb-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-display text-lg font-semibold text-night-900">
-                    {activeThread.otherName}
-                  </h2>
-                  <p className="text-sm text-night-500">Private member conversation</p>
-                  {typingLabel(typingUsers) && (
-                    <p className="mt-1 text-xs font-medium text-violet-700">
-                      {typingLabel(typingUsers)}
-                    </p>
-                  )}
-                  {isActiveBlocked && (
-                    <p className="mt-1 text-xs font-medium text-red-700">
-                      You blocked this member. Unblock them to send messages again.
-                    </p>
-                  )}
-                </div>
-                {activeOtherUserId && (
-                  <div className="flex flex-wrap gap-2">
-                    {!isActiveBlocked ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          blockMember(activeOtherUserId, activeThread.otherName)
-                        }
-                        disabled={busy}
-                        className="rounded-full border border-night-900/10 px-3 py-1.5 text-xs font-semibold text-night-700"
-                      >
-                        Block
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          unblockMember(activeOtherUserId, activeThread.otherName)
-                        }
-                        disabled={busy}
-                        className="rounded-full border border-night-900/10 px-3 py-1.5 text-xs font-semibold text-night-700"
-                      >
-                        Unblock
-                      </button>
-                    )}
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              <div className="relative">
+                <label className="text-xs font-semibold uppercase tracking-wide text-night-500">
+                  To:
+                </label>
+                <input
+                  type="search"
+                  value={memberSearch}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setMemberSearch(value);
+                    if (
+                      selectedRecipient &&
+                      value.trim().toLowerCase() !== selectedRecipient.name.toLowerCase()
+                    ) {
+                      setNewRecipientId("");
+                    }
+                  }}
+                  placeholder="Search members…"
+                  className="mt-1 w-full border-b border-night-900/10 bg-transparent py-2 text-sm outline-none placeholder:text-night-400 focus:border-night-900/30"
+                />
+
+                {selectedRecipient && (
+                  <div className="mt-3 flex items-center gap-3 rounded-2xl bg-sand-50 px-3 py-2">
+                    <MemberAvatar name={selectedRecipient.name} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-night-900">
+                        {selectedRecipient.name}
+                      </p>
+                      <p className="text-xs text-night-500">
+                        {getCampus(selectedRecipient.campusId).city}
+                      </p>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => setShowReport((value) => !value)}
-                      disabled={busy}
-                      className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-800"
+                      onClick={clearRecipient}
+                      className="text-xs font-semibold text-[#0095f6]"
                     >
-                      Report
+                      Change
                     </button>
                   </div>
                 )}
-              </div>
 
-              {showReport && (
-                <div className="mt-4 rounded-2xl border border-red-100 bg-red-50/60 p-4">
-                  <p className="text-sm font-semibold text-red-900">Report harassment</p>
-                  <p className="mt-1 text-xs text-red-800/80">
-                    Leaders will review this report. The member will also be blocked from
-                    messaging you.
-                  </p>
-                  <textarea
-                    value={reportReason}
-                    onChange={(event) => setReportReason(event.target.value)}
-                    rows={3}
-                    placeholder="Describe what happened (required)..."
-                    className="mt-3 w-full rounded-xl border border-red-200 bg-white px-3 py-2.5 text-sm outline-none"
-                  />
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      onClick={submitReport}
-                      disabled={busy || reportReason.trim().length < 8}
-                    >
-                      {busy ? "Sending..." : "Send report & block"}
-                    </Button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowReport(false);
-                        setReportReason("");
-                      }}
-                      className="text-sm font-semibold text-night-600"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                {memberSearch.trim() && !selectedRecipient && matchingMembers.length > 0 && (
+                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border border-night-900/10 bg-white py-1 shadow-xl">
+                    {matchingMembers.map((member) => (
+                      <li key={member.id}>
+                        <button
+                          type="button"
+                          onClick={() => selectRecipient(member)}
+                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-sand-50"
+                        >
+                          <MemberAvatar name={member.name} size="sm" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-night-900">
+                              {member.name}
+                            </p>
+                            <p className="text-xs text-night-500">
+                              {getCampus(member.campusId).city}
+                            </p>
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {memberSearch.trim() && !selectedRecipient && matchingMembers.length === 0 && (
+                  <p className="mt-2 text-xs text-night-500">No members match that name.</p>
+                )}
+              </div>
+            </div>
+
+            <ChatComposer
+              value={draft}
+              onChange={setDraft}
+              onSend={(attachment) => sendMessage(undefined, attachment)}
+              busy={busy}
+              disabled={!newRecipientId}
+              placeholder="Message…"
+              sendLabel="Send"
+              allowAttachment={false}
+              density="compact"
+            />
+          </>
+        ) : activeThread ? (
+          <>
+            <header className="relative flex items-center gap-2 border-b border-night-900/8 px-2 py-2">
+              <button
+                type="button"
+                onClick={closeChatView}
+                className="rounded-full p-2 text-lg text-night-800 hover:bg-sand-50 lg:hidden"
+                aria-label="Back to inbox"
+              >
+                ←
+              </button>
+              <MemberAvatar name={activeThread.otherName} size="sm" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-night-900">
+                  {activeThread.otherName}
+                </p>
+                <p className="truncate text-[11px] text-night-500">
+                  {typingLabel(typingUsers) ||
+                    (isActiveBlocked ? "Blocked" : "Active now")}
+                </p>
+              </div>
+              {activeOtherUserId && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowChatMenu((value) => !value)}
+                    className="rounded-full px-2 py-1 text-lg text-night-800 hover:bg-sand-50"
+                    aria-label="Conversation options"
+                  >
+                    ⋯
+                  </button>
+                  {showChatMenu && (
+                    <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] overflow-hidden rounded-xl border border-night-900/10 bg-white py-1 shadow-xl">
+                      {!isActiveBlocked ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowChatMenu(false);
+                            blockMember(activeOtherUserId, activeThread.otherName);
+                          }}
+                          disabled={busy}
+                          className="block w-full px-4 py-2 text-left text-sm text-night-800 hover:bg-sand-50"
+                        >
+                          Block
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowChatMenu(false);
+                            unblockMember(activeOtherUserId, activeThread.otherName);
+                          }}
+                          disabled={busy}
+                          className="block w-full px-4 py-2 text-left text-sm text-night-800 hover:bg-sand-50"
+                        >
+                          Unblock
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowChatMenu(false);
+                          setShowReport(true);
+                        }}
+                        disabled={busy}
+                        className="block w-full px-4 py-2 text-left text-sm text-red-700 hover:bg-red-50"
+                      >
+                        Report
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </header>
 
-            <div className="flex-1 space-y-3 overflow-y-auto py-4">
-              {messages.map((message) => (
-                <ChatMessageBubble
-                  key={message.id}
-                  mine={message.senderId === user.id}
-                  senderName={message.senderName}
-                  content={message.content}
-                  createdAtLabel={formatTime(message.createdAt)}
-                  reactions={message.reactions}
-                  currentUserId={user.id}
-                  onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
-                  attachmentUrl={message.attachmentUrl}
-                  editedAt={message.editedAt}
-                  deletedAt={message.deletedAt}
-                  readAt={message.readAt}
-                  showReadReceipt
-                  canEdit={message.senderId === user.id}
-                  canDelete={message.senderId === user.id}
-                  onEdit={(content) => editMessage(message.id, content)}
-                  onDelete={() => deleteMessage(message.id)}
+            {showReport && (
+              <div className="border-b border-red-100 bg-red-50/70 px-4 py-3">
+                <p className="text-sm font-semibold text-red-900">Report harassment</p>
+                <p className="mt-0.5 text-[11px] text-red-800/80">
+                  Leaders will review this. The member will also be blocked.
+                </p>
+                <textarea
+                  value={reportReason}
+                  onChange={(event) => setReportReason(event.target.value)}
+                  rows={2}
+                  placeholder="What happened?"
+                  className="mt-2 w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-sm outline-none"
                 />
-              ))}
-              {messages.length === 0 && (
-                <p className="text-sm text-night-500">Start the conversation below.</p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={submitReport}
+                    disabled={busy || reportReason.trim().length < 8}
+                    className="rounded-full bg-red-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    {busy ? "Sending…" : "Send report"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowReport(false);
+                      setReportReason("");
+                    }}
+                    className="text-xs font-semibold text-night-600"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {isActiveBlocked && (
+              <div className="border-b border-red-100 bg-red-50 px-4 py-2 text-center text-xs text-red-800">
+                You blocked this member. Unblock them to send messages again.
+              </div>
+            )}
+
+            <div className="flex-1 space-y-1 overflow-y-auto bg-white py-2">
+              {messages.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+                  <MemberAvatar name={activeThread.otherName} />
+                  <p className="mt-3 text-sm font-semibold text-night-900">
+                    {activeThread.otherName}
+                  </p>
+                  <p className="mt-1 text-xs text-night-500">
+                    Say hi — this is the start of your conversation.
+                  </p>
+                </div>
+              ) : (
+                messages.map((message) => (
+                  <ChatMessageBubble
+                    key={message.id}
+                    mine={message.senderId === user.id}
+                    content={message.content}
+                    createdAtLabel={formatBubbleTime(message.createdAt)}
+                    reactions={message.reactions}
+                    currentUserId={user.id}
+                    onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                    attachmentUrl={message.attachmentUrl}
+                    editedAt={message.editedAt}
+                    deletedAt={message.deletedAt}
+                    readAt={message.readAt}
+                    showReadReceipt
+                    density="compact"
+                    canEdit={message.senderId === user.id}
+                    canDelete={message.senderId === user.id}
+                    onEdit={(content) => editMessage(message.id, content)}
+                    onDelete={() => deleteMessage(message.id)}
+                  />
+                ))
               )}
+              <div ref={messagesEndRef} />
             </div>
 
-            <div className="border-t border-night-900/5 pt-4">
-              <ChatComposer
-                value={draft}
-                onChange={setDraft}
-                onSend={(attachment) =>
-                  sendMessage(
-                    {
-                      recipientName: activeThread.otherName,
-                    },
-                    attachment,
-                  )
-                }
-                busy={busy}
-                disabled={isActiveBlocked}
-                placeholder={
-                  isActiveBlocked ? "Unblock to send messages..." : "Type a message..."
-                }
-                onTyping={sendTyping}
-                onPickAttachment={(file) =>
-                  uploadAttachment(file, { threadId: activeThreadId ?? undefined })
-                }
-                attachmentBusy={attachmentBusy}
-              />
-            </div>
-          </div>
+            <ChatComposer
+              value={draft}
+              onChange={setDraft}
+              onSend={(attachment) =>
+                sendMessage({ recipientName: activeThread.otherName }, attachment)
+              }
+              busy={busy}
+              disabled={isActiveBlocked}
+              placeholder={isActiveBlocked ? "Unblock to message…" : "Message…"}
+              onTyping={sendTyping}
+              onPickAttachment={(file) =>
+                uploadAttachment(file, { threadId: activeThreadId ?? undefined })
+              }
+              attachmentBusy={attachmentBusy}
+              density="compact"
+            />
+          </>
         ) : (
-          <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
-            <p className="font-display text-xl font-semibold text-night-900">
-              Member messaging
+          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-night-900/10 text-2xl">
+              ✉
+            </div>
+            <p className="mt-4 font-display text-lg font-semibold text-night-900">
+              Your messages
             </p>
-            <p className="mt-2 max-w-sm text-sm text-night-600">
-              Select a conversation or start a new message to connect with other Shanah City
-              members. You can block or report anyone who harasses you.
+            <p className="mt-1 max-w-xs text-sm text-night-500">
+              Send private photos and messages to other Shanah City members.
             </p>
+            <button
+              type="button"
+              onClick={openNewMessage}
+              className="mt-5 rounded-full bg-[#0095f6] px-5 py-2 text-sm font-semibold text-white"
+            >
+              Send message
+            </button>
           </div>
         )}
 
-        {status && (
-          <p
-            className={`mt-4 rounded-xl px-3 py-2 text-sm ${
-              status.includes("blocked") || status.includes("Report")
+        {status && statusTone && (
+          <div
+            className={`border-t px-4 py-2 text-center text-xs ${
+              statusTone === "success"
                 ? "bg-emerald-50 text-emerald-800"
                 : "bg-red-50 text-red-700"
             }`}
           >
             {status}
-          </p>
+          </div>
         )}
-      </Card>
+      </section>
     </div>
   );
 }

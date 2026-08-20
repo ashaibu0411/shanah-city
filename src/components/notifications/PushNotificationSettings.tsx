@@ -22,6 +22,7 @@ export function PushNotificationSettings() {
   const [configured, setConfigured] = useState(false);
   const [publicKey, setPublicKey] = useState("");
   const [enabled, setEnabled] = useState(false);
+  const [deviceCounts, setDeviceCounts] = useState({ web: 0, native: 0 });
   const [prefs, setPrefs] = useState<NotificationPrefs>({
     pushEnabled: true,
     devotions: true,
@@ -52,6 +53,7 @@ export function PushNotificationSettings() {
         setConfigured(Boolean(data.configured));
         setPublicKey(data.publicKey ?? "");
         setEnabled(Boolean(data.subscribed));
+        setDeviceCounts(data.devices ?? { web: 0, native: 0 });
       })
       .catch(() => undefined);
   }, [user]);
@@ -92,6 +94,10 @@ export function PushNotificationSettings() {
           return;
         }
         setEnabled(true);
+        setDeviceCounts((current) => ({
+          ...current,
+          native: Math.max(current.native, 1),
+        }));
         setStatus("Push notifications enabled on this phone.");
       } catch {
         setBusy(false);
@@ -142,6 +148,10 @@ export function PushNotificationSettings() {
       }
 
       setEnabled(true);
+      setDeviceCounts((current) => ({
+        ...current,
+        web: Math.max(current.web, 1),
+      }));
       if (data.user) setUser(data.user);
       setStatus("Push notifications enabled on this device.");
     } catch {
@@ -261,6 +271,24 @@ export function PushNotificationSettings() {
           </Button>
         )}
       </div>
+
+      {enabled && (
+        <p className="mt-3 text-xs text-night-500">
+          Registered devices: {deviceCounts.native > 0 ? "phone app" : ""}
+          {deviceCounts.native > 0 && deviceCounts.web > 0 ? " · " : ""}
+          {deviceCounts.web > 0 ? "browser" : ""}
+          {deviceCounts.native === 0 && deviceCounts.web === 0
+            ? "waiting for device registration..."
+            : ""}
+        </p>
+      )}
+
+      {!enabled && (
+        <p className="mt-3 text-xs text-night-500">
+          Each phone must enable push on its own account under Profile. Only the message
+          recipient gets an alert, not the sender.
+        </p>
+      )}
 
       {!configured && (
         <p className="mt-3 text-xs text-night-500">

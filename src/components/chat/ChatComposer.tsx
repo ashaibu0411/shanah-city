@@ -20,6 +20,7 @@ type ChatComposerProps = {
   placeholder?: string;
   sendLabel?: string;
   allowAttachment?: boolean;
+  density?: "default" | "compact";
   onTyping?: (isTyping: boolean) => void;
   onPickAttachment?: (file: File) => Promise<PendingAttachment | null>;
   attachmentBusy?: boolean;
@@ -34,6 +35,7 @@ export function ChatComposer({
   placeholder = "Type a message…",
   sendLabel = "Send",
   allowAttachment = true,
+  density = "default",
   onTyping,
   onPickAttachment,
   attachmentBusy = false,
@@ -92,6 +94,118 @@ export function ChatComposer({
   }
 
   const canSend = Boolean(value.trim() || pendingAttachment);
+  const compact = density === "compact";
+
+  function handleSend() {
+    onSend(pendingAttachment ?? undefined);
+    setPendingAttachment(null);
+    onTyping?.(false);
+  }
+
+  if (compact) {
+    return (
+      <div className="border-t border-night-900/8 bg-white px-3 py-2">
+        {pendingAttachment && (
+          <div className="mb-2 flex items-center gap-2 rounded-2xl bg-sand-50 p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={pendingAttachment.previewUrl}
+              alt={pendingAttachment.attachmentName}
+              className="h-12 w-12 rounded-xl object-cover"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium text-night-900">
+                {pendingAttachment.attachmentName}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPendingAttachment(null)}
+              className="text-xs font-semibold text-night-600"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {showEmojiPicker && (
+          <div className="mb-2 flex flex-wrap gap-1 rounded-2xl bg-sand-50 p-2">
+            {QUICK_CHAT_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => appendEmoji(emoji)}
+                className="rounded-lg px-1.5 py-0.5 text-lg hover:bg-white"
+                aria-label={`Insert ${emoji}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-end gap-2">
+          {allowAttachment && onPickAttachment && (
+            <>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={(event) => handleAttachmentPick(event.target.files?.[0] ?? null)}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={disabled || attachmentBusy}
+                className="flex h-9 w-9 shrink-0 items-center justify-center text-lg text-night-700 disabled:opacity-40"
+                aria-label="Add photo"
+              >
+                {attachmentBusy ? "…" : "📷"}
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowEmojiPicker((current) => !current)}
+            disabled={disabled}
+            className="flex h-9 w-9 shrink-0 items-center justify-center text-lg disabled:opacity-40"
+            aria-label="Add emoji"
+          >
+            😊
+          </button>
+          <div className="flex min-w-0 flex-1 items-center rounded-full border border-night-900/10 bg-sand-50 px-4 py-2">
+            <input
+              ref={inputRef}
+              value={value}
+              onChange={(event) => {
+                onChange(event.target.value);
+                notifyTyping(event.target.value);
+              }}
+              placeholder={placeholder}
+              disabled={disabled}
+              className="w-full bg-transparent text-sm text-night-900 outline-none placeholder:text-night-400 disabled:opacity-50"
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
+                  event.preventDefault();
+                  handleSend();
+                }
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={busy || disabled || !canSend}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0095f6] text-sm font-bold text-white disabled:bg-night-300"
+            aria-label={sendLabel}
+          >
+            ↑
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
