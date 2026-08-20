@@ -62,7 +62,30 @@ jobs:
             echo "ANDROID_KEYSTORE_BASE64 secret is required."
             exit 1
           fi
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+
+          CLEAN="$(printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]')"
+          if [ -z "$CLEAN" ]; then
+            echo "ANDROID_KEYSTORE_BASE64 is empty after trimming whitespace."
+            exit 1
+          fi
+          if printf '%s' "$CLEAN" | grep -q 'BEGIN'; then
+            echo "ANDROID_KEYSTORE_BASE64 looks like PEM text (BEGIN/END lines)."
+            echo "Paste only the raw base64 string from PowerShell, not certutil output."
+            exit 1
+          fi
+
+          if ! printf '%s' "$CLEAN" | base64 -d > "$ANDROID_KEYSTORE_PATH" 2>/dev/null; then
+            echo "Failed to decode ANDROID_KEYSTORE_BASE64."
+            echo "Re-encode your .jks file as one continuous base64 line and update the GitHub secret."
+            exit 1
+          fi
+
+          BYTES="$(wc -c < "$ANDROID_KEYSTORE_PATH" | tr -d ' ')"
+          if [ "$BYTES" -lt 100 ]; then
+            echo "Decoded keystore is only ${BYTES} bytes, which is too small to be valid."
+            exit 1
+          fi
+          echo "Imported keystore (${BYTES} bytes)."
 
       - name: Build release App Bundle
         env:
