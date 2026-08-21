@@ -4,9 +4,7 @@ export async function sendPasswordResetEmail(
   resetUrl: string,
 ) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  const from =
-    process.env.PASSWORD_RESET_FROM_EMAIL?.trim() ??
-    process.env.RESEND_FROM_EMAIL?.trim();
+  const from = resendFromAddress();
 
   if (!apiKey || !from) {
     return { sent: false as const, reason: "not_configured" as const };
@@ -155,10 +153,16 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
+function resendFromAddress() {
+  return (
+    process.env.RESEND_FROM_EMAIL?.trim() ??
+    process.env.PASSWORD_RESET_FROM_EMAIL?.trim()
+  );
+}
+
 function givingEmailFromAddress() {
   return (
-    process.env.GIVING_REPORT_FROM_EMAIL?.trim() ??
-    process.env.RESEND_FROM_EMAIL?.trim()
+    process.env.GIVING_REPORT_FROM_EMAIL?.trim() ?? resendFromAddress()
   );
 }
 
