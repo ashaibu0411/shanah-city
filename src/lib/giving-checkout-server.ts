@@ -4,6 +4,7 @@ import { getUserByEmail } from "@/lib/auth-server";
 import {
   fundLabel,
   isRecurringCheckoutFrequency,
+  normalizeGivingEmail,
   recurringGiftNote,
   type GivingCheckoutFrequency,
   type GivingFund,
@@ -12,6 +13,7 @@ import {
   createGivingRecord,
   getGivingRecordByStripeInvoiceId,
   getGivingRecordByStripeSessionId,
+  markThankYouSent,
 } from "@/lib/giving-server";
 import { sendGivingThankYou } from "@/lib/giving-notify-server";
 import { getZonedDateParts } from "@/lib/denver-time";
@@ -175,9 +177,15 @@ async function recordStripeGift(input: {
     recordedByName: "Online giving",
   });
 
-  void sendGivingThankYou(record).catch((error) => {
-    console.error("Stripe giving thank-you failed:", error);
-  });
+  void sendGivingThankYou(record)
+    .then(async (result) => {
+      if (result.sent) {
+        await markThankYouSent(record.id);
+      }
+    })
+    .catch((error) => {
+      console.error("Stripe giving thank-you failed:", error);
+    });
 
   return record;
 }
@@ -195,8 +203,9 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
   if (amount <= 0) return null;
 
   const fund = parseFund(session.metadata?.fund);
-  const donorEmail =
-    session.customer_details?.email ?? session.customer_email ?? undefined;
+  const donorEmail = normalizeGivingEmail(
+    session.customer_details?.email ?? session.customer_email ?? undefined,
+  );
   const donorName =
     session.customer_details?.name?.trim() ||
     session.metadata?.donorName?.trim() ||
@@ -242,7 +251,7 @@ export async function recordGiftFromInvoice(
 
   const metadata = { ...(invoice.metadata ?? {}), ...extraMetadata };
   const fund = parseFund(metadata.fund);
-  const donorEmail = invoice.customer_email ?? undefined;
+  const donorEmail = normalizeGivingEmail(invoice.customer_email ?? undefined);
   const donorName =
     invoice.customer_name?.trim() ||
     metadata.donorName?.trim() ||

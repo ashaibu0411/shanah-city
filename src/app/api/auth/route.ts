@@ -16,6 +16,7 @@ import {
   rateLimitResponse,
 } from "@/lib/rate-limit-server";
 import { processSignupGroupSelections } from "@/lib/group-join-server";
+import { linkGivingRecordsToUser } from "@/lib/giving-server";
 import { getSessionPermissions } from "@/lib/session-permissions";
 
 async function checkAuthRateLimit(request: Request, action: string) {
@@ -82,11 +83,12 @@ export async function POST(request: Request) {
         { id: user.id, name: user.name, email: user.email },
         groupIds,
       );
+      const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
       const session = await createSession(user.id);
       const publicUser = toPublicMember(user);
       const permissions = await getSessionPermissions(publicUser);
       const response = NextResponse.json(
-        { user: publicUser, permissions, ministryResults },
+        { user: publicUser, permissions, ministryResults, linkedGifts },
         { status: 201 },
       );      response.cookies.set(SESSION_COOKIE, session.token, {
         httpOnly: true,
@@ -109,10 +111,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
+  const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
   const session = await createSession(user.id);
   const publicUser = toPublicMember(user);
   const permissions = await getSessionPermissions(publicUser);
-  const response = NextResponse.json({ user: publicUser, permissions });  response.cookies.set(SESSION_COOKIE, session.token, {
+  const response = NextResponse.json({ user: publicUser, permissions, linkedGifts });  response.cookies.set(SESSION_COOKIE, session.token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

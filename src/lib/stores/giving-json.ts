@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { GivingFund, GivingMethod, GivingRecord } from "@/lib/giving-types";
+import { normalizeGivingEmail } from "@/lib/giving-types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const GIVING_FILE = path.join(DATA_DIR, "giving-records.json");
@@ -36,6 +37,8 @@ export async function listGivingRecords(options?: {
   until?: string;
   userId?: string;
   fund?: string;
+  donorEmail?: string;
+  guestsOnly?: boolean;
 }) {
   let records = sortRecords(await readRecords());
 
@@ -50,6 +53,15 @@ export async function listGivingRecords(options?: {
   }
   if (options?.fund) {
     records = records.filter((record) => record.fund === options.fund);
+  }
+  const donorEmail = normalizeGivingEmail(options?.donorEmail);
+  if (donorEmail) {
+    records = records.filter(
+      (record) => normalizeGivingEmail(record.donorEmail) === donorEmail,
+    );
+  }
+  if (options?.guestsOnly) {
+    records = records.filter((record) => !record.userId);
   }
 
   return records;
@@ -78,7 +90,7 @@ export async function createGivingRecord(input: {
     id: `give-${Date.now()}`,
     userId: input.userId,
     donorName: input.donorName,
-    donorEmail: input.donorEmail,
+    donorEmail: normalizeGivingEmail(input.donorEmail),
     amount: input.amount,
     currency: input.currency ?? "USD",
     fund: input.fund,
@@ -91,6 +103,7 @@ export async function createGivingRecord(input: {
     stripeInvoiceId: input.stripeInvoiceId,
     recordedBy: input.recordedBy,
     recordedByName: input.recordedByName,
+    thankYouSentAt: undefined,
     createdAt: now,
     updatedAt: now,
   };
@@ -138,6 +151,26 @@ export async function deleteGivingRecord(id: string) {
   return true;
 }
 
+export async function getGivingRecordById(id: string) {
+  const records = await readRecords();
+  return records.find((record) => record.id === id) ?? null;
+}
+
+export async function markThankYouSent(id: string) {
+  const records = await readRecords();
+  const index = records.findIndex((record) => record.id === id);
+  if (index === -1) return null;
+
+  const now = new Date().toISOString();
+  records[index] = {
+    ...records[index],
+    thankYouSentAt: now,
+    updatedAt: now,
+  };
+  await writeJson(GIVING_FILE, records);
+  return records[index];
+}
+
 export async function getGivingRecordByStripeSessionId(stripeSessionId: string) {
   const records = await readRecords();
   return records.find((record) => record.stripeSessionId === stripeSessionId) ?? null;
@@ -146,4 +179,26 @@ export async function getGivingRecordByStripeSessionId(stripeSessionId: string) 
 export async function getGivingRecordByStripeInvoiceId(stripeInvoiceId: string) {
   const records = await readRecords();
   return records.find((record) => record.stripeInvoiceId === stripeInvoiceId) ?? null;
+}
+
+export async function linkGivingRecordsToUser(email: string, userId: string) {
+  const donorEmail = normalizeGivingEmail(email);
+  if (!donorEmail) return 0;
+
+  const records = await readRecords();
+  let linked = 0;
+
+  for (const record of records) {
+    if (record.userId) continue;
+    if (normalizeGivingEmail(record.donorEmail) !== donorEmail) continue;
+    record.userId = userId;
+    record.updatedAt = new Date().toISOString();
+    linked += 1;
+  }
+
+  if (linked > 0) {
+    await writeJson(GIVING_FILE, records);
+  }
+
+  return linked;
 }

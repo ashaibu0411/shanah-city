@@ -36,6 +36,7 @@ export type GivingRecord = {
   stripeInvoiceId?: string | null;
   recordedBy: string;
   recordedByName: string;
+  thankYouSentAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -106,6 +107,10 @@ export function recurringGiftNote(frequency?: string | null) {
     default:
       return "Recurring gift";
   }
+}
+
+export function normalizeGivingEmail(email?: string | null) {
+  return email?.trim().toLowerCase() || undefined;
 }
 
 export function fundLabel(fund: string) {

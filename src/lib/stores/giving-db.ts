@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { GivingFund, GivingMethod, GivingRecord } from "@/lib/giving-types";
+import { normalizeGivingEmail } from "@/lib/giving-types";
 
 function mapRecord(record: {
   id: string;
@@ -18,6 +19,7 @@ function mapRecord(record: {
   stripeInvoiceId: string | null;
   recordedBy: string;
   recordedByName: string;
+  thankYouSentAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }): GivingRecord {
@@ -38,6 +40,7 @@ function mapRecord(record: {
     stripeInvoiceId: record.stripeInvoiceId ?? undefined,
     recordedBy: record.recordedBy,
     recordedByName: record.recordedByName,
+    thankYouSentAt: record.thankYouSentAt?.toISOString(),
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };
@@ -48,11 +51,14 @@ export async function listGivingRecords(options?: {
   until?: string;
   userId?: string;
   fund?: string;
+  donorEmail?: string;
+  guestsOnly?: boolean;
 }) {
   const where: {
     givenOn?: { gte?: string; lte?: string };
-    userId?: string;
+    userId?: string | null;
     fund?: string;
+    donorEmail?: { equals: string; mode: "insensitive" };
   } = {};
 
   if (options?.since || options?.until) {
@@ -67,6 +73,15 @@ export async function listGivingRecords(options?: {
 
   if (options?.fund) {
     where.fund = options.fund;
+  }
+
+  const donorEmail = normalizeGivingEmail(options?.donorEmail);
+  if (donorEmail) {
+    where.donorEmail = { equals: donorEmail, mode: "insensitive" };
+  }
+
+  if (options?.guestsOnly) {
+    where.userId = null;
   }
 
   const records = await prisma.givingRecord.findMany({
@@ -100,7 +115,7 @@ export async function createGivingRecord(input: {
       id: `give-${Date.now()}`,
       userId: input.userId ?? null,
       donorName: input.donorName,
-      donorEmail: input.donorEmail ?? null,
+      donorEmail: normalizeGivingEmail(input.donorEmail) ?? null,
       amount: input.amount,
       currency: input.currency ?? "USD",
       fund: input.fund,
@@ -146,7 +161,10 @@ export async function updateGivingRecord(
     data: {
       userId: update.userId === undefined ? undefined : update.userId ?? null,
       donorName: update.donorName,
-      donorEmail: update.donorEmail === undefined ? undefined : update.donorEmail ?? null,
+      donorEmail:
+        update.donorEmail === undefined
+          ? undefined
+          : normalizeGivingEmail(update.donorEmail) ?? null,
       amount: update.amount,
       fund: update.fund,
       method: update.method,
@@ -169,6 +187,26 @@ export async function deleteGivingRecord(id: string) {
   }
 }
 
+export async function getGivingRecordById(id: string) {
+  const record = await prisma.givingRecord.findUnique({ where: { id } });
+  return record ? mapRecord(record) : null;
+}
+
+export async function markThankYouSent(id: string) {
+  const existing = await prisma.givingRecord.findUnique({ where: { id } });
+  if (!existing) return null;
+
+  const record = await prisma.givingRecord.update({
+    where: { id },
+    data: {
+      thankYouSentAt: new Date(),
+      updatedAt: new Date(),
+    },
+  });
+
+  return mapRecord(record);
+}
+
 export async function getGivingRecordByStripeSessionId(stripeSessionId: string) {
   const record = await prisma.givingRecord.findUnique({ where: { stripeSessionId } });
   return record ? mapRecord(record) : null;
@@ -177,4 +215,22 @@ export async function getGivingRecordByStripeSessionId(stripeSessionId: string) 
 export async function getGivingRecordByStripeInvoiceId(stripeInvoiceId: string) {
   const record = await prisma.givingRecord.findUnique({ where: { stripeInvoiceId } });
   return record ? mapRecord(record) : null;
+}
+
+export async function linkGivingRecordsToUser(email: string, userId: string) {
+  const donorEmail = normalizeGivingEmail(email);
+  if (!donorEmail) return 0;
+
+  const result = await prisma.givingRecord.updateMany({
+    where: {
+      userId: null,
+      donorEmail: { equals: donorEmail, mode: "insensitive" },
+    },
+    data: {
+      userId,
+      updatedAt: new Date(),
+    },
+  });
+
+  return result.count;
 }

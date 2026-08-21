@@ -404,6 +404,7 @@ model GivingRecord {
   stripeInvoiceId String? @unique
   recordedBy     String
   recordedByName String
+  thankYouSentAt DateTime?
   createdAt      DateTime
   updatedAt      DateTime
 

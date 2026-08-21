@@ -51,7 +51,8 @@ export function MemberGivingHistory() {
         <div>
           <h2 className="font-display text-xl font-semibold text-night-900">Your giving</h2>
           <p className="mt-1 text-sm text-night-600">
-            Gifts made through Shanah City online giving appear here automatically.
+            Gifts made through Shanah City online giving appear here automatically. Past guest
+            gifts linked to your email show up after you sign up or sign in.
           </p>
         </div>
         <Button href="/give" variant="secondary">

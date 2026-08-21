@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { AdminGivingPanel } from "@/components/admin/AdminGivingPanel";
 import { PageHeader } from "@/components/ui";
-import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { canManageGivingRecords } from "@/lib/giving-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { cookies } from "next/headers";
 
@@ -14,17 +14,17 @@ export default async function AdminGivingPage() {
     redirect("/sign-in?next=/admin/giving");
   }
 
-  const isAdmin = await canManageAsAdmin(user);
-  if (!isAdmin) {
-    redirect("/admin/approvals");
+  const canManage = await canManageGivingRecords(user);
+  if (!canManage) {
+    redirect("/admin/finance");
   }
 
   return (
     <>
       <PageHeader
-        eyebrow="Admin Group"
+        eyebrow="Finance & Admin"
         title="Giving records"
-        description="Record gifts manually, filter by date or fund, and export a spreadsheet report."
+        description="Record gifts manually, filter by date or fund, and send personalized thank-yous."
       />
       <AdminGivingPanel />
     </>

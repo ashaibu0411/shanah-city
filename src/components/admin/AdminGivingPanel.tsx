@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { GivingThankYouComposer } from "@/components/admin/GivingThankYouComposer";
 import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import {
   fundLabel,
@@ -39,6 +40,9 @@ export function AdminGivingPanel() {
   const [since, setSince] = useState(monthStartIso());
   const [until, setUntil] = useState(todayIso());
   const [fundFilter, setFundFilter] = useState("");
+  const [donorEmailFilter, setDonorEmailFilter] = useState("");
+  const [guestsOnly, setGuestsOnly] = useState(false);
+  const [sendingStatement, setSendingStatement] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -52,6 +56,8 @@ export function AdminGivingPanel() {
   const [givenOn, setGivenOn] = useState(todayIso());
   const [campusId, setCampusId] = useState("colorado");
   const [notes, setNotes] = useState("");
+  const [savedRecord, setSavedRecord] = useState<GivingRecord | null>(null);
+  const [expandedThankYouId, setExpandedThankYouId] = useState<string | null>(null);
 
   const selectedMember = useMemo(
     () => people.find((person) => person.id === memberId) ?? null,
@@ -72,6 +78,8 @@ export function AdminGivingPanel() {
     if (since) params.set("since", since);
     if (until) params.set("until", until);
     if (fundFilter) params.set("fund", fundFilter);
+    if (donorEmailFilter.trim()) params.set("donorEmail", donorEmailFilter.trim());
+    if (guestsOnly) params.set("guestsOnly", "1");
 
     const response = await fetch(`/api/admin/giving?${params.toString()}`);
     const data = await response.json();
@@ -100,10 +108,11 @@ export function AdminGivingPanel() {
 
   useEffect(() => {
     loadRecords();
-  }, [since, until, fundFilter]);
+  }, [since, until, fundFilter, donorEmailFilter, guestsOnly]);
 
   async function addRecord() {
     setMessage(null);
+    setSavedRecord(null);
     const response = await fetch("/api/admin/giving", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -122,7 +131,11 @@ export function AdminGivingPanel() {
     const data = await response.json();
 
     if (response.ok) {
-      setMessage(`Recorded ${formatMoney(data.record.amount)} from ${data.record.donorName}.`);
+      setSavedRecord(data.record);
+      setExpandedThankYouId(data.record.id);
+      setMessage(
+        `Recorded ${formatMoney(data.record.amount)} from ${data.record.donorName}. Review the thank-you below, then click Send.`,
+      );
       setAmount("");
       setNotes("");
       if (!memberId) {
@@ -166,8 +179,40 @@ export function AdminGivingPanel() {
     if (since) params.set("since", since);
     if (until) params.set("until", until);
     if (fundFilter) params.set("fund", fundFilter);
+    if (donorEmailFilter.trim()) params.set("donorEmail", donorEmailFilter.trim());
+    if (guestsOnly) params.set("guestsOnly", "1");
     params.set("format", "csv");
     window.location.href = `/api/admin/giving?${params.toString()}`;
+  }
+
+  async function emailGuestStatement() {
+    if (!donorEmailFilter.trim()) {
+      setMessage("Enter a donor email above to email a guest statement.");
+      return;
+    }
+
+    setSendingStatement(true);
+    setMessage(null);
+
+    const response = await fetch("/api/admin/giving/guest-statement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        donorEmail: donorEmailFilter.trim(),
+        since: since || undefined,
+        until: until || undefined,
+      }),
+    });
+    const data = await response.json();
+    setSendingStatement(false);
+
+    if (response.ok) {
+      setMessage(
+        `Emailed giving statement to ${donorEmailFilter.trim()} (${data.giftCount} gift${data.giftCount === 1 ? "" : "s"}, ${formatMoney(data.totalAmount)}).`,
+      );
+    } else {
+      setMessage(data.error ?? "Could not email guest statement.");
+    }
   }
 
   return (
@@ -207,7 +252,7 @@ export function AdminGivingPanel() {
           <input
             value={donorEmail}
             onChange={(event) => setDonorEmail(event.target.value)}
-            placeholder="Donor email (optional)"
+            placeholder="Donor email (optional — used for guest reports & thank-yous)"
             className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
           />
           <input
@@ -270,6 +315,18 @@ export function AdminGivingPanel() {
         <Button className="mt-4" onClick={addRecord}>
           Save giving record
         </Button>
+
+        {savedRecord && (
+          <GivingThankYouComposer
+            record={savedRecord}
+            onSent={(record) => {
+              setRecords((current) =>
+                current.map((entry) => (entry.id === record.id ? record : entry)),
+              );
+              setSavedRecord(record);
+            }}
+          />
+        )}
       </Card>
 
       <Card className="mb-6">
@@ -277,7 +334,8 @@ export function AdminGivingPanel() {
           <div>
             <h2 className="font-display text-xl font-semibold text-night-900">Report</h2>
             <p className="mt-1 text-sm text-night-600">
-              Filter by date range and fund, then export to CSV for Excel or Google Sheets.
+              Filter by date range, fund, or guest donor email. Export CSV or email a guest
+              statement when an email is entered.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -293,10 +351,17 @@ export function AdminGivingPanel() {
             <Button variant="secondary" onClick={exportCsv}>
               Export CSV
             </Button>
+            <Button
+              variant="secondary"
+              onClick={emailGuestStatement}
+              disabled={sendingStatement || !donorEmailFilter.trim()}
+            >
+              {sendingStatement ? "Sending…" : "Email guest statement"}
+            </Button>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <input
             type="date"
             value={since}
@@ -314,7 +379,7 @@ export function AdminGivingPanel() {
           <select
             value={fundFilter}
             onChange={(event) => setFundFilter(event.target.value)}
-            className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 sm:col-span-2"
+            className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
           >
             <option value="">All funds</option>
             {GIVING_FUND_OPTIONS.map((option) => (
@@ -323,6 +388,21 @@ export function AdminGivingPanel() {
               </option>
             ))}
           </select>
+          <input
+            type="email"
+            value={donorEmailFilter}
+            onChange={(event) => setDonorEmailFilter(event.target.value)}
+            placeholder="Guest donor email"
+            className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+          />
+          <label className="flex items-center gap-2 rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm text-night-700">
+            <input
+              type="checkbox"
+              checked={guestsOnly}
+              onChange={(event) => setGuestsOnly(event.target.checked)}
+            />
+            Guests only
+          </label>
         </div>
 
         {summary && summary.count === 0 && !loading ? (
@@ -385,6 +465,7 @@ export function AdminGivingPanel() {
                   <th className="py-2 pr-4">Fund</th>
                   <th className="py-2 pr-4">Method</th>
                   <th className="py-2 pr-4">Notes</th>
+                  <th className="py-2 pr-4">Thank-you</th>
                   <th className="py-2 pr-4"></th>
                 </tr>
               </thead>
@@ -397,6 +478,9 @@ export function AdminGivingPanel() {
                       {record.donorEmail && (
                         <p className="text-xs text-night-500">{record.donorEmail}</p>
                       )}
+                      {!record.userId && (
+                        <p className="text-xs font-semibold text-amber-700">Guest</p>
+                      )}
                     </td>
                     <td className="py-3 pr-4 font-semibold text-night-900">
                       {formatMoney(record.amount)}
@@ -404,6 +488,39 @@ export function AdminGivingPanel() {
                     <td className="py-3 pr-4 text-night-600">{fundLabel(record.fund)}</td>
                     <td className="py-3 pr-4 text-night-600">{methodLabel(record.method)}</td>
                     <td className="py-3 pr-4 text-night-600">{record.notes ?? "—"}</td>
+                    <td className="py-3 pr-4">
+                      {record.thankYouSentAt ? (
+                        <span className="text-xs font-semibold text-emerald-700">Sent</span>
+                      ) : (
+                        <span className="text-xs font-semibold text-amber-700">Pending</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedThankYouId((current) =>
+                            current === record.id ? null : record.id,
+                          )
+                        }
+                        className="mt-1 block text-sm text-night-900 hover:underline"
+                      >
+                        {expandedThankYouId === record.id ? "Hide" : "Send"}
+                      </button>
+                      {expandedThankYouId === record.id && (
+                        <div className="mt-3 min-w-[20rem]">
+                          <GivingThankYouComposer
+                            compact
+                            record={record}
+                            onSent={(updated) =>
+                              setRecords((current) =>
+                                current.map((entry) =>
+                                  entry.id === updated.id ? updated : entry,
+                                ),
+                              )
+                            }
+                          />
+                        </div>
+                      )}
+                    </td>
                     <td className="py-3 pr-4">
                       <button
                         type="button"

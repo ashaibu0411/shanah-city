@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { canManageGivingRecords } from "@/lib/giving-access-server";
 import { getUserById, getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
   GIVING_FUND_OPTIONS,
@@ -16,13 +16,16 @@ import {
   listGivingRecords,
   updateGivingRecord,
 } from "@/lib/giving-server";
-import { sendGivingThankYou } from "@/lib/giving-notify-server";
+import { previewGivingThankYou } from "@/lib/giving-notify-server";
+import { normalizeGivingEmail } from "@/lib/giving-types";
 
 function parseGivingBody(body: Record<string, unknown>) {
   return {
     userId: body.userId ? String(body.userId).trim() : undefined,
     donorName: String(body.donorName ?? "").trim(),
-    donorEmail: body.donorEmail ? String(body.donorEmail).trim() : undefined,
+    donorEmail: normalizeGivingEmail(
+      body.donorEmail ? String(body.donorEmail) : undefined,
+    ),
     amount: Number(body.amount),
     fund: String(body.fund ?? "offering") as GivingFund,
     method: String(body.method ?? "other") as GivingMethod,
@@ -51,7 +54,7 @@ function validateGivingInput(input: ReturnType<typeof parseGivingBody>) {
   return null;
 }
 
-async function requireAdmin() {
+async function requireGivingManager() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -60,9 +63,12 @@ async function requireAdmin() {
     return { error: NextResponse.json({ error: "Sign in required." }, { status: 401 }) };
   }
 
-  if (!(await canManageAsAdmin(user))) {
+  if (!(await canManageGivingRecords(user))) {
     return {
-      error: NextResponse.json({ error: "Admin Group access required." }, { status: 403 }),
+      error: NextResponse.json(
+        { error: "Finance Team or Admin Group access required." },
+        { status: 403 },
+      ),
     };
   }
 
@@ -70,7 +76,7 @@ async function requireAdmin() {
 }
 
 export async function GET(request: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireGivingManager();
   if (auth.error) return auth.error;
 
   const { searchParams } = new URL(request.url);
@@ -78,17 +84,32 @@ export async function GET(request: Request) {
   const until = searchParams.get("until") ?? undefined;
   const userId = searchParams.get("userId") ?? undefined;
   const fund = searchParams.get("fund") ?? undefined;
+  const donorEmail = normalizeGivingEmail(searchParams.get("donorEmail") ?? undefined);
+  const guestsOnly = searchParams.get("guestsOnly") === "1";
   const format = searchParams.get("format");
 
-  const records = await listGivingRecords({ since, until, userId, fund });
+  const records = await listGivingRecords({
+    since,
+    until,
+    userId,
+    fund,
+    donorEmail,
+    guestsOnly,
+  });
   const summary = summarizeGivingRecords(records);
 
   if (format === "csv") {
     const csv = givingRecordsToCsv(records);
+    const filenameSuffix =
+      donorEmail != null
+        ? `guest-${donorEmail.replace(/[^a-z0-9]+/gi, "-")}`
+        : guestsOnly
+          ? "guests"
+          : "report";
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="shanah-giving-report.csv"`,
+        "Content-Disposition": `attachment; filename="shanah-giving-${filenameSuffix}.csv"`,
       },
     });
   }
@@ -97,7 +118,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireGivingManager();
   if (auth.error) return auth.error;
 
   const body = await request.json();
@@ -123,15 +144,13 @@ export async function POST(request: Request) {
     recordedByName: auth.user!.name,
   });
 
-  void sendGivingThankYou(record, { id: auth.user!.id }).catch((error) => {
-    console.error("Manual giving thank-you failed:", error);
-  });
+  const thankYou = await previewGivingThankYou(record);
 
-  return NextResponse.json({ record }, { status: 201 });
+  return NextResponse.json({ record, thankYou }, { status: 201 });
 }
 
 export async function PATCH(request: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireGivingManager();
   if (auth.error) return auth.error;
 
   const body = await request.json();
@@ -155,7 +174,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireGivingManager();
   if (auth.error) return auth.error;
 
   const body = await request.json();

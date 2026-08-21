@@ -9,7 +9,7 @@ const adminLinks = [
   { href: "/admin/alerts", label: "Urgent", adminOnly: true },
   { href: "/admin/guests", label: "Guests", adminOnly: true },
   { href: "/admin/people", label: "People", adminOnly: true },
-  { href: "/admin/giving", label: "Giving", adminOnly: true },
+  { href: "/admin/giving", label: "Giving", adminOnly: true, financeAllowed: true },
   { href: "/admin/finance", label: "Finance", adminOnly: false },
 ] as const;
 
@@ -20,6 +20,9 @@ export function AdminSubNav() {
   const links = adminLinks.filter((link) => {
     if (link.href === "/admin/finance") {
       return permissions.canAccessFinance;
+    }
+    if ("financeAllowed" in link && link.financeAllowed) {
+      return permissions.canManageAdmin || permissions.canAccessFinance;
     }
     return permissions.canManageAdmin;
   });

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { canManageGivingRecords } from "@/lib/giving-access-server";
 import { getAdminPeopleDirectory } from "@/lib/admin-people-server";
 import { getAdminPerson, updateAdminPerson } from "@/lib/admin-people-update-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
@@ -14,19 +15,22 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
 
-  if (!(await canManageAsAdmin(user))) {
-    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
-  }
-
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
 
   if (userId) {
+    if (!(await canManageAsAdmin(user))) {
+      return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
+    }
     const person = await getAdminPerson(user.id, userId);
     if (!person) {
       return NextResponse.json({ error: "Member not found." }, { status: 404 });
     }
     return NextResponse.json({ person });
+  }
+
+  if (!(await canManageGivingRecords(user))) {
+    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
   }
 
   const people = await getAdminPeopleDirectory(user.id);
