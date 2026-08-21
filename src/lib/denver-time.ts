@@ -49,6 +49,29 @@ export function isDenverWeekday(date = new Date()) {
   return weekday >= 1 && weekday <= 5;
 }
 
+function addDaysToDateKey(dateKey: string, days: number) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+}
+
+/** Sunday through Saturday in America/Denver for the given reference date. */
+export function getDenverWeekRange(reference = new Date()) {
+  const { dateKey, weekday } = getZonedDateParts(reference);
+  const since = addDaysToDateKey(dateKey, -weekday);
+  const until = addDaysToDateKey(dateKey, 6 - weekday);
+  return { since, until };
+}
+
+/** The most recently completed Sun–Sat week in America/Denver. */
+export function getPreviousDenverWeekRange(reference = new Date()) {
+  const { dateKey, weekday } = getZonedDateParts(reference);
+  const daysSinceSaturday = weekday === 6 ? 0 : weekday + 1;
+  const until = addDaysToDateKey(dateKey, -daysSinceSaturday);
+  const since = addDaysToDateKey(until, -6);
+  return { since, until };
+}
+
 export function isDenverSunday(date = new Date()) {
   return getZonedDateParts(date).weekday === 0;
 }

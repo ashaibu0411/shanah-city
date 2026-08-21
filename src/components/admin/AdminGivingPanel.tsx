@@ -12,6 +12,7 @@ import {
   type GivingReportSummary,
 } from "@/lib/giving-types";
 import type { AdminPeopleEntry } from "@/lib/member-types";
+import { getDenverWeekRange } from "@/lib/denver-time";
 import { campuses } from "@/lib/site";
 import { Button, Card } from "@/components/ui";
 
@@ -149,6 +150,17 @@ export function AdminGivingPanel() {
     }
   }
 
+  function applyThisWeek() {
+    const { since: weekSince, until: weekUntil } = getDenverWeekRange();
+    setSince(weekSince);
+    setUntil(weekUntil);
+  }
+
+  function applyThisMonth() {
+    setSince(monthStartIso());
+    setUntil(todayIso());
+  }
+
   function exportCsv() {
     const params = new URLSearchParams();
     if (since) params.set("since", since);
@@ -269,6 +281,12 @@ export function AdminGivingPanel() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={applyThisWeek}>
+              This week
+            </Button>
+            <Button variant="secondary" onClick={applyThisMonth}>
+              This month
+            </Button>
             <Button variant="secondary" onClick={loadRecords}>
               Refresh
             </Button>

@@ -6,6 +6,7 @@ import {
 } from "@/lib/giving-checkout-server";
 import {
   GIVING_CHECKOUT_FUNDS,
+  GIVING_CHECKOUT_FREQUENCIES,
   type GivingCheckoutFrequency,
   type GivingFund,
 } from "@/lib/giving-types";
@@ -49,8 +50,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a valid fund." }, { status: 400 });
   }
 
-  if (frequency !== "once" && frequency !== "monthly") {
-    return NextResponse.json({ error: "Choose one-time or monthly giving." }, { status: 400 });
+  if (!GIVING_CHECKOUT_FREQUENCIES.some((option) => option.value === frequency)) {
+    return NextResponse.json({ error: "Choose a valid giving frequency." }, { status: 400 });
   }
 
   const cookieStore = await cookies();

@@ -16,6 +16,7 @@ import {
   listGivingRecords,
   updateGivingRecord,
 } from "@/lib/giving-server";
+import { sendGivingThankYou } from "@/lib/giving-notify-server";
 
 function parseGivingBody(body: Record<string, unknown>) {
   return {
@@ -120,6 +121,10 @@ export async function POST(request: Request) {
     ...input,
     recordedBy: auth.user!.id,
     recordedByName: auth.user!.name,
+  });
+
+  void sendGivingThankYou(record, { id: auth.user!.id }).catch((error) => {
+    console.error("Manual giving thank-you failed:", error);
   });
 
   return NextResponse.json({ record }, { status: 201 });

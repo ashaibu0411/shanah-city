@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
+import { getDenverWeekRange } from "@/lib/denver-time";
 import type { GivingRecord } from "@/lib/giving-types";
 
 function formatMoney(amount: number) {
@@ -33,6 +34,15 @@ export function MemberGivingHistory() {
       .finally(() => setFetching(false));
   }, [user, loading]);
 
+  const { since: weekSince, until: weekUntil } = getDenverWeekRange();
+  const weekTotal = useMemo(
+    () =>
+      records
+        .filter((record) => record.givenOn >= weekSince && record.givenOn <= weekUntil)
+        .reduce((sum, record) => sum + record.amount, 0),
+    [records, weekSince, weekUntil],
+  );
+
   if (loading || !user) return null;
 
   return (
@@ -49,11 +59,26 @@ export function MemberGivingHistory() {
         </Button>
       </div>
 
-      <div className="mt-4 rounded-xl bg-sand-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-night-500">Total recorded</p>
-        <p className="mt-1 font-display text-2xl font-semibold text-night-900">
-          {formatMoney(total)}
-        </p>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl bg-sand-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+            This week
+          </p>
+          <p className="mt-1 font-display text-2xl font-semibold text-night-900">
+            {formatMoney(weekTotal)}
+          </p>
+          <p className="text-xs text-night-500">
+            {weekSince} – {weekUntil} (Denver)
+          </p>
+        </div>
+        <div className="rounded-xl bg-sand-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+            Total recorded
+          </p>
+          <p className="mt-1 font-display text-2xl font-semibold text-night-900">
+            {formatMoney(total)}
+          </p>
+        </div>
       </div>
 
       {fetching ? (

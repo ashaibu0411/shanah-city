@@ -3,6 +3,8 @@ import type { PublicMember } from "@/lib/auth-types";
 import { getUserByEmail } from "@/lib/auth-server";
 import {
   fundLabel,
+  isRecurringCheckoutFrequency,
+  recurringGiftNote,
   type GivingCheckoutFrequency,
   type GivingFund,
 } from "@/lib/giving-types";
@@ -11,6 +13,7 @@ import {
   getGivingRecordByStripeInvoiceId,
   getGivingRecordByStripeSessionId,
 } from "@/lib/giving-server";
+import { sendGivingThankYou } from "@/lib/giving-notify-server";
 import { getZonedDateParts } from "@/lib/denver-time";
 import { getAppBaseUrl, getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 
@@ -75,7 +78,21 @@ export async function createGivingCheckoutSession(input: {
     payment_method_types: ["card"] as Stripe.Checkout.SessionCreateParams["payment_method_types"],
   };
 
-  if (input.frequency === "monthly") {
+  if (isRecurringCheckoutFrequency(input.frequency)) {
+    const recurring =
+      input.frequency === "weekly"
+        ? { interval: "week" as const }
+        : input.frequency === "biweekly"
+          ? { interval: "week" as const, interval_count: 2 }
+          : { interval: "month" as const };
+
+    const recurringLabel =
+      input.frequency === "weekly"
+        ? "Weekly"
+        : input.frequency === "biweekly"
+          ? "Every 2 weeks"
+          : "Monthly";
+
     return stripe.checkout.sessions.create({
       mode: "subscription",
       ...common,
@@ -85,10 +102,10 @@ export async function createGivingCheckoutSession(input: {
             currency: "usd",
             product_data: {
               name: `Shanah City ${fundLabelText}`,
-              description: "Monthly recurring gift to Shanah City",
+              description: `${recurringLabel} recurring gift to Shanah City`,
             },
             unit_amount: amountCents,
-            recurring: { interval: "month" },
+            recurring,
           },
           quantity: 1,
         },
@@ -140,7 +157,7 @@ async function recordStripeGift(input: {
     if (existing) return existing;
   }
 
-  return createGivingRecord({
+  const record = await createGivingRecord({
     userId: input.userId,
     donorName: input.donorName,
     donorEmail: input.donorEmail,
@@ -157,6 +174,12 @@ async function recordStripeGift(input: {
     recordedBy: input.userId ?? "stripe",
     recordedByName: "Online giving",
   });
+
+  void sendGivingThankYou(record).catch((error) => {
+    console.error("Stripe giving thank-you failed:", error);
+  });
+
+  return record;
 }
 
 export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Session) {
@@ -199,8 +222,8 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
     userId,
     campusId,
     notes:
-      session.metadata?.frequency === "monthly"
-        ? "Recurring gift (first payment via checkout)"
+      session.metadata?.frequency && session.metadata.frequency !== "once"
+        ? `${recurringGiftNote(session.metadata.frequency)} (first payment via checkout)`
         : "One-time online gift",
     stripeSessionId: session.id,
   });
@@ -228,8 +251,8 @@ export async function recordGiftFromInvoice(
 
   const frequencyNote =
     invoice.billing_reason === "subscription_cycle"
-      ? "Monthly recurring gift"
-      : "Monthly recurring gift (initial)";
+      ? recurringGiftNote(metadata.frequency)
+      : `${recurringGiftNote(metadata.frequency)} (initial)`;
 
   return recordStripeGift({
     amount,

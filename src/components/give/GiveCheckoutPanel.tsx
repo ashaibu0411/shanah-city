@@ -7,6 +7,7 @@ import { Button, Card } from "@/components/ui";
 import {
   GIVING_AMOUNT_PRESETS,
   GIVING_CHECKOUT_FUNDS,
+  GIVING_CHECKOUT_FREQUENCIES,
   type GivingCheckoutFrequency,
   type GivingFund,
 } from "@/lib/giving-types";
@@ -34,6 +35,10 @@ export function GiveCheckoutPanel() {
       })
       .catch(() => setEnabled(false));
   }, []);
+
+  const frequencyOption =
+    GIVING_CHECKOUT_FREQUENCIES.find((option) => option.value === frequency) ??
+    GIVING_CHECKOUT_FREQUENCIES[0];
 
   const amount = preset === "custom" ? Number(customAmount) : preset;
 
@@ -119,12 +124,7 @@ export function GiveCheckoutPanel() {
           <fieldset className="text-sm text-night-700">
             <legend className="font-semibold">Frequency</legend>
             <div className="mt-2 flex flex-wrap gap-2">
-              {(
-                [
-                  { value: "once", label: "One-time" },
-                  { value: "monthly", label: "Monthly" },
-                ] as const
-              ).map((option) => (
+              {GIVING_CHECKOUT_FREQUENCIES.map((option) => (
                 <button
                   key={option.value}
                   type="button"
@@ -192,9 +192,7 @@ export function GiveCheckoutPanel() {
           >
             {submitting
               ? "Redirecting…"
-              : `Continue to checkout — ${formatMoney(Number.isFinite(amount) ? amount : 0)}${
-                  frequency === "monthly" ? "/mo" : ""
-                }`}
+              : `Continue to checkout — ${formatMoney(Number.isFinite(amount) ? amount : 0)}${frequencyOption.suffix}`}
           </Button>
           <p className="text-xs text-night-500">
             Payments are processed securely by Stripe. Shanah City does not store card numbers.

@@ -76,7 +76,37 @@ export const GIVING_CHECKOUT_FUNDS = GIVING_FUND_OPTIONS.filter(
 
 export const GIVING_AMOUNT_PRESETS = [25, 50, 100, 250, 500] as const;
 
-export type GivingCheckoutFrequency = "once" | "monthly";
+export type GivingCheckoutFrequency = "once" | "weekly" | "biweekly" | "monthly";
+
+export const GIVING_CHECKOUT_FREQUENCIES: {
+  value: GivingCheckoutFrequency;
+  label: string;
+  suffix: string;
+}[] = [
+  { value: "once", label: "One-time", suffix: "" },
+  { value: "weekly", label: "Weekly", suffix: "/wk" },
+  { value: "biweekly", label: "Every 2 weeks", suffix: "/2 wks" },
+  { value: "monthly", label: "Monthly", suffix: "/mo" },
+];
+
+export function isRecurringCheckoutFrequency(
+  frequency: GivingCheckoutFrequency,
+): frequency is Exclude<GivingCheckoutFrequency, "once"> {
+  return frequency !== "once";
+}
+
+export function recurringGiftNote(frequency?: string | null) {
+  switch (frequency) {
+    case "weekly":
+      return "Weekly recurring gift";
+    case "biweekly":
+      return "Bi-weekly recurring gift";
+    case "monthly":
+      return "Monthly recurring gift";
+    default:
+      return "Recurring gift";
+  }
+}
 
 export function fundLabel(fund: string) {
   return GIVING_FUND_OPTIONS.find((option) => option.value === fund)?.label ?? fund;
