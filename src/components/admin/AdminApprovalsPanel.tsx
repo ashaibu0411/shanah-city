@@ -11,7 +11,9 @@ export function AdminApprovalsPanel() {
   const [pending, setPending] = useState<GroupJoinRequest[]>([]);
   const [mine, setMine] = useState<GroupJoinRequest[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -21,8 +23,10 @@ export function AdminApprovalsPanel() {
       setPending(data.pending ?? []);
       setMine(data.mine ?? []);
       setMessage(null);
+      setError(null);
     } else {
-      setMessage(data.error ?? "Could not load requests.");
+      setMessage(null);
+      setError(data.error ?? "Could not load requests.");
     }
     setLoading(false);
   }
@@ -32,21 +36,25 @@ export function AdminApprovalsPanel() {
   }, []);
 
   async function review(requestId: string, action: "approve" | "reject") {
+    setReviewingId(requestId);
+    setMessage(null);
+    setError(null);
     const response = await fetch("/api/admin/join-requests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, requestId }),
     });
     const data = await response.json();
+    setReviewingId(null);
     if (response.ok) {
       setMessage(
         action === "approve"
-          ? `Approved ${data.request?.userName ?? "member"}.`
+          ? `Approved ${data.request?.userName ?? "member"} for ${data.request?.groupName ?? "the group"}.`
           : "Request declined.",
       );
       load();
     } else {
-      setMessage(data.error ?? "Could not update request.");
+      setError(data.error ?? "Could not update request.");
     }
   }
 
@@ -77,6 +85,11 @@ export function AdminApprovalsPanel() {
           <p className="mt-1 text-sm text-night-600">
             Review ministry and leadership access requests from sign-up and group joins.
           </p>
+          {error && (
+            <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800 ring-1 ring-red-200">
+              {error}
+            </p>
+          )}
           {pending.length === 0 ? (
             <p className="mt-4 text-sm text-night-500">No pending requests.</p>
           ) : (
@@ -95,8 +108,17 @@ export function AdminApprovalsPanel() {
                     Requested {new Date(request.requestedAt).toLocaleString()}
                   </p>
                   <div className="mt-3 flex gap-2">
-                    <Button onClick={() => review(request.id, "approve")}>Approve</Button>
-                    <Button variant="secondary" onClick={() => review(request.id, "reject")}>
+                    <Button
+                      onClick={() => review(request.id, "approve")}
+                      disabled={reviewingId === request.id}
+                    >
+                      {reviewingId === request.id ? "Saving…" : "Approve"}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => review(request.id, "reject")}
+                      disabled={reviewingId === request.id}
+                    >
                       Decline
                     </Button>
                   </div>

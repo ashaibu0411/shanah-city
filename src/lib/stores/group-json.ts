@@ -273,6 +273,26 @@ export async function joinGroup(groupId: string, userId: string) {
   return toSummary(group, userId);
 }
 
+/** Adds a member after an approval flow; bypasses requiresApproval checks. */
+export async function grantGroupMembership(groupId: string, userId: string) {
+  const groups = await getGroups();
+  const index = groups.findIndex((group) => group.id === groupId);
+  if (index === -1) {
+    throw new Error("Group not found.");
+  }
+
+  const group = groups[index];
+  if (isGroupMember(group, userId)) {
+    return toSummary(group, userId);
+  }
+
+  group.memberIds = [...group.memberIds, userId];
+  group.updatedAt = new Date().toISOString();
+  groups[index] = group;
+  await saveGroups(groups);
+  return toSummary(group, userId);
+}
+
 export async function leaveGroup(_groupId: string, _userId: string) {
   throw new Error("Members cannot leave a group on their own. Ask your group leader to remove you.");
 }

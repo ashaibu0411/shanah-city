@@ -311,6 +311,29 @@ export async function joinGroup(groupId: string, userId: string) {
   return toSummary(mapGroup(updated), userId);
 }
 
+/** Adds a member after an approval flow; bypasses requiresApproval checks. */
+export async function grantGroupMembership(groupId: string, userId: string) {
+  const record = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!record) {
+    throw new Error("Group not found.");
+  }
+
+  const group = mapGroup(record);
+  if (isGroupMember(group, userId)) {
+    return toSummary(group, userId);
+  }
+
+  const updated = await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      memberIds: [...group.memberIds, userId],
+      updatedAt: new Date(),
+    },
+  });
+
+  return toSummary(mapGroup(updated), userId);
+}
+
 export async function leaveGroup(_groupId: string, _userId: string) {
   throw new Error("Members cannot leave a group on their own. Ask your group leader to remove you.");
 }

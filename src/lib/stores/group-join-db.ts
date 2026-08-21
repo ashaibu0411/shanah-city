@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { getUserById } from "@/lib/auth-server";
 import { isAdminGroupMember } from "@/lib/admin-access-server";
 import { isGroupAdmin, isGroupMember } from "@/lib/group-admin-utils";
-import { getGroups, joinGroup } from "@/lib/stores/group-db";
+import { getGroups, grantGroupMembership, joinGroup } from "@/lib/stores/group-db";
 import type { GroupJoinRequest } from "@/lib/group-types";
 
 function mapRequest(record: {
@@ -151,7 +151,7 @@ export async function approveJoinRequest(requestId: string, reviewerId: string) 
   }
 
   const reviewer = await getUserById(reviewerId);
-  await joinGroup(record.groupId, record.userId);
+  await grantGroupMembership(record.groupId, record.userId);
 
   const updated = await prisma.groupJoinRequest.update({
     where: { id: requestId },

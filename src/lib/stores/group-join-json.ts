@@ -4,7 +4,7 @@ import { getUserById } from "@/lib/auth-server";
 import { isAdminGroupMember } from "@/lib/admin-access-server";
 import { isGroupAdmin, isGroupMember } from "@/lib/group-admin-utils";
 import type { GroupJoinRequest } from "@/lib/group-types";
-import { getGroups, joinGroup } from "@/lib/stores/group-json";
+import { getGroups, grantGroupMembership, joinGroup } from "@/lib/stores/group-json";
 
 const REQUESTS_FILE = path.join(process.cwd(), "data", "group-join-requests.json");
 
@@ -149,7 +149,7 @@ export async function approveJoinRequest(requestId: string, reviewerId: string) 
   }
 
   const reviewer = await getUserById(reviewerId);
-  await joinGroup(record.groupId, record.userId);
+  await grantGroupMembership(record.groupId, record.userId);
 
   requests[index] = {
     ...record,
