@@ -35,7 +35,15 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        await recordGiftFromCheckoutSession(session);
+        const fullSession = await getStripe().checkout.sessions.retrieve(session.id);
+        const record = await recordGiftFromCheckoutSession(fullSession);
+        if (!record) {
+          console.warn("Stripe checkout completed but gift was not recorded.", {
+            sessionId: session.id,
+            mode: fullSession.mode,
+            paymentStatus: fullSession.payment_status,
+          });
+        }
         break;
       }
       case "invoice.payment_succeeded": {

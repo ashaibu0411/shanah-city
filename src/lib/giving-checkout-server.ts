@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import type { PublicMember } from "@/lib/auth-types";
+import { getUserByEmail } from "@/lib/auth-server";
 import {
   fundLabel,
   type GivingCheckoutFrequency,
@@ -10,13 +11,13 @@ import {
   getGivingRecordByStripeInvoiceId,
   getGivingRecordByStripeSessionId,
 } from "@/lib/giving-server";
+import { getZonedDateParts } from "@/lib/denver-time";
 import { getAppBaseUrl, getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 
 export { isStripeGivingConfigured };
 
-function todayIso() {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+function giftDateIso(date = new Date()) {
+  return getZonedDateParts(date).dateKey;
 }
 
 function amountInDollars(cents: number | null | undefined) {
@@ -147,7 +148,7 @@ async function recordStripeGift(input: {
     currency: input.currency.toUpperCase(),
     fund: input.fund,
     method: "stripe",
-    givenOn: todayIso(),
+    givenOn: giftDateIso(),
     campusId: input.campusId,
     notes: input.notes,
     source: "stripe",
@@ -179,14 +180,24 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
     donorEmail?.split("@")[0] ||
     "Online donor";
 
+  let userId = session.client_reference_id || metadataUserId(session.metadata?.userId);
+  let campusId = metadataValue(session.metadata?.campusId);
+  if (!userId && donorEmail) {
+    const member = await getUserByEmail(donorEmail);
+    if (member) {
+      userId = member.id;
+      campusId = campusId ?? member.campusId;
+    }
+  }
+
   return recordStripeGift({
     amount,
     currency: session.currency ?? "usd",
     fund,
     donorName,
     donorEmail,
-    userId: session.client_reference_id || metadataUserId(session.metadata?.userId),
-    campusId: metadataValue(session.metadata?.campusId),
+    userId,
+    campusId,
     notes:
       session.metadata?.frequency === "monthly"
         ? "Recurring gift (first payment via checkout)"

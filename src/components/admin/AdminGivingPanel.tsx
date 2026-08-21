@@ -307,6 +307,13 @@ export function AdminGivingPanel() {
           </select>
         </div>
 
+        {summary && summary.count === 0 && !loading ? (
+          <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            No gifts in this date range. If you just tested Stripe, widen the &ldquo;To&rdquo; date
+            (evening gifts use Denver time) or click Refresh.
+          </p>
+        ) : null}
+
         {summary && (
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-xl bg-sand-50 p-4">
