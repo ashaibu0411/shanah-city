@@ -22,7 +22,8 @@ export function PushNotificationSettings() {
   const [configured, setConfigured] = useState(false);
   const [publicKey, setPublicKey] = useState("");
   const [enabled, setEnabled] = useState(false);
-  const [deviceCounts, setDeviceCounts] = useState({ web: 0, native: 0 });
+  const [deviceCounts, setDeviceCounts] = useState({ web: 0, native: 0, platforms: [] as string[] });
+  const [serverPush, setServerPush] = useState({ web: false, android: false, ios: false });
   const [prefs, setPrefs] = useState<NotificationPrefs>({
     pushEnabled: true,
     devotions: true,
@@ -56,8 +57,14 @@ export function PushNotificationSettings() {
       const data = await response.json();
       setConfigured(Boolean(data.configured));
       setPublicKey(data.publicKey ?? "");
-      setEnabled(Boolean(data.subscribed));
-      setDeviceCounts(data.devices ?? { web: 0, native: 0 });
+      setDeviceCounts(
+        data.devices ?? { web: 0, native: 0, platforms: [] as string[] },
+      );
+      setServerPush(data.server ?? { web: false, android: false, ios: false });
+      const nativeReady = isNativeAppPlatform()
+        ? (data.devices?.native ?? 0) > 0
+        : Boolean(data.subscribed);
+      setEnabled(nativeReady);
     } catch {
       // Ignore transient fetch errors.
     }
@@ -179,6 +186,32 @@ export function PushNotificationSettings() {
     }
   }
 
+  async function sendTestPush() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const response = await fetch("/api/push", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "test" }),
+      });
+      const data = await response.json();
+      setBusy(false);
+      if (!response.ok || !data.ok) {
+        const detail = Array.isArray(data.errors) ? data.errors.join(" · ") : "";
+        setStatus(
+          detail || data.error || "Test push could not be delivered. Enable push on this phone first.",
+        );
+        return;
+      }
+      setStatus("Test alert sent. Check your phone notification tray.");
+    } catch {
+      setBusy(false);
+      setStatus("Could not send a test push right now.");
+    }
+  }
+
   async function disablePush() {
     setBusy(true);
     setStatus(null);
@@ -281,15 +314,27 @@ export function PushNotificationSettings() {
 
       <div className="mt-4 flex flex-wrap gap-3">
         {enabled ? (
-          <Button variant="secondary" onClick={disablePush} disabled={busy}>
-            Turn off push
-          </Button>
+          <>
+            <Button variant="secondary" onClick={disablePush} disabled={busy}>
+              Turn off push
+            </Button>
+            <Button variant="secondary" onClick={sendTestPush} disabled={busy}>
+              {busy ? "Sending..." : "Send test alert"}
+            </Button>
+          </>
         ) : (
           <Button onClick={enablePush} disabled={busy}>
             {busy ? "Enabling..." : "Enable push notifications"}
           </Button>
         )}
       </div>
+
+      {isNativeAppPlatform() && (
+        <p className="mt-3 text-xs text-night-500">
+          Phone server: Android {serverPush.android ? "ready" : "missing"} · iOS{" "}
+          {serverPush.ios ? "ready" : "missing"}
+        </p>
+      )}
 
       {enabled && (
         <p className="mt-3 text-xs text-night-500">
@@ -311,8 +356,9 @@ export function PushNotificationSettings() {
 
       {!enabled && (
         <p className="mt-3 text-xs text-night-500">
-          Each phone must enable push on its own account under Profile. Only the message
-          recipient gets an alert, not the sender.
+          {isNativeAppPlatform()
+            ? "Open Profile in the Shanah City app, tap Enable, and allow notifications when your phone asks."
+            : "Each phone must enable push on its own account under Profile. Only the message recipient gets an alert, not the sender."}
         </p>
       )}
 

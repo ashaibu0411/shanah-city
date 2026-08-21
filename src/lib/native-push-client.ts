@@ -116,11 +116,22 @@ let pendingRegistration:
 async function persistRegistration(token: string, platform: NativePushPlatform) {
   if (isNativePushOptedOut()) return { ok: false as const, reason: "opted-out" };
   storeToken(token, platform);
-  const sync = await syncNativePushToken();
-  if (!sync.ok) {
-    return { ok: false as const, reason: sync.reason ?? "server" };
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const sync = await syncNativePushToken();
+    if (sync.ok) {
+      window.dispatchEvent(new Event("shanah-push-synced"));
+      return { ok: true as const };
+    }
+    if (sync.reason === "opted-out" || sync.reason === "not-native") {
+      return { ok: false as const, reason: sync.reason };
+    }
+    if (attempt < 3) {
+      await new Promise((resolve) => window.setTimeout(resolve, 500 * (attempt + 1)));
+    }
   }
-  return { ok: true as const };
+
+  return { ok: false as const, reason: "server" };
 }
 
 export async function registerNativePush() {
@@ -147,16 +158,10 @@ export async function registerNativePush() {
     if (sync.ok) {
       return { ok: true as const };
     }
-    // Re-registering usually will not fire another registration event when a token
-    // is already cached locally — retry the server sync instead of waiting 15s.
-    return {
-      ok: false as const,
-      reason: sync.reason ?? "server",
-      error: "error" in sync ? sync.error : undefined,
-    };
+    // Token may be stale or the server sync failed earlier — re-register below.
   }
 
-  return new Promise<{ ok: true } | { ok: false; reason: string }>((resolve) => {
+  return new Promise<{ ok: true } | { ok: false; reason: string; error?: string }>((resolve) => {
     if (pendingRegistration) {
       window.clearTimeout(pendingRegistration.timeoutId);
     }
@@ -169,6 +174,16 @@ export async function registerNativePush() {
     pendingRegistration = { resolve, timeoutId };
     void PushNotifications.register();
   });
+}
+
+async function refreshNativeRegistration() {
+  const { PushNotifications } = await import("@capacitor/push-notifications");
+  const permission = await PushNotifications.checkPermissions();
+  if (permission.receive !== "granted") {
+    return { ok: false as const, reason: "denied" as const };
+  }
+  await PushNotifications.register();
+  return { ok: true as const };
 }
 
 export async function startNativePushListeners() {
@@ -210,7 +225,8 @@ export async function startNativePushListeners() {
     }
   });
 
-  await PushNotifications.addListener("registrationError", () => {
+  await PushNotifications.addListener("registrationError", (error) => {
+    console.error("Native push registration failed:", error);
     if (pendingRegistration) {
       window.clearTimeout(pendingRegistration.timeoutId);
       pendingRegistration.resolve({ ok: false, reason: "registration-error" });
@@ -250,6 +266,24 @@ export async function ensureNativePushRegistered() {
     }
     if (attempt < 2) {
       await new Promise((resolve) => window.setTimeout(resolve, 750));
+    }
+  }
+
+  const permission = await import("@capacitor/push-notifications").then((mod) =>
+    mod.PushNotifications.checkPermissions(),
+  );
+  if (permission.receive === "granted") {
+    await refreshNativeRegistration();
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const sync = await syncNativePushToken();
+      if (sync.ok) {
+        return { ok: true as const };
+      }
+      if (sync.reason === "no-token" && attempt < 3) {
+        await new Promise((resolve) => window.setTimeout(resolve, 750));
+        continue;
+      }
+      break;
     }
   }
 

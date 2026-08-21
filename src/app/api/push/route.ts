@@ -15,7 +15,12 @@ import {
   removePushSubscription,
   saveNativePushToken,
   savePushSubscription,
+  sendTestPushToUser,
 } from "@/lib/push-server";
+import {
+  isAndroidNativePushConfigured,
+  isIosNativePushConfigured,
+} from "@/lib/native-push-server";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -39,6 +44,16 @@ export async function GET() {
     devices: {
       web: userWebSubs.length,
       native: userNativeTokens.length,
+      platforms: userNativeTokens.map((item) => item.platform),
+    },
+    server: {
+      web: Boolean(
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() &&
+          process.env.VAPID_PRIVATE_KEY?.trim() &&
+          process.env.VAPID_SUBJECT?.trim(),
+      ),
+      android: isAndroidNativePushConfigured(),
+      ios: isIosNativePushConfigured(),
     },
     preferences: user.notificationPrefs ?? {
       pushEnabled: true,
@@ -105,6 +120,14 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       user: updated ? toPublicMember(updated) : user,
+    });
+  }
+
+  if (body.action === "test") {
+    const result = await sendTestPushToUser(user.id);
+    return NextResponse.json({
+      ok: result.sent > 0,
+      ...result,
     });
   }
 

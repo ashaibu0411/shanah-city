@@ -13,15 +13,36 @@ export type NativePushPayload = {
 function parseServiceAccount() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
   if (!raw) return null;
-  try {
-    return JSON.parse(raw) as {
-      project_id: string;
-      client_email: string;
-      private_key: string;
-    };
-  } catch {
-    return null;
+
+  const candidates = [raw];
+  if (raw.startsWith('"') && raw.endsWith('"')) {
+    try {
+      candidates.push(JSON.parse(raw) as string);
+    } catch {
+      // Keep the original string.
+    }
   }
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as {
+        project_id?: string;
+        client_email?: string;
+        private_key?: string;
+      };
+      if (parsed.project_id && parsed.client_email && parsed.private_key) {
+        return {
+          project_id: parsed.project_id,
+          client_email: parsed.client_email,
+          private_key: parsed.private_key,
+        };
+      }
+    } catch {
+      // Try the next candidate.
+    }
+  }
+
+  return null;
 }
 
 export function isAndroidNativePushConfigured() {
@@ -81,9 +102,12 @@ function apnsJwt() {
   return token;
 }
 
-function sendApns(token: string, payload: NativePushPayload) {
+function sendApns(
+  token: string,
+  payload: NativePushPayload,
+  production = process.env.APNS_PRODUCTION !== "false",
+) {
   const bundleId = process.env.APNS_BUNDLE_ID?.trim() || "org.shanahcity.app";
-  const production = process.env.APNS_PRODUCTION !== "false";
   const host = production ? "api.push.apple.com" : "api.sandbox.push.apple.com";
   const jwt = apnsJwt();
   const body = JSON.stringify({
@@ -142,6 +166,31 @@ function sendApns(token: string, payload: NativePushPayload) {
   });
 }
 
+function isApnsEnvironmentMismatch(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  const status = (error as { status?: number } | undefined)?.status;
+  return (
+    status === 400 ||
+    status === 410 ||
+    /BadDeviceToken|DeviceTokenNotForTopic|Unregistered|InvalidProviderToken/i.test(
+      message,
+    )
+  );
+}
+
+async function sendApnsWithFallback(token: string, payload: NativePushPayload) {
+  const preferredProduction = process.env.APNS_PRODUCTION !== "false";
+  try {
+    await sendApns(token, payload, preferredProduction);
+    return;
+  } catch (error) {
+    if (!isApnsEnvironmentMismatch(error)) {
+      throw error;
+    }
+    await sendApns(token, payload, !preferredProduction);
+  }
+}
+
 export async function sendNativePush(
   record: StoredNativePushToken,
   payload: NativePushPayload,
@@ -159,6 +208,8 @@ export async function sendNativePush(
       },
       data: {
         url: payload.url,
+        title: payload.title,
+        body: payload.body,
       },
       android: {
         priority: "high",
@@ -173,7 +224,7 @@ export async function sendNativePush(
   if (!isIosNativePushConfigured()) {
     throw new Error("APNs is not configured.");
   }
-  await sendApns(record.token, payload);
+  await sendApnsWithFallback(record.token, payload);
 }
 
 export function shouldDropNativeToken(error: unknown) {

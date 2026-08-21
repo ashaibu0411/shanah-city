@@ -62,6 +62,75 @@ function configureWebPush() {
   return true;
 }
 
+export async function sendTestPushToUser(userId: string) {
+  const payload = {
+    title: "Shanah City test alert",
+    body: "Push notifications are working on this device.",
+    url: "/profile",
+  };
+  const webConfigured = configureWebPush();
+  const nativeConfigured = isNativePushConfigured();
+  if (!webConfigured && !nativeConfigured) {
+    return { sent: 0, skipped: 0, configured: false, errors: ["Push is not configured."] };
+  }
+
+  const subscriptions = webConfigured
+    ? (await store().getPushSubscriptions()).filter((item) => item.userId === userId)
+    : [];
+  const nativeTokens = nativeConfigured
+    ? (await store().getNativePushTokens()).filter((item) => item.userId === userId)
+    : [];
+
+  if (subscriptions.length === 0 && nativeTokens.length === 0) {
+    return {
+      sent: 0,
+      skipped: 1,
+      configured: true,
+      errors: ["No registered devices found for this account."],
+    };
+  }
+
+  let sent = 0;
+  let webSent = 0;
+  let nativeSent = 0;
+  const errors: string[] = [];
+
+  for (const record of subscriptions) {
+    try {
+      await webpush.sendNotification(record.subscription, JSON.stringify(payload));
+      sent += 1;
+      webSent += 1;
+    } catch (error) {
+      await store().removePushSubscription(userId, record.endpoint);
+      errors.push(`web:${error instanceof Error ? error.message : "send failed"}`);
+    }
+  }
+
+  for (const record of nativeTokens) {
+    try {
+      await sendNativePush(record, payload);
+      sent += 1;
+      nativeSent += 1;
+    } catch (error) {
+      if (shouldDropNativeToken(error)) {
+        await store().removeNativePushToken(userId, record.token);
+      }
+      errors.push(
+        `${record.platform}:${error instanceof Error ? error.message : "send failed"}`,
+      );
+    }
+  }
+
+  return {
+    sent,
+    skipped: errors.length,
+    webSent,
+    nativeSent,
+    errors,
+    configured: true,
+  };
+}
+
 export async function sendPushToUsers(
   userIds: string[],
   payload: { title: string; body: string; url: string },
