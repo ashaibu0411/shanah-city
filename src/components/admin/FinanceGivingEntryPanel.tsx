@@ -23,6 +23,13 @@ function formatMoney(amount: number) {
   return amount.toLocaleString(undefined, { style: "currency", currency: "USD" });
 }
 
+function formatRefreshTime(date: Date) {
+  return date.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 const FINANCE_METHODS = GIVING_METHOD_OPTIONS.filter((option) =>
   ["zelle", "venmo", "cashapp", "paypal", "zeffy", "cash", "check", "in-person", "other"].includes(
     option.value,
@@ -33,6 +40,7 @@ export function FinanceGivingEntryPanel() {
   const [people, setPeople] = useState<AdminPeopleEntry[]>([]);
   const [records, setRecords] = useState<GivingRecord[]>([]);
   const [loadingRecords, setLoadingRecords] = useState(true);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [savedRecord, setSavedRecord] = useState<GivingRecord | null>(null);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
@@ -69,20 +77,34 @@ export function FinanceGivingEntryPanel() {
     }
   }, [selectedMember]);
 
-  async function loadRecentRecords() {
+  async function loadRecentRecords(options?: { announce?: boolean }) {
     setLoadingRecords(true);
     const params = new URLSearchParams({
       since: weekRange.since,
       until: weekRange.until,
+      _: String(Date.now()),
     });
-    const response = await fetch(`/api/admin/giving?${params.toString()}`);
-    const data = await response.json();
-    setLoadingRecords(false);
 
-    if (response.ok) {
-      setRecords(
-        (data.records ?? []).filter((record: GivingRecord) => record.source === "manual"),
-      );
+    try {
+      const response = await fetch(`/api/admin/giving?${params.toString()}`, {
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        const manualRecords = (data.records ?? []).filter(
+          (record: GivingRecord) => record.source === "manual",
+        );
+        setRecords(manualRecords);
+        setLastRefreshedAt(new Date());
+        if (options?.announce) {
+          setMessage(
+            `Refreshed at ${formatRefreshTime(new Date())} — ${manualRecords.length} manual gift${manualRecords.length === 1 ? "" : "s"} this week.`,
+          );
+        }
+      }
+    } finally {
+      setLoadingRecords(false);
     }
   }
 
@@ -253,10 +275,17 @@ export function FinanceGivingEntryPanel() {
             </h3>
             <p className="mt-1 text-xs text-night-500">
               {weekRange.since} – {weekRange.until} (Denver)
+              {lastRefreshedAt
+                ? ` · Updated ${formatRefreshTime(lastRefreshedAt)}${loadingRecords ? " · refreshing…" : ""}`
+                : ""}
             </p>
           </div>
-          <Button variant="secondary" onClick={loadRecentRecords}>
-            Refresh
+          <Button
+            variant="secondary"
+            onClick={() => loadRecentRecords({ announce: true })}
+            disabled={loadingRecords}
+          >
+            {loadingRecords ? "Refreshing…" : "Refresh"}
           </Button>
         </div>
 

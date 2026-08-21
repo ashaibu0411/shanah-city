@@ -31,6 +31,13 @@ function formatMoney(amount: number) {
   return amount.toLocaleString(undefined, { style: "currency", currency: "USD" });
 }
 
+function formatRefreshTime(date: Date) {
+  return date.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function AdminGivingPanel() {
   const searchParams = useSearchParams();
   const initialMemberId = searchParams.get("member") ?? "";
@@ -44,6 +51,7 @@ export function AdminGivingPanel() {
   const [guestsOnly, setGuestsOnly] = useState(false);
   const [sendingStatement, setSendingStatement] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const [memberId, setMemberId] = useState(initialMemberId);
@@ -72,7 +80,7 @@ export function AdminGivingPanel() {
     }
   }, [selectedMember]);
 
-  async function loadRecords() {
+  async function loadRecords(options?: { announce?: boolean }) {
     setLoading(true);
     const params = new URLSearchParams();
     if (since) params.set("since", since);
@@ -80,17 +88,30 @@ export function AdminGivingPanel() {
     if (fundFilter) params.set("fund", fundFilter);
     if (donorEmailFilter.trim()) params.set("donorEmail", donorEmailFilter.trim());
     if (guestsOnly) params.set("guestsOnly", "1");
+    params.set("_", String(Date.now()));
 
-    const response = await fetch(`/api/admin/giving?${params.toString()}`);
-    const data = await response.json();
-    setLoading(false);
+    try {
+      const response = await fetch(`/api/admin/giving?${params.toString()}`, {
+        cache: "no-store",
+      });
+      const data = await response.json();
 
-    if (response.ok) {
-      setRecords(data.records ?? []);
-      setSummary(data.summary ?? null);
-      setMessage(null);
-    } else {
-      setMessage(data.error ?? "Could not load giving records.");
+      if (response.ok) {
+        setRecords(data.records ?? []);
+        setSummary(data.summary ?? null);
+        setLastRefreshedAt(new Date());
+        if (options?.announce) {
+          const count = data.summary?.count ?? 0;
+          const total = data.summary?.totalAmount ?? 0;
+          setMessage(
+            `Refreshed at ${formatRefreshTime(new Date())} — ${count} gift${count === 1 ? "" : "s"} (${formatMoney(total)}) in this range.`,
+          );
+        }
+      } else {
+        setMessage(data.error ?? "Could not load giving records.");
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -337,6 +358,12 @@ export function AdminGivingPanel() {
               Filter by date range, fund, or guest donor email. Export CSV or email a guest
               statement when an email is entered.
             </p>
+            {lastRefreshedAt && (
+              <p className="mt-1 text-xs text-night-500">
+                Last updated {formatRefreshTime(lastRefreshedAt)}
+                {loading ? " · refreshing…" : ""}
+              </p>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={applyThisWeek}>
@@ -345,8 +372,8 @@ export function AdminGivingPanel() {
             <Button variant="secondary" onClick={applyThisMonth}>
               This month
             </Button>
-            <Button variant="secondary" onClick={loadRecords}>
-              Refresh
+            <Button variant="secondary" onClick={() => loadRecords({ announce: true })} disabled={loading}>
+              {loading ? "Refreshing…" : "Refresh"}
             </Button>
             <Button variant="secondary" onClick={exportCsv}>
               Export CSV
@@ -413,7 +440,9 @@ export function AdminGivingPanel() {
         ) : null}
 
         {summary && (
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div
+            className={`mt-6 grid gap-4 md:grid-cols-3 transition-opacity ${loading ? "opacity-50" : "opacity-100"}`}
+          >
             <div className="rounded-xl bg-sand-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
                 Total
@@ -448,9 +477,18 @@ export function AdminGivingPanel() {
         <p className="mb-4 rounded-xl bg-sand-100 px-4 py-3 text-sm text-night-700">{message}</p>
       )}
 
-      <Card>
-        <h2 className="font-display text-xl font-semibold text-night-900">Recorded gifts</h2>
-        {loading ? (
+      <Card className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-semibold text-night-900">Recorded gifts</h2>
+          {lastRefreshedAt && (
+            <p className="text-xs text-night-500">
+              {loading ? "Refreshing…" : `Updated ${formatRefreshTime(lastRefreshedAt)}`}
+            </p>
+          )}
+        </div>
+        {loading && records.length > 0 ? (
+          <p className="mt-4 text-sm text-night-500">Refreshing records…</p>
+        ) : loading ? (
           <p className="mt-4 text-sm text-night-500">Loading records…</p>
         ) : records.length === 0 ? (
           <p className="mt-4 text-sm text-night-500">No giving records in this date range.</p>
