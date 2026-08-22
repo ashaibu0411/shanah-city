@@ -8,10 +8,11 @@ import type { GroupCategory, GroupDetail, GroupMemberPreview, GroupSummary } fro
 import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { groupCategoryLabels } from "@/lib/group-types";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
+import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
 import { Button, Card, ExternalLink } from "@/components/ui";
 
 type Tab = "discover" | "mine" | "create";
-type DetailSection = "overview" | "chat";
+type DetailSection = "overview" | "chat" | "polls";
 
 const categories: GroupCategory[] = [
   "ministry",
@@ -431,6 +432,7 @@ export function GroupsHub() {
                 {(
                   [
                     { id: "overview", label: "Overview" },
+                    { id: "polls", label: "Polls" },
                     { id: "chat", label: "Group chat" },
                   ] as const
                 ).map((item) => (
@@ -456,6 +458,12 @@ export function GroupsHub() {
                 groupName={detail.name}
                 userId={user.id}
                 memberCount={detail.members.length}
+              />
+            ) : detailSection === "polls" && detail.isMember && user ? (
+              <GroupPollsPanel
+                groupId={detail.id}
+                groupName={detail.name}
+                isAdmin={detail.isAdmin}
               />
             ) : (
               <>

@@ -303,6 +303,36 @@ export async function sendPushToAllMembers(
   return sendPushToUsers(userIds, payload, preferenceKey);
 }
 
+export async function notifyPollCreated(input: {
+  authorId?: string;
+  authorName: string;
+  question: string;
+  targetGroupId?: string;
+  targetGroupName?: string;
+}) {
+  const title = input.targetGroupName
+    ? `${input.targetGroupName} poll`
+    : "Church poll";
+  const payload = {
+    title,
+    body: `${input.authorName}: ${input.question.slice(0, 120)}`,
+    url: input.targetGroupId
+      ? `/groups?group=${encodeURIComponent(input.targetGroupId)}`
+      : "/community",
+  };
+
+  if (input.targetGroupId) {
+    return sendPushToGroupMembers(
+      input.targetGroupId,
+      payload,
+      "announcements",
+      input.authorId,
+    );
+  }
+
+  return sendPushToAllMembers(payload, "announcements", input.authorId);
+}
+
 export async function notifyCommunityPost(input: {
   authorId?: string;
   authorName: string;

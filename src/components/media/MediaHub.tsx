@@ -6,6 +6,7 @@ import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
 import { MediaClipsGrid } from "@/components/media/MediaClipsGrid";
 import { MediaLiveStage } from "@/components/media/MediaLiveStage";
 import { MobileMediaHub } from "@/components/media/MobileMediaHub";
+import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { MediaClip, MediaTab } from "@/lib/types";
 
 type MediaHubProps = {
@@ -16,6 +17,7 @@ type MediaHubProps = {
     url: string;
     platform: string;
   }>;
+  churchImages: ChurchSocialImages;
 };
 
 function MediaTabs({
@@ -55,12 +57,14 @@ function MediaTabs({
   );
 }
 
-export function MediaHub({ clips, browseLinks }: MediaHubProps) {
+export function MediaHub({ clips, browseLinks, churchImages }: MediaHubProps) {
   const { isMobileApp } = useAppShell();
   const [tab, setTab] = useState<MediaTab>("live");
 
   if (isMobileApp) {
-    return <MobileMediaHub clips={clips} browseLinks={browseLinks} />;
+    return (
+      <MobileMediaHub clips={clips} browseLinks={browseLinks} churchImages={churchImages} />
+    );
   }
 
   return (

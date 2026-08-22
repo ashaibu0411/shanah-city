@@ -1,24 +1,31 @@
-import Image from "next/image";
+import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
+import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { MediaTab } from "@/lib/types";
 
 type MobileMediaHeroProps = {
   tab: MediaTab;
   anyLive: boolean;
   clipsCount: number;
+  churchImages: ChurchSocialImages;
 };
 
-export function MobileMediaHero({ tab, anyLive, clipsCount }: MobileMediaHeroProps) {
+export function MobileMediaHero({
+  tab,
+  anyLive,
+  clipsCount,
+  churchImages,
+}: MobileMediaHeroProps) {
   const isLive = tab === "live";
+  const heroSrc = isLive ? churchImages.mediaLive : churchImages.mediaShorts;
 
   return (
     <section className="mobile-media-hero relative aspect-[16/9] overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10">
       <div className="absolute inset-[3px] rounded-[0.85rem] ring-1 ring-white/20" aria-hidden />
-      <Image
-        src={isLive ? "/mobile-flyers/live.png" : "/mobile-flyers/media-shorts.png"}
+      <ChurchFlyerImage
+        src={heroSrc}
         alt={isLive ? "Watch live" : "Shorts and highlights"}
-        fill
-        sizes="(max-width: 512px) 100vw, 480px"
         priority
+        sizes="(max-width: 512px) 100vw, 480px"
         className="mobile-media object-cover"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/92 via-night-900/40 to-night-800/20" />

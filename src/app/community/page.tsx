@@ -1,24 +1,30 @@
 import { CommunityFeed } from "@/components/community/CommunityFeed";
+import { PollsSection } from "@/components/polls/PollsSection";
 import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { PageHeader } from "@/components/ui";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getCommunityPostsForViewer } from "@/lib/member-server";
+import { getPollsForViewer } from "@/lib/poll-server";
 import { cookies } from "next/headers";
 
 export default async function CommunityPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
-  const posts = await getCommunityPostsForViewer(user?.id);
+  const [posts, polls] = await Promise.all([
+    getCommunityPostsForViewer(user?.id),
+    getPollsForViewer(user),
+  ]);
 
   return (
     <>
       <PageHeader
         eyebrow="Together"
         title="Community"
-        description="Pray for one another, share praise reports, and comment on posts across the Shanah City family."
+        description="Pray for one another, share praise reports, vote in church polls, and comment on posts across the Shanah City family."
       />
       <MarkFeedRead feed="community" />
+      <PollsSection initialPolls={polls.filter((poll) => !poll.targetGroupId)} />
       <CommunityFeed initialPosts={posts} />
     </>
   );

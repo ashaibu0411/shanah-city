@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/app/AppProvider";
+import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
+import { churchSocialImageForAction } from "@/lib/facebook-church-media";
+import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { HomeTagline } from "@/components/home/HomeTagline";
 import { MobileQuickActionFlyer } from "@/components/home/MobileQuickActionFlyer";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
@@ -25,9 +27,15 @@ type MobileHomeProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
   urgentAlert: UrgentAlert | null;
+  churchImages: ChurchSocialImages;
 };
 
-export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProps) {
+export function MobileHome({
+  posts,
+  todayDevotion,
+  urgentAlert,
+  churchImages,
+}: MobileHomeProps) {
   const { campus } = useApp();
   const [devotion, setDevotion] = useState<Devotion | null>(todayDevotion);
 
@@ -86,12 +94,11 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
               className="mobile-media h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
             />
           ) : (
-            <Image
-              src="/mobile-flyers/live.png"
+            <ChurchFlyerImage
+              src={churchImages.live}
               alt="Watch live"
-              fill
-              sizes="(max-width: 512px) 100vw, 480px"
               priority
+              sizes="(max-width: 512px) 100vw, 480px"
               className="mobile-media object-cover transition duration-700 group-hover:scale-[1.04]"
             />
           )}
@@ -163,7 +170,11 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
             aria-label={action.label}
             className="mobile-action-flyer group block overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10 transition active:scale-[0.98]"
           >
-            <MobileQuickActionFlyer name={action.icon} className="h-full w-full" />
+            <MobileQuickActionFlyer
+              name={action.icon}
+              imageSrc={churchSocialImageForAction(churchImages, action.icon)}
+              className="h-full w-full"
+            />
           </Link>
         ))}
       </div>

@@ -6,6 +6,7 @@ import { MediaClipsGrid } from "@/components/media/MediaClipsGrid";
 import { MediaLiveStage } from "@/components/media/MediaLiveStage";
 import { MobileMediaHero } from "@/components/media/MobileMediaHero";
 import { liveStream } from "@/lib/site";
+import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { MediaClip, MediaTab } from "@/lib/types";
 
 type MobileMediaHubProps = {
@@ -16,9 +17,10 @@ type MobileMediaHubProps = {
     url: string;
     platform: string;
   }>;
+  churchImages: ChurchSocialImages;
 };
 
-export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
+export function MobileMediaHub({ clips, browseLinks, churchImages }: MobileMediaHubProps) {
   const [tab, setTab] = useState<MediaTab>("live");
   const anyLive =
     liveStream.isLive ||
@@ -27,7 +29,12 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
 
   return (
     <div className="mobile-media-hub space-y-3">
-      <MobileMediaHero tab={tab} anyLive={anyLive} clipsCount={clips.length} />
+      <MobileMediaHero
+        tab={tab}
+        anyLive={anyLive}
+        clipsCount={clips.length}
+        churchImages={churchImages}
+      />
 
       <div className="flex rounded-xl bg-night-950 p-1 shadow-app-md ring-1 ring-night-900/10">
         {(

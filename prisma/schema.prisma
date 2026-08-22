@@ -614,3 +614,49 @@ model UrgentAlert {
   @@index([active])
   @@index([expiresAt])
 }
+
+model Poll {
+  id              String       @id
+  question        String
+  description     String?
+  createdBy       String
+  creatorName     String
+  campusId        String?
+  targetGroupId   String?
+  targetGroupName String?
+  status          String       @default("open")
+  allowMultiple   Boolean      @default(false)
+  closesAt        DateTime?
+  createdAt       DateTime     @default(now())
+  options         PollOption[]
+  votes           PollVote[]
+
+  @@index([targetGroupId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PollOption {
+  id        String     @id
+  pollId    String
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  label     String
+  sortOrder Int        @default(0)
+  votes     PollVote[]
+
+  @@index([pollId])
+}
+
+model PollVote {
+  id       String     @id
+  pollId   String
+  poll     Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  optionId String
+  option   PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId   String
+  userName String
+  votedAt  DateTime   @default(now())
+
+  @@unique([pollId, optionId, userId])
+  @@index([pollId, userId])
+}

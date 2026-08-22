@@ -16,18 +16,34 @@ import type { Devotion, ChurchEvent } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
+import type { ChurchSocialImages } from "@/lib/facebook-church-media";
+
 type HomeViewProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
   events: ChurchEvent[];
   urgentAlert: UrgentAlert | null;
+  churchImages: ChurchSocialImages;
 };
 
-export function HomeView({ posts, todayDevotion, events, urgentAlert }: HomeViewProps) {
+export function HomeView({
+  posts,
+  todayDevotion,
+  events,
+  urgentAlert,
+  churchImages,
+}: HomeViewProps) {
   const { isMobileApp } = useAppShell();
 
   if (isMobileApp) {
-    return <MobileHome posts={posts} todayDevotion={todayDevotion} urgentAlert={urgentAlert} />;
+    return (
+      <MobileHome
+        posts={posts}
+        todayDevotion={todayDevotion}
+        urgentAlert={urgentAlert}
+        churchImages={churchImages}
+      />
+    );
   }
 
   return (
