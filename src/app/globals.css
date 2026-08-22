@@ -297,6 +297,16 @@
     @apply rounded-2xl border border-night-900/10 bg-white shadow-app-md;
   }
 
+  body[data-shell="mobile"] .mobile-action-flyer {
+    aspect-ratio: 4 / 5;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  body[data-shell="mobile"] .mobile-action-flyer:active {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+  }
+
   body[data-shell="mobile"] .mobile-action-tile {
     @apply relative overflow-hidden rounded-2xl border border-white/20 shadow-app-lg;
     min-height: 7.25rem;

@@ -8,41 +8,17 @@ import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail, streamPreviews } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import { HomeTagline } from "@/components/home/HomeTagline";
-import { MobileQuickActionIcon } from "@/components/home/MobileQuickActionIcon";
+import { MobileQuickActionFlyer } from "@/components/home/MobileQuickActionFlyer";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 const mobileQuickActions = [
-  {
-    label: "Give",
-    href: "/give",
-    icon: "give",
-    tone: "from-amber-500 via-amber-600 to-amber-800",
-    accent: "shadow-amber-900/35",
-  },
-  {
-    label: "Connect",
-    href: "/connect",
-    icon: "connect",
-    tone: "from-sky-500 via-blue-600 to-indigo-800",
-    accent: "shadow-blue-900/35",
-  },
-  {
-    label: "Community",
-    href: "/community",
-    icon: "community",
-    tone: "from-emerald-500 via-teal-600 to-emerald-900",
-    accent: "shadow-emerald-900/35",
-  },
-  {
-    label: "Devotions",
-    href: "/devotions",
-    icon: "devotions",
-    tone: "from-orange-500 via-amber-600 to-rose-700",
-    accent: "shadow-orange-900/35",
-  },
+  { label: "Give", href: "/give", icon: "give" },
+  { label: "Connect", href: "/connect", icon: "connect" },
+  { label: "Community", href: "/community", icon: "community" },
+  { label: "Devotions", href: "/devotions", icon: "devotions" },
 ] as const;
 
 type MobileHomeProps = {
@@ -175,16 +151,10 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
           <Link
             key={action.label}
             href={action.href}
-            className={`mobile-action-tile group bg-gradient-to-br ${action.tone} ${action.accent} p-3.5 text-white transition active:scale-[0.98]`}
+            aria-label={action.label}
+            className="mobile-action-flyer group block overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10 transition active:scale-[0.98]"
           >
-            <div className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/20 blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-6 -left-4 h-16 w-16 rounded-full bg-black/20 blur-2xl" />
-            <div className="relative mobile-action-icon-shell">
-              <MobileQuickActionIcon name={action.icon} className="h-11 w-11" />
-            </div>
-            <p className="relative mt-2.5 text-sm font-bold tracking-tight drop-shadow-sm">
-              {action.label}
-            </p>
+            <MobileQuickActionFlyer name={action.icon} className="h-full w-full" />
           </Link>
         ))}
       </div>
