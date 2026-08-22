@@ -115,12 +115,12 @@ export function MediaClipsGrid({ clips, browseLinks, compact }: MediaClipsGridPr
   return (
     <div className="space-y-5">
       {activeClip ? (
-        <div className="overflow-hidden rounded-[1.75rem] bg-night-950 shadow-2xl shadow-indigo-950/30 ring-1 ring-white/10">
+        <div className="overflow-hidden rounded-2xl bg-night-950 shadow-app-lg ring-1 ring-night-900/10">
           <div className="mx-auto aspect-[9/16] max-h-[min(72vh,680px)] w-full max-w-[24rem] bg-black">
             <ClipPlayer clip={activeClip} autoPlay={started} />
           </div>
-          <div className="border-t border-white/10 bg-gradient-to-r from-violet-950 via-fuchsia-950 to-night-950 px-4 py-4 text-white">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-200/80">
+          <div className="border-t border-white/8 bg-gradient-to-r from-night-950 via-night-900 to-night-800 px-3.5 py-3 text-white">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sand-300/80">
               {mediaClipPlatformLabel(activeClip.platform)}
             </p>
             <p className="mt-1 font-display text-xl font-semibold leading-tight">
@@ -151,10 +151,10 @@ export function MediaClipsGrid({ clips, browseLinks, compact }: MediaClipsGridPr
                   setActiveId(clip.id);
                   setStarted(true);
                 }}
-                className={`group overflow-hidden rounded-[1.35rem] text-left shadow-sm transition ${
+                className={`group overflow-hidden rounded-xl text-left shadow-app-sm transition ${
                   selected
-                    ? "ring-2 ring-violet-600 ring-offset-2 ring-offset-sand-50"
-                    : "ring-1 ring-night-900/8 hover:-translate-y-0.5 hover:shadow-lg"
+                    ? "ring-2 ring-night-900 ring-offset-2 ring-offset-sand-50"
+                    : "ring-1 ring-night-900/8 hover:-translate-y-0.5 hover:shadow-app-md"
                 }`}
               >
                 <div className="relative aspect-[9/16] bg-night-900">
@@ -162,7 +162,8 @@ export function MediaClipsGrid({ clips, browseLinks, compact }: MediaClipsGridPr
                   <img
                     src={clipThumbnail(clip)}
                     alt={clip.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    decoding="async"
+                    className="mobile-media h-full w-full object-cover transition duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-night-950 via-night-950/20 to-transparent" />
                   <span className="absolute left-2 top-2 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-md">

@@ -28,11 +28,11 @@ export function MediaLiveStage() {
     liveStream.facebook.isLive;
 
   return (
-    <div className="space-y-4">
-      <div className="overflow-hidden rounded-[1.75rem] bg-night-950 shadow-2xl shadow-indigo-950/35 ring-1 ring-white/10">
+    <div className="space-y-3">
+      <div className="overflow-hidden rounded-2xl bg-night-950 shadow-app-lg ring-1 ring-night-900/10">
         <div className="relative aspect-video w-full bg-black">
           <LiveStreamPlayer preview={active} compact />
-          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-2.5">
             {anyLive ? (
               <Badge variant="live">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
@@ -48,11 +48,11 @@ export function MediaLiveStage() {
             </span>
           </div>
         </div>
-        <div className="relative border-t border-white/10 bg-gradient-to-r from-violet-950 via-fuchsia-950 to-indigo-950 px-4 py-4 text-white">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-200/80">
+        <div className="relative border-t border-white/8 bg-gradient-to-r from-night-950 via-night-900 to-night-800 px-3.5 py-3 text-white">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sand-300/80">
             {anyLive ? "Streaming" : "Featured"}
           </p>
-          <h2 className="mt-1 font-display text-2xl font-semibold leading-tight">
+          <h2 className="mt-0.5 font-display text-xl font-semibold leading-tight tracking-tight">
             {anyLive ? liveStream.title : active.label}
           </h2>
           <p className="mt-1 text-sm text-white/65">
@@ -69,17 +69,17 @@ export function MediaLiveStage() {
               key={preview.id}
               type="button"
               onClick={() => setActive(preview)}
-              className={`flex shrink-0 items-center gap-2 rounded-2xl px-3 py-2 text-left transition ${
+              className={`flex shrink-0 items-center gap-2 rounded-xl px-2.5 py-1.5 text-left transition ${
                 selected
-                  ? "bg-gradient-to-br from-violet-600 to-fuchsia-700 text-white shadow-lg shadow-violet-500/30"
-                  : "bg-white text-night-800 ring-1 ring-night-900/8 hover:bg-sand-50"
+                  ? "bg-night-900 text-white shadow-app-sm ring-1 ring-night-700"
+                  : "bg-white text-night-800 shadow-app-sm ring-1 ring-night-900/8 hover:bg-sand-50"
               }`}
             >
-              <span className="relative h-9 w-14 overflow-hidden rounded-lg bg-night-900">
+              <span className="relative h-8 w-12 overflow-hidden rounded-md bg-night-900">
                 <StreamPreviewImage
                   preview={preview}
                   alt=""
-                  className="h-full w-full object-cover"
+                  className="mobile-media h-full w-full object-cover"
                 />
               </span>
               <span className="max-w-[7rem]">
@@ -95,13 +95,13 @@ export function MediaLiveStage() {
 
       <ExternalLink
         href={active.url}
-        className="flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-fuchsia-500/25 transition hover:opacity-95"
+        className="flex w-full items-center justify-center rounded-xl bg-night-900 px-4 py-3 text-sm font-bold tracking-tight text-white shadow-app-md transition hover:bg-night-800"
       >
         Open on {active.platform} ↗
       </ExternalLink>
 
-      <div className="rounded-[1.5rem] bg-white p-4 ring-1 ring-night-900/5">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-violet-700/80">
+      <div className="mobile-surface p-3.5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-night-500">
           Follow
         </p>
         <div className="mt-3 flex flex-wrap gap-2">

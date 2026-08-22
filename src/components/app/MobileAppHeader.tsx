@@ -42,9 +42,9 @@ export function MobileAppHeader() {
     liveStream.facebook.isLive;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-night-950/90 shadow-lg shadow-indigo-950/20 backdrop-blur-xl lg:hidden">
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-fuchsia-400/30 to-transparent" />
-      <div className="relative mx-auto flex max-w-lg items-center justify-between gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+    <header className="sticky top-0 z-40 border-b border-white/8 bg-night-950/95 shadow-app-nav backdrop-blur-2xl lg:hidden">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-sand-400/25 to-transparent" />
+      <div className="relative mx-auto flex max-w-lg items-center justify-between gap-3 px-3.5 pb-2.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
           {isHome ? (
             <>
@@ -64,7 +64,7 @@ export function MobileAppHeader() {
           ) : (
             <>
               <p className="text-xs font-medium text-white/60">{site.name}</p>
-              <h1 className="truncate font-display text-lg font-semibold text-white">
+              <h1 className="truncate font-display text-base font-semibold tracking-tight text-white">
                 {title}
               </h1>
             </>

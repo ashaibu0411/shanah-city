@@ -82,16 +82,16 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
     site.serviceTimes[1]?.time.split(" – ")[0] ?? site.serviceTimes[0].time.split(" – ")[0];
 
   return (
-    <div className="mobile-home space-y-4">
+    <div className="mobile-home animate-fade-in space-y-3">
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" />
-      <section className="mobile-home-aurora relative overflow-hidden rounded-[1.75rem] p-5 text-white shadow-2xl shadow-indigo-950/40 ring-1 ring-white/10">
+      <section className="mobile-home-aurora relative overflow-hidden rounded-2xl p-4 text-white shadow-app-lg ring-1 ring-night-900/10">
         <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
-        <div className="mobile-home-shimmer pointer-events-none absolute inset-0 opacity-40" aria-hidden />
+        <div className="mobile-home-shimmer pointer-events-none absolute inset-0 opacity-30" aria-hidden />
 
         <div className="relative">
           <HomeTagline size="mobile" />
 
-          <div className="mobile-home-fade-up mobile-home-fade-up-3 mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-amber-100 backdrop-blur-md">
+          <div className="mobile-home-fade-up mobile-home-fade-up-3 mt-2.5 inline-flex rounded-full border border-white/15 bg-black/15 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sand-100 backdrop-blur-md">
             Sun {nextService} · {campus.city}
           </div>
         </div>
@@ -99,7 +99,7 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
 
       <Link
         href="/live"
-        className="mobile-home-spotlight group relative block overflow-hidden rounded-[1.75rem] shadow-2xl ring-1 ring-white/20"
+        className="mobile-home-spotlight group relative block overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10"
       >
         <div className="absolute inset-0">
           {anyLive && liveThumbnail ? (
@@ -107,41 +107,42 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
             <img
               src={liveThumbnail}
               alt=""
-              className="h-full w-full scale-105 object-cover transition duration-700 group-hover:scale-110"
+              decoding="async"
+              className="mobile-media h-full w-full scale-[1.02] object-cover transition duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="grid h-full grid-cols-3">
               {spotlightPreviews.map((preview) => (
-                <div key={preview.id} className="relative h-full min-h-[11rem] overflow-hidden">
+                <div key={preview.id} className="relative h-full min-h-[9.5rem] overflow-hidden">
                   <StreamPreviewImage
                     preview={preview}
                     alt=""
-                    className="h-full w-full scale-110 object-cover transition duration-700 group-hover:scale-[1.15]"
+                    className="mobile-media h-full w-full scale-105 object-cover transition duration-500 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-night-950/25" />
+                  <div className="absolute inset-0 bg-night-950/20" />
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-violet-950 via-fuchsia-900/88 to-rose-600/55" />
-        <div className="mobile-home-spotlight-mesh pointer-events-none absolute inset-0 opacity-80" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-t from-night-950/95 via-night-900/55 to-night-800/20" />
+        <div className="mobile-home-spotlight-mesh pointer-events-none absolute inset-0 opacity-50" aria-hidden />
 
-        <div className="relative flex min-h-[11rem] flex-col justify-end p-5">
+        <div className="relative flex min-h-[9.5rem] flex-col justify-end p-4">
           {anyLive ? (
-            <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-red-600">
-              <span className="mobile-home-pulse h-2 w-2 rounded-full bg-red-600" />
+            <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-600">
+              <span className="mobile-home-pulse h-1.5 w-1.5 rounded-full bg-red-600" />
               Live
             </span>
           ) : null}
 
-          <p className="font-sans text-xl font-bold leading-tight text-white">
+          <p className="font-sans text-lg font-bold leading-tight tracking-tight text-white">
             {anyLive ? liveStream.title : "Watch live"}
           </p>
 
-          <span className="mt-3 inline-flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-night-900 shadow-lg">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-xs text-white">
+          <span className="mt-2.5 inline-flex w-fit items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-night-900 shadow-app-sm">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-night-900 text-[10px] text-white">
               ▶
             </span>
             {anyLive ? "Join stream" : "Open live"}
@@ -152,32 +153,34 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
       {devotion && (
         <Link
           href="/devotions"
-          className="mobile-card flex items-center justify-between gap-3 overflow-hidden rounded-2xl p-4 transition active:scale-[0.99]"
+          className="mobile-card flex items-center justify-between gap-3 overflow-hidden p-3.5 transition active:scale-[0.99]"
         >
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-amber-700/80">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-sand-600">
               Today · {devotion.readingTime}
             </p>
-            <p className="mt-1 truncate font-sans text-lg font-bold text-night-900">
+            <p className="mt-0.5 truncate font-sans text-base font-bold tracking-tight text-night-900">
               {devotion.title}
             </p>
           </div>
-          <span className="shrink-0 rounded-full bg-night-900 px-3 py-1.5 text-xs font-bold text-white">
+          <span className="shrink-0 rounded-full bg-night-900 px-2.5 py-1 text-[11px] font-bold text-white">
             Read
           </span>
         </Link>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         {mobileQuickActions.map((action) => (
           <Link
             key={action.label}
             href={action.href}
-            className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${action.tone} p-4 text-white shadow-lg ${action.glow} transition active:scale-[0.98]`}
+            className={`mobile-action-tile group bg-gradient-to-br ${action.tone} p-3.5 text-white transition active:scale-[0.98]`}
           >
-            <div className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/20 blur-2xl" />
-            <span className="relative text-2xl">{action.icon}</span>
-            <p className="relative mt-2 text-base font-bold">{action.label}</p>
+            <div className="pointer-events-none absolute -right-3 -top-3 h-16 w-16 rounded-full bg-white/15 blur-xl" />
+            <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-black/15 text-lg font-semibold backdrop-blur-sm">
+              {action.icon}
+            </span>
+            <p className="relative mt-2 text-sm font-bold tracking-tight">{action.label}</p>
           </Link>
         ))}
       </div>
@@ -185,13 +188,13 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
       {featuredPost && (
         <Link
           href="/community"
-          className="mobile-card block rounded-2xl p-4 transition active:scale-[0.99]"
+          className="mobile-card block p-3.5 transition active:scale-[0.99]"
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-bold text-night-900">Community</p>
-            <span className="text-xs font-semibold text-violet-700">See all →</span>
+            <p className="text-sm font-bold tracking-tight text-night-900">Community</p>
+            <span className="text-xs font-semibold text-night-500">See all →</span>
           </div>
-          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-night-700">
+          <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-night-600">
             {featuredPost.content}
           </p>
         </Link>
@@ -199,7 +202,7 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
 
       <Link
         href="/guest"
-        className="mobile-card flex items-center justify-between rounded-2xl border border-emerald-300/60 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-3 text-sm font-semibold text-emerald-900 transition active:scale-[0.99]"
+        className="mobile-card flex items-center justify-between border border-emerald-200/80 bg-gradient-to-r from-emerald-50/90 to-teal-50/90 px-3.5 py-2.5 text-sm font-semibold text-emerald-900 transition active:scale-[0.99]"
       >
         First time here?
         <span className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white">

@@ -68,8 +68,8 @@ type CardProps = {
 export function Card({ children, className = "", href }: CardProps) {
   const { isMobileApp } = useAppShell();
   const classes = `${
-    isMobileApp ? "mobile-card" : ""
-  } ${isMobileApp && href ? "active:scale-[0.995]" : ""} rounded-2xl bg-white p-5 shadow-sm ring-1 ring-night-900/5 transition hover:shadow-md ${className}`;
+    isMobileApp ? "mobile-card p-4" : "p-5"
+  } ${isMobileApp && href ? "active:scale-[0.995]" : ""} rounded-2xl bg-white shadow-sm ring-1 ring-night-900/5 transition hover:shadow-md ${className}`;
 
   if (href) {
     if (isExternalHref(href)) {
@@ -109,12 +109,12 @@ export function Button({
   disabled = false,
 }: ButtonProps) {
   const styles = {
-    primary: "bg-night-900 text-sand-50 hover:bg-night-800",
-    secondary: "bg-sand-100 text-night-900 hover:bg-sand-200",
+    primary: "bg-night-900 text-sand-50 shadow-app-sm hover:bg-night-800",
+    secondary: "bg-white text-night-900 shadow-app-sm ring-1 ring-night-900/10 hover:bg-sand-50",
     ghost: "bg-transparent text-night-700 hover:bg-sand-100",
   };
 
-  const base = `inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${styles[variant]} ${disabled ? "pointer-events-none opacity-50" : ""} ${className}`;
+  const base = `inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold tracking-tight transition ${styles[variant]} ${disabled ? "pointer-events-none opacity-50" : ""} ${className}`;
 
   if (href && !disabled) {
     if (isExternalHref(href)) {
@@ -199,7 +199,7 @@ export function SectionTitle({
           href={href}
           className={`text-sm font-semibold ${
             isMobileApp
-              ? "rounded-full bg-white/80 px-3 py-1 text-violet-700 ring-1 ring-night-900/10"
+              ? "rounded-full bg-white px-3 py-1 text-night-700 shadow-app-sm ring-1 ring-night-900/10"
               : "text-night-600 hover:text-night-900"
           }`}
         >

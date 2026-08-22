@@ -27,7 +27,7 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
     liveStream.facebook.isLive;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <MobilePageHero
         eyebrow="Media"
         title={tab === "live" ? "Watch live worship" : "Shorts & highlights"}
@@ -47,7 +47,7 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
         )}
       </MobilePageHero>
 
-      <div className="flex rounded-full bg-night-950 p-1 shadow-lg shadow-indigo-950/20">
+      <div className="flex rounded-xl bg-night-950 p-1 shadow-app-md ring-1 ring-night-900/10">
         {(
           [
             ["live", "Live"],
@@ -58,9 +58,9 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
             key={key}
             type="button"
             onClick={() => setTab(key)}
-            className={`flex-1 rounded-full px-3 py-2 text-sm font-semibold transition ${
+            className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold tracking-tight transition ${
               tab === key
-                ? "bg-gradient-to-r from-amber-300 via-fuchsia-400 to-violet-500 text-night-950"
+                ? "bg-gradient-to-r from-sand-300 via-amber-400 to-sand-500 text-night-950 shadow-app-sm"
                 : "text-white/70"
             }`}
           >

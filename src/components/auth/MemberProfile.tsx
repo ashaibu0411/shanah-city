@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useAppShell } from "@/components/app/AppShellContext";
 import { useApp } from "@/components/app/AppProvider";
 import { DeleteAccountPanel } from "@/components/auth/DeleteAccountPanel";
 import { MemberGivingHistory } from "@/components/give/MemberGivingHistory";
@@ -21,6 +22,7 @@ const relationships = [
 
 export function MemberProfile() {
   const router = useRouter();
+  const { isMobileApp } = useAppShell();
   const { user, activity, loading, signOut, setUser, permissions } = useAuth();
   const { setCampusId } = useApp();
 
@@ -161,10 +163,12 @@ export function MemberProfile() {
         description="Your Shanah City member profile, family tree, and activity."
       />
 
-      <div className="mb-6 flex flex-wrap gap-3">
-        <Button href="/messages">Messages</Button>
+      <div className={`${isMobileApp ? "mb-3 gap-2" : "mb-6 gap-3"} flex flex-wrap`}>
+        <Button href="/messages" className={isMobileApp ? "!px-3 !py-2 text-xs" : ""}>
+          Messages
+        </Button>
         {permissions.canManageAdmin && (
-          <Button href="/admin/people" variant="secondary">
+          <Button href="/admin/people" variant="secondary" className={isMobileApp ? "!px-3 !py-2 text-xs" : ""}>
             Member directory
           </Button>
         )}
@@ -200,48 +204,48 @@ export function MemberProfile() {
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className={`grid ${isMobileApp ? "gap-3" : "gap-6 lg:grid-cols-3"}`}>
+        <div className={`${isMobileApp ? "space-y-3" : "space-y-6 lg:col-span-2"}`}>
           <MemberGivingHistory />
           <PushNotificationSettings />
           <Card>
             <ProfileAvatarUpload user={user} onUpdated={setUser} />
           </Card>
-          <Card>
-            <h2 className="font-display text-xl font-semibold text-night-900">
+          <Card className={isMobileApp ? "!p-3.5" : ""}>
+            <h2 className={`font-display font-semibold text-night-900 ${isMobileApp ? "text-base" : "text-xl"}`}>
               Profile
             </h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className={`mt-3 grid gap-2.5 ${isMobileApp ? "grid-cols-1" : "sm:grid-cols-2"}`}>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                className="rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
               />
               <input
                 value={user.email}
                 disabled
-                className="rounded-xl border border-night-900/10 bg-sand-100 px-3 py-2.5 text-sm text-night-500"
+                className="rounded-xl border border-night-900/10 bg-sand-100 px-3 py-2 text-sm text-night-500"
               />
               <input
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="Phone"
-                className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                className="rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
               />
               <input
                 value={campus.name}
                 disabled
-                className="rounded-xl border border-night-900/10 bg-sand-100 px-3 py-2.5 text-sm text-night-500"
+                className="rounded-xl border border-night-900/10 bg-sand-100 px-3 py-2 text-sm text-night-500"
               />
             </div>
-            {message && <p className="mt-3 text-sm text-emerald-700">{message}</p>}
-            <Button className="mt-4" onClick={saveProfile}>
+            {message && <p className="mt-2.5 text-sm text-emerald-700">{message}</p>}
+            <Button className="mt-3" onClick={saveProfile}>
               Save profile
             </Button>
           </Card>
 
-          <Card>
-            <h2 className="font-display text-xl font-semibold text-night-900">
+          <Card className={isMobileApp ? "!p-3.5" : ""}>
+            <h2 className={`font-display font-semibold text-night-900 ${isMobileApp ? "text-base" : "text-xl"}`}>
               Family tree
             </h2>
             <p className="mt-1 text-sm text-night-600">
@@ -399,35 +403,35 @@ export function MemberProfile() {
           <DeleteAccountPanel />
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <h2 className="font-display text-lg font-semibold text-night-900">
+        <div className={isMobileApp ? "space-y-3" : "space-y-6"}>
+          <Card className={isMobileApp ? "!p-3.5" : ""}>
+            <h2 className={`font-display font-semibold text-night-900 ${isMobileApp ? "text-base" : "text-lg"}`}>
               Quick links
             </h2>
-            <ul className="mt-3 space-y-2 text-sm">
-              <li>
+            <ul className={`mt-2.5 text-sm ${isMobileApp ? "divide-y divide-night-900/5" : "space-y-2"}`}>
+              <li className={isMobileApp ? "py-2" : ""}>
                 <a href="/check-in" className="font-medium text-night-800 hover:underline">
                   Kids check-in →
                 </a>
               </li>
               {permissions.canAccessKidsMinistry && (
-                <li>
+                <li className={isMobileApp ? "py-2" : ""}>
                   <a href="/kids-ministry" className="font-medium text-night-800 hover:underline">
                     Kids ministry dashboard →
                   </a>
                 </li>
               )}
-              <li>
+              <li className={isMobileApp ? "py-2" : ""}>
                 <a href="/give" className="font-medium text-night-800 hover:underline">
                   Give →
                 </a>
               </li>
-              <li>
+              <li className={isMobileApp ? "py-2" : ""}>
                 <a href="/community" className="font-medium text-night-800 hover:underline">
                   Community →
                 </a>
               </li>
-              <li>
+              <li className={isMobileApp ? "py-2" : ""}>
                 <a href="/calendar" className="font-medium text-night-800 hover:underline">
                   Calendars →
                 </a>
@@ -435,14 +439,14 @@ export function MemberProfile() {
             </ul>
           </Card>
 
-          <Card>
-            <h2 className="font-display text-lg font-semibold text-night-900">
+          <Card className={isMobileApp ? "!p-3.5" : ""}>
+            <h2 className={`font-display font-semibold text-night-900 ${isMobileApp ? "text-base" : "text-lg"}`}>
               Recent activity
             </h2>
             {activity.length === 0 ? (
-              <p className="mt-3 text-sm text-night-500">No activity yet.</p>
+              <p className={`text-sm text-night-500 ${isMobileApp ? "mt-2" : "mt-3"}`}>No activity yet.</p>
             ) : (
-              <ul className="mt-3 space-y-2 text-sm text-night-600">
+              <ul className={`text-sm text-night-600 ${isMobileApp ? "mt-2 divide-y divide-night-900/5" : "mt-3 space-y-2"}`}>
                 {activity.map((item) => (
                   <li key={item.id} className="rounded-lg bg-sand-50 px-3 py-2">
                     {item.label}

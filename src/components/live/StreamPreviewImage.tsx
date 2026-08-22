@@ -26,6 +26,7 @@ export function StreamPreviewImage({
       src={src}
       alt={alt}
       className={className}
+      decoding="async"
       loading="lazy"
       onError={() => {
         const fallback = getStreamFallbackThumbnail(preview);

@@ -23,9 +23,9 @@ export function MobileNav() {
     .some((item) => item.href === pathname);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-night-950 shadow-[0_-12px_40px_rgba(15,23,42,0.55)] lg:hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/40 to-transparent" />
-      <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/8 bg-night-950/97 shadow-app-nav backdrop-blur-2xl lg:hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sand-400/20 to-transparent" />
+      <ul className="mx-auto flex max-w-lg items-stretch justify-around px-0.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5">
         {tabs.map((item) => {
           const active = pathname === item.href;
           const iconName = navHrefToTabIcon(item.href);
@@ -33,19 +33,19 @@ export function MobileNav() {
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
-                className={`mobile-nav-link flex flex-col items-center gap-1 rounded-2xl px-1 py-1.5 transition active:scale-95 ${
-                  active ? "text-white" : "text-white/90"
+                className={`mobile-nav-link flex flex-col items-center gap-0.5 rounded-xl px-1 py-1 transition active:scale-95 ${
+                  active ? "text-white" : "text-white/75"
                 }`}
               >
                 <span
-                  className={`flex h-11 w-11 items-center justify-center rounded-2xl transition ${
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
                     active
-                      ? "bg-gradient-to-br from-amber-400 via-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/35 ring-1 ring-white/20"
-                      : "bg-white/10 text-white ring-1 ring-white/15"
+                      ? "bg-gradient-to-br from-sand-300 via-amber-400 to-sand-500 text-night-950 shadow-app-md ring-1 ring-white/25"
+                      : "bg-white/8 text-white ring-1 ring-white/10"
                   }`}
                 >
                   {iconName ? (
-                    <MobileTabIcon name={iconName} className="h-6 w-6" />
+                    <MobileTabIcon name={iconName} className="h-5 w-5" />
                   ) : (
                     item.icon
                   )}
@@ -60,18 +60,18 @@ export function MobileNav() {
           <button
             type="button"
             onClick={() => setMoreMenuOpen(true)}
-            className={`mobile-nav-link flex w-full flex-col items-center gap-1 rounded-2xl px-1 py-1.5 transition active:scale-95 ${
-              moreActive ? "text-white" : "text-white/90"
+            className={`mobile-nav-link flex w-full flex-col items-center gap-0.5 rounded-xl px-1 py-1 transition active:scale-95 ${
+              moreActive ? "text-white" : "text-white/75"
             }`}
           >
             <span
-              className={`flex h-11 w-11 items-center justify-center rounded-2xl transition ${
+              className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
                 moreActive
-                  ? "bg-gradient-to-br from-amber-400 via-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/35 ring-1 ring-white/20"
-                  : "bg-white/10 text-white ring-1 ring-white/15"
+                  ? "bg-gradient-to-br from-sand-300 via-amber-400 to-sand-500 text-night-950 shadow-app-md ring-1 ring-white/25"
+                  : "bg-white/8 text-white ring-1 ring-white/10"
               }`}
             >
-              <MobileTabIcon name="more" className="h-6 w-6" />
+              <MobileTabIcon name="more" className="h-5 w-5" />
             </span>
             <span className="mobile-nav-label">More</span>
           </button>

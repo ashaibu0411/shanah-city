@@ -42,12 +42,23 @@ const config: Config = {
       },
       animation: {
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "fade-in": "fade-in 0.35s ease-out both",
       },
       keyframes: {
         "pulse-soft": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.75" },
         },
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      boxShadow: {
+        "app-sm": "0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 0 rgba(255, 255, 255, 0.9) inset",
+        "app-md": "0 4px 14px rgba(15, 23, 42, 0.07), 0 1px 0 rgba(255, 255, 255, 0.85) inset",
+        "app-lg": "0 12px 32px rgba(15, 23, 42, 0.1), 0 1px 0 rgba(255, 255, 255, 0.8) inset",
+        "app-nav": "0 -8px 32px rgba(15, 23, 42, 0.45)",
       },
     },
   },

@@ -9,24 +9,28 @@
 
   body {
     @apply bg-sand-50 text-night-900 antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body[data-shell="mobile"] {
-    @apply text-base leading-relaxed;
+    @apply text-[0.9375rem] leading-snug;
     background:
-      radial-gradient(circle at 50% -10%, rgba(167, 139, 250, 0.12), transparent 45%),
-      radial-gradient(circle at 100% 20%, rgba(251, 191, 36, 0.08), transparent 35%),
-      #f5f0e8;
+      radial-gradient(circle at 50% -20%, rgba(26, 35, 50, 0.04), transparent 50%),
+      linear-gradient(180deg, #faf9f7 0%, #f3f1ec 100%);
   }
 
   body[data-shell="mobile"] .text-xs {
-    font-size: 0.875rem;
-    line-height: 1.3rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    letter-spacing: 0.01em;
   }
 
   body[data-shell="mobile"] .text-sm {
-    font-size: 1rem;
-    line-height: 1.45rem;
+    font-size: 0.9375rem;
+    line-height: 1.375rem;
+    letter-spacing: 0.005em;
   }
 
   body[data-shell="mobile"][data-text-scale="large"] {
@@ -136,9 +140,9 @@
 
 @layer components {
   body[data-shell="mobile"] .app-main {
-    @apply mx-auto max-w-lg px-4 pt-3;
+    @apply mx-auto max-w-lg px-3.5 pt-2;
     /* Clear fixed bottom tab bar + home indicator */
-    padding-bottom: calc(7.25rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(6.75rem + env(safe-area-inset-bottom, 0px));
   }
 
   body[data-shell="mobile"][data-text-scale="large"] .app-main,
@@ -185,24 +189,21 @@
   .mobile-aurora-bg,
   .mobile-home-aurora-bg {
     background:
-      radial-gradient(circle at 20% 20%, rgba(251, 191, 36, 0.45), transparent 42%),
-      radial-gradient(circle at 80% 10%, rgba(244, 114, 182, 0.5), transparent 40%),
-      radial-gradient(circle at 70% 85%, rgba(56, 189, 248, 0.35), transparent 45%),
-      radial-gradient(circle at 10% 90%, rgba(167, 139, 250, 0.4), transparent 42%),
-      linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #312e81 100%);
-    animation: mobile-home-aurora 14s ease-in-out infinite alternate;
+      radial-gradient(circle at 18% 15%, rgba(251, 191, 36, 0.22), transparent 38%),
+      radial-gradient(circle at 82% 8%, rgba(196, 168, 130, 0.18), transparent 36%),
+      linear-gradient(145deg, #0f172a 0%, #1a2332 52%, #2f3c52 100%);
   }
 
   .mobile-shimmer,
   .mobile-home-shimmer {
     background: linear-gradient(
       105deg,
-      transparent 40%,
-      rgba(255, 255, 255, 0.12) 50%,
-      transparent 60%
+      transparent 42%,
+      rgba(255, 255, 255, 0.06) 50%,
+      transparent 58%
     );
-    background-size: 200% 100%;
-    animation: mobile-home-shimmer 8s ease-in-out infinite;
+    background-size: 220% 100%;
+    animation: mobile-home-shimmer 12s ease-in-out infinite;
   }
 
   .mobile-spotlight-mesh,
@@ -220,7 +221,7 @@
 
   .mobile-headline,
   .mobile-home-headline {
-    background: linear-gradient(120deg, #ffffff 0%, #fde68a 35%, #fbcfe8 70%, #e0e7ff 100%);
+    background: linear-gradient(120deg, #ffffff 0%, #f3efe8 45%, #e8dfd2 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -262,11 +263,26 @@
   }
 
   body[data-shell="mobile"] .mobile-card {
-    border-radius: 1.25rem;
-    background: linear-gradient(180deg, #ffffff 0%, #faf8f5 100%);
+    border-radius: 1rem;
+    background: #ffffff;
+    border: 1px solid rgba(26, 35, 50, 0.07);
     box-shadow:
-      0 10px 28px rgba(15, 23, 42, 0.08),
-      0 1px 0 rgba(255, 255, 255, 0.8) inset;
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 8px 24px rgba(15, 23, 42, 0.06);
+  }
+
+  body[data-shell="mobile"] .mobile-media {
+    image-rendering: -webkit-optimize-contrast;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  body[data-shell="mobile"] .mobile-surface {
+    @apply rounded-2xl border border-night-900/10 bg-white shadow-app-md;
+  }
+
+  body[data-shell="mobile"] .mobile-action-tile {
+    @apply relative overflow-hidden rounded-2xl border border-white/15 shadow-app-md;
   }
 
   body[data-shell="mobile"] .mobile-chip {
@@ -282,11 +298,11 @@
   }
 
   body[data-shell="mobile"] .mobile-spotlight-shell {
-    @apply overflow-hidden rounded-[1.75rem] shadow-2xl ring-1 ring-white/20;
+    @apply overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10;
   }
 
   body[data-shell="mobile"] .mobile-section-title {
-    @apply font-sans text-lg font-bold text-night-900;
+    @apply font-sans text-base font-bold tracking-tight text-night-900;
   }
 }
 
