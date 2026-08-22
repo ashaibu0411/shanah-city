@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, Card } from "@/components/ui";
 import { USHER_SERVICE_TIMES } from "@/lib/frontliners-types";
 
-export function GuestCaptureForm() {
+export function GuestCaptureForm({ embedded = false }: { embedded?: boolean }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -55,9 +55,12 @@ export function GuestCaptureForm() {
     setNotes("");
   }
 
+  const fieldClass =
+    "mobile-field mt-1 block w-full rounded-xl border border-night-900/15 bg-sand-100 px-3 py-2.5 text-base text-night-900 outline-none ring-night-900/5 placeholder:text-night-400 focus:border-night-900/25 focus:bg-white focus:ring-2";
+
   if (submitted && message) {
-    return (
-      <Card className="text-center">
+    const success = (
+      <div className={embedded ? "text-left" : "text-center"}>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
           Welcome
         </p>
@@ -68,13 +71,13 @@ export function GuestCaptureForm() {
         <Button className="mt-6" variant="secondary" onClick={() => setSubmitted(false)}>
           Submit another guest
         </Button>
-      </Card>
+      </div>
     );
+    return embedded ? success : <Card>{success}</Card>;
   }
 
-  return (
-    <Card>
-      <form onSubmit={handleSubmit} className="space-y-4">
+  const form = (
+    <form onSubmit={handleSubmit} className="space-y-4">
         <div className="hidden" aria-hidden="true">
           <label>
             Website
@@ -87,56 +90,56 @@ export function GuestCaptureForm() {
           </label>
         </div>
 
-        <label className="block text-sm text-night-700">
+        <label className="block text-sm text-night-800">
           <span className="font-semibold">Your name</span>
           <input
             required
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="First and last name"
-            className="mt-1 block w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            className={fieldClass}
           />
         </label>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm text-night-700">
+          <label className="block text-sm text-night-800">
             <span className="font-semibold">Email (optional)</span>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              className={fieldClass}
             />
           </label>
-          <label className="block text-sm text-night-700">
+          <label className="block text-sm text-night-800">
             <span className="font-semibold">Phone (optional)</span>
             <input
               type="tel"
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
               placeholder="Best number to reach you"
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              className={fieldClass}
             />
           </label>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm text-night-700">
+          <label className="block text-sm text-night-800">
             <span className="font-semibold">Visit date (optional)</span>
             <input
               type="date"
               value={visitDate}
               onChange={(event) => setVisitDate(event.target.value)}
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              className={fieldClass}
             />
           </label>
-          <label className="block text-sm text-night-700">
+          <label className="block text-sm text-night-800">
             <span className="font-semibold">Service time</span>
             <select
               value={serviceTime}
               onChange={(event) => setServiceTime(event.target.value)}
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              className={fieldClass}
             >
               {USHER_SERVICE_TIMES.map((slot) => (
                 <option key={slot.value} value={slot.value}>
@@ -147,7 +150,7 @@ export function GuestCaptureForm() {
           </label>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-night-700">
+        <label className="flex items-center gap-2 text-sm text-night-800">
           <input
             type="checkbox"
             checked={isFirstVisit}
@@ -157,14 +160,14 @@ export function GuestCaptureForm() {
           <span>This is my first visit to Shanah City</span>
         </label>
 
-        <label className="block text-sm text-night-700">
+        <label className="block text-sm text-night-800">
           <span className="font-semibold">Notes or prayer request (optional)</span>
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
             rows={3}
             placeholder="Anything you'd like us to know…"
-            className="mt-1 block w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            className={fieldClass}
           />
         </label>
 
@@ -180,6 +183,7 @@ export function GuestCaptureForm() {
           No account required. Your info goes to our welcome team only.
         </p>
       </form>
-    </Card>
   );
+
+  return embedded ? <div className="mt-4">{form}</div> : <Card>{form}</Card>;
 }

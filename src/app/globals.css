@@ -192,6 +192,24 @@
   body[data-shell="mobile"] select {
     font-size: 16px;
     touch-action: manipulation;
+    color: #111827;
+    -webkit-text-fill-color: #111827;
+    caret-color: #111827;
+  }
+
+  body[data-shell="mobile"] .mobile-field {
+    background-color: #ece8e1;
+    color: #111827;
+    -webkit-text-fill-color: #111827;
+  }
+
+  body[data-shell="mobile"] .mobile-field:focus {
+    background-color: #ffffff;
+  }
+
+  body[data-shell="mobile"] .mobile-field::placeholder {
+    color: #6b7280;
+    opacity: 1;
   }
 }
 
