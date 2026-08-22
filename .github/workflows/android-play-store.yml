@@ -21,6 +21,8 @@ on:
       - "android/**"
       - "capacitor.config.ts"
       - "mobile/**"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/android-play-store.yml"
 
 concurrency:

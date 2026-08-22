@@ -7,6 +7,9 @@ import type { NotificationPrefs } from "@/lib/auth-types";
 import { isNativeAppPlatform } from "@/lib/native-app";
 
 function nativePushErrorMessage(result: { reason: string; error?: string }) {
+  if (result.reason === "plugin-missing") {
+    return "This Android app build is too old for phone push. Update Shanah City from the Play Store (version 1.0.6+), then try Enable again.";
+  }
   if (result.reason === "denied") {
     return "Notification permission was denied. Open Settings → Apps → Shanah City → Notifications and allow alerts.";
   }

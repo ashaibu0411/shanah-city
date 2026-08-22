@@ -8,6 +8,15 @@ const OPT_OUT_KEY = "shanah-native-push-opt-out";
 
 type NativePushPlatform = "ios" | "android";
 
+function isPluginNotImplementedError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /not implemented on android|plugin is not implemented/i.test(message);
+}
+
+export function nativePushUnavailableMessage() {
+  return "This Android app build is too old for phone push. Update Shanah City from the Play Store (version 1.0.6+), then try Enable again.";
+}
+
 function storeToken(token: string, platform: NativePushPlatform) {
   window.localStorage.setItem(TOKEN_KEY, token);
   window.localStorage.setItem(PLATFORM_KEY, platform);
@@ -157,9 +166,17 @@ export async function registerNativePush() {
 
   const { PushNotifications } = await import("@capacitor/push-notifications");
 
-  let permission = await PushNotifications.checkPermissions();
-  if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") {
-    permission = await PushNotifications.requestPermissions();
+  let permission;
+  try {
+    permission = await PushNotifications.checkPermissions();
+    if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") {
+      permission = await PushNotifications.requestPermissions();
+    }
+  } catch (error) {
+    if (isPluginNotImplementedError(error)) {
+      return { ok: false, reason: "plugin-missing" as const };
+    }
+    throw error;
   }
   if (permission.receive !== "granted") {
     return { ok: false, reason: "denied" as const };
@@ -195,6 +212,10 @@ export async function registerNativePush() {
       if (!pendingRegistration) return;
       window.clearTimeout(pendingRegistration.timeoutId);
       pendingRegistration = null;
+      if (isPluginNotImplementedError(error)) {
+        resolve({ ok: false, reason: "plugin-missing" });
+        return;
+      }
       resolve({
         ok: false,
         reason: "registration-error",
@@ -220,8 +241,17 @@ export async function startNativePushListeners() {
   }
 
   listenersReady = true;
-  const { PushNotifications } = await import("@capacitor/push-notifications");
-  await PushNotifications.removeAllListeners();
+  let PushNotifications;
+  try {
+    ({ PushNotifications } = await import("@capacitor/push-notifications"));
+    await PushNotifications.removeAllListeners();
+  } catch (error) {
+    listenersReady = false;
+    if (isPluginNotImplementedError(error)) {
+      return;
+    }
+    throw error;
+  }
 
   if (Capacitor.getPlatform() === "android") {
     try {
