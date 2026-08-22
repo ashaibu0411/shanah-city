@@ -297,6 +297,11 @@
     @apply rounded-2xl border border-night-900/10 bg-white shadow-app-md;
   }
 
+  body[data-shell="mobile"] .mobile-home-live-flyer {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
   body[data-shell="mobile"] .mobile-action-flyer {
     aspect-ratio: 4 / 5;
     transform: translateZ(0);

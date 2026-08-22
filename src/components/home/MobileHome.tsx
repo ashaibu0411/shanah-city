@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
-import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { useApp } from "@/components/app/AppProvider";
 import { liveStream, site } from "@/lib/site";
-import { getYouTubeThumbnail, streamPreviews } from "@/lib/streams";
+import { getYouTubeThumbnail } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import { HomeTagline } from "@/components/home/HomeTagline";
 import { MobileQuickActionFlyer } from "@/components/home/MobileQuickActionFlyer";
@@ -50,9 +50,6 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
     liveStream.youtube.isLive ||
     liveStream.facebook.isLive;
   const featuredPost = posts[0];
-  const spotlightPreviews = streamPreviews.filter((preview) =>
-    ["youtube", "facebook-city", "instagram-city"].includes(preview.id),
-  );
   const liveVideoId = liveStream.youtube.videoId?.trim();
   const liveThumbnail = liveVideoId ? getYouTubeThumbnail(liveVideoId) : null;
   const nextService =
@@ -76,8 +73,9 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
 
       <Link
         href="/live"
-        className="mobile-home-spotlight group relative block overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10"
+        className="mobile-home-live-flyer group relative block aspect-[16/10] overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10 transition active:scale-[0.99]"
       >
+        <div className="absolute inset-[3px] rounded-[0.85rem] ring-1 ring-white/20" aria-hidden />
         <div className="absolute inset-0">
           {anyLive && liveThumbnail ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -85,65 +83,76 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
               src={liveThumbnail}
               alt=""
               decoding="async"
-              className="mobile-media h-full w-full scale-[1.02] object-cover transition duration-500 group-hover:scale-105"
+              className="mobile-media h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
             />
           ) : (
-            <div className="grid h-full grid-cols-3">
-              {spotlightPreviews.map((preview) => (
-                <div key={preview.id} className="relative h-full min-h-[9.5rem] overflow-hidden">
-                  <StreamPreviewImage
-                    preview={preview}
-                    alt=""
-                    className="mobile-media h-full w-full scale-105 object-cover transition duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-night-950/20" />
-                </div>
-              ))}
-            </div>
+            <Image
+              src="/mobile-flyers/live.png"
+              alt="Watch live"
+              fill
+              sizes="(max-width: 512px) 100vw, 480px"
+              priority
+              className="mobile-media object-cover transition duration-700 group-hover:scale-[1.04]"
+            />
           )}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-night-950/95 via-night-900/55 to-night-800/20" />
-        <div className="mobile-home-spotlight-mesh pointer-events-none absolute inset-0 opacity-50" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-900/35 to-night-800/15" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.14),transparent_42%)]" />
 
-        <div className="relative flex min-h-[9.5rem] flex-col justify-end p-4">
-          {anyLive ? (
-            <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-600">
-              <span className="mobile-home-pulse h-1.5 w-1.5 rounded-full bg-red-600" />
-              Live
-            </span>
-          ) : null}
-
-          <p className="font-sans text-lg font-bold leading-tight tracking-tight text-white">
-            {anyLive ? liveStream.title : "Watch live"}
+        <div className="relative flex h-full flex-col justify-between p-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sand-200/90">
+            Shanah City Live
           </p>
 
-          <span className="mt-2.5 inline-flex w-fit items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-night-900 shadow-app-sm">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-night-900 text-[10px] text-white">
-              ▶
+          <div>
+            {anyLive ? (
+              <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg shadow-red-900/40">
+                <span className="mobile-home-pulse h-1.5 w-1.5 rounded-full bg-white" />
+                Live now
+              </span>
+            ) : null}
+
+            <p className="font-display text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-md">
+              {anyLive ? liveStream.title : "Watch Live"}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-sand-200/80">
+              {anyLive ? "Join the stream" : "Sundays & special services"}
+            </p>
+
+            <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/95 px-3.5 py-2 text-xs font-bold text-night-900 shadow-app-md backdrop-blur-sm">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-night-900 text-[10px] text-white">
+                ▶
+              </span>
+              {anyLive ? "Join stream" : "Open live"}
             </span>
-            {anyLive ? "Join stream" : "Open live"}
-          </span>
+          </div>
         </div>
       </Link>
 
       {devotion && (
-        <Link
-          href="/devotions"
-          className="mobile-card flex items-center justify-between gap-3 overflow-hidden p-3.5 transition active:scale-[0.99]"
-        >
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-sand-600">
-              Today · {devotion.readingTime}
-            </p>
-            <p className="mt-0.5 truncate font-sans text-base font-bold tracking-tight text-night-900">
-              {devotion.title}
-            </p>
-          </div>
-          <span className="shrink-0 rounded-full bg-night-900 px-2.5 py-1 text-[11px] font-bold text-white">
-            Read
-          </span>
-        </Link>
+        <div className="space-y-2">
+          <p className="px-0.5 text-[11px] font-bold uppercase tracking-[0.22em] text-night-500">
+            Today&apos;s Word
+          </p>
+          <Link
+            href="/devotions"
+            className="mobile-card flex items-center justify-between gap-3 overflow-hidden p-3.5 transition active:scale-[0.99]"
+          >
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-sand-600">
+                {devotion.readingTime}
+              </p>
+              <p className="mt-0.5 truncate font-sans text-base font-bold tracking-tight text-night-900">
+                {devotion.title}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-night-900 px-2.5 py-1 text-[11px] font-bold text-white">
+              Read
+            </span>
+          </Link>
+        </div>
       )}
 
       <div className="grid grid-cols-2 gap-2.5">
