@@ -8,6 +8,7 @@ import { getCampus } from "@/lib/site";
 import type { CommunityPost } from "@/lib/member-types";
 import type { SignupGroupOption } from "@/lib/group-types";
 import { Button, Card, SectionTitle } from "@/components/ui";
+import { CommunityStatusRow } from "@/components/community/CommunityStatusRow";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -109,6 +110,27 @@ function PostCard({
         {post.content}
       </p>
 
+      {post.mediaUrl ? (
+        <div className={`${isMobileApp ? "mt-2.5" : "mt-3"} overflow-hidden rounded-xl bg-night-950`}>
+          {post.mediaType === "video" ? (
+            <video
+              src={post.mediaUrl}
+              controls
+              playsInline
+              className="max-h-[28rem] w-full object-contain"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={post.mediaUrl}
+              alt=""
+              decoding="async"
+              className="mobile-media max-h-[28rem] w-full object-cover"
+            />
+          )}
+        </div>
+      ) : null}
+
       <div className={`${isMobileApp ? "mt-3 gap-2" : "mt-4 gap-3"} flex flex-wrap items-center`}>
         <Button variant={reacted ? "primary" : "secondary"} onClick={react} className={isMobileApp ? "!px-3 !py-2 text-xs" : ""}>
           {post.type === "prayer"
@@ -156,6 +178,12 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
   const [targetGroupId, setTargetGroupId] = useState("");
   const [targetGroups, setTargetGroups] = useState<SignupGroupOption[]>([]);
   const [postType, setPostType] = useState<"prayer" | "praise">("prayer");
+  const [pendingMedia, setPendingMedia] = useState<{
+    mediaUrl: string;
+    mediaType: "image" | "video";
+    previewUrl: string;
+  } | null>(null);
+  const [mediaBusy, setMediaBusy] = useState(false);
   const { campus } = useApp();
   const { user, permissions } = useAuth();
   const canAnnounce = permissions.canManageAdmin;
@@ -178,8 +206,24 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
     );
   }
 
+  async function uploadPostMedia(file: File) {
+    setMediaBusy(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetch("/api/community/media", { method: "POST", body: formData });
+    const data = await response.json();
+    setMediaBusy(false);
+    if (!response.ok) return;
+    const previewUrl = URL.createObjectURL(file);
+    setPendingMedia({
+      mediaUrl: data.mediaUrl,
+      mediaType: data.mediaType,
+      previewUrl,
+    });
+  }
+
   async function submitPost() {
-    if (!draft.trim()) return;
+    if (!draft.trim() && !pendingMedia) return;
     const response = await fetch("/api/community", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -187,12 +231,16 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
         campusId: campus.id,
         content: draft.trim(),
         type: postType,
+        mediaUrl: pendingMedia?.mediaUrl,
+        mediaType: pendingMedia?.mediaType,
       }),
     });
     const data = await response.json();
     if (response.ok) {
       setPosts((current) => [data.post, ...current]);
       setDraft("");
+      if (pendingMedia?.previewUrl) URL.revokeObjectURL(pendingMedia.previewUrl);
+      setPendingMedia(null);
     }
   }
 
@@ -220,6 +268,7 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
 
   return (
     <div className={isMobileApp ? "space-y-3" : ""}>
+      <CommunityStatusRow />
       {canAnnounce && (
         <Card className={`border border-sky-100 bg-sky-50/50 ${isMobileApp ? "!p-3.5 mb-0" : "mb-6"}`}>
           <h3 className={`font-display font-semibold text-night-900 ${isMobileApp ? "text-base" : "text-lg"}`}>
@@ -286,8 +335,44 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
           className="mt-3 w-full rounded-xl border border-night-900/10 bg-white p-3 text-sm outline-none ring-night-900/5 focus:ring-2"
           rows={3}
         />
-        <div className="mt-3 flex justify-end">
-          <Button onClick={submitPost}>Post to community</Button>
+        {pendingMedia ? (
+          <div className="relative mt-3 overflow-hidden rounded-xl bg-night-950">
+            {pendingMedia.mediaType === "video" ? (
+              <video src={pendingMedia.previewUrl} controls className="max-h-56 w-full object-contain" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={pendingMedia.previewUrl} alt="" className="max-h-56 w-full object-cover" />
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                if (pendingMedia.previewUrl) URL.revokeObjectURL(pendingMedia.previewUrl);
+                setPendingMedia(null);
+              }}
+              className="absolute right-2 top-2 rounded-full bg-night-950/70 px-2 py-1 text-xs font-semibold text-white"
+            >
+              Remove
+            </button>
+          </div>
+        ) : null}
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <label className="cursor-pointer rounded-full border border-night-900/10 bg-white px-3 py-2 text-xs font-semibold text-night-700">
+            {mediaBusy ? "Uploading…" : "Photo / video"}
+            <input
+              type="file"
+              accept="image/*,video/*"
+              className="hidden"
+              disabled={mediaBusy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void uploadPostMedia(file);
+              }}
+            />
+          </label>
+          <Button onClick={submitPost} disabled={mediaBusy || (!draft.trim() && !pendingMedia)}>
+            Post to community
+          </Button>
         </div>
       </Card>
 

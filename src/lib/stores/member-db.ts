@@ -24,8 +24,11 @@ function mapComment(record: {
 function mapCommunityPost(record: {
   id: string;
   author: string;
+  authorId: string | null;
   campusId: string;
   content: string;
+  mediaUrl: string | null;
+  mediaType: string | null;
   timeAgo: string;
   type: string;
   reactions: number;
@@ -42,8 +45,11 @@ function mapCommunityPost(record: {
   return {
     id: record.id,
     author: record.author,
+    authorId: record.authorId ?? undefined,
     campusId: record.campusId,
     content: record.content,
+    mediaUrl: record.mediaUrl ?? undefined,
+    mediaType: (record.mediaType as CommunityPost["mediaType"]) ?? undefined,
     timeAgo: record.timeAgo,
     type: record.type as CommunityPost["type"],
     reactions: record.reactions,
@@ -198,8 +204,11 @@ export async function addCommunityPost(post: CommunityPost) {
     data: {
       id: post.id,
       author: post.author,
+      authorId: post.authorId ?? null,
       campusId: post.campusId,
       content: post.content,
+      mediaUrl: post.mediaUrl ?? null,
+      mediaType: post.mediaType ?? null,
       timeAgo: post.timeAgo,
       type: post.type,
       reactions: post.reactions,

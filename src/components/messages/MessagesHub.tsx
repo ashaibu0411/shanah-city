@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useAppShell } from "@/components/app/AppShellContext";
 import { getCampus } from "@/lib/site";
 import type { UserBlock, MessageReport } from "@/lib/block-types";
 import type { DirectMessage, MemberDirectoryEntry } from "@/lib/member-types";
@@ -73,6 +74,7 @@ function MemberAvatar({ name, size = "md" }: { name: string; size?: "sm" | "md" 
 
 export function MessagesHub() {
   const { user, loading, permissions } = useAuth();
+  const { isMobileApp } = useAppShell();
   const searchParams = useSearchParams();
   const threadFromUrl = searchParams.get("thread");
   const memberFromUrl = searchParams.get("member");
@@ -86,6 +88,7 @@ export function MessagesHub() {
   const [draft, setDraft] = useState("");
   const [newRecipientId, setNewRecipientId] = useState("");
   const [memberSearch, setMemberSearch] = useState("");
+  const [inboxSearch, setInboxSearch] = useState("");
   const [showNew, setShowNew] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
@@ -515,35 +518,68 @@ export function MessagesHub() {
 
   const showInbox = !activeThreadId && !showNew;
   const showChatPane = Boolean(activeThread || showNew);
+  const filteredThreads = useMemo(() => {
+    const query = inboxSearch.trim().toLowerCase();
+    if (!query) return threads;
+    return threads.filter(
+      (thread) =>
+        thread.otherName.toLowerCase().includes(query) ||
+        thread.lastMessage.toLowerCase().includes(query),
+    );
+  }, [inboxSearch, threads]);
 
   return (
-    <div className="flex h-[calc(100dvh-5rem)] overflow-hidden rounded-2xl border border-night-900/8 bg-white shadow-sm md:h-[calc(100dvh-11rem)]">
+    <div
+      className={`flex overflow-hidden bg-white ${
+        isMobileApp
+          ? "h-[calc(100dvh-3.5rem)]"
+          : "h-[calc(100dvh-5rem)] rounded-2xl border border-night-900/8 shadow-sm md:h-[calc(100dvh-11rem)]"
+      }`}
+    >
       <aside
         className={`flex w-full shrink-0 flex-col border-night-900/8 lg:w-[min(100%,360px)] lg:border-r ${
           showInbox ? "flex" : "hidden lg:flex"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-night-900/8 px-4 py-3">
-          <h2 className="font-display text-base font-semibold tracking-tight text-night-900">
-            {user.name?.split(" ")[0] ?? "Messages"}
-          </h2>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setShowSafety((value) => !value)}
-              className="rounded-full px-2 py-1.5 text-xs font-semibold text-night-600 hover:bg-sand-50"
-            >
-              Safety
-            </button>
-            <button
-              type="button"
-              onClick={openNewMessage}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-lg text-night-900 hover:bg-sand-50"
-              aria-label="New message"
-            >
-              ✎
-            </button>
+        <div className={`border-b border-night-900/8 ${isMobileApp ? "px-3 py-2" : "px-4 py-3"}`}>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className={`font-display font-semibold tracking-tight text-night-900 ${isMobileApp ? "text-sm" : "text-base"}`}>
+              {isMobileApp ? "Messages" : user.name?.split(" ")[0] ?? "Messages"}
+            </h2>
+            <div className="flex items-center gap-1">
+              {!isMobileApp ? (
+                <button
+                  type="button"
+                  onClick={() => setShowSafety((value) => !value)}
+                  className="rounded-full px-2 py-1.5 text-xs font-semibold text-night-600 hover:bg-sand-50"
+                >
+                  Safety
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={openNewMessage}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-lg text-night-900 hover:bg-sand-50"
+                aria-label="New message"
+              >
+                ✎
+              </button>
+            </div>
           </div>
+          {isMobileApp ? (
+            <div className="relative mt-2">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-night-400">
+                ⌕
+              </span>
+              <input
+                type="search"
+                value={inboxSearch}
+                onChange={(event) => setInboxSearch(event.target.value)}
+                placeholder="Search messages"
+                className="w-full rounded-xl bg-sand-100/90 py-2 pl-9 pr-3 text-sm text-night-900 outline-none ring-night-900/5 placeholder:text-night-400 focus:ring-2"
+              />
+            </div>
+          ) : null}
         </div>
 
         {showSafety && (
@@ -601,7 +637,7 @@ export function MessagesHub() {
         )}
 
         <div className="flex-1 overflow-y-auto">
-          {threads.length === 0 ? (
+          {filteredThreads.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-6 text-center">
               <p className="text-sm font-medium text-night-900">No messages yet</p>
               <p className="mt-1 text-xs text-night-500">
@@ -616,28 +652,30 @@ export function MessagesHub() {
               </button>
             </div>
           ) : (
-            threads.map((thread) => {
+            filteredThreads.map((thread) => {
               const active = activeThreadId === thread.id;
               return (
                 <button
                   key={thread.id}
                   type="button"
                   onClick={() => loadThread(thread.id)}
-                  className={`flex w-full items-center gap-3 border-b border-night-900/5 px-4 py-2.5 text-left transition hover:bg-sand-50/80 ${
-                    active ? "bg-sand-50" : ""
-                  }`}
+                  className={`flex w-full items-center gap-2.5 border-b border-night-900/5 text-left transition hover:bg-sand-50/80 ${
+                    isMobileApp ? "px-3 py-2" : "px-4 py-2.5"
+                  } ${active ? "bg-sand-50" : ""}`}
                 >
-                  <MemberAvatar name={thread.otherName} />
+                  <MemberAvatar name={thread.otherName} size={isMobileApp ? "sm" : "md"} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="truncate text-sm font-semibold text-night-900">
+                      <p className={`truncate font-semibold text-night-900 ${isMobileApp ? "text-[13px]" : "text-sm"}`}>
                         {thread.otherName}
                       </p>
-                      <span className="shrink-0 text-[11px] text-night-400">
+                      <span className="shrink-0 text-[10px] text-night-400">
                         {formatInboxTime(thread.lastMessageAt)}
                       </span>
                     </div>
-                    <p className="truncate text-[13px] text-night-500">{thread.lastMessage}</p>
+                    <p className={`truncate text-night-500 ${isMobileApp ? "text-xs" : "text-[13px]"}`}>
+                      {thread.lastMessage}
+                    </p>
                   </div>
                 </button>
               );

@@ -8,8 +8,11 @@ export type Comment = {
 export type CommunityPost = {
   id: string;
   author: string;
+  authorId?: string;
   campusId: string;
   content: string;
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
   timeAgo: string;
   type: "prayer" | "praise" | "announcement";
   reactions: number;
@@ -17,6 +20,17 @@ export type CommunityPost = {
   targetGroupName?: string;
   comments: Comment[];
   createdAt?: string;
+};
+
+export type CommunityStatus = {
+  id: string;
+  authorId: string;
+  authorName: string;
+  mediaUrl: string;
+  mediaType: "image" | "video";
+  caption?: string;
+  createdAt: string;
+  expiresAt: string;
 };
 
 export type AdminPeopleGroupStatus = {

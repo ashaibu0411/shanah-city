@@ -144,8 +144,11 @@ model GroupJoinRequest {
 model CommunityPost {
   id              String    @id
   author          String
+  authorId        String?
   campusId        String
   content         String
+  mediaUrl        String?
+  mediaType       String?
   timeAgo         String
   type            String
   reactions       Int       @default(0)
@@ -153,6 +156,20 @@ model CommunityPost {
   targetGroupName String?
   createdAt       DateTime  @default(now())
   comments        Comment[]
+}
+
+model CommunityStatus {
+  id         String   @id
+  authorId   String
+  authorName String
+  mediaUrl   String
+  mediaType  String
+  caption    String?
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  @@index([expiresAt])
+  @@index([authorId])
 }
 
 model Comment {

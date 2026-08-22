@@ -48,8 +48,19 @@ export async function POST(request: Request) {
   }
 
   const content = String(body.content ?? "").trim();
-  if (!content) {
-    return NextResponse.json({ error: "Content is required." }, { status: 400 });
+  const mediaUrl = body.mediaUrl ? String(body.mediaUrl).trim() : undefined;
+  const mediaType = body.mediaType === "video" ? "video" : body.mediaType === "image" ? "image" : undefined;
+
+  if (!content && !mediaUrl) {
+    return NextResponse.json({ error: "Add a message, photo, or video." }, { status: 400 });
+  }
+
+  if (mediaUrl && !mediaType) {
+    return NextResponse.json({ error: "Media type is required." }, { status: 400 });
+  }
+
+  if (!user) {
+    return NextResponse.json({ error: "Sign in to post." }, { status: 401 });
   }
 
   const postType = body.type ?? "prayer";
@@ -81,8 +92,11 @@ export async function POST(request: Request) {
   const post = await addCommunityPost({
     id: String(Date.now()),
     author: authorName,
-    campusId: body.campusId ?? user?.campusId ?? "colorado",
-    content,
+    authorId: user.id,
+    campusId: body.campusId ?? user.campusId ?? "colorado",
+    content: content || "",
+    mediaUrl,
+    mediaType,
     timeAgo: "Just now",
     type: postType,
     reactions: 0,
@@ -93,9 +107,9 @@ export async function POST(request: Request) {
   });
 
   await notifyCommunityPost({
-    authorId: user?.id,
+    authorId: user.id,
     authorName,
-    content,
+    content: content || (mediaType === "video" ? "Shared a video" : "Shared a photo"),
     type: postType,
     targetGroupId,
     targetGroupName,
