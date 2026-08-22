@@ -6,6 +6,27 @@ import { Button, Card } from "@/components/ui";
 import type { NotificationPrefs } from "@/lib/auth-types";
 import { isNativeAppPlatform } from "@/lib/native-app";
 
+function nativePushErrorMessage(result: { reason: string; error?: string }) {
+  if (result.reason === "denied") {
+    return "Notification permission was denied. Open Settings → Apps → Shanah City → Notifications and allow alerts.";
+  }
+  if (result.reason === "timeout") {
+    return "Registration timed out. Force-close the app, reopen Profile, and tap Enable again.";
+  }
+  if (result.reason === "registration-error") {
+    return result.error ?? "Phone push registration failed. Force-close and reopen the app.";
+  }
+  if (result.reason === "server") {
+    return result.error ?? "Could not save this phone to the server. Sign in and try again.";
+  }
+  return "Could not register this phone for push. Force-close and reopen the app.";
+}
+
+function isIosBrowser() {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
+
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -101,7 +122,11 @@ export function PushNotificationSettings() {
 
     if (!("Notification" in window) || !("serviceWorker" in navigator)) {
       if (!isNativeAppPlatform()) {
-        setStatus("Push notifications are not supported on this browser.");
+        setStatus(
+          isIosBrowser()
+            ? "iPhone Safari does not support web push. Install the Shanah City app from the App Store for phone alerts."
+            : "Push notifications are not supported on this browser. Use the Shanah City app or Chrome on desktop.",
+        );
         setBusy(false);
         return;
       }
@@ -114,20 +139,18 @@ export function PushNotificationSettings() {
         await refreshPushStatus();
         setBusy(false);
         if (!result.ok) {
-          setStatus(
-            result.reason === "denied"
-              ? "Notification permission was denied."
-              : "error" in result && result.error
-                ? result.error
-                : "Could not register this phone for push. Open Profile again after signing in.",
-          );
+          setStatus(nativePushErrorMessage(result));
           return;
         }
         setEnabled(true);
         setStatus("Push notifications enabled on this phone.");
-      } catch {
+      } catch (error) {
         setBusy(false);
-        setStatus("Could not enable push notifications on this phone.");
+        setStatus(
+          error instanceof Error
+            ? error.message
+            : "Could not enable push notifications on this phone.",
+        );
       }
       return;
     }

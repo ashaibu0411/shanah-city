@@ -26,13 +26,8 @@ export function clearNativePushToken() {
 
 export async function unregisterNativePush() {
   clearNativePushToken();
-  if (!Capacitor.isNativePlatform()) return;
-  try {
-    const { PushNotifications } = await import("@capacitor/push-notifications");
-    await PushNotifications.unregister();
-  } catch {
-    // Token is already cleared locally.
-  }
+  // Do not call PushNotifications.unregister() here — on Android it often prevents
+  // the registration event from firing again until the app is fully restarted.
 }
 
 export async function syncNativePushToken() {
@@ -108,10 +103,27 @@ function showForegroundNotification(input: {
 let listenersReady = false;
 let pendingRegistration:
   | {
-      resolve: (value: { ok: true } | { ok: false; reason: string }) => void;
+      resolve: (value: { ok: true } | { ok: false; reason: string; error?: string }) => void;
       timeoutId: number;
     }
   | null = null;
+
+async function resetNativePushListeners() {
+  if (typeof window === "undefined" || !Capacitor.isNativePlatform()) {
+    return;
+  }
+  if (pendingRegistration) {
+    window.clearTimeout(pendingRegistration.timeoutId);
+    pendingRegistration = null;
+  }
+  listenersReady = false;
+  try {
+    const { PushNotifications } = await import("@capacitor/push-notifications");
+    await PushNotifications.removeAllListeners();
+  } catch {
+    // Listener cleanup is best-effort.
+  }
+}
 
 async function persistRegistration(token: string, platform: NativePushPlatform) {
   if (isNativePushOptedOut()) return { ok: false as const, reason: "opted-out" };
@@ -140,10 +152,15 @@ export async function registerNativePush() {
   }
 
   window.localStorage.removeItem(OPT_OUT_KEY);
+  await resetNativePushListeners();
   await startNativePushListeners();
 
   const { PushNotifications } = await import("@capacitor/push-notifications");
-  const permission = await PushNotifications.requestPermissions();
+
+  let permission = await PushNotifications.checkPermissions();
+  if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") {
+    permission = await PushNotifications.requestPermissions();
+  }
   if (permission.receive !== "granted") {
     return { ok: false, reason: "denied" as const };
   }
@@ -158,7 +175,8 @@ export async function registerNativePush() {
     if (sync.ok) {
       return { ok: true as const };
     }
-    // Token may be stale or the server sync failed earlier — re-register below.
+    window.localStorage.removeItem(TOKEN_KEY);
+    window.localStorage.removeItem(PLATFORM_KEY);
   }
 
   return new Promise<{ ok: true } | { ok: false; reason: string; error?: string }>((resolve) => {
@@ -169,10 +187,20 @@ export async function registerNativePush() {
     const timeoutId = window.setTimeout(() => {
       pendingRegistration = null;
       resolve({ ok: false, reason: "timeout" });
-    }, 15000);
+    }, 20000);
 
     pendingRegistration = { resolve, timeoutId };
-    void PushNotifications.register();
+
+    void PushNotifications.register().catch((error: unknown) => {
+      if (!pendingRegistration) return;
+      window.clearTimeout(pendingRegistration.timeoutId);
+      pendingRegistration = null;
+      resolve({
+        ok: false,
+        reason: "registration-error",
+        error: error instanceof Error ? error.message : "Registration failed.",
+      });
+    });
   });
 }
 
