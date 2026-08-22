@@ -86,9 +86,23 @@ export async function createDevotion(
 
 export async function updateDevotion(
   id: string,
-  update: Partial<Omit<Devotion, "id" | "createdAt" | "audioUrl" | "audioName">> & {
+  update: Partial<
+    Omit<
+      Devotion,
+      | "id"
+      | "createdAt"
+      | "audioUrl"
+      | "audioName"
+      | "artworkSquareUrl"
+      | "artworkWideUrl"
+      | "artworkBannerUrl"
+    >
+  > & {
     audioUrl?: string | null;
     audioName?: string | null;
+    artworkSquareUrl?: string | null;
+    artworkWideUrl?: string | null;
+    artworkBannerUrl?: string | null;
   },
 ) {
   const devotions = await getDevotions({ includeUnpublished: true });
@@ -121,6 +135,18 @@ export async function updateDevotion(
       update.audioName === null
         ? undefined
         : update.audioName ?? devotions[index].audioName,
+    artworkSquareUrl:
+      update.artworkSquareUrl === null
+        ? undefined
+        : update.artworkSquareUrl ?? devotions[index].artworkSquareUrl,
+    artworkWideUrl:
+      update.artworkWideUrl === null
+        ? undefined
+        : update.artworkWideUrl ?? devotions[index].artworkWideUrl,
+    artworkBannerUrl:
+      update.artworkBannerUrl === null
+        ? undefined
+        : update.artworkBannerUrl ?? devotions[index].artworkBannerUrl,
     notifiedAt:
       update.publishAt && new Date(update.publishAt) > new Date()
         ? undefined

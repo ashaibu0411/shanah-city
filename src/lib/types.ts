@@ -95,6 +95,9 @@ export type Devotion = {
   authorName?: string;
   audioUrl?: string;
   audioName?: string;
+  artworkSquareUrl?: string;
+  artworkWideUrl?: string;
+  artworkBannerUrl?: string;
   createdAt?: string;
   updatedAt?: string;
   publishAt?: string | null;

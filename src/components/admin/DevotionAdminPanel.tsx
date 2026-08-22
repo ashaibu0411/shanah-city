@@ -14,9 +14,13 @@ import {
   formatDisplayDateFromInput,
   formatScheduleLabel,
   getDevotionStatus,
+  isDevotionPubliclyVisible,
   type DevotionPublishMode,
 } from "@/lib/devotion-utils";
 import { devotionGroupMatchHint } from "@/lib/devotion-writers-group";
+import { devotionShareUrl, devotionViewUrl } from "@/lib/share-urls";
+import { ContentArtworkPanel } from "@/components/share/ContentArtworkPanel";
+import { ShareActions } from "@/components/share/ShareActions";
 import type { Devotion } from "@/lib/types";
 
 type DevotionForm = {
@@ -67,6 +71,9 @@ export function DevotionAdminPanel() {
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [audioBusy, setAudioBusy] = useState(false);
+  const [artwork, setArtwork] = useState<
+    Pick<Devotion, "artworkSquareUrl" | "artworkWideUrl" | "artworkBannerUrl">
+  >({});
 
   const readingTime = useMemo(
     () =>
@@ -81,6 +88,11 @@ export function DevotionAdminPanel() {
   const displayDate = useMemo(
     () => formatDisplayDateFromInput(form.scheduleDate),
     [form.scheduleDate],
+  );
+
+  const editingDevotion = useMemo(
+    () => devotions.find((devotion) => devotion.id === editingId) ?? null,
+    [devotions, editingId],
   );
 
   async function loadDevotions() {
@@ -117,12 +129,18 @@ export function DevotionAdminPanel() {
       audioUrl: devotion.audioUrl,
       audioName: devotion.audioName,
     });
+    setArtwork({
+      artworkSquareUrl: devotion.artworkSquareUrl,
+      artworkWideUrl: devotion.artworkWideUrl,
+      artworkBannerUrl: devotion.artworkBannerUrl,
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function resetForm() {
     setEditingId(null);
     setForm(createEmptyForm());
+    setArtwork({});
   }
 
   async function saveDevotion() {
@@ -448,6 +466,44 @@ export function DevotionAdminPanel() {
               </div>
             )}
           </div>
+
+          {editingId ? (
+            <div className="space-y-4">
+              <ContentArtworkPanel
+                devotionId={editingId}
+                artwork={artwork}
+                onChange={(next) => {
+                  setArtwork(next);
+                  setDevotions((current) =>
+                    current.map((item) =>
+                      item.id === editingId ? { ...item, ...next } : item,
+                    ),
+                  );
+                }}
+                disabled={busy}
+              />
+              <div className="rounded-2xl border border-night-900/10 bg-white p-4">
+                <ShareActions
+                  shareUrl={devotionShareUrl(editingId)}
+                  viewUrl={devotionViewUrl(editingId)}
+                  notifyEnabled={Boolean(
+                    editingDevotion && isDevotionPubliclyVisible(editingDevotion),
+                  )}
+                  onNotify={async () => {
+                    const response = await fetch("/api/devotions/notify", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ id: editingId }),
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                      throw new Error(data.error ?? "Could not send notification.");
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">
@@ -497,6 +553,9 @@ export function DevotionAdminPanel() {
                     {devotion.authorName ?? "Team ZNCF"} · {devotion.reference} ·{" "}
                     {devotion.readingTime}
                     {devotion.audioUrl ? " · Audio" : ""}
+                    {devotion.artworkWideUrl || devotion.artworkSquareUrl || devotion.artworkBannerUrl
+                      ? " · Artwork"
+                      : ""}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -516,6 +575,27 @@ export function DevotionAdminPanel() {
                   </button>
                 </div>
               </div>
+              {isDevotionPubliclyVisible(devotion) ? (
+                <div className="mt-4 border-t border-night-900/8 pt-4">
+                  <ShareActions
+                    compact
+                    shareUrl={devotionShareUrl(devotion.id)}
+                    viewUrl={devotionViewUrl(devotion.id)}
+                    notifyEnabled
+                    onNotify={async () => {
+                      const response = await fetch("/api/devotions/notify", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: devotion.id }),
+                      });
+                      const data = await response.json();
+                      if (!response.ok) {
+                        throw new Error(data.error ?? "Could not send notification.");
+                      }
+                    }}
+                  />
+                </div>
+              ) : null}
             </Card>
           ))}
           {devotions.length === 0 && (

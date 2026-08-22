@@ -221,18 +221,23 @@ export async function sendPushToUsers(
 export async function notifyNewDevotion(input: {
   title: string;
   authorId: string;
+  devotionId?: string;
 }) {
   const users = await getUsers();
   const userIds = users
     .filter((user) => user.id !== input.authorId)
     .map((user) => user.id);
 
+  const url = input.devotionId
+    ? `/devotions?id=${encodeURIComponent(input.devotionId)}`
+    : "/devotions";
+
   return sendPushToUsers(
     userIds,
     {
       title: "New devotion ready",
       body: input.title,
-      url: "/devotions",
+      url,
     },
     "devotions",
   );

@@ -110,7 +110,7 @@ export async function POST(request: Request) {
   );
 
   if (shouldNotifyDevotionPublish(devotion)) {
-    await notifyNewDevotion({ title: devotion.title, authorId: user!.id });
+    await notifyNewDevotion({ title: devotion.title, authorId: user!.id, devotionId: devotion.id });
     await markDevotionNotified(devotion.id);
   }
 
@@ -170,7 +170,7 @@ export async function PATCH(request: Request) {
   });
 
   if (devotion && shouldNotifyDevotionPublish(devotion)) {
-    await notifyNewDevotion({ title: devotion.title, authorId: user!.id });
+    await notifyNewDevotion({ title: devotion.title, authorId: user!.id, devotionId: devotion.id });
     await markDevotionNotified(devotion.id);
   }
 

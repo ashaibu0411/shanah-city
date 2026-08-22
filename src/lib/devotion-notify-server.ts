@@ -12,6 +12,7 @@ export async function processScheduledDevotionNotifications() {
     await notifyNewDevotion({
       title: devotion.title,
       authorId: devotion.authorId ?? "",
+      devotionId: devotion.id,
     });
     await markDevotionNotified(devotion.id);
     notified += 1;

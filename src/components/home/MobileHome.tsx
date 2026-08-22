@@ -7,6 +7,7 @@ import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
+import { getDevotionArtwork } from "@/lib/devotion-artwork";
 import { churchSocialImageForAction } from "@/lib/facebook-church-media";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { HomeTagline } from "@/components/home/HomeTagline";
@@ -38,6 +39,7 @@ export function MobileHome({
 }: MobileHomeProps) {
   const { campus } = useApp();
   const [devotion, setDevotion] = useState<Devotion | null>(todayDevotion);
+  const devotionArtworkUrl = devotion ? getDevotionArtwork(devotion, "wide") : null;
 
   useEffect(() => {
     setDevotion(todayDevotion);
@@ -144,20 +146,30 @@ export function MobileHome({
             Today&apos;s Word
           </p>
           <Link
-            href="/devotions"
-            className="mobile-card flex items-center justify-between gap-3 overflow-hidden p-3.5 transition active:scale-[0.99]"
+            href={`/devotions?id=${encodeURIComponent(devotion.id)}`}
+            className="mobile-card block overflow-hidden transition active:scale-[0.99]"
           >
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-sand-600">
-                {devotion.readingTime}
-              </p>
-              <p className="mt-0.5 truncate font-sans text-base font-bold tracking-tight text-night-900">
-                {devotion.title}
-              </p>
+            {devotionArtworkUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={devotionArtworkUrl}
+                alt=""
+                className="aspect-[16/9] w-full object-cover"
+              />
+            ) : null}
+            <div className="flex items-center justify-between gap-3 p-3.5">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-sand-600">
+                  {devotion.readingTime}
+                </p>
+                <p className="mt-0.5 truncate font-sans text-base font-bold tracking-tight text-night-900">
+                  {devotion.title}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-night-900 px-2.5 py-1 text-[11px] font-bold text-white">
+                Read
+              </span>
             </div>
-            <span className="shrink-0 rounded-full bg-night-900 px-2.5 py-1 text-[11px] font-bold text-white">
-              Read
-            </span>
           </Link>
         </div>
       )}

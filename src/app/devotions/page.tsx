@@ -1,4 +1,5 @@
-import { DevotionCard } from "@/components/devotions/DevotionCard";
+import { Suspense } from "react";
+import { DevotionsFeed } from "@/components/devotions/DevotionsFeed";
 import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { PageHeader } from "@/components/ui";
 import { getDevotions } from "@/lib/devotion-server";
@@ -21,11 +22,9 @@ export default async function DevotionsPage() {
           No published devotion yet. Check back soon.
         </p>
       ) : (
-        <div className="grid gap-4">
-          {devotions.map((devotion) => (
-            <DevotionCard key={devotion.id} devotion={devotion} />
-          ))}
-        </div>
+        <Suspense fallback={<p className="text-sm text-night-600">Loading devotions…</p>}>
+          <DevotionsFeed devotions={devotions} />
+        </Suspense>
       )}
     </>
   );

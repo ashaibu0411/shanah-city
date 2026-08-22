@@ -23,6 +23,9 @@ function mapDevotion(record: {
   authorName: string | null;
   audioUrl: string | null;
   audioName: string | null;
+  artworkSquareUrl: string | null;
+  artworkWideUrl: string | null;
+  artworkBannerUrl: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   publishAt: Date | null;
@@ -42,6 +45,9 @@ function mapDevotion(record: {
     authorName: record.authorName ?? undefined,
     audioUrl: record.audioUrl ?? undefined,
     audioName: record.audioName ?? undefined,
+    artworkSquareUrl: record.artworkSquareUrl ?? undefined,
+    artworkWideUrl: record.artworkWideUrl ?? undefined,
+    artworkBannerUrl: record.artworkBannerUrl ?? undefined,
     createdAt: record.createdAt?.toISOString(),
     updatedAt: record.updatedAt?.toISOString(),
     publishAt: record.publishAt?.toISOString(),
@@ -105,6 +111,9 @@ export async function createDevotion(
       published: input.published ?? true,
       audioUrl: input.audioUrl ?? null,
       audioName: input.audioName ?? null,
+      artworkSquareUrl: input.artworkSquareUrl ?? null,
+      artworkWideUrl: input.artworkWideUrl ?? null,
+      artworkBannerUrl: input.artworkBannerUrl ?? null,
       publishAt: input.publishAt ? new Date(input.publishAt) : null,
       createdAt: now,
       updatedAt: now,
@@ -116,9 +125,12 @@ export async function createDevotion(
 
 export async function updateDevotion(
   id: string,
-  update: Partial<Omit<Devotion, "id" | "createdAt" | "audioUrl" | "audioName">> & {
+  update: Partial<Omit<Devotion, "id" | "createdAt" | "audioUrl" | "audioName" | "artworkSquareUrl" | "artworkWideUrl" | "artworkBannerUrl">> & {
     audioUrl?: string | null;
     audioName?: string | null;
+    artworkSquareUrl?: string | null;
+    artworkWideUrl?: string | null;
+    artworkBannerUrl?: string | null;
   },
 ) {
   const existing = await prisma.devotion.findUnique({ where: { id } });
@@ -150,6 +162,11 @@ export async function updateDevotion(
       authorName: update.authorName,
       audioUrl: update.audioUrl === null ? null : update.audioUrl,
       audioName: update.audioName === null ? null : update.audioName,
+      artworkSquareUrl:
+        update.artworkSquareUrl === null ? null : update.artworkSquareUrl,
+      artworkWideUrl: update.artworkWideUrl === null ? null : update.artworkWideUrl,
+      artworkBannerUrl:
+        update.artworkBannerUrl === null ? null : update.artworkBannerUrl,
       publishAt:
         update.publishAt === null
           ? null

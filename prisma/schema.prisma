@@ -195,6 +195,9 @@ model Devotion {
   authorName  String?
   audioUrl    String?
   audioName   String?
+  artworkSquareUrl String?
+  artworkWideUrl   String?
+  artworkBannerUrl String?
   createdAt   DateTime?
   updatedAt   DateTime?
   publishAt   DateTime?
