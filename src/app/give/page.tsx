@@ -66,7 +66,10 @@ export default function GivePage() {
       </section>
 
       <p className="mt-6 text-sm text-night-500">
-        Questions? Call {site.phone} or email {site.email}
+        Questions? Call {site.phone} or email{" "}
+        <a href={`mailto:${site.giving.financeEmail}`} className="font-semibold text-night-700 hover:underline">
+          {site.giving.financeEmail}
+        </a>
       </p>
     </>
   );

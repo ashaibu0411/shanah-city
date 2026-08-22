@@ -23,7 +23,7 @@ export const site = {
   welcome:
     "Come taste and see that the Lord is good. — Psalms 34:8",
   location: "Aurora, Colorado",
-  address: "380 S Potomac Street, Aurora, CO 80012",
+  address: "380 S Potomac Street, Unit 120, Aurora, CO 80012",
   mapsUrl:
     "https://www.google.com/maps/search/?api=1&query=380+S+Potomac+Street+Aurora+CO+80012",
   coordinates: {
@@ -99,6 +99,7 @@ export const site = {
     ],
   },
   giving: {
+    financeEmail: "finance@shanahcity.org",
     verse:
       "For where your treasure is, there your heart will be also.",
     reference: "Matthew 6:21",
@@ -118,7 +119,7 @@ export const site = {
       {
         title: "Mail a Check",
         description:
-          "Contact admin@shanahcity.org for mailing instructions.",
+          "Make checks payable to Shanah City and mail to 380 S Potomac Street, Unit 120, Aurora, CO 80012.",
       },
     ],
   },
@@ -188,7 +189,7 @@ export const campuses: Campus[] = [
     timezone: "America/Denver",
     pastor: "Aps. Zaq Nombre",
     serviceTimes: ["Fri 7:00 PM", "Sun 10:00 AM"],
-    address: "380 S Potomac Street, Aurora, CO 80012",
+    address: "380 S Potomac Street, Unit 120, Aurora, CO 80012",
     isLive: false,
   },
   {

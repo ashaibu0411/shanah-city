@@ -21,7 +21,7 @@ const defaults = {
   zeffyUrl: "",
   paypalUsername: "ShanahCity",
   cashAppTag: "ShanahCity",
-  zelleEmail: site.email,
+  zelleEmail: site.giving.financeEmail,
   zellePhone: site.phone,
   venmoUsername: "ShanahCity",
 };

@@ -72,10 +72,10 @@ export function GivePlatformGrid({ platforms }: GivePlatformGridProps) {
       <div className="rounded-2xl bg-sand-100 p-6 text-sm text-night-600 ring-1 ring-night-900/5">
         Online giving links are being set up. Email{" "}
         <a
-          href={`mailto:${site.email}`}
+          href={`mailto:${site.giving.financeEmail}`}
           className="font-semibold text-night-800 hover:underline"
         >
-          {site.email}
+          {site.giving.financeEmail}
         </a>{" "}
         or give in person on Friday or Sunday.
       </div>
