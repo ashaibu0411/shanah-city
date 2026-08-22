@@ -15,7 +15,7 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function MediaClipUploadPanel() {
+export function MediaClipUploadPanel({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const { user, loading, permissions } = useAuth();
@@ -157,17 +157,25 @@ export function MediaClipUploadPanel() {
   }
 
   return (
-    <section className="mb-5 overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-night-950 via-indigo-950 to-violet-950 p-px shadow-xl shadow-indigo-950/20">
-      <div className="rounded-[1.7rem] bg-night-950/80 p-4 text-white backdrop-blur-xl sm:p-5">
+    <section
+      className={`overflow-hidden rounded-2xl bg-night-950 shadow-app-lg ring-1 ring-night-900/10 ${
+        compact ? "mb-0" : "mb-5"
+      }`}
+    >
+      <div className={`text-white ${compact ? "p-3.5" : "p-4 sm:p-5"}`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200/80">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sand-300/80">
               Media team
             </p>
-            <h3 className="mt-1 font-display text-xl font-semibold">Publish a short</h3>
-            <p className="mt-1 text-sm text-white/65">
-              Upload a vertical clip from your phone, or paste a YouTube Shorts link.
-            </p>
+            <h3 className={`mt-1 font-display font-semibold ${compact ? "text-base" : "text-xl"}`}>
+              Publish a short
+            </h3>
+            {!compact ? (
+              <p className="mt-1 text-sm text-white/65">
+                Upload a vertical clip from your phone, or paste a YouTube Shorts link.
+              </p>
+            ) : null}
           </div>
           <div className="flex rounded-full bg-white/10 p-1 ring-1 ring-white/10">
             {(

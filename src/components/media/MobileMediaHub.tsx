@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { MobilePageHero } from "@/components/app/MobilePageHero";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
 import { MediaClipsGrid } from "@/components/media/MediaClipsGrid";
 import { MediaLiveStage } from "@/components/media/MediaLiveStage";
+import { MobileMediaHero } from "@/components/media/MobileMediaHero";
 import { liveStream } from "@/lib/site";
 import type { MediaClip, MediaTab } from "@/lib/types";
-import { Badge } from "@/components/ui";
 
 type MobileMediaHubProps = {
   clips: MediaClip[];
@@ -27,25 +26,8 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
     liveStream.facebook.isLive;
 
   return (
-    <div className="space-y-3">
-      <MobilePageHero
-        eyebrow="Media"
-        title={tab === "live" ? "Watch live worship" : "Shorts & highlights"}
-        description={
-          tab === "live"
-            ? "Stream services from YouTube, Facebook, and Instagram."
-            : "Vertical clips from Shanah City — tap to play, or follow along on social."
-        }
-      >
-        {anyLive ? (
-          <Badge variant="live">
-            <span className="mobile-pulse h-1.5 w-1.5 rounded-full bg-white" />
-            Live now
-          </Badge>
-        ) : (
-          <span className="mobile-chip inline-flex">Cinema · Shorts · Follow</span>
-        )}
-      </MobilePageHero>
+    <div className="mobile-media-hub space-y-3">
+      <MobileMediaHero tab={tab} anyLive={anyLive} clipsCount={clips.length} />
 
       <div className="flex rounded-xl bg-night-950 p-1 shadow-app-md ring-1 ring-night-900/10">
         {(
@@ -58,10 +40,10 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
             key={key}
             type="button"
             onClick={() => setTab(key)}
-            className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold tracking-tight transition ${
+            className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold tracking-tight transition active:scale-[0.98] ${
               tab === key
                 ? "bg-gradient-to-r from-sand-300 via-amber-400 to-sand-500 text-night-950 shadow-app-sm"
-                : "text-white/70"
+                : "text-white/75"
             }`}
           >
             {label}
@@ -73,11 +55,11 @@ export function MobileMediaHub({ clips, browseLinks }: MobileMediaHubProps) {
       </div>
 
       {tab === "live" ? (
-        <MediaLiveStage />
+        <MediaLiveStage layout="mobile" />
       ) : (
         <>
-          <MediaClipUploadPanel />
-          <MediaClipsGrid clips={clips} browseLinks={browseLinks} compact />
+          <MediaClipUploadPanel compact />
+          <MediaClipsGrid clips={clips} browseLinks={browseLinks} compact layout="mobile" />
         </>
       )}
     </div>

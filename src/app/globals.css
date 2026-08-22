@@ -297,6 +297,15 @@
     @apply rounded-2xl border border-night-900/10 bg-white shadow-app-md;
   }
 
+  body[data-shell="mobile"] .mobile-media-hub {
+    animation: fade-in 0.35s ease-out both;
+  }
+
+  body[data-shell="mobile"] .mobile-media-hero {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
   body[data-shell="mobile"] .mobile-home-live-flyer {
     transform: translateZ(0);
     backface-visibility: hidden;
