@@ -11,22 +11,6 @@ export function ConnectPageView() {
   if (isMobileApp) {
     return (
       <div className="space-y-3">
-        <div className="mobile-card overflow-hidden p-0">
-          <div
-            className={`bg-gradient-to-br ${site.visitCTA.gradient} px-4 py-5 text-white`}
-          >
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/80">
-              Plan your visit
-            </p>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight">
-              We&apos;d love to meet you
-            </h2>
-            <p className="mt-2 text-sm leading-snug text-white/85">
-              Aurora, Colorado · Accra, Ghana
-            </p>
-          </div>
-        </div>
-
         <div className="mobile-card p-4">
           <h3 className="font-display text-lg font-bold tracking-tight text-night-900">
             Service times
