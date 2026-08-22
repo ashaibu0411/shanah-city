@@ -82,11 +82,27 @@
     font-size: 0.75rem;
     line-height: 1rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.88);
+    color: rgba(243, 239, 232, 0.92);
   }
 
   body[data-shell="mobile"] .mobile-nav-link.text-white .mobile-nav-label {
     color: #ffffff;
+  }
+
+  body[data-shell="mobile"] .mobile-bottom-nav {
+    background: #111827;
+    box-shadow:
+      0 -1px 0 rgba(255, 255, 255, 0.08),
+      0 -12px 40px rgba(15, 23, 42, 0.55);
+  }
+
+  body[data-shell="mobile"] .mobile-bottom-nav::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: env(safe-area-inset-bottom, 0px);
+    background: #111827;
+    pointer-events: none;
   }
 
   body[data-shell="mobile"][data-text-scale="large"] .mobile-nav-label {
@@ -282,7 +298,41 @@
   }
 
   body[data-shell="mobile"] .mobile-action-tile {
-    @apply relative overflow-hidden rounded-2xl border border-white/15 shadow-app-md;
+    @apply relative overflow-hidden rounded-2xl border border-white/20 shadow-app-lg;
+    min-height: 7.25rem;
+  }
+
+  body[data-shell="mobile"] .mobile-action-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.28), transparent 42%),
+      radial-gradient(circle at 88% 88%, rgba(0, 0, 0, 0.22), transparent 48%);
+    pointer-events: none;
+  }
+
+  body[data-shell="mobile"] .mobile-action-tile::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 38%, rgba(0, 0, 0, 0.12));
+    pointer-events: none;
+  }
+
+  body[data-shell="mobile"] .mobile-action-icon-shell {
+    position: relative;
+    display: flex;
+    height: 3.25rem;
+    width: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.14);
+    box-shadow:
+      0 8px 24px rgba(15, 23, 42, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(8px);
   }
 
   body[data-shell="mobile"] .mobile-chip {

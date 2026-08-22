@@ -8,6 +8,7 @@ import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail, streamPreviews } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import { HomeTagline } from "@/components/home/HomeTagline";
+import { MobileQuickActionIcon } from "@/components/home/MobileQuickActionIcon";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
@@ -17,30 +18,30 @@ const mobileQuickActions = [
   {
     label: "Give",
     href: "/give",
-    icon: "♢",
-    tone: "from-violet-600 via-purple-600 to-fuchsia-700",
-    glow: "shadow-violet-500/30",
+    icon: "give",
+    tone: "from-amber-500 via-amber-600 to-amber-800",
+    accent: "shadow-amber-900/35",
   },
   {
     label: "Connect",
     href: "/connect",
-    icon: "▣",
-    tone: "from-sky-500 via-blue-600 to-indigo-700",
-    glow: "shadow-blue-500/30",
+    icon: "connect",
+    tone: "from-sky-500 via-blue-600 to-indigo-800",
+    accent: "shadow-blue-900/35",
   },
   {
     label: "Community",
     href: "/community",
-    icon: "♡",
-    tone: "from-emerald-500 via-teal-500 to-cyan-600",
-    glow: "shadow-emerald-500/30",
+    icon: "community",
+    tone: "from-emerald-500 via-teal-600 to-emerald-900",
+    accent: "shadow-emerald-900/35",
   },
   {
     label: "Devotions",
     href: "/devotions",
-    icon: "✦",
-    tone: "from-amber-500 via-orange-500 to-rose-600",
-    glow: "shadow-amber-500/30",
+    icon: "devotions",
+    tone: "from-orange-500 via-amber-600 to-rose-700",
+    accent: "shadow-orange-900/35",
   },
 ] as const;
 
@@ -174,13 +175,16 @@ export function MobileHome({ posts, todayDevotion, urgentAlert }: MobileHomeProp
           <Link
             key={action.label}
             href={action.href}
-            className={`mobile-action-tile group bg-gradient-to-br ${action.tone} p-3.5 text-white transition active:scale-[0.98]`}
+            className={`mobile-action-tile group bg-gradient-to-br ${action.tone} ${action.accent} p-3.5 text-white transition active:scale-[0.98]`}
           >
-            <div className="pointer-events-none absolute -right-3 -top-3 h-16 w-16 rounded-full bg-white/15 blur-xl" />
-            <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-black/15 text-lg font-semibold backdrop-blur-sm">
-              {action.icon}
-            </span>
-            <p className="relative mt-2 text-sm font-bold tracking-tight">{action.label}</p>
+            <div className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/20 blur-2xl" />
+            <div className="pointer-events-none absolute -bottom-6 -left-4 h-16 w-16 rounded-full bg-black/20 blur-2xl" />
+            <div className="relative mobile-action-icon-shell">
+              <MobileQuickActionIcon name={action.icon} className="h-11 w-11" />
+            </div>
+            <p className="relative mt-2.5 text-sm font-bold tracking-tight drop-shadow-sm">
+              {action.label}
+            </p>
           </Link>
         ))}
       </div>
