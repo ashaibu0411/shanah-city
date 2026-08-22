@@ -21,8 +21,6 @@ const defaults = {
   zeffyUrl: "",
   paypalUsername: "ShanahCity",
   cashAppTag: "ShanahCity",
-  zelleEmail: site.giving.financeEmail,
-  zellePhone: site.phone,
   venmoUsername: "ShanahCity",
 };
 
@@ -38,8 +36,7 @@ const paypalUsername = envValue(
 );
 const paypalUrlDirect = envValue("NEXT_PUBLIC_GIVE_PAYPAL_URL");
 const cashAppTag = envValue("NEXT_PUBLIC_GIVE_CASHAPP_TAG", defaults.cashAppTag);
-const zelleEmail = envValue("NEXT_PUBLIC_GIVE_ZELLE_EMAIL", defaults.zelleEmail);
-const zellePhone = envValue("NEXT_PUBLIC_GIVE_ZELLE_PHONE", defaults.zellePhone);
+const zelleEmail = site.giving.financeEmail;
 const venmoUsername = envValue(
   "NEXT_PUBLIC_GIVE_VENMO_USERNAME",
   defaults.venmoUsername,
@@ -75,8 +72,8 @@ const configured: GivingPlatform[] = [
     name: "Zelle",
     description: "Send from your bank app using the church Zelle contact below.",
     action: "copy",
-    copyValue: zelleEmail || zellePhone,
-    copyHint: zelleEmail ? "Zelle email" : "Zelle phone",
+    copyValue: zelleEmail,
+    copyHint: "Zelle email",
     tone: "from-violet-600 to-purple-700",
   },
   {

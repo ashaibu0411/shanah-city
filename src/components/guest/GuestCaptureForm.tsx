@@ -103,22 +103,26 @@ export function GuestCaptureForm({ embedded = false }: { embedded?: boolean }) {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-sm text-night-800">
-            <span className="font-semibold">Email (optional)</span>
+            <span className="font-semibold">Email</span>
             <input
               type="email"
+              required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
+              autoComplete="email"
               className={fieldClass}
             />
           </label>
           <label className="block text-sm text-night-800">
-            <span className="font-semibold">Phone (optional)</span>
+            <span className="font-semibold">Phone</span>
             <input
               type="tel"
+              required
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
               placeholder="Best number to reach you"
+              autoComplete="tel"
               className={fieldClass}
             />
           </label>
@@ -180,7 +184,7 @@ export function GuestCaptureForm({ embedded = false }: { embedded?: boolean }) {
         </Button>
 
         <p className="text-xs text-night-500">
-          No account required. Your info goes to our welcome team only.
+          No account required. Email and phone help our welcome team follow up with you.
         </p>
       </form>
   );

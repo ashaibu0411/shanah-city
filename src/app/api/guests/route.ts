@@ -53,15 +53,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please enter your name." }, { status: 400 });
   }
 
-  const email = body.email ? String(body.email).trim() : undefined;
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  const email = String(body.email ?? "").trim();
+  if (!email) {
+    return NextResponse.json({ error: "Please enter your email." }, { status: 400 });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
+  }
+
+  const phone = String(body.phone ?? "").trim();
+  if (!phone) {
+    return NextResponse.json({ error: "Please enter your phone number." }, { status: 400 });
+  }
+  const phoneDigits = phone.replace(/\D/g, "");
+  if (phoneDigits.length < 10) {
+    return NextResponse.json({ error: "Enter a valid phone number." }, { status: 400 });
   }
 
   const guest = await addGuestSubmission({
     name,
     email,
-    phone: body.phone ? String(body.phone).trim() : undefined,
+    phone,
     visitDate: body.visitDate ? String(body.visitDate).trim() : undefined,
     serviceTime: body.serviceTime ? String(body.serviceTime).trim() : undefined,
     isFirstVisit: body.isFirstVisit !== false,
