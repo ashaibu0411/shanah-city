@@ -193,6 +193,29 @@
     padding-bottom: calc(6.75rem + env(safe-area-inset-bottom, 0px));
   }
 
+  /* Auth pages: fill tablet width; stack on phone, side-by-side on iPad+ */
+  body[data-shell="mobile"] .auth-page-shell {
+    max-width: none;
+    width: 100%;
+    padding-top: 0.25rem;
+    padding-bottom: 0.5rem;
+  }
+
+  body[data-shell="mobile"] .auth-page-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 768px) {
+    body[data-shell="mobile"] .auth-page-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 1.5rem;
+    }
+
+    body[data-shell="mobile"] .auth-page-shell section:first-child {
+      padding: 1.5rem;
+    }
+  }
+
   body[data-shell="mobile"][data-text-scale="large"] .app-main,
   body[data-shell="mobile"][data-text-scale="extraLarge"] .app-main {
     padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));

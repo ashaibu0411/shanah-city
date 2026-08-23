@@ -18,8 +18,8 @@ type AuthPageShellProps = {
 
 export function AuthPageShell({ mode, children }: AuthPageShellProps) {
   return (
-    <div className="mx-auto max-w-4xl py-6 lg:py-10">
-      <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-start">
+    <div className="auth-page-shell mx-auto w-full max-w-4xl py-4 lg:py-10">
+      <div className="auth-page-grid grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-start lg:gap-8">
         <section className="rounded-3xl bg-gradient-to-br from-night-950 to-night-800 p-6 text-white shadow-lg lg:p-8">
           <Image
             src="/shanah-city-logo.png"
