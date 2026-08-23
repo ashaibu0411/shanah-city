@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { LiveStreamCountdownBanner } from "@/components/live/useLiveStreamSchedule";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { liveStream, site } from "@/lib/site";
 import { streamPreviews } from "@/lib/streams";
@@ -42,7 +45,10 @@ export function LiveBanner() {
   }
 
   return (
-    <div className="mb-6 overflow-hidden rounded-2xl bg-night-950 text-white shadow-lg ring-1 ring-night-900/10">
+    <div className="mb-6 space-y-4">
+      <LiveStreamCountdownBanner variant="on-dark" />
+
+      <div className="overflow-hidden rounded-2xl bg-night-950 text-white shadow-lg ring-1 ring-night-900/10">
       <div className="border-b border-white/10 px-5 py-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-sand-300">
           Next service
@@ -84,6 +90,7 @@ export function LiveBanner() {
         <Link href="/live" className="text-sm font-semibold text-sand-200 hover:text-white">
           Open full live player →
         </Link>
+      </div>
       </div>
     </div>
   );

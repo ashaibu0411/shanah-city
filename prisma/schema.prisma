@@ -601,6 +601,16 @@ model FeedReadState {
   @@unique([userId, feedKey])
 }
 
+model LiveStreamSchedule {
+  id            String   @id @default("upcoming")
+  title         String
+  startsAt      DateTime
+  platform      String?
+  createdBy     String
+  createdByName String
+  updatedAt     DateTime
+}
+
 model UrgentAlert {
   id            String    @id
   title         String

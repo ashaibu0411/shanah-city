@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { LiveStreamCountdownBanner } from "@/components/live/useLiveStreamSchedule";
+import { LiveStreamSchedulePanel } from "@/components/live/LiveStreamSchedulePanel";
 import { LiveStreamPlayer } from "@/components/live/LiveStreamPlayer";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { liveStream, site } from "@/lib/site";
@@ -34,6 +36,8 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
 
   return (
     <div className={isMobile ? "space-y-2.5" : "space-y-3"}>
+      {!anyLive ? <LiveStreamCountdownBanner variant={isMobile ? "card" : "card"} /> : null}
+
       <div className="overflow-hidden rounded-2xl bg-night-950 shadow-app-lg ring-1 ring-night-900/10">
         <div className={`relative w-full bg-black ${isMobile ? "aspect-[16/10]" : "aspect-video"}`}>
           <LiveStreamPlayer preview={active} compact />
@@ -128,6 +132,8 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
           ))}
         </div>
       </div>
+
+      <LiveStreamSchedulePanel compact={isMobile} />
     </div>
   );
 }

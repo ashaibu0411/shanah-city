@@ -11,6 +11,7 @@ import { getDevotionArtwork } from "@/lib/devotion-artwork";
 import { churchSocialImageForAction } from "@/lib/facebook-church-media";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { HomeTagline } from "@/components/home/HomeTagline";
+import { LiveStreamCountdownInline } from "@/components/live/useLiveStreamSchedule";
 import { MobileQuickActionFlyer } from "@/components/home/MobileQuickActionFlyer";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
@@ -122,7 +123,11 @@ export function MobileHome({
                 <span className="mobile-home-pulse h-1.5 w-1.5 rounded-full bg-white" />
                 Live now
               </span>
-            ) : null}
+            ) : (
+              <div className="mb-2">
+                <LiveStreamCountdownInline />
+              </div>
+            )}
 
             <p className="font-display text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-md">
               {anyLive ? liveStream.title : "Watch Live"}
