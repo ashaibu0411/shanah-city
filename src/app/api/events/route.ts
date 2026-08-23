@@ -14,6 +14,8 @@ import {
   getEvents,
   updateEvent,
 } from "@/lib/event-server";
+import { resolveRsvpGroupName } from "@/lib/event-rsvp-access-server";
+import { parseEventRsvpFields } from "@/lib/event-rsvp-utils";
 
 function parseEventBody(body: Record<string, unknown>) {
   const groupId = body.groupId ? String(body.groupId).trim() : undefined;
@@ -35,6 +37,42 @@ function parseEventBody(body: Record<string, unknown>) {
         ? undefined
         : Number(recurringWeekdayRaw),
     published: body.published === false ? false : true,
+  };
+}
+
+async function normalizeRsvpFields(
+  input: ReturnType<typeof parseEventBody>,
+  eventGroupId?: string | null,
+) {
+  const rsvp = parseEventRsvpFields(input as Record<string, unknown>);
+  if (!rsvp.rsvpEnabled) {
+    return {
+      rsvpEnabled: false,
+      rsvpAudience: null,
+      rsvpGroupId: null,
+      rsvpGroupName: null,
+      rsvpDeadline: null,
+      rsvpCapacity: null,
+      rsvpInstructions: null,
+    };
+  }
+
+  const audience = rsvp.rsvpAudience ?? (eventGroupId ? "group" : "church");
+  const rsvpGroupId =
+    audience === "group" ? rsvp.rsvpGroupId ?? eventGroupId ?? null : null;
+  const rsvpGroupName =
+    audience === "group" && rsvpGroupId
+      ? rsvp.rsvpGroupName ?? (await resolveRsvpGroupName(rsvpGroupId))
+      : null;
+
+  return {
+    rsvpEnabled: true,
+    rsvpAudience: audience,
+    rsvpGroupId,
+    rsvpGroupName,
+    rsvpDeadline: rsvp.rsvpDeadline ?? null,
+    rsvpCapacity: rsvp.rsvpCapacity ?? null,
+    rsvpInstructions: rsvp.rsvpInstructions ?? null,
   };
 }
 
@@ -129,7 +167,8 @@ export async function POST(request: Request) {
     input.groupName = group.name;
   }
 
-  const event = await createEvent(input);
+  const rsvpFields = await normalizeRsvpFields(body, input.groupId ?? null);
+  const event = await createEvent({ ...input, ...rsvpFields });
   return NextResponse.json({ event }, { status: 201 });
 }
 
@@ -153,6 +192,11 @@ export async function PATCH(request: Request) {
   const denied = await assertCanManageEvent(user, existing.groupId ?? null);
   if (denied) return denied;
 
+  const rsvpFields =
+    body.rsvpEnabled !== undefined || body.rsvpAudience !== undefined
+      ? await normalizeRsvpFields(body, existing.groupId ?? null)
+      : {};
+
   const event = await updateEvent(id, {
     title: body.title ? String(body.title).trim() : undefined,
     date: body.date ? String(body.date).trim() : undefined,
@@ -171,6 +215,7 @@ export async function PATCH(request: Request) {
           ? Number(body.recurringWeekday)
           : undefined,
     published: body.published === false ? false : body.published === true ? true : undefined,
+    ...rsvpFields,
   });
 
   if (!event) {

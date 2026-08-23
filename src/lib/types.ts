@@ -121,6 +121,13 @@ export type ChurchEvent = {
   artworkBannerUrl?: string;
   published?: boolean;
   sortOrder?: number;
+  rsvpEnabled?: boolean;
+  rsvpAudience?: "church" | "group" | null;
+  rsvpGroupId?: string | null;
+  rsvpGroupName?: string | null;
+  rsvpDeadline?: string | null;
+  rsvpCapacity?: number | null;
+  rsvpInstructions?: string | null;
 };
 
 export type MeetingPlatform = "in-person" | "zoom" | "teams";

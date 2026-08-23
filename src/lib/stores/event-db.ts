@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { upcomingEvents } from "@/lib/site";
 import type { ChurchEvent } from "@/lib/types";
 
-function mapEvent(record: {
+type EventRecord = {
   id: string;
   title: string;
   date: string;
@@ -19,7 +19,16 @@ function mapEvent(record: {
   artworkBannerUrl: string | null;
   published: boolean;
   sortOrder: number;
-}): ChurchEvent {
+  rsvpEnabled: boolean;
+  rsvpAudience: string | null;
+  rsvpGroupId: string | null;
+  rsvpGroupName: string | null;
+  rsvpDeadline: Date | null;
+  rsvpCapacity: number | null;
+  rsvpInstructions: string | null;
+};
+
+function mapEvent(record: EventRecord): ChurchEvent {
   return {
     id: record.id,
     title: record.title,
@@ -37,6 +46,48 @@ function mapEvent(record: {
     artworkBannerUrl: record.artworkBannerUrl ?? undefined,
     published: record.published,
     sortOrder: record.sortOrder,
+    rsvpEnabled: record.rsvpEnabled,
+    rsvpAudience: (record.rsvpAudience as ChurchEvent["rsvpAudience"]) ?? undefined,
+    rsvpGroupId: record.rsvpGroupId ?? undefined,
+    rsvpGroupName: record.rsvpGroupName ?? undefined,
+    rsvpDeadline: record.rsvpDeadline?.toISOString() ?? undefined,
+    rsvpCapacity: record.rsvpCapacity ?? undefined,
+    rsvpInstructions: record.rsvpInstructions ?? undefined,
+  };
+}
+
+function rsvpDataFromInput(
+  input: Partial<ChurchEvent>,
+  existing?: EventRecord | null,
+) {
+  return {
+    rsvpEnabled: input.rsvpEnabled ?? existing?.rsvpEnabled ?? false,
+    rsvpAudience:
+      input.rsvpAudience === undefined
+        ? (existing?.rsvpAudience ?? null)
+        : input.rsvpAudience ?? null,
+    rsvpGroupId:
+      input.rsvpGroupId === undefined
+        ? (existing?.rsvpGroupId ?? null)
+        : input.rsvpGroupId ?? null,
+    rsvpGroupName:
+      input.rsvpGroupName === undefined
+        ? (existing?.rsvpGroupName ?? null)
+        : input.rsvpGroupName ?? null,
+    rsvpDeadline:
+      input.rsvpDeadline === undefined
+        ? (existing?.rsvpDeadline ?? null)
+        : input.rsvpDeadline
+          ? new Date(input.rsvpDeadline)
+          : null,
+    rsvpCapacity:
+      input.rsvpCapacity === undefined
+        ? (existing?.rsvpCapacity ?? null)
+        : input.rsvpCapacity ?? null,
+    rsvpInstructions:
+      input.rsvpInstructions === undefined
+        ? (existing?.rsvpInstructions ?? null)
+        : input.rsvpInstructions ?? null,
   };
 }
 
@@ -110,6 +161,7 @@ export async function createEvent(
 ) {
   const now = new Date();
   const events = await getEvents({ includeUnpublished: true });
+  const rsvp = rsvpDataFromInput(input);
   const record = await prisma.churchEvent.create({
     data: {
       id: `event-${Date.now()}`,
@@ -125,6 +177,7 @@ export async function createEvent(
       recurringWeekday: input.recurringWeekday ?? null,
       published: input.published ?? true,
       sortOrder: input.sortOrder ?? events.length,
+      ...rsvp,
       createdAt: now,
       updatedAt: now,
     },
@@ -165,6 +218,7 @@ export async function updateEvent(id: string, update: Partial<Omit<ChurchEvent, 
           : update.artworkBannerUrl ?? null,
       published: update.published,
       sortOrder: update.sortOrder,
+      ...rsvpDataFromInput(update, existing),
       updatedAt: new Date(),
     },
   });
@@ -183,6 +237,8 @@ export async function deleteEvent(id: string) {
 
 export async function upsertEvent(event: ChurchEvent) {
   const now = new Date();
+  const existing = await prisma.churchEvent.findUnique({ where: { id: event.id } });
+  const rsvp = rsvpDataFromInput(event, existing);
   const record = await prisma.churchEvent.upsert({
     where: { id: event.id },
     create: {
@@ -202,6 +258,7 @@ export async function upsertEvent(event: ChurchEvent) {
       artworkBannerUrl: event.artworkBannerUrl ?? null,
       published: event.published ?? true,
       sortOrder: event.sortOrder ?? 0,
+      ...rsvp,
       createdAt: now,
       updatedAt: now,
     },
@@ -221,6 +278,7 @@ export async function upsertEvent(event: ChurchEvent) {
       artworkBannerUrl: event.artworkBannerUrl ?? null,
       published: event.published ?? true,
       sortOrder: event.sortOrder,
+      ...rsvp,
       updatedAt: now,
     },
   });

@@ -114,6 +114,13 @@ export async function upsertEvent(event: ChurchEvent) {
       ...events[index],
       ...event,
       id: events[index].id,
+      rsvpEnabled: event.rsvpEnabled ?? events[index].rsvpEnabled ?? false,
+      rsvpAudience: event.rsvpAudience ?? events[index].rsvpAudience,
+      rsvpGroupId: event.rsvpGroupId ?? events[index].rsvpGroupId,
+      rsvpGroupName: event.rsvpGroupName ?? events[index].rsvpGroupName,
+      rsvpDeadline: event.rsvpDeadline ?? events[index].rsvpDeadline,
+      rsvpCapacity: event.rsvpCapacity ?? events[index].rsvpCapacity,
+      rsvpInstructions: event.rsvpInstructions ?? events[index].rsvpInstructions,
     };
   }
   await writeJson(EVENTS_FILE, events);

@@ -5,6 +5,12 @@ import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
 import { EventCalendarFields } from "@/components/calendar/EventCalendarFields";
+import {
+  defaultEventRsvpFormState,
+  eventRsvpFormToPayload,
+  EventRsvpCreateFields,
+} from "@/components/calendar/EventRsvpCreateFields";
+import { EventRsvpPanel } from "@/components/calendar/EventRsvpPanel";
 import { MeetingsCalendarPanel } from "@/components/calendar/MeetingsCalendarPanel";
 import { EventShareTools } from "@/components/share/EventShareTools";
 import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
@@ -21,12 +27,14 @@ function EventDetailCard({
   canManage,
   onRemove,
   onArtworkChange,
+  onEventUpdated,
   highlighted = false,
 }: {
   event: ChurchEvent;
   canManage: boolean;
   onRemove: (id: string) => void;
   onArtworkChange?: (id: string, artwork: ArtworkFields) => void;
+  onEventUpdated?: (event: ChurchEvent) => void;
   highlighted?: boolean;
 }) {
   return (
@@ -41,6 +49,11 @@ function EventDetailCard({
       <p className="mt-2 text-sm text-night-600">
         {event.time} · {event.location}
       </p>
+      {event.rsvpEnabled ? (
+        <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-teal-800">
+          RSVP requested
+        </p>
+      ) : null}
       {isOutlookSyncedEventId(event.id) ? (
         <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-violet-700">
           Synced from Outlook
@@ -56,6 +69,11 @@ function EventDetailCard({
           onArtworkChange={(artwork) => onArtworkChange(event.id, artwork)}
         />
       ) : null}
+      <EventRsvpPanel
+        event={event}
+        canManage={canManage}
+        onEventUpdated={onEventUpdated}
+      />
     </div>
   );
 }
@@ -231,6 +249,7 @@ function ChurchEventsPanel() {
   const [message, setMessage] = useState<string | null>(null);
   const [outlookConfigured, setOutlookConfigured] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [rsvpForm, setRsvpForm] = useState(() => defaultEventRsvpFormState("church"));
 
   async function loadEvents() {
     setLoading(true);
@@ -265,6 +284,12 @@ function ChurchEventsPanel() {
     );
   }
 
+  function updateEventInList(updated: ChurchEvent) {
+    setEvents((current) =>
+      current.map((entry) => (entry.id === updated.id ? { ...entry, ...updated } : entry)),
+    );
+  }
+
   async function addEvent() {
     const response = await fetch("/api/events", {
       method: "POST",
@@ -277,6 +302,7 @@ function ChurchEventsPanel() {
         startsOn: startsOn || undefined,
         endsOn: endsOn || undefined,
         recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
+        ...eventRsvpFormToPayload(rsvpForm),
       }),
     });
     const data = await response.json();
@@ -289,6 +315,7 @@ function ChurchEventsPanel() {
       setStartsOn("");
       setEndsOn("");
       setRecurringWeekday("");
+      setRsvpForm(defaultEventRsvpFormState("church"));
       loadEvents();
     } else {
       setMessage(data.error ?? "Could not add event.");
@@ -397,6 +424,11 @@ function ChurchEventsPanel() {
               onEndsOnChange={setEndsOn}
               onRecurringWeekdayChange={setRecurringWeekday}
             />
+            <EventRsvpCreateFields
+              state={rsvpForm}
+              onChange={setRsvpForm}
+              defaultAudience="church"
+            />
           </div>
           {message && <p className="mt-3 text-sm text-night-600">{message}</p>}
           <Button className="mt-4" onClick={addEvent}>
@@ -421,6 +453,7 @@ function ChurchEventsPanel() {
             canManage={canManage}
             onRemove={removeEvent}
             onArtworkChange={canManage ? updateEventArtwork : undefined}
+            onEventUpdated={updateEventInList}
             highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
           />
         )}
@@ -437,41 +470,16 @@ function ChurchEventsPanel() {
           </Card>
         ) : (
           events.map((event) => (
-            <div
-              key={event.id}
-              id={`event-${event.id}`}
-              className={
-                highlightEventId && event.id === highlightEventId
-                  ? "rounded-2xl ring-2 ring-gold-500"
-                  : undefined
-              }
-            >
-              <Card>
-              <p className="text-sm font-medium text-sand-600">{event.date}</p>
-              <h3 className="mt-1 font-display text-xl font-semibold text-night-900">
-                {event.title}
-              </h3>
-              <p className="mt-2 text-sm text-night-600">
-                {event.time} · {event.location}
-              </p>
-              {isOutlookSyncedEventId(event.id) ? (
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-violet-700">
-                  Synced from Outlook
-                </p>
-              ) : canManage ? (
-                <Button
-                  variant="secondary"
-                  className="mt-4"
-                  onClick={() => removeEvent(event.id)}
-                >
-                  Remove
-                </Button>
-              ) : null}
-              {canManage ? (
-                <EventShareTools event={event} onArtworkChange={(artwork) => updateEventArtwork(event.id, artwork)} />
-              ) : null}
-              </Card>
-            </div>
+            <Card key={event.id}>
+              <EventDetailCard
+                event={event}
+                canManage={canManage}
+                onRemove={removeEvent}
+                onArtworkChange={canManage ? updateEventArtwork : undefined}
+                onEventUpdated={updateEventInList}
+                highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
+              />
+            </Card>
           ))
         )}
       </div>
@@ -500,6 +508,7 @@ function GroupEventsPanel({
   const [endsOn, setEndsOn] = useState("");
   const [recurringWeekday, setRecurringWeekday] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [rsvpForm, setRsvpForm] = useState(() => defaultEventRsvpFormState("group"));
 
   async function loadEvents() {
     setLoading(true);
@@ -539,6 +548,12 @@ function GroupEventsPanel({
     );
   }
 
+  function updateEventInList(updated: ChurchEvent) {
+    setEvents((current) =>
+      current.map((entry) => (entry.id === updated.id ? { ...entry, ...updated } : entry)),
+    );
+  }
+
   async function addEvent() {
     const response = await fetch("/api/events", {
       method: "POST",
@@ -552,6 +567,8 @@ function GroupEventsPanel({
         startsOn: startsOn || undefined,
         endsOn: endsOn || undefined,
         recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
+        ...eventRsvpFormToPayload(rsvpForm),
+        rsvpGroupId: rsvpForm.rsvpAudience === "group" ? groupId : null,
       }),
     });
     const data = await response.json();
@@ -564,6 +581,7 @@ function GroupEventsPanel({
       setStartsOn("");
       setEndsOn("");
       setRecurringWeekday("");
+      setRsvpForm(defaultEventRsvpFormState("group"));
       loadEvents();
     } else {
       setMessage(data.error ?? "Could not add event.");
@@ -640,6 +658,11 @@ function GroupEventsPanel({
               onEndsOnChange={setEndsOn}
               onRecurringWeekdayChange={setRecurringWeekday}
             />
+            <EventRsvpCreateFields
+              state={rsvpForm}
+              onChange={setRsvpForm}
+              defaultAudience="group"
+            />
           </div>
           {message && <p className="mt-3 text-sm text-night-600">{message}</p>}
           <Button className="mt-4" onClick={addEvent}>
@@ -657,6 +680,7 @@ function GroupEventsPanel({
             canManage={canManage}
             onRemove={removeEvent}
             onArtworkChange={canManage ? updateEventArtwork : undefined}
+            onEventUpdated={updateEventInList}
             highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
           />
         )}
@@ -673,40 +697,16 @@ function GroupEventsPanel({
           </Card>
         ) : (
           events.map((event) => (
-            <div
-              key={event.id}
-              id={`event-${event.id}`}
-              className={
-                highlightEventId && event.id === highlightEventId
-                  ? "rounded-2xl ring-2 ring-gold-500"
-                  : undefined
-              }
-            >
-              <Card>
-              <p className="text-sm font-medium text-sand-600">{event.date}</p>
-              <h3 className="mt-1 font-display text-xl font-semibold text-night-900">
-                {event.title}
-              </h3>
-              <p className="mt-2 text-sm text-night-600">
-                {event.time} · {event.location}
-              </p>
-              {canManage && (
-                <Button
-                  variant="secondary"
-                  className="mt-4"
-                  onClick={() => removeEvent(event.id)}
-                >
-                  Remove
-                </Button>
-              )}
-              {canManage ? (
-                <EventShareTools
-                  event={event}
-                  onArtworkChange={(artwork) => updateEventArtwork(event.id, artwork)}
-                />
-              ) : null}
-              </Card>
-            </div>
+            <Card key={event.id}>
+              <EventDetailCard
+                event={event}
+                canManage={canManage}
+                onRemove={removeEvent}
+                onArtworkChange={canManage ? updateEventArtwork : undefined}
+                onEventUpdated={updateEventInList}
+                highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
+              />
+            </Card>
           ))
         )}
       </div>
