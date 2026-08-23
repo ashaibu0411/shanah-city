@@ -165,8 +165,8 @@ export function DevotionListenPlayer({ devotion, compact = false }: DevotionList
         )}
       </div>
       <p className="mt-3 text-xs text-night-500">
-        Voices come from this phone or browser. Natural or Online usually sound warmer. On Android,
-        you can download more under Settings → Accessibility → Text-to-speech.
+        Voices come from this phone. On Android, you can download more under Settings → Accessibility →
+        Text-to-speech output.
       </p>
     </div>
   );

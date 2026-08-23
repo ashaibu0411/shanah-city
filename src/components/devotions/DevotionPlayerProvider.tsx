@@ -21,10 +21,17 @@ import {
   getStoredDevotionTtsVoiceUri,
   loadDevotionTtsVoices,
   pickDefaultDevotionVoice,
+  resolveDevotionTtsBackend,
   setStoredDevotionTtsRate,
   setStoredDevotionTtsVoiceUri,
+  type DevotionTtsBackend,
   type DevotionTtsVoiceOption,
 } from "@/lib/devotion-tts-utils";
+import {
+  loadNativeDevotionTtsVoices,
+  speakNativeDevotionChunk,
+  stopNativeDevotionTts,
+} from "@/lib/devotion-native-tts";
 
 const KEEP_ALIVE_SRC = "/silence.wav";
 
@@ -90,6 +97,7 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
   const voiceUriRef = useRef(selectedVoiceUri);
   const keepAliveTimerRef = useRef<number | null>(null);
   const generationRef = useRef(0);
+  const backendRef = useRef<DevotionTtsBackend | null>(null);
 
   useEffect(() => {
     playingRef.current = playing;
@@ -132,6 +140,7 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     keepAliveTimerRef.current = window.setInterval(() => {
       if (!playingRef.current || pausedRef.current) return;
       void keepAliveRef.current?.play().catch(() => undefined);
+      if (backendRef.current === "native") return;
       if (typeof window === "undefined" || !window.speechSynthesis) return;
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
@@ -147,6 +156,9 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
   const cancelTts = useCallback(() => {
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.cancel();
+    }
+    if (backendRef.current === "native") {
+      void stopNativeDevotionTts();
     }
   }, []);
 
@@ -175,7 +187,6 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
 
   const speakCurrentChunk = useCallback(() => {
     if (!playingRef.current || pausedRef.current) return;
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
 
     if (chunkIndexRef.current >= chunksRef.current.length) {
       stop();
@@ -183,7 +194,33 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     }
 
     const generation = generationRef.current;
-    const utterance = new SpeechSynthesisUtterance(chunksRef.current[chunkIndexRef.current]);
+    const chunk = chunksRef.current[chunkIndexRef.current];
+
+    if (backendRef.current === "native") {
+      void speakNativeDevotionChunk({
+        text: chunk,
+        voiceURI: voiceUriRef.current,
+        rate: rateRef.current,
+        queueStrategy: chunkIndexRef.current === 0 ? 0 : 1,
+      })
+        .then(() => {
+          if (generation !== generationRef.current) return;
+          if (!playingRef.current || pausedRef.current) return;
+          chunkIndexRef.current += 1;
+          speakCurrentChunk();
+        })
+        .catch(() => {
+          if (generation !== generationRef.current) return;
+          if (!playingRef.current) return;
+          chunkIndexRef.current += 1;
+          speakCurrentChunk();
+        });
+      return;
+    }
+
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+
+    const utterance = new SpeechSynthesisUtterance(chunk);
     utterance.rate = rateRef.current;
     utterance.pitch = 0.98;
     const voice = findSpeechSynthesisVoice(voiceUriRef.current);
@@ -209,6 +246,8 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     pausedRef.current = true;
     if (devotionRef.current && devotionHasAudio(devotionRef.current) && audioRef.current) {
       audioRef.current.pause();
+    } else if (backendRef.current === "native") {
+      void stopNativeDevotionTts();
     } else if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.pause();
     }
@@ -224,6 +263,9 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     pausedRef.current = false;
     if (devotionRef.current && devotionHasAudio(devotionRef.current) && audioRef.current) {
       void audioRef.current.play().catch(() => undefined);
+    } else if (backendRef.current === "native") {
+      speakCurrentChunk();
+      startKeepAlive();
     } else if (typeof window !== "undefined" && window.speechSynthesis) {
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
@@ -273,7 +315,13 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (typeof window === "undefined" || !window.speechSynthesis) {
+      if (typeof window === "undefined") {
+        setSupported(false);
+        stop();
+        return;
+      }
+
+      if (!backendRef.current) {
         setSupported(false);
         stop();
         return;
@@ -313,6 +361,15 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
   const previewVoice = useCallback(
     (voiceUri: string) => {
       if (playingRef.current) return;
+      if (backendRef.current === "native") {
+        void speakNativeDevotionChunk({
+          text: "This is how this voice sounds reading today's devotion.",
+          voiceURI: voiceUri,
+          rate: rateRef.current,
+          queueStrategy: 0,
+        });
+        return;
+      }
       if (typeof window === "undefined" || !window.speechSynthesis) return;
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(
@@ -331,6 +388,10 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     if (!playingRef.current || pausedRef.current) return;
     void keepAliveRef.current?.play().catch(() => undefined);
     void audioRef.current?.play().catch(() => undefined);
+    if (backendRef.current === "native") {
+      speakCurrentChunk();
+      return;
+    }
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
@@ -344,7 +405,6 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
   const isCurrent = useCallback((id: string) => devotion?.id === id && playing, [devotion, playing]);
 
   useEffect(() => {
-    setSupported(typeof window !== "undefined" && "speechSynthesis" in window);
     setSpeechRate(getStoredDevotionTtsRate());
 
     const applyVoices = (loaded: DevotionTtsVoiceOption[]) => {
@@ -362,10 +422,22 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    void loadDevotionTtsVoices().then(applyVoices);
+    void resolveDevotionTtsBackend().then(async (backend) => {
+      backendRef.current = backend;
+      setSupported(backend !== null);
+      if (!backend) return;
+
+      if (backend === "native") {
+        applyVoices(await loadNativeDevotionTtsVoices());
+        return;
+      }
+
+      void loadDevotionTtsVoices().then(applyVoices);
+    });
 
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     const refresh = () => {
+      if (backendRef.current !== "web") return;
       void loadDevotionTtsVoices().then(applyVoices);
     };
     window.speechSynthesis.addEventListener("voiceschanged", refresh);

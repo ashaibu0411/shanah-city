@@ -141,6 +141,24 @@ export function findSpeechSynthesisVoice(voiceURI: string) {
   return window.speechSynthesis.getVoices().find((voice) => voice.voiceURI === voiceURI) ?? null;
 }
 
+export type DevotionTtsBackend = "web" | "native";
+
+export async function resolveDevotionTtsBackend(): Promise<DevotionTtsBackend | null> {
+  const { isNativeDevotionTtsAvailable, shouldUseNativeDevotionTts } = await import(
+    "@/lib/devotion-native-tts"
+  );
+
+  if (shouldUseNativeDevotionTts() && (await isNativeDevotionTtsAvailable())) {
+    return "native";
+  }
+
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    return "web";
+  }
+
+  return null;
+}
+
 export function loadDevotionTtsVoices() {
   if (typeof window === "undefined" || !window.speechSynthesis) {
     return Promise.resolve([] as DevotionTtsVoiceOption[]);
