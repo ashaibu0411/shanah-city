@@ -411,15 +411,8 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
       setVoices(loaded);
       const defaultVoice = pickDefaultDevotionVoice(loaded);
       if (!defaultVoice) return;
-      setSelectedVoiceUri((current) => {
-        if (current && loaded.some((voice) => voice.voiceURI === current)) {
-          return current;
-        }
-        return defaultVoice.voiceURI;
-      });
-      if (!getStoredDevotionTtsVoiceUri()) {
-        setStoredDevotionTtsVoiceUri(defaultVoice.voiceURI);
-      }
+      setSelectedVoiceUri(defaultVoice.voiceURI);
+      setStoredDevotionTtsVoiceUri(defaultVoice.voiceURI);
     };
 
     void resolveDevotionTtsBackend().then(async (backend) => {

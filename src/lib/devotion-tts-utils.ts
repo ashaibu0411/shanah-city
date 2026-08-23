@@ -98,8 +98,9 @@ export function voiceScore(voice: Pick<DevotionTtsVoiceOption, "name" | "lang" |
   if (/uk english female|google uk|en-gb/.test(name) || lang === "en-gb") score += 4;
   if (/female|woman/.test(name)) score += 1;
 
-  if (/compact|espeak|pico|robot/.test(name)) score -= 20;
-  if (voice.localService && !/neural|natural|enhanced|google|samantha|karen|moira/.test(name)) {
+  if (/compact|espeak|pico|robot|synthetic|klatt|festival|cmu|flite/.test(name)) score -= 20;
+  if (/en-us-x-|google.*english.*united states|english \(united states\)/.test(name)) score += 10;
+  if (voice.localService && !/neural|natural|enhanced|google|samantha|karen|moira|en-us-x-/.test(name)) {
     score -= 3;
   }
 
@@ -126,14 +127,16 @@ export function recommendedDevotionTtsVoices(voices: DevotionTtsVoiceOption[]) {
   return pool.slice(0, Math.min(8, pool.length));
 }
 
-export function pickDefaultDevotionVoice(voices: DevotionTtsVoiceOption[]) {
+export function pickBestDevotionVoice(voices: DevotionTtsVoiceOption[]) {
   const sorted = sortDevotionTtsVoices(voices);
-  const storedUri = getStoredDevotionTtsVoiceUri();
-  if (storedUri) {
-    const stored = sorted.find((voice) => voice.voiceURI === storedUri);
-    if (stored) return stored;
-  }
-  return sorted[0] ?? null;
+  const english = sorted.filter((voice) => voice.lang.toLowerCase().startsWith("en"));
+  const pool = english.length > 0 ? english : sorted;
+  const strong = pool.filter((voice) => voiceScore(voice) >= 14);
+  return strong[0] ?? pool[0] ?? null;
+}
+
+export function pickDefaultDevotionVoice(voices: DevotionTtsVoiceOption[]) {
+  return pickBestDevotionVoice(voices);
 }
 
 export function findSpeechSynthesisVoice(voiceURI: string) {
