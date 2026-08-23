@@ -9,7 +9,7 @@ export function AppSidebar() {
   const navItems = useAppNavItems();
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-night-900/5 bg-white lg:block">
+    <aside className="app-desktop-sidebar hidden w-64 shrink-0 border-r border-night-900/5 bg-white lg:block">
       <nav className="sticky top-[65px] flex h-[calc(100vh-65px)] flex-col p-4">
         <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-night-400">
           Menu

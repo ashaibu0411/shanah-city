@@ -38,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="min-h-screen bg-sand-50">
 
-            <div className="hidden lg:block">
+            <div className="app-desktop-topbar hidden lg:block">
 
               <TopBar />
 
@@ -48,7 +48,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
 
-            <div className="mx-auto flex max-w-7xl lg:mx-auto">
+            <div className="app-shell-layout mx-auto flex max-w-7xl lg:mx-auto">
 
               <AppSidebar />
 

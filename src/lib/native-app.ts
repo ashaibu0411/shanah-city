@@ -3,7 +3,12 @@
 import { Capacitor } from "@capacitor/core";
 
 export function isNativeAppPlatform() {
-  return Capacitor.isNativePlatform();
+  if (typeof window === "undefined") return false;
+
+  if (Capacitor.isNativePlatform()) return true;
+
+  const bridge = (window as Window & { Capacitor?: { isNative?: boolean } }).Capacitor;
+  return Boolean(bridge?.isNative);
 }
 
 export function getNativePlatform() {

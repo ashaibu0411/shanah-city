@@ -26,10 +26,20 @@ export function useAppShellMode() {
     }
 
     update();
+
+    // Capacitor bridge can attach slightly after first paint on iOS.
+    const nativePoll = window.setInterval(() => {
+      if (!isNativeAppPlatform()) return;
+      update();
+      window.clearInterval(nativePoll);
+    }, 50);
+    window.setTimeout(() => window.clearInterval(nativePoll), 1000);
+
     mobileMedia.addEventListener("change", update);
     standaloneMedia.addEventListener("change", update);
 
     return () => {
+      window.clearInterval(nativePoll);
       mobileMedia.removeEventListener("change", update);
       standaloneMedia.removeEventListener("change", update);
       delete document.body.dataset.shell;
