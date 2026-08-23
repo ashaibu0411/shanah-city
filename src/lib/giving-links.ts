@@ -39,8 +39,18 @@ const paypalUsername = envValue(
   "NEXT_PUBLIC_GIVE_PAYPAL_USERNAME",
   defaults.paypalUsername,
 );
-const paypalUrlDirect = envValue("NEXT_PUBLIC_GIVE_PAYPAL_URL");
-const cashAppTag = envValue("NEXT_PUBLIC_GIVE_CASHAPP_TAG", defaults.cashAppTag);
+const paypalUrlDirectRaw = envValue("NEXT_PUBLIC_GIVE_PAYPAL_URL");
+// Ignore the previous PayPal.me link if still set in hosted env.
+const paypalUrlDirect =
+  paypalUrlDirectRaw && !/paypal\.me\/ShanahCity\/?$/i.test(paypalUrlDirectRaw)
+    ? paypalUrlDirectRaw
+    : "";
+const cashAppTagRaw = envValue("NEXT_PUBLIC_GIVE_CASHAPP_TAG", defaults.cashAppTag);
+// Ignore the previous cashtag if still set in hosted env; use $shanahcenter.
+const cashAppTag =
+  !cashAppTagRaw || /^\$?ShanahCity$/i.test(cashAppTagRaw)
+    ? defaults.cashAppTag
+    : cashAppTagRaw.replace(/^\$/, "");
 const zelleEmail = site.giving.financeEmail;
 const venmoUsername = envValue(
   "NEXT_PUBLIC_GIVE_VENMO_USERNAME",
@@ -48,6 +58,20 @@ const venmoUsername = envValue(
 );
 
 function paypalPlatform(): GivingPlatform {
+  // Prefer email (admin@shanahcity.org) so a stale PayPal.me username env
+  // cannot override the church's current giving contact.
+  if (paypalEmail && !paypalUrlDirect) {
+    return {
+      id: "paypal",
+      name: "PayPal",
+      description: "Send a gift in PayPal using the church email below.",
+      action: "copy",
+      copyValue: paypalEmail,
+      copyHint: "PayPal email",
+      tone: "from-blue-600 to-indigo-700",
+    };
+  }
+
   if (paypalUrlDirect) {
     return {
       id: "paypal",
@@ -59,24 +83,12 @@ function paypalPlatform(): GivingPlatform {
     };
   }
 
-  if (paypalUsername) {
-    return {
-      id: "paypal",
-      name: "PayPal",
-      description: "Send a one-time gift through PayPal.",
-      action: "link",
-      url: paypalUrl(paypalUsername),
-      tone: "from-blue-600 to-indigo-700",
-    };
-  }
-
   return {
     id: "paypal",
     name: "PayPal",
-    description: "Send a gift in PayPal using the church email below.",
-    action: "copy",
-    copyValue: paypalEmail || undefined,
-    copyHint: "PayPal email",
+    description: "Send a one-time gift through PayPal.",
+    action: "link",
+    url: paypalUsername ? paypalUrl(paypalUsername) : undefined,
     tone: "from-blue-600 to-indigo-700",
   };
 }
