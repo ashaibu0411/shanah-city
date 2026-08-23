@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { HomeView } from "@/components/home/HomeView";
 import { getTodayDevotion } from "@/lib/devotion-server";
 import { getEvents } from "@/lib/event-server";
@@ -17,12 +18,14 @@ export default async function HomePage() {
   ]);
 
   return (
-    <HomeView
-      posts={posts}
-      todayDevotion={todayDevotion}
-      events={events}
-      urgentAlert={urgentAlert}
-      churchImages={churchImages}
-    />
+    <Suspense fallback={<p className="text-sm text-night-600">Loading…</p>}>
+      <HomeView
+        posts={posts}
+        todayDevotion={todayDevotion}
+        events={events}
+        urgentAlert={urgentAlert}
+        churchImages={churchImages}
+      />
+    </Suspense>
   );
 }

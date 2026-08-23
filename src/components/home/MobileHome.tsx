@@ -29,6 +29,7 @@ type MobileHomeProps = {
   todayDevotion: Devotion | null;
   urgentAlert: UrgentAlert | null;
   churchImages: ChurchSocialImages;
+  highlightAlert?: boolean;
 };
 
 export function MobileHome({
@@ -36,6 +37,7 @@ export function MobileHome({
   todayDevotion,
   urgentAlert,
   churchImages,
+  highlightAlert = false,
 }: MobileHomeProps) {
   const { campus } = useApp();
   const [devotion, setDevotion] = useState<Devotion | null>(todayDevotion);
@@ -67,7 +69,7 @@ export function MobileHome({
 
   return (
     <div className="mobile-home animate-fade-in space-y-3">
-      <UrgentAlertBanner alert={urgentAlert} variant="mobile" />
+      <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <section className="mobile-home-aurora relative overflow-hidden rounded-2xl p-4 text-white shadow-app-lg ring-1 ring-night-900/10">
         <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
         <div className="mobile-home-shimmer pointer-events-none absolute inset-0 opacity-30" aria-hidden />

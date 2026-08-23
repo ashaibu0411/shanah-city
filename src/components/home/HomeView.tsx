@@ -8,9 +8,10 @@ import { HomeHero } from "@/components/home/HomeHero";
 import { LiveBanner } from "@/components/home/LiveBanner";
 import { MobileHome } from "@/components/home/MobileHome";
 import { QuickActions } from "@/components/home/QuickActions";
+import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
+import { useUrgentAlertHighlight } from "@/components/home/useUrgentAlertHighlight";
 import { MeetingPreview } from "@/components/meetings/MeetingsList";
 import { SermonCard } from "@/components/sermons/SermonCard";
-import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import { SectionTitle } from "@/components/ui";
 import type { Devotion, ChurchEvent } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
@@ -34,6 +35,7 @@ export function HomeView({
   churchImages,
 }: HomeViewProps) {
   const { isMobileApp } = useAppShell();
+  const highlightAlert = useUrgentAlertHighlight(urgentAlert);
 
   if (isMobileApp) {
     return (
@@ -42,13 +44,14 @@ export function HomeView({
         todayDevotion={todayDevotion}
         urgentAlert={urgentAlert}
         churchImages={churchImages}
+        highlightAlert={highlightAlert}
       />
     );
   }
 
   return (
     <>
-      <UrgentAlertBanner alert={urgentAlert} />
+      <UrgentAlertBanner alert={urgentAlert} highlighted={highlightAlert} />
       <HomeHero />
       <LiveBanner />
       <QuickActions />

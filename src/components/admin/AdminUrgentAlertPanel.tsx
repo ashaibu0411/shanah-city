@@ -24,6 +24,7 @@ export function AdminUrgentAlertPanel() {
   const [message, setMessage] = useState("");
   const [href, setHref] = useState("");
   const [ctaLabel, setCtaLabel] = useState("Learn more");
+  const [startsAt, setStartsAt] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
@@ -45,6 +46,7 @@ export function AdminUrgentAlertPanel() {
           setMessage(current.message);
           setHref(current.href ?? "");
           setCtaLabel(current.ctaLabel ?? "Learn more");
+          setStartsAt(toLocalInputValue(current.startsAt));
           setExpiresAt(toLocalInputValue(current.expiresAt));
           setImageUrl(current.imageUrl ?? "");
           setVideoUrl(current.videoUrl ?? "");
@@ -87,6 +89,11 @@ export function AdminUrgentAlertPanel() {
   }
 
   async function publishAlert() {
+    if (startsAt && expiresAt && new Date(expiresAt) <= new Date(startsAt)) {
+      setStatus("End date & time must be after the start date & time.");
+      return;
+    }
+
     setBusy(true);
     setStatus(null);
     const response = await fetch("/api/admin/urgent-alert", {
@@ -102,6 +109,7 @@ export function AdminUrgentAlertPanel() {
         imageUrl: imageUrl || undefined,
         videoUrl: videoUrl || undefined,
         active: true,
+        startsAt: startsAt ? new Date(startsAt).toISOString() : undefined,
         expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
         sendPush,
       }),
@@ -148,6 +156,7 @@ export function AdminUrgentAlertPanel() {
     setTitle("");
     setMessage("");
     setHref("");
+    setStartsAt("");
     setExpiresAt("");
     setImageUrl("");
     setVideoUrl("");
@@ -296,15 +305,43 @@ export function AdminUrgentAlertPanel() {
             </label>
           </div>
 
-          <label className="block">
-            <span className="text-sm font-semibold text-night-800">Auto-hide after (optional)</span>
-            <input
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(event) => setExpiresAt(event.target.value)}
-              className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
-          </label>
+          <div className="rounded-2xl border border-night-900/10 bg-sand-50 p-4">
+            <p className="text-sm font-semibold text-night-900">Schedule</p>
+            <p className="mt-1 text-xs text-night-600">
+              Choose when the alert goes live and when it should automatically disappear from the
+              home page.
+            </p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="text-sm font-semibold text-night-800">
+                  Start date &amp; time (optional)
+                </span>
+                <input
+                  type="datetime-local"
+                  value={startsAt}
+                  onChange={(event) => setStartsAt(event.target.value)}
+                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <span className="mt-1 block text-xs text-night-500">
+                  Leave blank to show immediately after publishing.
+                </span>
+              </label>
+              <label className="block">
+                <span className="text-sm font-semibold text-night-800">
+                  End date &amp; time (recommended)
+                </span>
+                <input
+                  type="datetime-local"
+                  value={expiresAt}
+                  onChange={(event) => setExpiresAt(event.target.value)}
+                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+                <span className="mt-1 block text-xs text-night-500">
+                  Alert auto-hides from home after this time.
+                </span>
+              </label>
+            </div>
+          </div>
 
           <label className="flex items-center gap-3 rounded-xl bg-sand-50 px-4 py-3 text-sm">
             <input

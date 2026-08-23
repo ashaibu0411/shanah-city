@@ -1,28 +1,37 @@
 "use client";
 
 import Link from "next/link";
+import { AlertPublicShare } from "@/components/share/AlertPublicShare";
+import { urgentAlertScheduleLabel } from "@/lib/urgent-alert-utils";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 type UrgentAlertBannerProps = {
   alert: UrgentAlert | null;
   variant?: "desktop" | "mobile";
+  highlighted?: boolean;
 };
 
-export function UrgentAlertBanner({ alert, variant = "desktop" }: UrgentAlertBannerProps) {
+export function UrgentAlertBanner({
+  alert,
+  variant = "desktop",
+  highlighted = false,
+}: UrgentAlertBannerProps) {
   if (!alert) return null;
 
   const isMobile = variant === "mobile";
   const ctaLabel = alert.ctaLabel?.trim() || "Learn more";
   const href = alert.href?.trim();
   const hasMedia = Boolean(alert.imageUrl || alert.videoUrl);
+  const scheduleLabel = urgentAlertScheduleLabel(alert);
 
   return (
     <section
+      id={`urgent-alert-${alert.id}`}
       role="alert"
       aria-live="assertive"
       className={`relative overflow-hidden border-2 border-red-500/80 bg-gradient-to-r from-red-700 via-red-600 to-orange-600 text-white shadow-lg shadow-red-900/30 ${
-        isMobile ? "rounded-[1.25rem] p-4" : "mb-6 rounded-2xl p-5 md:p-6"
-      }`}
+        highlighted ? "ring-4 ring-amber-300/80" : ""
+      } ${isMobile ? "rounded-[1.25rem] p-4" : "mb-6 rounded-2xl p-5 md:p-6"}`}
     >
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_55%)]"
@@ -51,10 +60,8 @@ export function UrgentAlertBanner({ alert, variant = "desktop" }: UrgentAlertBan
           >
             {alert.message}
           </p>
-          {alert.expiresAt ? (
-            <p className="mt-2 text-[11px] font-medium text-red-100/80">
-              Showing until {new Date(alert.expiresAt).toLocaleString()}
-            </p>
+          {scheduleLabel ? (
+            <p className="mt-2 text-[11px] font-medium text-red-100/80">{scheduleLabel}</p>
           ) : null}
 
           {href ? (
@@ -100,6 +107,13 @@ export function UrgentAlertBanner({ alert, variant = "desktop" }: UrgentAlertBan
           </Link>
         ) : null}
       </div>
+
+      <AlertPublicShare
+        alertId={alert.id}
+        title={alert.title}
+        message={alert.message}
+        onDark
+      />
     </section>
   );
 }

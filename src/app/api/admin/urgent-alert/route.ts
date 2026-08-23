@@ -47,6 +47,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Title and message are required." }, { status: 400 });
   }
 
+  const startsAt = body.startsAt ? String(body.startsAt) : undefined;
+  const expiresAt = body.expiresAt ? String(body.expiresAt) : undefined;
+  if (startsAt && expiresAt && new Date(expiresAt) <= new Date(startsAt)) {
+    return NextResponse.json(
+      { error: "End date & time must be after the start date & time." },
+      { status: 400 },
+    );
+  }
+
   const active = Boolean(body.active);
   const alert = await saveUrgentAlert({
     id: body.id ? String(body.id) : undefined,
@@ -60,8 +69,8 @@ export async function POST(request: Request) {
     artworkWideUrl: body.artworkWideUrl ? String(body.artworkWideUrl).trim() : undefined,
     artworkBannerUrl: body.artworkBannerUrl ? String(body.artworkBannerUrl).trim() : undefined,
     active,
-    startsAt: body.startsAt ? String(body.startsAt) : undefined,
-    expiresAt: body.expiresAt ? String(body.expiresAt) : undefined,
+    startsAt,
+    expiresAt,
     createdBy: user.id,
     createdByName: user.name,
   });
