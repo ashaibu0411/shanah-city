@@ -19,8 +19,9 @@ function venmoUrl(username: string) {
 /** Defaults when env vars are not set — update in .env.local for production. */
 const defaults = {
   zeffyUrl: "",
-  paypalUsername: "ShanahCity",
-  cashAppTag: "ShanahCity",
+  paypalEmail: "admin@shanahcity.org",
+  paypalUsername: "",
+  cashAppTag: "shanahcenter",
   venmoUsername: "ShanahCity",
 };
 
@@ -30,6 +31,7 @@ function envValue(key: string, fallback = "") {
 }
 
 const zeffyUrl = envValue("NEXT_PUBLIC_GIVE_ZEFFY_URL", defaults.zeffyUrl);
+const paypalEmail = envValue("NEXT_PUBLIC_GIVE_PAYPAL_EMAIL", defaults.paypalEmail);
 const paypalUsername = envValue(
   "NEXT_PUBLIC_GIVE_PAYPAL_USERNAME",
   defaults.paypalUsername,
@@ -42,6 +44,9 @@ const venmoUsername = envValue(
   defaults.venmoUsername,
 );
 
+const paypalLink =
+  paypalUrlDirect || (paypalUsername ? paypalUrl(paypalUsername) : undefined);
+
 const configured: GivingPlatform[] = [
   {
     id: "zeffy",
@@ -51,18 +56,28 @@ const configured: GivingPlatform[] = [
     url: zeffyUrl || undefined,
     tone: "from-emerald-600 to-teal-700",
   },
-  {
-    id: "paypal",
-    name: "PayPal",
-    description: "Send a one-time gift through PayPal.",
-    action: "link",
-    url: paypalUrlDirect || (paypalUsername ? paypalUrl(paypalUsername) : undefined),
-    tone: "from-blue-600 to-indigo-700",
-  },
+  paypalLink
+    ? {
+        id: "paypal",
+        name: "PayPal",
+        description: "Send a one-time gift through PayPal.",
+        action: "link",
+        url: paypalLink,
+        tone: "from-blue-600 to-indigo-700",
+      }
+    : {
+        id: "paypal",
+        name: "PayPal",
+        description: "Send a gift in the PayPal app using the church email below.",
+        action: "copy",
+        copyValue: paypalEmail,
+        copyHint: "PayPal email",
+        tone: "from-blue-600 to-indigo-700",
+      },
   {
     id: "cashapp",
     name: "Cash App",
-    description: "Tap to open Cash App and give to Shanah City.",
+    description: `Tap to open Cash App and give to $${cashAppTag.replace(/^\$/, "")}.`,
     action: "link",
     url: cashAppTag ? cashAppUrl(cashAppTag) : undefined,
     tone: "from-green-500 to-emerald-700",
