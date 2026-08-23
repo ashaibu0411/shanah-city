@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { BrandLogo } from "@/components/app/BrandLogo";
+import { useAppShell } from "@/components/app/AppShellContext";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
@@ -33,7 +34,9 @@ const pageTitles: Record<string, string> = {
 
 export function MobileAppHeader() {
   const pathname = usePathname();
+  const { messagesImmersive } = useAppShell();
   const { user, loading } = useAuth();
+  if (messagesImmersive) return null;
   const title = pageTitles[pathname] ?? site.name;
   const isHome = pathname === "/";
   const anyLive =

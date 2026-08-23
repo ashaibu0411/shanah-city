@@ -104,7 +104,7 @@ export function ChatComposer({
 
   if (compact) {
     return (
-      <div className="border-t border-night-900/8 bg-white px-3 py-2">
+      <div className="border-t border-night-900/8 bg-white px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {pendingAttachment && (
           <div className="mb-2 flex items-center gap-2 rounded-2xl bg-sand-50 p-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}

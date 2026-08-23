@@ -13,6 +13,8 @@ type AppShellContextValue = {
   isMobileApp: boolean;
   moreMenuOpen: boolean;
   setMoreMenuOpen: (open: boolean) => void;
+  messagesImmersive: boolean;
+  setMessagesImmersive: (immersive: boolean) => void;
 };
 
 const AppShellContext = createContext<AppShellContextValue | null>(null);
@@ -20,14 +22,17 @@ const AppShellContext = createContext<AppShellContextValue | null>(null);
 export function AppShellProvider({ children }: { children: ReactNode }) {
   const isMobileApp = useAppShellMode();
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [messagesImmersive, setMessagesImmersive] = useState(false);
 
   const value = useMemo(
     () => ({
       isMobileApp,
       moreMenuOpen,
       setMoreMenuOpen,
+      messagesImmersive,
+      setMessagesImmersive,
     }),
-    [isMobileApp, moreMenuOpen],
+    [isMobileApp, moreMenuOpen, messagesImmersive],
   );
 
   return (

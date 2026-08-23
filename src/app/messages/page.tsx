@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui";
 
 export default function MessagesPage() {
   return (
-    <>
+  <>
       <div className="hidden md:block">
         <PageHeader
           eyebrow="Members"

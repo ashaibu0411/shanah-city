@@ -20,6 +20,7 @@ type ChatMessageBubbleProps = {
   seenCount?: number;
   showReadReceipt?: boolean;
   showSeenCount?: boolean;
+  showMeta?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;
   canReport?: boolean;
@@ -47,6 +48,7 @@ export function ChatMessageBubble({
   seenCount,
   showReadReceipt = false,
   showSeenCount = false,
+  showMeta = true,
   canEdit = false,
   canDelete = false,
   canReport = false,
@@ -91,7 +93,7 @@ export function ChatMessageBubble({
           className={`text-sm ${
             compact
               ? mine
-                ? "rounded-[22px] rounded-br-md bg-gradient-to-br from-[#7c3aed] via-[#a855f7] to-[#ec4899] px-3.5 py-2 text-white shadow-sm"
+                ? "rounded-[22px] rounded-br-md bg-[#3797F0] px-3.5 py-2 text-white shadow-sm"
                 : "rounded-[22px] rounded-bl-md bg-[#efefef] px-3.5 py-2 text-[#262626]"
               : mine
                 ? "rounded-2xl bg-night-900 px-4 py-3 text-sand-50"
@@ -150,7 +152,7 @@ export function ChatMessageBubble({
           <div
             className={`mt-1 flex flex-wrap items-center gap-1.5 ${
               compact ? "text-[10px] text-night-500" : "text-[10px] opacity-60"
-            } ${mine && compact ? "justify-end text-white/75" : ""}`}
+            } ${mine && compact ? "justify-end text-white/75" : ""} ${showMeta ? "" : "hidden"}`}
           >
             <span>{createdAtLabel}</span>
             {editedAt && !deletedAt && <span>· edited</span>}

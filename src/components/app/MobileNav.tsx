@@ -16,8 +16,9 @@ const tabs = [
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { setMoreMenuOpen } = useAppShell();
+  const { setMoreMenuOpen, messagesImmersive } = useAppShell();
   const navItems = useAppNavItems();
+  if (messagesImmersive) return null;
   const moreActive = navItems
     .filter((item) => !tabs.some((tab) => tab.href === item.href))
     .some((item) => item.href === pathname);
