@@ -6,12 +6,12 @@ import type { GalleryDownloadRecord } from "@/lib/gallery-types";
 import { Card } from "@/components/ui";
 
 export function PhotoDownloadLog() {
-  const { user, loading } = useAuth();
+  const { loading, permissions } = useAuth();
   const [downloads, setDownloads] = useState<GalleryDownloadRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
 
-  const canView = user?.role === "media" || user?.role === "leader";
+  const canView = !loading && permissions.canUploadGallery;
 
   useEffect(() => {
     if (loading || !canView) return;

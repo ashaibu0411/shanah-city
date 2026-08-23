@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LiveStreamCountdownBanner } from "@/components/live/useLiveStreamSchedule";
+import { LiveStreamNotifyPanel } from "@/components/live/LiveStreamNotifyPanel";
 import { LiveStreamSchedulePanel } from "@/components/live/LiveStreamSchedulePanel";
 import { LiveStreamPlayer } from "@/components/live/LiveStreamPlayer";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
@@ -132,6 +133,13 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
           ))}
         </div>
       </div>
+
+      <LiveStreamNotifyPanel
+        compact={isMobile}
+        isLive={anyLive}
+        platform={active.id}
+        streamTitle={anyLive ? liveStream.title : active.label}
+      />
 
       <LiveStreamSchedulePanel compact={isMobile} />
     </div>

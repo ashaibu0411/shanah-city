@@ -476,3 +476,22 @@ export async function notifyScheduledMeeting(input: {
     "announcements",
   );
 }
+
+export async function notifyLiveStreamNow(input: {
+  authorId?: string;
+  title: string;
+  body?: string;
+}) {
+  const title = input.title.trim() || "Shanah City is live";
+  const body = input.body?.trim() || "Tap to watch the livestream in the app.";
+
+  return sendPushToAllMembers(
+    {
+      title: title.toLowerCase().includes("live") ? title : `Live now: ${title}`,
+      body,
+      url: "/live",
+    },
+    "announcements",
+    input.authorId,
+  );
+}

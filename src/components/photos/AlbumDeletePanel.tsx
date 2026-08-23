@@ -13,7 +13,7 @@ type AlbumCount = {
 
 export function AlbumDeletePanel() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { loading, permissions } = useAuth();
   const [albums, setAlbums] = useState<AlbumCount[]>([]);
   const [selectedAlbum, setSelectedAlbum] = useState("");
   const [confirmText, setConfirmText] = useState("");
@@ -21,7 +21,7 @@ export function AlbumDeletePanel() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const canManage = user?.role === "media" || user?.role === "leader";
+  const canManage = !loading && permissions.canUploadGallery;
 
   useEffect(() => {
     if (loading || !canManage) return;

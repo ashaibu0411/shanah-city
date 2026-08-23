@@ -1,6 +1,5 @@
 import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
-import { hasMediaRole } from "@/lib/gallery-permissions";
 import { getGroupDetail, getGroups } from "@/lib/group-server";
 import {
   getConfiguredMediaGroupId,
@@ -29,9 +28,6 @@ export async function canUploadGallery(
     return false;
   }
   if (await canManageAsAdmin(user)) {
-    return true;
-  }
-  if (hasMediaRole(user)) {
     return true;
   }
   return userIsInMediaGroup(user.id);

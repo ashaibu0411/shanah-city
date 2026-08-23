@@ -225,9 +225,8 @@ export function PhotoUploadForm() {
       <Card>
         <h2 className="font-display text-2xl font-semibold text-night-900">Media team only</h2>
         <p className="mt-2 text-sm text-night-600">
-          Gallery uploads are for the media team. Ask a leader to assign the{" "}
-          <strong>media</strong> role on your profile, or join the{" "}
-          <strong>Media Team</strong> group on{" "}
+          Gallery uploads are for the media team. Ask a leader to add you to{" "}
+          <strong>Media Team</strong> on{" "}
           <a href="/groups" className="font-semibold text-night-800 hover:underline">
             Groups
           </a>

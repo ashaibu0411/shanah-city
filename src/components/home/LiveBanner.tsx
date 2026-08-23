@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { LiveStreamCountdownBanner } from "@/components/live/useLiveStreamSchedule";
+import { LiveStreamPublicShare } from "@/components/live/LiveStreamPublicShare";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { liveStream, site } from "@/lib/site";
 import { streamPreviews } from "@/lib/streams";
@@ -35,6 +36,9 @@ export function LiveBanner() {
             <p className="mt-1 text-sm text-white/80">
               {liveStream.viewerCount.toLocaleString()} watching · Tap to join
             </p>
+            <div className="mt-4">
+              <LiveStreamPublicShare title={liveStream.title} isLive onDark compact />
+            </div>
           </div>
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15 text-2xl transition group-hover:bg-white/25">
             ▶

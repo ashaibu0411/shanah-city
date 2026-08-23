@@ -33,3 +33,13 @@ export function urgentAlertShareUrl(alertId?: string) {
 export function urgentAlertViewUrl(alertId?: string) {
   return urgentAlertShareUrl(alertId);
 }
+
+export function liveShareUrl(platform?: string) {
+  const base = `${getAppBaseUrl()}/live`;
+  if (!platform) return base;
+  return `${base}?platform=${encodeURIComponent(platform)}`;
+}
+
+export function liveViewUrl(platform?: string) {
+  return liveShareUrl(platform);
+}

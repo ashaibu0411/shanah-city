@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     if (!(await canUploadGallery(user))) {
       return NextResponse.json(
         {
-          error: `Media team access required. Ask a leader to assign the media role, or join ${mediaGroupMatchHint()} on Groups.`,
+          error: `Media team access required. Join ${mediaGroupMatchHint()} on Groups.`,
         },
         { status: 403 },
       );
@@ -131,7 +131,7 @@ export async function PATCH(request: Request) {
     if (!(await canUploadGallery(user))) {
       return NextResponse.json(
         {
-          error: `Media team access required. Ask a leader to assign the media role, or join ${mediaGroupMatchHint()} on Groups.`,
+          error: `Media team access required. Join ${mediaGroupMatchHint()} on Groups.`,
         },
         { status: 403 },
       );
@@ -171,7 +171,7 @@ export async function DELETE(request: Request) {
     if (!(await canUploadGallery(user))) {
       return NextResponse.json(
         {
-          error: `Media team access required. Ask a leader to assign the media role, or join ${mediaGroupMatchHint()} on Groups.`,
+          error: `Media team access required. Join ${mediaGroupMatchHint()} on Groups.`,
         },
         { status: 403 },
       );
