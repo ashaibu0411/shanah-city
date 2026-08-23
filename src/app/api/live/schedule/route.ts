@@ -6,6 +6,7 @@ import { canPublishMediaClips } from "@/lib/group-permissions-server";
 import type { LiveStreamPlatform } from "@/lib/live-schedule-types";
 import {
   clearLiveStreamSchedule,
+  getLiveStreamSchedule,
   getUpcomingLiveStreamSchedule,
   saveLiveStreamSchedule,
 } from "@/lib/live-schedule-server";
@@ -31,7 +32,9 @@ export async function GET() {
     canPublishMediaClips(user),
   ]);
 
-  return NextResponse.json({ schedule, canManage });
+  const managedSchedule = canManage ? await getLiveStreamSchedule() : null;
+
+  return NextResponse.json({ schedule, managedSchedule, canManage });
 }
 
 export async function POST(request: Request) {

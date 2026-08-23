@@ -5,6 +5,10 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { LiveStreamCountdown } from "@/components/live/LiveStreamCountdown";
 import { Button } from "@/components/ui";
 import type { LiveStreamSchedule } from "@/lib/live-schedule-types";
+import {
+  formatLiveStreamStartLabel,
+  localDateTimeInputToIso,
+} from "@/lib/live-schedule-utils";
 
 function toLocalInputValue(iso?: string) {
   if (!iso) return "";
@@ -18,6 +22,7 @@ function toLocalInputValue(iso?: string) {
 export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean }) {
   const { user, loading, permissions } = useAuth();
   const [schedule, setSchedule] = useState<LiveStreamSchedule | null>(null);
+  const [expiredSchedule, setExpiredSchedule] = useState(false);
   const [title, setTitle] = useState("Shanah City Worship");
   const [startsAt, setStartsAt] = useState("");
   const [platform, setPlatform] = useState("all");
@@ -30,12 +35,15 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
     const response = await fetch("/api/live/schedule");
     const data = await response.json();
     if (!response.ok) return;
-    const current = data.schedule ?? null;
+    const current = (data.schedule ?? null) as LiveStreamSchedule | null;
+    const managed = (data.managedSchedule ?? null) as LiveStreamSchedule | null;
+    const source = current ?? managed;
     setSchedule(current);
-    if (current) {
-      setTitle(current.title);
-      setStartsAt(toLocalInputValue(current.startsAt));
-      setPlatform(current.platform ?? "all");
+    setExpiredSchedule(Boolean(managed && !current));
+    if (source) {
+      setTitle(source.title);
+      setStartsAt(toLocalInputValue(source.startsAt));
+      setPlatform(source.platform ?? "all");
     }
   }
 
@@ -52,10 +60,16 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
   async function saveSchedule() {
     setBusy(true);
     setMessage(null);
+    const startsAtIso = localDateTimeInputToIso(startsAt);
+    if (!startsAtIso) {
+      setBusy(false);
+      setMessage("Choose a valid date and time.");
+      return;
+    }
     const response = await fetch("/api/live/schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "save", title, startsAt, platform }),
+      body: JSON.stringify({ action: "save", title, startsAt: startsAtIso, platform }),
     });
     const data = await response.json();
     setBusy(false);
@@ -66,7 +80,15 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
     }
 
     setSchedule(data.schedule ?? null);
-    setMessage("Countdown is live for everyone in the app.");
+    setExpiredSchedule(false);
+    const savedAt = data.schedule?.startsAt
+      ? formatLiveStreamStartLabel(data.schedule.startsAt)
+      : null;
+    setMessage(
+      savedAt
+        ? `Countdown is live for everyone — starts ${savedAt} on your phone’s clock.`
+        : "Countdown is live for everyone in the app.",
+    );
   }
 
   async function clearSchedule() {
@@ -85,6 +107,7 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
       return;
     }
     setSchedule(null);
+    setExpiredSchedule(false);
     setStartsAt("");
     setMessage("Countdown removed.");
   }
@@ -95,6 +118,13 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
       <p className="mt-1 text-xs text-night-600">
         Media team only. Members see a countdown on Home and Media → Live until this time passes.
       </p>
+
+      {expiredSchedule ? (
+        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950 ring-1 ring-amber-200">
+          The saved time has already passed (often a timezone mix-up). Pick a new start time and tap
+          Update countdown.
+        </p>
+      ) : null}
 
       {schedule ? (
         <div className="mt-4">

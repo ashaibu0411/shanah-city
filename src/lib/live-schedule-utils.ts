@@ -55,3 +55,12 @@ export function liveStreamPlatformLabel(platform?: LiveStreamSchedule["platform"
   if (platform === "facebook-revival") return "Facebook · Shanah Revival";
   return "YouTube & Facebook";
 }
+
+/** Convert a datetime-local value from the browser into UTC ISO for the server. */
+export function localDateTimeInputToIso(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString();
+}

@@ -32,6 +32,14 @@ export async function getUpcomingLiveStreamSchedule(now = new Date()) {
   return mapSchedule(record);
 }
 
+export async function getLiveStreamSchedule() {
+  const record = await prisma.liveStreamSchedule.findUnique({
+    where: { id: SCHEDULE_ID },
+  });
+  if (!record) return null;
+  return mapSchedule(record);
+}
+
 export async function saveLiveStreamSchedule(input: {
   title: string;
   startsAt: string;

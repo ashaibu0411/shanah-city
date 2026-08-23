@@ -34,6 +34,10 @@ export async function getUpcomingLiveStreamSchedule(now = new Date()) {
   return schedule;
 }
 
+export async function getLiveStreamSchedule() {
+  return readSchedule();
+}
+
 export async function saveLiveStreamSchedule(input: {
   title: string;
   startsAt: string;
