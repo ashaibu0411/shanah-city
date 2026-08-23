@@ -33,8 +33,8 @@ export function MessageReactions({
           onClick={() => onToggle(entry.emoji)}
           className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold transition ${
             entry.reactedByMe
-              ? "bg-violet-200 text-violet-900 ring-1 ring-violet-300"
-              : "bg-white/80 text-night-700 ring-1 ring-night-900/10 hover:bg-sand-100"
+              ? "bg-[#e7f3ff] text-[#00376b] ring-1 ring-[#3797f0]/35"
+              : "bg-white text-[#262626] ring-1 ring-[#dbdbdb] hover:bg-[#fafafa]"
           }`}
         >
           <span>{entry.emoji}</span>
@@ -45,14 +45,14 @@ export function MessageReactions({
       <button
         type="button"
         onClick={() => setShowPicker((current) => !current)}
-        className="rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
+        className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-[#8e8e8e] ring-1 ring-[#dbdbdb] hover:bg-[#fafafa]"
         aria-label="Add reaction"
       >
         +
       </button>
 
       {showPicker && (
-        <div className="flex flex-wrap gap-1 rounded-xl bg-white p-1 shadow-sm ring-1 ring-night-900/10">
+        <div className="flex flex-wrap gap-1 rounded-xl bg-white p-1 shadow-sm ring-1 ring-[#dbdbdb]">
           {QUICK_CHAT_EMOJIS.map((emoji) => (
             <button
               key={emoji}
@@ -61,7 +61,7 @@ export function MessageReactions({
                 onToggle(emoji);
                 setShowPicker(false);
               }}
-              className="rounded-lg px-1.5 py-0.5 text-base hover:bg-sand-100"
+              className="rounded-lg px-1.5 py-0.5 text-base hover:bg-[#fafafa]"
             >
               {emoji}
             </button>

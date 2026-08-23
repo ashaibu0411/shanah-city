@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import { insertAtCursor, QUICK_CHAT_EMOJIS } from "@/lib/chat-utils";
+import { IconCamera, IconClose, IconEmoji } from "@/components/chat/ChatIcons";
 
 type PendingAttachment = {
   attachmentUrl: string;
@@ -104,9 +105,9 @@ export function ChatComposer({
 
   if (compact) {
     return (
-      <div className="border-t border-night-900/8 bg-white px-3 py-2">
+      <div className="border-t border-[#efefef] bg-white px-3 py-2.5">
         {pendingAttachment && (
-          <div className="mb-2 flex items-center gap-2 rounded-2xl bg-sand-50 p-2">
+          <div className="mb-2 flex items-center gap-2 rounded-2xl bg-[#fafafa] p-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={pendingAttachment.previewUrl}
@@ -114,22 +115,23 @@ export function ChatComposer({
               className="h-12 w-12 rounded-xl object-cover"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-night-900">
+              <p className="truncate text-xs font-medium text-[#262626]">
                 {pendingAttachment.attachmentName}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setPendingAttachment(null)}
-              className="text-xs font-semibold text-night-600"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-[#8e8e8e] hover:bg-[#efefef]"
+              aria-label="Remove attachment"
             >
-              ✕
+              <IconClose className="h-3.5 w-3.5" />
             </button>
           </div>
         )}
 
         {showEmojiPicker && (
-          <div className="mb-2 flex flex-wrap gap-1 rounded-2xl bg-sand-50 p-2">
+          <div className="mb-2 flex flex-wrap gap-1 rounded-2xl bg-[#fafafa] p-2">
             {QUICK_CHAT_EMOJIS.map((emoji) => (
               <button
                 key={emoji}
@@ -144,7 +146,7 @@ export function ChatComposer({
           </div>
         )}
 
-        <div className="flex items-end gap-2">
+        <div className="flex items-center gap-2">
           {allowAttachment && onPickAttachment && (
             <>
               <input
@@ -158,23 +160,19 @@ export function ChatComposer({
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={disabled || attachmentBusy}
-                className="flex h-9 w-9 shrink-0 items-center justify-center text-lg text-night-700 disabled:opacity-40"
+                className="flex h-9 w-9 shrink-0 items-center justify-center text-[#262626] disabled:opacity-40"
                 aria-label="Add photo"
               >
-                {attachmentBusy ? "…" : "📷"}
+                {attachmentBusy ? (
+                  <span className="text-sm text-[#8e8e8e]">…</span>
+                ) : (
+                  <IconCamera className="h-6 w-6" />
+                )}
               </button>
             </>
           )}
-          <button
-            type="button"
-            onClick={() => setShowEmojiPicker((current) => !current)}
-            disabled={disabled}
-            className="flex h-9 w-9 shrink-0 items-center justify-center text-lg disabled:opacity-40"
-            aria-label="Add emoji"
-          >
-            😊
-          </button>
-          <div className="flex min-w-0 flex-1 items-center rounded-full border border-night-900/10 bg-sand-50 px-4 py-2">
+
+          <div className="flex min-w-0 flex-1 items-center gap-1 rounded-full border border-[#dbdbdb] bg-white py-1.5 pl-3.5 pr-2">
             <input
               ref={inputRef}
               value={value}
@@ -184,7 +182,7 @@ export function ChatComposer({
               }}
               placeholder={placeholder}
               disabled={disabled}
-              className="w-full bg-transparent text-sm text-night-900 outline-none placeholder:text-night-400 disabled:opacity-50"
+              className="min-w-0 flex-1 bg-transparent text-[15px] text-[#262626] outline-none placeholder:text-[#8e8e8e] disabled:opacity-50"
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
                   event.preventDefault();
@@ -192,16 +190,26 @@ export function ChatComposer({
                 }
               }}
             />
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker((current) => !current)}
+              disabled={disabled}
+              className="flex h-8 w-8 shrink-0 items-center justify-center text-[#262626] disabled:opacity-40"
+              aria-label="Add emoji"
+            >
+              <IconEmoji className="h-5 w-5" />
+            </button>
+            {canSend ? (
+              <button
+                type="button"
+                onClick={handleSend}
+                disabled={busy || disabled}
+                className="shrink-0 px-1.5 text-[14px] font-semibold text-[#3797f0] disabled:opacity-40"
+              >
+                {busy ? "…" : sendLabel}
+              </button>
+            ) : null}
           </div>
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={busy || disabled || !canSend}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0095f6] text-sm font-bold text-white disabled:bg-night-300"
-            aria-label={sendLabel}
-          >
-            ↑
-          </button>
         </div>
       </div>
     );
@@ -226,8 +234,10 @@ export function ChatComposer({
           <button
             type="button"
             onClick={() => setPendingAttachment(null)}
-            className="rounded-full px-2 py-1 text-xs font-semibold text-night-600"
+            className="flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold text-night-600"
+            aria-label="Remove attachment"
           >
+            <IconClose className="h-3.5 w-3.5" />
             Remove
           </button>
         </div>
@@ -254,10 +264,10 @@ export function ChatComposer({
           type="button"
           onClick={() => setShowEmojiPicker((current) => !current)}
           disabled={disabled}
-          className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-lg disabled:opacity-50"
+          className="flex items-center justify-center rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-night-700 disabled:opacity-50"
           aria-label="Add emoji"
         >
-          😊
+          <IconEmoji className="h-5 w-5" />
         </button>
         {allowAttachment && onPickAttachment && (
           <>
@@ -272,8 +282,9 @@ export function ChatComposer({
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={disabled || attachmentBusy}
-              className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm font-semibold text-night-700 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm font-semibold text-night-700 disabled:opacity-50"
             >
+              <IconCamera className="h-4 w-4" />
               {attachmentBusy ? "…" : "Photo"}
             </button>
           </>
