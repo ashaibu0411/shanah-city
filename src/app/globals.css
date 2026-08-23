@@ -155,7 +155,17 @@
 }
 
 @layer components {
-  /* iPad and large tablets: keep app shell chrome even when viewport is >= lg */
+  /* Tablet / iPad: use more horizontal space while keeping the app shell */
+  @media (min-width: 768px) {
+    body[data-shell="mobile"] .app-shell-layout,
+    body[data-shell="mobile"] .app-main,
+    body[data-shell="mobile"] .app-mobile-inner {
+      max-width: min(52rem, 94vw);
+      width: 100%;
+    }
+  }
+
+  /* iPad landscape and large tablets: keep app shell chrome even when viewport is >= lg */
   @media (min-width: 1024px) {
     body[data-shell="mobile"] .app-desktop-topbar,
     body[data-shell="mobile"] .app-desktop-sidebar {
@@ -170,16 +180,10 @@
       display: block !important;
     }
 
-    body[data-shell="mobile"] .app-shell-layout {
-      max-width: 42rem;
-    }
-
-    body[data-shell="mobile"] .app-main {
-      max-width: 42rem;
-      padding-left: 1rem !important;
-      padding-right: 1rem !important;
-      padding-top: 0.5rem !important;
-      padding-bottom: calc(6.75rem + env(safe-area-inset-bottom, 0px)) !important;
+    body[data-shell="mobile"] .app-shell-layout,
+    body[data-shell="mobile"] .app-main,
+    body[data-shell="mobile"] .app-mobile-inner {
+      max-width: min(56rem, 92vw);
     }
   }
 

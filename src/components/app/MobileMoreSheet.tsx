@@ -42,7 +42,7 @@ export function MobileMoreSheet() {
       />
       <div className="fixed inset-x-0 bottom-0 z-50 overflow-hidden rounded-t-[1.75rem] bg-gradient-to-b from-night-950 via-indigo-950 to-night-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl ring-1 ring-white/10 lg:hidden">
         <div className="mobile-shimmer pointer-events-none absolute inset-0 opacity-20" aria-hidden />
-        <div className="relative mx-auto max-w-lg">
+        <div className="app-mobile-inner relative mx-auto max-w-lg">
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
           <div className="mb-4 flex items-center justify-between">
             <div>
