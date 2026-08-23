@@ -3,38 +3,77 @@
 import { useState } from "react";
 import {
   ARTWORK_VARIANTS,
-  devotionArtworkField,
+  artworkField,
+  type ArtworkFields,
   type ArtworkVariant,
-} from "@/lib/devotion-artwork";
-import type { Devotion } from "@/lib/types";
+} from "@/lib/content-artwork";
+
+export type ContentArtworkKind = "devotion" | "event" | "urgent-alert";
+
+const ARTWORK_CONFIG: Record<
+  ContentArtworkKind,
+  { apiPath: string; idField: string; saveHint: string; description: string }
+> = {
+  devotion: {
+    apiPath: "/api/devotions/artwork",
+    idField: "devotionId",
+    saveHint: "Save the devotion first, then upload artwork.",
+    description: "Upload square, wide, and banner images for home tiles, cards, and headers.",
+  },
+  event: {
+    apiPath: "/api/events/artwork",
+    idField: "eventId",
+    saveHint: "Add the event first, then upload artwork.",
+    description: "Upload artwork for calendar cards, home tiles, and share graphics.",
+  },
+  "urgent-alert": {
+    apiPath: "/api/admin/urgent-alert/artwork",
+    idField: "alertId",
+    saveHint: "Publish the alert first, then upload artwork.",
+    description: "Upload square, wide, and banner images for push and home display.",
+  },
+};
 
 type ContentArtworkPanelProps = {
-  devotionId: string;
-  artwork: Pick<Devotion, "artworkSquareUrl" | "artworkWideUrl" | "artworkBannerUrl">;
-  onChange: (artwork: Pick<Devotion, "artworkSquareUrl" | "artworkWideUrl" | "artworkBannerUrl">) => void;
+  contentKind: ContentArtworkKind;
+  contentId: string;
+  artwork: ArtworkFields;
+  onChange: (artwork: ArtworkFields) => void;
   disabled?: boolean;
 };
 
-export function ContentArtworkPanel({
-  devotionId,
-  artwork,
-  onChange,
-  disabled = false,
-}: ContentArtworkPanelProps) {
+/** @deprecated Use contentKind + contentId */
+type LegacyDevotionProps = {
+  devotionId: string;
+  artwork: ArtworkFields;
+  onChange: (artwork: ArtworkFields) => void;
+  disabled?: boolean;
+};
+
+export function ContentArtworkPanel(
+  props: ContentArtworkPanelProps | LegacyDevotionProps,
+) {
+  const contentKind =
+    "contentKind" in props ? props.contentKind : ("devotion" as const);
+  const contentId =
+    "contentId" in props ? props.contentId : props.devotionId;
+  const { artwork, onChange, disabled = false } = props;
+  const config = ARTWORK_CONFIG[contentKind];
+
   const [busyVariant, setBusyVariant] = useState<ArtworkVariant | null>(null);
   const [error, setError] = useState("");
 
   async function uploadArtwork(variant: ArtworkVariant, file: File | null) {
-    if (!file || !devotionId) return;
+    if (!file || !contentId) return;
     setBusyVariant(variant);
     setError("");
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("devotionId", devotionId);
+    formData.append(config.idField, contentId);
     formData.append("variant", variant);
 
-    const response = await fetch("/api/devotions/artwork", {
+    const response = await fetch(config.apiPath, {
       method: "POST",
       body: formData,
     });
@@ -48,19 +87,19 @@ export function ContentArtworkPanel({
 
     onChange({
       ...artwork,
-      [devotionArtworkField(variant)]: data.url,
+      [artworkField(variant)]: data.url,
     });
   }
 
   async function removeArtwork(variant: ArtworkVariant) {
-    if (!devotionId) return;
+    if (!contentId) return;
     setBusyVariant(variant);
     setError("");
 
-    const response = await fetch("/api/devotions/artwork", {
+    const response = await fetch(config.apiPath, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ devotionId, variant }),
+      body: JSON.stringify({ [config.idField]: contentId, variant }),
     });
     const data = await response.json();
     setBusyVariant(null);
@@ -72,25 +111,21 @@ export function ContentArtworkPanel({
 
     onChange({
       ...artwork,
-      [devotionArtworkField(variant)]: undefined,
+      [artworkField(variant)]: undefined,
     });
   }
 
   return (
     <div className="rounded-2xl border border-night-900/10 bg-sand-50/70 p-4">
       <p className="text-sm font-semibold text-night-900">Artwork</p>
-      <p className="mt-1 text-xs text-night-600">
-        Upload square, wide, and banner images for home tiles, devotion cards, and headers.
-      </p>
+      <p className="mt-1 text-xs text-night-600">{config.description}</p>
 
-      {!devotionId ? (
-        <p className="mt-3 text-xs text-amber-800">
-          Save the devotion first, then upload artwork.
-        </p>
+      {!contentId ? (
+        <p className="mt-3 text-xs text-amber-800">{config.saveHint}</p>
       ) : (
         <div className="mt-4 space-y-3">
           {ARTWORK_VARIANTS.map(({ variant, label, hint }) => {
-            const field = devotionArtworkField(variant);
+            const field = artworkField(variant);
             const url = artwork[field];
             return (
               <div

@@ -427,6 +427,22 @@ export async function notifyWorshipRehearsalReminder(plan: {
   );
 }
 
+export async function notifyChurchEvent(input: {
+  title: string;
+  authorId: string;
+  eventId: string;
+}) {
+  return sendPushToAllMembers(
+    {
+      title: "Church event",
+      body: input.title,
+      url: `/calendar?event=${encodeURIComponent(input.eventId)}`,
+    },
+    "announcements",
+    input.authorId,
+  );
+}
+
 export async function notifyChurchAnnouncement(input: {
   authorId?: string;
   authorName: string;

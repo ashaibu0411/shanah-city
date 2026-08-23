@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
 import { EventCalendarFields } from "@/components/calendar/EventCalendarFields";
 import { MeetingsCalendarPanel } from "@/components/calendar/MeetingsCalendarPanel";
+import { EventShareTools } from "@/components/share/EventShareTools";
 import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
 import { isOutlookSyncedEventId } from "@/lib/calendar-utils";
+import type { ArtworkFields } from "@/lib/content-artwork";
 import type { UnavailabilityRequest } from "@/lib/member-types";
 import type { ChurchEvent } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
@@ -17,13 +20,22 @@ function EventDetailCard({
   event,
   canManage,
   onRemove,
+  onArtworkChange,
+  highlighted = false,
 }: {
   event: ChurchEvent;
   canManage: boolean;
   onRemove: (id: string) => void;
+  onArtworkChange?: (id: string, artwork: ArtworkFields) => void;
+  highlighted?: boolean;
 }) {
   return (
-    <div className="rounded-xl bg-sand-50 p-4 ring-1 ring-night-900/5">
+    <div
+      id={`event-${event.id}`}
+      className={`rounded-xl bg-sand-50 p-4 ring-1 ${
+        highlighted ? "ring-2 ring-gold-500" : "ring-night-900/5"
+      }`}
+    >
       <p className="text-sm font-medium text-sand-600">{event.date}</p>
       <h3 className="mt-1 font-display text-lg font-semibold text-night-900">{event.title}</h3>
       <p className="mt-2 text-sm text-night-600">
@@ -37,6 +49,12 @@ function EventDetailCard({
         <Button variant="secondary" className="mt-3" onClick={() => onRemove(event.id)}>
           Remove
         </Button>
+      ) : null}
+      {canManage && onArtworkChange ? (
+        <EventShareTools
+          event={event}
+          onArtworkChange={(artwork) => onArtworkChange(event.id, artwork)}
+        />
       ) : null}
     </div>
   );
@@ -198,6 +216,8 @@ function GroupAdminApproval({
 
 function ChurchEventsPanel() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const highlightEventId = searchParams.get("event");
   const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
@@ -229,6 +249,21 @@ function ChurchEventsPanel() {
   useEffect(() => {
     loadEvents();
   }, []);
+
+  useEffect(() => {
+    if (!highlightEventId || events.length === 0) return;
+    const element = document.getElementById(`event-${highlightEventId}`);
+    if (!element) return;
+    window.setTimeout(() => {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }, [highlightEventId, events]);
+
+  function updateEventArtwork(id: string, artwork: ArtworkFields) {
+    setEvents((current) =>
+      current.map((event) => (event.id === id ? { ...event, ...artwork } : event)),
+    );
+  }
 
   async function addEvent() {
     const response = await fetch("/api/events", {
@@ -381,7 +416,13 @@ function ChurchEventsPanel() {
         items={events}
         emptyDayLabel="No church events on this day."
         renderItem={(event) => (
-          <EventDetailCard event={event} canManage={canManage} onRemove={removeEvent} />
+          <EventDetailCard
+            event={event}
+            canManage={canManage}
+            onRemove={removeEvent}
+            onArtworkChange={canManage ? updateEventArtwork : undefined}
+            highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
+          />
         )}
       />
 
@@ -396,7 +437,16 @@ function ChurchEventsPanel() {
           </Card>
         ) : (
           events.map((event) => (
-            <Card key={event.id}>
+            <div
+              key={event.id}
+              id={`event-${event.id}`}
+              className={
+                highlightEventId && event.id === highlightEventId
+                  ? "rounded-2xl ring-2 ring-gold-500"
+                  : undefined
+              }
+            >
+              <Card>
               <p className="text-sm font-medium text-sand-600">{event.date}</p>
               <h3 className="mt-1 font-display text-xl font-semibold text-night-900">
                 {event.title}
@@ -417,7 +467,11 @@ function ChurchEventsPanel() {
                   Remove
                 </Button>
               ) : null}
-            </Card>
+              {canManage ? (
+                <EventShareTools event={event} onArtworkChange={(artwork) => updateEventArtwork(event.id, artwork)} />
+              ) : null}
+              </Card>
+            </div>
           ))
         )}
       </div>
@@ -433,6 +487,8 @@ function GroupEventsPanel({
   groupLabel: string;
 }) {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const highlightEventId = searchParams.get("event");
   const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
@@ -467,6 +523,21 @@ function GroupEventsPanel({
       setLoading(false);
     }
   }, [user, groupId]);
+
+  useEffect(() => {
+    if (!highlightEventId || events.length === 0) return;
+    const element = document.getElementById(`event-${highlightEventId}`);
+    if (!element) return;
+    window.setTimeout(() => {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }, [highlightEventId, events]);
+
+  function updateEventArtwork(id: string, artwork: ArtworkFields) {
+    setEvents((current) =>
+      current.map((event) => (event.id === id ? { ...event, ...artwork } : event)),
+    );
+  }
 
   async function addEvent() {
     const response = await fetch("/api/events", {
@@ -581,7 +652,13 @@ function GroupEventsPanel({
         items={events}
         emptyDayLabel={`No ${groupLabel.toLowerCase()} events on this day.`}
         renderItem={(event) => (
-          <EventDetailCard event={event} canManage={canManage} onRemove={removeEvent} />
+          <EventDetailCard
+            event={event}
+            canManage={canManage}
+            onRemove={removeEvent}
+            onArtworkChange={canManage ? updateEventArtwork : undefined}
+            highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
+          />
         )}
       />
 
@@ -596,7 +673,16 @@ function GroupEventsPanel({
           </Card>
         ) : (
           events.map((event) => (
-            <Card key={event.id}>
+            <div
+              key={event.id}
+              id={`event-${event.id}`}
+              className={
+                highlightEventId && event.id === highlightEventId
+                  ? "rounded-2xl ring-2 ring-gold-500"
+                  : undefined
+              }
+            >
+              <Card>
               <p className="text-sm font-medium text-sand-600">{event.date}</p>
               <h3 className="mt-1 font-display text-xl font-semibold text-night-900">
                 {event.title}
@@ -613,7 +699,14 @@ function GroupEventsPanel({
                   Remove
                 </Button>
               )}
-            </Card>
+              {canManage ? (
+                <EventShareTools
+                  event={event}
+                  onArtworkChange={(artwork) => updateEventArtwork(event.id, artwork)}
+                />
+              ) : null}
+              </Card>
+            </div>
           ))
         )}
       </div>

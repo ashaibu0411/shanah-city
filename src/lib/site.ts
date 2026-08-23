@@ -198,9 +198,9 @@ export const campuses: Campus[] = [
     city: "Accra",
     country: "Ghana",
     timezone: "Africa/Accra",
-    pastor: "Regional Pastor",
-    serviceTimes: ["Contact campus for service times"],
-    address: "Accra, Ghana",
+    pastor: "Jozzy Owusu",
+    serviceTimes: ["Fri 7:00 PM", "Sun 10:00 AM (GMT)"],
+    address: "Accra, Ghana · email admin@shanahcity.org for directions",
   },
   {
     id: "online",
@@ -369,8 +369,8 @@ export const upcomingEvents = [
     id: "3",
     title: "Shanah City Accra",
     date: "Weekly",
-    time: "Contact campus for times",
-    location: "Accra, Ghana",
+    time: "Fri 7:00 PM · Sun 10:00 AM (GMT)",
+    location: "Accra, Ghana · admin@shanahcity.org",
   },
   {
     id: "4",

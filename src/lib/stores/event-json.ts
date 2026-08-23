@@ -46,6 +46,11 @@ function sortEvents(events: ChurchEvent[]) {
   );
 }
 
+export async function getEventById(id: string) {
+  const events = await readEvents();
+  return events.find((event) => event.id === id) ?? null;
+}
+
 export async function getEvents(options?: {
   includeUnpublished?: boolean;
   groupId?: string | null;

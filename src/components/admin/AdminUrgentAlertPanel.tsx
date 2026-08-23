@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { AdminSubNav } from "@/components/admin/AdminSubNav";
+import { ContentArtworkPanel } from "@/components/share/ContentArtworkPanel";
+import { ShareActions } from "@/components/share/ShareActions";
 import { Button, Card } from "@/components/ui";
+import type { ArtworkFields } from "@/lib/content-artwork";
+import { urgentAlertShareUrl, urgentAlertViewUrl } from "@/lib/share-urls";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 function toLocalInputValue(iso?: string) {
@@ -23,6 +27,7 @@ export function AdminUrgentAlertPanel() {
   const [expiresAt, setExpiresAt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [artwork, setArtwork] = useState<ArtworkFields>({});
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [sendPush, setSendPush] = useState(true);
@@ -43,6 +48,11 @@ export function AdminUrgentAlertPanel() {
           setExpiresAt(toLocalInputValue(current.expiresAt));
           setImageUrl(current.imageUrl ?? "");
           setVideoUrl(current.videoUrl ?? "");
+          setArtwork({
+            artworkSquareUrl: current.artworkSquareUrl,
+            artworkWideUrl: current.artworkWideUrl,
+            artworkBannerUrl: current.artworkBannerUrl,
+          });
         }
       })
       .catch(() => undefined);
@@ -105,6 +115,13 @@ export function AdminUrgentAlertPanel() {
     }
 
     setActive(data.alert ?? null);
+    if (data.alert) {
+      setArtwork({
+        artworkSquareUrl: data.alert.artworkSquareUrl,
+        artworkWideUrl: data.alert.artworkWideUrl,
+        artworkBannerUrl: data.alert.artworkBannerUrl,
+      });
+    }
     const pushNote =
       data.notify?.sent > 0
         ? ` Push sent to ${data.notify.sent} device${data.notify.sent === 1 ? "" : "s"}.`
@@ -134,6 +151,7 @@ export function AdminUrgentAlertPanel() {
     setExpiresAt("");
     setImageUrl("");
     setVideoUrl("");
+    setArtwork({});
     setStatus("Urgent alert removed.");
   }
 
@@ -296,6 +314,43 @@ export function AdminUrgentAlertPanel() {
             />
             <span>Also send a push notification to members with alerts enabled</span>
           </label>
+
+          {active?.id ? (
+            <div className="space-y-4">
+              <ContentArtworkPanel
+                contentKind="urgent-alert"
+                contentId={active.id}
+                artwork={artwork}
+                onChange={(next) => {
+                  setArtwork(next);
+                  setActive((current) => (current ? { ...current, ...next } : current));
+                }}
+                disabled={busy}
+              />
+              <div className="rounded-2xl border border-night-900/10 bg-white p-4">
+                <ShareActions
+                  shareUrl={urgentAlertShareUrl(active.id)}
+                  viewUrl={urgentAlertViewUrl(active.id)}
+                  notifyEnabled={active.active}
+                  onNotify={async () => {
+                    const response = await fetch("/api/admin/urgent-alert/notify", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ id: active.id }),
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                      throw new Error(data.error ?? "Could not send notification.");
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-night-500">
+              Publish the alert first to upload Subsplash-style artwork and share links.
+            </p>
+          )}
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">

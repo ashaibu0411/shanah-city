@@ -6,6 +6,9 @@ export type UrgentAlert = {
   ctaLabel?: string;
   imageUrl?: string;
   videoUrl?: string;
+  artworkSquareUrl?: string;
+  artworkWideUrl?: string;
+  artworkBannerUrl?: string;
   active: boolean;
   startsAt?: string;
   expiresAt?: string;

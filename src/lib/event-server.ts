@@ -6,6 +6,7 @@ const store = () => (useDatabase() ? eventDb : eventJson);
 
 export const getEvents = (options?: Parameters<typeof eventJson.getEvents>[0]) =>
   store().getEvents(options);
+export const getEventById = (id: string) => store().getEventById(id);
 export const createEvent = (input: Parameters<typeof eventJson.createEvent>[0]) =>
   store().createEvent(input);
 export const updateEvent = (

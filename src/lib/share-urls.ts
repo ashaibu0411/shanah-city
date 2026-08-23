@@ -14,3 +14,22 @@ export function devotionShareUrl(devotionId: string) {
 export function devotionViewUrl(devotionId: string) {
   return devotionShareUrl(devotionId);
 }
+
+export function eventShareUrl(eventId: string) {
+  return `${getAppBaseUrl()}/calendar?event=${encodeURIComponent(eventId)}`;
+}
+
+export function eventViewUrl(eventId: string) {
+  return eventShareUrl(eventId);
+}
+
+export function urgentAlertShareUrl(alertId?: string) {
+  if (alertId) {
+    return `${getAppBaseUrl()}/?alert=${encodeURIComponent(alertId)}`;
+  }
+  return `${getAppBaseUrl()}/`;
+}
+
+export function urgentAlertViewUrl(alertId?: string) {
+  return urgentAlertShareUrl(alertId);
+}

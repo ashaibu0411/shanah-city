@@ -14,6 +14,9 @@ function mapEvent(record: {
   startsOn: string | null;
   endsOn: string | null;
   recurringWeekday: number | null;
+  artworkSquareUrl: string | null;
+  artworkWideUrl: string | null;
+  artworkBannerUrl: string | null;
   published: boolean;
   sortOrder: number;
 }): ChurchEvent {
@@ -29,6 +32,9 @@ function mapEvent(record: {
     startsOn: record.startsOn ?? undefined,
     endsOn: record.endsOn ?? undefined,
     recurringWeekday: record.recurringWeekday ?? undefined,
+    artworkSquareUrl: record.artworkSquareUrl ?? undefined,
+    artworkWideUrl: record.artworkWideUrl ?? undefined,
+    artworkBannerUrl: record.artworkBannerUrl ?? undefined,
     published: record.published,
     sortOrder: record.sortOrder,
   };
@@ -64,6 +70,12 @@ async function ensureDefaultEvents() {
       updatedAt: now,
     })),
   });
+}
+
+export async function getEventById(id: string) {
+  await ensureDefaultEvents();
+  const record = await prisma.churchEvent.findUnique({ where: { id } });
+  return record ? mapEvent(record) : null;
 }
 
 export async function getEvents(options?: {
@@ -141,6 +153,16 @@ export async function updateEvent(id: string, update: Partial<Omit<ChurchEvent, 
         update.recurringWeekday === undefined
           ? undefined
           : update.recurringWeekday ?? null,
+      artworkSquareUrl:
+        update.artworkSquareUrl === undefined
+          ? undefined
+          : update.artworkSquareUrl ?? null,
+      artworkWideUrl:
+        update.artworkWideUrl === undefined ? undefined : update.artworkWideUrl ?? null,
+      artworkBannerUrl:
+        update.artworkBannerUrl === undefined
+          ? undefined
+          : update.artworkBannerUrl ?? null,
       published: update.published,
       sortOrder: update.sortOrder,
       updatedAt: new Date(),
@@ -175,6 +197,9 @@ export async function upsertEvent(event: ChurchEvent) {
       startsOn: event.startsOn ?? null,
       endsOn: event.endsOn ?? null,
       recurringWeekday: event.recurringWeekday ?? null,
+      artworkSquareUrl: event.artworkSquareUrl ?? null,
+      artworkWideUrl: event.artworkWideUrl ?? null,
+      artworkBannerUrl: event.artworkBannerUrl ?? null,
       published: event.published ?? true,
       sortOrder: event.sortOrder ?? 0,
       createdAt: now,
@@ -191,6 +216,9 @@ export async function upsertEvent(event: ChurchEvent) {
       startsOn: event.startsOn ?? null,
       endsOn: event.endsOn ?? null,
       recurringWeekday: event.recurringWeekday ?? null,
+      artworkSquareUrl: event.artworkSquareUrl ?? null,
+      artworkWideUrl: event.artworkWideUrl ?? null,
+      artworkBannerUrl: event.artworkBannerUrl ?? null,
       published: event.published ?? true,
       sortOrder: event.sortOrder,
       updatedAt: now,

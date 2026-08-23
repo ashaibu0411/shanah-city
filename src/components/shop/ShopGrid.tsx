@@ -44,6 +44,8 @@ function ProductCard({ product }: { product: ShopProduct }) {
 export function ShopGrid() {
   const [category, setCategory] = useState("All");
   const { cart, removeFromCart } = useApp();
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -54,6 +56,37 @@ export function ShopGrid() {
   );
 
   const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+  async function checkout() {
+    setCheckingOut(true);
+    setCheckoutError(null);
+
+    const quantities = new Map<string, number>();
+    for (const item of cart) {
+      quantities.set(item.id, (quantities.get(item.id) ?? 0) + 1);
+    }
+    const items = Array.from(quantities, ([productId, quantity]) => ({
+      productId,
+      quantity,
+    }));
+
+    const response = await fetch("/api/shop/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items }),
+    });
+    const data = await response.json();
+    setCheckingOut(false);
+
+    if (!response.ok) {
+      setCheckoutError(data.error ?? "Could not start checkout.");
+      return;
+    }
+
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  }
 
   return (
     <div>
@@ -98,7 +131,12 @@ export function ShopGrid() {
               </li>
             ))}
           </ul>
-          <Button className="mt-4">Checkout (Stripe ready)</Button>
+          <Button className="mt-4" onClick={checkout} disabled={checkingOut}>
+            {checkingOut ? "Redirecting to Stripe…" : "Checkout"}
+          </Button>
+          {checkoutError ? (
+            <p className="mt-2 text-sm text-red-700">{checkoutError}</p>
+          ) : null}
         </Card>
       )}
 

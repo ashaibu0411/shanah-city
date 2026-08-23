@@ -1,7 +1,7 @@
 import { put } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
-import type { ArtworkVariant } from "@/lib/devotion-artwork";
+import type { ArtworkVariant } from "@/lib/content-artwork";
 import { useBlobStorage } from "@/lib/use-blob";
 
 export const CONTENT_ARTWORK_MAX_BYTES = 8 * 1024 * 1024;

@@ -216,6 +216,9 @@ model ChurchEvent {
   startsOn         String?
   endsOn           String?
   recurringWeekday Int?
+  artworkSquareUrl String?
+  artworkWideUrl   String?
+  artworkBannerUrl String?
   published        Boolean  @default(true)
   sortOrder        Int      @default(0)
   createdAt        DateTime
@@ -604,8 +607,11 @@ model UrgentAlert {
   message       String
   href          String?
   ctaLabel      String?
-  imageUrl      String?
-  videoUrl      String?
+  imageUrl          String?
+  videoUrl          String?
+  artworkSquareUrl  String?
+  artworkWideUrl    String?
+  artworkBannerUrl  String?
   active        Boolean   @default(false)
   startsAt      DateTime?
   expiresAt     DateTime?

@@ -37,6 +37,11 @@ export async function getActiveUrgentAlert() {
   return alerts.find((alert) => isCurrentlyVisible(alert)) ?? null;
 }
 
+export async function getUrgentAlertById(id: string) {
+  const alerts = await readAlerts();
+  return alerts.find((alert) => alert.id === id) ?? null;
+}
+
 export async function saveUrgentAlert(
   input: Omit<UrgentAlert, "id" | "createdAt" | "updatedAt"> & { id?: string },
 ) {
@@ -61,6 +66,9 @@ export async function saveUrgentAlert(
     ctaLabel: input.ctaLabel?.trim() || undefined,
     imageUrl: input.imageUrl?.trim() || undefined,
     videoUrl: input.videoUrl?.trim() || undefined,
+    artworkSquareUrl: input.artworkSquareUrl?.trim() || undefined,
+    artworkWideUrl: input.artworkWideUrl?.trim() || undefined,
+    artworkBannerUrl: input.artworkBannerUrl?.trim() || undefined,
     active: input.active,
     startsAt: input.startsAt,
     expiresAt: input.expiresAt,
