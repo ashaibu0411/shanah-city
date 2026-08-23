@@ -19,8 +19,9 @@ function venmoUrl(username: string) {
 /** Defaults when env vars are not set — update in .env.local for production. */
 const defaults = {
   zeffyUrl: "",
-  paypalUsername: "ShanahCity",
-  cashAppTag: "ShanahCity",
+  paypalEmail: "admin@shanahcity.org",
+  paypalUsername: "",
+  cashAppTag: "shanahcenter",
   venmoUsername: "ShanahCity",
 };
 
@@ -30,17 +31,67 @@ function envValue(key: string, fallback = "") {
 }
 
 const zeffyUrl = envValue("NEXT_PUBLIC_GIVE_ZEFFY_URL", defaults.zeffyUrl);
+const paypalEmail = envValue(
+  "NEXT_PUBLIC_GIVE_PAYPAL_EMAIL",
+  defaults.paypalEmail,
+);
 const paypalUsername = envValue(
   "NEXT_PUBLIC_GIVE_PAYPAL_USERNAME",
   defaults.paypalUsername,
 );
-const paypalUrlDirect = envValue("NEXT_PUBLIC_GIVE_PAYPAL_URL");
-const cashAppTag = envValue("NEXT_PUBLIC_GIVE_CASHAPP_TAG", defaults.cashAppTag);
+const paypalUrlDirectRaw = envValue("NEXT_PUBLIC_GIVE_PAYPAL_URL");
+// Ignore the previous PayPal.me link if still set in hosted env.
+const paypalUrlDirect =
+  paypalUrlDirectRaw && !/paypal\.me\/ShanahCity\/?$/i.test(paypalUrlDirectRaw)
+    ? paypalUrlDirectRaw
+    : "";
+const cashAppTagRaw = envValue("NEXT_PUBLIC_GIVE_CASHAPP_TAG", defaults.cashAppTag);
+// Ignore the previous cashtag if still set in hosted env; use $shanahcenter.
+const cashAppTag =
+  !cashAppTagRaw || /^\$?ShanahCity$/i.test(cashAppTagRaw)
+    ? defaults.cashAppTag
+    : cashAppTagRaw.replace(/^\$/, "");
 const zelleEmail = site.giving.financeEmail;
 const venmoUsername = envValue(
   "NEXT_PUBLIC_GIVE_VENMO_USERNAME",
   defaults.venmoUsername,
 );
+
+function paypalPlatform(): GivingPlatform {
+  // Prefer email (admin@shanahcity.org) so a stale PayPal.me username env
+  // cannot override the church's current giving contact.
+  if (paypalEmail && !paypalUrlDirect) {
+    return {
+      id: "paypal",
+      name: "PayPal",
+      description: "Send a gift in PayPal using the church email below.",
+      action: "copy",
+      copyValue: paypalEmail,
+      copyHint: "PayPal email",
+      tone: "from-blue-600 to-indigo-700",
+    };
+  }
+
+  if (paypalUrlDirect) {
+    return {
+      id: "paypal",
+      name: "PayPal",
+      description: "Send a one-time gift through PayPal.",
+      action: "link",
+      url: paypalUrlDirect,
+      tone: "from-blue-600 to-indigo-700",
+    };
+  }
+
+  return {
+    id: "paypal",
+    name: "PayPal",
+    description: "Send a one-time gift through PayPal.",
+    action: "link",
+    url: paypalUsername ? paypalUrl(paypalUsername) : undefined,
+    tone: "from-blue-600 to-indigo-700",
+  };
+}
 
 const configured: GivingPlatform[] = [
   {
@@ -51,18 +102,13 @@ const configured: GivingPlatform[] = [
     url: zeffyUrl || undefined,
     tone: "from-emerald-600 to-teal-700",
   },
-  {
-    id: "paypal",
-    name: "PayPal",
-    description: "Send a one-time gift through PayPal.",
-    action: "link",
-    url: paypalUrlDirect || (paypalUsername ? paypalUrl(paypalUsername) : undefined),
-    tone: "from-blue-600 to-indigo-700",
-  },
+  paypalPlatform(),
   {
     id: "cashapp",
     name: "Cash App",
-    description: "Tap to open Cash App and give to Shanah City.",
+    description: cashAppTag
+      ? `Tap to open Cash App and give to $${cashAppTag.replace(/^\$/, "")}.`
+      : "Tap to open Cash App and give to Shanah City.",
     action: "link",
     url: cashAppTag ? cashAppUrl(cashAppTag) : undefined,
     tone: "from-green-500 to-emerald-700",

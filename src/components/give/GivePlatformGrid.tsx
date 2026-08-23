@@ -54,7 +54,7 @@ export function GivePlatformCard({ platform }: GivePlatformCardProps) {
             onClick={handleCopy}
             className="mt-3 inline-flex rounded-lg bg-white px-4 py-2 text-sm font-semibold text-night-900 transition hover:bg-sand-100"
           >
-            {copied ? "Copied!" : "Copy for Zelle"}
+            {copied ? "Copied!" : `Copy for ${platform.name}`}
           </button>
         </div>
       ) : null}
