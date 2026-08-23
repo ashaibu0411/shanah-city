@@ -10,6 +10,13 @@ import type { DirectMessage, MemberDirectoryEntry } from "@/lib/member-types";
 import { Button } from "@/components/ui";
 import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComposer";
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
+import {
+  IconChevronLeft,
+  IconCompose,
+  IconInfo,
+  IconPaperPlane,
+  IconSearch,
+} from "@/components/chat/ChatIcons";
 import type { ChatTypingUser } from "@/lib/chat-utils";
 import { notifyNotificationsChanged } from "@/lib/use-notifications";
 
@@ -20,6 +27,27 @@ type ThreadSummary = {
   lastMessage: string;
   lastMessageAt: string;
 };
+
+const AVATAR_COLORS = [
+  "bg-slate-500",
+  "bg-stone-500",
+  "bg-zinc-500",
+  "bg-neutral-500",
+  "bg-slate-600",
+  "bg-stone-600",
+  "bg-zinc-600",
+  "bg-neutral-600",
+  "bg-slate-400",
+  "bg-stone-400",
+] as const;
+
+function hashName(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i += 1) {
+    hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
 
 function initials(name: string) {
   return name
@@ -60,11 +88,24 @@ function formatDetailTime(iso: string) {
   });
 }
 
-function MemberAvatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
-  const sizeClass = size === "sm" ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm";
+function MemberAvatar({
+  name,
+  size = "md",
+}: {
+  name: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const color = AVATAR_COLORS[hashName(name) % AVATAR_COLORS.length];
+  const sizeClass =
+    size === "sm"
+      ? "h-9 w-9 text-xs"
+      : size === "lg"
+        ? "h-14 w-14 text-base"
+        : "h-11 w-11 text-sm";
+
   return (
     <div
-      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 font-semibold text-white shadow-sm`}
+      className={`${sizeClass} ${color} flex shrink-0 items-center justify-center rounded-full font-semibold text-white ring-1 ring-black/5`}
       aria-hidden
     >
       {initials(name)}
@@ -126,6 +167,16 @@ export function MessagesHub() {
       .filter((member) => member.name.toLowerCase().includes(query))
       .slice(0, 8);
   }, [members, memberSearch]);
+
+  const filteredThreads = useMemo(() => {
+    const query = inboxSearch.trim().toLowerCase();
+    if (!query) return threads;
+    return threads.filter(
+      (thread) =>
+        thread.otherName.toLowerCase().includes(query) ||
+        thread.lastMessage.toLowerCase().includes(query),
+    );
+  }, [inboxSearch, threads]);
 
   function selectRecipient(member: MemberDirectoryEntry) {
     setNewRecipientId(member.id);
@@ -491,19 +542,19 @@ export function MessagesHub() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100dvh-5rem)] items-center justify-center rounded-2xl border border-night-900/8 bg-white">
-        <p className="text-sm text-night-500">Loading messages…</p>
+      <div className="flex h-[calc(100dvh-5rem)] items-center justify-center rounded-2xl border border-[#dbdbdb] bg-white">
+        <p className="text-sm text-[#8e8e8e]">Loading messages…</p>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="rounded-2xl border border-night-900/8 bg-white px-6 py-10 text-center">
-        <h2 className="font-display text-xl font-semibold text-night-900">
+      <div className="rounded-2xl border border-[#dbdbdb] bg-white px-6 py-10 text-center">
+        <h2 className="font-display text-xl font-semibold text-[#262626]">
           Sign in to message members
         </h2>
-        <p className="mt-2 text-sm text-night-600">
+        <p className="mt-2 text-sm text-[#8e8e8e]">
           Connect privately with other Shanah City members after you create an account.
         </p>
         <div className="mt-5 flex justify-center gap-3">
@@ -518,40 +569,35 @@ export function MessagesHub() {
 
   const showInbox = !activeThreadId && !showNew;
   const showChatPane = Boolean(activeThread || showNew);
-  const filteredThreads = useMemo(() => {
-    const query = inboxSearch.trim().toLowerCase();
-    if (!query) return threads;
-    return threads.filter(
-      (thread) =>
-        thread.otherName.toLowerCase().includes(query) ||
-        thread.lastMessage.toLowerCase().includes(query),
-    );
-  }, [inboxSearch, threads]);
 
   return (
     <div
       className={`flex overflow-hidden bg-white ${
         isMobileApp
           ? "h-[calc(100dvh-3.5rem)]"
-          : "h-[calc(100dvh-5rem)] rounded-2xl border border-night-900/8 shadow-sm md:h-[calc(100dvh-11rem)]"
+          : "h-[calc(100dvh-5rem)] rounded-2xl border border-[#dbdbdb] shadow-sm md:h-[calc(100dvh-11rem)]"
       }`}
     >
       <aside
-        className={`flex w-full shrink-0 flex-col border-night-900/8 lg:w-[min(100%,360px)] lg:border-r ${
+        className={`flex w-full shrink-0 flex-col border-[#efefef] lg:w-[min(100%,380px)] lg:border-r ${
           showInbox ? "flex" : "hidden lg:flex"
         }`}
       >
-        <div className={`border-b border-night-900/8 ${isMobileApp ? "px-3 py-2" : "px-4 py-3"}`}>
+        <div className={`border-b border-[#efefef] ${isMobileApp ? "px-3 py-2.5" : "px-4 py-3"}`}>
           <div className="flex items-center justify-between gap-2">
-            <h2 className={`font-display font-semibold tracking-tight text-night-900 ${isMobileApp ? "text-sm" : "text-base"}`}>
+            <h2
+              className={`font-semibold tracking-tight text-[#262626] ${
+                isMobileApp ? "text-[16px]" : "text-[20px]"
+              }`}
+            >
               {isMobileApp ? "Messages" : user.name?.split(" ")[0] ?? "Messages"}
             </h2>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               {!isMobileApp ? (
                 <button
                   type="button"
                   onClick={() => setShowSafety((value) => !value)}
-                  className="rounded-full px-2 py-1.5 text-xs font-semibold text-night-600 hover:bg-sand-50"
+                  className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-[#8e8e8e] hover:bg-[#fafafa]"
                 >
                   Safety
                 </button>
@@ -559,36 +605,35 @@ export function MessagesHub() {
               <button
                 type="button"
                 onClick={openNewMessage}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-lg text-night-900 hover:bg-sand-50"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[#262626] hover:bg-[#fafafa]"
                 aria-label="New message"
               >
-                ✎
+                <IconCompose className="h-5 w-5" />
               </button>
             </div>
           </div>
-          {isMobileApp ? (
-            <div className="relative mt-2">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-night-400">
-                ⌕
-              </span>
-              <input
-                type="search"
-                value={inboxSearch}
-                onChange={(event) => setInboxSearch(event.target.value)}
-                placeholder="Search messages"
-                className="w-full rounded-xl bg-sand-100/90 py-2 pl-9 pr-3 text-sm text-night-900 outline-none ring-night-900/5 placeholder:text-night-400 focus:ring-2"
-              />
-            </div>
-          ) : null}
+
+          <div className="relative mt-2.5">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8e8e8e]">
+              <IconSearch className="h-4 w-4" />
+            </span>
+            <input
+              type="search"
+              value={inboxSearch}
+              onChange={(event) => setInboxSearch(event.target.value)}
+              placeholder="Search"
+              className="w-full rounded-xl bg-[#efefef] py-2 pl-9 pr-3 text-sm text-[#262626] outline-none placeholder:text-[#8e8e8e]"
+            />
+          </div>
         </div>
 
         {showSafety && (
-          <div className="border-b border-night-900/8 bg-sand-50/80 px-4 py-3">
-            <p className="text-[11px] text-night-500">
+          <div className="border-b border-[#efefef] bg-[#fafafa] px-4 py-3">
+            <p className="text-[11px] text-[#8e8e8e]">
               Block someone to stop messages. Report harassment for church leaders to review.
             </p>
             {blocks.length === 0 ? (
-              <p className="mt-2 text-xs text-night-600">No blocked members.</p>
+              <p className="mt-2 text-xs text-[#8e8e8e]">No blocked members.</p>
             ) : (
               <div className="mt-2 space-y-1.5">
                 {blocks.map((block) => (
@@ -597,10 +642,10 @@ export function MessagesHub() {
                     className="flex items-center justify-between rounded-xl bg-white px-3 py-2"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-night-900">
+                      <p className="truncate text-sm font-medium text-[#262626]">
                         {block.blockedUserName}
                       </p>
-                      <p className="text-[10px] text-night-500">
+                      <p className="text-[10px] text-[#8e8e8e]">
                         Blocked {formatDetailTime(block.createdAt)}
                       </p>
                     </div>
@@ -639,16 +684,17 @@ export function MessagesHub() {
         <div className="flex-1 overflow-y-auto">
           {filteredThreads.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-              <p className="text-sm font-medium text-night-900">No messages yet</p>
-              <p className="mt-1 text-xs text-night-500">
-                Tap the pencil to start a conversation.
+              <IconPaperPlane className="h-14 w-14 text-[#262626]" />
+              <p className="mt-4 text-sm font-semibold text-[#262626]">Your messages</p>
+              <p className="mt-1 text-xs text-[#8e8e8e]">
+                Send a message to start a conversation.
               </p>
               <button
                 type="button"
                 onClick={openNewMessage}
-                className="mt-4 rounded-full bg-[#0095f6] px-4 py-2 text-xs font-semibold text-white"
+                className="mt-4 rounded-lg bg-[#0095f6] px-4 py-2 text-xs font-semibold text-white"
               >
-                New message
+                Send message
               </button>
             </div>
           ) : (
@@ -659,23 +705,24 @@ export function MessagesHub() {
                   key={thread.id}
                   type="button"
                   onClick={() => loadThread(thread.id)}
-                  className={`flex w-full items-center gap-2.5 border-b border-night-900/5 text-left transition hover:bg-sand-50/80 ${
-                    isMobileApp ? "px-3 py-2" : "px-4 py-2.5"
-                  } ${active ? "bg-sand-50" : ""}`}
+                  className={`flex w-full items-center gap-3 text-left transition hover:bg-[#fafafa] ${
+                    isMobileApp ? "px-3 py-2.5" : "px-4 py-3"
+                  } ${active ? "bg-[#fafafa]" : ""}`}
                 >
-                  <MemberAvatar name={thread.otherName} size={isMobileApp ? "sm" : "md"} />
+                  <MemberAvatar
+                    name={thread.otherName}
+                    size={isMobileApp ? "md" : "lg"}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className={`truncate font-semibold text-night-900 ${isMobileApp ? "text-[13px]" : "text-sm"}`}>
+                      <p className="truncate font-semibold text-[14px] text-[#262626]">
                         {thread.otherName}
                       </p>
-                      <span className="shrink-0 text-[10px] text-night-400">
+                      <span className="shrink-0 text-[12px] text-[#8e8e8e]">
                         {formatInboxTime(thread.lastMessageAt)}
                       </span>
                     </div>
-                    <p className={`truncate text-night-500 ${isMobileApp ? "text-xs" : "text-[13px]"}`}>
-                      {thread.lastMessage}
-                    </p>
+                    <p className="truncate text-[13px] text-[#8e8e8e]">{thread.lastMessage}</p>
                   </div>
                 </button>
               );
@@ -691,21 +738,21 @@ export function MessagesHub() {
       >
         {showNew ? (
           <>
-            <header className="flex items-center gap-3 border-b border-night-900/8 px-3 py-2.5">
+            <header className="flex items-center gap-2 border-b border-[#efefef] px-2 py-2.5">
               <button
                 type="button"
                 onClick={closeChatView}
-                className="rounded-full p-1.5 text-lg text-night-800 hover:bg-sand-50 lg:hidden"
+                className="rounded-full p-1.5 text-[#262626] hover:bg-[#fafafa] lg:hidden"
                 aria-label="Back to inbox"
               >
-                ←
+                <IconChevronLeft className="h-6 w-6" />
               </button>
-              <h2 className="flex-1 text-sm font-semibold text-night-900">New message</h2>
+              <h2 className="flex-1 text-sm font-semibold text-[#262626]">New message</h2>
             </header>
 
             <div className="flex-1 overflow-y-auto px-4 py-3">
               <div className="relative">
-                <label className="text-xs font-semibold uppercase tracking-wide text-night-500">
+                <label className="text-xs font-semibold uppercase tracking-wide text-[#8e8e8e]">
                   To:
                 </label>
                 <input
@@ -722,17 +769,17 @@ export function MessagesHub() {
                     }
                   }}
                   placeholder="Search members…"
-                  className="mt-1 w-full border-b border-night-900/10 bg-transparent py-2 text-sm outline-none placeholder:text-night-400 focus:border-night-900/30"
+                  className="mt-1 w-full border-b border-[#dbdbdb] bg-transparent py-2 text-sm outline-none placeholder:text-[#8e8e8e] focus:border-[#262626]/40"
                 />
 
                 {selectedRecipient && (
-                  <div className="mt-3 flex items-center gap-3 rounded-2xl bg-sand-50 px-3 py-2">
+                  <div className="mt-3 flex items-center gap-3 rounded-2xl bg-[#fafafa] px-3 py-2">
                     <MemberAvatar name={selectedRecipient.name} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-night-900">
+                      <p className="truncate text-sm font-semibold text-[#262626]">
                         {selectedRecipient.name}
                       </p>
-                      <p className="text-xs text-night-500">
+                      <p className="text-xs text-[#8e8e8e]">
                         {getCampus(selectedRecipient.campusId).city}
                       </p>
                     </div>
@@ -747,20 +794,20 @@ export function MessagesHub() {
                 )}
 
                 {memberSearch.trim() && !selectedRecipient && matchingMembers.length > 0 && (
-                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border border-night-900/10 bg-white py-1 shadow-xl">
+                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border border-[#dbdbdb] bg-white py-1 shadow-xl">
                     {matchingMembers.map((member) => (
                       <li key={member.id}>
                         <button
                           type="button"
                           onClick={() => selectRecipient(member)}
-                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-sand-50"
+                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-[#fafafa]"
                         >
                           <MemberAvatar name={member.name} size="sm" />
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-night-900">
+                            <p className="truncate text-sm font-medium text-[#262626]">
                               {member.name}
                             </p>
-                            <p className="text-xs text-night-500">
+                            <p className="text-xs text-[#8e8e8e]">
                               {getCampus(member.campusId).city}
                             </p>
                           </div>
@@ -771,7 +818,7 @@ export function MessagesHub() {
                 )}
 
                 {memberSearch.trim() && !selectedRecipient && matchingMembers.length === 0 && (
-                  <p className="mt-2 text-xs text-night-500">No members match that name.</p>
+                  <p className="mt-2 text-xs text-[#8e8e8e]">No members match that name.</p>
                 )}
               </div>
             </div>
@@ -790,21 +837,21 @@ export function MessagesHub() {
           </>
         ) : activeThread ? (
           <>
-            <header className="relative flex items-center gap-2 border-b border-night-900/8 px-2 py-2">
+            <header className="relative flex items-center gap-2 border-b border-[#efefef] px-2 py-2">
               <button
                 type="button"
                 onClick={closeChatView}
-                className="rounded-full p-2 text-lg text-night-800 hover:bg-sand-50 lg:hidden"
+                className="rounded-full p-1.5 text-[#262626] hover:bg-[#fafafa] lg:hidden"
                 aria-label="Back to inbox"
               >
-                ←
+                <IconChevronLeft className="h-6 w-6" />
               </button>
               <MemberAvatar name={activeThread.otherName} size="sm" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-night-900">
+                <p className="truncate text-sm font-semibold text-[#262626]">
                   {activeThread.otherName}
                 </p>
-                <p className="truncate text-[11px] text-night-500">
+                <p className="truncate text-[11px] text-[#8e8e8e]">
                   {typingLabel(typingUsers) ||
                     (isActiveBlocked ? "Blocked" : "Active now")}
                 </p>
@@ -814,13 +861,13 @@ export function MessagesHub() {
                   <button
                     type="button"
                     onClick={() => setShowChatMenu((value) => !value)}
-                    className="rounded-full px-2 py-1 text-lg text-night-800 hover:bg-sand-50"
+                    className="rounded-full p-2 text-[#262626] hover:bg-[#fafafa]"
                     aria-label="Conversation options"
                   >
-                    ⋯
+                    <IconInfo className="h-6 w-6" />
                   </button>
                   {showChatMenu && (
-                    <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] overflow-hidden rounded-xl border border-night-900/10 bg-white py-1 shadow-xl">
+                    <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] overflow-hidden rounded-xl border border-[#dbdbdb] bg-white py-1 shadow-xl">
                       {!isActiveBlocked ? (
                         <button
                           type="button"
@@ -829,7 +876,7 @@ export function MessagesHub() {
                             blockMember(activeOtherUserId, activeThread.otherName);
                           }}
                           disabled={busy}
-                          className="block w-full px-4 py-2 text-left text-sm text-night-800 hover:bg-sand-50"
+                          className="block w-full px-4 py-2 text-left text-sm text-[#262626] hover:bg-[#fafafa]"
                         >
                           Block
                         </button>
@@ -841,7 +888,7 @@ export function MessagesHub() {
                             unblockMember(activeOtherUserId, activeThread.otherName);
                           }}
                           disabled={busy}
-                          className="block w-full px-4 py-2 text-left text-sm text-night-800 hover:bg-sand-50"
+                          className="block w-full px-4 py-2 text-left text-sm text-[#262626] hover:bg-[#fafafa]"
                         >
                           Unblock
                         </button>
@@ -891,7 +938,7 @@ export function MessagesHub() {
                       setShowReport(false);
                       setReportReason("");
                     }}
-                    className="text-xs font-semibold text-night-600"
+                    className="text-xs font-semibold text-[#8e8e8e]"
                   >
                     Cancel
                   </button>
@@ -908,36 +955,41 @@ export function MessagesHub() {
             <div className="flex-1 space-y-1 overflow-y-auto bg-white py-2">
               {messages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-                  <MemberAvatar name={activeThread.otherName} />
-                  <p className="mt-3 text-sm font-semibold text-night-900">
+                  <MemberAvatar name={activeThread.otherName} size="lg" />
+                  <p className="mt-3 text-sm font-semibold text-[#262626]">
                     {activeThread.otherName}
                   </p>
-                  <p className="mt-1 text-xs text-night-500">
+                  <p className="mt-1 text-xs text-[#8e8e8e]">
                     Say hi — this is the start of your conversation.
                   </p>
                 </div>
               ) : (
-                messages.map((message) => (
-                  <ChatMessageBubble
-                    key={message.id}
-                    mine={message.senderId === user.id}
-                    content={message.content}
-                    createdAtLabel={formatBubbleTime(message.createdAt)}
-                    reactions={message.reactions}
-                    currentUserId={user.id}
-                    onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
-                    attachmentUrl={message.attachmentUrl}
-                    editedAt={message.editedAt}
-                    deletedAt={message.deletedAt}
-                    readAt={message.readAt}
-                    showReadReceipt
-                    density="compact"
-                    canEdit={message.senderId === user.id}
-                    canDelete={message.senderId === user.id}
-                    onEdit={(content) => editMessage(message.id, content)}
-                    onDelete={() => deleteMessage(message.id)}
-                  />
-                ))
+                messages.map((message, index) => {
+                  const isLastOwn =
+                    message.senderId === user.id &&
+                    messages.slice(index + 1).every((m) => m.senderId !== user.id);
+                  return (
+                    <ChatMessageBubble
+                      key={message.id}
+                      mine={message.senderId === user.id}
+                      content={message.content}
+                      createdAtLabel={formatBubbleTime(message.createdAt)}
+                      reactions={message.reactions}
+                      currentUserId={user.id}
+                      onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                      attachmentUrl={message.attachmentUrl}
+                      editedAt={message.editedAt}
+                      deletedAt={message.deletedAt}
+                      readAt={message.readAt}
+                      showReadReceipt={isLastOwn}
+                      density="compact"
+                      canEdit={message.senderId === user.id}
+                      canDelete={message.senderId === user.id}
+                      onEdit={(content) => editMessage(message.id, content)}
+                      onDelete={() => deleteMessage(message.id)}
+                    />
+                  );
+                })
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -961,19 +1013,15 @@ export function MessagesHub() {
           </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-night-900/10 text-2xl">
-              ✉
-            </div>
-            <p className="mt-4 font-display text-lg font-semibold text-night-900">
-              Your messages
-            </p>
-            <p className="mt-1 max-w-xs text-sm text-night-500">
-              Send private photos and messages to other Shanah City members.
+            <IconPaperPlane className="h-24 w-24 text-[#262626]" />
+            <p className="mt-4 text-[20px] font-light text-[#262626]">Your messages</p>
+            <p className="mt-1 max-w-xs text-sm text-[#8e8e8e]">
+              Send private photos and messages to a friend or group.
             </p>
             <button
               type="button"
               onClick={openNewMessage}
-              className="mt-5 rounded-full bg-[#0095f6] px-5 py-2 text-sm font-semibold text-white"
+              className="mt-5 rounded-lg bg-[#0095f6] px-4 py-2 text-sm font-semibold text-white"
             >
               Send message
             </button>
