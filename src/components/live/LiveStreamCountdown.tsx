@@ -11,7 +11,7 @@ import type { LiveStreamSchedule } from "@/lib/live-schedule-types";
 
 type LiveStreamCountdownProps = {
   schedule: LiveStreamSchedule;
-  variant?: "card" | "inline" | "on-dark" | "stage";
+  variant?: "card" | "inline" | "on-dark" | "stage" | "home-flyer";
   onComplete?: () => void;
 };
 
@@ -20,27 +20,34 @@ function CountdownUnit({
   label,
   onDark,
   large = false,
+  xlarge = false,
 }: {
   value: number;
   label: string;
   onDark: boolean;
   large?: boolean;
+  xlarge?: boolean;
 }) {
+  const sizeClass = xlarge
+    ? "min-w-[4.75rem] px-3 py-3 sm:min-w-[5.25rem]"
+    : large
+      ? "min-w-[4.5rem] px-3 py-3 sm:min-w-[5rem]"
+      : "min-w-[3.25rem] px-2 py-2";
+  const numberClass = xlarge
+    ? "text-4xl sm:text-5xl"
+    : large
+      ? "text-3xl sm:text-4xl"
+      : "text-xl";
+
   return (
     <div
-      className={`rounded-xl text-center ring-1 ${
-        large ? "min-w-[4.5rem] px-3 py-3 sm:min-w-[5rem]" : "min-w-[3.25rem] px-2 py-2"
-      } ${
+      className={`rounded-xl text-center ring-1 ${sizeClass} ${
         onDark
           ? "bg-white/10 text-white ring-white/15"
           : "bg-sand-50 text-night-900 ring-night-900/10"
       }`}
     >
-      <p
-        className={`font-display font-bold tabular-nums leading-none ${
-          large ? "text-3xl sm:text-4xl" : "text-xl"
-        }`}
-      >
+      <p className={`font-display font-bold tabular-nums leading-none ${numberClass}`}>
         {value}
       </p>
       <p
@@ -87,6 +94,24 @@ export function LiveStreamCountdown({
     );
   }
 
+  if (variant === "home-flyer") {
+    return (
+      <div className="mb-1">
+        <p className="text-xs font-bold uppercase tracking-[0.24em] text-amber-200/95 sm:text-sm">
+          Live in
+        </p>
+        <div className="mt-2.5 flex flex-wrap gap-2 sm:gap-2.5">
+          {parts.days > 0 ? (
+            <CountdownUnit onDark xlarge value={parts.days} label="Days" />
+          ) : null}
+          <CountdownUnit onDark xlarge value={parts.hours} label="Hrs" />
+          <CountdownUnit onDark xlarge value={parts.minutes} label="Min" />
+          <CountdownUnit onDark xlarge value={parts.seconds} label="Sec" />
+        </div>
+      </div>
+    );
+  }
+
   if (variant === "stage") {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center bg-night-950 px-4 py-8 text-center text-white">
@@ -116,29 +141,37 @@ export function LiveStreamCountdown({
 
   const shellClass =
     variant === "on-dark"
-      ? "rounded-2xl border border-white/15 bg-black/20 p-4 text-white backdrop-blur-sm"
+      ? "rounded-2xl border border-white/15 bg-black/20 p-5 text-white backdrop-blur-sm sm:p-6"
       : "rounded-2xl border border-night-900/10 bg-white p-4 shadow-sm ring-1 ring-night-900/5";
 
   const titleClass =
-    variant === "on-dark" ? "text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200/90" : "text-[11px] font-bold uppercase tracking-[0.2em] text-night-500";
+    variant === "on-dark"
+      ? "text-xs font-bold uppercase tracking-[0.22em] text-amber-200/90 sm:text-sm"
+      : "text-[11px] font-bold uppercase tracking-[0.2em] text-night-500";
 
   const onDark = variant === "on-dark";
 
   return (
     <div className={shellClass}>
       <p className={titleClass}>Next livestream</p>
-      <h3 className={`mt-1 font-display font-semibold ${onDark ? "text-lg text-white" : "text-lg text-night-900"}`}>
+      <h3
+        className={`mt-1.5 font-display font-semibold ${
+          onDark ? "text-xl text-white sm:text-2xl" : "text-lg text-night-900"
+        }`}
+      >
         {schedule.title}
       </h3>
-      <p className={`mt-1 text-xs ${onDark ? "text-white/75" : "text-night-600"}`}>
+      <p className={`mt-1.5 text-sm ${onDark ? "text-white/75" : "text-night-600"}`}>
         {startLabel} · {platformLabel}
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {parts.days > 0 ? <CountdownUnit onDark={onDark} value={parts.days} label="Days" /> : null}
-        <CountdownUnit onDark={onDark} value={parts.hours} label="Hours" />
-        <CountdownUnit onDark={onDark} value={parts.minutes} label="Min" />
-        <CountdownUnit onDark={onDark} value={parts.seconds} label="Sec" />
+      <div className="mt-5 flex flex-wrap gap-2.5 sm:gap-3">
+        {parts.days > 0 ? (
+          <CountdownUnit onDark={onDark} large value={parts.days} label="Days" />
+        ) : null}
+        <CountdownUnit onDark={onDark} large value={parts.hours} label="Hours" />
+        <CountdownUnit onDark={onDark} large value={parts.minutes} label="Min" />
+        <CountdownUnit onDark={onDark} large value={parts.seconds} label="Sec" />
       </div>
     </div>
   );
