@@ -128,6 +128,7 @@ export type ChurchEvent = {
   rsvpDeadline?: string | null;
   rsvpCapacity?: number | null;
   rsvpInstructions?: string | null;
+  rsvpLastNotifiedAt?: string | null;
 };
 
 export type MeetingPlatform = "in-person" | "zoom" | "teams";
