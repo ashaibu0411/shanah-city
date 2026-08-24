@@ -19,3 +19,10 @@ export const findPreviousWorshipPlan = (serviceDate: string, serviceTime: string
   store().findPreviousWorshipPlan(serviceDate, serviceTime);
 export const markRehearsalReminderSent = (serviceDate: string, serviceTime: string) =>
   store().markRehearsalReminderSent(serviceDate, serviceTime);
+export const markUploadDutyReminderSent = (serviceDate: string, serviceTime: string) =>
+  store().markUploadDutyReminderSent(serviceDate, serviceTime);
+export const updateWorshipPlanContent = (
+  serviceDate: string,
+  serviceTime: string,
+  updater: (plan: import("@/lib/worship-types").WorshipServicePlan) => import("@/lib/worship-types").WorshipServicePlan | null,
+) => store().updateWorshipPlanContent(serviceDate, serviceTime, updater);

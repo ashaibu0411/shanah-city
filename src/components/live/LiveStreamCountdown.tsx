@@ -11,7 +11,7 @@ import type { LiveStreamSchedule } from "@/lib/live-schedule-types";
 
 type LiveStreamCountdownProps = {
   schedule: LiveStreamSchedule;
-  variant?: "card" | "inline" | "on-dark";
+  variant?: "card" | "inline" | "on-dark" | "stage";
   onComplete?: () => void;
 };
 
@@ -19,20 +19,30 @@ function CountdownUnit({
   value,
   label,
   onDark,
+  large = false,
 }: {
   value: number;
   label: string;
   onDark: boolean;
+  large?: boolean;
 }) {
   return (
     <div
-      className={`min-w-[3.25rem] rounded-xl px-2 py-2 text-center ring-1 ${
+      className={`rounded-xl text-center ring-1 ${
+        large ? "min-w-[4.5rem] px-3 py-3 sm:min-w-[5rem]" : "min-w-[3.25rem] px-2 py-2"
+      } ${
         onDark
           ? "bg-white/10 text-white ring-white/15"
           : "bg-sand-50 text-night-900 ring-night-900/10"
       }`}
     >
-      <p className="font-display text-xl font-bold tabular-nums leading-none">{value}</p>
+      <p
+        className={`font-display font-bold tabular-nums leading-none ${
+          large ? "text-3xl sm:text-4xl" : "text-xl"
+        }`}
+      >
+        {value}
+      </p>
       <p
         className={`mt-1 text-[10px] font-semibold uppercase tracking-wider ${
           onDark ? "text-white/70" : "text-night-500"
@@ -74,6 +84,33 @@ export function LiveStreamCountdown({
         Next live in <span className="tabular-nums text-night-900">{compact}</span>
         {startLabel ? <span className="text-night-500"> · {startLabel}</span> : null}
       </p>
+    );
+  }
+
+  if (variant === "stage") {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center bg-night-950 px-4 py-8 text-center text-white">
+        <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-amber-200/90">
+          Livestream starts in
+        </p>
+        <h3 className="mt-3 max-w-md font-display text-2xl font-semibold leading-tight sm:text-3xl">
+          {schedule.title}
+        </h3>
+        <p className="mt-2 text-sm text-white/70">
+          {startLabel} · {platformLabel}
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2.5 sm:gap-3">
+          {parts.days > 0 ? (
+            <CountdownUnit onDark large value={parts.days} label="Days" />
+          ) : null}
+          <CountdownUnit onDark large value={parts.hours} label="Hours" />
+          <CountdownUnit onDark large value={parts.minutes} label="Min" />
+          <CountdownUnit onDark large value={parts.seconds} label="Sec" />
+        </div>
+        <p className="mt-5 text-xs text-white/50">
+          The player will appear here when we go live on {platformLabel}.
+        </p>
+      </div>
     );
   }
 

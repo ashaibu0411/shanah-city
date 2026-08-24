@@ -73,6 +73,10 @@ export type WorshipPracticeStem = {
   audioUrl: string;
   fileName: string;
   uploadedAt?: string;
+  uploadedBy?: string;
+  uploadedByName?: string;
+  /** Leader uploads are approved immediately; member uploads await review. */
+  status?: "approved" | "pending";
 };
 
 export type WorshipSong = {
@@ -95,6 +99,41 @@ export type WorshipSong = {
   segment?: WorshipSongSegment;
   order?: number;
   preparedBy: string[];
+};
+
+export type WorshipMemberSuggestion = {
+  id: string;
+  userId: string;
+  userName: string;
+  songId?: string;
+  songTitle?: string;
+  partRole?: string;
+  notes: string;
+  status: "pending" | "approved" | "dismissed";
+  reviewedBy?: string;
+  reviewedByName?: string;
+  reviewedAt?: string;
+  createdAt: string;
+};
+
+export type WorshipRotationPoolMember = {
+  userId: string;
+  name: string;
+};
+
+export type WorshipScheduleRotationConfig = {
+  id: string;
+  pool: WorshipRotationPoolMember[];
+  serviceTime: string;
+  serviceKind: "sunday" | "friday";
+  rotationIndex: number;
+  skipDates: string[];
+  weeksAhead: number;
+  uploadDutyLeadDays: number;
+  updatedBy?: string | null;
+  updatedByName?: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type WorshipTeamMember = {
@@ -132,6 +171,10 @@ export type WorshipServicePlan = {
   rehearsalTime?: string | null;
   calendarEventId?: string | null;
   reminderSentAt?: string | null;
+  uploadDutyUserId?: string | null;
+  uploadDutyUserName?: string | null;
+  uploadDutyReminderSentAt?: string | null;
+  memberSuggestions?: WorshipMemberSuggestion[];
   publishedAt?: string | null;
   createdBy: string;
   createdByName: string;
@@ -209,7 +252,20 @@ export function normalizePracticeStems(stems: WorshipPracticeStem[] | undefined)
       audioUrl: stem.audioUrl.trim(),
       fileName: stem.fileName?.trim() || "audio",
       uploadedAt: stem.uploadedAt,
+      uploadedBy: stem.uploadedBy,
+      uploadedByName: stem.uploadedByName,
+      status: stem.status === "pending" ? ("pending" as const) : ("approved" as const),
     }));
+}
+
+export function visiblePracticeStemsForUser(
+  stems: WorshipPracticeStem[] | undefined,
+  userId?: string,
+  isManager = false,
+) {
+  return normalizePracticeStems(stems).filter(
+    (stem) => stem.status === "approved" || isManager || stem.uploadedBy === userId,
+  );
 }
 
 export function getSongPracticeStem(song: WorshipSong, role: string) {
@@ -222,15 +278,19 @@ export function upsertPracticeStem(
   stem: Omit<WorshipPracticeStem, "role">,
 ) {
   const next = normalizePracticeStems(stems).filter((entry) => entry.role !== role);
-  return [...next, { role, ...stem }];
+  return [...next, { role, status: stem.status ?? "approved", ...stem }];
 }
 
 export function removePracticeStem(stems: WorshipPracticeStem[] | undefined, role: string) {
   return normalizePracticeStems(stems).filter((entry) => entry.role !== role);
 }
 
-export function listPracticeTracksForPart(song: WorshipSong, partRole: string) {
-  const stems = normalizePracticeStems(song.practiceStems);
+export function listPracticeTracksForPart(
+  song: WorshipSong,
+  partRole: string,
+  options?: { userId?: string; isManager?: boolean },
+) {
+  const stems = visiblePracticeStemsForUser(song.practiceStems, options?.userId, options?.isManager);
   if (stems.length === 0) return [];
 
   const orderedRoles = [
@@ -429,4 +489,72 @@ export function rehearsalDateTimeLabel(rehearsalDate?: string | null, rehearsalT
 
 export function combinePlanDateTime(date: string, time: string) {
   return new Date(`${date}T${time || "19:00"}:00`);
+}
+
+export function createSuggestionId() {
+  return `suggestion-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+export function normalizeMemberSuggestions(
+  suggestions: WorshipMemberSuggestion[] | undefined,
+): WorshipMemberSuggestion[] {
+  return (suggestions ?? [])
+    .filter((entry) => entry.notes?.trim())
+    .map((entry) => ({
+      id: entry.id || createSuggestionId(),
+      userId: entry.userId,
+      userName: entry.userName.trim(),
+      songId: entry.songId,
+      songTitle: entry.songTitle?.trim() || undefined,
+      partRole: entry.partRole?.trim() || undefined,
+      notes: entry.notes.trim(),
+      status: entry.status === "approved" || entry.status === "dismissed" ? entry.status : "pending",
+      reviewedBy: entry.reviewedBy,
+      reviewedByName: entry.reviewedByName,
+      reviewedAt: entry.reviewedAt,
+      createdAt: entry.createdAt || new Date().toISOString(),
+    }));
+}
+
+/** List service dates (Sundays or Fridays) from start through weeksAhead. */
+export function listServiceDatesInRange(
+  startDate: string,
+  weeksAhead: number,
+  serviceKind: "sunday" | "friday" = "sunday",
+) {
+  const targetDay = serviceKind === "friday" ? 5 : 0;
+  const dates: string[] = [];
+  const cursor = new Date(`${startDate}T12:00:00`);
+
+  while (cursor.getDay() !== targetDay) {
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  const end = new Date(cursor);
+  end.setDate(end.getDate() + weeksAhead * 7);
+
+  while (cursor <= end) {
+    dates.push(
+      `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`,
+    );
+    cursor.setDate(cursor.getDate() + 7);
+  }
+
+  return dates;
+}
+
+export function defaultRotationConfig(): WorshipScheduleRotationConfig {
+  const now = new Date().toISOString();
+  return {
+    id: "default",
+    pool: [],
+    serviceTime: "10:00",
+    serviceKind: "sunday",
+    rotationIndex: 0,
+    skipDates: [],
+    weeksAhead: 8,
+    uploadDutyLeadDays: 4,
+    createdAt: now,
+    updatedAt: now,
+  };
 }

@@ -7,6 +7,8 @@ import { Button, Card } from "@/components/ui";
 import { WorshipSongLibraryPanel } from "@/components/worship/WorshipSongLibraryPanel";
 import { WorshipMyPartPanel } from "@/components/worship/WorshipMyPartPanel";
 import { WorshipRehearsalRecordings } from "@/components/worship/WorshipRehearsalRecordings";
+import { WorshipSchedulePanel } from "@/components/worship/WorshipSchedulePanel";
+import { WorshipMemberSuggestions } from "@/components/worship/WorshipMemberSuggestions";
 import { WorshipSongWorkspace } from "@/components/worship/WorshipSongWorkspace";
 import {
   buildTeamReadiness,
@@ -29,6 +31,7 @@ import {
   type WorshipServicePlan,
   type WorshipSong,
   type WorshipTeamMember,
+  type WorshipMemberSuggestion,
 } from "@/lib/worship-types";
 import type { ChurchEvent } from "@/lib/types";
 
@@ -70,7 +73,7 @@ export function WorshipPlannerPanel({
 } = {}) {
   const { user, permissions } = useAuth();
   const canManage = permissions.canManageWorshipPlan;
-  const [tab, setTab] = useState<"plan" | "library" | "my-part" | "rehearsals">("plan");
+  const [tab, setTab] = useState<"plan" | "library" | "my-part" | "rehearsals" | "schedule">("plan");
   const [serviceDate, setServiceDate] = useState(initialDate || nextServiceSundayIso());
   const [serviceTime, setServiceTime] = useState<string>(initialTime || "10:00");
   const [plan, setPlan] = useState<WorshipServicePlan | null>(null);
@@ -81,6 +84,8 @@ export function WorshipPlannerPanel({
   const [rehearsalDate, setRehearsalDate] = useState("");
   const [rehearsalTime, setRehearsalTime] = useState("19:00");
   const [calendarEventId, setCalendarEventId] = useState("");
+  const [uploadDutyUserId, setUploadDutyUserId] = useState("");
+  const [memberSuggestions, setMemberSuggestions] = useState<WorshipMemberSuggestion[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<ChurchEvent[]>([]);
   const [status, setStatus] = useState<WorshipServicePlan["status"]>("draft");
   const [roster, setRoster] = useState<RosterMember[]>([]);
@@ -118,6 +123,8 @@ export function WorshipPlannerPanel({
       setRehearsalDate(data.plan.rehearsalDate ?? "");
       setRehearsalTime(data.plan.rehearsalTime ?? "19:00");
       setCalendarEventId(data.plan.calendarEventId ?? "");
+      setUploadDutyUserId(data.plan.uploadDutyUserId ?? "");
+      setMemberSuggestions(data.plan.memberSuggestions ?? []);
       setStatus(data.plan.status);
     } else {
       setPlan(null);
@@ -128,6 +135,8 @@ export function WorshipPlannerPanel({
       setRehearsalDate(suggestedRehearsalDate(serviceDate));
       setRehearsalTime("19:00");
       setCalendarEventId("");
+      setUploadDutyUserId("");
+      setMemberSuggestions([]);
       setStatus("draft");
     }
     setMessage(null);
@@ -194,6 +203,9 @@ export function WorshipPlannerPanel({
         rehearsalDate,
         rehearsalTime,
         calendarEventId: calendarEventId || undefined,
+        uploadDutyUserId: uploadDutyUserId || undefined,
+        uploadDutyUserName: team.find((member) => member.userId === uploadDutyUserId)?.name,
+        memberSuggestions,
         status,
       }),
     });
@@ -378,6 +390,29 @@ export function WorshipPlannerPanel({
     ]);
   }
 
+  async function reviewStem(songId: string, partRole: string, decision: "approve" | "remove") {
+    const response = await fetch("/api/worship", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "review_stem",
+        serviceDate,
+        serviceTime,
+        songId,
+        partRole,
+        decision,
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setPlan(data.plan);
+      setSongs(data.plan.songs);
+      setMemberSuggestions(data.plan.memberSuggestions ?? []);
+    } else {
+      setMessage(data.error ?? "Could not review recording.");
+    }
+  }
+
   const plannerTabs = useMemo(() => {
     const items: Array<{ id: typeof tab; label: string }> = [
       { id: "plan", label: "Service plan" },
@@ -385,6 +420,7 @@ export function WorshipPlannerPanel({
       { id: "rehearsals", label: "Rehearsals" },
     ];
     if (canManage) {
+      items.push({ id: "schedule", label: "Schedule" });
       items.push({ id: "library", label: "Song library" });
     }
     return items;
@@ -459,6 +495,21 @@ export function WorshipPlannerPanel({
     setTeam((current) => current.filter((member) => member.userId !== userId));
   }
 
+  if (tab === "schedule" && canManage) {
+    return (
+      <>
+        <PlannerTabBar />
+        <WorshipSchedulePanel
+          onOpenService={(date, time) => {
+            setServiceDate(date);
+            setServiceTime(time);
+            setTab("plan");
+          }}
+        />
+      </>
+    );
+  }
+
   if (tab === "library" && canManage) {
     return (
       <>
@@ -492,7 +543,34 @@ export function WorshipPlannerPanel({
       <>
         <PlannerTabBar />
         <ServicePicker />
-        <WorshipMyPartPanel songs={songs} member={myMember} />
+        <WorshipMyPartPanel
+          songs={songs}
+          member={myMember}
+          serviceDate={serviceDate}
+          serviceTime={serviceTime}
+          userId={user?.id}
+          onSongUpdated={(song) =>
+            setSongs((current) =>
+              current.map((entry) => (entry.id === song.id ? song : entry)),
+            )
+          }
+        />
+        {myMember && (
+          <div className="mt-6">
+            <WorshipMemberSuggestions
+              serviceDate={serviceDate}
+              serviceTime={serviceTime}
+              songs={songs}
+              suggestions={memberSuggestions}
+              canManage={canManage}
+              defaultPartRole={myMember.partRole}
+              onUpdated={(patch) => {
+                if (patch.memberSuggestions) setMemberSuggestions(patch.memberSuggestions);
+                if (patch.songs) setSongs(patch.songs);
+              }}
+            />
+          </div>
+        )}
       </>
     );
   }
@@ -609,6 +687,16 @@ export function WorshipPlannerPanel({
             <p className="text-sm text-night-600">
               Rehearsal:{" "}
               {rehearsalDateTimeLabel(plan?.rehearsalDate ?? rehearsalDate, plan?.rehearsalTime ?? rehearsalTime)}
+            </p>
+          )}
+
+          {uploadDutyUserId && (
+            <p className="text-sm text-violet-800">
+              Upload duty:{" "}
+              {team.find((member) => member.userId === uploadDutyUserId)?.name ??
+                plan?.uploadDutyUserName ??
+                "Assigned"}
+              {user?.id === uploadDutyUserId && " (you — add songs & YouTube links)"}
             </p>
           )}
 
@@ -862,6 +950,8 @@ export function WorshipPlannerPanel({
                     }
                     onChange={(patch) => updateSong(index, patch)}
                     readOnly={!showEditor}
+                    canReviewMemberUploads={canManage}
+                    onReviewStem={(partRole, decision) => reviewStem(song.id, partRole, decision)}
                   />
                 </div>
               );
@@ -1010,7 +1100,38 @@ export function WorshipPlannerPanel({
                 ))
               )}
             </div>
+
+            <label className="mt-4 block text-sm text-night-700">
+              <span className="font-semibold">Upload duty (song &amp; YouTube links)</span>
+              <select
+                value={uploadDutyUserId}
+                onChange={(event) => setUploadDutyUserId(event.target.value)}
+                className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+              >
+                <option value="">Not assigned</option>
+                {team.map((member) => (
+                  <option key={member.userId} value={member.userId}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs text-night-500">
+                This person gets a push reminder a few days before service to upload songs.
+              </span>
+            </label>
           </Card>
+
+          <WorshipMemberSuggestions
+            serviceDate={serviceDate}
+            serviceTime={serviceTime}
+            songs={songs}
+            suggestions={memberSuggestions}
+            canManage={canManage}
+            onUpdated={(patch) => {
+              if (patch.memberSuggestions) setMemberSuggestions(patch.memberSuggestions);
+              if (patch.songs) setSongs(patch.songs);
+            }}
+          />
 
           <Card className="mb-6">
             <label className="block text-sm font-semibold text-night-700">

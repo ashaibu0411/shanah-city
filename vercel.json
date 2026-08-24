@@ -9,6 +9,10 @@
       "schedule": "0 14 * * *"
     },
     {
+      "path": "/api/cron/live-notify",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/morning-prayer",
       "schedule": "0 14 * * *"
     },

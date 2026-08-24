@@ -427,6 +427,23 @@ export async function notifyWorshipRehearsalReminder(plan: {
   );
 }
 
+export async function notifyWorshipUploadDutyReminder(input: {
+  userId: string;
+  serviceDate: string;
+  serviceTime: string;
+  title: string;
+}) {
+  return sendPushToUsers(
+    [input.userId],
+    {
+      title: "Your turn to upload songs",
+      body: `Add songs and YouTube links for ${input.title} before rehearsal.`,
+      url: `/worship?date=${encodeURIComponent(input.serviceDate)}&time=${encodeURIComponent(input.serviceTime)}`,
+    },
+    "worship",
+  );
+}
+
 export async function notifyChurchEvent(input: {
   title: string;
   authorId: string;

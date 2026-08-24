@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui";
+import { WorshipMemberPartRecording } from "@/components/worship/WorshipMemberPartRecording";
 import { WorshipPracticePlayer } from "@/components/worship/WorshipPracticePlayer";
 import { WorshipYouTubeReference } from "@/components/worship/WorshipYouTubeReference";
 import {
@@ -14,9 +15,20 @@ import {
 type WorshipMyPartPanelProps = {
   songs: WorshipSong[];
   member: WorshipTeamMember | undefined;
+  serviceDate?: string;
+  serviceTime?: string;
+  userId?: string;
+  onSongUpdated?: (song: WorshipSong) => void;
 };
 
-export function WorshipMyPartPanel({ songs, member }: WorshipMyPartPanelProps) {
+export function WorshipMyPartPanel({
+  songs,
+  member,
+  serviceDate,
+  serviceTime,
+  userId,
+  onSongUpdated,
+}: WorshipMyPartPanelProps) {
   if (!member) {
     return (
       <Card>
@@ -119,7 +131,22 @@ export function WorshipMyPartPanel({ songs, member }: WorshipMyPartPanelProps) {
                 <p className="mt-3 text-xs text-night-500">Leader note: {song.notes}</p>
               )}
 
-              <WorshipPracticePlayer song={song} partRole={member.partRole!} />
+              <WorshipPracticePlayer
+                song={song}
+                partRole={member.partRole!}
+                userId={userId}
+              />
+
+              {serviceDate && serviceTime && (
+                <WorshipMemberPartRecording
+                  serviceDate={serviceDate}
+                  serviceTime={serviceTime}
+                  song={song}
+                  partRole={member.partRole!}
+                  userId={userId}
+                  onUpdated={onSongUpdated}
+                />
+              )}
 
               {song.youtubeVideoId && (
                 <WorshipYouTubeReference videoId={song.youtubeVideoId} title={song.title} />

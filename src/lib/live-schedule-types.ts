@@ -5,6 +5,9 @@ export type LiveStreamSchedule = {
   title: string;
   startsAt: string;
   platform?: LiveStreamPlatform;
+  notifyEnabled?: boolean;
+  notifyBody?: string | null;
+  notifySentAt?: string | null;
   createdBy: string;
   createdByName: string;
   updatedAt: string;

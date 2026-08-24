@@ -1,11 +1,18 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type {
+  WorshipMemberSuggestion,
   WorshipServicePlan,
   WorshipSong,
   WorshipTeamMember,
 } from "@/lib/worship-types";
-import { normalizeSongs, normalizeTeam, previousSundayIso, serviceTypeForTime } from "@/lib/worship-types";
+import {
+  normalizeMemberSuggestions,
+  normalizeSongs,
+  normalizeTeam,
+  previousSundayIso,
+  serviceTypeForTime,
+} from "@/lib/worship-types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const WORSHIP_FILE = path.join(DATA_DIR, "worship-service-plans.json");
@@ -41,6 +48,7 @@ function withNormalized(plan: WorshipServicePlan): WorshipServicePlan {
     ...plan,
     songs: normalizeSongs(plan.songs),
     team: normalizeTeam(plan.team),
+    memberSuggestions: normalizeMemberSuggestions(plan.memberSuggestions),
   };
 }
 
@@ -48,6 +56,7 @@ export async function listWorshipPlans(options?: {
   since?: string;
   until?: string;
   status?: WorshipServicePlan["status"];
+  serviceTime?: string;
 }) {
   let plans = sortPlans(await readPlans());
 
@@ -59,6 +68,9 @@ export async function listWorshipPlans(options?: {
   }
   if (options?.status) {
     plans = plans.filter((plan) => plan.status === options.status);
+  }
+  if (options?.serviceTime) {
+    plans = plans.filter((plan) => plan.serviceTime === options.serviceTime);
   }
 
   return plans.map(withNormalized);
@@ -98,6 +110,9 @@ export async function saveWorshipPlan(input: {
   rehearsalDate?: string;
   rehearsalTime?: string;
   calendarEventId?: string;
+  uploadDutyUserId?: string;
+  uploadDutyUserName?: string;
+  memberSuggestions?: WorshipMemberSuggestion[];
   status: WorshipServicePlan["status"];
   actor: { id: string; name: string };
 }) {
@@ -114,6 +129,8 @@ export async function saveWorshipPlan(input: {
     const rehearsalChanged =
       existing.rehearsalDate !== (input.rehearsalDate ?? undefined) ||
       existing.rehearsalTime !== (input.rehearsalTime ?? undefined);
+    const uploadDutyChanged =
+      existing.uploadDutyUserId !== (input.uploadDutyUserId?.trim() || undefined);
 
     plans[index] = withNormalized({
       ...existing,
@@ -125,8 +142,16 @@ export async function saveWorshipPlan(input: {
       rehearsalDate: input.rehearsalDate,
       rehearsalTime: input.rehearsalTime,
       calendarEventId: input.calendarEventId,
+      uploadDutyUserId: input.uploadDutyUserId?.trim() || undefined,
+      uploadDutyUserName: input.uploadDutyUserName?.trim() || undefined,
+      memberSuggestions: normalizeMemberSuggestions(
+        input.memberSuggestions ?? existing.memberSuggestions,
+      ),
       status: input.status,
       reminderSentAt: rehearsalChanged ? undefined : existing.reminderSentAt,
+      uploadDutyReminderSentAt: uploadDutyChanged
+        ? undefined
+        : existing.uploadDutyReminderSentAt,
       publishedAt:
         input.status === "published"
           ? existing.publishedAt ?? now
@@ -152,6 +177,9 @@ export async function saveWorshipPlan(input: {
     rehearsalDate: input.rehearsalDate,
     rehearsalTime: input.rehearsalTime,
     calendarEventId: input.calendarEventId,
+    uploadDutyUserId: input.uploadDutyUserId?.trim() || undefined,
+    uploadDutyUserName: input.uploadDutyUserName?.trim() || undefined,
+    memberSuggestions: normalizeMemberSuggestions(input.memberSuggestions),
     publishedAt: input.status === "published" ? now : undefined,
     createdBy: input.actor.id,
     createdByName: input.actor.name,
@@ -219,6 +247,42 @@ export async function markRehearsalReminderSent(serviceDate: string, serviceTime
     reminderSentAt: new Date().toISOString(),
   };
   await writeJson(WORSHIP_FILE, plans);
+}
+
+export async function markUploadDutyReminderSent(serviceDate: string, serviceTime: string) {
+  const plans = await readPlans();
+  const index = plans.findIndex(
+    (plan) => plan.serviceDate === serviceDate && plan.serviceTime === serviceTime,
+  );
+  if (index === -1) return;
+  plans[index] = {
+    ...plans[index],
+    uploadDutyReminderSentAt: new Date().toISOString(),
+  };
+  await writeJson(WORSHIP_FILE, plans);
+}
+
+export async function updateWorshipPlanContent(
+  serviceDate: string,
+  serviceTime: string,
+  updater: (plan: WorshipServicePlan) => WorshipServicePlan | null,
+) {
+  const plans = await readPlans();
+  const index = plans.findIndex(
+    (plan) => plan.serviceDate === serviceDate && plan.serviceTime === serviceTime,
+  );
+  if (index === -1) return null;
+
+  const current = withNormalized(plans[index]);
+  const next = updater(current);
+  if (!next) return null;
+
+  plans[index] = withNormalized({
+    ...next,
+    updatedAt: new Date().toISOString(),
+  });
+  await writeJson(WORSHIP_FILE, plans);
+  return plans[index];
 }
 
 export async function deleteWorshipPlan(serviceDate: string, serviceTime: string) {

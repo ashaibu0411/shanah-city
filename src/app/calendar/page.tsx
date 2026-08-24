@@ -8,7 +8,7 @@ export default function CalendarPage() {
       <PageHeader
         eyebrow="Schedule"
         title="Calendars"
-        description="Church events sync from Outlook. Choir and pastor calendars stay in the app."
+        description="Browse worship, meetings, and church events by month. Tap a day for full details, times, and RSVP."
       />
       <Suspense fallback={<p className="text-sm text-night-600">Loading calendar…</p>}>
         <CalendarHub />

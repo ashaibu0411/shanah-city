@@ -12,16 +12,20 @@ type WorshipPracticePlayerProps = {
   song: WorshipSong;
   partRole: string;
   highlightMyPart?: boolean;
+  userId?: string;
+  isManager?: boolean;
 };
 
 export function WorshipPracticePlayer({
   song,
   partRole,
   highlightMyPart = true,
+  userId,
+  isManager = false,
 }: WorshipPracticePlayerProps) {
   const tracks = useMemo(
-    () => listPracticeTracksForPart(song, partRole),
-    [song, partRole],
+    () => listPracticeTracksForPart(song, partRole, { userId, isManager }),
+    [song, partRole, userId, isManager],
   );
   const myStem = getSongPracticeStem(song, partRole);
   const defaultRole = myStem?.role ?? tracks[0]?.role ?? "";

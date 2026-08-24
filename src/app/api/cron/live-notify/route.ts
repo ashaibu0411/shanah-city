@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { processWorshipRehearsalReminders, processWorshipUploadDutyReminders } from "@/lib/worship-notify-server";
+import { processScheduledLiveStreamNotifications } from "@/lib/live-schedule-notify-server";
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET?.trim();
@@ -12,9 +12,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const [rehearsal, uploadDuty] = await Promise.all([
-    processWorshipRehearsalReminders(),
-    processWorshipUploadDutyReminders(),
-  ]);
-  return NextResponse.json({ ...rehearsal, ...uploadDuty });
+  const result = await processScheduledLiveStreamNotifications();
+  return NextResponse.json(result);
 }

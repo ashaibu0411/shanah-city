@@ -62,6 +62,8 @@ export async function POST(request: Request) {
   const title = String(body.title ?? "Shanah City Worship").trim();
   const startsAt = String(body.startsAt ?? "").trim();
   const platform = parsePlatform(body.platform);
+  const notifyEnabled = Boolean(body.notifyEnabled);
+  const notifyBody = body.notifyBody ? String(body.notifyBody).trim() : undefined;
 
   if (!title || !startsAt) {
     return NextResponse.json({ error: "Title and start time are required." }, { status: 400 });
@@ -72,6 +74,8 @@ export async function POST(request: Request) {
       title,
       startsAt,
       platform,
+      notifyEnabled,
+      notifyBody,
       createdBy: user.id,
       createdByName: user.name,
     });

@@ -10,3 +10,4 @@ export const saveLiveStreamSchedule = (
   input: Parameters<typeof liveScheduleJson.saveLiveStreamSchedule>[0],
 ) => store().saveLiveStreamSchedule(input);
 export const clearLiveStreamSchedule = () => store().clearLiveStreamSchedule();
+export const markLiveStreamNotifySent = () => store().markLiveStreamNotifySent();

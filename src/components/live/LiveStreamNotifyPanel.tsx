@@ -69,7 +69,8 @@ export function LiveStreamNotifyPanel({
     >
       <p className="text-sm font-semibold text-night-900">Go live — notify everyone</p>
       <p className="mt-1 text-xs text-night-600">
-        Media team only. Sends a push to members with church announcements enabled in Profile.
+        Media team only. Send a push now, or schedule one automatically in{" "}
+        <strong>Schedule next livestream</strong> below (uses the same start time as the countdown).
       </p>
 
       <div className={`mt-4 grid gap-3 ${compact ? "" : "md:grid-cols-2"}`}>

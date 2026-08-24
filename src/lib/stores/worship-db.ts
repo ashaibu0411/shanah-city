@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/db";
 import type {
+  WorshipMemberSuggestion,
   WorshipServicePlan,
   WorshipSong,
   WorshipTeamMember,
 } from "@/lib/worship-types";
 import {
+  normalizeMemberSuggestions,
   normalizeSongs,
   normalizeTeam,
   previousSundayIso,
@@ -35,6 +37,10 @@ function mapPlan(record: {
   rehearsalTime: string | null;
   calendarEventId: string | null;
   reminderSentAt: Date | null;
+  uploadDutyUserId: string | null;
+  uploadDutyUserName: string | null;
+  uploadDutyReminderSentAt: Date | null;
+  memberSuggestions: unknown;
   publishedAt: Date | null;
   createdBy: string;
   createdByName: string;
@@ -55,6 +61,10 @@ function mapPlan(record: {
     rehearsalTime: record.rehearsalTime ?? undefined,
     calendarEventId: record.calendarEventId ?? undefined,
     reminderSentAt: record.reminderSentAt?.toISOString(),
+    uploadDutyUserId: record.uploadDutyUserId ?? undefined,
+    uploadDutyUserName: record.uploadDutyUserName ?? undefined,
+    uploadDutyReminderSentAt: record.uploadDutyReminderSentAt?.toISOString(),
+    memberSuggestions: normalizeMemberSuggestions(record.memberSuggestions as WorshipMemberSuggestion[]),
     publishedAt: record.publishedAt?.toISOString(),
     createdBy: record.createdBy,
     createdByName: record.createdByName,
@@ -67,10 +77,12 @@ export async function listWorshipPlans(options?: {
   since?: string;
   until?: string;
   status?: WorshipServicePlan["status"];
+  serviceTime?: string;
 }) {
   const where: {
     serviceDate?: { gte?: string; lte?: string };
     status?: string;
+    serviceTime?: string;
   } = {};
 
   if (options?.since || options?.until) {
@@ -81,6 +93,10 @@ export async function listWorshipPlans(options?: {
 
   if (options?.status) {
     where.status = options.status;
+  }
+
+  if (options?.serviceTime) {
+    where.serviceTime = options.serviceTime;
   }
 
   const records = await prisma.worshipServicePlan.findMany({
@@ -128,6 +144,9 @@ export async function saveWorshipPlan(input: {
   rehearsalDate?: string;
   rehearsalTime?: string;
   calendarEventId?: string;
+  uploadDutyUserId?: string;
+  uploadDutyUserName?: string;
+  memberSuggestions?: WorshipMemberSuggestion[];
   status: WorshipServicePlan["status"];
   actor: { id: string; name: string };
 }) {
@@ -148,6 +167,10 @@ export async function saveWorshipPlan(input: {
     (existing.rehearsalDate !== (input.rehearsalDate ?? null) ||
       existing.rehearsalTime !== (input.rehearsalTime ?? null));
 
+  const uploadDutyChanged =
+    existing &&
+    existing.uploadDutyUserId !== (input.uploadDutyUserId?.trim() || null);
+
   const data = {
     serviceType: input.serviceType ?? serviceTypeForTime(input.serviceTime),
     title: input.title?.trim() || null,
@@ -157,9 +180,17 @@ export async function saveWorshipPlan(input: {
     rehearsalDate: input.rehearsalDate?.trim() || null,
     rehearsalTime: input.rehearsalTime?.trim() || null,
     calendarEventId: input.calendarEventId?.trim() || null,
+    uploadDutyUserId: input.uploadDutyUserId?.trim() || null,
+    uploadDutyUserName: input.uploadDutyUserName?.trim() || null,
+    memberSuggestions: normalizeMemberSuggestions(
+      input.memberSuggestions ?? (existing?.memberSuggestions as WorshipMemberSuggestion[] | undefined),
+    ),
     status: input.status,
     updatedAt: now,
     reminderSentAt: rehearsalChanged ? null : existing?.reminderSentAt ?? null,
+    uploadDutyReminderSentAt: uploadDutyChanged
+      ? null
+      : existing?.uploadDutyReminderSentAt ?? null,
     publishedAt:
       input.status === "published"
         ? existing?.publishedAt ?? now
@@ -252,6 +283,40 @@ export async function markRehearsalReminderSent(serviceDate: string, serviceTime
     where: { serviceDate_serviceTime: { serviceDate, serviceTime } },
     data: { reminderSentAt: new Date() },
   });
+}
+
+export async function markUploadDutyReminderSent(serviceDate: string, serviceTime: string) {
+  await prisma.worshipServicePlan.update({
+    where: { serviceDate_serviceTime: { serviceDate, serviceTime } },
+    data: { uploadDutyReminderSentAt: new Date() },
+  });
+}
+
+export async function updateWorshipPlanContent(
+  serviceDate: string,
+  serviceTime: string,
+  updater: (plan: WorshipServicePlan) => WorshipServicePlan | null,
+) {
+  const existing = await prisma.worshipServicePlan.findUnique({
+    where: { serviceDate_serviceTime: { serviceDate, serviceTime } },
+  });
+  if (!existing) return null;
+
+  const current = mapPlan(existing);
+  const next = updater(current);
+  if (!next) return null;
+
+  const record = await prisma.worshipServicePlan.update({
+    where: { id: existing.id },
+    data: {
+      songs: normalizeSongs(next.songs),
+      team: normalizeTeam(next.team),
+      memberSuggestions: normalizeMemberSuggestions(next.memberSuggestions),
+      updatedAt: new Date(),
+    },
+  });
+
+  return mapPlan(record);
 }
 
 export async function deleteWorshipPlan(serviceDate: string, serviceTime: string) {

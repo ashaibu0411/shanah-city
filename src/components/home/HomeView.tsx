@@ -8,14 +8,13 @@ import { HomeHero } from "@/components/home/HomeHero";
 import { LiveBanner } from "@/components/home/LiveBanner";
 import { MobileHome } from "@/components/home/MobileHome";
 import { QuickActions } from "@/components/home/QuickActions";
-import { UpcomingEventsWithRsvp } from "@/components/home/UpcomingEventsWithRsvp";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import { useUrgentAlertHighlight } from "@/components/home/useUrgentAlertHighlight";
 import { MeetingPreview } from "@/components/meetings/MeetingsList";
 import { SermonCard } from "@/components/sermons/SermonCard";
 import { SectionTitle } from "@/components/ui";
-import type { Devotion, ChurchEvent } from "@/lib/types";
+import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
@@ -24,7 +23,6 @@ import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 type HomeViewProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
-  events: ChurchEvent[];
   urgentAlert: UrgentAlert | null;
   churchImages: ChurchSocialImages;
 };
@@ -32,7 +30,6 @@ type HomeViewProps = {
 export function HomeView({
   posts,
   todayDevotion,
-  events,
   urgentAlert,
   churchImages,
 }: HomeViewProps) {
@@ -65,11 +62,6 @@ export function HomeView({
       <section className="mb-8">
         <SectionTitle title="Latest sermon" href="/sermons" />
         <SermonCard compact />
-      </section>
-
-      <section className="mb-8">
-        <SectionTitle title="Upcoming" href="/calendar" />
-        <UpcomingEventsWithRsvp events={events} />
       </section>
 
       <CommunityPreview initialPosts={posts} />

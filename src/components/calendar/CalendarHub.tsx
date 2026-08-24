@@ -474,30 +474,11 @@ function ChurchEventsPanel() {
         )}
       />
 
-      <div className="grid gap-4">
-        {loading ? (
-          <Card>
-            <p className="text-sm text-night-500">Loading events…</p>
-          </Card>
-        ) : events.length === 0 ? (
-          <Card>
-            <p className="text-sm text-night-500">No events listed yet.</p>
-          </Card>
-        ) : (
-          events.map((event) => (
-            <Card key={event.id}>
-              <EventDetailCard
-                event={event}
-                canManage={canManage}
-                onRemove={removeEvent}
-                onArtworkChange={canManage ? updateEventArtwork : undefined}
-                onEventUpdated={updateEventInList}
-                highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
-              />
-            </Card>
-          ))
-        )}
-      </div>
+      {loading && (
+        <Card>
+          <p className="text-sm text-night-500">Loading events…</p>
+        </Card>
+      )}
     </>
   );
 }
@@ -705,30 +686,11 @@ function GroupEventsPanel({
         )}
       />
 
-      <div className="mb-6 grid gap-4">
-        {loading ? (
-          <Card>
-            <p className="text-sm text-night-500">Loading events…</p>
-          </Card>
-        ) : events.length === 0 ? (
-          <Card>
-            <p className="text-sm text-night-500">No {groupLabel.toLowerCase()} events yet.</p>
-          </Card>
-        ) : (
-          events.map((event) => (
-            <Card key={event.id}>
-              <EventDetailCard
-                event={event}
-                canManage={canManage}
-                onRemove={removeEvent}
-                onArtworkChange={canManage ? updateEventArtwork : undefined}
-                onEventUpdated={updateEventInList}
-                highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
-              />
-            </Card>
-          ))
-        )}
-      </div>
+      {loading && (
+        <Card className="mb-6">
+          <p className="text-sm text-night-500">Loading events…</p>
+        </Card>
+      )}
     </>
   );
 }

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { LiveStreamCountdownBanner } from "@/components/live/useLiveStreamSchedule";
+import { LiveStreamCountdown } from "@/components/live/LiveStreamCountdown";
 import { LiveStreamNotifyPanel } from "@/components/live/LiveStreamNotifyPanel";
 import { LiveStreamSchedulePanel } from "@/components/live/LiveStreamSchedulePanel";
 import { LiveStreamPlayer } from "@/components/live/LiveStreamPlayer";
+import { useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSchedule";
+import { formatLiveStreamStartLabel } from "@/lib/live-schedule-utils";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { liveStream, site } from "@/lib/site";
 import { streamPreviews } from "@/lib/streams";
@@ -34,21 +36,41 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
     liveStream.isLive ||
     liveStream.youtube.isLive ||
     liveStream.facebook.isLive;
+  const { schedule, loading: scheduleLoading, clearSchedule } = useUpcomingLiveStreamSchedule();
+  const showStageCountdown = !anyLive && !scheduleLoading && Boolean(schedule);
+  const stageTitle = showStageCountdown ? schedule!.title : anyLive ? liveStream.title : active.label;
+  const stageSubtitle = showStageCountdown
+    ? formatLiveStreamStartLabel(schedule!.startsAt)
+    : anyLive
+      ? liveStream.scheduledAt
+      : `${active.platform} · Shanah City`;
 
   return (
     <div className={isMobile ? "space-y-2.5" : "space-y-3"}>
-      {!anyLive ? <LiveStreamCountdownBanner variant={isMobile ? "card" : "card"} /> : null}
-
       <div className="overflow-hidden rounded-2xl bg-night-950 shadow-app-lg ring-1 ring-night-900/10">
         <div className={`relative w-full bg-black ${isMobile ? "aspect-[16/10]" : "aspect-video"}`}>
-          <LiveStreamPlayer preview={active} compact />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/50 via-transparent to-night-950/25" />
+          {showStageCountdown ? (
+            <LiveStreamCountdown
+              schedule={schedule!}
+              variant="stage"
+              onComplete={clearSchedule}
+            />
+          ) : (
+            <LiveStreamPlayer preview={active} compact />
+          )}
+          {!showStageCountdown ? (
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/50 via-transparent to-night-950/25" />
+          ) : null}
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
             {anyLive ? (
               <Badge variant="live">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 Live now
               </Badge>
+            ) : showStageCountdown ? (
+              <span className="rounded-full bg-amber-400/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-night-950 backdrop-blur-md">
+                Starts soon
+              </span>
             ) : (
               <span className="rounded-full bg-black/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/90 backdrop-blur-md">
                 Watch anytime
@@ -61,14 +83,12 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
         </div>
         <div className="border-t border-white/8 bg-gradient-to-r from-night-950 via-night-900 to-night-800 px-3.5 py-3 text-white">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sand-300/80">
-            {anyLive ? "Now streaming" : "Featured channel"}
+            {anyLive ? "Now streaming" : showStageCountdown ? "Upcoming livestream" : "Featured channel"}
           </p>
           <h2 className={`mt-0.5 font-display font-semibold leading-tight tracking-tight ${isMobile ? "text-lg" : "text-xl"}`}>
-            {anyLive ? liveStream.title : active.label}
+            {stageTitle}
           </h2>
-          <p className="mt-1 text-xs text-white/60">
-            {anyLive ? liveStream.scheduledAt : `${active.platform} · Shanah City`}
-          </p>
+          <p className="mt-1 text-xs text-white/60">{stageSubtitle}</p>
         </div>
       </div>
 

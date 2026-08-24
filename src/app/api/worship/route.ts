@@ -25,6 +25,11 @@ import {
 } from "@/lib/worship-server";
 import { publishWorshipPlanNotifications } from "@/lib/worship-notify-server";
 import { trackLibrarySongUsage } from "@/lib/worship-library-usage-server";
+import {
+  reviewMemberPracticeStem,
+  reviewMemberSuggestion,
+  submitMemberSuggestion,
+} from "@/lib/worship-member-actions-server";
 import { getEvents } from "@/lib/event-server";
 import { getGroupDetail } from "@/lib/group-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
@@ -148,7 +153,72 @@ export async function POST(request: Request) {
   const canManage = await canManageWorshipPlan(auth.user!);
 
   try {
-    if (action === "mark_ready" || action === "toggle_song") {
+    if (
+      action === "mark_ready" ||
+      action === "toggle_song" ||
+      action === "submit_suggestion" ||
+      action === "review_suggestion" ||
+      action === "review_stem"
+    ) {
+      if (action === "submit_suggestion") {
+        const plan = await submitMemberSuggestion({
+          serviceDate,
+          serviceTime,
+          userId: auth.user!.id,
+          userName: auth.user!.name,
+          songId: body.songId ? String(body.songId) : undefined,
+          songTitle: body.songTitle ? String(body.songTitle) : undefined,
+          partRole: body.partRole ? String(body.partRole) : undefined,
+          notes: String(body.notes ?? ""),
+        });
+
+        if (!plan || !canViewPlan(auth.user!.id, canManage, plan)) {
+          return NextResponse.json({ error: "Plan not available." }, { status: 403 });
+        }
+
+        return NextResponse.json({ plan });
+      }
+
+      if (action === "review_suggestion") {
+        if (!canManage) {
+          return NextResponse.json({ error: "Worship leader access required." }, { status: 403 });
+        }
+
+        const plan = await reviewMemberSuggestion({
+          serviceDate,
+          serviceTime,
+          suggestionId: String(body.suggestionId ?? ""),
+          action: body.decision === "dismiss" ? "dismiss" : "approve",
+          reviewer: { id: auth.user!.id, name: auth.user!.name },
+        });
+
+        if (!plan) {
+          return NextResponse.json({ error: "Suggestion not found." }, { status: 404 });
+        }
+
+        return NextResponse.json({ plan });
+      }
+
+      if (action === "review_stem") {
+        if (!canManage) {
+          return NextResponse.json({ error: "Worship leader access required." }, { status: 403 });
+        }
+
+        const plan = await reviewMemberPracticeStem({
+          serviceDate,
+          serviceTime,
+          songId: String(body.songId ?? ""),
+          partRole: String(body.partRole ?? ""),
+          action: body.decision === "remove" ? "remove" : "approve",
+        });
+
+        if (!plan) {
+          return NextResponse.json({ error: "Recording not found." }, { status: 404 });
+        }
+
+        return NextResponse.json({ plan });
+      }
+
       const plan = await updateWorshipMemberStatus({
         serviceDate,
         serviceTime,
@@ -286,16 +356,31 @@ export async function POST(request: Request) {
       planStatus = "published";
     }
 
+    const parsedTeam = parseTeam(body);
+    const uploadDutyUserId = body.uploadDutyUserId
+      ? String(body.uploadDutyUserId).trim()
+      : undefined;
+    const uploadDutyMember = uploadDutyUserId
+      ? parsedTeam.find((member) => member.userId === uploadDutyUserId)
+      : undefined;
+
     const plan = await saveWorshipPlan({
       serviceDate,
       serviceTime,
       title: body.title ? String(body.title).trim() : undefined,
       songs: parseSongs(body),
-      team: parseTeam(body),
+      team: parsedTeam,
       rehearsalNotes: body.rehearsalNotes ? String(body.rehearsalNotes).trim() : undefined,
       rehearsalDate: body.rehearsalDate ? String(body.rehearsalDate).trim() : undefined,
       rehearsalTime: body.rehearsalTime ? String(body.rehearsalTime).trim() : undefined,
       calendarEventId: body.calendarEventId ? String(body.calendarEventId).trim() : undefined,
+      uploadDutyUserId: uploadDutyUserId || undefined,
+      uploadDutyUserName:
+        (body.uploadDutyUserName ? String(body.uploadDutyUserName).trim() : undefined) ||
+        uploadDutyMember?.name,
+      memberSuggestions: Array.isArray(body.memberSuggestions)
+        ? (body.memberSuggestions as import("@/lib/worship-types").WorshipMemberSuggestion[])
+        : undefined,
       status: planStatus,
       actor: { id: auth.user!.id, name: auth.user!.name },
     });

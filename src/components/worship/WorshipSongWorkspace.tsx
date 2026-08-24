@@ -16,6 +16,8 @@ type WorshipSongWorkspaceProps = {
   onToggle: () => void;
   onChange: (patch: Partial<WorshipSong>) => void;
   readOnly?: boolean;
+  canReviewMemberUploads?: boolean;
+  onReviewStem?: (partRole: string, decision: "approve" | "remove") => void;
 };
 
 function updatePartNotes(parts: WorshipSongPart[] | undefined, role: string, notes: string) {
@@ -33,6 +35,8 @@ export function WorshipSongWorkspace({
   onToggle,
   onChange,
   readOnly = false,
+  canReviewMemberUploads = false,
+  onReviewStem,
 }: WorshipSongWorkspaceProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -206,6 +210,8 @@ export function WorshipSongWorkspace({
           <WorshipPracticeStemEditor
             song={song}
             readOnly={readOnly}
+            canReviewMemberUploads={canReviewMemberUploads}
+            onReviewStem={onReviewStem}
             onChange={(practiceStems) => onChange({ practiceStems })}
           />
 

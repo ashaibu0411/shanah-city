@@ -26,6 +26,8 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
   const [title, setTitle] = useState("Shanah City Worship");
   const [startsAt, setStartsAt] = useState("");
   const [platform, setPlatform] = useState("all");
+  const [notifyEnabled, setNotifyEnabled] = useState(true);
+  const [notifyBody, setNotifyBody] = useState("Tap to watch the livestream in the app.");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -44,6 +46,8 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
       setTitle(source.title);
       setStartsAt(toLocalInputValue(source.startsAt));
       setPlatform(source.platform ?? "all");
+      setNotifyEnabled(source.notifyEnabled ?? false);
+      setNotifyBody(source.notifyBody ?? "Tap to watch the livestream in the app.");
     }
   }
 
@@ -69,7 +73,14 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
     const response = await fetch("/api/live/schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "save", title, startsAt: startsAtIso, platform }),
+      body: JSON.stringify({
+        action: "save",
+        title,
+        startsAt: startsAtIso,
+        platform,
+        notifyEnabled,
+        notifyBody,
+      }),
     });
     const data = await response.json();
     setBusy(false);
@@ -86,8 +97,12 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
       : null;
     setMessage(
       savedAt
-        ? `Countdown is live for everyone — starts ${savedAt} on your phone’s clock.`
-        : "Countdown is live for everyone in the app.",
+        ? notifyEnabled
+          ? `Countdown is live — push notification scheduled for ${savedAt}.`
+          : `Countdown is live for everyone — starts ${savedAt} on your phone’s clock.`
+        : notifyEnabled
+          ? "Countdown is live — push notification will send at start time."
+          : "Countdown is live for everyone in the app.",
     );
   }
 
@@ -116,7 +131,8 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
     <div className={`rounded-2xl border border-violet-200 bg-violet-50/70 ${compact ? "p-3.5" : "p-4"}`}>
       <p className="text-sm font-semibold text-night-900">Schedule next livestream</p>
       <p className="mt-1 text-xs text-night-600">
-        Media team only. Members see a countdown on Home and Media → Live until this time passes.
+        Media team only. Members see a countdown on Home and Media → Live. Optionally send a push
+        automatically when the stream starts.
       </p>
 
       {expiredSchedule ? (
@@ -129,6 +145,13 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
       {schedule ? (
         <div className="mt-4">
           <LiveStreamCountdown schedule={schedule} onComplete={() => setSchedule(null)} />
+          {schedule.notifyEnabled ? (
+            <p className="mt-2 text-xs text-violet-800">
+              {schedule.notifySentAt
+                ? "Live push notification was sent."
+                : `Push notification scheduled for ${formatLiveStreamStartLabel(schedule.startsAt)}.`}
+            </p>
+          ) : null}
         </div>
       ) : null}
 
@@ -163,6 +186,34 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
             <option value="facebook-revival">Facebook · Shanah Revival</option>
           </select>
         </label>
+        <label className="flex items-start gap-3 md:col-span-2">
+          <input
+            type="checkbox"
+            checked={notifyEnabled}
+            onChange={(event) => setNotifyEnabled(event.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-night-900/20"
+          />
+          <span>
+            <span className="text-sm font-semibold text-night-800">
+              Send push notification when we go live
+            </span>
+            <span className="mt-1 block text-xs text-night-600">
+              Uses the start date &amp; time above. Members need church announcements enabled in
+              Profile.
+            </span>
+          </span>
+        </label>
+        {notifyEnabled ? (
+          <label className="block md:col-span-2">
+            <span className="text-sm font-semibold text-night-800">Notification message</span>
+            <input
+              value={notifyBody}
+              onChange={(event) => setNotifyBody(event.target.value)}
+              placeholder="Tap to watch the livestream in the app."
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          </label>
+        ) : null}
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">

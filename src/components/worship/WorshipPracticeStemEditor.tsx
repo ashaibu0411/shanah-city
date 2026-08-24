@@ -17,6 +17,8 @@ type WorshipPracticeStemEditorProps = {
   song: WorshipSong;
   onChange: (stems: WorshipPracticeStem[]) => void;
   readOnly?: boolean;
+  canReviewMemberUploads?: boolean;
+  onReviewStem?: (partRole: string, decision: "approve" | "remove") => void;
 };
 
 const UPLOAD_SLOTS = [
@@ -29,6 +31,8 @@ export function WorshipPracticeStemEditor({
   song,
   onChange,
   readOnly = false,
+  canReviewMemberUploads = false,
+  onReviewStem,
 }: WorshipPracticeStemEditorProps) {
   const [uploadingRole, setUploadingRole] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +91,11 @@ export function WorshipPracticeStemEditor({
                 <div>
                   <p className="text-sm font-medium text-night-900">{label}</p>
                   {stem ? (
-                    <p className="mt-0.5 text-xs text-night-500">{stem.fileName}</p>
+                    <p className="mt-0.5 text-xs text-night-500">
+                      {stem.fileName}
+                      {stem.uploadedByName ? ` · ${stem.uploadedByName}` : ""}
+                      {stem.status === "pending" ? " · Pending approval" : ""}
+                    </p>
                   ) : (
                     <p className="mt-0.5 text-xs text-night-400">No track uploaded</p>
                   )}
@@ -112,6 +120,14 @@ export function WorshipPracticeStemEditor({
                       <Button variant="secondary" onClick={() => removeStem(slot.value)}>
                         Remove
                       </Button>
+                    )}
+                    {canReviewMemberUploads && stem?.status === "pending" && onReviewStem && (
+                      <>
+                        <Button onClick={() => onReviewStem(slot.value, "approve")}>Approve</Button>
+                        <Button variant="secondary" onClick={() => onReviewStem(slot.value, "remove")}>
+                          Reject
+                        </Button>
+                      </>
                     )}
                   </div>
                 )}

@@ -42,6 +42,8 @@ export async function saveLiveStreamSchedule(input: {
   title: string;
   startsAt: string;
   platform?: LiveStreamPlatform;
+  notifyEnabled?: boolean;
+  notifyBody?: string;
   createdBy: string;
   createdByName: string;
 }) {
@@ -54,11 +56,21 @@ export async function saveLiveStreamSchedule(input: {
     throw new Error("The livestream must be scheduled in the future.");
   }
 
+  const existing = await readSchedule();
+  const notifyChanged =
+    existing &&
+    (Boolean(existing.notifyEnabled) !== Boolean(input.notifyEnabled) ||
+      (existing.notifyBody ?? null) !== (input.notifyBody?.trim() || null) ||
+      existing.startsAt !== startsAt.toISOString());
+
   const schedule: LiveStreamSchedule = {
     id: SCHEDULE_ID,
     title: input.title.trim(),
     startsAt: startsAt.toISOString(),
     platform: input.platform,
+    notifyEnabled: Boolean(input.notifyEnabled),
+    notifyBody: input.notifyBody?.trim() || null,
+    notifySentAt: notifyChanged ? null : existing?.notifySentAt ?? null,
     createdBy: input.createdBy,
     createdByName: input.createdByName,
     updatedAt: now.toISOString(),
@@ -66,6 +78,15 @@ export async function saveLiveStreamSchedule(input: {
 
   await writeSchedule(schedule);
   return schedule;
+}
+
+export async function markLiveStreamNotifySent() {
+  const schedule = await readSchedule();
+  if (!schedule) return;
+  await writeSchedule({
+    ...schedule,
+    notifySentAt: new Date().toISOString(),
+  });
 }
 
 export async function clearLiveStreamSchedule() {

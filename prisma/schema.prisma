@@ -482,29 +482,49 @@ model FinanceWeeklySheet {
 }
 
 model WorshipServicePlan {
-  id               String    @id
-  serviceDate      String
-  serviceTime      String
-  serviceType      String    @default("sunday")
-  title            String?
-  status           String    @default("draft")
-  songs            Json
-  team             Json
-  rehearsalNotes   String?
-  rehearsalDate    String?
-  rehearsalTime    String?
-  calendarEventId  String?
-  reminderSentAt   DateTime?
-  publishedAt      DateTime?
-  createdBy        String
-  createdByName    String
-  createdAt        DateTime
-  updatedAt        DateTime
+  id                       String    @id
+  serviceDate              String
+  serviceTime              String
+  serviceType              String    @default("sunday")
+  title                    String?
+  status                   String    @default("draft")
+  songs                    Json
+  team                     Json
+  rehearsalNotes           String?
+  rehearsalDate            String?
+  rehearsalTime            String?
+  calendarEventId          String?
+  reminderSentAt           DateTime?
+  uploadDutyUserId         String?
+  uploadDutyUserName       String?
+  uploadDutyReminderSentAt DateTime?
+  memberSuggestions        Json      @default("[]")
+  publishedAt              DateTime?
+  createdBy                String
+  createdByName            String
+  createdAt                DateTime
+  updatedAt                DateTime
 
   @@unique([serviceDate, serviceTime])
   @@index([serviceDate])
   @@index([status])
   @@index([calendarEventId])
+  @@index([uploadDutyUserId])
+}
+
+model WorshipScheduleRotation {
+  id                    String   @id
+  pool                  Json     @default("[]")
+  serviceTime           String   @default("10:00")
+  serviceKind           String   @default("sunday")
+  rotationIndex         Int      @default(0)
+  skipDates             Json     @default("[]")
+  weeksAhead            Int      @default(8)
+  uploadDutyLeadDays    Int      @default(4)
+  updatedBy             String?
+  updatedByName         String?
+  createdAt             DateTime
+  updatedAt             DateTime
 }
 
 model WorshipSongLibrary {
@@ -628,13 +648,16 @@ model FeedReadState {
 }
 
 model LiveStreamSchedule {
-  id            String   @id @default("upcoming")
-  title         String
-  startsAt      DateTime
-  platform      String?
-  createdBy     String
-  createdByName String
-  updatedAt     DateTime
+  id              String    @id @default("upcoming")
+  title           String
+  startsAt        DateTime
+  platform        String?
+  notifyEnabled   Boolean   @default(false)
+  notifyBody      String?
+  notifySentAt    DateTime?
+  createdBy       String
+  createdByName   String
+  updatedAt       DateTime
 }
 
 model UrgentAlert {
