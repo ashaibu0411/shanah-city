@@ -1,4 +1,4 @@
-export type MeetingClickSource = "meetings_page" | "group_page" | "push";
+export type MeetingClickSource = "meetings_page" | "group_page" | "push" | "home";
 
 export type MeetingClickLog = {
   id: string;

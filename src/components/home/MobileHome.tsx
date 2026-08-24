@@ -13,6 +13,7 @@ import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { HomeTagline } from "@/components/home/HomeTagline";
 import { LiveStreamCountdownInline } from "@/components/live/useLiveStreamSchedule";
 import { MobileQuickActionFlyer } from "@/components/home/MobileQuickActionFlyer";
+import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
@@ -73,6 +74,7 @@ export function MobileHome({
     <div className="mobile-home animate-fade-in space-y-3">
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <PendingRsvpHomeBanner />
+      <PrayerHomeBanner variant="mobile" />
       <section className="mobile-home-aurora relative overflow-hidden rounded-2xl p-4 text-white shadow-app-lg ring-1 ring-night-900/10">
         <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
         <div className="mobile-home-shimmer pointer-events-none absolute inset-0 opacity-30" aria-hidden />

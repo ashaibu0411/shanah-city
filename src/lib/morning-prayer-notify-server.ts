@@ -1,5 +1,6 @@
 import { getZonedDateParts } from "@/lib/denver-time";
 import { AUTOMATED_MEETING_REMINDERS } from "@/lib/meeting-catalog";
+import { isPrayerReminderDue } from "@/lib/prayer-schedule";
 import { notifyScheduledMeeting } from "@/lib/push-server";
 import { getMeetings, updateMeeting } from "@/lib/meeting-server";
 
@@ -9,8 +10,7 @@ export async function processScheduledMeetingReminders(reference = new Date()) {
   const due = meetings.filter((meeting) => {
     const rule = AUTOMATED_MEETING_REMINDERS[meeting.id];
     if (!rule || !meeting.notifyEnabled) return false;
-    if (denver.hour !== rule.hour) return false;
-    if (!rule.weekdays.includes(denver.weekday)) return false;
+    if (!isPrayerReminderDue(meeting.id, reference)) return false;
     return meeting.lastNotifiedOn !== denver.dateKey;
   });
 

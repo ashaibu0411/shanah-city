@@ -47,7 +47,7 @@ function isMeetingToday(meeting: Meeting) {
 }
 
 function todayBadgeLabel(meeting: Meeting) {
-  if (meeting.id === SHIFT_YOUR_MORNING_ID) return "Today · 8:00 AM MST";
+  if (meeting.id === SHIFT_YOUR_MORNING_ID) return "Today · 8:30 AM MST";
   if (meeting.id === SHIFT_YOUR_EVENING_ID) return "Today · 8:00 PM MST";
   return "Today";
 }

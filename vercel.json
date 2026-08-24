@@ -9,14 +9,6 @@
       "schedule": "0 14 * * *"
     },
     {
-      "path": "/api/cron/morning-prayer",
-      "schedule": "0 14 * * *"
-    },
-    {
-      "path": "/api/cron/evening-prayer",
-      "schedule": "0 2 * * *"
-    },
-    {
       "path": "/api/cron/outlook-calendar",
       "schedule": "0 15 * * *"
     },

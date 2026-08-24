@@ -12,20 +12,35 @@ export const SHIFT_YOUR_MORNING_ZOOM_URL =
 export const SHIFT_YOUR_EVENING_ZOOM_URL = SHIFT_YOUR_MORNING_ZOOM_URL;
 
 export type AutomatedReminderRule = {
-  hour: number;
   weekdays: number[];
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  notifyHour: number;
+  notifyMinute: number;
   whenLabel: string;
 };
 
 export const AUTOMATED_MEETING_REMINDERS: Record<string, AutomatedReminderRule> = {
   [SHIFT_YOUR_MORNING_ID]: {
-    hour: 8,
     weekdays: [1, 2, 3, 4, 5],
-    whenLabel: "Monday–Friday at 8:00 AM MST",
+    startHour: 8,
+    startMinute: 30,
+    endHour: 8,
+    endMinute: 40,
+    notifyHour: 8,
+    notifyMinute: 30,
+    whenLabel: "Monday–Friday at 8:30 AM MST",
   },
   [SHIFT_YOUR_EVENING_ID]: {
-    hour: 20,
     weekdays: [2, 3, 4],
+    startHour: 20,
+    startMinute: 0,
+    endHour: 20,
+    endMinute: 40,
+    notifyHour: 20,
+    notifyMinute: 0,
     whenLabel: "Tuesday–Thursday at 8:00 PM MST",
   },
 };
@@ -86,7 +101,7 @@ export function shiftYourMorningMeeting(): Meeting {
     title: "Shift Your Morning",
     campusId: "online",
     host: "Mary Asibey",
-    schedule: "Monday – Friday, 8:00 AM MST",
+    schedule: "Monday – Friday, 8:30 AM MST",
     platform: "zoom",
     joinUrl: SHIFT_YOUR_MORNING_ZOOM_URL,
     meetingId: "6504487390",

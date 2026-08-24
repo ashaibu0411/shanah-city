@@ -7,14 +7,11 @@ import { MeetingCard } from "@/components/meetings/MeetingCard";
 import { MeetingClickReport } from "@/components/meetings/MeetingClickReport";
 import {
   MANUAL_PUSH_MEETING_IDS,
-  SHIFT_YOUR_EVENING_ID,
-  SHIFT_YOUR_MORNING_ID,
   isAutomatedReminderMeeting,
   isProtectedMeetingId,
 } from "@/lib/meeting-catalog";
-import { getZonedDateParts } from "@/lib/denver-time";
 import type { Meeting } from "@/lib/types";
-import { Button, Card, SectionTitle } from "@/components/ui";
+import { Button, SectionTitle } from "@/components/ui";
 
 export function MeetingsList() {
   const { campusId } = useApp();
@@ -180,64 +177,5 @@ export function MeetingsList() {
       )}
       <MeetingClickReport meetings={meetings} />
     </div>
-  );
-}
-
-export function MeetingPreview() {
-  const { campusId } = useApp();
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-
-  useEffect(() => {
-    fetch("/api/meetings")
-      .then((response) => response.json())
-      .then((data) => setMeetings(data.meetings ?? []));
-  }, []);
-
-  const denver = getZonedDateParts();
-  const morning = meetings.find((meeting) => meeting.id === SHIFT_YOUR_MORNING_ID);
-  const evening = meetings.find((meeting) => meeting.id === SHIFT_YOUR_EVENING_ID);
-  const next =
-    denver.weekday >= 1 && denver.weekday <= 5 && denver.hour < 12 && morning
-      ? morning
-      : [2, 3, 4].includes(denver.weekday) && denver.hour >= 12 && evening
-        ? evening
-        : morning ??
-          evening ??
-          meetings.find(
-            (meeting) => meeting.campusId === campusId || meeting.campusId === "online",
-          );
-
-  if (!next) return null;
-
-  const platformLabel =
-    next.platform === "in-person"
-      ? "In person"
-      : next.joinUrl?.includes("youtube")
-        ? "YouTube"
-        : next.platform === "zoom"
-          ? "Zoom"
-          : "Teams";
-
-  const isPrayer = isAutomatedReminderMeeting(next.id);
-
-  return (
-    <Card href="/meetings" className="mb-8">
-      <p className="text-xs font-semibold uppercase tracking-wider text-sand-600">
-        {next.id === SHIFT_YOUR_EVENING_ID
-          ? "This evening"
-          : next.id === SHIFT_YOUR_MORNING_ID
-            ? "This morning"
-            : "Up next"}
-      </p>
-      <h3 className="mt-2 font-display text-xl font-semibold text-night-900">
-        {next.title}
-      </h3>
-      <p className="mt-1 text-sm text-night-600">
-        {next.schedule} · {platformLabel}
-      </p>
-      <p className="mt-3 text-sm font-semibold text-night-800">
-        {isPrayer ? "Tap to join prayer →" : "Tap to see all meeting links →"}
-      </p>
-    </Card>
   );
 }

@@ -11,7 +11,7 @@ import { QuickActions } from "@/components/home/QuickActions";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import { useUrgentAlertHighlight } from "@/components/home/useUrgentAlertHighlight";
-import { MeetingPreview } from "@/components/meetings/MeetingsList";
+import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { SermonCard } from "@/components/sermons/SermonCard";
 import { SectionTitle } from "@/components/ui";
 import type { Devotion } from "@/lib/types";
@@ -57,7 +57,7 @@ export function HomeView({
       <QuickActions />
       <CampusStrip />
       {todayDevotion ? <DevotionPreview devotion={todayDevotion} /> : null}
-      <MeetingPreview />
+      <PrayerHomeBanner />
 
       <section className="mb-8">
         <SectionTitle title="Latest sermon" href="/sermons" />
