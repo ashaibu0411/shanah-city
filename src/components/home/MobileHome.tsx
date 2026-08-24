@@ -90,7 +90,7 @@ export function MobileHome({
 
       <Link
         href="/live"
-        className="mobile-home-live-flyer group relative block aspect-[16/10] overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10 transition active:scale-[0.99]"
+        className="mobile-home-live-flyer group relative block min-h-[15.5rem] overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10 transition active:scale-[0.99] sm:aspect-[16/10] sm:min-h-0"
       >
         <div className="absolute inset-[3px] rounded-[0.85rem] ring-1 ring-white/20" aria-hidden />
         <div className="absolute inset-0">
@@ -133,15 +133,15 @@ export function MobileHome({
               </div>
             )}
 
-            <p className="font-display text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-md">
+            <p className="font-display text-xl font-bold leading-tight tracking-tight text-white drop-shadow-md sm:text-2xl">
               {anyLive ? liveStream.title : "Watch Live"}
             </p>
 
-            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-sand-200/80">
+            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-sand-200/80 sm:text-xs sm:tracking-[0.2em]">
               {anyLive ? "Join the stream" : "Sundays & special services"}
             </p>
 
-            <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/95 px-3.5 py-2 text-xs font-bold text-night-900 shadow-app-md backdrop-blur-sm">
+            <span className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-night-900 shadow-app-md backdrop-blur-sm sm:mt-3 sm:px-3.5 sm:py-2 sm:text-xs">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-night-900 text-[10px] text-white">
                 ▶
               </span>
