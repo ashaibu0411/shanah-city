@@ -1,5 +1,6 @@
 import type { PublicMember } from "@/lib/auth-types";
-import { getEventById } from "@/lib/event-server";
+import { getMemberGroupIds } from "@/lib/admin-people-server";
+import { getEventById, getEvents, updateEvent } from "@/lib/event-server";
 import {
   canManageEventRsvpSettings,
   canViewEventRsvpRoster,
@@ -11,13 +12,17 @@ import type {
   EventRsvpStatus,
   EventRsvpSummary,
   EventRsvpView,
+  MyEventRsvpItem,
+  MyEventRsvpsResponse,
 } from "@/lib/event-rsvp-types";
+import { notifyEventRsvpRequest } from "@/lib/push-server";
 import { useDatabase } from "@/lib/use-database";
 import type { ChurchEvent } from "@/lib/types";
 import * as eventRsvpDb from "@/lib/stores/event-rsvp-db";
 import * as eventRsvpJson from "@/lib/stores/event-rsvp-json";
 
 const store = () => (useDatabase() ? eventRsvpDb : eventRsvpJson);
+const REMINDER_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 function buildSummary(
   rsvps: EventRsvpRecord[],
@@ -142,4 +147,92 @@ export async function getEventRsvpViewById(eventId: string, viewer: PublicMember
   const event = await getEventById(eventId);
   if (!event) return null;
   return getEventRsvpView(event, viewer);
+}
+
+export function getEventRsvpTargetGroupId(
+  event: Pick<ChurchEvent, "rsvpAudience" | "rsvpGroupId" | "groupId">,
+) {
+  const audience = event.rsvpAudience ?? (event.groupId ? "group" : "church");
+  if (audience === "church") return null;
+  return event.rsvpGroupId ?? event.groupId ?? null;
+}
+
+export function canSendRsvpReminder(event: Pick<ChurchEvent, "rsvpLastNotifiedAt">) {
+  if (!event.rsvpLastNotifiedAt) return true;
+  return Date.now() - new Date(event.rsvpLastNotifiedAt).getTime() >= REMINDER_COOLDOWN_MS;
+}
+
+export async function getRsvpEnabledEventsForViewer(viewer: PublicMember) {
+  const groupIds = await getMemberGroupIds(viewer.id);
+  const churchEvents = await getEvents({ groupId: null });
+  const groupEvents = await Promise.all(groupIds.map((groupId) => getEvents({ groupId })));
+  const byId = new Map<string, ChurchEvent>();
+
+  for (const event of [...churchEvents, ...groupEvents.flat()]) {
+    if (event.rsvpEnabled && event.published !== false) {
+      byId.set(event.id, event);
+    }
+  }
+
+  return [...byId.values()];
+}
+
+export async function getMyEventRsvps(viewer: PublicMember): Promise<MyEventRsvpsResponse> {
+  const events = await getRsvpEnabledEventsForViewer(viewer);
+  const pending: MyEventRsvpItem[] = [];
+  const responded: MyEventRsvpItem[] = [];
+
+  for (const event of events) {
+    if (!(await userInEventRsvpAudience(viewer, event))) continue;
+
+    const mine = await store().getRsvpForUser(event.id, viewer.id);
+    const closed = isEventRsvpClosed(event);
+    const item: MyEventRsvpItem = {
+      eventId: event.id,
+      title: event.title,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      deadline: event.rsvpDeadline ?? null,
+      myStatus: mine?.status ?? null,
+      needsResponse: !mine && !closed,
+      groupName: event.groupName ?? event.rsvpGroupName ?? null,
+    };
+
+    if (!mine && !closed) {
+      pending.push(item);
+    } else if (mine) {
+      responded.push(item);
+    }
+  }
+
+  return { pending, responded, pendingCount: pending.length };
+}
+
+export async function sendEventRsvpNotification(
+  event: ChurchEvent,
+  authorId: string,
+  options?: { isReminder?: boolean },
+) {
+  if (!event.rsvpEnabled) {
+    throw new Error("RSVP is not enabled for this event.");
+  }
+  if (isEventRsvpClosed(event)) {
+    throw new Error("RSVP is closed for this event.");
+  }
+
+  const result = await notifyEventRsvpRequest({
+    eventId: event.id,
+    title: event.title,
+    authorId,
+    targetGroupId: getEventRsvpTargetGroupId(event),
+    isReminder: options?.isReminder,
+    deadline: event.rsvpDeadline ?? null,
+  });
+
+  await updateEvent(event.id, {
+    rsvpLastNotifiedAt: new Date().toISOString(),
+  });
+
+  return result;
 }

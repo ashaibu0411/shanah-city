@@ -228,6 +228,7 @@ model ChurchEvent {
   rsvpDeadline     DateTime?
   rsvpCapacity     Int?
   rsvpInstructions String?
+  rsvpLastNotifiedAt DateTime?
   createdAt        DateTime
   updatedAt        DateTime
   rsvps            EventRsvp[]

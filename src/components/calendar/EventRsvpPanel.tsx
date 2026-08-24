@@ -22,9 +22,15 @@ type EventRsvpPanelProps = {
   event: ChurchEvent;
   canManage: boolean;
   onEventUpdated?: (event: ChurchEvent) => void;
+  onRsvpChanged?: () => void;
 };
 
-export function EventRsvpPanel({ event, canManage, onEventUpdated }: EventRsvpPanelProps) {
+export function EventRsvpPanel({
+  event,
+  canManage,
+  onEventUpdated,
+  onRsvpChanged,
+}: EventRsvpPanelProps) {
   const { user } = useAuth();
   const [rsvp, setRsvp] = useState<EventRsvpView | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,6 +94,7 @@ export function EventRsvpPanel({ event, canManage, onEventUpdated }: EventRsvpPa
     }
     setRsvp(data.rsvp);
     setMessage("RSVP saved.");
+    onRsvpChanged?.();
   }
 
   async function saveSettings() {
@@ -100,6 +107,7 @@ export function EventRsvpPanel({ event, canManage, onEventUpdated }: EventRsvpPa
         id: event.id,
         ...eventRsvpFormToPayload(settings),
         rsvpGroupId: settings.rsvpAudience === "group" ? event.groupId ?? null : null,
+        notifyAudience: settings.notifyMembers,
       }),
     });
     const data = await response.json();
@@ -111,8 +119,35 @@ export function EventRsvpPanel({ event, canManage, onEventUpdated }: EventRsvpPa
     onEventUpdated?.(data.event);
     setSettings(eventToRsvpFormState(data.event));
     setShowSettings(false);
-    setMessage(settings.rsvpEnabled ? "RSVP is on for this event." : "RSVP turned off.");
+    const notifyNote =
+      data.notify?.sent > 0
+        ? ` Notification sent to ${data.notify.sent} device${data.notify.sent === 1 ? "" : "s"}.`
+        : "";
+    setMessage(
+      (settings.rsvpEnabled ? "RSVP is on for this event." : "RSVP turned off.") + notifyNote,
+    );
     void loadRsvp();
+    onRsvpChanged?.();
+  }
+
+  async function sendReminder() {
+    setBusy(true);
+    setMessage(null);
+    const response = await fetch(
+      `/api/events/${encodeURIComponent(event.id)}/rsvp/remind`,
+      { method: "POST" },
+    );
+    const data = await response.json();
+    setBusy(false);
+    if (!response.ok) {
+      setMessage(data.error ?? "Could not send reminder.");
+      return;
+    }
+    setMessage(
+      data.sent > 0
+        ? `Reminder sent to ${data.sent} device${data.sent === 1 ? "" : "s"}.`
+        : "No devices received the reminder.",
+    );
   }
 
   const deadlineLabel = formatRsvpDeadlineLabel(rsvp?.deadline);
@@ -236,6 +271,14 @@ export function EventRsvpPanel({ event, canManage, onEventUpdated }: EventRsvpPa
               </li>
             ))}
           </ul>
+        </div>
+      ) : null}
+
+      {rsvp?.enabled && canManage && !rsvp.closed ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={sendReminder} disabled={busy}>
+            {busy ? "Sending…" : "Send RSVP reminder"}
+          </Button>
         </div>
       ) : null}
 

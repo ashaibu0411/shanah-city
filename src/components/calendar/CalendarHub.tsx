@@ -11,6 +11,8 @@ import {
   EventRsvpCreateFields,
 } from "@/components/calendar/EventRsvpCreateFields";
 import { EventRsvpPanel } from "@/components/calendar/EventRsvpPanel";
+import { EventRsvpBadge } from "@/components/calendar/EventRsvpBadge";
+import { useMyEventRsvps } from "@/components/calendar/useMyEventRsvps";
 import { MeetingsCalendarPanel } from "@/components/calendar/MeetingsCalendarPanel";
 import { EventShareTools } from "@/components/share/EventShareTools";
 import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
@@ -28,6 +30,8 @@ function EventDetailCard({
   onRemove,
   onArtworkChange,
   onEventUpdated,
+  onRsvpChanged,
+  needsRsvp = false,
   highlighted = false,
 }: {
   event: ChurchEvent;
@@ -35,6 +39,8 @@ function EventDetailCard({
   onRemove: (id: string) => void;
   onArtworkChange?: (id: string, artwork: ArtworkFields) => void;
   onEventUpdated?: (event: ChurchEvent) => void;
+  onRsvpChanged?: () => void;
+  needsRsvp?: boolean;
   highlighted?: boolean;
 }) {
   return (
@@ -49,7 +55,11 @@ function EventDetailCard({
       <p className="mt-2 text-sm text-night-600">
         {event.time} · {event.location}
       </p>
-      {event.rsvpEnabled ? (
+      {needsRsvp ? (
+        <div className="mt-2">
+          <EventRsvpBadge />
+        </div>
+      ) : event.rsvpEnabled ? (
         <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-teal-800">
           RSVP requested
         </p>
@@ -73,6 +83,7 @@ function EventDetailCard({
         event={event}
         canManage={canManage}
         onEventUpdated={onEventUpdated}
+        onRsvpChanged={onRsvpChanged}
       />
     </div>
   );
@@ -234,6 +245,7 @@ function GroupAdminApproval({
 
 function ChurchEventsPanel() {
   const { user } = useAuth();
+  const { pendingEventIds, refresh: refreshRsvps } = useMyEventRsvps(Boolean(user));
   const searchParams = useSearchParams();
   const highlightEventId = searchParams.get("event");
   const [events, setEvents] = useState<ChurchEvent[]>([]);
@@ -303,6 +315,7 @@ function ChurchEventsPanel() {
         endsOn: endsOn || undefined,
         recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
         ...eventRsvpFormToPayload(rsvpForm),
+        notifyAudience: rsvpForm.notifyMembers,
       }),
     });
     const data = await response.json();
@@ -454,6 +467,8 @@ function ChurchEventsPanel() {
             onRemove={removeEvent}
             onArtworkChange={canManage ? updateEventArtwork : undefined}
             onEventUpdated={updateEventInList}
+            onRsvpChanged={refreshRsvps}
+            needsRsvp={pendingEventIds.has(event.id)}
             highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
           />
         )}
@@ -495,6 +510,7 @@ function GroupEventsPanel({
   groupLabel: string;
 }) {
   const { user } = useAuth();
+  const { pendingEventIds, refresh: refreshRsvps } = useMyEventRsvps(Boolean(user));
   const searchParams = useSearchParams();
   const highlightEventId = searchParams.get("event");
   const [events, setEvents] = useState<ChurchEvent[]>([]);
@@ -569,6 +585,7 @@ function GroupEventsPanel({
         recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
         ...eventRsvpFormToPayload(rsvpForm),
         rsvpGroupId: rsvpForm.rsvpAudience === "group" ? groupId : null,
+        notifyAudience: rsvpForm.notifyMembers,
       }),
     });
     const data = await response.json();
@@ -681,6 +698,8 @@ function GroupEventsPanel({
             onRemove={removeEvent}
             onArtworkChange={canManage ? updateEventArtwork : undefined}
             onEventUpdated={updateEventInList}
+            onRsvpChanged={refreshRsvps}
+            needsRsvp={pendingEventIds.has(event.id)}
             highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
           />
         )}
@@ -715,7 +734,8 @@ function GroupEventsPanel({
 }
 
 export function CalendarHub() {
-  const { permissions } = useAuth();
+  const { user, permissions } = useAuth();
+  const { pendingCount } = useMyEventRsvps(Boolean(user));
   const [tab, setTab] = useState<CalendarTab>("church");
   const [requests, setRequests] = useState<UnavailabilityRequest[]>([]);
   const [canReview, setCanReview] = useState(false);
@@ -764,6 +784,11 @@ export function CalendarHub() {
             }`}
           >
             {item.label}
+            {item.id === "church" && pendingCount > 0 ? (
+              <span className="ml-2 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-teal-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                {pendingCount}
+              </span>
+            ) : null}
           </button>
         ))}
       </div>

@@ -495,3 +495,44 @@ export async function notifyLiveStreamNow(input: {
     input.authorId,
   );
 }
+
+function eventRsvpDeadlineLabel(deadline?: string | null) {
+  if (!deadline) return null;
+  return new Date(deadline).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export async function notifyEventRsvpRequest(input: {
+  eventId: string;
+  title: string;
+  authorId?: string;
+  targetGroupId?: string | null;
+  isReminder?: boolean;
+  deadline?: string | null;
+}) {
+  const deadlineLabel = eventRsvpDeadlineLabel(input.deadline);
+  const title = input.isReminder ? `RSVP reminder: ${input.title}` : `RSVP: ${input.title}`;
+  const body = deadlineLabel
+    ? `Let us know if you're coming by ${deadlineLabel}.`
+    : "Tap to respond in the calendar.";
+  const payload = {
+    title,
+    body,
+    url: `/calendar?event=${encodeURIComponent(input.eventId)}`,
+  };
+
+  if (input.targetGroupId) {
+    return sendPushToGroupMembers(
+      input.targetGroupId,
+      payload,
+      "announcements",
+      input.authorId,
+    );
+  }
+
+  return sendPushToAllMembers(payload, "announcements", input.authorId);
+}

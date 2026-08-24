@@ -121,6 +121,7 @@ export async function upsertEvent(event: ChurchEvent) {
       rsvpDeadline: event.rsvpDeadline ?? events[index].rsvpDeadline,
       rsvpCapacity: event.rsvpCapacity ?? events[index].rsvpCapacity,
       rsvpInstructions: event.rsvpInstructions ?? events[index].rsvpInstructions,
+      rsvpLastNotifiedAt: event.rsvpLastNotifiedAt ?? events[index].rsvpLastNotifiedAt,
     };
   }
   await writeJson(EVENTS_FILE, events);

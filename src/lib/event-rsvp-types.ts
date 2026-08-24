@@ -65,6 +65,24 @@ export function isEventRsvpAudience(value: string): value is EventRsvpAudience {
   return value === "church" || value === "group";
 }
 
+export type MyEventRsvpItem = {
+  eventId: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  deadline: string | null;
+  myStatus: EventRsvpStatus | null;
+  needsResponse: boolean;
+  groupName?: string | null;
+};
+
+export type MyEventRsvpsResponse = {
+  pending: MyEventRsvpItem[];
+  responded: MyEventRsvpItem[];
+  pendingCount: number;
+};
+
 export function eventRsvpStatusLabel(status: EventRsvpStatus) {
   switch (status) {
     case "going":

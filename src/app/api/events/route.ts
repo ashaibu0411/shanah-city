@@ -16,6 +16,8 @@ import {
 } from "@/lib/event-server";
 import { resolveRsvpGroupName } from "@/lib/event-rsvp-access-server";
 import { parseEventRsvpFields } from "@/lib/event-rsvp-utils";
+import { sendEventRsvpNotification } from "@/lib/event-rsvp-server";
+import type { ChurchEvent } from "@/lib/types";
 
 function parseEventBody(body: Record<string, unknown>) {
   const groupId = body.groupId ? String(body.groupId).trim() : undefined;
@@ -41,10 +43,10 @@ function parseEventBody(body: Record<string, unknown>) {
 }
 
 async function normalizeRsvpFields(
-  input: ReturnType<typeof parseEventBody>,
+  body: Record<string, unknown>,
   eventGroupId?: string | null,
 ) {
-  const rsvp = parseEventRsvpFields(input as Record<string, unknown>);
+  const rsvp = parseEventRsvpFields(body);
   if (!rsvp.rsvpEnabled) {
     return {
       rsvpEnabled: false,
@@ -99,6 +101,35 @@ async function assertCanManageEvent(
   }
 
   return null;
+}
+
+function shouldNotifyRsvpAudience(body: Record<string, unknown>) {
+  return body.notifyAudience !== false;
+}
+
+async function maybeNotifyRsvpAudience(
+  event: ChurchEvent,
+  previous: ChurchEvent | undefined,
+  user: NonNullable<Awaited<ReturnType<typeof getUserFromSession>>>,
+  body: Record<string, unknown>,
+) {
+  if (!shouldNotifyRsvpAudience(body) || !event.rsvpEnabled) {
+    return null;
+  }
+
+  const newlyEnabled = !previous?.rsvpEnabled && event.rsvpEnabled;
+  const explicitNotify = body.notifyAudience === true;
+  if (!newlyEnabled && !explicitNotify) {
+    return null;
+  }
+
+  try {
+    return await sendEventRsvpNotification(event, user.id, {
+      isReminder: Boolean(previous?.rsvpEnabled && explicitNotify),
+    });
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(request: Request) {
@@ -169,7 +200,8 @@ export async function POST(request: Request) {
 
   const rsvpFields = await normalizeRsvpFields(body, input.groupId ?? null);
   const event = await createEvent({ ...input, ...rsvpFields });
-  return NextResponse.json({ event }, { status: 201 });
+  const notifyResult = await maybeNotifyRsvpAudience(event, undefined, user!, body);
+  return NextResponse.json({ event, notify: notifyResult }, { status: 201 });
 }
 
 export async function PATCH(request: Request) {
@@ -222,7 +254,8 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Event not found." }, { status: 404 });
   }
 
-  return NextResponse.json({ event });
+  const notifyResult = await maybeNotifyRsvpAudience(event, existing, user!, body);
+  return NextResponse.json({ event, notify: notifyResult });
 }
 
 export async function DELETE(request: Request) {

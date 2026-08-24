@@ -12,6 +12,7 @@ export type EventRsvpFormState = {
   rsvpDeadline: string;
   rsvpCapacity: string;
   rsvpInstructions: string;
+  notifyMembers: boolean;
 };
 
 export function defaultEventRsvpFormState(
@@ -23,6 +24,7 @@ export function defaultEventRsvpFormState(
     rsvpDeadline: "",
     rsvpCapacity: "",
     rsvpInstructions: "",
+    notifyMembers: true,
   };
 }
 
@@ -142,6 +144,18 @@ export function EventRsvpCreateFields({
               className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
           </label>
+
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={state.notifyMembers}
+              onChange={(event) => onChange({ ...state, notifyMembers: event.target.checked })}
+              className="mt-1"
+            />
+            <span className="text-sm text-night-700">
+              Send a push notification asking members to RSVP
+            </span>
+          </label>
         </div>
       ) : null}
     </div>
@@ -164,5 +178,6 @@ export function eventToRsvpFormState(
     rsvpDeadline: toLocalDeadlineInputValue(event.rsvpDeadline),
     rsvpCapacity: event.rsvpCapacity ? String(event.rsvpCapacity) : "",
     rsvpInstructions: event.rsvpInstructions ?? "",
+    notifyMembers: true,
   };
 }
