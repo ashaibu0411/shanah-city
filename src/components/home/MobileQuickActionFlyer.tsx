@@ -33,7 +33,7 @@ export function MobileQuickActionFlyer({
         priority={name === "give"}
         className="mobile-media object-cover transition duration-500 group-hover:scale-[1.03]"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/55 via-transparent to-night-950/10" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/75 via-night-950/15 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-3">
         <p className="font-display text-lg font-bold tracking-tight text-white drop-shadow-md">
           {art.label}

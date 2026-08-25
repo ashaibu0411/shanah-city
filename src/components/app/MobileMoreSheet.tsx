@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CampusSelector } from "@/components/app/CampusSelector";
-import { mobileActionTone } from "@/components/app/mobile-premium";
 import { useReadability } from "@/components/app/ReadabilityProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -12,42 +11,38 @@ import { useAppNavItems } from "@/lib/use-app-nav-items";
 import { useNotifications } from "@/lib/use-notifications";
 
 export function MobileMoreSheet() {
-  const { moreMenuOpen, setMoreMenuOpen } = useAppShell();
+  const { isMobileApp, moreMenuOpen, setMoreMenuOpen } = useAppShell();
   const { textScale, setTextScale } = useReadability();
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const navItems = useAppNavItems();
   const { total: unreadTotal } = useNotifications();
 
-  const primaryTabs = [
-    site.nav[0],
-    site.nav[1],
-    site.nav[2],
-    site.nav[5],
-  ];
+  const primaryTabs = [site.nav[0], site.nav[1], site.nav[2], site.nav[5]];
 
   const moreLinks = navItems.filter(
     (item) => !primaryTabs.some((tab) => tab.href === item.href),
   );
 
-  if (!moreMenuOpen) return null;
+  if (!isMobileApp || !moreMenuOpen) return null;
 
   return (
     <>
       <button
         type="button"
         aria-label="Close menu"
-        className="fixed inset-0 z-50 bg-night-950/40 backdrop-blur-[2px] lg:hidden"
+        className="app-mobile-more-backdrop fixed inset-0 z-[60] bg-night-950/50 backdrop-blur-sm"
         onClick={() => setMoreMenuOpen(false)}
       />
-      <div className="fixed inset-x-0 bottom-0 z-50 overflow-hidden rounded-t-[1.75rem] bg-gradient-to-b from-night-950 via-indigo-950 to-night-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl ring-1 ring-white/10 lg:hidden">
-        <div className="mobile-shimmer pointer-events-none absolute inset-0 opacity-20" aria-hidden />
+      <div className="app-mobile-more-sheet fixed inset-x-0 bottom-0 z-[60] overflow-hidden rounded-t-[1.75rem] bg-night-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl ring-1 ring-white/10">
         <div className="app-mobile-inner relative mx-auto max-w-lg">
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-200/80">Explore</p>
-              <h2 className="mobile-headline font-display text-xl font-bold">More</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300/90">
+                Explore
+              </p>
+              <h2 className="font-display text-xl font-semibold text-white">More</h2>
             </div>
             <button
               type="button"
@@ -58,18 +53,18 @@ export function MobileMoreSheet() {
             </button>
           </div>
 
-          <div className="mb-4 rounded-2xl bg-white/10 p-3 ring-1 ring-white/10 backdrop-blur-md">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-100/80">
+          <div className="mb-4 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-sand-300/80">
               Your campus
             </p>
             <CampusSelector />
           </div>
 
-          <div className="mb-4 rounded-2xl bg-white/10 p-3 ring-1 ring-white/10 backdrop-blur-md">
+          <div className="mb-4 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
             <p className="text-sm font-semibold text-white">Text size</p>
-            <p className="mt-0.5 text-sm text-white/65">Applies across the mobile app</p>
+            <p className="mt-0.5 text-sm text-white/60">Applies across the mobile app</p>
             <div
-              className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-night-950/40 p-1 ring-1 ring-white/10"
+              className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-night-900/60 p-1 ring-1 ring-white/10"
               role="group"
               aria-label="Text size"
             >
@@ -86,7 +81,7 @@ export function MobileMoreSheet() {
                   onClick={() => setTextScale(option.id)}
                   className={`rounded-lg px-2 py-2.5 text-xs font-bold transition ${
                     textScale === option.id
-                      ? "bg-gradient-to-br from-amber-400 to-fuchsia-600 text-white shadow-md"
+                      ? "bg-amber-400 text-night-950"
                       : "text-white/70 hover:bg-white/10"
                   }`}
                 >
@@ -97,9 +92,8 @@ export function MobileMoreSheet() {
           </div>
 
           <div className="grid grid-cols-4 gap-3">
-            {moreLinks.map((item, index) => {
+            {moreLinks.map((item) => {
               const active = pathname === item.href;
-              const tone = mobileActionTone(index);
               return (
                 <Link
                   key={item.href}
@@ -107,14 +101,12 @@ export function MobileMoreSheet() {
                   onClick={() => setMoreMenuOpen(false)}
                   className={`relative flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition active:scale-[0.97] ${
                     active
-                      ? `bg-gradient-to-br ${tone} text-white shadow-lg`
-                      : "bg-white/95 text-night-800 ring-1 ring-night-900/8"
+                      ? "bg-amber-400 text-night-950 shadow-md"
+                      : "bg-white text-night-800 ring-1 ring-night-900/8"
                   }`}
                 >
                   <span className="text-lg">{item.icon}</span>
-                  <span className="text-[10px] font-semibold leading-tight">
-                    {item.label}
-                  </span>
+                  <span className="text-[10px] font-semibold leading-tight">{item.label}</span>
                   {item.href === "/messages" && unreadTotal > 0 && (
                     <span className="absolute right-2 top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
                       {unreadTotal > 99 ? "99+" : unreadTotal}
@@ -128,7 +120,7 @@ export function MobileMoreSheet() {
           <Link
             href={site.visitCTA.href}
             onClick={() => setMoreMenuOpen(false)}
-            className={`mt-4 block rounded-2xl bg-gradient-to-r ${site.visitCTA.gradient} px-4 py-4 text-center text-sm font-semibold text-white shadow-md ${site.visitCTA.hoverGradient}`}
+            className="mt-4 block rounded-2xl bg-amber-400 px-4 py-4 text-center text-sm font-semibold text-night-950 shadow-md transition hover:bg-amber-300"
           >
             Plan a visit · Aurora &amp; Accra
           </Link>
@@ -138,14 +130,14 @@ export function MobileMoreSheet() {
               <Link
                 href="/sign-in"
                 onClick={() => setMoreMenuOpen(false)}
-                className="rounded-2xl bg-white/15 px-4 py-3 text-center text-sm font-semibold text-white ring-1 ring-white/15"
+                className="rounded-2xl bg-white/10 px-4 py-3 text-center text-sm font-semibold text-white ring-1 ring-white/15"
               >
                 Sign in
               </Link>
               <Link
                 href="/sign-up"
                 onClick={() => setMoreMenuOpen(false)}
-                className="rounded-2xl bg-gradient-to-r from-amber-400 to-fuchsia-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-lg"
+                className="rounded-2xl bg-white px-4 py-3 text-center text-sm font-semibold text-night-900"
               >
                 Join
               </Link>

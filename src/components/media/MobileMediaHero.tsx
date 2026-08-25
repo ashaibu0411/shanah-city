@@ -28,8 +28,7 @@ export function MobileMediaHero({
         sizes="(max-width: 512px) 100vw, 480px"
         className="mobile-media object-cover"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/92 via-night-900/40 to-night-800/20" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.12),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/88 via-night-950/40 to-night-900/10" />
 
       <div className="relative flex h-full flex-col justify-between p-4">
         <div className="flex items-start justify-between gap-2">

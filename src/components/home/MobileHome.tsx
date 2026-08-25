@@ -75,14 +75,13 @@ export function MobileHome({
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <PendingRsvpHomeBanner />
       <PrayerHomeBanner variant="mobile" />
-      <section className="mobile-home-aurora relative overflow-hidden rounded-2xl p-4 text-white shadow-app-lg ring-1 ring-night-900/10">
+      <section className="mobile-home relative overflow-hidden rounded-2xl bg-night-950 p-4 text-white shadow-app-lg ring-1 ring-night-900/10">
         <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
-        <div className="mobile-home-shimmer pointer-events-none absolute inset-0 opacity-30" aria-hidden />
 
         <div className="relative">
           <HomeTagline size="mobile" />
 
-          <div className="mobile-home-fade-up mobile-home-fade-up-3 mt-2.5 inline-flex rounded-full border border-white/15 bg-black/15 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sand-100 backdrop-blur-md">
+          <div className="mt-2.5 inline-flex rounded-full border border-white/12 bg-black/20 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sand-100">
             Sun {nextService} · {campus.city}
           </div>
         </div>
@@ -113,8 +112,7 @@ export function MobileHome({
           )}
         </div>
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-900/35 to-night-800/15" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.14),transparent_42%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/88 via-night-950/35 to-night-900/10" />
 
         <div className="relative flex h-full flex-col justify-between p-4">
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sand-200/90">

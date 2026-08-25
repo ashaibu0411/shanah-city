@@ -180,6 +180,11 @@
       display: block !important;
     }
 
+    body[data-shell="mobile"] .app-mobile-more-backdrop,
+    body[data-shell="mobile"] .app-mobile-more-sheet {
+      display: block !important;
+    }
+
     body[data-shell="mobile"] .app-shell-layout,
     body[data-shell="mobile"] .app-main,
     body[data-shell="mobile"] .app-mobile-inner {
@@ -289,21 +294,13 @@
   .mobile-aurora-bg,
   .mobile-home-aurora-bg {
     background:
-      radial-gradient(circle at 18% 15%, rgba(251, 191, 36, 0.22), transparent 38%),
-      radial-gradient(circle at 82% 8%, rgba(196, 168, 130, 0.18), transparent 36%),
-      linear-gradient(145deg, #0f172a 0%, #1a2332 52%, #2f3c52 100%);
+      radial-gradient(circle at 78% 12%, rgba(251, 191, 36, 0.12), transparent 34%),
+      linear-gradient(155deg, #0b1220 0%, #111827 48%, #1a2332 100%);
   }
 
   .mobile-shimmer,
   .mobile-home-shimmer {
-    background: linear-gradient(
-      105deg,
-      transparent 42%,
-      rgba(255, 255, 255, 0.06) 50%,
-      transparent 58%
-    );
-    background-size: 220% 100%;
-    animation: mobile-home-shimmer 12s ease-in-out infinite;
+    display: none;
   }
 
   .mobile-spotlight-mesh,
@@ -321,10 +318,7 @@
 
   .mobile-headline,
   .mobile-home-headline {
-    background: linear-gradient(120deg, #ffffff 0%, #f3efe8 45%, #e8dfd2 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #ffffff;
   }
 
   .mobile-logo-reveal,
@@ -372,7 +366,6 @@
   }
 
   body[data-shell="mobile"] .mobile-media {
-    image-rendering: -webkit-optimize-contrast;
     transform: translateZ(0);
     backface-visibility: hidden;
   }
@@ -406,26 +399,13 @@
   }
 
   body[data-shell="mobile"] .mobile-action-tile {
-    @apply relative overflow-hidden rounded-2xl border border-white/20 shadow-app-lg;
+    @apply relative overflow-hidden rounded-2xl border border-white/15 shadow-app-lg;
     min-height: 7.25rem;
   }
 
-  body[data-shell="mobile"] .mobile-action-tile::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.28), transparent 42%),
-      radial-gradient(circle at 88% 88%, rgba(0, 0, 0, 0.22), transparent 48%);
-    pointer-events: none;
-  }
-
+  body[data-shell="mobile"] .mobile-action-tile::before,
   body[data-shell="mobile"] .mobile-action-tile::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 38%, rgba(0, 0, 0, 0.12));
-    pointer-events: none;
+    display: none;
   }
 
   body[data-shell="mobile"] .mobile-action-icon-shell {

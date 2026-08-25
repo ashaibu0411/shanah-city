@@ -41,7 +41,7 @@ export function MobileNav() {
                 <span
                   className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
                     active
-                      ? "bg-gradient-to-br from-sand-300 via-amber-400 to-sand-500 text-night-950 shadow-app-md ring-1 ring-amber-200/50"
+                      ? "bg-amber-400 text-night-950 shadow-app-md ring-1 ring-amber-200/60"
                       : "bg-night-800 text-sand-100 ring-1 ring-white/15"
                   }`}
                 >
@@ -68,7 +68,7 @@ export function MobileNav() {
             <span
               className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
                 moreActive
-                  ? "bg-gradient-to-br from-sand-300 via-amber-400 to-sand-500 text-night-950 shadow-app-md ring-1 ring-amber-200/50"
+                  ? "bg-amber-400 text-night-950 shadow-app-md ring-1 ring-amber-200/60"
                   : "bg-night-800 text-sand-100 ring-1 ring-white/15"
               }`}
             >
