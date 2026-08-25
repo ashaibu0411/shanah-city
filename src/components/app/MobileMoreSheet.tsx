@@ -35,7 +35,7 @@ export function MobileMoreSheet() {
         onClick={() => setMoreMenuOpen(false)}
       />
       <div className="app-mobile-more-sheet fixed inset-x-0 bottom-0 z-[60] overflow-hidden rounded-t-[1.75rem] bg-night-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl ring-1 ring-white/10">
-        <div className="app-mobile-inner relative mx-auto max-w-lg">
+        <div className="app-mobile-inner relative mx-auto w-full">
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
           <div className="mb-4 flex items-center justify-between">
             <div>

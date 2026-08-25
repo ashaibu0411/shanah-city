@@ -10,16 +10,10 @@ export function DevotionListItem({ devotion }: { devotion: Devotion }) {
       href={`/devotions/${devotion.id}`}
       className="group flex items-center gap-4 rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-night-900/5 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-night-900/10"
     >
-      {artworkUrl ? (
-        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-night-900">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={artworkUrl} alt="" className="h-full w-full object-cover" />
-        </div>
-      ) : (
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-night-900 text-sm font-bold text-amber-300">
-          ✦
-        </div>
-      )}
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-night-900">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={artworkUrl} alt="" className="h-full w-full object-cover" />
+      </div>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sand-600">
           {devotion.date}

@@ -26,7 +26,7 @@ export function MobileNav() {
   return (
     <nav className="app-mobile-bottom-nav mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-white/12 bg-night-950 shadow-app-nav lg:hidden">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sand-400/35 to-transparent" />
-      <ul className="app-mobile-inner mx-auto flex max-w-lg items-stretch justify-around px-1 pb-[max(0.45rem,env(safe-area-inset-bottom))] pt-2">
+      <ul className="app-mobile-inner mx-auto flex w-full items-stretch justify-around px-1 pb-[max(0.45rem,env(safe-area-inset-bottom))] pt-2">
         {tabs.map((item) => {
           const active = pathname === item.href;
           const iconName = navHrefToTabIcon(item.href);
@@ -39,14 +39,14 @@ export function MobileNav() {
                 }`}
               >
                 <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
+                  className={`mobile-nav-icon-shell flex items-center justify-center transition ${
                     active
                       ? "bg-amber-400 text-night-950 shadow-app-md ring-1 ring-amber-200/60"
                       : "bg-night-800 text-sand-100 ring-1 ring-white/15"
                   }`}
                 >
                   {iconName ? (
-                    <MobileTabIcon name={iconName} className="h-5 w-5" />
+                    <MobileTabIcon name={iconName} className="mobile-nav-icon h-5 w-5" />
                   ) : (
                     item.icon
                   )}
@@ -66,13 +66,13 @@ export function MobileNav() {
             }`}
           >
             <span
-              className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
+              className={`mobile-nav-icon-shell flex items-center justify-center transition ${
                 moreActive
                   ? "bg-amber-400 text-night-950 shadow-app-md ring-1 ring-amber-200/60"
                   : "bg-night-800 text-sand-100 ring-1 ring-white/15"
               }`}
             >
-              <MobileTabIcon name="more" className="h-5 w-5" />
+              <MobileTabIcon name="more" className="mobile-nav-icon h-5 w-5" />
             </span>
             <span className="mobile-nav-label">More</span>
           </button>

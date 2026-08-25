@@ -85,6 +85,20 @@
     color: rgba(243, 239, 232, 0.92);
   }
 
+  body[data-shell="mobile"] .mobile-nav-icon-shell {
+    display: flex;
+    height: 2.5rem;
+    width: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+  }
+
+  body[data-shell="mobile"] .mobile-nav-icon {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+
   body[data-shell="mobile"] .mobile-nav-link.text-white .mobile-nav-label {
     color: #ffffff;
   }
@@ -155,16 +169,6 @@
 }
 
 @layer components {
-  /* Tablet / iPad: use more horizontal space while keeping the app shell */
-  @media (min-width: 768px) {
-    body[data-shell="mobile"] .app-shell-layout,
-    body[data-shell="mobile"] .app-main,
-    body[data-shell="mobile"] .app-mobile-inner {
-      max-width: min(52rem, 94vw);
-      width: 100%;
-    }
-  }
-
   /* iPad landscape and large tablets: keep app shell chrome even when viewport is >= lg */
   @media (min-width: 1024px) {
     body[data-shell="mobile"] .app-desktop-topbar,
@@ -184,12 +188,6 @@
     body[data-shell="mobile"] .app-mobile-more-sheet {
       display: block !important;
     }
-
-    body[data-shell="mobile"] .app-shell-layout,
-    body[data-shell="mobile"] .app-main,
-    body[data-shell="mobile"] .app-mobile-inner {
-      max-width: min(56rem, 92vw);
-    }
   }
 
   body[data-messages-immersive="true"] .app-main {
@@ -203,10 +201,223 @@
     height: 100dvh;
   }
 
+  body[data-shell="mobile"] .app-shell-layout,
+  body[data-shell="mobile"] .app-main,
+  body[data-shell="mobile"] .app-mobile-inner {
+    @apply mx-auto w-full;
+    max-width: min(32rem, 100%);
+  }
+
   body[data-shell="mobile"] .app-main {
-    @apply mx-auto max-w-lg px-3.5 pt-2;
+    @apply px-3.5 pt-2;
     /* Clear fixed bottom tab bar + home indicator */
     padding-bottom: calc(6.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Tablet / iPad: wider layout + larger type (must follow .app-main base rules) */
+  @media (min-width: 768px) {
+    body[data-shell="mobile"] .app-shell-layout,
+    body[data-shell="mobile"] .app-main,
+    body[data-shell="mobile"] .app-mobile-inner {
+      max-width: min(56rem, 94vw);
+    }
+
+    body[data-shell="mobile"] .app-main {
+      @apply px-5;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    body[data-shell="mobile"] .app-shell-layout,
+    body[data-shell="mobile"] .app-main,
+    body[data-shell="mobile"] .app-mobile-inner {
+      max-width: min(68rem, 92vw);
+    }
+
+    body[data-shell="mobile"] {
+      font-size: 1.0625rem;
+      line-height: 1.6;
+    }
+
+    body[data-shell="mobile"] .text-xs {
+      font-size: 0.875rem;
+      line-height: 1.35rem;
+    }
+
+    body[data-shell="mobile"] .text-sm {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+
+    body[data-shell="mobile"] .text-base {
+      font-size: 1.0625rem;
+      line-height: 1.6rem;
+    }
+
+    body[data-shell="mobile"] .text-lg {
+      font-size: 1.25rem;
+      line-height: 1.7rem;
+    }
+
+    body[data-shell="mobile"] .text-2xl {
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+
+    body[data-shell="mobile"] .text-4xl {
+      font-size: 2.75rem;
+      line-height: 1;
+    }
+
+    body[data-shell="mobile"] .mobile-nav-label {
+      font-size: 0.8125rem;
+      line-height: 1.125rem;
+    }
+
+    body[data-shell="mobile"] .mobile-nav-icon-shell {
+      height: 2.75rem;
+      width: 2.75rem;
+      border-radius: 0.9rem;
+    }
+
+    body[data-shell="mobile"] .mobile-nav-icon {
+      height: 1.375rem;
+      width: 1.375rem;
+    }
+
+    body[data-shell="mobile"] .mobile-page-hero {
+      margin-bottom: 1rem;
+      padding: 1.5rem;
+      border-radius: 1.25rem;
+    }
+
+    body[data-shell="mobile"] .mobile-page-hero h1 {
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+
+    body[data-shell="mobile"] .mobile-page-hero .mobile-page-hero-eyebrow {
+      font-size: 0.6875rem;
+      letter-spacing: 0.28em;
+    }
+
+    body[data-shell="mobile"] .mobile-page-hero .mobile-page-hero-description {
+      font-size: 1rem;
+      line-height: 1.55rem;
+    }
+
+    body[data-shell="mobile"] .mobile-card {
+      padding: 1.25rem;
+      border-radius: 1.125rem;
+    }
+
+    body[data-shell="mobile"] .mobile-section-title {
+      font-size: 1.125rem;
+    }
+
+    body[data-shell="mobile"] .app-mobile-header .mobile-header-title {
+      font-size: 1.125rem;
+    }
+
+    body[data-shell="mobile"] .app-mobile-header .mobile-header-subtitle {
+      font-size: 0.8125rem;
+    }
+
+    body[data-shell="mobile"] .mobile-tablet-grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    body[data-shell="mobile"] .app-shell-layout,
+    body[data-shell="mobile"] .app-main,
+    body[data-shell="mobile"] .app-mobile-inner {
+      max-width: min(78rem, 90vw);
+    }
+
+    body[data-shell="mobile"] {
+      font-size: 1.125rem;
+      line-height: 1.65;
+    }
+
+    body[data-shell="mobile"] .text-xs {
+      font-size: 0.9375rem;
+      line-height: 1.4rem;
+    }
+
+    body[data-shell="mobile"] .text-sm {
+      font-size: 1.0625rem;
+      line-height: 1.55rem;
+    }
+
+    body[data-shell="mobile"] .text-base {
+      font-size: 1.125rem;
+      line-height: 1.65rem;
+    }
+
+    body[data-shell="mobile"] .text-lg {
+      font-size: 1.375rem;
+      line-height: 1.85rem;
+    }
+
+    body[data-shell="mobile"] .text-2xl {
+      font-size: 2.125rem;
+      line-height: 2.5rem;
+    }
+
+    body[data-shell="mobile"] .text-4xl {
+      font-size: 3.25rem;
+      line-height: 1;
+    }
+
+    body[data-shell="mobile"] .mobile-nav-label {
+      font-size: 0.875rem;
+      line-height: 1.2rem;
+    }
+
+    body[data-shell="mobile"] .mobile-nav-icon-shell {
+      height: 3rem;
+      width: 3rem;
+      border-radius: 1rem;
+    }
+
+    body[data-shell="mobile"] .mobile-nav-icon {
+      height: 1.5rem;
+      width: 1.5rem;
+    }
+
+    body[data-shell="mobile"] .mobile-page-hero {
+      margin-bottom: 1.25rem;
+      padding: 1.75rem;
+    }
+
+    body[data-shell="mobile"] .mobile-page-hero h1 {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+
+    body[data-shell="mobile"] .mobile-page-hero .mobile-page-hero-description {
+      font-size: 1.0625rem;
+      line-height: 1.6rem;
+    }
+
+    body[data-shell="mobile"] .mobile-card {
+      padding: 1.5rem;
+    }
+
+    body[data-shell="mobile"] .mobile-section-title {
+      font-size: 1.25rem;
+    }
+
+    body[data-shell="mobile"] .app-main {
+      @apply px-6;
+    }
+
+    body[data-shell="mobile"] .mobile-tablet-grid-3 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
   }
 
   /* Auth pages: fill tablet width; stack on phone, side-by-side on iPad+ */

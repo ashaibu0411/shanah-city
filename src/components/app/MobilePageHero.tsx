@@ -23,7 +23,7 @@ export function MobilePageHero({
 
       <div className="relative">
         {eyebrow ? (
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-300/90">
+          <p className="mobile-page-hero-eyebrow text-[10px] font-bold uppercase tracking-[0.24em] text-amber-300/90">
             {eyebrow}
           </p>
         ) : null}
@@ -31,7 +31,7 @@ export function MobilePageHero({
           {title}
         </h1>
         {description ? (
-          <p className="mt-2 text-sm leading-snug text-white/75">{description}</p>
+          <p className="mobile-page-hero-description mt-2 text-sm leading-snug text-white/75">{description}</p>
         ) : null}
         {children ? <div className="mt-4">{children}</div> : null}
       </div>
