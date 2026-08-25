@@ -19,12 +19,14 @@ import type { CommunityPost } from "@/lib/member-types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
+import type { SermonVideo } from "@/lib/youtube-sermons-server";
 
 type HomeViewProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
   urgentAlert: UrgentAlert | null;
   churchImages: ChurchSocialImages;
+  latestSermon?: SermonVideo | null;
 };
 
 export function HomeView({
@@ -32,6 +34,7 @@ export function HomeView({
   todayDevotion,
   urgentAlert,
   churchImages,
+  latestSermon = null,
 }: HomeViewProps) {
   const { isMobileApp } = useAppShell();
   const highlightAlert = useUrgentAlertHighlight(urgentAlert);
@@ -61,7 +64,7 @@ export function HomeView({
 
       <section className="mb-8">
         <SectionTitle title="Latest sermon" href="/sermons" />
-        <SermonCard compact />
+        <SermonCard compact video={latestSermon} />
       </section>
 
       <CommunityPreview initialPosts={posts} />
