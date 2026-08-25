@@ -84,3 +84,33 @@ export function formatDenverTime(value: string | Date) {
     minute: "2-digit",
   });
 }
+
+/** Convert a Denver wall-clock date/time (YYYY-MM-DD + HH:mm) to a UTC Date. */
+export function denverWallClockToDate(
+  dateKey: string,
+  timeInput: string,
+  timeZone = "America/Denver",
+) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const [hours, minutes] = (timeInput || "00:00").split(":").map(Number);
+  if (!year || !month || !day || Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return new Date();
+  }
+
+  let candidate = new Date(Date.UTC(year, month - 1, day, hours + 7, minutes));
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const zoned = getZonedDateParts(candidate, timeZone);
+    if (zoned.dateKey === dateKey && zoned.hour === hours && zoned.minute === minutes) {
+      return candidate;
+    }
+
+    const target = hours * 60 + minutes;
+    const current = zoned.hour * 60 + zoned.minute;
+    let deltaMinutes = target - current;
+    if (zoned.dateKey < dateKey) deltaMinutes += 24 * 60;
+    if (zoned.dateKey > dateKey) deltaMinutes -= 24 * 60;
+    candidate = new Date(candidate.getTime() + deltaMinutes * 60_000);
+  }
+
+  return candidate;
+}

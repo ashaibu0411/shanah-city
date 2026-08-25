@@ -29,8 +29,8 @@ export const AUTOMATED_MEETING_REMINDERS: Record<string, AutomatedReminderRule> 
     startMinute: 0,
     endHour: 8,
     endMinute: 10,
-    notifyHour: 8,
-    notifyMinute: 0,
+    notifyHour: 7,
+    notifyMinute: 57,
     whenLabel: "Monday–Friday at 8:00 AM MST",
   },
   [SHIFT_YOUR_EVENING_ID]: {
@@ -39,8 +39,8 @@ export const AUTOMATED_MEETING_REMINDERS: Record<string, AutomatedReminderRule> 
     startMinute: 0,
     endHour: 20,
     endMinute: 40,
-    notifyHour: 20,
-    notifyMinute: 0,
+    notifyHour: 19,
+    notifyMinute: 57,
     whenLabel: "Tuesday–Thursday at 8:00 PM MST",
   },
 };

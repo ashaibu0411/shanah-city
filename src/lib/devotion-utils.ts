@@ -1,4 +1,5 @@
 import type { Devotion } from "@/lib/types";
+import { denverWallClockToDate, getZonedDateParts } from "@/lib/denver-time";
 
 export type DevotionPublishMode = "now" | "schedule" | "draft";
 
@@ -34,10 +35,7 @@ export function toDateInputValue(value: string | Date) {
   if (Number.isNaN(date.getTime())) {
     return "";
   }
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return getZonedDateParts(date).dateKey;
 }
 
 export function toTimeInputValue(value: string | Date) {
@@ -45,19 +43,16 @@ export function toTimeInputValue(value: string | Date) {
   if (Number.isNaN(date.getTime())) {
     return "06:00";
   }
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${hours}:${minutes}`;
+  const zoned = getZonedDateParts(date);
+  return `${String(zoned.hour).padStart(2, "0")}:${String(zoned.minute).padStart(2, "0")}`;
 }
 
 export function combineScheduleInputs(dateInput: string, timeInput: string) {
-  const [year, month, day] = dateInput.split("-").map(Number);
-  const [hours, minutes] = (timeInput || "06:00").split(":").map(Number);
-  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+  return denverWallClockToDate(dateInput, timeInput);
 }
 
 export function defaultScheduleDateInput() {
-  return toDateInputValue(new Date());
+  return getZonedDateParts().dateKey;
 }
 
 export function isDevotionPubliclyVisible(devotion: Devotion, now = new Date()) {
@@ -88,6 +83,7 @@ export function formatScheduleLabel(devotion: Devotion) {
     return devotion.date;
   }
   return new Date(devotion.publishAt).toLocaleString(undefined, {
+    timeZone: "America/Denver",
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -178,7 +174,7 @@ export function pickTodayDevotion(devotions: Devotion[], now = new Date()) {
     return null;
   }
 
-  const todayKey = toDateInputValue(now);
+  const todayKey = getZonedDateParts(now).dateKey;
   const todays = visible.filter((devotion) => {
     if (devotion.publishAt) {
       return toDateInputValue(devotion.publishAt) === todayKey;
