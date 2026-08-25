@@ -26,7 +26,7 @@ jobs:
         run: |
           if [ -z "$CRON_SECRET" ]; then
             echo "CRON_SECRET secret is not set — skipping."
-            exit 1
+            exit 0
           fi
           curl --fail --silent --show-error \
             --header "Authorization: Bearer $CRON_SECRET" \

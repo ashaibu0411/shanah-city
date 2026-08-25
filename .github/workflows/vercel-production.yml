@@ -4,11 +4,10 @@ name: Vercel Production Deploy
 # Setup (one time):
 # 1. Vercel → shanah-city → Settings → Git → Deploy Hooks → Create (branch: main)
 # 2. GitHub → repo Settings → Secrets → Actions → New secret: VERCEL_DEPLOY_HOOK = hook URL
+#
+# Manual only — normal pushes already deploy via Vercel Git integration.
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
@@ -29,7 +28,7 @@ jobs:
           if [ -z "$DEPLOY_HOOK" ]; then
             echo "VERCEL_DEPLOY_HOOK secret is not set — skipping."
             echo "Add it from Vercel → Settings → Git → Deploy Hooks, then re-run this workflow."
-            exit 1
+            exit 0
           fi
           curl --fail --silent --show-error --request POST "$DEPLOY_HOOK"
           echo "Deploy hook triggered."
