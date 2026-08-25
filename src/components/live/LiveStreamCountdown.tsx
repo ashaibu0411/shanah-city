@@ -11,9 +11,51 @@ import type { LiveStreamSchedule } from "@/lib/live-schedule-types";
 
 type LiveStreamCountdownProps = {
   schedule: LiveStreamSchedule;
-  variant?: "card" | "inline" | "on-dark" | "stage" | "home-flyer";
+  variant?: "card" | "inline" | "on-dark" | "stage" | "home-flyer" | "desktop-hero";
   onComplete?: () => void;
 };
+
+function padCountdown(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function ColonCountdown({
+  parts,
+}: {
+  parts: ReturnType<typeof getLiveStreamCountdown>;
+}) {
+  const segments = [
+    { value: parts.days, label: "Day" },
+    { value: parts.hours, label: "Hour" },
+    { value: parts.minutes, label: "Min" },
+    { value: parts.seconds, label: "Sec" },
+  ];
+
+  return (
+    <div className="flex items-start justify-center gap-1 sm:gap-2">
+      {segments.map((segment, index) => (
+        <div key={segment.label} className="flex items-start gap-1 sm:gap-2">
+          {index > 0 ? (
+            <span
+              aria-hidden
+              className="pb-6 font-display text-3xl font-light leading-none text-white/35 sm:text-4xl"
+            >
+              :
+            </span>
+          ) : null}
+          <div className="min-w-[3.25rem] text-center sm:min-w-[4rem]">
+            <p className="font-display text-4xl font-bold tabular-nums leading-none text-white sm:text-5xl">
+              {padCountdown(segment.value)}
+            </p>
+            <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55 sm:text-xs">
+              {segment.label}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function CountdownUnit({
   value,
@@ -96,6 +138,49 @@ export function LiveStreamCountdown({
         Next live in <span className="tabular-nums text-night-900">{compact}</span>
         {startLabel ? <span className="text-night-500"> · {startLabel}</span> : null}
       </p>
+    );
+  }
+
+  if (variant === "desktop-hero") {
+    return (
+      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 px-6 py-10 text-white shadow-xl ring-1 ring-night-900/10 sm:px-10 sm:py-12">
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.22),transparent_42%),radial-gradient(circle_at_85%_80%,rgba(0,0,0,0.18),transparent_45%)]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.14]"
+          aria-hidden
+        >
+          <p className="select-none text-center font-display text-[4.5rem] font-bold leading-[0.85] tracking-tight sm:text-[7rem]">
+            <span className="block text-white">live</span>
+            <span className="block text-night-950">stream</span>
+          </p>
+        </div>
+
+        <p className="relative text-xs font-bold uppercase tracking-[0.28em] text-white/90">
+          Shanah City Live
+        </p>
+
+        <div className="relative mx-auto mt-8 max-w-xl rounded-[1.35rem] bg-night-950/88 px-5 py-6 text-center shadow-2xl ring-1 ring-white/10 backdrop-blur-md sm:px-8 sm:py-7">
+          <p className="text-sm text-white/75">
+            {startLabel ? `Live on ${startLabel}` : "Upcoming livestream"}
+          </p>
+          <div className="mt-5">
+            <ColonCountdown parts={parts} />
+          </div>
+          <h3 className="mt-6 font-display text-xl font-semibold leading-tight text-white sm:text-2xl">
+            {schedule.title}
+          </h3>
+          <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/45">
+            {platformLabel}
+          </p>
+        </div>
+
+        <p className="relative mt-6 text-center text-sm font-semibold text-white/90">
+          Open live player →
+        </p>
+      </div>
     );
   }
 

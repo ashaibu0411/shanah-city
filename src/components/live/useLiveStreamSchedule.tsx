@@ -25,7 +25,7 @@ export function useUpcomingLiveStreamSchedule() {
 }
 
 type LiveStreamCountdownBannerProps = {
-  variant?: "card" | "inline" | "on-dark" | "home-flyer";
+  variant?: "card" | "inline" | "on-dark" | "home-flyer" | "desktop-hero";
 };
 
 export function LiveStreamCountdownBanner({ variant = "card" }: LiveStreamCountdownBannerProps) {
