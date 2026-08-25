@@ -8,6 +8,7 @@ import {
   shiftMonth,
   type CalendarPlannable,
 } from "@/lib/calendar-utils";
+import { getZonedDateParts } from "@/lib/denver-time";
 import { Button, Card } from "@/components/ui";
 
 type CalendarMonthViewProps<T extends CalendarPlannable> = {
@@ -17,6 +18,23 @@ type CalendarMonthViewProps<T extends CalendarPlannable> = {
 };
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function denverMonthCursor(reference = new Date()) {
+  const denver = getZonedDateParts(reference);
+  return {
+    year: Number(denver.year),
+    month: Number(denver.month) - 1,
+    dateKey: denver.dateKey,
+  };
+}
+
+function isViewingDenverMonth(
+  monthCursor: { year: number; month: number },
+  dateKey: string,
+) {
+  const [year, month] = dateKey.split("-").map(Number);
+  return monthCursor.year === year && monthCursor.month === month - 1;
+}
 
 function itemTime(item: CalendarPlannable) {
   return item.time?.trim() || item.schedule?.trim() || "";
@@ -59,14 +77,13 @@ export function CalendarMonthView<T extends CalendarPlannable>({
   renderItem,
   emptyDayLabel = "No events on this day.",
 }: CalendarMonthViewProps<T>) {
-  const today = new Date();
+  const denverToday = denverMonthCursor();
+  const todayKey = denverToday.dateKey;
   const [monthCursor, setMonthCursor] = useState({
-    year: today.getFullYear(),
-    month: today.getMonth(),
+    year: denverToday.year,
+    month: denverToday.month,
   });
-  const [selectedDate, setSelectedDate] = useState<string | null>(
-    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
-  );
+  const [selectedDate, setSelectedDate] = useState<string | null>(todayKey);
 
   const itemsByDate = useMemo(
     () => groupItemsByDate(items, monthCursor.year, monthCursor.month),
@@ -95,7 +112,10 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     }))
     .filter((cell) => cell.dayItems.length > 0);
 
-  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const viewingCurrentMonth = isViewingDenverMonth(monthCursor, todayKey);
+  const upcomingAgendaDays = viewingCurrentMonth
+    ? agendaDays.filter((day) => day.isoDate >= todayKey)
+    : agendaDays;
 
   return (
     <div className="mb-6 space-y-4">
@@ -114,11 +134,9 @@ export function CalendarMonthView<T extends CalendarPlannable>({
             <Button
               variant="secondary"
               onClick={() => {
-                const now = new Date();
-                setMonthCursor({ year: now.getFullYear(), month: now.getMonth() });
-                setSelectedDate(
-                  `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`,
-                );
+                const now = denverMonthCursor();
+                setMonthCursor({ year: now.year, month: now.month });
+                setSelectedDate(now.dateKey);
               }}
             >
               Today
@@ -232,10 +250,14 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           </div>
 
           <div className="mt-5 space-y-4">
-            {agendaDays.length === 0 ? (
-              <p className="text-sm text-night-500">No events this month.</p>
+            {upcomingAgendaDays.length === 0 ? (
+              <p className="text-sm text-night-500">
+                {viewingCurrentMonth
+                  ? "No upcoming meetings this month."
+                  : "No events this month."}
+              </p>
             ) : (
-              agendaDays.map((day) => (
+              upcomingAgendaDays.map((day) => (
                 <section key={day.isoDate}>
                   <button
                     type="button"
