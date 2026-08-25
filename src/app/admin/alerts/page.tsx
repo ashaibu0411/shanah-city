@@ -21,7 +21,7 @@ export default async function AdminAlertsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Admin Group"
+        eyebrow="Communications"
         title="Urgent alerts"
         description="Publish a red-hot home page banner when the whole church needs the same critical update right away."
       />

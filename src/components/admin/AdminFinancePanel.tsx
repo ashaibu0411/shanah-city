@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import {
   emptyFinanceGrid,
   financeFundLabel,
@@ -179,8 +178,6 @@ export function AdminFinancePanel() {
 
   return (
     <>
-      <AdminSubNav />
-
       <Card className="mb-6">
         <h2 className="font-display text-xl font-semibold text-night-900">Weekly count sheet</h2>
         <p className="mt-1 text-sm text-night-600">

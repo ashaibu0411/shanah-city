@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import { ContentArtworkPanel } from "@/components/share/ContentArtworkPanel";
 import { ShareActions } from "@/components/share/ShareActions";
 import { Button, Card } from "@/components/ui";
@@ -166,8 +165,6 @@ export function AdminUrgentAlertPanel() {
 
   return (
     <div>
-      <AdminSubNav />
-
       <Card>
         <h2 className="font-display text-xl font-semibold text-night-900">Urgent home alert</h2>
         <p className="mt-2 text-sm text-night-600">

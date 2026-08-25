@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { GivingThankYouComposer } from "@/components/admin/GivingThankYouComposer";
-import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import {
   fundLabel,
   GIVING_FUND_OPTIONS,
@@ -238,8 +237,6 @@ export function AdminGivingPanel() {
 
   return (
     <>
-      <AdminSubNav />
-
       <Card className="mb-6">
         <h2 className="font-display text-xl font-semibold text-night-900">Record a gift</h2>
         <p className="mt-1 text-sm text-night-600">

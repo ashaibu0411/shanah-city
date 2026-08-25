@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { AdminSubNav } from "@/components/admin/AdminSubNav";
 import { Button, Card } from "@/components/ui";
 import type { GroupJoinRequest } from "@/lib/group-types";
 
@@ -64,7 +63,6 @@ export function AdminApprovalsPanel() {
 
   return (
     <div className="space-y-6">
-      <AdminSubNav />
       {!permissions.canManageAdmin && pending.length === 0 && (
         <Card>
           <h2 className="font-display text-xl font-semibold text-night-900">

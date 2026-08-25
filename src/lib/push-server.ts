@@ -229,7 +229,7 @@ export async function notifyNewDevotion(input: {
     .map((user) => user.id);
 
   const url = input.devotionId
-    ? `/devotions?id=${encodeURIComponent(input.devotionId)}`
+    ? `/devotions/${encodeURIComponent(input.devotionId)}`
     : "/devotions";
 
   return sendPushToUsers(

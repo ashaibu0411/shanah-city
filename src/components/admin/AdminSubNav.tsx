@@ -5,15 +5,25 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const adminLinks = [
-  { href: "/admin/approvals", label: "Approvals", adminOnly: true },
-  { href: "/admin/alerts", label: "Urgent", adminOnly: true },
-  { href: "/admin/guests", label: "Guests", adminOnly: true },
-  { href: "/admin/people", label: "People", adminOnly: true },
-  { href: "/admin/giving", label: "Giving", adminOnly: true, financeAllowed: true },
-  { href: "/admin/finance", label: "Finance", adminOnly: false },
+  { href: "/admin/approvals", label: "Approvals", description: "Ministry requests", adminOnly: true },
+  { href: "/admin/alerts", label: "Urgent", description: "Alert broadcasts", adminOnly: true },
+  { href: "/admin/guests", label: "Guests", description: "Visitor follow-up", adminOnly: true },
+  { href: "/admin/people", label: "People", description: "Member directory", adminOnly: true },
+  { href: "/admin/giving", label: "Giving", description: "Gifts & thank-yous", adminOnly: true, financeAllowed: true },
+  { href: "/admin/finance", label: "Finance", description: "Reports & entries", adminOnly: false },
 ] as const;
 
-export function AdminSubNav() {
+const portalPaths = new Set(adminLinks.map((link) => link.href));
+
+export function isAdminPortalPath(pathname: string) {
+  return portalPaths.has(pathname as (typeof adminLinks)[number]["href"]);
+}
+
+type AdminSubNavProps = {
+  variant?: "pills" | "sidebar";
+};
+
+export function AdminSubNav({ variant = "pills" }: AdminSubNavProps) {
   const pathname = usePathname();
   const { permissions } = useAuth();
 
@@ -28,6 +38,36 @@ export function AdminSubNav() {
   });
 
   if (links.length === 0) return null;
+
+  if (variant === "sidebar") {
+    return (
+      <nav className="space-y-1">
+        {links.map((link) => {
+          const active = pathname === link.href;
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`block rounded-xl px-3 py-2.5 transition ${
+                active
+                  ? "bg-night-900 text-sand-50 shadow-sm"
+                  : "text-night-700 hover:bg-white hover:ring-1 hover:ring-night-900/10"
+              }`}
+            >
+              <span className="block text-sm font-semibold">{link.label}</span>
+              <span
+                className={`mt-0.5 block text-xs ${
+                  active ? "text-sand-300" : "text-night-500"
+                }`}
+              >
+                {link.description}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+    );
+  }
 
   return (
     <nav className="mb-6 flex flex-wrap gap-2">

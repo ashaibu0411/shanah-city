@@ -19,8 +19,8 @@ export default async function AdminApprovalsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Admin Group"
-        title="Approvals & access"
+        eyebrow="Access"
+        title="Approvals"
         description={
           isAdmin
             ? "Approve ministry memberships and privileged group requests."

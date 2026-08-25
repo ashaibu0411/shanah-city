@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { DevotionsFeed } from "@/components/devotions/DevotionsFeed";
 import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { PageHeader } from "@/components/ui";
@@ -6,7 +6,16 @@ import { getDevotions } from "@/lib/devotion-server";
 
 export const dynamic = "force-dynamic";
 
-export default async function DevotionsPage() {
+type DevotionsPageProps = {
+  searchParams: Promise<{ id?: string }>;
+};
+
+export default async function DevotionsPage({ searchParams }: DevotionsPageProps) {
+  const { id } = await searchParams;
+  if (id?.trim()) {
+    redirect(`/devotions/${encodeURIComponent(id.trim())}`);
+  }
+
   const devotions = await getDevotions();
 
   return (
@@ -14,7 +23,7 @@ export default async function DevotionsPage() {
       <PageHeader
         eyebrow="Daily"
         title="Devotions"
-        description="Start each day with scripture, reflection, and prayer. Anyone can read or listen — no account needed."
+        description="Browse past devotions by title. Tap any message to read or listen in full."
       />
       <MarkFeedRead feed="devotions" />
       {devotions.length === 0 ? (
@@ -22,9 +31,7 @@ export default async function DevotionsPage() {
           No published devotion yet. Check back soon.
         </p>
       ) : (
-        <Suspense fallback={<p className="text-sm text-night-600">Loading devotions…</p>}>
-          <DevotionsFeed devotions={devotions} />
-        </Suspense>
+        <DevotionsFeed devotions={devotions} />
       )}
     </>
   );

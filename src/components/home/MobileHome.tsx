@@ -157,7 +157,7 @@ export function MobileHome({
             Today&apos;s Word
           </p>
           <Link
-            href={`/devotions?id=${encodeURIComponent(devotion.id)}`}
+            href={`/devotions/${encodeURIComponent(devotion.id)}`}
             className="mobile-card block overflow-hidden transition active:scale-[0.99]"
           >
             {devotionArtworkUrl ? (

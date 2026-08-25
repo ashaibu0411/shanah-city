@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AdminMemberDetail } from "@/components/admin/AdminMemberDetail";
-import { AdminSubNav } from "@/components/admin/AdminSubNav";
-import { Button, Card } from "@/components/ui";
-import { getCampus } from "@/lib/site";
+import { Card } from "@/components/ui";
 import type { AdminPeopleEntry } from "@/lib/member-types";
 
 export function AdminPeoplePanel() {
@@ -59,121 +57,95 @@ export function AdminPeoplePanel() {
   }
 
   if (loading) {
-    return (
-      <>
-        <AdminSubNav />
-        <Card>Loading member directory…</Card>
-      </>
-    );
+    return <Card>Loading member directory…</Card>;
   }
 
   return (
     <>
-      <AdminSubNav />
-
-      <Card className="mb-6">
-        <h2 className="font-display text-xl font-semibold text-night-900">Member directory</h2>
-        <p className="mt-1 text-sm text-night-600">
-          Tap a member to view their full profile, family tree, role tier, and ministries. You
-          can edit contact details and household members.
-        </p>
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search by name, email, campus, or group…"
-          className="mt-4 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-        />
-      </Card>
-
       {message && (
         <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{message}</p>
       )}
 
-      {selected && (
-        <div className="mb-6">
-          <AdminMemberDetail
-            person={selected}
-            onClose={() => setSelectedId(null)}
-            onUpdated={updatePerson}
-          />
-        </div>
-      )}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+        <Card className={`p-0 ${selected ? "hidden lg:block" : ""}`}>
+          <div className="border-b border-night-900/5 px-4 py-4">
+            <h2 className="font-display text-lg font-semibold text-night-900">Members</h2>
+            <p className="mt-1 text-xs text-night-500">
+              {filtered.length} of {people.length} shown
+            </p>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search names…"
+              className="mt-3 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          </div>
 
-      <div className="space-y-4">
-        {filtered.length === 0 ? (
-          <Card>
-            <p className="text-sm text-night-500">No members match your search.</p>
-          </Card>
-        ) : (
-          filtered.map((person) => {
-            const isSelected = person.id === selectedId;
-            return (
-              <Card
-                key={person.id}
-                className={isSelected ? "ring-2 ring-night-900/20" : undefined}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(isSelected ? null : person.id)}
-                    className="text-left"
-                  >
-                    <h3 className="font-display text-lg font-semibold text-night-900 hover:underline">
-                      {person.name}
-                    </h3>
-                    <p className="text-sm text-night-600">{person.email}</p>
-                    {person.phone && (
-                      <p className="text-sm text-night-600">{person.phone}</p>
-                    )}
-                  </button>
-                  <div className="text-right text-sm text-night-600">
-                    <p>{getCampus(person.campusId).name}</p>
-                    {person.role && person.role !== "member" && (
-                      <p className="capitalize">{person.role} tier</p>
-                    )}
-                    <p className="text-xs text-night-500">
-                      Joined {new Date(person.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  {person.groups.length === 0 ? (
-                    <span className="text-sm text-night-500">No groups yet</span>
-                  ) : (
-                    person.groups.map((group) => (
-                      <span
-                        key={`${person.id}-${group.id}-${group.status}`}
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          group.status === "pending"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-sand-100 text-night-700"
+          <div className="max-h-[min(70vh,720px)] overflow-y-auto">
+            {filtered.length === 0 ? (
+              <p className="px-4 py-8 text-sm text-night-500">No members match your search.</p>
+            ) : (
+              <ul className="divide-y divide-night-900/5">
+                {filtered.map((person) => {
+                  const isSelected = person.id === selectedId;
+                  return (
+                    <li key={person.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(person.id)}
+                        className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition ${
+                          isSelected
+                            ? "bg-night-900 text-sand-50"
+                            : "hover:bg-sand-50"
                         }`}
                       >
-                        {group.name}
-                        {group.status === "pending" ? " (pending)" : ""}
-                      </span>
-                    ))
-                  )}
-                </div>
+                        <span className="truncate font-medium">{person.name}</span>
+                        <span
+                          className={`shrink-0 text-xs ${
+                            isSelected ? "text-sand-300" : "text-night-400"
+                          }`}
+                        >
+                          →
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </Card>
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button
-                    variant={isSelected ? "secondary" : undefined}
-                    onClick={() => setSelectedId(isSelected ? null : person.id)}
-                  >
-                    {isSelected ? "Hide profile" : "View profile"}
-                  </Button>
-                  {person.familyCount > 0 && (
-                    <span className="self-center text-xs text-night-500">
-                      {person.familyCount} family member{person.familyCount === 1 ? "" : "s"}
-                    </span>
-                  )}
-                </div>
-              </Card>
-            );
-          })
-        )}
+        <div className={selected ? "" : "hidden lg:block"}>
+          {selected ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-night-600 hover:text-night-900 lg:hidden"
+              >
+                ← Back to list
+              </button>
+              <AdminMemberDetail
+                person={selected}
+                onClose={() => setSelectedId(null)}
+                onUpdated={updatePerson}
+              />
+            </>
+          ) : (
+            <Card className="flex min-h-[320px] items-center justify-center bg-sand-50/80">
+              <div className="max-w-sm px-6 text-center">
+                <p className="font-display text-xl font-semibold text-night-900">
+                  Select a member
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-night-600">
+                  Choose a name from the list to view contact details, ministries, and family
+                  information.
+                </p>
+              </div>
+            </Card>
+          )}
+        </div>
       </div>
     </>
   );

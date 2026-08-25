@@ -21,7 +21,7 @@ export default async function AdminGuestsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Admin Group"
+        eyebrow="Frontliners"
         title="First-time guests"
         description="Visitor connect forms from /guest. Follow up, mark contacted, and archive."
       />

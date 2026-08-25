@@ -22,9 +22,9 @@ export default async function AdminPeoplePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Admin Group"
+        eyebrow="Directory"
         title="Member directory"
-        description="Search members, open profiles, edit details, and view family trees."
+        description="Search by name, then open a profile to edit details or manage household members."
       />
       <AdminPeoplePanel />
     </>

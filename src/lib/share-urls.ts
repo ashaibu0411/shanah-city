@@ -8,7 +8,7 @@ export function getAppBaseUrl() {
 }
 
 export function devotionShareUrl(devotionId: string) {
-  return `${getAppBaseUrl()}/devotions?id=${encodeURIComponent(devotionId)}`;
+  return `${getAppBaseUrl()}/devotions/${encodeURIComponent(devotionId)}`;
 }
 
 export function devotionViewUrl(devotionId: string) {
