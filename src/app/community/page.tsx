@@ -17,15 +17,18 @@ export default async function CommunityPage() {
   ]);
 
   return (
-    <>
+    <div className="community-page">
       <PageHeader
         eyebrow="Together"
         title="Community"
-        description="Pray for one another, share praise reports, vote in church polls, and comment on posts across the Shanah City family."
+        description="Pray for one another, share praise reports, and stay connected across the Shanah City family."
       />
       <MarkFeedRead feed="community" />
-      <PollsSection initialPolls={polls.filter((poll) => !poll.targetGroupId)} />
+      <PollsSection
+        initialPolls={polls.filter((poll) => !poll.targetGroupId)}
+        compact
+      />
       <CommunityFeed initialPosts={posts} />
-    </>
+    </div>
   );
 }
