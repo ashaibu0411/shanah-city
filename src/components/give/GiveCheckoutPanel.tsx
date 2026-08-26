@@ -28,7 +28,7 @@ export function GiveCheckoutPanel() {
   const [frequency, setFrequency] = useState<GivingCheckoutFrequency>("once");
   const [preset, setPreset] = useState<number | "custom">(50);
   const [customAmount, setCustomAmount] = useState("");
-  const [coverFees, setCoverFees] = useState(true);
+  const [coverFees, setCoverFees] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -209,10 +209,10 @@ export function GiveCheckoutPanel() {
             />
             <span className="text-sm text-night-700">
               <span className="font-semibold text-night-900">
-                Add {formatMoney(feeCoverage.fee)} to cover processing fees
+                Optionally add {formatMoney(feeCoverage.fee)} to cover processing fees
               </span>
               <span className="mt-1 block text-xs text-night-500">
-                Recommended so Shanah City receives your full {formatMoney(amount)} gift.{" "}
+                If selected, Shanah City receives your full {formatMoney(amount)} gift.{" "}
                 {formatGivingFeeHint(amount)}
               </span>
             </span>

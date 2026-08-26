@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   const amount = Number(body.amount);
   const fund = String(body.fund ?? "offering") as GivingFund;
   const frequency = String(body.frequency ?? "once") as GivingCheckoutFrequency;
-  const coverFees = body.coverFees !== false;
+  const coverFees = body.coverFees === true;
 
   if (!GIVING_CHECKOUT_FUNDS.some((option) => option.value === fund)) {
     return NextResponse.json({ error: "Choose a valid fund." }, { status: 400 });
