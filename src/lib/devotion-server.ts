@@ -21,5 +21,6 @@ export const updateDevotion = (
   update: Parameters<typeof devotionJson.updateDevotion>[1],
 ) => store().updateDevotion(id, update);
 export const deleteDevotion = (id: string) => store().deleteDevotion(id);
-export const getDevotionsDueForNotification = () => store().getDevotionsDueForNotification();
+export const getDevotionsDueForNotification = (now?: Date) =>
+  store().getDevotionsDueForNotification(now);
 export const markDevotionNotified = (id: string) => store().markDevotionNotified(id);

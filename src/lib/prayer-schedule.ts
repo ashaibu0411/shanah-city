@@ -33,7 +33,7 @@ export function isWithinPrayerHomeWindow(meetingId: string, reference = new Date
   return now >= start && now < end;
 }
 
-/** True during the first few minutes after notify time (for 5-minute cron / GitHub Actions). */
+/** True during the notify window (for 5-minute GitHub Actions cron). */
 export function isPrayerReminderDue(meetingId: string, reference = new Date()) {
   const rule = AUTOMATED_MEETING_REMINDERS[meetingId];
   if (!rule) return false;
@@ -43,7 +43,8 @@ export function isPrayerReminderDue(meetingId: string, reference = new Date()) {
 
   const notifyAt = rule.notifyHour * 60 + rule.notifyMinute;
   const now = minutesSinceMidnight(denver);
-  return now >= notifyAt && now < notifyAt + 5;
+  // Wider window so */5 cron (7:55, 8:00, …) still catches 7:57 reminders.
+  return now >= notifyAt - 2 && now < notifyAt + 10;
 }
 
 export function getActiveHomePrayerMeeting(

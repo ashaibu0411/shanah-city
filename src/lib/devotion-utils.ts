@@ -1,4 +1,5 @@
 import type { Devotion } from "@/lib/types";
+import { defaultDevotionScheduleTime } from "@/lib/devotion-schedule";
 import { denverWallClockToDate, getZonedDateParts } from "@/lib/denver-time";
 
 export type DevotionPublishMode = "now" | "schedule" | "draft";
@@ -41,7 +42,7 @@ export function toDateInputValue(value: string | Date) {
 export function toTimeInputValue(value: string | Date) {
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) {
-    return "06:00";
+    return defaultDevotionScheduleTime();
   }
   const zoned = getZonedDateParts(date);
   return `${String(zoned.hour).padStart(2, "0")}:${String(zoned.minute).padStart(2, "0")}`;
@@ -99,7 +100,7 @@ export function resolveDevotionPublishFields(input: {
 }) {
   const mode = input.publishMode ?? "schedule";
   const scheduleDate = input.scheduleDate || defaultScheduleDateInput();
-  const scheduleTime = input.scheduleTime || "06:00";
+  const scheduleTime = input.scheduleTime || defaultDevotionScheduleTime();
   const displayDate = formatDisplayDateFromInput(scheduleDate);
 
   if (mode === "draft") {
@@ -152,13 +153,13 @@ export function devotionToScheduleInputs(devotion: Devotion) {
   if (!Number.isNaN(parsed)) {
     return {
       scheduleDate: toDateInputValue(new Date(parsed)),
-      scheduleTime: "06:00",
+      scheduleTime: defaultDevotionScheduleTime(),
     };
   }
 
   return {
     scheduleDate: defaultScheduleDateInput(),
-    scheduleTime: "06:00",
+    scheduleTime: defaultDevotionScheduleTime(),
   };
 }
 

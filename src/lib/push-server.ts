@@ -490,7 +490,7 @@ export async function notifyScheduledMeeting(input: {
       body: `${input.schedule}. Tap to join on ${joinLabel}.`,
       url,
     },
-    "announcements",
+    "worship",
   );
 }
 

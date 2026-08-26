@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
 import { FormInput } from "@/components/ui/form-fields";
 import { RichTextArea } from "@/components/ui/RichTextArea";
+import { defaultDevotionScheduleTime } from "@/lib/devotion-schedule";
 import {
   defaultScheduleDateInput,
   devotionToPublishMode,
@@ -44,7 +45,7 @@ function createEmptyForm(): DevotionForm {
     content: "",
     prayer: "",
     scheduleDate: defaultScheduleDateInput(),
-    scheduleTime: "06:00",
+    scheduleTime: defaultDevotionScheduleTime(),
     publishMode: "schedule",
   };
 }
