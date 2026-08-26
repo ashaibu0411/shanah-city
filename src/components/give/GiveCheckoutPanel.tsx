@@ -84,8 +84,8 @@ export function GiveCheckoutPanel() {
         </p>
         <h2 className="mt-1 font-display text-2xl font-semibold">Give securely online</h2>
         <p className="mt-2 max-w-2xl text-sm text-sand-200/90">
-          Choose your fund and amount here, then continue to Stripe for card payment. Signed-in
-          members will see gifts on their profile automatically.
+          Choose your fund and amount here, then continue to Stripe for card, Apple Pay, or bank
+          account (ACH). Signed-in members will see gifts on their profile automatically.
         </p>
       </div>
 
@@ -195,7 +195,8 @@ export function GiveCheckoutPanel() {
               : `Continue to checkout — ${formatMoney(Number.isFinite(amount) ? amount : 0)}${frequencyOption.suffix}`}
           </Button>
           <p className="text-xs text-night-500">
-            Payments are processed securely by Stripe. Shanah City does not store card numbers.
+            Payments are processed securely by Stripe. Bank debits may take a few business days to
+            settle.
           </p>
         </div>
 

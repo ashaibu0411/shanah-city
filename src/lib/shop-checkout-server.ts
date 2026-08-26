@@ -1,6 +1,12 @@
 import type { PublicMember } from "@/lib/auth-types";
 import { shopProducts } from "@/lib/site";
-import { getAppBaseUrl, getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
+import {
+  getAppBaseUrl,
+  getStripe,
+  isStripeGivingConfigured,
+  STRIPE_CHECKOUT_PAYMENT_METHOD_OPTIONS,
+  STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES,
+} from "@/lib/stripe-server";
 
 export function isStripeShopConfigured() {
   return isStripeGivingConfigured();
@@ -69,6 +75,7 @@ export async function createShopCheckoutSession(input: {
       type: "shop",
       userId: input.user?.id ?? "",
     },
-    payment_method_types: ["card"],
+    payment_method_types: STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES,
+    payment_method_options: STRIPE_CHECKOUT_PAYMENT_METHOD_OPTIONS,
   });
 }

@@ -33,7 +33,8 @@ export async function POST(request: Request) {
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
         const fullSession = await getStripe().checkout.sessions.retrieve(session.id);
         const record = await recordGiftFromCheckoutSession(fullSession);
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
             sessionId: session.id,
             mode: fullSession.mode,
             paymentStatus: fullSession.payment_status,
+            eventType: event.type,
           });
         }
         break;

@@ -1,5 +1,19 @@
 import Stripe from "stripe";
 
+/** Card, Apple Pay, Google Pay, and US bank account (ACH) on Stripe Checkout. */
+export const STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES: Stripe.Checkout.SessionCreateParams["payment_method_types"] =
+  ["card", "us_bank_account"];
+
+export const STRIPE_CHECKOUT_PAYMENT_METHOD_OPTIONS: Stripe.Checkout.SessionCreateParams["payment_method_options"] =
+  {
+    us_bank_account: {
+      financial_connections: {
+        permissions: ["payment_method"],
+      },
+      verification_method: "automatic",
+    },
+  };
+
 export function isStripeGivingConfigured() {
   return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
 }

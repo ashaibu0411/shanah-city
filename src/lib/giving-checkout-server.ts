@@ -17,7 +17,13 @@ import {
 } from "@/lib/giving-server";
 import { sendGivingThankYou } from "@/lib/giving-notify-server";
 import { getZonedDateParts } from "@/lib/denver-time";
-import { getAppBaseUrl, getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
+import {
+  getAppBaseUrl,
+  getStripe,
+  isStripeGivingConfigured,
+  STRIPE_CHECKOUT_PAYMENT_METHOD_OPTIONS,
+  STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES,
+} from "@/lib/stripe-server";
 
 export { isStripeGivingConfigured };
 
@@ -77,7 +83,8 @@ export async function createGivingCheckoutSession(input: {
     client_reference_id: input.user?.id,
     customer_email: input.user?.email,
     metadata,
-    payment_method_types: ["card"] as Stripe.Checkout.SessionCreateParams["payment_method_types"],
+    payment_method_types: STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES,
+    payment_method_options: STRIPE_CHECKOUT_PAYMENT_METHOD_OPTIONS,
   };
 
   if (isRecurringCheckoutFrequency(input.frequency)) {
