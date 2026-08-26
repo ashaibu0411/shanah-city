@@ -1,13 +1,21 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { getUserByEmail, getUserById, getUsers } from "@/lib/auth-server";
+import { isAdminGroupMember } from "@/lib/admin-access-server";
 import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS } from "@/lib/church-groups";
 import {
   assertAnotherAdminRemains,
   assertGroupAdmin,
+  getAssistantAdminIds,
   isGroupAdmin,
+  isGroupAssistantLeader,
   isGroupMember,
 } from "@/lib/group-admin-utils";
+import {
+  assertCanManageGroupLeadership,
+  assertCanManageGroupMembers,
+  assertCanRemoveGroupMember,
+} from "@/lib/group-leadership-access";
 import type {
   Group,
   GroupCategory,
@@ -69,6 +77,7 @@ async function ensureChurchGroups() {
         visibility: seed.visibility,
         memberIds: seed.id === ADMIN_GROUP_ID ? [...new Set(bootstrapIds)] : [],
         adminIds,
+        assistantAdminIds: [],
         requiresApproval: seed.requiresApproval,
         isSystem: seed.isSystem,
         signupVisible: seed.signupVisible,
@@ -125,9 +134,11 @@ function canViewGroup(group: Group, userId?: string) {
 function toSummary(group: Group, userId?: string): GroupSummary {
   return {
     ...group,
+    assistantAdminIds: getAssistantAdminIds(group),
     memberCount: group.memberIds.length,
     isMember: userId ? isGroupMember(group, userId) : false,
     isAdmin: userId ? isGroupAdmin(group, userId) : false,
+    isAssistantLeader: userId ? isGroupAssistantLeader(group, userId) : false,
   };
 }
 
@@ -144,6 +155,7 @@ async function getMemberPreviews(group: Group): Promise<GroupMemberPreview[]> {
         name: user.name,
         campusId: user.campusId,
         isAdmin: group.adminIds.includes(user.id),
+        isAssistantLeader: isGroupAssistantLeader(group, user.id),
         isCreator: user.id === group.createdBy,
       };
     })
@@ -172,7 +184,9 @@ export async function getGroupDetail(groupId: string, userId?: string) {
     return null;
   }
 
-  if (!canViewGroup(group, userId)) {
+  const actorIsSiteAdmin = userId ? await isAdminGroupMember(userId) : false;
+
+  if (!canViewGroup(group, userId) && !actorIsSiteAdmin) {
     if (group.visibility === "private" && userId) {
       const summary = toSummary(group, userId);
       return {
@@ -235,6 +249,7 @@ export async function createGroup(input: {
     visibility: input.visibility,
     memberIds: [input.creatorId],
     adminIds: [input.creatorId],
+    assistantAdminIds: [],
     meetingSchedule: input.meetingSchedule?.trim() || undefined,
     meetingLink: input.meetingLink?.trim() || undefined,
   };
@@ -387,7 +402,12 @@ export async function deleteGroup(groupId: string, userId: string) {
   return true;
 }
 
-export async function removeGroupMember(groupId: string, adminId: string, memberId: string) {
+export async function removeGroupMember(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
   const groups = await getGroups();
   const index = groups.findIndex((group) => group.id === groupId);
   if (index === -1) {
@@ -395,18 +415,11 @@ export async function removeGroupMember(groupId: string, adminId: string, member
   }
 
   const group = groups[index];
-  assertGroupAdmin(group, adminId);
-
-  if (!isGroupMember(group, memberId)) {
-    throw new Error("That member is not in this group.");
-  }
-
-  if (isGroupAdmin(group, memberId)) {
-    assertAnotherAdminRemains(group, memberId);
-  }
+  assertCanRemoveGroupMember(group, adminId, memberId, Boolean(options?.actorIsSiteAdmin));
 
   group.memberIds = group.memberIds.filter((id) => id !== memberId);
   group.adminIds = group.adminIds.filter((id) => id !== memberId);
+  group.assistantAdminIds = getAssistantAdminIds(group).filter((id) => id !== memberId);
   group.updatedAt = new Date().toISOString();
   groups[index] = group;
   await saveGroups(groups);
@@ -418,7 +431,12 @@ export async function removeGroupMember(groupId: string, adminId: string, member
   };
 }
 
-export async function addGroupMember(groupId: string, adminId: string, email: string) {
+export async function addGroupMember(
+  groupId: string,
+  adminId: string,
+  email: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
   const groups = await getGroups();
   const index = groups.findIndex((group) => group.id === groupId);
   if (index === -1) {
@@ -426,7 +444,7 @@ export async function addGroupMember(groupId: string, adminId: string, email: st
   }
 
   const group = groups[index];
-  assertGroupAdmin(group, adminId);
+  assertCanManageGroupMembers(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   const normalizedEmail = email.trim().toLowerCase();
   if (!normalizedEmail) {
@@ -453,7 +471,12 @@ export async function addGroupMember(groupId: string, adminId: string, email: st
   };
 }
 
-export async function promoteGroupAdmin(groupId: string, adminId: string, memberId: string) {
+export async function promoteGroupAdmin(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
   const groups = await getGroups();
   const index = groups.findIndex((group) => group.id === groupId);
   if (index === -1) {
@@ -461,7 +484,7 @@ export async function promoteGroupAdmin(groupId: string, adminId: string, member
   }
 
   const group = groups[index];
-  assertGroupAdmin(group, adminId);
+  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   if (!isGroupMember(group, memberId)) {
     throw new Error("That person must be a group member before becoming a leader.");
@@ -475,6 +498,7 @@ export async function promoteGroupAdmin(groupId: string, adminId: string, member
   }
 
   group.adminIds = [...group.adminIds, memberId];
+  group.assistantAdminIds = getAssistantAdminIds(group).filter((id) => id !== memberId);
   group.updatedAt = new Date().toISOString();
   groups[index] = group;
   await saveGroups(groups);
@@ -486,7 +510,12 @@ export async function promoteGroupAdmin(groupId: string, adminId: string, member
   };
 }
 
-export async function demoteGroupAdmin(groupId: string, adminId: string, memberId: string) {
+export async function demoteGroupAdmin(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
   const groups = await getGroups();
   const index = groups.findIndex((group) => group.id === groupId);
   if (index === -1) {
@@ -494,7 +523,7 @@ export async function demoteGroupAdmin(groupId: string, adminId: string, memberI
   }
 
   const group = groups[index];
-  assertGroupAdmin(group, adminId);
+  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   if (!isGroupAdmin(group, memberId)) {
     throw new Error("That member is not a group leader.");
@@ -503,6 +532,80 @@ export async function demoteGroupAdmin(groupId: string, adminId: string, memberI
   assertAnotherAdminRemains(group, memberId);
 
   group.adminIds = group.adminIds.filter((id) => id !== memberId);
+  group.updatedAt = new Date().toISOString();
+  groups[index] = group;
+  await saveGroups(groups);
+
+  const member = await getUserById(memberId);
+  return {
+    group: toSummary(group, adminId),
+    demotedName: member?.name ?? "Member",
+  };
+}
+
+export async function promoteGroupAssistant(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
+  const groups = await getGroups();
+  const index = groups.findIndex((group) => group.id === groupId);
+  if (index === -1) {
+    throw new Error("Group not found.");
+  }
+
+  const group = groups[index];
+  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
+
+  if (!isGroupMember(group, memberId)) {
+    throw new Error("That person must be a group member before becoming an assistant leader.");
+  }
+
+  if (isGroupAdmin(group, memberId)) {
+    throw new Error("That member is already a group leader.");
+  }
+
+  const assistantAdminIds = getAssistantAdminIds(group);
+  if (assistantAdminIds.includes(memberId)) {
+    return {
+      group: toSummary(group, adminId),
+      promotedName: (await getUserById(memberId))?.name ?? "Member",
+    };
+  }
+
+  group.assistantAdminIds = [...assistantAdminIds, memberId];
+  group.updatedAt = new Date().toISOString();
+  groups[index] = group;
+  await saveGroups(groups);
+
+  const member = await getUserById(memberId);
+  return {
+    group: toSummary(group, adminId),
+    promotedName: member?.name ?? "Member",
+  };
+}
+
+export async function demoteGroupAssistant(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
+  const groups = await getGroups();
+  const index = groups.findIndex((group) => group.id === groupId);
+  if (index === -1) {
+    throw new Error("Group not found.");
+  }
+
+  const group = groups[index];
+  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
+
+  if (!isGroupAssistantLeader(group, memberId)) {
+    throw new Error("That member is not an assistant leader.");
+  }
+
+  group.assistantAdminIds = getAssistantAdminIds(group).filter((id) => id !== memberId);
   group.updatedAt = new Date().toISOString();
   groups[index] = group;
   await saveGroups(groups);

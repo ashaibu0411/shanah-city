@@ -9,16 +9,19 @@ import type { GroupCategory, GroupVisibility } from "@/lib/group-types";
 import {
   createGroup,
   deleteGroup,
+  demoteGroupAdmin,
+  demoteGroupAssistant,
   getGroupDetail,
   joinGroup,
   listGroupsForUser,
   addGroupMember,
-  demoteGroupAdmin,
   promoteGroupAdmin,
+  promoteGroupAssistant,
   removeGroupMember,
   updateGroup,
 } from "@/lib/group-server";
 import { requestGroupJoin } from "@/lib/group-join-server";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -52,6 +55,8 @@ export async function POST(request: Request) {
   const body = await request.json();
   const action = String(body.action ?? "create");
   const groupId = body.groupId ? String(body.groupId) : undefined;
+  const actorIsSiteAdmin = await canManageAsAdmin(user);
+  const managementOptions = { actorIsSiteAdmin };
 
   try {
     if (action === "create") {
@@ -134,7 +139,7 @@ export async function POST(request: Request) {
       if (!memberId) {
         return NextResponse.json({ error: "Member id is required." }, { status: 400 });
       }
-      const result = await removeGroupMember(groupId, user.id, memberId);
+      const result = await removeGroupMember(groupId, user.id, memberId, managementOptions);
       await recordActivity(
         user.id,
         "profile_update",
@@ -146,7 +151,7 @@ export async function POST(request: Request) {
 
     if (action === "add-member") {
       const email = String(body.email ?? "");
-      const result = await addGroupMember(groupId, user.id, email);
+      const result = await addGroupMember(groupId, user.id, email, managementOptions);
       await recordActivity(
         user.id,
         "profile_update",
@@ -161,7 +166,7 @@ export async function POST(request: Request) {
       if (!memberId) {
         return NextResponse.json({ error: "Member id is required." }, { status: 400 });
       }
-      const result = await promoteGroupAdmin(groupId, user.id, memberId);
+      const result = await promoteGroupAdmin(groupId, user.id, memberId, managementOptions);
       await recordActivity(
         user.id,
         "profile_update",
@@ -176,11 +181,41 @@ export async function POST(request: Request) {
       if (!memberId) {
         return NextResponse.json({ error: "Member id is required." }, { status: 400 });
       }
-      const result = await demoteGroupAdmin(groupId, user.id, memberId);
+      const result = await demoteGroupAdmin(groupId, user.id, memberId, managementOptions);
       await recordActivity(
         user.id,
         "profile_update",
         `Removed ${result.demotedName} as leader of "${result.group.name}"`,
+      );
+      const group = await getGroupDetail(groupId, user.id);
+      return NextResponse.json({ group });
+    }
+
+    if (action === "promote-assistant") {
+      const memberId = String(body.memberId ?? "");
+      if (!memberId) {
+        return NextResponse.json({ error: "Member id is required." }, { status: 400 });
+      }
+      const result = await promoteGroupAssistant(groupId, user.id, memberId, managementOptions);
+      await recordActivity(
+        user.id,
+        "profile_update",
+        `Made ${result.promotedName} an assistant leader of "${result.group.name}"`,
+      );
+      const group = await getGroupDetail(groupId, user.id);
+      return NextResponse.json({ group });
+    }
+
+    if (action === "demote-assistant") {
+      const memberId = String(body.memberId ?? "");
+      if (!memberId) {
+        return NextResponse.json({ error: "Member id is required." }, { status: 400 });
+      }
+      const result = await demoteGroupAssistant(groupId, user.id, memberId, managementOptions);
+      await recordActivity(
+        user.id,
+        "profile_update",
+        `Removed ${result.demotedName} as assistant leader of "${result.group.name}"`,
       );
       const group = await getGroupDetail(groupId, user.id);
       return NextResponse.json({ group });

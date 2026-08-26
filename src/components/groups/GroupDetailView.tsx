@@ -30,6 +30,7 @@ function memberRoleLabel(member: GroupMemberPreview) {
   if (member.isCreator && member.isAdmin) return "Creator · Leader";
   if (member.isCreator) return "Creator";
   if (member.isAdmin) return "Leader";
+  if (member.isAssistantLeader) return "Assistant leader";
   return "Member";
 }
 
@@ -52,7 +53,7 @@ export function GroupDetailView({
   initialSection?: DetailSection;
 }) {
   const router = useRouter();
-  const { user, refresh } = useAuth();
+  const { user, refresh, permissions } = useAuth();
   const { setMessagesImmersive } = useAppShell();
   const [detail, setDetail] = useState(initialGroup);
   const [detailSection, setDetailSection] = useState<DetailSection>(initialSection);
@@ -123,7 +124,14 @@ export function GroupDetailView({
   }
 
   const showLeaderReport =
-    detail.isAdmin && isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
+    detail.isAdmin &&
+    isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
+  const canManageMembers =
+    Boolean(user) &&
+    (detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin);
+  const canManageLeadership =
+    Boolean(user) && (detail.isAdmin || permissions.canManageAdmin);
+  const isSiteAdminManaging = permissions.canManageAdmin && !detail.isAdmin;
 
   if (detailSection === "chat" && detail.isMember && user) {
     return (
@@ -173,11 +181,17 @@ export function GroupDetailView({
           <div className="flex flex-wrap gap-2">
             {detail.isMember ? (
               <p className="rounded-xl bg-sand-100 px-3 py-2 text-sm text-night-600">
-                {detail.isAdmin
+                {canManageLeadership
                   ? showLeaderReport
-                    ? "Group leaders can manage members below and submit the Monthly report tab each month."
-                    : "Group leaders can add members, assign co-leaders, and remove people below."
+                    ? "Manage members and leadership below. Submit the Monthly report tab each month."
+                    : canManageMembers && detail.isAssistantLeader
+                      ? "Assistant leaders can add and remove members. Only group leaders assign leadership roles."
+                      : "Group leaders can add members, assign assistant leaders, and remove people below."
                   : "Only your group leader can remove you from this group."}
+              </p>
+            ) : isSiteAdminManaging ? (
+              <p className="rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">
+                Admin access — add members by email, then assign a group leader to run this team.
               </p>
             ) : (
               <Button
@@ -260,7 +274,7 @@ export function GroupDetailView({
               Members ({detail.members.length})
             </h3>
 
-            {detail.isAdmin && user ? (
+            {canManageMembers ? (
               <form
                 className="mt-3 flex flex-col gap-2 sm:flex-row"
                 onSubmit={async (event) => {
@@ -299,12 +313,35 @@ export function GroupDetailView({
             ) : (
               <div className="mt-3 space-y-2">
                 {detail.members.map((member) => {
-                  const canManageMember = detail.isAdmin && user && member.id !== user.id;
+                  const canManageMember =
+                    canManageMembers && user && member.id !== user.id;
                   const leadersAfterChange = remainingAdminCount(detail, member.id);
-                  const canPromote = canManageMember && !member.isAdmin;
-                  const canDemote = canManageMember && member.isAdmin && leadersAfterChange >= 1;
-                  const canRemove =
-                    canManageMember && (!member.isAdmin || leadersAfterChange >= 1);
+                  const canPromoteLeader =
+                    canManageLeadership &&
+                    canManageMember &&
+                    !member.isAdmin &&
+                    !member.isAssistantLeader;
+                  const canPromoteAssistant =
+                    canManageLeadership &&
+                    canManageMember &&
+                    !member.isAdmin &&
+                    !member.isAssistantLeader;
+                  const canDemoteLeader =
+                    canManageLeadership &&
+                    canManageMember &&
+                    member.isAdmin &&
+                    leadersAfterChange >= 1;
+                  const canDemoteAssistant =
+                    canManageLeadership && canManageMember && member.isAssistantLeader;
+                  const canRemoveRegular =
+                    canManageMember &&
+                    !member.isAdmin &&
+                    !member.isAssistantLeader;
+                  const canRemoveLeader =
+                    canManageLeadership &&
+                    canManageMember &&
+                    member.isAdmin &&
+                    leadersAfterChange >= 1;
 
                   return (
                     <div
@@ -326,9 +363,15 @@ export function GroupDetailView({
                             Message
                           </Button>
                         ) : null}
-                        {canManageMember && (canPromote || canDemote || canRemove) ? (
+                        {canManageMember &&
+                        (canPromoteLeader ||
+                          canPromoteAssistant ||
+                          canDemoteLeader ||
+                          canDemoteAssistant ||
+                          canRemoveRegular ||
+                          canRemoveLeader) ? (
                           <div className="flex flex-wrap gap-2">
-                            {canPromote ? (
+                            {canPromoteLeader ? (
                               <button
                                 type="button"
                                 disabled={busy}
@@ -345,7 +388,26 @@ export function GroupDetailView({
                                 Make leader
                               </button>
                             ) : null}
-                            {canDemote ? (
+                            {canPromoteAssistant ? (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={async () => {
+                                  const ok = await runAction({
+                                    action: "promote-assistant",
+                                    groupId: detail.id,
+                                    memberId: member.id,
+                                  });
+                                  if (ok) {
+                                    setStatus(`Made ${member.name} an assistant leader.`);
+                                  }
+                                }}
+                                className="text-xs font-semibold text-night-800 underline"
+                              >
+                                Make assistant
+                              </button>
+                            ) : null}
+                            {canDemoteLeader ? (
                               <button
                                 type="button"
                                 disabled={busy}
@@ -369,7 +431,26 @@ export function GroupDetailView({
                                 Remove leader role
                               </button>
                             ) : null}
-                            {canRemove ? (
+                            {canDemoteAssistant ? (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={async () => {
+                                  const ok = await runAction({
+                                    action: "demote-assistant",
+                                    groupId: detail.id,
+                                    memberId: member.id,
+                                  });
+                                  if (ok) {
+                                    setStatus(`Removed ${member.name} as assistant leader.`);
+                                  }
+                                }}
+                                className="text-xs font-semibold text-night-700 underline"
+                              >
+                                Remove assistant role
+                              </button>
+                            ) : null}
+                            {canRemoveRegular || canRemoveLeader ? (
                               <button
                                 type="button"
                                 disabled={busy}

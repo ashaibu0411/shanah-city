@@ -39,15 +39,18 @@ export async function deleteUserAccountData(userId: string) {
     for (const group of groups) {
       const memberIds = parseStringArray(group.memberIds).filter((id) => id !== userId);
       const adminIds = parseStringArray(group.adminIds).filter((id) => id !== userId);
+      const assistantAdminIds = parseStringArray(group.assistantAdminIds).filter((id) => id !== userId);
       if (
         memberIds.length !== parseStringArray(group.memberIds).length ||
-        adminIds.length !== parseStringArray(group.adminIds).length
+        adminIds.length !== parseStringArray(group.adminIds).length ||
+        assistantAdminIds.length !== parseStringArray(group.assistantAdminIds).length
       ) {
         await tx.group.update({
           where: { id: group.id },
           data: {
             memberIds,
             adminIds,
+            assistantAdminIds,
             updatedAt: new Date(),
           },
         });

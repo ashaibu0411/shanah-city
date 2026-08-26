@@ -93,6 +93,7 @@ export async function deleteUserAccountData(userId: string) {
       ...group,
       memberIds: group.memberIds.filter((id) => id !== userId),
       adminIds: group.adminIds.filter((id) => id !== userId),
+      assistantAdminIds: (group.assistantAdminIds ?? []).filter((id) => id !== userId),
       updatedAt: new Date().toISOString(),
     })),
   );

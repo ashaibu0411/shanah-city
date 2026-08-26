@@ -1,7 +1,26 @@
 import type { Group } from "@/lib/group-types";
 
+export function getAssistantAdminIds(group: Pick<Group, "assistantAdminIds">) {
+  return group.assistantAdminIds ?? [];
+}
+
 export function isGroupAdmin(group: Pick<Group, "adminIds">, userId: string) {
   return group.adminIds.includes(userId);
+}
+
+export function isGroupAssistantLeader(
+  group: Pick<Group, "adminIds" | "assistantAdminIds">,
+  userId: string,
+) {
+  if (isGroupAdmin(group, userId)) return false;
+  return getAssistantAdminIds(group).includes(userId);
+}
+
+export function isGroupLeaderOrAssistant(
+  group: Pick<Group, "adminIds" | "assistantAdminIds">,
+  userId: string,
+) {
+  return isGroupAdmin(group, userId) || isGroupAssistantLeader(group, userId);
 }
 
 export function isGroupMember(group: Pick<Group, "memberIds">, userId: string) {

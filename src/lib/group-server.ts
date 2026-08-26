@@ -24,12 +24,40 @@ export const updateGroup = (
 ) => store().updateGroup(groupId, userId, updates);
 export const deleteGroup = (groupId: string, userId: string) =>
   store().deleteGroup(groupId, userId);
-export const removeGroupMember = (groupId: string, adminId: string, memberId: string) =>
-  store().removeGroupMember(groupId, adminId, memberId);
-export const addGroupMember = (groupId: string, adminId: string, email: string) =>
-  store().addGroupMember(groupId, adminId, email);
-export const promoteGroupAdmin = (groupId: string, adminId: string, memberId: string) =>
-  store().promoteGroupAdmin(groupId, adminId, memberId);
-export const demoteGroupAdmin = (groupId: string, adminId: string, memberId: string) =>
-  store().demoteGroupAdmin(groupId, adminId, memberId);
+export const removeGroupMember = (
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) => store().removeGroupMember(groupId, adminId, memberId, options);
+export const addGroupMember = (
+  groupId: string,
+  adminId: string,
+  email: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) => store().addGroupMember(groupId, adminId, email, options);
+export const promoteGroupAdmin = (
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) => store().promoteGroupAdmin(groupId, adminId, memberId, options);
+export const demoteGroupAdmin = (
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) => store().demoteGroupAdmin(groupId, adminId, memberId, options);
+export const promoteGroupAssistant = (
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) => store().promoteGroupAssistant(groupId, adminId, memberId, options);
+export const demoteGroupAssistant = (
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) => store().demoteGroupAssistant(groupId, adminId, memberId, options);
 export const getSignupGroupOptions = () => store().getSignupGroupOptions();

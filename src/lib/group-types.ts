@@ -22,6 +22,7 @@ export type Group = {
   visibility: GroupVisibility;
   memberIds: string[];
   adminIds: string[];
+  assistantAdminIds?: string[];
   requiresApproval?: boolean;
   isSystem?: boolean;
   signupVisible?: boolean;
@@ -56,6 +57,7 @@ export type GroupMemberPreview = {
   name: string;
   campusId: string;
   isAdmin: boolean;
+  isAssistantLeader: boolean;
   isCreator: boolean;
 };
 
@@ -63,6 +65,7 @@ export type GroupSummary = Group & {
   memberCount: number;
   isMember: boolean;
   isAdmin: boolean;
+  isAssistantLeader: boolean;
 };
 
 export type GroupDetail = GroupSummary & {

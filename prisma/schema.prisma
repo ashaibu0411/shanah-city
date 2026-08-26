@@ -120,6 +120,7 @@ model Group {
   meetingLink     String?
   memberIds       Json
   adminIds        Json
+  assistantAdminIds Json   @default("[]")
   requiresApproval Boolean @default(false)
   isSystem        Boolean @default(false)
   signupVisible   Boolean @default(true)

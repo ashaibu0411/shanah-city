@@ -1,12 +1,20 @@
 import { getUserByEmail, getUserById, getUsers } from "@/lib/auth-server";
+import { isAdminGroupMember } from "@/lib/admin-access-server";
 import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS } from "@/lib/church-groups";
 import { prisma } from "@/lib/db";
 import {
   assertAnotherAdminRemains,
   assertGroupAdmin,
+  getAssistantAdminIds,
   isGroupAdmin,
+  isGroupAssistantLeader,
   isGroupMember,
 } from "@/lib/group-admin-utils";
+import {
+  assertCanManageGroupLeadership,
+  assertCanManageGroupMembers,
+  assertCanRemoveGroupMember,
+} from "@/lib/group-leadership-access";
 import type {
   Group,
   GroupCategory,
@@ -36,6 +44,7 @@ function mapGroup(record: {
   meetingLink: string | null;
   memberIds: unknown;
   adminIds: unknown;
+  assistantAdminIds?: unknown;
   requiresApproval: boolean;
   isSystem: boolean;
   signupVisible: boolean;
@@ -55,6 +64,7 @@ function mapGroup(record: {
     visibility: record.visibility as GroupVisibility,
     memberIds: parseStringArray(record.memberIds),
     adminIds: parseStringArray(record.adminIds),
+    assistantAdminIds: parseStringArray(record.assistantAdminIds),
     requiresApproval: record.requiresApproval,
     isSystem: record.isSystem,
     signupVisible: record.signupVisible,
@@ -97,6 +107,7 @@ async function ensureChurchGroups() {
           visibility: seed.visibility,
           memberIds,
           adminIds,
+          assistantAdminIds: [],
           requiresApproval: seed.requiresApproval,
           isSystem: seed.isSystem,
           signupVisible: seed.signupVisible,
@@ -152,11 +163,14 @@ function canViewGroup(group: Group, userId?: string) {
   return isGroupMember(group, userId) || isGroupAdmin(group, userId);
 }
 
-function toSummary(group: Group, userId?: string): GroupSummary {  return {
+function toSummary(group: Group, userId?: string): GroupSummary {
+  return {
     ...group,
+    assistantAdminIds: getAssistantAdminIds(group),
     memberCount: group.memberIds.length,
     isMember: userId ? isGroupMember(group, userId) : false,
     isAdmin: userId ? isGroupAdmin(group, userId) : false,
+    isAssistantLeader: userId ? isGroupAssistantLeader(group, userId) : false,
   };
 }
 
@@ -173,6 +187,7 @@ async function getMemberPreviews(group: Group): Promise<GroupMemberPreview[]> {
         name: user.name,
         campusId: user.campusId,
         isAdmin: group.adminIds.includes(user.id),
+        isAssistantLeader: isGroupAssistantLeader(group, user.id),
         isCreator: user.id === group.createdBy,
       };
     })
@@ -206,8 +221,9 @@ export async function getGroupDetail(groupId: string, userId?: string) {
   }
 
   const group = mapGroup(record);
+  const actorIsSiteAdmin = userId ? await isAdminGroupMember(userId) : false;
 
-  if (!canViewGroup(group, userId)) {
+  if (!canViewGroup(group, userId) && !actorIsSiteAdmin) {
     if (group.visibility === "private" && userId) {
       const summary = toSummary(group, userId);
       return {
@@ -270,6 +286,7 @@ export async function createGroup(input: {
       visibility: input.visibility,
       memberIds: [input.creatorId],
       adminIds: [input.creatorId],
+      assistantAdminIds: [],
       meetingSchedule: input.meetingSchedule?.trim() || null,
       meetingLink: input.meetingLink?.trim() || null,
     },
@@ -438,31 +455,30 @@ export async function deleteGroup(groupId: string, userId: string) {
   return true;
 }
 
-export async function removeGroupMember(groupId: string, adminId: string, memberId: string) {
+export async function removeGroupMember(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
   const record = await prisma.group.findUnique({ where: { id: groupId } });
   if (!record) {
     throw new Error("Group not found.");
   }
 
   const group = mapGroup(record);
-  assertGroupAdmin(group, adminId);
-
-  if (!isGroupMember(group, memberId)) {
-    throw new Error("That member is not in this group.");
-  }
-
-  if (isGroupAdmin(group, memberId)) {
-    assertAnotherAdminRemains(group, memberId);
-  }
+  assertCanRemoveGroupMember(group, adminId, memberId, Boolean(options?.actorIsSiteAdmin));
 
   const memberIds = group.memberIds.filter((id) => id !== memberId);
   const adminIds = group.adminIds.filter((id) => id !== memberId);
+  const assistantAdminIds = getAssistantAdminIds(group).filter((id) => id !== memberId);
 
   const updated = await prisma.group.update({
     where: { id: groupId },
     data: {
       memberIds,
       adminIds,
+      assistantAdminIds,
       updatedAt: new Date(),
     },
   });
@@ -474,14 +490,19 @@ export async function removeGroupMember(groupId: string, adminId: string, member
   };
 }
 
-export async function addGroupMember(groupId: string, adminId: string, email: string) {
+export async function addGroupMember(
+  groupId: string,
+  adminId: string,
+  email: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
   const record = await prisma.group.findUnique({ where: { id: groupId } });
   if (!record) {
     throw new Error("Group not found.");
   }
 
   const group = mapGroup(record);
-  assertGroupAdmin(group, adminId);
+  assertCanManageGroupMembers(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   const normalizedEmail = email.trim().toLowerCase();
   if (!normalizedEmail) {
@@ -511,14 +532,19 @@ export async function addGroupMember(groupId: string, adminId: string, email: st
   };
 }
 
-export async function promoteGroupAdmin(groupId: string, adminId: string, memberId: string) {
+export async function promoteGroupAdmin(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
   const record = await prisma.group.findUnique({ where: { id: groupId } });
   if (!record) {
     throw new Error("Group not found.");
   }
 
   const group = mapGroup(record);
-  assertGroupAdmin(group, adminId);
+  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   if (!isGroupMember(group, memberId)) {
     throw new Error("That person must be a group member before becoming a leader.");
@@ -536,6 +562,7 @@ export async function promoteGroupAdmin(groupId: string, adminId: string, member
     where: { id: groupId },
     data: {
       adminIds: [...group.adminIds, memberId],
+      assistantAdminIds: getAssistantAdminIds(group).filter((id) => id !== memberId),
       updatedAt: new Date(),
     },
   });
@@ -547,14 +574,19 @@ export async function promoteGroupAdmin(groupId: string, adminId: string, member
   };
 }
 
-export async function demoteGroupAdmin(groupId: string, adminId: string, memberId: string) {
+export async function demoteGroupAdmin(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
   const record = await prisma.group.findUnique({ where: { id: groupId } });
   if (!record) {
     throw new Error("Group not found.");
   }
 
   const group = mapGroup(record);
-  assertGroupAdmin(group, adminId);
+  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   if (!isGroupAdmin(group, memberId)) {
     throw new Error("That member is not a group leader.");
@@ -566,6 +598,85 @@ export async function demoteGroupAdmin(groupId: string, adminId: string, memberI
     where: { id: groupId },
     data: {
       adminIds: group.adminIds.filter((id) => id !== memberId),
+      updatedAt: new Date(),
+    },
+  });
+
+  const member = await getUserById(memberId);
+  return {
+    group: toSummary(mapGroup(updated), adminId),
+    demotedName: member?.name ?? "Member",
+  };
+}
+
+export async function promoteGroupAssistant(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
+  const record = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!record) {
+    throw new Error("Group not found.");
+  }
+
+  const group = mapGroup(record);
+  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
+
+  if (!isGroupMember(group, memberId)) {
+    throw new Error("That person must be a group member before becoming an assistant leader.");
+  }
+
+  if (isGroupAdmin(group, memberId)) {
+    throw new Error("That member is already a group leader.");
+  }
+
+  const assistantAdminIds = getAssistantAdminIds(group);
+  if (assistantAdminIds.includes(memberId)) {
+    const member = await getUserById(memberId);
+    return {
+      group: toSummary(group, adminId),
+      promotedName: member?.name ?? "Member",
+    };
+  }
+
+  const updated = await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      assistantAdminIds: [...assistantAdminIds, memberId],
+      updatedAt: new Date(),
+    },
+  });
+
+  const member = await getUserById(memberId);
+  return {
+    group: toSummary(mapGroup(updated), adminId),
+    promotedName: member?.name ?? "Member",
+  };
+}
+
+export async function demoteGroupAssistant(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
+  const record = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!record) {
+    throw new Error("Group not found.");
+  }
+
+  const group = mapGroup(record);
+  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
+
+  if (!isGroupAssistantLeader(group, memberId)) {
+    throw new Error("That member is not an assistant leader.");
+  }
+
+  const updated = await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      assistantAdminIds: getAssistantAdminIds(group).filter((id) => id !== memberId),
       updatedAt: new Date(),
     },
   });
