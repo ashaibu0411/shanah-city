@@ -653,6 +653,15 @@
   body[data-shell="mobile"] .mobile-section-title {
     @apply font-sans text-base font-bold tracking-tight text-night-900;
   }
+
+  .group-chat-wallpaper {
+    background-color: #efeae2;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.45), transparent 28%),
+      radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.35), transparent 24%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%23d9d0c6' fill-opacity='0.45'%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='62' cy='28' r='1.5'/%3E%3Ccircle cx='98' cy='18' r='1.5'/%3E%3Ccircle cx='28' cy='72' r='1.5'/%3E%3Ccircle cx='88' cy='86' r='2'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: auto, auto, 120px 120px;
+  }
 }
 
 @keyframes mobile-home-aurora {

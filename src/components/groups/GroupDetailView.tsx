@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useAppShell } from "@/components/app/AppShellContext";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
 import { Button, Card, ExternalLink } from "@/components/ui";
-import { campuses, getCampus } from "@/lib/site";
+import { getCampus } from "@/lib/site";
 import { remainingAdminCount } from "@/lib/group-admin-utils";
 import type { GroupDetail, GroupMemberPreview } from "@/lib/group-types";
 import { groupCategoryLabels } from "@/lib/group-types";
@@ -50,6 +51,7 @@ export function GroupDetailView({
 }) {
   const router = useRouter();
   const { user, refresh } = useAuth();
+  const { setMessagesImmersive } = useAppShell();
   const [detail, setDetail] = useState(initialGroup);
   const [detailSection, setDetailSection] = useState<DetailSection>(initialSection);
   const [busy, setBusy] = useState(false);
@@ -63,6 +65,20 @@ export function GroupDetailView({
   useEffect(() => {
     setDetailSection(initialSection);
   }, [initialSection, initialGroup.id]);
+
+  useEffect(() => {
+    const immersive = detailSection === "chat" && detail.isMember && Boolean(user);
+    setMessagesImmersive(immersive);
+    if (immersive) {
+      document.body.dataset.messagesImmersive = "true";
+    } else {
+      delete document.body.dataset.messagesImmersive;
+    }
+    return () => {
+      setMessagesImmersive(false);
+      delete document.body.dataset.messagesImmersive;
+    };
+  }, [detailSection, detail.isMember, user, setMessagesImmersive]);
 
   async function loadDetail(groupId: string) {
     const response = await fetch(`/api/groups?id=${encodeURIComponent(groupId)}`);
@@ -104,8 +120,21 @@ export function GroupDetailView({
     return true;
   }
 
+  if (detailSection === "chat" && detail.isMember && user) {
+    return (
+      <GroupChatPanel
+        groupId={detail.id}
+        groupName={detail.name}
+        groupCategory={detail.category}
+        userId={user.id}
+        memberCount={detail.members.length}
+        onBack={() => setDetailSection("overview")}
+      />
+    );
+  }
+
   return (
-    <Card>
+    <Card className="min-w-0 overflow-hidden">
       <GroupArtworkHero group={detail} />
 
       <div className="mb-4">
@@ -186,14 +215,8 @@ export function GroupDetailView({
         </div>
       ) : null}
 
-      {detailSection === "chat" && detail.isMember && user ? (
-        <GroupChatPanel
-          groupId={detail.id}
-          groupName={detail.name}
-          userId={user.id}
-          memberCount={detail.members.length}
-        />
-      ) : detailSection === "polls" && detail.isMember && user ? (
+
+      {detailSection === "polls" && detail.isMember && user ? (
         <GroupPollsPanel groupId={detail.id} groupName={detail.name} isAdmin={detail.isAdmin} />
       ) : (
         <>

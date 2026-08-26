@@ -26,7 +26,8 @@ type ChatMessageBubbleProps = {
   canReport?: boolean;
   canBlock?: boolean;
   isBlocked?: boolean;
-  density?: "default" | "compact";
+  density?: "default" | "compact" | "whatsapp";
+  senderAccent?: string;
   onEdit?: (content: string) => Promise<void> | void;
   onDelete?: () => Promise<void> | void;
   onReport?: () => void;
@@ -55,6 +56,7 @@ export function ChatMessageBubble({
   canBlock = false,
   isBlocked = false,
   density = "default",
+  senderAccent,
   onEdit,
   onDelete,
   onReport,
@@ -83,15 +85,35 @@ export function ChatMessageBubble({
   }
 
   const compact = density === "compact";
+  const whatsapp = density === "whatsapp";
+
+  const whatsappRadius = mine
+    ? "rounded-lg rounded-br-none"
+    : "rounded-lg rounded-bl-none";
 
   return (
-    <div className={`flex ${mine ? "justify-end" : "justify-start"} ${compact ? "px-3" : ""}`}>
+    <div
+      className={`flex ${mine ? "justify-end" : "justify-start"} ${compact || whatsapp ? "px-3" : ""}`}
+    >
       <div
-        className={`${compact ? "max-w-[78%]" : "max-w-[85%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}
+        className={`${compact || whatsapp ? "max-w-[82%]" : "max-w-[85%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}
       >
+        {whatsapp && !mine && senderName && (
+          <p
+            className="mb-0.5 px-1 text-[12.5px] font-semibold"
+            style={{ color: senderAccent ?? "#1f7aec" }}
+          >
+            {senderName}
+          </p>
+        )}
+
         <div
           className={`text-sm ${
-            compact
+            whatsapp
+              ? `${whatsappRadius} px-2 py-1.5 shadow-sm ${
+                  mine ? "bg-[#d9fdd3] text-[#111b21]" : "bg-white text-[#111b21]"
+                }`
+              : compact
               ? mine
                 ? "rounded-[22px] rounded-br-md bg-[#3797F0] px-3.5 py-2 text-white shadow-sm"
                 : "rounded-[22px] rounded-bl-md bg-[#efefef] px-3.5 py-2 text-[#262626]"
@@ -100,7 +122,7 @@ export function ChatMessageBubble({
                 : "rounded-2xl bg-sand-100 px-4 py-3 text-night-800"
           } ${deletedAt ? "italic opacity-70" : ""}`}
         >
-          {!mine && senderName && !compact && (
+          {!mine && senderName && !compact && !whatsapp && (
             <p className="mb-1 text-xs font-semibold opacity-70">{senderName}</p>
           )}
 
@@ -151,7 +173,11 @@ export function ChatMessageBubble({
 
           <div
             className={`mt-1 flex flex-wrap items-center gap-1.5 ${
-              compact ? "text-[10px] text-night-500" : "text-[10px] opacity-60"
+              whatsapp
+                ? "justify-end text-[11px] leading-none text-[#667781]"
+                : compact
+                ? "text-[10px] text-night-500"
+                : "text-[10px] opacity-60"
             } ${mine && compact ? "justify-end text-white/75" : ""} ${showMeta ? "" : "hidden"}`}
           >
             <span>{createdAtLabel}</span>

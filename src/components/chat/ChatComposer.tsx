@@ -20,7 +20,7 @@ type ChatComposerProps = {
   placeholder?: string;
   sendLabel?: string;
   allowAttachment?: boolean;
-  density?: "default" | "compact";
+  density?: "default" | "compact" | "whatsapp";
   onTyping?: (isTyping: boolean) => void;
   onPickAttachment?: (file: File) => Promise<PendingAttachment | null>;
   attachmentBusy?: boolean;
@@ -95,11 +95,119 @@ export function ChatComposer({
 
   const canSend = Boolean(value.trim() || pendingAttachment);
   const compact = density === "compact";
+  const whatsapp = density === "whatsapp";
 
   function handleSend() {
     onSend(pendingAttachment ?? undefined);
     setPendingAttachment(null);
     onTyping?.(false);
+  }
+
+  if (whatsapp) {
+    return (
+      <div className="bg-[#f0f2f5] px-2 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+        {pendingAttachment && (
+          <div className="mb-2 flex items-center gap-2 rounded-xl bg-white p-2 shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={pendingAttachment.previewUrl}
+              alt={pendingAttachment.attachmentName}
+              className="h-14 w-14 rounded-lg object-cover"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-[#111b21]">
+                {pendingAttachment.attachmentName}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPendingAttachment(null)}
+              className="text-sm font-semibold text-[#667781]"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {showEmojiPicker && (
+          <div className="mb-2 flex flex-wrap gap-1 rounded-2xl bg-white p-2 shadow-sm">
+            {QUICK_CHAT_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => appendEmoji(emoji)}
+                className="rounded-lg px-1.5 py-0.5 text-lg hover:bg-[#f0f2f5]"
+                aria-label={`Insert ${emoji}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="flex min-w-0 items-end gap-2">
+          {allowAttachment && onPickAttachment && (
+            <>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={(event) => handleAttachmentPick(event.target.files?.[0] ?? null)}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={disabled || attachmentBusy}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl text-[#54656f] disabled:opacity-40"
+                aria-label="Add photo"
+              >
+                {attachmentBusy ? "…" : "📎"}
+              </button>
+            </>
+          )}
+
+          <div className="flex min-w-0 flex-1 items-center gap-1 rounded-3xl bg-white px-3 py-1.5 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker((current) => !current)}
+              disabled={disabled}
+              className="shrink-0 text-xl disabled:opacity-40"
+              aria-label="Add emoji"
+            >
+              ☺
+            </button>
+            <input
+              ref={inputRef}
+              value={value}
+              onChange={(event) => {
+                onChange(event.target.value);
+                notifyTyping(event.target.value);
+              }}
+              placeholder={placeholder}
+              disabled={disabled}
+              className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] text-[#111b21] outline-none placeholder:text-[#667781] disabled:opacity-50"
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
+                  event.preventDefault();
+                  handleSend();
+                }
+              }}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={busy || disabled || !canSend}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#00a884] text-lg font-bold text-white disabled:bg-[#8696a0]"
+            aria-label={sendLabel}
+          >
+            {busy ? "…" : "➤"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (compact) {
@@ -144,7 +252,7 @@ export function ChatComposer({
           </div>
         )}
 
-        <div className="flex items-end gap-2">
+        <div className="flex min-w-0 w-full items-end gap-2">
           {allowAttachment && onPickAttachment && (
             <>
               <input
@@ -249,12 +357,12 @@ export function ChatComposer({
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         <button
           type="button"
           onClick={() => setShowEmojiPicker((current) => !current)}
           disabled={disabled}
-          className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-lg disabled:opacity-50"
+          className="shrink-0 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-lg disabled:opacity-50"
           aria-label="Add emoji"
         >
           😊
@@ -272,9 +380,11 @@ export function ChatComposer({
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={disabled || attachmentBusy}
-              className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm font-semibold text-night-700 disabled:opacity-50"
+              className="shrink-0 rounded-xl border border-night-900/10 bg-white px-2.5 py-2.5 text-sm font-semibold text-night-700 disabled:opacity-50 sm:px-3"
+              aria-label="Add photo"
             >
-              {attachmentBusy ? "…" : "Photo"}
+              <span className="sm:hidden">{attachmentBusy ? "…" : "📷"}</span>
+              <span className="hidden sm:inline">{attachmentBusy ? "…" : "Photo"}</span>
             </button>
           </>
         )}
@@ -287,7 +397,7 @@ export function ChatComposer({
           }}
           placeholder={placeholder}
           disabled={disabled}
-          className="flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:opacity-50"
+          className="min-w-0 flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:opacity-50"
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
               event.preventDefault();
@@ -304,6 +414,7 @@ export function ChatComposer({
             onTyping?.(false);
           }}
           disabled={busy || disabled || !canSend}
+          className="shrink-0"
         >
           {busy ? "Sending…" : sendLabel}
         </Button>
