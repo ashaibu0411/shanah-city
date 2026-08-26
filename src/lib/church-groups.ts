@@ -81,6 +81,16 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     isSystem: true,
   },
   {
+    id: "group-ushering",
+    name: "Ushering Ministry",
+    description: "Ushers and greeters who welcome guests and serve during worship.",
+    category: "ministry",
+    visibility: "public",
+    requiresApproval: false,
+    signupVisible: true,
+    isSystem: true,
+  },
+  {
     id: "group-prayer",
     name: "Prayer Ministry",
     description: "Intercessors and prayer team.",

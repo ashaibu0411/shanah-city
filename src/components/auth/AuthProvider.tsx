@@ -22,6 +22,8 @@ type AuthPermissions = {
   canManageFrontLiners: boolean;
   canAccessKidsMinistry: boolean;
   canManageKidsMinistry: boolean;
+  canSubmitMinistryReports: boolean;
+  canReviewMinistryReports: boolean;
 };
 
 type AuthContextValue = {
@@ -45,6 +47,8 @@ const defaultPermissions: AuthPermissions = {
   canManageFrontLiners: false,
   canAccessKidsMinistry: false,
   canManageKidsMinistry: false,
+  canSubmitMinistryReports: false,
+  canReviewMinistryReports: false,
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);

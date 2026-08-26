@@ -5,6 +5,7 @@ import { getFrontLinersPermissions } from "@/lib/frontliners-access-server";
 import { getGalleryUploadPermissions } from "@/lib/gallery-access-server";
 import { getWorshipPermissions } from "@/lib/worship-access-server";
 import { getKidsMinistryPermissions } from "@/lib/kids-access-server";
+import { getMinistryReportPermissions } from "@/lib/ministry-report-access-server";
 import type { PublicMember } from "@/lib/auth-types";
 
 const defaultPermissions = {
@@ -18,6 +19,8 @@ const defaultPermissions = {
   canManageFrontLiners: false,
   canAccessKidsMinistry: false,
   canManageKidsMinistry: false,
+  canSubmitMinistryReports: false,
+  canReviewMinistryReports: false,
 };
 
 export async function getSessionPermissions(user: PublicMember | null) {
@@ -25,15 +28,17 @@ export async function getSessionPermissions(user: PublicMember | null) {
     return defaultPermissions;
   }
 
-  const [gallery, devotion, admin, finance, worship, frontliners, kids] = await Promise.all([
-    getGalleryUploadPermissions(user),
-    getDevotionWritePermissions(user),
-    getAdminPermissions(user),
-    getFinancePermissions(user),
-    getWorshipPermissions(user),
-    getFrontLinersPermissions(user),
-    getKidsMinistryPermissions(user),
-  ]);
+  const [gallery, devotion, admin, finance, worship, frontliners, kids, ministryReports] =
+    await Promise.all([
+      getGalleryUploadPermissions(user),
+      getDevotionWritePermissions(user),
+      getAdminPermissions(user),
+      getFinancePermissions(user),
+      getWorshipPermissions(user),
+      getFrontLinersPermissions(user),
+      getKidsMinistryPermissions(user),
+      getMinistryReportPermissions(user),
+    ]);
 
   return {
     ...gallery,
@@ -43,5 +48,7 @@ export async function getSessionPermissions(user: PublicMember | null) {
     ...worship,
     ...frontliners,
     ...kids,
+    canSubmitMinistryReports: ministryReports.canSubmitMinistryReports,
+    canReviewMinistryReports: ministryReports.canReviewMinistryReports,
   };
 }

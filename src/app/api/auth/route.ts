@@ -49,6 +49,8 @@ export async function GET() {
         canManageFrontLiners: false,
         canAccessKidsMinistry: false,
         canManageKidsMinistry: false,
+        canSubmitMinistryReports: false,
+        canReviewMinistryReports: false,
       },
     });
   }

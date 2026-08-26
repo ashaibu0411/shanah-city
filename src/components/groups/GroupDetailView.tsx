@@ -7,14 +7,16 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
+import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
 import { Button, Card, ExternalLink } from "@/components/ui";
 import { getCampus } from "@/lib/site";
 import { remainingAdminCount } from "@/lib/group-admin-utils";
+import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
 import type { GroupDetail, GroupMemberPreview } from "@/lib/group-types";
 import { groupCategoryLabels } from "@/lib/group-types";
 import { getGroupArtwork } from "@/lib/group-artwork";
 
-type DetailSection = "overview" | "chat" | "polls";
+type DetailSection = "overview" | "chat" | "polls" | "report";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -120,6 +122,9 @@ export function GroupDetailView({
     return true;
   }
 
+  const showLeaderReport =
+    detail.isAdmin && isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
+
   if (detailSection === "chat" && detail.isMember && user) {
     return (
       <GroupChatPanel
@@ -169,7 +174,9 @@ export function GroupDetailView({
             {detail.isMember ? (
               <p className="rounded-xl bg-sand-100 px-3 py-2 text-sm text-night-600">
                 {detail.isAdmin
-                  ? "Group leaders can add members, assign co-leaders, and remove people below."
+                  ? showLeaderReport
+                    ? "Group leaders can manage members below and submit the Monthly report tab each month."
+                    : "Group leaders can add members, assign co-leaders, and remove people below."
                   : "Only your group leader can remove you from this group."}
               </p>
             ) : (
@@ -195,6 +202,9 @@ export function GroupDetailView({
           {(
             [
               { id: "overview", label: "Overview" },
+              ...(showLeaderReport
+                ? [{ id: "report" as const, label: "Monthly report" }]
+                : []),
               { id: "polls", label: "Polls" },
               { id: "chat", label: "Group chat" },
             ] as const
@@ -218,6 +228,8 @@ export function GroupDetailView({
 
       {detailSection === "polls" && detail.isMember && user ? (
         <GroupPollsPanel groupId={detail.id} groupName={detail.name} isAdmin={detail.isAdmin} />
+      ) : detailSection === "report" && showLeaderReport && user ? (
+        <LeaderReportForm embedded groupId={detail.id} groupName={detail.name} />
       ) : (
         <>
           <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>

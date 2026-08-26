@@ -11,6 +11,13 @@ const adminLinks = [
   { href: "/admin/people", label: "People", description: "Member directory", adminOnly: true },
   { href: "/admin/giving", label: "Giving", description: "Gifts & thank-yous", adminOnly: true, financeAllowed: true },
   { href: "/admin/finance", label: "Finance", description: "Reports & entries", adminOnly: false },
+  {
+    href: "/admin/ministry-reports",
+    label: "Leaders",
+    description: "Monthly accountability",
+    adminOnly: false,
+    pastoralAllowed: true,
+  },
 ] as const;
 
 const portalPaths = new Set(adminLinks.map((link) => link.href));
@@ -31,8 +38,14 @@ export function AdminSubNav({ variant = "pills" }: AdminSubNavProps) {
     if (link.href === "/admin/finance") {
       return permissions.canAccessFinance;
     }
+    if (link.href === "/admin/ministry-reports") {
+      return permissions.canReviewMinistryReports;
+    }
     if ("financeAllowed" in link && link.financeAllowed) {
       return permissions.canManageAdmin || permissions.canAccessFinance;
+    }
+    if ("pastoralAllowed" in link && link.pastoralAllowed) {
+      return permissions.canReviewMinistryReports;
     }
     return permissions.canManageAdmin;
   });

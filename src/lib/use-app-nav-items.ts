@@ -2,7 +2,15 @@
 
 import { useMemo } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { adminNavItem, frontlinersNavItem, kidsMinistryNavItem, site, worshipNavItem, writeDevotionsNavItem, type AppNavItem } from "@/lib/site";
+import {
+  adminNavItem,
+  frontlinersNavItem,
+  kidsMinistryNavItem,
+  site,
+  worshipNavItem,
+  writeDevotionsNavItem,
+  type AppNavItem,
+} from "@/lib/site";
 
 export function useAppNavItems(): AppNavItem[] {
   const { permissions } = useAuth();
@@ -72,5 +80,11 @@ export function useAppNavItems(): AppNavItem[] {
     }
 
     return items;
-  }, [permissions.canWriteDevotions, permissions.canAccessWorshipPlanner, permissions.canAccessFrontLiners, permissions.canAccessKidsMinistry, permissions.canManageAdmin]);
+  }, [
+    permissions.canWriteDevotions,
+    permissions.canAccessWorshipPlanner,
+    permissions.canAccessFrontLiners,
+    permissions.canAccessKidsMinistry,
+    permissions.canManageAdmin,
+  ]);
 }

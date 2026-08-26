@@ -527,6 +527,34 @@ model WorshipScheduleRotation {
   updatedAt             DateTime
 }
 
+model MinistryLeaderReport {
+  id              String    @id
+  reportMonth     String
+  groupId         String
+  groupName       String
+  templateKey     String
+  responses       Json
+  leaderNotes     String?
+  status          String    @default("draft")
+  submittedAt     DateTime?
+  submittedBy     String?
+  submittedByName String?
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewedByName  String?
+  reviewerNotes   String?
+  actionSteps     String?
+  createdBy       String
+  createdByName   String
+  createdAt       DateTime
+  updatedAt       DateTime
+
+  @@unique([reportMonth, groupId])
+  @@index([reportMonth])
+  @@index([groupId])
+  @@index([status])
+}
+
 model WorshipSongLibrary {
   id             String   @id
   title          String
