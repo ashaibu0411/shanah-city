@@ -411,6 +411,7 @@ export function DevotionAdminPanel() {
             value={form.verse}
             onValueChange={(verse) => setForm((current) => ({ ...current, verse }))}
             rows={3}
+            boldMode="none"
           />
 
           <RichTextArea
@@ -419,6 +420,7 @@ export function DevotionAdminPanel() {
             value={form.content}
             onValueChange={(content) => setForm((current) => ({ ...current, content }))}
             rows={5}
+            boldMode="header"
           />
 
           <RichTextArea
@@ -427,6 +429,7 @@ export function DevotionAdminPanel() {
             value={form.prayer}
             onValueChange={(prayer) => setForm((current) => ({ ...current, prayer }))}
             rows={3}
+            boldMode="none"
           />
 
           <div className="rounded-2xl border border-night-900/10 bg-sand-50/70 p-4">

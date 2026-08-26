@@ -6,32 +6,33 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
-/** Writers often split headers as `**Title\n**Body**` — normalize to paired markers. */
-function normalizeBoldBlocks(text: string) {
-  return text.replace(
-    /\*\*([^\n*]+)\n\*\*([\s\S]+?)\*\*/g,
-    "**$1**\n**$2**",
-  );
+function getLineBounds(value: string, index: number) {
+  const lineStart = value.lastIndexOf("\n", Math.max(0, index - 1)) + 1;
+  const lineEndIndex = value.indexOf("\n", index);
+  const lineEnd = lineEndIndex === -1 ? value.length : lineEndIndex;
+  return { lineStart, lineEnd };
 }
 
-/** Converts **bold**, *italic*, and _italic_ markers to safe HTML. */
+/** Keep header markers only; strip accidental body ** from pasted content. */
+function normalizeHeaderMarkers(text: string) {
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(
+      /\*\*([^\n*]+)\n\*\*([\s\S]*?)\*\*/g,
+      (_, header, body) => `**${header}**\n${body.replace(/^\*\*/, "").replace(/\*\*$/, "")}`,
+    )
+    .replace(/\*\*([^\n*]+)\n\*\*(?=\n|$)/g, "**$1**")
+    .replace(/^\*\*$/gm, "");
+}
+
+/** Converts single-line **headers**, *italic*, and _italic_ to safe HTML. */
 export function richTextToHtml(text: string) {
-  const normalized = normalizeBoldBlocks(text.replace(/\r\n/g, "\n"));
+  const normalized = normalizeHeaderMarkers(text);
   const escaped = escapeHtml(normalized);
 
-  const withBoldPairs = escaped.replace(
-    /\*\*([\s\S]+?)\*\*/g,
-    "<strong>$1</strong>",
-  );
+  const withHeaderBold = escaped.replace(/\*\*([^\n*]+)\*\*/g, "<strong>$1</strong>");
 
-  const withLineBold = withBoldPairs.replace(
-    /^\*\*([^\n*]+)$/gm,
-    "<strong>$1</strong>",
-  );
-
-  const withoutOrphanMarkers = withLineBold.replace(/^\*\*$/gm, "");
-
-  return withoutOrphanMarkers
+  return withHeaderBold
     .replace(/(?<!\*)\*(?!\*)([^*\n]+?)\*(?!\*)/g, "<em>$1</em>")
     .replace(/_([^_\n]+?)_/g, "<em>$1</em>")
     .replace(/\n/g, "<br />");
@@ -65,12 +66,33 @@ export function applyRichTextFormat(
   return wrapRichTextSelection(value, selectionStart, selectionEnd, marker);
 }
 
+/** Bold the current line only — for section headers in devotions. */
+export function applyHeaderBold(
+  value: string,
+  selectionStart: number | null,
+  selectionEnd: number | null,
+) {
+  const caret = selectionStart ?? value.length;
+  const { lineStart, lineEnd } = getLineBounds(value, caret);
+  const line = value.slice(lineStart, lineEnd);
+
+  const wrappedMatch = line.match(/^\*\*([^*]+)\*\*$/);
+  if (wrappedMatch) {
+    const plain = wrappedMatch[1];
+    const next = value.slice(0, lineStart) + plain + value.slice(lineEnd);
+    return { next, cursor: lineStart + plain.length };
+  }
+
+  const plain = line.replace(/^\*\*/, "").replace(/\*\*$/, "").trim();
+  const wrapped = `**${plain || "Section title"}**`;
+  const next = value.slice(0, lineStart) + wrapped + value.slice(lineEnd);
+  return { next, cursor: lineStart + wrapped.length };
+}
+
 export function richTextToPlain(text: string) {
-  const normalized = normalizeBoldBlocks(text.replace(/\r\n/g, "\n"));
+  const normalized = normalizeHeaderMarkers(text);
   return normalized
-    .replace(/\*\*([\s\S]+?)\*\*/g, "$1")
-    .replace(/^\*\*([^\n*]+)$/gm, "$1")
-    .replace(/^\*\*$/gm, "")
+    .replace(/\*\*([^\n*]+)\*\*/g, "$1")
     .replace(/(?<!\*)\*(?!\*)([^*\n]+?)\*(?!\*)/g, "$1")
     .replace(/_([^_\n]+?)_/g, "$1")
     .replace(/\s+/g, " ")
