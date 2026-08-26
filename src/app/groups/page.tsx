@@ -1,14 +1,29 @@
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { GroupsHub } from "@/components/groups/GroupsHub";
 import { Card, PageHeader } from "@/components/ui";
 
-export default function GroupsPage() {
+export const dynamic = "force-dynamic";
+
+type GroupsPageProps = {
+  searchParams: Promise<{ group?: string; chat?: string }>;
+};
+
+export default async function GroupsPage({ searchParams }: GroupsPageProps) {
+  const { group, chat } = await searchParams;
+  const groupId = group?.trim();
+
+  if (groupId) {
+    const query = chat === "1" ? "?chat=1" : "";
+    redirect(`/groups/${encodeURIComponent(groupId)}${query}`);
+  }
+
   return (
     <>
       <PageHeader
         eyebrow="Get involved"
         title="Groups & ministries"
-        description="Create or join choir, men's ministry, small groups, youth teams, and more across the Shanah City family."
+        description="Browse church groups and ministries. Tap any group to see details, join, chat, and polls."
       />
       <Suspense
         fallback={

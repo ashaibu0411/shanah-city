@@ -272,7 +272,7 @@ export async function notifyGroupChatMessage(input: {
     {
       title: input.groupName,
       body: `${input.senderName}: ${input.preview}`,
-      url: `/groups?group=${encodeURIComponent(input.groupId)}&chat=1`,
+      url: `/groups/${encodeURIComponent(input.groupId)}?chat=1`,
     },
     "messages",
     input.senderId,
@@ -322,7 +322,7 @@ export async function notifyPollCreated(input: {
     title,
     body: `${input.authorName}: ${input.question.slice(0, 120)}`,
     url: input.targetGroupId
-      ? `/groups?group=${encodeURIComponent(input.targetGroupId)}`
+      ? `/groups/${encodeURIComponent(input.targetGroupId)}`
       : "/community",
   };
 

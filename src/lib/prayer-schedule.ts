@@ -13,9 +13,10 @@ function minutesSinceMidnight(parts: ZonedDateParts) {
   return parts.hour * 60 + parts.minute;
 }
 
-function windowBounds(rule: AutomatedReminderRule) {
+/** Home banner appears at notify time (e.g. 7:57) through end of prayer window. */
+function homeBannerBounds(rule: AutomatedReminderRule) {
   return {
-    start: rule.startHour * 60 + rule.startMinute,
+    start: rule.notifyHour * 60 + rule.notifyMinute,
     end: rule.endHour * 60 + rule.endMinute,
   };
 }
@@ -27,7 +28,7 @@ export function isWithinPrayerHomeWindow(meetingId: string, reference = new Date
   const denver = getZonedDateParts(reference);
   if (!rule.weekdays.includes(denver.weekday)) return false;
 
-  const { start, end } = windowBounds(rule);
+  const { start, end } = homeBannerBounds(rule);
   const now = minutesSinceMidnight(denver);
   return now >= start && now < end;
 }
@@ -66,7 +67,7 @@ export function msUntilNextPrayerHomeChange(reference = new Date()) {
     const rule = AUTOMATED_MEETING_REMINDERS[id];
     if (!rule || !rule.weekdays.includes(denver.weekday)) continue;
 
-    const { start, end } = windowBounds(rule);
+    const { start, end } = homeBannerBounds(rule);
     if (now < start) {
       nextMs = Math.min(nextMs, (start - now) * 60_000);
     } else if (now >= start && now < end) {

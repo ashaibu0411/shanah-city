@@ -264,7 +264,7 @@ export async function getUnreadGroupChatSummary(
       type: "group_chat" as const,
       title: group.name,
       body: `${latest.senderName}: ${previewGroupMessage(latest)}`,
-      href: `/groups?group=${encodeURIComponent(group.id)}&chat=1`,
+      href: `/groups/${encodeURIComponent(group.id)}?chat=1`,
       count: unread.length,
       at: latest.createdAt,
     });
