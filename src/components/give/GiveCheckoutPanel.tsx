@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
+import {
+  estimateProcessingFeeCoverage,
+  formatGivingFeeHint,
+} from "@/lib/giving-fees";
 import {
   GIVING_AMOUNT_PRESETS,
   GIVING_CHECKOUT_FUNDS,
@@ -24,6 +28,7 @@ export function GiveCheckoutPanel() {
   const [frequency, setFrequency] = useState<GivingCheckoutFrequency>("once");
   const [preset, setPreset] = useState<number | "custom">(50);
   const [customAmount, setCustomAmount] = useState("");
+  const [coverFees, setCoverFees] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -42,6 +47,15 @@ export function GiveCheckoutPanel() {
 
   const amount = preset === "custom" ? Number(customAmount) : preset;
 
+  const feeCoverage = useMemo(() => {
+    if (!Number.isFinite(amount) || amount < 1) {
+      return { fee: 0, total: 0 };
+    }
+    return estimateProcessingFeeCoverage(amount);
+  }, [amount]);
+
+  const checkoutTotal = coverFees ? feeCoverage.total : amount;
+
   async function startCheckout() {
     setMessage(null);
     setSubmitting(true);
@@ -49,7 +63,7 @@ export function GiveCheckoutPanel() {
     const response = await fetch("/api/giving/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount, fund, frequency }),
+      body: JSON.stringify({ amount, fund, frequency, coverFees }),
     });
     const data = await response.json();
     setSubmitting(false);
@@ -185,6 +199,26 @@ export function GiveCheckoutPanel() {
           )}
         </fieldset>
 
+        {Number.isFinite(amount) && amount >= 1 ? (
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-night-900/10 bg-sand-50/80 px-4 py-3">
+            <input
+              type="checkbox"
+              checked={coverFees}
+              onChange={(event) => setCoverFees(event.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-night-900/20"
+            />
+            <span className="text-sm text-night-700">
+              <span className="font-semibold text-night-900">
+                Add {formatMoney(feeCoverage.fee)} to cover processing fees
+              </span>
+              <span className="mt-1 block text-xs text-night-500">
+                Recommended so Shanah City receives your full {formatMoney(amount)} gift.{" "}
+                {formatGivingFeeHint(amount)}
+              </span>
+            </span>
+          </label>
+        ) : null}
+
         <div className="flex flex-wrap items-center gap-3">
           <Button
             onClick={startCheckout}
@@ -192,8 +226,13 @@ export function GiveCheckoutPanel() {
           >
             {submitting
               ? "Redirecting…"
-              : `Continue to checkout — ${formatMoney(Number.isFinite(amount) ? amount : 0)}${frequencyOption.suffix}`}
+              : `Continue to checkout — ${formatMoney(checkoutTotal)}${frequencyOption.suffix}`}
           </Button>
+          {coverFees && feeCoverage.fee > 0 ? (
+            <p className="text-xs text-night-500">
+              {formatMoney(amount)} gift + {formatMoney(feeCoverage.fee)} fee coverage
+            </p>
+          ) : null}
           <p className="text-xs text-night-500">
             Payments are processed securely by Stripe. Bank debits may take a few business days to
             settle.

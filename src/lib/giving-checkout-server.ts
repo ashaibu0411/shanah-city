@@ -24,6 +24,7 @@ import {
   STRIPE_CHECKOUT_PAYMENT_METHOD_OPTIONS,
   STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES,
 } from "@/lib/stripe-server";
+import { estimateProcessingFeeCoverage } from "@/lib/giving-fees";
 
 export { isStripeGivingConfigured };
 
@@ -55,6 +56,7 @@ export async function createGivingCheckoutSession(input: {
   amount: number;
   fund: GivingFund;
   frequency: GivingCheckoutFrequency;
+  coverFees?: boolean;
   user?: PublicMember | null;
 }) {
   if (!isStripeGivingConfigured()) {
@@ -67,7 +69,10 @@ export async function createGivingCheckoutSession(input: {
 
   const stripe = getStripe();
   const baseUrl = getAppBaseUrl();
-  const amountCents = Math.round(input.amount * 100);
+  const giftAmount = roundMoney(input.amount);
+  const giftCents = Math.round(giftAmount * 100);
+  const feeCoverage = input.coverFees ? estimateProcessingFeeCoverage(giftAmount) : { fee: 0, total: giftAmount };
+  const feeCents = Math.round(feeCoverage.fee * 100);
   const fundLabelText = fundLabel(input.fund);
   const metadata = {
     fund: input.fund,
@@ -75,7 +80,43 @@ export async function createGivingCheckoutSession(input: {
     userId: input.user?.id ?? "",
     campusId: input.user?.campusId ?? "",
     donorName: input.user?.name ?? "",
+    giftAmount: String(giftAmount),
+    feeAmount: String(feeCoverage.fee),
+    coverFees: input.coverFees ? "true" : "false",
   };
+
+  function giftLineItem(
+    recurring?: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.Recurring,
+    description = "One-time gift to Shanah City",
+  ) {
+    return {
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: `Shanah City ${fundLabelText}`,
+          description,
+        },
+        unit_amount: giftCents,
+        ...(recurring ? { recurring } : {}),
+      },
+      quantity: 1,
+    };
+  }
+
+  function feeLineItem(recurring?: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.Recurring) {
+    return {
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: "Processing fee contribution",
+          description: "Optional help covering card/bank processing costs",
+        },
+        unit_amount: feeCents,
+        ...(recurring ? { recurring } : {}),
+      },
+      quantity: 1,
+    };
+  }
 
   const common = {
     success_url: `${baseUrl}/give/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -106,18 +147,8 @@ export async function createGivingCheckoutSession(input: {
       mode: "subscription",
       ...common,
       line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: `Shanah City ${fundLabelText}`,
-              description: `${recurringLabel} recurring gift to Shanah City`,
-            },
-            unit_amount: amountCents,
-            recurring,
-          },
-          quantity: 1,
-        },
+        giftLineItem(recurring, `${recurringLabel} recurring gift to Shanah City`),
+        ...(feeCents > 0 ? [feeLineItem(recurring)] : []),
       ],
       subscription_data: {
         metadata,
@@ -129,19 +160,31 @@ export async function createGivingCheckoutSession(input: {
     mode: "payment",
     ...common,
     line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: `Shanah City ${fundLabelText}`,
-            description: "One-time gift to Shanah City",
-          },
-          unit_amount: amountCents,
-        },
-        quantity: 1,
-      },
+      giftLineItem(),
+      ...(feeCents > 0 ? [feeLineItem()] : []),
     ],
   });
+}
+
+function roundMoney(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function giftAmountFromMetadata(metadata: Record<string, string> | null | undefined, fallbackTotal: number) {
+  const gift = Number(metadata?.giftAmount);
+  if (Number.isFinite(gift) && gift > 0) return roundMoney(gift);
+  return roundMoney(fallbackTotal);
+}
+
+function giftNotesFromMetadata(
+  metadata: Record<string, string> | null | undefined,
+  baseNote: string,
+) {
+  const fee = Number(metadata?.feeAmount);
+  if (metadata?.coverFees === "true" && Number.isFinite(fee) && fee > 0) {
+    return `${baseNote} Donor added $${fee.toFixed(2)} to cover processing fees.`;
+  }
+  return baseNote;
 }
 
 async function recordStripeGift(input: {
@@ -206,10 +249,12 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
     return null;
   }
 
-  const amount = amountInDollars(session.amount_total);
-  if (amount <= 0) return null;
+  const totalPaid = amountInDollars(session.amount_total);
+  if (totalPaid <= 0) return null;
 
-  const fund = parseFund(session.metadata?.fund);
+  const metadata = session.metadata ?? {};
+  const giftAmount = giftAmountFromMetadata(metadata, totalPaid);
+  const fund = parseFund(metadata.fund);
   const donorEmail = normalizeGivingEmail(
     session.customer_details?.email ?? session.customer_email ?? undefined,
   );
@@ -229,18 +274,20 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
     }
   }
 
+  const baseNote =
+    metadata.frequency && metadata.frequency !== "once"
+      ? `${recurringGiftNote(metadata.frequency)} (first payment via checkout)`
+      : "One-time online gift";
+
   return recordStripeGift({
-    amount,
+    amount: giftAmount,
     currency: session.currency ?? "usd",
     fund,
     donorName,
     donorEmail,
     userId,
     campusId,
-    notes:
-      session.metadata?.frequency && session.metadata.frequency !== "once"
-        ? `${recurringGiftNote(session.metadata.frequency)} (first payment via checkout)`
-        : "One-time online gift",
+    notes: giftNotesFromMetadata(metadata, baseNote),
     stripeSessionId: session.id,
   });
 }
@@ -253,10 +300,11 @@ export async function recordGiftFromInvoice(
     return null;
   }
 
-  const amount = amountInDollars(invoice.amount_paid);
-  if (amount <= 0) return null;
+  const totalPaid = amountInDollars(invoice.amount_paid);
+  if (totalPaid <= 0) return null;
 
   const metadata = { ...(invoice.metadata ?? {}), ...extraMetadata };
+  const giftAmount = giftAmountFromMetadata(metadata, totalPaid);
   const fund = parseFund(metadata.fund);
   const donorEmail = normalizeGivingEmail(invoice.customer_email ?? undefined);
   const donorName =
@@ -271,14 +319,14 @@ export async function recordGiftFromInvoice(
       : `${recurringGiftNote(metadata.frequency)} (initial)`;
 
   return recordStripeGift({
-    amount,
+    amount: giftAmount,
     currency: invoice.currency ?? "usd",
     fund,
     donorName,
     donorEmail,
     userId: metadataUserId(metadata.userId),
     campusId: metadataValue(metadata.campusId),
-    notes: frequencyNote,
+    notes: giftNotesFromMetadata(metadata, frequencyNote),
     stripeInvoiceId: invoice.id,
   });
 }
