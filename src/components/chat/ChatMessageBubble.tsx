@@ -182,7 +182,12 @@ export function ChatMessageBubble({
           >
             <span>{createdAtLabel}</span>
             {editedAt && !deletedAt && <span>· edited</span>}
-            {showReadReceipt && mine && !deletedAt && (
+            {showReadReceipt && mine && !deletedAt && whatsapp && (
+              <span className={readAt ? "text-[#53bdeb]" : "text-[#667781]"}>
+                {readAt ? " ✓✓" : " ✓"}
+              </span>
+            )}
+            {showReadReceipt && mine && !deletedAt && !whatsapp && (
               <span>{readAt ? "· Seen" : "· Delivered"}</span>
             )}
             {showSeenCount && mine && !deletedAt && typeof seenCount === "number" && seenCount > 0 && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
@@ -11,6 +11,13 @@ import { Button } from "@/components/ui";
 import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComposer";
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
 import type { ChatTypingUser } from "@/lib/chat-utils";
+import {
+  chatDateSeparatorLabel,
+  chatInitials,
+  formatBubbleTime,
+  messageGroupMeta,
+  shouldShowDateSeparator,
+} from "@/lib/chat-ui-utils";
 import { notifyNotificationsChanged } from "@/lib/use-notifications";
 
 type ThreadSummary = {
@@ -22,13 +29,7 @@ type ThreadSummary = {
 };
 
 function initials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
+  return chatInitials(name);
 }
 
 function formatInboxTime(iso: string) {
@@ -42,13 +43,6 @@ function formatInboxTime(iso: string) {
     return date.toLocaleDateString(undefined, { weekday: "short" });
   }
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-function formatBubbleTime(iso: string) {
-  return new Date(iso).toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
 }
 
 function formatDetailTime(iso: string) {
@@ -70,11 +64,15 @@ function MemberAvatar({
   ring?: boolean;
 }) {
   const sizeClass =
-    size === "sm" ? "h-11 w-11 text-sm" : size === "lg" ? "h-20 w-20 text-2xl" : "h-14 w-14 text-base";
+    size === "sm"
+      ? "h-12 w-12 text-sm"
+      : size === "lg"
+        ? "h-28 w-28 text-3xl"
+        : "h-14 w-14 text-base";
   return (
     <div
-      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#f58529] via-[#dd2a7b] to-[#8134af] font-semibold text-white ${
-        ring ? "ring-2 ring-white ring-offset-1 ring-offset-white" : ""
+      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-[#dfe5e7] font-medium text-[#54656f] ${
+        ring ? "ring-4 ring-white/90" : ""
       }`}
       aria-hidden
     >
@@ -83,12 +81,22 @@ function MemberAvatar({
   );
 }
 
-function BackChevron({ label, onClick }: { label: string; onClick: () => void }) {
+function BackChevron({
+  label,
+  onClick,
+  light = false,
+}: {
+  label: string;
+  onClick: () => void;
+  light?: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-night-900 hover:bg-black/5"
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+        light ? "text-white hover:bg-white/10" : "text-night-900 hover:bg-black/5"
+      }`}
       aria-label={label}
     >
       <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -98,27 +106,36 @@ function BackChevron({ label, onClick }: { label: string; onClick: () => void })
   );
 }
 
-function messageGroupMeta(
-  messages: DirectMessage[],
-  index: number,
-): { isFirst: boolean; isLast: boolean; showMeta: boolean } {
-  const current = messages[index];
-  const prev = messages[index - 1];
-  const next = messages[index + 1];
-  const sameAsPrev =
-    prev &&
-    prev.senderId === current.senderId &&
-    new Date(current.createdAt).getTime() - new Date(prev.createdAt).getTime() < 120_000;
-  const sameAsNext =
-    next &&
-    next.senderId === current.senderId &&
-    new Date(next.createdAt).getTime() - new Date(current.createdAt).getTime() < 120_000;
-
-  return {
-    isFirst: !sameAsPrev,
-    isLast: !sameAsNext,
-    showMeta: !sameAsNext,
-  };
+function WhatsAppChatHeader({
+  title,
+  subtitle,
+  onBack,
+  showBack,
+  avatarName,
+  menu,
+}: {
+  title: string;
+  subtitle?: string;
+  onBack?: () => void;
+  showBack?: boolean;
+  avatarName?: string;
+  menu?: ReactNode;
+}) {
+  return (
+    <header className="flex shrink-0 items-center gap-1 bg-[#008069] px-1 py-1.5 pt-[max(0.35rem,env(safe-area-inset-top))] text-white shadow-sm">
+      {showBack && onBack ? <BackChevron label="Back to chats" onClick={onBack} light /> : null}
+      <div className="flex min-w-0 flex-1 items-center gap-3 px-1">
+        {avatarName ? <MemberAvatar name={avatarName} size="sm" /> : null}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[16px] font-semibold leading-tight">{title}</p>
+          {subtitle ? (
+            <p className="truncate text-[12px] text-white/85">{subtitle}</p>
+          ) : null}
+        </div>
+      </div>
+      {menu ? <div className="relative shrink-0">{menu}</div> : null}
+    </header>
+  );
 }
 
 function parseUnreadByThread(items: Array<{ type?: string; href?: string; count?: number }>) {
@@ -633,7 +650,7 @@ export function MessagesHub() {
 
   return (
     <div
-      className={`messages-hub-root flex overflow-hidden bg-white ${
+      className={`messages-hub-root flex overflow-hidden bg-[#f0f2f5] ${
         immersive
           ? "h-[100dvh]"
           : isMobileApp
@@ -642,21 +659,19 @@ export function MessagesHub() {
       }`}
     >
       <aside
-        className={`flex w-full shrink-0 flex-col border-night-900/8 lg:w-[min(100%,360px)] lg:border-r ${
+        className={`flex w-full shrink-0 flex-col border-[#d1d7db] bg-white lg:w-[min(100%,390px)] lg:border-r ${
           showInbox ? "flex" : "hidden lg:flex"
         }`}
       >
-        <div className={`border-b border-night-900/8 ${isMobileApp ? "px-4 py-3" : "px-4 py-3"}`}>
+        <div className="bg-[#008069] px-4 pb-3 pt-[max(0.65rem,env(safe-area-inset-top))] text-white">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="font-display text-xl font-bold tracking-tight text-night-900">
-              {user.name?.split(" ")[0] ?? "Messages"}
-            </h2>
+            <h2 className="text-[22px] font-semibold tracking-tight">Chats</h2>
             <div className="flex items-center gap-1">
               {!isMobileApp ? (
                 <button
                   type="button"
                   onClick={() => setShowSafety((value) => !value)}
-                  className="rounded-full px-2 py-1.5 text-xs font-semibold text-night-600 hover:bg-sand-50"
+                  className="rounded-full px-2 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/10"
                 >
                   Safety
                 </button>
@@ -664,7 +679,7 @@ export function MessagesHub() {
               <button
                 type="button"
                 onClick={openNewMessage}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-xl text-night-900 hover:bg-sand-50"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-white hover:bg-white/10"
                 aria-label="New message"
               >
                 ✎
@@ -672,15 +687,15 @@ export function MessagesHub() {
             </div>
           </div>
           <div className="relative mt-3">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-night-400">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#54656f]">
               ⌕
             </span>
             <input
               type="search"
               value={inboxSearch}
               onChange={(event) => setInboxSearch(event.target.value)}
-              placeholder="Search"
-              className="w-full rounded-xl bg-sand-100 py-2.5 pl-9 pr-3 text-sm text-night-900 outline-none placeholder:text-night-400 focus:bg-sand-50 focus:ring-2 focus:ring-night-900/10"
+              placeholder="Search or start new chat"
+              className="w-full rounded-lg bg-white py-2 pl-9 pr-3 text-sm text-[#111b21] outline-none placeholder:text-[#667781] focus:ring-2 focus:ring-[#00a884]/30"
             />
           </div>
         </div>
@@ -711,7 +726,7 @@ export function MessagesHub() {
                       type="button"
                       onClick={() => unblockMember(block.blockedUserId, block.blockedUserName)}
                       disabled={busy}
-                      className="shrink-0 text-xs font-semibold text-[#0095f6]"
+                      className="shrink-0 text-xs font-semibold text-[#00a884]"
                     >
                       Unblock
                     </button>
@@ -749,7 +764,7 @@ export function MessagesHub() {
               <button
                 type="button"
                 onClick={openNewMessage}
-                className="mt-4 rounded-full bg-[#0095f6] px-4 py-2 text-xs font-semibold text-white"
+                className="mt-4 rounded-full bg-[#00a884] px-4 py-2 text-xs font-semibold text-white"
               >
                 New message
               </button>
@@ -763,23 +778,23 @@ export function MessagesHub() {
                   key={thread.id}
                   type="button"
                   onClick={() => loadThread(thread.id)}
-                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-sand-50/90 ${
-                    active ? "bg-sand-50" : ""
+                  className={`flex w-full items-center gap-3 border-b border-[#e9edef] px-4 py-3 text-left transition hover:bg-[#f5f6f6] ${
+                    active ? "bg-[#f0f2f5]" : "bg-white"
                   }`}
                 >
                   <MemberAvatar name={thread.otherName} size="sm" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p
-                        className={`truncate text-[15px] text-night-900 ${
-                          unread > 0 ? "font-bold" : "font-semibold"
+                        className={`truncate text-[17px] text-[#111b21] ${
+                          unread > 0 ? "font-semibold" : "font-normal"
                         }`}
                       >
                         {thread.otherName}
                       </p>
                       <span
                         className={`shrink-0 text-xs ${
-                          unread > 0 ? "font-semibold text-[#0095f6]" : "text-night-400"
+                          unread > 0 ? "font-medium text-[#25d366]" : "text-[#667781]"
                         }`}
                       >
                         {formatInboxTime(thread.lastMessageAt)}
@@ -788,13 +803,13 @@ export function MessagesHub() {
                     <div className="mt-0.5 flex items-center gap-2">
                       <p
                         className={`min-w-0 flex-1 truncate text-sm ${
-                          unread > 0 ? "font-semibold text-night-800" : "font-normal text-night-500"
+                          unread > 0 ? "font-medium text-[#111b21]" : "font-normal text-[#667781]"
                         }`}
                       >
                         {thread.lastMessage}
                       </p>
                       {unread > 0 ? (
-                        <span className="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-[#0095f6] px-1.5 text-[11px] font-bold text-white">
+                        <span className="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-[#25d366] px-1.5 text-[11px] font-semibold text-white">
                           {unread > 9 ? "9+" : unread}
                         </span>
                       ) : null}
@@ -808,23 +823,20 @@ export function MessagesHub() {
       </aside>
 
       <section
-        className={`min-w-0 flex-1 flex-col bg-white ${
+        className={`min-w-0 flex-1 flex-col bg-[#efeae2] ${
           showChatPane ? "flex" : "hidden lg:flex"
         }`}
       >
         {showNew ? (
           <>
-            <header className="flex items-center gap-1 border-b border-night-900/8 px-2 py-1.5 pt-[max(0.35rem,env(safe-area-inset-top))] lg:px-4 lg:py-3 lg:pt-3">
-              <div className="lg:hidden">
-                <BackChevron label="Back to inbox" onClick={closeChatView} />
-              </div>
-              <h2 className="flex-1 text-center text-base font-semibold text-night-900 lg:text-left">
-                New message
-              </h2>
-              <div className="h-10 w-10 shrink-0 lg:hidden" aria-hidden />
-            </header>
+            <WhatsAppChatHeader
+              title="New chat"
+              subtitle="Search for a member to message"
+              showBack={isMobileApp}
+              onBack={closeChatView}
+            />
 
-            <div className="flex-1 overflow-y-auto px-4 py-3">
+            <div className="flex-1 overflow-y-auto bg-[#efeae2] px-4 py-3">
               <div className="relative">
                 <label className="text-xs font-semibold uppercase tracking-wide text-night-500">
                   To:
@@ -860,7 +872,7 @@ export function MessagesHub() {
                     <button
                       type="button"
                       onClick={clearRecipient}
-                      className="text-xs font-semibold text-[#0095f6]"
+                      className="text-xs font-semibold text-[#00a884]"
                     >
                       Change
                     </button>
@@ -903,84 +915,78 @@ export function MessagesHub() {
               onSend={(attachment) => sendMessage(undefined, attachment)}
               busy={busy}
               disabled={!newRecipientId}
-              placeholder="Message…"
+              placeholder="Message"
               sendLabel="Send"
               allowAttachment={false}
-              density="compact"
+              density="whatsapp"
             />
           </>
         ) : activeThread ? (
           <>
-            <header className="relative flex items-center gap-1 border-b border-night-900/8 px-2 py-1.5 pt-[max(0.35rem,env(safe-area-inset-top))] lg:px-4 lg:py-3 lg:pt-3">
-              <div className="lg:hidden">
-                <BackChevron label="Back to inbox" onClick={closeChatView} />
-              </div>
-              <div className="pointer-events-none absolute inset-x-0 flex flex-col items-center justify-center px-14 lg:pointer-events-auto lg:static lg:flex-1 lg:flex-row lg:items-center lg:gap-2 lg:px-0">
-                <MemberAvatar name={activeThread.otherName} size="sm" />
-                <div className="min-w-0 text-center lg:text-left">
-                  <p className="truncate text-sm font-semibold text-night-900">
-                    {activeThread.otherName}
-                  </p>
-                  {typingLabel(typingUsers) ? (
-                    <p className="truncate text-xs text-night-500">{typingLabel(typingUsers)}</p>
-                  ) : isActiveBlocked ? (
-                    <p className="truncate text-xs text-night-500">Blocked</p>
-                  ) : null}
-                </div>
-              </div>
-              {activeOtherUserId && (
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setShowChatMenu((value) => !value)}
-                    className="rounded-full px-2 py-1 text-lg text-night-800 hover:bg-sand-50"
-                    aria-label="Conversation options"
-                  >
-                    ⋯
-                  </button>
-                  {showChatMenu && (
-                    <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] overflow-hidden rounded-xl border border-night-900/10 bg-white py-1 shadow-xl">
-                      {!isActiveBlocked ? (
+            <WhatsAppChatHeader
+              title={activeThread.otherName}
+              subtitle={
+                typingLabel(typingUsers) ||
+                (isActiveBlocked ? "Blocked" : "tap here for contact info")
+              }
+              avatarName={activeThread.otherName}
+              showBack={isMobileApp}
+              onBack={closeChatView}
+              menu={
+                activeOtherUserId ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowChatMenu((value) => !value)}
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-white hover:bg-white/10"
+                      aria-label="Conversation options"
+                    >
+                      ⋮
+                    </button>
+                    {showChatMenu && (
+                      <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] overflow-hidden rounded-xl bg-white py-1 text-[#111b21] shadow-xl">
+                        {!isActiveBlocked ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowChatMenu(false);
+                              blockMember(activeOtherUserId, activeThread.otherName);
+                            }}
+                            disabled={busy}
+                            className="block w-full px-4 py-2.5 text-left text-sm hover:bg-[#f0f2f5]"
+                          >
+                            Block
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowChatMenu(false);
+                              unblockMember(activeOtherUserId, activeThread.otherName);
+                            }}
+                            disabled={busy}
+                            className="block w-full px-4 py-2.5 text-left text-sm hover:bg-[#f0f2f5]"
+                          >
+                            Unblock
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
                             setShowChatMenu(false);
-                            blockMember(activeOtherUserId, activeThread.otherName);
+                            setShowReport(true);
                           }}
                           disabled={busy}
-                          className="block w-full px-4 py-2 text-left text-sm text-night-800 hover:bg-sand-50"
+                          className="block w-full px-4 py-2.5 text-left text-sm text-red-700 hover:bg-red-50"
                         >
-                          Block
+                          Report
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowChatMenu(false);
-                            unblockMember(activeOtherUserId, activeThread.otherName);
-                          }}
-                          disabled={busy}
-                          className="block w-full px-4 py-2 text-left text-sm text-night-800 hover:bg-sand-50"
-                        >
-                          Unblock
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowChatMenu(false);
-                          setShowReport(true);
-                        }}
-                        disabled={busy}
-                        className="block w-full px-4 py-2 text-left text-sm text-red-700 hover:bg-red-50"
-                      >
-                        Report
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </header>
+                      </div>
+                    )}
+                  </>
+                ) : null
+              }
+            />
 
             {showReport && (
               <div className="border-b border-red-100 bg-red-50/70 px-4 py-3">
@@ -1024,15 +1030,16 @@ export function MessagesHub() {
               </div>
             )}
 
-            <div className="flex-1 space-y-0.5 overflow-y-auto bg-white py-3">
+            <div className="group-chat-wallpaper min-h-0 flex-1 overflow-y-auto py-2">
               {messages.length === 0 ? (
-                <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+                <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-8 text-center">
                   <MemberAvatar name={activeThread.otherName} size="lg" ring />
-                  <p className="mt-4 text-base font-semibold text-night-900">
+                  <p className="mt-4 text-lg font-semibold text-[#111b21]">
                     {activeThread.otherName}
                   </p>
-                  <p className="mt-1 text-sm text-night-500">
-                    Say hi — this is the start of your conversation.
+                  <p className="mt-1 text-sm text-[#667781]">
+                    Messages and calls are end-to-end visible to members of this church app.
+                    Say hi to start the conversation.
                   </p>
                 </div>
               ) : (
@@ -1042,30 +1049,39 @@ export function MessagesHub() {
                   const lastOutgoing =
                     mine &&
                     !messages.slice(index + 1).some((item) => item.senderId === user.id);
+                  const previous = messages[index - 1];
+                  const showDate = shouldShowDateSeparator(previous?.createdAt, message.createdAt);
+
                   return (
-                    <div
-                      key={message.id}
-                      className={group.isFirst ? "pt-1.5" : "pt-0.5"}
-                    >
-                      <ChatMessageBubble
-                        mine={mine}
-                        content={message.content}
-                        createdAtLabel={formatBubbleTime(message.createdAt)}
-                        reactions={message.reactions}
-                        currentUserId={user.id}
-                        onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
-                        attachmentUrl={message.attachmentUrl}
-                        editedAt={message.editedAt}
-                        deletedAt={message.deletedAt}
-                        readAt={message.readAt}
-                        showReadReceipt={lastOutgoing && group.isLast}
-                        showMeta={group.showMeta}
-                        density="compact"
-                        canEdit={message.senderId === user.id}
-                        canDelete={message.senderId === user.id}
-                        onEdit={(content) => editMessage(message.id, content)}
-                        onDelete={() => deleteMessage(message.id)}
-                      />
+                    <div key={message.id}>
+                      {showDate ? (
+                        <div className="my-3 flex justify-center px-4">
+                          <span className="rounded-lg bg-[#ffffffd9] px-3 py-1 text-[12px] font-medium text-[#54656f] shadow-sm">
+                            {chatDateSeparatorLabel(message.createdAt)}
+                          </span>
+                        </div>
+                      ) : null}
+                      <div className={group.isFirst ? "pt-1" : "pt-0.5"}>
+                        <ChatMessageBubble
+                          mine={mine}
+                          content={message.content}
+                          createdAtLabel={formatBubbleTime(message.createdAt)}
+                          reactions={message.reactions}
+                          currentUserId={user.id}
+                          onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                          attachmentUrl={message.attachmentUrl}
+                          editedAt={message.editedAt}
+                          deletedAt={message.deletedAt}
+                          readAt={message.readAt}
+                          showReadReceipt={lastOutgoing && group.isLast}
+                          showMeta={group.showMeta}
+                          density="whatsapp"
+                          canEdit={message.senderId === user.id}
+                          canDelete={message.senderId === user.id}
+                          onEdit={(content) => editMessage(message.id, content)}
+                          onDelete={() => deleteMessage(message.id)}
+                        />
+                      </div>
                     </div>
                   );
                 })
@@ -1081,32 +1097,30 @@ export function MessagesHub() {
               }
               busy={busy}
               disabled={isActiveBlocked}
-              placeholder={isActiveBlocked ? "Unblock to message…" : "Message…"}
+              placeholder={isActiveBlocked ? "Unblock to message…" : "Message"}
               onTyping={sendTyping}
               onPickAttachment={(file) =>
                 uploadAttachment(file, { threadId: activeThreadId ?? undefined })
               }
               attachmentBusy={attachmentBusy}
-              density="compact"
+              density="whatsapp"
             />
           </>
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-night-900/10 text-2xl">
-              ✉
+          <div className="flex flex-1 flex-col items-center justify-center bg-[#f8f9fa] px-8 text-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#008069]/10 text-4xl">
+              💬
             </div>
-            <p className="mt-4 font-display text-lg font-semibold text-night-900">
-              Your messages
-            </p>
-            <p className="mt-1 max-w-xs text-sm text-night-500">
-              Send private photos and messages to other Shanah City members.
+            <p className="mt-4 text-2xl font-light text-[#41525d]">Shanah City Messages</p>
+            <p className="mt-2 max-w-sm text-sm text-[#667781]">
+              Send private messages and photos to other members. Select a chat or start a new one.
             </p>
             <button
               type="button"
               onClick={openNewMessage}
-              className="mt-5 rounded-full bg-[#0095f6] px-5 py-2 text-sm font-semibold text-white"
+              className="mt-5 rounded-full bg-[#00a884] px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
             >
-              Send message
+              New chat
             </button>
           </div>
         )}
