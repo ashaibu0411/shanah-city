@@ -27,6 +27,7 @@ export default async function CommunityPage() {
       <PollsSection
         initialPolls={polls.filter((poll) => !poll.targetGroupId)}
         compact
+        hideWhenEmpty
       />
       <CommunityFeed initialPosts={posts} />
     </div>

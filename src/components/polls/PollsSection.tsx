@@ -14,6 +14,8 @@ type PollsSectionProps = {
   title?: string;
   compact?: boolean;
   showComposer?: boolean;
+  /** Hide the entire section when there are no polls (no empty-state message). */
+  hideWhenEmpty?: boolean;
 };
 
 export function PollsSection({
@@ -23,6 +25,7 @@ export function PollsSection({
   title = "Polls",
   compact = false,
   showComposer,
+  hideWhenEmpty = false,
 }: PollsSectionProps) {
   const { user, permissions } = useAuth();
   const [polls, setPolls] = useState<PollView[]>(initialPolls);
@@ -52,6 +55,10 @@ export function PollsSection({
   }, [groupId]);
 
   const scopeLabel = groupName ? `${groupName} members` : "the church";
+
+  if (hideWhenEmpty && (loading || polls.length === 0)) {
+    return null;
+  }
 
   return (
     <section className={compact ? "space-y-3" : "mb-8 space-y-4"}>
