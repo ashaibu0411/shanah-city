@@ -36,6 +36,18 @@ export const addGroupMember = (
   email: string,
   options?: { actorIsSiteAdmin?: boolean },
 ) => store().addGroupMember(groupId, adminId, email, options);
+export const addGroupMemberById = (
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) => store().addGroupMemberById(groupId, adminId, memberId, options);
+export const searchGroupMemberCandidates = (
+  groupId: string,
+  actorId: string,
+  query: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) => store().searchGroupMemberCandidates(groupId, actorId, query, options);
 export const promoteGroupAdmin = (
   groupId: string,
   adminId: string,

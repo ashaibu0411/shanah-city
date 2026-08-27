@@ -471,6 +471,76 @@ export async function addGroupMember(
   };
 }
 
+export async function addGroupMemberById(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
+  const groups = await getGroups();
+  const index = groups.findIndex((group) => group.id === groupId);
+  if (index === -1) {
+    throw new Error("Group not found.");
+  }
+
+  const group = groups[index];
+  assertCanManageGroupMembers(group, adminId, Boolean(options?.actorIsSiteAdmin));
+
+  const member = await getUserById(memberId);
+  if (!member) {
+    throw new Error("No member account found.");
+  }
+
+  if (isGroupMember(group, member.id)) {
+    throw new Error(`${member.name} is already in this group.`);
+  }
+
+  group.memberIds = [...group.memberIds, member.id];
+  group.updatedAt = new Date().toISOString();
+  groups[index] = group;
+  await saveGroups(groups);
+
+  return {
+    group: toSummary(group, adminId),
+    addedName: member.name,
+  };
+}
+
+export async function searchGroupMemberCandidates(
+  groupId: string,
+  actorId: string,
+  query: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
+  const groups = await getGroups();
+  const group = groups.find((entry) => entry.id === groupId);
+  if (!group) {
+    throw new Error("Group not found.");
+  }
+
+  assertCanManageGroupMembers(group, actorId, Boolean(options?.actorIsSiteAdmin));
+
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) {
+    return [];
+  }
+
+  const users = await getUsers();
+  return users
+    .filter((user) => !isGroupMember(group, user.id))
+    .filter(
+      (user) =>
+        user.name.toLowerCase().includes(q) || user.email.toLowerCase().includes(q),
+    )
+    .slice(0, 12)
+    .map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      campusId: user.campusId,
+    }));
+}
+
 export async function promoteGroupAdmin(
   groupId: string,
   adminId: string,

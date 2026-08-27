@@ -6,9 +6,15 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
+import { GroupMemberAddForm } from "@/components/groups/GroupMemberAddForm";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
+import { GroupCalendarPanel } from "@/components/calendar/GroupCalendarPanel";
 import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
 import { Button, Card, ExternalLink } from "@/components/ui";
+import {
+  groupHasEmbeddedCalendar,
+  unavailabilityCalendarGroupForId,
+} from "@/lib/church-groups";
 import { getCampus } from "@/lib/site";
 import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
@@ -16,7 +22,7 @@ import type { GroupDetail, GroupMemberPreview } from "@/lib/group-types";
 import { groupCategoryLabels } from "@/lib/group-types";
 import { getGroupArtwork } from "@/lib/group-artwork";
 
-type DetailSection = "overview" | "chat" | "polls" | "report";
+type DetailSection = "overview" | "chat" | "polls" | "report" | "calendar";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -59,7 +65,7 @@ export function GroupDetailView({
   const [detailSection, setDetailSection] = useState<DetailSection>(initialSection);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
-  const [addMemberEmail, setAddMemberEmail] = useState("");
+  const [statusIsError, setStatusIsError] = useState(false);
 
   useEffect(() => {
     setDetail(initialGroup);
@@ -106,8 +112,11 @@ export function GroupDetailView({
 
     if (!response.ok) {
       setStatus(data.error ?? "Something went wrong.");
+      setStatusIsError(true);
       return false;
     }
+
+    setStatusIsError(false);
 
     if (
       body.action === "join" ||
@@ -123,6 +132,8 @@ export function GroupDetailView({
     return true;
   }
 
+  const showEmbeddedCalendar =
+    detail.isMember && groupHasEmbeddedCalendar(detail);
   const showLeaderReport =
     detail.isAdmin &&
     isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
@@ -191,7 +202,8 @@ export function GroupDetailView({
               </p>
             ) : isSiteAdminManaging ? (
               <p className="rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">
-                Admin access — add members by email, then assign a group leader to run this team.
+                Admin access — search app members or add by email, then assign a group leader to run
+                this team.
               </p>
             ) : (
               <Button
@@ -219,6 +231,9 @@ export function GroupDetailView({
               ...(showLeaderReport
                 ? [{ id: "report" as const, label: "Monthly report" }]
                 : []),
+              ...(showEmbeddedCalendar
+                ? [{ id: "calendar" as const, label: "Calendar" }]
+                : []),
               { id: "polls", label: "Polls" },
               { id: "chat", label: "Group chat" },
             ] as const
@@ -244,7 +259,15 @@ export function GroupDetailView({
         <GroupPollsPanel groupId={detail.id} groupName={detail.name} isAdmin={detail.isAdmin} />
       ) : detailSection === "report" && showLeaderReport && user ? (
         <LeaderReportForm embedded groupId={detail.id} groupName={detail.name} />
-      ) : (
+      ) : detailSection === "calendar" && showEmbeddedCalendar && user ? (
+        <GroupCalendarPanel
+          groupId={detail.id}
+          groupLabel={detail.name}
+          signInNextUrl={`/groups/${detail.id}?calendar=1`}
+          showWorshipPlanner={permissions.canAccessWorshipPlanner}
+          unavailabilityGroup={unavailabilityCalendarGroupForId(detail.id)}
+        />
+      ) : detailSection === "overview" ? (
         <>
           <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
 
@@ -275,33 +298,19 @@ export function GroupDetailView({
             </h3>
 
             {canManageMembers ? (
-              <form
-                className="mt-3 flex flex-col gap-2 sm:flex-row"
-                onSubmit={async (event) => {
-                  event.preventDefault();
-                  const ok = await runAction({
-                    action: "add-member",
-                    groupId: detail.id,
-                    email: addMemberEmail,
-                  });
-                  if (ok) {
-                    setAddMemberEmail("");
-                    setStatus(`Added member to ${detail.name}.`);
-                  }
+              <GroupMemberAddForm
+                groupId={detail.id}
+                disabled={busy}
+                onAdded={async () => {
+                  await refresh();
+                  await loadDetail(detail.id);
+                  router.refresh();
                 }}
-              >
-                <input
-                  type="email"
-                  value={addMemberEmail}
-                  onChange={(event) => setAddMemberEmail(event.target.value)}
-                  placeholder="Add member by email"
-                  required
-                  className="min-w-0 flex-1 rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-                />
-                <Button type="submit" variant="secondary" disabled={busy || !addMemberEmail.trim()}>
-                  Add member
-                </Button>
-              </form>
+                onStatus={(message, isError) => {
+                  setStatus(message);
+                  setStatusIsError(Boolean(isError));
+                }}
+              />
             ) : null}
 
             {detail.members.length === 0 ? (
@@ -503,11 +512,12 @@ export function GroupDetailView({
             </div>
           ) : null}
         </>
-      )}
+      ) : null}
 
       {status ? (
         <p
           className={`mt-4 rounded-xl px-3 py-2 text-sm ${
+            statusIsError ||
             status.includes("wrong") ||
             status.includes("Could not") ||
             status.includes("must")

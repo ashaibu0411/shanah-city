@@ -15,6 +15,8 @@ import {
   joinGroup,
   listGroupsForUser,
   addGroupMember,
+  addGroupMemberById,
+  searchGroupMemberCandidates,
   promoteGroupAdmin,
   promoteGroupAssistant,
   removeGroupMember,
@@ -30,6 +32,31 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const groupId = searchParams.get("id");
   const mine = searchParams.get("mine") === "1";
+  const memberSearch = searchParams.get("memberSearch") === "1";
+
+  if (memberSearch) {
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to search members." }, { status: 401 });
+    }
+    if (!groupId) {
+      return NextResponse.json({ error: "Group id is required." }, { status: 400 });
+    }
+    try {
+      const actorIsSiteAdmin = await canManageAsAdmin(user);
+      const members = await searchGroupMemberCandidates(
+        groupId,
+        user.id,
+        searchParams.get("q") ?? "",
+        { actorIsSiteAdmin },
+      );
+      return NextResponse.json({ members });
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Could not search members." },
+        { status: 400 },
+      );
+    }
+  }
 
   if (groupId) {
     const group = await getGroupDetail(groupId, user?.id);
@@ -150,8 +177,21 @@ export async function POST(request: Request) {
     }
 
     if (action === "add-member") {
+      const userId = body.userId ? String(body.userId) : "";
       const email = String(body.email ?? "");
-      const result = await addGroupMember(groupId, user.id, email, managementOptions);
+      const result = userId
+        ? await addGroupMemberById(groupId, user.id, userId, managementOptions)
+        : email.trim()
+          ? await addGroupMember(groupId, user.id, email, managementOptions)
+          : null;
+
+      if (!result) {
+        return NextResponse.json(
+          { error: "Enter an email or select a member account." },
+          { status: 400 },
+        );
+      }
+
       await recordActivity(
         user.id,
         "profile_update",

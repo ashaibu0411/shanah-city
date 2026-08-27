@@ -1,3 +1,5 @@
+import { TEAM_ZNCF_GROUP_ID } from "@/lib/church-groups";
+
 const DEFAULT_DEVOTION_GROUP_NAMES = ["team zncf", "zncf"];
 
 export function getConfiguredDevotionGroupId() {
@@ -25,6 +27,9 @@ export function isDevotionWritersGroup(group: { id: string; name: string }) {
   const configuredId = getConfiguredDevotionGroupId();
   if (configuredId) {
     return group.id === configuredId;
+  }
+  if (group.id === TEAM_ZNCF_GROUP_ID) {
+    return true;
   }
   return isDevotionWritersGroupName(group.name);
 }

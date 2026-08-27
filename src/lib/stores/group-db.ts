@@ -118,26 +118,35 @@ async function ensureChurchGroups() {
       continue;
     }
 
-    if (seed.id === ADMIN_GROUP_ID && bootstrapIds.length > 0) {
-      const memberIds = parseStringArray(existing.memberIds);
-      const adminIds = parseStringArray(existing.adminIds);
-      const nextMembers = [...new Set([...memberIds, ...bootstrapIds])];
-      const nextAdmins = [...new Set([...adminIds, ...bootstrapIds])];
+    const memberIds = parseStringArray(existing.memberIds);
+    const adminIds = parseStringArray(existing.adminIds);
+    const updateData: {
+      name: string;
+      description: string;
+      requiresApproval: boolean;
+      isSystem: boolean;
+      signupVisible: boolean;
+      updatedAt: Date;
+      memberIds?: string[];
+      adminIds?: string[];
+    } = {
+      name: seed.name,
+      description: seed.description,
+      requiresApproval: seed.requiresApproval,
+      isSystem: seed.isSystem,
+      signupVisible: seed.signupVisible,
+      updatedAt: now,
+    };
 
-      await prisma.group.update({
-        where: { id: seed.id },
-        data: {
-          name: seed.name,
-          description: seed.description,
-          requiresApproval: seed.requiresApproval,
-          isSystem: seed.isSystem,
-          signupVisible: seed.signupVisible,
-          memberIds: nextMembers,
-          adminIds: nextAdmins,
-          updatedAt: now,
-        },
-      });
+    if (seed.id === ADMIN_GROUP_ID && bootstrapIds.length > 0) {
+      updateData.memberIds = [...new Set([...memberIds, ...bootstrapIds])];
+      updateData.adminIds = [...new Set([...adminIds, ...bootstrapIds])];
     }
+
+    await prisma.group.update({
+      where: { id: seed.id },
+      data: updateData,
+    });
   }
 }
 
@@ -530,6 +539,78 @@ export async function addGroupMember(
     group: toSummary(mapGroup(updated), adminId),
     addedName: member.name,
   };
+}
+
+export async function addGroupMemberById(
+  groupId: string,
+  adminId: string,
+  memberId: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
+  const record = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!record) {
+    throw new Error("Group not found.");
+  }
+
+  const group = mapGroup(record);
+  assertCanManageGroupMembers(group, adminId, Boolean(options?.actorIsSiteAdmin));
+
+  const member = await getUserById(memberId);
+  if (!member) {
+    throw new Error("No member account found.");
+  }
+
+  if (isGroupMember(group, member.id)) {
+    throw new Error(`${member.name} is already in this group.`);
+  }
+
+  const updated = await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      memberIds: [...group.memberIds, member.id],
+      updatedAt: new Date(),
+    },
+  });
+
+  return {
+    group: toSummary(mapGroup(updated), adminId),
+    addedName: member.name,
+  };
+}
+
+export async function searchGroupMemberCandidates(
+  groupId: string,
+  actorId: string,
+  query: string,
+  options?: { actorIsSiteAdmin?: boolean },
+) {
+  const record = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!record) {
+    throw new Error("Group not found.");
+  }
+
+  const group = mapGroup(record);
+  assertCanManageGroupMembers(group, actorId, Boolean(options?.actorIsSiteAdmin));
+
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) {
+    return [];
+  }
+
+  const users = await getUsers();
+  return users
+    .filter((user) => !isGroupMember(group, user.id))
+    .filter(
+      (user) =>
+        user.name.toLowerCase().includes(q) || user.email.toLowerCase().includes(q),
+    )
+    .slice(0, 12)
+    .map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      campusId: user.campusId,
+    }));
 }
 
 export async function promoteGroupAdmin(

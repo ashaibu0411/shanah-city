@@ -1,6 +1,7 @@
 import type { GroupCategory, GroupVisibility } from "@/lib/group-types";
 
 export const ADMIN_GROUP_ID = "group-admin";
+export const TEAM_ZNCF_GROUP_ID = "group-team-zncf";
 
 export const CALENDAR_GROUP_TABS = {
   choir: "group-choir",
@@ -37,7 +38,17 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     category: "ministry",
     visibility: "private",
     requiresApproval: true,
-    signupVisible: true,
+    signupVisible: false,
+    isSystem: true,
+  },
+  {
+    id: TEAM_ZNCF_GROUP_ID,
+    name: "Team ZNCF",
+    description: "Private devotion writers who draft and publish daily devotions.",
+    category: "other",
+    visibility: "private",
+    requiresApproval: true,
+    signupVisible: false,
     isSystem: true,
   },
   {
@@ -169,4 +180,33 @@ export function getSignupMinistryGroups() {
 export function isPrivilegedMinistryGroup(groupId: string) {
   const group = CHURCH_MINISTRY_GROUPS.find((entry) => entry.id === groupId);
   return group?.requiresApproval ?? false;
+}
+
+export const GROUP_CALENDAR_EXCLUDED_IDS = new Set([
+  ADMIN_GROUP_ID,
+  TEAM_ZNCF_GROUP_ID,
+  "group-leaders",
+  "group-team-lead",
+]);
+
+export function groupHasEmbeddedCalendar(group: {
+  id: string;
+  name: string;
+  category: ChurchGroupSeed["category"];
+}) {
+  if (GROUP_CALENDAR_EXCLUDED_IDS.has(group.id)) {
+    return false;
+  }
+  if (CHURCH_MINISTRY_GROUPS.some((seed) => seed.id === group.id)) {
+    return true;
+  }
+  return ["ministry", "choir", "youth", "small-group"].includes(group.category);
+}
+
+export function unavailabilityCalendarGroupForId(
+  groupId: string,
+): keyof typeof CALENDAR_GROUP_TABS | null {
+  if (groupId === CALENDAR_GROUP_TABS.choir) return "choir";
+  if (groupId === CALENDAR_GROUP_TABS.pastors) return "pastors";
+  return null;
 }
