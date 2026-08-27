@@ -138,67 +138,267 @@ const TEAM_SHEPHERDING_QUESTIONS: MinistryReportQuestion[] = [
   },
 ];
 
-const COMMON_QUESTIONS: MinistryReportQuestion[] = [
+const FELLOWSHIP_SHEPHERDING: MinistryReportQuestion[] = [
   {
-    id: "ministryHealth",
-    label: "Overall ministry health (1 = struggling, 5 = thriving)",
-    type: "rating",
+    id: "absentMembers",
+    label: "Members who missed gatherings or seem disconnected",
+    hint: "Name anyone who missed twice or more, or seems discouraged.",
+    type: "textarea",
     required: true,
-    min: 1,
-    max: 5,
   },
   {
-    id: "activeVolunteers",
-    label: "How many active volunteers served this month?",
+    id: "absentFollowUp",
+    label: "Follow-up calls, texts, or visits you made",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "newMembersCount",
+    label: "New people who joined your ministry this month",
+    type: "number",
+    min: 0,
+    required: true,
+  },
+  {
+    id: "newMembers",
+    label: "New people — names and how you welcomed them",
+    type: "textarea",
+  },
+  {
+    id: "membersSatOrLeft",
+    label: "Anyone who stepped back or left the group",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "teamActivitiesCount",
+    label: "Fellowship or discipleship touchpoints this month",
+    hint: "Meals, prayer partners, group chats, outings, or study nights.",
     type: "number",
     required: true,
     min: 0,
   },
   {
-    id: "attendanceEngagement",
-    label: "Attendance & engagement trends",
-    hint: "Who showed up consistently? Anyone drifting away?",
+    id: "teamActivities",
+    label: "Describe those touchpoints (or why none were held)",
     type: "textarea",
     required: true,
   },
   {
-    id: "wins",
-    label: "Top wins this month",
-    hint: "Celebrate progress — souls, service, teamwork, or growth.",
+    id: "shepherdingGaps",
+    label: "If follow-up or fellowship was limited — why?",
     type: "textarea",
-    required: true,
-  },
-  {
-    id: "challenges",
-    label: "Challenges or roadblocks",
-    type: "textarea",
-    required: true,
-  },
-  {
-    id: "prayerNeeds",
-    label: "Prayer needs for your team",
-    type: "textarea",
-  },
-  {
-    id: "resourceNeeds",
-    label: "Resources needed",
-    hint: "Equipment, budget, space, training, or extra hands.",
-    type: "textarea",
-  },
-  {
-    id: "upcomingEvents",
-    label: "Plans for next month",
-    type: "textarea",
-    required: true,
-  },
-  {
-    id: "leaderHealth",
-    label: "How are you doing as a leader?",
-    hint: "Burnout, encouragement, time with God, support you need.",
-    type: "textarea",
-    required: true,
   },
 ];
+
+const CARE_SHEPHERDING: MinistryReportQuestion[] = [
+  {
+    id: "absentMembers",
+    label: "Team members who missed scheduled shifts or meetings",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "absentFollowUp",
+    label: "Follow-up with absent team members",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "newMembersCount",
+    label: "New team members added this month",
+    type: "number",
+    min: 0,
+    required: true,
+  },
+  {
+    id: "newMembers",
+    label: "New team members — names and training given",
+    type: "textarea",
+  },
+  {
+    id: "membersSatOrLeft",
+    label: "Anyone rotated off or no longer serving",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "teamActivitiesCount",
+    label: "Team meetings or training sessions held",
+    type: "number",
+    required: true,
+    min: 0,
+  },
+  {
+    id: "teamActivities",
+    label: "Describe team coordination this month",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "shepherdingGaps",
+    label: "Gaps in coverage or follow-through — why?",
+    type: "textarea",
+  },
+];
+
+const FINANCE_SHEPHERDING: MinistryReportQuestion[] = [
+  {
+    id: "absentMembers",
+    label: "Counters who missed their scheduled week",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "absentFollowUp",
+    label: "How missed counts were covered",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "newMembersCount",
+    label: "New counters trained this month",
+    type: "number",
+    min: 0,
+    required: true,
+  },
+  {
+    id: "newMembers",
+    label: "New counters — names and who trained them",
+    type: "textarea",
+  },
+  {
+    id: "membersSatOrLeft",
+    label: "Counters who stepped off the rotation",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "teamActivitiesCount",
+    label: "Finance team meetings or reviews held",
+    type: "number",
+    required: true,
+    min: 0,
+  },
+  {
+    id: "teamActivities",
+    label: "Describe team meetings or process reviews",
+    type: "textarea",
+    required: true,
+  },
+  {
+    id: "shepherdingGaps",
+    label: "Any delays or gaps in counting — why?",
+    type: "textarea",
+  },
+];
+
+function closingQuestions(
+  winsLabel: string,
+  winsHint: string,
+  plansLabel: string,
+  includeServiceMetrics = false,
+): MinistryReportQuestion[] {
+  const questions: MinistryReportQuestion[] = [
+    {
+      id: "ministryHealth",
+      label: "Overall ministry health (1 = struggling, 5 = thriving)",
+      type: "rating",
+      required: true,
+      min: 1,
+      max: 5,
+    },
+  ];
+
+  if (includeServiceMetrics) {
+    questions.push(
+      {
+        id: "activeVolunteers",
+        label: "Active volunteers who served this month",
+        type: "number",
+        required: true,
+        min: 0,
+      },
+      {
+        id: "attendanceEngagement",
+        label: "Attendance and engagement on your team",
+        hint: "Who served consistently? Anyone drifting away?",
+        type: "textarea",
+        required: true,
+      },
+    );
+  }
+
+  questions.push(
+    {
+      id: "wins",
+      label: winsLabel,
+      hint: winsHint,
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "challenges",
+      label: "Challenges or roadblocks",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "prayerNeeds",
+      label: "Prayer needs",
+      type: "textarea",
+    },
+    {
+      id: "resourceNeeds",
+      label: "Resources or support needed",
+      hint: "Budget, supplies, space, training, or extra hands.",
+      type: "textarea",
+    },
+    {
+      id: "upcomingEvents",
+      label: plansLabel,
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "leaderHealth",
+      label: "How are you doing as a leader?",
+      hint: "Burnout, encouragement, time with God, support you need.",
+      type: "textarea",
+      required: true,
+    },
+  );
+
+  return questions;
+}
+
+const SERVICE_CLOSING = closingQuestions(
+  "Top wins this month",
+  "Celebrate progress — service quality, teamwork, or lives touched.",
+  "Plans for next month",
+  true,
+);
+
+const FELLOWSHIP_CLOSING = closingQuestions(
+  "Highlights from gatherings this month",
+  "Salvation, healing, deeper friendship, or strong turnout.",
+  "Plans for next month's gatherings",
+  false,
+);
+
+const CARE_CLOSING = closingQuestions(
+  "Top wins from your care or calls this month",
+  "Lives encouraged, guests returned, or urgent needs met.",
+  "Plans for next month",
+  false,
+);
+
+const FINANCE_CLOSING = closingQuestions(
+  "What went well with counting and reconciliation",
+  "Accuracy, timeliness, or improved processes.",
+  "Plans to improve counting next month",
+  false,
+);
 
 const COMMON_EXPECTATIONS = [
   "Submit by the 5th of each month for the prior month.",
@@ -210,17 +410,27 @@ const COMMON_EXPECTATIONS = [
   "Flag urgent needs in challenges or resource fields.",
 ];
 
+type TemplateBuildOptions = {
+  shepherding?: MinistryReportQuestion[];
+  closing?: MinistryReportQuestion[];
+};
+
 function template(
   key: string,
   title: string,
   expectations: string[],
-  extraQuestions: MinistryReportQuestion[],
+  ministryQuestions: MinistryReportQuestion[],
+  options: TemplateBuildOptions = {},
 ): MinistryReportTemplate {
   return {
     key,
     title,
     expectations: [...expectations, ...COMMON_EXPECTATIONS],
-    questions: [...extraQuestions, ...TEAM_SHEPHERDING_QUESTIONS, ...COMMON_QUESTIONS],
+    questions: [
+      ...ministryQuestions,
+      ...(options.shepherding ?? TEAM_SHEPHERDING_QUESTIONS),
+      ...(options.closing ?? SERVICE_CLOSING),
+    ],
   };
 }
 
@@ -326,16 +536,23 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
       },
       {
         id: "discipleshipMoments",
-        label: "Discipleship highlights & conversations",
+        label: "Salvation, baptism, or discipleship conversations",
         type: "textarea",
         required: true,
       },
       {
         id: "parentEngagement",
-        label: "Parent communication & engagement",
+        label: "Parent communication (texts, calls, or meetings)",
+        type: "textarea",
+      },
+      {
+        id: "eventSafety",
+        label: "Event safety, behavior, or pastoral concerns",
+        hint: "Leave blank if none. Flag anything urgent separately.",
         type: "textarea",
       },
     ],
+    { shepherding: FELLOWSHIP_SHEPHERDING, closing: FELLOWSHIP_CLOSING },
   ),
   youngAdults: template(
     "youngAdults",
@@ -368,16 +585,17 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
       },
       {
         id: "discipleshipHighlights",
-        label: "Discipleship, mentorship, and life-on-life moments",
+        label: "Accountability, mentorship, and life-on-life moments",
         type: "textarea",
         required: true,
       },
       {
         id: "communityOutreach",
-        label: "Outreach, invites, or social fellowship planned",
+        label: "Social fellowship or invite events held/planned",
         type: "textarea",
       },
     ],
+    { shepherding: FELLOWSHIP_SHEPHERDING, closing: FELLOWSHIP_CLOSING },
   ),
   ushering: template(
     "ushering",
@@ -419,71 +637,111 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
     "ladies",
     "Women's Ministry Report",
     [
-      "Foster authentic fellowship and discipleship among women.",
-      "Plan at least one touchpoint (meeting, call, or outreach) per month.",
+      "Create safe spaces for women to grow in faith and friendship.",
+      "Follow up with women who miss two gatherings in a row.",
+      "Plan at least one fellowship or discipleship touchpoint each month.",
     ],
     [
       {
         id: "meetingsHeld",
-        label: "Meetings, circles, or events held",
+        label: "Women's gatherings held (Bible study, prayer, fellowship)",
         type: "number",
         required: true,
         min: 0,
       },
       {
         id: "membersEngaged",
-        label: "Women actively engaged this month",
+        label: "Women who participated this month",
         type: "number",
         required: true,
         min: 0,
       },
       {
+        id: "gatheringFormat",
+        label: "Primary gathering format this month",
+        type: "select",
+        required: true,
+        options: [
+          "In-person Bible study",
+          "Prayer circle",
+          "Fellowship meal or outing",
+          "Hybrid or online",
+          "Mix of formats",
+        ],
+      },
+      {
         id: "discipleshipHighlights",
-        label: "Discipleship & fellowship highlights",
+        label: "Stories of growth, prayer, or breakthrough among the women",
         type: "textarea",
         required: true,
       },
       {
+        id: "careMoments",
+        label: "Practical care given (meals, rides, childcare help, check-ins)",
+        type: "textarea",
+      },
+      {
         id: "outreachPlans",
-        label: "Outreach or invite opportunities",
+        label: "Invites or outreach to new women next month",
         type: "textarea",
       },
     ],
+    { shepherding: FELLOWSHIP_SHEPHERDING, closing: FELLOWSHIP_CLOSING },
   ),
   men: template(
     "men",
     "Men's Ministry Report",
     [
       "Build men who lead their homes and serve the church.",
-      "Hold accountable, consistent gatherings.",
+      "Hold accountable, consistent brotherhood gatherings.",
+      "Follow up with men who miss two gatherings in a row.",
     ],
     [
       {
         id: "meetingsHeld",
-        label: "Meetings or brotherhood gatherings held",
+        label: "Brotherhood gatherings or studies held",
         type: "number",
         required: true,
         min: 0,
       },
       {
         id: "membersEngaged",
-        label: "Men actively engaged this month",
+        label: "Men who participated this month",
         type: "number",
         required: true,
         min: 0,
       },
       {
+        id: "gatheringFormat",
+        label: "Primary gathering format this month",
+        type: "select",
+        required: true,
+        options: [
+          "Bible study or teaching",
+          "Accountability group",
+          "Breakfast or fellowship meal",
+          "Service project",
+          "Mix of formats",
+        ],
+      },
+      {
         id: "discipleshipHighlights",
-        label: "Discipleship & accountability highlights",
+        label: "Accountability, repentance, or leadership growth stories",
         type: "textarea",
         required: true,
       },
       {
+        id: "careMoments",
+        label: "Practical support given (calls, visits, helping families)",
+        type: "textarea",
+      },
+      {
         id: "outreachPlans",
-        label: "Outreach or invite opportunities",
+        label: "Invites or outreach to new men next month",
         type: "textarea",
       },
     ],
+    { shepherding: FELLOWSHIP_SHEPHERDING, closing: FELLOWSHIP_CLOSING },
   ),
   followUp: template(
     "followUp",
@@ -533,6 +791,7 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
         required: true,
       },
     ],
+    { shepherding: CARE_SHEPHERDING, closing: CARE_CLOSING },
   ),
   prayer: template(
     "prayer",
@@ -568,6 +827,7 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
         type: "textarea",
       },
     ],
+    { shepherding: CARE_SHEPHERDING, closing: CARE_CLOSING },
   ),
   finance: template(
     "finance",
@@ -595,6 +855,7 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
         type: "textarea",
       },
     ],
+    { shepherding: FINANCE_SHEPHERDING, closing: FINANCE_CLOSING },
   ),
   media: template(
     "media",
@@ -718,7 +979,7 @@ export function getReportTemplateForGroup(group: { id: string; name: string }) {
   const template = MINISTRY_REPORT_TEMPLATES[key] ?? MINISTRY_REPORT_TEMPLATES.default;
   return {
     ...template,
-    questions: enrichReportQuestions(template.questions),
+    questions: enrichReportQuestions(template.questions, key),
   };
 }
 

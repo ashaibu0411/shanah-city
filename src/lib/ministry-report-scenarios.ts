@@ -1,6 +1,7 @@
 import type { MinistryReportQuestion } from "@/lib/ministry-report-types";
 
 export type MinistryReportPrefillOption = {
+  id?: string;
   label: string;
   value: string;
 };
@@ -596,20 +597,314 @@ const templateScenarios: Record<string, MinistryReportPrefillOption[]> = {
     },
     noneThisMonth,
   ],
+  careMoments: [
+    noneThisMonth,
+    {
+      label: "Meals or rides",
+      value:
+        "Provided meals, rides, or practical help for women/men going through a hard season.",
+    },
+    {
+      label: "Check-in calls",
+      value:
+        "Regular check-in calls or texts to members who were sick, grieving, or overwhelmed.",
+    },
+    {
+      label: "Childcare support",
+      value:
+        "Coordinated childcare or schedule adjustments so mothers could attend gatherings.",
+    },
+  ],
+  eventSafety: [
+    noneThisMonth,
+    {
+      label: "Minor behavior issue",
+      value:
+        "Minor behavior issue addressed same day with parents notified — resolved peacefully.",
+    },
+    {
+      label: "Needs leader follow-up",
+      value:
+        "Ongoing pastoral or safety concern being handled with parents and youth leaders.",
+    },
+  ],
+};
+
+const TEMPLATE_SCENARIOS: Record<string, Record<string, MinistryReportPrefillOption[]>> = {
+  ladies: {
+    discipleshipHighlights: [
+      {
+        label: "Strong Bible study",
+        value:
+          "Women engaged deeply in Bible study with honest sharing and prayer for one another.",
+      },
+      {
+        label: "Prayer breakthrough",
+        value:
+          "Clear prayer breakthrough or encouragement shared in the group (details in notes if needed).",
+      },
+      {
+        label: "New women connected",
+        value:
+          "New women attended and were personally welcomed — follow-up invites sent.",
+      },
+      {
+        label: "Fellowship unity",
+        value:
+          "Fellowship meal or outing strengthened friendships and trust in the group.",
+      },
+    ],
+    outreachPlans: [
+      {
+        label: "Invite-a-friend night",
+        value: "Planning an invite-a-friend gathering or women's social next month.",
+      },
+      {
+        label: "Church-wide event",
+        value: "Aligning with a church-wide event to invite unconnected women.",
+      },
+      {
+        label: "Personal invites",
+        value: "Each core member inviting one woman who is not yet connected.",
+      },
+      noneThisMonth,
+    ],
+    wins: [
+      {
+        label: "Strong turnout",
+        value: "Strong turnout and warm atmosphere at women's gatherings.",
+      },
+      {
+        label: "New leaders emerging",
+        value: "New helpers stepped up to host, pray, or coordinate fellowship.",
+      },
+      {
+        label: "Life change",
+        value: "Visible spiritual growth — deeper prayer, healing, or renewed commitment.",
+      },
+    ],
+    resourceNeeds: [
+      noneThisMonth,
+      {
+        label: "Childcare help",
+        value: "Childcare or nursery support would help more mothers attend.",
+      },
+      {
+        label: "Study materials",
+        value: "Books, study guides, or craft/supplies needed for upcoming gatherings.",
+      },
+      {
+        label: "Co-leader",
+        value: "Would benefit from a co-leader to share planning and follow-up.",
+      },
+    ],
+  },
+  men: {
+    discipleshipHighlights: [
+      {
+        label: "Accountability honesty",
+        value:
+          "Men opened up honestly in accountability — repentance, encouragement, and prayer.",
+      },
+      {
+        label: "Leadership at home",
+        value:
+          "Conversations about leading families, marriage, and integrity in the workplace.",
+      },
+      {
+        label: "New men joined",
+        value: "New men attended brotherhood gathering and were connected for follow-up.",
+      },
+    ],
+    outreachPlans: [
+      {
+        label: "Men's breakfast",
+        value: "Planning a men's breakfast or outreach meal next month.",
+      },
+      {
+        label: "Serve project",
+        value: "Brotherhood serve project to invite unconnected men.",
+      },
+      noneThisMonth,
+    ],
+    wins: [
+      {
+        label: "Consistent attendance",
+        value: "Consistent brotherhood attendance and transparent sharing.",
+      },
+      {
+        label: "Men serving church",
+        value: "More men stepping into service roles across the church.",
+      },
+    ],
+  },
+  teens: {
+    discipleshipMoments: [
+      {
+        label: "Salvation or rededication",
+        value:
+          "Teen(s) prayed for salvation or rededication — connected for follow-up discipleship.",
+      },
+      {
+        label: "Small group depth",
+        value: "Honest small group conversations about faith, identity, and obedience.",
+      },
+      {
+        label: "Peer mentorship",
+        value: "Older teens mentoring younger students in the ministry.",
+      },
+    ],
+    parentEngagement: [
+      {
+        label: "Updates sent",
+        value: "Regular parent updates sent about events, expectations, and safety.",
+      },
+      {
+        label: "Parent meeting",
+        value: "Parent meeting held to align on calendar and discipleship goals.",
+      },
+      noneThisMonth,
+    ],
+  },
+  youngAdults: {
+    discipleshipHighlights: [
+      {
+        label: "Life-on-life mentorship",
+        value:
+          "Life-on-life mentorship happening outside Sunday — coffee, study, or accountability.",
+      },
+      {
+        label: "Community forming",
+        value: "New young adults finding belonging and joining the regular rhythm.",
+      },
+    ],
+  },
+  followUp: {
+    wins: [
+      {
+        label: "Guests reached quickly",
+        value: "Most first-time guests contacted within 48 hours of visit.",
+      },
+      {
+        label: "Return visitors",
+        value: "Several guests returned after personal follow-up calls.",
+      },
+    ],
+  },
+  finance: {
+    wins: [
+      {
+        label: "On-time counts",
+        value: "All weekly counts submitted on time with accurate reconciliation.",
+      },
+      {
+        label: "Process improved",
+        value: "Improved handoff or checklist reduced errors this month.",
+      },
+    ],
+    challenges: [
+      {
+        label: "Counter shortage",
+        value: "Not enough counters available every week — need more trained volunteers.",
+      },
+      noneThisMonth,
+    ],
+  },
+  prayer: {
+    wins: [
+      {
+        label: "Faithful coverage",
+        value: "Prayer shifts and meetings covered faithfully all month.",
+      },
+      {
+        label: "Answered prayer shared",
+        value: "Answered prayer testimonies shared to encourage intercessors.",
+      },
+    ],
+  },
+  kids: {
+    curriculumProgress: [
+      {
+        label: "On track",
+        value:
+          "Lessons and materials prepared before each service. Teachers briefed and classrooms ready.",
+      },
+      {
+        label: "Ahead of schedule",
+        value: "Next month's lessons prepped and classroom supplies stocked.",
+      },
+    ],
+    wins: [
+      {
+        label: "Smooth check-in",
+        value: "Check-in and pickup ran smoothly every service.",
+      },
+      {
+        label: "New families",
+        value: "New families enrolled and volunteers welcomed them warmly.",
+      },
+    ],
+  },
+  choir: {
+    rehearsalAttendance: [
+      {
+        label: "Strong attendance",
+        value:
+          "Most musicians and vocalists attended rehearsals on time. Team arrived prepared.",
+      },
+      {
+        label: "Mixed attendance",
+        value:
+          "Core team present but some gaps due to work or travel — covered with substitutes.",
+      },
+    ],
+    wins: [
+      {
+        label: "Worship flowed well",
+        value: "Worship flowed well with minimal last-minute changes.",
+      },
+      {
+        label: "Team unity",
+        value: "Strong team unity and servant attitudes during services.",
+      },
+    ],
+  },
+  ushering: {
+    guestWelcomeHighlights: [
+      {
+        label: "Warm welcome",
+        value:
+          "Guests welcomed at the door, seated comfortably, and connected to follow-up.",
+      },
+      {
+        label: "First-time care",
+        value:
+          "First-time guests received extra attention and direction to guest services.",
+      },
+    ],
+  },
+  media: {},
 };
 
 export function enrichReportQuestions(
   questions: MinistryReportQuestion[],
+  templateKey?: string,
 ): MinistryReportQuestion[] {
   return questions.map((question) => {
     const numberPresets =
       question.numberPresets ??
       (question.type === "number" ? MINISTRY_REPORT_NUMBER_PRESETS[question.id] : undefined);
 
-    const prefillOptions =
+    const rawOptions =
       question.prefillOptions ??
+      TEMPLATE_SCENARIOS[templateKey ?? ""]?.[question.id] ??
       templateScenarios[question.id] ??
       commonScenarios[question.id];
+
+    const prefillOptions = rawOptions?.map((option, index) => ({
+      ...option,
+      id: option.id ?? `${question.id}-${index}`,
+    }));
 
     return {
       ...question,

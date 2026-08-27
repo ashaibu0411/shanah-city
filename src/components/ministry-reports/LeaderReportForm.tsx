@@ -72,9 +72,14 @@ function QuestionField({
         <div className="mt-2 flex flex-wrap gap-2">
           {question.prefillOptions.map((option) => (
             <button
-              key={option.label}
+              key={option.id ?? option.label}
               type="button"
-              onClick={() => onChange(option.value)}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onChange(option.value);
+              }}
               className={`rounded-full px-3 py-1.5 text-left text-xs font-semibold transition ${
                 stringValue === option.value
                   ? "bg-night-900 text-sand-50"
@@ -98,7 +103,12 @@ function QuestionField({
           <button
             key={preset}
             type="button"
-            onClick={() => onChange(preset)}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onChange(preset);
+            }}
             className={`h-9 min-w-[2.5rem] rounded-full px-3 text-sm font-semibold transition ${
               Number(stringValue) === preset
                 ? "bg-night-900 text-sand-50"
@@ -449,8 +459,8 @@ export function LeaderReportForm({
 
           <Card className="space-y-6 p-6">
             {template.questions.map((question) => (
-              <label key={question.id} className="block text-sm">
-                <span className="font-semibold text-night-800">
+              <div key={question.id} className="block text-sm">
+                <span className="block font-semibold text-night-800">
                   {question.label}
                   {question.required ? " *" : ""}
                 </span>
@@ -465,7 +475,7 @@ export function LeaderReportForm({
                   }
                   readOnly={readOnly && report?.status !== "returned"}
                 />
-              </label>
+              </div>
             ))}
 
             <label className="block text-sm">
