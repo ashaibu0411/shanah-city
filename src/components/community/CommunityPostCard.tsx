@@ -11,6 +11,7 @@ import {
   reactionEmoji,
 } from "@/lib/community-ui-utils";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
+import { canManageCommunityPostClient } from "@/lib/community-post-access";
 
 function LikeIcon({ active }: { active: boolean }) {
   return (
@@ -71,16 +72,13 @@ export function CommunityPostCard({
   const [loading, setLoading] = useState(false);
   const [reacted, setReacted] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(post.content);
   const [editType, setEditType] = useState<CommunityPost["type"]>(post.type);
   const [editError, setEditError] = useState("");
   const campus = getCampus(post.campusId);
 
-  const canManage = Boolean(
-    user && (post.authorId === user.id || permissions.canManageAdmin),
-  );
+  const canManage = canManageCommunityPostClient(user, post, permissions.canManageAdmin);
   const canChangeType = post.type !== "announcement";
 
   useEffect(() => {
@@ -183,7 +181,6 @@ export function CommunityPostCard({
 
     onUpdate(data.post);
     setEditing(false);
-    setMenuOpen(false);
   }
 
   async function deletePost() {
@@ -204,12 +201,10 @@ export function CommunityPostCard({
 
     if (!response.ok) {
       setEditError(data.error ?? "Could not delete this post.");
-      setMenuOpen(false);
       return;
     }
 
     onDelete?.(post.id);
-    setMenuOpen(false);
   }
 
   return (
@@ -231,43 +226,31 @@ export function CommunityPostCard({
                 </span>
               </div>
             </div>
-            <div className="flex items-start gap-2">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
               <span className="community-post-badge">{postTypeLabel(post.type)}</span>
-              {canManage && !compact ? (
-                <div className="relative">
+              {canManage && !compact && !editing ? (
+                <>
                   <button
                     type="button"
-                    aria-label="Post options"
-                    onClick={() => setMenuOpen((current) => !current)}
-                    className="rounded-full px-2 py-1 text-sm font-semibold text-[#65676b] hover:bg-[#f0f2f5]"
+                    onClick={() => {
+                      setEditing(true);
+                      setEditDraft(post.content);
+                      setEditType(post.type);
+                      setEditError("");
+                    }}
+                    className="rounded-lg px-2.5 py-1 text-xs font-semibold text-[#1877f2] hover:bg-[#e7f3ff]"
                   >
-                    •••
+                    Edit
                   </button>
-                  {menuOpen ? (
-                    <div className="absolute right-0 z-20 mt-1 min-w-[132px] rounded-xl border border-[#dadde1] bg-white py-1 shadow-lg">
-                      <button
-                        type="button"
-                        className="block w-full px-3 py-2 text-left text-sm font-semibold text-[#050505] hover:bg-[#f0f2f5]"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setEditing(true);
-                          setEditDraft(post.content);
-                          setEditType(post.type);
-                          setEditError("");
-                        }}
-                      >
-                        Edit post
-                      </button>
-                      <button
-                        type="button"
-                        className="block w-full px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50"
-                        onClick={() => void deletePost()}
-                      >
-                        Delete post
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
+                  <button
+                    type="button"
+                    onClick={() => void deletePost()}
+                    disabled={loading}
+                    className="rounded-lg px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                  >
+                    Delete
+                  </button>
+                </>
               ) : null}
             </div>
           </div>
