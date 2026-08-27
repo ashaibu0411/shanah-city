@@ -2,6 +2,9 @@ import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS, TEAM_ZNCF_GROUP_ID } from "@/li
 import { isMediaGroup } from "@/lib/media-group";
 import type { GroupCategory } from "@/lib/group-types";
 
+import type { MinistryReportPrefillOption } from "@/lib/ministry-report-scenarios";
+import { enrichReportQuestions } from "@/lib/ministry-report-scenarios";
+
 export type MinistryReportStatus = "draft" | "submitted" | "reviewed" | "returned";
 
 export type MinistryReportQuestionType = "text" | "textarea" | "number" | "select" | "rating";
@@ -13,6 +16,8 @@ export type MinistryReportQuestion = {
   type: MinistryReportQuestionType;
   required?: boolean;
   options?: string[];
+  prefillOptions?: MinistryReportPrefillOption[];
+  numberPresets?: number[];
   min?: number;
   max?: number;
 };
@@ -710,7 +715,11 @@ export function resolveReportTemplateKey(group: { id: string; name: string }) {
 
 export function getReportTemplateForGroup(group: { id: string; name: string }) {
   const key = resolveReportTemplateKey(group);
-  return MINISTRY_REPORT_TEMPLATES[key] ?? MINISTRY_REPORT_TEMPLATES.default;
+  const template = MINISTRY_REPORT_TEMPLATES[key] ?? MINISTRY_REPORT_TEMPLATES.default;
+  return {
+    ...template,
+    questions: enrichReportQuestions(template.questions),
+  };
 }
 
 export function emptyResponsesForTemplate(template: MinistryReportTemplate): MinistryReportResponses {

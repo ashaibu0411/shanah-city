@@ -778,18 +778,10 @@
   padding: 0.5rem;
 }
 
-.community-feed-sticky {
-  position: sticky;
-  top: calc(env(safe-area-inset-top, 0px) + 3.25rem);
-  z-index: 20;
+.community-feed-header {
   display: grid;
   gap: 0.625rem;
-  padding-bottom: 0.25rem;
-  background: linear-gradient(to bottom, var(--community-feed-bg) 82%, transparent);
-}
-
-body[data-shell="mobile"] .community-feed-sticky {
-  top: calc(env(safe-area-inset-top, 0px) + 3.5rem);
+  padding-bottom: 0.625rem;
 }
 
 .community-feed-card {
@@ -1024,12 +1016,6 @@ body[data-shell="mobile"] .community-feed {
   margin-inline: -0.35rem;
   border-radius: 0;
   padding-inline: 0.35rem;
-}
-
-@media (min-width: 768px) {
-  .community-feed-sticky {
-    top: 0.75rem;
-  }
 }
 
 @media print {

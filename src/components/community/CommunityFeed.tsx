@@ -37,7 +37,7 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
 
   return (
     <div className="community-feed">
-      <div className="community-feed-sticky">
+      <div className="community-feed-header">
         <CommunityStatusRow />
         <CommunityComposer onLocalPost={prependPost} />
 

@@ -61,14 +61,68 @@ function QuestionField({
 }) {
   const stringValue = value === undefined || value === null ? "" : String(value);
 
+  function PrefillOptions() {
+    if (readOnly || !question.prefillOptions?.length) return null;
+
+    return (
+      <div className="mt-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+          Quick answers
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {question.prefillOptions.map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className={`rounded-full px-3 py-1.5 text-left text-xs font-semibold transition ${
+                stringValue === option.value
+                  ? "bg-night-900 text-sand-50"
+                  : "bg-sand-100 text-night-700 hover:bg-sand-200"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  function NumberPresets() {
+    if (readOnly || question.type !== "number" || !question.numberPresets?.length) return null;
+
+    return (
+      <div className="mt-2 flex flex-wrap gap-2">
+        {question.numberPresets.map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            onClick={() => onChange(preset)}
+            className={`h-9 min-w-[2.5rem] rounded-full px-3 text-sm font-semibold transition ${
+              Number(stringValue) === preset
+                ? "bg-night-900 text-sand-50"
+                : "bg-sand-100 text-night-700 hover:bg-sand-200"
+            }`}
+          >
+            {preset}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   if (question.type === "textarea") {
     return (
-      <FormTextarea
-        value={stringValue}
-        onValueChange={onChange}
-        rows={4}
-        disabled={readOnly}
-      />
+      <>
+        <PrefillOptions />
+        <FormTextarea
+          value={stringValue}
+          onValueChange={onChange}
+          rows={4}
+          disabled={readOnly}
+        />
+      </>
     );
   }
 
@@ -116,15 +170,32 @@ function QuestionField({
     );
   }
 
+  if (question.type === "number") {
+    return (
+      <>
+        <NumberPresets />
+        <FormInput
+          type="number"
+          value={stringValue}
+          onValueChange={onChange}
+          min={question.min}
+          max={question.max}
+          disabled={readOnly}
+        />
+      </>
+    );
+  }
+
   return (
-    <FormInput
-      type={question.type === "number" ? "number" : "text"}
-      value={stringValue}
-      onValueChange={onChange}
-      min={question.min}
-      max={question.max}
-      disabled={readOnly}
-    />
+    <>
+      <PrefillOptions />
+      <FormInput
+        type="text"
+        value={stringValue}
+        onValueChange={onChange}
+        disabled={readOnly}
+      />
+    </>
   );
 }
 
@@ -332,6 +403,7 @@ export function LeaderReportForm({
             <h2 className="text-lg font-semibold text-night-900">{template.title}</h2>
             <p className="mt-2 text-sm text-night-600">
               These expectations help pastoral staff coach leaders and spot dormant ministry early.
+              Tap quick answers where shown, then edit or add names and details in the text boxes.
             </p>
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-night-700">
               {template.expectations.map((item) => (
