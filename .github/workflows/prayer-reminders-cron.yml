@@ -1,7 +1,8 @@
 name: Prayer reminders
 
-# Primary scheduler: every 5 min. Vercel also runs daily backups (vercel.json).
+# Primary scheduler: every 5 min. Vercel also runs a daily backup (vercel.json).
 # Requires GitHub secret CRON_SECRET (same value as on Vercel).
+# Use "Run workflow" (not "Re-run jobs") after workflow changes — re-runs keep the old script.
 
 on:
   schedule:
@@ -28,11 +29,18 @@ jobs:
             echo "::warning title=CRON_SECRET missing::Prayer pushes are skipped. Add CRON_SECRET to GitHub repo secrets (same value as Vercel)."
             exit 0
           fi
-          response="$(curl --fail --silent --show-error \
-            --header "Authorization: Bearer $CRON_SECRET" \
-            --write-out '\nHTTP:%{http_code}' \
-            "$APP_URL/api/cron/morning-prayer")"
-          echo "$response"
-          body="${response%HTTP:*}"
-          echo "$body" | grep -q '"skipped":true' && \
-            echo "::notice::Prayer cron ran but no reminders were due to send yet."
+          http_code="$(curl --silent --show-error -o /tmp/cron-response.json -w '%{http_code}' \
+            -X GET \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${APP_URL}/api/cron/morning-prayer")"
+          echo "HTTP ${http_code}"
+          cat /tmp/cron-response.json
+          echo ""
+          if [ "$http_code" = "405" ]; then
+            echo "::error::HTTP 405 — this run used POST or an old workflow. Click Actions → Prayer reminders → Run workflow (do not Re-run jobs)."
+            exit 1
+          fi
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+            echo "::error::Cron request failed with HTTP ${http_code}"
+            exit 1
+          fi
