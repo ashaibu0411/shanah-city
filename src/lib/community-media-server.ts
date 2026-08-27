@@ -7,12 +7,22 @@ export const COMMUNITY_IMAGE_MAX_BYTES = 12 * 1024 * 1024;
 export const COMMUNITY_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
 export const COMMUNITY_STATUS_HOURS = 24;
 
-const IMAGE_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]);
+const IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/heic",
+  "image/heif",
+]);
 const VIDEO_TYPES = new Set([
   "video/mp4",
   "video/webm",
   "video/quicktime",
   "video/x-m4v",
+  "video/3gpp",
+  "video/3gpp2",
 ]);
 
 function safeFileName(name: string) {
@@ -30,7 +40,9 @@ function isImageFile(file: File) {
     lower.endsWith(".jpeg") ||
     lower.endsWith(".png") ||
     lower.endsWith(".webp") ||
-    lower.endsWith(".gif")
+    lower.endsWith(".gif") ||
+    lower.endsWith(".heic") ||
+    lower.endsWith(".heif")
   );
 }
 
@@ -41,7 +53,8 @@ function isVideoFile(file: File) {
     lower.endsWith(".mp4") ||
     lower.endsWith(".webm") ||
     lower.endsWith(".mov") ||
-    lower.endsWith(".m4v")
+    lower.endsWith(".m4v") ||
+    lower.endsWith(".3gp")
   );
 }
 

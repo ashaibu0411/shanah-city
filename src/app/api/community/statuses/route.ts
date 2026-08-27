@@ -9,9 +9,15 @@ import {
 } from "@/lib/community-status-server";
 
 export async function GET() {
-  await deleteExpiredCommunityStatuses();
-  const statuses = await getActiveCommunityStatuses();
-  return NextResponse.json({ statuses });
+  try {
+    await deleteExpiredCommunityStatuses();
+    const statuses = await getActiveCommunityStatuses();
+    return NextResponse.json({ statuses });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Stories are unavailable right now.";
+    return NextResponse.json({ error: message, statuses: [] }, { status: 503 });
+  }
 }
 
 export async function POST(request: Request) {

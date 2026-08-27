@@ -328,8 +328,8 @@ export function LeaderReportForm({
     setResponses(data.report.responses ?? {});
     setMessage(
       action === "submit"
-        ? "Report submitted to pastoral staff. Thank you for leading with accountability."
-        : "Draft saved.",
+        ? "Report submitted. Pastoral staff can review it under Admin → Ministry Reports (same report month)."
+        : "Draft saved on this device. Pastoral staff will not see it until you click Submit report.",
     );
   }
 

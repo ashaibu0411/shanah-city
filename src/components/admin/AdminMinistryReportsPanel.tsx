@@ -6,6 +6,7 @@ import { Button, Card } from "@/components/ui";
 import { FormTextarea } from "@/components/ui/form-fields";
 import {
   formatReportMonth,
+  currentReportMonth,
   previousReportMonth,
   type MinistryLeaderReport,
   type MinistryReportSummary,
@@ -156,7 +157,12 @@ export function AdminMinistryReportsPanel() {
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <div className="flex flex-wrap items-end gap-4">
+        <p className="text-sm text-night-700">
+          Leader reports appear here after they click <strong>Submit report</strong> (not Save draft).
+          Open <strong>Admin → Ministry Reports</strong> and match the same report month the leader chose
+          (usually the prior month, e.g. July for an August submission).
+        </p>
+        <div className="mt-4 flex flex-wrap items-end gap-4">
           <label className="block text-sm">
             <span className="font-semibold text-night-800">Report month</span>
             <input
@@ -166,6 +172,22 @@ export function AdminMinistryReportsPanel() {
               className="mt-1 block rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-night-900/10"
             />
           </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setReportMonth(previousReportMonth())}
+              className="rounded-full bg-sand-100 px-3 py-1.5 text-xs font-semibold text-night-700 hover:bg-sand-200"
+            >
+              Prior month
+            </button>
+            <button
+              type="button"
+              onClick={() => setReportMonth(currentReportMonth())}
+              className="rounded-full bg-sand-100 px-3 py-1.5 text-xs font-semibold text-night-700 hover:bg-sand-200"
+            >
+              Current month
+            </button>
+          </div>
           {summary && (
             <div className="flex flex-wrap gap-3 text-sm text-night-700">
               <span>{formatReportMonth(reportMonth)}</span>
@@ -220,9 +242,11 @@ export function AdminMinistryReportsPanel() {
               <p className="mt-2 text-sm text-night-600">
                 {selectedRow?.status === "missing"
                   ? "No report submitted for this month yet. Follow up with the ministry leader."
-                  : loading
-                    ? "Loading…"
-                    : "This team has not submitted a report for the selected month."}
+                  : selectedRow?.status === "draft"
+                    ? "A draft was saved but not submitted. Ask the leader to open their group → Monthly report tab and click Submit report."
+                    : loading
+                      ? "Loading…"
+                      : "This team has not submitted a report for the selected month."}
               </p>
             </Card>
           ) : (
@@ -232,10 +256,13 @@ export function AdminMinistryReportsPanel() {
                   <div>
                     <h2 className="text-lg font-semibold text-night-900">{selectedReport.groupName}</h2>
                     <p className="mt-1 text-sm text-night-600">
-                      Submitted by {selectedReport.submittedByName ?? "Unknown"} ·{" "}
-                      {selectedReport.submittedAt
-                        ? new Date(selectedReport.submittedAt).toLocaleString()
-                        : "Not submitted"}
+                      {selectedReport.status === "draft"
+                        ? `Draft saved by ${selectedReport.submittedByName ?? selectedReport.createdByName ?? "leader"} · not submitted yet`
+                        : `Submitted by ${selectedReport.submittedByName ?? "Unknown"} · ${
+                            selectedReport.submittedAt
+                              ? new Date(selectedReport.submittedAt).toLocaleString()
+                              : "Not submitted"
+                          }`}
                     </p>
                   </div>
                   <span
@@ -273,6 +300,11 @@ export function AdminMinistryReportsPanel() {
 
               <Card className="space-y-4 p-6">
                 <h3 className="font-semibold text-night-900">Pastoral follow-up</h3>
+                {selectedReport.status === "draft" ? (
+                  <p className="text-sm text-night-600">
+                    This report is still a draft. Review fields below, then ask the leader to submit it.
+                  </p>
+                ) : null}
                 <label className="block text-sm">
                   <span className="font-semibold text-night-800">Action steps & expectations</span>
                   <FormTextarea
@@ -292,10 +324,19 @@ export function AdminMinistryReportsPanel() {
                   />
                 </label>
                 <div className="flex flex-wrap gap-3">
-                  <Button type="button" disabled={saving} onClick={() => review("review")}>
+                  <Button
+                    type="button"
+                    disabled={saving || selectedReport.status === "draft"}
+                    onClick={() => review("review")}
+                  >
                     Mark reviewed
                   </Button>
-                  <Button type="button" variant="secondary" disabled={saving} onClick={() => review("return")}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={saving || selectedReport.status === "draft"}
+                    onClick={() => review("return")}
+                  >
                     Return for edits
                   </Button>
                 </div>
@@ -307,26 +348,26 @@ export function AdminMinistryReportsPanel() {
 
       {reports.length > 0 && (
         <Card className="p-6">
-          <h3 className="font-semibold text-night-900">Recent submissions</h3>
+          <h3 className="font-semibold text-night-900">Recent reports</h3>
           <div className="mt-4 space-y-2">
-            {reports
-              .filter((report) => report.status !== "draft")
-              .slice(0, 8)
-              .map((report) => (
-                <button
-                  key={report.id}
-                  type="button"
-                  onClick={() => setSelectedGroupId(report.groupId)}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left hover:bg-sand-50"
-                >
-                  <span className="text-sm text-night-800">
-                    {report.groupName} · {formatReportMonth(report.reportMonth)}
-                  </span>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusBadge(report.status)}`}>
-                    {statusText(report.status)}
-                  </span>
-                </button>
-              ))}
+            {reports.slice(0, 12).map((report) => (
+              <button
+                key={report.id}
+                type="button"
+                onClick={() => {
+                  setReportMonth(report.reportMonth);
+                  setSelectedGroupId(report.groupId);
+                }}
+                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left hover:bg-sand-50"
+              >
+                <span className="text-sm text-night-800">
+                  {report.groupName} · {formatReportMonth(report.reportMonth)}
+                </span>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusBadge(report.status)}`}>
+                  {statusText(report.status)}
+                </span>
+              </button>
+            ))}
           </div>
         </Card>
       )}

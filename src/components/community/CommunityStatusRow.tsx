@@ -5,6 +5,17 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import type { CommunityStatus } from "@/lib/member-types";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 
+function resolveMediaUrl(url: string) {
+  if (!url) return url;
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("blob:")) {
+    return url;
+  }
+  if (typeof window !== "undefined") {
+    return new URL(url, window.location.origin).toString();
+  }
+  return url;
+}
+
 function StatusViewer({
   status,
   onClose,
@@ -12,6 +23,8 @@ function StatusViewer({
   status: CommunityStatus;
   onClose: () => void;
 }) {
+  const mediaUrl = resolveMediaUrl(status.mediaUrl);
+
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#050505]/95 p-4">
       <button
@@ -32,15 +45,16 @@ function StatusViewer({
         <div className="relative aspect-[9/16] max-h-[70vh] w-full bg-black">
           {status.mediaType === "video" ? (
             <video
-              src={status.mediaUrl}
+              src={mediaUrl}
               controls
               playsInline
               autoPlay
+              muted
               className="h-full w-full object-contain"
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={status.mediaUrl} alt="" className="h-full w-full object-contain" />
+            <img src={mediaUrl} alt="" className="h-full w-full object-contain" />
           )}
         </div>
         {status.caption ? (
@@ -58,12 +72,23 @@ export function CommunityStatusRow() {
   const [activeStatus, setActiveStatus] = useState<CommunityStatus | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     fetch("/api/community/statuses", { cache: "no-store" })
       .then((response) => response.json())
-      .then((data) => setStatuses(data.statuses ?? []))
-      .catch(() => setStatuses([]));
+      .then((data) => {
+        if (data.error) {
+          setError(data.error);
+          setStatuses([]);
+          return;
+        }
+        setStatuses(data.statuses ?? []);
+      })
+      .catch(() => {
+        setError("Stories are unavailable right now.");
+        setStatuses([]);
+      });
   }, []);
 
   const grouped = useMemo(() => {
@@ -76,10 +101,21 @@ export function CommunityStatusRow() {
     return Array.from(map.values());
   }, [statuses]);
 
+  const myStatus = useMemo(
+    () => (user ? grouped.find((status) => status.authorId === user.id) ?? null : null),
+    [grouped, user],
+  );
+
+  const otherStatuses = useMemo(
+    () => grouped.filter((status) => status.authorId !== user?.id),
+    [grouped, user?.id],
+  );
+
   async function uploadStatus(file: File) {
     if (!user) return;
     setUploading(true);
     setError("");
+    setNotice("");
     const formData = new FormData();
     formData.append("file", file);
     const response = await fetch("/api/community/statuses", {
@@ -92,7 +128,13 @@ export function CommunityStatusRow() {
       setError(data.error ?? "Could not share story.");
       return;
     }
-    setStatuses((current) => [data.status, ...current.filter((entry) => entry.authorId !== user.id)]);
+    setStatuses((current) => [
+      data.status,
+      ...current.filter((entry) => entry.authorId !== user.id),
+    ]);
+    setActiveStatus(data.status);
+    setNotice("Story shared. Tap your photo to view it.");
+    window.setTimeout(() => setNotice(""), 4000);
   }
 
   if (!user) return null;
@@ -105,6 +147,7 @@ export function CommunityStatusRow() {
           {uploading ? <span className="text-xs text-[#65676b]">Uploading…</span> : null}
         </div>
         {error ? <p className="px-1 text-xs text-rose-600">{error}</p> : null}
+        {notice ? <p className="px-1 text-xs text-emerald-700">{notice}</p> : null}
         <div className="community-stories-row">
           <button
             type="button"
@@ -113,37 +156,56 @@ export function CommunityStatusRow() {
             className="community-story-item"
           >
             <div className="relative">
-              <CommunityAvatar name={user.name} authorId={user.id} size="story" />
+              <CommunityAvatar
+                name={user.name}
+                authorId={user.id}
+                size="story"
+                ring={Boolean(myStatus)}
+              />
               <span className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-[#1877f2] text-lg font-bold leading-none text-white ring-2 ring-white">
                 +
               </span>
             </div>
-            <span className="community-story-label">Create story</span>
+            <span className="community-story-label">{myStatus ? "Add story" : "Create story"}</span>
           </button>
 
-          {grouped
-            .filter((status) => status.authorId !== user.id)
-            .map((status) => (
-              <button
-                key={status.id}
-                type="button"
-                onClick={() => setActiveStatus(status)}
-                className="community-story-item"
-              >
-                <CommunityAvatar
-                  name={status.authorName}
-                  authorId={status.authorId}
-                  size="story"
-                  ring
-                />
-                <span className="community-story-label">{status.authorName.split(" ")[0]}</span>
-              </button>
-            ))}
+          {myStatus ? (
+            <button
+              type="button"
+              onClick={() => setActiveStatus(myStatus)}
+              className="community-story-item"
+            >
+              <CommunityAvatar
+                name={myStatus.authorName}
+                authorId={myStatus.authorId}
+                size="story"
+                ring
+              />
+              <span className="community-story-label">Your story</span>
+            </button>
+          ) : null}
+
+          {otherStatuses.map((status) => (
+            <button
+              key={status.id}
+              type="button"
+              onClick={() => setActiveStatus(status)}
+              className="community-story-item"
+            >
+              <CommunityAvatar
+                name={status.authorName}
+                authorId={status.authorId}
+                size="story"
+                ring
+              />
+              <span className="community-story-label">{status.authorName.split(" ")[0]}</span>
+            </button>
+          ))}
         </div>
         <input
           ref={fileRef}
           type="file"
-          accept="image/*,video/*"
+          accept="image/*,video/*,.heic,.heif,.3gp"
           className="hidden"
           onChange={(event) => {
             const file = event.target.files?.[0];
