@@ -1,6 +1,6 @@
 name: Publish devotions
 
-# Vercel Hobby cannot run sub-daily crons, so scheduled devotion pushes run here.
+# Primary scheduler: every 5 min. Vercel also runs a daily backup (vercel.json).
 # Requires GitHub secret CRON_SECRET (same value as on Vercel).
 
 on:
@@ -25,9 +25,15 @@ jobs:
           APP_URL: https://shanah-city.vercel.app
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "CRON_SECRET secret is not set — skipping."
+            echo "::warning title=CRON_SECRET missing::Devotion pushes are skipped. Add CRON_SECRET to GitHub repo secrets (same value as Vercel)."
             exit 0
           fi
-          curl --fail --silent --show-error \
+          response="$(curl --fail --silent --show-error \
+            --request POST \
             --header "Authorization: Bearer $CRON_SECRET" \
-            "$APP_URL/api/cron/publish-devotions"
+            --write-out '\nHTTP:%{http_code}' \
+            "$APP_URL/api/cron/publish-devotions")"
+          echo "$response"
+          body="${response%HTTP:*}"
+          echo "$body" | grep -q '"notified":0' && echo "$body" | grep -q '"skipped":true' && \
+            echo "::notice::Devotion cron ran but nothing was due to send yet."

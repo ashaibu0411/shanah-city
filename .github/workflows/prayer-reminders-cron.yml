@@ -1,6 +1,6 @@
 name: Prayer reminders
 
-# Vercel Hobby cannot run sub-daily crons, so prayer push reminders run here.
+# Primary scheduler: every 5 min. Vercel also runs daily backups (vercel.json).
 # Requires GitHub secret CRON_SECRET (same value as on Vercel).
 
 on:
@@ -25,9 +25,15 @@ jobs:
           APP_URL: https://shanah-city.vercel.app
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "CRON_SECRET secret is not set — skipping."
+            echo "::warning title=CRON_SECRET missing::Prayer pushes are skipped. Add CRON_SECRET to GitHub repo secrets (same value as Vercel)."
             exit 0
           fi
-          curl --fail --silent --show-error \
+          response="$(curl --fail --silent --show-error \
+            --request POST \
             --header "Authorization: Bearer $CRON_SECRET" \
-            "$APP_URL/api/cron/morning-prayer"
+            --write-out '\nHTTP:%{http_code}' \
+            "$APP_URL/api/cron/morning-prayer")"
+          echo "$response"
+          body="${response%HTTP:*}"
+          echo "$body" | grep -q '"skipped":true' && \
+            echo "::notice::Prayer cron ran but no reminders were due to send yet."

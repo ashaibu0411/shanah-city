@@ -152,7 +152,7 @@ async function ensureCanonicalMeetings() {
           recurringWeekdays: serializeRecurringWeekdays(canonical.recurringWeekdays),
           published: true,
           sortOrder: canonical.sortOrder ?? existing.sortOrder,
-          notifyEnabled: isAutomatedReminderMeeting(canonical.id) ? undefined : false,
+          notifyEnabled: isAutomatedReminderMeeting(canonical.id) ? true : false,
           updatedAt: now,
         },
       });

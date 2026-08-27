@@ -1,5 +1,8 @@
 import { getZonedDateParts } from "@/lib/denver-time";
-import { AUTOMATED_MEETING_REMINDERS } from "@/lib/meeting-catalog";
+import {
+  AUTOMATED_MEETING_REMINDERS,
+  isAutomatedReminderMeeting,
+} from "@/lib/meeting-catalog";
 import { isPrayerReminderDue } from "@/lib/prayer-schedule";
 import { notifyScheduledMeeting } from "@/lib/push-server";
 import { getMeetings, updateMeeting } from "@/lib/meeting-server";
@@ -9,7 +12,10 @@ export async function processScheduledMeetingReminders(reference = new Date()) {
   const meetings = await getMeetings();
   const due = meetings.filter((meeting) => {
     const rule = AUTOMATED_MEETING_REMINDERS[meeting.id];
-    if (!rule || !meeting.notifyEnabled) return false;
+    if (!rule) return false;
+    if (!isAutomatedReminderMeeting(meeting.id) && !meeting.notifyEnabled) {
+      return false;
+    }
     if (!isPrayerReminderDue(meeting.id, reference)) return false;
     return meeting.lastNotifiedOn !== denver.dateKey;
   });
@@ -26,7 +32,13 @@ export async function processScheduledMeetingReminders(reference = new Date()) {
   }
 
   let sent = 0;
-  const results: Array<{ id: string; title: string; sent: number }> = [];
+  const results: Array<{
+    id: string;
+    title: string;
+    sent: number;
+    skipped: number;
+    configured: boolean;
+  }> = [];
 
   for (const meeting of due) {
     const result = await notifyScheduledMeeting({
@@ -35,11 +47,17 @@ export async function processScheduledMeetingReminders(reference = new Date()) {
       schedule: meeting.schedule,
       platform: meeting.platform,
     });
-    if (result.configured) {
+    if (result.configured && result.sent > 0) {
       await updateMeeting(meeting.id, { lastNotifiedOn: denver.dateKey });
     }
     sent += result.sent;
-    results.push({ id: meeting.id, title: meeting.title, sent: result.sent });
+    results.push({
+      id: meeting.id,
+      title: meeting.title,
+      sent: result.sent,
+      skipped: result.skipped,
+      configured: result.configured,
+    });
   }
 
   return {

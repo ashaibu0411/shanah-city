@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
+import { authorizeCronRequest } from "@/lib/cron-auth";
 import { processScheduledDevotionNotifications } from "@/lib/devotion-notify-server";
 
-export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET?.trim();
-  if (!secret) {
-    return NextResponse.json({ error: "Cron not configured." }, { status: 503 });
-  }
-
-  const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
+async function handleCron(request: Request) {
+  const authError = authorizeCronRequest(request);
+  if (authError) return authError;
 
   const result = await processScheduledDevotionNotifications();
   return NextResponse.json(result);
+}
+
+export async function GET(request: Request) {
+  return handleCron(request);
+}
+
+export async function POST(request: Request) {
+  return handleCron(request);
 }
