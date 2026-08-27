@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 2
 
     steps:
-      - name: POST /api/cron/morning-prayer (Shift Your Morning + Evening)
+      - name: GET /api/cron/morning-prayer (Shift Your Morning + Evening)
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           APP_URL: https://shanah-city.vercel.app
@@ -29,7 +29,6 @@ jobs:
             exit 0
           fi
           response="$(curl --fail --silent --show-error \
-            --request POST \
             --header "Authorization: Bearer $CRON_SECRET" \
             --write-out '\nHTTP:%{http_code}' \
             "$APP_URL/api/cron/morning-prayer")"
