@@ -172,7 +172,7 @@ export function PushNotificationSettings() {
     }
 
     try {
-      const registration = await navigator.serviceWorker.register("/sw.js");
+      const registration = await navigator.serviceWorker.register("/sw.js?v=2026-08-27-logo");
       await navigator.serviceWorker.ready;
 
       let subscription = await registration.pushManager.getSubscription();
@@ -243,10 +243,12 @@ export function PushNotificationSettings() {
     setStatus(null);
 
     try {
-      const registration = await navigator.serviceWorker.getRegistration("/sw.js");
-      const subscription = await registration?.pushManager.getSubscription();
-      if (subscription) {
-        await subscription.unsubscribe();
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+        }
       }
     } catch {
       // Continue removing server-side subscription.

@@ -1,6 +1,7 @@
 "use client";
 
 import { Capacitor } from "@capacitor/core";
+import { getPushBadgeUrl, getPushIconUrl } from "@/lib/push-branding";
 
 const TOKEN_KEY = "shanah-native-push-token";
 const PLATFORM_KEY = "shanah-native-push-platform";
@@ -96,8 +97,8 @@ function showForegroundNotification(input: {
   try {
     const notification = new Notification(title, {
       body,
-      icon: "/shanah-city-logo.png",
-      badge: "/shanah-city-logo.png",
+      icon: getPushIconUrl(),
+      badge: getPushBadgeUrl(),
       data: { url },
     });
     notification.onclick = () => {

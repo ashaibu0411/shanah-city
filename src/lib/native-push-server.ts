@@ -3,11 +3,13 @@ import { connect } from "node:http2";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
 import type { StoredNativePushToken } from "@/lib/stores/push-json";
+import { getPushIconUrl } from "@/lib/push-branding";
 
 export type NativePushPayload = {
   title: string;
   body: string;
   url: string;
+  icon?: string;
 };
 
 function parseServiceAccount() {
@@ -205,6 +207,7 @@ export async function sendNativePush(
       notification: {
         title: payload.title,
         body: payload.body,
+        imageUrl: payload.icon ?? getPushIconUrl(),
       },
       data: {
         url: payload.url,
@@ -215,6 +218,23 @@ export async function sendNativePush(
         priority: "high",
         notification: {
           channelId: "default",
+          icon: "ic_stat_shanah",
+          imageUrl: payload.icon ?? getPushIconUrl(),
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            alert: {
+              title: payload.title,
+              body: payload.body,
+            },
+            sound: "default",
+          },
+          url: payload.url,
+        },
+        fcmOptions: {
+          imageUrl: payload.icon ?? getPushIconUrl(),
         },
       },
     });

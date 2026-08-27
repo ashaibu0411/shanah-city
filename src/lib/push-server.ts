@@ -15,6 +15,7 @@ import {
   sendNativePush,
   shouldDropNativeToken,
 } from "@/lib/native-push-server";
+import { withPushBranding } from "@/lib/push-branding";
 
 const store = () => (useDatabase() ? pushDb : pushJson);
 
@@ -63,11 +64,11 @@ function configureWebPush() {
 }
 
 export async function sendTestPushToUser(userId: string) {
-  const payload = {
+  const payload = withPushBranding({
     title: "Shanah City test alert",
     body: "Push notifications are working on this device.",
     url: "/profile",
-  };
+  });
   const webConfigured = configureWebPush();
   const nativeConfigured = isNativePushConfigured();
   if (!webConfigured && !nativeConfigured) {
@@ -136,6 +137,7 @@ export async function sendPushToUsers(
   payload: { title: string; body: string; url: string },
   preferenceKey: NotificationTopic,
 ) {
+  const brandedPayload = withPushBranding(payload);
   const webConfigured = configureWebPush();
   const nativeConfigured = isNativePushConfigured();
   if (!webConfigured && !nativeConfigured) {
@@ -178,7 +180,7 @@ export async function sendPushToUsers(
       try {
         await webpush.sendNotification(
           record.subscription,
-          JSON.stringify(payload),
+          JSON.stringify(brandedPayload),
         );
         sent += 1;
         webSent += 1;
@@ -193,7 +195,7 @@ export async function sendPushToUsers(
 
     for (const record of userTokens) {
       try {
-        await sendNativePush(record, payload);
+        await sendNativePush(record, brandedPayload);
         sent += 1;
         nativeSent += 1;
       } catch (error) {

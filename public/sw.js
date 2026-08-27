@@ -1,8 +1,11 @@
 self.addEventListener("push", (event) => {
+  const origin = self.location.origin;
   let payload = {
     title: "Shanah City",
     body: "You have a new update.",
     url: "/",
+    icon: `${origin}/shanah-city-logo.png`,
+    badge: `${origin}/push-badge-96.png`,
   };
 
   try {
@@ -11,11 +14,20 @@ self.addEventListener("push", (event) => {
     // Keep default payload.
   }
 
+  const icon =
+    typeof payload.icon === "string" && payload.icon.startsWith("http")
+      ? payload.icon
+      : `${origin}${payload.icon || "/shanah-city-logo.png"}`;
+  const badge =
+    typeof payload.badge === "string" && payload.badge.startsWith("http")
+      ? payload.badge
+      : `${origin}${payload.badge || "/push-badge-96.png"}`;
+
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: "/shanah-city-logo.png",
-      badge: "/shanah-city-logo.png",
+      icon,
+      badge,
       data: { url: payload.url },
     }),
   );
@@ -42,4 +54,12 @@ self.addEventListener("notificationclick", (event) => {
         }
       }),
   );
+});
+
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
 });
