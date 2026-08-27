@@ -1,15 +1,74 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { canManageCommunityPost } from "@/lib/community-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getGroups } from "@/lib/group-server";
+import type { CommunityPost } from "@/lib/member-types";
 import {
   addCommentToPost,
   addCommunityPost,
+  deleteCommunityPost,
+  getCommunityPostById,
   getCommunityPostsForViewer,
   reactToPost,
+  updateCommunityPost,
 } from "@/lib/member-server";
 import { notifyCommunityPost } from "@/lib/push-server";
+
+function parseMemberPostType(value: unknown): CommunityPost["type"] | null {
+  if (value === "prayer" || value === "praise") return value;
+  return null;
+}
+
+async function resolveEditedPostFields(
+  user: NonNullable<Awaited<ReturnType<typeof getUserFromSession>>>,
+  post: CommunityPost,
+  body: Record<string, unknown>,
+) {
+  const content = String(body.content ?? "").trim();
+  if (!content && !post.mediaUrl) {
+    return { error: "Add a message or keep the attached photo/video." as const };
+  }
+
+  const isAdmin = await canManageAsAdmin(user);
+  let type = post.type;
+  let targetGroupId = post.targetGroupId;
+  let targetGroupName = post.targetGroupName;
+
+  if (post.type === "announcement") {
+    if (!isAdmin) {
+      return { error: "Only Admin Group members can edit church news posts." as const };
+    }
+    type = "announcement";
+    const nextTargetGroupId = body.targetGroupId ? String(body.targetGroupId).trim() : "";
+    if (nextTargetGroupId) {
+      const groups = await getGroups();
+      const group = groups.find((entry) => entry.id === nextTargetGroupId);
+      if (!group) {
+        return { error: "Target group not found." as const };
+      }
+      targetGroupId = group.id;
+      targetGroupName = group.name;
+    } else {
+      targetGroupId = undefined;
+      targetGroupName = undefined;
+    }
+  } else {
+    const requestedType = parseMemberPostType(body.type);
+    if (requestedType) {
+      type = requestedType;
+    } else if (body.type === "announcement") {
+      return { error: "Only Admin Group members can post church news." as const };
+    }
+    targetGroupId = undefined;
+    targetGroupName = undefined;
+  }
+
+  return {
+    update: { content, type, targetGroupId, targetGroupName },
+  };
+}
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -45,6 +104,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Post not found." }, { status: 404 });
     }
     return NextResponse.json({ post });
+  }
+
+  if (body.action === "edit" || body.action === "delete") {
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to manage your post." }, { status: 401 });
+    }
+
+    const postId = String(body.postId ?? "").trim();
+    if (!postId) {
+      return NextResponse.json({ error: "Post not found." }, { status: 404 });
+    }
+
+    const post = await getCommunityPostById(postId);
+    if (!post) {
+      return NextResponse.json({ error: "Post not found." }, { status: 404 });
+    }
+
+    if (!(await canManageCommunityPost(user, post))) {
+      return NextResponse.json(
+        { error: "You can only edit or delete your own posts." },
+        { status: 403 },
+      );
+    }
+
+    if (body.action === "delete") {
+      const deleted = await deleteCommunityPost(postId);
+      if (!deleted) {
+        return NextResponse.json({ error: "Post not found." }, { status: 404 });
+      }
+      return NextResponse.json({ ok: true, postId });
+    }
+
+    const resolved = await resolveEditedPostFields(user, post, body);
+    if ("error" in resolved) {
+      return NextResponse.json({ error: resolved.error }, { status: 400 });
+    }
+
+    const updated = await updateCommunityPost(postId, resolved.update);
+    if (!updated) {
+      return NextResponse.json({ error: "Post not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ post: updated });
   }
 
   const content = String(body.content ?? "").trim();

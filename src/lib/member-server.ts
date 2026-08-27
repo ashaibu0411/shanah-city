@@ -32,6 +32,12 @@ export const addCommunityPost = (post: CommunityPost) => store().addCommunityPos
 export const addCommentToPost = (postId: string, comment: Comment) =>
   store().addCommentToPost(postId, comment);
 export const reactToPost = (postId: string) => store().reactToPost(postId);
+export const getCommunityPostById = (postId: string) => store().getCommunityPostById(postId);
+export const updateCommunityPost = (
+  postId: string,
+  update: Partial<Pick<CommunityPost, "content" | "type" | "targetGroupId" | "targetGroupName">>,
+) => store().updateCommunityPost(postId, update);
+export const deleteCommunityPost = (postId: string) => store().deleteCommunityPost(postId);
 export const getVolunteerCheckIns = () => store().getVolunteerCheckIns();
 export const addVolunteerCheckIn = (
   entry: Parameters<typeof memberJson.addVolunteerCheckIn>[0],

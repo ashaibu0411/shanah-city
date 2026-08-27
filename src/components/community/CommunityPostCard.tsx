@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { getCampus } from "@/lib/site";
 import type { CommunityPost } from "@/lib/member-types";
 import {
@@ -54,16 +55,41 @@ function GlobeIcon() {
 type CommunityPostCardProps = {
   post: CommunityPost;
   onUpdate: (post: CommunityPost) => void;
+  onDelete?: (postId: string) => void;
   compact?: boolean;
 };
 
-export function CommunityPostCard({ post, onUpdate, compact = false }: CommunityPostCardProps) {
+export function CommunityPostCard({
+  post,
+  onUpdate,
+  onDelete,
+  compact = false,
+}: CommunityPostCardProps) {
+  const { user, permissions } = useAuth();
   const [commentDraft, setCommentDraft] = useState("");
   const [showAllComments, setShowAllComments] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reacted, setReacted] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editDraft, setEditDraft] = useState(post.content);
+  const [editType, setEditType] = useState<CommunityPost["type"]>(post.type);
+  const [editError, setEditError] = useState("");
   const campus = getCampus(post.campusId);
+
+  const canManage = Boolean(
+    user && (post.authorId === user.id || permissions.canManageAdmin),
+  );
+  const canChangeType = post.type !== "announcement";
+
+  useEffect(() => {
+    if (!editing) {
+      setEditDraft(post.content);
+      setEditType(post.type);
+      setEditError("");
+    }
+  }, [post.content, post.type, editing]);
 
   const comments = post.comments ?? [];
   const visibleComments = showAllComments ? comments : comments.slice(-2);
@@ -129,6 +155,63 @@ export function CommunityPostCard({ post, onUpdate, compact = false }: Community
     window.setTimeout(() => setShareMessage(""), 2000);
   }
 
+  async function saveEdit() {
+    if (!editDraft.trim() && !post.mediaUrl) {
+      setEditError("Add a message or keep the attached photo/video.");
+      return;
+    }
+
+    setLoading(true);
+    setEditError("");
+    const response = await fetch("/api/community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "edit",
+        postId: post.id,
+        content: editDraft.trim(),
+        type: editType,
+      }),
+    });
+    const data = await response.json();
+    setLoading(false);
+
+    if (!response.ok) {
+      setEditError(data.error ?? "Could not save your changes.");
+      return;
+    }
+
+    onUpdate(data.post);
+    setEditing(false);
+    setMenuOpen(false);
+  }
+
+  async function deletePost() {
+    if (!window.confirm("Delete this post? This cannot be undone.")) return;
+
+    setLoading(true);
+    setEditError("");
+    const response = await fetch("/api/community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "delete",
+        postId: post.id,
+      }),
+    });
+    const data = await response.json();
+    setLoading(false);
+
+    if (!response.ok) {
+      setEditError(data.error ?? "Could not delete this post.");
+      setMenuOpen(false);
+      return;
+    }
+
+    onDelete?.(post.id);
+    setMenuOpen(false);
+  }
+
   return (
     <article id={`post-${post.id}`} className="community-post-card">
       <header className="flex items-start gap-2.5 px-3 pt-3">
@@ -148,18 +231,113 @@ export function CommunityPostCard({ post, onUpdate, compact = false }: Community
                 </span>
               </div>
             </div>
-            <span className="community-post-badge">{postTypeLabel(post.type)}</span>
+            <div className="flex items-start gap-2">
+              <span className="community-post-badge">{postTypeLabel(post.type)}</span>
+              {canManage && !compact ? (
+                <div className="relative">
+                  <button
+                    type="button"
+                    aria-label="Post options"
+                    onClick={() => setMenuOpen((current) => !current)}
+                    className="rounded-full px-2 py-1 text-sm font-semibold text-[#65676b] hover:bg-[#f0f2f5]"
+                  >
+                    •••
+                  </button>
+                  {menuOpen ? (
+                    <div className="absolute right-0 z-20 mt-1 min-w-[132px] rounded-xl border border-[#dadde1] bg-white py-1 shadow-lg">
+                      <button
+                        type="button"
+                        className="block w-full px-3 py-2 text-left text-sm font-semibold text-[#050505] hover:bg-[#f0f2f5]"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setEditing(true);
+                          setEditDraft(post.content);
+                          setEditType(post.type);
+                          setEditError("");
+                        }}
+                      >
+                        Edit post
+                      </button>
+                      <button
+                        type="button"
+                        className="block w-full px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50"
+                        onClick={() => void deletePost()}
+                      >
+                        Delete post
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </header>
 
-      <div className={`px-3 ${compact ? "pb-2 pt-2" : "pb-3 pt-2.5"}`}>
-        <p className="whitespace-pre-wrap text-[15px] leading-[1.3333] text-[#050505]">
-          {post.content}
-        </p>
-      </div>
+      {editing ? (
+        <div className="space-y-3 px-3 pb-3 pt-1">
+          {canChangeType ? (
+            <div className="flex flex-wrap gap-2">
+              {(["prayer", "praise"] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setEditType(type)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                    editType === type
+                      ? "bg-[#1877f2] text-white"
+                      : "bg-[#f0f2f5] text-[#050505]"
+                  }`}
+                >
+                  {type === "prayer" ? "Prayer request" : "Praise report"}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs font-semibold text-[#65676b]">
+              Church news posts keep the News label. Edit the message below.
+            </p>
+          )}
+          <textarea
+            value={editDraft}
+            onChange={(event) => setEditDraft(event.target.value)}
+            rows={4}
+            className="w-full rounded-2xl border border-[#ccd0d5] bg-[#f0f2f5] px-3 py-2 text-[15px] text-[#050505] outline-none focus:border-[#1877f2]"
+          />
+          {editError ? <p className="text-sm text-red-600">{editError}</p> : null}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void saveEdit()}
+              disabled={loading}
+              className="rounded-lg bg-[#1877f2] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {loading ? "Saving..." : "Save changes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(false);
+                setEditDraft(post.content);
+                setEditType(post.type);
+                setEditError("");
+              }}
+              disabled={loading}
+              className="rounded-lg bg-[#e4e6eb] px-4 py-2 text-sm font-semibold text-[#050505] disabled:opacity-60"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={`px-3 ${compact ? "pb-2 pt-2" : "pb-3 pt-2.5"}`}>
+          <p className="whitespace-pre-wrap text-[15px] leading-[1.3333] text-[#050505]">
+            {post.content}
+          </p>
+        </div>
+      )}
 
-      {post.mediaUrl ? (
+      {!editing && post.mediaUrl ? (
         <div className="border-y border-[#dadde1] bg-black">
           {post.mediaType === "video" ? (
             <video

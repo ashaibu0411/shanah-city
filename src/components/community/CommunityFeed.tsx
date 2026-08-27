@@ -31,6 +31,10 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
     );
   }
 
+  function removePost(postId: string) {
+    setPosts((current) => current.filter((post) => post.id !== postId));
+  }
+
   function prependPost(post: CommunityPost) {
     setPosts((current) => [post, ...current]);
   }
@@ -69,7 +73,12 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
           </div>
         ) : (
           filteredPosts.map((post) => (
-            <CommunityPostCard key={post.id} post={post} onUpdate={updatePost} />
+            <CommunityPostCard
+              key={post.id}
+              post={post}
+              onUpdate={updatePost}
+              onDelete={removePost}
+            />
           ))
         )}
       </div>

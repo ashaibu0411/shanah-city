@@ -260,6 +260,50 @@ export async function reactToPost(postId: string) {
   return mapCommunityPost(updated);
 }
 
+export async function getCommunityPostById(postId: string) {
+  return findCommunityPost(postId);
+}
+
+export async function updateCommunityPost(
+  postId: string,
+  update: Partial<Pick<CommunityPost, "content" | "type" | "targetGroupId" | "targetGroupName">>,
+) {
+  const existing = await prisma.communityPost.findUnique({ where: { id: postId } });
+  if (!existing) return null;
+
+  const updated = await prisma.communityPost.update({
+    where: { id: postId },
+    data: {
+      content: update.content,
+      type: update.type,
+      targetGroupId:
+        update.targetGroupId === null
+          ? null
+          : update.targetGroupId === undefined
+            ? undefined
+            : update.targetGroupId,
+      targetGroupName:
+        update.targetGroupName === null
+          ? null
+          : update.targetGroupName === undefined
+            ? undefined
+            : update.targetGroupName,
+    },
+    include: postInclude,
+  });
+
+  return mapCommunityPost(updated);
+}
+
+export async function deleteCommunityPost(postId: string) {
+  try {
+    await prisma.communityPost.delete({ where: { id: postId } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function getVolunteerCheckIns() {
   const checkins = await prisma.volunteerCheckIn.findMany({
     orderBy: { checkedInAt: "desc" },

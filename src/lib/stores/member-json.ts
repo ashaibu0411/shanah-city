@@ -57,6 +57,38 @@ export async function reactToPost(postId: string) {
   return posts[index];
 }
 
+export async function getCommunityPostById(postId: string) {
+  const posts = await getCommunityPosts();
+  return posts.find((post) => post.id === postId) ?? null;
+}
+
+export async function updateCommunityPost(
+  postId: string,
+  update: Partial<Pick<CommunityPost, "content" | "type" | "targetGroupId" | "targetGroupName">>,
+) {
+  const posts = await getCommunityPosts();
+  const index = posts.findIndex((post) => post.id === postId);
+  if (index === -1) return null;
+
+  posts[index] = {
+    ...posts[index],
+    ...update,
+    targetGroupId: update.targetGroupId === null ? undefined : update.targetGroupId ?? posts[index].targetGroupId,
+    targetGroupName:
+      update.targetGroupName === null ? undefined : update.targetGroupName ?? posts[index].targetGroupName,
+  };
+  await saveCommunityPosts(posts);
+  return posts[index];
+}
+
+export async function deleteCommunityPost(postId: string) {
+  const posts = await getCommunityPosts();
+  const next = posts.filter((post) => post.id !== postId);
+  if (next.length === posts.length) return false;
+  await saveCommunityPosts(next);
+  return true;
+}
+
 export async function getVolunteerCheckIns() {
   return readJson<VolunteerCheckIn[]>("volunteer-checkins.json", []);
 }
