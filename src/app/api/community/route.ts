@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { canManageCommunityPost } from "@/lib/community-access-server";
+import { attachCanManageToPosts } from "@/lib/community-post-access";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getGroups } from "@/lib/group-server";
 import type { CommunityPost } from "@/lib/member-types";
@@ -75,7 +76,8 @@ export async function GET() {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   const posts = await getCommunityPostsForViewer(user?.id);
-  return NextResponse.json({ posts });
+  const isAdmin = user ? await canManageAsAdmin(user) : false;
+  return NextResponse.json({ posts: attachCanManageToPosts(posts, user, isAdmin) });
 }
 
 export async function POST(request: Request) {
@@ -141,12 +143,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: resolved.error }, { status: 400 });
     }
 
-    const updated = await updateCommunityPost(postId, resolved.update);
+    const updated = await updateCommunityPost(postId, {
+      ...resolved.update,
+      authorId: post.authorId ?? user.id,
+      author: post.author || user.name,
+    });
     if (!updated) {
       return NextResponse.json({ error: "Post not found." }, { status: 404 });
     }
 
-    return NextResponse.json({ post: updated });
+    return NextResponse.json({ post: { ...updated, canManage: true } });
   }
 
   const content = String(body.content ?? "").trim();

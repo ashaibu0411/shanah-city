@@ -8,10 +8,24 @@ export function isCommunityPostAuthor(
   user: Pick<{ id: string; name: string }, "id" | "name">,
   post: Pick<CommunityPost, "author" | "authorId">,
 ) {
-  if (post.authorId) {
-    return post.authorId === user.id;
+  if (post.authorId && post.authorId === user.id) {
+    return true;
   }
-  return normalizeName(post.author) === normalizeName(user.name);
+  if (post.author && user.name) {
+    return normalizeName(post.author) === normalizeName(user.name);
+  }
+  return false;
+}
+
+export function attachCanManageToPosts(
+  posts: CommunityPost[],
+  user: Pick<{ id: string; name: string }, "id" | "name"> | null | undefined,
+  isAdmin = false,
+): CommunityPost[] {
+  return posts.map((post) => ({
+    ...post,
+    canManage: canManageCommunityPostClient(user, post, isAdmin),
+  }));
 }
 
 export function canManageCommunityPostClient(

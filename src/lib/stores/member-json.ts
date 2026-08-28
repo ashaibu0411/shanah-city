@@ -64,7 +64,9 @@ export async function getCommunityPostById(postId: string) {
 
 export async function updateCommunityPost(
   postId: string,
-  update: Partial<Pick<CommunityPost, "content" | "type" | "targetGroupId" | "targetGroupName">>,
+  update: Partial<
+    Pick<CommunityPost, "content" | "type" | "targetGroupId" | "targetGroupName" | "authorId" | "author">
+  >,
 ) {
   const posts = await getCommunityPosts();
   const index = posts.findIndex((post) => post.id === postId);

@@ -27,7 +27,11 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
 
   function updatePost(updated: CommunityPost) {
     setPosts((current) =>
-      current.map((post) => (post.id === updated.id ? updated : post)),
+      current.map((post) =>
+        post.id === updated.id
+          ? { ...updated, canManage: updated.canManage ?? post.canManage }
+          : post,
+      ),
     );
   }
 
@@ -36,7 +40,7 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
   }
 
   function prependPost(post: CommunityPost) {
-    setPosts((current) => [post, ...current]);
+    setPosts((current) => [{ ...post, canManage: post.canManage ?? true }, ...current]);
   }
 
   return (

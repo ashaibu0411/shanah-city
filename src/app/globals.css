@@ -815,6 +815,12 @@
   color: #65676b;
 }
 
+.community-post-menu-btn {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+}
+
 .community-action-btn {
   display: inline-flex;
   min-height: 2.5rem;

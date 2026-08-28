@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getCampus } from "@/lib/site";
 import type { CommunityPost } from "@/lib/member-types";
@@ -67,19 +68,53 @@ export function CommunityPostCard({
   compact = false,
 }: CommunityPostCardProps) {
   const { user, permissions } = useAuth();
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [showAllComments, setShowAllComments] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reacted, setReacted] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 16 });
+  const [mounted, setMounted] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(post.content);
   const [editType, setEditType] = useState<CommunityPost["type"]>(post.type);
   const [editError, setEditError] = useState("");
   const campus = getCampus(post.campusId);
 
-  const canManage = canManageCommunityPostClient(user, post, permissions.canManageAdmin);
+  const canManage = Boolean(
+    post.canManage || canManageCommunityPostClient(user, post, permissions.canManageAdmin),
+  );
   const canChangeType = post.type !== "announcement";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function closeMenu() {
+      setMenuOpen(false);
+    }
+    window.addEventListener("scroll", closeMenu, true);
+    window.addEventListener("resize", closeMenu);
+    return () => {
+      window.removeEventListener("scroll", closeMenu, true);
+      window.removeEventListener("resize", closeMenu);
+    };
+  }, [menuOpen]);
+
+  function openMenu() {
+    const button = menuButtonRef.current;
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    setMenuPosition({
+      top: rect.bottom + 6,
+      right: Math.max(12, window.innerWidth - rect.right),
+    });
+    setMenuOpen(true);
+  }
 
   useEffect(() => {
     if (!editing) {
@@ -179,8 +214,9 @@ export function CommunityPostCard({
       return;
     }
 
-    onUpdate(data.post);
+    onUpdate({ ...data.post, canManage: true });
     setEditing(false);
+    setMenuOpen(false);
   }
 
   async function deletePost() {
@@ -205,7 +241,50 @@ export function CommunityPostCard({
     }
 
     onDelete?.(post.id);
+    setMenuOpen(false);
   }
+
+  const menu = menuOpen && mounted && canManage && !compact && !editing
+    ? createPortal(
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-[120] cursor-default bg-transparent"
+            aria-label="Close post menu"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div
+            className="fixed z-[121] min-w-[168px] overflow-hidden rounded-xl border border-[#dadde1] bg-white py-1 shadow-lg"
+            style={{ top: menuPosition.top, right: menuPosition.right }}
+            role="menu"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className="block w-full px-4 py-3 text-left text-sm font-semibold text-[#050505] hover:bg-[#f0f2f5]"
+              onClick={() => {
+                setMenuOpen(false);
+                setEditing(true);
+                setEditDraft(post.content);
+                setEditType(post.type);
+                setEditError("");
+              }}
+            >
+              Edit post
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="block w-full px-4 py-3 text-left text-sm font-semibold text-red-700 hover:bg-red-50"
+              onClick={() => void deletePost()}
+            >
+              Delete post
+            </button>
+          </div>
+        </>,
+        document.body,
+      )
+    : null;
 
   return (
     <article id={`post-${post.id}`} className="community-post-card">
@@ -226,31 +305,20 @@ export function CommunityPostCard({
                 </span>
               </div>
             </div>
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+            <div className="flex shrink-0 items-start gap-1">
               <span className="community-post-badge">{postTypeLabel(post.type)}</span>
               {canManage && !compact && !editing ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditing(true);
-                      setEditDraft(post.content);
-                      setEditType(post.type);
-                      setEditError("");
-                    }}
-                    className="rounded-lg px-2.5 py-1 text-xs font-semibold text-[#1877f2] hover:bg-[#e7f3ff]"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void deletePost()}
-                    disabled={loading}
-                    className="rounded-lg px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
-                  >
-                    Delete
-                  </button>
-                </>
+                <button
+                  ref={menuButtonRef}
+                  type="button"
+                  aria-label="Post options"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}
+                  className="community-post-menu-btn rounded-full px-2.5 py-1.5 text-base font-bold leading-none text-[#050505] hover:bg-[#f0f2f5]"
+                >
+                  •••
+                </button>
               ) : null}
             </div>
           </div>
@@ -455,6 +523,7 @@ export function CommunityPostCard({
           ) : null}
         </div>
       )}
+      {menu}
     </article>
   );
 }

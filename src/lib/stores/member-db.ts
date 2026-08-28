@@ -266,7 +266,9 @@ export async function getCommunityPostById(postId: string) {
 
 export async function updateCommunityPost(
   postId: string,
-  update: Partial<Pick<CommunityPost, "content" | "type" | "targetGroupId" | "targetGroupName">>,
+  update: Partial<
+    Pick<CommunityPost, "content" | "type" | "targetGroupId" | "targetGroupName" | "authorId" | "author">
+  >,
 ) {
   const existing = await prisma.communityPost.findUnique({ where: { id: postId } });
   if (!existing) return null;
@@ -276,6 +278,8 @@ export async function updateCommunityPost(
     data: {
       content: update.content,
       type: update.type,
+      author: update.author,
+      authorId: update.authorId,
       targetGroupId:
         update.targetGroupId === null
           ? null

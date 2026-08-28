@@ -20,6 +20,8 @@ export type CommunityPost = {
   targetGroupName?: string;
   comments: Comment[];
   createdAt?: string;
+  /** Set when loading posts for the signed-in viewer; not stored in the database. */
+  canManage?: boolean;
 };
 
 export type CommunityStatus = {
