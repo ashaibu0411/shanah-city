@@ -1,13 +1,16 @@
 name: Vercel Production Deploy
 
-# Backup deploy path when the Vercel GitHub webhook stops firing.
+# Backup when Vercel GitHub auto-deploy stops firing (common).
 # Setup (one time):
 # 1. Vercel → shanah-city → Settings → Git → Deploy Hooks → Create (branch: main)
-# 2. GitHub → repo Settings → Secrets → Actions → New secret: VERCEL_DEPLOY_HOOK = hook URL
+# 2. GitHub → repo Settings → Secrets → Actions → VERCEL_DEPLOY_HOOK = hook URL
 #
-# Manual only — normal pushes already deploy via Vercel Git integration.
+# Also fix the primary path: Vercel → Settings → Git → reconnect ashaibu0411/shanah-city.
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -26,9 +29,10 @@ jobs:
           DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
         run: |
           if [ -z "$DEPLOY_HOOK" ]; then
-            echo "VERCEL_DEPLOY_HOOK secret is not set — skipping."
-            echo "Add it from Vercel → Settings → Git → Deploy Hooks, then re-run this workflow."
+            echo "::warning::VERCEL_DEPLOY_HOOK is not set. Skipping backup deploy."
+            echo "Add the deploy hook secret, or redeploy manually in the Vercel dashboard."
             exit 0
           fi
+          echo "Triggering Vercel deploy hook for ${GITHUB_SHA}"
           curl --fail --silent --show-error --request POST "$DEPLOY_HOOK"
           echo "Deploy hook triggered."
