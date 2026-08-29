@@ -174,9 +174,11 @@ export async function updateDevotion(
             ? new Date(update.publishAt)
             : undefined,
       notifiedAt:
-        update.publishAt && new Date(update.publishAt) > new Date()
+        update.notifiedAt === null
           ? null
-          : undefined,
+          : update.publishAt && new Date(update.publishAt) > new Date()
+            ? null
+            : undefined,
       updatedAt: new Date(),
     },
   });
@@ -209,5 +211,12 @@ export async function markDevotionNotified(id: string) {
   await prisma.devotion.update({
     where: { id },
     data: { notifiedAt: new Date() },
+  });
+}
+
+export async function clearDevotionNotified(id: string) {
+  await prisma.devotion.update({
+    where: { id },
+    data: { notifiedAt: null },
   });
 }

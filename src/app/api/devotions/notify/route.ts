@@ -2,10 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { canWriteDevotions } from "@/lib/devotion-access-server";
-import { getDevotionById, markDevotionNotified } from "@/lib/devotion-server";
+import { clearDevotionNotified, getDevotionById } from "@/lib/devotion-server";
+import { deliverDevotionPush } from "@/lib/devotion-notify-server";
 import { devotionGroupMatchHint } from "@/lib/devotion-writers-group";
 import { isDevotionPubliclyVisible } from "@/lib/devotion-utils";
-import { notifyNewDevotion } from "@/lib/push-server";
 
 const accessError = `Devotion writing is limited to members of ${devotionGroupMatchHint()}.`;
 
@@ -34,19 +34,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await notifyNewDevotion({
-    title: devotion.title,
-    authorId: user!.id,
-    devotionId: devotion.id,
-  });
-
-  if (result.configured && result.sent > 0) {
-    await markDevotionNotified(devotion.id);
-  }
+  await clearDevotionNotified(devotion.id);
+  const result = await deliverDevotionPush(devotion);
 
   return NextResponse.json({
-    ok: true,
+    ok: result.sent > 0,
     sent: result.sent,
     skipped: result.skipped,
+    configured: result.configured,
+    error:
+      result.sent === 0 && result.configured
+        ? "No registered devices received the alert. Check Profile → Notifications on the phone app."
+        : result.sent === 0
+          ? "Push is not configured on the server."
+          : undefined,
   });
 }

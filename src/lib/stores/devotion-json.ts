@@ -148,9 +148,11 @@ export async function updateDevotion(
         ? undefined
         : update.artworkBannerUrl ?? devotions[index].artworkBannerUrl,
     notifiedAt:
-      update.publishAt && new Date(update.publishAt) > new Date()
+      update.notifiedAt === null
         ? undefined
-        : update.notifiedAt ?? devotions[index].notifiedAt,
+        : update.publishAt && new Date(update.publishAt) > new Date()
+          ? undefined
+          : update.notifiedAt ?? devotions[index].notifiedAt,
     updatedAt: new Date().toISOString(),
   };
 
@@ -179,4 +181,8 @@ export async function getDevotionsDueForNotification(now = new Date()) {
 
 export async function markDevotionNotified(id: string) {
   return updateDevotion(id, { notifiedAt: new Date().toISOString() });
+}
+
+export async function clearDevotionNotified(id: string) {
+  return updateDevotion(id, { notifiedAt: null });
 }

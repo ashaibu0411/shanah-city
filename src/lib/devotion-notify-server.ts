@@ -10,7 +10,15 @@ import {
 } from "@/lib/devotion-utils";
 import { getZonedDateParts } from "@/lib/denver-time";
 import type { Devotion } from "@/lib/types";
-import { notifyNewDevotion } from "@/lib/push-server";
+import {
+  getNativePushTokens,
+  getPushSubscriptions,
+  notifyNewDevotion,
+} from "@/lib/push-server";
+import {
+  isAndroidNativePushConfigured,
+  isIosNativePushConfigured,
+} from "@/lib/native-push-server";
 
 type NotifyAttempt = {
   id: string;
@@ -20,6 +28,21 @@ type NotifyAttempt = {
   skipped?: boolean;
   reason?: string;
 };
+
+export async function deliverDevotionPush(
+  devotion: Pick<Devotion, "id" | "title">,
+) {
+  const result = await notifyNewDevotion({
+    title: devotion.title,
+    devotionId: devotion.id,
+  });
+
+  if (result.configured && result.sent > 0) {
+    await markDevotionNotified(devotion.id);
+  }
+
+  return result;
+}
 
 async function tryNotifyDevotion(
   devotion: Devotion,
@@ -45,15 +68,7 @@ async function tryNotifyDevotion(
     return 0;
   }
 
-  const result = await notifyNewDevotion({
-    title: devotion.title,
-    authorId: devotion.authorId ?? "",
-    devotionId: devotion.id,
-  });
-
-  if (result.configured && result.sent > 0) {
-    await markDevotionNotified(devotion.id);
-  }
+  const result = await deliverDevotionPush(devotion);
 
   attempts.push({
     id: devotion.id,
@@ -115,6 +130,10 @@ export async function processScheduledDevotionNotifications(reference = new Date
   }
 
   const dailyAttempt = attempts.find((entry) => entry.mode === "daily_730");
+  const [nativeTokens, webSubs] = await Promise.all([
+    getNativePushTokens(),
+    getPushSubscriptions(),
+  ]);
   const mode =
     isDevotionNotifyDue(reference) && dailyAttempt
       ? ("daily_730" as const)
@@ -135,6 +154,12 @@ export async function processScheduledDevotionNotifications(reference = new Date
         ? attempts.find((entry) => entry.reason)?.reason ?? "nothing_due"
         : undefined,
     pushConfigured: attempts.some((entry) => entry.reason !== "push_not_configured"),
+    pushDiagnostics: {
+      androidConfigured: isAndroidNativePushConfigured(),
+      iosConfigured: isIosNativePushConfigured(),
+      registeredNativeDevices: nativeTokens.length,
+      registeredWebDevices: webSubs.length,
+    },
     denverDate: denver.dateKey,
     denverTime: `${denver.hour}:${String(denver.minute).padStart(2, "0")}`,
   };

@@ -24,3 +24,4 @@ export const deleteDevotion = (id: string) => store().deleteDevotion(id);
 export const getDevotionsDueForNotification = (now?: Date) =>
   store().getDevotionsDueForNotification(now);
 export const markDevotionNotified = (id: string) => store().markDevotionNotified(id);
+export const clearDevotionNotified = (id: string) => store().clearDevotionNotified(id);
