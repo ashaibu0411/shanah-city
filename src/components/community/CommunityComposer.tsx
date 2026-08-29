@@ -335,7 +335,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
     <input
       ref={fileRef}
       type="file"
-      accept="image/*,video/*"
+      accept="image/*,video/*,.heic,.heif,.3gp,.mp4,.mov,.webm"
       className="hidden"
       onChange={(event) => {
         const file = event.target.files?.[0];
@@ -405,7 +405,6 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
             onClick={() => {
               setMode("share");
               setOpen(true);
-              window.setTimeout(() => fileRef.current?.click(), 0);
             }}
             className="community-composer-action"
           >

@@ -2,16 +2,36 @@ import { upload } from "@vercel/blob/client";
 import {
   COMMUNITY_IMAGE_MAX_BYTES,
   COMMUNITY_VIDEO_MAX_BYTES,
+  inferCommunityImageContentType,
   inferCommunityMediaType,
+  inferCommunityVideoContentType,
   isCommunityImageFile,
   isCommunityVideoFile,
 } from "@/lib/community-media-shared";
+import { readJsonResponse } from "@/lib/read-json-response";
+
+function uploadHandleUrl() {
+  if (typeof window === "undefined") return "/api/community/media/upload";
+  return `${window.location.origin}/api/community/media/upload`;
+}
 
 function safeFileName(name: string) {
-  return name
+  const base = (name || "upload")
+    .normalize("NFKD")
+    .replace(/[\u202f\u00a0]/g, "-")
+    .trim();
+  return base
     .toLowerCase()
     .replace(/[^a-z0-9.-]/g, "-")
-    .replace(/-+/g, "-");
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "") || "upload";
+}
+
+function uploadContentType(file: File, mediaType: "image" | "video") {
+  if (file.type) return file.type;
+  return mediaType === "video"
+    ? inferCommunityVideoContentType(file.name)
+    : inferCommunityImageContentType(file.name);
 }
 
 export async function uploadCommunityMediaClient(file: File) {
@@ -32,13 +52,21 @@ export async function uploadCommunityMediaClient(file: File) {
   try {
     const blob = await upload(pathname, file, {
       access: "public",
-      handleUploadUrl: "/api/community/media/upload",
+      handleUploadUrl: uploadHandleUrl(),
       multipart: file.size > 8 * 1024 * 1024,
-      contentType: file.type || undefined,
+      contentType: uploadContentType(file, mediaType),
     });
     return { mediaUrl: blob.url, mediaType };
-  } catch {
-    return uploadCommunityMediaFallback(file, mediaType);
+  } catch (blobError) {
+    try {
+      return await uploadCommunityMediaFallback(file, mediaType);
+    } catch (fallbackError) {
+      const blobMessage =
+        blobError instanceof Error ? blobError.message : "Direct upload failed.";
+      const fallbackMessage =
+        fallbackError instanceof Error ? fallbackError.message : "Upload failed.";
+      throw new Error(fallbackMessage || blobMessage);
+    }
   }
 }
 
@@ -46,14 +74,16 @@ async function uploadCommunityMediaFallback(file: File, mediaType: "image" | "vi
   const formData = new FormData();
   formData.append("file", file);
   const response = await fetch("/api/community/media", { method: "POST", body: formData });
-  const data = await response.json();
+  const data = await readJsonResponse<{ mediaUrl?: string; mediaType?: string; error?: string }>(
+    response,
+  );
   if (!response.ok) {
     throw new Error(data.error ?? "Upload failed.");
   }
-  if (data.mediaType !== mediaType) {
+  if (data.mediaType !== mediaType || !data.mediaUrl) {
     throw new Error("Upload failed. Try an MP4 video or JPG photo.");
   }
-  return { mediaUrl: data.mediaUrl as string, mediaType: data.mediaType as "image" | "video" };
+  return { mediaUrl: data.mediaUrl, mediaType: data.mediaType as "image" | "video" };
 }
 
 export function validateCommunityStoryFile(file: File) {

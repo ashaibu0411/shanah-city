@@ -10,6 +10,7 @@ export const COMMUNITY_IMAGE_CONTENT_TYPES = [
   "image/gif",
   "image/heic",
   "image/heif",
+  "application/octet-stream",
 ] as const;
 
 export const COMMUNITY_VIDEO_CONTENT_TYPES = [
@@ -19,6 +20,7 @@ export const COMMUNITY_VIDEO_CONTENT_TYPES = [
   "video/x-m4v",
   "video/3gpp",
   "video/3gpp2",
+  "application/octet-stream",
 ] as const;
 
 function lowerName(name: string) {

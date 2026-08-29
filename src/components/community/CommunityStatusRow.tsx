@@ -9,6 +9,7 @@ import {
   validateCommunityStoryFile,
 } from "@/lib/community-media-client";
 import { inferCommunityVideoContentType } from "@/lib/community-media-shared";
+import { readJsonResponse } from "@/lib/read-json-response";
 
 function resolveMediaUrl(url: string) {
   if (!url) return url;
@@ -16,7 +17,11 @@ function resolveMediaUrl(url: string) {
     return url;
   }
   if (typeof window !== "undefined") {
-    return new URL(url, window.location.origin).toString();
+    try {
+      return new URL(url, window.location.origin).toString();
+    } catch {
+      return url;
+    }
   }
   return url;
 }
@@ -144,8 +149,10 @@ export function CommunityStatusRow() {
 
   useEffect(() => {
     fetch("/api/community/statuses", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((data) => {
+      .then(async (response) => {
+        const data = await readJsonResponse<{ error?: string; statuses?: CommunityStatus[] }>(
+          response,
+        );
         if (data.error) {
           setError(data.error);
           setStatuses([]);
@@ -153,8 +160,10 @@ export function CommunityStatusRow() {
         }
         setStatuses(data.statuses ?? []);
       })
-      .catch(() => {
-        setError("Stories are unavailable right now.");
+      .catch((loadError) => {
+        setError(
+          loadError instanceof Error ? loadError.message : "Stories are unavailable right now.",
+        );
         setStatuses([]);
       });
   }, []);
@@ -198,16 +207,21 @@ export function CommunityStatusRow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mediaUrl, mediaType }),
       });
-      const data = await response.json();
+      const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
       if (!response.ok) {
         setError(data.error ?? "Could not share story.");
         return;
       }
+      if (!data.status) {
+        setError("Could not share story.");
+        return;
+      }
+      const savedStatus = data.status;
       setStatuses((current) => [
-        data.status,
+        savedStatus,
         ...current.filter((entry) => entry.authorId !== user.id),
       ]);
-      setActiveStatus(data.status);
+      setActiveStatus(savedStatus);
       setNotice("Story shared. Tap your photo to view it.");
       window.setTimeout(() => setNotice(""), 4000);
     } catch (uploadError) {

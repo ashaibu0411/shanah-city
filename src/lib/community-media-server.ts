@@ -19,10 +19,15 @@ export {
 } from "@/lib/community-media-shared";
 
 function safeFileName(name: string) {
-  return name
+  const base = (name || "upload")
+    .normalize("NFKD")
+    .replace(/[\u202f\u00a0]/g, "-")
+    .trim();
+  return base
     .toLowerCase()
     .replace(/[^a-z0-9.-]/g, "-")
-    .replace(/-+/g, "-");
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "") || "upload";
 }
 
 async function savePublicFile(
