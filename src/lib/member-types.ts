@@ -5,6 +5,11 @@ export type Comment = {
   createdAt: string;
 };
 
+export type CommunityPostMediaItem = {
+  url: string;
+  type: "image" | "video";
+};
+
 export type CommunityPost = {
   id: string;
   author: string;
@@ -13,6 +18,7 @@ export type CommunityPost = {
   content: string;
   mediaUrl?: string;
   mediaType?: "image" | "video";
+  mediaItems?: CommunityPostMediaItem[];
   timeAgo: string;
   type: "prayer" | "praise" | "announcement";
   reactions: number;

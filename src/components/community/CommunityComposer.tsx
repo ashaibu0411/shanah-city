@@ -5,18 +5,22 @@ import { createPortal } from "react-dom";
 import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
+import { CommunityMediaPreviewCarousel } from "@/components/community/CommunityMediaCarousel";
 import {
   uploadCommunityMediaClient,
   validateCommunityStoryFile,
 } from "@/lib/community-media-client";
+import { COMMUNITY_POST_MAX_MEDIA } from "@/lib/community-post-media";
 import type { SignupGroupOption } from "@/lib/group-types";
 
 type ComposerMode = "share" | "announcement";
 
 type PendingMedia = {
-  mediaUrl: string;
+  id: string;
+  mediaUrl?: string;
   mediaType: "image" | "video";
   previewUrl: string;
+  uploading: boolean;
 };
 
 type CommunityComposerProps = {
@@ -53,8 +57,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
   const [announcementDraft, setAnnouncementDraft] = useState("");
   const [targetGroupId, setTargetGroupId] = useState("");
   const [targetGroups, setTargetGroups] = useState<SignupGroupOption[]>([]);
-  const [pendingMedia, setPendingMedia] = useState<PendingMedia | null>(null);
-  const [mediaBusy, setMediaBusy] = useState(false);
+  const [pendingMedia, setPendingMedia] = useState<PendingMedia[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -79,38 +82,87 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
     };
   }, [open]);
 
+  const mediaBusy = pendingMedia.some((item) => item.uploading);
+  const uploadedMedia = pendingMedia.filter((item) => item.mediaUrl);
+
+  function clearPendingMedia() {
+    for (const item of pendingMedia) {
+      if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    }
+    setPendingMedia([]);
+  }
+
   function closeComposer() {
     setOpen(false);
     setError("");
-    if (pendingMedia?.previewUrl) URL.revokeObjectURL(pendingMedia.previewUrl);
-    setPendingMedia(null);
+    clearPendingMedia();
   }
 
-  async function uploadPostMedia(file: File) {
-    const validationError = validateCommunityStoryFile(file);
-    if (validationError) {
-      setError(validationError);
+  function removePendingMedia(id: string) {
+    setPendingMedia((current) => {
+      const target = current.find((item) => item.id === id);
+      if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl);
+      return current.filter((item) => item.id !== id);
+    });
+  }
+
+  async function uploadSinglePendingMedia(id: string, file: File) {
+    try {
+      const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
+      setPendingMedia((current) =>
+        current.map((item) =>
+          item.id === id ? { ...item, mediaUrl, mediaType, uploading: false } : item,
+        ),
+      );
+    } catch (uploadError) {
+      setPendingMedia((current) => current.filter((item) => item.id !== id));
+      setError(uploadError instanceof Error ? uploadError.message : "Could not upload media.");
+    }
+  }
+
+  async function addPostMediaFiles(fileList: FileList | File[]) {
+    const files = Array.from(fileList);
+    if (files.length === 0) return;
+
+    const availableSlots = COMMUNITY_POST_MAX_MEDIA - pendingMedia.length;
+    if (availableSlots <= 0) {
+      setError(`You can attach up to ${COMMUNITY_POST_MAX_MEDIA} photos or videos.`);
       return;
     }
 
-    setMediaBusy(true);
+    const chosen = files.slice(0, availableSlots);
     setError("");
-    try {
-      const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
-      setPendingMedia({
-        mediaUrl,
-        mediaType,
-        previewUrl: URL.createObjectURL(file),
-      });
-    } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Could not upload media.");
-    } finally {
-      setMediaBusy(false);
+
+    for (const file of chosen) {
+      const validationError = validateCommunityStoryFile(file);
+      if (validationError) {
+        setError(validationError);
+        continue;
+      }
+
+      const id = `pending-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const mediaType = file.type.startsWith("video/") || /\.(mp4|mov|webm|m4v|3gp)$/i.test(file.name)
+        ? "video"
+        : "image";
+
+      setPendingMedia((current) => [
+        ...current,
+        {
+          id,
+          mediaType,
+          previewUrl: URL.createObjectURL(file),
+          uploading: true,
+        },
+      ]);
+
+      void uploadSinglePendingMedia(id, file);
     }
   }
 
   async function submitSharePost() {
-    if (!draft.trim() && !pendingMedia) return;
+    if (!draft.trim() && uploadedMedia.length === 0) return;
+    if (mediaBusy) return;
+
     setSubmitting(true);
     setError("");
     const response = await fetch("/api/community", {
@@ -120,8 +172,10 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
         campusId: campus.id,
         content: draft.trim(),
         type: postType,
-        mediaUrl: pendingMedia?.mediaUrl,
-        mediaType: pendingMedia?.mediaType,
+        mediaItems: uploadedMedia.map((item) => ({
+          url: item.mediaUrl,
+          type: item.mediaType,
+        })),
       }),
     });
     const data = await response.json();
@@ -245,26 +299,10 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                   autoFocus
                   className="mt-3 w-full resize-none border-0 bg-transparent text-[24px] leading-snug text-[#050505] outline-none placeholder:text-[#65676b]"
                 />
-                {pendingMedia ? (
-                  <div className="relative mt-3 overflow-hidden rounded-xl bg-black">
-                    {pendingMedia.mediaType === "video" ? (
-                      <video src={pendingMedia.previewUrl} controls className="max-h-56 w-full object-contain" />
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={pendingMedia.previewUrl} alt="" className="max-h-56 w-full object-cover" />
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (pendingMedia.previewUrl) URL.revokeObjectURL(pendingMedia.previewUrl);
-                        setPendingMedia(null);
-                      }}
-                      className="absolute right-2 top-2 rounded-full bg-black/70 px-2.5 py-1 text-xs font-semibold text-white"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : null}
+                <CommunityMediaPreviewCarousel
+                  items={pendingMedia}
+                  onRemove={removePendingMedia}
+                />
               </>
             ) : (
               <>
@@ -296,13 +334,18 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
 
           <div className="border-t border-[#dadde1] px-4 py-3">
             {mode === "share" ? (
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-[15px] font-semibold text-[#050505]">Add to your post</span>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-[15px] font-semibold text-[#050505]">Add to your post</span>
+                  <p className="text-xs text-[#65676b]">
+                    Up to {COMMUNITY_POST_MAX_MEDIA} photos or videos
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  disabled={mediaBusy}
-                  className="rounded-lg p-2 hover:bg-[#f0f2f5]"
+                  disabled={mediaBusy || pendingMedia.length >= COMMUNITY_POST_MAX_MEDIA}
+                  className="rounded-lg p-2 hover:bg-[#f0f2f5] disabled:opacity-50"
                   aria-label="Add photo or video"
                 >
                   <PhotoIcon />
@@ -317,12 +360,12 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                 submitting ||
                 mediaBusy ||
                 (mode === "share"
-                  ? !draft.trim() && !pendingMedia
+                  ? !draft.trim() && uploadedMedia.length === 0
                   : !announcementDraft.trim())
               }
               className="w-full rounded-lg bg-[#1877f2] px-4 py-2.5 text-[15px] font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#e4e6eb] disabled:text-[#bcc0c4]"
             >
-              {submitting ? "Posting…" : "Post"}
+              {submitting ? "Posting…" : mediaBusy ? "Uploading…" : "Post"}
             </button>
           </div>
         </div>
@@ -335,14 +378,15 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
     <input
       ref={fileRef}
       type="file"
+      multiple
       accept="image/*,video/*,.heic,.heif,.3gp,.mp4,.mov,.webm"
       className="hidden"
       onChange={(event) => {
-        const file = event.target.files?.[0];
+        const files = event.target.files;
         event.target.value = "";
-        if (file) {
+        if (files?.length) {
           if (!open) setOpen(true);
-          void uploadPostMedia(file);
+          void addPostMediaFiles(files);
         }
       }}
     />

@@ -988,6 +988,33 @@
   color: #050505;
 }
 
+.community-media-carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.community-media-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.community-media-carousel-slide {
+  position: relative;
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  aspect-ratio: 4 / 5;
+  max-height: 32rem;
+  background: #000;
+}
+
+.community-media-carousel .community-media-carousel-slide {
+  aspect-ratio: auto;
+  min-height: 16rem;
+}
+
 .community-composer-modal {
   position: fixed;
   inset: 0;

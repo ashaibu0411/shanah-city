@@ -150,6 +150,7 @@ model CommunityPost {
   content         String
   mediaUrl        String?
   mediaType       String?
+  mediaItems      Json?
   timeAgo         String
   type            String
   reactions       Int       @default(0)

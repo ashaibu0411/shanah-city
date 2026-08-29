@@ -3,6 +3,12 @@ import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { canManageCommunityPost } from "@/lib/community-access-server";
 import { attachCanManageToPosts } from "@/lib/community-post-access";
+import {
+  COMMUNITY_POST_MAX_MEDIA,
+  communityPostHasMedia,
+  communityPostMediaSummary,
+  parseCommunityPostMediaInput,
+} from "@/lib/community-post-media";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getGroups } from "@/lib/group-server";
 import type { CommunityPost } from "@/lib/member-types";
@@ -28,7 +34,7 @@ async function resolveEditedPostFields(
   body: Record<string, unknown>,
 ) {
   const content = String(body.content ?? "").trim();
-  if (!content && !post.mediaUrl) {
+  if (!content && !communityPostHasMedia(post)) {
     return { error: "Add a message or keep the attached photo/video." as const };
   }
 
@@ -156,16 +162,21 @@ export async function POST(request: Request) {
   }
 
   const content = String(body.content ?? "").trim();
-  const mediaUrl = body.mediaUrl ? String(body.mediaUrl).trim() : undefined;
-  const mediaType = body.mediaType === "video" ? "video" : body.mediaType === "image" ? "image" : undefined;
+  const mediaItems = parseCommunityPostMediaInput(body);
 
-  if (!content && !mediaUrl) {
+  if (!content && mediaItems.length === 0) {
     return NextResponse.json({ error: "Add a message, photo, or video." }, { status: 400 });
   }
 
-  if (mediaUrl && !mediaType) {
-    return NextResponse.json({ error: "Media type is required." }, { status: 400 });
+  if (mediaItems.length > COMMUNITY_POST_MAX_MEDIA) {
+    return NextResponse.json(
+      { error: `You can attach up to ${COMMUNITY_POST_MAX_MEDIA} photos or videos.` },
+      { status: 400 },
+    );
   }
+
+  const mediaUrl = mediaItems[0]?.url;
+  const mediaType = mediaItems[0]?.type as CommunityPost["mediaType"] | undefined;
 
   if (!user) {
     return NextResponse.json({ error: "Sign in to post." }, { status: 401 });
@@ -205,6 +216,7 @@ export async function POST(request: Request) {
     content: content || "",
     mediaUrl,
     mediaType,
+    mediaItems: mediaItems.length ? mediaItems : undefined,
     timeAgo: "Just now",
     type: postType,
     reactions: 0,
@@ -217,7 +229,7 @@ export async function POST(request: Request) {
   await notifyCommunityPost({
     authorId: user.id,
     authorName,
-    content: content || (mediaType === "video" ? "Shared a video" : "Shared a photo"),
+    content: content || communityPostMediaSummary(mediaItems),
     type: postType,
     targetGroupId,
     targetGroupName,

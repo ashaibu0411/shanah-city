@@ -12,7 +12,9 @@ import {
   reactionEmoji,
 } from "@/lib/community-ui-utils";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
+import { CommunityMediaCarousel } from "@/components/community/CommunityMediaCarousel";
 import { canManageCommunityPostClient } from "@/lib/community-post-access";
+import { communityPostHasMedia, communityPostMediaItems } from "@/lib/community-post-media";
 
 function LikeIcon({ active }: { active: boolean }) {
   return (
@@ -189,7 +191,7 @@ export function CommunityPostCard({
   }
 
   async function saveEdit() {
-    if (!editDraft.trim() && !post.mediaUrl) {
+    if (!editDraft.trim() && !communityPostHasMedia(post)) {
       setEditError("Add a message or keep the attached photo/video.");
       return;
     }
@@ -388,25 +390,8 @@ export function CommunityPostCard({
         </div>
       )}
 
-      {!editing && post.mediaUrl ? (
-        <div className="border-y border-[#dadde1] bg-black">
-          {post.mediaType === "video" ? (
-            <video
-              src={post.mediaUrl}
-              controls
-              playsInline
-              className="max-h-[32rem] w-full object-contain"
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={post.mediaUrl}
-              alt=""
-              decoding="async"
-              className="max-h-[32rem] w-full object-cover"
-            />
-          )}
-        </div>
+      {!editing && communityPostMediaItems(post).length > 0 ? (
+        <CommunityMediaCarousel items={communityPostMediaItems(post)} />
       ) : null}
 
       {(post.reactions > 0 || comments.length > 0) && (

@@ -1,11 +1,18 @@
 import type {
   Comment,
   CommunityPost,
+  CommunityPostMediaItem,
   KidCheckIn,
   UnavailabilityRequest,
   VolunteerCheckIn,
 } from "@/lib/member-types";
+import {
+  communityPostMediaItems,
+  normalizeStoredCommunityPostMedia,
+  parseCommunityPostMediaItems,
+} from "@/lib/community-post-media";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 function mapComment(record: {
   id: string;
@@ -29,6 +36,7 @@ function mapCommunityPost(record: {
   content: string;
   mediaUrl: string | null;
   mediaType: string | null;
+  mediaItems?: unknown;
   timeAgo: string;
   type: string;
   reactions: number;
@@ -42,14 +50,23 @@ function mapCommunityPost(record: {
     createdAt: Date;
   }[];
 }): CommunityPost {
+  const parsedItems = parseCommunityPostMediaItems(record.mediaItems);
+  const mediaItems = communityPostMediaItems({
+    mediaItems: parsedItems,
+    mediaUrl: record.mediaUrl ?? undefined,
+    mediaType: (record.mediaType as CommunityPost["mediaType"]) ?? undefined,
+  });
+  const firstItem = mediaItems[0];
+
   return {
     id: record.id,
     author: record.author,
     authorId: record.authorId ?? undefined,
     campusId: record.campusId,
     content: record.content,
-    mediaUrl: record.mediaUrl ?? undefined,
-    mediaType: (record.mediaType as CommunityPost["mediaType"]) ?? undefined,
+    mediaUrl: firstItem?.url ?? record.mediaUrl ?? undefined,
+    mediaType: firstItem?.type ?? (record.mediaType as CommunityPost["mediaType"]) ?? undefined,
+    mediaItems: mediaItems.length ? mediaItems : undefined,
     timeAgo: record.timeAgo,
     type: record.type as CommunityPost["type"],
     reactions: record.reactions,
@@ -200,6 +217,9 @@ export async function saveCommunityPosts(posts: CommunityPost[]) {
 }
 
 export async function addCommunityPost(post: CommunityPost) {
+  const mediaItems = communityPostMediaItems(post);
+  const storedMedia = normalizeStoredCommunityPostMedia(mediaItems);
+
   const created = await prisma.communityPost.create({
     data: {
       id: post.id,
@@ -207,8 +227,9 @@ export async function addCommunityPost(post: CommunityPost) {
       authorId: post.authorId ?? null,
       campusId: post.campusId,
       content: post.content,
-      mediaUrl: post.mediaUrl ?? null,
-      mediaType: post.mediaType ?? null,
+      mediaUrl: storedMedia.mediaUrl,
+      mediaType: storedMedia.mediaType,
+      mediaItems: storedMedia.mediaItems ?? Prisma.JsonNull,
       timeAgo: post.timeAgo,
       type: post.type,
       reactions: post.reactions,
