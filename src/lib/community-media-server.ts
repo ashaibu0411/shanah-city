@@ -1,29 +1,22 @@
 import { put } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
+import {
+  COMMUNITY_IMAGE_MAX_BYTES,
+  COMMUNITY_STATUS_HOURS,
+  COMMUNITY_VIDEO_MAX_BYTES,
+  inferCommunityImageContentType,
+  inferCommunityVideoContentType,
+  isCommunityImageFile,
+  isCommunityVideoFile,
+} from "@/lib/community-media-shared";
 import { useBlobStorage } from "@/lib/use-blob";
 
-export const COMMUNITY_IMAGE_MAX_BYTES = 12 * 1024 * 1024;
-export const COMMUNITY_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
-export const COMMUNITY_STATUS_HOURS = 24;
-
-const IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "image/heic",
-  "image/heif",
-]);
-const VIDEO_TYPES = new Set([
-  "video/mp4",
-  "video/webm",
-  "video/quicktime",
-  "video/x-m4v",
-  "video/3gpp",
-  "video/3gpp2",
-]);
+export {
+  COMMUNITY_IMAGE_MAX_BYTES,
+  COMMUNITY_VIDEO_MAX_BYTES,
+  COMMUNITY_STATUS_HOURS,
+} from "@/lib/community-media-shared";
 
 function safeFileName(name: string) {
   return name
@@ -32,33 +25,16 @@ function safeFileName(name: string) {
     .replace(/-+/g, "-");
 }
 
-function isImageFile(file: File) {
-  const lower = file.name.toLowerCase();
-  return (
-    IMAGE_TYPES.has(file.type) ||
-    lower.endsWith(".jpg") ||
-    lower.endsWith(".jpeg") ||
-    lower.endsWith(".png") ||
-    lower.endsWith(".webp") ||
-    lower.endsWith(".gif") ||
-    lower.endsWith(".heic") ||
-    lower.endsWith(".heif")
-  );
-}
+async function savePublicFile(
+  file: File,
+  folder: "images" | "videos",
+  fallbackType: string,
+) {
+  const contentType =
+    folder === "videos"
+      ? inferCommunityVideoContentType(file.name, file.type)
+      : inferCommunityImageContentType(file.name, file.type);
 
-function isVideoFile(file: File) {
-  const lower = file.name.toLowerCase();
-  return (
-    VIDEO_TYPES.has(file.type) ||
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".m4v") ||
-    lower.endsWith(".3gp")
-  );
-}
-
-async function savePublicFile(file: File, folder: string, fallbackType: string) {
   if (useBlobStorage()) {
     const bytes = await file.arrayBuffer();
     const blob = await put(
@@ -66,7 +42,7 @@ async function savePublicFile(file: File, folder: string, fallbackType: string) 
       Buffer.from(bytes),
       {
         access: "public",
-        contentType: file.type || fallbackType,
+        contentType: file.type || contentType || fallbackType,
       },
     );
     return blob.url;
@@ -80,7 +56,7 @@ async function savePublicFile(file: File, folder: string, fallbackType: string) 
 }
 
 export async function saveCommunityImage(file: File) {
-  if (!isImageFile(file)) {
+  if (!isCommunityImageFile(file)) {
     throw new Error("Upload a JPG, PNG, WEBP, or GIF image.");
   }
   if (file.size > COMMUNITY_IMAGE_MAX_BYTES) {
@@ -90,7 +66,7 @@ export async function saveCommunityImage(file: File) {
 }
 
 export async function saveCommunityVideo(file: File) {
-  if (!isVideoFile(file)) {
+  if (!isCommunityVideoFile(file)) {
     throw new Error("Upload an MP4, MOV, or WEBM video.");
   }
   if (file.size > COMMUNITY_VIDEO_MAX_BYTES) {
@@ -100,10 +76,10 @@ export async function saveCommunityVideo(file: File) {
 }
 
 export async function saveCommunityMedia(file: File) {
-  if (isImageFile(file)) {
+  if (isCommunityImageFile(file)) {
     return { mediaUrl: await saveCommunityImage(file), mediaType: "image" as const };
   }
-  if (isVideoFile(file)) {
+  if (isCommunityVideoFile(file)) {
     return { mediaUrl: await saveCommunityVideo(file), mediaType: "video" as const };
   }
   throw new Error("Upload a photo or video file.");

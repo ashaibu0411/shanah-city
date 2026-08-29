@@ -5,6 +5,10 @@ import { createPortal } from "react-dom";
 import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
+import {
+  uploadCommunityMediaClient,
+  validateCommunityStoryFile,
+} from "@/lib/community-media-client";
 import type { SignupGroupOption } from "@/lib/group-types";
 
 type ComposerMode = "share" | "announcement";
@@ -83,22 +87,26 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
   }
 
   async function uploadPostMedia(file: File) {
-    setMediaBusy(true);
-    setError("");
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetch("/api/community/media", { method: "POST", body: formData });
-    const data = await response.json();
-    setMediaBusy(false);
-    if (!response.ok) {
-      setError(data.error ?? "Could not upload media.");
+    const validationError = validateCommunityStoryFile(file);
+    if (validationError) {
+      setError(validationError);
       return;
     }
-    setPendingMedia({
-      mediaUrl: data.mediaUrl,
-      mediaType: data.mediaType,
-      previewUrl: URL.createObjectURL(file),
-    });
+
+    setMediaBusy(true);
+    setError("");
+    try {
+      const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
+      setPendingMedia({
+        mediaUrl,
+        mediaType,
+        previewUrl: URL.createObjectURL(file),
+      });
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Could not upload media.");
+    } finally {
+      setMediaBusy(false);
+    }
   }
 
   async function submitSharePost() {

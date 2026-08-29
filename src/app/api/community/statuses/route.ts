@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { isAllowedCommunityMediaUrl } from "@/lib/community-media-shared";
 import { saveCommunityMedia } from "@/lib/community-media-server";
 import {
   addCommunityStatus,
@@ -29,16 +30,43 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign in to share a status." }, { status: 401 });
   }
 
-  const formData = await request.formData();
-  const file = formData.get("file");
-  const caption = String(formData.get("caption") ?? "").trim();
+  const contentType = request.headers.get("content-type") ?? "";
+  let mediaUrl = "";
+  let mediaType: "image" | "video" | null = null;
+  let caption = "";
 
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Photo or video is required." }, { status: 400 });
+  if (contentType.includes("application/json")) {
+    const body = (await request.json()) as {
+      mediaUrl?: string;
+      mediaType?: "image" | "video";
+      caption?: string;
+    };
+    mediaUrl = String(body.mediaUrl ?? "").trim();
+    mediaType = body.mediaType === "video" ? "video" : body.mediaType === "image" ? "image" : null;
+    caption = String(body.caption ?? "").trim();
+    if (!mediaUrl || !mediaType || !isAllowedCommunityMediaUrl(mediaUrl)) {
+      return NextResponse.json({ error: "Photo or video is required." }, { status: 400 });
+    }
+  } else {
+    const formData = await request.formData();
+    const file = formData.get("file");
+    caption = String(formData.get("caption") ?? "").trim();
+
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: "Photo or video is required." }, { status: 400 });
+    }
+
+    try {
+      const saved = await saveCommunityMedia(file);
+      mediaUrl = saved.mediaUrl;
+      mediaType = saved.mediaType;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Upload failed.";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
   }
 
   try {
-    const { mediaUrl, mediaType } = await saveCommunityMedia(file);
     const status = await addCommunityStatus({
       id: `status-${Date.now()}`,
       authorId: user.id,
@@ -49,7 +77,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ status }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Upload failed.";
+    const message = error instanceof Error ? error.message : "Could not share story.";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

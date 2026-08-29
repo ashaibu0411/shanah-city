@@ -4,6 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { CommunityStatus } from "@/lib/member-types";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
+import {
+  uploadCommunityMediaClient,
+  validateCommunityStoryFile,
+} from "@/lib/community-media-client";
+import { inferCommunityVideoContentType } from "@/lib/community-media-shared";
 
 function resolveMediaUrl(url: string) {
   if (!url) return url;
@@ -14,6 +19,76 @@ function resolveMediaUrl(url: string) {
     return new URL(url, window.location.origin).toString();
   }
   return url;
+}
+
+function StoryVideo({ src, fileName }: { src: string; fileName?: string }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [needsTap, setNeedsTap] = useState(false);
+  const mediaUrl = resolveMediaUrl(src);
+  const mimeType = inferCommunityVideoContentType(fileName ?? mediaUrl);
+
+  useEffect(() => {
+    setFailed(false);
+    setNeedsTap(false);
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.load();
+    const playAttempt = video.play();
+    if (playAttempt) {
+      void playAttempt.catch(() => setNeedsTap(true));
+    }
+  }, [mediaUrl]);
+
+  if (failed) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center text-white">
+        <p className="text-sm text-white/80">
+          This video format may not play in your browser. Try opening it directly.
+        </p>
+        <a
+          href={mediaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white"
+        >
+          Open video
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative h-full w-full">
+      <video
+        ref={videoRef}
+        key={mediaUrl}
+        controls
+        playsInline
+        muted
+        autoPlay
+        preload="auto"
+        className="h-full w-full object-contain"
+        onError={() => setFailed(true)}
+      >
+        <source src={mediaUrl} type={mimeType} />
+      </video>
+      {needsTap ? (
+        <button
+          type="button"
+          onClick={() => {
+            const video = videoRef.current;
+            if (!video) return;
+            void video.play().then(() => setNeedsTap(false)).catch(() => setFailed(true));
+          }}
+          className="absolute inset-0 flex items-center justify-center bg-black/35 text-white"
+        >
+          <span className="rounded-full bg-black/55 px-4 py-2 text-sm font-semibold">Tap to play</span>
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 function StatusViewer({
@@ -44,14 +119,7 @@ function StatusViewer({
         </div>
         <div className="relative aspect-[9/16] max-h-[70vh] w-full bg-black">
           {status.mediaType === "video" ? (
-            <video
-              src={mediaUrl}
-              controls
-              playsInline
-              autoPlay
-              muted
-              className="h-full w-full object-contain"
-            />
+            <StoryVideo src={status.mediaUrl} fileName={status.mediaUrl} />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={mediaUrl} alt="" className="h-full w-full object-contain" />
@@ -113,28 +181,40 @@ export function CommunityStatusRow() {
 
   async function uploadStatus(file: File) {
     if (!user) return;
+    const validationError = validateCommunityStoryFile(file);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setUploading(true);
     setError("");
     setNotice("");
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetch("/api/community/statuses", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await response.json();
-    setUploading(false);
-    if (!response.ok) {
-      setError(data.error ?? "Could not share story.");
-      return;
+
+    try {
+      const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
+      const response = await fetch("/api/community/statuses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mediaUrl, mediaType }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error ?? "Could not share story.");
+        return;
+      }
+      setStatuses((current) => [
+        data.status,
+        ...current.filter((entry) => entry.authorId !== user.id),
+      ]);
+      setActiveStatus(data.status);
+      setNotice("Story shared. Tap your photo to view it.");
+      window.setTimeout(() => setNotice(""), 4000);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Could not share story.");
+    } finally {
+      setUploading(false);
     }
-    setStatuses((current) => [
-      data.status,
-      ...current.filter((entry) => entry.authorId !== user.id),
-    ]);
-    setActiveStatus(data.status);
-    setNotice("Story shared. Tap your photo to view it.");
-    window.setTimeout(() => setNotice(""), 4000);
   }
 
   if (!user) return null;
@@ -205,7 +285,7 @@ export function CommunityStatusRow() {
         <input
           ref={fileRef}
           type="file"
-          accept="image/*,video/*,.heic,.heif,.3gp"
+          accept="image/*,video/*,.heic,.heif,.3gp,.mp4,.mov,.webm"
           className="hidden"
           onChange={(event) => {
             const file = event.target.files?.[0];
