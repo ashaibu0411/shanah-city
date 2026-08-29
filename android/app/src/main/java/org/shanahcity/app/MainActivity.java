@@ -1,10 +1,14 @@
 package org.shanahcity.app;
 
 import android.os.Bundle;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+  private static volatile boolean filePickerOpen = false;
+  private static volatile boolean backgroundAudioActive = false;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -15,27 +19,50 @@ public class MainActivity extends BridgeActivity {
       webView.setOnLongClickListener(view -> false);
       webView.setLongClickable(true);
       webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+      webView.addJavascriptInterface(new ShanahBridge(), "ShanahBridge");
     }
   }
 
   @Override
   public void onPause() {
     super.onPause();
-    keepWebViewAlive();
+    keepWebViewAliveIfNeeded();
   }
 
   @Override
   public void onStop() {
     super.onStop();
-    keepWebViewAlive();
+    keepWebViewAliveIfNeeded();
   }
 
-  private void keepWebViewAlive() {
-    if (getBridge() == null) return;
+  private void keepWebViewAliveIfNeeded() {
+    if (filePickerOpen || !backgroundAudioActive) {
+      return;
+    }
+
+    if (getBridge() == null) {
+      return;
+    }
+
     WebView webView = getBridge().getWebView();
-    if (webView == null) return;
+    if (webView == null) {
+      return;
+    }
+
     // Keep JS/TTS running so devotion audio can continue in another app.
     webView.onResume();
     webView.resumeTimers();
+  }
+
+  private class ShanahBridge {
+    @JavascriptInterface
+    public void setFilePickerOpen(boolean open) {
+      filePickerOpen = open;
+    }
+
+    @JavascriptInterface
+    public void setBackgroundAudioActive(boolean active) {
+      backgroundAudioActive = active;
+    }
   }
 }

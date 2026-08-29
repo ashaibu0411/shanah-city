@@ -12,6 +12,7 @@ import {
 } from "@/lib/community-media-client";
 import { COMMUNITY_POST_MAX_MEDIA } from "@/lib/community-post-media";
 import type { SignupGroupOption } from "@/lib/group-types";
+import { openCommunityGalleryPicker } from "@/lib/native-media-picker";
 
 type ComposerMode = "share" | "announcement";
 
@@ -343,7 +344,9 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                 </div>
                 <button
                   type="button"
-                  onClick={() => fileRef.current?.click()}
+                  onClick={() =>
+                    openCommunityGalleryPicker(fileRef.current, (files) => void addPostMediaFiles(files))
+                  }
                   disabled={mediaBusy || pendingMedia.length >= COMMUNITY_POST_MAX_MEDIA}
                   className="rounded-lg p-2 hover:bg-[#f0f2f5] disabled:opacity-50"
                   aria-label="Add photo or video"
@@ -381,14 +384,6 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
       multiple
       accept="image/*,video/*,.heic,.heif,.3gp,.mp4,.mov,.webm"
       className="hidden"
-      onChange={(event) => {
-        const files = event.target.files;
-        event.target.value = "";
-        if (files?.length) {
-          if (!open) setOpen(true);
-          void addPostMediaFiles(files);
-        }
-      }}
     />
   );
 

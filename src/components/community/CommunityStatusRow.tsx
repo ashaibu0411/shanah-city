@@ -9,6 +9,7 @@ import {
   validateCommunityStoryFile,
 } from "@/lib/community-media-client";
 import { inferCommunityVideoContentType } from "@/lib/community-media-shared";
+import { openCommunityGalleryPicker } from "@/lib/native-media-picker";
 import { readJsonResponse } from "@/lib/read-json-response";
 
 function resolveMediaUrl(url: string) {
@@ -245,7 +246,16 @@ export function CommunityStatusRow() {
         <div className="community-stories-row">
           <button
             type="button"
-            onClick={() => fileRef.current?.click()}
+            onClick={() =>
+              openCommunityGalleryPicker(
+                fileRef.current,
+                (files) => {
+                  const file = files[0];
+                  if (file) void uploadStatus(file);
+                },
+                { preferNativePhotoPicker: true },
+              )
+            }
             disabled={uploading}
             className="community-story-item"
           >
@@ -301,11 +311,6 @@ export function CommunityStatusRow() {
           type="file"
           accept="image/*,video/*,.heic,.heif,.3gp,.mp4,.mov,.webm"
           className="hidden"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            event.target.value = "";
-            if (file) void uploadStatus(file);
-          }}
         />
       </div>
 

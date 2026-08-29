@@ -12,6 +12,7 @@ import {
 } from "react";
 import type { Devotion } from "@/lib/types";
 import { isNativeAppPlatform } from "@/lib/native-app";
+import { setNativeBackgroundAudioActive } from "@/lib/native-webview-bridge";
 import { devotionHasAudio } from "@/lib/devotion-utils";
 import { buildDevotionListenScript, splitDevotionListenChunks } from "@/lib/devotion-listen";
 import {
@@ -116,6 +117,7 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
   }, [selectedVoiceUri]);
 
   const stopKeepAlive = useCallback(() => {
+    setNativeBackgroundAudioActive(false);
     if (keepAliveTimerRef.current != null) {
       window.clearInterval(keepAliveTimerRef.current);
       keepAliveTimerRef.current = null;
@@ -124,6 +126,7 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startKeepAlive = useCallback(() => {
+    setNativeBackgroundAudioActive(true);
     const keepAlive = keepAliveRef.current;
     if (keepAlive) {
       keepAlive.loop = true;
