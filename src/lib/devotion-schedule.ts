@@ -13,7 +13,7 @@ export function isDevotionNotifyDue(reference = new Date()) {
   const denver = getZonedDateParts(reference);
   const notifyAt = DEVOTION_NOTIFY_HOUR * 60 + DEVOTION_NOTIFY_MINUTE;
   const now = minutesSinceMidnight(denver);
-  return now >= notifyAt - 2 && now < notifyAt + 10;
+  return now >= notifyAt - 5 && now < notifyAt + 20;
 }
 
 export function defaultDevotionScheduleTime() {

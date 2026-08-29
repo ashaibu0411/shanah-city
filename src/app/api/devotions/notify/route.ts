@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { canWriteDevotions } from "@/lib/devotion-access-server";
-import { getDevotionById } from "@/lib/devotion-server";
+import { getDevotionById, markDevotionNotified } from "@/lib/devotion-server";
 import { devotionGroupMatchHint } from "@/lib/devotion-writers-group";
 import { isDevotionPubliclyVisible } from "@/lib/devotion-utils";
 import { notifyNewDevotion } from "@/lib/push-server";
@@ -39,6 +39,10 @@ export async function POST(request: Request) {
     authorId: user!.id,
     devotionId: devotion.id,
   });
+
+  if (result.configured && result.sent > 0) {
+    await markDevotionNotified(devotion.id);
+  }
 
   return NextResponse.json({
     ok: true,

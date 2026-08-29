@@ -1,5 +1,5 @@
 import type { Devotion } from "@/lib/types";
-import { defaultDevotionScheduleTime } from "@/lib/devotion-schedule";
+import { defaultDevotionScheduleTime, isDevotionNotifyDue } from "@/lib/devotion-schedule";
 import { denverWallClockToDate, getZonedDateParts } from "@/lib/denver-time";
 
 export type DevotionPublishMode = "now" | "schedule" | "draft";
@@ -169,6 +169,28 @@ export function sortDevotionsForDisplay(a: Devotion, b: Devotion) {
   return bTime - aTime;
 }
 
+export function devotionMatchesDenverDate(devotion: Devotion, dateKey: string) {
+  if (devotion.publishAt) {
+    return toDateInputValue(devotion.publishAt) === dateKey;
+  }
+  const parsed = Date.parse(devotion.date);
+  if (!Number.isNaN(parsed)) {
+    return toDateInputValue(new Date(parsed)) === dateKey;
+  }
+  return false;
+}
+
+export function pickTodayDevotionForNotify(devotions: Devotion[], now = new Date()) {
+  const todayKey = getZonedDateParts(now).dateKey;
+  const candidates = devotions
+    .filter(
+      (devotion) =>
+        devotion.published !== false && devotionMatchesDenverDate(devotion, todayKey),
+    )
+    .sort(sortDevotionsForDisplay);
+  return candidates[0] ?? null;
+}
+
 export function pickTodayDevotion(devotions: Devotion[], now = new Date()) {
   const visible = devotions.filter((devotion) => isDevotionPubliclyVisible(devotion, now));
   if (visible.length === 0) {
@@ -176,16 +198,7 @@ export function pickTodayDevotion(devotions: Devotion[], now = new Date()) {
   }
 
   const todayKey = getZonedDateParts(now).dateKey;
-  const todays = visible.filter((devotion) => {
-    if (devotion.publishAt) {
-      return toDateInputValue(devotion.publishAt) === todayKey;
-    }
-    const parsed = Date.parse(devotion.date);
-    if (!Number.isNaN(parsed)) {
-      return toDateInputValue(new Date(parsed)) === todayKey;
-    }
-    return false;
-  });
+  const todays = visible.filter((devotion) => devotionMatchesDenverDate(devotion, todayKey));
 
   // Prefer the newest devotion for today; otherwise show the newest live devotion.
   return todays[0] ?? visible[0];
@@ -193,10 +206,14 @@ export function pickTodayDevotion(devotions: Devotion[], now = new Date()) {
 
 export function shouldNotifyDevotionPublish(devotion: Devotion, now = new Date()) {
   if (devotion.notifiedAt) return false;
-  return (
-    devotion.published !== false &&
-    (!devotion.publishAt || new Date(devotion.publishAt) <= now)
-  );
+  if (devotion.published === false) return false;
+  if (!devotion.publishAt) return true;
+  if (new Date(devotion.publishAt) <= now) return true;
+  // During the 7:30 AM Denver window, allow same-day scheduled devotions that go live at 7:30.
+  if (isDevotionNotifyDue(now)) {
+    return devotionMatchesDenverDate(devotion, getZonedDateParts(now).dateKey);
+  }
+  return false;
 }
 
 export function devotionHasAudio(devotion: Devotion) {
