@@ -2,9 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { canManageChurchEvents } from "@/lib/group-permissions-server";
-import { getMeetingById } from "@/lib/meeting-server";
+import { clearMeetingLastNotified, getMeetingById } from "@/lib/meeting-server";
 import { meetingHasJoinLink } from "@/lib/meeting-utils";
-import { notifyScheduledMeeting } from "@/lib/push-server";
+import { deliverMeetingReminderPush } from "@/lib/morning-prayer-notify-server";
+import { getZonedDateParts } from "@/lib/denver-time";
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
@@ -33,17 +34,22 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await notifyScheduledMeeting({
-    id: meeting.id,
-    title: meeting.title,
-    schedule: meeting.schedule,
-    platform: meeting.platform,
-  });
+  await clearMeetingLastNotified(meeting.id);
+  const result = await deliverMeetingReminderPush(
+    meeting,
+    getZonedDateParts().dateKey,
+  );
 
   return NextResponse.json({
-    ok: true,
+    ok: result.sent > 0,
     sent: result.sent,
     skipped: result.skipped,
     configured: result.configured,
+    error:
+      result.sent === 0 && result.configured
+        ? "No registered devices received the alert. Check Profile → Notifications on the phone app."
+        : result.sent === 0
+          ? "Push is not configured on the server."
+          : undefined,
   });
 }

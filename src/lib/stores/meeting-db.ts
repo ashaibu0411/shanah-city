@@ -249,6 +249,18 @@ export async function updateMeeting(id: string, update: Partial<Omit<Meeting, "i
   return mapMeeting(record);
 }
 
+export async function clearMeetingLastNotified(id: string) {
+  const existing = await prisma.meeting.findUnique({ where: { id } });
+  if (!existing) return null;
+
+  const record = await prisma.meeting.update({
+    where: { id },
+    data: { lastNotifiedOn: null, updatedAt: new Date() },
+  });
+
+  return mapMeeting(record);
+}
+
 export async function deleteMeeting(id: string) {
   try {
     await prisma.meeting.delete({ where: { id } });

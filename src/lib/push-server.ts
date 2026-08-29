@@ -8,7 +8,7 @@ import {
 } from "@/lib/worship-types";
 import * as pushDb from "@/lib/stores/push-db";
 import * as pushJson from "@/lib/stores/push-json";
-import { isTrackedJoinMeeting } from "@/lib/meeting-catalog";
+import { isTrackedJoinMeeting, isAutomatedReminderMeeting } from "@/lib/meeting-catalog";
 import { useDatabase } from "@/lib/use-database";
 import {
   isNativePushConfigured,
@@ -165,6 +165,94 @@ export async function sendPushToUsers(
     };
 
     if (!prefs.pushEnabled || !prefs[preferenceKey]) {
+      skipped += 1;
+      continue;
+    }
+
+    const userSubs = subscriptions.filter((item) => item.userId === userId);
+    const userTokens = nativeTokens.filter((item) => item.userId === userId);
+    if (userSubs.length === 0 && userTokens.length === 0) {
+      skipped += 1;
+      continue;
+    }
+
+    for (const record of userSubs) {
+      try {
+        await webpush.sendNotification(
+          record.subscription,
+          JSON.stringify(brandedPayload),
+        );
+        sent += 1;
+        webSent += 1;
+      } catch (error) {
+        await store().removePushSubscription(userId, record.endpoint);
+        skipped += 1;
+        errors.push(
+          `web:${error instanceof Error ? error.message : "send failed"}`,
+        );
+      }
+    }
+
+    for (const record of userTokens) {
+      try {
+        await sendNativePush(record, brandedPayload);
+        sent += 1;
+        nativeSent += 1;
+      } catch (error) {
+        if (shouldDropNativeToken(error)) {
+          await store().removeNativePushToken(userId, record.token);
+        }
+        skipped += 1;
+        errors.push(
+          `${record.platform}:${error instanceof Error ? error.message : "send failed"}`,
+        );
+      }
+    }
+  }
+
+  return {
+    sent,
+    skipped,
+    webSent,
+    nativeSent,
+    errors: errors.slice(0, 3),
+    configured: true,
+  };
+}
+
+export async function sendPushToUsersWithAnyPreference(
+  userIds: string[],
+  payload: { title: string; body: string; url: string },
+  preferenceKeys: NotificationTopic[],
+) {
+  const brandedPayload = withPushBranding(payload);
+  const webConfigured = configureWebPush();
+  const nativeConfigured = isNativePushConfigured();
+  if (!webConfigured && !nativeConfigured) {
+    return { sent: 0, skipped: userIds.length, configured: false };
+  }
+
+  const users = await getUsers();
+  const subscriptions = webConfigured ? await store().getPushSubscriptions() : [];
+  const nativeTokens = nativeConfigured ? await store().getNativePushTokens() : [];
+  let sent = 0;
+  let skipped = 0;
+  let webSent = 0;
+  let nativeSent = 0;
+  const errors: string[] = [];
+
+  for (const userId of userIds) {
+    const user = users.find((item) => item.id === userId);
+    const prefs: NotificationPrefs = {
+      pushEnabled: user?.notificationPrefs?.pushEnabled ?? true,
+      devotions: user?.notificationPrefs?.devotions ?? true,
+      messages: user?.notificationPrefs?.messages ?? true,
+      announcements: user?.notificationPrefs?.announcements ?? true,
+      worship: user?.notificationPrefs?.worship ?? true,
+      kids: user?.notificationPrefs?.kids ?? true,
+    };
+
+    if (!prefs.pushEnabled || !preferenceKeys.some((key) => prefs[key])) {
       skipped += 1;
       continue;
     }
@@ -483,14 +571,23 @@ export async function notifyScheduledMeeting(input: {
   const url = isTrackedJoinMeeting(input.id)
     ? `/api/meetings/join?meetingId=${encodeURIComponent(input.id)}&source=push`
     : "/meetings";
-  return sendPushToAllMembers(
-    {
-      title: input.title.toUpperCase(),
-      body: `${input.schedule}. Tap to join on ${joinLabel}.`,
-      url,
-    },
-    "worship",
-  );
+  const payload = {
+    title: input.title.toUpperCase(),
+    body: `${input.schedule}. Tap to join on ${joinLabel}.`,
+    url,
+  };
+  const users = await getUsers();
+  const userIds = users.map((user) => user.id);
+
+  if (isAutomatedReminderMeeting(input.id)) {
+    return sendPushToUsersWithAnyPreference(userIds, payload, [
+      "devotions",
+      "announcements",
+      "worship",
+    ]);
+  }
+
+  return sendPushToUsers(userIds, payload, "worship");
 }
 
 export async function notifyLiveStreamNow(input: {

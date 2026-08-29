@@ -14,3 +14,4 @@ export const updateMeeting = (
 ) => store().updateMeeting(id, update);
 export const deleteMeeting = (id: string) => store().deleteMeeting(id);
 export const getMeetingById = (id: string) => store().getMeetingById(id);
+export const clearMeetingLastNotified = (id: string) => store().clearMeetingLastNotified(id);

@@ -4,8 +4,45 @@ import {
   isAutomatedReminderMeeting,
 } from "@/lib/meeting-catalog";
 import { isPrayerReminderDue } from "@/lib/prayer-schedule";
-import { notifyScheduledMeeting } from "@/lib/push-server";
+import {
+  getNativePushTokens,
+  getPushSubscriptions,
+  notifyScheduledMeeting,
+} from "@/lib/push-server";
+import {
+  isAndroidNativePushConfigured,
+  isIosNativePushConfigured,
+} from "@/lib/native-push-server";
+import type { Meeting } from "@/lib/types";
 import { getMeetings, updateMeeting } from "@/lib/meeting-server";
+
+type MeetingReminderAttempt = {
+  id: string;
+  title: string;
+  pushSent: number;
+  pushSkipped: number;
+  configured: boolean;
+  skipped?: boolean;
+  reason?: string;
+};
+
+export async function deliverMeetingReminderPush(
+  meeting: Pick<Meeting, "id" | "title" | "schedule" | "platform">,
+  denverDateKey: string,
+) {
+  const result = await notifyScheduledMeeting({
+    id: meeting.id,
+    title: meeting.title,
+    schedule: meeting.schedule,
+    platform: meeting.platform,
+  });
+
+  if (result.configured && result.sent > 0) {
+    await updateMeeting(meeting.id, { lastNotifiedOn: denverDateKey });
+  }
+
+  return result;
+}
 
 export async function processScheduledMeetingReminders(reference = new Date()) {
   const denver = getZonedDateParts(reference);
@@ -32,41 +69,45 @@ export async function processScheduledMeetingReminders(reference = new Date()) {
   }
 
   let sent = 0;
-  const results: Array<{
-    id: string;
-    title: string;
-    sent: number;
-    skipped: number;
-    configured: boolean;
-  }> = [];
+  const results: MeetingReminderAttempt[] = [];
 
   for (const meeting of due) {
-    const result = await notifyScheduledMeeting({
-      id: meeting.id,
-      title: meeting.title,
-      schedule: meeting.schedule,
-      platform: meeting.platform,
-    });
-    if (result.configured && result.sent > 0) {
-      await updateMeeting(meeting.id, { lastNotifiedOn: denver.dateKey });
-    }
+    const result = await deliverMeetingReminderPush(meeting, denver.dateKey);
     sent += result.sent;
     results.push({
       id: meeting.id,
       title: meeting.title,
-      sent: result.sent,
-      skipped: result.skipped,
+      pushSent: result.sent,
+      pushSkipped: result.skipped,
       configured: result.configured,
+      skipped: result.sent === 0,
+      reason:
+        result.sent > 0
+          ? undefined
+          : result.configured
+            ? "no_recipients"
+            : "push_not_configured",
     });
   }
 
+  const [nativeTokens, webSubs] = await Promise.all([
+    getNativePushTokens(),
+    getPushSubscriptions(),
+  ]);
+
   return {
     sent,
-    skipped: false,
+    skipped: sent === 0,
     denverDate: denver.dateKey,
     denverHour: denver.hour,
     denverWeekday: denver.weekday,
     meetings: results,
+    pushDiagnostics: {
+      androidConfigured: isAndroidNativePushConfigured(),
+      iosConfigured: isIosNativePushConfigured(),
+      registeredNativeDevices: nativeTokens.length,
+      registeredWebDevices: webSubs.length,
+    },
   };
 }
 

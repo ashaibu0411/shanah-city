@@ -115,6 +115,10 @@ export async function updateMeeting(id: string, update: Partial<Omit<Meeting, "i
   return meetings[index];
 }
 
+export async function clearMeetingLastNotified(id: string) {
+  return updateMeeting(id, { lastNotifiedOn: null });
+}
+
 export async function deleteMeeting(id: string) {
   const meetings = await readMeetings();
   const next = meetings.filter((meeting) => meeting.id !== id);
