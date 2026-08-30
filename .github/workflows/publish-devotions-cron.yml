@@ -1,12 +1,16 @@
 name: Publish devotions
 
-# Primary scheduler: every 5 min. Vercel also runs a daily backup (vercel.json).
+# Primary scheduler: every 5 min + pinned UTC times for 7:30 AM America/Denver.
+# Vercel also runs twice daily as backup (vercel.json — 13:30 & 14:30 UTC).
 # Requires GitHub secret CRON_SECRET (same value as on Vercel).
 # Use "Run workflow" (not "Re-run jobs") after workflow changes — re-runs keep the old script.
 
 on:
   schedule:
     - cron: "*/5 * * * *"
+    # 7:25–7:55 AM Denver during MDT (UTC−6) and MST (UTC−7)
+    - cron: "25,30,35,40,45,50,55 13 * * *"
+    - cron: "25,30,35,40,45,50,55 14 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -36,6 +40,23 @@ jobs:
           echo "HTTP ${http_code}"
           cat /tmp/cron-response.json
           echo ""
+
+          if command -v jq >/dev/null 2>&1; then
+            denver_time="$(jq -r '.denverTime // "unknown"' /tmp/cron-response.json)"
+            denver_date="$(jq -r '.denverDate // "unknown"' /tmp/cron-response.json)"
+            mode="$(jq -r '.mode // "unknown"' /tmp/cron-response.json)"
+            notified="$(jq -r '.notified // 0' /tmp/cron-response.json)"
+            reason="$(jq -r '.reason // "none"' /tmp/cron-response.json)"
+            echo "Denver: ${denver_date} ${denver_time} | mode=${mode} | notified=${notified} | reason=${reason}"
+            if [ "$notified" = "0" ] && { [ "$mode" = "daily_730" ] || [ "$reason" = "nothing_due" ]; }; then
+              hour="$(echo "$denver_time" | cut -d: -f1)"
+              minute="$(echo "$denver_time" | cut -d: -f2)"
+              if [ "$hour" = "7" ] && [ "$minute" -ge 25 ] && [ "$minute" -le 55 ]; then
+                echo "::warning title=Devotion push missed window::No push sent at ${denver_time} Denver (${reason})."
+              fi
+            fi
+          fi
+
           if [ "$http_code" = "405" ]; then
             echo "::error::HTTP 405 — this run used POST or an old workflow. Click Actions → Publish devotions → Run workflow (do not Re-run jobs)."
             exit 1

@@ -2,7 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/publish-devotions",
-      "schedule": "35 14 * * *"
+      "schedule": "30 13 * * *"
+    },
+    {
+      "path": "/api/cron/publish-devotions",
+      "schedule": "30 14 * * *"
     },
     {
       "path": "/api/cron/morning-prayer",
