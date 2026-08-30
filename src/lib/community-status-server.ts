@@ -70,3 +70,18 @@ export async function deleteExpiredCommunityStatuses() {
     where: { expiresAt: { lte: new Date() } },
   });
 }
+
+export async function deleteCommunityStatus(input: { id: string; authorId: string }) {
+  const existing = await prisma.communityStatus.findUnique({
+    where: { id: input.id },
+  });
+
+  if (!existing) return null;
+  if (existing.authorId !== input.authorId) return "forbidden";
+
+  await prisma.communityStatus.delete({
+    where: { id: input.id },
+  });
+
+  return mapStatus(existing);
+}
