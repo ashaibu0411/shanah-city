@@ -13,6 +13,7 @@ import { openCommunityGalleryPicker } from "@/lib/native-media-picker";
 import { readJsonResponse } from "@/lib/read-json-response";
 import {
   buildStoryDecks,
+  COMMUNITY_STORY_MAX_MEDIA,
   findDeckIndex,
   loadSeenStoryIds,
   markStoriesSeen,
@@ -26,6 +27,9 @@ export function CommunityStatusRow() {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerStart, setViewerStart] = useState({ deckIndex: 0, slideIndex: 0 });
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(
+    null,
+  );
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -73,8 +77,7 @@ export function CommunityStatusRow() {
     openCommunityGalleryPicker(
       fileRef.current,
       (files) => {
-        const file = files[0];
-        if (file) void uploadStatus(file);
+        void uploadStatuses(files);
       },
       { preferNativePhotoPicker: true },
     );
@@ -85,60 +88,102 @@ export function CommunityStatusRow() {
     setViewerOpen(true);
   }
 
-  async function uploadStatus(file: File) {
-    if (!user) return;
-    const validationError = validateCommunityStoryFile(file);
-    if (validationError) {
-      setError(validationError);
-      return;
+  async function uploadStatuses(fileList: File[]) {
+    if (!user || fileList.length === 0) return;
+
+    const files = fileList.slice(0, COMMUNITY_STORY_MAX_MEDIA);
+    if (fileList.length > COMMUNITY_STORY_MAX_MEDIA) {
+      setNotice(`Only the first ${COMMUNITY_STORY_MAX_MEDIA} files were added.`);
     }
 
     setUploading(true);
+    setUploadProgress({ current: 0, total: files.length });
     setError("");
-    setNotice("");
-
-    try {
-      const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
-      const response = await fetch("/api/community/statuses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mediaUrl, mediaType }),
-      });
-      const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
-      if (!response.ok) {
-        setError(data.error ?? "Could not share story.");
-        return;
-      }
-      if (!data.status) {
-        setError("Could not share story.");
-        return;
-      }
-
-      const savedStatus = data.status;
-      setStatuses((current) => {
-        const next = [savedStatus, ...current];
-        const nextDecks = buildStoryDecks(next, seenIds, user.id);
-        const myDeckIndex = findDeckIndex(nextDecks, user.id);
-        const slideIndex = Math.max(0, (nextDecks[myDeckIndex]?.items.length ?? 1) - 1);
-        setViewerStart({ deckIndex: Math.max(0, myDeckIndex), slideIndex });
-        setViewerOpen(true);
-        return next;
-      });
-    } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Could not share story.");
-    } finally {
-      setUploading(false);
+    if (fileList.length <= COMMUNITY_STORY_MAX_MEDIA) {
+      setNotice("");
     }
+
+    const savedStatuses: CommunityStatus[] = [];
+    let lastError = "";
+
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      setUploadProgress({ current: index + 1, total: files.length });
+
+      const validationError = validateCommunityStoryFile(file);
+      if (validationError) {
+        lastError = validationError;
+        continue;
+      }
+
+      try {
+        const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
+        const response = await fetch("/api/community/statuses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mediaUrl, mediaType }),
+        });
+        const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
+        if (!response.ok || !data.status) {
+          lastError = data.error ?? "Could not share story.";
+          break;
+        }
+        savedStatuses.push(data.status);
+      } catch (uploadError) {
+        lastError =
+          uploadError instanceof Error ? uploadError.message : "Could not share story.";
+        break;
+      }
+    }
+
+    setUploading(false);
+    setUploadProgress(null);
+
+    if (savedStatuses.length === 0) {
+      setError(lastError || "Could not share story.");
+      return;
+    }
+
+    if (lastError) {
+      setError(
+        savedStatuses.length === 1
+          ? lastError
+          : `${savedStatuses.length} stories shared, then upload stopped: ${lastError}`,
+      );
+    } else if (savedStatuses.length > 1) {
+      setNotice(`${savedStatuses.length} stories shared.`);
+      window.setTimeout(() => setNotice(""), 4000);
+    }
+
+    const firstSaved = savedStatuses[0];
+    setStatuses((current) => {
+      const next = [...savedStatuses.toReversed(), ...current];
+      const nextDecks = buildStoryDecks(next, seenIds, user.id);
+      const myDeckIndex = findDeckIndex(nextDecks, user.id);
+      const myDeckItems = nextDecks[myDeckIndex]?.items ?? [];
+      const slideIndex = Math.max(
+        0,
+        myDeckItems.findIndex((item) => item.id === firstSaved.id),
+      );
+      setViewerStart({ deckIndex: Math.max(0, myDeckIndex), slideIndex });
+      setViewerOpen(true);
+      return next;
+    });
   }
 
   if (!user) return null;
+
+  const uploadLabel =
+    uploadProgress && uploadProgress.total > 1
+      ? `Uploading ${uploadProgress.current} of ${uploadProgress.total}…`
+      : "Uploading…";
 
   return (
     <>
       <div className="community-feed-card community-stories-card">
         <div className="flex items-center justify-between gap-2 px-1 pb-1">
           <p className="text-[15px] font-semibold text-[#050505]">Stories</p>
-          {uploading ? <span className="text-xs text-[#65676b]">Uploading…</span> : null}
+          {uploading ? <span className="text-xs text-[#65676b]">{uploadLabel}</span> : null}
         </div>
         {error ? <p className="px-1 text-xs text-rose-600">{error}</p> : null}
         {notice ? <p className="px-1 text-xs text-emerald-700">{notice}</p> : null}
@@ -179,6 +224,7 @@ export function CommunityStatusRow() {
         <input
           ref={fileRef}
           type="file"
+          multiple
           accept="image/*,video/*,.heic,.heif,.3gp,.mp4,.mov,.webm"
           className="hidden"
         />

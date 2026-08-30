@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
   try {
     const status = await addCommunityStatus({
-      id: `status-${Date.now()}`,
+      id: `status-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       authorId: user.id,
       authorName: user.name,
       mediaUrl,

@@ -1,24 +1,36 @@
 "use client";
 
 import { Capacitor } from "@capacitor/core";
+import { COMMUNITY_STORY_MAX_MEDIA } from "@/lib/community-story-utils";
 import { isNativeAppPlatform } from "@/lib/native-app";
 import { setNativeBackgroundAudioActive, setNativeFilePickerOpen } from "@/lib/native-webview-bridge";
 
-async function pickAndroidGalleryImage(): Promise<File | null> {
-  if (Capacitor.getPlatform() !== "android") return null;
+async function blobToStoryFile(blob: Blob, ext: string, index: number) {
+  const type = blob.type || `image/${ext}`;
+  return new File([blob], `story-${Date.now()}-${index}.${ext}`, { type });
+}
+
+async function pickAndroidGalleryImages(limit: number): Promise<File[]> {
+  if (Capacitor.getPlatform() !== "android") return [];
   try {
     const { Camera } = await import("@capacitor/camera");
-    const result = await Camera.pickImages({ quality: 90, limit: 1 });
-    const photo = result.photos[0];
-    if (!photo?.webPath) return null;
-    const response = await fetch(photo.webPath);
-    const blob = await response.blob();
-    const ext =
-      photo.format === "png" ? "png" : photo.format === "webp" ? "webp" : "jpeg";
-    const type = blob.type || `image/${ext}`;
-    return new File([blob], `story-${Date.now()}.${ext}`, { type });
+    const result = await Camera.pickImages({
+      quality: 90,
+      limit: Math.max(1, Math.min(limit, COMMUNITY_STORY_MAX_MEDIA)),
+    });
+    const files: File[] = [];
+    for (let index = 0; index < result.photos.length; index += 1) {
+      const photo = result.photos[index];
+      if (!photo?.webPath) continue;
+      const response = await fetch(photo.webPath);
+      const blob = await response.blob();
+      const ext =
+        photo.format === "png" ? "png" : photo.format === "webp" ? "webp" : "jpeg";
+      files.push(await blobToStoryFile(blob, ext, index));
+    }
+    return files;
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -65,9 +77,10 @@ export async function pickCommunityGalleryFiles(
   input: HTMLInputElement,
   options?: { preferNativePhotoPicker?: boolean },
 ): Promise<File[]> {
-  if (options?.preferNativePhotoPicker && !input.multiple) {
-    const image = await pickAndroidGalleryImage();
-    if (image) return [image];
+  if (options?.preferNativePhotoPicker) {
+    const limit = input.multiple ? COMMUNITY_STORY_MAX_MEDIA : 1;
+    const images = await pickAndroidGalleryImages(limit);
+    if (images.length) return images;
   }
 
   if (isNativeAppPlatform()) {
