@@ -8,6 +8,7 @@ const STANDALONE_QUERY = "(display-mode: standalone)";
 
 export function useAppShellMode() {
   const [isMobileApp, setIsMobileApp] = useState(false);
+  const [isNativeApp, setIsNativeApp] = useState(false);
 
   useEffect(() => {
     const mobileMedia = window.matchMedia(MOBILE_QUERY);
@@ -16,6 +17,7 @@ export function useAppShellMode() {
     function update() {
       const native = isNativeAppPlatform();
       const mobile = native || mobileMedia.matches || standaloneMedia.matches;
+      setIsNativeApp(native);
       setIsMobileApp(mobile);
       document.body.dataset.shell = mobile ? "mobile" : "website";
       if (native) {
@@ -46,5 +48,5 @@ export function useAppShellMode() {
     };
   }, []);
 
-  return isMobileApp;
+  return { isMobileApp, isNativeApp };
 }

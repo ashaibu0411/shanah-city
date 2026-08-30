@@ -11,6 +11,7 @@ import { useAppShellMode } from "@/hooks/useAppShellMode";
 
 type AppShellContextValue = {
   isMobileApp: boolean;
+  isNativeApp: boolean;
   moreMenuOpen: boolean;
   setMoreMenuOpen: (open: boolean) => void;
   messagesImmersive: boolean;
@@ -20,19 +21,20 @@ type AppShellContextValue = {
 const AppShellContext = createContext<AppShellContextValue | null>(null);
 
 export function AppShellProvider({ children }: { children: ReactNode }) {
-  const isMobileApp = useAppShellMode();
+  const { isMobileApp, isNativeApp } = useAppShellMode();
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [messagesImmersive, setMessagesImmersive] = useState(false);
 
   const value = useMemo(
     () => ({
       isMobileApp,
+      isNativeApp,
       moreMenuOpen,
       setMoreMenuOpen,
       messagesImmersive,
       setMessagesImmersive,
     }),
-    [isMobileApp, moreMenuOpen, messagesImmersive],
+    [isMobileApp, isNativeApp, moreMenuOpen, messagesImmersive],
   );
 
   return (

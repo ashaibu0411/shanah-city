@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useAppShell } from "@/components/app/AppShellContext";
 import type { Devotion } from "@/lib/types";
 import { getDevotionArtwork } from "@/lib/devotion-artwork";
 import { Button, Card } from "@/components/ui";
 import { DevotionBody } from "@/components/devotions/DevotionBody";
+import { DevotionBrowserPrompt } from "@/components/devotions/DevotionBrowserPrompt";
 import { DevotionListenPlayer } from "@/components/devotions/DevotionListenPlayer";
+import { DevotionPromoCard } from "@/components/devotions/DevotionPromoCard";
 
 type DevotionMode = "read" | "listen";
 
@@ -65,6 +68,7 @@ export function DevotionDetail({
   backLabel?: string;
   showBackLink?: boolean;
 }) {
+  const { isNativeApp } = useAppShell();
   const [completed, setCompleted] = useState(false);
   const [mode, setMode] = useState<DevotionMode>("read");
 
@@ -90,44 +94,60 @@ export function DevotionDetail({
             {devotion.title}
           </h1>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <ModeToggle mode={mode} onChange={setMode} />
-          {completed && (
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-              ✓ Done
-            </span>
+        {isNativeApp ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <ModeToggle mode={mode} onChange={setMode} />
+            {completed && (
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                ✓ Done
+              </span>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      {isNativeApp ? (
+        <>
+          {mode === "listen" && (
+            <div className="mt-4">
+              <DevotionListenPlayer devotion={devotion} />
+            </div>
           )}
-        </div>
-      </div>
 
-      {mode === "listen" && (
-        <div className="mt-4">
-          <DevotionListenPlayer devotion={devotion} />
-        </div>
+          <DevotionBody devotion={devotion} className="mt-4" />
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Button onClick={() => setCompleted(true)}>
+              {completed ? "Completed" : "Mark as read"}
+            </Button>
+            <Button href={backHref} variant="secondary">
+              {backLabel}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <DevotionBrowserPrompt devotion={devotion} />
       )}
-
-      <DevotionBody devotion={devotion} className="mt-4" />
-
-      <div className="mt-5 flex flex-wrap gap-3">
-        <Button onClick={() => setCompleted(true)}>
-          {completed ? "Completed" : "Mark as read"}
-        </Button>
-        <Button href={backHref} variant="secondary">
-          {backLabel}
-        </Button>
-      </div>
     </Card>
   );
 }
 
 export function DevotionPreview({ devotion }: { devotion: Devotion }) {
+  const { isNativeApp } = useAppShell();
+
+  if (!isNativeApp) {
+    return (
+      <DevotionPromoCard devotion={devotion} eyebrow="Today's devotion" className="mb-8" />
+    );
+  }
+
   return (
     <DevotionDetail
-        devotion={devotion}
-        eyebrow="Today's devotion"
-        backHref="/devotions"
-        backLabel="All devotions"
-        showBackLink={false}
+      devotion={devotion}
+      eyebrow="Today's devotion"
+      backHref="/devotions"
+      backLabel="All devotions"
+      showBackLink={false}
     />
   );
 }

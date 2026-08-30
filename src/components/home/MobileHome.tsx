@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/app/AppProvider";
+import { DevotionPromoCard } from "@/components/devotions/DevotionPromoCard";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
-import { getDevotionArtwork } from "@/lib/devotion-artwork";
 import { churchSocialImageForAction } from "@/lib/facebook-church-media";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { HomeTagline } from "@/components/home/HomeTagline";
@@ -44,7 +44,6 @@ export function MobileHome({
 }: MobileHomeProps) {
   const { campus } = useApp();
   const [devotion, setDevotion] = useState<Devotion | null>(todayDevotion);
-  const devotionArtworkUrl = devotion ? getDevotionArtwork(devotion, "wide") : null;
 
   useEffect(() => {
     setDevotion(todayDevotion);
@@ -149,39 +148,7 @@ export function MobileHome({
         </div>
       </Link>
 
-      {devotion && (
-        <div className="space-y-2">
-          <p className="px-0.5 text-[11px] font-bold uppercase tracking-[0.22em] text-night-500">
-            Today&apos;s Word
-          </p>
-          <Link
-            href={`/devotions/${encodeURIComponent(devotion.id)}`}
-            className="mobile-card block overflow-hidden transition active:scale-[0.99]"
-          >
-            {devotionArtworkUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={devotionArtworkUrl}
-                alt=""
-                className="aspect-[16/9] w-full object-cover"
-              />
-            ) : null}
-            <div className="flex items-center justify-between gap-3 p-3.5">
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-sand-600">
-                  {devotion.readingTime}
-                </p>
-                <p className="mt-0.5 truncate font-sans text-base font-bold tracking-tight text-night-900">
-                  {devotion.title}
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full bg-night-900 px-2.5 py-1 text-[11px] font-bold text-white">
-                Read
-              </span>
-            </div>
-          </Link>
-        </div>
-      )}
+      {devotion ? <DevotionPromoCard devotion={devotion} className="space-y-2" /> : null}
 
       <div className="grid grid-cols-2 gap-2.5">
         {mobileQuickActions.map((action) => (
