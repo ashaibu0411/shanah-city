@@ -4,6 +4,8 @@ import { useMemo, useRef, useState } from "react";
 import type { PublicMember } from "@/lib/auth-types";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMemberAvatarApiUrl } from "@/lib/avatar-utils";
+import { isNativeAppPlatform } from "@/lib/native-app";
+import { pickProfilePhotoFile } from "@/lib/native-media-picker";
 import { Button } from "@/components/ui";
 
 type ProfileAvatarUploadProps = {
@@ -106,7 +108,16 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
           <Button
             variant="secondary"
             disabled={busy}
-            onClick={() => inputRef.current?.click()}
+            onClick={async () => {
+              if (isNativeAppPlatform()) {
+                const file = await pickProfilePhotoFile();
+                if (file) {
+                  await uploadAvatar(file);
+                  return;
+                }
+              }
+              inputRef.current?.click();
+            }}
           >
             {busy ? "Uploading..." : user.avatarUrl ? "Change photo" : "Upload photo"}
           </Button>

@@ -10,6 +10,39 @@ async function blobToStoryFile(blob: Blob, ext: string, index: number) {
   return new File([blob], `story-${Date.now()}-${index}.${ext}`, { type });
 }
 
+async function blobToProfileFile(blob: Blob, ext: string) {
+  const type = blob.type || `image/${ext}`;
+  return new File([blob], `profile-${Date.now()}.${ext}`, { type });
+}
+
+async function uriToImageFile(webPath: string, format: string | undefined, prefix: string, index = 0) {
+  const response = await fetch(webPath);
+  const blob = await response.blob();
+  const ext = format === "png" ? "png" : format === "webp" ? "webp" : "jpeg";
+  return prefix === "profile"
+    ? blobToProfileFile(blob, ext)
+    : blobToStoryFile(blob, ext, index);
+}
+
+/** Native camera / photo library picker for profile photos (avoids WKWebView camera crash on iOS). */
+export async function pickProfilePhotoFile(): Promise<File | null> {
+  if (!isNativeAppPlatform()) return null;
+
+  try {
+    const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
+    const photo = await Camera.getPhoto({
+      quality: 90,
+      allowEditing: true,
+      resultType: CameraResultType.Uri,
+      source: CameraSource.Prompt,
+    });
+    if (!photo.webPath) return null;
+    return uriToImageFile(photo.webPath, photo.format, "profile");
+  } catch {
+    return null;
+  }
+}
+
 async function pickAndroidGalleryImages(limit: number): Promise<File[]> {
   if (Capacitor.getPlatform() !== "android") return [];
   try {
@@ -22,11 +55,7 @@ async function pickAndroidGalleryImages(limit: number): Promise<File[]> {
     for (let index = 0; index < result.photos.length; index += 1) {
       const photo = result.photos[index];
       if (!photo?.webPath) continue;
-      const response = await fetch(photo.webPath);
-      const blob = await response.blob();
-      const ext =
-        photo.format === "png" ? "png" : photo.format === "webp" ? "webp" : "jpeg";
-      files.push(await blobToStoryFile(blob, ext, index));
+      files.push(await uriToImageFile(photo.webPath, photo.format, "story", index));
     }
     return files;
   } catch {
