@@ -8,7 +8,7 @@ const serverUrl = (
 
 const config: CapacitorConfig = {
   appId: "org.shanahcity.app",
-  appName: "Shanah City",
+  appName: "Shana City",
   webDir: "mobile/www",
   server: {
     url: serverUrl,

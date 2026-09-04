@@ -15,7 +15,7 @@ function isPluginNotImplementedError(error: unknown) {
 }
 
 export function nativePushUnavailableMessage() {
-  return "This Android app build is too old for phone push. Update Shanah City from the Play Store (version 1.0.6+), then try Enable again.";
+  return "This Android app build is too old for phone push. Update Shana City from the Play Store (version 1.0.6+), then try Enable again.";
 }
 
 function storeToken(token: string, platform: NativePushPlatform) {
@@ -90,7 +90,7 @@ function showForegroundNotification(input: {
   if (typeof window === "undefined") return;
   if (!("Notification" in window) || Notification.permission !== "granted") return;
 
-  const title = input.title?.trim() || "Shanah City";
+  const title = input.title?.trim() || "Shana City";
   const body = input.body?.trim() || "You have a new update.";
   const url = input.url || "/";
 
@@ -258,7 +258,7 @@ export async function startNativePushListeners() {
     try {
       await PushNotifications.createChannel({
         id: "default",
-        name: "Shanah City",
+        name: "Shana City",
         description: "Church alerts",
         importance: 5,
         visibility: 1,
