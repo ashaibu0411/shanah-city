@@ -131,6 +131,9 @@ jobs:
           echo "Profile UUID: $PROFILE_UUID"
           echo "Profile name: $IOS_PROVISIONING_PROFILE_NAME"
           ARCHIVE_PATH="$RUNNER_TEMP/App.xcarchive"
+          # Do not pass PROVISIONING_PROFILE* on the command line — it applies to SPM
+          # packages (e.g. Capacitor Camera / IONCameraLib) that cannot use profiles.
+          # Signing is configured on the App target in project.pbxproj instead.
           xcodebuild \
             -project "$XCODE_PROJECT" \
             -scheme "$XCODE_SCHEME" \
@@ -141,9 +144,6 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
-            PROVISIONING_PROFILE="$PROFILE_UUID" \
-            PROVISIONING_PROFILE_SPECIFIER="$IOS_PROVISIONING_PROFILE_NAME" \
             archive
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> "$GITHUB_ENV"
 
