@@ -168,6 +168,14 @@ export function MemberProfile() {
         <Button href="/messages" className={isMobileApp ? "!px-3 !py-2 text-xs" : ""}>
           Messages
         </Button>
+        <Button href="/comms/request" variant="secondary" className={isMobileApp ? "!px-3 !py-2 text-xs" : ""}>
+          Comms request
+        </Button>
+        {permissions.canManageAdmin && (
+          <Button href="/admin/comms" variant="secondary">
+            Comms calendar
+          </Button>
+        )}
         {permissions.canManageAdmin && (
           <Button href="/admin/people" variant="secondary" className={isMobileApp ? "!px-3 !py-2 text-xs" : ""}>
             Member directory

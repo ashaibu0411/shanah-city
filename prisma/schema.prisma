@@ -758,3 +758,52 @@ model PollVote {
   @@unique([pollId, optionId, userId])
   @@index([pollId, userId])
 }
+
+model CommsRequest {
+  id             String    @id
+  template       String
+  title          String
+  department     String?
+  description    String
+  targetAudience String?
+  deliverables   Json      @default("[]")
+  dueDate        DateTime?
+  status         String    @default("submitted")
+  assigneeId     String?
+  assigneeName   String?
+  requesterId    String
+  requesterName  String
+  requesterEmail String?
+  calendarItemId String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status])
+  @@index([requesterId])
+  @@index([assigneeId])
+}
+
+model CommsCalendarItem {
+  id            String    @id
+  title         String
+  channel       String
+  weekStart     DateTime
+  scheduledDate DateTime?
+  status        String    @default("planned")
+  color         String?
+  body          String?
+  requestId     String?
+  assigneeId    String?
+  assigneeName  String?
+  dueDate       DateTime?
+  promotedAs    Json?
+  createdBy     String
+  createdByName String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([weekStart])
+  @@index([channel])
+  @@index([status])
+}

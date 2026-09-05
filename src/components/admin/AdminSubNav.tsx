@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const adminLinks = [
+  { href: "/admin/comms", label: "Comms", description: "Calendar & requests", adminOnly: true },
   { href: "/admin/approvals", label: "Approvals", description: "Ministry requests", adminOnly: true },
   { href: "/admin/alerts", label: "Urgent", description: "Alert broadcasts", adminOnly: true },
   { href: "/admin/guests", label: "Guests", description: "Visitor follow-up", adminOnly: true },
