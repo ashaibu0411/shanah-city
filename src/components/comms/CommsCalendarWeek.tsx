@@ -1,28 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { COMMS_CHANNELS } from "@/lib/comms-constants";
 import type { CommsCalendarItem, CommsChannelId } from "@/lib/comms-types";
 import {
   daysInWeek,
+  isoToDateInputValue,
+  isoToLocalDateKey,
+  scheduledDateFromInput,
   shiftWeek,
   startOfWeekMonday,
+  toLocalDateKey,
   weekLabel,
   weekStartIso,
 } from "@/lib/comms-week-utils";
 import { Button, Card } from "@/components/ui";
 
-function toDateInputValue(iso?: string) {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
+function channelMeta(channel: CommsChannelId) {
+  return COMMS_CHANNELS.find((entry) => entry.id === channel) ?? COMMS_CHANNELS[0];
 }
 
 export function CommsCalendarWeek() {
   const [weekStart, setWeekStart] = useState(weekStartIso());
   const [items, setItems] = useState<CommsCalendarItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [channel, setChannel] = useState<CommsChannelId>("service_announcement");
@@ -36,6 +38,10 @@ export function CommsCalendarWeek() {
   const weekStartDate = useMemo(() => startOfWeekMonday(new Date(weekStart)), [weekStart]);
   const weekDays = useMemo(() => daysInWeek(weekStartDate), [weekStartDate]);
   const selected = items.find((item) => item.id === selectedId) ?? null;
+  const unscheduledItems = useMemo(
+    () => items.filter((item) => !item.scheduledDate),
+    [items],
+  );
 
   async function load(nextWeekStart = weekStart) {
     const response = await fetch(
@@ -60,8 +66,56 @@ export function CommsCalendarWeek() {
     setTitle(selected.title);
     setBody(selected.body ?? "");
     setChannel(selected.channel);
-    setScheduledDate(toDateInputValue(selected.scheduledDate));
+    setScheduledDate(isoToDateInputValue(selected.scheduledDate));
   }, [selected]);
+
+  async function patchItem(
+    item: CommsCalendarItem,
+    patch: {
+      channel?: CommsChannelId;
+      scheduledDate?: string;
+      weekStart?: string;
+    },
+  ) {
+    setBusy(true);
+    setMessage(null);
+    const response = await fetch("/api/comms/calendar", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: item.id,
+        ...patch,
+      }),
+    });
+    const data = await response.json();
+    setBusy(false);
+    if (!response.ok) {
+      setMessage(data.error ?? "Could not update item.");
+      return false;
+    }
+    await load();
+    return true;
+  }
+
+  async function moveItem(
+    item: CommsCalendarItem,
+    targetChannel: CommsChannelId,
+    targetDayKey: string | null,
+  ) {
+    if (targetDayKey) {
+      const scheduledIso = scheduledDateFromInput(targetDayKey);
+      return patchItem(item, {
+        channel: targetChannel,
+        scheduledDate: scheduledIso,
+        weekStart: weekStartIso(new Date(`${targetDayKey}T09:00:00`)),
+      });
+    }
+    return patchItem(item, {
+      channel: targetChannel,
+      scheduledDate: "",
+      weekStart,
+    });
+  }
 
   async function createItem() {
     if (!title.trim()) {
@@ -77,8 +131,10 @@ export function CommsCalendarWeek() {
         title,
         body,
         channel,
-        weekStart,
-        scheduledDate: scheduledDate ? new Date(`${scheduledDate}T09:00:00`).toISOString() : undefined,
+        weekStart: scheduledDate
+          ? weekStartIso(new Date(`${scheduledDate}T09:00:00`))
+          : weekStart,
+        scheduledDate: scheduledDate ? scheduledDateFromInput(scheduledDate) : undefined,
       }),
     });
     const data = await response.json();
@@ -90,7 +146,7 @@ export function CommsCalendarWeek() {
     setTitle("");
     setBody("");
     setScheduledDate("");
-    setMessage("Calendar item added.");
+    setMessage(scheduledDate ? "Calendar item scheduled." : "Added to unscheduled.");
     await load();
   }
 
@@ -105,7 +161,10 @@ export function CommsCalendarWeek() {
         title,
         body,
         channel,
-        scheduledDate: scheduledDate ? new Date(`${scheduledDate}T09:00:00`).toISOString() : undefined,
+        weekStart: scheduledDate
+          ? weekStartIso(new Date(`${scheduledDate}T09:00:00`))
+          : weekStart,
+        scheduledDate: scheduledDate ? scheduledDateFromInput(scheduledDate) : "",
       }),
     });
     setBusy(false);
@@ -143,6 +202,55 @@ export function CommsCalendarWeek() {
     await load();
   }
 
+  function handleCellClick(targetChannel: CommsChannelId, dayKey: string) {
+    if (!selected || busy) return;
+    void moveItem(selected, targetChannel, dayKey);
+  }
+
+  function handleUnscheduledDrop(item: CommsCalendarItem) {
+    void moveItem(item, item.channel, null);
+  }
+
+  function renderItemChip(item: CommsCalendarItem, accentColor: string) {
+    const isSelected = selectedId === item.id;
+    const isDragging = draggingId === item.id;
+
+    return (
+      <button
+        key={item.id}
+        type="button"
+        draggable
+        onDragStart={() => setDraggingId(item.id)}
+        onDragEnd={() => setDraggingId(null)}
+        onClick={(event) => {
+          event.stopPropagation();
+          setSelectedId(item.id);
+        }}
+        className={`block w-full rounded-xl px-2 py-2 text-left text-xs font-semibold text-white transition ${
+          isSelected ? "ring-2 ring-night-900" : ""
+        } ${isDragging ? "opacity-50" : ""}`}
+        style={{ backgroundColor: item.color ?? accentColor }}
+      >
+        {item.title}
+      </button>
+    );
+  }
+
+  function cellDropHandlers(targetChannel: CommsChannelId, dayKey: string | null) {
+    return {
+      onDragOver: (event: DragEvent) => {
+        event.preventDefault();
+      },
+      onDrop: (event: DragEvent) => {
+        event.preventDefault();
+        const item = items.find((entry) => entry.id === draggingId);
+        if (!item) return;
+        setDraggingId(null);
+        void moveItem(item, targetChannel, dayKey);
+      },
+    };
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -163,6 +271,17 @@ export function CommsCalendarWeek() {
         </div>
       </div>
 
+      {selected ? (
+        <p className="rounded-xl bg-sand-100 px-4 py-2 text-sm text-night-700">
+          <span className="font-semibold">{selected.title}</span> selected — click a day to move it,
+          drag to another cell, or drop on Unscheduled to remove the date.
+        </p>
+      ) : (
+        <p className="text-sm text-night-500">
+          Drag items between days and channels, or select an item and click a cell to move it.
+        </p>
+      )}
+
       <Card className="overflow-x-auto p-0">
         <table className="min-w-full border-collapse text-sm">
           <thead>
@@ -176,32 +295,65 @@ export function CommsCalendarWeek() {
             </tr>
           </thead>
           <tbody>
+            <tr
+              className="border-b border-night-900/10 bg-amber-50/80 align-top"
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                const item = items.find((entry) => entry.id === draggingId);
+                if (!item) return;
+                setDraggingId(null);
+                handleUnscheduledDrop(item);
+              }}
+            >
+              <td className="px-4 py-3 font-semibold text-night-900">
+                Unscheduled
+                <p className="mt-1 text-xs font-normal text-night-500">
+                  {unscheduledItems.length} waiting for a date
+                </p>
+              </td>
+              <td colSpan={weekDays.length} className="px-3 py-3">
+                {unscheduledItems.length === 0 ? (
+                  <p className="text-xs text-night-500">Nothing unscheduled this week.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {unscheduledItems.map((item) => {
+                      const meta = channelMeta(item.channel);
+                      return (
+                        <div key={item.id} className="min-w-[140px] max-w-[220px] flex-1">
+                          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-night-500">
+                            {meta.label}
+                          </p>
+                          {renderItemChip(item, meta.color)}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </td>
+            </tr>
+
             {COMMS_CHANNELS.map((entry) => (
               <tr key={entry.id} className="border-b border-night-900/5 align-top">
                 <td className="px-4 py-3 font-semibold text-night-900">{entry.label}</td>
                 {weekDays.map((day) => {
-                  const dayIso = day.toISOString().slice(0, 10);
+                  const dayKey = toLocalDateKey(day);
                   const dayItems = items.filter((item) => {
                     if (item.channel !== entry.id) return false;
                     if (!item.scheduledDate) return false;
-                    return item.scheduledDate.slice(0, 10) === dayIso;
+                    return isoToLocalDateKey(item.scheduledDate) === dayKey;
                   });
+                  const canPlace = Boolean(selected) && !busy;
+
                   return (
-                    <td key={`${entry.id}-${dayIso}`} className="px-2 py-3">
-                      <div className="space-y-2">
-                        {dayItems.map((item) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => setSelectedId(item.id)}
-                            className={`block w-full rounded-xl px-2 py-2 text-left text-xs font-semibold text-white ${
-                              selectedId === item.id ? "ring-2 ring-night-900" : ""
-                            }`}
-                            style={{ backgroundColor: item.color ?? entry.color }}
-                          >
-                            {item.title}
-                          </button>
-                        ))}
+                    <td
+                      key={`${entry.id}-${dayKey}`}
+                      className={`px-2 py-3 ${canPlace ? "cursor-pointer hover:bg-sand-50" : ""}`}
+                      {...cellDropHandlers(entry.id, dayKey)}
+                      onClick={() => handleCellClick(entry.id, dayKey)}
+                    >
+                      <div className="min-h-[44px] space-y-2">
+                        {dayItems.map((item) => renderItemChip(item, entry.color))}
                       </div>
                     </td>
                   );
@@ -242,12 +394,17 @@ export function CommsCalendarWeek() {
           placeholder="Message copy for this channel"
           className="w-full rounded-xl border border-night-900/10 px-3 py-2"
         />
-        <input
-          type="date"
-          value={scheduledDate}
-          onChange={(event) => setScheduledDate(event.target.value)}
-          className="rounded-xl border border-night-900/10 px-3 py-2"
-        />
+        <div>
+          <label className="mb-1 block text-sm font-semibold text-night-900">
+            Scheduled date <span className="font-normal text-night-500">(leave blank for unscheduled)</span>
+          </label>
+          <input
+            type="date"
+            value={scheduledDate}
+            onChange={(event) => setScheduledDate(event.target.value)}
+            className="rounded-xl border border-night-900/10 px-3 py-2"
+          />
+        </div>
 
         {selected ? (
           <div className="space-y-3 rounded-2xl bg-sand-50 p-4">
@@ -267,6 +424,16 @@ export function CommsCalendarWeek() {
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => void saveSelected()} disabled={busy} variant="secondary">
                 Save
+              </Button>
+              <Button
+                onClick={() => {
+                  setSelectedId(null);
+                  setMessage(null);
+                }}
+                disabled={busy}
+                variant="secondary"
+              >
+                Deselect
               </Button>
               <Button onClick={() => void promoteSelected()} disabled={busy}>
                 Promote

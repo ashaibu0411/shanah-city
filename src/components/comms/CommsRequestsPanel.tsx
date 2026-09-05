@@ -6,8 +6,8 @@ import {
   COMMS_REQUEST_STATUSES,
   COMMS_REQUEST_TEMPLATES,
 } from "@/lib/comms-constants";
-import type { CommsRequest, CommsRequestTemplate } from "@/lib/comms-types";
-import { weekStartIso } from "@/lib/comms-week-utils";
+import type { CommsRequest, CommsRequestTemplate, CommsChannelId } from "@/lib/comms-types";
+import { isoToDateInputValue, scheduledDateFromInput, weekStartIso } from "@/lib/comms-week-utils";
 import { Button, Card } from "@/components/ui";
 
 type CommsRequestSubmitFormProps = {
@@ -169,6 +169,9 @@ export function CommsRequestsAdminPanel() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [schedulingId, setSchedulingId] = useState<string | null>(null);
+  const [scheduleChannel, setScheduleChannel] = useState<CommsChannelId>("app_banner");
+  const [scheduleDate, setScheduleDate] = useState("");
 
   async function load() {
     const response = await fetch("/api/comms/requests");
@@ -203,16 +206,24 @@ export function CommsRequestsAdminPanel() {
     await load();
   }
 
-  async function scheduleRequest(request: CommsRequest, channel: string) {
+  async function scheduleRequest(request: CommsRequest) {
+    if (!scheduleDate) {
+      setMessage("Pick a date before adding to the calendar.");
+      return;
+    }
+
     setBusyId(request.id);
+    setMessage(null);
+    const scheduledIso = scheduledDateFromInput(scheduleDate);
     const response = await fetch("/api/comms/requests", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id: request.id,
         action: "schedule",
-        channel,
-        weekStart: weekStartIso(),
+        channel: scheduleChannel,
+        weekStart: weekStartIso(new Date(`${scheduleDate}T09:00:00`)),
+        scheduledDate: scheduledIso,
       }),
     });
     const data = await response.json();
@@ -221,8 +232,17 @@ export function CommsRequestsAdminPanel() {
       setMessage(data.error ?? "Could not add to calendar.");
       return;
     }
-    setMessage(`Added "${request.title}" to the comms calendar.`);
+    const dateLabel = scheduleDate;
+    setSchedulingId(null);
+    setScheduleDate("");
+    setMessage(`Scheduled "${request.title}" on ${dateLabel}. Open the Calendar tab to move or promote it.`);
     await load();
+  }
+
+  function openScheduleForm(request: CommsRequest) {
+    setSchedulingId(request.id);
+    setScheduleChannel("app_banner");
+    setScheduleDate(isoToDateInputValue(request.dueDate) || isoToDateInputValue(new Date().toISOString()));
   }
 
   return (
@@ -289,7 +309,7 @@ export function CommsRequestsAdminPanel() {
               </div>
             ) : null}
 
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2">
               <input
                 defaultValue={request.assigneeName ?? ""}
                 placeholder="Assignee name"
@@ -313,20 +333,59 @@ export function CommsRequestsAdminPanel() {
                   </option>
                 ))}
               </select>
-              <select
-                defaultValue="app_banner"
-                className="rounded-xl border border-night-900/10 px-3 py-2 text-sm"
-                onChange={(event) => void scheduleRequest(request, event.target.value)}
+            </div>
+
+            {request.calendarItemId ? (
+              <p className="text-xs font-semibold text-emerald-700">
+                On calendar — open the Calendar tab to move or promote.
+              </p>
+            ) : schedulingId === request.id ? (
+              <div className="rounded-2xl bg-sand-50 p-4">
+                <p className="text-sm font-semibold text-night-900">Schedule on calendar</p>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <select
+                    value={scheduleChannel}
+                    onChange={(event) => setScheduleChannel(event.target.value as CommsChannelId)}
+                    className="rounded-xl border border-night-900/10 px-3 py-2 text-sm"
+                  >
+                    {COMMS_CHANNELS.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="date"
+                    value={scheduleDate}
+                    onChange={(event) => setScheduleDate(event.target.value)}
+                    className="rounded-xl border border-night-900/10 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => void scheduleRequest(request)}
+                    disabled={busyId === request.id}
+                  >
+                    Add to calendar
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setSchedulingId(null)}
+                    disabled={busyId === request.id}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="secondary"
+                onClick={() => openScheduleForm(request)}
                 disabled={busyId === request.id}
               >
-                <option value="">Add to calendar...</option>
-                {COMMS_CHANNELS.map((channel) => (
-                  <option key={channel.id} value={channel.id}>
-                    {channel.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+                Schedule on calendar
+              </Button>
+            )}
           </Card>
         ))
       )}

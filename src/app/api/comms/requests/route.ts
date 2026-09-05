@@ -108,13 +108,20 @@ export async function PATCH(request: Request) {
   }
 
   if (body.action === "schedule") {
-    const channel = String(body.channel ?? "app_banner") as CommsChannelId;
+    const channel = String(body.channel ?? "").trim() as CommsChannelId;
+    const scheduledDate = String(body.scheduledDate ?? "").trim();
+    if (!channel) {
+      return NextResponse.json({ error: "Pick a channel." }, { status: 400 });
+    }
+    if (!scheduledDate) {
+      return NextResponse.json({ error: "Pick a date to schedule this request." }, { status: 400 });
+    }
     const item = await addApprovedRequestToCalendar(
       id,
       user,
       channel,
-      String(body.weekStart ?? weekStartIso()),
-      body.scheduledDate ? String(body.scheduledDate) : undefined,
+      String(body.weekStart ?? weekStartIso(new Date(scheduledDate))),
+      scheduledDate,
     );
     const request = await getCommsRequestById(id);
     return NextResponse.json({ item, request });

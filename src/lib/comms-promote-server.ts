@@ -110,7 +110,7 @@ export async function addApprovedRequestToCalendar(
     channel,
     weekStart,
     scheduledDate,
-    status: "planned",
+    status: scheduledDate ? "scheduled" : "planned",
     color: meta.color,
     body: request.description,
     requestId: request.id,

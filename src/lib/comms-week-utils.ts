@@ -47,3 +47,26 @@ export function daysInWeek(weekStart: Date) {
     return day;
   });
 }
+
+/** Local calendar date as YYYY-MM-DD (avoids UTC off-by-one in grids). */
+export function toLocalDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function isoToLocalDateKey(iso?: string) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return toLocalDateKey(date);
+}
+
+export function isoToDateInputValue(iso?: string) {
+  return isoToLocalDateKey(iso);
+}
+
+export function scheduledDateFromInput(dateInput: string) {
+  return new Date(`${dateInput}T09:00:00`).toISOString();
+}

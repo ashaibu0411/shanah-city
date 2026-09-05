@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     channel,
     weekStart,
     scheduledDate: body.scheduledDate ? String(body.scheduledDate) : undefined,
-    status: parseStatus(body.status),
+    status: body.scheduledDate ? "scheduled" : "planned",
     color: String(body.color ?? meta.color),
     body: String(body.body ?? "").trim() || undefined,
     requestId: body.requestId ? String(body.requestId) : undefined,
@@ -105,16 +105,25 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Calendar item not found." }, { status: 404 });
   }
 
+  const nextScheduledDate =
+    body.scheduledDate !== undefined
+      ? String(body.scheduledDate).trim() || undefined
+      : existing.scheduledDate;
+  const nextStatus = body.status
+    ? parseStatus(body.status)
+    : body.scheduledDate !== undefined
+      ? nextScheduledDate
+        ? "scheduled"
+        : "planned"
+      : existing.status;
+
   const item = await saveCommsCalendarItem({
     ...existing,
     title: body.title ? String(body.title).trim() : existing.title,
     channel: body.channel ? parseChannel(body.channel) : existing.channel,
     weekStart: body.weekStart ? String(body.weekStart) : existing.weekStart,
-    scheduledDate:
-      body.scheduledDate !== undefined
-        ? String(body.scheduledDate) || undefined
-        : existing.scheduledDate,
-    status: body.status ? parseStatus(body.status) : existing.status,
+    scheduledDate: nextScheduledDate,
+    status: nextStatus,
     body: body.body !== undefined ? String(body.body).trim() || undefined : existing.body,
     assigneeId:
       body.assigneeId !== undefined ? String(body.assigneeId) || undefined : existing.assigneeId,
