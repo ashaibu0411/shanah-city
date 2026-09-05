@@ -1,10 +1,14 @@
 import { GiveCheckoutPanel } from "@/components/give/GiveCheckoutPanel";
 import { GivePlatformGrid } from "@/components/give/GivePlatformGrid";
+import { TextToGivePanel } from "@/components/give/TextToGivePanel";
 import { PageHeader } from "@/components/ui";
+import { getTextToGiveConfig } from "@/lib/giving-text";
 import { givingPlatforms } from "@/lib/giving-links";
 import { site } from "@/lib/site";
 
 export default function GivePage() {
+  const textToGive = getTextToGiveConfig();
+
   return (
     <>
       <PageHeader
@@ -30,6 +34,8 @@ export default function GivePage() {
       </div>
 
       <GiveCheckoutPanel />
+
+      {textToGive ? <TextToGivePanel config={textToGive} /> : null}
 
       <section className="mb-8">
         <h2 className="mb-4 font-display text-xl font-semibold text-night-900">

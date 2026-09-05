@@ -117,6 +117,11 @@ export const site = {
           "Give during any Friday or Sunday service at Shanah City in Aurora, Colorado.",
       },
       {
+        title: "Text to Give",
+        description:
+          "Once your church text-giving number is set up (through a provider like Tithe.ly or Pushpay), members can text a keyword to give from any phone.",
+      },
+      {
         title: "Mail a Check",
         description:
           "Make checks payable to Shanah City and mail to 380 S Potomac Street, Unit 120, Aurora, CO 80012.",
