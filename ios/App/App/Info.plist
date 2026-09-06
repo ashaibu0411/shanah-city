@@ -82,6 +82,10 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Shana City uses the microphone when you record videos for community stories and posts.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Shana City uses your location to confirm FrontLiners are checking in at the church.</string>
+	<string>Shana City uses your location when you report FrontLiners arrival to confirm you are at the church.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Shana City uses your location when you report FrontLiners arrival to confirm you are at the church. Location is not tracked in the background.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Shana City uses your location when you report FrontLiners arrival to confirm you are at the church. Location is not tracked in the background.</string>
 </dict>
 </plist>
