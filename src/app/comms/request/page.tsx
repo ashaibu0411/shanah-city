@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { CommsRequestSubmitForm } from "@/components/comms/CommsRequestsPanel";
+import { CommsMyRequestsPanel, CommsRequestSubmitForm } from "@/components/comms/CommsRequestsPanel";
 import { PageHeader } from "@/components/ui";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 
@@ -20,7 +20,10 @@ export default async function CommsRequestPage() {
         title="Submit a comms request"
         description="Media, worship, and ministry teams can request graphics, copy, email, social posts, app banners, and push notifications."
       />
-      <CommsRequestSubmitForm />
+      <div className="space-y-6">
+        <CommsRequestSubmitForm />
+        <CommsMyRequestsPanel />
+      </div>
     </>
   );
 }

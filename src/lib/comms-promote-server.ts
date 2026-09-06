@@ -1,6 +1,7 @@
 import type { PublicMember } from "@/lib/auth-types";
 import { commsChannelMeta } from "@/lib/comms-constants";
 import { promoteCommsCalendarItemError, scheduleCommsRequestError } from "@/lib/comms-approval";
+import { notifyCommsRequestPublished, notifyCommsRequestStatusChange } from "@/lib/comms-notify-server";
 import {
   getCommsCalendarItemById,
   getCommsRequestById,
@@ -98,10 +99,11 @@ export async function promoteCommsCalendarItem(
   if (item.requestId) {
     const linkedRequest = await getCommsRequestById(item.requestId);
     if (linkedRequest) {
-      await saveCommsRequest({
+      const updatedRequest = await saveCommsRequest({
         ...linkedRequest,
         status: "done",
       });
+      await notifyCommsRequestPublished(updatedRequest);
     }
   }
 
@@ -147,6 +149,11 @@ export async function addApprovedRequestToCalendar(
     status: "in_progress",
     calendarItemId: item.id,
   });
+
+  const updatedRequest = await getCommsRequestById(request.id);
+  if (updatedRequest) {
+    await notifyCommsRequestStatusChange(updatedRequest, request.status);
+  }
 
   return item;
 }

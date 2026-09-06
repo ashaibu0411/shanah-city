@@ -66,3 +66,31 @@ export function commsChannelMeta(channel: CommsChannelId) {
 export function commsTemplateMeta(template: CommsRequestTemplate) {
   return COMMS_REQUEST_TEMPLATES.find((entry) => entry.id === template) ?? COMMS_REQUEST_TEMPLATES[3];
 }
+
+export const COMMS_PUBLISH_BUNDLE = {
+  homeBanner: true,
+  community: true,
+  push: true,
+} as const;
+
+export type CommsPublishTargets = {
+  homeBanner: boolean;
+  community: boolean;
+  push: boolean;
+};
+
+export function resolveCommsPublishTargets(input: {
+  bundle?: boolean;
+  homeBanner?: boolean;
+  community?: boolean;
+  push?: boolean;
+}): CommsPublishTargets {
+  if (input.bundle) {
+    return { ...COMMS_PUBLISH_BUNDLE };
+  }
+  return {
+    homeBanner: Boolean(input.homeBanner),
+    community: Boolean(input.community),
+    push: Boolean(input.push),
+  };
+}

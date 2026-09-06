@@ -334,3 +334,43 @@ export async function sendGivingGuestStatementEmail(input: {
 
   return { sent: true as const };
 }
+
+export async function sendCommsRequestUpdateEmail(input: {
+  to: string;
+  name: string;
+  requestTitle: string;
+  message: string;
+  profileUrl: string;
+  requestsUrl: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const from = resendFromAddress();
+
+  if (!apiKey || !from) {
+    return { sent: false as const, reason: "not_configured" as const };
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: [input.to],
+      subject: `Update on your comms request: ${input.requestTitle}`,
+      html: `
+        <p>Hi ${escapeHtml(input.name)},</p>
+        <p>${escapeHtml(input.message)}</p>
+        <p><a href="${input.requestsUrl}">View your comms requests</a> · <a href="${input.profileUrl}">Open your profile</a></p>
+      `,
+    }),
+  });
+
+  if (!response.ok) {
+    return { sent: false as const, reason: "send_failed" as const };
+  }
+
+  return { sent: true as const };
+}

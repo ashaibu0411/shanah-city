@@ -4,6 +4,7 @@ import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { commsTemplateMeta } from "@/lib/comms-constants";
 import { scheduleCommsRequestError } from "@/lib/comms-approval";
+import { notifyCommsRequestStatusChange } from "@/lib/comms-notify-server";
 import { addApprovedRequestToCalendar } from "@/lib/comms-promote-server";
 import { getCommsRequestById, listCommsRequests, saveCommsRequest } from "@/lib/comms-server";
 import type { CommsChannelId, CommsRequestStatus, CommsRequestTemplate } from "@/lib/comms-types";
@@ -141,6 +142,10 @@ export async function PATCH(request: Request) {
     notes: body.notes !== undefined ? String(body.notes).trim() : existing.notes,
     dueDate: body.dueDate !== undefined ? String(body.dueDate) || undefined : existing.dueDate,
   });
+
+  if (record.status !== existing.status) {
+    await notifyCommsRequestStatusChange(record, existing.status);
+  }
 
   return NextResponse.json({ request: record });
 }

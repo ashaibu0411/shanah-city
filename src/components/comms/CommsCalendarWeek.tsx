@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type DragEvent } from "react";
-import { COMMS_CHANNELS } from "@/lib/comms-constants";
+import { COMMS_CHANNELS, COMMS_PUBLISH_BUNDLE } from "@/lib/comms-constants";
 import {
   canPromoteCommsCalendarItem,
   promoteCommsCalendarItemError,
@@ -183,9 +183,10 @@ export function CommsCalendarWeek() {
     await load();
   }
 
-  async function promoteSelected() {
+  async function promoteSelected(targets?: { homeBanner: boolean; community: boolean; push: boolean }) {
     if (!selected) return;
-    if (!homeBanner && !community && !push) {
+    const nextTargets = targets ?? { homeBanner, community, push };
+    if (!nextTargets.homeBanner && !nextTargets.community && !nextTargets.push) {
       setMessage("Choose at least one destination.");
       return;
     }
@@ -196,7 +197,7 @@ export function CommsCalendarWeek() {
     const response = await fetch(`/api/comms/calendar/${selected.id}/promote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ homeBanner, community, push }),
+      body: JSON.stringify(nextTargets),
     });
     const data = await response.json();
     setBusy(false);
@@ -204,8 +205,12 @@ export function CommsCalendarWeek() {
       setMessage(data.error ?? "Could not promote item.");
       return;
     }
-    setMessage("Promoted to the app.");
+    setMessage("Published to the app.");
     await load();
+  }
+
+  async function publishEverywhere() {
+    await promoteSelected({ ...COMMS_PUBLISH_BUNDLE });
   }
 
   function handleCellClick(targetChannel: CommsChannelId, dayKey: string) {
@@ -451,6 +456,12 @@ export function CommsCalendarWeek() {
               Push notification
             </label>
             <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={() => void publishEverywhere()}
+                disabled={busy || !canPromoteSelected}
+              >
+                Publish everywhere
+              </Button>
               <Button onClick={() => void saveSelected()} disabled={busy} variant="secondary">
                 Save
               </Button>
@@ -467,10 +478,14 @@ export function CommsCalendarWeek() {
               <Button
                 onClick={() => void promoteSelected()}
                 disabled={busy || !canPromoteSelected}
+                variant="secondary"
               >
-                Promote
+                Promote selected
               </Button>
             </div>
+            <p className="text-xs text-night-500">
+              Publish everywhere sends the home banner, community announcement, and push in one step.
+            </p>
           </div>
         ) : (
           <Button onClick={() => void createItem()} disabled={busy}>

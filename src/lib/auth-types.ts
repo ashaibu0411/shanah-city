@@ -62,7 +62,8 @@ export type ActivityItem = {
     | "message_sent"
     | "leader_promoted"
     | "notifications_updated"
-    | "password_reset";
+    | "password_reset"
+    | "comms_request_update";
   label: string;
   createdAt: string;
 };

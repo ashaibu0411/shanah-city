@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { promoteCommsCalendarItem } from "@/lib/comms-promote-server";
+import { resolveCommsPublishTargets } from "@/lib/comms-constants";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -17,16 +18,20 @@ export async function POST(request: Request, context: RouteContext) {
 
   const { id } = await context.params;
   const body = await request.json();
+  const targets = resolveCommsPublishTargets(body);
+
+  if (!targets.homeBanner && !targets.community && !targets.push) {
+    return NextResponse.json(
+      { error: "Choose at least one destination or use the publish bundle." },
+      { status: 400 },
+    );
+  }
 
   try {
     const result = await promoteCommsCalendarItem(
       id,
       user,
-      {
-        homeBanner: Boolean(body.homeBanner),
-        community: Boolean(body.community),
-        push: Boolean(body.push),
-      },
+      targets,
     );
     return NextResponse.json(result);
   } catch (error) {
