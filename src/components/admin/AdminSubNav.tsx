@@ -28,12 +28,6 @@ const adminLinks = [
   },
 ] as const;
 
-const portalPaths = new Set(adminLinks.map((link) => link.href));
-
-export function isAdminPortalPath(pathname: string) {
-  return portalPaths.has(pathname as (typeof adminLinks)[number]["href"]);
-}
-
 type AdminSubNavProps = {
   variant?: "pills" | "sidebar";
 };
