@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { COMMS_CHANNELS } from "@/lib/comms-constants";
+import {
+  canPromoteCommsCalendarItem,
+  promoteCommsCalendarItemError,
+} from "@/lib/comms-approval";
 import type { CommsCalendarItem, CommsChannelId } from "@/lib/comms-types";
 import {
   daysInWeek,
@@ -38,6 +42,8 @@ export function CommsCalendarWeek() {
   const weekStartDate = useMemo(() => startOfWeekMonday(new Date(weekStart)), [weekStart]);
   const weekDays = useMemo(() => daysInWeek(weekStartDate), [weekStartDate]);
   const selected = items.find((item) => item.id === selectedId) ?? null;
+  const canPromoteSelected = selected ? canPromoteCommsCalendarItem(selected) : false;
+  const promoteBlockedReason = selected ? promoteCommsCalendarItemError(selected) : null;
   const unscheduledItems = useMemo(
     () => items.filter((item) => !item.scheduledDate),
     [items],
@@ -408,17 +414,40 @@ export function CommsCalendarWeek() {
 
         {selected ? (
           <div className="space-y-3 rounded-2xl bg-sand-50 p-4">
-            <p className="text-sm font-semibold text-night-900">Promote to app</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-night-900">Promote to app</p>
+              <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold capitalize text-night-600 ring-1 ring-night-900/10">
+                {selected.status}
+              </span>
+            </div>
+            {promoteBlockedReason ? (
+              <p className="text-sm text-amber-800">{promoteBlockedReason}</p>
+            ) : null}
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={homeBanner} onChange={(e) => setHomeBanner(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={homeBanner}
+                onChange={(e) => setHomeBanner(e.target.checked)}
+                disabled={!canPromoteSelected}
+              />
               Home banner (urgent alert)
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={community} onChange={(e) => setCommunity(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={community}
+                onChange={(e) => setCommunity(e.target.checked)}
+                disabled={!canPromoteSelected}
+              />
               Community announcement
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={push} onChange={(e) => setPush(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={push}
+                onChange={(e) => setPush(e.target.checked)}
+                disabled={!canPromoteSelected}
+              />
               Push notification
             </label>
             <div className="flex flex-wrap gap-2">
@@ -435,7 +464,10 @@ export function CommsCalendarWeek() {
               >
                 Deselect
               </Button>
-              <Button onClick={() => void promoteSelected()} disabled={busy}>
+              <Button
+                onClick={() => void promoteSelected()}
+                disabled={busy || !canPromoteSelected}
+              >
                 Promote
               </Button>
             </div>

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { commsTemplateMeta } from "@/lib/comms-constants";
+import { scheduleCommsRequestError } from "@/lib/comms-approval";
 import { addApprovedRequestToCalendar } from "@/lib/comms-promote-server";
 import { getCommsRequestById, listCommsRequests, saveCommsRequest } from "@/lib/comms-server";
 import type { CommsChannelId, CommsRequestStatus, CommsRequestTemplate } from "@/lib/comms-types";
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
     targetAudience: String(body.targetAudience ?? "").trim() || undefined,
     deliverables,
     dueDate: body.dueDate ? String(body.dueDate) : undefined,
-    status: "submitted",
+    status: "pending_approval",
     requesterId: user.id,
     requesterName: user.name,
     requesterEmail: user.email,
@@ -108,6 +109,11 @@ export async function PATCH(request: Request) {
   }
 
   if (body.action === "schedule") {
+    const scheduleError = scheduleCommsRequestError(existing);
+    if (scheduleError) {
+      return NextResponse.json({ error: scheduleError }, { status: 400 });
+    }
+
     const channel = String(body.channel ?? "").trim() as CommsChannelId;
     const scheduledDate = String(body.scheduledDate ?? "").trim();
     if (!channel) {

@@ -7,6 +7,11 @@ import {
   COMMS_REQUEST_TEMPLATES,
 } from "@/lib/comms-constants";
 import type { CommsRequest, CommsRequestTemplate, CommsChannelId } from "@/lib/comms-types";
+import {
+  canScheduleCommsRequest,
+  isPendingCommsApproval,
+  scheduleCommsRequestError,
+} from "@/lib/comms-approval";
 import { isoToDateInputValue, scheduledDateFromInput, weekStartIso } from "@/lib/comms-week-utils";
 import { Button, Card } from "@/components/ui";
 
@@ -62,7 +67,7 @@ export function CommsRequestSubmitForm({ onSubmitted }: CommsRequestSubmitFormPr
     setDescription("");
     setDueDate("");
     setSelectedDeliverables([]);
-    setMessage("Request submitted. Communications will review it soon.");
+    setMessage("Request submitted. Communications will review and approve it soon.");
     onSubmitted?.(data.request);
   }
 
@@ -166,7 +171,7 @@ export function CommsRequestSubmitForm({ onSubmitted }: CommsRequestSubmitFormPr
 
 export function CommsRequestsAdminPanel() {
   const [requests, setRequests] = useState<CommsRequest[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("pending_approval");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
@@ -185,9 +190,12 @@ export function CommsRequestsAdminPanel() {
     void load();
   }, []);
 
-  const visible = requests.filter(
-    (request) => statusFilter === "all" || request.status === statusFilter,
-  );
+  const visible = requests.filter((request) => {
+    if (statusFilter === "all") return true;
+    if (statusFilter === "pending_approval") return isPendingCommsApproval(request);
+    return request.status === statusFilter;
+  });
+  const pendingCount = requests.filter((request) => isPendingCommsApproval(request)).length;
 
   async function updateRequest(id: string, patch: Record<string, unknown>) {
     setBusyId(id);
@@ -248,6 +256,26 @@ export function CommsRequestsAdminPanel() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { id: "pending_approval", label: `Pending (${pendingCount})` },
+            { id: "approved", label: "Approved" },
+            { id: "all", label: "All" },
+          ].map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              onClick={() => setStatusFilter(entry.id)}
+              className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
+                statusFilter === entry.id
+                  ? "bg-night-900 text-sand-50"
+                  : "bg-white text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
+              }`}
+            >
+              {entry.label}
+            </button>
+          ))}
+        </div>
         <select
           value={statusFilter}
           onChange={(event) => setStatusFilter(event.target.value)}
@@ -335,56 +363,80 @@ export function CommsRequestsAdminPanel() {
               </select>
             </div>
 
+            {isPendingCommsApproval(request) ? (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => void updateRequest(request.id, { status: "approved" })}
+                  disabled={busyId === request.id}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => void updateRequest(request.id, { status: "on_hold" })}
+                  disabled={busyId === request.id}
+                >
+                  Put on hold
+                </Button>
+              </div>
+            ) : null}
+
             {request.calendarItemId ? (
               <p className="text-xs font-semibold text-emerald-700">
                 On calendar — open the Calendar tab to move or promote.
               </p>
-            ) : schedulingId === request.id ? (
-              <div className="rounded-2xl bg-sand-50 p-4">
-                <p className="text-sm font-semibold text-night-900">Schedule on calendar</p>
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <select
-                    value={scheduleChannel}
-                    onChange={(event) => setScheduleChannel(event.target.value as CommsChannelId)}
-                    className="rounded-xl border border-night-900/10 px-3 py-2 text-sm"
-                  >
-                    {COMMS_CHANNELS.map((entry) => (
-                      <option key={entry.id} value={entry.id}>
-                        {entry.label}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="date"
-                    value={scheduleDate}
-                    onChange={(event) => setScheduleDate(event.target.value)}
-                    className="rounded-xl border border-night-900/10 px-3 py-2 text-sm"
-                  />
+            ) : canScheduleCommsRequest(request) ? (
+              schedulingId === request.id ? (
+                <div className="rounded-2xl bg-sand-50 p-4">
+                  <p className="text-sm font-semibold text-night-900">Schedule on calendar</p>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <select
+                      value={scheduleChannel}
+                      onChange={(event) => setScheduleChannel(event.target.value as CommsChannelId)}
+                      className="rounded-xl border border-night-900/10 px-3 py-2 text-sm"
+                    >
+                      {COMMS_CHANNELS.map((entry) => (
+                        <option key={entry.id} value={entry.id}>
+                          {entry.label}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      value={scheduleDate}
+                      onChange={(event) => setScheduleDate(event.target.value)}
+                      className="rounded-xl border border-night-900/10 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => void scheduleRequest(request)}
+                      disabled={busyId === request.id}
+                    >
+                      Add to calendar
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setSchedulingId(null)}
+                      disabled={busyId === request.id}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => void scheduleRequest(request)}
-                    disabled={busyId === request.id}
-                  >
-                    Add to calendar
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setSchedulingId(null)}
-                    disabled={busyId === request.id}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => openScheduleForm(request)}
+                  disabled={busyId === request.id}
+                >
+                  Schedule on calendar
+                </Button>
+              )
             ) : (
-              <Button
-                variant="secondary"
-                onClick={() => openScheduleForm(request)}
-                disabled={busyId === request.id}
-              >
-                Schedule on calendar
-              </Button>
+              <p className="text-xs text-night-500">
+                {scheduleCommsRequestError(request) ?? "Approve this request to schedule it."}
+              </p>
             )}
           </Card>
         ))

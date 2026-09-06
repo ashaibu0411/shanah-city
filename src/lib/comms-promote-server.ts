@@ -1,7 +1,9 @@
 import type { PublicMember } from "@/lib/auth-types";
 import { commsChannelMeta } from "@/lib/comms-constants";
+import { promoteCommsCalendarItemError, scheduleCommsRequestError } from "@/lib/comms-approval";
 import {
   getCommsCalendarItemById,
+  getCommsRequestById,
   saveCommsCalendarItem,
   saveCommsRequest,
 } from "@/lib/comms-server";
@@ -24,6 +26,11 @@ export async function promoteCommsCalendarItem(
   const item = await getCommsCalendarItemById(itemId);
   if (!item) {
     throw new Error("Calendar item not found.");
+  }
+
+  const promoteError = promoteCommsCalendarItemError(item);
+  if (promoteError) {
+    throw new Error(promoteError);
   }
 
   const body = item.body?.trim() || item.title.trim();
@@ -88,6 +95,16 @@ export async function promoteCommsCalendarItem(
     promotedAs,
   });
 
+  if (item.requestId) {
+    const linkedRequest = await getCommsRequestById(item.requestId);
+    if (linkedRequest) {
+      await saveCommsRequest({
+        ...linkedRequest,
+        status: "done",
+      });
+    }
+  }
+
   return { item: updated, promotedAs };
 }
 
@@ -98,10 +115,14 @@ export async function addApprovedRequestToCalendar(
   weekStart: string,
   scheduledDate?: string,
 ) {
-  const { getCommsRequestById } = await import("@/lib/comms-server");
   const request = await getCommsRequestById(requestId);
   if (!request) {
     throw new Error("Request not found.");
+  }
+
+  const scheduleError = scheduleCommsRequestError(request);
+  if (scheduleError) {
+    throw new Error(scheduleError);
   }
 
   const meta = commsChannelMeta(channel);
