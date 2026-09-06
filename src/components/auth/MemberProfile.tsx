@@ -171,34 +171,11 @@ export function MemberProfile() {
         <Button href="/comms/request" variant="secondary" className={isMobileApp ? "!px-3 !py-2 text-xs" : ""}>
           Comms request
         </Button>
-        {permissions.canReviewMinistryReports && (
-          <Button href="/admin/overview" variant="secondary">
-            Pastor dashboard
-          </Button>
-        )}
-        {permissions.canManageAdmin && (
-          <Button href="/admin/comms" variant="secondary">
-            Comms calendar
-          </Button>
-        )}
-        {permissions.canManageAdmin && (
-          <Button href="/admin/people" variant="secondary" className={isMobileApp ? "!px-3 !py-2 text-xs" : ""}>
-            Member directory
-          </Button>
-        )}
-        {permissions.canManageAdmin && (
-          <Button href="/admin/approvals" variant="secondary">
-            Admin approvals
-          </Button>
-        )}
-        {permissions.canManageAdmin && (
-          <Button href="/admin/giving" variant="secondary">
-            Giving records
-          </Button>
-        )}
-        {permissions.canAccessFinance && (
-          <Button href="/admin/finance" variant="secondary">
-            Weekly count
+        {(permissions.canManageAdmin ||
+          permissions.canReviewMinistryReports ||
+          permissions.canAccessFinance) && (
+          <Button href="/admin" variant="secondary">
+            Admin portal
           </Button>
         )}
         {permissions.canAccessWorshipPlanner && (

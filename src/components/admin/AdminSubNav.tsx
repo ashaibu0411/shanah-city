@@ -3,30 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-
-const adminLinks = [
-  {
-    href: "/admin/overview",
-    label: "Overview",
-    description: "Pastor dashboard",
-    adminOnly: false,
-    pastoralAllowed: true,
-  },
-  { href: "/admin/comms", label: "Comms", description: "Calendar & requests", adminOnly: true },
-  { href: "/admin/approvals", label: "Approvals", description: "Ministry requests", adminOnly: true },
-  { href: "/admin/alerts", label: "Urgent", description: "Alert broadcasts", adminOnly: true },
-  { href: "/admin/guests", label: "Guests", description: "Visitor follow-up", adminOnly: true },
-  { href: "/admin/people", label: "People", description: "Member directory", adminOnly: true },
-  { href: "/admin/giving", label: "Giving", description: "Gifts & thank-yous", adminOnly: true, financeAllowed: true },
-  { href: "/admin/finance", label: "Finance", description: "Reports & entries", adminOnly: false },
-  {
-    href: "/admin/ministry-reports",
-    label: "Leaders",
-    description: "Monthly accountability",
-    adminOnly: false,
-    pastoralAllowed: true,
-  },
-] as const;
+import { filterAdminPortalLinks } from "@/lib/admin-portal-links";
 
 type AdminSubNavProps = {
   variant?: "pills" | "sidebar";
@@ -35,22 +12,7 @@ type AdminSubNavProps = {
 export function AdminSubNav({ variant = "pills" }: AdminSubNavProps) {
   const pathname = usePathname();
   const { permissions } = useAuth();
-
-  const links = adminLinks.filter((link) => {
-    if (link.href === "/admin/finance") {
-      return permissions.canAccessFinance;
-    }
-    if (link.href === "/admin/ministry-reports") {
-      return permissions.canReviewMinistryReports;
-    }
-    if ("financeAllowed" in link && link.financeAllowed) {
-      return permissions.canManageAdmin || permissions.canAccessFinance;
-    }
-    if ("pastoralAllowed" in link && link.pastoralAllowed) {
-      return permissions.canReviewMinistryReports;
-    }
-    return permissions.canManageAdmin;
-  });
+  const links = filterAdminPortalLinks(permissions);
 
   if (links.length === 0) return null;
 

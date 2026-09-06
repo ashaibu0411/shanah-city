@@ -11,6 +11,7 @@ import {
   writeDevotionsNavItem,
   type AppNavItem,
 } from "@/lib/site";
+import { canAccessAdminPortal } from "@/lib/admin-portal-links";
 
 export function useAppNavItems(): AppNavItem[] {
   const { permissions } = useAuth();
@@ -70,7 +71,13 @@ export function useAppNavItems(): AppNavItem[] {
       }
     }
 
-    if (permissions.canManageAdmin) {
+    if (
+      canAccessAdminPortal({
+        canManageAdmin: permissions.canManageAdmin,
+        canReviewMinistryReports: permissions.canReviewMinistryReports,
+        canAccessFinance: permissions.canAccessFinance,
+      })
+    ) {
       const profileIndex = items.findIndex((item) => item.href === "/profile");
       if (profileIndex === -1) {
         items = [...items, adminNavItem];
@@ -86,5 +93,7 @@ export function useAppNavItems(): AppNavItem[] {
     permissions.canAccessFrontLiners,
     permissions.canAccessKidsMinistry,
     permissions.canManageAdmin,
+    permissions.canReviewMinistryReports,
+    permissions.canAccessFinance,
   ]);
 }

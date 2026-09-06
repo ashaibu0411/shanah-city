@@ -162,7 +162,7 @@ export const kidsMinistryNavItem = {
 
 export const adminNavItem = {
   label: "Admin",
-  href: "/admin/approvals",
+  href: "/admin",
   icon: "⚙",
 } as const;
 
