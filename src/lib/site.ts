@@ -29,7 +29,7 @@ export const site = {
   coordinates: {
     lat: 39.697979,
     lng: -104.864681,
-    radiusMeters: 200,
+    radiusMeters: 350,
   },
   phone: "720-278-3175",
   email: "admin@shanahcity.org",

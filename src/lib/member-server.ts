@@ -77,7 +77,13 @@ export function distanceMeters(
   return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export function isAtChurch(lat: number, lng: number, churchLat: number, churchLng: number) {
+export function isAtChurch(
+  lat: number,
+  lng: number,
+  churchLat: number,
+  churchLng: number,
+  radiusMeters = 200,
+) {
   const meters = distanceMeters(lat, lng, churchLat, churchLng);
-  return { atChurch: meters <= 200, distanceMeters: Math.round(meters) };
+  return { atChurch: meters <= radiusMeters, distanceMeters: Math.round(meters) };
 }

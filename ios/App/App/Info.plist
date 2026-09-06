@@ -81,5 +81,7 @@
 	<string>Shana City can save shared photos and videos to your library when you choose to.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Shana City uses the microphone when you record videos for community stories and posts.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Shana City uses your location to confirm FrontLiners are checking in at the church.</string>
 </dict>
 </plist>

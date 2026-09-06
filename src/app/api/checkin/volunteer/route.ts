@@ -77,6 +77,7 @@ export async function POST(request: Request) {
     lng,
     site.coordinates.lat,
     site.coordinates.lng,
+    site.coordinates.radiusMeters,
   );
 
   if (!location.atChurch) {

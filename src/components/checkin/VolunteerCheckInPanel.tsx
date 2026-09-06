@@ -9,6 +9,11 @@ import {
   todaysVolunteerArrivals,
   VOLUNTEER_MINISTRIES,
 } from "@/lib/volunteer-checkin";
+import {
+  getVolunteerLocation,
+  VolunteerLocationError,
+  volunteerLocationErrorMessage,
+} from "@/lib/volunteer-location-client";
 import { Button, Card } from "@/components/ui";
 
 type DirectoryMember = { id: string; name: string };
@@ -88,56 +93,53 @@ export function VolunteerCheckInPanel() {
       return;
     }
 
-    if (!navigator.geolocation) {
-      setError("Location is not supported on this device.");
+    let location: { lat: number; lng: number };
+    try {
+      location = await getVolunteerLocation();
+    } catch (caught) {
       setLoading(false);
+      if (caught instanceof VolunteerLocationError) {
+        setError(volunteerLocationErrorMessage(caught.reason));
+        return;
+      }
+      setError(volunteerLocationErrorMessage("unavailable"));
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const response = await fetch("/api/checkin/volunteer", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            memberId,
-            ministry,
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          }),
-        });
-        const data = await response.json();
-        setLoading(false);
+    const response = await fetch("/api/checkin/volunteer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        memberId,
+        ministry,
+        lat: location.lat,
+        lng: location.lng,
+      }),
+    });
+    const data = await response.json();
+    setLoading(false);
 
-        if (response.status === 403) {
-          setDenied({ distanceMeters: data.distanceMeters });
-          setError(
-            data.error ??
-              "Arrival not recorded. You must be at the church to report.",
-          );
-          return;
-        }
+    if (response.status === 403) {
+      setDenied({ distanceMeters: data.distanceMeters });
+      setError(
+        data.error ?? "Arrival not recorded. You must be at the church to report.",
+      );
+      return;
+    }
 
-        if (!response.ok) {
-          setError(data.error ?? "Could not record your arrival.");
-          return;
-        }
+    if (!response.ok) {
+      setError(data.error ?? "Could not record your arrival.");
+      return;
+    }
 
-        const time = formatDenverTime(data.checkin.checkedInAt);
-        setMessage(
-          data.alreadyReported
-            ? `You're already on today's list. Arrival time: ${time}.`
-            : `Reported at ${time}. You're on today's Sunday list — no checkout needed.`,
-        );
-        loadRecent();
-      },
-      () => {
-        setLoading(false);
-        setError("Allow location access to verify you are at the church.");
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
+    const time = formatDenverTime(data.checkin.checkedInAt);
+    setMessage(
+      data.alreadyReported
+        ? `You're already on today's list. Arrival time: ${time}.`
+        : `Reported at ${time}. You're on today's Sunday list — no checkout needed.`,
     );
+    loadRecent();
   }
 
   return (
