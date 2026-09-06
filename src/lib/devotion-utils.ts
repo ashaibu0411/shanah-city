@@ -219,3 +219,39 @@ export function shouldNotifyDevotionPublish(devotion: Devotion, now = new Date()
 export function devotionHasAudio(devotion: Devotion) {
   return Boolean(devotion.audioUrl?.trim());
 }
+
+export function devotionEditorBody(
+  devotion: Pick<Devotion, "verse" | "reference" | "content" | "prayer">,
+) {
+  const parts: string[] = [];
+  if (devotion.reference?.trim() || devotion.verse?.trim()) {
+    if (devotion.reference?.trim()) {
+      parts.push(`**${devotion.reference.trim()}**`);
+    }
+    if (devotion.verse?.trim()) {
+      parts.push(devotion.verse.trim());
+    }
+  }
+  if (devotion.content?.trim()) {
+    parts.push(devotion.content.trim());
+  }
+  if (devotion.prayer?.trim()) {
+    parts.push(`**Prayer**\n${devotion.prayer.trim()}`);
+  }
+  return parts.join("\n\n");
+}
+
+export function devotionFieldsFromEditorBody(body: string) {
+  return {
+    verse: "",
+    reference: "",
+    content: body.trim(),
+    prayer: "",
+  };
+}
+
+export function devotionHasLegacySections(
+  devotion: Pick<Devotion, "verse" | "reference" | "prayer">,
+) {
+  return Boolean(devotion.verse?.trim() || devotion.reference?.trim() || devotion.prayer?.trim());
+}

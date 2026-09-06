@@ -171,6 +171,11 @@ export function MemberProfile() {
         <Button href="/comms/request" variant="secondary" className={isMobileApp ? "!px-3 !py-2 text-xs" : ""}>
           Comms request
         </Button>
+        {permissions.canReviewMinistryReports && (
+          <Button href="/admin/overview" variant="secondary">
+            Pastor dashboard
+          </Button>
+        )}
         {permissions.canManageAdmin && (
           <Button href="/admin/comms" variant="secondary">
             Comms calendar

@@ -18,6 +18,7 @@ import {
   weekLabel,
   weekStartIso,
 } from "@/lib/comms-week-utils";
+import { buildSocialCaption, isSocialChannel } from "@/lib/comms-social-utils";
 import { Button, Card } from "@/components/ui";
 
 function channelMeta(channel: CommsChannelId) {
@@ -212,6 +213,38 @@ export function CommsCalendarWeek() {
   async function publishEverywhere() {
     await promoteSelected({ ...COMMS_PUBLISH_BUNDLE });
   }
+
+  async function postToSocial() {
+    if (!selected) return;
+    setBusy(true);
+    setMessage(null);
+    const response = await fetch(`/api/comms/calendar/${selected.id}/social`, {
+      method: "POST",
+    });
+    const data = await response.json();
+    setBusy(false);
+    if (!response.ok) {
+      setMessage(data.error ?? "Could not post to social.");
+      return;
+    }
+    if (data.caption) {
+      try {
+        await navigator.clipboard.writeText(String(data.caption));
+      } catch {
+        // Clipboard may be unavailable; still show server message.
+      }
+    }
+    setMessage(data.message ?? "Social post ready.");
+    await load();
+  }
+
+  const socialCaption = selected
+    ? buildSocialCaption({
+        title,
+        body,
+        channel: selected.channel,
+      })
+    : "";
 
   function handleCellClick(targetChannel: CommsChannelId, dayKey: string) {
     if (!selected || busy) return;
@@ -486,6 +519,36 @@ export function CommsCalendarWeek() {
             <p className="text-xs text-night-500">
               Publish everywhere sends the home banner, community announcement, and push in one step.
             </p>
+
+            {selected && isSocialChannel(selected.channel) ? (
+              <div className="rounded-2xl border border-night-900/10 bg-white p-4">
+                <p className="text-sm font-semibold text-night-900">Social post</p>
+                <p className="mt-1 text-xs text-night-500">
+                  Facebook auto-posts when configured. Instagram copies the caption for manual posting.
+                </p>
+                <textarea
+                  readOnly
+                  value={socialCaption}
+                  rows={5}
+                  className="mt-3 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 text-sm"
+                />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    disabled={busy || !canPromoteSelected}
+                    onClick={() => void navigator.clipboard.writeText(socialCaption)}
+                  >
+                    Copy caption
+                  </Button>
+                  <Button
+                    disabled={busy || !canPromoteSelected}
+                    onClick={() => void postToSocial()}
+                  >
+                    Post to {channelMeta(selected.channel).label}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : (
           <Button onClick={() => void createItem()} disabled={busy}>

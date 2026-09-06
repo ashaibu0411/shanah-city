@@ -71,9 +71,9 @@ export async function POST(request: Request) {
   const content = String(body.content ?? "").trim();
   const prayer = String(body.prayer ?? "").trim();
 
-  if (!title || !verse || !reference || !content || !prayer) {
+  if (!title || !content) {
     return NextResponse.json(
-      { error: "Title, verse, reference, content, and prayer are required." },
+      { error: "Title and body are required." },
       { status: 400 },
     );
   }
@@ -139,16 +139,22 @@ export async function PATCH(request: Request) {
   }
 
   const schedule = parseScheduleBody(body);
-  const verse = body.verse ? String(body.verse).trim() : existing.verse;
-  const content = body.content ? String(body.content).trim() : existing.content;
-  const prayer = body.prayer ? String(body.prayer).trim() : existing.prayer;
+  const verse = body.verse !== undefined ? String(body.verse).trim() : existing.verse;
+  const reference =
+    body.reference !== undefined ? String(body.reference).trim() : existing.reference;
+  const content = body.content !== undefined ? String(body.content).trim() : existing.content;
+  const prayer = body.prayer !== undefined ? String(body.prayer).trim() : existing.prayer;
+
+  if (!content.trim()) {
+    return NextResponse.json({ error: "Body is required." }, { status: 400 });
+  }
 
   const devotion = await updateDevotion(id, {
     title: body.title ? String(body.title).trim() : undefined,
-    verse: body.verse ? String(body.verse).trim() : undefined,
-    reference: body.reference ? String(body.reference).trim() : undefined,
-    content: body.content ? String(body.content).trim() : undefined,
-    prayer: body.prayer ? String(body.prayer).trim() : undefined,
+    verse,
+    reference,
+    content,
+    prayer,
     date: schedule.date,
     readingTime: estimateReadingTime({ verse, content, prayer }),
     published: schedule.published,

@@ -13,6 +13,10 @@ function parsePromotedAs(value: unknown): CommsPromotedAs | undefined {
     urgentAlertId: record.urgentAlertId,
     communityPostId: record.communityPostId,
     pushSentAt: record.pushSentAt,
+    facebookPostId: record.facebookPostId,
+    instagramPostId: record.instagramPostId,
+    socialPostedAt: record.socialPostedAt,
+    socialPostUrl: record.socialPostUrl,
   };
 }
 

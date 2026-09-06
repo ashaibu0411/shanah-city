@@ -5,6 +5,13 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const adminLinks = [
+  {
+    href: "/admin/overview",
+    label: "Overview",
+    description: "Pastor dashboard",
+    adminOnly: false,
+    pastoralAllowed: true,
+  },
   { href: "/admin/comms", label: "Comms", description: "Calendar & requests", adminOnly: true },
   { href: "/admin/approvals", label: "Approvals", description: "Ministry requests", adminOnly: true },
   { href: "/admin/alerts", label: "Urgent", description: "Alert broadcasts", adminOnly: true },

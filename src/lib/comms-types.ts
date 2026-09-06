@@ -23,6 +23,10 @@ export type CommsPromotedAs = {
   urgentAlertId?: string;
   communityPostId?: string;
   pushSentAt?: string;
+  facebookPostId?: string;
+  instagramPostId?: string;
+  socialPostedAt?: string;
+  socialPostUrl?: string;
 };
 
 export type CommsRequest = {

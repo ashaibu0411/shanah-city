@@ -9,6 +9,9 @@ import { RichTextArea } from "@/components/ui/RichTextArea";
 import { defaultDevotionScheduleTime } from "@/lib/devotion-schedule";
 import {
   defaultScheduleDateInput,
+  devotionEditorBody,
+  devotionFieldsFromEditorBody,
+  devotionHasLegacySections,
   devotionToPublishMode,
   devotionToScheduleInputs,
   estimateReadingTime,
@@ -26,10 +29,7 @@ import type { Devotion } from "@/lib/types";
 
 type DevotionForm = {
   title: string;
-  verse: string;
-  reference: string;
-  content: string;
-  prayer: string;
+  body: string;
   scheduleDate: string;
   scheduleTime: string;
   publishMode: DevotionPublishMode;
@@ -40,10 +40,7 @@ type DevotionForm = {
 function createEmptyForm(): DevotionForm {
   return {
     title: "",
-    verse: "",
-    reference: "",
-    content: "",
-    prayer: "",
+    body: "",
     scheduleDate: defaultScheduleDateInput(),
     scheduleTime: defaultDevotionScheduleTime(),
     publishMode: "schedule",
@@ -77,13 +74,8 @@ export function DevotionAdminPanel() {
   >({});
 
   const readingTime = useMemo(
-    () =>
-      estimateReadingTime({
-        verse: form.verse,
-        content: form.content,
-        prayer: form.prayer,
-      }),
-    [form.verse, form.content, form.prayer],
+    () => estimateReadingTime({ content: form.body }),
+    [form.body],
   );
 
   const displayDate = useMemo(
@@ -120,10 +112,7 @@ export function DevotionAdminPanel() {
     setEditingId(devotion.id);
     setForm({
       title: devotion.title,
-      verse: devotion.verse,
-      reference: devotion.reference,
-      content: devotion.content,
-      prayer: devotion.prayer,
+      body: devotionEditorBody(devotion),
       scheduleDate: schedule.scheduleDate,
       scheduleTime: schedule.scheduleTime,
       publishMode: devotionToPublishMode(devotion),
@@ -148,11 +137,16 @@ export function DevotionAdminPanel() {
     setBusy(true);
     setStatus("");
 
+    const fields = devotionFieldsFromEditorBody(form.body);
     const response = await fetch("/api/devotions", {
       method: editingId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ...form,
+        title: form.title,
+        ...fields,
+        scheduleDate: form.scheduleDate,
+        scheduleTime: form.scheduleTime,
+        publishMode: form.publishMode,
         id: editingId ?? undefined,
         audioUrl: form.audioUrl ?? null,
         audioName: form.audioName ?? null,
@@ -392,44 +386,14 @@ export function DevotionAdminPanel() {
             />
           </div>
 
-          <div>
-            <label htmlFor="reference" className="text-sm font-semibold text-night-800">
-              Scripture reference
-            </label>
-            <FormInput
-              id="reference"
-              value={form.reference}
-              onValueChange={(reference) =>
-                setForm((current) => ({ ...current, reference }))
-              }
-            />
-          </div>
-
           <RichTextArea
-            id="verse"
-            label="Verse"
-            value={form.verse}
-            onValueChange={(verse) => setForm((current) => ({ ...current, verse }))}
-            rows={3}
-            boldMode="none"
-          />
-
-          <RichTextArea
-            id="content"
-            label="Reflection"
-            value={form.content}
-            onValueChange={(content) => setForm((current) => ({ ...current, content }))}
-            rows={5}
-            boldMode="header"
-          />
-
-          <RichTextArea
-            id="prayer"
-            label="Prayer"
-            value={form.prayer}
-            onValueChange={(prayer) => setForm((current) => ({ ...current, prayer }))}
-            rows={3}
-            boldMode="none"
+            id="body"
+            label="Body"
+            value={form.body}
+            onValueChange={(body) => setForm((current) => ({ ...current, body }))}
+            rows={14}
+            boldMode="inline"
+            hint="Write the full devotion here. Select words and tap B for bold or I for italics."
           />
 
           <div className="rounded-2xl border border-night-900/10 bg-sand-50/70 p-4">
@@ -554,8 +518,10 @@ export function DevotionAdminPanel() {
                     {devotion.title}
                   </h4>
                   <p className="mt-1 text-sm text-night-600">
-                    {devotion.authorName ?? "Team ZNCF"} · {devotion.reference} ·{" "}
-                    {devotion.readingTime}
+                    {devotion.authorName ?? "Team ZNCF"} · {devotion.readingTime}
+                    {devotionHasLegacySections(devotion) && devotion.reference
+                      ? ` · ${devotion.reference}`
+                      : ""}
                     {devotion.audioUrl ? " · Audio" : ""}
                     {devotion.artworkWideUrl || devotion.artworkSquareUrl || devotion.artworkBannerUrl
                       ? " · Artwork"
