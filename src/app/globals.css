@@ -642,7 +642,7 @@
   }
 
   body[data-shell="mobile"] .mobile-tab-pill-active {
-    @apply bg-teal-700 text-white shadow-md shadow-teal-900/12 ring-1 ring-teal-600/25;
+    @apply bg-teal-700 text-white shadow-md shadow-teal-900/20 ring-1 ring-teal-600/25;
   }
 
   body[data-shell="mobile"] .mobile-tab-pill {
