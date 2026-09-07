@@ -4,9 +4,9 @@ import { useAppShell } from "@/components/app/AppShellContext";
 import {
   MobileDevotionArchiveTile,
   MobileDevotionFeaturedHero,
+  MobileDevotionsPageHeader,
 } from "@/components/devotions/MobileDevotionsHub";
 import { DevotionsFeed } from "@/components/devotions/DevotionsFeed";
-import { MobilePageHero } from "@/components/app/MobilePageHero";
 import { PageHeader } from "@/components/ui";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import type { Devotion } from "@/lib/types";
@@ -25,11 +25,7 @@ export function DevotionsPageView({ devotions }: DevotionsPageViewProps) {
   if (isMobileApp) {
     return (
       <div className="mobile-devotions-page space-y-4">
-        <MobilePageHero
-          eyebrow="Daily"
-          title="Devotions"
-          description="Read or listen to today's word, then browse the library."
-        />
+        <MobileDevotionsPageHeader />
 
         {featured ? <MobileDevotionFeaturedHero devotion={featured} /> : null}
 
@@ -37,8 +33,12 @@ export function DevotionsPageView({ devotions }: DevotionsPageViewProps) {
           <section>
             <h2 className="mobile-section-title mb-2.5 px-0.5">Library</h2>
             <div className="space-y-3">
-              {archive.map((devotion) => (
-                <MobileDevotionArchiveTile key={devotion.id} devotion={devotion} />
+              {archive.map((devotion, index) => (
+                <MobileDevotionArchiveTile
+                  key={devotion.id}
+                  devotion={devotion}
+                  index={index}
+                />
               ))}
             </div>
           </section>
