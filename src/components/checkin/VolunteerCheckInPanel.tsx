@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useAppShell } from "@/components/app/AppShellContext";
 import { site } from "@/lib/site";
 import type { VolunteerCheckIn } from "@/lib/member-types";
 import { formatDenverTime, isDenverSunday } from "@/lib/denver-time";
@@ -20,6 +21,7 @@ type DirectoryMember = { id: string; name: string };
 
 export function VolunteerCheckInPanel() {
   const { user } = useAuth();
+  const { isMobileApp } = useAppShell();
   const [name, setName] = useState("");
   const [memberId, setMemberId] = useState("");
   const [ministry, setMinistry] = useState("");
@@ -145,16 +147,22 @@ export function VolunteerCheckInPanel() {
   return (
     <div className="space-y-6">
       <Card>
-        <h2 className="font-display text-xl font-semibold text-night-900">
+        <h2 className={`font-semibold text-night-900 ${isMobileApp ? "font-sans text-lg" : "font-display text-xl"}`}>
           Sunday arrival
         </h2>
-        <p className="mt-2 text-sm text-night-600">
+        <p className={`mt-2 text-sm ${isMobileApp ? "text-teal-900/75" : "text-night-600"}`}>
           FrontLiners report when they arrive at{" "}
           <span className="font-medium">{site.address}</span>. We only save your
           arrival time so the team knows who reported. There is no checkout.
         </p>
 
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div
+          className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
+            isMobileApp
+              ? "border-cyan-200 bg-gradient-to-r from-cyan-50 to-teal-50 text-teal-900"
+              : "border-amber-200 bg-amber-50 text-amber-900"
+          }`}
+        >
           {sunday
             ? "You must be at the church to report. Arrival only — do not check out later."
             : "This list is for Sunday service. If you are serving today, you can still report your arrival at the church."}

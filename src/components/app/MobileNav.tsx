@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MobileTabIcon, navHrefToTabIcon } from "@/components/app/MobileTabIcon";
+import { premiumTeal } from "@/components/app/mobile-premium";
 import { site } from "@/lib/site";
 import { useAppNavItems } from "@/lib/use-app-nav-items";
 
@@ -24,8 +25,8 @@ export function MobileNav() {
     .some((item) => item.href === pathname);
 
   return (
-    <nav className="app-mobile-bottom-nav mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-white/12 bg-night-950 shadow-app-nav lg:hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sand-400/35 to-transparent" />
+    <nav className="app-mobile-bottom-nav mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-cyan-400/15 shadow-app-nav lg:hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent" />
       <ul className="app-mobile-inner mx-auto flex w-full items-stretch justify-around px-1 pb-[max(0.45rem,env(safe-area-inset-bottom))] pt-2">
         {tabs.map((item) => {
           const active = pathname === item.href;
@@ -40,9 +41,7 @@ export function MobileNav() {
               >
                 <span
                   className={`mobile-nav-icon-shell flex items-center justify-center transition ${
-                    active
-                      ? "bg-amber-400 text-night-950 shadow-app-md ring-1 ring-amber-200/60"
-                      : "bg-night-800 text-sand-100 ring-1 ring-white/15"
+                    active ? premiumTeal.navActive : premiumTeal.navIdle
                   }`}
                 >
                   {iconName ? (
@@ -67,9 +66,7 @@ export function MobileNav() {
           >
             <span
               className={`mobile-nav-icon-shell flex items-center justify-center transition ${
-                moreActive
-                  ? "bg-amber-400 text-night-950 shadow-app-md ring-1 ring-amber-200/60"
-                  : "bg-night-800 text-sand-100 ring-1 ring-white/15"
+                moreActive ? premiumTeal.navActive : premiumTeal.navIdle
               }`}
             >
               <MobileTabIcon name="more" className="mobile-nav-icon h-5 w-5" />

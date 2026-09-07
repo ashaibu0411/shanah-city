@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useAppShell } from "@/components/app/AppShellContext";
+import { premiumTeal } from "@/components/app/mobile-premium";
 import { KidsCheckInPanel } from "@/components/checkin/KidsCheckInPanel";
 import { VolunteerCheckInPanel } from "@/components/checkin/VolunteerCheckInPanel";
 import { Button, Card, PageHeader } from "@/components/ui";
 
 export default function CheckInPage() {
   const { user, loading } = useAuth();
+  const { isMobileApp } = useAppShell();
   const [tab, setTab] = useState<"volunteer" | "kids">("volunteer");
 
   return (
@@ -46,11 +49,17 @@ export default function CheckInPage() {
                 key={item.id}
                 type="button"
                 onClick={() => setTab(item.id)}
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-                  tab === item.id
-                    ? "bg-night-900 text-sand-50"
-                    : "bg-white text-night-600 ring-1 ring-night-900/10"
-                }`}
+                className={
+                  isMobileApp
+                    ? `rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        tab === item.id ? "mobile-tab-pill-active" : "mobile-tab-pill"
+                      }`
+                    : `rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                        tab === item.id
+                          ? "bg-night-900 text-sand-50"
+                          : "bg-white text-night-600 ring-1 ring-night-900/10"
+                      }`
+                }
               >
                 {item.label}
               </button>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MobilePageHero } from "@/components/app/MobilePageHero";
+import { premiumTeal } from "@/components/app/mobile-premium";
 import { openExternalUrl } from "@/lib/native-app";
 import { site } from "@/lib/site";
 
@@ -69,7 +70,11 @@ export function Card({ children, className = "", href }: CardProps) {
   const { isMobileApp } = useAppShell();
   const classes = `${
     isMobileApp ? "mobile-card p-4" : "p-5"
-  } ${isMobileApp && href ? "active:scale-[0.995]" : ""} rounded-2xl bg-white shadow-sm ring-1 ring-night-900/5 transition hover:shadow-md ${className}`;
+  } ${isMobileApp && href ? "active:scale-[0.995]" : ""} rounded-2xl bg-white shadow-sm transition ${
+    isMobileApp
+      ? "ring-1 ring-teal-900/8 hover:shadow-md hover:ring-teal-700/15"
+      : "ring-1 ring-night-900/5 hover:shadow-md"
+  } ${className}`;
 
   if (href) {
     if (isExternalHref(href)) {
@@ -108,10 +113,17 @@ export function Button({
   type = "button",
   disabled = false,
 }: ButtonProps) {
+  const { isMobileApp } = useAppShell();
   const styles = {
-    primary: "bg-night-900 text-sand-50 shadow-app-sm hover:bg-night-800",
-    secondary: "bg-white text-night-900 shadow-app-sm ring-1 ring-night-900/10 hover:bg-sand-50",
-    ghost: "bg-transparent text-night-700 hover:bg-sand-100",
+    primary: isMobileApp
+      ? `${premiumTeal.primaryButton} hover:opacity-95`
+      : "bg-night-900 text-sand-50 shadow-app-sm hover:bg-night-800",
+    secondary: isMobileApp
+      ? "bg-white/95 text-teal-900 shadow-app-sm ring-1 ring-teal-900/10 hover:bg-teal-50"
+      : "bg-white text-night-900 shadow-app-sm ring-1 ring-night-900/10 hover:bg-sand-50",
+    ghost: isMobileApp
+      ? "bg-transparent text-teal-800 hover:bg-teal-100/70"
+      : "bg-transparent text-night-700 hover:bg-sand-100",
   };
 
   const base = `inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold tracking-tight transition ${styles[variant]} ${disabled ? "pointer-events-none opacity-50" : ""} ${className}`;
@@ -199,7 +211,7 @@ export function SectionTitle({
           href={href}
           className={`text-sm font-semibold ${
             isMobileApp
-              ? "rounded-full bg-white px-3 py-1 text-night-700 shadow-app-sm ring-1 ring-night-900/10"
+              ? "rounded-full bg-white px-3 py-1 text-teal-800 shadow-app-sm ring-1 ring-teal-900/10"
               : "text-night-600 hover:text-night-900"
           }`}
         >
