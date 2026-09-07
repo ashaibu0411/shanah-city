@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useApp } from "@/components/app/AppProvider";
 import { DevotionPromoCard } from "@/components/devotions/DevotionPromoCard";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
@@ -21,10 +22,31 @@ import type { CommunityPost } from "@/lib/member-types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 const mobileQuickActions = [
-  { label: "Give", href: "/give", icon: "give" },
-  { label: "Connect", href: "/connect", icon: "connect" },
-  { label: "Community", href: "/community", icon: "community" },
-  { label: "Devotions", href: "/devotions", icon: "devotions" },
+  { label: "Give", href: "/give", icon: "give" as const, tone: "from-teal-600/85 via-teal-900/35 to-teal-950/90" },
+  { label: "Connect", href: "/connect", icon: "connect" as const, tone: "from-amber-500/75 via-night-900/30 to-night-950/90" },
+  { label: "Community", href: "/community", icon: "community" as const, tone: "from-cyan-600/75 via-night-900/25 to-night-950/90" },
+  { label: "Devotions", href: "/devotions", icon: "devotions" as const, tone: "from-teal-700/80 via-night-900/30 to-night-950/90" },
+] as const;
+
+const todayShortcuts = [
+  {
+    label: "Check in",
+    href: "/check-in",
+    detail: "FrontLiners & kids",
+    className: "from-teal-50 to-teal-100/90 text-teal-950 ring-teal-200/80",
+  },
+  {
+    label: "Give",
+    href: "/give",
+    detail: "Support the church",
+    className: "from-sand-50 to-amber-50 text-night-900 ring-amber-200/70",
+  },
+  {
+    label: "Watch live",
+    href: "/live",
+    detail: "Sundays & events",
+    className: "from-cyan-50 to-teal-50 text-teal-950 ring-cyan-200/70",
+  },
 ] as const;
 
 type MobileHomeProps = {
@@ -35,6 +57,14 @@ type MobileHomeProps = {
   highlightAlert?: boolean;
 };
 
+function homeGreeting(name?: string) {
+  const hour = new Date().getHours();
+  const time =
+    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  if (!name) return time;
+  return `${time}, ${name.split(" ")[0]}`;
+}
+
 export function MobileHome({
   posts,
   todayDevotion,
@@ -43,6 +73,7 @@ export function MobileHome({
   highlightAlert = false,
 }: MobileHomeProps) {
   const { campus } = useApp();
+  const { user } = useAuth();
   const [devotion, setDevotion] = useState<Devotion | null>(todayDevotion);
 
   useEffect(() => {
@@ -70,25 +101,54 @@ export function MobileHome({
     site.serviceTimes[1]?.time.split(" – ")[0] ?? site.serviceTimes[0].time.split(" – ")[0];
 
   return (
-    <div className="mobile-home animate-fade-in space-y-3">
+    <div className="mobile-home animate-fade-in space-y-4">
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <PendingRsvpHomeBanner />
       <PrayerHomeBanner variant="mobile" />
-      <section className="mobile-home relative overflow-hidden rounded-[1.25rem] p-4 text-white shadow-app-lg ring-1 ring-night-900/10">
-        <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
 
-        <div className="relative">
-          <HomeTagline size="mobile" />
+      <div className="mobile-card overflow-hidden p-0">
+        <div className="border-b border-teal-100 bg-gradient-to-r from-teal-50 via-white to-cyan-50 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700/80">
+            {homeGreeting(user?.name)}
+          </p>
+          <p className="mt-1 font-display text-lg font-semibold text-night-900">
+            Welcome to {site.heroChurchName}
+          </p>
+        </div>
 
-          <div className="mt-2.5 inline-flex rounded-full border border-white/12 bg-black/20 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sand-100">
-            Sun {nextService} · {campus.city}
+        <section className="relative overflow-hidden p-4 text-white">
+          <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal-300 via-cyan-300 to-teal-400" aria-hidden />
+
+          <div className="relative">
+            <HomeTagline size="mobile" />
+
+            <div className="mt-2.5 inline-flex rounded-full border border-white/15 bg-black/25 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sand-100">
+              Sun {nextService} · {campus.city}
+            </div>
           </div>
+        </section>
+      </div>
+
+      <section>
+        <h2 className="mobile-section-title mb-2.5 px-0.5">Today</h2>
+        <div className="grid grid-cols-3 gap-2">
+          {todayShortcuts.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`mobile-card block bg-gradient-to-br p-3 ring-1 transition active:scale-[0.98] ${item.className}`}
+            >
+              <p className="text-sm font-bold leading-tight">{item.label}</p>
+              <p className="mt-1 text-[11px] leading-snug opacity-75">{item.detail}</p>
+            </Link>
+          ))}
         </div>
       </section>
 
       <Link
         href="/live"
-        className="mobile-home-live-flyer group relative block min-h-[15.5rem] overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10 transition active:scale-[0.99] sm:aspect-[16/10] sm:min-h-0"
+        className="mobile-home-live-flyer group relative block min-h-[15.5rem] overflow-hidden rounded-[1.25rem] shadow-app-lg ring-1 ring-teal-900/10 transition active:scale-[0.99] sm:aspect-[16/10] sm:min-h-0"
       >
         <div className="absolute inset-[3px] rounded-[0.85rem] ring-1 ring-white/20" aria-hidden />
         <div className="absolute inset-0">
@@ -111,10 +171,10 @@ export function MobileHome({
           )}
         </div>
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/88 via-night-950/35 to-night-900/10" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-teal-950/90 via-night-950/35 to-teal-900/10" />
 
         <div className="relative flex h-full flex-col justify-between p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sand-200/90">
+          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-100/95">
             Shanah City Live
           </p>
 
@@ -134,11 +194,11 @@ export function MobileHome({
               {anyLive ? liveStream.title : "Watch Live"}
             </p>
 
-            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-sand-200/80 sm:text-xs sm:tracking-[0.2em]">
+            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-teal-100/85 sm:text-xs sm:tracking-[0.2em]">
               {anyLive ? "Join the stream" : "Sundays & special services"}
             </p>
 
-            <span className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-night-900 shadow-app-md backdrop-blur-sm sm:mt-3 sm:px-3.5 sm:py-2 sm:text-xs">
+            <span className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-teal-900 shadow-app-md backdrop-blur-sm sm:mt-3 sm:px-3.5 sm:py-2 sm:text-xs">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-700 text-[10px] text-white">
                 ▶
               </span>
@@ -150,22 +210,26 @@ export function MobileHome({
 
       {devotion ? <DevotionPromoCard devotion={devotion} className="space-y-2" /> : null}
 
-      <div className="grid grid-cols-2 gap-2.5">
-        {mobileQuickActions.map((action) => (
-          <Link
-            key={action.label}
-            href={action.href}
-            aria-label={action.label}
-            className="mobile-action-flyer group block overflow-hidden rounded-2xl shadow-app-lg ring-1 ring-night-900/10 transition active:scale-[0.98]"
-          >
-            <MobileQuickActionFlyer
-              name={action.icon}
-              imageSrc={churchSocialImageForAction(churchImages, action.icon)}
-              className="h-full w-full"
-            />
-          </Link>
-        ))}
-      </div>
+      <section>
+        <h2 className="mobile-section-title mb-2.5 px-0.5">Explore</h2>
+        <div className="grid grid-cols-2 gap-2.5">
+          {mobileQuickActions.map((action) => (
+            <Link
+              key={action.label}
+              href={action.href}
+              aria-label={action.label}
+              className="mobile-action-flyer group block overflow-hidden rounded-[1.25rem] shadow-app-lg ring-1 ring-teal-900/10 transition active:scale-[0.98]"
+            >
+              <MobileQuickActionFlyer
+                name={action.icon}
+                imageSrc={churchSocialImageForAction(churchImages, action.icon)}
+                overlayClassName={`bg-gradient-to-t ${action.tone}`}
+                className="h-full w-full"
+              />
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {featuredPost && (
         <Link
@@ -174,7 +238,7 @@ export function MobileHome({
         >
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-bold tracking-tight text-night-900">Community</p>
-            <span className="text-xs font-semibold text-night-500">See all →</span>
+            <span className="text-xs font-semibold text-teal-700">See all →</span>
           </div>
           <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-night-600">
             {featuredPost.content}
@@ -184,10 +248,10 @@ export function MobileHome({
 
       <Link
         href="/guest"
-        className="mobile-card flex items-center justify-between border border-emerald-200/80 bg-gradient-to-r from-emerald-50/90 to-teal-50/90 px-3.5 py-2.5 text-sm font-semibold text-emerald-900 transition active:scale-[0.99]"
+        className="mobile-card flex items-center justify-between border border-teal-200/80 bg-gradient-to-r from-teal-50/95 to-cyan-50/90 px-3.5 py-2.5 text-sm font-semibold text-teal-950 transition active:scale-[0.99]"
       >
         First time here?
-        <span className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white">
+        <span className="rounded-full bg-teal-700 px-3 py-1 text-xs font-bold text-white">
           Connect
         </span>
       </Link>
