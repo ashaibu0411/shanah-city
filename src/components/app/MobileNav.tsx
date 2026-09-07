@@ -25,8 +25,8 @@ export function MobileNav() {
     .some((item) => item.href === pathname);
 
   return (
-    <nav className="app-mobile-bottom-nav mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-cyan-400/15 shadow-app-nav lg:hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent" />
+    <nav className="app-mobile-bottom-nav mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-white/12 shadow-app-nav lg:hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sand-400/35 to-transparent" />
       <ul className="app-mobile-inner mx-auto flex w-full items-stretch justify-around px-1 pb-[max(0.45rem,env(safe-area-inset-bottom))] pt-2">
         {tabs.map((item) => {
           const active = pathname === item.href;

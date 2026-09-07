@@ -15,11 +15,10 @@
   }
 
   body[data-shell="mobile"] {
-    @apply text-[0.9375rem] leading-snug text-teal-950;
+    @apply text-[0.9375rem] leading-snug text-night-900;
     background:
-      radial-gradient(circle at 12% -8%, rgba(34, 211, 238, 0.28), transparent 42%),
-      radial-gradient(circle at 88% 4%, rgba(20, 184, 166, 0.18), transparent 36%),
-      linear-gradient(180deg, #cffafe 0%, #ecfdf5 28%, #f0fdfa 52%, #faf8f5 100%);
+      radial-gradient(circle at 50% -18%, rgba(13, 148, 136, 0.07), transparent 48%),
+      linear-gradient(180deg, #faf8f5 0%, #f3efe8 58%, #f7faf9 100%);
   }
 
   body[data-shell="mobile"] .text-xs {
@@ -105,10 +104,10 @@
   }
 
   body[data-shell="mobile"] .mobile-bottom-nav {
-    background: linear-gradient(180deg, #042f2e 0%, #0f172a 100%);
+    background: #111827;
     box-shadow:
-      0 -1px 0 rgba(103, 232, 249, 0.14),
-      0 -16px 44px rgba(4, 47, 46, 0.55);
+      0 -1px 0 rgba(255, 255, 255, 0.08),
+      0 -12px 40px rgba(15, 23, 42, 0.55);
   }
 
   body[data-shell="mobile"] .mobile-bottom-nav::after {
@@ -116,7 +115,7 @@
     position: absolute;
     inset: auto 0 0 0;
     height: env(safe-area-inset-bottom, 0px);
-    background: #0f172a;
+    background: #111827;
     pointer-events: none;
   }
 
@@ -481,15 +480,15 @@
   }
 
   body[data-shell="mobile"] .mobile-field {
-    background-color: rgba(255, 255, 255, 0.92);
-    color: #134e4a;
-    -webkit-text-fill-color: #134e4a;
-    border: 1px solid rgba(13, 148, 136, 0.12);
+    background-color: #ece8e1;
+    color: #111827;
+    -webkit-text-fill-color: #111827;
+    border: 1px solid rgba(26, 35, 50, 0.08);
   }
 
   body[data-shell="mobile"] .mobile-field:focus {
     background-color: #ffffff;
-    border-color: rgba(8, 145, 178, 0.35);
+    border-color: rgba(13, 148, 136, 0.28);
   }
 
   body[data-shell="mobile"] .mobile-field::placeholder {
@@ -508,9 +507,9 @@
   .mobile-aurora-bg,
   .mobile-home-aurora-bg {
     background:
-      radial-gradient(circle at 18% 8%, rgba(103, 232, 249, 0.35), transparent 38%),
-      radial-gradient(circle at 82% 18%, rgba(45, 212, 191, 0.28), transparent 34%),
-      linear-gradient(155deg, #0891b2 0%, #0d9488 46%, #115e59 100%);
+      radial-gradient(circle at 78% 12%, rgba(251, 191, 36, 0.14), transparent 34%),
+      radial-gradient(circle at 8% 88%, rgba(13, 148, 136, 0.12), transparent 38%),
+      linear-gradient(155deg, #0b1220 0%, #111827 50%, #1a3342 100%);
   }
 
   .mobile-shimmer,
@@ -573,12 +572,11 @@
 
   body[data-shell="mobile"] .mobile-card {
     border-radius: 1.125rem;
-    background: rgba(255, 255, 255, 0.94);
-    border: 1px solid rgba(13, 148, 136, 0.1);
+    background: #ffffff;
+    border: 1px solid rgba(26, 35, 50, 0.07);
     box-shadow:
-      0 1px 2px rgba(4, 47, 46, 0.04),
-      0 10px 28px rgba(13, 148, 136, 0.1);
-    backdrop-filter: blur(8px);
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 8px 24px rgba(15, 23, 42, 0.06);
   }
 
   body[data-shell="mobile"] .mobile-media {
@@ -644,11 +642,11 @@
   }
 
   body[data-shell="mobile"] .mobile-tab-pill-active {
-    @apply bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-900/20 ring-1 ring-cyan-200/40;
+    @apply bg-teal-700 text-white shadow-md shadow-teal-900/12 ring-1 ring-teal-600/25;
   }
 
   body[data-shell="mobile"] .mobile-tab-pill {
-    @apply rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-teal-900 ring-1 ring-teal-900/10 backdrop-blur-sm;
+    @apply rounded-full bg-white px-4 py-2 text-sm font-semibold text-night-700 ring-1 ring-night-900/10;
   }
 
   body[data-shell="mobile"] .mobile-spotlight-shell {
@@ -656,7 +654,7 @@
   }
 
   body[data-shell="mobile"] .mobile-section-title {
-    @apply font-sans text-base font-bold tracking-tight text-teal-950;
+    @apply font-display text-base font-semibold tracking-tight text-night-900;
   }
 
   .group-chat-wallpaper {

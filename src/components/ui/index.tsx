@@ -72,7 +72,7 @@ export function Card({ children, className = "", href }: CardProps) {
     isMobileApp ? "mobile-card p-4" : "p-5"
   } ${isMobileApp && href ? "active:scale-[0.995]" : ""} rounded-2xl bg-white shadow-sm transition ${
     isMobileApp
-      ? "ring-1 ring-teal-900/8 hover:shadow-md hover:ring-teal-700/15"
+      ? "ring-1 ring-night-900/5 hover:shadow-md"
       : "ring-1 ring-night-900/5 hover:shadow-md"
   } ${className}`;
 
@@ -116,13 +116,13 @@ export function Button({
   const { isMobileApp } = useAppShell();
   const styles = {
     primary: isMobileApp
-      ? `${premiumTeal.primaryButton} hover:opacity-95`
+      ? `${premiumTeal.primaryButton}`
       : "bg-night-900 text-sand-50 shadow-app-sm hover:bg-night-800",
     secondary: isMobileApp
-      ? "bg-white/95 text-teal-900 shadow-app-sm ring-1 ring-teal-900/10 hover:bg-teal-50"
+      ? "bg-white text-night-900 shadow-app-sm ring-1 ring-night-900/10 hover:bg-sand-50"
       : "bg-white text-night-900 shadow-app-sm ring-1 ring-night-900/10 hover:bg-sand-50",
     ghost: isMobileApp
-      ? "bg-transparent text-teal-800 hover:bg-teal-100/70"
+      ? "bg-transparent text-night-700 hover:bg-sand-100"
       : "bg-transparent text-night-700 hover:bg-sand-100",
   };
 
@@ -211,7 +211,7 @@ export function SectionTitle({
           href={href}
           className={`text-sm font-semibold ${
             isMobileApp
-              ? "rounded-full bg-white px-3 py-1 text-teal-800 shadow-app-sm ring-1 ring-teal-900/10"
+              ? "rounded-full bg-white px-3 py-1 text-night-700 shadow-app-sm ring-1 ring-night-900/10"
               : "text-night-600 hover:text-night-900"
           }`}
         >

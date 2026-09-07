@@ -74,17 +74,13 @@ export function MobileHome({
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <PendingRsvpHomeBanner />
       <PrayerHomeBanner variant="mobile" />
-      <section className="mobile-home relative overflow-hidden rounded-[1.25rem] p-4 text-white shadow-app-lg ring-1 ring-teal-700/20">
+      <section className="mobile-home relative overflow-hidden rounded-[1.25rem] p-4 text-white shadow-app-lg ring-1 ring-night-900/10">
         <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
-        <div
-          className="pointer-events-none absolute -right-6 top-0 h-24 w-24 rounded-full bg-cyan-300/30 blur-2xl"
-          aria-hidden
-        />
 
         <div className="relative">
           <HomeTagline size="mobile" />
 
-          <div className="mt-2.5 inline-flex rounded-full border border-cyan-200/25 bg-teal-950/25 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-cyan-50">
+          <div className="mt-2.5 inline-flex rounded-full border border-white/12 bg-black/20 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sand-100">
             Sun {nextService} · {campus.city}
           </div>
         </div>
@@ -115,7 +111,7 @@ export function MobileHome({
           )}
         </div>
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-teal-950/90 via-teal-900/35 to-cyan-900/10" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/88 via-night-950/35 to-night-900/10" />
 
         <div className="relative flex h-full flex-col justify-between p-4">
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sand-200/90">
@@ -142,8 +138,8 @@ export function MobileHome({
               {anyLive ? "Join the stream" : "Sundays & special services"}
             </p>
 
-            <span className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-teal-900 shadow-app-md backdrop-blur-sm sm:mt-3 sm:px-3.5 sm:py-2 sm:text-xs">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 text-[10px] text-white">
+            <span className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-night-900 shadow-app-md backdrop-blur-sm sm:mt-3 sm:px-3.5 sm:py-2 sm:text-xs">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-700 text-[10px] text-white">
                 ▶
               </span>
               {anyLive ? "Join stream" : "Open live"}
