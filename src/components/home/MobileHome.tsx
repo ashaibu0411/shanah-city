@@ -23,16 +23,16 @@ import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 const todayShortcuts = [
   {
-    label: "Check in",
-    href: "/check-in",
-    detail: "FrontLiners & kids",
-    className: "from-teal-100 to-teal-200/90 text-teal-950 ring-teal-300/70",
+    label: "Photos",
+    href: "/photos",
+    detail: "Church gallery",
+    className: "from-sky-100 to-cyan-100 text-cyan-950 ring-cyan-300/60",
   },
   {
-    label: "Give",
-    href: "/give",
-    detail: "Support the church",
-    className: "from-amber-100 to-amber-200/85 text-amber-950 ring-amber-300/65",
+    label: "Messages",
+    href: "/messages",
+    detail: "Chat & updates",
+    className: "from-teal-100 to-teal-200/90 text-teal-950 ring-teal-300/70",
   },
   {
     label: "Meetings",
