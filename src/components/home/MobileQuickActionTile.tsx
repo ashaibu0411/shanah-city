@@ -1,38 +1,43 @@
 import Link from "next/link";
+import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 
 type QuickActionName = "give" | "connect" | "community" | "devotions";
 
 const actionMeta: Record<
   QuickActionName,
-  { label: string; detail: string; cardClass: string; iconClass: string }
+  { label: string; detail: string; cardClass: string; iconClass: string; veilClass: string }
 > = {
   give: {
     label: "Give",
     detail: "Support ministry",
     cardClass:
-      "from-teal-50 via-cyan-50/95 to-teal-100/80 ring-teal-200/55 shadow-teal-900/[0.06]",
-    iconClass: "bg-teal-600/12 text-teal-700 ring-teal-300/40",
+      "from-teal-50/95 via-cyan-50/90 to-teal-100/75 ring-teal-200/55 shadow-teal-900/[0.06]",
+    iconClass: "bg-teal-600/12 text-teal-700 ring-teal-300/40 backdrop-blur-sm",
+    veilClass: "from-teal-50/88 via-cyan-50/55 to-teal-100/35",
   },
   connect: {
     label: "Connect",
     detail: "Plan a visit",
     cardClass:
-      "from-violet-50 via-fuchsia-50/40 to-violet-100/75 ring-violet-200/50 shadow-violet-900/[0.06]",
-    iconClass: "bg-violet-600/10 text-violet-700 ring-violet-300/35",
+      "from-violet-50/95 via-fuchsia-50/45 to-violet-100/70 ring-violet-200/50 shadow-violet-900/[0.06]",
+    iconClass: "bg-violet-600/10 text-violet-700 ring-violet-300/35 backdrop-blur-sm",
+    veilClass: "from-violet-50/88 via-fuchsia-50/50 to-violet-100/30",
   },
   community: {
     label: "Community",
     detail: "See what's new",
     cardClass:
-      "from-sky-50 via-cyan-50/90 to-blue-100/70 ring-sky-200/55 shadow-blue-900/[0.06]",
-    iconClass: "bg-sky-600/10 text-sky-700 ring-sky-300/40",
+      "from-sky-50/95 via-cyan-50/85 to-blue-100/65 ring-sky-200/55 shadow-blue-900/[0.06]",
+    iconClass: "bg-sky-600/10 text-sky-700 ring-sky-300/40 backdrop-blur-sm",
+    veilClass: "from-sky-50/88 via-cyan-50/50 to-blue-100/32",
   },
   devotions: {
     label: "Devotions",
     detail: "Daily word",
     cardClass:
-      "from-amber-50 via-orange-50/30 to-amber-100/75 ring-amber-200/50 shadow-amber-900/[0.06]",
-    iconClass: "bg-amber-600/10 text-amber-800 ring-amber-300/40",
+      "from-amber-50/95 via-orange-50/35 to-amber-100/70 ring-amber-200/50 shadow-amber-900/[0.06]",
+    iconClass: "bg-amber-600/10 text-amber-800 ring-amber-300/40 backdrop-blur-sm",
+    veilClass: "from-amber-50/88 via-orange-50/45 to-amber-100/30",
   },
 };
 
@@ -85,28 +90,49 @@ function QuickActionIcon({ name }: { name: QuickActionName }) {
 type MobileQuickActionTileProps = {
   name: QuickActionName;
   href: string;
+  imageSrc: string;
 };
 
-export function MobileQuickActionTile({ name, href }: MobileQuickActionTileProps) {
+export function MobileQuickActionTile({ name, href, imageSrc }: MobileQuickActionTileProps) {
   const meta = actionMeta[name];
 
   return (
     <Link
       href={href}
       aria-label={meta.label}
-      className={`mobile-explore-tile group block bg-gradient-to-br p-3 ring-1 transition active:scale-[0.98] ${meta.cardClass}`}
+      className={`mobile-explore-tile group relative block overflow-hidden bg-gradient-to-br p-3 ring-1 transition active:scale-[0.98] ${meta.cardClass}`}
     >
-      <span
-        className={`mobile-explore-tile-icon inline-flex h-9 w-9 items-center justify-center rounded-xl ring-1 ${meta.iconClass}`}
+      <div
+        className="pointer-events-none absolute -right-3 -top-1 h-[72%] w-[58%] opacity-[0.2] saturate-[0.85] relative"
+        aria-hidden
       >
-        <QuickActionIcon name={name} />
-      </span>
-      <p className="mt-2.5 text-[13px] font-bold leading-tight tracking-tight text-night-900">
-        {meta.label}
-      </p>
-      <p className="mt-0.5 text-[10px] font-medium leading-snug text-night-600/75">
-        {meta.detail}
-      </p>
+        <ChurchFlyerImage
+          src={imageSrc}
+          alt=""
+          priority={name === "give"}
+          sizes="120px"
+          className="mobile-media scale-110 object-cover object-center transition duration-500 group-active:scale-[1.06]"
+        />
+      </div>
+
+      <div
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${meta.veilClass}`}
+        aria-hidden
+      />
+
+      <div className="relative z-10">
+        <span
+          className={`mobile-explore-tile-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl ring-1 ${meta.iconClass}`}
+        >
+          <QuickActionIcon name={name} />
+        </span>
+        <p className="mt-2.5 text-[13px] font-bold leading-tight tracking-tight text-night-900">
+          {meta.label}
+        </p>
+        <p className="mt-0.5 text-[10px] font-medium leading-snug text-night-600/75">
+          {meta.detail}
+        </p>
+      </div>
     </Link>
   );
 }

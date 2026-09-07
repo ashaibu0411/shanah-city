@@ -9,6 +9,7 @@ import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
+import { churchSocialImageForAction } from "@/lib/facebook-church-media";
 import { MobileQuickActionTile } from "@/components/home/MobileQuickActionTile";
 import { HomeTagline } from "@/components/home/HomeTagline";
 import { LiveStreamCountdownInline } from "@/components/live/useLiveStreamSchedule";
@@ -95,18 +96,19 @@ export function MobileHome({
       <PendingRsvpHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
-      <div className="mobile-card overflow-hidden p-0">
-        <section className="relative overflow-hidden p-4 text-white">
+      <div className="mobile-card mobile-home-hero-shell overflow-hidden p-0">
+        <section className="relative overflow-hidden p-3.5 text-white">
           <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
+          <div className="mobile-home-hero-shine pointer-events-none absolute inset-0" aria-hidden />
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/70 to-transparent"
+            className="pointer-events-none absolute inset-x-4 top-3 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"
             aria-hidden
           />
 
-          <div className="relative">
+          <div className="mobile-home-hero-glass relative">
             <HomeTagline size="mobile" />
 
-            <div className="mt-2.5 inline-flex rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-cyan-50 backdrop-blur-sm">
+            <div className="mobile-home-hero-chip mt-2.5 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-cyan-50">
               Sun {nextService} · {campus.city}
             </div>
           </div>
@@ -120,7 +122,7 @@ export function MobileHome({
             <Link
               key={item.href}
               href={item.href}
-              className={`mobile-card block bg-gradient-to-br p-3 ring-1 transition active:scale-[0.98] ${item.className}`}
+              className={`mobile-today-tile block bg-gradient-to-br p-3 ring-1 transition active:scale-[0.98] ${item.className}`}
             >
               <p className="text-sm font-bold leading-tight">{item.label}</p>
               <p className="mt-1 text-[11px] leading-snug opacity-75">{item.detail}</p>
@@ -197,7 +199,12 @@ export function MobileHome({
         <h2 className="mobile-section-title mb-2.5 px-0.5">Explore</h2>
         <div className="grid grid-cols-2 gap-2">
           {mobileQuickActions.map((action) => (
-            <MobileQuickActionTile key={action.label} name={action.icon} href={action.href} />
+            <MobileQuickActionTile
+              key={action.label}
+              name={action.icon}
+              href={action.href}
+              imageSrc={churchSocialImageForAction(churchImages, action.icon)}
+            />
           ))}
         </div>
       </section>
