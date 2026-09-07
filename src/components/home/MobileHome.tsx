@@ -32,19 +32,19 @@ const todayShortcuts = [
     label: "Check in",
     href: "/check-in",
     detail: "FrontLiners & kids",
-    className: "from-cyan-50/95 to-teal-100/80 text-teal-950 ring-cyan-200/60",
+    className: "from-sand-50 to-teal-50/90 text-teal-950 ring-teal-200/55",
   },
   {
     label: "Give",
     href: "/give",
     detail: "Support the church",
-    className: "from-violet-50/90 to-fuchsia-50/70 text-violet-950 ring-violet-200/50",
+    className: "from-sand-50 to-amber-50/90 text-night-900 ring-amber-200/55",
   },
   {
     label: "Watch live",
     href: "/live",
     detail: "Sundays & events",
-    className: "from-sky-50/95 to-blue-100/75 text-blue-950 ring-sky-200/55",
+    className: "from-sand-50 to-sand-100/90 text-night-900 ring-sand-300/60",
   },
 ] as const;
 
@@ -96,23 +96,16 @@ export function MobileHome({
       <PendingRsvpHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
-      <div className="mobile-card mobile-home-hero-shell overflow-hidden p-0">
-        <section className="relative overflow-hidden p-3.5 text-white">
-          <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
-          <div className="mobile-home-hero-shine pointer-events-none absolute inset-0" aria-hidden />
-          <div
-            className="pointer-events-none absolute inset-x-4 top-3 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"
-            aria-hidden
-          />
+      <div className="mobile-home-welcome relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400/80 via-amber-300/40 to-teal-500/50"
+          aria-hidden
+        />
+        <HomeTagline size="mobile" tone="light" />
 
-          <div className="mobile-home-hero-glass relative">
-            <HomeTagline size="mobile" />
-
-            <div className="mobile-home-hero-chip mt-2.5 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-cyan-50">
-              Sun {nextService} · {campus.city}
-            </div>
-          </div>
-        </section>
+        <div className="mobile-home-welcome-chip mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-night-700">
+          Sun {nextService} · {campus.city}
+        </div>
       </div>
 
       <section>
@@ -156,10 +149,10 @@ export function MobileHome({
           )}
         </div>
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1e3a8a]/92 via-[#0f172a]/40 to-cyan-500/10" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-950/35 to-teal-900/10" />
 
         <div className="relative flex h-full flex-col justify-between p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-100/95">
+          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sand-200/95">
             Shanah City Live
           </p>
 
@@ -193,7 +186,9 @@ export function MobileHome({
         </div>
       </Link>
 
-      {devotion ? <DevotionPromoCard devotion={devotion} className="space-y-2" /> : null}
+      {devotion ? (
+        <DevotionPromoCard devotion={devotion} variant="mobile" className="space-y-0" />
+      ) : null}
 
       <section>
         <h2 className="mobile-section-title mb-2.5 px-0.5">Explore</h2>

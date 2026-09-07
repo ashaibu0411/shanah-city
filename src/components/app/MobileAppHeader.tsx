@@ -51,20 +51,17 @@ export function MobileAppHeader() {
       <div className="relative mx-auto flex app-mobile-inner w-full items-center justify-between gap-3 px-3.5 pb-2.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
           {isHome ? (
-            <>
-              <p className="mobile-header-subtitle text-xs font-medium text-white/60">{getGreeting()}</p>
-              <div className="mt-0.5 flex items-center gap-2">
-                <BrandLogo size="sm" priority />
-                {anyLive && (
-                  <Link href="/live">
-                    <Badge variant="live">
-                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                      Live
-                    </Badge>
-                  </Link>
-                )}
-              </div>
-            </>
+            <div className="flex items-center gap-2">
+              <BrandLogo size="sm" priority />
+              {anyLive && (
+                <Link href="/live">
+                  <Badge variant="live">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                    Live
+                  </Badge>
+                </Link>
+              )}
+            </div>
           ) : (
             <>
               <p className="mobile-header-subtitle text-xs font-medium text-white/60">{site.name}</p>
@@ -82,11 +79,4 @@ export function MobileAppHeader() {
       </div>
     </header>
   );
-}
-
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
 }

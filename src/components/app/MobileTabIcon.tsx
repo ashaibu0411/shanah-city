@@ -33,7 +33,8 @@ export function MobileTabIcon({ name, className = "h-5 w-5" }: MobileTabIconProp
     case "devotions":
       return (
         <svg {...shared}>
-          <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z" />
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
         </svg>
       );
     case "messages":

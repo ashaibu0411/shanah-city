@@ -5,39 +5,31 @@ type QuickActionName = "give" | "connect" | "community" | "devotions";
 
 const actionMeta: Record<
   QuickActionName,
-  { label: string; detail: string; cardClass: string; iconClass: string; veilClass: string }
+  { label: string; detail: string; cardClass: string; iconClass: string }
 > = {
   give: {
     label: "Give",
     detail: "Support ministry",
-    cardClass:
-      "from-teal-50/95 via-cyan-50/90 to-teal-100/75 ring-teal-200/55 shadow-teal-900/[0.06]",
-    iconClass: "bg-teal-600/12 text-teal-700 ring-teal-300/40 backdrop-blur-sm",
-    veilClass: "from-teal-50/88 via-cyan-50/55 to-teal-100/35",
+    cardClass: "from-white to-teal-50/80 ring-teal-200/50",
+    iconClass: "bg-teal-700/10 text-teal-800 ring-teal-300/45",
   },
   connect: {
     label: "Connect",
     detail: "Plan a visit",
-    cardClass:
-      "from-violet-50/95 via-fuchsia-50/45 to-violet-100/70 ring-violet-200/50 shadow-violet-900/[0.06]",
-    iconClass: "bg-violet-600/10 text-violet-700 ring-violet-300/35 backdrop-blur-sm",
-    veilClass: "from-violet-50/88 via-fuchsia-50/50 to-violet-100/30",
+    cardClass: "from-white to-amber-50/75 ring-amber-200/45",
+    iconClass: "bg-amber-600/10 text-amber-900 ring-amber-300/40",
   },
   community: {
     label: "Community",
     detail: "See what's new",
-    cardClass:
-      "from-sky-50/95 via-cyan-50/85 to-blue-100/65 ring-sky-200/55 shadow-blue-900/[0.06]",
-    iconClass: "bg-sky-600/10 text-sky-700 ring-sky-300/40 backdrop-blur-sm",
-    veilClass: "from-sky-50/88 via-cyan-50/50 to-blue-100/32",
+    cardClass: "from-white to-sand-100/80 ring-sand-300/55",
+    iconClass: "bg-night-800/8 text-night-800 ring-night-300/35",
   },
   devotions: {
     label: "Devotions",
     detail: "Daily word",
-    cardClass:
-      "from-amber-50/95 via-orange-50/35 to-amber-100/70 ring-amber-200/50 shadow-amber-900/[0.06]",
-    iconClass: "bg-amber-600/10 text-amber-800 ring-amber-300/40 backdrop-blur-sm",
-    veilClass: "from-amber-50/88 via-orange-50/45 to-amber-100/30",
+    cardClass: "from-white to-sand-50 ring-sand-300/50",
+    iconClass: "bg-teal-800/8 text-teal-900 ring-teal-300/35",
   },
 };
 
@@ -49,7 +41,7 @@ function QuickActionIcon({ name }: { name: QuickActionName }) {
     strokeWidth: 2,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
-    className: "h-[18px] w-[18px]",
+    className: "h-4 w-4",
     "aria-hidden": true,
   };
 
@@ -81,7 +73,8 @@ function QuickActionIcon({ name }: { name: QuickActionName }) {
     case "devotions":
       return (
         <svg {...shared}>
-          <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z" />
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
         </svg>
       );
   }
@@ -100,38 +93,34 @@ export function MobileQuickActionTile({ name, href, imageSrc }: MobileQuickActio
     <Link
       href={href}
       aria-label={meta.label}
-      className={`mobile-explore-tile group relative block overflow-hidden bg-gradient-to-br p-3 ring-1 transition active:scale-[0.98] ${meta.cardClass}`}
+      className={`mobile-explore-tile group relative flex items-center gap-2.5 overflow-hidden bg-gradient-to-br p-2.5 ring-1 transition active:scale-[0.98] ${meta.cardClass}`}
     >
       <div
-        className="pointer-events-none absolute -right-3 -top-1 h-[72%] w-[58%] opacity-[0.2] saturate-[0.85] relative"
+        className="pointer-events-none absolute -right-2 top-1/2 h-14 w-14 -translate-y-1/2 opacity-[0.14]"
         aria-hidden
       >
-        <ChurchFlyerImage
-          src={imageSrc}
-          alt=""
-          priority={name === "give"}
-          sizes="120px"
-          className="mobile-media scale-110 object-cover object-center transition duration-500 group-active:scale-[1.06]"
-        />
+        <div className="relative h-full w-full">
+          <ChurchFlyerImage
+            src={imageSrc}
+            alt=""
+            priority={name === "give"}
+            sizes="56px"
+            className="mobile-media rounded-full object-cover"
+          />
+        </div>
       </div>
 
-      <div
-        className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${meta.veilClass}`}
-        aria-hidden
-      />
+      <span
+        className={`mobile-explore-tile-icon relative z-10 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ${meta.iconClass}`}
+      >
+        <QuickActionIcon name={name} />
+      </span>
 
-      <div className="relative z-10">
-        <span
-          className={`mobile-explore-tile-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl ring-1 ${meta.iconClass}`}
-        >
-          <QuickActionIcon name={name} />
-        </span>
-        <p className="mt-2.5 text-[13px] font-bold leading-tight tracking-tight text-night-900">
+      <div className="relative z-10 min-w-0 flex-1">
+        <p className="truncate text-[13px] font-bold leading-tight tracking-tight text-night-900">
           {meta.label}
         </p>
-        <p className="mt-0.5 text-[10px] font-medium leading-snug text-night-600/75">
-          {meta.detail}
-        </p>
+        <p className="truncate text-[10px] font-medium text-night-600/70">{meta.detail}</p>
       </div>
     </Link>
   );

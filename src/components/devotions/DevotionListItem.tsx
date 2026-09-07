@@ -8,25 +8,39 @@ export function DevotionListItem({ devotion }: { devotion: Devotion }) {
   return (
     <Link
       href={`/devotions/${devotion.id}`}
-      className="group flex items-center gap-4 rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-night-900/5 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-night-900/10"
+      className="mobile-devotion-list-item group flex items-stretch overflow-hidden rounded-[1.2rem] bg-white ring-1 ring-night-900/8 transition active:scale-[0.99] hover:shadow-md hover:ring-night-900/12"
     >
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-night-900">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={artworkUrl} alt="" className="h-full w-full object-cover" />
+      <div className="relative w-[4.75rem] shrink-0 bg-night-900 sm:w-16">
+        {artworkUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={artworkUrl}
+            alt=""
+            className="h-full min-h-[4.75rem] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          />
+        ) : null}
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 w-px bg-amber-400/45"
+          aria-hidden
+        />
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sand-600">
-          {devotion.date}
-        </p>
-        <h3 className="mt-1 font-display text-lg font-semibold leading-snug text-night-900 group-hover:text-night-700">
-          {devotion.title}
-        </h3>
-      </div>
-      <div className="hidden shrink-0 text-right sm:block">
-        <p className="text-xs font-medium text-night-500">{devotion.readingTime}</p>
-        <p className="mt-1 text-sm font-semibold text-night-600 group-hover:text-night-900">
-          Read →
-        </p>
+
+      <div className="flex min-w-0 flex-1 items-center gap-3 px-3.5 py-3 sm:px-4 sm:py-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-700">
+            {devotion.date}
+          </p>
+          <h3 className="mt-1 font-display text-base font-semibold leading-snug tracking-tight text-night-900 sm:text-lg">
+            {devotion.title}
+          </h3>
+          <p className="mt-0.5 text-xs text-night-500">{devotion.readingTime}</p>
+        </div>
+        <span className="mobile-devotion-list-cta hidden shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold text-white sm:inline-flex">
+          Read
+        </span>
+        <span className="shrink-0 text-lg text-teal-700/70 sm:hidden" aria-hidden>
+          →
+        </span>
       </div>
     </Link>
   );
