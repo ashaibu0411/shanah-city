@@ -21,7 +21,6 @@ export function ConnectPageView({ churchImages }: ConnectPageViewProps) {
           <section>
             <h2 className="mobile-section-title mb-2.5 px-0.5">Quick links</h2>
             <MobilePremiumExploreGrid
-              compact
               imageForAction={(action) => churchSocialImageForAction(churchImages, action)}
             />
           </section>
