@@ -46,7 +46,7 @@ export function DevotionPromoCard({
               />
             </div>
 
-            <div className="flex min-w-0 flex-1 items-center gap-3 bg-white px-3.5 py-3">
+            <div className="mobile-devotion-spotlight-body flex min-w-0 flex-1 items-center gap-3 px-3.5 py-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-teal-700">
                   {devotion.date} · {devotion.readingTime}

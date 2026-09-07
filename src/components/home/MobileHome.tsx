@@ -32,19 +32,19 @@ const todayShortcuts = [
     label: "Check in",
     href: "/check-in",
     detail: "FrontLiners & kids",
-    className: "from-sand-50 to-teal-50/90 text-teal-950 ring-teal-200/55",
+    className: "from-teal-100 to-teal-200/90 text-teal-950 ring-teal-300/70",
   },
   {
     label: "Give",
     href: "/give",
     detail: "Support the church",
-    className: "from-sand-50 to-amber-50/90 text-night-900 ring-amber-200/55",
+    className: "from-amber-100 to-amber-200/85 text-amber-950 ring-amber-300/65",
   },
   {
     label: "Watch live",
     href: "/live",
     detail: "Sundays & events",
-    className: "from-sand-50 to-sand-100/90 text-night-900 ring-sand-300/60",
+    className: "from-cyan-100 to-teal-100 text-teal-950 ring-cyan-300/60",
   },
 ] as const;
 
@@ -96,15 +96,20 @@ export function MobileHome({
       <PendingRsvpHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
-      <div className="mobile-home-welcome relative overflow-hidden">
+      <div className="mobile-home-welcome mobile-home-welcome-hero relative overflow-hidden text-white">
+        <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
+        <div className="mobile-home-hero-shine pointer-events-none absolute inset-0" aria-hidden />
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400/80 via-amber-300/40 to-teal-500/50"
+          className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300/80 to-teal-400"
           aria-hidden
         />
-        <HomeTagline size="mobile" tone="light" />
 
-        <div className="mobile-home-welcome-chip mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-night-700">
-          Sun {nextService} · {campus.city}
+        <div className="relative">
+          <HomeTagline size="mobile" tone="dark" />
+
+          <div className="mobile-home-welcome-chip mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-sand-100">
+            Sun {nextService} · {campus.city}
+          </div>
         </div>
       </div>
 
@@ -207,7 +212,7 @@ export function MobileHome({
       {featuredPost && (
         <Link
           href="/community"
-          className="mobile-card block p-3.5 transition active:scale-[0.99]"
+          className="mobile-card mobile-community-snippet block border-teal-200/60 bg-gradient-to-br from-teal-50/90 to-white p-3.5 transition active:scale-[0.99]"
         >
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-bold tracking-tight text-night-900">Community</p>

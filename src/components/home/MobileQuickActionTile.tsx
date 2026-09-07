@@ -5,31 +5,35 @@ type QuickActionName = "give" | "connect" | "community" | "devotions";
 
 const actionMeta: Record<
   QuickActionName,
-  { label: string; detail: string; cardClass: string; iconClass: string }
+  { label: string; detail: string; cardClass: string; iconClass: string; veilClass: string }
 > = {
   give: {
     label: "Give",
     detail: "Support ministry",
-    cardClass: "from-white to-teal-50/80 ring-teal-200/50",
-    iconClass: "bg-teal-700/10 text-teal-800 ring-teal-300/45",
+    cardClass: "from-teal-200/90 via-teal-100 to-cyan-100 ring-teal-400/45",
+    iconClass: "bg-teal-700 text-white ring-teal-600/30 shadow-teal-900/20",
+    veilClass: "from-teal-100/35 via-teal-50/20 to-transparent",
   },
   connect: {
     label: "Connect",
     detail: "Plan a visit",
-    cardClass: "from-white to-amber-50/75 ring-amber-200/45",
-    iconClass: "bg-amber-600/10 text-amber-900 ring-amber-300/40",
+    cardClass: "from-amber-200/85 via-amber-100 to-orange-100 ring-amber-400/40",
+    iconClass: "bg-amber-600 text-white ring-amber-500/30 shadow-amber-900/15",
+    veilClass: "from-amber-100/35 via-orange-50/15 to-transparent",
   },
   community: {
     label: "Community",
     detail: "See what's new",
-    cardClass: "from-white to-sand-100/80 ring-sand-300/55",
-    iconClass: "bg-night-800/8 text-night-800 ring-night-300/35",
+    cardClass: "from-cyan-200/80 via-sky-100 to-blue-100 ring-cyan-400/40",
+    iconClass: "bg-cyan-700 text-white ring-cyan-600/30 shadow-cyan-900/15",
+    veilClass: "from-cyan-100/30 via-sky-50/15 to-transparent",
   },
   devotions: {
     label: "Devotions",
     detail: "Daily word",
-    cardClass: "from-white to-sand-50 ring-sand-300/50",
-    iconClass: "bg-teal-800/8 text-teal-900 ring-teal-300/35",
+    cardClass: "from-sand-300/70 via-amber-100 to-amber-200/80 ring-amber-400/35",
+    iconClass: "bg-night-800 text-amber-200 ring-night-700/30 shadow-night-900/20",
+    veilClass: "from-amber-100/30 via-sand-100/15 to-transparent",
   },
 };
 
@@ -93,25 +97,30 @@ export function MobileQuickActionTile({ name, href, imageSrc }: MobileQuickActio
     <Link
       href={href}
       aria-label={meta.label}
-      className={`mobile-explore-tile group relative flex items-center gap-2.5 overflow-hidden bg-gradient-to-br p-2.5 ring-1 transition active:scale-[0.98] ${meta.cardClass}`}
+      className={`mobile-explore-tile group relative flex items-center gap-2.5 overflow-hidden bg-gradient-to-br p-2.5 ring-1 shadow-sm transition active:scale-[0.98] ${meta.cardClass}`}
     >
       <div
-        className="pointer-events-none absolute -right-2 top-1/2 h-14 w-14 -translate-y-1/2 opacity-[0.14]"
+        className="pointer-events-none absolute -right-1 top-1/2 h-16 w-16 -translate-y-1/2 opacity-[0.28]"
         aria-hidden
       >
-        <div className="relative h-full w-full">
+        <div className="relative h-full w-full overflow-hidden rounded-full ring-2 ring-white/40">
           <ChurchFlyerImage
             src={imageSrc}
             alt=""
             priority={name === "give"}
-            sizes="56px"
-            className="mobile-media rounded-full object-cover"
+            sizes="64px"
+            className="mobile-media object-cover"
           />
         </div>
       </div>
 
+      <div
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-r ${meta.veilClass}`}
+        aria-hidden
+      />
+
       <span
-        className={`mobile-explore-tile-icon relative z-10 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ${meta.iconClass}`}
+        className={`mobile-explore-tile-icon relative z-10 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-sm ring-1 ${meta.iconClass}`}
       >
         <QuickActionIcon name={name} />
       </span>
@@ -120,7 +129,7 @@ export function MobileQuickActionTile({ name, href, imageSrc }: MobileQuickActio
         <p className="truncate text-[13px] font-bold leading-tight tracking-tight text-night-900">
           {meta.label}
         </p>
-        <p className="truncate text-[10px] font-medium text-night-600/70">{meta.detail}</p>
+        <p className="truncate text-[10px] font-semibold text-night-700/75">{meta.detail}</p>
       </div>
     </Link>
   );
