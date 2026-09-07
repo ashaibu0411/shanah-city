@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/db";
 import type { LiveStreamSchedule, LiveStreamPlatform } from "@/lib/live-schedule-types";
-
-const SCHEDULE_ID = "upcoming";
+import {
+  filterUpcomingLiveStreamSchedules,
+  sortLiveStreamSchedules,
+} from "@/lib/live-schedule-utils";
 
 function mapSchedule(record: {
   id: string;
@@ -30,23 +32,41 @@ function mapSchedule(record: {
 }
 
 export async function getUpcomingLiveStreamSchedule(now = new Date()) {
-  const record = await prisma.liveStreamSchedule.findUnique({
-    where: { id: SCHEDULE_ID },
+  const records = await prisma.liveStreamSchedule.findMany({
+    where: { startsAt: { gt: now } },
+    orderBy: { startsAt: "asc" },
+    take: 1,
   });
-  if (!record) return null;
-  if (record.startsAt <= now) return null;
-  return mapSchedule(record);
+  if (!records[0]) return null;
+  return mapSchedule(records[0]);
 }
 
+export async function getUpcomingLiveStreamSchedules(now = new Date()) {
+  const records = await prisma.liveStreamSchedule.findMany({
+    where: { startsAt: { gt: now } },
+    orderBy: { startsAt: "asc" },
+  });
+  return records.map(mapSchedule);
+}
+
+export async function getLiveStreamSchedules() {
+  const records = await prisma.liveStreamSchedule.findMany({
+    orderBy: { startsAt: "asc" },
+  });
+  return records.map(mapSchedule);
+}
+
+/** @deprecated Use getLiveStreamSchedules */
 export async function getLiveStreamSchedule() {
-  const record = await prisma.liveStreamSchedule.findUnique({
-    where: { id: SCHEDULE_ID },
+  const record = await prisma.liveStreamSchedule.findFirst({
+    orderBy: { startsAt: "asc" },
   });
   if (!record) return null;
   return mapSchedule(record);
 }
 
 export async function saveLiveStreamSchedule(input: {
+  id?: string;
   title: string;
   startsAt: string;
   platform?: LiveStreamPlatform;
@@ -64,9 +84,9 @@ export async function saveLiveStreamSchedule(input: {
     throw new Error("The livestream must be scheduled in the future.");
   }
 
-  const existing = await prisma.liveStreamSchedule.findUnique({
-    where: { id: SCHEDULE_ID },
-  });
+  const existing = input.id
+    ? await prisma.liveStreamSchedule.findUnique({ where: { id: input.id } })
+    : null;
 
   const notifyChanged =
     existing &&
@@ -74,10 +94,26 @@ export async function saveLiveStreamSchedule(input: {
       existing.notifyBody !== (input.notifyBody?.trim() || null) ||
       existing.startsAt.getTime() !== startsAt.getTime());
 
-  const record = await prisma.liveStreamSchedule.upsert({
-    where: { id: SCHEDULE_ID },
-    create: {
-      id: SCHEDULE_ID,
+  if (existing) {
+    const record = await prisma.liveStreamSchedule.update({
+      where: { id: existing.id },
+      data: {
+        title: input.title.trim(),
+        startsAt,
+        platform: input.platform ?? null,
+        notifyEnabled: Boolean(input.notifyEnabled),
+        notifyBody: input.notifyBody?.trim() || null,
+        notifySentAt: notifyChanged ? null : existing.notifySentAt,
+        createdBy: input.createdBy,
+        createdByName: input.createdByName,
+        updatedAt: now,
+      },
+    });
+    return mapSchedule(record);
+  }
+
+  const record = await prisma.liveStreamSchedule.create({
+    data: {
       title: input.title.trim(),
       startsAt,
       platform: input.platform ?? null,
@@ -88,34 +124,31 @@ export async function saveLiveStreamSchedule(input: {
       createdByName: input.createdByName,
       updatedAt: now,
     },
-    update: {
-      title: input.title.trim(),
-      startsAt,
-      platform: input.platform ?? null,
-      notifyEnabled: Boolean(input.notifyEnabled),
-      notifyBody: input.notifyBody?.trim() || null,
-      notifySentAt: notifyChanged ? null : existing?.notifySentAt ?? null,
-      createdBy: input.createdBy,
-      createdByName: input.createdByName,
-      updatedAt: now,
-    },
   });
 
   return mapSchedule(record);
 }
 
-export async function markLiveStreamNotifySent() {
-  await prisma.liveStreamSchedule.update({
-    where: { id: SCHEDULE_ID },
-    data: { notifySentAt: new Date() },
-  });
+export async function markLiveStreamNotifySent(id: string) {
+  try {
+    await prisma.liveStreamSchedule.update({
+      where: { id },
+      data: { notifySentAt: new Date() },
+    });
+  } catch {
+    // schedule removed or id stale
+  }
 }
 
-export async function clearLiveStreamSchedule() {
-  try {
-    await prisma.liveStreamSchedule.delete({ where: { id: SCHEDULE_ID } });
-    return true;
-  } catch {
-    return false;
+export async function clearLiveStreamSchedule(id?: string) {
+  if (id) {
+    try {
+      await prisma.liveStreamSchedule.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
+    }
   }
+  await prisma.liveStreamSchedule.deleteMany();
+  return true;
 }

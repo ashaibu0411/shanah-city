@@ -678,7 +678,7 @@ model FeedReadState {
 }
 
 model LiveStreamSchedule {
-  id              String    @id @default("upcoming")
+  id              String    @id @default(cuid())
   title           String
   startsAt        DateTime
   platform        String?

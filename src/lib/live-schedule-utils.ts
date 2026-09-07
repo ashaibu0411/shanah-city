@@ -9,6 +9,21 @@ export type LiveStreamCountdownParts = {
   done: boolean;
 };
 
+export function filterUpcomingLiveStreamSchedules(
+  schedules: LiveStreamSchedule[],
+  now: Date = new Date(),
+) {
+  return sortLiveStreamSchedules(schedules).filter(
+    (schedule) => new Date(schedule.startsAt) > now,
+  );
+}
+
+export function sortLiveStreamSchedules(schedules: LiveStreamSchedule[]) {
+  return [...schedules].sort(
+    (left, right) => new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime(),
+  );
+}
+
 export function getLiveStreamCountdown(startsAt: string, now = Date.now()): LiveStreamCountdownParts {
   const target = Date.parse(startsAt);
   const totalMs = target - now;

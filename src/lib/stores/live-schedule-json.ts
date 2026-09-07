@@ -1,22 +1,31 @@
+import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
 import type { LiveStreamSchedule, LiveStreamPlatform } from "@/lib/live-schedule-types";
+import {
+  filterUpcomingLiveStreamSchedules,
+  sortLiveStreamSchedules,
+} from "@/lib/live-schedule-utils";
 
 const FILE = path.join(process.cwd(), "data", "live-schedule.json");
-const SCHEDULE_ID = "upcoming";
 
-async function readSchedule(): Promise<LiveStreamSchedule | null> {
+async function readSchedules(): Promise<LiveStreamSchedule[]> {
   try {
     const raw = await fs.readFile(FILE, "utf-8");
-    return JSON.parse(raw) as LiveStreamSchedule;
+    const parsed = JSON.parse(raw) as LiveStreamSchedule[] | LiveStreamSchedule;
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && typeof parsed === "object" && "startsAt" in parsed) {
+      return [parsed];
+    }
+    return [];
   } catch {
-    return null;
+    return [];
   }
 }
 
-async function writeSchedule(schedule: LiveStreamSchedule | null) {
+async function writeSchedules(schedules: LiveStreamSchedule[]) {
   await fs.mkdir(path.dirname(FILE), { recursive: true });
-  if (!schedule) {
+  if (schedules.length === 0) {
     try {
       await fs.unlink(FILE);
     } catch {
@@ -24,21 +33,30 @@ async function writeSchedule(schedule: LiveStreamSchedule | null) {
     }
     return;
   }
-  await fs.writeFile(FILE, JSON.stringify(schedule, null, 2));
+  await fs.writeFile(FILE, JSON.stringify(sortLiveStreamSchedules(schedules), null, 2));
 }
 
 export async function getUpcomingLiveStreamSchedule(now = new Date()) {
-  const schedule = await readSchedule();
-  if (!schedule) return null;
-  if (new Date(schedule.startsAt) <= now) return null;
-  return schedule;
+  const upcoming = filterUpcomingLiveStreamSchedules(await readSchedules(), now);
+  return upcoming[0] ?? null;
 }
 
+export async function getUpcomingLiveStreamSchedules(now = new Date()) {
+  return filterUpcomingLiveStreamSchedules(await readSchedules(), now);
+}
+
+export async function getLiveStreamSchedules() {
+  return sortLiveStreamSchedules(await readSchedules());
+}
+
+/** @deprecated Use getLiveStreamSchedules — kept for notify migration */
 export async function getLiveStreamSchedule() {
-  return readSchedule();
+  const schedules = await getLiveStreamSchedules();
+  return schedules[0] ?? null;
 }
 
 export async function saveLiveStreamSchedule(input: {
+  id?: string;
   title: string;
   startsAt: string;
   platform?: LiveStreamPlatform;
@@ -56,7 +74,12 @@ export async function saveLiveStreamSchedule(input: {
     throw new Error("The livestream must be scheduled in the future.");
   }
 
-  const existing = await readSchedule();
+  const schedules = await readSchedules();
+  const existingIndex = input.id
+    ? schedules.findIndex((item) => item.id === input.id)
+    : -1;
+  const existing = existingIndex >= 0 ? schedules[existingIndex] : null;
+
   const notifyChanged =
     existing &&
     (Boolean(existing.notifyEnabled) !== Boolean(input.notifyEnabled) ||
@@ -64,7 +87,7 @@ export async function saveLiveStreamSchedule(input: {
       existing.startsAt !== startsAt.toISOString());
 
   const schedule: LiveStreamSchedule = {
-    id: SCHEDULE_ID,
+    id: existing?.id ?? input.id ?? randomUUID(),
     title: input.title.trim(),
     startsAt: startsAt.toISOString(),
     platform: input.platform,
@@ -76,20 +99,33 @@ export async function saveLiveStreamSchedule(input: {
     updatedAt: now.toISOString(),
   };
 
-  await writeSchedule(schedule);
+  const next =
+    existingIndex >= 0
+      ? schedules.map((item, index) => (index === existingIndex ? schedule : item))
+      : [...schedules, schedule];
+
+  await writeSchedules(next);
   return schedule;
 }
 
-export async function markLiveStreamNotifySent() {
-  const schedule = await readSchedule();
-  if (!schedule) return;
-  await writeSchedule({
-    ...schedule,
+export async function markLiveStreamNotifySent(id: string) {
+  const schedules = await readSchedules();
+  const index = schedules.findIndex((item) => item.id === id);
+  if (index < 0) return;
+  schedules[index] = {
+    ...schedules[index],
     notifySentAt: new Date().toISOString(),
-  });
+  };
+  await writeSchedules(schedules);
 }
 
-export async function clearLiveStreamSchedule() {
-  await writeSchedule(null);
-  return true;
+export async function clearLiveStreamSchedule(id?: string) {
+  if (!id) {
+    await writeSchedules([]);
+    return true;
+  }
+  const schedules = await readSchedules();
+  const next = schedules.filter((item) => item.id !== id);
+  await writeSchedules(next);
+  return next.length !== schedules.length;
 }

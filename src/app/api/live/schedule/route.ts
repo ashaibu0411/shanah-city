@@ -6,8 +6,9 @@ import { canPublishMediaClips } from "@/lib/group-permissions-server";
 import type { LiveStreamPlatform } from "@/lib/live-schedule-types";
 import {
   clearLiveStreamSchedule,
-  getLiveStreamSchedule,
+  getLiveStreamSchedules,
   getUpcomingLiveStreamSchedule,
+  getUpcomingLiveStreamSchedules,
   saveLiveStreamSchedule,
 } from "@/lib/live-schedule-server";
 
@@ -27,14 +28,22 @@ export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
-  const [schedule, canManage] = await Promise.all([
+  const canManage = await canPublishMediaClips(user);
+  const [schedule, schedules] = await Promise.all([
     getUpcomingLiveStreamSchedule(),
-    canPublishMediaClips(user),
+    getUpcomingLiveStreamSchedules(),
   ]);
 
-  const managedSchedule = canManage ? await getLiveStreamSchedule() : null;
+  const managedSchedules = canManage ? await getLiveStreamSchedules() : null;
+  const managedSchedule = managedSchedules?.[0] ?? null;
 
-  return NextResponse.json({ schedule, managedSchedule, canManage });
+  return NextResponse.json({
+    schedule,
+    schedules,
+    managedSchedule,
+    managedSchedules,
+    canManage,
+  });
 }
 
 export async function POST(request: Request) {
@@ -51,12 +60,22 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const action = String(body.action ?? "save");
+  const scheduleId = body.id ? String(body.id).trim() : undefined;
 
   if (action === "clear") {
-    await clearLiveStreamSchedule();
+    await clearLiveStreamSchedule(scheduleId);
     revalidatePath("/");
     revalidatePath("/live");
-    return NextResponse.json({ ok: true, schedule: null });
+    const [schedule, schedules] = await Promise.all([
+      getUpcomingLiveStreamSchedule(),
+      getUpcomingLiveStreamSchedules(),
+    ]);
+    return NextResponse.json({
+      ok: true,
+      schedule,
+      schedules,
+      managedSchedules: await getLiveStreamSchedules(),
+    });
   }
 
   const title = String(body.title ?? "Shanah City Worship").trim();
@@ -70,7 +89,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const schedule = await saveLiveStreamSchedule({
+    const saved = await saveLiveStreamSchedule({
+      id: scheduleId,
       title,
       startsAt,
       platform,
@@ -81,7 +101,16 @@ export async function POST(request: Request) {
     });
     revalidatePath("/");
     revalidatePath("/live");
-    return NextResponse.json({ schedule });
+    const [schedule, schedules] = await Promise.all([
+      getUpcomingLiveStreamSchedule(),
+      getUpcomingLiveStreamSchedules(),
+    ]);
+    return NextResponse.json({
+      schedule,
+      schedules,
+      managedSchedules: await getLiveStreamSchedules(),
+      saved,
+    });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Could not save schedule." },
