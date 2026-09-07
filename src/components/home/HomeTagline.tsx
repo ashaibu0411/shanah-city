@@ -10,7 +10,7 @@ export function HomeTagline({ size = "mobile" }: HomeTaglineProps) {
   return (
     <>
       <p
-        className={`font-sans font-semibold uppercase tracking-[0.28em] text-amber-100/90 ${
+        className={`font-sans font-semibold uppercase tracking-[0.28em] text-cyan-100/95 ${
           isDesktop ? "text-xs text-sand-300" : "mobile-home-fade-up mobile-home-fade-up-1 text-[10px]"
         }`}
       >
@@ -24,7 +24,7 @@ export function HomeTagline({ size = "mobile" }: HomeTaglineProps) {
         }`}
       >
         {site.tagline}{" "}
-        <span className={isDesktop ? "text-sand-200" : "text-amber-300"}>
+        <span className={isDesktop ? "text-sand-200" : "text-cyan-200"}>
           {site.taglineReference}
         </span>
       </h1>
