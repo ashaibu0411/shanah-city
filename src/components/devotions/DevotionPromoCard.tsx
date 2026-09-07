@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import type { Devotion } from "@/lib/types";
 import { getDevotionArtwork } from "@/lib/devotion-artwork";
 
@@ -22,10 +23,11 @@ export function DevotionPromoCard({
     return (
       <section className={className}>
         <h2 className="mobile-section-title mb-2.5 px-0.5">{eyebrow}</h2>
-        <Link
-          href={href}
-          className="mobile-devotion-spotlight group block overflow-hidden transition active:scale-[0.99]"
-        >
+        <MobilePremiumFrame variant="surface" className="mobile-devotion-spotlight">
+          <Link
+            href={href}
+            className="group block transition active:scale-[0.99]"
+          >
           <div className="flex min-h-[5.5rem]">
             <div className="relative w-[5.25rem] shrink-0 bg-night-900">
               {artworkUrl ? (
@@ -63,7 +65,8 @@ export function DevotionPromoCard({
               </span>
             </div>
           </div>
-        </Link>
+          </Link>
+        </MobilePremiumFrame>
       </section>
     );
   }

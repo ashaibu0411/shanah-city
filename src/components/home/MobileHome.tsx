@@ -10,7 +10,8 @@ import { getYouTubeThumbnail } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { churchSocialImageForAction } from "@/lib/facebook-church-media";
-import { MobileQuickActionTile } from "@/components/home/MobileQuickActionTile";
+import { MobilePremiumExploreGrid } from "@/components/app/MobilePremiumTile";
+import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import { HomeTagline } from "@/components/home/HomeTagline";
 import { LiveStreamCountdownInline } from "@/components/live/useLiveStreamSchedule";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
@@ -19,13 +20,6 @@ import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
-
-const mobileQuickActions = [
-  { label: "Give", href: "/give", icon: "give" as const },
-  { label: "Connect", href: "/connect", icon: "connect" as const },
-  { label: "Community", href: "/community", icon: "community" as const },
-  { label: "Devotions", href: "/devotions", icon: "devotions" as const },
-] as const;
 
 const todayShortcuts = [
   {
@@ -96,22 +90,22 @@ export function MobileHome({
       <PendingRsvpHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
-      <div className="mobile-home-welcome mobile-home-welcome-hero relative overflow-hidden text-white">
+      <MobilePremiumFrame variant="hero" className="mobile-home-welcome mobile-home-welcome-hero text-white">
         <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
-        <div className="mobile-home-hero-shine pointer-events-none absolute inset-0" aria-hidden />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300/80 to-teal-400"
-          aria-hidden
-        />
 
-        <div className="relative">
+        <div className="relative p-4">
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300/80 to-teal-400"
+            aria-hidden
+          />
+
           <HomeTagline size="mobile" tone="dark" />
 
           <div className="mobile-home-welcome-chip mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-sand-100">
             Sun {nextService} · {campus.city}
           </div>
         </div>
-      </div>
+      </MobilePremiumFrame>
 
       <section>
         <h2 className="mobile-section-title mb-2.5 px-0.5">Today</h2>
@@ -129,11 +123,8 @@ export function MobileHome({
         </div>
       </section>
 
-      <Link
-        href="/live"
-        className="mobile-home-live-flyer group relative block min-h-[15.5rem] overflow-hidden rounded-[1.25rem] shadow-app-lg ring-1 ring-teal-900/10 transition active:scale-[0.99] sm:aspect-[16/10] sm:min-h-0"
-      >
-        <div className="absolute inset-[3px] rounded-[0.85rem] ring-1 ring-white/20" aria-hidden />
+      <MobilePremiumFrame variant="cinema" className="mobile-home-live-flyer group block min-h-[15.5rem] transition active:scale-[0.99] sm:aspect-[16/10] sm:min-h-0">
+        <Link href="/live" className="relative block h-full min-h-[15.5rem] sm:min-h-0">
         <div className="absolute inset-0">
           {anyLive && liveThumbnail ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -141,7 +132,7 @@ export function MobileHome({
               src={liveThumbnail}
               alt=""
               decoding="async"
-              className="mobile-media h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+              className="mobile-premium-4k__media mobile-media h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
             />
           ) : (
             <ChurchFlyerImage
@@ -149,7 +140,7 @@ export function MobileHome({
               alt="Watch live"
               priority
               sizes="(max-width: 512px) 100vw, 480px"
-              className="mobile-media object-cover transition duration-700 group-hover:scale-[1.04]"
+              className="mobile-premium-4k__media mobile-media object-cover transition duration-700 group-hover:scale-[1.04]"
             />
           )}
         </div>
@@ -189,7 +180,8 @@ export function MobileHome({
             </span>
           </div>
         </div>
-      </Link>
+        </Link>
+      </MobilePremiumFrame>
 
       {devotion ? (
         <DevotionPromoCard devotion={devotion} variant="mobile" className="space-y-0" />
@@ -197,22 +189,15 @@ export function MobileHome({
 
       <section>
         <h2 className="mobile-section-title mb-2.5 px-0.5">Explore</h2>
-        <div className="grid grid-cols-2 gap-2">
-          {mobileQuickActions.map((action) => (
-            <MobileQuickActionTile
-              key={action.label}
-              name={action.icon}
-              href={action.href}
-              imageSrc={churchSocialImageForAction(churchImages, action.icon)}
-            />
-          ))}
-        </div>
+        <MobilePremiumExploreGrid
+          imageForAction={(action) => churchSocialImageForAction(churchImages, action)}
+        />
       </section>
 
       {featuredPost && (
         <Link
           href="/community"
-          className="mobile-card mobile-community-snippet block border-teal-200/60 bg-gradient-to-br from-teal-50/90 to-white p-3.5 transition active:scale-[0.99]"
+          className="mobile-card mobile-premium-surface mobile-community-snippet block border-teal-200/60 bg-gradient-to-br from-teal-50/90 to-white p-3.5 transition active:scale-[0.99]"
         >
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-bold tracking-tight text-night-900">Community</p>
@@ -226,7 +211,7 @@ export function MobileHome({
 
       <Link
         href="/guest"
-        className="mobile-card flex items-center justify-between border border-emerald-200/70 bg-gradient-to-r from-emerald-50/95 to-teal-50/90 px-3.5 py-2.5 text-sm font-semibold text-emerald-950 transition active:scale-[0.99]"
+        className="mobile-card mobile-premium-surface flex items-center justify-between border border-emerald-200/70 bg-gradient-to-r from-emerald-50/95 to-teal-50/90 px-3.5 py-2.5 text-sm font-semibold text-emerald-950 transition active:scale-[0.99]"
       >
         First time here?
         <span className="rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white shadow-sm shadow-emerald-900/20">

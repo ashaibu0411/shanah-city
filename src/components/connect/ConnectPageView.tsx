@@ -1,17 +1,33 @@
 "use client";
 
 import { useAppShell } from "@/components/app/AppShellContext";
+import { MobilePremiumExploreGrid } from "@/components/app/MobilePremiumTile";
 import { GuestCaptureForm } from "@/components/guest/GuestCaptureForm";
 import { Button, ExternalLink } from "@/components/ui";
+import { churchSocialImageForAction, type ChurchSocialImages } from "@/lib/facebook-church-media";
 import { site } from "@/lib/site";
 
-export function ConnectPageView() {
+type ConnectPageViewProps = {
+  churchImages?: ChurchSocialImages;
+};
+
+export function ConnectPageView({ churchImages }: ConnectPageViewProps) {
   const { isMobileApp } = useAppShell();
 
   if (isMobileApp) {
     return (
-      <div className="space-y-3">
-        <div className="mobile-card p-4">
+      <div className="space-y-4">
+        {churchImages ? (
+          <section>
+            <h2 className="mobile-section-title mb-2.5 px-0.5">Quick links</h2>
+            <MobilePremiumExploreGrid
+              compact
+              imageForAction={(action) => churchSocialImageForAction(churchImages, action)}
+            />
+          </section>
+        ) : null}
+
+        <div className="mobile-card mobile-premium-surface p-4">
           <h3 className="font-display text-lg font-bold tracking-tight text-night-900">
             Service times
           </h3>
@@ -28,7 +44,7 @@ export function ConnectPageView() {
           </ul>
         </div>
 
-        <div className="mobile-card p-4">
+        <div className="mobile-card mobile-premium-surface p-4">
           <h3 className="font-display text-lg font-bold tracking-tight text-night-900">
             First time here?
           </h3>
@@ -38,7 +54,7 @@ export function ConnectPageView() {
           <GuestCaptureForm embedded />
         </div>
 
-        <div className="mobile-card p-4">
+        <div className="mobile-card mobile-premium-surface p-4">
           <h3 className="font-display text-lg font-bold tracking-tight text-night-900">
             What to expect
           </h3>
@@ -55,7 +71,7 @@ export function ConnectPageView() {
           </ul>
         </div>
 
-        <div className="mobile-card p-4">
+        <div className="mobile-card mobile-premium-surface p-4">
           <h3 className="font-display text-lg font-bold tracking-tight text-night-900">
             Contact
           </h3>

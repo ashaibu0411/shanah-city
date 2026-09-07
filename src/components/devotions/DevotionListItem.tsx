@@ -8,7 +8,7 @@ export function DevotionListItem({ devotion }: { devotion: Devotion }) {
   return (
     <Link
       href={`/devotions/${devotion.id}`}
-      className="mobile-devotion-list-item group flex items-stretch overflow-hidden rounded-[1.2rem] bg-white ring-1 ring-night-900/8 transition active:scale-[0.99] hover:shadow-md hover:ring-night-900/12"
+      className="mobile-devotion-list-item mobile-premium-surface group flex items-stretch overflow-hidden transition active:scale-[0.99] hover:shadow-md hover:ring-night-900/12"
     >
       <div className="relative w-[4.75rem] shrink-0 bg-night-900 sm:w-16">
         {artworkUrl ? (
