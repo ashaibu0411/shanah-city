@@ -757,6 +757,16 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.18);
   }
 
+  body[data-shell="mobile"] .mobile-devotion-featured-hero,
+  body[data-shell="mobile"] .mobile-devotion-archive-tile {
+    border-radius: 1.35rem;
+    overflow: hidden;
+  }
+
+  body[data-shell="mobile"] .mobile-devotions-page .mobile-page-hero {
+    margin-bottom: 0.25rem;
+  }
+
   body[data-shell="mobile"] .mobile-section-title {
     @apply font-display text-base font-semibold tracking-tight text-night-900;
   }

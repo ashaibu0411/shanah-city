@@ -35,10 +35,10 @@ const todayShortcuts = [
     className: "from-amber-100 to-amber-200/85 text-amber-950 ring-amber-300/65",
   },
   {
-    label: "Watch live",
-    href: "/live",
-    detail: "Sundays & events",
-    className: "from-cyan-100 to-teal-100 text-teal-950 ring-cyan-300/60",
+    label: "Meetings",
+    href: "/meetings",
+    detail: "Prayer & events",
+    className: "from-violet-100 to-indigo-100 text-indigo-950 ring-violet-300/60",
   },
 ] as const;
 
@@ -51,7 +51,6 @@ type MobileHomeProps = {
 };
 
 export function MobileHome({
-  posts,
   todayDevotion,
   urgentAlert,
   churchImages,
@@ -78,7 +77,6 @@ export function MobileHome({
     liveStream.isLive ||
     liveStream.youtube.isLive ||
     liveStream.facebook.isLive;
-  const featuredPost = posts[0];
   const liveVideoId = liveStream.youtube.videoId?.trim();
   const liveThumbnail = liveVideoId ? getYouTubeThumbnail(liveVideoId) : null;
   const nextService =
@@ -125,61 +123,61 @@ export function MobileHome({
 
       <MobilePremiumFrame variant="cinema" className="mobile-home-live-flyer group block min-h-[15.5rem] transition active:scale-[0.99] sm:aspect-[16/10] sm:min-h-0">
         <Link href="/live" className="relative block h-full min-h-[15.5rem] sm:min-h-0">
-        <div className="absolute inset-0">
-          {anyLive && liveThumbnail ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={liveThumbnail}
-              alt=""
-              decoding="async"
-              className="mobile-premium-4k__media mobile-media h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
-            />
-          ) : (
-            <ChurchFlyerImage
-              src={churchImages.live}
-              alt="Watch live"
-              priority
-              sizes="(max-width: 512px) 100vw, 480px"
-              className="mobile-premium-4k__media mobile-media object-cover transition duration-700 group-hover:scale-[1.04]"
-            />
-          )}
-        </div>
-
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-950/35 to-teal-900/10" />
-
-        <div className="relative flex h-full flex-col justify-between p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sand-200/95">
-            Shanah City Live
-          </p>
-
-          <div>
-            {anyLive ? (
-              <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg shadow-red-900/40">
-                <span className="mobile-home-pulse h-1.5 w-1.5 rounded-full bg-white" />
-                Live now
-              </span>
+          <div className="absolute inset-0">
+            {anyLive && liveThumbnail ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={liveThumbnail}
+                alt=""
+                decoding="async"
+                className="mobile-premium-4k__media mobile-media h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+              />
             ) : (
-              <div className="mb-2">
-                <LiveStreamCountdownInline />
-              </div>
+              <ChurchFlyerImage
+                src={churchImages.live}
+                alt="Watch live"
+                priority
+                sizes="(max-width: 512px) 100vw, 480px"
+                className="mobile-premium-4k__media mobile-media object-cover transition duration-700 group-hover:scale-[1.04]"
+              />
             )}
-
-            <p className="font-display text-xl font-bold leading-tight tracking-tight text-white drop-shadow-md sm:text-2xl">
-              {anyLive ? liveStream.title : "Watch Live"}
-            </p>
-
-            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-teal-100/85 sm:text-xs sm:tracking-[0.2em]">
-              {anyLive ? "Join the stream" : "Sundays & special services"}
-            </p>
-
-            <span className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-teal-900 shadow-app-md backdrop-blur-sm sm:mt-3 sm:px-3.5 sm:py-2 sm:text-xs">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-700 text-[10px] text-white">
-                ▶
-              </span>
-              {anyLive ? "Join stream" : "Open live"}
-            </span>
           </div>
-        </div>
+
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-950/35 to-teal-900/10" />
+
+          <div className="relative flex h-full flex-col justify-between p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-sand-200/95">
+              Shanah City Live
+            </p>
+
+            <div>
+              {anyLive ? (
+                <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg shadow-red-900/40">
+                  <span className="mobile-home-pulse h-1.5 w-1.5 rounded-full bg-white" />
+                  Live now
+                </span>
+              ) : (
+                <div className="mb-2">
+                  <LiveStreamCountdownInline />
+                </div>
+              )}
+
+              <p className="font-display text-xl font-bold leading-tight tracking-tight text-white drop-shadow-md sm:text-2xl">
+                {anyLive ? liveStream.title : "Watch Live"}
+              </p>
+
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-teal-100/85 sm:text-xs sm:tracking-[0.2em]">
+                {anyLive ? "Join the stream" : "Sundays & special services"}
+              </p>
+
+              <span className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-teal-900 shadow-app-md backdrop-blur-sm sm:mt-3 sm:px-3.5 sm:py-2 sm:text-xs">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-700 text-[10px] text-white">
+                  ▶
+                </span>
+                {anyLive ? "Join stream" : "Open live"}
+              </span>
+            </div>
+          </div>
         </Link>
       </MobilePremiumFrame>
 
@@ -193,21 +191,6 @@ export function MobileHome({
           imageForAction={(action) => churchSocialImageForAction(churchImages, action)}
         />
       </section>
-
-      {featuredPost && (
-        <Link
-          href="/community"
-          className="mobile-card mobile-premium-surface mobile-community-snippet block border-teal-200/60 bg-gradient-to-br from-teal-50/90 to-white p-3.5 transition active:scale-[0.99]"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-bold tracking-tight text-night-900">Community</p>
-            <span className="text-xs font-semibold text-teal-700">See all →</span>
-          </div>
-          <p className="mt-1.5 line-clamp-2 text-sm leading-snug text-night-600">
-            {featuredPost.content}
-          </p>
-        </Link>
-      )}
 
       <Link
         href="/guest"

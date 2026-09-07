@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { DevotionsFeed } from "@/components/devotions/DevotionsFeed";
+import { DevotionsPageView } from "@/components/devotions/DevotionsPageView";
 import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
-import { PageHeader } from "@/components/ui";
 import { getDevotions } from "@/lib/devotion-server";
 
 export const dynamic = "force-dynamic";
@@ -20,19 +19,8 @@ export default async function DevotionsPage({ searchParams }: DevotionsPageProps
 
   return (
     <>
-      <PageHeader
-        eyebrow="Daily"
-        title="Devotions"
-        description="Browse past devotions by title. Tap any message to read or listen in full."
-      />
+      <DevotionsPageView devotions={devotions} />
       <MarkFeedRead feed="devotions" />
-      {devotions.length === 0 ? (
-        <p className="rounded-2xl bg-white p-5 text-sm text-night-600 ring-1 ring-night-900/5">
-          No published devotion yet. Check back soon.
-        </p>
-      ) : (
-        <DevotionsFeed devotions={devotions} />
-      )}
     </>
   );
 }

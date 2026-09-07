@@ -77,8 +77,11 @@ export const getChurchSocialImages = unstable_cache(
 
 export function churchSocialImageForAction(
   images: ChurchSocialImages,
-  action: "give" | "connect" | "community" | "devotions",
+  action: "give" | "connect" | "community" | "devotions" | "calendar",
 ) {
+  if (action === "calendar") {
+    return images.live;
+  }
   return images[action];
 }
 

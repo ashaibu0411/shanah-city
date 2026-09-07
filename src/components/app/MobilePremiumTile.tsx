@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import {
   mobilePremiumActions,
+  mobilePremiumExploreActions,
   type MobilePremiumActionId,
 } from "@/components/app/mobile-premium";
 
@@ -42,11 +43,11 @@ function PremiumActionIcon({ name }: { name: MobilePremiumActionId }) {
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       );
-    case "devotions":
+    case "calendar":
       return (
         <svg {...shared}>
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
         </svg>
       );
   }
@@ -130,16 +131,9 @@ export function MobilePremiumExploreGrid({
   className = "",
   compact = false,
 }: MobilePremiumExploreGridProps) {
-  const actions = [
-    { id: "give" as const, href: "/give" },
-    { id: "connect" as const, href: "/connect" },
-    { id: "community" as const, href: "/community" },
-    { id: "devotions" as const, href: "/devotions" },
-  ];
-
   return (
     <div className={`grid grid-cols-2 gap-2.5 ${className}`}>
-      {actions.map((item, index) => (
+      {mobilePremiumExploreActions.map((item, index) => (
         <MobilePremiumTile
           key={item.id}
           action={item.id}
