@@ -113,11 +113,8 @@ export function MobileHome({
         </div>
 
         <div className="mobile-home-welcome mobile-home-welcome-hero relative overflow-hidden text-white">
+          <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
           <HomePastorPortrait variant="mobile" />
-          <div
-            className="mobile-home-aurora-bg pointer-events-none absolute inset-0 opacity-35 mix-blend-multiply"
-            aria-hidden
-          />
 
           <div className="relative z-[1] p-4 pb-5">
             <div
