@@ -107,14 +107,7 @@ export function MobileHome({
     <div className="mobile-home animate-fade-in space-y-4">
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <PendingRsvpHomeBanner />
-      <LeaderReportHomeBanner />
       <PrayerHomeBanner variant="mobile" />
-
-      {devotion ? (
-        <DevotionPromoCard devotion={devotion} variant="mobile" className="space-y-0" />
-      ) : null}
-
-      <DevotionBrowseNudge />
 
       <MobilePremiumFrame
         variant="surface"
@@ -147,6 +140,8 @@ export function MobileHome({
           </div>
         </div>
       </MobilePremiumFrame>
+
+      <LeaderReportHomeBanner />
 
       <section>
         <h2 className="mobile-section-title mb-2.5 px-0.5">Today</h2>
@@ -223,6 +218,12 @@ export function MobileHome({
           </div>
         </Link>
       </MobilePremiumFrame>
+
+      {devotion ? (
+        <DevotionPromoCard devotion={devotion} variant="mobile" className="space-y-0" />
+      ) : null}
+
+      <DevotionBrowseNudge />
 
       <section>
         <h2 className="mobile-section-title mb-2.5 px-0.5">Explore</h2>
