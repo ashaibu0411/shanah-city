@@ -98,23 +98,33 @@ export function MobileHome({
       <PendingRsvpHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
-      <MobilePremiumFrame variant="hero" className="mobile-home-welcome mobile-home-welcome-hero text-white">
-        <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
-
-        <div className="relative p-4">
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300/80 to-teal-400"
-            aria-hidden
-          />
-
-          <p className="mobile-home-fade-up text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-100/90">
+      <MobilePremiumFrame
+        variant="surface"
+        className="mobile-home-welcome-stack overflow-hidden ring-1 ring-teal-200/45"
+      >
+        <div className="mobile-home-welcome-intro border-b border-teal-100/80 bg-gradient-to-r from-teal-50/95 via-white to-amber-50/80 px-4 py-3.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-700/85">
             {homeGreeting(user?.name)}
           </p>
+          <p className="mt-1 font-display text-[0.95rem] font-semibold uppercase tracking-[0.14em] text-night-900">
+            Welcome to {site.name}
+          </p>
+        </div>
 
-          <HomeTagline size="mobile" tone="dark" />
+        <div className="mobile-home-welcome mobile-home-welcome-hero relative text-white">
+          <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
 
-          <div className="mobile-home-welcome-chip mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-sand-100">
-            Sun {nextService} · {campus.city}
+          <div className="relative p-4">
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300/80 to-teal-400"
+              aria-hidden
+            />
+
+            <HomeTagline size="mobile" tone="dark" />
+
+            <div className="mobile-home-welcome-chip mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-sand-100">
+              Sun {nextService} · {campus.city}
+            </div>
           </div>
         </div>
       </MobilePremiumFrame>

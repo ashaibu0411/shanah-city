@@ -65,7 +65,7 @@ export function MobileAppHeader() {
           ) : (
             <>
               <p className="mobile-header-subtitle text-xs font-medium text-white/60">{site.name}</p>
-              <h1 className="mobile-header-title truncate font-display text-base font-semibold tracking-tight text-white">
+              <h1 className="mobile-header-title truncate font-home-hero text-base font-semibold tracking-tight text-white">
                 {title}
               </h1>
             </>

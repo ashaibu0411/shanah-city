@@ -174,7 +174,7 @@ export function PageHeader({
           {eyebrow}
         </p>
       )}
-      <h1 className="mt-2 font-display text-3xl font-semibold text-night-900 md:text-4xl">
+      <h1 className="mt-2 font-home-hero text-3xl font-semibold text-night-900 md:text-4xl">
         {title}
       </h1>
       {description && (

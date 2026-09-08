@@ -24,7 +24,7 @@ export function MobilePageHero({
           {eyebrow}
         </p>
       ) : null}
-      <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight text-night-900">
+      <h1 className="mt-1 font-home-hero text-2xl font-semibold tracking-tight text-night-900">
         {title}
       </h1>
       {description ? (
