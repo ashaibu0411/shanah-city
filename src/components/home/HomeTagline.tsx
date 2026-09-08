@@ -29,7 +29,7 @@ export function HomeTagline({ size = "mobile", tone = "dark" }: HomeTaglineProps
             ? "mt-4 text-3xl text-white md:text-4xl lg:text-[2.75rem]"
             : isLight
               ? "mt-2.5 text-[1.45rem] text-night-900"
-              : "mt-3 text-[1.55rem] text-white"
+              : "mt-3 text-[1.55rem] text-white drop-shadow-[0_1px_12px_rgba(11,18,32,0.45)]"
         }`}
       >
         {site.tagline}{" "}

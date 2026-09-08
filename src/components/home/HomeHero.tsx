@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/app/BrandLogo";
+import { HomePastorPortrait } from "@/components/home/HomePastorPortrait";
 import { HomeTagline } from "@/components/home/HomeTagline";
 import { campuses, site } from "@/lib/site";
 import { Button } from "@/components/ui";
@@ -9,6 +10,7 @@ const physicalCampuses = campuses.filter((campus) => campus.id !== "online");
 export function HomeHero() {
   return (
     <section className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-night-950 via-night-900 to-night-800 text-white shadow-xl ring-1 ring-night-900/10">
+      <HomePastorPortrait variant="desktop" />
       <div
         className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-sand-400/10 blur-3xl"
         aria-hidden
@@ -18,8 +20,8 @@ export function HomeHero() {
         aria-hidden
       />
 
-      <div className="relative grid gap-8 p-6 md:grid-cols-[1.2fr_1fr] md:p-8 lg:p-10">
-        <div>
+      <div className="relative z-[1] grid gap-8 p-6 md:grid-cols-[1.2fr_1fr] md:p-8 lg:p-10">
+        <div className="max-w-xl">
           <div className="flex items-center gap-4">
             <BrandLogo size="lg" priority />
           </div>

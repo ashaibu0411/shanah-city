@@ -15,6 +15,8 @@ export const site = {
   website: "https://shanahcity.org",
   tagline: "Changing Lives To Higher Levels In God.",
   taglineReference: "2 Cor 3:18",
+  leadPastor: "Aps. Zaq Nombre",
+  pastorPortrait: "/home/pastor-portrait.jpg",
   scripture: "2 Corinthians 3:18",
   mission:
     "Changing lives to higher levels in God.",
