@@ -204,6 +204,7 @@ model Devotion {
   updatedAt   DateTime?
   publishAt   DateTime?
   notifiedAt  DateTime?
+  tags        Json?
 }
 
 model ChurchEvent {
@@ -231,6 +232,7 @@ model ChurchEvent {
   rsvpCapacity     Int?
   rsvpInstructions String?
   rsvpLastNotifiedAt DateTime?
+  rsvpCouplesMode  Boolean     @default(false)
   createdAt        DateTime
   updatedAt        DateTime
   rsvps            EventRsvp[]
@@ -245,6 +247,8 @@ model EventRsvp {
   userEmail String
   status    String
   note      String?
+  guestCount Int        @default(1)
+  spouseName String?
   updatedAt DateTime    @updatedAt
   createdAt DateTime    @default(now())
 

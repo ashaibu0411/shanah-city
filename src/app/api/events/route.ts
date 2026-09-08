@@ -56,6 +56,7 @@ async function normalizeRsvpFields(
       rsvpDeadline: null,
       rsvpCapacity: null,
       rsvpInstructions: null,
+      rsvpCouplesMode: false,
     };
   }
 
@@ -75,6 +76,7 @@ async function normalizeRsvpFields(
     rsvpDeadline: rsvp.rsvpDeadline ?? null,
     rsvpCapacity: rsvp.rsvpCapacity ?? null,
     rsvpInstructions: rsvp.rsvpInstructions ?? null,
+    rsvpCouplesMode: rsvp.rsvpCouplesMode ?? false,
   };
 }
 

@@ -2,6 +2,12 @@ import type { PublicMember } from "@/lib/auth-types";
 import { getMemberGroupIds } from "@/lib/admin-people-server";
 import { getEventById, getEvents, updateEvent } from "@/lib/event-server";
 import {
+  formatRsvpRosterName,
+  goingHeadcount,
+  isEventCouplesRsvpMode,
+  normalizeGuestCount,
+} from "@/lib/event-rsvp-couples";
+import {
   canManageEventRsvpSettings,
   canViewEventRsvpRoster,
   isEventRsvpClosed,
@@ -28,7 +34,7 @@ function buildSummary(
   rsvps: EventRsvpRecord[],
   event: Pick<ChurchEvent, "rsvpCapacity">,
 ): EventRsvpSummary {
-  const going = rsvps.filter((entry) => entry.status === "going").length;
+  const going = goingHeadcount(rsvps);
   const notGoing = rsvps.filter((entry) => entry.status === "not_going").length;
   const maybe = rsvps.filter((entry) => entry.status === "maybe").length;
   const capacity = event.rsvpCapacity ?? null;
@@ -60,6 +66,9 @@ export async function getEventRsvpView(
       instructions: null,
       myStatus: null,
       myNote: null,
+      myGuestCount: null,
+      mySpouseName: null,
+      couplesMode: false,
       canRespond: false,
       canManage,
       inAudience: false,
@@ -72,6 +81,7 @@ export async function getEventRsvpView(
   const mine = viewer ? rsvps.find((entry) => entry.userId === viewer.id) ?? null : null;
   const summary = buildSummary(rsvps, event);
   const showRoster = viewer && (await canViewEventRsvpRoster(viewer, event));
+  const couplesMode = isEventCouplesRsvpMode(event);
 
   return {
     enabled: true,
@@ -82,6 +92,9 @@ export async function getEventRsvpView(
     instructions: event.rsvpInstructions ?? null,
     myStatus: mine?.status ?? null,
     myNote: mine?.note ?? null,
+    myGuestCount: mine?.guestCount ?? null,
+    mySpouseName: mine?.spouseName ?? null,
+    couplesMode,
     canRespond,
     canManage,
     inAudience,
@@ -89,9 +102,11 @@ export async function getEventRsvpView(
     roster: showRoster
       ? rsvps.map((entry) => ({
           userId: entry.userId,
-          userName: entry.userName,
+          userName: formatRsvpRosterName(entry),
           status: entry.status,
           note: entry.note,
+          guestCount: entry.guestCount,
+          spouseName: entry.spouseName,
           updatedAt: entry.updatedAt,
         }))
       : null,
@@ -103,6 +118,8 @@ export async function submitEventRsvp(input: {
   viewer: PublicMember;
   status: EventRsvpStatus;
   note?: string;
+  guestCount?: number;
+  spouseName?: string;
 }) {
   const event = await getEventById(input.eventId);
   if (!event) {
@@ -118,14 +135,34 @@ export async function submitEventRsvp(input: {
     throw new Error("You are not in the RSVP audience for this event.");
   }
 
+  const couplesMode = isEventCouplesRsvpMode(event);
+  const guestCount =
+    input.status === "going"
+      ? normalizeGuestCount(input.guestCount, couplesMode)
+      : 1;
+  const spouseName =
+    input.status === "going" && guestCount >= 2
+      ? input.spouseName?.trim() || undefined
+      : undefined;
+
+  if (couplesMode && guestCount >= 2 && !spouseName) {
+    throw new Error("Add your spouse's name when both of you are attending.");
+  }
+
   const existing = await store().getRsvpsForEvent(event.id);
   const summary = buildSummary(existing, event);
+  const previous = existing.find((entry) => entry.userId === input.viewer.id);
+  const previousGoingCount =
+    previous?.status === "going" ? (previous.guestCount ?? 1) : 0;
+  const nextGoingCount = input.status === "going" ? guestCount : 0;
+  const addedGoing = nextGoingCount - previousGoingCount;
+
   if (
     input.status === "going" &&
-    summary.isFull &&
-    !existing.some(
-      (entry) => entry.userId === input.viewer.id && entry.status === "going",
-    )
+    event.rsvpCapacity != null &&
+    event.rsvpCapacity > 0 &&
+    addedGoing > 0 &&
+    summary.going + addedGoing > event.rsvpCapacity
   ) {
     throw new Error("This event is full.");
   }
@@ -137,6 +174,8 @@ export async function submitEventRsvp(input: {
     userEmail: input.viewer.email,
     status: input.status,
     note: input.note,
+    guestCount,
+    spouseName,
   });
 
   const view = await getEventRsvpView(event, input.viewer);

@@ -37,6 +37,8 @@ export function EventRsvpPanel({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [spouseAttending, setSpouseAttending] = useState(false);
+  const [spouseName, setSpouseName] = useState("");
   const [settings, setSettings] = useState(() => eventToRsvpFormState(event));
   const [showSettings, setShowSettings] = useState(false);
 
@@ -48,6 +50,8 @@ export function EventRsvpPanel({
     if (response.ok) {
       setRsvp(data.rsvp ?? null);
       setNote(data.rsvp?.myNote ?? "");
+      setSpouseAttending((data.rsvp?.myGuestCount ?? 1) >= 2);
+      setSpouseName(data.rsvp?.mySpouseName ?? "");
     }
   }
 
@@ -58,6 +62,14 @@ export function EventRsvpPanel({
   useEffect(() => {
     setSettings(eventToRsvpFormState(event));
   }, [event]);
+
+  useEffect(() => {
+    if (!user?.family?.length || spouseName.trim()) return;
+    const spouse = user.family.find((member) => member.relationship === "spouse");
+    if (spouse?.name) {
+      setSpouseName(spouse.name);
+    }
+  }, [user, spouseName]);
 
   if (loading) {
     return null;
@@ -81,10 +93,17 @@ export function EventRsvpPanel({
   async function submitStatus(status: EventRsvpStatus) {
     setBusy(true);
     setMessage(null);
+    const guestCount =
+      status === "going" && rsvp?.couplesMode && spouseAttending ? 2 : 1;
     const response = await fetch(`/api/events/${encodeURIComponent(event.id)}/rsvp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, note }),
+      body: JSON.stringify({
+        status,
+        note,
+        guestCount,
+        spouseName: guestCount >= 2 ? spouseName : undefined,
+      }),
     });
     const data = await response.json();
     setBusy(false);
@@ -185,6 +204,7 @@ export function EventRsvpPanel({
             state={settings}
             onChange={setSettings}
             defaultAudience={event.groupId ? "group" : "church"}
+            groupId={event.groupId}
             compact
           />
           <Button className="mt-3" onClick={saveSettings} disabled={busy}>
@@ -219,6 +239,30 @@ export function EventRsvpPanel({
               );
             })}
           </div>
+          {rsvp.couplesMode ? (
+            <div className="mt-3 space-y-3 rounded-xl bg-white/80 p-3 ring-1 ring-teal-200/80">
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={spouseAttending}
+                  onChange={(event) => setSpouseAttending(event.target.checked)}
+                  className="mt-1"
+                />
+                <span className="text-sm text-night-800">My spouse is coming (+1)</span>
+              </label>
+              {spouseAttending ? (
+                <label className="block">
+                  <span className="text-xs font-semibold text-night-600">Spouse name</span>
+                  <input
+                    value={spouseName}
+                    onChange={(event) => setSpouseName(event.target.value)}
+                    placeholder="Spouse's name"
+                    className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
+                  />
+                </label>
+              ) : null}
+            </div>
+          ) : null}
           <label className="mt-3 block">
             <span className="text-xs font-semibold text-night-600">Optional note</span>
             <input
@@ -247,7 +291,7 @@ export function EventRsvpPanel({
 
       {rsvp?.enabled && rsvp.summary ? (
         <p className="mt-3 text-sm text-night-700">
-          {rsvp.summary.going} going · {rsvp.summary.maybe} maybe · {rsvp.summary.notGoing}{" "}
+          {rsvp.summary.going} attending · {rsvp.summary.maybe} maybe · {rsvp.summary.notGoing}{" "}
           can&apos;t go
           {rsvp.summary.capacity
             ? ` · ${rsvp.summary.going}/${rsvp.summary.capacity} spots`

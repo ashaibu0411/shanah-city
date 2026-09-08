@@ -15,8 +15,10 @@ import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm
 import { Button, Card, ExternalLink } from "@/components/ui";
 import {
   groupHasEmbeddedCalendar,
+  SHANAH_POWER_COUPLES_GROUP_ID,
   unavailabilityCalendarGroupForId,
 } from "@/lib/church-groups";
+import { CouplesDevotionBanner } from "@/components/groups/CouplesDevotionBanner";
 import { getCampus } from "@/lib/site";
 import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
@@ -273,6 +275,10 @@ export function GroupDetailView({
       ) : detailSection === "overview" ? (
         <>
           <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
+
+          {detail.id === SHANAH_POWER_COUPLES_GROUP_ID && detail.isMember ? (
+            <CouplesDevotionBanner className="mt-4" />
+          ) : null}
 
           {(detail.meetingSchedule || detail.meetingLink) && (
             <div className="mt-4 rounded-2xl bg-sand-50 px-4 py-3 text-sm text-night-700">

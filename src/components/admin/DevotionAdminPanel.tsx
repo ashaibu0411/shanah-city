@@ -9,6 +9,7 @@ import { RichTextArea } from "@/components/ui/RichTextArea";
 import { defaultDevotionScheduleTime } from "@/lib/devotion-schedule";
 import {
   defaultScheduleDateInput,
+  DEVOTION_TAG_COUPLES,
   devotionEditorBody,
   devotionFieldsFromEditorBody,
   devotionHasLegacySections,
@@ -33,6 +34,7 @@ type DevotionForm = {
   scheduleDate: string;
   scheduleTime: string;
   publishMode: DevotionPublishMode;
+  forCouples: boolean;
   audioUrl?: string;
   audioName?: string;
 };
@@ -44,6 +46,7 @@ function createEmptyForm(): DevotionForm {
     scheduleDate: defaultScheduleDateInput(),
     scheduleTime: defaultDevotionScheduleTime(),
     publishMode: "schedule",
+    forCouples: false,
   };
 }
 
@@ -116,6 +119,7 @@ export function DevotionAdminPanel() {
       scheduleDate: schedule.scheduleDate,
       scheduleTime: schedule.scheduleTime,
       publishMode: devotionToPublishMode(devotion),
+      forCouples: devotion.tags?.includes(DEVOTION_TAG_COUPLES) ?? false,
       audioUrl: devotion.audioUrl,
       audioName: devotion.audioName,
     });
@@ -150,6 +154,7 @@ export function DevotionAdminPanel() {
         id: editingId ?? undefined,
         audioUrl: form.audioUrl ?? null,
         audioName: form.audioName ?? null,
+        tags: form.forCouples ? [DEVOTION_TAG_COUPLES] : [],
       }),
     });
     const data = await response.json();
@@ -385,6 +390,23 @@ export function DevotionAdminPanel() {
               onValueChange={(title) => setForm((current) => ({ ...current, title }))}
             />
           </div>
+
+          <label className="flex items-start gap-3 rounded-2xl border border-rose-200/80 bg-rose-50/60 p-3">
+            <input
+              type="checkbox"
+              checked={form.forCouples}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, forCouples: event.target.checked }))
+              }
+              className="mt-1"
+            />
+            <span className="text-sm text-night-800">
+              <span className="font-semibold">For couples</span>
+              <span className="mt-1 block text-xs text-night-600">
+                Shows on the Shanah Power Couples group page and in couples devotion filters.
+              </span>
+            </span>
+          </label>
 
           <RichTextArea
             id="body"

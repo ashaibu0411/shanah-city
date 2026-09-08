@@ -2,7 +2,9 @@ import { getZonedDateParts } from "@/lib/denver-time";
 import {
   AUTOMATED_MEETING_REMINDERS,
   isAutomatedReminderMeeting,
+  MONTHLY_MEETING_REMINDERS,
 } from "@/lib/meeting-catalog";
+import { isMonthlyMeetingReminderDue } from "@/lib/monthly-meeting-reminder";
 import { isPrayerReminderDue } from "@/lib/prayer-schedule";
 import {
   getNativePushTokens,
@@ -49,12 +51,21 @@ export async function processScheduledMeetingReminders(reference = new Date()) {
   const meetings = await getMeetings();
   const due = meetings.filter((meeting) => {
     const rule = AUTOMATED_MEETING_REMINDERS[meeting.id];
-    if (!rule) return false;
-    if (!isAutomatedReminderMeeting(meeting.id) && !meeting.notifyEnabled) {
-      return false;
+    if (rule) {
+      if (!isAutomatedReminderMeeting(meeting.id) && !meeting.notifyEnabled) {
+        return false;
+      }
+      if (!isPrayerReminderDue(meeting.id, reference)) return false;
+      return meeting.lastNotifiedOn !== denver.dateKey;
     }
-    if (!isPrayerReminderDue(meeting.id, reference)) return false;
-    return meeting.lastNotifiedOn !== denver.dateKey;
+
+    if (MONTHLY_MEETING_REMINDERS[meeting.id]) {
+      if (!meeting.notifyEnabled) return false;
+      if (!isMonthlyMeetingReminderDue(meeting.id, reference)) return false;
+      return meeting.lastNotifiedOn !== denver.dateKey;
+    }
+
+    return false;
   });
 
   if (due.length === 0) {

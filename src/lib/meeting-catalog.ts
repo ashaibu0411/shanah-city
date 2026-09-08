@@ -1,4 +1,5 @@
 import type { Meeting } from "@/lib/types";
+import { SHANAH_POWER_COUPLES_GROUP_ID } from "@/lib/church-groups";
 
 export const SHIFT_YOUR_MORNING_ID = "shift-your-morning";
 export const SHIFT_YOUR_EVENING_ID = "shift-your-evening";
@@ -51,6 +52,35 @@ export const MANUAL_PUSH_MEETING_IDS = new Set([
   SHANAH_COUPLES_ID,
   FRONTLINERS_MEETING_ID,
 ]);
+
+/** Manual ministry pushes go to these groups instead of the whole church. */
+export const MANUAL_PUSH_MEETING_GROUP_IDS: Record<string, string> = {
+  [MEN_OF_LEGACY_ID]: "group-men-legacy",
+  [SHANAH_LADIES_ID]: "group-shanah-ladies",
+  [SHANAH_COUPLES_ID]: SHANAH_POWER_COUPLES_GROUP_ID,
+  [FRONTLINERS_MEETING_ID]: "group-frontliners",
+};
+
+export type MonthlyMeetingReminderRule = {
+  /** Weekday of the monthly gathering (0=Sun … 6=Sat). */
+  meetingWeekday: number;
+  /** Weekday to send the day-before reminder. */
+  notifyWeekday: number;
+  notifyHour: number;
+  notifyMinute: number;
+  groupId: string;
+};
+
+/** Automated day-before push for first-week-of-month ministry Zooms. */
+export const MONTHLY_MEETING_REMINDERS: Record<string, MonthlyMeetingReminderRule> = {
+  [SHANAH_COUPLES_ID]: {
+    meetingWeekday: 3,
+    notifyWeekday: 2,
+    notifyHour: 20,
+    notifyMinute: 0,
+    groupId: SHANAH_POWER_COUPLES_GROUP_ID,
+  },
+};
 
 export const PROTECTED_MEETING_IDS = new Set([
   SHIFT_YOUR_MORNING_ID,
@@ -164,14 +194,14 @@ export function shanahLadiesMeeting(): Meeting {
 export function shanahCouplesMeeting(): Meeting {
   return {
     id: SHANAH_COUPLES_ID,
-    title: "Shanah Couples",
+    title: "Shanah Power Couples",
     campusId: "online",
-    host: "Shanah Couples",
+    host: "Shanah Power Couples",
     schedule: "First Wednesday of the month, 8:00 PM MST",
     platform: "zoom",
     joinUrl: "https://us02web.zoom.us/j/87974267086?pwd=m2kLQv6u2TMPmcpGpQbA6bAiBcUixJ.1",
     meetingId: "87974267086",
-    notifyEnabled: false,
+    notifyEnabled: true,
     published: true,
     sortOrder: 4,
   };

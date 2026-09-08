@@ -27,9 +27,13 @@ async function writeJson<T>(file: string, data: T) {
   await fs.writeFile(file, JSON.stringify(data, null, 2));
 }
 
-export async function getDevotions(options?: { includeUnpublished?: boolean }) {
+export async function getDevotions(options?: { includeUnpublished?: boolean; tag?: string }) {
   const devotions = await readJson<Devotion[]>(DEVOTIONS_FILE, []);
-  const sorted = [...devotions].sort(sortDevotionsForDisplay);
+  let sorted = [...devotions].sort(sortDevotionsForDisplay);
+
+  if (options?.tag) {
+    sorted = sorted.filter((devotion) => devotion.tags?.includes(options.tag!));
+  }
 
   if (options?.includeUnpublished) {
     return sorted;

@@ -102,6 +102,7 @@ export type Devotion = {
   updatedAt?: string;
   publishAt?: string | null;
   notifiedAt?: string | null;
+  tags?: string[];
 };
 
 export type ChurchEvent = {
@@ -129,6 +130,7 @@ export type ChurchEvent = {
   rsvpCapacity?: number | null;
   rsvpInstructions?: string | null;
   rsvpLastNotifiedAt?: string | null;
+  rsvpCouplesMode?: boolean;
 };
 
 export type MeetingPlatform = "in-person" | "zoom" | "teams";

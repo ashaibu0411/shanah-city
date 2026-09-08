@@ -40,9 +40,12 @@ export async function upsertEventRsvp(input: {
   userEmail: string;
   status: EventRsvpStatus;
   note?: string;
+  guestCount?: number;
+  spouseName?: string;
 }) {
   const rsvps = await readRsvps();
   const now = new Date().toISOString();
+  const guestCount = input.guestCount ?? 1;
   const index = rsvps.findIndex(
     (entry) => entry.eventId === input.eventId && entry.userId === input.userId,
   );
@@ -56,6 +59,8 @@ export async function upsertEventRsvp(input: {
       userEmail: input.userEmail,
       status: input.status,
       note: input.note?.trim() || undefined,
+      guestCount,
+      spouseName: input.spouseName?.trim() || undefined,
       createdAt: now,
       updatedAt: now,
     };
@@ -70,6 +75,8 @@ export async function upsertEventRsvp(input: {
     note: input.note?.trim() || undefined,
     userName: input.userName,
     userEmail: input.userEmail,
+    guestCount,
+    spouseName: input.spouseName?.trim() || undefined,
     updatedAt: now,
   };
   await writeJson(RSVPS_FILE, rsvps);

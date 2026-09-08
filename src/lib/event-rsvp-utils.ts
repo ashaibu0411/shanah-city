@@ -47,6 +47,10 @@ export function parseEventRsvpFields(body: Record<string, unknown>): EventRsvpFi
     fields.rsvpInstructions = instructions || null;
   }
 
+  if (body.rsvpCouplesMode !== undefined) {
+    fields.rsvpCouplesMode = body.rsvpCouplesMode === true;
+  }
+
   return fields;
 }
 

@@ -20,6 +20,7 @@ import {
   estimateReadingTime,
   resolveDevotionPublishFields,
   shouldNotifyDevotionPublish,
+  normalizeDevotionTags,
   type DevotionPublishMode,
 } from "@/lib/devotion-utils";
 
@@ -48,7 +49,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ devotions, canManage: true });
   }
 
-  const devotions = await getDevotions();
+  const tag = searchParams.get("tag")?.trim();
+  const devotions = await getDevotions(tag ? { tag } : undefined);
   return NextResponse.json(
     { devotions },
     { headers: { "Cache-Control": "no-store" } },
@@ -82,6 +84,7 @@ export async function POST(request: Request) {
   const readingTime = estimateReadingTime({ verse, content, prayer });
   const audioUrl = body.audioUrl ? String(body.audioUrl).trim() : undefined;
   const audioName = body.audioName ? String(body.audioName).trim() : undefined;
+  const tags = normalizeDevotionTags(body.tags);
 
   const devotion = await createDevotion(
     {
@@ -96,6 +99,7 @@ export async function POST(request: Request) {
       publishAt: schedule.publishAt,
       audioUrl,
       audioName,
+      tags: tags.length ? tags : undefined,
     },
     { id: user!.id, name: user!.name },
   );
@@ -171,6 +175,7 @@ export async function PATCH(request: Request) {
         : body.audioName
           ? String(body.audioName).trim()
           : undefined,
+    tags: body.tags !== undefined ? normalizeDevotionTags(body.tags) : undefined,
   });
 
   if (devotion && shouldNotifyDevotionPublish(devotion)) {

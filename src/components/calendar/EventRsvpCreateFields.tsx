@@ -1,5 +1,6 @@
 "use client";
 
+import { SHANAH_POWER_COUPLES_GROUP_ID } from "@/lib/church-groups";
 import type { EventRsvpAudience } from "@/lib/event-rsvp-types";
 import {
   localDateTimeInputToIso,
@@ -12,6 +13,7 @@ export type EventRsvpFormState = {
   rsvpDeadline: string;
   rsvpCapacity: string;
   rsvpInstructions: string;
+  rsvpCouplesMode: boolean;
   notifyMembers: boolean;
 };
 
@@ -24,6 +26,7 @@ export function defaultEventRsvpFormState(
     rsvpDeadline: "",
     rsvpCapacity: "",
     rsvpInstructions: "",
+    rsvpCouplesMode: false,
     notifyMembers: true,
   };
 }
@@ -37,6 +40,7 @@ export function eventRsvpFormToPayload(state: EventRsvpFormState) {
       : null,
     rsvpCapacity: state.rsvpCapacity.trim() ? Number(state.rsvpCapacity) : null,
     rsvpInstructions: state.rsvpInstructions.trim() || null,
+    rsvpCouplesMode: state.rsvpCouplesMode,
   };
 }
 
@@ -44,6 +48,7 @@ type EventRsvpCreateFieldsProps = {
   state: EventRsvpFormState;
   onChange: (state: EventRsvpFormState) => void;
   defaultAudience?: EventRsvpAudience;
+  groupId?: string | null;
   compact?: boolean;
 };
 
@@ -51,9 +56,11 @@ export function EventRsvpCreateFields({
   state,
   onChange,
   defaultAudience = "church",
+  groupId = null,
   compact = false,
 }: EventRsvpCreateFieldsProps) {
   const audience = state.rsvpAudience || defaultAudience;
+  const couplesDefault = groupId === SHANAH_POWER_COUPLES_GROUP_ID;
 
   return (
     <div
@@ -129,10 +136,26 @@ export function EventRsvpCreateFields({
               min={1}
               value={state.rsvpCapacity}
               onChange={(event) => onChange({ ...state, rsvpCapacity: event.target.value })}
-              placeholder="e.g. 20"
+              placeholder={state.rsvpCouplesMode || couplesDefault ? "e.g. 40 (counts people)" : "e.g. 20"}
               className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
           </label>
+
+          {(couplesDefault || state.rsvpCouplesMode) && (
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={state.rsvpCouplesMode || couplesDefault}
+                onChange={(event) =>
+                  onChange({ ...state, rsvpCouplesMode: event.target.checked })
+                }
+                className="mt-1"
+              />
+              <span className="text-sm text-night-700">
+                Couples RSVP — members can bring a spouse (+1 headcount)
+              </span>
+            </label>
+          )}
 
           <label className="block">
             <span className="text-sm font-semibold text-night-800">Instructions (optional)</span>
@@ -169,15 +192,18 @@ export function eventToRsvpFormState(
     rsvpDeadline?: string | null;
     rsvpCapacity?: number | null;
     rsvpInstructions?: string | null;
+    rsvpCouplesMode?: boolean;
     groupId?: string | null;
   },
 ): EventRsvpFormState {
+  const couplesDefault = event.groupId === SHANAH_POWER_COUPLES_GROUP_ID;
   return {
     rsvpEnabled: Boolean(event.rsvpEnabled),
     rsvpAudience: event.rsvpAudience ?? (event.groupId ? "group" : "church"),
     rsvpDeadline: toLocalDeadlineInputValue(event.rsvpDeadline),
     rsvpCapacity: event.rsvpCapacity ? String(event.rsvpCapacity) : "",
     rsvpInstructions: event.rsvpInstructions ?? "",
+    rsvpCouplesMode: event.rsvpCouplesMode ?? couplesDefault,
     notifyMembers: true,
   };
 }

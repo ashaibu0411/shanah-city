@@ -4,6 +4,7 @@ export const ADMIN_GROUP_ID = "group-admin";
 export const SENIOR_PASTOR_GROUP_ID = "group-senior-pastor";
 export const ASSOCIATE_PASTOR_GROUP_ID = "group-associate-pastor";
 export const TEAM_ZNCF_GROUP_ID = "group-team-zncf";
+export const SHANAH_POWER_COUPLES_GROUP_ID = "group-shanah-power-couples";
 
 export const CALENDAR_GROUP_TABS = {
   choir: "group-choir",
@@ -149,6 +150,17 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     id: "group-men-legacy",
     name: "Men of Legacy",
     description: "Men's ministry and discipleship.",
+    category: "ministry",
+    visibility: "public",
+    requiresApproval: false,
+    signupVisible: true,
+    isSystem: true,
+  },
+  {
+    id: "group-shanah-power-couples",
+    name: "Shanah Power Couples",
+    description:
+      "Married couples growing together in faith, prayer, and unity — monthly gatherings and fellowship.",
     category: "ministry",
     visibility: "public",
     requiresApproval: false,

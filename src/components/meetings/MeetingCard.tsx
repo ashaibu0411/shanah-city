@@ -3,7 +3,9 @@
 import { getCampus, site } from "@/lib/site";
 import {
   AUTOMATED_MEETING_REMINDERS,
+  MANUAL_PUSH_MEETING_GROUP_IDS,
   MANUAL_PUSH_MEETING_IDS,
+  MONTHLY_MEETING_REMINDERS,
   SHIFT_YOUR_EVENING_ID,
   SHIFT_YOUR_MORNING_ID,
   isAutomatedReminderMeeting,
@@ -91,6 +93,8 @@ export function MeetingCard({
   const showManualPush = Boolean(
     canManage && onSendPush && MANUAL_PUSH_MEETING_IDS.has(meeting.id) && !compact,
   );
+  const manualPushGroupId = MANUAL_PUSH_MEETING_GROUP_IDS[meeting.id];
+  const hasMonthlyAutoReminder = Boolean(MONTHLY_MEETING_REMINDERS[meeting.id]);
   const isEvening = meeting.id === SHIFT_YOUR_EVENING_ID;
 
   const content = (
@@ -214,8 +218,14 @@ export function MeetingCard({
         <div className="mt-4 rounded-xl bg-white/90 p-3 ring-1 ring-night-900/10">
           <p className="text-sm font-semibold text-night-900">Manual push notification</p>
           <p className="mt-1 text-xs text-night-600">
-            Days can shift, so this does not send automatically. Send a notification to everyone
-            on the app when the meeting is confirmed.
+            {manualPushGroupId
+              ? "Sends to ministry group members with worship notifications on."
+              : "Days can shift, so this does not send automatically. Send a notification to everyone on the app when the meeting is confirmed."}
+            {hasMonthlyAutoReminder && meeting.notifyEnabled
+              ? " Automatic reminder goes out the evening before when reminders are enabled."
+              : hasMonthlyAutoReminder
+                ? " Enable reminders above for an automatic evening-before push."
+                : ""}
           </p>
           <Button className="mt-3" disabled={sendingPush} onClick={onSendPush}>
             {sendingPush ? "Sending..." : "Send push now"}

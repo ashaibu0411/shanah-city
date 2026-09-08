@@ -129,6 +129,72 @@ const commonScenarios: Record<string, MinistryReportPrefillOption[]> = {
         "Lower attendance this month due to holidays, travel, or school schedules. Rebuilding momentum next month.",
     },
   ],
+  absenteeFollowUp: [
+    {
+      label: "All absentees contacted",
+      value:
+        "Called or texted every member who missed two or more gatherings. Most responded; a few are still being pursued.",
+    },
+    {
+      label: "Partial follow-up",
+      value:
+        "Reached most absent members by phone or text. One or two could not be reached yet — trying again this week.",
+    },
+    {
+      label: "No absences to follow up",
+      value:
+        "No one missed more than one gathering this month. Checked in with the full team during our regular meeting.",
+    },
+    {
+      label: "Pastoral handoff",
+      value:
+        "A sensitive situation was escalated to pastoral staff after initial follow-up. Details shared privately.",
+    },
+  ],
+  monthlyMeetingParticipation: [
+    {
+      label: "Strong participation",
+      value:
+        "Held our regular monthly gatherings with strong attendance — most members present and engaged.",
+    },
+    {
+      label: "Fair participation",
+      value:
+        "Meetings happened as scheduled with about half to two-thirds of the team present. Participation was steady but not full.",
+    },
+    {
+      label: "Low participation",
+      value:
+        "Attendance was lower than usual due to travel, work schedules, or season. See follow-up and growth plan below.",
+    },
+    {
+      label: "Missed meetings",
+      value:
+        "One or more planned gatherings were cancelled or poorly attended. Rescheduling and re-engaging the team next month.",
+    },
+  ],
+  attendanceIncreaseActions: [
+    {
+      label: "Personal invites",
+      value:
+        "Each core member is personally inviting one person. Reminder texts before meetings and a welcome plan for newcomers.",
+    },
+    {
+      label: "Schedule refresh",
+      value:
+        "Surveying the team on a better meeting time and adding a mid-month touchpoint (call, chat, or fellowship).",
+    },
+    {
+      label: "Accountability pairs",
+      value:
+        "Pairing members for check-ins between gatherings and celebrating consistent attendance publicly.",
+    },
+    {
+      label: "Outreach event",
+      value:
+        "Planning an invite-friendly gathering next month with food, clear welcome, and follow-up assigned.",
+    },
+  ],
   wins: [
     {
       label: "Strong team unity",
@@ -696,6 +762,74 @@ const TEMPLATE_SCENARIOS: Record<string, Record<string, MinistryReportPrefillOpt
       {
         label: "Co-leader",
         value: "Would benefit from a co-leader to share planning and follow-up.",
+      },
+    ],
+  },
+  couples: {
+    discipleshipHighlights: [
+      {
+        label: "Marriage renewal",
+        value:
+          "Couples shared honestly about prayer, forgiveness, or renewed commitment in their homes.",
+      },
+      {
+        label: "Unity breakthrough",
+        value:
+          "Visible unity or healing among couples who had been struggling (details in notes if needed).",
+      },
+      {
+        label: "New couples connected",
+        value:
+          "New couples attended and were personally welcomed — follow-up invites sent.",
+      },
+      {
+        label: "Fellowship depth",
+        value:
+          "Date night or fellowship strengthened trust and friendship across the ministry.",
+      },
+    ],
+    outreachPlans: [
+      {
+        label: "Invite-a-couple night",
+        value: "Planning an invite-a-couple gathering or social next month.",
+      },
+      {
+        label: "Church-wide event",
+        value: "Aligning with a church-wide event to invite unconnected couples.",
+      },
+      {
+        label: "Personal invites",
+        value: "Each core couple inviting one couple who is not yet connected.",
+      },
+      noneThisMonth,
+    ],
+    wins: [
+      {
+        label: "Strong turnout",
+        value: "Strong turnout and warm atmosphere at couples gatherings.",
+      },
+      {
+        label: "New hosts emerging",
+        value: "New couples stepped up to host, pray, or coordinate fellowship.",
+      },
+      {
+        label: "Marriage growth",
+        value: "Visible spiritual growth — deeper prayer, healing, or renewed unity at home.",
+      },
+    ],
+    resourceNeeds: [
+      noneThisMonth,
+      {
+        label: "Childcare help",
+        value: "Childcare support would help more couples attend gatherings.",
+      },
+      {
+        label: "Teaching resources",
+        value: "Books, curriculum, or materials needed for upcoming marriage enrichment.",
+      },
+      {
+        label: "Co-leader couple",
+        value: "Would benefit from a co-leader couple to share planning and follow-up.",
       },
     ],
   },

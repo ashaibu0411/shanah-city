@@ -8,7 +8,7 @@ import {
 } from "@/lib/worship-types";
 import * as pushDb from "@/lib/stores/push-db";
 import * as pushJson from "@/lib/stores/push-json";
-import { isTrackedJoinMeeting, isAutomatedReminderMeeting } from "@/lib/meeting-catalog";
+import { isTrackedJoinMeeting, isAutomatedReminderMeeting, MANUAL_PUSH_MEETING_GROUP_IDS } from "@/lib/meeting-catalog";
 import { useDatabase } from "@/lib/use-database";
 import {
   isNativePushConfigured,
@@ -598,6 +598,11 @@ export async function notifyScheduledMeeting(input: {
       "announcements",
       "worship",
     ]);
+  }
+
+  const groupId = MANUAL_PUSH_MEETING_GROUP_IDS[input.id];
+  if (groupId) {
+    return sendPushToGroupMembers(groupId, payload, "worship");
   }
 
   return sendPushToUsers(userIds, payload, "worship");

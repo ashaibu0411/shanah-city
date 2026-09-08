@@ -9,6 +9,8 @@ function mapRsvp(record: {
   userEmail: string;
   status: string;
   note: string | null;
+  guestCount: number;
+  spouseName: string | null;
   updatedAt: Date;
   createdAt: Date;
 }) {
@@ -20,6 +22,8 @@ function mapRsvp(record: {
     userEmail: record.userEmail,
     status: record.status as EventRsvpStatus,
     note: record.note ?? undefined,
+    guestCount: record.guestCount ?? 1,
+    spouseName: record.spouseName ?? undefined,
     updatedAt: record.updatedAt.toISOString(),
     createdAt: record.createdAt.toISOString(),
   };
@@ -47,7 +51,10 @@ export async function upsertEventRsvp(input: {
   userEmail: string;
   status: EventRsvpStatus;
   note?: string;
+  guestCount?: number;
+  spouseName?: string;
 }) {
+  const guestCount = input.guestCount ?? 1;
   const record = await prisma.eventRsvp.upsert({
     where: { eventId_userId: { eventId: input.eventId, userId: input.userId } },
     create: {
@@ -58,12 +65,16 @@ export async function upsertEventRsvp(input: {
       userEmail: input.userEmail,
       status: input.status,
       note: input.note?.trim() || null,
+      guestCount,
+      spouseName: input.spouseName?.trim() || null,
     },
     update: {
       status: input.status,
       note: input.note?.trim() || null,
       userName: input.userName,
       userEmail: input.userEmail,
+      guestCount,
+      spouseName: input.spouseName?.trim() || null,
     },
   });
   return mapRsvp(record);

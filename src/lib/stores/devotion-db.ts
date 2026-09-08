@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import {
   estimateReadingTime,
@@ -30,7 +31,13 @@ function mapDevotion(record: {
   updatedAt: Date | null;
   publishAt: Date | null;
   notifiedAt: Date | null;
+  tags: unknown;
 }): Devotion {
+  const tagsRaw = record.tags;
+  const tags = Array.isArray(tagsRaw)
+    ? tagsRaw.map((tag) => String(tag).trim()).filter(Boolean)
+    : undefined;
+
   return {
     id: record.id,
     title: record.title,
@@ -52,15 +59,20 @@ function mapDevotion(record: {
     updatedAt: record.updatedAt?.toISOString(),
     publishAt: record.publishAt?.toISOString(),
     notifiedAt: record.notifiedAt?.toISOString(),
+    tags: tags?.length ? tags : undefined,
   };
 }
 
-export async function getDevotions(options?: { includeUnpublished?: boolean }) {
+export async function getDevotions(options?: { includeUnpublished?: boolean; tag?: string }) {
   const records = await prisma.devotion.findMany({
     where: options?.includeUnpublished ? undefined : { published: true },
   });
 
-  const mapped = records.map(mapDevotion).sort(sortDevotionsForDisplay);
+  let mapped = records.map(mapDevotion).sort(sortDevotionsForDisplay);
+
+  if (options?.tag) {
+    mapped = mapped.filter((devotion) => devotion.tags?.includes(options.tag!));
+  }
 
   if (options?.includeUnpublished) {
     return mapped;
@@ -115,6 +127,7 @@ export async function createDevotion(
       artworkWideUrl: input.artworkWideUrl ?? null,
       artworkBannerUrl: input.artworkBannerUrl ?? null,
       publishAt: input.publishAt ? new Date(input.publishAt) : null,
+      tags: input.tags?.length ? input.tags : undefined,
       createdAt: now,
       updatedAt: now,
     },
@@ -179,6 +192,12 @@ export async function updateDevotion(
           : update.publishAt && new Date(update.publishAt) > new Date()
             ? null
             : undefined,
+      tags:
+        update.tags === undefined
+          ? undefined
+          : update.tags?.length
+            ? update.tags
+            : Prisma.DbNull,
       updatedAt: new Date(),
     },
   });

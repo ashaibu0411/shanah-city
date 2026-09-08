@@ -27,6 +27,7 @@ type EventRecord = {
   rsvpCapacity: number | null;
   rsvpInstructions: string | null;
   rsvpLastNotifiedAt: Date | null;
+  rsvpCouplesMode: boolean;
 };
 
 function mapEvent(record: EventRecord): ChurchEvent {
@@ -55,6 +56,7 @@ function mapEvent(record: EventRecord): ChurchEvent {
     rsvpCapacity: record.rsvpCapacity ?? undefined,
     rsvpInstructions: record.rsvpInstructions ?? undefined,
     rsvpLastNotifiedAt: record.rsvpLastNotifiedAt?.toISOString() ?? undefined,
+    rsvpCouplesMode: record.rsvpCouplesMode,
   };
 }
 
@@ -96,6 +98,10 @@ function rsvpDataFromInput(
         : input.rsvpLastNotifiedAt
           ? new Date(input.rsvpLastNotifiedAt)
           : null,
+    rsvpCouplesMode:
+      input.rsvpCouplesMode === undefined
+        ? (existing?.rsvpCouplesMode ?? false)
+        : Boolean(input.rsvpCouplesMode),
   };
 }
 

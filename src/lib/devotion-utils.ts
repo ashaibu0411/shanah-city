@@ -255,3 +255,20 @@ export function devotionHasLegacySections(
 ) {
   return Boolean(devotion.verse?.trim() || devotion.reference?.trim() || devotion.prayer?.trim());
 }
+
+export const DEVOTION_TAG_COUPLES = "couples";
+
+export const DEVOTION_TAGS = [{ value: DEVOTION_TAG_COUPLES, label: "For couples" }] as const;
+
+export function normalizeDevotionTags(tags: unknown): string[] {
+  if (!Array.isArray(tags)) return [];
+  return [...new Set(tags.map((tag) => String(tag).trim()).filter(Boolean))];
+}
+
+export function devotionHasTag(devotion: Pick<Devotion, "tags">, tag: string) {
+  return normalizeDevotionTags(devotion.tags).includes(tag);
+}
+
+export function filterDevotionsByTag(devotions: Devotion[], tag: string) {
+  return devotions.filter((devotion) => devotionHasTag(devotion, tag));
+}

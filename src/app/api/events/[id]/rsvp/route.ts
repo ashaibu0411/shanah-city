@@ -35,6 +35,10 @@ export async function POST(request: Request, context: RouteContext) {
   const body = await request.json();
   const status = String(body.status ?? "").trim();
   const note = body.note != null ? String(body.note).trim() : undefined;
+  const guestCount =
+    body.guestCount != null ? Number(body.guestCount) : undefined;
+  const spouseName =
+    body.spouseName != null ? String(body.spouseName).trim() : undefined;
 
   if (!isEventRsvpStatus(status)) {
     return NextResponse.json({ error: "Choose Going, Maybe, or Can't go." }, { status: 400 });
@@ -46,6 +50,8 @@ export async function POST(request: Request, context: RouteContext) {
       viewer: user,
       status,
       note,
+      guestCount,
+      spouseName,
     });
     return NextResponse.json({ ok: true, rsvp: result.view });
   } catch (error) {

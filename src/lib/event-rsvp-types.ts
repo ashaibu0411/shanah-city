@@ -9,6 +9,7 @@ export type EventRsvpFields = {
   rsvpDeadline?: string | null;
   rsvpCapacity?: number | null;
   rsvpInstructions?: string | null;
+  rsvpCouplesMode?: boolean;
 };
 
 export type EventRsvpRecord = {
@@ -19,6 +20,8 @@ export type EventRsvpRecord = {
   userEmail: string;
   status: EventRsvpStatus;
   note?: string;
+  guestCount?: number;
+  spouseName?: string;
   updatedAt: string;
   createdAt: string;
 };
@@ -36,6 +39,8 @@ export type EventRsvpRosterEntry = {
   userName: string;
   status: EventRsvpStatus;
   note?: string;
+  guestCount?: number;
+  spouseName?: string;
   updatedAt: string;
 };
 
@@ -48,6 +53,9 @@ export type EventRsvpView = {
   instructions: string | null;
   myStatus: EventRsvpStatus | null;
   myNote: string | null;
+  myGuestCount: number | null;
+  mySpouseName: string | null;
+  couplesMode: boolean;
   canRespond: boolean;
   canManage: boolean;
   inAudience: boolean;
