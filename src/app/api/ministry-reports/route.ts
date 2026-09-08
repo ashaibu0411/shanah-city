@@ -19,6 +19,7 @@ import {
   getReportTemplateForGroup,
   type MinistryReportResponses,
 } from "@/lib/ministry-report-types";
+import { notifyPastoralReviewersOfSubmission } from "@/lib/ministry-report-notify-server";
 
 async function requireUser() {
   const cookieStore = await cookies();
@@ -174,6 +175,13 @@ export async function POST(request: Request) {
       status,
       actor: { id: auth.user!.id, name: auth.user!.name },
     });
+
+    if (status === "submitted") {
+      void notifyPastoralReviewersOfSubmission({
+        groupName: leaderGroup.name,
+        reportMonth,
+      }).catch(() => undefined);
+    }
 
     return NextResponse.json({ report });
   } catch (error) {

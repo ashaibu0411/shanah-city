@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { AdminPastoralRoleShortcuts } from "@/components/admin/AdminPastoralRoleShortcuts";
 import { filterAdminPortalLinks } from "@/lib/admin-portal-links";
 
 export function AdminPortalHome() {
@@ -19,6 +20,8 @@ export function AdminPortalHome() {
           Choose a section below. Each opens on its own page, like Write devotions.
         </p>
       </div>
+
+      {permissions.canManageAdmin ? <AdminPastoralRoleShortcuts className="mb-8" /> : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {links.map((link) => (

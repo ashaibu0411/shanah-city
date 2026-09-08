@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AdminMemberDetail } from "@/components/admin/AdminMemberDetail";
+import { AdminPastoralRoleShortcuts } from "@/components/admin/AdminPastoralRoleShortcuts";
 import { Card } from "@/components/ui";
 import type { AdminPeopleEntry } from "@/lib/member-types";
 
@@ -75,6 +76,8 @@ export function AdminPeoplePanel() {
       {message && (
         <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{message}</p>
       )}
+
+      <AdminPastoralRoleShortcuts className="mb-6" />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <Card className={`p-0 ${selected ? "hidden lg:block" : ""}`}>

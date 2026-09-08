@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { AdminPastoralRoleShortcuts } from "@/components/admin/AdminPastoralRoleShortcuts";
 import { Button, Card } from "@/components/ui";
 import type { GroupJoinRequest } from "@/lib/group-types";
 
@@ -63,6 +64,8 @@ export function AdminApprovalsPanel() {
 
   return (
     <div className="space-y-6">
+      {permissions.canManageAdmin ? <AdminPastoralRoleShortcuts /> : null}
+
       {!permissions.canManageAdmin && pending.length === 0 && (
         <Card>
           <h2 className="font-display text-xl font-semibold text-night-900">

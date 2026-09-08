@@ -10,6 +10,10 @@ import { MobileHome } from "@/components/home/MobileHome";
 import { QuickActions } from "@/components/home/QuickActions";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
+import {
+  DevotionBrowseNudge,
+  LeaderReportHomeBanner,
+} from "@/components/home/DailyEngagementBanners";
 import { useUrgentAlertHighlight } from "@/components/home/useUrgentAlertHighlight";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { SermonCard } from "@/components/sermons/SermonCard";
@@ -57,9 +61,11 @@ export function HomeView({
       <HomeHero />
       <LiveBanner />
       <PendingRsvpHomeBanner />
+      <LeaderReportHomeBanner />
       <QuickActions />
       <CampusStrip />
       {todayDevotion ? <DevotionPreview devotion={todayDevotion} /> : null}
+      <DevotionBrowseNudge />
       <PrayerHomeBanner />
 
       <section className="mb-8">

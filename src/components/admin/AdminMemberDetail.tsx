@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { campuses, getCampus } from "@/lib/site";
+import {
+  ASSOCIATE_PASTOR_GROUP_ID,
+  SENIOR_PASTOR_GROUP_ID,
+} from "@/lib/church-groups";
 import type { AdminPeopleEntry } from "@/lib/member-types";
 import { Button, Card } from "@/components/ui";
 
@@ -19,6 +23,11 @@ const roleOptions = [
   { value: "leader", label: "Leader" },
   { value: "team", label: "Team" },
   { value: "media", label: "Media" },
+] as const;
+
+const pastoralRoleGroups = [
+  { id: SENIOR_PASTOR_GROUP_ID, label: "Senior Pastor" },
+  { id: ASSOCIATE_PASTOR_GROUP_ID, label: "Associate Pastor" },
 ] as const;
 
 export function AdminMemberDetail({
@@ -181,6 +190,39 @@ export function AdminMemberDetail({
     }
   }
 
+  async function togglePastoralRole(groupId: string, groupLabel: string, isMember: boolean) {
+    setBusy(true);
+    setMessage(null);
+    const response = await fetch("/api/groups", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        isMember
+          ? { action: "remove-member", groupId, memberId: person.id }
+          : { action: "add-member", groupId, userId: person.id },
+      ),
+    });
+    const data = await response.json();
+    setBusy(false);
+
+    if (!response.ok) {
+      setMessage(data.error ?? `Could not update ${groupLabel} access.`);
+      return;
+    }
+
+    const refresh = await fetch(`/api/admin/people?userId=${encodeURIComponent(person.id)}`);
+    const refreshData = await refresh.json();
+    if (refresh.ok && refreshData.person) {
+      onUpdated(refreshData.person);
+    }
+
+    setMessage(
+      isMember
+        ? `Removed ${groupLabel} access for ${person.name}.`
+        : `Added ${person.name} to ${groupLabel}. They may need to refresh the app.`,
+    );
+  }
+
   const hasPendingGroups = person.groups.some((group) => group.status === "pending");
 
   return (
@@ -278,6 +320,35 @@ export function AdminMemberDetail({
               .
             </p>
           )}
+
+          <div className="mt-4 rounded-xl bg-violet-50/80 px-4 py-3 ring-1 ring-violet-200/60">
+            <p className="text-sm font-semibold text-night-900">Pastoral review access</p>
+            <p className="mt-1 text-xs leading-snug text-night-600">
+              Senior and Associate Pastor roles can review leader reports. This is separate from the
+              general Pastors calendar group.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {pastoralRoleGroups.map((roleGroup) => {
+                const membership = person.groups.find(
+                  (group) => group.id === roleGroup.id && group.status === "member",
+                );
+                const isMember = Boolean(membership);
+                return (
+                  <Button
+                    key={roleGroup.id}
+                    variant={isMember ? "secondary" : "primary"}
+                    disabled={busy}
+                    onClick={() =>
+                      togglePastoralRole(roleGroup.id, roleGroup.label, isMember)
+                    }
+                  >
+                    {isMember ? `Remove ${roleGroup.label}` : `Add ${roleGroup.label}`}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
           <p className="mt-3 text-xs text-night-500">
             Joined {new Date(person.createdAt).toLocaleDateString()} ·{" "}
             {getCampus(person.campusId).name}

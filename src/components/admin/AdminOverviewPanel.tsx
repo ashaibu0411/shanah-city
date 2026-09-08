@@ -51,6 +51,8 @@ export function AdminOverviewPanel() {
   const { permissions } = useAuth();
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const isPastoralOnly =
+    permissions.canReviewMinistryReports && !permissions.canManageAdmin;
 
   useEffect(() => {
     async function load() {
@@ -76,31 +78,15 @@ export function AdminOverviewPanel() {
   return (
     <div className="space-y-6">
       <Card>
-        <h2 className="text-xl font-bold text-night-900">Pastor dashboard</h2>
+        <h2 className="text-xl font-bold text-night-900">
+          {isPastoralOnly ? "Ministry dashboard" : "Pastor dashboard"}
+        </h2>
         <p className="mt-1 text-sm text-night-600">
           Snapshot for {overview.monthLabel}. Metrics refresh when you open this page.
         </p>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {overview.guests ? (
-          <MetricCard
-            label="Guests"
-            value={overview.guests.new}
-            detail={`${overview.guests.new} new · ${overview.guests.contacted} contacted · ${overview.guests.thisMonth} this month`}
-            href="/admin/guests"
-          />
-        ) : null}
-
-        {overview.people ? (
-          <MetricCard
-            label="People"
-            value={overview.people.total}
-            detail={`${overview.people.newThisMonth} joined this month`}
-            href="/admin/people"
-          />
-        ) : null}
-
         {overview.ministryReports &&
         (permissions.canManageAdmin || permissions.canReviewMinistryReports) ? (
           <MetricCard
@@ -108,37 +94,6 @@ export function AdminOverviewPanel() {
             value={overview.ministryReports.missing}
             detail={`${overview.ministryReports.submitted} submitted · ${overview.ministryReports.reviewed} reviewed`}
             href="/admin/reports?section=leaders"
-          />
-        ) : null}
-
-        {overview.giving ? (
-          <MetricCard
-            label="Giving this month"
-            value={overview.giving.totalAmount.toLocaleString(undefined, {
-              style: "currency",
-              currency: "USD",
-              maximumFractionDigits: 0,
-            })}
-            detail={`${overview.giving.count} gifts recorded`}
-            href="/admin/giving"
-          />
-        ) : null}
-
-        {typeof overview.volunteersToday === "number" ? (
-          <MetricCard
-            label="Volunteers today"
-            value={overview.volunteersToday}
-            detail="FrontLiners check-ins for today"
-            href="/frontliners"
-          />
-        ) : null}
-
-        {overview.kids ? (
-          <MetricCard
-            label="Kids checked in"
-            value={overview.kids.checkedIn}
-            detail={overview.kids.rooms.map((room) => `${room.ageGroup}: ${room.count}`).join(" · ")}
-            href="/kids-ministry"
           />
         ) : null}
 
@@ -151,7 +106,56 @@ export function AdminOverviewPanel() {
           />
         ) : null}
 
-        {overview.comms ? (
+        {typeof overview.volunteersToday === "number" ? (
+          <MetricCard
+            label="Volunteers today"
+            value={overview.volunteersToday}
+            detail="FrontLiners check-ins for today"
+            href="/frontliners"
+          />
+        ) : null}
+
+        {overview.kids && permissions.canAccessKidsMinistry ? (
+          <MetricCard
+            label="Kids checked in"
+            value={overview.kids.checkedIn}
+            detail={overview.kids.rooms.map((room) => `${room.ageGroup}: ${room.count}`).join(" · ")}
+            href="/kids-ministry"
+          />
+        ) : null}
+
+        {overview.guests && permissions.canManageAdmin ? (
+          <MetricCard
+            label="Guests"
+            value={overview.guests.new}
+            detail={`${overview.guests.new} new · ${overview.guests.contacted} contacted · ${overview.guests.thisMonth} this month`}
+            href="/admin/guests"
+          />
+        ) : null}
+
+        {overview.people && permissions.canManageAdmin ? (
+          <MetricCard
+            label="People"
+            value={overview.people.total}
+            detail={`${overview.people.newThisMonth} joined this month`}
+            href="/admin/people"
+          />
+        ) : null}
+
+        {overview.giving && permissions.canAccessFinance ? (
+          <MetricCard
+            label="Giving this month"
+            value={overview.giving.totalAmount.toLocaleString(undefined, {
+              style: "currency",
+              currency: "USD",
+              maximumFractionDigits: 0,
+            })}
+            detail={`${overview.giving.count} gifts recorded`}
+            href="/admin/giving"
+          />
+        ) : null}
+
+        {overview.comms && permissions.canManageAdmin ? (
           <MetricCard
             label="Comms queue"
             value={overview.comms.pendingApproval}

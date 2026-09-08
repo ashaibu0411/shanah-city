@@ -18,6 +18,10 @@ import { HomePastorPortrait } from "@/components/home/HomePastorPortrait";
 import { LiveStreamCountdownInline } from "@/components/live/useLiveStreamSchedule";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
+import {
+  DevotionBrowseNudge,
+  LeaderReportHomeBanner,
+} from "@/components/home/DailyEngagementBanners";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
@@ -103,7 +107,14 @@ export function MobileHome({
     <div className="mobile-home animate-fade-in space-y-4">
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <PendingRsvpHomeBanner />
+      <LeaderReportHomeBanner />
       <PrayerHomeBanner variant="mobile" />
+
+      {devotion ? (
+        <DevotionPromoCard devotion={devotion} variant="mobile" className="space-y-0" />
+      ) : null}
+
+      <DevotionBrowseNudge />
 
       <MobilePremiumFrame
         variant="surface"
@@ -212,10 +223,6 @@ export function MobileHome({
           </div>
         </Link>
       </MobilePremiumFrame>
-
-      {devotion ? (
-        <DevotionPromoCard devotion={devotion} variant="mobile" className="space-y-0" />
-      ) : null}
 
       <section>
         <h2 className="mobile-section-title mb-2.5 px-0.5">Explore</h2>
