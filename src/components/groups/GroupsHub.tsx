@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAppShell } from "@/components/app/AppShellContext";
+import { MobileTabPills } from "@/components/app/MobileTabPills";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { GroupsFeed } from "@/components/groups/GroupsFeed";
 import { campuses } from "@/lib/site";
@@ -15,6 +17,7 @@ const categories: GroupCategory[] = ["ministry", "choir", "small-group", "youth"
 
 export function GroupsHub() {
   const router = useRouter();
+  const { isMobileApp } = useAppShell();
   const { user, loading } = useAuth();
   const [tab, setTab] = useState<Tab>("discover");
   const [groups, setGroups] = useState<GroupSummary[]>([]);
@@ -104,33 +107,25 @@ export function GroupsHub() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap gap-2">
-        {(
-          [
-            ["discover", "Discover"],
-            ["mine", "My groups"],
-            ["create", "Create"],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setTab(key)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-              tab === key
-                ? "bg-night-900 text-sand-50"
-                : "bg-white text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <MobileTabPills
+        className="mb-4"
+        tabs={[
+          { id: "discover", label: "Discover" },
+          { id: "mine", label: "My groups" },
+          { id: "create", label: "Create" },
+        ]}
+        activeId={tab}
+        onChange={(id) => setTab(id as Tab)}
+      />
 
       {tab === "create" ? (
         <Card>
           {!user ? (
-            <div className="rounded-2xl bg-sand-50 px-4 py-5 text-sm text-night-700">
+            <div className={`rounded-2xl px-4 py-5 text-sm text-night-700 ${
+              isMobileApp
+                ? "mobile-premium-section"
+                : "bg-sand-50"
+            }`}>
               <p className="font-semibold text-night-900">Sign in to create a group</p>
               <p className="mt-2">
                 Start a choir team, men&apos;s ministry, small group, or any other gathering.
@@ -156,7 +151,11 @@ export function GroupsHub() {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="Men's Ministry, Choir, etc."
-                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                  className={`mt-1 w-full rounded-xl px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 ${
+                    isMobileApp
+                      ? "mobile-field border-0"
+                      : "border border-night-900/10 bg-white"
+                  }`}
                   required
                 />
               </label>
@@ -166,7 +165,11 @@ export function GroupsHub() {
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value as GroupCategory)}
-                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                  className={`mt-1 w-full rounded-xl px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 ${
+                    isMobileApp
+                      ? "mobile-field border-0"
+                      : "border border-night-900/10 bg-white"
+                  }`}
                 >
                   {categories.map((value) => (
                     <option key={value} value={value}>
@@ -183,7 +186,11 @@ export function GroupsHub() {
                   onChange={(event) => setDescription(event.target.value)}
                   rows={3}
                   placeholder="Who is this group for and what do you do together?"
-                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                  className={`mt-1 w-full rounded-xl px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 ${
+                    isMobileApp
+                      ? "mobile-field border-0"
+                      : "border border-night-900/10 bg-sand-50"
+                  }`}
                   required
                 />
               </label>
@@ -193,7 +200,11 @@ export function GroupsHub() {
                 <select
                   value={campusId}
                   onChange={(event) => setCampusId(event.target.value)}
-                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                  className={`mt-1 w-full rounded-xl px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 ${
+                    isMobileApp
+                      ? "mobile-field border-0"
+                      : "border border-night-900/10 bg-white"
+                  }`}
                 >
                   <option value="">All campuses</option>
                   {campuses.map((campus) => (
@@ -209,7 +220,11 @@ export function GroupsHub() {
                 <select
                   value={visibility}
                   onChange={(event) => setVisibility(event.target.value as "public" | "private")}
-                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                  className={`mt-1 w-full rounded-xl px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 ${
+                    isMobileApp
+                      ? "mobile-field border-0"
+                      : "border border-night-900/10 bg-white"
+                  }`}
                 >
                   <option value="public">Public — anyone can find and join</option>
                   <option value="private">Private — members only</option>
@@ -222,7 +237,11 @@ export function GroupsHub() {
                   value={meetingSchedule}
                   onChange={(event) => setMeetingSchedule(event.target.value)}
                   placeholder="Saturdays 9:00 AM"
-                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                  className={`mt-1 w-full rounded-xl px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 ${
+                    isMobileApp
+                      ? "mobile-field border-0"
+                      : "border border-night-900/10 bg-white"
+                  }`}
                 />
               </label>
 
@@ -232,7 +251,11 @@ export function GroupsHub() {
                   value={meetingLink}
                   onChange={(event) => setMeetingLink(event.target.value)}
                   placeholder="Zoom, Teams, or external chat link"
-                  className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+                  className={`mt-1 w-full rounded-xl px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 ${
+                    isMobileApp
+                      ? "mobile-field border-0"
+                      : "border border-night-900/10 bg-white"
+                  }`}
                 />
               </label>
 
@@ -243,7 +266,11 @@ export function GroupsHub() {
           )}
         </Card>
       ) : filteredGroups.length === 0 ? (
-        <p className="rounded-2xl bg-white p-5 text-sm text-night-600 ring-1 ring-night-900/5">
+        <p className={`text-sm text-night-600 ${
+          isMobileApp
+            ? "mobile-card mobile-premium-surface p-5"
+            : "rounded-2xl bg-white p-5 ring-1 ring-night-900/5"
+        }`}>
           {tab === "mine"
             ? user
               ? "You haven't joined any groups yet. Browse Discover or create one."

@@ -4,7 +4,9 @@
 
 @layer base {
   html {
+    --reading-scale: 1;
     scroll-behavior: smooth;
+    font-size: calc(100% * var(--reading-scale));
   }
 
   body {
@@ -34,56 +36,11 @@
     letter-spacing: 0.005em;
   }
 
-  body[data-shell="mobile"][data-text-scale="large"] {
-    font-size: 1.0625rem;
-    line-height: 1.65;
-  }
-
-  body[data-shell="mobile"][data-text-scale="large"] .text-xs {
-    font-size: 0.9375rem;
-    line-height: 1.4rem;
-  }
-
-  body[data-shell="mobile"][data-text-scale="large"] .text-sm {
-    font-size: 1.0625rem;
-    line-height: 1.55rem;
-  }
-
-  body[data-shell="mobile"][data-text-scale="large"] .text-base {
-    font-size: 1.125rem;
-    line-height: 1.65rem;
-  }
-
-  body[data-shell="mobile"][data-text-scale="extraLarge"] {
-    font-size: 1.125rem;
-    line-height: 1.7;
-  }
-
-  body[data-shell="mobile"][data-text-scale="extraLarge"] .text-xs {
-    font-size: 1rem;
-    line-height: 1.45rem;
-  }
-
-  body[data-shell="mobile"][data-text-scale="extraLarge"] .text-sm {
-    font-size: 1.125rem;
-    line-height: 1.6rem;
-  }
-
-  body[data-shell="mobile"][data-text-scale="extraLarge"] .text-base {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-  }
-
-  body[data-shell="mobile"][data-text-scale="extraLarge"] .text-lg {
-    font-size: 1.375rem;
-    line-height: 1.85rem;
-  }
-
   body[data-shell="mobile"] .mobile-nav-label {
     font-size: 0.75rem;
     line-height: 1rem;
     font-weight: 600;
-    color: rgba(243, 239, 232, 0.92);
+    color: rgba(26, 35, 50, 0.72);
   }
 
   body[data-shell="mobile"] .mobile-nav-icon-shell {
@@ -100,15 +57,16 @@
     width: 1.25rem;
   }
 
-  body[data-shell="mobile"] .mobile-nav-link.text-white .mobile-nav-label {
-    color: #ffffff;
+  body[data-shell="mobile"] .mobile-nav-link.text-white .mobile-nav-label,
+  body[data-shell="mobile"] .mobile-nav-link.text-night-900 .mobile-nav-label {
+    color: #111827;
   }
 
   body[data-shell="mobile"] .mobile-bottom-nav {
-    background: #111827;
+    background: linear-gradient(180deg, #faf8f5 0%, #f3efe8 100%);
     box-shadow:
-      0 -1px 0 rgba(255, 255, 255, 0.08),
-      0 -12px 40px rgba(15, 23, 42, 0.55);
+      0 -1px 0 rgba(26, 35, 50, 0.08),
+      0 -10px 32px rgba(15, 23, 42, 0.08);
   }
 
   body[data-shell="mobile"] .mobile-bottom-nav::after {
@@ -116,57 +74,10 @@
     position: absolute;
     inset: auto 0 0 0;
     height: env(safe-area-inset-bottom, 0px);
-    background: #111827;
+    background: #f3efe8;
     pointer-events: none;
   }
 
-  body[data-shell="mobile"][data-text-scale="large"] .mobile-nav-label {
-    font-size: 0.8125rem;
-  }
-
-  body[data-shell="mobile"][data-text-scale="extraLarge"] .mobile-nav-label {
-    font-size: 0.875rem;
-  }
-
-  body[data-text-scale="large"] {
-    font-size: 1.0625rem;
-    line-height: 1.65;
-  }
-
-  body[data-text-scale="large"] .text-xs {
-    font-size: 0.875rem;
-    line-height: 1.35rem;
-  }
-
-  body[data-text-scale="large"] .text-sm {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
-
-  body[data-text-scale="large"] .text-base {
-    font-size: 1.125rem;
-    line-height: 1.65rem;
-  }
-
-  body[data-text-scale="extraLarge"] {
-    font-size: 1.125rem;
-    line-height: 1.7;
-  }
-
-  body[data-text-scale="extraLarge"] .text-xs {
-    font-size: 1rem;
-    line-height: 1.45rem;
-  }
-
-  body[data-text-scale="extraLarge"] .text-sm {
-    font-size: 1.125rem;
-    line-height: 1.6rem;
-  }
-
-  body[data-text-scale="extraLarge"] .text-base {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-  }
 }
 
 @layer components {
@@ -286,23 +197,23 @@
       width: 1.375rem;
     }
 
-    body[data-shell="mobile"] .mobile-page-hero {
+    body[data-shell="mobile"] .mobile-warm-page-header {
       margin-bottom: 1rem;
       padding: 1.5rem;
       border-radius: 1.25rem;
     }
 
-    body[data-shell="mobile"] .mobile-page-hero h1 {
+    body[data-shell="mobile"] .mobile-warm-page-header h1 {
       font-size: 1.875rem;
       line-height: 2.25rem;
     }
 
-    body[data-shell="mobile"] .mobile-page-hero .mobile-page-hero-eyebrow {
+    body[data-shell="mobile"] .mobile-warm-page-header .mobile-warm-page-header-eyebrow {
       font-size: 0.6875rem;
       letter-spacing: 0.28em;
     }
 
-    body[data-shell="mobile"] .mobile-page-hero .mobile-page-hero-description {
+    body[data-shell="mobile"] .mobile-warm-page-header .mobile-warm-page-header-description {
       font-size: 1rem;
       line-height: 1.55rem;
     }
@@ -388,17 +299,17 @@
       width: 1.5rem;
     }
 
-    body[data-shell="mobile"] .mobile-page-hero {
+    body[data-shell="mobile"] .mobile-warm-page-header {
       margin-bottom: 1.25rem;
       padding: 1.75rem;
     }
 
-    body[data-shell="mobile"] .mobile-page-hero h1 {
+    body[data-shell="mobile"] .mobile-warm-page-header h1 {
       font-size: 2.25rem;
       line-height: 2.5rem;
     }
 
-    body[data-shell="mobile"] .mobile-page-hero .mobile-page-hero-description {
+    body[data-shell="mobile"] .mobile-warm-page-header .mobile-warm-page-header-description {
       font-size: 1.0625rem;
       line-height: 1.6rem;
     }
@@ -473,7 +384,7 @@
   body[data-shell="mobile"] input,
   body[data-shell="mobile"] textarea,
   body[data-shell="mobile"] select {
-    font-size: 16px;
+    font-size: max(1rem, 16px);
     touch-action: manipulation;
     color: #111827;
     -webkit-text-fill-color: #111827;
@@ -692,8 +603,58 @@
     width: 2rem;
   }
 
-  body[data-shell="mobile"] .mobile-page-hero {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+  body[data-shell="mobile"] .mobile-warm-page-header {
+    background:
+      radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.14), transparent 42%),
+      radial-gradient(circle at 0% 100%, rgba(13, 148, 136, 0.1), transparent 38%),
+      linear-gradient(180deg, #ffffff 0%, #f0fdfa 55%, #faf8f5 100%);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 10px 28px rgba(15, 118, 110, 0.08);
+  }
+
+  body[data-shell="mobile"] .mobile-premium-quote {
+    border-radius: 1.35rem;
+    border: 1px solid rgba(13, 148, 136, 0.14);
+    background: linear-gradient(135deg, #f0fdfa 0%, #faf8f5 55%, #fff7ed 100%);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 8px 24px rgba(15, 118, 110, 0.08);
+  }
+
+  body[data-shell="mobile"] .mobile-premium-section {
+    border-radius: 1.35rem;
+    border: 1px solid rgba(26, 35, 50, 0.06);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 8px 24px rgba(15, 23, 42, 0.06);
+  }
+
+  body[data-shell="mobile"] .mobile-more-sheet-panel {
+    background:
+      radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.12), transparent 40%),
+      radial-gradient(circle at 0% 100%, rgba(13, 148, 136, 0.08), transparent 36%),
+      linear-gradient(180deg, #ffffff 0%, #f7faf9 100%);
+    box-shadow:
+      0 -12px 48px rgba(15, 23, 42, 0.12),
+      0 -1px 0 rgba(26, 35, 50, 0.06);
+  }
+
+  body[data-shell="mobile"] .mobile-more-sheet-card {
+    border-radius: 1.15rem;
+    border: 1px solid rgba(26, 35, 50, 0.08);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+
+  body[data-shell="mobile"] .mobile-devotion-reader-header {
+    border-radius: 1.35rem;
+    overflow: hidden;
+    border: 1px solid rgba(13, 148, 136, 0.18);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.06),
+      0 10px 28px rgba(15, 118, 110, 0.12);
   }
 
   body[data-shell="mobile"] .mobile-home-live-flyer,
@@ -761,16 +722,6 @@
   body[data-shell="mobile"] .mobile-devotion-archive-tile {
     border-radius: 1.35rem;
     overflow: hidden;
-  }
-
-  body[data-shell="mobile"] .mobile-devotions-page-header {
-    background:
-      radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.14), transparent 42%),
-      radial-gradient(circle at 0% 100%, rgba(13, 148, 136, 0.1), transparent 38%),
-      linear-gradient(180deg, #ffffff 0%, #f0fdfa 55%, #faf8f5 100%);
-    box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 10px 28px rgba(15, 118, 110, 0.08);
   }
 
   body[data-shell="mobile"] .mobile-section-title {
@@ -1441,7 +1392,7 @@
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
-body[data-shell="mobile"] .community-page .mobile-page-hero {
+body[data-shell="mobile"] .community-page .mobile-warm-page-header {
   margin-bottom: 0.75rem;
 }
 

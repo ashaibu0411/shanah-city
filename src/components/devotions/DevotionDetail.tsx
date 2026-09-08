@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import { useAppShell } from "@/components/app/AppShellContext";
 import type { Devotion } from "@/lib/types";
 import { getDevotionArtwork } from "@/lib/devotion-artwork";
@@ -21,7 +22,7 @@ function ModeToggle({
   onChange: (mode: DevotionMode) => void;
 }) {
   return (
-    <div className="inline-flex rounded-full bg-sand-100 p-1">
+    <div className="inline-flex rounded-full bg-sand-100 p-1 ring-1 ring-night-900/8">
       {(
         [
           ["read", "Read"],
@@ -33,7 +34,7 @@ function ModeToggle({
           type="button"
           onClick={() => onChange(value)}
           className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-            mode === value ? "bg-night-900 text-sand-50" : "text-night-700 hover:bg-white"
+            mode === value ? "bg-teal-700 text-white" : "text-night-700 hover:bg-white"
           }`}
         >
           {label}
@@ -55,6 +56,49 @@ function DevotionArtworkHero({ devotion }: { devotion: Devotion }) {
   );
 }
 
+function DevotionMobileReaderHeader({
+  devotion,
+  eyebrow,
+}: {
+  devotion: Devotion;
+  eyebrow: string;
+}) {
+  const artworkUrl = getDevotionArtwork(devotion, "square");
+
+  return (
+    <MobilePremiumFrame variant="surface" className="mobile-devotion-reader-header mb-4">
+      <div className="flex min-h-[7rem] items-stretch bg-gradient-to-br from-teal-50/95 via-white to-amber-50/75">
+        {artworkUrl ? (
+          <div className="relative w-[5.75rem] shrink-0 bg-teal-900/10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={artworkUrl}
+              alt=""
+              className="h-full min-h-[7rem] w-full object-cover"
+            />
+            <div
+              className="pointer-events-none absolute inset-y-0 right-0 w-px bg-teal-400/35"
+              aria-hidden
+            />
+          </div>
+        ) : null}
+
+        <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-teal-700">
+            {eyebrow} · {devotion.date} · {devotion.readingTime}
+          </p>
+          <h1 className="mt-1 font-display text-[1.2rem] font-semibold leading-snug tracking-tight text-night-900">
+            {devotion.title}
+          </h1>
+          {devotion.reference ? (
+            <p className="mt-1 text-xs text-night-500">{devotion.reference}</p>
+          ) : null}
+        </div>
+      </div>
+    </MobilePremiumFrame>
+  );
+}
+
 export function DevotionDetail({
   devotion,
   eyebrow = "Devotion",
@@ -68,43 +112,51 @@ export function DevotionDetail({
   backLabel?: string;
   showBackLink?: boolean;
 }) {
-  const { isNativeApp } = useAppShell();
+  const { isNativeApp, isMobileApp } = useAppShell();
   const [completed, setCompleted] = useState(false);
   const [mode, setMode] = useState<DevotionMode>("read");
 
-  return (
-    <Card>
-      <DevotionArtworkHero devotion={devotion} />
+  const content = (
+    <>
       {showBackLink && (
         <div className="mb-4">
           <Link
             href={backHref}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-night-600 hover:text-night-900"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800 hover:text-teal-950"
           >
             ← {backLabel}
           </Link>
         </div>
       )}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-sand-600">
-            {eyebrow} · {devotion.date} · {devotion.readingTime}
-          </p>
-          <h1 className="mt-2 font-display text-2xl font-semibold text-night-900 sm:text-3xl">
-            {devotion.title}
-          </h1>
-        </div>
-        {isNativeApp ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <ModeToggle mode={mode} onChange={setMode} />
-            {completed && (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                ✓ Done
-              </span>
-            )}
+
+      {isMobileApp ? (
+        <DevotionMobileReaderHeader devotion={devotion} eyebrow={eyebrow} />
+      ) : (
+        <>
+          <DevotionArtworkHero devotion={devotion} />
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-sand-600">
+                {eyebrow} · {devotion.date} · {devotion.readingTime}
+              </p>
+              <h1 className="mt-2 font-display text-2xl font-semibold text-night-900 sm:text-3xl">
+                {devotion.title}
+              </h1>
+            </div>
           </div>
-        ) : null}
-      </div>
+        </>
+      )}
+
+      {isNativeApp ? (
+        <div className={`flex flex-wrap items-center gap-2 ${isMobileApp ? "mb-4" : "mt-4"}`}>
+          <ModeToggle mode={mode} onChange={setMode} />
+          {completed ? (
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+              ✓ Done
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
       {isNativeApp ? (
         <>
@@ -128,8 +180,14 @@ export function DevotionDetail({
       ) : (
         <DevotionBrowserPrompt devotion={devotion} />
       )}
-    </Card>
+    </>
   );
+
+  if (isMobileApp) {
+    return <div className="mobile-card mobile-premium-surface p-4">{content}</div>;
+  }
+
+  return <Card>{content}</Card>;
 }
 
 export function DevotionPreview({ devotion }: { devotion: Devotion }) {

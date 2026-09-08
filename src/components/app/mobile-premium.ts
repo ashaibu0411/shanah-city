@@ -66,7 +66,7 @@ export const premiumTeal = {
   navActive:
     "bg-amber-400 text-night-950 shadow-app-md ring-1 ring-amber-200/60",
   navIdle:
-    "bg-night-800 text-sand-100 ring-1 ring-white/15",
+    "bg-white text-night-800 ring-1 ring-night-900/10 shadow-sm",
   tabActive:
     "bg-teal-700 text-white shadow-md shadow-teal-900/20 ring-1 ring-teal-600/25",
   tabIdle:

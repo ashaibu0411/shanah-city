@@ -1,7 +1,8 @@
 import Link from "next/link";
-import type { Devotion } from "@/lib/types";
-import { getDevotionArtwork } from "@/lib/devotion-artwork";
+import { MobilePageHero } from "@/components/app/MobilePageHero";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
+import { getDevotionArtwork } from "@/lib/devotion-artwork";
+import type { Devotion } from "@/lib/types";
 
 const archiveTones = [
   "from-white to-teal-50/85 ring-teal-200/45",
@@ -118,14 +119,10 @@ export function MobileDevotionFeaturedHero({ devotion }: MobileDevotionFeaturedH
 
 export function MobileDevotionsPageHeader() {
   return (
-    <div className="mobile-devotions-page-header overflow-hidden rounded-[1.35rem] p-4 ring-1 ring-teal-200/45">
-      <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-teal-700">Daily</p>
-      <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight text-night-900">
-        Devotions
-      </h1>
-      <p className="mt-2 text-sm leading-snug text-night-600">
-        Read or listen to today&apos;s word, then browse the library.
-      </p>
-    </div>
+    <MobilePageHero
+      eyebrow="Daily"
+      title="Devotions"
+      description="Read or listen to today's word, then browse the library."
+    />
   );
 }

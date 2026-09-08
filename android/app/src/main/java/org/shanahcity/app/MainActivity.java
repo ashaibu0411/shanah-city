@@ -18,6 +18,9 @@ public class MainActivity extends BridgeActivity {
       // Keep long-press paste/copy menus working inside form fields.
       webView.setOnLongClickListener(view -> false);
       webView.setLongClickable(true);
+      webView.getSettings().setSupportZoom(true);
+      webView.getSettings().setBuiltInZoomControls(true);
+      webView.getSettings().setDisplayZoomControls(false);
       webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
       webView.addJavascriptInterface(new ShanahBridge(), "ShanahBridge");
     }

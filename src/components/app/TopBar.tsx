@@ -7,6 +7,7 @@ import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
 import { CampusSelector } from "@/components/app/CampusSelector";
+import { TextSizeControl } from "@/components/app/TextSizeControl";
 import { liveStream, site } from "@/lib/site";
 import { Badge, ExternalLink } from "@/components/ui";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -38,6 +39,7 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
+          <TextSizeControl variant="desktop" />
           <CampusSelector />
           {!loading && user ? <NotificationBell /> : null}
           <Link

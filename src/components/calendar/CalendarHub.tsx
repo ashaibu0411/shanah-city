@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useAppShell } from "@/components/app/AppShellContext";
+import { MobileTabPills } from "@/components/app/MobileTabPills";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
 import { EventCalendarFields } from "@/components/calendar/EventCalendarFields";
@@ -41,11 +43,15 @@ function EventDetailCard({
   needsRsvp?: boolean;
   highlighted?: boolean;
 }) {
+  const { isMobileApp } = useAppShell();
+
   return (
     <div
       id={`event-${event.id}`}
-      className={`rounded-xl bg-sand-50 p-4 ring-1 ${
-        highlighted ? "ring-2 ring-gold-500" : "ring-night-900/5"
+      className={`p-4 ring-1 ${
+        isMobileApp
+          ? `mobile-premium-section ${highlighted ? "ring-2 ring-amber-400" : ""}`
+          : `rounded-xl bg-sand-50 ${highlighted ? "ring-2 ring-gold-500" : "ring-night-900/5"}`
       }`}
     >
       <p className="text-sm font-medium text-sand-600">{event.date}</p>
@@ -332,34 +338,17 @@ export function CalendarHub() {
   const { pendingCount } = useMyEventRsvps(Boolean(user));
   const [tab, setTab] = useState<CalendarTab>("church");
 
-  const tabs: { id: CalendarTab; label: string }[] = [
-    { id: "church", label: "Church" },
-    { id: "meetings", label: "Meetings" },
-  ];
-
   return (
     <div>
-      <div className="mb-6 flex flex-wrap gap-2">
-        {tabs.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setTab(item.id)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-              tab === item.id
-                ? "bg-night-900 text-sand-50"
-                : "bg-white text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
-            }`}
-          >
-            {item.label}
-            {item.id === "church" && pendingCount > 0 ? (
-              <span className="ml-2 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-teal-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                {pendingCount}
-              </span>
-            ) : null}
-          </button>
-        ))}
-      </div>
+      <MobileTabPills
+        className="mb-6"
+        tabs={[
+          { id: "church", label: "Church", badge: pendingCount },
+          { id: "meetings", label: "Meetings" },
+        ]}
+        activeId={tab}
+        onChange={(id) => setTab(id as CalendarTab)}
+      />
 
       {tab === "church" && <ChurchEventsPanel />}
       {tab === "meetings" && <MeetingsCalendarPanel />}
