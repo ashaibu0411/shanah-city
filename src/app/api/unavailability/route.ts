@@ -52,8 +52,11 @@ export async function GET(request: Request) {
 
   const requests = (await getUnavailabilityRequests()).filter((item) => item.group === group);
   const canReview = await canReviewUnavailabilityForGroup(user, group);
+  const visibleRequests = canReview
+    ? requests
+    : requests.filter((item) => item.status === "approved");
 
-  return NextResponse.json({ requests, canReview });
+  return NextResponse.json({ requests: visibleRequests, canReview });
 }
 
 export async function POST(request: Request) {

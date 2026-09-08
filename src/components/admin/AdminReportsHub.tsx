@@ -73,37 +73,25 @@ export function AdminReportsHub() {
 
   return (
     <div className="space-y-6">
-      <Card className="p-5 sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
-          Admin Group
-        </p>
-        <h2 className="mt-1 font-display text-xl font-semibold text-night-900 sm:text-2xl">
-          Reports
-        </h2>
-        <p className="mt-2 max-w-3xl text-sm text-night-600">
-          Prayer join clicks and monthly leader accountability in one place. Choose a category
-          below.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {REPORT_SECTIONS.map((section) => {
-            const active = section.id === activeSection;
-            return (
-              <button
-                key={section.id}
-                type="button"
-                onClick={() => selectSection(section.id)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  active
-                    ? "bg-night-900 text-sand-50 shadow-sm"
-                    : "bg-white text-night-700 ring-1 ring-night-900/10 hover:bg-sand-50"
-                }`}
-              >
-                {section.label}
-              </button>
-            );
-          })}
-        </div>
-      </Card>
+      <div className="flex flex-wrap gap-2">
+        {REPORT_SECTIONS.map((section) => {
+          const active = section.id === activeSection;
+          return (
+            <button
+              key={section.id}
+              type="button"
+              onClick={() => selectSection(section.id)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                active
+                  ? "bg-night-900 text-sand-50 shadow-sm"
+                  : "bg-white text-night-700 ring-1 ring-night-900/10 hover:bg-sand-50"
+              }`}
+            >
+              {section.label}
+            </button>
+          );
+        })}
+      </div>
 
       {activeSection === "leaders" ? (
         <AdminMinistryReportsPanel embedded />

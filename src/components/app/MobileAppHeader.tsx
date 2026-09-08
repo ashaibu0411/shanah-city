@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { liveStream, site } from "@/lib/site";
+import { mobileHeaderShowsPageTitle } from "@/lib/mobile-page-chrome";
 import { Badge } from "@/components/ui";
 
 const pageTitles: Record<string, string> = {
@@ -19,6 +20,15 @@ const pageTitles: Record<string, string> = {
   "/messages": "Messages",
   "/admin": "Admin",
   "/admin/devotions": "Write Devotions",
+  "/admin/reports": "Reports",
+  "/admin/overview": "Overview",
+  "/admin/people": "People",
+  "/admin/giving": "Giving",
+  "/admin/finance": "Finance",
+  "/admin/comms": "Comms",
+  "/admin/approvals": "Approvals",
+  "/admin/guests": "Guests",
+  "/admin/alerts": "Urgent",
   "/calendar": "Calendar",
   "/check-in": "Check-in",
   "/photos": "Photos",
@@ -40,6 +50,7 @@ export function MobileAppHeader() {
   if (messagesImmersive) return null;
   const title = pageTitles[pathname] ?? site.name;
   const isHome = pathname === "/";
+  const showPageTitle = mobileHeaderShowsPageTitle(pathname);
   const anyLive =
     liveStream.isLive ||
     liveStream.youtube.isLive ||
@@ -62,7 +73,7 @@ export function MobileAppHeader() {
                 </Link>
               )}
             </div>
-          ) : (
+          ) : showPageTitle ? (
             <>
               <p className="mobile-header-subtitle text-xs font-medium text-teal-700/80">
                 {site.name}
@@ -71,6 +82,10 @@ export function MobileAppHeader() {
                 {title}
               </h1>
             </>
+          ) : (
+            <p className="mobile-header-subtitle text-xs font-semibold uppercase tracking-[0.18em] text-teal-700/90">
+              {site.name}
+            </p>
           )}
         </div>
 

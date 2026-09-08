@@ -349,6 +349,8 @@ export const shopProducts: ShopProduct[] = [
 export const quickActions: QuickAction[] = [
   { label: "Watch Live", href: "/live", icon: "▶", color: "from-red-500 to-rose-600" },
   { label: "Today's Devotion", href: "/devotions", icon: "✦", color: "from-amber-500 to-orange-600" },
+  { label: "Church Calendar", href: "/calendar", icon: "◷", color: "from-orange-500 to-amber-600" },
+  { label: "Ministry Meetings", href: "/meetings", icon: "▣", color: "from-indigo-500 to-violet-600" },
   { label: "Plan a Visit", href: "/connect", icon: "▣", color: "from-blue-500 to-indigo-600" },
   { label: "Prayer Wall", href: "/community", icon: "♡", color: "from-emerald-500 to-teal-600" },
   { label: "Give", href: "/give", icon: "♢", color: "from-violet-500 to-purple-600" },

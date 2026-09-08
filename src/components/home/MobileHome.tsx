@@ -18,6 +18,7 @@ import { HomePastorPortrait } from "@/components/home/HomePastorPortrait";
 import { LiveStreamCountdownInline } from "@/components/live/useLiveStreamSchedule";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
+import { UpcomingEventHomeBanner } from "@/components/home/UpcomingEventHomeBanner";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
@@ -31,16 +32,22 @@ const todayShortcuts = [
     className: "from-teal-100 to-teal-200/90 text-teal-950 ring-teal-300/70",
   },
   {
-    label: "Messages",
-    href: "/messages",
-    detail: "Chat & updates",
-    className: "from-sky-100 to-cyan-100 text-cyan-950 ring-cyan-300/60",
+    label: "Calendar",
+    href: "/calendar",
+    detail: "Worship & events",
+    className: "from-amber-100 to-orange-100 text-amber-950 ring-amber-300/60",
   },
   {
     label: "Meetings",
     href: "/meetings",
-    detail: "Prayer & events",
+    detail: "Ministry Zoom links",
     className: "from-violet-100 to-indigo-100 text-indigo-950 ring-violet-300/60",
+  },
+  {
+    label: "Messages",
+    href: "/messages",
+    detail: "Chat & updates",
+    className: "from-sky-100 to-cyan-100 text-cyan-950 ring-cyan-300/60",
   },
 ] as const;
 
@@ -97,6 +104,7 @@ export function MobileHome({
     <div className="mobile-home animate-fade-in space-y-4">
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <PendingRsvpHomeBanner />
+      <UpcomingEventHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
       <MobilePremiumFrame
@@ -133,7 +141,7 @@ export function MobileHome({
 
       <section>
         <h2 className="mobile-section-title mb-2.5 px-0.5">Today</h2>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {todayShortcuts.map((item) => (
             <Link
               key={item.href}
