@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/app/AppProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { DevotionPromoCard } from "@/components/devotions/DevotionPromoCard";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { liveStream, site } from "@/lib/site";
@@ -42,6 +43,14 @@ const todayShortcuts = [
   },
 ] as const;
 
+function homeGreeting(name?: string | null) {
+  const hour = new Date().getHours();
+  const time =
+    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  if (!name?.trim()) return time;
+  return `${time}, ${name.trim().split(" ")[0]}`;
+}
+
 type MobileHomeProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
@@ -57,6 +66,7 @@ export function MobileHome({
   highlightAlert = false,
 }: MobileHomeProps) {
   const { campus } = useApp();
+  const { user } = useAuth();
   const [devotion, setDevotion] = useState<Devotion | null>(todayDevotion);
 
   useEffect(() => {
@@ -96,6 +106,10 @@ export function MobileHome({
             className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300/80 to-teal-400"
             aria-hidden
           />
+
+          <p className="mobile-home-fade-up text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-100/90">
+            {homeGreeting(user?.name)}
+          </p>
 
           <HomeTagline size="mobile" tone="dark" />
 
