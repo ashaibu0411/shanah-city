@@ -90,16 +90,28 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
             </span>
           </div>
         </div>
-        <div className="border-t border-white/8 bg-gradient-to-r from-night-950 via-night-900 to-night-800 px-3.5 py-3.5 text-white">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sand-300/80">
+        <div
+          className={
+            isMobile
+              ? "border-t border-teal-200/40 bg-gradient-to-r from-teal-50/95 via-sand-50 to-amber-50/80 px-3.5 py-3.5 text-night-900"
+              : "border-t border-white/8 bg-gradient-to-r from-night-950 via-night-900 to-night-800 px-3.5 py-3.5 text-white"
+          }
+        >
+          <p
+            className={`text-[10px] font-bold uppercase tracking-[0.2em] ${
+              isMobile ? "text-teal-800/75" : "text-sand-300/80"
+            }`}
+          >
             {anyLive ? "Now streaming" : showStageCountdown ? "Upcoming livestream" : "Featured channel"}
           </p>
           <h2 className={`mt-1 font-home-hero font-semibold leading-snug tracking-tight ${isMobile ? "text-xl" : "text-2xl"}`}>
             {stageTitle}
           </h2>
-          <p className="mt-1 text-xs leading-relaxed text-white/65">{stageSubtitle}</p>
+          <p className={`mt-1 text-xs leading-relaxed ${isMobile ? "text-night-600" : "text-white/65"}`}>
+            {stageSubtitle}
+          </p>
           {showStageCountdown ? (
-            <p className="mt-2 text-[11px] leading-snug text-white/45">
+            <p className={`mt-2 text-[11px] leading-snug ${isMobile ? "text-night-500" : "text-white/45"}`}>
               The player will appear here when we go live on {stagePlatformLabel}.
             </p>
           ) : null}

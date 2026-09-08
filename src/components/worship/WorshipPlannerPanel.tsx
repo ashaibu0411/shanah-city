@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { premiumTabPill } from "@/components/app/mobile-premium";
 import { Button, Card } from "@/components/ui";
 import { WorshipSongLibraryPanel } from "@/components/worship/WorshipSongLibraryPanel";
 import { WorshipMyPartPanel } from "@/components/worship/WorshipMyPartPanel";
@@ -447,11 +448,7 @@ export function WorshipPlannerPanel({
                   key={slot.value}
                   type="button"
                   onClick={() => setServiceTime(slot.value)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    serviceTime === slot.value
-                      ? "bg-night-900 text-sand-50"
-                      : "bg-sand-100 text-night-700 hover:bg-sand-200"
-                  }`}
+                  className={premiumTabPill(serviceTime === slot.value, "px-4 py-2")}
                 >
                   {slot.label}
                 </button>
@@ -472,11 +469,7 @@ export function WorshipPlannerPanel({
             key={item.id}
             type="button"
             onClick={() => setTab(item.id)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-              tab === item.id
-                ? "bg-night-900 text-sand-50"
-                : "bg-white text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
-            }`}
+            className={premiumTabPill(tab === item.id, "px-4 py-1.5")}
           >
             {item.label}
           </button>
@@ -626,11 +619,7 @@ export function WorshipPlannerPanel({
                     key={slot.value}
                     type="button"
                     onClick={() => setServiceTime(slot.value)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                      serviceTime === slot.value
-                        ? "bg-night-900 text-sand-50"
-                        : "bg-sand-100 text-night-700 hover:bg-sand-200"
-                    }`}
+                    className={premiumTabPill(serviceTime === slot.value, "px-4 py-2")}
                   >
                     {slot.label}
                   </button>

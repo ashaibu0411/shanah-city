@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { premiumTabPill } from "@/components/app/mobile-premium";
 import { Button, Card } from "@/components/ui";
 import {
   estimateProcessingFeeCoverage,
@@ -143,11 +144,7 @@ export function GiveCheckoutPanel() {
                   key={option.value}
                   type="button"
                   onClick={() => setFrequency(option.value)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    frequency === option.value
-                      ? "bg-night-900 text-sand-50"
-                      : "bg-sand-100 text-night-700 hover:bg-sand-200"
-                  }`}
+                  className={premiumTabPill(frequency === option.value, "px-4 py-2")}
                 >
                   {option.label}
                 </button>
@@ -164,11 +161,7 @@ export function GiveCheckoutPanel() {
                 key={value}
                 type="button"
                 onClick={() => setPreset(value)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  preset === value
-                    ? "bg-night-900 text-sand-50"
-                    : "bg-sand-100 text-night-700 hover:bg-sand-200"
-                }`}
+                className={premiumTabPill(preset === value, "px-4 py-2")}
               >
                 {formatMoney(value)}
               </button>
@@ -176,11 +169,7 @@ export function GiveCheckoutPanel() {
             <button
               type="button"
               onClick={() => setPreset("custom")}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                preset === "custom"
-                  ? "bg-night-900 text-sand-50"
-                  : "bg-sand-100 text-night-700 hover:bg-sand-200"
-              }`}
+              className={premiumTabPill(preset === "custom", "px-4 py-2")}
             >
               Other
             </button>

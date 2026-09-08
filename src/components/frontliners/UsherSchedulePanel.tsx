@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { premiumTabPill } from "@/components/app/mobile-premium";
 import { Button, Card } from "@/components/ui";
 import {
   nextServiceSundayIso,
@@ -214,11 +215,7 @@ export function UsherSchedulePanel({
                     key={slot.value}
                     type="button"
                     onClick={() => setServiceTime(slot.value)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                      serviceTime === slot.value
-                        ? "bg-night-900 text-sand-50"
-                        : "bg-sand-100 text-night-700 hover:bg-sand-200"
-                    }`}
+                    className={premiumTabPill(serviceTime === slot.value, "px-4 py-2")}
                   >
                     {slot.label}
                   </button>

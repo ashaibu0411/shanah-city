@@ -34,10 +34,10 @@ export function ConnectPageView({ churchImages }: ConnectPageViewProps) {
             {site.serviceTimes.map((service) => (
               <li
                 key={service.day}
-                className="flex items-center justify-between rounded-xl bg-night-950 px-3 py-2.5 text-sm text-white"
+                className="flex items-center justify-between rounded-xl bg-gradient-to-r from-teal-50/95 to-amber-50/80 px-3 py-2.5 text-sm ring-1 ring-teal-200/45"
               >
-                <span className="font-semibold">{service.day}</span>
-                <span className="text-sand-200">{service.time}</span>
+                <span className="font-semibold text-night-900">{service.day}</span>
+                <span className="text-teal-800">{service.time}</span>
               </li>
             ))}
           </ul>

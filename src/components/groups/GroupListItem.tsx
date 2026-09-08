@@ -11,7 +11,7 @@ export function GroupListItem({ group }: { group: GroupSummary }) {
   return (
     <Link
       href={`/groups/${group.id}`}
-      className="group flex items-center gap-4 rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-night-900/5 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-night-900/10"
+      className="group mobile-card mobile-premium-surface flex items-center gap-4 px-4 py-4 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-night-900/10 sm:bg-white sm:shadow-sm sm:ring-1 sm:ring-night-900/5"
     >
       <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-night-900">
         {/* eslint-disable-next-line @next/next/no-img-element */}

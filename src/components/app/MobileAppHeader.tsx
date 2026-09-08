@@ -46,8 +46,8 @@ export function MobileAppHeader() {
     liveStream.facebook.isLive;
 
   return (
-    <header className="app-mobile-header sticky top-0 z-40 border-b border-white/8 bg-night-950/95 shadow-app-nav backdrop-blur-2xl lg:hidden">
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-sand-400/25 to-transparent" />
+    <header className="app-mobile-header mobile-app-header sticky top-0 z-40 border-b border-night-900/8 backdrop-blur-xl lg:hidden">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-teal-400/25 to-transparent" />
       <div className="relative mx-auto flex app-mobile-inner w-full items-center justify-between gap-3 px-3.5 pb-2.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
           {isHome ? (
@@ -64,8 +64,10 @@ export function MobileAppHeader() {
             </div>
           ) : (
             <>
-              <p className="mobile-header-subtitle text-xs font-medium text-white/60">{site.name}</p>
-              <h1 className="mobile-header-title truncate font-home-hero text-base font-semibold tracking-tight text-white">
+              <p className="mobile-header-subtitle text-xs font-medium text-teal-700/80">
+                {site.name}
+              </p>
+              <h1 className="mobile-header-title truncate font-home-hero text-base font-semibold tracking-tight text-night-900">
                 {title}
               </h1>
             </>
@@ -73,7 +75,7 @@ export function MobileAppHeader() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          {!loading && user ? <NotificationBell variant="light" /> : null}
+          {!loading && user ? <NotificationBell variant="dark" /> : null}
           <MemberAvatarLink user={user} loading={loading} />
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppShell } from "@/components/app/AppShellContext";
 import type { PollView } from "@/lib/poll-types";
 import { Button } from "@/components/ui";
 
@@ -19,6 +20,7 @@ export function PollComposer({
   onCreated,
   compact = false,
 }: PollComposerProps) {
+  const { isMobileApp } = useAppShell();
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
@@ -79,9 +81,9 @@ export function PollComposer({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`w-full rounded-2xl border border-dashed border-night-900/15 bg-sand-50/80 text-left transition hover:bg-sand-100 ${
-          compact ? "px-3.5 py-3" : "px-4 py-4"
-        }`}
+        className={`w-full rounded-2xl border border-dashed border-teal-200/60 text-left transition hover:bg-teal-50/80 ${
+          isMobileApp ? "mobile-card mobile-premium-surface" : "border-night-900/15 bg-sand-50/80 hover:bg-sand-100"
+        } ${compact ? "px-3.5 py-3" : "px-4 py-4"}`}
       >
         <p className="text-sm font-semibold text-night-900">Start a poll</p>
         <p className="mt-1 text-xs text-night-500">
@@ -94,7 +96,9 @@ export function PollComposer({
   return (
     <form
       onSubmit={submit}
-      className={`rounded-2xl bg-white ring-1 ring-night-900/8 ${compact ? "p-3.5" : "p-4"}`}
+      className={`rounded-2xl ring-1 ring-night-900/8 ${
+        isMobileApp ? "mobile-card mobile-premium-surface" : "bg-white"
+      } ${compact ? "p-3.5" : "p-4"}`}
     >
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-display text-base font-bold text-night-900">New poll</h3>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppShell } from "@/components/app/AppShellContext";
 import type { PollView } from "@/lib/poll-types";
 import { Button } from "@/components/ui";
 
@@ -21,6 +22,7 @@ type PollCardProps = {
 };
 
 export function PollCard({ poll, onUpdate, compact = false }: PollCardProps) {
+  const { isMobileApp } = useAppShell();
   const [selected, setSelected] = useState<string[]>(poll.viewerOptionIds);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -82,14 +84,14 @@ export function PollCard({ poll, onUpdate, compact = false }: PollCardProps) {
 
   return (
     <article
-      className={`overflow-hidden rounded-2xl bg-white ring-1 ring-night-900/8 ${
-        compact ? "p-3.5" : "p-4"
-      }`}
+      className={`overflow-hidden rounded-2xl ring-1 ring-night-900/8 ${
+        isMobileApp ? "mobile-card mobile-premium-surface" : "bg-white"
+      } ${compact ? "p-3.5" : "p-4"}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-800">
+            <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-teal-800">
               Poll
             </span>
             {poll.targetGroupName ? (
@@ -130,13 +132,13 @@ export function PollCard({ poll, onUpdate, compact = false }: PollCardProps) {
                 showResults
                   ? "border-night-900/8 bg-sand-50"
                   : isSelected
-                    ? "border-night-900 bg-night-900 text-white"
+                    ? "border-teal-700 bg-teal-700 text-white shadow-md shadow-teal-900/15"
                     : "border-night-900/10 bg-white hover:bg-sand-50"
               }`}
             >
               {showResults ? (
                 <div
-                  className="absolute inset-y-0 left-0 bg-indigo-100/80 transition-all"
+                  className="absolute inset-y-0 left-0 bg-teal-100/80 transition-all"
                   style={{ width: `${option.percent}%` }}
                   aria-hidden
                 />
@@ -149,7 +151,7 @@ export function PollCard({ poll, onUpdate, compact = false }: PollCardProps) {
                 >
                   {option.label}
                   {isViewerChoice ? (
-                    <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+                    <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-teal-700">
                       Your vote
                     </span>
                   ) : null}

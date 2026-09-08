@@ -452,15 +452,25 @@ export function MemberProfile() {
 
           <MemberEventRsvps />
 
-          <Card className="bg-night-900 text-sand-50">
+          <Card
+            className={
+              isMobileApp
+                ? "mobile-premium-surface bg-gradient-to-br from-teal-50/95 via-sand-50 to-amber-50/85 text-night-900 ring-teal-200/35"
+                : "bg-night-900 text-sand-50"
+            }
+          >
             <h2 className="font-display text-lg font-semibold">Member tools</h2>
-            <ul className="mt-3 space-y-2 text-sm text-sand-200/90">
+            <ul
+              className={`mt-3 space-y-2 text-sm ${
+                isMobileApp ? "text-night-700" : "text-sand-200/90"
+              }`}
+            >
               <li>• Giving history on your profile</li>
               <li>• Sermon watch history</li>
               <li>• Volunteer hours</li>
             </ul>
             {permissions.canManageAdmin && (
-              <p className="mt-3 text-sm text-sand-200">
+              <p className={`mt-3 text-sm ${isMobileApp ? "text-night-600" : "text-sand-200"}`}>
                 Admins can record gifts under{" "}
                 <a href="/admin/giving" className="font-semibold underline">
                   Giving records
@@ -468,7 +478,7 @@ export function MemberProfile() {
                 .
               </p>
             )}
-            <p className="mt-3 text-xs text-sand-400">
+            <p className={`mt-3 text-xs ${isMobileApp ? "text-night-500" : "text-sand-400"}`}>
               Member since {new Date(user.createdAt).toLocaleDateString()}
             </p>
             <Button

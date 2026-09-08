@@ -16,6 +16,7 @@ import {
   isExternalPhotoUrl,
 } from "@/lib/gallery-utils";
 import { photoUsePolicy } from "@/lib/photo-use-policy";
+import { premiumTabPill } from "@/components/app/mobile-premium";
 import { Button } from "@/components/ui";
 
 type PhotoGalleryProps = {
@@ -165,11 +166,7 @@ export function PhotoGallery({ photos: initialPhotos }: PhotoGalleryProps) {
             key={item}
             type="button"
             onClick={() => setAlbum(item)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-              album === item
-                ? "bg-night-900 text-sand-50"
-                : "bg-white text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
-            }`}
+            className={premiumTabPill(album === item)}
           >
             {item}
           </button>

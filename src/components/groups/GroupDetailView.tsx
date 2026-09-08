@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
+import { MobileTabPills } from "@/components/app/MobileTabPills";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupMemberAddForm } from "@/components/groups/GroupMemberAddForm";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
@@ -137,6 +138,13 @@ export function GroupDetailView({
   const showLeaderReport =
     detail.isAdmin &&
     isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
+  const detailTabs = useMemo(() => {
+    const tabs: { id: DetailSection; label: string }[] = [{ id: "overview", label: "Overview" }];
+    if (showLeaderReport) tabs.push({ id: "report", label: "Monthly report" });
+    if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Calendar" });
+    tabs.push({ id: "polls", label: "Polls" }, { id: "chat", label: "Group chat" });
+    return tabs;
+  }, [showEmbeddedCalendar, showLeaderReport]);
   const canManageMembers =
     Boolean(user) &&
     (detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin);
@@ -224,34 +232,12 @@ export function GroupDetailView({
       </div>
 
       {detail.isMember && user ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {(
-            [
-              { id: "overview", label: "Overview" },
-              ...(showLeaderReport
-                ? [{ id: "report" as const, label: "Monthly report" }]
-                : []),
-              ...(showEmbeddedCalendar
-                ? [{ id: "calendar" as const, label: "Calendar" }]
-                : []),
-              { id: "polls", label: "Polls" },
-              { id: "chat", label: "Group chat" },
-            ] as const
-          ).map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setDetailSection(item.id)}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-                detailSection === item.id
-                  ? "bg-night-900 text-sand-50"
-                  : "bg-sand-100 text-night-700 hover:bg-sand-200"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+        <MobileTabPills
+          className="mt-4"
+          tabs={detailTabs}
+          activeId={detailSection}
+          onChange={(id) => setDetailSection(id as DetailSection)}
+        />
       ) : null}
 
 

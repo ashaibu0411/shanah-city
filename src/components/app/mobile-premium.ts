@@ -72,3 +72,11 @@ export const premiumTeal = {
   tabIdle:
     "bg-white text-night-700 ring-1 ring-night-900/10",
 } as const;
+
+const premiumTabPillBase =
+  "rounded-full px-4 py-1.5 text-sm font-semibold transition active:scale-[0.98]";
+
+/** Shared active/idle pill classes for segmented controls app-wide. */
+export function premiumTabPill(active: boolean, className = "") {
+  return `${premiumTabPillBase} ${active ? premiumTeal.tabActive : premiumTeal.tabIdle} ${className}`.trim();
+}
