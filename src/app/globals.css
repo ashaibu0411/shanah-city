@@ -790,12 +790,19 @@
     min-height: 12.5rem;
   }
 
+  body[data-shell="mobile"] .mobile-home-welcome-hero .home-pastor-portrait {
+    top: 1.5rem;
+    bottom: 0;
+    height: auto;
+  }
+
   body[data-shell="mobile"] .mobile-home-welcome-hero .home-pastor-portrait__photo {
     right: -8%;
-    bottom: -2%;
-    height: 112%;
+    top: 0;
+    bottom: 0;
+    height: 100%;
     max-width: 58%;
-    object-position: 42% 10%;
+    object-position: 50% 8%;
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero h1,
