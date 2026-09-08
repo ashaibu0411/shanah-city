@@ -1,20 +1,22 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useApp } from "@/components/app/AppProvider";
-import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
 import { MeetingCard } from "@/components/meetings/MeetingCard";
+import { MeetingsAdminPanel } from "@/components/meetings/MeetingsAdminPanel";
 import {
   MANUAL_PUSH_MEETING_IDS,
   isAutomatedReminderMeeting,
   isProtectedMeetingId,
 } from "@/lib/meeting-catalog";
+import {
+  filterMinistryOnlineMeetings,
+  sortMinistryMeetings,
+} from "@/lib/meeting-display-utils";
 import type { Meeting } from "@/lib/types";
-import { Button, SectionTitle } from "@/components/ui";
+import { Card, SectionTitle } from "@/components/ui";
 
 export function MeetingsList() {
-  const { campusId } = useApp();
-  const [showAll, setShowAll] = useState(false);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [canManage, setCanManage] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -25,30 +27,32 @@ export function MeetingsList() {
     setLoading(true);
     const response = await fetch("/api/meetings");
     const data = await response.json();
-    setMeetings(data.meetings ?? []);
+    setMeetings(sortMinistryMeetings(filterMinistryOnlineMeetings(data.meetings ?? [])));
     setCanManage(Boolean(data.canManage));
     setLoading(false);
   }
 
   useEffect(() => {
-    loadMeetings();
+    void loadMeetings();
   }, []);
 
-  const filtered = useMemo(
-    () =>
-      showAll
-        ? meetings
-        : meetings.filter(
-            (meeting) => meeting.campusId === campusId || meeting.campusId === "online",
-          ),
-    [campusId, meetings, showAll],
+  const dailyPrayer = useMemo(
+    () => meetings.filter((meeting) => isAutomatedReminderMeeting(meeting.id)),
+    [meetings],
   );
 
-  const featured = filtered.filter((meeting) => isAutomatedReminderMeeting(meeting.id));
-  const monthly = filtered.filter((meeting) => MANUAL_PUSH_MEETING_IDS.has(meeting.id));
-  const others = filtered.filter(
-    (meeting) =>
-      !isAutomatedReminderMeeting(meeting.id) && !MANUAL_PUSH_MEETING_IDS.has(meeting.id),
+  const monthlyMinistries = useMemo(
+    () => meetings.filter((meeting) => MANUAL_PUSH_MEETING_IDS.has(meeting.id)),
+    [meetings],
+  );
+
+  const otherOnline = useMemo(
+    () =>
+      meetings.filter(
+        (meeting) =>
+          !isAutomatedReminderMeeting(meeting.id) && !MANUAL_PUSH_MEETING_IDS.has(meeting.id),
+      ),
+    [meetings],
   );
 
   async function removeMeeting(id: string) {
@@ -101,51 +105,49 @@ export function MeetingsList() {
     }
   }
 
+  if (loading) {
+    return (
+      <Card>
+        <p className="text-sm text-night-500">Loading ministry meetings…</p>
+      </Card>
+    );
+  }
+
   return (
-    <div>
-      {featured.length > 0 && (
-        <div className="mb-8 grid gap-4 md:grid-cols-2">
-          {featured.map((meeting) => (
-            <MeetingCard
-              key={meeting.id}
-              meeting={meeting}
-              featured
-              canManage={canManage}
-              onToggleReminder={(enabled) => toggleReminder(meeting.id, enabled)}
-            />
-          ))}
-        </div>
-      )}
-
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-night-600">
-          {showAll ? "All campuses" : "Your campus + online meetings"}
+    <div className="space-y-8">
+      <Card className="border-teal-100/80 bg-gradient-to-r from-teal-50/70 to-sand-50/80 p-4 sm:p-5">
+        <p className="text-sm text-night-700">
+          Join links for daily prayer and ministry Zoom gatherings. Sunday worship, outreach, and
+          special events are on the{" "}
+          <Link href="/calendar" className="font-semibold text-teal-800 hover:underline">
+            church calendar
+          </Link>
+          .
         </p>
-        <Button variant="ghost" onClick={() => setShowAll((value) => !value)}>
-          {showAll ? "Show my campus" : "Show all campuses"}
-        </Button>
-      </div>
+      </Card>
 
-      <CalendarMonthView
-        items={filtered}
-        emptyDayLabel="No meetings on this day."
-        renderItem={(meeting) => (
-          <MeetingCard
-            meeting={meeting}
-            compact
-            canManage={canManage}
-            onRemove={
-              isProtectedMeetingId(meeting.id) ? undefined : () => removeMeeting(meeting.id)
-            }
-          />
-        )}
-      />
+      {dailyPrayer.length > 0 ? (
+        <section>
+          <SectionTitle title="Daily prayer on Zoom" />
+          <div className="grid gap-4 md:grid-cols-2">
+            {dailyPrayer.map((meeting) => (
+              <MeetingCard
+                key={meeting.id}
+                meeting={meeting}
+                featured
+                canManage={canManage}
+                onToggleReminder={(enabled) => toggleReminder(meeting.id, enabled)}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-      {monthly.length > 0 && (
-        <>
-          <SectionTitle title="Monthly gatherings" />
-          <div className="mb-8 grid gap-4 md:grid-cols-2">
-            {monthly.map((meeting) => (
+      {monthlyMinistries.length > 0 ? (
+        <section>
+          <SectionTitle title="Monthly ministry Zooms" />
+          <div className="grid gap-4 md:grid-cols-2">
+            {monthlyMinistries.map((meeting) => (
               <MeetingCard
                 key={meeting.id}
                 meeting={meeting}
@@ -156,24 +158,34 @@ export function MeetingsList() {
               />
             ))}
           </div>
-        </>
-      )}
+        </section>
+      ) : null}
 
-      {others.length > 0 && (
-        <>
-          <SectionTitle title="More gatherings" />
+      {otherOnline.length > 0 ? (
+        <section>
+          <SectionTitle title="More online gatherings" />
           <div className="grid gap-4 md:grid-cols-2">
-            {others.map((meeting) => (
+            {otherOnline.map((meeting) => (
               <MeetingCard
                 key={meeting.id}
                 meeting={meeting}
                 canManage={canManage}
-                onRemove={() => removeMeeting(meeting.id)}
+                onRemove={
+                  isProtectedMeetingId(meeting.id) ? undefined : () => removeMeeting(meeting.id)
+                }
               />
             ))}
           </div>
-        </>
-      )}
+        </section>
+      ) : null}
+
+      {meetings.length === 0 ? (
+        <Card>
+          <p className="text-sm text-night-600">No ministry Zoom links are published yet.</p>
+        </Card>
+      ) : null}
+
+      {canManage ? <MeetingsAdminPanel onSaved={loadMeetings} /> : null}
     </div>
   );
 }

@@ -7,8 +7,8 @@ export default function MeetingsPage() {
     <>
       <PageHeader
         eyebrow="Connect"
-        title="Meetings"
-        description="Morning prayer is Monday–Friday at 8:00 AM MST. Evening prayer is Tuesday–Thursday at 8:00 PM MST. Monthly gatherings and service links are below."
+        title="Ministry meetings"
+        description="Daily prayer and ministry Zoom links. Join from here — church-wide worship and events are on the calendar."
       />
       <MarkFeedRead feed="meetings" />
       <MeetingsList />

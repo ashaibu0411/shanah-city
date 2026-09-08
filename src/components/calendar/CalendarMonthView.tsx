@@ -15,6 +15,7 @@ type CalendarMonthViewProps<T extends CalendarPlannable> = {
   items: T[];
   renderItem: (item: T) => React.ReactNode;
   emptyDayLabel?: string;
+  emptyMonthLabel?: string;
 };
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -76,6 +77,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
   items,
   renderItem,
   emptyDayLabel = "No events on this day.",
+  emptyMonthLabel = "No events this month.",
 }: CalendarMonthViewProps<T>) {
   const denverToday = denverMonthCursor();
   const todayKey = denverToday.dateKey;
@@ -116,6 +118,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
   const upcomingAgendaDays = viewingCurrentMonth
     ? agendaDays.filter((day) => day.isoDate >= todayKey)
     : agendaDays;
+  const selectedInMobileAgenda = upcomingAgendaDays.some((day) => day.isoDate === selectedDate);
 
   return (
     <div className="mb-6 space-y-4">
@@ -252,36 +255,47 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           <div className="mt-5 space-y-4">
             {upcomingAgendaDays.length === 0 ? (
               <p className="text-sm text-night-500">
-                {viewingCurrentMonth
-                  ? "No upcoming meetings this month."
-                  : "No events this month."}
+                {viewingCurrentMonth ? "No upcoming events this month." : emptyMonthLabel}
               </p>
             ) : (
-              upcomingAgendaDays.map((day) => (
-                <section key={day.isoDate}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDate(day.isoDate)}
-                    className="mb-2 text-left"
-                  >
-                    <h4 className="font-display text-base font-semibold text-night-900">
-                      {formatSelectedDay(day.isoDate)}
-                    </h4>
-                  </button>
-                  <div className="space-y-2">
-                    {day.dayItems.map((item) => (
-                      <EventText key={item.id} item={item} />
-                    ))}
-                  </div>
-                </section>
-              ))
+              upcomingAgendaDays.map((day) => {
+                const isSelected = selectedDate === day.isoDate;
+                return (
+                  <section key={day.isoDate}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDate(day.isoDate)}
+                      className="mb-2 text-left"
+                    >
+                      <h4
+                        className={`font-display text-base font-semibold ${
+                          isSelected ? "text-teal-800" : "text-night-900"
+                        }`}
+                      >
+                        {formatSelectedDay(day.isoDate)}
+                      </h4>
+                    </button>
+                    {isSelected ? (
+                      <div className="space-y-3">
+                        {day.dayItems.map((item) => renderItem(item as T))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {day.dayItems.map((item) => (
+                          <EventText key={item.id} item={item} />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                );
+              })
             )}
           </div>
         </div>
       </Card>
 
-      {selectedDate && (
-        <Card>
+      {selectedDate && !selectedInMobileAgenda ? (
+        <Card className="lg:hidden">
           <h3 className="font-display text-lg font-semibold text-night-900">
             {formatSelectedDay(selectedDate)}
           </h3>
@@ -291,7 +305,20 @@ export function CalendarMonthView<T extends CalendarPlannable>({
             <div className="mt-4 grid gap-3">{selectedItems.map((item) => renderItem(item))}</div>
           )}
         </Card>
-      )}
+      ) : null}
+
+      {selectedDate ? (
+        <Card className="hidden lg:block">
+          <h3 className="font-display text-lg font-semibold text-night-900">
+            {formatSelectedDay(selectedDate)}
+          </h3>
+          {selectedItems.length === 0 ? (
+            <p className="mt-3 text-sm text-night-500">{emptyDayLabel}</p>
+          ) : (
+            <div className="mt-4 grid gap-3">{selectedItems.map((item) => renderItem(item))}</div>
+          )}
+        </Card>
+      ) : null}
     </div>
   );
 }

@@ -7,8 +7,8 @@ export default function CalendarPage() {
     <>
       <PageHeader
         eyebrow="Schedule"
-        title="Calendars"
-        description="Browse worship, meetings, and church events by month. Tap a day for full details, times, and RSVP."
+        title="Church calendar"
+        description="Worship, outreach, and special events by month. Tap a day for details and RSVP."
       />
       <Suspense fallback={<p className="text-sm text-night-600">Loading calendar…</p>}>
         <CalendarHub />
