@@ -10,6 +10,7 @@ import { MemberGivingHistory } from "@/components/give/MemberGivingHistory";
 import { ProfileAvatarUpload } from "@/components/auth/ProfileAvatarUpload";
 import { MemberEventRsvps } from "@/components/calendar/MemberEventRsvps";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
+import { TextSizeControl } from "@/components/app/TextSizeControl";
 import { Button, Card, PageHeader } from "@/components/ui";
 import { campuses, getCampus, site } from "@/lib/site";
 
@@ -197,6 +198,11 @@ export function MemberProfile() {
 
       <div className={`grid ${isMobileApp ? "gap-3" : "gap-6 lg:grid-cols-3"}`}>
         <div className={`${isMobileApp ? "space-y-3" : "space-y-6 lg:col-span-2"}`}>
+          {isMobileApp ? (
+            <Card className="mobile-more-sheet-card !p-3.5">
+              <TextSizeControl variant="mobile" />
+            </Card>
+          ) : null}
           <MemberGivingHistory />
           <PushNotificationSettings />
           <Card>

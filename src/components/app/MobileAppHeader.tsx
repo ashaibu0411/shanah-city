@@ -46,7 +46,7 @@ export function MobileAppHeader() {
     liveStream.facebook.isLive;
 
   return (
-    <header className="app-mobile-header mobile-app-header sticky top-0 z-40 border-b border-night-900/8 backdrop-blur-xl lg:hidden">
+    <header className="app-mobile-header mobile-app-header app-shell-chrome sticky top-0 z-40 border-b border-night-900/8 backdrop-blur-xl lg:hidden">
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-teal-400/25 to-transparent" />
       <div className="relative mx-auto flex app-mobile-inner w-full items-center justify-between gap-3 px-3.5 pb-2.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">

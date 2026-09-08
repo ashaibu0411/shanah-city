@@ -73,6 +73,14 @@ export function PushNotificationSettings() {
     );
 
     void refreshPushStatus();
+
+    if (isNativeAppPlatform()) {
+      void import("@/lib/native-push-client").then(async (nativePush) => {
+        if (nativePush.isNativePushOptedOut()) return;
+        await nativePush.ensureNativePushRegistered();
+        await refreshPushStatus();
+      });
+    }
   }, [user]);
 
   async function refreshPushStatus() {

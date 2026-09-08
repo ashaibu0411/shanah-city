@@ -33,24 +33,30 @@ export function MobileMoreSheet() {
         className="app-mobile-more-backdrop fixed inset-0 z-[60] bg-night-950/35 backdrop-blur-sm"
         onClick={() => setMoreMenuOpen(false)}
       />
-      <div className="app-mobile-more-sheet mobile-more-sheet-panel fixed inset-x-0 bottom-0 z-[60] overflow-hidden rounded-t-[1.75rem] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 ring-1 ring-night-900/8">
-        <div className="app-mobile-inner relative mx-auto w-full">
-          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-night-900/15" />
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
-                Explore
-              </p>
-              <h2 className="font-display text-xl font-semibold text-night-900">More</h2>
+      <div className="app-mobile-more-sheet mobile-more-sheet-panel app-shell-chrome fixed inset-x-0 bottom-0 z-[60] flex max-h-[min(88dvh,100%)] flex-col overflow-hidden rounded-t-[1.75rem] ring-1 ring-night-900/8">
+        <div className="mobile-more-sheet-header shrink-0 border-b border-night-900/6 px-4 pb-3 pt-4">
+          <div className="app-mobile-inner relative mx-auto w-full">
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-night-900/15" />
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
+                  Explore
+                </p>
+                <h2 className="font-display text-xl font-semibold text-night-900">More</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMoreMenuOpen(false)}
+                className="shrink-0 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-night-800 ring-1 ring-night-900/10"
+              >
+                Done
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setMoreMenuOpen(false)}
-              className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-night-800 ring-1 ring-night-900/10"
-            >
-              Done
-            </button>
           </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="app-mobile-inner relative mx-auto w-full">
 
           <div className="mobile-more-sheet-card mb-4 p-3">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-night-500">
@@ -130,6 +136,7 @@ export function MobileMoreSheet() {
           >
             Delete account
           </Link>
+          </div>
         </div>
       </div>
     </>

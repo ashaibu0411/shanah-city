@@ -53,6 +53,11 @@ export function isPushConfigured() {
   return isWebPushConfigured() || isNativePushConfigured();
 }
 
+function shouldDropWebPushSubscription(error: unknown) {
+  const statusCode = (error as { statusCode?: number })?.statusCode;
+  return statusCode === 404 || statusCode === 410;
+}
+
 function configureWebPush() {
   if (!isWebPushConfigured()) return false;
   webpush.setVapidDetails(
@@ -102,8 +107,12 @@ export async function sendTestPushToUser(userId: string) {
       sent += 1;
       webSent += 1;
     } catch (error) {
-      await store().removePushSubscription(userId, record.endpoint);
-      errors.push(`web:${error instanceof Error ? error.message : "send failed"}`);
+      if (shouldDropWebPushSubscription(error)) {
+        await store().removePushSubscription(userId, record.endpoint);
+      }
+      errors.push(
+        `web:${error instanceof Error ? error.message : "send failed"}`,
+      );
     }
   }
 
@@ -185,7 +194,9 @@ export async function sendPushToUsers(
         sent += 1;
         webSent += 1;
       } catch (error) {
-        await store().removePushSubscription(userId, record.endpoint);
+        if (shouldDropWebPushSubscription(error)) {
+          await store().removePushSubscription(userId, record.endpoint);
+        }
         skipped += 1;
         errors.push(
           `web:${error instanceof Error ? error.message : "send failed"}`,
@@ -273,7 +284,9 @@ export async function sendPushToUsersWithAnyPreference(
         sent += 1;
         webSent += 1;
       } catch (error) {
-        await store().removePushSubscription(userId, record.endpoint);
+        if (shouldDropWebPushSubscription(error)) {
+          await store().removePushSubscription(userId, record.endpoint);
+        }
         skipped += 1;
         errors.push(
           `web:${error instanceof Error ? error.message : "send failed"}`,

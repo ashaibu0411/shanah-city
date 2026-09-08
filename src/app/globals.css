@@ -6,7 +6,6 @@
   html {
     --reading-scale: 1;
     scroll-behavior: smooth;
-    font-size: calc(100% * var(--reading-scale));
   }
 
   body {
@@ -14,6 +13,19 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+
+  /* Scale readable page content only — keep header, nav, and sheets at stable size. */
+  .app-main {
+    font-size: calc(1rem * var(--reading-scale));
+  }
+
+  body[data-shell="mobile"] .app-main {
+    font-size: calc(0.9375rem * var(--reading-scale));
+  }
+
+  .app-shell-chrome {
+    font-size: 16px;
   }
 
   h1 {
@@ -656,6 +668,10 @@
       0 -1px 0 rgba(26, 35, 50, 0.06);
   }
 
+  body[data-shell="mobile"] .mobile-more-sheet-header {
+    background: linear-gradient(180deg, #ffffff 0%, #f7faf9 100%);
+  }
+
   body[data-shell="mobile"] .mobile-more-sheet-card {
     border-radius: 1.15rem;
     border: 1px solid rgba(26, 35, 50, 0.08);
@@ -769,8 +785,8 @@
     right: -2%;
     bottom: -4%;
     height: 118%;
-    max-width: 44%;
-    object-position: 50% 10%;
+    max-width: 48%;
+    object-position: 46% 12%;
     opacity: 0.92;
   }
 
