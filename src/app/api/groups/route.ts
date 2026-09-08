@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   const { searchParams } = new URL(request.url);
-  const groupId = searchParams.get("id");
+  const groupId = searchParams.get("id") ?? searchParams.get("groupId");
   const mine = searchParams.get("mine") === "1";
   const memberSearch = searchParams.get("memberSearch") === "1";
 

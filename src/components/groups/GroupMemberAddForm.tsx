@@ -37,7 +37,7 @@ export function GroupMemberAddForm({
       setSearchLoading(true);
       const params = new URLSearchParams({
         memberSearch: "1",
-        groupId,
+        id: groupId,
         q: memberSearch.trim(),
       });
       const response = await fetch(`/api/groups?${params.toString()}`);
@@ -47,6 +47,7 @@ export function GroupMemberAddForm({
         setCandidates(data.members ?? []);
       } else {
         setCandidates([]);
+        onStatus(data.error ?? "Could not search members.", true);
       }
     }, 250);
 
