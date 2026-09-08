@@ -21,7 +21,7 @@ export function HomeHero() {
       />
 
       <div className="relative z-[1] grid gap-8 p-6 md:grid-cols-[1.2fr_1fr] md:p-8 lg:p-10">
-        <div className="max-w-xl">
+        <div>
           <div className="flex items-center gap-4">
             <BrandLogo size="lg" priority />
           </div>

@@ -113,18 +113,19 @@ export function MobileHome({
         </div>
 
         <div className="mobile-home-welcome mobile-home-welcome-hero relative overflow-hidden text-white">
-          <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
           <HomePastorPortrait variant="mobile" />
+          <div
+            className="mobile-home-aurora-bg pointer-events-none absolute inset-0 opacity-35 mix-blend-multiply"
+            aria-hidden
+          />
 
-          <div className="relative z-[1] p-4">
+          <div className="relative z-[1] p-4 pb-5">
             <div
               className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300/80 to-teal-400"
               aria-hidden
             />
 
-            <div className="max-w-[68%]">
-              <HomeTagline size="mobile" tone="dark" />
-            </div>
+            <HomeTagline size="mobile" tone="dark" />
 
             <div className="mobile-home-welcome-chip mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-sand-100">
               Sun {nextService} · {campus.city}
