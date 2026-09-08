@@ -64,7 +64,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-display)", "Georgia", "serif"],
-        homeHero: ["var(--font-home-hero)", "Georgia", "serif"],
+        "home-hero": ["var(--font-home-hero)", "Georgia", "serif"],
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       animation: {
