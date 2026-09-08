@@ -18,7 +18,6 @@ import { HomePastorPortrait } from "@/components/home/HomePastorPortrait";
 import { LiveStreamCountdownInline } from "@/components/live/useLiveStreamSchedule";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
-import { UpcomingEventHomeBanner } from "@/components/home/UpcomingEventHomeBanner";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
@@ -104,7 +103,6 @@ export function MobileHome({
     <div className="mobile-home animate-fade-in space-y-4">
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <PendingRsvpHomeBanner />
-      <UpcomingEventHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
       <MobilePremiumFrame

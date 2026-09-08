@@ -9,7 +9,6 @@ import { LiveBanner } from "@/components/home/LiveBanner";
 import { MobileHome } from "@/components/home/MobileHome";
 import { QuickActions } from "@/components/home/QuickActions";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
-import { UpcomingEventHomeBanner } from "@/components/home/UpcomingEventHomeBanner";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import { useUrgentAlertHighlight } from "@/components/home/useUrgentAlertHighlight";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
@@ -58,7 +57,6 @@ export function HomeView({
       <HomeHero />
       <LiveBanner />
       <PendingRsvpHomeBanner />
-      <UpcomingEventHomeBanner />
       <QuickActions />
       <CampusStrip />
       {todayDevotion ? <DevotionPreview devotion={todayDevotion} /> : null}
