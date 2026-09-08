@@ -797,12 +797,12 @@
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero .home-pastor-portrait__photo {
-    right: -8%;
+    right: -6%;
     top: 0;
     bottom: 0;
     height: 100%;
-    max-width: 58%;
-    object-position: 50% 8%;
+    max-width: 62%;
+    object-position: 46% 14%;
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero h1,
