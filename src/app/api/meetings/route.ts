@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { canManageChurchEvents } from "@/lib/group-permissions-server";
+import { stripMeetingsJoinMetadata } from "@/lib/meeting-public-utils";
 import {
   createMeeting,
   deleteMeeting,
@@ -65,6 +66,13 @@ export async function GET() {
   const user = await getUserFromSession(token);
   const canManage = await canManageChurchEvents(user);
   const meetings = await getMeetings();
+
+  if (!user) {
+    return NextResponse.json({
+      meetings: stripMeetingsJoinMetadata(meetings),
+      canManage: false,
+    });
+  }
 
   return NextResponse.json({ meetings, canManage });
 }

@@ -9,7 +9,7 @@ import {
 export function mobilePageHasBodyHero(pathname: string) {
   if (!pathname || pathname === "/") return false;
   if (pathname === "/profile") return false;
-  if (pathname.startsWith("/groups/")) return false;
+  if (pathname.startsWith("/groups/") && pathname !== "/groups") return true;
 
   if (pathname.startsWith("/devotions")) return true;
   if (pathname === "/live") return true;

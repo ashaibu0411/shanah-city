@@ -8,6 +8,7 @@ type MobileMediaHeroProps = {
   anyLive: boolean;
   clipsCount: number;
   churchImages: ChurchSocialImages;
+  hideTitle?: boolean;
 };
 
 export function MobileMediaHero({
@@ -15,6 +16,7 @@ export function MobileMediaHero({
   anyLive,
   clipsCount,
   churchImages,
+  hideTitle = false,
 }: MobileMediaHeroProps) {
   const isLive = tab === "live";
   const heroSrc = isLive ? churchImages.mediaLive : churchImages.mediaShorts;
@@ -44,16 +46,20 @@ export function MobileMediaHero({
         </div>
 
         <div>
-          <h1 className="font-display text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-md">
-            {isLive ? "Watch Live" : "Shorts & Highlights"}
-          </h1>
-          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-100/75">
-            {isLive
-              ? "YouTube · Facebook · Instagram"
-              : clipsCount > 0
-                ? `${clipsCount} clips · Swipe to explore`
-                : "Worship moments on demand"}
-          </p>
+          {!hideTitle ? (
+            <>
+              <h1 className="font-display text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-md">
+                {isLive ? "Watch Live" : "Shorts & Highlights"}
+              </h1>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-100/75">
+                {isLive
+                  ? "YouTube · Facebook · Instagram"
+                  : clipsCount > 0
+                    ? `${clipsCount} clips · Swipe to explore`
+                    : "Worship moments on demand"}
+              </p>
+            </>
+          ) : null}
         </div>
       </div>
     </MobilePremiumFrame>

@@ -106,14 +106,14 @@ export function AdminMinistryReportsPanel({ embedded = false }: { embedded?: boo
   }
 
   useEffect(() => {
-    if (!permissions.canManageAdmin) return;
+    if (!permissions.canReviewMinistryReports) return;
     void loadOverview();
-  }, [permissions.canManageAdmin, reportMonth]);
+  }, [permissions.canReviewMinistryReports, reportMonth]);
 
   useEffect(() => {
-    if (!selectedGroupId || !permissions.canManageAdmin) return;
+    if (!selectedGroupId || !permissions.canReviewMinistryReports) return;
     void loadReport(selectedGroupId);
-  }, [selectedGroupId, reportMonth, permissions.canManageAdmin]);
+  }, [selectedGroupId, reportMonth, permissions.canReviewMinistryReports]);
 
   async function review(action: "review" | "return") {
     if (!selectedGroupId) return;
@@ -144,11 +144,11 @@ export function AdminMinistryReportsPanel({ embedded = false }: { embedded?: boo
     void loadOverview();
   }
 
-  if (!permissions.canManageAdmin) {
+  if (!permissions.canReviewMinistryReports) {
     return (
       <Card className="p-6">
         <p className="text-night-700">
-          Leader reports are visible to Admin Group members only.
+          Leader reports are visible to Admin Group and approved Senior or Associate Pastor members.
         </p>
       </Card>
     );

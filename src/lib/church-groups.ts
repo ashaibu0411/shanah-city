@@ -1,6 +1,8 @@
 import type { GroupCategory, GroupVisibility } from "@/lib/group-types";
 
 export const ADMIN_GROUP_ID = "group-admin";
+export const SENIOR_PASTOR_GROUP_ID = "group-senior-pastor";
+export const ASSOCIATE_PASTOR_GROUP_ID = "group-associate-pastor";
 export const TEAM_ZNCF_GROUP_ID = "group-team-zncf";
 
 export const CALENDAR_GROUP_TABS = {
@@ -32,9 +34,31 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     isSystem: true,
   },
   {
+    id: SENIOR_PASTOR_GROUP_ID,
+    name: "Senior Pastor",
+    description:
+      "Senior pastoral oversight — review leader reports and ministry accountability. Admin approval required.",
+    category: "ministry",
+    visibility: "private",
+    requiresApproval: true,
+    signupVisible: true,
+    isSystem: true,
+  },
+  {
+    id: ASSOCIATE_PASTOR_GROUP_ID,
+    name: "Associate Pastor",
+    description:
+      "Associate or assistant pastors with ministry management access. Admin approval required.",
+    category: "ministry",
+    visibility: "private",
+    requiresApproval: true,
+    signupVisible: true,
+    isSystem: true,
+  },
+  {
     id: "group-pastors",
     name: "Pastors",
-    description: "Pastoral team members and shepherds.",
+    description: "Pastoral team calendar and time away — not ministry report review.",
     category: "ministry",
     visibility: "private",
     requiresApproval: true,
@@ -184,6 +208,8 @@ export function isPrivilegedMinistryGroup(groupId: string) {
 
 export const GROUP_CALENDAR_EXCLUDED_IDS = new Set([
   ADMIN_GROUP_ID,
+  SENIOR_PASTOR_GROUP_ID,
+  ASSOCIATE_PASTOR_GROUP_ID,
   TEAM_ZNCF_GROUP_ID,
   "group-leaders",
   "group-team-lead",

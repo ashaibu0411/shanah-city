@@ -1,25 +1,18 @@
 import type { PublicMember } from "@/lib/auth-types";
-import { canManageAsAdmin } from "@/lib/admin-access-server";
-import { isGroupAdmin, isGroupMember } from "@/lib/group-admin-utils";
-import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
+import { isGroupAdmin } from "@/lib/group-admin-utils";
 import { getGroups } from "@/lib/group-server";
+import { getMinistryManagementPermissions } from "@/lib/ministry-management-access-server";
 import {
   getReportTemplateForGroup,
   isReportableMinistryGroup,
   type MinistryLeaderReport,
 } from "@/lib/ministry-report-types";
 
-export async function isPastorsGroupMember(userId: string) {
-  const groups = await getGroups();
-  const pastorsGroup = groups.find((group) => group.id === CALENDAR_GROUP_TABS.pastors);
-  if (!pastorsGroup) return false;
-  return isGroupMember(pastorsGroup, userId);
-}
+export { canManageMinistry } from "@/lib/ministry-management-access-server";
 
 export async function canReviewMinistryReports(user: Pick<PublicMember, "id"> | null) {
-  if (!user) return false;
-  if (await canManageAsAdmin(user)) return true;
-  return isPastorsGroupMember(user.id);
+  const permissions = await getMinistryManagementPermissions(user);
+  return permissions.canReviewMinistryReports;
 }
 
 export async function getLeaderMinistryGroups(userId: string) {
@@ -53,22 +46,22 @@ export async function assertCanAccessReport(
   user: Pick<PublicMember, "id">,
   report: MinistryLeaderReport,
 ) {
-  if (await canManageAsAdmin(user)) {
+  if (await canReviewMinistryReports(user)) {
     return;
   }
   await assertCanSubmitForGroup(user.id, report.groupId);
 }
 
 export async function getMinistryReportPermissions(user: Pick<PublicMember, "id"> | null) {
-  const [submitAllowed, reviewAllowed, leaderGroups] = await Promise.all([
-    canSubmitMinistryReports(user),
-    canReviewMinistryReports(user),
+  const [management, leaderGroups] = await Promise.all([
+    getMinistryManagementPermissions(user),
     user ? getLeaderMinistryGroups(user.id) : Promise.resolve([]),
   ]);
 
   return {
-    canSubmitMinistryReports: submitAllowed,
-    canReviewMinistryReports: reviewAllowed,
+    canSubmitMinistryReports: leaderGroups.length > 0,
+    canManageMinistry: management.canManageMinistry,
+    canReviewMinistryReports: management.canReviewMinistryReports,
     leaderMinistryGroups: leaderGroups.map((group) => ({
       id: group.id,
       name: group.name,

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
+import { MobilePageHero } from "@/components/app/MobilePageHero";
 import { MobileTabPills } from "@/components/app/MobileTabPills";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupMemberAddForm } from "@/components/groups/GroupMemberAddForm";
@@ -61,7 +62,7 @@ export function GroupDetailView({
 }) {
   const router = useRouter();
   const { user, refresh, permissions } = useAuth();
-  const { setMessagesImmersive } = useAppShell();
+  const { setMessagesImmersive, isMobileApp } = useAppShell();
   const [detail, setDetail] = useState(initialGroup);
   const [detailSection, setDetailSection] = useState<DetailSection>(initialSection);
   const [busy, setBusy] = useState(false);
@@ -167,7 +168,19 @@ export function GroupDetailView({
 
   return (
     <Card className="min-w-0 overflow-hidden">
-      <GroupArtworkHero group={detail} />
+      {isMobileApp ? (
+        <MobilePageHero
+          eyebrow={groupCategoryLabels[detail.category]}
+          title={detail.name}
+          description={`Led by ${detail.creatorName}${
+            detail.campusId ? ` · ${getCampus(detail.campusId).name}` : ""
+          } · ${detail.visibility === "public" ? "Public" : "Private"} · ${
+            detail.members.length
+          } member${detail.members.length === 1 ? "" : "s"}`}
+        />
+      ) : (
+        <GroupArtworkHero group={detail} />
+      )}
 
       <div className="mb-4">
         <Link
@@ -179,22 +192,26 @@ export function GroupDetailView({
       </div>
 
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <span className="rounded-full bg-sand-100 px-2.5 py-0.5 text-xs font-semibold text-night-700">
-            {groupCategoryLabels[detail.category]}
-          </span>
-          <h1 className="mt-2 font-display text-2xl font-semibold text-night-900 sm:text-3xl">
-            {detail.name}
-          </h1>
-          <p className="mt-1 text-sm text-night-500">
-            Led by {detail.creatorName}
-            {detail.campusId ? ` · ${getCampus(detail.campusId).name}` : ""}
-            {" · "}
-            {detail.visibility === "public" ? "Public" : "Private"}
-            {" · "}
-            {detail.members.length} member{detail.members.length === 1 ? "" : "s"}
-          </p>
-        </div>
+        {!isMobileApp ? (
+          <div>
+            <span className="rounded-full bg-sand-100 px-2.5 py-0.5 text-xs font-semibold text-night-700">
+              {groupCategoryLabels[detail.category]}
+            </span>
+            <h1 className="mt-2 font-display text-2xl font-semibold text-night-900 sm:text-3xl">
+              {detail.name}
+            </h1>
+            <p className="mt-1 text-sm text-night-500">
+              Led by {detail.creatorName}
+              {detail.campusId ? ` · ${getCampus(detail.campusId).name}` : ""}
+              {" · "}
+              {detail.visibility === "public" ? "Public" : "Private"}
+              {" · "}
+              {detail.members.length} member{detail.members.length === 1 ? "" : "s"}
+            </p>
+          </div>
+        ) : (
+          <div className="min-w-0 flex-1" />
+        )}
 
         {user ? (
           <div className="flex flex-wrap gap-2">

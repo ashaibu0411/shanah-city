@@ -76,7 +76,7 @@ export async function buildAdminOverview(user: PublicMember) {
     overview.volunteersToday = volunteerCheckIns.filter((entry) => isToday(entry.checkedInAt)).length;
   }
 
-  if (isAdmin) {
+  if (isAdmin || isPastoral) {
     overview.ministryReports = await summarizeMinistryReports(currentReportMonth());
   }
 

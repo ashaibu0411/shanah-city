@@ -58,7 +58,7 @@ export const ADMIN_PORTAL_LINKS = [
     href: "/admin/reports",
     label: "Reports",
     description: "Morning & evening clicks and leader reports",
-    adminOnly: true,
+    ministryManagementAllowed: true,
   },
 ] as const;
 
@@ -77,6 +77,9 @@ export function filterAdminPortalLinks(permissions: AdminPortalPermissions) {
     }
     if ("pastoralAllowed" in link && link.pastoralAllowed) {
       return permissions.canReviewMinistryReports;
+    }
+    if ("ministryManagementAllowed" in link && link.ministryManagementAllowed) {
+      return permissions.canManageAdmin || permissions.canReviewMinistryReports;
     }
     if ("financeAllowed" in link && link.financeAllowed) {
       return permissions.canManageAdmin || permissions.canAccessFinance;

@@ -1,4 +1,10 @@
-import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS, TEAM_ZNCF_GROUP_ID } from "@/lib/church-groups";
+import {
+  ADMIN_GROUP_ID,
+  ASSOCIATE_PASTOR_GROUP_ID,
+  CHURCH_MINISTRY_GROUPS,
+  SENIOR_PASTOR_GROUP_ID,
+  TEAM_ZNCF_GROUP_ID,
+} from "@/lib/church-groups";
 import { isMediaGroup } from "@/lib/media-group";
 import type { GroupCategory } from "@/lib/group-types";
 
@@ -71,6 +77,8 @@ export type MinistryReportSummary = {
 
 export const MINISTRY_REPORT_EXCLUDED_GROUP_IDS = new Set([
   ADMIN_GROUP_ID,
+  SENIOR_PASTOR_GROUP_ID,
+  ASSOCIATE_PASTOR_GROUP_ID,
   "group-pastors",
   TEAM_ZNCF_GROUP_ID,
   "group-leaders",

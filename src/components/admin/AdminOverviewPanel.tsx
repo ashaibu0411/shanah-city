@@ -101,7 +101,8 @@ export function AdminOverviewPanel() {
           />
         ) : null}
 
-        {overview.ministryReports && permissions.canManageAdmin ? (
+        {overview.ministryReports &&
+        (permissions.canManageAdmin || permissions.canReviewMinistryReports) ? (
           <MetricCard
             label="Leader reports"
             value={overview.ministryReports.missing}
