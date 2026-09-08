@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
 import { MeetingCard } from "@/components/meetings/MeetingCard";
-import { MeetingClickReport } from "@/components/meetings/MeetingClickReport";
 import { WEEKDAY_OPTIONS } from "@/lib/calendar-utils";
 import { campuses } from "@/lib/site";
 import {
@@ -310,8 +309,6 @@ export function MeetingsCalendarPanel() {
           ))
         )}
       </div>
-
-      <MeetingClickReport meetings={meetings} />
     </>
   );
 }

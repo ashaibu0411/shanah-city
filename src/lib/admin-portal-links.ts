@@ -55,10 +55,10 @@ export const ADMIN_PORTAL_LINKS = [
     financeOnly: true,
   },
   {
-    href: "/admin/ministry-reports",
-    label: "Leaders",
-    description: "Monthly accountability",
-    pastoralAllowed: true,
+    href: "/admin/reports",
+    label: "Reports",
+    description: "Morning & evening clicks and leader reports",
+    adminOnly: true,
   },
 ] as const;
 

@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
   assertCanSubmitForGroup,
-  canReviewMinistryReports,
   canSubmitMinistryReports,
   getLeaderMinistryGroups,
 } from "@/lib/ministry-report-access-server";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
 import {
   getMinistryReport,
   listMinistryReports,
@@ -56,38 +56,49 @@ export async function GET(request: Request) {
   const since = searchParams.get("since") ?? undefined;
   const until = searchParams.get("until") ?? undefined;
 
-  const [canSubmit, canReview, leaderGroups] = await Promise.all([
+  const [canSubmit, canAdminReview, leaderGroups] = await Promise.all([
     canSubmitMinistryReports(auth.user!),
-    canReviewMinistryReports(auth.user!),
+    canManageAsAdmin(auth.user!),
     getLeaderMinistryGroups(auth.user!.id),
   ]);
 
-  if (!canSubmit && !canReview) {
+  if (!canSubmit && !canAdminReview) {
     return NextResponse.json(
-      { error: "Ministry leader or pastoral access required." },
+      { error: "Ministry leader or admin access required." },
       { status: 403 },
     );
   }
 
   if (summaryMonth) {
-    if (!canReview) {
-      return NextResponse.json({ error: "Pastoral review access required." }, { status: 403 });
+    if (!canAdminReview) {
+      return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
     }
     const summary = await summarizeMinistryReports(summaryMonth);
-    return NextResponse.json({ summary, canSubmit, canReview, leaderGroups });
+    return NextResponse.json({
+      summary,
+      canSubmit,
+      canReview: canAdminReview,
+      leaderGroups,
+    });
   }
 
   if (reportMonth && groupId) {
     const report = await getMinistryReport(reportMonth, groupId);
     if (report) {
       const isLeader = leaderGroups.some((group) => group.id === groupId);
-      if (!canReview && !isLeader) {
+      if (!canAdminReview && !isLeader) {
         return NextResponse.json({ error: "You cannot view this report." }, { status: 403 });
       }
     }
     const group = leaderGroups.find((entry) => entry.id === groupId);
     const template = group?.template ?? (report ? getReportTemplateForGroup({ id: groupId, name: report.groupName }) : null);
-    return NextResponse.json({ report, template, canSubmit, canReview, leaderGroups });
+    return NextResponse.json({
+      report,
+      template,
+      canSubmit,
+      canReview: canAdminReview,
+      leaderGroups,
+    });
   }
 
   const reports = await listMinistryReports({
@@ -97,14 +108,14 @@ export async function GET(request: Request) {
     until,
   });
 
-  const visibleReports = canReview
+  const visibleReports = canAdminReview
     ? reports
     : reports.filter((report) => leaderGroups.some((group) => group.id === report.groupId));
 
   return NextResponse.json({
     reports: visibleReports,
     canSubmit,
-    canReview,
+    canReview: canAdminReview,
     leaderGroups,
     defaultMonth: currentReportMonth(),
   });
@@ -131,8 +142,8 @@ export async function POST(request: Request) {
 
   try {
     if (action === "review" || action === "return") {
-      if (!(await canReviewMinistryReports(auth.user!))) {
-        return NextResponse.json({ error: "Pastoral review access required." }, { status: 403 });
+      if (!(await canManageAsAdmin(auth.user!))) {
+        return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
       }
 
       const report = await reviewMinistryReport({

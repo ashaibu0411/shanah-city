@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/app/AppProvider";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
 import { MeetingCard } from "@/components/meetings/MeetingCard";
-import { MeetingClickReport } from "@/components/meetings/MeetingClickReport";
 import {
   MANUAL_PUSH_MEETING_IDS,
   isAutomatedReminderMeeting,
@@ -175,7 +174,6 @@ export function MeetingsList() {
           </div>
         </>
       )}
-      <MeetingClickReport meetings={meetings} />
     </div>
   );
 }

@@ -33,7 +33,7 @@ export function MobileMoreSheet() {
         className="app-mobile-more-backdrop fixed inset-0 z-[60] bg-night-950/35 backdrop-blur-sm"
         onClick={() => setMoreMenuOpen(false)}
       />
-      <div className="app-mobile-more-sheet mobile-more-sheet-panel app-shell-chrome fixed inset-x-0 bottom-0 z-[60] flex max-h-[min(88dvh,100%)] flex-col overflow-hidden rounded-t-[1.75rem] ring-1 ring-night-900/8">
+      <div className="app-mobile-more-sheet mobile-more-sheet-panel fixed inset-x-0 bottom-0 z-[60] flex max-h-[min(88dvh,100%)] flex-col overflow-hidden rounded-t-[1.75rem] ring-1 ring-night-900/8">
         <div className="mobile-more-sheet-header shrink-0 border-b border-night-900/6 px-4 pb-3 pt-4">
           <div className="app-mobile-inner relative mx-auto w-full">
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-night-900/15" />

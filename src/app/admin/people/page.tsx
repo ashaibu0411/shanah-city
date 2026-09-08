@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { AdminPeoplePanel } from "@/components/admin/AdminPeoplePanel";
 import { PageHeader } from "@/components/ui";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
@@ -26,7 +27,9 @@ export default async function AdminPeoplePage() {
         title="Member directory"
         description="Search by name, then open a profile to edit details or manage household members."
       />
-      <AdminPeoplePanel />
+      <Suspense fallback={<p className="text-sm text-night-600">Loading directory…</p>}>
+        <AdminPeoplePanel />
+      </Suspense>
     </>
   );
 }

@@ -25,7 +25,7 @@ export function MobileNav() {
     .some((item) => item.href === pathname);
 
   return (
-    <nav className="app-mobile-bottom-nav mobile-bottom-nav app-shell-chrome fixed bottom-0 left-0 right-0 z-40 border-t border-night-900/8 lg:hidden">
+    <nav className="app-mobile-bottom-nav mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-night-900/8 lg:hidden">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-400/25 to-transparent" />
       <ul className="app-mobile-inner mx-auto flex w-full items-stretch justify-around px-1 pb-[max(0.45rem,env(safe-area-inset-bottom))] pt-2">
         {tabs.map((item) => {

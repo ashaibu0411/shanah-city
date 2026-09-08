@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Card } from "@/components/ui";
 
 type OverviewData = {
@@ -47,6 +48,7 @@ function MetricCard({
 }
 
 export function AdminOverviewPanel() {
+  const { permissions } = useAuth();
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,12 +101,12 @@ export function AdminOverviewPanel() {
           />
         ) : null}
 
-        {overview.ministryReports ? (
+        {overview.ministryReports && permissions.canManageAdmin ? (
           <MetricCard
             label="Leader reports"
             value={overview.ministryReports.missing}
             detail={`${overview.ministryReports.submitted} submitted · ${overview.ministryReports.reviewed} reviewed`}
-            href="/admin/ministry-reports"
+            href="/admin/reports?section=leaders"
           />
         ) : null}
 

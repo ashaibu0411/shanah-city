@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
@@ -24,17 +25,35 @@ function sourceLabel(source: MeetingClickLog["source"]) {
   switch (source) {
     case "push":
       return "Push notification";
+    case "home":
+      return "Home banner";
+    case "group_page":
+      return "Group page";
     default:
       return "Meetings page";
   }
 }
 
-export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) {
+type MeetingClickReportProps = {
+  meetings?: Meeting[];
+  fixedMeetingId?: string;
+  title?: string;
+  description?: string;
+  hideMeetingFilter?: boolean;
+};
+
+export function MeetingClickReport({
+  meetings = [],
+  fixedMeetingId,
+  title,
+  description,
+  hideMeetingFilter = false,
+}: MeetingClickReportProps) {
   const { user, permissions } = useAuth();
   const [clicks, setClicks] = useState<MeetingClickLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [meetingId, setMeetingId] = useState("");
+  const [meetingId, setMeetingId] = useState(fixedMeetingId ?? "");
 
   const prayerMeetings = useMemo(
     () =>
@@ -51,12 +70,19 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
   const canView = permissions.canManageAdmin;
 
   useEffect(() => {
+    if (fixedMeetingId) {
+      setMeetingId(fixedMeetingId);
+    }
+  }, [fixedMeetingId]);
+
+  useEffect(() => {
     if (!user || !canView) {
       return;
     }
 
-    const params = new URLSearchParams({ limit: "50" });
-    if (meetingId) params.set("meetingId", meetingId);
+    const params = new URLSearchParams({ limit: "100" });
+    const activeMeetingId = fixedMeetingId ?? meetingId;
+    if (activeMeetingId) params.set("meetingId", activeMeetingId);
 
     setLoading(true);
     setError(null);
@@ -74,7 +100,7 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
         setClicks([]);
       })
       .finally(() => setLoading(false));
-  }, [user, meetingId, canView]);
+  }, [user, meetingId, fixedMeetingId, canView]);
 
   const summary = useMemo(() => {
     const uniqueMembers = new Set(clicks.map((click) => click.userId));
@@ -88,20 +114,20 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
     return null;
   }
 
+  const heading = title ?? "Who clicked to join";
+  const blurb =
+    description ??
+    "Tracks signed-in members for Shift Your Morning (Mon–Fri, 8am MST) and Shift Your Evening (Tue–Thu, 8pm MST).";
+
   return (
-    <Card className="mt-8">
+    <Card className="mt-0">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-sand-600">
             Prayer join report
           </p>
-          <h2 className="mt-1 font-display text-xl font-semibold text-night-900">
-            Who clicked to join
-          </h2>
-          <p className="mt-1 text-sm text-night-600">
-            Tracks signed-in members for Shift Your Morning (Mon–Fri, 8am MST) and Shift Your
-            Evening (Tue–Thu, 8pm MST). Other meetings are not tracked.
-          </p>
+          <h2 className="mt-1 font-display text-xl font-semibold text-night-900">{heading}</h2>
+          <p className="mt-1 text-sm text-night-600">{blurb}</p>
         </div>
         <div className="flex gap-2 text-sm text-night-600">
           <span>
@@ -114,23 +140,25 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
         </div>
       </div>
 
-      <div className="mt-4 max-w-md">
-        <label className="text-sm text-night-700">
-          <span className="font-semibold">Filter by prayer meeting</span>
-          <select
-            value={meetingId}
-            onChange={(event) => setMeetingId(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 text-sm"
-          >
-            <option value="">Morning and evening</option>
-            {prayerMeetings.map((meeting) => (
-              <option key={meeting.id} value={meeting.id}>
-                {meeting.title}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+      {!hideMeetingFilter && (
+        <div className="mt-4 max-w-md">
+          <label className="text-sm text-night-700">
+            <span className="font-semibold">Filter by prayer meeting</span>
+            <select
+              value={meetingId}
+              onChange={(event) => setMeetingId(event.target.value)}
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 text-sm"
+            >
+              <option value="">Morning and evening</option>
+              {prayerMeetings.map((meeting) => (
+                <option key={meeting.id} value={meeting.id}>
+                  {meeting.title}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
 
       {loading && <p className="mt-4 text-sm text-night-500">Loading report…</p>}
       {error && (
@@ -157,8 +185,15 @@ export function MeetingClickReport({ meetings = [] }: { meetings?: Meeting[] }) 
                 <tr key={click.id} className="border-t border-night-900/5">
                   <td className="py-3 pr-4 text-night-600">{formatWhen(click.clickedAt)}</td>
                   <td className="py-3 pr-4">
-                    <p className="font-medium text-night-900">{click.userName}</p>
-                    <p className="text-xs text-night-500">{click.userEmail}</p>
+                    <Link
+                      href={`/admin/people?q=${encodeURIComponent(click.userEmail)}`}
+                      className="group block rounded-lg transition hover:bg-sand-50"
+                    >
+                      <p className="font-medium text-night-900 group-hover:text-teal-800">
+                        {click.userName}
+                      </p>
+                      <p className="text-xs text-night-500">{click.userEmail}</p>
+                    </Link>
                   </td>
                   <td className="py-3 pr-4">
                     <p className="font-medium text-night-900">{click.meetingTitle}</p>

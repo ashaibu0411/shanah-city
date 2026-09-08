@@ -6,6 +6,7 @@
   html {
     --reading-scale: 1;
     scroll-behavior: smooth;
+    font-size: calc(100% * var(--reading-scale));
   }
 
   body {
@@ -13,19 +14,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-  }
-
-  /* Scale readable page content only — keep header, nav, and sheets at stable size. */
-  .app-main {
-    font-size: calc(1rem * var(--reading-scale));
-  }
-
-  body[data-shell="mobile"] .app-main {
-    font-size: calc(0.9375rem * var(--reading-scale));
-  }
-
-  .app-shell-chrome {
-    font-size: 16px;
   }
 
   h1 {

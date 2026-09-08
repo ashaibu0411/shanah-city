@@ -43,7 +43,7 @@ function statusText(status: MinistryLeaderReport["status"] | "missing") {
   }
 }
 
-export function AdminMinistryReportsPanel() {
+export function AdminMinistryReportsPanel({ embedded = false }: { embedded?: boolean }) {
   const { permissions } = useAuth();
   const [reportMonth, setReportMonth] = useState(previousReportMonth());
   const [summary, setSummary] = useState<MinistryReportSummary | null>(null);
@@ -106,14 +106,14 @@ export function AdminMinistryReportsPanel() {
   }
 
   useEffect(() => {
-    if (!permissions.canReviewMinistryReports) return;
+    if (!permissions.canManageAdmin) return;
     void loadOverview();
-  }, [permissions.canReviewMinistryReports, reportMonth]);
+  }, [permissions.canManageAdmin, reportMonth]);
 
   useEffect(() => {
-    if (!selectedGroupId || !permissions.canReviewMinistryReports) return;
+    if (!selectedGroupId || !permissions.canManageAdmin) return;
     void loadReport(selectedGroupId);
-  }, [selectedGroupId, reportMonth, permissions.canReviewMinistryReports]);
+  }, [selectedGroupId, reportMonth, permissions.canManageAdmin]);
 
   async function review(action: "review" | "return") {
     if (!selectedGroupId) return;
@@ -144,11 +144,11 @@ export function AdminMinistryReportsPanel() {
     void loadOverview();
   }
 
-  if (!permissions.canReviewMinistryReports) {
+  if (!permissions.canManageAdmin) {
     return (
       <Card className="p-6">
         <p className="text-night-700">
-          Ministry accountability reports are visible to pastoral staff and administrators.
+          Leader reports are visible to Admin Group members only.
         </p>
       </Card>
     );
@@ -156,12 +156,22 @@ export function AdminMinistryReportsPanel() {
 
   return (
     <div className="space-y-6">
+      {!embedded ? (
+        <Card className="p-6">
+          <p className="text-sm text-night-700">
+            Leader reports appear here after they click <strong>Submit report</strong> (not Save draft).
+            Match the same report month the leader chose (usually the prior month, e.g. July for an
+            August submission).
+          </p>
+        </Card>
+      ) : null}
       <Card className="p-6">
-        <p className="text-sm text-night-700">
-          Leader reports appear here after they click <strong>Submit report</strong> (not Save draft).
-          Open <strong>Admin → Ministry Reports</strong> and match the same report month the leader chose
-          (usually the prior month, e.g. July for an August submission).
-        </p>
+        {!embedded ? null : (
+          <p className="mb-4 text-sm text-night-700">
+            Leader reports appear after they click <strong>Submit report</strong>. Match the report
+            month the leader chose (usually the prior month).
+          </p>
+        )}
         <div className="mt-4 flex flex-wrap items-end gap-4">
           <label className="block text-sm">
             <span className="font-semibold text-night-800">Report month</span>

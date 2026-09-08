@@ -1,6 +1,5 @@
 import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
-import { getGroupDetail } from "@/lib/group-server";
 import type { MeetingClickSource } from "@/lib/meeting-click-types";
 import { useDatabase } from "@/lib/use-database";
 import * as meetingClickDb from "@/lib/stores/meeting-click-db";
@@ -18,36 +17,17 @@ export async function canViewAllMeetingClickReports(user: PublicMember | null) {
   return canManageAsAdmin(user);
 }
 
-export async function canViewGroupMeetingClickReport(
-  user: PublicMember | null,
-  groupId?: string | null,
-) {
-  if (!user || !groupId) {
-    return false;
-  }
-  if (await canViewAllMeetingClickReports(user)) {
-    return true;
-  }
-
-  const group = await getGroupDetail(groupId, user.id);
-  return Boolean(group?.isAdmin);
-}
-
-export async function canViewMeetingClickReport(
-  user: PublicMember | null,
-  groupId?: string | null,
-) {
-  if (await canViewAllMeetingClickReports(user)) {
-    return true;
-  }
-  if (groupId) {
-    return canViewGroupMeetingClickReport(user, groupId);
-  }
-  return false;
+export async function canViewMeetingClickReport(user: PublicMember | null) {
+  return canManageAsAdmin(user);
 }
 
 export function parseMeetingClickSource(value: string | null): MeetingClickSource | null {
-  if (value === "meetings_page" || value === "group_page" || value === "push") {
+  if (
+    value === "meetings_page" ||
+    value === "group_page" ||
+    value === "push" ||
+    value === "home"
+  ) {
     return value;
   }
   return null;

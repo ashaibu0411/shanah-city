@@ -53,7 +53,7 @@ export async function assertCanAccessReport(
   user: Pick<PublicMember, "id">,
   report: MinistryLeaderReport,
 ) {
-  if (await canReviewMinistryReports(user)) {
+  if (await canManageAsAdmin(user)) {
     return;
   }
   await assertCanSubmitForGroup(user.id, report.groupId);

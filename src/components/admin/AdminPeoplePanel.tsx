@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AdminMemberDetail } from "@/components/admin/AdminMemberDetail";
 import { Card } from "@/components/ui";
 import type { AdminPeopleEntry } from "@/lib/member-types";
 
 export function AdminPeoplePanel() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") ?? "";
   const [people, setPeople] = useState<AdminPeopleEntry[]>([]);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -29,6 +32,13 @@ export function AdminPeoplePanel() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    const nextQuery = searchParams.get("q") ?? "";
+    if (nextQuery) {
+      setQuery(nextQuery);
+    }
+  }, [searchParams]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();

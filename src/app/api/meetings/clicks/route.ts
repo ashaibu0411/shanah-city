@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     const limit = Number(searchParams.get("limit") ?? "100");
 
     if (!(await canViewMeetingClickReport(user))) {
-      return NextResponse.json({ error: "Leader or group admin access required." }, { status: 403 });
+      return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
     }
 
     if (meetingId && !isTrackedJoinMeeting(meetingId)) {
