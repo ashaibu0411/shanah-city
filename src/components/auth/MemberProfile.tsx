@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { useApp } from "@/components/app/AppProvider";
+import { CoupleAccountLinkPanel } from "@/components/profile/CoupleAccountLinkPanel";
 import { DeleteAccountPanel } from "@/components/auth/DeleteAccountPanel";
 import { MemberGivingHistory } from "@/components/give/MemberGivingHistory";
 import { ProfileAvatarUpload } from "@/components/auth/ProfileAvatarUpload";
@@ -389,6 +390,10 @@ export function MemberProfile() {
                 </div>
               </div>
             )}
+          </Card>
+
+          <Card className={isMobileApp ? "!p-3.5" : ""}>
+            <CoupleAccountLinkPanel />
           </Card>
 
           <DeleteAccountPanel />

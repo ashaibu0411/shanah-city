@@ -811,3 +811,46 @@ model CommsCalendarItem {
   @@index([channel])
   @@index([status])
 }
+
+model CoupleLink {
+  id          String    @id
+  userAId     String
+  userBId     String
+  status      String    @default("pending")
+  requestedBy String
+  createdAt   DateTime  @default(now())
+  acceptedAt  DateTime?
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+  @@index([status])
+}
+
+model GroupResource {
+  id            String   @id
+  groupId       String
+  title         String
+  description   String?
+  url           String?
+  category      String   @default("marriage")
+  sortOrder     Int      @default(0)
+  createdBy     String
+  createdByName String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([groupId, sortOrder])
+}
+
+model CouplePrayerPost {
+  id           String   @id
+  coupleLinkId String
+  authorId     String
+  authorName   String
+  content      String
+  type         String   @default("prayer")
+  createdAt    DateTime @default(now())
+
+  @@index([coupleLinkId, createdAt])
+}

@@ -71,6 +71,18 @@ export function EventRsvpPanel({
     }
   }, [user, spouseName]);
 
+  useEffect(() => {
+    if (spouseName.trim()) return;
+    void fetch("/api/couple-link")
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.link?.status === "active" && data.link.partnerName) {
+          setSpouseName(data.link.partnerName);
+        }
+      })
+      .catch(() => undefined);
+  }, [spouseName]);
+
   if (loading) {
     return null;
   }

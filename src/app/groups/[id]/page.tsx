@@ -8,12 +8,12 @@ export const dynamic = "force-dynamic";
 
 type GroupDetailPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ chat?: string; report?: string; calendar?: string }>;
+  searchParams: Promise<{ chat?: string; report?: string; calendar?: string; resources?: string; prayer?: string }>;
 };
 
 export default async function GroupDetailPage({ params, searchParams }: GroupDetailPageProps) {
   const { id } = await params;
-  const { chat, report, calendar } = await searchParams;
+  const { chat, report, calendar, resources, prayer } = await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -27,7 +27,17 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
     <GroupDetailView
       initialGroup={group}
       initialSection={
-        chat === "1" ? "chat" : report === "1" ? "report" : calendar === "1" ? "calendar" : "overview"
+        chat === "1"
+          ? "chat"
+          : report === "1"
+            ? "report"
+            : calendar === "1"
+              ? "calendar"
+              : resources === "1"
+                ? "resources"
+                : prayer === "1"
+                  ? "prayer"
+                  : "overview"
       }
     />
   );

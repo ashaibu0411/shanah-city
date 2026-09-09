@@ -19,6 +19,8 @@ import {
   unavailabilityCalendarGroupForId,
 } from "@/lib/church-groups";
 import { CouplesDevotionBanner } from "@/components/groups/CouplesDevotionBanner";
+import { CouplePrayerPanel } from "@/components/groups/CouplePrayerPanel";
+import { GroupResourcesPanel } from "@/components/groups/GroupResourcesPanel";
 import { getCampus } from "@/lib/site";
 import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
@@ -26,7 +28,7 @@ import type { GroupDetail, GroupMemberPreview } from "@/lib/group-types";
 import { groupCategoryLabels } from "@/lib/group-types";
 import { getGroupArtwork } from "@/lib/group-artwork";
 
-type DetailSection = "overview" | "chat" | "polls" | "report" | "calendar";
+type DetailSection = "overview" | "chat" | "polls" | "report" | "calendar" | "resources" | "prayer";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -141,13 +143,17 @@ export function GroupDetailView({
   const showLeaderReport =
     detail.isAdmin &&
     isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
+  const isPowerCouplesGroup = detail.id === SHANAH_POWER_COUPLES_GROUP_ID;
   const detailTabs = useMemo(() => {
     const tabs: { id: DetailSection; label: string }[] = [{ id: "overview", label: "Overview" }];
     if (showLeaderReport) tabs.push({ id: "report", label: "Monthly report" });
     if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Calendar" });
+    if (isPowerCouplesGroup && detail.isMember) {
+      tabs.push({ id: "resources", label: "Resources" }, { id: "prayer", label: "Prayer wall" });
+    }
     tabs.push({ id: "polls", label: "Polls" }, { id: "chat", label: "Group chat" });
     return tabs;
-  }, [showEmbeddedCalendar, showLeaderReport]);
+  }, [showEmbeddedCalendar, showLeaderReport, isPowerCouplesGroup, detail.isMember]);
   const canManageMembers =
     Boolean(user) &&
     (detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin);
@@ -272,6 +278,13 @@ export function GroupDetailView({
           showWorshipPlanner={permissions.canAccessWorshipPlanner}
           unavailabilityGroup={unavailabilityCalendarGroupForId(detail.id)}
         />
+      ) : detailSection === "resources" && isPowerCouplesGroup && detail.isMember && user ? (
+        <GroupResourcesPanel
+          groupId={detail.id}
+          isLeader={detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin}
+        />
+      ) : detailSection === "prayer" && isPowerCouplesGroup && detail.isMember && user ? (
+        <CouplePrayerPanel />
       ) : detailSection === "overview" ? (
         <>
           <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
