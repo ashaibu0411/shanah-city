@@ -108,6 +108,13 @@
     background: #f7f3eb;
   }
 
+  .groups-premium-page h1,
+  .groups-premium-page h2,
+  .groups-premium-page h3,
+  .groups-premium-page h4 {
+    @apply font-display;
+  }
+
   .groups-premium-list-row {
     text-decoration: none;
     color: inherit;

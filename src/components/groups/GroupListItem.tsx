@@ -18,7 +18,7 @@ export function GroupListItem({ group }: { group: GroupSummary }) {
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className={`${groupsPremium.cardTitle} truncate`}>{group.name}</p>
+        <p className={`${groupsPremium.listTitle} truncate`}>{group.name}</p>
         <p className="mt-0.5 line-clamp-1 text-sm text-night-500">{preview}</p>
       </div>
 

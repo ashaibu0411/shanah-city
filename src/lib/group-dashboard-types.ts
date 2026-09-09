@@ -1,0 +1,35 @@
+export type GroupScheduleKind = "worship" | "frontliners" | "media" | "generic";
+
+export type GroupDashboardRoleRow = {
+  roleLabel: string;
+  assignees: string[];
+};
+
+export type GroupDashboardNextService = {
+  title: string;
+  subtitle?: string;
+  roles: GroupDashboardRoleRow[];
+  href?: string;
+  emptyMessage?: string;
+};
+
+export type GroupDashboardAssignment = {
+  id: string;
+  leftLabel: string;
+  rightLabel: string;
+  href?: string;
+};
+
+export type GroupDashboardQuickAction = {
+  id: string;
+  label: string;
+  href?: string;
+  action?: "chat" | "calendar" | "report" | "invite";
+};
+
+export type GroupDashboardData = {
+  scheduleKind: GroupScheduleKind;
+  nextService: GroupDashboardNextService | null;
+  myAssignments: GroupDashboardAssignment[];
+  quickActions: GroupDashboardQuickAction[];
+};

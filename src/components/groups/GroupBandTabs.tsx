@@ -27,9 +27,7 @@ export function GroupBandTabs({ tabs, activeId, onChange, className = "" }: Grou
               role="tab"
               aria-selected={active}
               onClick={() => onChange(tab.id)}
-              className={`${groupsPremium.pillButton} ${
-                active ? groupsPremium.pillActive : groupsPremium.pillIdle
-              }`}
+              className={active ? groupsPremium.pillActive : groupsPremium.pillIdle}
             >
               {tab.label}
             </button>

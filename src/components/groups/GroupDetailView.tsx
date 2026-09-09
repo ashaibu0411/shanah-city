@@ -8,11 +8,11 @@ import { useAppShell } from "@/components/app/AppShellContext";
 import { GroupBandHeader } from "@/components/groups/GroupBandHeader";
 import { GroupBandTabs } from "@/components/groups/GroupBandTabs";
 import {
-  GroupPremiumLeaderChip,
   GroupPremiumSectionLabel,
   GroupPremiumStackCard,
 } from "@/components/groups/GroupPremiumUI";
 import { groupsPremium } from "@/components/groups/groups-premium";
+import { GroupDashboardPanel } from "@/components/groups/GroupDashboardPanel";
 import { GroupIconEditor } from "@/components/groups/GroupIconEditor";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupMemberAddForm } from "@/components/groups/GroupMemberAddForm";
@@ -35,6 +35,7 @@ import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
 import type { GroupDetail, GroupMemberPreview } from "@/lib/group-types";
 import { groupCategoryLabels } from "@/lib/group-types";
+import type { GroupDashboardQuickAction } from "@/lib/group-dashboard-types";
 
 type DetailSection =
   | "overview"
@@ -171,7 +172,7 @@ export function GroupDetailView({
         { id: "growth", label: "Growth" },
       );
     }
-    tabs.push({ id: "polls", label: "Polls" }, { id: "chat", label: "Chat" });
+    tabs.push({ id: "polls", label: "Polls" });
     return tabs;
   }, [showEmbeddedCalendar, showLeaderReport, isPowerCouplesGroup, detail.isMember]);
 
@@ -187,6 +188,24 @@ export function GroupDetailView({
       }
       membersRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
+  }
+
+  function handleDashboardQuickAction(action: GroupDashboardQuickAction) {
+    if (action.action === "chat") {
+      setDetailSection("chat");
+      return;
+    }
+    if (action.action === "calendar") {
+      setDetailSection("calendar");
+      return;
+    }
+    if (action.action === "report") {
+      setDetailSection("report");
+      return;
+    }
+    if (action.action === "invite") {
+      openInfoSection("invite");
+    }
   }
   const canManageMembers =
     Boolean(user) &&
@@ -296,17 +315,26 @@ export function GroupDetailView({
         <CoupleEnrichmentPanel groupId={detail.id} />
       ) : detailSection === "overview" && user && (detail.isMember || isSiteAdminManaging) ? (
         <>
+          {detail.isMember ? (
+            <GroupDashboardPanel
+              groupId={detail.id}
+              groupName={detail.name}
+              memberCount={detail.members.length}
+              leaderNames={groupLeaders.map((leader) => leader.name)}
+              onQuickAction={handleDashboardQuickAction}
+            />
+          ) : null}
+
           <GroupPremiumStackCard>
-            <GroupPremiumSectionLabel>Overview</GroupPremiumSectionLabel>
+            <GroupPremiumSectionLabel>About</GroupPremiumSectionLabel>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className={groupsPremium.statusChip}>
                 {groupCategoryLabels[detail.category]}
               </span>
-              <span className={groupsPremium.statusChip}>
-                {detail.members.length} member{detail.members.length === 1 ? "" : "s"}
-              </span>
-              {groupLeaders.length > 0 ? (
-                <span className={groupsPremium.statusChip}>Leaders assigned</span>
+              {!detail.isMember ? (
+                <span className={groupsPremium.statusChip}>
+                  {detail.members.length} member{detail.members.length === 1 ? "" : "s"}
+                </span>
               ) : null}
             </div>
             {detail.campusId ? (
@@ -326,14 +354,6 @@ export function GroupDetailView({
             </div>
 
             <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
-
-            {groupLeaders.length > 0 ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {groupLeaders.map((leader) => (
-                  <GroupPremiumLeaderChip key={leader.id} name={leader.name} />
-                ))}
-              </div>
-            ) : null}
 
             {detail.isMember && canManageLeadership ? (
               <p className="mt-4 rounded-2xl bg-[#f7f3eb]/80 px-3.5 py-3 text-xs text-night-600 ring-1 ring-night-900/8">

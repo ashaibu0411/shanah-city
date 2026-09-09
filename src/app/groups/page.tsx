@@ -22,7 +22,7 @@ export default async function GroupsPage({ searchParams }: GroupsPageProps) {
     <>
       <PageHeader
         eyebrow="Get involved"
-        title="Groups & ministries"
+        title="Ministries"
         description="Browse church groups and ministries. Tap any group to see details, join, chat, and polls."
       />
       <Suspense
