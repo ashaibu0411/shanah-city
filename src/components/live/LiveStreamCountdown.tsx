@@ -11,7 +11,7 @@ import type { LiveStreamSchedule } from "@/lib/live-schedule-types";
 
 type LiveStreamCountdownProps = {
   schedule: LiveStreamSchedule;
-  variant?: "card" | "inline" | "on-dark" | "stage" | "home-flyer" | "desktop-hero";
+  variant?: "card" | "inline" | "on-dark" | "stage" | "home-flyer" | "desktop-flyer";
   onComplete?: () => void;
 };
 
@@ -141,45 +141,36 @@ export function LiveStreamCountdown({
     );
   }
 
-  if (variant === "desktop-hero") {
+  if (variant === "desktop-flyer") {
     return (
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 px-6 py-10 text-white shadow-xl ring-1 ring-night-900/10 sm:px-10 sm:py-12">
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.22),transparent_42%),radial-gradient(circle_at_85%_80%,rgba(0,0,0,0.18),transparent_45%)]"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden opacity-[0.14]"
-          aria-hidden
-        >
-          <p className="select-none text-center font-display text-[4.5rem] font-bold leading-[0.85] tracking-tight sm:text-[7rem]">
-            <span className="block text-white">live</span>
-            <span className="block text-night-950">stream</span>
+      <div className="grid gap-6 text-white md:grid-cols-[1fr_auto] md:items-center">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-sand-200/90">
+            Shanah City Live
           </p>
-        </div>
-
-        <p className="relative text-xs font-bold uppercase tracking-[0.28em] text-white/90">
-          Shanah City Live
-        </p>
-
-        <div className="relative mx-auto mt-8 max-w-xl rounded-[1.35rem] bg-night-950/88 px-5 py-6 text-center shadow-2xl ring-1 ring-white/10 backdrop-blur-md sm:px-8 sm:py-7">
-          <p className="text-sm text-white/75">
-            {startLabel ? `Live on ${startLabel}` : "Upcoming livestream"}
-          </p>
-          <div className="mt-5">
-            <ColonCountdown parts={parts} />
-          </div>
-          <h3 className="mt-6 font-display text-xl font-semibold leading-tight text-white sm:text-2xl">
+          <h3 className="mt-3 font-display text-2xl font-semibold leading-tight sm:text-3xl">
             {schedule.title}
           </h3>
-          <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/45">
-            {platformLabel}
+          <p className="mt-2 text-sm text-white/75">
+            {startLabel ? `Live on ${startLabel}` : "Upcoming livestream"}
+            <span className="text-white/45"> · {platformLabel}</span>
           </p>
+          <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-bold text-night-900 shadow-lg transition group-hover:bg-sand-100">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-800 text-[10px] text-white">
+              ▶
+            </span>
+            Open live player
+          </span>
         </div>
 
-        <p className="relative mt-6 text-center text-sm font-semibold text-white/90">
-          Open live player →
-        </p>
+        <div className="rounded-2xl border border-white/10 bg-white/10 px-5 py-5 text-center backdrop-blur-sm sm:min-w-[22rem] sm:px-6 sm:py-6">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-teal-100/80">
+            Starts in
+          </p>
+          <div className="mt-4">
+            <ColonCountdown parts={parts} />
+          </div>
+        </div>
       </div>
     );
   }

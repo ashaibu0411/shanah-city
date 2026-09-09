@@ -60,7 +60,7 @@ export function HomeView({
     <>
       <UrgentAlertBanner alert={urgentAlert} highlighted={highlightAlert} />
       <HomeHero />
-      <LiveBanner />
+      <LiveBanner liveFlyerImage={churchImages.live} />
       <PendingRsvpHomeBanner />
       <LeaderReportHomeBanner />
       <AnniversaryHomeBanner />

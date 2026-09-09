@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { LiveStreamCountdown } from "@/components/live/LiveStreamCountdown";
 import { useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSchedule";
 import { LiveStreamPublicShare } from "@/components/live/LiveStreamPublicShare";
@@ -15,7 +16,11 @@ const serviceSummary = site.serviceTimes
   )
   .join(" · ");
 
-export function LiveBanner() {
+type LiveBannerProps = {
+  liveFlyerImage?: string;
+};
+
+export function LiveBanner({ liveFlyerImage }: LiveBannerProps) {
   const { schedule, loading, clearSchedule } = useUpcomingLiveStreamSchedule();
   const anyLive =
     liveStream.isLive ||
@@ -54,39 +59,78 @@ export function LiveBanner() {
 
   if (!loading && schedule) {
     return (
-      <Link href="/live" className="mb-6 block transition hover:scale-[1.005]">
-        <LiveStreamCountdown
-          schedule={schedule}
-          variant="desktop-hero"
-          onComplete={clearSchedule}
-        />
+      <Link
+        href="/live"
+        className="group mb-6 block overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-night-900/10 transition hover:scale-[1.005]"
+      >
+        <div className="relative min-h-[16rem] sm:min-h-[14rem]">
+          {liveFlyerImage ? (
+            <>
+              <ChurchFlyerImage
+                src={liveFlyerImage}
+                alt=""
+                sizes="(max-width: 768px) 100vw, 960px"
+                className="object-cover transition duration-700 group-hover:scale-[1.03]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-night-950/94 via-night-950/82 to-night-900/60" />
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-night-950 via-night-900 to-teal-950" />
+          )}
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(45,212,191,0.12),transparent_45%)]"
+            aria-hidden
+          />
+          <div className="relative flex min-h-[16rem] flex-col justify-center px-6 py-8 sm:min-h-[14rem] sm:px-10 sm:py-10">
+            <LiveStreamCountdown
+              schedule={schedule}
+              variant="desktop-flyer"
+              onComplete={clearSchedule}
+            />
+          </div>
+        </div>
       </Link>
     );
   }
 
   return (
-    <div className="mb-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-night-950 via-night-900 to-night-800 text-white shadow-xl ring-1 ring-night-900/10">
-      <div className="px-6 py-8 sm:px-8 sm:py-10">
-        <p className="text-xs font-bold uppercase tracking-[0.24em] text-amber-200/90">
-          Watch live
-        </p>
-        <h2 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">
-          Shanah City Live
-        </h2>
-        <p className="mt-2 text-sm text-white/75">{serviceSummary}</p>
-        <p className="mt-1 text-sm text-white/50">Aurora · Accra · Online</p>
-        <Link
-          href="/live"
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-night-900 transition hover:bg-amber-100"
-        >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-night-900 text-[10px] text-white">
-            ▶
-          </span>
-          Open live player
-        </Link>
+    <div className="group mb-6 overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-night-900/10">
+      <div className="relative min-h-[14rem]">
+        {liveFlyerImage ? (
+          <>
+            <ChurchFlyerImage
+              src={liveFlyerImage}
+              alt=""
+              sizes="(max-width: 768px) 100vw, 960px"
+              className="object-cover transition duration-700 group-hover:scale-[1.02]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-night-950/94 via-night-950/85 to-night-900/70" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-night-950 via-night-900 to-night-800" />
+        )}
+        <div className="relative px-6 py-8 sm:px-8 sm:py-10">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-sand-200/90">
+            Shanah City Live
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-semibold text-white sm:text-3xl">
+            Watch live with us
+          </h2>
+          <p className="mt-2 text-sm text-white/75">{serviceSummary}</p>
+          <p className="mt-1 text-sm text-white/50">Aurora · Accra · Online</p>
+          <Link
+            href="/live"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-night-900 transition hover:bg-sand-100"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-800 text-[10px] text-white">
+              ▶
+            </span>
+            Open live player
+          </Link>
+        </div>
       </div>
 
-      <div className="border-t border-white/10 px-4 py-4 sm:px-6">
+      <div className="border-t border-white/10 bg-night-950/90 px-4 py-4 sm:px-6">
         <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-white/45">
           Follow & watch
         </p>
