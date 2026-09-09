@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComposer";
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
+import { groupsPremium } from "@/components/groups/groups-premium";
 import type { UserBlock } from "@/lib/block-types";
 import type { GroupCategory, GroupChatMessage } from "@/lib/group-types";
 import type { ChatTypingUser } from "@/lib/chat-utils";
@@ -23,18 +24,25 @@ function typingLabel(users: ChatTypingUser[]) {
   return `${users[0].userName} and ${users.length - 1} others are typing…`;
 }
 
-function BackChevron({ label, onClick }: { label: string; onClick: () => void }) {
+function BackIcon() {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white hover:bg-white/10"
-      aria-label={label}
-    >
-      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </button>
+    <svg viewBox="0 0 20 20" className="h-5 w-5" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M11.78 4.22a.75.75 0 0 1 0 1.06L8.06 9l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+      />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-5 w-5" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M10 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+      />
+    </svg>
   );
 }
 
@@ -306,44 +314,55 @@ export function GroupChatPanel({
   const subtitle = typingText || `${memberCount} participant${memberCount === 1 ? "" : "s"}`;
 
   return (
-    <div className="group-chat-whatsapp fixed inset-0 z-50 flex min-w-0 flex-col bg-[#efeae2] lg:relative lg:inset-auto lg:z-auto lg:min-h-[min(720px,calc(100dvh-10rem))] lg:overflow-hidden lg:rounded-2xl lg:shadow-app-lg">
-      <header className="flex shrink-0 items-center gap-1 bg-[#008069] px-1 py-1.5 pt-[max(0.35rem,env(safe-area-inset-top))] text-white shadow-sm">
-        {onBack ? <BackChevron label="Back to group" onClick={onBack} /> : null}
-        <div className="flex min-w-0 flex-1 items-center gap-3 px-1">
-          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-white/15 ring-1 ring-white/20">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={artworkUrl} alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[16px] font-semibold leading-tight">{groupName}</h1>
-            <p className="truncate text-[12px] text-white/85">{subtitle}</p>
-          </div>
-        </div>
-        <div className="relative shrink-0">
-          <button
-            type="button"
-            onClick={() => setShowMenu((value) => !value)}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-xl hover:bg-white/10"
-            aria-label="Group chat options"
-          >
-            ⋮
-          </button>
-          {showMenu ? (
-            <div className="absolute right-0 top-full z-20 mt-1 min-w-[180px] overflow-hidden rounded-xl bg-white py-1 text-[#111b21] shadow-xl">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowMenu(false);
-                  setReportTarget(null);
-                  setReportReason("");
-                  setStatus("Tap ••• on a message to report or block a member.");
-                }}
-                className="block w-full px-4 py-2.5 text-left text-sm hover:bg-[#f0f2f5]"
-              >
-                Safety tips
-              </button>
-            </div>
+    <div className={groupsPremium.chatPanel}>
+      <header className={groupsPremium.chatHeader}>
+        <div className="relative flex items-center justify-center py-1">
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className={`${groupsPremium.headerIconButton} absolute left-0`}
+              aria-label="Back to group dashboard"
+            >
+              <BackIcon />
+            </button>
           ) : null}
+          <div className="flex max-w-[68%] min-w-0 items-center gap-2.5">
+            <span className={`${groupsPremium.iconTile} h-9 w-9 rounded-xl`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={artworkUrl} alt="" className={groupsPremium.iconTileImage} />
+            </span>
+            <div className="min-w-0 text-left">
+              <h1 className={`${groupsPremium.headerTitle} text-left`}>{groupName}</h1>
+              <p className={`${groupsPremium.cardMeta} truncate text-xs`}>{subtitle}</p>
+            </div>
+          </div>
+          <div className="absolute right-0">
+            <button
+              type="button"
+              onClick={() => setShowMenu((value) => !value)}
+              className={groupsPremium.headerIconButton}
+              aria-label="Group chat options"
+            >
+              <MenuIcon />
+            </button>
+            {showMenu ? (
+              <div className={groupsPremium.chatMenu}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    setReportTarget(null);
+                    setReportReason("");
+                    setStatus("Tap ••• on a message to report or block a member.");
+                  }}
+                  className={groupsPremium.chatMenuItem}
+                >
+                  Safety tips
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -355,7 +374,7 @@ export function GroupChatPanel({
             onChange={(event) => setReportReason(event.target.value)}
             rows={2}
             placeholder="Describe what happened (required)..."
-            className="mt-2 w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-sm outline-none"
+            className="mt-2 w-full rounded-2xl border border-red-200 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
           />
           <div className="mt-2 flex gap-2">
             <button
@@ -372,7 +391,7 @@ export function GroupChatPanel({
                 setReportTarget(null);
                 setReportReason("");
               }}
-              className="text-sm font-semibold text-[#667781]"
+              className="text-sm font-semibold text-night-600"
             >
               Cancel
             </button>
@@ -380,26 +399,23 @@ export function GroupChatPanel({
         </div>
       ) : null}
 
-      {status ? (
-        <div className="shrink-0 bg-[#d1f4cc] px-4 py-2 text-center text-xs text-[#111b21]">
-          {status}
-        </div>
-      ) : null}
+      {status ? <div className={groupsPremium.chatStatusBanner}>{status}</div> : null}
 
-      <div className="group-chat-wallpaper min-h-0 flex-1 overflow-y-auto py-2">
+      <div className="group-chat-wallpaper min-h-0 flex-1 overflow-y-auto py-3">
         {loading ? (
-          <p className="px-4 py-8 text-center text-sm text-[#667781]">Loading messages…</p>
+          <p className="px-4 py-8 text-center text-sm text-night-500">Loading messages…</p>
         ) : messages.length === 0 ? (
-          <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-8 text-center">
-            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-[#008069] text-2xl font-semibold text-white ring-4 ring-white/80">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={artworkUrl} alt="" className="h-full w-full object-cover" />
+          <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-6 text-center">
+            <div className={`${groupsPremium.stackCard} max-w-sm px-6 py-8`}>
+              <span className={`${groupsPremium.iconTile} mx-auto h-16 w-16 rounded-2xl`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={artworkUrl} alt="" className={groupsPremium.iconTileImage} />
+              </span>
+              <p className={`${groupsPremium.cardTitle} mt-4`}>{groupName}</p>
+              <p className={`${groupsPremium.cardMeta} mt-2`}>
+                Messages are visible to group members. Say hello to start the conversation.
+              </p>
             </div>
-            <p className="mt-4 text-lg font-semibold text-[#111b21]">{groupName}</p>
-            <p className="mt-1 text-sm text-[#667781]">
-              Messages and calls are end-to-end visible to group members. Say hello to start the
-              conversation.
-            </p>
           </div>
         ) : (
           messages.map((message, index) => {
@@ -412,7 +428,7 @@ export function GroupChatPanel({
               <div key={message.id}>
                 {showDate ? (
                   <div className="my-3 flex justify-center px-4">
-                    <span className="rounded-lg bg-[#ffffffd9] px-3 py-1 text-[12px] font-medium text-[#54656f] shadow-sm">
+                    <span className={groupsPremium.chatDatePill}>
                       {chatDateSeparatorLabel(message.createdAt)}
                     </span>
                   </div>
@@ -433,7 +449,7 @@ export function GroupChatPanel({
                     seenCount={message.seenCount}
                     showSeenCount={mine && group.isLast}
                     showMeta={group.showMeta}
-                    density="whatsapp"
+                    density="default"
                     canEdit={message.senderId === userId}
                     canDelete={message.senderId === userId}
                     canReport={message.senderId !== userId}
@@ -452,7 +468,7 @@ export function GroupChatPanel({
         <div ref={bottomRef} />
       </div>
 
-      <div className="shrink-0">
+      <div className={groupsPremium.chatComposerWrap}>
         <ChatComposer
           value={draft}
           onChange={setDraft}
@@ -462,7 +478,7 @@ export function GroupChatPanel({
           onTyping={sendTyping}
           onPickAttachment={uploadAttachment}
           attachmentBusy={attachmentBusy}
-          density="whatsapp"
+          density="compact"
         />
       </div>
     </div>

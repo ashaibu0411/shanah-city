@@ -7,6 +7,12 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { GroupBandHeader } from "@/components/groups/GroupBandHeader";
 import { GroupBandTabs } from "@/components/groups/GroupBandTabs";
+import {
+  GroupPremiumLeaderChip,
+  GroupPremiumSectionLabel,
+  GroupPremiumStackCard,
+} from "@/components/groups/GroupPremiumUI";
+import { groupsPremium } from "@/components/groups/groups-premium";
 import { GroupIconEditor } from "@/components/groups/GroupIconEditor";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupMemberAddForm } from "@/components/groups/GroupMemberAddForm";
@@ -145,8 +151,16 @@ export function GroupDetailView({
     detail.isAdmin &&
     isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
   const isPowerCouplesGroup = detail.id === SHANAH_POWER_COUPLES_GROUP_ID;
+  const groupLeaders = useMemo(
+    () =>
+      detail.members.filter(
+        (member) => member.isAdmin || member.isCreator || member.isAssistantLeader,
+      ),
+    [detail.members],
+  );
+
   const detailTabs = useMemo(() => {
-    const tabs: { id: DetailSection; label: string }[] = [{ id: "overview", label: "Info" }];
+    const tabs: { id: DetailSection; label: string }[] = [{ id: "overview", label: "Dashboard" }];
     if (showLeaderReport) tabs.push({ id: "report", label: "Report" });
     if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Events" });
     if (isPowerCouplesGroup && detail.isMember) {
@@ -201,7 +215,7 @@ export function GroupDetailView({
   ) : !detail.isMember ? (
     isSiteAdminManaging ? (
       <p className="rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">
-        Admin access — open Info to add members and assign a group leader.
+        Admin access — open Dashboard to add members and assign a group leader.
       </p>
     ) : (
       <Button
@@ -220,8 +234,8 @@ export function GroupDetailView({
 
   return (
     <div
-      className={`group-band-page min-w-0 overflow-hidden bg-white ${
-        isMobileApp ? "-mx-4 -mt-4" : "rounded-2xl border border-night-900/10 shadow-sm"
+      className={`${groupsPremium.page} overflow-hidden ${
+        isMobileApp ? "-mx-4 -mt-4" : "rounded-[1.5rem] border border-night-900/8 shadow-[0_8px_32px_rgba(15,23,42,0.06)]"
       }`}
     >
       <GroupBandHeader
@@ -241,19 +255,22 @@ export function GroupDetailView({
         />
       ) : isSiteAdminManaging && user ? (
         <GroupBandTabs
-          tabs={[{ id: "overview", label: "Info" }]}
+          tabs={[{ id: "overview", label: "Dashboard" }]}
           activeId="overview"
           onChange={() => undefined}
         />
       ) : null}
 
       {!detail.isMember && user && !isSiteAdminManaging ? (
-        <div className="border-b border-night-900/8 px-4 py-4">
-          <p className="text-sm leading-relaxed text-night-700">{detail.description}</p>
+        <div className={groupsPremium.pageInset}>
+          <GroupPremiumStackCard>
+            <GroupPremiumSectionLabel>About</GroupPremiumSectionLabel>
+            <p className="mt-3 text-sm leading-relaxed text-night-700">{detail.description}</p>
+          </GroupPremiumStackCard>
         </div>
       ) : null}
 
-      <div className="px-4 py-4">
+      <div className={`${groupsPremium.pageInset} space-y-4`}>
         {detailSection === "polls" && detail.isMember && user ? (
         <GroupPollsPanel groupId={detail.id} groupName={detail.name} isAdmin={detail.isAdmin} />
       ) : detailSection === "report" && showLeaderReport && user ? (
@@ -279,65 +296,91 @@ export function GroupDetailView({
         <CoupleEnrichmentPanel groupId={detail.id} />
       ) : detailSection === "overview" && user && (detail.isMember || isSiteAdminManaging) ? (
         <>
-          <span className="inline-flex rounded-full bg-sand-100 px-2.5 py-0.5 text-xs font-semibold text-night-700">
-            {groupCategoryLabels[detail.category]}
-          </span>
-          {detail.campusId ? (
-            <p className="mt-2 text-xs text-night-500">{getCampus(detail.campusId).name}</p>
-          ) : null}
-
-          <GroupIconEditor
-            group={detail}
-            canManage={canManageLeadership}
-            onUpdated={(group) => setDetail(group)}
-            onStatus={(message, isError) => {
-              setStatus(message);
-              setStatusIsError(Boolean(isError));
-            }}
-          />
-
-          <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
-
-          {detail.isMember && canManageLeadership ? (
-            <p className="mt-3 rounded-xl bg-sand-50 px-3 py-2 text-xs text-night-600">
-              {showLeaderReport
-                ? "Manage members below. Submit the Report tab each month."
-                : "Leaders can add members and assign assistant leaders below."}
-            </p>
-          ) : null}
-
-          {detail.id === SHANAH_POWER_COUPLES_GROUP_ID && detail.isMember ? (
-            <CouplesDevotionBanner className="mt-4" />
-          ) : null}
-
-          {(detail.meetingSchedule || detail.meetingLink) && (
-            <div className="mt-4 rounded-2xl bg-sand-50 px-4 py-3 text-sm text-night-700">
-              {detail.meetingSchedule ? (
-                <p>
-                  <span className="font-semibold">When:</span> {detail.meetingSchedule}
-                </p>
-              ) : null}
-              {detail.meetingLink ? (
-                <p className={detail.meetingSchedule ? "mt-2" : ""}>
-                  <span className="font-semibold">Link:</span>{" "}
-                  <ExternalLink
-                    href={detail.meetingLink}
-                    className="font-semibold text-night-900 underline"
-                  >
-                    Open meeting link
-                  </ExternalLink>
-                </p>
+          <GroupPremiumStackCard>
+            <GroupPremiumSectionLabel>Overview</GroupPremiumSectionLabel>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className={groupsPremium.statusChip}>
+                {groupCategoryLabels[detail.category]}
+              </span>
+              <span className={groupsPremium.statusChip}>
+                {detail.members.length} member{detail.members.length === 1 ? "" : "s"}
+              </span>
+              {groupLeaders.length > 0 ? (
+                <span className={groupsPremium.statusChip}>Leaders assigned</span>
               ) : null}
             </div>
+            {detail.campusId ? (
+              <p className={`${groupsPremium.cardMeta} mt-2`}>{getCampus(detail.campusId).name}</p>
+            ) : null}
+
+            <div className="mt-4">
+              <GroupIconEditor
+                group={detail}
+                canManage={canManageLeadership}
+                onUpdated={(group) => setDetail(group)}
+                onStatus={(message, isError) => {
+                  setStatus(message);
+                  setStatusIsError(Boolean(isError));
+                }}
+              />
+            </div>
+
+            <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
+
+            {groupLeaders.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {groupLeaders.map((leader) => (
+                  <GroupPremiumLeaderChip key={leader.id} name={leader.name} />
+                ))}
+              </div>
+            ) : null}
+
+            {detail.isMember && canManageLeadership ? (
+              <p className="mt-4 rounded-2xl bg-[#f7f3eb]/80 px-3.5 py-3 text-xs text-night-600 ring-1 ring-night-900/8">
+                {showLeaderReport
+                  ? "Manage members below. Submit the Report tab each month."
+                  : "Leaders can add members and assign assistant leaders below."}
+              </p>
+            ) : null}
+
+            {detail.id === SHANAH_POWER_COUPLES_GROUP_ID && detail.isMember ? (
+              <CouplesDevotionBanner className="mt-4" />
+            ) : null}
+          </GroupPremiumStackCard>
+
+          {(detail.meetingSchedule || detail.meetingLink) && (
+            <GroupPremiumStackCard>
+              <GroupPremiumSectionLabel>Next meeting</GroupPremiumSectionLabel>
+              <div className="mt-3 space-y-2">
+                {detail.meetingSchedule ? (
+                  <div className={groupsPremium.rowInset}>
+                    <span className="text-sm font-semibold text-night-800">When</span>
+                    <span className="text-sm text-night-700">{detail.meetingSchedule}</span>
+                  </div>
+                ) : null}
+                {detail.meetingLink ? (
+                  <div className={groupsPremium.rowInset}>
+                    <span className="text-sm font-semibold text-night-800">Link</span>
+                    <ExternalLink
+                      href={detail.meetingLink}
+                      className="text-sm font-semibold text-night-900 underline"
+                    >
+                      Open meeting link
+                    </ExternalLink>
+                  </div>
+                ) : null}
+              </div>
+            </GroupPremiumStackCard>
           )}
 
-          <div ref={membersRef} id="group-members" className="mt-6 scroll-mt-24">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-night-500">
+          <div ref={membersRef} id="group-members" className="scroll-mt-24">
+            <GroupPremiumStackCard>
+            <GroupPremiumSectionLabel>
               Members ({detail.members.length})
-            </h3>
+            </GroupPremiumSectionLabel>
 
             {canManageMembers ? (
-              <div id="group-member-add">
+              <div id="group-member-add" className="mt-4">
                 <GroupMemberAddForm
                 groupId={detail.id}
                 disabled={busy}
@@ -396,7 +439,7 @@ export function GroupDetailView({
                   return (
                     <div
                       key={member.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-sand-50 px-3 py-2"
+                      className={`${groupsPremium.rowInset} flex-wrap`}
                     >
                       <div>
                         <p className="text-sm font-medium text-night-900">{member.name}</p>
@@ -528,30 +571,33 @@ export function GroupDetailView({
                 })}
               </div>
             )}
+            </GroupPremiumStackCard>
           </div>
 
-          <p className="mt-4 text-xs text-night-400">Created {formatTime(detail.createdAt)}</p>
+          <GroupPremiumStackCard>
+            <p className="text-xs text-night-400">Created {formatTime(detail.createdAt)}</p>
 
-          {detail.isAdmin && user ? (
-            <div className="mt-6 border-t border-night-900/5 pt-4">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={async () => {
-                  if (!window.confirm(`Delete "${detail.name}"? This cannot be undone.`)) {
-                    return;
-                  }
-                  const ok = await runAction({ action: "delete", groupId: detail.id });
-                  if (ok) {
-                    router.push("/groups");
-                  }
-                }}
-                className="text-sm font-semibold text-red-700 underline"
-              >
-                Delete group
-              </button>
-            </div>
-          ) : null}
+            {detail.isAdmin && user ? (
+              <div className="mt-4 border-t border-night-900/8 pt-4">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={async () => {
+                    if (!window.confirm(`Delete "${detail.name}"? This cannot be undone.`)) {
+                      return;
+                    }
+                    const ok = await runAction({ action: "delete", groupId: detail.id });
+                    if (ok) {
+                      router.push("/groups");
+                    }
+                  }}
+                  className="text-sm font-semibold text-red-700 underline"
+                >
+                  Delete group
+                </button>
+              </div>
+            ) : null}
+          </GroupPremiumStackCard>
         </>
       ) : null}
 

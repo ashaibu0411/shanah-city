@@ -1,46 +1,36 @@
 import Link from "next/link";
+import { GroupPremiumChevron } from "@/components/groups/GroupPremiumUI";
+import { groupsPremium } from "@/components/groups/groups-premium";
 import { getCampus } from "@/lib/site";
 import type { GroupSummary } from "@/lib/group-types";
-import { groupCategoryLabels } from "@/lib/group-types";
 import { getGroupArtwork } from "@/lib/group-artwork";
 
 export function GroupListItem({ group }: { group: GroupSummary }) {
   const artworkUrl = getGroupArtwork(group, "square");
   const campusLabel = group.campusId ? getCampus(group.campusId).city : null;
+  const preview = group.description.trim() || (campusLabel ? `${campusLabel} · Ministry group` : "Tap to open group");
 
   return (
-    <Link
-      href={`/groups/${group.id}`}
-      className="group mobile-card mobile-premium-surface flex items-center gap-4 px-4 py-4 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-night-900/10 sm:bg-white sm:shadow-sm sm:ring-1 sm:ring-night-900/5"
-    >
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-night-900">
+    <Link href={`/groups/${group.id}`} className={groupsPremium.listRow}>
+      <span className={groupsPremium.iconTile}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={artworkUrl} alt="" className="h-full w-full object-cover" />
-      </div>
+        <img src={artworkUrl} alt="" className={groupsPremium.iconTileImage} />
+      </span>
+
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sand-600">
-            {groupCategoryLabels[group.category]}
-            {campusLabel ? ` · ${campusLabel}` : ""}
-          </p>
-          {group.isMember ? (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
-              Joined
-            </span>
-          ) : null}
-        </div>
-        <h3 className="mt-1 font-display text-lg font-semibold leading-snug text-night-900 group-hover:text-night-700">
-          {group.name}
-        </h3>
-        <p className="mt-1 line-clamp-2 text-sm text-night-600">{group.description}</p>
+        <p className={`${groupsPremium.cardTitle} truncate`}>{group.name}</p>
+        <p className="mt-0.5 line-clamp-1 text-sm text-night-500">{preview}</p>
       </div>
-      <div className="hidden shrink-0 text-right sm:block">
-        <p className="text-xs font-medium text-night-500">
-          {group.memberCount} member{group.memberCount === 1 ? "" : "s"}
-        </p>
-        <p className="mt-1 text-sm font-semibold text-night-600 group-hover:text-night-900">
-          Open →
-        </p>
+
+      <div className="flex shrink-0 flex-col items-end gap-1.5">
+        {group.isMember ? (
+          <span className={groupsPremium.unreadBadge}>✓</span>
+        ) : (
+          <span className={groupsPremium.unreadBadgeMuted}>
+            {group.memberCount > 99 ? "99+" : group.memberCount}
+          </span>
+        )}
+        <GroupPremiumChevron />
       </div>
     </Link>
   );

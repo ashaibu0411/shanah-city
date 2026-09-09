@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { groupsPremium } from "@/components/groups/groups-premium";
 import { Button } from "@/components/ui";
 import { getGroupArtwork } from "@/lib/group-artwork";
 import type { GroupDetail } from "@/lib/group-types";
@@ -64,45 +65,43 @@ export function GroupIconEditor({
   }
 
   return (
-    <div className="rounded-2xl border border-night-900/10 bg-sand-50/70 p-4">
-      <div className="flex items-start gap-4">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-night-900 ring-1 ring-night-900/10">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={iconSrc} alt="" className="h-full w-full object-cover" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-night-900">Group icon</p>
-          <p className="mt-1 text-xs text-night-600">
-            Upload a square logo or photo. It appears on the group page, group list, and chat.
-          </p>
-          {canManage ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <label className="inline-flex cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  className="sr-only"
-                  disabled={busy}
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) void uploadIcon(file);
-                    event.target.value = "";
-                  }}
-                />
-                <span className="inline-flex rounded-full bg-night-900 px-4 py-2 text-xs font-bold text-white">
-                  {busy ? "Uploading…" : "Upload icon"}
-                </span>
-              </label>
-              {group.iconUrl ? (
-                <Button variant="secondary" disabled={busy} onClick={() => void removeIcon()}>
-                  Remove
-                </Button>
-              ) : null}
-            </div>
-          ) : (
-            <p className="mt-2 text-xs text-night-500">Only group leaders can change the icon.</p>
-          )}
-        </div>
+    <div className={`${groupsPremium.rowInset} flex-wrap items-start gap-4`}>
+      <div className={`${groupsPremium.iconTile} h-16 w-16 rounded-2xl`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={iconSrc} alt="" className="h-full w-full object-cover" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-night-900">Group icon</p>
+        <p className="mt-1 text-xs text-night-600">
+          Upload a square logo or photo. It appears on the group page, group list, and chat.
+        </p>
+        {canManage ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <label className="inline-flex cursor-pointer">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="sr-only"
+                disabled={busy}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void uploadIcon(file);
+                  event.target.value = "";
+                }}
+              />
+              <span className="inline-flex rounded-full bg-night-900 px-4 py-2 text-xs font-bold text-white">
+                {busy ? "Uploading…" : "Upload icon"}
+              </span>
+            </label>
+            {group.iconUrl ? (
+              <Button variant="secondary" disabled={busy} onClick={() => void removeIcon()}>
+                Remove
+              </Button>
+            ) : null}
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-night-500">Only group leaders can change the icon.</p>
+        )}
       </div>
     </div>
   );
