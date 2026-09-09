@@ -42,6 +42,7 @@ function mapGroup(record: {
   visibility: string;
   meetingSchedule: string | null;
   meetingLink: string | null;
+  iconUrl: string | null;
   memberIds: unknown;
   adminIds: unknown;
   assistantAdminIds?: unknown;
@@ -70,6 +71,7 @@ function mapGroup(record: {
     signupVisible: record.signupVisible,
     meetingSchedule: record.meetingSchedule ?? undefined,
     meetingLink: record.meetingLink ?? undefined,
+    iconUrl: record.iconUrl ?? undefined,
   };
 }
 
@@ -443,6 +445,17 @@ export async function updateGroup(
   });
 
   return toSummary(mapGroup(updated), userId);
+}
+
+export async function updateGroupIconUrl(groupId: string, iconUrl: string | null) {
+  const updated = await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      iconUrl,
+      updatedAt: new Date(),
+    },
+  });
+  return mapGroup(updated);
 }
 
 export async function deleteGroup(groupId: string, userId: string) {

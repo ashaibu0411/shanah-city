@@ -381,6 +381,22 @@ export async function updateGroup(
   return toSummary(group, userId);
 }
 
+export async function updateGroupIconUrl(groupId: string, iconUrl: string | null) {
+  const groups = await getGroups();
+  const index = groups.findIndex((group) => group.id === groupId);
+  if (index === -1) {
+    throw new Error("Group not found.");
+  }
+
+  groups[index] = {
+    ...groups[index],
+    iconUrl: iconUrl ?? undefined,
+    updatedAt: new Date().toISOString(),
+  };
+  await saveGroups(groups);
+  return groups[index];
+}
+
 export async function deleteGroup(groupId: string, userId: string) {
   const groups = await getGroups();
   const index = groups.findIndex((group) => group.id === groupId);

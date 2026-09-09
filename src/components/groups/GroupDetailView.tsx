@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { GroupBandHeader } from "@/components/groups/GroupBandHeader";
 import { GroupBandTabs } from "@/components/groups/GroupBandTabs";
+import { GroupIconEditor } from "@/components/groups/GroupIconEditor";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupMemberAddForm } from "@/components/groups/GroupMemberAddForm";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
@@ -284,7 +285,18 @@ export function GroupDetailView({
           {detail.campusId ? (
             <p className="mt-2 text-xs text-night-500">{getCampus(detail.campusId).name}</p>
           ) : null}
-          <p className="mt-3 text-sm leading-relaxed text-night-700">{detail.description}</p>
+
+          <GroupIconEditor
+            group={detail}
+            canManage={canManageLeadership}
+            onUpdated={(group) => setDetail(group)}
+            onStatus={(message, isError) => {
+              setStatus(message);
+              setStatusIsError(Boolean(isError));
+            }}
+          />
+
+          <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
 
           {detail.isMember && canManageLeadership ? (
             <p className="mt-3 rounded-xl bg-sand-50 px-3 py-2 text-xs text-night-600">

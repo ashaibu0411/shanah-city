@@ -118,6 +118,7 @@ model Group {
   visibility      String
   meetingSchedule String?
   meetingLink     String?
+  iconUrl         String?
   memberIds       Json
   adminIds        Json
   assistantAdminIds Json   @default("[]")

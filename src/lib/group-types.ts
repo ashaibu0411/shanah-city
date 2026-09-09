@@ -28,6 +28,7 @@ export type Group = {
   signupVisible?: boolean;
   meetingSchedule?: string;
   meetingLink?: string;
+  iconUrl?: string;
 };
 
 export type GroupJoinRequest = {
