@@ -93,13 +93,13 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
         <div
           className={
             isMobile
-              ? "border-t border-teal-200/40 bg-gradient-to-r from-teal-50/95 via-sand-50 to-amber-50/80 px-3.5 py-3.5 text-night-900"
+              ? "border-t border-night-900/8 bg-white px-3.5 py-3.5 text-night-900"
               : "border-t border-white/8 bg-gradient-to-r from-night-950 via-night-900 to-night-800 px-3.5 py-3.5 text-white"
           }
         >
           <p
             className={`text-[10px] font-bold uppercase tracking-[0.2em] ${
-              isMobile ? "text-teal-800/75" : "text-sand-300/80"
+              isMobile ? "text-night-500" : "text-sand-300/80"
             }`}
           >
             {anyLive ? "Now streaming" : showStageCountdown ? "Upcoming livestream" : "Featured channel"}

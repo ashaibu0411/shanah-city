@@ -3,6 +3,7 @@
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MobilePremiumExploreGrid } from "@/components/app/MobilePremiumTile";
 import { GuestCaptureForm } from "@/components/guest/GuestCaptureForm";
+import { editorialPremium } from "@/components/app/editorial-premium";
 import { Button, ExternalLink } from "@/components/ui";
 import { churchSocialImageForAction, type ChurchSocialImages } from "@/lib/facebook-church-media";
 import { site } from "@/lib/site";
@@ -34,10 +35,10 @@ export function ConnectPageView({ churchImages }: ConnectPageViewProps) {
             {site.serviceTimes.map((service) => (
               <li
                 key={service.day}
-                className="flex items-center justify-between rounded-xl bg-gradient-to-r from-teal-50/95 to-amber-50/80 px-3 py-2.5 text-sm ring-1 ring-teal-200/45"
+                className="flex items-center justify-between rounded-xl border border-night-900/8 bg-[#f7f3eb]/80 px-3 py-2.5 text-sm"
               >
                 <span className="font-semibold text-night-900">{service.day}</span>
-                <span className="text-teal-800">{service.time}</span>
+                <span className="text-night-600">{service.time}</span>
               </li>
             ))}
           </ul>
@@ -63,7 +64,7 @@ export function ConnectPageView({ churchImages }: ConnectPageViewProps) {
           <ul className="mt-3 space-y-2">
             {site.visitInfo.highlights.map((item) => (
               <li key={item} className="flex items-start gap-2 text-sm text-night-700">
-                <span className="font-bold text-emerald-600">✓</span>
+                <span className="font-bold text-clay-600">✓</span>
                 {item}
               </li>
             ))}
@@ -106,33 +107,33 @@ export function ConnectPageView({ churchImages }: ConnectPageViewProps) {
 
   return (
     <>
-      <div className="mb-6 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 p-8 text-white">
-        <h2 className="font-display text-2xl font-semibold">First time here?</h2>
-        <p className="mt-2 max-w-xl text-sm text-emerald-100">
+      <div className={`${editorialPremium.section} mb-6`}>
+        <h2 className="font-display text-2xl font-semibold text-night-950">First time here?</h2>
+        <p className="mt-2 max-w-xl text-sm text-night-600">
           Tell us you came — no account or sign-in needed. Our welcome team will be glad to meet you.
         </p>
-        <Button href="/guest" className="mt-5 bg-white text-emerald-900 hover:bg-emerald-50">
+        <Button href="/guest" className="mt-5">
           Connect as a guest
         </Button>
       </div>
 
-      <div className="mb-6 rounded-2xl bg-night-900 p-8 text-sand-50">
-        <h2 className="font-display text-2xl font-semibold">Service times</h2>
+      <div className={`${editorialPremium.section} mb-6`}>
+        <h2 className="font-display text-2xl font-semibold text-night-950">Service times</h2>
         <ul className="mt-4 space-y-3">
           {site.serviceTimes.map((service) => (
             <li
               key={service.day}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white/10 px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-night-900/8 bg-[#f7f3eb]/70 px-4 py-3"
             >
-              <span className="font-medium">{service.day}</span>
-              <span className="text-sand-200">{service.time}</span>
+              <span className="font-medium text-night-900">{service.day}</span>
+              <span className="text-night-600">{service.time}</span>
             </li>
           ))}
         </ul>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl bg-white p-8 ring-1 ring-night-900/5">
+        <div className={editorialPremium.section}>
           <h3 className="font-display text-xl font-semibold text-night-900">What to expect</h3>
           <p className="mt-3 text-sm leading-relaxed text-night-600">
             {site.visitInfo.duration} {site.visitInfo.worship}
@@ -140,14 +141,14 @@ export function ConnectPageView({ churchImages }: ConnectPageViewProps) {
           <ul className="mt-4 space-y-2">
             {site.visitInfo.highlights.map((item) => (
               <li key={item} className="flex items-start gap-2 text-sm text-night-600">
-                <span className="text-emerald-600">✓</span>
+                <span className="text-clay-600">✓</span>
                 {item}
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="rounded-2xl bg-white p-8 ring-1 ring-night-900/5">
+        <div className={editorialPremium.section}>
           <h3 className="font-display text-xl font-semibold text-night-900">Contact us</h3>
           <ul className="mt-4 space-y-3 text-sm text-night-600">
             <li>

@@ -41,6 +41,18 @@ export const editorialPremium = {
     "rounded-full border border-night-900/12 bg-night-950 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white",
   badgeOutline:
     "rounded-full border border-night-900/12 bg-white px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-night-700",
+  quote:
+    "editorial-quote rounded-[1.35rem] border border-night-900/8 bg-white/75 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.05)] sm:p-6",
+  section:
+    "editorial-section rounded-[1.35rem] border border-night-900/8 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.05)] sm:p-6",
+  surface:
+    "editorial-surface rounded-[1.25rem] border border-night-900/8 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.05)]",
+  navActive:
+    "bg-night-950 text-white shadow-[0_6px_18px_rgba(15,23,42,0.18)] ring-1 ring-night-900/10",
+  navIdle:
+    "bg-white/90 text-night-800 ring-1 ring-night-900/10 shadow-sm",
+  segmentActive: "bg-night-950 text-white",
+  segmentIdle: "text-night-700 hover:bg-white/80",
 } as const;
 
 export function formatEditorialSectionLabel(index: number, label: string) {

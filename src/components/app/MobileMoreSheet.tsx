@@ -39,7 +39,7 @@ export function MobileMoreSheet() {
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-night-900/15" />
             <div className="mb-2 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-night-500">
                   Explore
                 </p>
                 <h2 className="font-display text-xl font-semibold text-night-900">More</h2>
@@ -98,7 +98,7 @@ export function MobileMoreSheet() {
           <Link
             href={site.visitCTA.href}
             onClick={() => setMoreMenuOpen(false)}
-            className="mt-4 block rounded-2xl bg-teal-700 px-4 py-4 text-center text-sm font-semibold text-white shadow-md transition hover:bg-teal-800"
+            className="mt-4 block rounded-full bg-night-950 px-4 py-4 text-center text-sm font-semibold text-white shadow-[0_8px_24px_rgba(15,23,42,0.18)] transition hover:bg-night-900"
           >
             Plan a visit · Aurora &amp; Accra
           </Link>

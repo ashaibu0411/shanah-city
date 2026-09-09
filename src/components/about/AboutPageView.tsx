@@ -1,37 +1,23 @@
 "use client";
 
+import { editorialPremium } from "@/components/app/editorial-premium";
 import { ExternalLink, PageHeader } from "@/components/ui";
-import { useAppShell } from "@/components/app/AppShellContext";
 import { leadership, site } from "@/lib/site";
 
 export function AboutPageView() {
-  const { isMobileApp } = useAppShell();
-
-  const quoteClass = isMobileApp
-    ? "mobile-premium-quote mb-6 p-5"
-    : "mb-8 rounded-2xl bg-night-900 p-8 text-sand-50";
-
-  const sectionClass = isMobileApp
-    ? "mobile-premium-section p-5"
-    : "rounded-2xl bg-white p-8 ring-1 ring-night-900/5";
-
-  const leaderClass = isMobileApp
-    ? "mobile-premium-section rounded-xl p-4"
-    : "rounded-xl bg-sand-50 p-4 ring-1 ring-night-900/5";
+  const quoteClass = `${editorialPremium.quote} mb-6`;
+  const sectionClass = `${editorialPremium.section} mb-0`;
+  const leaderClass = `${editorialPremium.section} rounded-xl`;
 
   return (
     <>
       <PageHeader eyebrow="About" title={site.name} description={site.tagline} />
 
       <blockquote className={quoteClass}>
-        <p
-          className={`font-home-hero text-2xl font-semibold italic ${
-            isMobileApp ? "text-night-800" : "text-sand-50"
-          }`}
-        >
+        <p className="font-home-hero text-2xl font-semibold italic text-night-800">
           &ldquo;{site.tagline}&rdquo;
         </p>
-        <footer className={`mt-3 text-sm ${isMobileApp ? "text-night-500" : "text-sand-300"}`}>
+        <footer className="mt-3 text-sm text-night-500">
           — {site.scripture}
         </footer>
       </blockquote>

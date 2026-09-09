@@ -10,8 +10,8 @@ const actionMeta: Record<
   give: {
     label: "Give",
     detail: "Support ministry",
-    cardClass: "from-teal-200/90 via-teal-100 to-cyan-100 ring-teal-400/45",
-    iconClass: "bg-teal-700 text-white ring-teal-600/30 shadow-teal-900/20",
+    cardClass: "from-sand-100 via-clay-50 to-sand-100 ring-night-900/10",
+    iconClass: "bg-night-950 text-white ring-night-900/20 shadow-night-900/20",
     veilClass: "from-teal-100/35 via-teal-50/20 to-transparent",
   },
   connect: {

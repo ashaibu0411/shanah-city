@@ -34,7 +34,7 @@ function ModeToggle({
           type="button"
           onClick={() => onChange(value)}
           className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-            mode === value ? "bg-teal-700 text-white" : "text-night-700 hover:bg-white"
+            mode === value ? "bg-night-950 text-white" : "text-night-700 hover:bg-white"
           }`}
         >
           {label}

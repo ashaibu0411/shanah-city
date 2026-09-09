@@ -460,7 +460,7 @@ export function MemberProfile() {
           <Card
             className={
               isMobileApp
-                ? "mobile-premium-surface bg-gradient-to-br from-teal-50/95 via-sand-50 to-amber-50/85 text-night-900 ring-teal-200/35"
+                ? "mobile-premium-surface border border-night-900/8 bg-gradient-to-br from-clay-50/80 via-white to-sand-50/90 text-night-900"
                 : "bg-night-900 text-sand-50"
             }
           >

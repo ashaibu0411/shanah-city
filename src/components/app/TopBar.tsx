@@ -22,7 +22,7 @@ export function TopBar() {
     liveStream.facebook.isLive;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-night-900/5 bg-sand-50/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-night-900/8 bg-[#f7f3eb]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" className="flex shrink-0 items-center gap-2">

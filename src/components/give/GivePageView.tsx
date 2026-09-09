@@ -3,7 +3,7 @@
 import { GiveCheckoutPanel } from "@/components/give/GiveCheckoutPanel";
 import { GivePlatformGrid } from "@/components/give/GivePlatformGrid";
 import { TextToGivePanel } from "@/components/give/TextToGivePanel";
-import { useAppShell } from "@/components/app/AppShellContext";
+import { editorialPremium } from "@/components/app/editorial-premium";
 import { PageHeader } from "@/components/ui";
 import type { TextToGiveConfig } from "@/lib/giving-text";
 import type { GivingPlatform } from "@/lib/types";
@@ -15,19 +15,9 @@ type GivePageViewProps = {
 };
 
 export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
-  const { isMobileApp } = useAppShell();
-
-  const quoteClass = isMobileApp
-    ? "mobile-premium-quote mb-6 p-5"
-    : "mb-8 rounded-2xl bg-sand-100 p-6 ring-1 ring-night-900/5";
-
-  const sectionClass = isMobileApp
-    ? "mobile-premium-section mb-6 p-5"
-    : "mb-8 rounded-2xl bg-white p-8 ring-1 ring-night-900/5";
-
-  const methodClass = isMobileApp
-    ? "mobile-premium-section p-5"
-    : "rounded-2xl bg-white p-6 ring-1 ring-night-900/5";
+  const quoteClass = `${editorialPremium.quote} mb-6`;
+  const sectionClass = `${editorialPremium.section} mb-6`;
+  const methodClass = editorialPremium.section;
 
   return (
     <>

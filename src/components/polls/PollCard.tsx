@@ -132,7 +132,7 @@ export function PollCard({ poll, onUpdate, compact = false }: PollCardProps) {
                 showResults
                   ? "border-night-900/8 bg-sand-50"
                   : isSelected
-                    ? "border-teal-700 bg-teal-700 text-white shadow-md shadow-teal-900/15"
+                    ? "border-night-950 bg-night-950 text-white shadow-[0_6px_18px_rgba(15,23,42,0.16)]"
                     : "border-night-900/10 bg-white hover:bg-sand-50"
               }`}
             >

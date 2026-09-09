@@ -29,7 +29,7 @@ export function TextSizeControl({ variant = "mobile" }: TextSizeControlProps) {
     : "rounded-lg px-2.5 py-1.5 text-xs font-semibold transition";
 
   const activeClass = isMobile
-    ? "bg-teal-700 text-white"
+    ? "bg-night-950 text-white"
     : "bg-night-900 text-sand-50";
 
   const inactiveClass = isMobile

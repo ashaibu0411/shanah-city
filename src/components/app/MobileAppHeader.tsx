@@ -58,7 +58,7 @@ export function MobileAppHeader() {
 
   return (
     <header className="app-mobile-header mobile-app-header sticky top-0 z-40 border-b border-night-900/8 backdrop-blur-xl lg:hidden">
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-teal-400/25 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-clay-400/20 to-transparent" />
       <div className="relative mx-auto flex app-mobile-inner w-full items-center justify-between gap-3 px-3.5 pb-2.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
           {isHome ? (
@@ -75,7 +75,7 @@ export function MobileAppHeader() {
             </div>
           ) : showPageTitle ? (
             <>
-              <p className="mobile-header-subtitle text-xs font-medium text-teal-700/80">
+              <p className="mobile-header-subtitle text-xs font-medium text-night-500">
                 {site.name}
               </p>
               <h1 className="mobile-header-title truncate font-home-hero text-base font-semibold tracking-tight text-night-900">
@@ -83,7 +83,7 @@ export function MobileAppHeader() {
               </h1>
             </>
           ) : (
-            <p className="mobile-header-subtitle text-xs font-semibold uppercase tracking-[0.18em] text-teal-700/90">
+            <p className="mobile-header-subtitle text-xs font-semibold uppercase tracking-[0.18em] text-night-500">
               {site.name}
             </p>
           )}

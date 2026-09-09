@@ -33,25 +33,25 @@ const todayShortcuts = [
     label: "Check in",
     href: "/check-in",
     detail: "FrontLiners & kids",
-    className: "from-teal-100 to-teal-200/90 text-teal-950 ring-teal-300/70",
+    className: "from-sand-100 to-clay-100/90 text-night-900 ring-night-900/10",
   },
   {
     label: "Calendar",
     href: "/calendar",
     detail: "Worship & events",
-    className: "from-amber-100 to-orange-100 text-amber-950 ring-amber-300/60",
+    className: "from-clay-50 to-sand-100 text-night-900 ring-clay-300/40",
   },
   {
     label: "Meetings",
     href: "/meetings",
     detail: "Ministry Zoom links",
-    className: "from-violet-100 to-indigo-100 text-indigo-950 ring-violet-300/60",
+    className: "from-sand-100 to-sand-200/90 text-night-900 ring-night-900/10",
   },
   {
     label: "Messages",
     href: "/messages",
     detail: "Chat & updates",
-    className: "from-sky-100 to-cyan-100 text-cyan-950 ring-cyan-300/60",
+    className: "from-clay-50 to-sand-100 text-night-900 ring-night-900/10",
   },
 ] as const;
 
@@ -113,10 +113,10 @@ export function MobileHome({
 
       <MobilePremiumFrame
         variant="surface"
-        className="mobile-home-welcome-stack overflow-hidden ring-1 ring-teal-200/45"
+        className="mobile-home-welcome-stack overflow-hidden ring-1 ring-night-900/8"
       >
-        <div className="mobile-home-welcome-intro border-b border-teal-100/80 bg-gradient-to-r from-teal-50/95 via-white to-amber-50/80 px-4 py-3.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-700/85">
+        <div className="mobile-home-welcome-intro border-b border-night-900/8 bg-gradient-to-r from-[#f7f3eb] via-white to-sand-50 px-4 py-3.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-night-500">
             {homeGreeting(user?.name)}
           </p>
           <p className="mt-1 font-display text-[0.95rem] font-semibold uppercase tracking-[0.14em] text-night-900">
@@ -211,7 +211,7 @@ export function MobileHome({
               </p>
 
               <span className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-teal-900 shadow-app-md backdrop-blur-sm sm:mt-3 sm:px-3.5 sm:py-2 sm:text-xs">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-700 text-[10px] text-white">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-night-950 text-[10px] text-white">
                   ▶
                 </span>
                 {anyLive ? "Join stream" : "Open live"}
@@ -236,7 +236,7 @@ export function MobileHome({
 
       <Link
         href="/guest"
-        className="mobile-card mobile-premium-surface flex items-center justify-between border border-emerald-200/70 bg-gradient-to-r from-emerald-50/95 to-teal-50/90 px-3.5 py-2.5 text-sm font-semibold text-emerald-950 transition active:scale-[0.99]"
+        className="mobile-card mobile-premium-surface flex items-center justify-between border border-night-900/8 bg-white px-3.5 py-2.5 text-sm font-semibold text-night-900 transition active:scale-[0.99]"
       >
         First time here?
         <span className="rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white shadow-sm shadow-emerald-900/20">

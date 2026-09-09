@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <NativeAppBoot />
 
-          <div className="min-h-screen bg-sand-50">
+          <div className="min-h-screen bg-[#f7f3eb]">
 
             <div className="app-desktop-topbar hidden lg:block">
 
