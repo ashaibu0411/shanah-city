@@ -16,12 +16,15 @@ type GroupDetailPageProps = {
     prayer?: string;
     mentors?: string;
     growth?: string;
+    rosterDate?: string;
+    rosterTime?: string;
   }>;
 };
 
 export default async function GroupDetailPage({ params, searchParams }: GroupDetailPageProps) {
   const { id } = await params;
-  const { chat, report, calendar, resources, prayer, mentors, growth } = await searchParams;
+  const { chat, report, calendar, resources, prayer, mentors, growth, rosterDate, rosterTime } =
+    await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -34,6 +37,8 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
   return (
     <GroupDetailView
       initialGroup={group}
+      rosterDate={rosterDate?.trim()}
+      rosterTime={rosterTime?.trim()}
       initialSection={
         chat === "1"
           ? "chat"

@@ -671,6 +671,32 @@ model UsherSchedule {
   @@index([status])
 }
 
+model GroupServiceRoster {
+  id              String    @id
+  groupId         String
+  serviceDate     String
+  serviceTime     String
+  title           String?
+  assignments     Json
+  notes           String?
+  status          String    @default("draft")
+  publishedAt     DateTime?
+  createdBy       String
+  createdByName   String
+  createdAt       DateTime
+  updatedAt       DateTime
+
+  @@unique([groupId, serviceDate, serviceTime])
+  @@index([groupId, serviceDate])
+  @@index([status])
+}
+
+model GroupRosterTemplate {
+  groupId   String   @id
+  roles     Json
+  updatedAt DateTime @updatedAt
+}
+
 model FeedReadState {
   id         String   @id
   userId     String

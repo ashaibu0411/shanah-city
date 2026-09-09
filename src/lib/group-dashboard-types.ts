@@ -1,4 +1,4 @@
-export type GroupScheduleKind = "worship" | "frontliners" | "media" | "generic";
+export type GroupScheduleKind = "worship" | "frontliners" | "roster" | "generic";
 
 export type GroupDashboardRoleRow = {
   roleLabel: string;
@@ -24,7 +24,7 @@ export type GroupDashboardQuickAction = {
   id: string;
   label: string;
   href?: string;
-  action?: "chat" | "calendar" | "report" | "invite";
+  action?: "chat" | "calendar" | "report" | "invite" | "roster";
 };
 
 export type GroupDashboardData = {
@@ -32,4 +32,6 @@ export type GroupDashboardData = {
   nextService: GroupDashboardNextService | null;
   myAssignments: GroupDashboardAssignment[];
   quickActions: GroupDashboardQuickAction[];
+  canManageRoster?: boolean;
+  usesServiceRoster?: boolean;
 };

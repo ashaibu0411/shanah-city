@@ -67,9 +67,13 @@ function memberRoleLabel(member: GroupMemberPreview) {
 export function GroupDetailView({
   initialGroup,
   initialSection = "overview",
+  rosterDate,
+  rosterTime,
 }: {
   initialGroup: GroupDetail;
   initialSection?: DetailSection;
+  rosterDate?: string;
+  rosterTime?: string;
 }) {
   const router = useRouter();
   const { user, refresh, permissions } = useAuth();
@@ -205,6 +209,13 @@ export function GroupDetailView({
     }
     if (action.action === "invite") {
       openInfoSection("invite");
+      return;
+    }
+    if (action.action === "roster") {
+      document.getElementById("group-roster-editor")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }
   const canManageMembers =
@@ -321,6 +332,8 @@ export function GroupDetailView({
               groupName={detail.name}
               memberCount={detail.members.length}
               leaderNames={groupLeaders.map((leader) => leader.name)}
+              rosterDate={rosterDate}
+              rosterTime={rosterTime}
               onQuickAction={handleDashboardQuickAction}
             />
           ) : null}

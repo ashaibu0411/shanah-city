@@ -11,7 +11,15 @@ import { getGroupDetail } from "@/lib/group-server";
 import { isMediaGroup } from "@/lib/media-group";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
 import { getEvents } from "@/lib/event-server";
-import { getUpcomingLiveStreamSchedule } from "@/lib/live-schedule-server";
+import {
+  groupUsesServiceRoster,
+  rosterAssignmentsForUser,
+  rosterRoleRows,
+  rosterServiceDateTimeLabel,
+  type GroupServiceRoster,
+} from "@/lib/group-roster-types";
+import { canManageGroupRoster } from "@/lib/group-roster-access-server";
+import { listGroupServiceRosters } from "@/lib/group-roster-server";
 import type { GroupDetail } from "@/lib/group-types";
 import type {
   GroupDashboardAssignment,
@@ -84,10 +92,10 @@ function usherRoleRows(schedule: UsherSchedule): GroupDashboardRoleRow[] {
   }));
 }
 
-export function resolveGroupScheduleKind(group: { id: string; name: string }): GroupScheduleKind {
+export function resolveGroupScheduleKind(group: { id: string; name: string; category: GroupDetail["category"] }): GroupScheduleKind {
   if (isWorshipGroup(group) || group.id === "group-choir") return "worship";
   if (group.id === FRONTLINERS_GROUP_ID) return "frontliners";
-  if (isMediaGroup(group)) return "media";
+  if (groupUsesServiceRoster(group)) return "roster";
   return "generic";
 }
 
@@ -99,7 +107,7 @@ function baseQuickActions(
     showCalendar: boolean;
     showWorship: boolean;
     showFrontLiners: boolean;
-    showMedia: boolean;
+    showRoster: boolean;
   },
 ): GroupDashboardQuickAction[] {
   const actions: GroupDashboardQuickAction[] = [
@@ -115,7 +123,10 @@ function baseQuickActions(
   if (options.showFrontLiners) {
     actions.push({ id: "frontliners", label: "FrontLiners hub", href: "/frontliners" });
   }
-  if (options.showMedia) {
+  if (options.showRoster && options.isLeader) {
+    actions.push({ id: "roster", label: "Manage roster", action: "roster" });
+  }
+  if (isMediaGroup(group)) {
     actions.push({ id: "live", label: "Live & streams", href: "/live" });
     actions.push({ id: "photos", label: "Upload media", href: "/photos/upload" });
   }
@@ -225,41 +236,54 @@ async function buildFrontLinersDashboard(
   return { nextService, myAssignments };
 }
 
-async function buildMediaDashboard(
+async function buildGroupRosterDashboard(
+  user: PublicMember,
+  group: GroupDetail,
   canManage: boolean,
 ): Promise<Pick<GroupDashboardData, "nextService" | "myAssignments">> {
-  const upcoming = await getUpcomingLiveStreamSchedule();
+  const since = todayIso();
+  const rosters = (await listGroupServiceRosters({ groupId: group.id, since }))
+    .filter((roster) => roster.status === "published" || canManage)
+    .sort(compareService);
+
+  const published = rosters.filter((roster) => roster.status === "published");
+  const nextRoster = published[0] ?? null;
+
+  const rosterHref = (roster: Pick<GroupServiceRoster, "serviceDate" | "serviceTime">) =>
+    `/groups/${group.id}?rosterDate=${encodeURIComponent(roster.serviceDate)}&rosterTime=${encodeURIComponent(roster.serviceTime)}`;
 
   let nextService: GroupDashboardNextService | null = null;
-  if (upcoming) {
-    const startsAt = new Date(upcoming.startsAt);
+  if (nextRoster) {
     nextService = {
-      title: upcoming.title?.trim() || "Live stream",
-      subtitle: startsAt.toLocaleString(undefined, {
-        weekday: "long",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-      roles: [],
-      href: "/live",
-      emptyMessage:
-        "Stream time is scheduled. Publish a media team roster when role assignments are ready.",
+      title: nextRoster.title?.trim() || "Sunday Service",
+      subtitle: rosterServiceDateTimeLabel(nextRoster.serviceDate, nextRoster.serviceTime),
+      roles: rosterRoleRows(nextRoster.assignments),
+      href: rosterHref(nextRoster),
     };
   } else {
     nextService = {
       title: "Sunday Service",
-      subtitle: "No upcoming live stream scheduled",
+      subtitle: "No published service roster yet",
       roles: [],
-      href: canManage ? "/live" : undefined,
       emptyMessage: canManage
-        ? "Schedule the next live stream and assign camera, audio, and streaming roles."
-        : "Your media leader has not published the next service plan yet.",
+        ? "Publish a service roster so your team can see who is serving in each role."
+        : "Your leader has not published the next service roster yet.",
     };
   }
 
-  return { nextService, myAssignments: [] };
+  const myAssignments: GroupDashboardAssignment[] = published
+    .flatMap((roster) => {
+      const mine = rosterAssignmentsForUser(roster.assignments, user.id);
+      return mine.map((slot) => ({
+        id: `${roster.serviceDate}-${roster.serviceTime}-${slot.roleLabel}`,
+        leftLabel: `${shortAssignmentDate(roster.serviceDate)} · ${slot.roleLabel}`,
+        rightLabel: roster.title?.trim() || "Sunday Service",
+        href: rosterHref(roster),
+      }));
+    })
+    .slice(0, 6);
+
+  return { nextService, myAssignments };
 }
 
 async function buildGenericDashboard(
@@ -325,7 +349,7 @@ export async function buildGroupDashboard(
   const showCalendar = group.isMember;
   const showWorship = scheduleKind === "worship";
   const showFrontLiners = scheduleKind === "frontliners";
-  const showMedia = scheduleKind === "media";
+  const showRoster = scheduleKind === "roster";
 
   const quickActions = baseQuickActions(group, {
     isLeader,
@@ -333,26 +357,29 @@ export async function buildGroupDashboard(
     showCalendar,
     showWorship,
     showFrontLiners,
-    showMedia,
+    showRoster,
   });
+
+  const usesServiceRoster = groupUsesServiceRoster(group);
+  const canManageRoster = usesServiceRoster ? await canManageGroupRoster(user, groupId) : false;
 
   if (scheduleKind === "worship") {
     const canManage = await canManageWorshipPlan(user);
     const worship = await buildWorshipDashboard(user, canManage);
-    return { scheduleKind, quickActions, ...worship };
+    return { scheduleKind, quickActions, usesServiceRoster, canManageRoster, ...worship };
   }
 
   if (scheduleKind === "frontliners") {
     const canManage = await canManageFrontLiners(user);
     const frontliners = await buildFrontLinersDashboard(user, canManage);
-    return { scheduleKind, quickActions, ...frontliners };
+    return { scheduleKind, quickActions, usesServiceRoster, canManageRoster, ...frontliners };
   }
 
-  if (scheduleKind === "media") {
-    const media = await buildMediaDashboard(isLeader);
-    return { scheduleKind, quickActions, ...media };
+  if (scheduleKind === "roster") {
+    const roster = await buildGroupRosterDashboard(user, group, canManageRoster);
+    return { scheduleKind, quickActions, usesServiceRoster, canManageRoster, ...roster };
   }
 
   const generic = await buildGenericDashboard(group);
-  return { scheduleKind, quickActions, ...generic };
+  return { scheduleKind, quickActions, usesServiceRoster, canManageRoster, ...generic };
 }

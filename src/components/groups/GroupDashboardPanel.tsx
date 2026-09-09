@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { GroupRosterEditor } from "@/components/groups/GroupRosterEditor";
 import {
   GroupPremiumLeaderChip,
   GroupPremiumSectionLabel,
@@ -15,6 +16,8 @@ type GroupDashboardPanelProps = {
   groupName: string;
   memberCount: number;
   leaderNames: string[];
+  rosterDate?: string;
+  rosterTime?: string;
   onQuickAction?: (action: GroupDashboardQuickAction) => void;
 };
 
@@ -44,31 +47,31 @@ export function GroupDashboardPanel({
   groupName,
   memberCount,
   leaderNames,
+  rosterDate,
+  rosterTime,
   onQuickAction,
 }: GroupDashboardPanelProps) {
   const [dashboard, setDashboard] = useState<GroupDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    let cancelled = false;
+  function loadDashboard() {
     setLoading(true);
     fetch(`/api/groups/dashboard?groupId=${encodeURIComponent(groupId)}`)
       .then((response) => response.json())
       .then((data) => {
-        if (cancelled) return;
         setDashboard(data.dashboard ?? null);
         setLoading(false);
       })
       .catch(() => {
-        if (!cancelled) {
-          setDashboard(null);
-          setLoading(false);
-        }
+        setDashboard(null);
+        setLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [groupId]);
+  }
+
+  useEffect(() => {
+    loadDashboard();
+  }, [groupId, refreshKey]);
 
   if (loading) {
     return (
@@ -197,6 +200,16 @@ export function GroupDashboardPanel({
             )}
           </div>
         </div>
+      ) : null}
+
+      {dashboard.canManageRoster ? (
+        <GroupRosterEditor
+          groupId={groupId}
+          canManage={Boolean(dashboard.canManageRoster)}
+          initialDate={rosterDate}
+          initialTime={rosterTime}
+          onUpdated={() => setRefreshKey((value) => value + 1)}
+        />
       ) : null}
     </>
   );
