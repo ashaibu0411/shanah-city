@@ -128,7 +128,7 @@ export function MobileHome({
           <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
           <HomePastorPortrait variant="mobile" />
 
-          <div className="relative z-[1] p-4 pb-5">
+          <div className="relative z-[1] px-4 pb-5 pt-14">
             <div
               className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300/80 to-teal-400"
               aria-hidden

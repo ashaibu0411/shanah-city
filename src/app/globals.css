@@ -798,11 +798,11 @@
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero {
-    min-height: 12.5rem;
+    min-height: 14rem;
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero .home-pastor-portrait {
-    top: 1.5rem;
+    top: 0;
     bottom: 0;
     height: auto;
   }
@@ -818,7 +818,7 @@
 
   body[data-shell="mobile"] .mobile-home-welcome-hero h1,
   body[data-shell="mobile"] .mobile-home-welcome-hero .mobile-home-fade-up {
-    max-width: none;
+    max-width: 68%;
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero h1 {
