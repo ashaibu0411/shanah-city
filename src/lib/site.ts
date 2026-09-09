@@ -29,8 +29,9 @@ export const site = {
   mapsUrl:
     "https://www.google.com/maps/search/?api=1&query=380+S+Potomac+Street+Aurora+CO+80012",
   coordinates: {
-    lat: 39.697979,
-    lng: -104.864681,
+    // Geocoded to 380 S Potomac St (OpenStreetMap); prior pin was ~3.3 km off.
+    lat: 39.708817,
+    lng: -104.828208,
     radiusMeters: 350,
   },
   phone: "720-278-3175",
