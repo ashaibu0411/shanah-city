@@ -16,6 +16,20 @@ import {
 
 type RosterMember = { id: string; name: string };
 
+type EditableRosterSlot = GroupRosterSlot & { slotId: string };
+
+function createSlotId() {
+  return `roster-slot-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function toEditableSlots(slots: GroupRosterSlot[]): EditableRosterSlot[] {
+  return slots.map((slot) => ({ ...slot, slotId: createSlotId() }));
+}
+
+function stripSlotIds(slots: EditableRosterSlot[]): GroupRosterSlot[] {
+  return slots.map(({ slotId, ...slot }) => slot);
+}
+
 type GroupRosterEditorProps = {
   groupId: string;
   canManage: boolean;
@@ -33,7 +47,7 @@ export function GroupRosterEditor({
 }: GroupRosterEditorProps) {
   const [serviceDate, setServiceDate] = useState(initialDate || nextServiceSundayIso());
   const [serviceTime, setServiceTime] = useState(initialTime || DEFAULT_ROSTER_SERVICE_TIME);
-  const [assignments, setAssignments] = useState<GroupRosterSlot[]>([]);
+  const [assignments, setAssignments] = useState<EditableRosterSlot[]>([]);
   const [notes, setNotes] = useState("");
   const [title, setTitle] = useState("Sunday Service");
   const [status, setStatus] = useState<GroupServiceRoster["status"]>("draft");
@@ -56,12 +70,12 @@ export function GroupRosterEditor({
     }
 
     if (data.roster) {
-      setAssignments(data.roster.assignments ?? []);
+      setAssignments(toEditableSlots(data.roster.assignments ?? []));
       setNotes(data.roster.notes ?? "");
       setTitle(data.roster.title?.trim() || "Sunday Service");
       setStatus(data.roster.status);
     } else {
-      setAssignments(data.defaultAssignments ?? []);
+      setAssignments(toEditableSlots(data.defaultAssignments ?? []));
       setNotes("");
       setTitle("Sunday Service");
       setStatus("draft");
@@ -89,18 +103,21 @@ export function GroupRosterEditor({
     loadRoster();
   }, [serviceDate, serviceTime]);
 
-  function updateSlot(index: number, patch: Partial<GroupRosterSlot>) {
+  function updateSlot(slotId: string, patch: Partial<GroupRosterSlot>) {
     setAssignments((current) =>
-      current.map((slot, slotIndex) => (slotIndex === index ? { ...slot, ...patch } : slot)),
+      current.map((slot) => (slot.slotId === slotId ? { ...slot, ...patch } : slot)),
     );
   }
 
   function addRole() {
-    setAssignments((current) => [...current, { roleLabel: "New role", userId: null, name: "" }]);
+    setAssignments((current) => [
+      ...current,
+      { slotId: createSlotId(), roleLabel: "New role", userId: null, name: "" },
+    ]);
   }
 
-  function removeRole(index: number) {
-    setAssignments((current) => current.filter((_, slotIndex) => slotIndex !== index));
+  function removeRole(slotId: string) {
+    setAssignments((current) => current.filter((slot) => slot.slotId !== slotId));
   }
 
   async function saveRoster(action: "save" | "publish" | "unpublish" | "delete") {
@@ -115,7 +132,7 @@ export function GroupRosterEditor({
         serviceTime,
         title,
         notes,
-        assignments,
+        assignments: stripSlotIds(assignments),
       }),
     });
     const data = await response.json();
@@ -213,11 +230,11 @@ export function GroupRosterEditor({
         </p>
 
         <div className="mt-4 space-y-2">
-          {assignments.map((slot, index) => (
-            <div key={`${slot.roleLabel}-${index}`} className={`${groupsPremium.rowInset} flex-wrap gap-2`}>
+          {assignments.map((slot) => (
+            <div key={slot.slotId} className={`${groupsPremium.rowInset} flex-wrap gap-2`}>
               <input
                 value={slot.roleLabel}
-                onChange={(event) => updateSlot(index, { roleLabel: event.target.value })}
+                onChange={(event) => updateSlot(slot.slotId, { roleLabel: event.target.value })}
                 className="min-w-[7rem] flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm font-semibold text-night-900 outline-none"
                 placeholder="Role"
               />
@@ -225,7 +242,7 @@ export function GroupRosterEditor({
                 value={slot.userId ?? ""}
                 onChange={(event) => {
                   const member = members.find((entry) => entry.id === event.target.value);
-                  updateSlot(index, {
+                  updateSlot(slot.slotId, {
                     userId: event.target.value || null,
                     name: member?.name ?? "",
                   });
@@ -241,7 +258,7 @@ export function GroupRosterEditor({
               </select>
               <button
                 type="button"
-                onClick={() => removeRole(index)}
+                onClick={() => removeRole(slot.slotId)}
                 className="text-xs font-semibold text-red-700 underline"
               >
                 Remove
