@@ -1,44 +1,38 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { GroupBandHeader } from "@/components/groups/GroupBandHeader";
 import { GroupBandTabs } from "@/components/groups/GroupBandTabs";
-import {
-  GroupPremiumSectionLabel,
-  GroupPremiumStackCard,
-} from "@/components/groups/GroupPremiumUI";
+import { GroupPremiumStackCard, GroupPremiumSectionLabel } from "@/components/groups/GroupPremiumUI";
 import { groupsPremium } from "@/components/groups/groups-premium";
 import { GroupDashboardPanel } from "@/components/groups/GroupDashboardPanel";
-import { GroupIconEditor } from "@/components/groups/GroupIconEditor";
+import { GroupInfoPanel } from "@/components/groups/GroupInfoPanel";
+import { GroupManagePanel } from "@/components/groups/GroupManagePanel";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
-import { GroupMemberAddForm } from "@/components/groups/GroupMemberAddForm";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
 import { GroupCalendarPanel } from "@/components/calendar/GroupCalendarPanel";
 import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
-import { Button, ExternalLink } from "@/components/ui";
+import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel";
+import { CoupleMentorPanel } from "@/components/groups/CoupleMentorPanel";
+import { CouplePrayerPanel } from "@/components/groups/CouplePrayerPanel";
+import { GroupResourcesPanel } from "@/components/groups/GroupResourcesPanel";
+import { Button } from "@/components/ui";
 import {
   groupHasEmbeddedCalendar,
   SHANAH_POWER_COUPLES_GROUP_ID,
   unavailabilityCalendarGroupForId,
 } from "@/lib/church-groups";
-import { CouplesDevotionBanner } from "@/components/groups/CouplesDevotionBanner";
-import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel";
-import { CoupleMentorPanel } from "@/components/groups/CoupleMentorPanel";
-import { CouplePrayerPanel } from "@/components/groups/CouplePrayerPanel";
-import { GroupResourcesPanel } from "@/components/groups/GroupResourcesPanel";
-import { getCampus } from "@/lib/site";
-import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
-import type { GroupDetail, GroupMemberPreview } from "@/lib/group-types";
-import { groupCategoryLabels } from "@/lib/group-types";
+import type { GroupDetail } from "@/lib/group-types";
 import type { GroupDashboardQuickAction } from "@/lib/group-dashboard-types";
 
 type DetailSection =
   | "overview"
+  | "info"
+  | "manage"
   | "chat"
   | "polls"
   | "report"
@@ -48,21 +42,7 @@ type DetailSection =
   | "mentors"
   | "growth";
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function memberRoleLabel(member: GroupMemberPreview) {
-  if (member.isCreator && member.isAdmin) return "Creator · Leader";
-  if (member.isCreator) return "Creator";
-  if (member.isAdmin) return "Leader";
-  if (member.isAssistantLeader) return "Assistant leader";
-  return "Member";
-}
+type ManageScrollTarget = "members" | "invite" | "roster" | null;
 
 export function GroupDetailView({
   initialGroup,
@@ -80,10 +60,12 @@ export function GroupDetailView({
   const { setMessagesImmersive, isMobileApp } = useAppShell();
   const [detail, setDetail] = useState(initialGroup);
   const [detailSection, setDetailSection] = useState<DetailSection>(initialSection);
+  const [manageScrollTarget, setManageScrollTarget] = useState<ManageScrollTarget>(
+    rosterDate || rosterTime ? "roster" : null,
+  );
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
   const [statusIsError, setStatusIsError] = useState(false);
-  const membersRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setDetail(initialGroup);
@@ -91,7 +73,10 @@ export function GroupDetailView({
 
   useEffect(() => {
     setDetailSection(initialSection);
-  }, [initialSection, initialGroup.id]);
+    if (initialSection === "manage" && (rosterDate || rosterTime)) {
+      setManageScrollTarget("roster");
+    }
+  }, [initialSection, initialGroup.id, rosterDate, rosterTime]);
 
   useEffect(() => {
     const immersive = detailSection === "chat" && detail.isMember && Boolean(user);
@@ -163,9 +148,29 @@ export function GroupDetailView({
       ),
     [detail.members],
   );
+  const leaderNames = groupLeaders.map((leader) => leader.name);
+
+  const canManageMembers =
+    Boolean(user) &&
+    (detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin);
+  const canManageLeadership =
+    Boolean(user) && (detail.isAdmin || permissions.canManageAdmin);
+  const isSiteAdminManaging = permissions.canManageAdmin && !detail.isMember;
+  const showManageTab = canManageMembers || isSiteAdminManaging;
+  const showInfoTab = detail.isMember;
 
   const detailTabs = useMemo(() => {
-    const tabs: { id: DetailSection; label: string }[] = [{ id: "overview", label: "Dashboard" }];
+    const tabs: { id: DetailSection; label: string }[] = [];
+
+    if (detail.isMember) {
+      tabs.push({ id: "overview", label: "Dashboard" });
+    }
+    if (showInfoTab) {
+      tabs.push({ id: "info", label: "Info" });
+    }
+    if (showManageTab) {
+      tabs.push({ id: "manage", label: "Manage" });
+    }
     if (showLeaderReport) tabs.push({ id: "report", label: "Report" });
     if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Events" });
     if (isPowerCouplesGroup && detail.isMember) {
@@ -176,22 +181,34 @@ export function GroupDetailView({
         { id: "growth", label: "Growth" },
       );
     }
-    tabs.push({ id: "polls", label: "Polls" });
-    return tabs;
-  }, [showEmbeddedCalendar, showLeaderReport, isPowerCouplesGroup, detail.isMember]);
+    if (detail.isMember) {
+      tabs.push({ id: "polls", label: "Polls" });
+    }
 
-  function openInfoSection(target: "members" | "invite" = "members") {
-    setDetailSection("overview");
-    requestAnimationFrame(() => {
-      if (target === "invite") {
-        document.getElementById("group-member-add")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-        return;
-      }
-      membersRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    return tabs;
+  }, [
+    showEmbeddedCalendar,
+    showLeaderReport,
+    isPowerCouplesGroup,
+    detail.isMember,
+    showInfoTab,
+    showManageTab,
+  ]);
+
+  useEffect(() => {
+    if (detailTabs.length === 0) return;
+    if (!detailTabs.some((tab) => tab.id === detailSection)) {
+      setDetailSection(detailTabs[0].id);
+    }
+  }, [detailTabs, detailSection]);
+
+  function openManageSection(target: ManageScrollTarget = "members") {
+    setManageScrollTarget(target);
+    setDetailSection("manage");
+  }
+
+  function openInfoSection() {
+    setDetailSection("info");
   }
 
   function handleDashboardQuickAction(action: GroupDashboardQuickAction) {
@@ -208,22 +225,13 @@ export function GroupDetailView({
       return;
     }
     if (action.action === "invite") {
-      openInfoSection("invite");
+      openManageSection("invite");
       return;
     }
     if (action.action === "roster") {
-      document.getElementById("group-roster-editor")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      openManageSection("roster");
     }
   }
-  const canManageMembers =
-    Boolean(user) &&
-    (detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin);
-  const canManageLeadership =
-    Boolean(user) && (detail.isAdmin || permissions.canManageAdmin);
-  const isSiteAdminManaging = permissions.canManageAdmin && !detail.isAdmin;
 
   if (detailSection === "chat" && detail.isMember && user) {
     return (
@@ -245,7 +253,7 @@ export function GroupDetailView({
   ) : !detail.isMember ? (
     isSiteAdminManaging ? (
       <p className="rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">
-        Admin access — open Dashboard to add members and assign a group leader.
+        Admin access — open Manage to add members and assign a group leader.
       </p>
     ) : (
       <Button
@@ -262,6 +270,11 @@ export function GroupDetailView({
     )
   ) : null;
 
+  const defaultSectionForTabs =
+    detailTabs.find((tab) => tab.id === detailSection)?.id ??
+    detailTabs[0]?.id ??
+    "overview";
+
   return (
     <div
       className={`${groupsPremium.page} overflow-hidden ${
@@ -271,23 +284,22 @@ export function GroupDetailView({
       <GroupBandHeader
         group={detail}
         showChatAction={Boolean(detail.isMember && user)}
-        onMembersClick={() => openInfoSection("members")}
-        onInviteClick={canManageMembers ? () => openInfoSection("invite") : undefined}
+        onMembersClick={showInfoTab ? openInfoSection : () => openManageSection("members")}
+        onInviteClick={canManageMembers ? () => openManageSection("invite") : undefined}
         onChatClick={() => setDetailSection("chat")}
         joinSlot={joinSlot}
       />
 
-      {detail.isMember && user ? (
+      {user && detailTabs.length > 0 ? (
         <GroupBandTabs
           tabs={detailTabs}
-          activeId={detailSection}
-          onChange={(id) => setDetailSection(id as DetailSection)}
-        />
-      ) : isSiteAdminManaging && user ? (
-        <GroupBandTabs
-          tabs={[{ id: "overview", label: "Dashboard" }]}
-          activeId="overview"
-          onChange={() => undefined}
+          activeId={defaultSectionForTabs}
+          onChange={(id) => {
+            setDetailSection(id as DetailSection);
+            if (id !== "manage") {
+              setManageScrollTarget(null);
+            }
+          }}
         />
       ) : null}
 
@@ -302,352 +314,85 @@ export function GroupDetailView({
 
       <div className={`${groupsPremium.pageInset} space-y-4`}>
         {detailSection === "polls" && detail.isMember && user ? (
-        <GroupPollsPanel groupId={detail.id} groupName={detail.name} isAdmin={detail.isAdmin} />
-      ) : detailSection === "report" && showLeaderReport && user ? (
-        <LeaderReportForm embedded groupId={detail.id} groupName={detail.name} />
-      ) : detailSection === "calendar" && showEmbeddedCalendar && user ? (
-        <GroupCalendarPanel
-          groupId={detail.id}
-          groupLabel={detail.name}
-          signInNextUrl={`/groups/${detail.id}?calendar=1`}
-          showWorshipPlanner={permissions.canAccessWorshipPlanner}
-          unavailabilityGroup={unavailabilityCalendarGroupForId(detail.id)}
-        />
-      ) : detailSection === "resources" && isPowerCouplesGroup && detail.isMember && user ? (
-        <GroupResourcesPanel
-          groupId={detail.id}
-          isLeader={detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin}
-        />
-      ) : detailSection === "prayer" && isPowerCouplesGroup && detail.isMember && user ? (
-        <CouplePrayerPanel />
-      ) : detailSection === "mentors" && isPowerCouplesGroup && detail.isMember && user ? (
-        <CoupleMentorPanel groupId={detail.id} />
-      ) : detailSection === "growth" && isPowerCouplesGroup && detail.isMember && user ? (
-        <CoupleEnrichmentPanel groupId={detail.id} />
-      ) : detailSection === "overview" && user && (detail.isMember || isSiteAdminManaging) ? (
-        <>
-          {detail.isMember ? (
-            <GroupDashboardPanel
-              groupId={detail.id}
-              groupName={detail.name}
-              memberCount={detail.members.length}
-              leaderNames={groupLeaders.map((leader) => leader.name)}
-              rosterDate={rosterDate}
-              rosterTime={rosterTime}
-              onQuickAction={handleDashboardQuickAction}
-            />
-          ) : null}
+          <GroupPollsPanel groupId={detail.id} groupName={detail.name} isAdmin={detail.isAdmin} />
+        ) : detailSection === "report" && showLeaderReport && user ? (
+          <LeaderReportForm embedded groupId={detail.id} groupName={detail.name} />
+        ) : detailSection === "calendar" && showEmbeddedCalendar && user ? (
+          <GroupCalendarPanel
+            groupId={detail.id}
+            groupLabel={detail.name}
+            signInNextUrl={`/groups/${detail.id}?calendar=1`}
+            showWorshipPlanner={permissions.canAccessWorshipPlanner}
+            unavailabilityGroup={unavailabilityCalendarGroupForId(detail.id)}
+          />
+        ) : detailSection === "resources" && isPowerCouplesGroup && detail.isMember && user ? (
+          <GroupResourcesPanel
+            groupId={detail.id}
+            isLeader={detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin}
+          />
+        ) : detailSection === "prayer" && isPowerCouplesGroup && detail.isMember && user ? (
+          <CouplePrayerPanel />
+        ) : detailSection === "mentors" && isPowerCouplesGroup && detail.isMember && user ? (
+          <CoupleMentorPanel groupId={detail.id} />
+        ) : detailSection === "growth" && isPowerCouplesGroup && detail.isMember && user ? (
+          <CoupleEnrichmentPanel groupId={detail.id} />
+        ) : detailSection === "overview" && detail.isMember && user ? (
+          <GroupDashboardPanel
+            groupId={detail.id}
+            groupName={detail.name}
+            memberCount={detail.members.length}
+            leaderNames={leaderNames}
+            onQuickAction={handleDashboardQuickAction}
+            onSetupRoster={() => openManageSection("roster")}
+          />
+        ) : detailSection === "info" && showInfoTab && user ? (
+          <GroupInfoPanel
+            detail={detail}
+            leaderNames={leaderNames}
+            userId={user.id}
+            showMessageActions
+          />
+        ) : detailSection === "manage" && showManageTab && user ? (
+          <GroupManagePanel
+            detail={detail}
+            userId={user.id}
+            busy={busy}
+            canManageMembers={canManageMembers}
+            canManageLeadership={canManageLeadership}
+            showLeaderReport={showLeaderReport}
+            rosterDate={rosterDate}
+            rosterTime={rosterTime}
+            scrollToMembers={manageScrollTarget === "members"}
+            scrollToInvite={manageScrollTarget === "invite"}
+            scrollToRoster={manageScrollTarget === "roster"}
+            onDetailChange={setDetail}
+            onStatus={(message, isError) => {
+              setStatus(message);
+              setStatusIsError(Boolean(isError));
+            }}
+            onRefresh={async () => {
+              await refresh();
+              await loadDetail(detail.id);
+              router.refresh();
+            }}
+            runAction={runAction}
+          />
+        ) : null}
 
-          <GroupPremiumStackCard>
-            <GroupPremiumSectionLabel>About</GroupPremiumSectionLabel>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className={groupsPremium.statusChip}>
-                {groupCategoryLabels[detail.category]}
-              </span>
-              {!detail.isMember ? (
-                <span className={groupsPremium.statusChip}>
-                  {detail.members.length} member{detail.members.length === 1 ? "" : "s"}
-                </span>
-              ) : null}
-            </div>
-            {detail.campusId ? (
-              <p className={`${groupsPremium.cardMeta} mt-2`}>{getCampus(detail.campusId).name}</p>
-            ) : null}
-
-            <div className="mt-4">
-              <GroupIconEditor
-                group={detail}
-                canManage={canManageLeadership}
-                onUpdated={(group) => setDetail(group)}
-                onStatus={(message, isError) => {
-                  setStatus(message);
-                  setStatusIsError(Boolean(isError));
-                }}
-              />
-            </div>
-
-            <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
-
-            {detail.isMember && canManageLeadership ? (
-              <p className="mt-4 rounded-2xl bg-[#f7f3eb]/80 px-3.5 py-3 text-xs text-night-600 ring-1 ring-night-900/8">
-                {showLeaderReport
-                  ? "Manage members below. Submit the Report tab each month."
-                  : "Leaders can add members and assign assistant leaders below."}
-              </p>
-            ) : null}
-
-            {detail.id === SHANAH_POWER_COUPLES_GROUP_ID && detail.isMember ? (
-              <CouplesDevotionBanner className="mt-4" />
-            ) : null}
-          </GroupPremiumStackCard>
-
-          {(detail.meetingSchedule || detail.meetingLink) && (
-            <GroupPremiumStackCard>
-              <GroupPremiumSectionLabel>Next meeting</GroupPremiumSectionLabel>
-              <div className="mt-3 space-y-2">
-                {detail.meetingSchedule ? (
-                  <div className={groupsPremium.rowInset}>
-                    <span className="text-sm font-semibold text-night-800">When</span>
-                    <span className="text-sm text-night-700">{detail.meetingSchedule}</span>
-                  </div>
-                ) : null}
-                {detail.meetingLink ? (
-                  <div className={groupsPremium.rowInset}>
-                    <span className="text-sm font-semibold text-night-800">Link</span>
-                    <ExternalLink
-                      href={detail.meetingLink}
-                      className="text-sm font-semibold text-night-900 underline"
-                    >
-                      Open meeting link
-                    </ExternalLink>
-                  </div>
-                ) : null}
-              </div>
-            </GroupPremiumStackCard>
-          )}
-
-          <div ref={membersRef} id="group-members" className="scroll-mt-24">
-            <GroupPremiumStackCard>
-            <GroupPremiumSectionLabel>
-              Members ({detail.members.length})
-            </GroupPremiumSectionLabel>
-
-            {canManageMembers ? (
-              <div id="group-member-add" className="mt-4">
-                <GroupMemberAddForm
-                groupId={detail.id}
-                disabled={busy}
-                onAdded={async () => {
-                  await refresh();
-                  await loadDetail(detail.id);
-                  router.refresh();
-                }}
-                onStatus={(message, isError) => {
-                  setStatus(message);
-                  setStatusIsError(Boolean(isError));
-                }}
-              />
-              </div>
-            ) : null}
-
-            {detail.members.length === 0 ? (
-              <p className="mt-3 text-sm text-night-500">
-                {detail.visibility === "private" && !detail.isMember
-                  ? "Member list is visible after you join this private group."
-                  : "No members to show yet."}
-              </p>
-            ) : (
-              <div className="mt-3 space-y-2">
-                {detail.members.map((member) => {
-                  const canManageMember =
-                    canManageMembers && user && member.id !== user.id;
-                  const leadersAfterChange = remainingAdminCount(detail, member.id);
-                  const canPromoteLeader =
-                    canManageLeadership &&
-                    canManageMember &&
-                    !member.isAdmin &&
-                    !member.isAssistantLeader;
-                  const canPromoteAssistant =
-                    canManageLeadership &&
-                    canManageMember &&
-                    !member.isAdmin &&
-                    !member.isAssistantLeader;
-                  const canDemoteLeader =
-                    canManageLeadership &&
-                    canManageMember &&
-                    member.isAdmin &&
-                    leadersAfterChange >= 1;
-                  const canDemoteAssistant =
-                    canManageLeadership && canManageMember && member.isAssistantLeader;
-                  const canRemoveRegular =
-                    canManageMember &&
-                    !member.isAdmin &&
-                    !member.isAssistantLeader;
-                  const canRemoveLeader =
-                    canManageLeadership &&
-                    canManageMember &&
-                    member.isAdmin &&
-                    leadersAfterChange >= 1;
-
-                  return (
-                    <div
-                      key={member.id}
-                      className={`${groupsPremium.rowInset} flex-wrap`}
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-night-900">{member.name}</p>
-                        <p className="text-xs text-night-500">
-                          {getCampus(member.campusId).city} · {memberRoleLabel(member)}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {detail.isMember && user && member.id !== user.id ? (
-                          <Button
-                            variant="secondary"
-                            href={`/messages?member=${encodeURIComponent(member.id)}&name=${encodeURIComponent(member.name)}`}
-                          >
-                            Message
-                          </Button>
-                        ) : null}
-                        {canManageMember &&
-                        (canPromoteLeader ||
-                          canPromoteAssistant ||
-                          canDemoteLeader ||
-                          canDemoteAssistant ||
-                          canRemoveRegular ||
-                          canRemoveLeader) ? (
-                          <div className="flex flex-wrap gap-2">
-                            {canPromoteLeader ? (
-                              <button
-                                type="button"
-                                disabled={busy}
-                                onClick={async () => {
-                                  const ok = await runAction({
-                                    action: "promote-admin",
-                                    groupId: detail.id,
-                                    memberId: member.id,
-                                  });
-                                  if (ok) setStatus(`Made ${member.name} a group leader.`);
-                                }}
-                                className="text-xs font-semibold text-night-800 underline"
-                              >
-                                Make leader
-                              </button>
-                            ) : null}
-                            {canPromoteAssistant ? (
-                              <button
-                                type="button"
-                                disabled={busy}
-                                onClick={async () => {
-                                  const ok = await runAction({
-                                    action: "promote-assistant",
-                                    groupId: detail.id,
-                                    memberId: member.id,
-                                  });
-                                  if (ok) {
-                                    setStatus(`Made ${member.name} an assistant leader.`);
-                                  }
-                                }}
-                                className="text-xs font-semibold text-night-800 underline"
-                              >
-                                Make assistant
-                              </button>
-                            ) : null}
-                            {canDemoteLeader ? (
-                              <button
-                                type="button"
-                                disabled={busy}
-                                onClick={async () => {
-                                  if (
-                                    !window.confirm(
-                                      `Remove ${member.name}'s leader role in this group?`,
-                                    )
-                                  ) {
-                                    return;
-                                  }
-                                  const ok = await runAction({
-                                    action: "demote-admin",
-                                    groupId: detail.id,
-                                    memberId: member.id,
-                                  });
-                                  if (ok) setStatus(`Removed ${member.name} as group leader.`);
-                                }}
-                                className="text-xs font-semibold text-night-700 underline"
-                              >
-                                Remove leader role
-                              </button>
-                            ) : null}
-                            {canDemoteAssistant ? (
-                              <button
-                                type="button"
-                                disabled={busy}
-                                onClick={async () => {
-                                  const ok = await runAction({
-                                    action: "demote-assistant",
-                                    groupId: detail.id,
-                                    memberId: member.id,
-                                  });
-                                  if (ok) {
-                                    setStatus(`Removed ${member.name} as assistant leader.`);
-                                  }
-                                }}
-                                className="text-xs font-semibold text-night-700 underline"
-                              >
-                                Remove assistant role
-                              </button>
-                            ) : null}
-                            {canRemoveRegular || canRemoveLeader ? (
-                              <button
-                                type="button"
-                                disabled={busy}
-                                onClick={async () => {
-                                  if (!window.confirm(`Remove ${member.name} from this group?`)) {
-                                    return;
-                                  }
-                                  const ok = await runAction({
-                                    action: "remove-member",
-                                    groupId: detail.id,
-                                    memberId: member.id,
-                                  });
-                                  if (ok) setStatus(`Removed ${member.name} from ${detail.name}.`);
-                                }}
-                                className="text-xs font-semibold text-red-700 underline"
-                              >
-                                Remove
-                              </button>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            </GroupPremiumStackCard>
-          </div>
-
-          <GroupPremiumStackCard>
-            <p className="text-xs text-night-400">Created {formatTime(detail.createdAt)}</p>
-
-            {detail.isAdmin && user ? (
-              <div className="mt-4 border-t border-night-900/8 pt-4">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={async () => {
-                    if (!window.confirm(`Delete "${detail.name}"? This cannot be undone.`)) {
-                      return;
-                    }
-                    const ok = await runAction({ action: "delete", groupId: detail.id });
-                    if (ok) {
-                      router.push("/groups");
-                    }
-                  }}
-                  className="text-sm font-semibold text-red-700 underline"
-                >
-                  Delete group
-                </button>
-              </div>
-            ) : null}
-          </GroupPremiumStackCard>
-        </>
-      ) : null}
-
-      {status ? (
-        <p
-          className={`mt-4 rounded-xl px-3 py-2 text-sm ${
-            statusIsError ||
-            status.includes("wrong") ||
-            status.includes("Could not") ||
-            status.includes("must")
-              ? "bg-red-50 text-red-700"
-              : "bg-emerald-50 text-emerald-800"
-          }`}
-        >
-          {status}
-        </p>
-      ) : null}
+        {status ? (
+          <p
+            className={`rounded-xl px-3 py-2 text-sm ${
+              statusIsError ||
+              status.includes("wrong") ||
+              status.includes("Could not") ||
+              status.includes("must")
+                ? "bg-red-50 text-red-700"
+                : "bg-emerald-50 text-emerald-800"
+            }`}
+          >
+            {status}
+          </p>
+        ) : null}
       </div>
     </div>
   );

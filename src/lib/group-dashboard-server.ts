@@ -267,7 +267,7 @@ async function buildGroupRosterDashboard(
       roles: [],
       emptyMessage: canManage
         ? "Publish a service roster so your team can see who is serving in each role."
-        : "Your leader has not published the next service roster yet.",
+        : "Your leader has not published the next service roster yet. Check back after Sunday planning.",
     };
   }
 

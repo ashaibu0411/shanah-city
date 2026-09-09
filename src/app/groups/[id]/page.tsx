@@ -16,6 +16,8 @@ type GroupDetailPageProps = {
     prayer?: string;
     mentors?: string;
     growth?: string;
+    info?: string;
+    manage?: string;
     rosterDate?: string;
     rosterTime?: string;
   }>;
@@ -23,7 +25,7 @@ type GroupDetailPageProps = {
 
 export default async function GroupDetailPage({ params, searchParams }: GroupDetailPageProps) {
   const { id } = await params;
-  const { chat, report, calendar, resources, prayer, mentors, growth, rosterDate, rosterTime } =
+  const { chat, report, calendar, resources, prayer, mentors, growth, info, manage, rosterDate, rosterTime } =
     await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
@@ -54,7 +56,11 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
                     ? "mentors"
                     : growth === "1"
                       ? "growth"
-                      : "overview"
+                      : info === "1"
+                        ? "info"
+                        : manage === "1" || rosterDate?.trim() || rosterTime?.trim()
+                          ? "manage"
+                          : "overview"
       }
     />
   );

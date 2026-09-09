@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { GroupRosterEditor } from "@/components/groups/GroupRosterEditor";
 import {
   GroupPremiumLeaderChip,
   GroupPremiumSectionLabel,
@@ -16,9 +15,8 @@ type GroupDashboardPanelProps = {
   groupName: string;
   memberCount: number;
   leaderNames: string[];
-  rosterDate?: string;
-  rosterTime?: string;
   onQuickAction?: (action: GroupDashboardQuickAction) => void;
+  onSetupRoster?: () => void;
 };
 
 function AssigneeNames({ names }: { names: string[] }) {
@@ -47,13 +45,11 @@ export function GroupDashboardPanel({
   groupName,
   memberCount,
   leaderNames,
-  rosterDate,
-  rosterTime,
   onQuickAction,
+  onSetupRoster,
 }: GroupDashboardPanelProps) {
   const [dashboard, setDashboard] = useState<GroupDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   function loadDashboard() {
     setLoading(true);
@@ -71,7 +67,7 @@ export function GroupDashboardPanel({
 
   useEffect(() => {
     loadDashboard();
-  }, [groupId, refreshKey]);
+  }, [groupId]);
 
   if (loading) {
     return (
@@ -140,7 +136,18 @@ export function GroupDashboardPanel({
                 ))}
               </div>
             ) : dashboard.nextService.emptyMessage ? (
-              <p className={`${groupsPremium.cardMeta} mt-4`}>{dashboard.nextService.emptyMessage}</p>
+              <div className="mt-4 space-y-3">
+                <p className={groupsPremium.cardMeta}>{dashboard.nextService.emptyMessage}</p>
+                {dashboard.canManageRoster && onSetupRoster ? (
+                  <button
+                    type="button"
+                    onClick={onSetupRoster}
+                    className="inline-flex rounded-full bg-night-900 px-4 py-2 text-xs font-bold text-white"
+                  >
+                    Set up this Sunday&apos;s roster
+                  </button>
+                ) : null}
+              </div>
             ) : null}
           </GroupPremiumStackCard>
         </div>
@@ -151,7 +158,9 @@ export function GroupDashboardPanel({
         <GroupPremiumStackCard>
           {dashboard.myAssignments.length === 0 ? (
             <p className={groupsPremium.cardMeta}>
-              No upcoming assignments yet. When you are scheduled for a service, it will appear here.
+              {dashboard.canManageRoster
+                ? "No assignments for you yet. Open Manage to publish the team roster."
+                : "No upcoming assignments yet. Check back after your leader publishes the service roster."}
             </p>
           ) : (
             <div className="space-y-2">
@@ -200,16 +209,6 @@ export function GroupDashboardPanel({
             )}
           </div>
         </div>
-      ) : null}
-
-      {dashboard.canManageRoster ? (
-        <GroupRosterEditor
-          groupId={groupId}
-          canManage={Boolean(dashboard.canManageRoster)}
-          initialDate={rosterDate}
-          initialTime={rosterTime}
-          onUpdated={() => setRefreshKey((value) => value + 1)}
-        />
       ) : null}
     </>
   );
