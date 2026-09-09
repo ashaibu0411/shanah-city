@@ -95,7 +95,6 @@ export function MeetingCard({
   );
   const manualPushGroupId = MANUAL_PUSH_MEETING_GROUP_IDS[meeting.id];
   const hasMonthlyAutoReminder = Boolean(MONTHLY_MEETING_REMINDERS[meeting.id]);
-  const isEvening = meeting.id === SHIFT_YOUR_EVENING_ID;
 
   const content = (
     <>
@@ -244,10 +243,8 @@ export function MeetingCard({
     <Card
       className={
         featured
-          ? isEvening
-            ? "bg-gradient-to-br from-indigo-50 via-white to-sand-50 ring-indigo-200/80"
-            : "bg-gradient-to-br from-amber-50 via-white to-sand-50 ring-amber-200/80"
-          : ""
+          ? "border-clay-300/35 bg-gradient-to-br from-clay-50/80 via-white to-sand-50/90"
+          : undefined
       }
     >
       {content}

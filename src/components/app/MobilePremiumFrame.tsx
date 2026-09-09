@@ -21,7 +21,7 @@ export function MobilePremiumFrame({
         </>
       ) : null}
       <div className="mobile-premium-4k__bezel pointer-events-none absolute inset-0 z-20" aria-hidden />
-      <div className="relative z-0">{children}</div>
+      <div className="relative z-0 h-full w-full">{children}</div>
     </div>
   );
 }

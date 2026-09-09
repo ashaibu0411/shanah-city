@@ -30,6 +30,8 @@ export default async function WorshipPlannerPage({
         eyebrow="Shanah City Worship"
         title="Worship planner"
         description="Plan setlists, track team readiness, store charts, and share rehearsal notes for each service."
+        sectionIndex={0}
+        accentWord="planner"
       />
       <MarkFeedRead feed="worship" />
       <WorshipPlannerPanel initialDate={params.date} initialTime={params.time} />

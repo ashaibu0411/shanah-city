@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { MobilePageHero } from "@/components/app/MobilePageHero";
 import { MobileTabPills } from "@/components/app/MobileTabPills";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
 import { MediaClipsGrid } from "@/components/media/MediaClipsGrid";
@@ -28,28 +27,14 @@ export function MobileMediaHub({ clips, browseLinks, churchImages }: MobileMedia
     liveStream.isLive ||
     liveStream.youtube.isLive ||
     liveStream.facebook.isLive;
-  const isLive = tab === "live";
 
   return (
     <div className="mobile-media-hub space-y-3">
-      <MobilePageHero
-        eyebrow="Shanah City Media"
-        title={isLive ? "Watch Live" : "Shorts & Highlights"}
-        description={
-          isLive
-            ? "YouTube · Facebook · Instagram"
-            : clips.length > 0
-              ? `${clips.length} clips · Swipe to explore`
-              : "Worship moments on demand"
-        }
-      />
-
       <MobileMediaHero
         tab={tab}
         anyLive={anyLive}
         clipsCount={clips.length}
         churchImages={churchImages}
-        hideTitle
       />
 
       <MobileTabPills

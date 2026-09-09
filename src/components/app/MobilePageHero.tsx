@@ -1,38 +1,58 @@
 "use client";
 
+import { editorialPremium, formatEditorialSectionLabel } from "@/components/app/editorial-premium";
+
 type MobilePageHeroProps = {
   eyebrow?: string;
   title: string;
   description?: string;
+  sectionIndex?: number;
+  accentWord?: string;
   className?: string;
   children?: React.ReactNode;
 };
+
+function EditorialTitle({ title, accentWord }: { title: string; accentWord?: string }) {
+  if (!accentWord || !title.includes(accentWord)) {
+    return <>{title}</>;
+  }
+
+  const parts = title.split(accentWord);
+  return (
+    <>
+      {parts[0]}
+      <span className="text-clay-600">{accentWord}</span>
+      {parts.slice(1).join(accentWord)}
+    </>
+  );
+}
 
 export function MobilePageHero({
   eyebrow,
   title,
   description,
+  sectionIndex,
+  accentWord,
   className = "",
   children,
 }: MobilePageHeroProps) {
+  const eyebrowText =
+    eyebrow && sectionIndex != null
+      ? formatEditorialSectionLabel(sectionIndex, eyebrow)
+      : eyebrow;
+
   return (
-    <div
-      className={`mobile-warm-page-header mb-3 overflow-hidden rounded-[1.35rem] p-4 ring-1 ring-teal-200/45 ${className}`}
-    >
-      {eyebrow ? (
-        <p className="mobile-warm-page-header-eyebrow text-[10px] font-bold uppercase tracking-[0.24em] text-teal-700">
-          {eyebrow}
-        </p>
+    <div className={`${editorialPremium.pageHeader} ${className}`}>
+      {eyebrowText ? (
+        <p className={editorialPremium.pageEyebrow}>{eyebrowText}</p>
       ) : null}
-      <h1 className="mt-1 font-home-hero text-2xl font-semibold tracking-tight text-night-900">
-        {title}
+      <h1 className={editorialPremium.pageTitle}>
+        <EditorialTitle title={title} accentWord={accentWord} />
       </h1>
       {description ? (
-        <p className="mobile-warm-page-header-description mt-2 text-sm leading-snug text-night-600">
-          {description}
-        </p>
+        <p className={editorialPremium.pageDescription}>{description}</p>
       ) : null}
-      {children ? <div className="mt-4">{children}</div> : null}
+      {children ? <div className="mt-5">{children}</div> : null}
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
 } from "@/lib/meeting-display-utils";
 import type { Meeting } from "@/lib/types";
 import { Card, SectionTitle } from "@/components/ui";
+import { editorialPremium } from "@/components/app/editorial-premium";
 
 export function MeetingsList() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -114,21 +115,21 @@ export function MeetingsList() {
   }
 
   return (
-    <div className="space-y-8">
-      <Card className="border-teal-100/80 bg-gradient-to-r from-teal-50/70 to-sand-50/80 p-4 sm:p-5">
-        <p className="text-sm text-night-700">
+    <div className="space-y-10">
+      <div className={editorialPremium.leadCard}>
+        <p>
           Join links for daily prayer and ministry Zoom gatherings. Sunday worship, outreach, and
           special events are on the{" "}
-          <Link href="/calendar" className="font-semibold text-teal-800 hover:underline">
+          <Link href="/calendar" className="font-semibold text-night-950 underline decoration-clay-400/60 underline-offset-2 hover:decoration-clay-600">
             church calendar
           </Link>
           .
         </p>
-      </Card>
+      </div>
 
       {dailyPrayer.length > 0 ? (
         <section>
-          <SectionTitle title="Daily prayer on Zoom" />
+          <SectionTitle title="Daily prayer on Zoom" sectionIndex={1} />
           <div className="grid gap-4 md:grid-cols-2">
             {dailyPrayer.map((meeting) => (
               <MeetingCard
@@ -145,7 +146,7 @@ export function MeetingsList() {
 
       {monthlyMinistries.length > 0 ? (
         <section>
-          <SectionTitle title="Monthly ministry Zooms" />
+          <SectionTitle title="Monthly ministry Zooms" sectionIndex={2} />
           <div className="grid gap-4 md:grid-cols-2">
             {monthlyMinistries.map((meeting) => (
               <MeetingCard
@@ -163,7 +164,7 @@ export function MeetingsList() {
 
       {otherOnline.length > 0 ? (
         <section>
-          <SectionTitle title="More online gatherings" />
+          <SectionTitle title="More online gatherings" sectionIndex={3} />
           <div className="grid gap-4 md:grid-cols-2">
             {otherOnline.map((meeting) => (
               <MeetingCard

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MobilePageHero } from "@/components/app/MobilePageHero";
-import { premiumTeal } from "@/components/app/mobile-premium";
+import { editorialPremium, formatEditorialSectionLabel } from "@/components/app/editorial-premium";
 import { openExternalUrl } from "@/lib/native-app";
 import { site } from "@/lib/site";
 
@@ -47,8 +47,8 @@ type BadgeProps = {
 export function Badge({ children, variant = "default" }: BadgeProps) {
   const styles = {
     live: "bg-red-500 text-white animate-pulse-soft",
-    default: "bg-night-900 text-sand-50",
-    outline: "border border-night-900/20 text-night-700 bg-white",
+    default: editorialPremium.badgeDefault,
+    outline: editorialPremium.badgeOutline,
   };
 
   return (
@@ -69,11 +69,9 @@ type CardProps = {
 export function Card({ children, className = "", href }: CardProps) {
   const { isMobileApp } = useAppShell();
   const classes = `${
-    isMobileApp ? "mobile-card mobile-premium-surface p-4" : "p-5"
-  } ${isMobileApp && href ? "active:scale-[0.995]" : ""} rounded-2xl bg-white shadow-sm transition ${
-    isMobileApp
-      ? "ring-1 ring-night-900/5 hover:shadow-md"
-      : "ring-1 ring-night-900/5 hover:shadow-md"
+    isMobileApp ? `mobile-card ${editorialPremium.card}` : "rounded-2xl bg-white p-5 shadow-sm ring-1 ring-night-900/5"
+  } ${isMobileApp && href ? "active:scale-[0.995]" : ""} ${
+    !isMobileApp ? "transition hover:shadow-md" : "transition hover:shadow-[0_12px_32px_rgba(15,23,42,0.08)]"
   } ${className}`;
 
   if (href) {
@@ -116,17 +114,17 @@ export function Button({
   const { isMobileApp } = useAppShell();
   const styles = {
     primary: isMobileApp
-      ? `${premiumTeal.primaryButton}`
-      : "bg-night-900 text-sand-50 shadow-app-sm hover:bg-night-800",
+      ? editorialPremium.primaryButton
+      : editorialPremium.primaryButton,
     secondary: isMobileApp
-      ? "bg-white text-night-900 shadow-app-sm ring-1 ring-night-900/10 hover:bg-sand-50"
-      : "bg-white text-night-900 shadow-app-sm ring-1 ring-night-900/10 hover:bg-sand-50",
+      ? editorialPremium.secondaryButton
+      : editorialPremium.secondaryButton,
     ghost: isMobileApp
-      ? "bg-transparent text-night-700 hover:bg-sand-100"
-      : "bg-transparent text-night-700 hover:bg-sand-100",
+      ? editorialPremium.ghostButton
+      : editorialPremium.ghostButton,
   };
 
-  const base = `inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold tracking-tight transition ${styles[variant]} ${disabled ? "pointer-events-none opacity-50" : ""} ${className}`;
+  const base = `inline-flex items-center justify-center gap-2 text-sm font-semibold tracking-tight transition ${styles[variant]} ${disabled ? "pointer-events-none opacity-50" : ""} ${className}`;
 
   if (href && !disabled) {
     if (isExternalHref(href)) {
@@ -154,32 +152,56 @@ export function PageHeader({
   eyebrow,
   title,
   description,
+  sectionIndex,
+  accentWord,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
+  sectionIndex?: number;
+  accentWord?: string;
 }) {
   const { isMobileApp } = useAppShell();
 
   if (isMobileApp) {
     return (
-      <MobilePageHero eyebrow={eyebrow} title={title} description={description} />
+      <MobilePageHero
+        eyebrow={eyebrow}
+        title={title}
+        description={description}
+        sectionIndex={sectionIndex}
+        accentWord={accentWord}
+      />
     );
   }
 
+  const eyebrowText =
+    eyebrow && sectionIndex != null
+      ? formatEditorialSectionLabel(sectionIndex, eyebrow)
+      : eyebrow;
+
+  const titleContent =
+    accentWord && title.includes(accentWord) ? (
+      <>
+        {title.split(accentWord)[0]}
+        <span className="text-clay-600">{accentWord}</span>
+        {title.split(accentWord).slice(1).join(accentWord)}
+      </>
+    ) : (
+      title
+    );
+
   return (
-    <div className="mb-8">
-      {eyebrow && (
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sand-600">
-          {eyebrow}
+    <div className={`${editorialPremium.pageHeader} mb-8`}>
+      {eyebrowText ? (
+        <p className={editorialPremium.pageEyebrow}>{eyebrowText}</p>
+      ) : null}
+      <h1 className={`${editorialPremium.pageTitle} sm:text-4xl`}>{titleContent}</h1>
+      {description ? (
+        <p className={`${editorialPremium.pageDescription} max-w-2xl text-base`}>
+          {description}
         </p>
-      )}
-      <h1 className="mt-2 font-home-hero text-3xl font-semibold text-night-900 md:text-4xl">
-        {title}
-      </h1>
-      {description && (
-        <p className="mt-3 max-w-2xl text-night-600">{description}</p>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -188,30 +210,30 @@ export function SectionTitle({
   title,
   href,
   linkLabel = "See all",
+  sectionIndex,
 }: {
   title: string;
   href?: string;
   linkLabel?: string;
+  sectionIndex?: number;
 }) {
   const { isMobileApp } = useAppShell();
-
   return (
-    <div className="mb-4 flex items-center justify-between">
-      <h2
-        className={
-          isMobileApp
-            ? "mobile-section-title"
-            : "font-display text-xl font-semibold text-night-900"
-        }
-      >
-        {title}
-      </h2>
+    <div className="mb-4 flex items-end justify-between gap-3">
+      <div>
+        {sectionIndex != null ? (
+          <p className={editorialPremium.sectionLabel}>
+            № {String(sectionIndex).padStart(2, "0")}
+          </p>
+        ) : null}
+        <h2 className={editorialPremium.sectionTitle}>{title}</h2>
+      </div>
       {href && (
         <Link
           href={href}
-          className={`text-sm font-semibold ${
+          className={`shrink-0 text-sm font-semibold ${
             isMobileApp
-              ? "rounded-full bg-white px-3 py-1 text-night-700 shadow-app-sm ring-1 ring-night-900/10"
+              ? editorialPremium.secondaryButton
               : "text-night-600 hover:text-night-900"
           }`}
         >

@@ -1,6 +1,6 @@
 "use client";
 
-import { premiumTeal } from "@/components/app/mobile-premium";
+import { editorialPremium } from "@/components/app/editorial-premium";
 
 export type MobileTabPill = {
   id: string;
@@ -30,9 +30,7 @@ export function MobileTabPills({
             key={tab.id}
             type="button"
             onClick={() => onChange(tab.id)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition active:scale-[0.98] ${
-              active ? premiumTeal.tabActive : premiumTeal.tabIdle
-            }`}
+            className={active ? editorialPremium.tabActive : editorialPremium.tabIdle}
           >
             {tab.label}
             {tab.badge && tab.badge > 0 ? (

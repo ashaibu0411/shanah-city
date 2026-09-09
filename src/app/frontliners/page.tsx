@@ -29,6 +29,8 @@ export default async function FrontLinersPage({
         eyebrow="FrontLiners"
         title="Sunday service teams"
         description="Report your Sunday arrival time, then see usher and greeter schedules. Choir uses Worship; media uses Photos & Live."
+        sectionIndex={0}
+        accentWord="teams"
       />
       <FrontLinersHub initialDate={params.date} initialTime={params.time} />
     </>
