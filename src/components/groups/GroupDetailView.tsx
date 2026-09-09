@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
-import { MobilePageHero } from "@/components/app/MobilePageHero";
-import { MobileTabPills } from "@/components/app/MobileTabPills";
+import { GroupBandHeader } from "@/components/groups/GroupBandHeader";
+import { GroupBandTabs } from "@/components/groups/GroupBandTabs";
 import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupMemberAddForm } from "@/components/groups/GroupMemberAddForm";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
 import { GroupCalendarPanel } from "@/components/calendar/GroupCalendarPanel";
 import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
-import { Button, Card, ExternalLink } from "@/components/ui";
+import { Button, ExternalLink } from "@/components/ui";
 import {
   groupHasEmbeddedCalendar,
   SHANAH_POWER_COUPLES_GROUP_ID,
@@ -28,7 +28,6 @@ import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
 import type { GroupDetail, GroupMemberPreview } from "@/lib/group-types";
 import { groupCategoryLabels } from "@/lib/group-types";
-import { getGroupArtwork } from "@/lib/group-artwork";
 
 type DetailSection =
   | "overview"
@@ -57,17 +56,6 @@ function memberRoleLabel(member: GroupMemberPreview) {
   return "Member";
 }
 
-function GroupArtworkHero({ group }: { group: GroupDetail }) {
-  const artworkUrl = getGroupArtwork(group, "wide");
-
-  return (
-    <div className="-mx-5 -mt-5 mb-4 overflow-hidden rounded-t-2xl sm:-mx-6 sm:-mt-6">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={artworkUrl} alt="" className="aspect-[16/9] w-full object-cover" />
-    </div>
-  );
-}
-
 export function GroupDetailView({
   initialGroup,
   initialSection = "overview",
@@ -83,6 +71,7 @@ export function GroupDetailView({
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
   const [statusIsError, setStatusIsError] = useState(false);
+  const membersRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setDetail(initialGroup);
@@ -156,20 +145,34 @@ export function GroupDetailView({
     isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
   const isPowerCouplesGroup = detail.id === SHANAH_POWER_COUPLES_GROUP_ID;
   const detailTabs = useMemo(() => {
-    const tabs: { id: DetailSection; label: string }[] = [{ id: "overview", label: "Overview" }];
-    if (showLeaderReport) tabs.push({ id: "report", label: "Monthly report" });
-    if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Calendar" });
+    const tabs: { id: DetailSection; label: string }[] = [{ id: "overview", label: "Info" }];
+    if (showLeaderReport) tabs.push({ id: "report", label: "Report" });
+    if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Events" });
     if (isPowerCouplesGroup && detail.isMember) {
       tabs.push(
         { id: "resources", label: "Resources" },
-        { id: "prayer", label: "Prayer wall" },
+        { id: "prayer", label: "Prayer" },
         { id: "mentors", label: "Mentors" },
         { id: "growth", label: "Growth" },
       );
     }
-    tabs.push({ id: "polls", label: "Polls" }, { id: "chat", label: "Group chat" });
+    tabs.push({ id: "polls", label: "Polls" }, { id: "chat", label: "Chat" });
     return tabs;
   }, [showEmbeddedCalendar, showLeaderReport, isPowerCouplesGroup, detail.isMember]);
+
+  function openInfoSection(target: "members" | "invite" = "members") {
+    setDetailSection("overview");
+    requestAnimationFrame(() => {
+      if (target === "invite") {
+        document.getElementById("group-member-add")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+        return;
+      }
+      membersRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
   const canManageMembers =
     Boolean(user) &&
     (detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin);
@@ -190,99 +193,67 @@ export function GroupDetailView({
     );
   }
 
+  const joinSlot = !user ? (
+    <Button href={`/sign-in?next=/groups/${detail.id}`} className="w-full">
+      Sign in to join
+    </Button>
+  ) : !detail.isMember ? (
+    isSiteAdminManaging ? (
+      <p className="rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">
+        Admin access — open Info to add members and assign a group leader.
+      </p>
+    ) : (
+      <Button
+        className="w-full"
+        disabled={busy}
+        onClick={() =>
+          runAction({ action: "join", groupId: detail.id }).then((ok) => {
+            if (ok) setStatus(`You joined ${detail.name}.`);
+          })
+        }
+      >
+        Join group
+      </Button>
+    )
+  ) : null;
+
   return (
-    <Card className="min-w-0 overflow-hidden">
-      {isMobileApp ? (
-        <MobilePageHero
-          eyebrow={groupCategoryLabels[detail.category]}
-          title={detail.name}
-          description={`Led by ${detail.creatorName}${
-            detail.campusId ? ` · ${getCampus(detail.campusId).name}` : ""
-          } · ${detail.visibility === "public" ? "Public" : "Private"} · ${
-            detail.members.length
-          } member${detail.members.length === 1 ? "" : "s"}`}
-        />
-      ) : (
-        <GroupArtworkHero group={detail} />
-      )}
-
-      <div className="mb-4">
-        <Link
-          href="/groups"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-night-600 hover:text-night-900"
-        >
-          ← All groups
-        </Link>
-      </div>
-
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        {!isMobileApp ? (
-          <div>
-            <span className="rounded-full bg-sand-100 px-2.5 py-0.5 text-xs font-semibold text-night-700">
-              {groupCategoryLabels[detail.category]}
-            </span>
-            <h1 className="mt-2 font-display text-2xl font-semibold text-night-900 sm:text-3xl">
-              {detail.name}
-            </h1>
-            <p className="mt-1 text-sm text-night-500">
-              Led by {detail.creatorName}
-              {detail.campusId ? ` · ${getCampus(detail.campusId).name}` : ""}
-              {" · "}
-              {detail.visibility === "public" ? "Public" : "Private"}
-              {" · "}
-              {detail.members.length} member{detail.members.length === 1 ? "" : "s"}
-            </p>
-          </div>
-        ) : (
-          <div className="min-w-0 flex-1" />
-        )}
-
-        {user ? (
-          <div className="flex flex-wrap gap-2">
-            {detail.isMember ? (
-              <p className="rounded-xl bg-sand-100 px-3 py-2 text-sm text-night-600">
-                {canManageLeadership
-                  ? showLeaderReport
-                    ? "Manage members and leadership below. Submit the Monthly report tab each month."
-                    : canManageMembers && detail.isAssistantLeader
-                      ? "Assistant leaders can add and remove members. Only group leaders assign leadership roles."
-                      : "Group leaders can add members, assign assistant leaders, and remove people below."
-                  : "Only your group leader can remove you from this group."}
-              </p>
-            ) : isSiteAdminManaging ? (
-              <p className="rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">
-                Admin access — search app members or add by email, then assign a group leader to run
-                this team.
-              </p>
-            ) : (
-              <Button
-                disabled={busy}
-                onClick={() =>
-                  runAction({ action: "join", groupId: detail.id }).then((ok) => {
-                    if (ok) setStatus(`You joined ${detail.name}.`);
-                  })
-                }
-              >
-                Join group
-              </Button>
-            )}
-          </div>
-        ) : (
-          <Button href={`/sign-in?next=/groups/${detail.id}`}>Sign in to join</Button>
-        )}
-      </div>
+    <div
+      className={`group-band-page min-w-0 overflow-hidden bg-white ${
+        isMobileApp ? "-mx-4 -mt-4" : "rounded-2xl border border-night-900/10 shadow-sm"
+      }`}
+    >
+      <GroupBandHeader
+        group={detail}
+        showChatAction={Boolean(detail.isMember && user)}
+        onMembersClick={() => openInfoSection("members")}
+        onInviteClick={canManageMembers ? () => openInfoSection("invite") : undefined}
+        onChatClick={() => setDetailSection("chat")}
+        joinSlot={joinSlot}
+      />
 
       {detail.isMember && user ? (
-        <MobileTabPills
-          className="mt-4"
+        <GroupBandTabs
           tabs={detailTabs}
           activeId={detailSection}
           onChange={(id) => setDetailSection(id as DetailSection)}
         />
+      ) : isSiteAdminManaging && user ? (
+        <GroupBandTabs
+          tabs={[{ id: "overview", label: "Info" }]}
+          activeId="overview"
+          onChange={() => undefined}
+        />
       ) : null}
 
+      {!detail.isMember && user && !isSiteAdminManaging ? (
+        <div className="border-b border-night-900/8 px-4 py-4">
+          <p className="text-sm leading-relaxed text-night-700">{detail.description}</p>
+        </div>
+      ) : null}
 
-      {detailSection === "polls" && detail.isMember && user ? (
+      <div className="px-4 py-4">
+        {detailSection === "polls" && detail.isMember && user ? (
         <GroupPollsPanel groupId={detail.id} groupName={detail.name} isAdmin={detail.isAdmin} />
       ) : detailSection === "report" && showLeaderReport && user ? (
         <LeaderReportForm embedded groupId={detail.id} groupName={detail.name} />
@@ -305,9 +276,23 @@ export function GroupDetailView({
         <CoupleMentorPanel groupId={detail.id} />
       ) : detailSection === "growth" && isPowerCouplesGroup && detail.isMember && user ? (
         <CoupleEnrichmentPanel groupId={detail.id} />
-      ) : detailSection === "overview" ? (
+      ) : detailSection === "overview" && user && (detail.isMember || isSiteAdminManaging) ? (
         <>
-          <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
+          <span className="inline-flex rounded-full bg-sand-100 px-2.5 py-0.5 text-xs font-semibold text-night-700">
+            {groupCategoryLabels[detail.category]}
+          </span>
+          {detail.campusId ? (
+            <p className="mt-2 text-xs text-night-500">{getCampus(detail.campusId).name}</p>
+          ) : null}
+          <p className="mt-3 text-sm leading-relaxed text-night-700">{detail.description}</p>
+
+          {detail.isMember && canManageLeadership ? (
+            <p className="mt-3 rounded-xl bg-sand-50 px-3 py-2 text-xs text-night-600">
+              {showLeaderReport
+                ? "Manage members below. Submit the Report tab each month."
+                : "Leaders can add members and assign assistant leaders below."}
+            </p>
+          ) : null}
 
           {detail.id === SHANAH_POWER_COUPLES_GROUP_ID && detail.isMember ? (
             <CouplesDevotionBanner className="mt-4" />
@@ -334,13 +319,14 @@ export function GroupDetailView({
             </div>
           )}
 
-          <div className="mt-6">
+          <div ref={membersRef} id="group-members" className="mt-6 scroll-mt-24">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-night-500">
               Members ({detail.members.length})
             </h3>
 
             {canManageMembers ? (
-              <GroupMemberAddForm
+              <div id="group-member-add">
+                <GroupMemberAddForm
                 groupId={detail.id}
                 disabled={busy}
                 onAdded={async () => {
@@ -353,6 +339,7 @@ export function GroupDetailView({
                   setStatusIsError(Boolean(isError));
                 }}
               />
+              </div>
             ) : null}
 
             {detail.members.length === 0 ? (
@@ -570,6 +557,7 @@ export function GroupDetailView({
           {status}
         </p>
       ) : null}
-    </Card>
+      </div>
+    </div>
   );
 }
