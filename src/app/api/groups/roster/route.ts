@@ -25,7 +25,8 @@ import {
   rosterServiceDateTimeLabel,
   rosterServiceTimes,
   rosterSlotsFromMembers,
-  type GroupRosterSlot,
+  GroupRosterSlot,
+  type GroupServiceRoster,
 } from "@/lib/group-roster-types";
 
 function parseSlots(body: Record<string, unknown>): GroupRosterSlot[] {
@@ -96,7 +97,7 @@ export async function GET(request: Request) {
   const rosters = await listGroupServiceRosters({
     groupId,
     since: since || new Date().toISOString().slice(0, 10),
-  }).then((entries) =>
+  }).then((entries: GroupServiceRoster[]) =>
     entries.filter((entry) => canViewRosterRecord(user.id, canManage, entry)),
   );
 

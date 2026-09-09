@@ -1,9 +1,16 @@
 import { ADMIN_GROUP_ID, SENIOR_PASTOR_GROUP_ID, ASSOCIATE_PASTOR_GROUP_ID, TEAM_ZNCF_GROUP_ID } from "@/lib/church-groups";
 import { FRONTLINERS_GROUP_ID } from "@/lib/frontliners-types";
 import { isMediaGroup } from "@/lib/media-group";
-import { isWorshipGroup } from "@/lib/worship-access-server";
 import { WORSHIP_SERVICE_TIMES, worshipTimeLabel } from "@/lib/worship-types";
 import type { GroupCategory } from "@/lib/group-types";
+
+/** Client-safe worship group check — do not import worship-access-server here (pulls pg). */
+function isWorshipGroupClient(group: { id: string; name: string }) {
+  const configuredId = process.env.WORSHIP_GROUP_ID?.trim() || "group-choir";
+  if (group.id === configuredId) return true;
+  const name = group.name.trim().toLowerCase();
+  return name.includes("worship") || name.includes("choir");
+}
 
 export type GroupRosterSlot = {
   roleLabel: string;
@@ -48,7 +55,7 @@ export function groupUsesServiceRoster(group: {
   category: GroupCategory;
 }) {
   if (GROUP_ROSTER_EXCLUDED_IDS.has(group.id)) return false;
-  if (isWorshipGroup(group)) return false;
+  if (isWorshipGroupClient(group)) return false;
   if (group.id === FRONTLINERS_GROUP_ID) return false;
   if (isMediaGroup(group)) return true;
   if (group.id === "group-ushering") return true;
