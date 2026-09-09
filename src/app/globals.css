@@ -738,23 +738,29 @@
 
   .home-pastor-portrait__photo {
     position: absolute;
-    right: -6%;
-    bottom: -2%;
+    right: -3%;
+    top: 0;
+    bottom: auto;
     left: auto;
-    top: auto;
     width: auto;
-    height: 115%;
-    max-width: 54%;
+    height: 100%;
+    max-width: 50%;
     object-fit: cover;
-    object-position: 50% 8%;
+    object-position: 50% 0%;
     opacity: 0.95;
     filter: saturate(0.94) contrast(1.05) brightness(0.98);
-    -webkit-mask-image:
-      linear-gradient(to left, #000 30%, rgba(0, 0, 0, 0.72) 54%, transparent 90%),
-      linear-gradient(to top, transparent 4%, #000 22%);
-    mask-image:
-      linear-gradient(to left, #000 30%, rgba(0, 0, 0, 0.72) 54%, transparent 90%),
-      linear-gradient(to top, transparent 4%, #000 22%);
+    -webkit-mask-image: linear-gradient(
+      to left,
+      #000 28%,
+      rgba(0, 0, 0, 0.72) 54%,
+      transparent 90%
+    );
+    mask-image: linear-gradient(
+      to left,
+      #000 28%,
+      rgba(0, 0, 0, 0.72) 54%,
+      transparent 90%
+    );
   }
 
   .home-pastor-portrait__scrim {
@@ -770,11 +776,12 @@
   }
 
   .home-pastor-portrait--desktop .home-pastor-portrait__photo {
-    right: -2%;
-    bottom: -4%;
-    height: 118%;
-    max-width: 48%;
-    object-position: 46% 12%;
+    right: 0;
+    top: 0;
+    bottom: auto;
+    height: 100%;
+    max-width: 44%;
+    object-position: 50% 0%;
     opacity: 0.92;
   }
 
@@ -801,12 +808,12 @@
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero .home-pastor-portrait__photo {
-    right: -6%;
+    right: -4%;
     top: 0;
-    bottom: 0;
+    bottom: auto;
     height: 100%;
-    max-width: 62%;
-    object-position: 46% 14%;
+    max-width: 58%;
+    object-position: 50% 0%;
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero h1,
