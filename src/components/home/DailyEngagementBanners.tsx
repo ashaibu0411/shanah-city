@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Card } from "@/components/ui";
+import { SHANAH_POWER_COUPLES_GROUP_ID } from "@/lib/church-groups";
+import type { CoupleLinkStatusResponse } from "@/lib/couple-link-types";
 import {
   formatReportMonth,
   previousReportMonth,
@@ -84,5 +86,53 @@ export function DevotionBrowseNudge() {
         Library
       </Link>
     </Card>
+  );
+}
+
+export function AnniversaryHomeBanner() {
+  const { user } = useAuth();
+  const [nudge, setNudge] = useState<CoupleLinkStatusResponse["anniversaryNudge"]>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setNudge(null);
+      return;
+    }
+
+    fetch("/api/couple-link")
+      .then((response) => response.json())
+      .then((data: CoupleLinkStatusResponse) => {
+        setNudge(data.anniversaryNudge ?? null);
+      })
+      .catch(() => setNudge(null));
+  }, [user]);
+
+  if (!nudge) return null;
+
+  const headline =
+    nudge.daysUntil === 0
+      ? "Happy anniversary!"
+      : nudge.daysUntil === 1
+        ? "Anniversary tomorrow"
+        : `Anniversary in ${nudge.daysUntil} days`;
+
+  const yearsLine =
+    nudge.yearsMarried != null && nudge.yearsMarried > 0
+      ? `${nudge.yearsMarried} year${nudge.yearsMarried === 1 ? "" : "s"} together`
+      : "Celebrate your marriage this week";
+
+  return (
+    <Link
+      href={`/groups/${encodeURIComponent(SHANAH_POWER_COUPLES_GROUP_ID)}`}
+      className="block rounded-2xl border border-rose-200/80 bg-gradient-to-r from-rose-50/95 to-pink-50/90 px-4 py-3 ring-1 ring-rose-100 transition hover:border-rose-300 active:scale-[0.99]"
+    >
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-800">
+        Power Couples
+      </p>
+      <p className="mt-1 font-display text-base font-semibold text-night-900">{headline}</p>
+      <p className="mt-1 text-sm text-night-600">
+        {yearsLine} · Tap for couples devotion and growth resources
+      </p>
+    </Link>
   );
 }

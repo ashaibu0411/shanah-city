@@ -10,6 +10,7 @@ function mapLink(record: {
   requestedBy: string;
   createdAt: Date;
   acceptedAt: Date | null;
+  anniversaryDate: string | null;
 }): CoupleLinkRecord {
   return {
     id: record.id,
@@ -17,6 +18,7 @@ function mapLink(record: {
     userBId: record.userBId,
     status: record.status as CoupleLinkStatus,
     requestedBy: record.requestedBy,
+    anniversaryDate: record.anniversaryDate ?? undefined,
     createdAt: record.createdAt.toISOString(),
     acceptedAt: record.acceptedAt?.toISOString(),
   };
@@ -82,4 +84,27 @@ export async function deleteCoupleLink(id: string) {
 export async function getCoupleLinkById(id: string) {
   const record = await prisma.coupleLink.findUnique({ where: { id } });
   return record ? mapLink(record) : null;
+}
+
+export async function updateCoupleAnniversary(id: string, anniversaryDate: string) {
+  const record = await prisma.coupleLink.update({
+    where: { id },
+    data: { anniversaryDate },
+  });
+  return mapLink(record);
+}
+
+export async function getActiveCoupleLinksForGroup(memberIds: string[]) {
+  if (memberIds.length === 0) return [];
+  const records = await prisma.coupleLink.findMany({
+    where: {
+      status: "active",
+      OR: [{ userAId: { in: memberIds } }, { userBId: { in: memberIds } }],
+    },
+  });
+  const byId = new Map<string, CoupleLinkRecord>();
+  for (const record of records) {
+    byId.set(record.id, mapLink(record));
+  }
+  return [...byId.values()];
 }

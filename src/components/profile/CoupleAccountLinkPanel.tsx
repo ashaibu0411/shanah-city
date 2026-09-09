@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui";
+import { formatAnniversaryInputValue } from "@/lib/couple-anniversary-utils";
 import type { CoupleLinkView } from "@/lib/couple-link-types";
 
 export function CoupleAccountLinkPanel() {
   const [link, setLink] = useState<CoupleLinkView | null>(null);
   const [pendingIncoming, setPendingIncoming] = useState<CoupleLinkView | null>(null);
   const [email, setEmail] = useState("");
+  const [anniversaryDate, setAnniversaryDate] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -17,6 +19,7 @@ export function CoupleAccountLinkPanel() {
     if (response.ok) {
       setLink(data.link ?? null);
       setPendingIncoming(data.pendingIncoming ?? null);
+      setAnniversaryDate(formatAnniversaryInputValue(data.link?.anniversaryDate));
     }
   }
 
@@ -40,6 +43,7 @@ export function CoupleAccountLinkPanel() {
     }
     setLink(data.link ?? null);
     setPendingIncoming(data.pendingIncoming ?? null);
+    setAnniversaryDate(formatAnniversaryInputValue(data.link?.anniversaryDate));
     setEmail("");
     setMessage("Saved.");
   }
@@ -60,14 +64,30 @@ export function CoupleAccountLinkPanel() {
             Linked with <strong>{link.partnerName}</strong>
             <span className="block text-xs text-night-500">{link.partnerEmail}</span>
           </p>
-          <Button
-            variant="secondary"
-            className="mt-3"
-            disabled={busy}
-            onClick={() => runAction({ action: "remove", linkId: link.id })}
-          >
-            Unlink spouse
-          </Button>
+          <label className="mt-4 block">
+            <span className="text-xs font-semibold text-night-600">Wedding anniversary</span>
+            <input
+              type="date"
+              value={anniversaryDate}
+              onChange={(event) => setAnniversaryDate(event.target.value)}
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            />
+          </label>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              disabled={busy || !anniversaryDate}
+              onClick={() => runAction({ action: "save_anniversary", anniversaryDate })}
+            >
+              Save anniversary
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => runAction({ action: "remove", linkId: link.id })}
+            >
+              Unlink spouse
+            </Button>
+          </div>
         </div>
       ) : null}
 

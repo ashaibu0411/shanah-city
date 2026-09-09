@@ -6,6 +6,7 @@ export type CoupleLinkRecord = {
   userBId: string;
   status: CoupleLinkStatus;
   requestedBy: string;
+  anniversaryDate?: string;
   createdAt: string;
   acceptedAt?: string;
 };
@@ -19,9 +20,15 @@ export type CoupleLinkView = {
   requestedBy: string;
   isIncomingInvite: boolean;
   acceptedAt?: string;
+  anniversaryDate?: string;
 };
 
 export type CoupleLinkStatusResponse = {
   link: CoupleLinkView | null;
   pendingIncoming: CoupleLinkView | null;
+  anniversaryNudge?: {
+    daysUntil: number;
+    yearsMarried: number | null;
+    anniversaryDate: string;
+  } | null;
 };

@@ -11,6 +11,7 @@ import { QuickActions } from "@/components/home/QuickActions";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import {
+  AnniversaryHomeBanner,
   DevotionBrowseNudge,
   LeaderReportHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
@@ -62,6 +63,7 @@ export function HomeView({
       <LiveBanner />
       <PendingRsvpHomeBanner />
       <LeaderReportHomeBanner />
+      <AnniversaryHomeBanner />
       <QuickActions />
       <CampusStrip />
       {todayDevotion ? <DevotionPreview devotion={todayDevotion} /> : null}

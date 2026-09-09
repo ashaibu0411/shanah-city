@@ -19,6 +19,7 @@ import { LiveStreamCountdownInline } from "@/components/live/useLiveStreamSchedu
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import {
+  AnniversaryHomeBanner,
   DevotionBrowseNudge,
   LeaderReportHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
@@ -107,6 +108,7 @@ export function MobileHome({
     <div className="mobile-home animate-fade-in space-y-4">
       <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
       <PendingRsvpHomeBanner />
+      <AnniversaryHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
       <MobilePremiumFrame

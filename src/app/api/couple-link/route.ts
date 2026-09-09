@@ -6,6 +6,7 @@ import {
   inviteCouplePartner,
   removeCoupleLink,
   respondToCoupleLink,
+  saveCoupleAnniversary,
 } from "@/lib/couple-link-server";
 
 export async function GET() {
@@ -46,6 +47,12 @@ export async function POST(request: Request) {
 
     if (action === "remove") {
       await removeCoupleLink(user, String(body.linkId ?? ""));
+      const status = await getCoupleLinkStatus(user);
+      return NextResponse.json({ ok: true, ...status });
+    }
+
+    if (action === "save_anniversary") {
+      await saveCoupleAnniversary(user, String(body.anniversaryDate ?? ""));
       const status = await getCoupleLinkStatus(user);
       return NextResponse.json({ ok: true, ...status });
     }

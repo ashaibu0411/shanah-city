@@ -79,3 +79,25 @@ export async function getCoupleLinkById(id: string) {
   const links = await readLinks();
   return links.find((link) => link.id === id) ?? null;
 }
+
+export async function updateCoupleAnniversary(id: string, anniversaryDate: string) {
+  const links = await readLinks();
+  const index = links.findIndex((link) => link.id === id);
+  if (index === -1) throw new Error("Link not found.");
+  links[index] = { ...links[index], anniversaryDate };
+  await writeLinks(links);
+  return links[index];
+}
+
+export async function getActiveCoupleLinksForGroup(memberIds: string[]) {
+  const links = await readLinks();
+  const active = links.filter((link) => link.status === "active");
+  const memberSet = new Set(memberIds);
+  const byId = new Map<string, CoupleLinkRecord>();
+  for (const link of active) {
+    if (memberSet.has(link.userAId) || memberSet.has(link.userBId)) {
+      byId.set(link.id, link);
+    }
+  }
+  return [...byId.values()];
+}

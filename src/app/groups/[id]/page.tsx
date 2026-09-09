@@ -8,12 +8,20 @@ export const dynamic = "force-dynamic";
 
 type GroupDetailPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ chat?: string; report?: string; calendar?: string; resources?: string; prayer?: string }>;
+  searchParams: Promise<{
+    chat?: string;
+    report?: string;
+    calendar?: string;
+    resources?: string;
+    prayer?: string;
+    mentors?: string;
+    growth?: string;
+  }>;
 };
 
 export default async function GroupDetailPage({ params, searchParams }: GroupDetailPageProps) {
   const { id } = await params;
-  const { chat, report, calendar, resources, prayer } = await searchParams;
+  const { chat, report, calendar, resources, prayer, mentors, growth } = await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -37,7 +45,11 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
                 ? "resources"
                 : prayer === "1"
                   ? "prayer"
-                  : "overview"
+                  : mentors === "1"
+                    ? "mentors"
+                    : growth === "1"
+                      ? "growth"
+                      : "overview"
       }
     />
   );

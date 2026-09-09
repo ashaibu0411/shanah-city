@@ -813,13 +813,14 @@ model CommsCalendarItem {
 }
 
 model CoupleLink {
-  id          String    @id
-  userAId     String
-  userBId     String
-  status      String    @default("pending")
-  requestedBy String
-  createdAt   DateTime  @default(now())
-  acceptedAt  DateTime?
+  id              String    @id
+  userAId         String
+  userBId         String
+  status          String    @default("pending")
+  requestedBy     String
+  anniversaryDate String?
+  createdAt       DateTime  @default(now())
+  acceptedAt      DateTime?
 
   @@unique([userAId, userBId])
   @@index([userAId])
@@ -853,4 +854,48 @@ model CouplePrayerPost {
   createdAt    DateTime @default(now())
 
   @@index([coupleLinkId, createdAt])
+}
+
+model CoupleMentorRequest {
+  id             String    @id
+  coupleLinkId   String
+  requesterId    String
+  requesterName  String
+  note           String?
+  status         String    @default("open")
+  mentorLinkId   String?
+  matchedBy      String?
+  matchedByName  String?
+  matchedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([coupleLinkId])
+  @@index([status])
+}
+
+model CoupleEnrichmentModule {
+  id          String   @id
+  groupId     String
+  title       String
+  description String?
+  sortOrder   Int      @default(0)
+  createdBy   String
+  createdByName String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([groupId, sortOrder])
+}
+
+model CoupleEnrichmentProgress {
+  id           String   @id
+  moduleId     String
+  coupleLinkId String
+  completedBy  String
+  completedByName String
+  completedAt  DateTime @default(now())
+
+  @@unique([moduleId, coupleLinkId])
+  @@index([coupleLinkId])
 }

@@ -1,3 +1,8 @@
+import {
+  daysUntilAnniversary,
+  shouldShowAnniversaryNudge,
+  yearsMarried,
+} from "@/lib/couple-anniversary-utils";
 import type { PublicMember } from "@/lib/auth-types";
 import { getUserByEmail, getUserById } from "@/lib/auth-server";
 import type { CoupleLinkRecord, CoupleLinkStatusResponse, CoupleLinkView } from "@/lib/couple-link-types";
@@ -22,6 +27,20 @@ async function toView(link: CoupleLinkRecord, viewerId: string): Promise<CoupleL
     requestedBy: link.requestedBy,
     isIncomingInvite: link.status === "pending" && link.requestedBy !== viewerId,
     acceptedAt: link.acceptedAt,
+    anniversaryDate: link.anniversaryDate,
+  };
+}
+
+function anniversaryNudgeForLink(link: CoupleLinkRecord | null | undefined) {
+  if (!link?.anniversaryDate || !shouldShowAnniversaryNudge(link.anniversaryDate)) {
+    return null;
+  }
+  const daysUntil = daysUntilAnniversary(link.anniversaryDate);
+  if (daysUntil == null) return null;
+  return {
+    daysUntil,
+    yearsMarried: yearsMarried(link.anniversaryDate),
+    anniversaryDate: link.anniversaryDate,
   };
 }
 
@@ -30,7 +49,11 @@ export async function getCoupleLinkStatus(viewer: PublicMember): Promise<CoupleL
   const active = links.find((link) => link.status === "active");
   if (active) {
     const view = await toView(active, viewer.id);
-    return { link: view, pendingIncoming: null };
+    return {
+      link: view,
+      pendingIncoming: null,
+      anniversaryNudge: anniversaryNudgeForLink(active),
+    };
   }
 
   const pendingIncoming = links.find(
@@ -42,7 +65,7 @@ export async function getCoupleLinkStatus(viewer: PublicMember): Promise<CoupleL
 
   const link = pendingOutgoing ? await toView(pendingOutgoing, viewer.id) : null;
   const incoming = pendingIncoming ? await toView(pendingIncoming, viewer.id) : null;
-  return { link, pendingIncoming: incoming };
+  return { link, pendingIncoming: incoming, anniversaryNudge: null };
 }
 
 export async function getActiveCouplePartner(viewer: PublicMember) {
@@ -141,4 +164,20 @@ export async function getActiveCoupleLinkForUserId(userId: string) {
 
 export async function getCoupleLinkById(id: string) {
   return store().getCoupleLinkById(id);
+}
+
+export async function saveCoupleAnniversary(viewer: PublicMember, anniversaryDate: string) {
+  const active = await store().getActiveCoupleLinkForUser(viewer.id);
+  if (!active) {
+    throw new Error("Link your spouse account first.");
+  }
+  const trimmed = anniversaryDate.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    throw new Error("Use a full anniversary date (YYYY-MM-DD).");
+  }
+  return store().updateCoupleAnniversary(active.id, trimmed);
+}
+
+export async function getActiveCoupleLinksInGroup(memberIds: string[]) {
+  return store().getActiveCoupleLinksForGroup(memberIds);
 }

@@ -19,6 +19,8 @@ import {
   unavailabilityCalendarGroupForId,
 } from "@/lib/church-groups";
 import { CouplesDevotionBanner } from "@/components/groups/CouplesDevotionBanner";
+import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel";
+import { CoupleMentorPanel } from "@/components/groups/CoupleMentorPanel";
 import { CouplePrayerPanel } from "@/components/groups/CouplePrayerPanel";
 import { GroupResourcesPanel } from "@/components/groups/GroupResourcesPanel";
 import { getCampus } from "@/lib/site";
@@ -28,7 +30,16 @@ import type { GroupDetail, GroupMemberPreview } from "@/lib/group-types";
 import { groupCategoryLabels } from "@/lib/group-types";
 import { getGroupArtwork } from "@/lib/group-artwork";
 
-type DetailSection = "overview" | "chat" | "polls" | "report" | "calendar" | "resources" | "prayer";
+type DetailSection =
+  | "overview"
+  | "chat"
+  | "polls"
+  | "report"
+  | "calendar"
+  | "resources"
+  | "prayer"
+  | "mentors"
+  | "growth";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -149,7 +160,12 @@ export function GroupDetailView({
     if (showLeaderReport) tabs.push({ id: "report", label: "Monthly report" });
     if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Calendar" });
     if (isPowerCouplesGroup && detail.isMember) {
-      tabs.push({ id: "resources", label: "Resources" }, { id: "prayer", label: "Prayer wall" });
+      tabs.push(
+        { id: "resources", label: "Resources" },
+        { id: "prayer", label: "Prayer wall" },
+        { id: "mentors", label: "Mentors" },
+        { id: "growth", label: "Growth" },
+      );
     }
     tabs.push({ id: "polls", label: "Polls" }, { id: "chat", label: "Group chat" });
     return tabs;
@@ -285,6 +301,10 @@ export function GroupDetailView({
         />
       ) : detailSection === "prayer" && isPowerCouplesGroup && detail.isMember && user ? (
         <CouplePrayerPanel />
+      ) : detailSection === "mentors" && isPowerCouplesGroup && detail.isMember && user ? (
+        <CoupleMentorPanel groupId={detail.id} />
+      ) : detailSection === "growth" && isPowerCouplesGroup && detail.isMember && user ? (
+        <CoupleEnrichmentPanel groupId={detail.id} />
       ) : detailSection === "overview" ? (
         <>
           <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
