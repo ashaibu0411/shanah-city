@@ -35,3 +35,24 @@ export type GroupDashboardData = {
   canManageRoster?: boolean;
   usesServiceRoster?: boolean;
 };
+
+export type GroupsThisSundayAssignment = {
+  groupId: string;
+  groupName: string;
+  leftLabel: string;
+  rightLabel: string;
+  href: string;
+};
+
+export type GroupsThisSundayService = {
+  groupId: string;
+  groupName: string;
+  title: string;
+  subtitle?: string;
+  href?: string;
+};
+
+export type GroupsThisSundaySummary = {
+  assignments: GroupsThisSundayAssignment[];
+  teamServices: GroupsThisSundayService[];
+};
