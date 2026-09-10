@@ -28,6 +28,7 @@ export function MinistryReadinessFlow({
   onCancel,
 }: MinistryReadinessFlowProps) {
   const [step, setStep] = useState<"read" | "quiz" | "commit">("read");
+  const [hasReadChurch, setHasReadChurch] = useState(false);
   const [hasReadStandards, setHasReadStandards] = useState(false);
   const [hasReadExpectations, setHasReadExpectations] = useState(false);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -44,7 +45,7 @@ export function MinistryReadinessFlow({
     [answers, pack.questions],
   );
 
-  const canContinueFromRead = hasReadStandards && hasReadExpectations;
+  const canContinueFromRead = hasReadChurch && hasReadStandards && hasReadExpectations;
 
   function continueToCommit() {
     setQuizError("");
@@ -90,6 +91,34 @@ export function MinistryReadinessFlow({
       {step === "read" ? (
         <>
           <div className="mt-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+              About Shanah City
+            </p>
+            <p className="mt-1 text-sm text-night-600">
+              Mission, vision, and beliefs every volunteer should know.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {pack.churchIdentity.map((item) => (
+                <li
+                  key={item}
+                  className="rounded-2xl bg-clay-500/5 px-3.5 py-3 text-sm leading-relaxed text-night-700 ring-1 ring-clay-500/15"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <label className="mt-3 flex items-start gap-2 text-sm text-night-700">
+              <input
+                type="checkbox"
+                checked={hasReadChurch}
+                onChange={(event) => setHasReadChurch(event.target.checked)}
+                className="mt-1"
+              />
+              <span>I have read about Shanah City&apos;s mission, vision, and beliefs.</span>
+            </label>
+          </div>
+
+          <div className="mt-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
               Shanah ministry standards
             </p>
