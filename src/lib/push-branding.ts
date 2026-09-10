@@ -1,5 +1,5 @@
 /** Public path to the Shanah City logo used in push notifications. */
-export const PUSH_ICON_PATH = "/shanah-city-logo.png";
+export const PUSH_ICON_PATH = "/app-icon-512.png";
 
 /** Smaller badge image for web notification trays (Chrome/Android). */
 export const PUSH_BADGE_PATH = "/push-badge-96.png";

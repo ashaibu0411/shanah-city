@@ -9,6 +9,12 @@ import type {
 } from "./types";
 import { canonicalMeetings } from "./meeting-catalog";
 
+export const brandLogos = {
+  light: "/shanah-city-logo-light.png",
+  dark: "/shanah-city-logo-dark.png",
+  default: "/shanah-city-logo.png",
+} as const;
+
 export const site = {
   name: "Shanah City",
   heroChurchName: "Shanah City Church",

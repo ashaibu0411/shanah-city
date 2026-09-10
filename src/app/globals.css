@@ -22,6 +22,7 @@
     --reading-scale: 1;
     scroll-behavior: smooth;
     font-size: calc(100% * var(--reading-scale));
+    color-scheme: light;
   }
 
   body {

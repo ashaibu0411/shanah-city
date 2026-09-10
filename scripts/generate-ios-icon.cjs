@@ -8,7 +8,7 @@ const OUTPUT = path.resolve(
 );
 
 sharp(SOURCE)
-  .resize(1024, 1024, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 1 } })
+  .resize(1024, 1024, { fit: "contain", background: { r: 250, g: 247, b: 242, alpha: 1 } })
   .png()
   .toFile(OUTPUT)
   .then((info) => {

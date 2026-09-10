@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { brandLogos } from "@/lib/site";
 
 const memberBenefits = [
   "Your profile and campus (Aurora, Accra, or Online)",
@@ -22,11 +23,11 @@ export function AuthPageShell({ mode, children }: AuthPageShellProps) {
       <div className="auth-page-grid grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-start lg:gap-8">
         <section className="rounded-3xl bg-gradient-to-br from-night-950 to-night-800 p-6 text-white shadow-lg lg:p-8">
           <Image
-            src="/shanah-city-logo.png"
+            src={brandLogos.dark}
             alt="Shanah City"
             width={160}
             height={80}
-            className="h-16 w-auto object-contain brightness-0 invert"
+            className="h-16 w-auto object-contain"
             priority
           />
           <h1 className="mt-6 font-display text-3xl font-semibold">

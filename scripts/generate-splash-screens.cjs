@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
-const LOGO = path.resolve(__dirname, "../public/shanah-city-logo.png");
-const BACKGROUND = { r: 250, g: 248, b: 245, alpha: 1 }; // #faf8f5
+const LOGO = path.resolve(__dirname, "../public/shanah-city-logo-dark.png");
+const BACKGROUND = { r: 250, g: 247, b: 242, alpha: 1 }; // #faf7f2
 
 const IOS_SPLASH_DIR = path.resolve(
   __dirname,
