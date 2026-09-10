@@ -30,7 +30,7 @@ type CommunityComposerProps = {
 
 function PhotoIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-5 w-5 fill-[#45bd62]">
+    <svg viewBox="0 0 24 24" aria-hidden className="h-5 w-5 fill-clay-500">
       <path d="M6.5 4.5h11A2 2 0 0 1 19.5 6.5v11a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2Zm0 2v9.086l2.793-2.793a1 1 0 0 1 1.414 0L15.5 17.5l2-2a1 1 0 0 1 1.414 0L18.5 17.5V6.5h-12Zm3 1.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5Z" />
     </svg>
   );
@@ -225,12 +225,12 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
       <div className="community-composer-modal" role="dialog" aria-modal="true" aria-label="Create post">
         <button type="button" className="community-composer-backdrop" onClick={closeComposer} aria-label="Close" />
         <div className="community-composer-dialog">
-          <div className="flex items-center justify-between border-b border-[#dadde1] px-4 py-3">
-            <h2 className="flex-1 text-center text-[17px] font-bold text-[#050505]">Create post</h2>
+          <div className="flex items-center justify-between border-b border-night-900/10 px-4 py-3">
+            <h2 className="flex-1 text-center font-display text-[17px] font-bold text-night-900">Create post</h2>
             <button
               type="button"
               onClick={closeComposer}
-              className="rounded-full p-2 text-[#65676b] hover:bg-[#f0f2f5]"
+              className="rounded-full p-2 text-night-600 hover:bg-sand-100"
               aria-label="Close composer"
             >
               ✕
@@ -238,12 +238,12 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
           </div>
 
           {canAnnounce ? (
-            <div className="flex gap-2 border-b border-[#dadde1] px-4 py-2">
+            <div className="flex gap-2 border-b border-night-900/10 px-4 py-2">
               <button
                 type="button"
                 onClick={() => setMode("share")}
                 className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-                  mode === "share" ? "bg-[#e7f3ff] text-[#1877f2]" : "text-[#65676b] hover:bg-[#f0f2f5]"
+                  mode === "share" ? "bg-clay-500/10 text-clay-600" : "text-night-600 hover:bg-sand-100"
                 }`}
               >
                 Share
@@ -253,8 +253,8 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                 onClick={() => setMode("announcement")}
                 className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
                   mode === "announcement"
-                    ? "bg-[#e7f3ff] text-[#1877f2]"
-                    : "text-[#65676b] hover:bg-[#f0f2f5]"
+                    ? "bg-clay-500/10 text-clay-600"
+                    : "text-night-600 hover:bg-sand-100"
                 }`}
               >
                 Announcement
@@ -266,7 +266,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
             <div className="flex items-center gap-2.5">
               <CommunityAvatar name={composerName} authorId={user?.id} size="md" />
               <div>
-                <p className="text-[15px] font-semibold text-[#050505]">{composerName}</p>
+                <p className="text-[15px] font-semibold text-night-900">{composerName}</p>
                 {mode === "share" ? (
                   <div className="mt-1 flex gap-1">
                     {(["prayer", "praise"] as const).map((type) => (
@@ -276,8 +276,8 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                         onClick={() => setPostType(type)}
                         className={`rounded-md px-2 py-0.5 text-xs font-semibold capitalize ${
                           postType === type
-                            ? "bg-[#e7f3ff] text-[#1877f2]"
-                            : "bg-[#f0f2f5] text-[#65676b]"
+                            ? "bg-clay-500/10 text-clay-600"
+                            : "bg-sand-100 text-night-600"
                         }`}
                       >
                         {type}
@@ -285,7 +285,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-[#65676b]">Admin announcement</p>
+                  <p className="text-xs text-night-600">Admin announcement</p>
                 )}
               </div>
             </div>
@@ -298,7 +298,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                   placeholder={`What's on your mind, ${composerName.split(" ")[0]}?`}
                   rows={5}
                   autoFocus
-                  className="mt-3 w-full resize-none border-0 bg-transparent text-[24px] leading-snug text-[#050505] outline-none placeholder:text-[#65676b]"
+                  className="mt-3 w-full resize-none border-0 bg-transparent text-[24px] leading-snug text-night-900 outline-none placeholder:text-night-600"
                 />
                 <CommunityMediaPreviewCarousel
                   items={pendingMedia}
@@ -310,7 +310,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                 <select
                   value={targetGroupId}
                   onChange={(event) => setTargetGroupId(event.target.value)}
-                  className="mt-3 w-full rounded-lg border border-[#ccd0d5] bg-[#f0f2f5] px-3 py-2.5 text-sm outline-none focus:border-[#1877f2]"
+                  className="mt-3 w-full rounded-lg border border-night-900/12 bg-sand-100 px-3 py-2.5 text-sm outline-none focus:border-clay-500"
                 >
                   <option value="">All church members</option>
                   {targetGroups.map((group) => (
@@ -325,7 +325,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                   placeholder="Service update, event reminder, campus news..."
                   rows={5}
                   autoFocus
-                  className="mt-3 w-full resize-none rounded-lg border border-[#ccd0d5] bg-[#f0f2f5] px-3 py-2.5 text-[15px] text-[#050505] outline-none focus:border-[#1877f2]"
+                  className="mt-3 w-full resize-none rounded-lg border border-night-900/12 bg-sand-100 px-3 py-2.5 text-[15px] text-night-900 outline-none focus:border-clay-500"
                 />
               </>
             )}
@@ -333,12 +333,12 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
             {error ? <p className="mt-3 text-sm text-rose-600">{error}</p> : null}
           </div>
 
-          <div className="border-t border-[#dadde1] px-4 py-3">
+          <div className="border-t border-night-900/10 px-4 py-3">
             {mode === "share" ? (
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <span className="text-[15px] font-semibold text-[#050505]">Add to your post</span>
-                  <p className="text-xs text-[#65676b]">
+                  <span className="text-[15px] font-semibold text-night-900">Add to your post</span>
+                  <p className="text-xs text-night-600">
                     Up to {COMMUNITY_POST_MAX_MEDIA} photos or videos
                   </p>
                 </div>
@@ -348,7 +348,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                     openCommunityGalleryPicker(fileRef.current, (files) => void addPostMediaFiles(files))
                   }
                   disabled={mediaBusy || pendingMedia.length >= COMMUNITY_POST_MAX_MEDIA}
-                  className="rounded-lg p-2 hover:bg-[#f0f2f5] disabled:opacity-50"
+                  className="rounded-lg p-2 hover:bg-sand-100 disabled:opacity-50"
                   aria-label="Add photo or video"
                 >
                   <PhotoIcon />
@@ -366,7 +366,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                   ? !draft.trim() && uploadedMedia.length === 0
                   : !announcementDraft.trim())
               }
-              className="w-full rounded-lg bg-[#1877f2] px-4 py-2.5 text-[15px] font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#e4e6eb] disabled:text-[#bcc0c4]"
+              className="w-full rounded-lg bg-clay-500 px-4 py-2.5 text-[15px] font-semibold text-sand-50 disabled:cursor-not-allowed disabled:bg-sand-200 disabled:text-night-400"
             >
               {submitting ? "Posting…" : mediaBusy ? "Uploading…" : "Post"}
             </button>

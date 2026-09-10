@@ -83,7 +83,7 @@ export function CommunityStoryRing({
                 onError={() => setAvatarFailed(true)}
               />
             ) : (
-              <span className="text-base font-bold text-[#050505]">{authorInitial(authorName)}</span>
+              <span className="text-base font-bold text-night-900">{authorInitial(authorName)}</span>
             )}
           </div>
         </div>
@@ -102,7 +102,7 @@ export function CommunityStoryRing({
                 onAddPress?.();
               }
             }}
-            className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-[#1877f2] text-lg font-bold leading-none text-white ring-2 ring-white"
+            className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-clay-500 text-lg font-bold leading-none text-sand-50 ring-2 ring-white"
             aria-label="Add story"
           >
             +

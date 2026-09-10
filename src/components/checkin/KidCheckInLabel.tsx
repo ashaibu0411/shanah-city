@@ -139,7 +139,7 @@ export function printKidCheckInLabel(checkIn: KidCheckIn) {
           .alert.amber { background: #fef3c7; color: #78350f; }
           .alert.red { background: #fee2e2; color: #991b1b; }
           .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; }
-          .box { background: #faf8f5; border-radius: 10px; padding: 10px; }
+          .box { background: #faf7f2; border-radius: 10px; padding: 10px; }
           .box.full { grid-column: span 2; }
           .box span { display: block; font-size: 10px; text-transform: uppercase; color: #738aab; font-weight: 700; }
           .code { margin-top: 16px; background: #1a2332; color: white; border-radius: 14px; padding: 16px; text-align: center; }

@@ -173,7 +173,7 @@ export function GroupManagePanel({
           <p className="mt-4 text-sm leading-relaxed text-night-700">{detail.description}</p>
         ) : null}
 
-        <p className="mt-4 rounded-2xl bg-[#f7f3eb]/80 px-3.5 py-3 text-xs text-night-600 ring-1 ring-night-900/8">
+        <p className="mt-4 rounded-2xl bg-sand-50/80 px-3.5 py-3 text-xs text-night-600 ring-1 ring-night-900/8">
           {showLeaderReport
             ? "Add members below, publish service rosters, and submit the Report tab each month."
             : "Add members, assign leaders, and publish service rosters from this tab."}

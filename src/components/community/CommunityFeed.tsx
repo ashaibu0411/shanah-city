@@ -68,8 +68,8 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
       <div className="community-feed-posts">
         {filteredPosts.length === 0 ? (
           <div className="community-feed-card community-feed-empty">
-            <p className="text-[15px] font-semibold text-[#050505]">No posts yet</p>
-            <p className="mt-1 text-sm text-[#65676b]">
+            <p className="text-[15px] font-semibold text-night-900 font-display">No posts yet</p>
+            <p className="mt-1 text-sm text-night-600">
               {filter === "all"
                 ? "Be the first to share a prayer or praise with the community."
                 : `No ${entryLabel(filter)} posts yet.`}

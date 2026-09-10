@@ -182,8 +182,8 @@ export function CommunityStatusRow() {
     <>
       <div className="community-feed-card community-stories-card">
         <div className="flex items-center justify-between gap-2 px-1 pb-1">
-          <p className="text-[15px] font-semibold text-[#050505]">Stories</p>
-          {uploading ? <span className="text-xs text-[#65676b]">{uploadLabel}</span> : null}
+          <p className="text-[15px] font-semibold text-night-900 font-display">Stories</p>
+          {uploading ? <span className="text-xs text-night-600">{uploadLabel}</span> : null}
         </div>
         {error ? <p className="px-1 text-xs text-rose-600">{error}</p> : null}
         {notice ? <p className="px-1 text-xs text-emerald-700">{notice}</p> : null}

@@ -21,7 +21,7 @@ function LikeIcon({ active }: { active: boolean }) {
     <svg
       viewBox="0 0 24 24"
       aria-hidden
-      className={`h-[18px] w-[18px] ${active ? "fill-[#1877f2]" : "fill-none stroke-current"}`}
+      className={`h-[18px] w-[18px] ${active ? "fill-clay-500" : "fill-none stroke-current"}`}
       strokeWidth={active ? 0 : 1.8}
     >
       <path d="M7.5 10.5V18h-2.25A1.125 1.125 0 0 1 4.125 16.875V11.625A1.125 1.125 0 0 1 5.25 10.5H7.5Z" />
@@ -256,14 +256,14 @@ export function CommunityPostCard({
             onClick={() => setMenuOpen(false)}
           />
           <div
-            className="fixed z-[121] min-w-[168px] overflow-hidden rounded-xl border border-[#dadde1] bg-white py-1 shadow-lg"
+            className="fixed z-[121] min-w-[168px] overflow-hidden rounded-xl border border-night-900/10 bg-white py-1 shadow-lg"
             style={{ top: menuPosition.top, right: menuPosition.right }}
             role="menu"
           >
             <button
               type="button"
               role="menuitem"
-              className="block w-full px-4 py-3 text-left text-sm font-semibold text-[#050505] hover:bg-[#f0f2f5]"
+              className="block w-full px-4 py-3 text-left text-sm font-semibold text-night-900 hover:bg-sand-100"
               onClick={() => {
                 setMenuOpen(false);
                 setEditing(true);
@@ -295,10 +295,10 @@ export function CommunityPostCard({
         <div className="min-w-0 flex-1 pt-0.5">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="truncate text-[15px] font-semibold leading-tight text-[#050505]">
+              <h3 className="truncate text-[15px] font-semibold leading-tight text-night-900">
                 {post.author}
               </h3>
-              <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-[#65676b]">
+              <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-night-600">
                 <span>{timeLabel}</span>
                 <span aria-hidden>·</span>
                 <span className="inline-flex items-center gap-1">
@@ -317,7 +317,7 @@ export function CommunityPostCard({
                   aria-haspopup="menu"
                   aria-expanded={menuOpen}
                   onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}
-                  className="community-post-menu-btn rounded-full px-2.5 py-1.5 text-base font-bold leading-none text-[#050505] hover:bg-[#f0f2f5]"
+                  className="community-post-menu-btn rounded-full px-2.5 py-1.5 text-base font-bold leading-none text-night-900 hover:bg-sand-100"
                 >
                   •••
                 </button>
@@ -338,8 +338,8 @@ export function CommunityPostCard({
                   onClick={() => setEditType(type)}
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                     editType === type
-                      ? "bg-[#1877f2] text-white"
-                      : "bg-[#f0f2f5] text-[#050505]"
+                      ? "bg-clay-500 text-sand-50"
+                      : "bg-sand-100 text-night-900"
                   }`}
                 >
                   {type === "prayer" ? "Prayer request" : "Praise report"}
@@ -347,7 +347,7 @@ export function CommunityPostCard({
               ))}
             </div>
           ) : (
-            <p className="text-xs font-semibold text-[#65676b]">
+            <p className="text-xs font-semibold text-night-600">
               Church news posts keep the News label. Edit the message below.
             </p>
           )}
@@ -355,7 +355,7 @@ export function CommunityPostCard({
             value={editDraft}
             onChange={(event) => setEditDraft(event.target.value)}
             rows={4}
-            className="w-full rounded-2xl border border-[#ccd0d5] bg-[#f0f2f5] px-3 py-2 text-[15px] text-[#050505] outline-none focus:border-[#1877f2]"
+            className="w-full rounded-2xl border border-night-900/12 bg-sand-100 px-3 py-2 text-[15px] text-night-900 outline-none focus:border-clay-500"
           />
           {editError ? <p className="text-sm text-red-600">{editError}</p> : null}
           <div className="flex flex-wrap gap-2">
@@ -363,7 +363,7 @@ export function CommunityPostCard({
               type="button"
               onClick={() => void saveEdit()}
               disabled={loading}
-              className="rounded-lg bg-[#1877f2] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              className="rounded-lg bg-clay-500 px-4 py-2 text-sm font-semibold text-sand-50 disabled:opacity-60"
             >
               {loading ? "Saving..." : "Save changes"}
             </button>
@@ -376,7 +376,7 @@ export function CommunityPostCard({
                 setEditError("");
               }}
               disabled={loading}
-              className="rounded-lg bg-[#e4e6eb] px-4 py-2 text-sm font-semibold text-[#050505] disabled:opacity-60"
+              className="rounded-lg bg-sand-200 px-4 py-2 text-sm font-semibold text-night-900 disabled:opacity-60"
             >
               Cancel
             </button>
@@ -384,7 +384,7 @@ export function CommunityPostCard({
         </div>
       ) : (
         <div className={`px-3 ${compact ? "pb-2 pt-2" : "pb-3 pt-2.5"}`}>
-          <p className="whitespace-pre-wrap text-[15px] leading-[1.3333] text-[#050505]">
+          <p className="whitespace-pre-wrap text-[15px] leading-[1.3333] text-night-900">
             {post.content}
           </p>
         </div>
@@ -395,11 +395,11 @@ export function CommunityPostCard({
       ) : null}
 
       {(post.reactions > 0 || comments.length > 0) && (
-        <div className="flex items-center justify-between px-3 py-2.5 text-xs text-[#65676b]">
+        <div className="flex items-center justify-between px-3 py-2.5 text-xs text-night-600">
           <div className="inline-flex items-center gap-1.5">
             {post.reactions > 0 ? (
               <>
-                <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1877f2] text-[10px] text-white">
+                <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-clay-500 text-[10px] text-sand-50">
                   {reactionEmoji(post.type)}
                 </span>
                 <span>{post.reactions}</span>
@@ -418,7 +418,7 @@ export function CommunityPostCard({
         </div>
       )}
 
-      <div className="mx-3 border-t border-[#dadde1]" />
+      <div className="mx-3 border-t border-night-900/10" />
 
       <div className="grid grid-cols-3 px-1 py-0.5">
         <button
@@ -453,7 +453,7 @@ export function CommunityPostCard({
             <button
               type="button"
               onClick={() => setShowAllComments(true)}
-              className="text-xs font-semibold text-[#65676b] hover:underline"
+              className="text-xs font-semibold text-night-600 hover:underline"
             >
               View previous comments
             </button>
@@ -464,12 +464,12 @@ export function CommunityPostCard({
               <CommunityAvatar name={comment.author} size="sm" />
               <div className="min-w-0 flex-1">
                 <div className="community-comment-bubble">
-                  <p className="text-[13px] font-semibold leading-tight text-[#050505]">
+                  <p className="text-[13px] font-semibold leading-tight text-night-900">
                     {comment.author}
                   </p>
-                  <p className="mt-0.5 text-[15px] leading-snug text-[#050505]">{comment.content}</p>
+                  <p className="mt-0.5 text-[15px] leading-snug text-night-900">{comment.content}</p>
                 </div>
-                <p className="mt-1 px-3 text-[11px] font-semibold text-[#65676b]">
+                <p className="mt-1 px-3 text-[11px] font-semibold text-night-600">
                   {formatCommunityTimeAgo(comment.createdAt)}
                 </p>
               </div>
@@ -498,7 +498,7 @@ export function CommunityPostCard({
                     type="button"
                     onClick={submitComment}
                     disabled={loading}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#1877f2] disabled:opacity-50"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-clay-600 disabled:opacity-50"
                   >
                     {loading ? "..." : "Post"}
                   </button>

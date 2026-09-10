@@ -13,7 +13,7 @@ const COLORS = {
   navyDeep: "#111827",
   navyMid: "#1a2332",
   navyLight: "#405578",
-  sand50: "#faf8f5",
+  sand50: "#faf7f2",
   sand200: "#e8dfd2",
 };
 

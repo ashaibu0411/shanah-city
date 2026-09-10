@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, DM_Sans, Playfair_Display } from "next/font/google";
+import { DM_Sans, Fraunces } from "next/font/google";
 import { AppShell } from "@/components/app/AppShell";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -9,14 +9,13 @@ const sans = DM_Sans({
   variable: "--font-sans",
 });
 
-const display = Playfair_Display({
+const display = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
 });
 
-const homeHero = Cormorant_Garamond({
+const homeHero = Fraunces({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
   variable: "--font-home-hero",
 });
 

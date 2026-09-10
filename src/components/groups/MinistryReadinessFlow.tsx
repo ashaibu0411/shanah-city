@@ -82,7 +82,7 @@ export function MinistryReadinessFlow({
       <GroupPremiumSectionLabel>Before you serve</GroupPremiumSectionLabel>
       <h2 className={`${groupsPremium.cardTitle} mt-2`}>{pack.title}</h2>
       <p className={`${groupsPremium.cardMeta} mt-2`}>{pack.subtitle}</p>
-      <p className="mt-3 rounded-xl bg-[#f7f3eb]/80 px-3 py-2 text-xs leading-relaxed text-night-600 ring-1 ring-night-900/8">
+      <p className="mt-3 rounded-xl bg-sand-50/80 px-3 py-2 text-xs leading-relaxed text-night-600 ring-1 ring-night-900/8">
         This short orientation is for new volunteers joining through the app. If you are already
         on the team, ask your leader to add you instead — you will not need to complete this.
       </p>
@@ -125,7 +125,7 @@ export function MinistryReadinessFlow({
               {pack.expectations.map((item) => (
                 <li
                   key={item}
-                  className="rounded-2xl bg-[#f7f3eb]/80 px-3.5 py-3 text-sm leading-relaxed text-night-700 ring-1 ring-night-900/8"
+                  className="rounded-2xl bg-sand-50/80 px-3.5 py-3 text-sm leading-relaxed text-night-700 ring-1 ring-night-900/8"
                 >
                   {item}
                 </li>
@@ -157,7 +157,7 @@ export function MinistryReadinessFlow({
 
       {step === "quiz" ? (
         <>
-          <p className="mt-4 rounded-xl bg-[#f7f3eb]/80 px-3 py-2 text-sm text-night-700 ring-1 ring-night-900/8">
+          <p className="mt-4 rounded-xl bg-sand-50/80 px-3 py-2 text-sm text-night-700 ring-1 ring-night-900/8">
             Answer each question from what you read. You need at least{" "}
             <strong>
               {pack.passingScore.required} of {pack.passingScore.total}
@@ -168,7 +168,7 @@ export function MinistryReadinessFlow({
             {pack.questions.map((question) => (
               <fieldset
                 key={question.id}
-                className="rounded-2xl bg-[#f7f3eb]/50 px-3.5 py-3 ring-1 ring-night-900/8"
+                className="rounded-2xl bg-sand-50/50 px-3.5 py-3 ring-1 ring-night-900/8"
               >
                 <legend className="text-sm font-semibold text-night-900">{question.prompt}</legend>
                 <div className="mt-2 space-y-2">

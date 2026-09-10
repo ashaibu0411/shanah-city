@@ -36,7 +36,7 @@ export function CommunityAvatar({
 
   const inner = (
     <div
-      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e4e6eb] font-bold text-[#050505] ${
+      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-sand-200 font-bold text-night-900 ${
         sizeClasses[size]
       } ${className}`}
     >
@@ -55,7 +55,7 @@ export function CommunityAvatar({
   );
 
   const wrapped = ring ? (
-    <div className="rounded-full bg-gradient-to-tr from-[#1877f2] via-[#e4405f] to-[#f77737] p-[2.5px]">
+    <div className="rounded-full bg-gradient-to-tr from-clay-400 via-clay-500 to-gold-400 p-[2.5px]">
       <div className="rounded-full bg-white p-[2px]">{inner}</div>
     </div>
   ) : (

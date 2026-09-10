@@ -31,7 +31,7 @@ function AssigneeNames({ names }: { names: string[] }) {
       {names.map((name) => (
         <span
           key={name}
-          className="rounded-full bg-[#f7f3eb] px-2.5 py-0.5 text-xs font-semibold text-night-800 ring-1 ring-night-900/8"
+          className="rounded-full bg-sand-50 px-2.5 py-0.5 text-xs font-semibold text-night-800 ring-1 ring-night-900/8"
         >
           {name}
         </span>

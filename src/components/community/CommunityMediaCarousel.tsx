@@ -93,7 +93,7 @@ export function CommunityMediaCarousel({ items, compact }: CommunityMediaCarouse
 
   if (items.length === 1) {
     return (
-      <div className={`border-y border-[#dadde1] bg-black ${compact ? "" : "community-media-carousel"}`}>
+      <div className={`border-y border-night-900/10 bg-black ${compact ? "" : "community-media-carousel"}`}>
         <div className={compact ? "aspect-square max-h-56" : "max-h-[32rem] aspect-[4/5] sm:aspect-auto sm:max-h-[32rem]"}>
           <CarouselSlide item={items[0]} active />
         </div>
@@ -102,7 +102,7 @@ export function CommunityMediaCarousel({ items, compact }: CommunityMediaCarouse
   }
 
   return (
-    <div className={`relative border-y border-[#dadde1] bg-black ${compact ? "" : "community-media-carousel"}`}>
+    <div className={`relative border-y border-night-900/10 bg-black ${compact ? "" : "community-media-carousel"}`}>
       <div
         ref={scrollerRef}
         className="community-media-carousel-track"
@@ -148,7 +148,7 @@ export function CommunityMediaPreviewCarousel({
   if (items.length === 0) return null;
 
   return (
-    <div className="mt-3 overflow-hidden rounded-xl bg-[#f0f2f5]">
+    <div className="mt-3 overflow-hidden rounded-xl bg-sand-100">
       <div className="community-media-carousel-track max-h-56">
         {items.map((item) => (
           <div key={item.id} className="community-media-carousel-slide bg-black">
@@ -174,7 +174,7 @@ export function CommunityMediaPreviewCarousel({
         ))}
       </div>
       {items.length > 1 ? (
-        <p className="px-3 py-2 text-xs font-semibold text-[#65676b]">
+        <p className="px-3 py-2 text-xs font-semibold text-night-600">
           {items.length} items · swipe to preview
         </p>
       ) : null}

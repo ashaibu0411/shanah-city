@@ -115,7 +115,7 @@ export function MobileHome({
         variant="surface"
         className="mobile-home-welcome-stack overflow-hidden ring-1 ring-night-900/8"
       >
-        <div className="mobile-home-welcome-intro border-b border-night-900/8 bg-gradient-to-r from-[#f7f3eb] via-white to-sand-50 px-4 py-3.5">
+        <div className="mobile-home-welcome-intro border-b border-night-900/8 bg-gradient-to-r from-sand-50 via-white to-sand-50 px-4 py-3.5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-night-500">
             {homeGreeting(user?.name)}
           </p>

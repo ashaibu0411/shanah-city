@@ -15,7 +15,7 @@ export function PendingRsvpHomeBanner() {
   return (
     <Link
       href="/calendar"
-      className="block rounded-[1.25rem] border border-night-900/8 bg-white px-4 py-3 text-sm text-night-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:bg-[#f7f3eb]"
+      className="block rounded-[1.25rem] border border-night-900/8 bg-white px-4 py-3 text-sm text-night-900 shadow-[0_1px_2px_rgba(45,36,24,0.04)] transition hover:bg-sand-50"
     >
       <span className="font-semibold">{pendingCount} event RSVP{pendingCount === 1 ? "" : "s"}</span>{" "}
       waiting for your reply · Tap to respond
