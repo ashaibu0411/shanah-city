@@ -28,6 +28,8 @@ import {
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
 import type { GroupDetail } from "@/lib/group-types";
 import type { GroupDashboardQuickAction } from "@/lib/group-dashboard-types";
+import type { MinistryReadinessPublicPack } from "@/lib/ministry-readiness-types";
+import { MinistryReadinessFlow } from "@/components/groups/MinistryReadinessFlow";
 
 type DetailSection =
   | "overview"
@@ -66,6 +68,8 @@ export function GroupDetailView({
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
   const [statusIsError, setStatusIsError] = useState(false);
+  const [readinessPack, setReadinessPack] = useState<MinistryReadinessPublicPack | null>(null);
+  const [showReadinessFlow, setShowReadinessFlow] = useState(false);
 
   useEffect(() => {
     setDetail(initialGroup);
@@ -91,6 +95,23 @@ export function GroupDetailView({
       delete document.body.dataset.messagesImmersive;
     };
   }, [detailSection, detail.isMember, user, setMessagesImmersive]);
+
+  useEffect(() => {
+    if (!user || detail.isMember) {
+      setReadinessPack(null);
+      setShowReadinessFlow(false);
+      return;
+    }
+
+    fetch(`/api/groups/readiness?groupId=${encodeURIComponent(detail.id)}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        setReadinessPack(data?.pack ?? null);
+      })
+      .catch(() => {
+        setReadinessPack(null);
+      });
+  }, [detail.id, detail.isMember, user]);
 
   async function loadDetail(groupId: string) {
     const response = await fetch(`/api/groups?id=${encodeURIComponent(groupId)}`);
@@ -233,6 +254,31 @@ export function GroupDetailView({
     }
   }
 
+  function handleReadinessCompleted(requiresLeaderApproval: boolean) {
+    setShowReadinessFlow(false);
+    if (readinessPack) {
+      setReadinessPack({ ...readinessPack, completed: true, completedAt: new Date().toISOString() });
+    }
+    runAction({ action: "join", groupId: detail.id }).then((ok) => {
+      if (!ok) return;
+      if (requiresLeaderApproval) {
+        setStatus(`Readiness complete. Your request to join ${detail.name} is pending leader approval.`);
+      } else {
+        setStatus(`You joined ${detail.name}.`);
+      }
+    });
+  }
+
+  function handleJoinClick() {
+    if (readinessPack?.requiredForSelfJoin) {
+      setShowReadinessFlow(true);
+      return;
+    }
+    runAction({ action: "join", groupId: detail.id }).then((ok) => {
+      if (ok) setStatus(`You joined ${detail.name}.`);
+    });
+  }
+
   if (detailSection === "chat" && detail.isMember && user) {
     return (
       <GroupChatPanel
@@ -256,17 +302,24 @@ export function GroupDetailView({
         Admin access — open Manage to add members and assign a group leader.
       </p>
     ) : (
-      <Button
-        className="w-full"
-        disabled={busy}
-        onClick={() =>
-          runAction({ action: "join", groupId: detail.id }).then((ok) => {
-            if (ok) setStatus(`You joined ${detail.name}.`);
-          })
-        }
-      >
-        Join group
-      </Button>
+      <div className="space-y-2">
+        <Button
+          className="w-full"
+          disabled={busy}
+          onClick={handleJoinClick}
+        >
+          {readinessPack?.requiredForSelfJoin
+            ? "Before you serve"
+            : readinessPack?.requiresLeaderApproval && readinessPack.completed
+              ? "Request to join"
+              : "Join group"}
+        </Button>
+        {readinessPack ? (
+          <p className="text-center text-xs leading-relaxed text-night-500">
+            Already on this team? Ask your leader to add you — no training required.
+          </p>
+        ) : null}
+      </div>
     )
   ) : null;
 
@@ -313,6 +366,15 @@ export function GroupDetailView({
       ) : null}
 
       <div className={`${groupsPremium.pageInset} space-y-4`}>
+        {!detail.isMember && user && showReadinessFlow && readinessPack ? (
+          <MinistryReadinessFlow
+            groupId={detail.id}
+            pack={readinessPack}
+            onCompleted={handleReadinessCompleted}
+            onCancel={() => setShowReadinessFlow(false)}
+          />
+        ) : null}
+
         {detailSection === "polls" && detail.isMember && user ? (
           <GroupPollsPanel groupId={detail.id} groupName={detail.name} isAdmin={detail.isAdmin} />
         ) : detailSection === "report" && showLeaderReport && user ? (

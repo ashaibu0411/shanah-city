@@ -24,6 +24,7 @@ import {
 } from "@/lib/group-server";
 import { requestGroupJoin } from "@/lib/group-join-server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { exemptMemberAddedByLeader } from "@/lib/ministry-readiness-server";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -197,6 +198,13 @@ export async function POST(request: Request) {
         "profile_update",
         `Added ${result.addedName} to "${result.group.name}"`,
       );
+      if ("addedMemberId" in result && result.addedMemberId) {
+        await exemptMemberAddedByLeader({
+          group: { id: result.group.id, name: result.group.name },
+          memberId: result.addedMemberId,
+          leaderName: user.name,
+        });
+      }
       const group = await getGroupDetail(groupId, user.id);
       return NextResponse.json({ group });
     }

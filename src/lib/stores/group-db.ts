@@ -551,6 +551,7 @@ export async function addGroupMember(
   return {
     group: toSummary(mapGroup(updated), adminId),
     addedName: member.name,
+    addedMemberId: member.id,
   };
 }
 
@@ -588,6 +589,7 @@ export async function addGroupMemberById(
   return {
     group: toSummary(mapGroup(updated), adminId),
     addedName: member.name,
+    addedMemberId: member.id,
   };
 }
 

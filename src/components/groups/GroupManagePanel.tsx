@@ -14,6 +14,7 @@ import { ExternalLink } from "@/components/ui";
 import { getCampus } from "@/lib/site";
 import { remainingAdminCount } from "@/lib/group-admin-utils";
 import { groupUsesServiceRoster } from "@/lib/group-roster-types";
+import { groupRequiresMinistryReadiness } from "@/lib/ministry-readiness-types";
 import type { GroupDetail, GroupMemberPreview } from "@/lib/group-types";
 import { groupCategoryLabels } from "@/lib/group-types";
 
@@ -72,7 +73,19 @@ export function GroupManagePanel({
   const membersRef = useRef<HTMLDivElement>(null);
   const rosterRef = useRef<HTMLDivElement>(null);
   const [rosterRefreshKey, setRosterRefreshKey] = useState(0);
+  const [readinessCompletions, setReadinessCompletions] = useState<
+    Array<{ userName: string; agreedAt: string; score: number; totalQuestions: number }>
+  >([]);
   const showRosterEditor = groupUsesServiceRoster(detail) && canManageMembers;
+  const showReadinessSection = groupRequiresMinistryReadiness(detail);
+
+  useEffect(() => {
+    if (!showReadinessSection || !canManageMembers) return;
+    fetch(`/api/groups/readiness?groupId=${encodeURIComponent(detail.id)}&list=1`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => setReadinessCompletions(data?.completions ?? []))
+      .catch(() => setReadinessCompletions([]));
+  }, [detail.id, showReadinessSection, canManageMembers]);
 
   useEffect(() => {
     if (scrollToMembers) {
@@ -103,6 +116,38 @@ export function GroupManagePanel({
 
   return (
     <>
+      {showReadinessSection ? (
+        <GroupPremiumStackCard>
+      <GroupPremiumSectionLabel>New volunteer training</GroupPremiumSectionLabel>
+      <p className={`${groupsPremium.cardMeta} mt-2`}>
+        Members who joined through the app and completed Before You Serve for this team.
+      </p>
+          {readinessCompletions.length === 0 ? (
+            <p className="mt-3 text-sm text-night-500">No completions yet.</p>
+          ) : (
+            <div className="mt-3 space-y-2">
+              {readinessCompletions.map((entry) => (
+                <div key={`${entry.userName}-${entry.agreedAt}`} className={groupsPremium.rowInset}>
+                  <div>
+                    <p className="text-sm font-medium text-night-900">{entry.userName}</p>
+                    <p className="text-xs text-night-500">
+                      {new Date(entry.agreedAt).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <span className={groupsPremium.statusChip}>
+                    {entry.score}/{entry.totalQuestions} correct
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </GroupPremiumStackCard>
+      ) : null}
+
       <GroupPremiumStackCard>
         <GroupPremiumSectionLabel>Group settings</GroupPremiumSectionLabel>
         <div className="mt-3 flex flex-wrap items-center gap-2">

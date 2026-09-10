@@ -697,6 +697,24 @@ model GroupRosterTemplate {
   updatedAt DateTime @updatedAt
 }
 
+model MinistryReadinessCompletion {
+  id            String   @id
+  userId        String
+  readinessKey  String
+  groupId       String
+  groupName     String
+  score         Int
+  totalQuestions Int
+  answers       Json
+  agreedAt      DateTime
+  source        String   @default("self_join")
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, readinessKey])
+  @@index([groupId, agreedAt])
+  @@index([readinessKey])
+}
+
 model FeedReadState {
   id         String   @id
   userId     String

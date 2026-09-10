@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getUserById } from "@/lib/auth-server";
 import { isAdminGroupMember } from "@/lib/admin-access-server";
 import { isGroupAdmin, isGroupMember } from "@/lib/group-admin-utils";
+import { getReadinessJoinPolicy } from "@/lib/ministry-readiness-server";
 import { getGroups, grantGroupMembership, joinGroup } from "@/lib/stores/group-db";
 import type { GroupJoinRequest } from "@/lib/group-types";
 
@@ -92,7 +93,12 @@ export async function requestGroupJoin(
     return { status: "member" as const, groupName: group.name };
   }
 
-  if (group.requiresApproval) {
+  const joinPolicy = await getReadinessJoinPolicy(group, user.id);
+  if (joinPolicy === "blocked") {
+    throw new Error(`Complete Before You Serve for "${group.name}" before joining.`);
+  }
+
+  if (group.requiresApproval || joinPolicy === "pending") {
     await createJoinRequest({
       groupId: group.id,
       groupName: group.name,
