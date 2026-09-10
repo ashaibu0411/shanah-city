@@ -8,6 +8,7 @@ import {
 } from "@/lib/frontliners-types";
 import { canManageFrontLiners } from "@/lib/frontliners-access-server";
 import { getGroupDetail, listGroupsForUser } from "@/lib/group-server";
+import { isMemberTrainingRequired } from "@/lib/ministry-readiness-server";
 import { isMediaGroup } from "@/lib/media-group";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
 import { getEvents } from "@/lib/event-server";
@@ -339,6 +340,10 @@ export async function buildGroupDashboard(
 
   const isSiteAdmin = await canManageAsAdmin(user);
   if (!group.isMember && !isSiteAdmin) {
+    return null;
+  }
+
+  if (group.isMember && (await isMemberTrainingRequired(user.id, group))) {
     return null;
   }
 

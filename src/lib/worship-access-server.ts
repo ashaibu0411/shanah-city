@@ -2,6 +2,7 @@ import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { canManageGroupEvents } from "@/lib/group-permissions-server";
 import { getGroupDetail, getGroups } from "@/lib/group-server";
+import { memberHasFullGroupAccess } from "@/lib/ministry-readiness-server";
 import { isUserInGroup } from "@/lib/media-group";
 import { WORSHIP_GROUP_ID } from "@/lib/worship-types";
 
@@ -22,13 +23,18 @@ export function isWorshipGroup(group: { id: string; name: string }) {
 
 export async function userIsInWorshipGroup(userId: string) {
   const configuredId = getConfiguredWorshipGroupId();
-  const detail = await getGroupDetail(configuredId, userId);
-  if (detail) {
-    return detail.isMember || detail.isAdmin;
+  const access = await memberHasFullGroupAccess(userId, configuredId);
+  if (access.group) {
+    return access.allowed;
   }
 
   const groups = await getGroups();
-  return groups.some((group) => isWorshipGroup(group) && isUserInGroup(group, userId));
+  for (const group of groups) {
+    if (!isWorshipGroup(group) || !isUserInGroup(group, userId)) continue;
+    const groupAccess = await memberHasFullGroupAccess(userId, group.id);
+    if (groupAccess.allowed) return true;
+  }
+  return false;
 }
 
 export async function canAccessWorshipPlanner(user: Pick<PublicMember, "id"> | null) {

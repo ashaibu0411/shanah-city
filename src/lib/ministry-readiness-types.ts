@@ -20,7 +20,11 @@ export type MinistryReadinessPack = {
   requiresLeaderApproval: boolean;
 };
 
-export type MinistryReadinessSource = "self_join" | "leader_added" | "existing_member";
+export type MinistryReadinessSource =
+  | "self_join"
+  | "leader_added"
+  | "existing_member"
+  | "training_required";
 
 export type MinistryReadinessCompletion = {
   id: string;
@@ -58,6 +62,8 @@ export type MinistryReadinessPublicPack = {
   completedAt?: string;
   /** True when a new volunteer must complete training before self-joining. */
   requiredForSelfJoin: boolean;
+  /** True when a current member must complete training before group access is restored. */
+  requiredForRetraining: boolean;
 };
 
 /** Minimum percentage of quiz questions that must be correct to pass. */
@@ -391,10 +397,17 @@ export function resolveMinistryReadiness(group: {
   return null;
 }
 
+export function isTrainingRequiredCompletion(
+  completion?: MinistryReadinessCompletion | null,
+): boolean {
+  return completion?.source === "training_required";
+}
+
 export function toPublicReadinessPack(
   pack: MinistryReadinessPack,
   completion?: MinistryReadinessCompletion | null,
 ): MinistryReadinessPublicPack {
+  const trainingRequired = isTrainingRequiredCompletion(completion);
   const selfJoinCompleted = completion?.source === "self_join";
   const total = pack.questions.length;
   return {
@@ -414,7 +427,8 @@ export function toPublicReadinessPack(
     },
     completed: selfJoinCompleted,
     completedAt: selfJoinCompleted ? completion?.agreedAt : undefined,
-    requiredForSelfJoin: !completion,
+    requiredForSelfJoin: !completion || trainingRequired,
+    requiredForRetraining: trainingRequired,
   };
 }
 

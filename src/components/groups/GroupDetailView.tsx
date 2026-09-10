@@ -70,6 +70,7 @@ export function GroupDetailView({
   const [statusIsError, setStatusIsError] = useState(false);
   const [readinessPack, setReadinessPack] = useState<MinistryReadinessPublicPack | null>(null);
   const [showReadinessFlow, setShowReadinessFlow] = useState(false);
+  const hasMemberAccess = detail.isMember && !detail.trainingPending;
 
   useEffect(() => {
     setDetail(initialGroup);
@@ -83,7 +84,7 @@ export function GroupDetailView({
   }, [initialSection, initialGroup.id, rosterDate, rosterTime]);
 
   useEffect(() => {
-    const immersive = detailSection === "chat" && detail.isMember && Boolean(user);
+    const immersive = detailSection === "chat" && hasMemberAccess && Boolean(user);
     setMessagesImmersive(immersive);
     if (immersive) {
       document.body.dataset.messagesImmersive = "true";
@@ -94,10 +95,10 @@ export function GroupDetailView({
       setMessagesImmersive(false);
       delete document.body.dataset.messagesImmersive;
     };
-  }, [detailSection, detail.isMember, user, setMessagesImmersive]);
+  }, [detailSection, hasMemberAccess, user, setMessagesImmersive]);
 
   useEffect(() => {
-    if (!user || detail.isMember) {
+    if (!user || (detail.isMember && !detail.trainingPending)) {
       setReadinessPack(null);
       setShowReadinessFlow(false);
       return;
@@ -106,12 +107,16 @@ export function GroupDetailView({
     fetch(`/api/groups/readiness?groupId=${encodeURIComponent(detail.id)}`)
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
-        setReadinessPack(data?.pack ?? null);
+        const pack = data?.pack ?? null;
+        setReadinessPack(pack);
+        if (detail.trainingPending && pack?.requiredForRetraining) {
+          setShowReadinessFlow(true);
+        }
       })
       .catch(() => {
         setReadinessPack(null);
       });
-  }, [detail.id, detail.isMember, user]);
+  }, [detail.id, detail.isMember, detail.trainingPending, user]);
 
   async function loadDetail(groupId: string) {
     const response = await fetch(`/api/groups?id=${encodeURIComponent(groupId)}`);
@@ -145,7 +150,8 @@ export function GroupDetailView({
     if (
       body.action === "join" ||
       body.action === "remove-member" ||
-      body.action === "add-member"
+      body.action === "add-member" ||
+      body.action === "require-training"
     ) {
       await refresh();
     }
@@ -157,7 +163,7 @@ export function GroupDetailView({
   }
 
   const showEmbeddedCalendar =
-    detail.isMember && groupHasEmbeddedCalendar(detail);
+    hasMemberAccess && groupHasEmbeddedCalendar(detail);
   const showLeaderReport =
     detail.isAdmin &&
     isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
@@ -177,13 +183,19 @@ export function GroupDetailView({
   const canManageLeadership =
     Boolean(user) && (detail.isAdmin || permissions.canManageAdmin);
   const isSiteAdminManaging = permissions.canManageAdmin && !detail.isMember;
-  const showManageTab = canManageMembers || isSiteAdminManaging;
-  const showInfoTab = detail.isMember;
+  const showManageTab =
+    (canManageMembers || isSiteAdminManaging) && !detail.trainingPending;
+  const showInfoTab = hasMemberAccess;
 
   const detailTabs = useMemo(() => {
     const tabs: { id: DetailSection; label: string }[] = [];
 
-    if (detail.isMember) {
+    if (detail.trainingPending) {
+      tabs.push({ id: "overview", label: "Training" });
+      return tabs;
+    }
+
+    if (hasMemberAccess) {
       tabs.push({ id: "overview", label: "Dashboard" });
     }
     if (showInfoTab) {
@@ -194,7 +206,7 @@ export function GroupDetailView({
     }
     if (showLeaderReport) tabs.push({ id: "report", label: "Report" });
     if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Events" });
-    if (isPowerCouplesGroup && detail.isMember) {
+    if (isPowerCouplesGroup && hasMemberAccess) {
       tabs.push(
         { id: "resources", label: "Resources" },
         { id: "prayer", label: "Prayer" },
@@ -202,7 +214,7 @@ export function GroupDetailView({
         { id: "growth", label: "Growth" },
       );
     }
-    if (detail.isMember) {
+    if (hasMemberAccess) {
       tabs.push({ id: "polls", label: "Polls" });
     }
 
@@ -211,7 +223,8 @@ export function GroupDetailView({
     showEmbeddedCalendar,
     showLeaderReport,
     isPowerCouplesGroup,
-    detail.isMember,
+    hasMemberAccess,
+    detail.trainingPending,
     showInfoTab,
     showManageTab,
   ]);
@@ -257,8 +270,22 @@ export function GroupDetailView({
   function handleReadinessCompleted(requiresLeaderApproval: boolean) {
     setShowReadinessFlow(false);
     if (readinessPack) {
-      setReadinessPack({ ...readinessPack, completed: true, completedAt: new Date().toISOString() });
+      setReadinessPack({
+        ...readinessPack,
+        completed: true,
+        completedAt: new Date().toISOString(),
+        requiredForRetraining: false,
+      });
     }
+
+    if (detail.trainingPending) {
+      void refresh();
+      void loadDetail(detail.id).then(() => {
+        setStatus(`Training complete. You now have full access to ${detail.name}.`);
+      });
+      return;
+    }
+
     runAction({ action: "join", groupId: detail.id }).then((ok) => {
       if (!ok) return;
       if (requiresLeaderApproval) {
@@ -279,7 +306,7 @@ export function GroupDetailView({
     });
   }
 
-  if (detailSection === "chat" && detail.isMember && user) {
+  if (detailSection === "chat" && hasMemberAccess && user) {
     return (
       <GroupChatPanel
         groupId={detail.id}
@@ -336,7 +363,7 @@ export function GroupDetailView({
     >
       <GroupBandHeader
         group={detail}
-        showChatAction={Boolean(detail.isMember && user)}
+        showChatAction={Boolean(hasMemberAccess && user)}
         onMembersClick={showInfoTab ? openInfoSection : () => openManageSection("members")}
         onInviteClick={canManageMembers ? () => openManageSection("invite") : undefined}
         onChatClick={() => setDetailSection("chat")}
@@ -366,7 +393,20 @@ export function GroupDetailView({
       ) : null}
 
       <div className={`${groupsPremium.pageInset} space-y-4`}>
-        {!detail.isMember && user && showReadinessFlow && readinessPack ? (
+        {detail.trainingPending && user && !showReadinessFlow ? (
+          <GroupPremiumStackCard>
+            <GroupPremiumSectionLabel>Before you serve</GroupPremiumSectionLabel>
+            <p className="mt-3 text-sm leading-relaxed text-night-700">
+              Your leader assigned you to complete Before You Serve training. Group chat, rosters,
+              polls, and other team tools unlock after you pass the quiz.
+            </p>
+            <Button className="mt-4 w-full" onClick={() => setShowReadinessFlow(true)}>
+              Start training
+            </Button>
+          </GroupPremiumStackCard>
+        ) : null}
+
+        {user && showReadinessFlow && readinessPack && (!detail.isMember || detail.trainingPending) ? (
           <MinistryReadinessFlow
             groupId={detail.id}
             pack={readinessPack}
@@ -375,7 +415,7 @@ export function GroupDetailView({
           />
         ) : null}
 
-        {detailSection === "polls" && detail.isMember && user ? (
+        {detailSection === "polls" && hasMemberAccess && user ? (
           <GroupPollsPanel groupId={detail.id} groupName={detail.name} isAdmin={detail.isAdmin} />
         ) : detailSection === "report" && showLeaderReport && user ? (
           <LeaderReportForm embedded groupId={detail.id} groupName={detail.name} />
@@ -387,18 +427,18 @@ export function GroupDetailView({
             showWorshipPlanner={permissions.canAccessWorshipPlanner}
             unavailabilityGroup={unavailabilityCalendarGroupForId(detail.id)}
           />
-        ) : detailSection === "resources" && isPowerCouplesGroup && detail.isMember && user ? (
+        ) : detailSection === "resources" && isPowerCouplesGroup && hasMemberAccess && user ? (
           <GroupResourcesPanel
             groupId={detail.id}
             isLeader={detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin}
           />
-        ) : detailSection === "prayer" && isPowerCouplesGroup && detail.isMember && user ? (
+        ) : detailSection === "prayer" && isPowerCouplesGroup && hasMemberAccess && user ? (
           <CouplePrayerPanel />
-        ) : detailSection === "mentors" && isPowerCouplesGroup && detail.isMember && user ? (
+        ) : detailSection === "mentors" && isPowerCouplesGroup && hasMemberAccess && user ? (
           <CoupleMentorPanel groupId={detail.id} />
-        ) : detailSection === "growth" && isPowerCouplesGroup && detail.isMember && user ? (
+        ) : detailSection === "growth" && isPowerCouplesGroup && hasMemberAccess && user ? (
           <CoupleEnrichmentPanel groupId={detail.id} />
-        ) : detailSection === "overview" && detail.isMember && user ? (
+        ) : detailSection === "overview" && hasMemberAccess && user ? (
           <GroupDashboardPanel
             groupId={detail.id}
             groupName={detail.name}

@@ -1,17 +1,17 @@
 import { useDatabase } from "@/lib/use-database";
 import { getGroupDetail } from "@/lib/group-server";
+import { memberHasFullGroupAccess } from "@/lib/ministry-readiness-server";
 import * as groupChatDb from "@/lib/stores/group-chat-db";
 import * as groupChatJson from "@/lib/stores/group-chat-json";
 
 const store = () => (useDatabase() ? groupChatDb : groupChatJson);
 
 export async function canAccessGroupChat(groupId: string, userId: string) {
-  const detail = await getGroupDetail(groupId, userId);
-  if (!detail) return { allowed: false as const, detail: null };
-  if (!detail.isMember) {
-    return { allowed: false as const, detail };
+  const access = await memberHasFullGroupAccess(userId, groupId);
+  if (!access.allowed) {
+    return { allowed: false as const, detail: access.group, trainingRequired: access.trainingRequired };
   }
-  return { allowed: true as const, detail };
+  return { allowed: true as const, detail: access.group };
 }
 
 export const listGroupChatMessages = (

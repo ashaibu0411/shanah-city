@@ -39,7 +39,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ required: false, pack: null });
   }
 
-  return NextResponse.json({ required: pack.requiredForSelfJoin, pack });
+  return NextResponse.json({
+    required: pack.requiredForSelfJoin || pack.requiredForRetraining,
+    pack,
+  });
 }
 
 export async function POST(request: Request) {

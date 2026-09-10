@@ -60,6 +60,8 @@ export type GroupMemberPreview = {
   isAdmin: boolean;
   isAssistantLeader: boolean;
   isCreator: boolean;
+  /** Leader-assigned retraining — member stays on roster but cannot use group features. */
+  trainingRequired?: boolean;
 };
 
 export type GroupSummary = Group & {
@@ -71,6 +73,8 @@ export type GroupSummary = Group & {
 
 export type GroupDetail = GroupSummary & {
   members: GroupMemberPreview[];
+  /** True for the signed-in viewer when they must complete training before group access. */
+  trainingPending?: boolean;
 };
 
 export type GroupChatMessage = {

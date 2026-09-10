@@ -34,10 +34,11 @@ export async function GET(request: Request) {
 
   const access = await canAccessGroupChat(groupId, user.id);
   if (!access.allowed) {
-    return NextResponse.json(
-      { error: "Join this group to read and send messages." },
-      { status: 403 },
-    );
+    const error =
+      "trainingRequired" in access && access.trainingRequired
+        ? "Complete Before You Serve training to use group chat."
+        : "Join this group to read and send messages.";
+    return NextResponse.json({ error }, { status: 403 });
   }
 
   await markGroupChatRead(groupId, user.id);
@@ -81,10 +82,11 @@ export async function POST(request: Request) {
 
   const access = await canAccessGroupChat(groupId, user.id);
   if (!access.allowed) {
-    return NextResponse.json(
-      { error: "Join this group to read and send messages." },
-      { status: 403 },
-    );
+    const error =
+      "trainingRequired" in access && access.trainingRequired
+        ? "Complete Before You Serve training to use group chat."
+        : "Join this group to read and send messages.";
+    return NextResponse.json({ error }, { status: 403 });
   }
 
   if (action === "typing") {

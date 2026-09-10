@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { GroupDetailView } from "@/components/groups/GroupDetailView";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getGroupDetail } from "@/lib/group-server";
+import { enrichGroupDetailWithReadiness } from "@/lib/ministry-readiness-server";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
-  const group = await getGroupDetail(id, user?.id);
+  const group = await enrichGroupDetailWithReadiness(await getGroupDetail(id, user?.id), user?.id);
 
   if (!group) {
     notFound();

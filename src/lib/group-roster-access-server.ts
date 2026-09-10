@@ -1,6 +1,7 @@
 import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getGroupDetail } from "@/lib/group-server";
+import { isMemberTrainingRequired } from "@/lib/ministry-readiness-server";
 import { groupUsesServiceRoster } from "@/lib/group-roster-types";
 
 export async function canManageGroupRoster(
@@ -19,6 +20,7 @@ export async function canViewGroupRoster(user: PublicMember | null, groupId: str
   if (await canManageAsAdmin(user)) return true;
   const group = await getGroupDetail(groupId, user.id);
   if (!group?.isMember) return false;
+  if (await isMemberTrainingRequired(user.id, group)) return false;
   return groupUsesServiceRoster(group);
 }
 

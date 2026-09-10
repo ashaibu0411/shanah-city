@@ -24,7 +24,11 @@ import {
 } from "@/lib/group-server";
 import { requestGroupJoin } from "@/lib/group-join-server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
-import { exemptMemberAddedByLeader } from "@/lib/ministry-readiness-server";
+import {
+  enrichGroupDetailWithReadiness,
+  exemptMemberAddedByLeader,
+  requireMemberTraining,
+} from "@/lib/ministry-readiness-server";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -60,7 +64,10 @@ export async function GET(request: Request) {
   }
 
   if (groupId) {
-    const group = await getGroupDetail(groupId, user?.id);
+    const group = await enrichGroupDetailWithReadiness(
+      await getGroupDetail(groupId, user?.id),
+      user?.id,
+    );
     if (!group) {
       return NextResponse.json({ error: "Group not found." }, { status: 404 });
     }
@@ -266,6 +273,28 @@ export async function POST(request: Request) {
         `Removed ${result.demotedName} as assistant leader of "${result.group.name}"`,
       );
       const group = await getGroupDetail(groupId, user.id);
+      return NextResponse.json({ group });
+    }
+
+    if (action === "require-training") {
+      const memberId = String(body.memberId ?? "");
+      if (!memberId) {
+        return NextResponse.json({ error: "Member id is required." }, { status: 400 });
+      }
+      const result = await requireMemberTraining({
+        groupId,
+        memberId,
+        leaderId: user.id,
+      });
+      await recordActivity(
+        user.id,
+        "profile_update",
+        `Assigned Before You Serve training to ${result.memberName} in "${result.groupName}"`,
+      );
+      const group = await enrichGroupDetailWithReadiness(
+        await getGroupDetail(groupId, user.id),
+        user.id,
+      );
       return NextResponse.json({ group });
     }
 

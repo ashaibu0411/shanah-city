@@ -269,12 +269,20 @@ export function GroupManagePanel({
                   member.isAdmin &&
                   leadersAfterChange >= 1;
 
+                const canRequireTraining =
+                  showReadinessSection &&
+                  canManageMember &&
+                  !member.trainingRequired &&
+                  !member.isAdmin &&
+                  !member.isAssistantLeader;
+
                 return (
                   <div key={member.id} className={`${groupsPremium.rowInset} flex-wrap`}>
                     <div>
                       <p className="text-sm font-medium text-night-900">{member.name}</p>
                       <p className="text-xs text-night-500">
                         {getCampus(member.campusId).city} · {memberRoleLabel(member)}
+                        {member.trainingRequired ? " · Training pending" : ""}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -283,6 +291,7 @@ export function GroupManagePanel({
                         canPromoteAssistant ||
                         canDemoteLeader ||
                         canDemoteAssistant ||
+                        canRequireTraining ||
                         canRemoveRegular ||
                         canRemoveLeader) ? (
                         <div className="flex flex-wrap gap-2">
@@ -359,6 +368,34 @@ export function GroupManagePanel({
                               className="text-xs font-semibold text-night-700 underline"
                             >
                               Remove assistant role
+                            </button>
+                          ) : null}
+                          {canRequireTraining ? (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={async () => {
+                                if (
+                                  !window.confirm(
+                                    `Assign Before You Serve training to ${member.name}? They will stay on the roster but cannot use group features until they pass the quiz.`,
+                                  )
+                                ) {
+                                  return;
+                                }
+                                const ok = await runAction({
+                                  action: "require-training",
+                                  groupId: detail.id,
+                                  memberId: member.id,
+                                });
+                                if (ok) {
+                                  onStatus(
+                                    `${member.name} must complete Before You Serve before group access is restored.`,
+                                  );
+                                }
+                              }}
+                              className="text-xs font-semibold text-clay-700 underline"
+                            >
+                              Require training
                             </button>
                           ) : null}
                           {canRemoveRegular || canRemoveLeader ? (

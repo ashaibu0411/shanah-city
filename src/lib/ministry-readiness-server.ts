@@ -2,8 +2,10 @@ import { useDatabase } from "@/lib/use-database";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import type { PublicMember } from "@/lib/auth-types";
 import { getUserById } from "@/lib/auth-server";
+import type { GroupDetail } from "@/lib/group-types";
 import { getGroupDetail } from "@/lib/group-server";
 import {
+  isTrainingRequiredCompletion,
   minCorrectToPass,
   passesReadinessQuiz,
   resolveMinistryReadiness,
@@ -16,6 +18,62 @@ import * as ministryReadinessJson from "@/lib/stores/ministry-readiness-json";
 
 const store = () => (useDatabase() ? ministryReadinessDb : ministryReadinessJson);
 
+export async function isMemberTrainingRequired(
+  userId: string,
+  group: { id: string; name: string },
+) {
+  const pack = resolveMinistryReadiness(group);
+  if (!pack) return false;
+
+  const completion = await store().getMinistryReadinessCompletion(userId, pack.readinessKey);
+  return isTrainingRequiredCompletion(completion);
+}
+
+export async function memberHasFullGroupAccess(userId: string, groupId: string) {
+  const group = await getGroupDetail(groupId, userId);
+  if (!group?.isMember) {
+    return { allowed: false as const, group, trainingRequired: false };
+  }
+
+  const trainingRequired = await isMemberTrainingRequired(userId, group);
+  if (trainingRequired) {
+    return { allowed: false as const, group, trainingRequired: true };
+  }
+
+  return { allowed: true as const, group, trainingRequired: false };
+}
+
+export async function enrichGroupDetailWithReadiness(
+  group: GroupDetail | null,
+  viewerId?: string,
+): Promise<GroupDetail | null> {
+  if (!group) return null;
+
+  const pack = resolveMinistryReadiness(group);
+  if (!pack) return group;
+
+  const completions = await Promise.all(
+    group.members.map((member) =>
+      store().getMinistryReadinessCompletion(member.id, pack.readinessKey),
+    ),
+  );
+
+  const members = group.members.map((member, index) => ({
+    ...member,
+    trainingRequired: isTrainingRequiredCompletion(completions[index]),
+  }));
+
+  const trainingPending = viewerId
+    ? (members.find((member) => member.id === viewerId)?.trainingRequired ?? false)
+    : false;
+
+  return {
+    ...group,
+    members,
+    trainingPending,
+  };
+}
+
 export async function getReadinessStatusForGroup(userId: string, groupId: string) {
   const group = await getGroupDetail(groupId, userId);
   if (!group) return null;
@@ -23,17 +81,22 @@ export async function getReadinessStatusForGroup(userId: string, groupId: string
   const pack = resolveMinistryReadiness(group);
   if (!pack) return null;
 
+  const completion = await store().getMinistryReadinessCompletion(userId, pack.readinessKey);
+
   if (group.isMember) {
-    return null;
+    if (!isTrainingRequiredCompletion(completion)) {
+      return null;
+    }
+    return toPublicReadinessPack(pack, completion);
   }
 
-  const completion = await store().getMinistryReadinessCompletion(userId, pack.readinessKey);
   return toPublicReadinessPack(pack, completion);
 }
 
 export async function hasMinistryReadinessAccess(userId: string, readinessKey: MinistryReadinessKey) {
   const completion = await store().getMinistryReadinessCompletion(userId, readinessKey);
-  return Boolean(completion);
+  if (!completion) return false;
+  return !isTrainingRequiredCompletion(completion);
 }
 
 export async function submitMinistryReadiness(input: {
@@ -51,13 +114,20 @@ export async function submitMinistryReadiness(input: {
     throw new Error("Group not found.");
   }
 
-  if (group.isMember) {
-    throw new Error("You are already a member of this team.");
-  }
-
   const pack = resolveMinistryReadiness(group);
   if (!pack) {
     throw new Error("This group does not require readiness training.");
+  }
+
+  const existingCompletion = await store().getMinistryReadinessCompletion(
+    input.user.id,
+    pack.readinessKey,
+  );
+
+  if (group.isMember) {
+    if (!isTrainingRequiredCompletion(existingCompletion)) {
+      throw new Error("You are already a member of this team.");
+    }
   }
 
   for (const question of pack.questions) {
@@ -110,6 +180,59 @@ export async function exemptMemberAddedByLeader(input: {
     agreedAt,
     source: "leader_added",
   });
+}
+
+export async function requireMemberTraining(input: {
+  groupId: string;
+  memberId: string;
+  leaderId: string;
+}) {
+  const leader = await getUserById(input.leaderId);
+  if (!leader) {
+    throw new Error("Sign in required.");
+  }
+
+  const group = await getGroupDetail(input.groupId, input.leaderId);
+  if (!group) {
+    throw new Error("Group not found.");
+  }
+
+  const isSiteAdmin = await canManageAsAdmin(leader);
+  if (!group.isAdmin && !group.isAssistantLeader && !isSiteAdmin) {
+    throw new Error("Leader access required.");
+  }
+
+  const pack = resolveMinistryReadiness(group);
+  if (!pack) {
+    throw new Error("This group does not use readiness training.");
+  }
+
+  if (!group.members.some((member) => member.id === input.memberId)) {
+    throw new Error("That person is not a member of this group.");
+  }
+
+  if (input.memberId === input.leaderId) {
+    throw new Error("Ask another leader to assign training to you.");
+  }
+
+  const agreedAt = new Date().toISOString();
+  await store().saveMinistryReadinessCompletion({
+    userId: input.memberId,
+    readinessKey: pack.readinessKey,
+    groupId: group.id,
+    groupName: group.name,
+    score: 0,
+    totalQuestions: 0,
+    answers: {},
+    agreedAt,
+    source: "training_required",
+  });
+
+  const member = await getUserById(input.memberId);
+  return {
+    memberName: member?.name ?? "Member",
+    groupName: group.name,
+  };
 }
 
 export async function getReadinessJoinPolicy(
