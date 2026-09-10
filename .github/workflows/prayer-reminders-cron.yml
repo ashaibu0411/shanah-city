@@ -7,6 +7,10 @@ name: Prayer reminders
 on:
   schedule:
     - cron: "*/5 * * * *"
+    # Shift Your Morning ~7:52–8:17 AM Denver (MST/MDT via 13–15 UTC)
+    - cron: "52,57,2,7,12,17 13,14,15 * * 1-5"
+    # Shift Your Evening ~7:52–8:40 PM Denver Tue–Thu (01–03 UTC)
+    - cron: "52,57,0,5,10,15,20,25,30,35,40 1,2,3 * * 2-4"
   workflow_dispatch:
 
 concurrency:
@@ -26,8 +30,8 @@ jobs:
           APP_URL: https://shanah-city.vercel.app
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "::warning title=CRON_SECRET missing::Prayer pushes are skipped. Add CRON_SECRET to GitHub repo secrets (same value as Vercel)."
-            exit 0
+            echo "::error title=CRON_SECRET missing::Prayer pushes are skipped. Add CRON_SECRET to GitHub repo secrets (same value as Vercel)."
+            exit 1
           fi
           http_code="$(curl --silent --show-error -o /tmp/cron-response.json -w '%{http_code}' \
             -X GET \
@@ -36,6 +40,17 @@ jobs:
           echo "HTTP ${http_code}"
           cat /tmp/cron-response.json
           echo ""
+
+          if command -v jq >/dev/null 2>&1; then
+            sent="$(jq -r '.sent // 0' /tmp/cron-response.json)"
+            reason="$(jq -r '.reason // "none"' /tmp/cron-response.json)"
+            denver_time="$(jq -r '.denverHour // "?"' /tmp/cron-response.json):$(jq -r '.denverDate // ""' /tmp/cron-response.json)"
+            echo "sent=${sent} reason=${reason} denver=${denver_time}"
+            if [ "$sent" = "0" ] && [ "$reason" = "delivery_failed_retry" ]; then
+              echo "::warning title=Prayer push retry::Some eligible devices failed; cron will retry in the window."
+            fi
+          fi
+
           if [ "$http_code" = "405" ]; then
             echo "::error::HTTP 405 — this run used POST or an old workflow. Click Actions → Prayer reminders → Run workflow (do not Re-run jobs)."
             exit 1

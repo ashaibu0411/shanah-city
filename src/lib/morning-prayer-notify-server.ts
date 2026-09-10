@@ -10,6 +10,7 @@ import {
   getNativePushTokens,
   getPushSubscriptions,
   notifyScheduledMeeting,
+  shouldMarkScheduledPushComplete,
 } from "@/lib/push-server";
 import {
   isAndroidNativePushConfigured,
@@ -39,7 +40,7 @@ export async function deliverMeetingReminderPush(
     platform: meeting.platform,
   });
 
-  if (result.configured && result.sent > 0) {
+  if (shouldMarkScheduledPushComplete(result)) {
     await updateMeeting(meeting.id, { lastNotifiedOn: denverDateKey });
   }
 
@@ -95,9 +96,11 @@ export async function processScheduledMeetingReminders(reference = new Date()) {
       reason:
         result.sent > 0
           ? undefined
-          : result.configured
-            ? "no_recipients"
-            : "push_not_configured",
+          : result.failedUsers > 0
+            ? "delivery_failed_retry"
+            : result.configured
+              ? "no_recipients"
+              : "push_not_configured",
     });
   }
 
@@ -119,6 +122,13 @@ export async function processScheduledMeetingReminders(reference = new Date()) {
       registeredNativeDevices: nativeTokens.length,
       registeredWebDevices: webSubs.length,
     },
+    delivery: results.reduce(
+      (summary, entry) => ({
+        eligibleUsers: summary.eligibleUsers + (entry.pushSent > 0 ? 1 : 0),
+        failedRetries: summary.failedRetries + (entry.reason === "delivery_failed_retry" ? 1 : 0),
+      }),
+      { eligibleUsers: 0, failedRetries: 0 },
+    ),
   };
 }
 

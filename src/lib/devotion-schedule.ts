@@ -8,12 +8,12 @@ function minutesSinceMidnight(parts: ZonedDateParts) {
   return parts.hour * 60 + parts.minute;
 }
 
-/** Wider window so delayed GitHub/Vercel crons still hit 7:30 reliably (through 8:05 AM). */
+/** Wider window so delayed GitHub/Vercel crons still hit 7:30 reliably (through 8:10 AM). */
 export function isDevotionNotifyDue(reference = new Date()) {
   const denver = getZonedDateParts(reference);
   const notifyAt = DEVOTION_NOTIFY_HOUR * 60 + DEVOTION_NOTIFY_MINUTE;
   const now = minutesSinceMidnight(denver);
-  return now >= notifyAt - 5 && now < notifyAt + 35;
+  return now >= notifyAt - 5 && now < notifyAt + 40;
 }
 
 export function defaultDevotionScheduleTime() {

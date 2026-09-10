@@ -16,6 +16,17 @@ import {
   shouldDropNativeToken,
 } from "@/lib/native-push-server";
 import { withPushBranding } from "@/lib/push-branding";
+import {
+  emptyPushDeliveryResult,
+  getScheduledPushEligibility,
+  preferenceMatchesAnyTopic,
+  preferenceMatchesTopic,
+  resolveNotificationPrefs,
+  type PushDeliveryResult,
+} from "@/lib/push-delivery-utils";
+
+export type { PushDeliveryResult } from "@/lib/push-delivery-utils";
+export { shouldMarkScheduledPushComplete } from "@/lib/push-delivery-utils";
 
 const store = () => (useDatabase() ? pushDb : pushJson);
 
@@ -68,16 +79,26 @@ function configureWebPush() {
   return true;
 }
 
-export async function sendTestPushToUser(userId: string) {
+export async function sendTestPushToUser(
+  userId: string,
+  prefs?: Partial<NotificationPrefs> | null,
+) {
   const payload = withPushBranding({
     title: "Shanah City test alert",
     body: "Push notifications are working on this device.",
     url: "/profile",
   });
+  const scheduleEligibility = getScheduledPushEligibility(resolveNotificationPrefs(prefs));
   const webConfigured = configureWebPush();
   const nativeConfigured = isNativePushConfigured();
   if (!webConfigured && !nativeConfigured) {
-    return { sent: 0, skipped: 0, configured: false, errors: ["Push is not configured."] };
+    return {
+      sent: 0,
+      skipped: 0,
+      configured: false,
+      errors: ["Push is not configured."],
+      scheduleEligibility,
+    };
   }
 
   const subscriptions = webConfigured
@@ -93,6 +114,7 @@ export async function sendTestPushToUser(userId: string) {
       skipped: 1,
       configured: true,
       errors: ["No registered devices found for this account."],
+      scheduleEligibility,
     };
   }
 
@@ -138,7 +160,97 @@ export async function sendTestPushToUser(userId: string) {
     nativeSent,
     errors,
     configured: true,
+    scheduleEligibility,
   };
+}
+
+async function dispatchPushToUsers(
+  userIds: string[],
+  payload: { title: string; body: string; url: string },
+  passesPreference: (prefs: NotificationPrefs) => boolean,
+): Promise<PushDeliveryResult> {
+  const brandedPayload = withPushBranding(payload);
+  const webConfigured = configureWebPush();
+  const nativeConfigured = isNativePushConfigured();
+  if (!webConfigured && !nativeConfigured) {
+    return emptyPushDeliveryResult(false);
+  }
+
+  const users = await getUsers();
+  const subscriptions = webConfigured ? await store().getPushSubscriptions() : [];
+  const nativeTokens = nativeConfigured ? await store().getNativePushTokens() : [];
+  const result = emptyPushDeliveryResult(true);
+
+  for (const userId of userIds) {
+    const user = users.find((item) => item.id === userId);
+    const prefs = resolveNotificationPrefs(user?.notificationPrefs);
+
+    if (!passesPreference(prefs)) {
+      result.skippedPrefUsers += 1;
+      result.skipped += 1;
+      continue;
+    }
+
+    const userSubs = subscriptions.filter((item) => item.userId === userId);
+    const userTokens = nativeTokens.filter((item) => item.userId === userId);
+    if (userSubs.length === 0 && userTokens.length === 0) {
+      result.skippedNoDeviceUsers += 1;
+      result.skipped += 1;
+      continue;
+    }
+
+    result.eligibleUsers += 1;
+    let userDelivered = false;
+    let userFailed = false;
+
+    for (const record of userSubs) {
+      try {
+        await webpush.sendNotification(
+          record.subscription,
+          JSON.stringify(brandedPayload),
+        );
+        result.sent += 1;
+        result.webSent += 1;
+        userDelivered = true;
+      } catch (error) {
+        userFailed = true;
+        if (shouldDropWebPushSubscription(error)) {
+          await store().removePushSubscription(userId, record.endpoint);
+        }
+        result.skipped += 1;
+        result.errors.push(
+          `web:${error instanceof Error ? error.message : "send failed"}`,
+        );
+      }
+    }
+
+    for (const record of userTokens) {
+      try {
+        await sendNativePush(record, brandedPayload);
+        result.sent += 1;
+        result.nativeSent += 1;
+        userDelivered = true;
+      } catch (error) {
+        userFailed = true;
+        if (shouldDropNativeToken(error)) {
+          await store().removeNativePushToken(userId, record.token);
+        }
+        result.skipped += 1;
+        result.errors.push(
+          `${record.platform}:${error instanceof Error ? error.message : "send failed"}`,
+        );
+      }
+    }
+
+    if (userDelivered) {
+      result.deliveredUsers += 1;
+    } else if (userFailed) {
+      result.failedUsers += 1;
+    }
+  }
+
+  result.errors = result.errors.slice(0, 3);
+  return result;
 }
 
 export async function sendPushToUsers(
@@ -146,89 +258,9 @@ export async function sendPushToUsers(
   payload: { title: string; body: string; url: string },
   preferenceKey: NotificationTopic,
 ) {
-  const brandedPayload = withPushBranding(payload);
-  const webConfigured = configureWebPush();
-  const nativeConfigured = isNativePushConfigured();
-  if (!webConfigured && !nativeConfigured) {
-    return { sent: 0, skipped: userIds.length, configured: false };
-  }
-
-  const users = await getUsers();
-  const subscriptions = webConfigured ? await store().getPushSubscriptions() : [];
-  const nativeTokens = nativeConfigured ? await store().getNativePushTokens() : [];
-  let sent = 0;
-  let skipped = 0;
-  let webSent = 0;
-  let nativeSent = 0;
-  const errors: string[] = [];
-
-  for (const userId of userIds) {
-    const user = users.find((item) => item.id === userId);
-    const prefs: NotificationPrefs = {
-      pushEnabled: user?.notificationPrefs?.pushEnabled ?? true,
-      devotions: user?.notificationPrefs?.devotions ?? true,
-      messages: user?.notificationPrefs?.messages ?? true,
-      announcements: user?.notificationPrefs?.announcements ?? true,
-      worship: user?.notificationPrefs?.worship ?? true,
-      kids: user?.notificationPrefs?.kids ?? true,
-    };
-
-    if (!prefs.pushEnabled || !prefs[preferenceKey]) {
-      skipped += 1;
-      continue;
-    }
-
-    const userSubs = subscriptions.filter((item) => item.userId === userId);
-    const userTokens = nativeTokens.filter((item) => item.userId === userId);
-    if (userSubs.length === 0 && userTokens.length === 0) {
-      skipped += 1;
-      continue;
-    }
-
-    for (const record of userSubs) {
-      try {
-        await webpush.sendNotification(
-          record.subscription,
-          JSON.stringify(brandedPayload),
-        );
-        sent += 1;
-        webSent += 1;
-      } catch (error) {
-        if (shouldDropWebPushSubscription(error)) {
-          await store().removePushSubscription(userId, record.endpoint);
-        }
-        skipped += 1;
-        errors.push(
-          `web:${error instanceof Error ? error.message : "send failed"}`,
-        );
-      }
-    }
-
-    for (const record of userTokens) {
-      try {
-        await sendNativePush(record, brandedPayload);
-        sent += 1;
-        nativeSent += 1;
-      } catch (error) {
-        if (shouldDropNativeToken(error)) {
-          await store().removeNativePushToken(userId, record.token);
-        }
-        skipped += 1;
-        errors.push(
-          `${record.platform}:${error instanceof Error ? error.message : "send failed"}`,
-        );
-      }
-    }
-  }
-
-  return {
-    sent,
-    skipped,
-    webSent,
-    nativeSent,
-    errors: errors.slice(0, 3),
-    configured: true,
-  };
+  return dispatchPushToUsers(userIds, payload, (prefs) =>
+    preferenceMatchesTopic(prefs, preferenceKey),
+  );
 }
 
 export async function sendPushToUsersWithAnyPreference(
@@ -236,89 +268,9 @@ export async function sendPushToUsersWithAnyPreference(
   payload: { title: string; body: string; url: string },
   preferenceKeys: NotificationTopic[],
 ) {
-  const brandedPayload = withPushBranding(payload);
-  const webConfigured = configureWebPush();
-  const nativeConfigured = isNativePushConfigured();
-  if (!webConfigured && !nativeConfigured) {
-    return { sent: 0, skipped: userIds.length, configured: false };
-  }
-
-  const users = await getUsers();
-  const subscriptions = webConfigured ? await store().getPushSubscriptions() : [];
-  const nativeTokens = nativeConfigured ? await store().getNativePushTokens() : [];
-  let sent = 0;
-  let skipped = 0;
-  let webSent = 0;
-  let nativeSent = 0;
-  const errors: string[] = [];
-
-  for (const userId of userIds) {
-    const user = users.find((item) => item.id === userId);
-    const prefs: NotificationPrefs = {
-      pushEnabled: user?.notificationPrefs?.pushEnabled ?? true,
-      devotions: user?.notificationPrefs?.devotions ?? true,
-      messages: user?.notificationPrefs?.messages ?? true,
-      announcements: user?.notificationPrefs?.announcements ?? true,
-      worship: user?.notificationPrefs?.worship ?? true,
-      kids: user?.notificationPrefs?.kids ?? true,
-    };
-
-    if (!prefs.pushEnabled || !preferenceKeys.some((key) => prefs[key])) {
-      skipped += 1;
-      continue;
-    }
-
-    const userSubs = subscriptions.filter((item) => item.userId === userId);
-    const userTokens = nativeTokens.filter((item) => item.userId === userId);
-    if (userSubs.length === 0 && userTokens.length === 0) {
-      skipped += 1;
-      continue;
-    }
-
-    for (const record of userSubs) {
-      try {
-        await webpush.sendNotification(
-          record.subscription,
-          JSON.stringify(brandedPayload),
-        );
-        sent += 1;
-        webSent += 1;
-      } catch (error) {
-        if (shouldDropWebPushSubscription(error)) {
-          await store().removePushSubscription(userId, record.endpoint);
-        }
-        skipped += 1;
-        errors.push(
-          `web:${error instanceof Error ? error.message : "send failed"}`,
-        );
-      }
-    }
-
-    for (const record of userTokens) {
-      try {
-        await sendNativePush(record, brandedPayload);
-        sent += 1;
-        nativeSent += 1;
-      } catch (error) {
-        if (shouldDropNativeToken(error)) {
-          await store().removeNativePushToken(userId, record.token);
-        }
-        skipped += 1;
-        errors.push(
-          `${record.platform}:${error instanceof Error ? error.message : "send failed"}`,
-        );
-      }
-    }
-  }
-
-  return {
-    sent,
-    skipped,
-    webSent,
-    nativeSent,
-    errors: errors.slice(0, 3),
-    configured: true,
-  };
+  return dispatchPushToUsers(userIds, payload, (prefs) =>
+    preferenceMatchesAnyTopic(prefs, preferenceKeys),
+  );
 }
 
 export async function notifyNewDevotion(input: {
@@ -388,7 +340,7 @@ export async function sendPushToGroupMembers(
   const groups = await getGroups();
   const group = groups.find((entry) => entry.id === groupId);
   if (!group) {
-    return { sent: 0, skipped: 0, configured: isPushConfigured() };
+    return emptyPushDeliveryResult(isPushConfigured());
   }
 
   const userIds = group.memberIds.filter((memberId) => memberId !== excludeUserId);

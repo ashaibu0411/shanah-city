@@ -239,7 +239,19 @@ export function PushNotificationSettings() {
         );
         return;
       }
-      setStatus("Test alert sent. Check your phone notification tray.");
+      setStatus(
+        [
+          "Test alert sent. Check your phone notification tray.",
+          data.scheduleEligibility?.devotions === false
+            ? "Daily devotion pushes are off — enable “New devotions & Shift Your Morning/Evening” in settings."
+            : null,
+          data.scheduleEligibility?.prayer === false
+            ? "Prayer reminders are off — enable devotions, announcements, or worship alerts."
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
     } catch {
       setBusy(false);
       setStatus("Could not send a test push right now.");

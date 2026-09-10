@@ -30,8 +30,8 @@ jobs:
           APP_URL: https://shanah-city.vercel.app
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "::warning title=CRON_SECRET missing::Devotion pushes are skipped. Add CRON_SECRET to GitHub repo secrets (same value as Vercel)."
-            exit 0
+            echo "::error title=CRON_SECRET missing::Devotion pushes are skipped. Add CRON_SECRET to GitHub repo secrets (same value as Vercel)."
+            exit 1
           fi
           http_code="$(curl --silent --show-error -o /tmp/cron-response.json -w '%{http_code}' \
             -X GET \

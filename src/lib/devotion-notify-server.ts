@@ -14,6 +14,7 @@ import {
   getNativePushTokens,
   getPushSubscriptions,
   notifyNewDevotion,
+  shouldMarkScheduledPushComplete,
 } from "@/lib/push-server";
 import {
   isAndroidNativePushConfigured,
@@ -37,7 +38,7 @@ export async function deliverDevotionPush(
     devotionId: devotion.id,
   });
 
-  if (result.configured && result.sent > 0) {
+  if (shouldMarkScheduledPushComplete(result)) {
     await markDevotionNotified(devotion.id);
   }
 
@@ -79,9 +80,11 @@ async function tryNotifyDevotion(
     reason:
       result.sent > 0
         ? undefined
-        : result.configured
-          ? "no_recipients"
-          : "push_not_configured",
+        : result.failedUsers > 0
+          ? "delivery_failed_retry"
+          : result.configured
+            ? "no_recipients"
+            : "push_not_configured",
   });
 
   return result.sent > 0 ? 1 : 0;
@@ -160,6 +163,13 @@ export async function processScheduledDevotionNotifications(reference = new Date
       registeredNativeDevices: nativeTokens.length,
       registeredWebDevices: webSubs.length,
     },
+    delivery: attempts.reduce(
+      (summary, entry) => ({
+        eligibleUsers: summary.eligibleUsers + (entry.pushSent > 0 ? 1 : 0),
+        failedRetries: summary.failedRetries + (entry.reason === "delivery_failed_retry" ? 1 : 0),
+      }),
+      { eligibleUsers: 0, failedRetries: 0 },
+    ),
     denverDate: denver.dateKey,
     denverTime: `${denver.hour}:${String(denver.minute).padStart(2, "0")}`,
   };

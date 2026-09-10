@@ -124,7 +124,7 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "test") {
-    const result = await sendTestPushToUser(user.id);
+    const result = await sendTestPushToUser(user.id, user.notificationPrefs);
     return NextResponse.json({
       ok: result.sent > 0,
       ...result,
