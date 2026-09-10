@@ -231,6 +231,8 @@ export function GroupDetailView({
 
   useEffect(() => {
     if (detailTabs.length === 0) return;
+    // Chat is opened from the header / dashboard, not the tab bar.
+    if (detailSection === "chat") return;
     if (!detailTabs.some((tab) => tab.id === detailSection)) {
       setDetailSection(detailTabs[0].id);
     }
