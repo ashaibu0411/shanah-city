@@ -6,6 +6,7 @@ import {
 } from "@/lib/block-server";
 import { normalizeChatReactions, toggleChatReaction, validateChatContent } from "@/lib/chat-utils";
 import { prisma } from "@/lib/db";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import type {
   DirectMessage,
   MemberDirectoryEntry,
@@ -93,7 +94,7 @@ export async function getMemberDirectory(currentUserId: string) {
         if (await hasMessagingBlock(currentUserId, user.id)) return null;
         return {
           id: user.id,
-          name: user.name,
+          name: getPublicDisplayName(user),
           campusId: user.campusId,
         } satisfies MemberDirectoryEntry;
       }),

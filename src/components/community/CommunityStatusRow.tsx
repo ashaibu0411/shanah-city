@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { CommunityStoryRing } from "@/components/community/CommunityStoryRing";
 import { CommunityStoryViewer } from "@/components/community/CommunityStoryViewer";
 import type { CommunityStatus } from "@/lib/member-types";
@@ -189,7 +190,7 @@ export function CommunityStatusRow() {
         {notice ? <p className="px-1 text-xs text-emerald-700">{notice}</p> : null}
         <div className="community-stories-row">
           <CommunityStoryRing
-            authorName={user.name}
+            authorName={getPublicDisplayName(user)}
             authorId={user.id}
             preview={myDeck?.previewItem ?? null}
             hasUnseen={Boolean(myDeck)}

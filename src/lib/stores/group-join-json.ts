@@ -5,6 +5,7 @@ import { isAdminGroupMember } from "@/lib/admin-access-server";
 import { isGroupAdmin, isGroupMember } from "@/lib/group-admin-utils";
 import { getReadinessJoinPolicy } from "@/lib/ministry-readiness-server";
 import type { GroupJoinRequest } from "@/lib/group-types";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { getGroups, grantGroupMembership, joinGroup } from "@/lib/stores/group-json";
 
 const REQUESTS_FILE = path.join(process.cwd(), "data", "group-join-requests.json");
@@ -104,7 +105,7 @@ export async function requestGroupJoin(
       groupId: group.id,
       groupName: group.name,
       userId: user.id,
-      userName: user.name,
+      userName: getPublicDisplayName(user),
       userEmail: user.email,
     });
     return { status: "pending" as const, groupName: group.name };

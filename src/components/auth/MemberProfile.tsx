@@ -13,6 +13,7 @@ import { MemberEventRsvps } from "@/components/calendar/MemberEventRsvps";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { Button, Card, PageHeader } from "@/components/ui";
 import { campuses, getCampus, site } from "@/lib/site";
+import { getPublicDisplayFirstName, getPublicDisplayName } from "@/lib/member-display-name";
 
 const relationships = [
   { value: "spouse", label: "Spouse" },
@@ -29,6 +30,7 @@ export function MemberProfile() {
   const { setCampusId } = useApp();
 
   const [name, setName] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -48,6 +50,7 @@ export function MemberProfile() {
     }
     if (user) {
       setName(user.name);
+      setDisplayName(user.displayName ?? "");
       setPhone(user.phone ?? "");
       setCampusId(user.campusId);
     }
@@ -63,7 +66,7 @@ export function MemberProfile() {
     const response = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone, campusId: user!.campusId }),
+      body: JSON.stringify({ name, displayName, phone, campusId: user!.campusId }),
     });
     const data = await response.json();
     if (response.ok) {
@@ -161,7 +164,7 @@ export function MemberProfile() {
     <>
       <PageHeader
         eyebrow="My account"
-        title={`Welcome, ${user.name.split(" ")[0]}`}
+        title={`Welcome, ${getPublicDisplayFirstName(user)}`}
         description="Your Shanah City member profile, family tree, and activity."
       />
 
@@ -208,11 +211,31 @@ export function MemberProfile() {
               Profile
             </h2>
             <div className={`mt-3 grid gap-2.5 ${isMobileApp ? "grid-cols-1" : "sm:grid-cols-2"}`}>
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className="rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
-              />
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-night-600">Full name</span>
+                <input
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className="w-full rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-night-600">Display name</span>
+                <input
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  placeholder={name || "How others see you"}
+                  maxLength={50}
+                  className="w-full rounded-xl border border-night-900/10 bg-white px-3 py-2 text-sm outline-none ring-night-900/5 focus:ring-2"
+                />
+              </label>
+              <p className={`text-xs text-night-500 ${isMobileApp ? "" : "sm:col-span-2"}`}>
+                Others see{" "}
+                <span className="font-semibold text-night-800">
+                  {getPublicDisplayName({ name, displayName })}
+                </span>{" "}
+                in chat, community, and groups.
+              </p>
               <input
                 value={user.email}
                 disabled

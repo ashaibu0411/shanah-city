@@ -10,6 +10,7 @@ import {
   parseCommunityPostMediaInput,
 } from "@/lib/community-post-media";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { getGroups } from "@/lib/group-server";
 import type { CommunityPost } from "@/lib/member-types";
 import {
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   const body = await request.json();
-  const authorName = user?.name ?? body.author ?? "Member";
+  const authorName = user ? getPublicDisplayName(user) : body.author ?? "Member";
 
   if (body.action === "comment") {
     const comment = await addCommentToPost(body.postId, {
@@ -152,7 +153,7 @@ export async function POST(request: Request) {
     const updated = await updateCommunityPost(postId, {
       ...resolved.update,
       authorId: post.authorId ?? user.id,
-      author: post.author || user.name,
+      author: post.author || getPublicDisplayName(user),
     });
     if (!updated) {
       return NextResponse.json({ error: "Post not found." }, { status: 404 });

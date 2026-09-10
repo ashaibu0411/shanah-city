@@ -20,6 +20,7 @@ import {
 } from "@/lib/message-server";
 import { isUserBlocked } from "@/lib/block-server";
 import { isAllowedReactionEmoji } from "@/lib/chat-utils";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyNewMessage } from "@/lib/push-server";
 
 export async function GET(request: Request) {
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
       channelType: "thread",
       channelId: threadId,
       userId: user.id,
-      userName: user.name,
+      userName: getPublicDisplayName(user),
       isTyping: Boolean(body.isTyping),
     });
     return NextResponse.json({ ok: true });
@@ -118,7 +119,7 @@ export async function POST(request: Request) {
       messageId,
       emoji,
       userId: user.id,
-      userName: user.name,
+      userName: getPublicDisplayName(user),
     });
 
     if (!message) {
@@ -221,7 +222,7 @@ export async function POST(request: Request) {
   try {
     const result = await sendDirectMessage({
       senderId: user.id,
-      senderName: user.name,
+      senderName: getPublicDisplayName(user),
       recipientId,
       recipientName,
       content,
@@ -239,7 +240,7 @@ export async function POST(request: Request) {
         const preview = content || attachmentName || "Photo";
         const notify = await notifyNewMessage({
           recipientId,
-          senderName: user.name,
+          senderName: getPublicDisplayName(user),
           preview: preview.slice(0, 120),
           threadId: result.thread.id,
         });

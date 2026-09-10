@@ -74,6 +74,8 @@ export async function PATCH(request: Request) {
 
   const updated = await updateUserProfile(user.id, {
     name: body.name ? String(body.name).trim() : undefined,
+    displayName:
+      body.displayName !== undefined ? String(body.displayName) : undefined,
     phone: body.phone ? String(body.phone).trim() : undefined,
     campusId: body.campusId,
   });

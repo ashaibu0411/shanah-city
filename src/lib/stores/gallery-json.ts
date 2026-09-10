@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { PublicMember } from "@/lib/auth-types";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import type { GalleryDownloadRecord, GalleryPhoto, GalleryVisibility } from "@/lib/gallery-types";
 import { getGalleryVisibility } from "@/lib/gallery-types";
 import { isExternalPhotoUrl, isPrivatePhotoUrl } from "@/lib/gallery-utils";
@@ -183,7 +184,7 @@ export async function logGalleryDownload(
     photoId: photo.id,
     photoTitle: photo.title,
     userId: user.id,
-    userName: user.name,
+    userName: getPublicDisplayName(user),
     userEmail: user.email,
     downloadedAt: new Date().toISOString(),
     acceptedPolicy,

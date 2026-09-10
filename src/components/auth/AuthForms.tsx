@@ -140,6 +140,7 @@ export function SignUpForm() {
   const { refresh } = useAuth();
   const [step, setStep] = useState<"account" | "ministries" | "confirm">("account");
   const [name, setName] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -192,6 +193,7 @@ export function SignUpForm() {
       body: JSON.stringify({
         action: "signup",
         name,
+        displayName: displayName.trim() || undefined,
         email,
         phone,
         password,
@@ -276,7 +278,15 @@ export function SignUpForm() {
 
         <div className="mt-6 space-y-4 text-sm text-night-700">
           <p>
-            <strong>Name:</strong> {name}
+            <strong>Full name:</strong> {name}
+          </p>
+          {displayName.trim() && (
+            <p>
+              <strong>Display name:</strong> {displayName.trim()}
+            </p>
+          )}
+          <p>
+            <strong>Shown in app as:</strong> {displayName.trim() || name}
           </p>
           <p>
             <strong>Email:</strong> {email}
@@ -348,8 +358,24 @@ export function SignUpForm() {
             autoComplete="name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Your name"
+            placeholder="Your legal name"
             required
+            className={inputClassName}
+          />
+          <p className="mt-1 text-xs text-night-500">
+            Used for church records, check-in, and giving. Not shown publicly if you add a
+            display name below.
+          </p>
+        </Field>
+
+        <Field id="sign-up-display-name" label="Display name (optional)">
+          <input
+            id="sign-up-display-name"
+            autoComplete="nickname"
+            value={displayName}
+            onChange={(event) => setDisplayName(event.target.value)}
+            placeholder="How others see you in chat and community"
+            maxLength={50}
             className={inputClassName}
           />
         </Field>

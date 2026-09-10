@@ -9,6 +9,7 @@ import type {
   NotificationPrefs,
   PublicMember,
 } from "@/lib/auth-types";
+import { normalizeDisplayName } from "@/lib/member-display-name";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
@@ -51,6 +52,7 @@ export async function getUserById(id: string) {
 
 export async function createUser(input: {
   name: string;
+  displayName?: string;
   email: string;
   password: string;
   phone?: string;
@@ -65,6 +67,7 @@ export async function createUser(input: {
   const user: MemberProfile = {
     id: `user-${Date.now()}`,
     name: input.name.trim(),
+    displayName: normalizeDisplayName(input.displayName),
     email: input.email.trim().toLowerCase(),
     phone: input.phone?.trim(),
     campusId: input.campusId,
@@ -100,7 +103,10 @@ export async function verifyCredentials(email: string, password: string) {
 export async function updateUserProfile(
   userId: string,
   update: Partial<
-    Pick<MemberProfile, "name" | "phone" | "campusId" | "role" | "notificationPrefs" | "avatarUrl">
+    Pick<
+      MemberProfile,
+      "name" | "displayName" | "phone" | "campusId" | "role" | "notificationPrefs" | "avatarUrl"
+    >
   >,
 ) {
   const users = await getUsers();
@@ -110,6 +116,12 @@ export async function updateUserProfile(
   const next = {
     ...users[index],
     ...update,
+    displayName:
+      update.displayName === ""
+        ? undefined
+        : update.displayName !== undefined
+          ? normalizeDisplayName(update.displayName)
+          : users[index].displayName,
     updatedAt: new Date().toISOString(),
   };
 

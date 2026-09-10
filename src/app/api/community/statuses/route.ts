@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { isAllowedCommunityMediaUrl } from "@/lib/community-media-shared";
 import { saveCommunityMedia } from "@/lib/community-media-server";
 import {
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
     const status = await addCommunityStatus({
       id: `status-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       authorId: user.id,
-      authorName: user.name,
+      authorName: getPublicDisplayName(user),
       mediaUrl,
       mediaType,
       caption: caption || undefined,

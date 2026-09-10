@@ -1,3 +1,5 @@
+import { getPublicDisplayName } from "@/lib/member-display-name";
+
 export type ChatMessageReaction = {
   emoji: string;
   userId: string;
@@ -41,7 +43,7 @@ export function normalizeChatReactions(reactions: ChatMessageReaction[] | undefi
 export function toggleChatReaction(
   reactions: ChatMessageReaction[] | undefined,
   emoji: string,
-  user: { id: string; name: string },
+  user: { id: string; name: string; displayName?: string | null },
 ) {
   const list = normalizeChatReactions(reactions);
   const exists = list.some(
@@ -52,7 +54,7 @@ export function toggleChatReaction(
       (reaction) => !(reaction.userId === user.id && reaction.emoji === emoji),
     );
   }
-  return [...list, { emoji, userId: user.id, userName: user.name }];
+  return [...list, { emoji, userId: user.id, userName: getPublicDisplayName(user) }];
 }
 
 export type ReactionSummary = {

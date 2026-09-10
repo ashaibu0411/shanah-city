@@ -7,6 +7,7 @@ export function mapDbUserToProfile(user: DbUserWithFamily): MemberProfile {
   return {
     id: user.id,
     name: user.name,
+    displayName: user.displayName ?? undefined,
     email: user.email,
     phone: user.phone ?? undefined,
     campusId: user.campusId,

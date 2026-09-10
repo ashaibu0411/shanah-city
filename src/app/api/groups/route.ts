@@ -5,6 +5,7 @@ import {
   recordActivity,
   SESSION_COOKIE,
 } from "@/lib/auth-server";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import type { GroupCategory, GroupVisibility } from "@/lib/group-types";
 import {
   createGroup,
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
         meetingSchedule: body.meetingSchedule ? String(body.meetingSchedule) : undefined,
         meetingLink: body.meetingLink ? String(body.meetingLink) : undefined,
         creatorId: user.id,
-        creatorName: user.name,
+        creatorName: getPublicDisplayName(user),
       });
 
       await recordActivity(user.id, "profile_update", `Created group "${group.name}"`);
@@ -118,7 +119,7 @@ export async function POST(request: Request) {
     if (action === "join") {
       const result = await requestGroupJoin(groupId, {
         id: user.id,
-        name: user.name,
+        name: getPublicDisplayName(user),
         email: user.email,
       });
       if (result.status === "pending") {
@@ -138,7 +139,7 @@ export async function POST(request: Request) {
     if (action === "request-join") {
       const result = await requestGroupJoin(groupId, {
         id: user.id,
-        name: user.name,
+        name: getPublicDisplayName(user),
         email: user.email,
       });
       return NextResponse.json({ joinStatus: result.status, groupName: result.groupName });
@@ -209,7 +210,7 @@ export async function POST(request: Request) {
         await exemptMemberAddedByLeader({
           group: { id: result.group.id, name: result.group.name },
           memberId: result.addedMemberId,
-          leaderName: user.name,
+          leaderName: getPublicDisplayName(user),
         });
       }
       const group = await getGroupDetail(groupId, user.id);

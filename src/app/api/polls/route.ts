@@ -8,6 +8,7 @@ import {
   getPollsForViewer,
   voteOnPoll,
 } from "@/lib/poll-server";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyPollCreated } from "@/lib/push-server";
 
 export async function GET(request: Request) {
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
 
     await notifyPollCreated({
       authorId: user.id,
-      authorName: user.name,
+      authorName: getPublicDisplayName(user),
       question: poll.question,
       targetGroupId: poll.targetGroupId,
       targetGroupName: poll.targetGroupName,

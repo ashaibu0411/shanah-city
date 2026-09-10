@@ -1,4 +1,5 @@
 import type { PublicMember } from "@/lib/auth-types";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getMemberGroupIds } from "@/lib/admin-people-server";
 import { useDatabase } from "@/lib/use-database";
@@ -120,7 +121,7 @@ export async function createPollForUser(
     ...input,
     options,
     createdBy: viewer.id,
-    creatorName: viewer.name,
+    creatorName: getPublicDisplayName(viewer),
     campusId: input.campusId ?? viewer.campusId,
   });
 }
@@ -146,7 +147,7 @@ export async function voteOnPoll(
     pollId,
     optionIds,
     userId: viewer.id,
-    userName: viewer.name,
+    userName: getPublicDisplayName(viewer),
     allowMultiple: poll.allowMultiple,
   });
 

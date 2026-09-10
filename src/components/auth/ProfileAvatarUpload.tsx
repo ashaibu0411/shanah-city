@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import type { PublicMember } from "@/lib/auth-types";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMemberAvatarApiUrl } from "@/lib/avatar-utils";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { isNativeAppPlatform } from "@/lib/native-app";
 import { pickProfilePhotoFile } from "@/lib/native-media-picker";
 import { Button } from "@/components/ui";
@@ -73,15 +74,17 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
     }
   }
 
+  const publicName = getPublicDisplayName(user);
+
   return (
     <div className="flex flex-wrap items-center gap-4">
       <div className="relative h-20 w-20 overflow-hidden rounded-full bg-night-900 text-2xl font-bold text-sand-50 ring-2 ring-sand-200">
         {avatarSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatarSrc} alt={user.name} className="h-full w-full object-cover" />
+          <img src={avatarSrc} alt={publicName} className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center">
-            {user.name.charAt(0).toUpperCase()}
+            {publicName.charAt(0).toUpperCase()}
           </span>
         )}
       </div>

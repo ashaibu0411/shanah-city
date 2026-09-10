@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { DevotionPromoCard } from "@/components/devotions/DevotionPromoCard";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { liveStream, site } from "@/lib/site";
+import { getPublicDisplayFirstName } from "@/lib/member-display-name";
 import { getYouTubeThumbnail } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
@@ -117,7 +118,7 @@ export function MobileHome({
       >
         <div className="mobile-home-welcome-intro border-b border-night-900/8 bg-gradient-to-r from-sand-50 via-white to-sand-50 px-4 py-3.5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-night-500">
-            {homeGreeting(user?.name)}
+            {homeGreeting(user ? getPublicDisplayFirstName(user) : null)}
           </p>
           <p className="mt-1 font-display text-[0.95rem] font-semibold uppercase tracking-[0.14em] text-night-900">
             Welcome to {site.name}

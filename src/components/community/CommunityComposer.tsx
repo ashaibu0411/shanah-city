@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getPublicDisplayFirstName, getPublicDisplayName } from "@/lib/member-display-name";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { CommunityMediaPreviewCarousel } from "@/components/community/CommunityMediaCarousel";
 import {
@@ -218,7 +219,8 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
     closeComposer();
   }
 
-  const composerName = user?.name ?? "friend";
+  const composerName = user ? getPublicDisplayName(user) : "friend";
+  const composerFirstName = user ? getPublicDisplayFirstName(user) : "friend";
 
   const modal = open && mounted ? (
     createPortal(
@@ -295,7 +297,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                 <textarea
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
-                  placeholder={`What's on your mind, ${composerName.split(" ")[0]}?`}
+                  placeholder={`What's on your mind, ${composerFirstName}?`}
                   rows={5}
                   autoFocus
                   className="mt-3 w-full resize-none border-0 bg-transparent text-[24px] leading-snug text-night-900 outline-none placeholder:text-night-600"
@@ -410,7 +412,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
         <button type="button" onClick={() => setOpen(true)} className="community-composer-trigger">
           <CommunityAvatar name={composerName} authorId={user.id} size="md" />
           <span className="community-composer-placeholder">
-            What&apos;s on your mind, {composerName.split(" ")[0]}?
+            What&apos;s on your mind, {composerFirstName}?
           </span>
         </button>
 

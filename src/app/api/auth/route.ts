@@ -17,6 +17,7 @@ import {
 } from "@/lib/rate-limit-server";
 import { processSignupGroupSelections } from "@/lib/group-join-server";
 import { linkGivingRecordsToUser } from "@/lib/giving-server";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { getSessionPermissions } from "@/lib/session-permissions";
 
 async function checkAuthRateLimit(request: Request, action: string) {
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
     try {
       const user = await createUser({
         name: body.name,
+        displayName: body.displayName,
         email: body.email,
         password: body.password,
         phone: body.phone,
@@ -82,7 +84,7 @@ export async function POST(request: Request) {
         ? body.groupIds.map(String)
         : [];
       const ministryResults = await processSignupGroupSelections(
-        { id: user.id, name: user.name, email: user.email },
+        { id: user.id, name: getPublicDisplayName(user), email: user.email },
         groupIds,
       );
       const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);

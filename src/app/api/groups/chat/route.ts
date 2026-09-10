@@ -13,6 +13,7 @@ import {
   toggleGroupChatReaction,
 } from "@/lib/group-chat-server";
 import { isAllowedReactionEmoji } from "@/lib/chat-utils";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyGroupChatMessage } from "@/lib/push-server";
 
 export async function GET(request: Request) {
@@ -94,7 +95,7 @@ export async function POST(request: Request) {
       channelType: "group",
       channelId: groupId,
       userId: user.id,
-      userName: user.name,
+      userName: getPublicDisplayName(user),
       isTyping: Boolean(body.isTyping),
     });
     return NextResponse.json({ ok: true });
@@ -120,7 +121,7 @@ export async function POST(request: Request) {
       messageId,
       emoji,
       userId: user.id,
-      userName: user.name,
+      userName: getPublicDisplayName(user),
     });
 
     if (!message) {
@@ -195,7 +196,7 @@ export async function POST(request: Request) {
       groupId,
       groupName: access.detail!.name,
       senderId: user.id,
-      senderName: user.name,
+      senderName: getPublicDisplayName(user),
       content,
       attachmentUrl,
       attachmentType,
@@ -209,7 +210,7 @@ export async function POST(request: Request) {
       groupId,
       groupName: access.detail!.name,
       senderId: user.id,
-      senderName: user.name,
+      senderName: getPublicDisplayName(user),
       preview: preview.slice(0, 120),
     });
 

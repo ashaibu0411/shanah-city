@@ -1,5 +1,6 @@
 import { del, list, put } from "@vercel/blob";
 import type { PublicMember } from "@/lib/auth-types";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { prisma } from "@/lib/db";
 import type { GalleryDownloadRecord, GalleryPhoto, GalleryVisibility } from "@/lib/gallery-types";
 import { getGalleryVisibility } from "@/lib/gallery-types";
@@ -212,7 +213,7 @@ export async function logGalleryDownload(
       photoId: photo.id,
       photoTitle: photo.title,
       userId: user.id,
-      userName: user.name,
+      userName: getPublicDisplayName(user),
       userEmail: user.email,
       downloadedAt: new Date(),
       acceptedPolicy,

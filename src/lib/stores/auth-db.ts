@@ -8,6 +8,7 @@ import type {
   PublicMember,
 } from "@/lib/auth-types";
 import { mapDbUserToProfile, notificationPrefsToDb } from "@/lib/auth-user-mapper";
+import { normalizeDisplayName } from "@/lib/member-display-name";
 import { prisma } from "@/lib/db";
 
 export const SESSION_DAYS = 30;
@@ -44,6 +45,7 @@ export async function getUserById(id: string) {
 
 export async function createUser(input: {
   name: string;
+  displayName?: string;
   email: string;
   password: string;
   phone?: string;
@@ -59,6 +61,7 @@ export async function createUser(input: {
     data: {
       id: `user-${Date.now()}`,
       name: input.name.trim(),
+      displayName: normalizeDisplayName(input.displayName) ?? null,
       email: input.email.trim().toLowerCase(),
       phone: input.phone?.trim(),
       campusId: input.campusId,
@@ -84,7 +87,10 @@ export async function verifyCredentials(email: string, password: string) {
 export async function updateUserProfile(
   userId: string,
   update: Partial<
-    Pick<MemberProfile, "name" | "phone" | "campusId" | "role" | "notificationPrefs" | "avatarUrl">
+    Pick<
+      MemberProfile,
+      "name" | "displayName" | "phone" | "campusId" | "role" | "notificationPrefs" | "avatarUrl"
+    >
   >,
 ) {
   const existing = await loadUser(userId);
@@ -98,6 +104,12 @@ export async function updateUserProfile(
     where: { id: userId },
     data: {
       name: update.name?.trim(),
+      displayName:
+        update.displayName === ""
+          ? null
+          : update.displayName !== undefined
+            ? normalizeDisplayName(update.displayName) ?? null
+            : undefined,
       phone: update.phone?.trim(),
       campusId: update.campusId,
       role: update.role,

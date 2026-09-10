@@ -1,25 +1,22 @@
 import type { CommunityPost } from "@/lib/member-types";
-
-function normalizeName(value: string) {
-  return value.trim().toLowerCase().replace(/\s+/g, " ");
-}
+import { userMatchesStoredAuthorName } from "@/lib/member-display-name";
 
 export function isCommunityPostAuthor(
-  user: Pick<{ id: string; name: string }, "id" | "name">,
+  user: Pick<{ id: string; name: string; displayName?: string | null }, "id" | "name" | "displayName">,
   post: Pick<CommunityPost, "author" | "authorId">,
 ) {
   if (post.authorId && post.authorId === user.id) {
     return true;
   }
   if (post.author && user.name) {
-    return normalizeName(post.author) === normalizeName(user.name);
+    return userMatchesStoredAuthorName(user, post.author);
   }
   return false;
 }
 
 export function attachCanManageToPosts(
   posts: CommunityPost[],
-  user: Pick<{ id: string; name: string }, "id" | "name"> | null | undefined,
+  user: Pick<{ id: string; name: string; displayName?: string | null }, "id" | "name" | "displayName"> | null | undefined,
   isAdmin = false,
 ): CommunityPost[] {
   return posts.map((post) => ({
@@ -29,7 +26,7 @@ export function attachCanManageToPosts(
 }
 
 export function canManageCommunityPostClient(
-  user: Pick<{ id: string; name: string }, "id" | "name"> | null | undefined,
+  user: Pick<{ id: string; name: string; displayName?: string | null }, "id" | "name" | "displayName"> | null | undefined,
   post: Pick<CommunityPost, "author" | "authorId">,
   isAdmin = false,
 ) {

@@ -10,6 +10,7 @@ import {
 } from "@/lib/comms-server";
 import type { CommsCalendarItem, CommsPromotedAs } from "@/lib/comms-types";
 import { addCommunityPost } from "@/lib/member-server";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyCommunityPost, sendPushToAllMembers } from "@/lib/push-server";
 import { saveUrgentAlert } from "@/lib/urgent-alert-server";
 
@@ -49,7 +50,7 @@ export async function promoteCommsCalendarItem(
       ctaLabel: "Open community",
       active: true,
       createdBy: user.id,
-      createdByName: user.name,
+      createdByName: getPublicDisplayName(user),
     });
     promotedAs.urgentAlertId = alert.id;
   }
@@ -58,7 +59,7 @@ export async function promoteCommsCalendarItem(
     const now = new Date().toISOString();
     const post = await addCommunityPost({
       id: `announcement-${Date.now()}`,
-      author: user.name,
+      author: getPublicDisplayName(user),
       authorId: user.id,
       campusId: "all",
       type: "announcement",
@@ -71,7 +72,7 @@ export async function promoteCommsCalendarItem(
     promotedAs.communityPostId = post.id;
     await notifyCommunityPost({
       authorId: user.id,
-      authorName: user.name,
+      authorName: getPublicDisplayName(user),
       content: body,
       type: "announcement",
     });
@@ -141,7 +142,7 @@ export async function addApprovedRequestToCalendar(
     assigneeName: request.assigneeName,
     dueDate: request.dueDate,
     createdBy: user.id,
-    createdByName: user.name,
+    createdByName: getPublicDisplayName(user),
   });
 
   await saveCommsRequest({

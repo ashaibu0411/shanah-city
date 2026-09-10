@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { PublicMember } from "@/lib/auth-types";
 import { getMemberAvatarApiUrl } from "@/lib/avatar-utils";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 
 type MemberAvatarLinkProps = {
   user: PublicMember | null;
@@ -31,6 +32,8 @@ export function MemberAvatarLink({
 
   const circleClass = `flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-night-900 font-bold text-sand-50 ring-1 ring-night-900/10 ${sizes[size]} ${className}`;
 
+  const publicName = user ? getPublicDisplayName(user) : "Profile";
+
   return (
     <Link
       href={targetHref}
@@ -39,9 +42,9 @@ export function MemberAvatarLink({
     >
       {avatarSrc ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={avatarSrc} alt={user?.name ?? "Profile"} className="h-full w-full object-cover" />
+        <img src={avatarSrc} alt={publicName} className="h-full w-full object-cover" />
       ) : user ? (
-        user.name.charAt(0).toUpperCase()
+        publicName.charAt(0).toUpperCase()
       ) : (
         "☺"
       )}

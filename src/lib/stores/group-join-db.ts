@@ -3,6 +3,7 @@ import { getUserById } from "@/lib/auth-server";
 import { isAdminGroupMember } from "@/lib/admin-access-server";
 import { isGroupAdmin, isGroupMember } from "@/lib/group-admin-utils";
 import { getReadinessJoinPolicy } from "@/lib/ministry-readiness-server";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { getGroups, grantGroupMembership, joinGroup } from "@/lib/stores/group-db";
 import type { GroupJoinRequest } from "@/lib/group-types";
 
@@ -103,7 +104,7 @@ export async function requestGroupJoin(
       groupId: group.id,
       groupName: group.name,
       userId: user.id,
-      userName: user.name,
+      userName: getPublicDisplayName(user),
       userEmail: user.email,
     });
     return { status: "pending" as const, groupName: group.name };

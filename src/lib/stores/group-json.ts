@@ -11,6 +11,7 @@ import {
   isGroupAssistantLeader,
   isGroupMember,
 } from "@/lib/group-admin-utils";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import {
   assertCanManageGroupLeadership,
   assertCanManageGroupMembers,
@@ -152,7 +153,7 @@ async function getMemberPreviews(group: Group): Promise<GroupMemberPreview[]> {
       if (!user) return null;
       return {
         id: user.id,
-        name: user.name,
+        name: getPublicDisplayName(user),
         campusId: user.campusId,
         isAdmin: group.adminIds.includes(user.id),
         isAssistantLeader: isGroupAssistantLeader(group, user.id),
@@ -548,12 +549,14 @@ export async function searchGroupMemberCandidates(
     .filter((user) => !isGroupMember(group, user.id))
     .filter(
       (user) =>
-        user.name.toLowerCase().includes(q) || user.email.toLowerCase().includes(q),
+        user.name.toLowerCase().includes(q) ||
+        user.displayName?.toLowerCase().includes(q) ||
+        user.email.toLowerCase().includes(q),
     )
     .slice(0, 12)
     .map((user) => ({
       id: user.id,
-      name: user.name,
+      name: getPublicDisplayName(user),
       email: user.email,
       campusId: user.campusId,
     }));

@@ -29,6 +29,7 @@ export type NotificationTopic = "devotions" | "messages" | "announcements" | "wo
 export type MemberProfile = {
   id: string;
   name: string;
+  displayName?: string;
   email: string;
   phone?: string;
   campusId: string;
