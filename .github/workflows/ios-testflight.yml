@@ -124,12 +124,23 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :teamID $APPLE_TEAM_ID" "$RUNNER_TEMP/ExportOptions.plist"
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:$BUNDLE_ID $IOS_PROVISIONING_PROFILE_NAME" "$RUNNER_TEMP/ExportOptions.plist"
 
+      - name: Set iOS build number
+        run: |
+          # CFBundleVersion must increase on every TestFlight upload.
+          BUILD_NUMBER="${{ github.run_number }}"
+          if [ "$BUILD_NUMBER" -lt 12 ]; then
+            BUILD_NUMBER=$((12 + ${{ github.run_attempt }}))
+          fi
+          echo "IOS_BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "Using CFBundleVersion=$BUILD_NUMBER"
+
       - name: Build archive
         run: |
           echo "Workflow commit: $GITHUB_SHA"
           echo "Signing identity: $SIGNING_IDENTITY"
           echo "Profile UUID: $PROFILE_UUID"
           echo "Profile name: $IOS_PROVISIONING_PROFILE_NAME"
+          echo "Build number: $IOS_BUILD_NUMBER"
           ARCHIVE_PATH="$RUNNER_TEMP/App.xcarchive"
           # Do not pass PROVISIONING_PROFILE* on the command line — it applies to SPM
           # packages (e.g. Capacitor Camera / IONCameraLib) that cannot use profiles.
@@ -144,6 +155,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CURRENT_PROJECT_VERSION="$IOS_BUILD_NUMBER" \
             archive
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> "$GITHUB_ENV"
 
