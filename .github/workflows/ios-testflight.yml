@@ -12,6 +12,7 @@ on:
       - "capacitor.config.ts"
       - "mobile/**"
       - "scripts/generate-ios-icon.cjs"
+      - "scripts/generate-splash-screens.cjs"
       - ".github/workflows/ios-testflight.yml"
 
 concurrency:
@@ -26,7 +27,7 @@ jobs:
 
     env:
       BUNDLE_ID: org.shanahcity.app
-      MARKETING_VERSION: 1.0.16
+      MARKETING_VERSION: 1.0.17
       XCODE_PROJECT: ios/App/App.xcodeproj
       XCODE_SCHEME: App
       CAPACITOR_SERVER_URL: https://shanah-city.vercel.app

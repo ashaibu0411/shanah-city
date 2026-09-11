@@ -21,6 +21,7 @@ on:
       - "android/**"
       - "capacitor.config.ts"
       - "mobile/**"
+      - "scripts/generate-splash-screens.cjs"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/android-play-store.yml"
