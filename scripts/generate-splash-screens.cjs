@@ -4,6 +4,7 @@ const sharp = require("sharp");
 
 const LOGO = path.resolve(__dirname, "../public/shanah-city-logo-light.png");
 const BACKGROUND = { r: 250, g: 247, b: 242, alpha: 1 }; // #faf7f2
+const INCLUDE_LOGO = process.argv.includes("--with-logo");
 
 const IOS_SPLASH_DIR = path.resolve(
   __dirname,
@@ -26,13 +27,29 @@ const androidSplashes = {
 };
 
 async function writeSplash(width, height, outputPath) {
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
+  if (!INCLUDE_LOGO) {
+    await sharp({
+      create: {
+        width,
+        height,
+        channels: 4,
+        background: BACKGROUND,
+      },
+    })
+      .png()
+      .toFile(outputPath);
+    console.log(`Created ${outputPath} (${width}x${height}, background only)`);
+    return;
+  }
+
   const logoMax = Math.round(Math.min(width, height) * 0.42);
   const logo = await sharp(LOGO)
     .resize(logoMax, logoMax, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png()
     .toBuffer();
 
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   await sharp({
     create: {
       width,

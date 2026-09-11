@@ -13,14 +13,10 @@ function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function waitForPaint() {
-  return new Promise<void>((resolve) => {
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-  });
-}
-
 export function NativeAppBoot() {
-  const [splashPhase, setSplashPhase] = useState<SplashPhase>("hidden");
+  const [splashPhase, setSplashPhase] = useState<SplashPhase>(() =>
+    typeof window !== "undefined" && isNativeAppPlatform() ? "enter" : "hidden",
+  );
 
   useEffect(() => {
     if (!isNativeAppPlatform()) return;
@@ -28,8 +24,6 @@ export function NativeAppBoot() {
     let cancelled = false;
 
     async function bootNativeShell() {
-      setSplashPhase("enter");
-
       const [{ SplashScreen }, { StatusBar, Style }, nativePush] = await Promise.all([
         import("@capacitor/splash-screen"),
         import("@capacitor/status-bar"),
@@ -37,10 +31,6 @@ export function NativeAppBoot() {
       ]);
 
       document.body.dataset.native = "true";
-
-      await waitForPaint();
-
-      if (cancelled) return;
 
       try {
         await SplashScreen.hide();
