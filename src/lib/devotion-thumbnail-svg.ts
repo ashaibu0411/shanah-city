@@ -8,11 +8,14 @@ export type DevotionThumbnailInput = {
 };
 
 const COLORS = {
-  navyDeep: "#111827",
-  navyMid: "#1a2332",
-  navyLight: "#405578",
+  nightDeep: "#2d2418",
+  nightMid: "#3d3226",
+  clayDeep: "#6b2a0f",
+  clayMid: "#8b3f28",
   sand50: "#faf7f2",
-  sand200: "#e8dfd2",
+  sand200: "#ece1cc",
+  copperLight: "#d4765a",
+  copperDark: "#a84d32",
   goldLight: "#c4a882",
   goldDark: "#967652",
 };
@@ -82,8 +85,8 @@ function decorativeCircles(id: string, width: number, height: number) {
   const r2 = 72 + ((seed >> 20) % 48);
 
   return `
-    <circle cx="${x1}" cy="${y1}" r="${r1}" fill="#ffffff" opacity="0.06"/>
-    <circle cx="${x2}" cy="${y2}" r="${r2}" fill="#ffffff" opacity="0.04"/>
+    <circle cx="${x1}" cy="${y1}" r="${r1}" fill="${COLORS.copperLight}" opacity="0.12"/>
+    <circle cx="${x2}" cy="${y2}" r="${r2}" fill="${COLORS.goldLight}" opacity="0.08"/>
   `;
 }
 
@@ -111,13 +114,13 @@ export function buildDevotionThumbnailSvg(
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
   <defs>
     <linearGradient id="bg-${uid}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${COLORS.navyDeep}"/>
-      <stop offset="52%" stop-color="${COLORS.navyMid}"/>
-      <stop offset="100%" stop-color="${COLORS.navyLight}"/>
+      <stop offset="0%" stop-color="${COLORS.nightDeep}"/>
+      <stop offset="48%" stop-color="${COLORS.clayDeep}"/>
+      <stop offset="100%" stop-color="${COLORS.clayMid}"/>
     </linearGradient>
     <linearGradient id="accent-${uid}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${COLORS.goldLight}"/>
-      <stop offset="100%" stop-color="${COLORS.goldDark}"/>
+      <stop offset="0%" stop-color="${COLORS.copperLight}"/>
+      <stop offset="100%" stop-color="${COLORS.copperDark}"/>
     </linearGradient>
   </defs>
   <rect width="${width}" height="${height}" fill="url(#bg-${uid})"/>
@@ -139,13 +142,13 @@ export function buildDevotionThumbnailSvg(
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
   <defs>
     <linearGradient id="bg-${uid}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${COLORS.navyDeep}"/>
-      <stop offset="50%" stop-color="${COLORS.navyMid}"/>
-      <stop offset="100%" stop-color="${COLORS.navyLight}"/>
+      <stop offset="0%" stop-color="${COLORS.nightDeep}"/>
+      <stop offset="50%" stop-color="${COLORS.clayDeep}"/>
+      <stop offset="100%" stop-color="${COLORS.clayMid}"/>
     </linearGradient>
     <linearGradient id="accent-${uid}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${COLORS.goldLight}"/>
-      <stop offset="100%" stop-color="${COLORS.goldDark}"/>
+      <stop offset="0%" stop-color="${COLORS.copperLight}"/>
+      <stop offset="100%" stop-color="${COLORS.copperDark}"/>
     </linearGradient>
   </defs>
   <rect width="${width}" height="${height}" fill="url(#bg-${uid})"/>

@@ -4,12 +4,6 @@ import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import { getDevotionArtwork } from "@/lib/devotion-artwork";
 import type { Devotion } from "@/lib/types";
 
-const archiveTones = [
-  "from-white to-teal-50/85 ring-teal-200/45",
-  "from-white to-amber-50/80 ring-amber-200/40",
-  "from-white to-sand-100/90 ring-sand-300/45",
-] as const;
-
 function devotionHref(devotion: Devotion) {
   return `/devotions/${encodeURIComponent(devotion.id)}`;
 }
@@ -20,43 +14,44 @@ type MobileDevotionArchiveTileProps = {
 };
 
 export function MobileDevotionArchiveTile({ devotion, index }: MobileDevotionArchiveTileProps) {
-  const artworkUrl = getDevotionArtwork(devotion, "square");
-  const tone = archiveTones[index % archiveTones.length];
+  const artworkUrl = getDevotionArtwork(devotion, "wide");
+  const stagger = Math.min((index % 4) + 1, 4);
 
   return (
-    <MobilePremiumFrame variant="surface" className="mobile-devotion-archive-tile">
-      <Link
-        href={devotionHref(devotion)}
-        className={`group flex min-h-[5.25rem] items-stretch bg-gradient-to-br transition active:scale-[0.99] ${tone}`}
-      >
-        <div className="relative w-[4.75rem] shrink-0 bg-teal-900/10">
+    <MobilePremiumFrame
+      variant="surface"
+      className={`mobile-devotion-archive-tile mobile-fade-up mobile-fade-up-${stagger}`}
+    >
+      <Link href={devotionHref(devotion)} className="group block transition active:scale-[0.99]">
+        <div className="relative aspect-[16/10] min-h-[7.5rem] overflow-hidden bg-clay-800/15">
           {artworkUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={artworkUrl}
               alt=""
-              className="h-full min-h-[5.25rem] w-full object-cover transition duration-500 group-active:scale-[1.04]"
+              className="mobile-premium-4k__media absolute inset-0 h-full w-full object-cover"
             />
           ) : null}
           <div
-            className="pointer-events-none absolute inset-y-0 right-0 w-px bg-teal-400/35"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-950/40 to-night-950/5"
             aria-hidden
           />
-        </div>
-
-        <div className="flex min-w-0 flex-1 items-center gap-3 px-3.5 py-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-700">
-              {devotion.date} · {devotion.readingTime}
+          <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay-300/90">
+              {devotion.date}
             </p>
-            <p className="mt-1 font-display text-base font-semibold leading-snug tracking-tight text-night-900">
+            <p className="mt-1 font-display text-[1.05rem] font-semibold leading-snug tracking-tight text-white drop-shadow-sm">
               {devotion.title}
             </p>
             {devotion.reference ? (
-              <p className="mt-0.5 truncate text-xs text-night-500">{devotion.reference}</p>
+              <p className="mt-0.5 truncate text-xs text-sand-200/75">{devotion.reference}</p>
             ) : null}
           </div>
-          <span className="mobile-devotion-spotlight-cta shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold text-white">
+        </div>
+
+        <div className="mobile-devotion-archive-footer flex items-center justify-between gap-3 px-4 py-3">
+          <p className="text-xs font-medium text-night-500">{devotion.readingTime}</p>
+          <span className="mobile-devotion-spotlight-cta shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold text-white">
             Read
           </span>
         </div>
@@ -70,46 +65,47 @@ type MobileDevotionFeaturedHeroProps = {
 };
 
 export function MobileDevotionFeaturedHero({ devotion }: MobileDevotionFeaturedHeroProps) {
-  const artworkUrl = getDevotionArtwork(devotion, "square");
+  const artworkUrl = getDevotionArtwork(devotion, "wide");
 
   return (
     <section>
       <h2 className="mobile-section-title mb-2.5 px-0.5">Today&apos;s Word</h2>
-      <MobilePremiumFrame variant="surface" className="mobile-devotion-featured-hero">
-        <Link
-          href={devotionHref(devotion)}
-          className="group flex min-h-[6.25rem] items-stretch bg-gradient-to-br from-teal-50/95 via-white to-amber-50/75 transition active:scale-[0.99]"
-        >
-          <div className="relative w-[5.5rem] shrink-0 bg-teal-800">
+      <MobilePremiumFrame variant="cinema" className="mobile-devotion-featured-hero">
+        <Link href={devotionHref(devotion)} className="group block transition active:scale-[0.99]">
+          <div className="relative aspect-[4/3] min-h-[13rem] w-full sm:min-h-[14rem]">
             {artworkUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={artworkUrl}
                 alt=""
-                className="h-full min-h-[6.25rem] w-full object-cover transition duration-500 group-active:scale-[1.04]"
+                className="mobile-premium-4k__media absolute inset-0 h-full w-full object-cover"
               />
-            ) : null}
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-clay-800 via-night-900 to-sand-200/40" />
+            )}
             <div
-              className="pointer-events-none absolute inset-y-0 right-0 w-px bg-amber-400/50"
+              className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-night-950/92 via-night-950/48 to-clay-900/10"
               aria-hidden
             />
-          </div>
-
-          <div className="flex min-w-0 flex-1 items-center gap-3 px-3.5 py-3.5">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-teal-700">
-                {devotion.date} · {devotion.readingTime}
-              </p>
-              <p className="mt-1 font-display text-[1.08rem] font-semibold leading-snug tracking-tight text-night-900">
-                {devotion.title}
-              </p>
-              {devotion.reference ? (
-                <p className="mt-0.5 truncate text-xs text-night-500">{devotion.reference}</p>
-              ) : null}
+            <div className="relative z-20 flex h-full min-h-[13rem] flex-col justify-between p-4 sm:min-h-[14rem]">
+              <span className="mobile-devotion-featured-badge inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-sand-100 backdrop-blur-sm">
+                Featured
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-clay-300">
+                  {devotion.date} · {devotion.readingTime}
+                </p>
+                <h3 className="mt-1.5 font-display text-[1.35rem] font-semibold leading-[1.12] tracking-tight text-white drop-shadow-md">
+                  {devotion.title}
+                </h3>
+                {devotion.reference ? (
+                  <p className="mt-1 text-sm text-sand-200/80">{devotion.reference}</p>
+                ) : null}
+                <span className="mobile-devotion-spotlight-cta mt-3 inline-flex rounded-full px-4 py-2 text-xs font-bold text-white">
+                  Open devotion
+                </span>
+              </div>
             </div>
-            <span className="mobile-devotion-spotlight-cta shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold text-white">
-              Open
-            </span>
           </div>
         </Link>
       </MobilePremiumFrame>
@@ -122,6 +118,7 @@ export function MobileDevotionsPageHeader() {
     <MobilePageHero
       eyebrow="Daily"
       title="Devotions"
+      accentWord="Devotions"
       description="Read or listen to today's word, then browse the library."
     />
   );

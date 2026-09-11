@@ -67,31 +67,33 @@ function DevotionMobileReaderHeader({
 
   return (
     <MobilePremiumFrame variant="surface" className="mobile-devotion-reader-header mb-4">
-      <div className="flex min-h-[7rem] items-stretch bg-gradient-to-br from-teal-50/95 via-white to-amber-50/75">
+      <div className="relative flex min-h-[8.5rem] items-end overflow-hidden bg-clay-800/20">
         {artworkUrl ? (
-          <div className="relative w-[5.75rem] shrink-0 bg-teal-900/10">
+          <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={artworkUrl}
               alt=""
-              className="h-full min-h-[7rem] w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
             />
             <div
-              className="pointer-events-none absolute inset-y-0 right-0 w-px bg-teal-400/35"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/92 via-night-950/55 to-night-950/15"
               aria-hidden
             />
-          </div>
-        ) : null}
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-clay-800 via-night-900 to-sand-200/40" />
+        )}
 
-        <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3.5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-teal-700">
+        <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-end px-4 py-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-clay-300">
             {eyebrow} · {devotion.date} · {devotion.readingTime}
           </p>
-          <h1 className="mt-1 font-display text-[1.2rem] font-semibold leading-snug tracking-tight text-night-900">
+          <h1 className="mt-1 font-display text-[1.2rem] font-semibold leading-snug tracking-tight text-white drop-shadow-sm">
             {devotion.title}
           </h1>
           {devotion.reference ? (
-            <p className="mt-1 text-xs text-night-500">{devotion.reference}</p>
+            <p className="mt-1 text-xs text-sand-200/80">{devotion.reference}</p>
           ) : null}
         </div>
       </div>
@@ -122,7 +124,7 @@ export function DevotionDetail({
         <div className="mb-4">
           <Link
             href={backHref}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800 hover:text-teal-950"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-clay-700 hover:text-clay-900"
           >
             ← {backLabel}
           </Link>
