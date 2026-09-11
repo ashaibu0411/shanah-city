@@ -1,19 +1,19 @@
 import { useDatabase } from "@/lib/use-database";
 import {
   formatPrayerAssignmentDate,
-  listPrayerAssignmentDates,
-  PRAYER_SLOT_META,
+  listScheduleAssignmentDates,
+  SCHEDULE_SLOT_META,
   summarizePrayerDates,
   type PrayerRotationPoolMember,
   type PrayerScheduleRotationConfig,
-  type PrayerSlotType,
+  type ScheduleSlotType,
 } from "@/lib/prayer-schedule-types";
 import * as prayerRotationDb from "@/lib/stores/prayer-rotation-db";
 import * as prayerRotationJson from "@/lib/stores/prayer-rotation-json";
 
 const store = () => (useDatabase() ? prayerRotationDb : prayerRotationJson);
 
-export const getPrayerRotationConfig = (slotType: PrayerSlotType) =>
+export const getPrayerRotationConfig = (slotType: ScheduleSlotType) =>
   store().getPrayerRotationConfig(slotType);
 
 export const savePrayerRotationConfig = (
@@ -24,17 +24,17 @@ export const listPrayerAssignments = (
   options: Parameters<typeof prayerRotationJson.listPrayerAssignments>[0],
 ) => store().listPrayerAssignments(options);
 
-export const getPrayerAssignment = (slotType: PrayerSlotType, assignmentDate: string) =>
+export const getPrayerAssignment = (slotType: ScheduleSlotType, assignmentDate: string) =>
   store().getPrayerAssignment(slotType, assignmentDate);
 
-export const publishPrayerAssignments = (slotType: PrayerSlotType, since?: string) =>
+export const publishPrayerAssignments = (slotType: ScheduleSlotType, since?: string) =>
   store().publishPrayerAssignments(slotType, since);
 
-export const markPrayerAssignmentsNotified = (slotType: PrayerSlotType, userIds: string[]) =>
+export const markPrayerAssignmentsNotified = (slotType: ScheduleSlotType, userIds: string[]) =>
   store().markPrayerAssignmentsNotified(slotType, userIds);
 
 export async function listUpcomingPrayerAssignments(
-  slotType: PrayerSlotType,
+  slotType: ScheduleSlotType,
   config?: PrayerScheduleRotationConfig,
 ) {
   const rotation = config ?? (await getPrayerRotationConfig(slotType));
@@ -47,7 +47,7 @@ export async function listUpcomingPrayerAssignments(
 }
 
 export async function generatePrayerSchedule(input: {
-  slotType: PrayerSlotType;
+  slotType: ScheduleSlotType;
   startDate?: string;
   weeksAhead?: number;
   overwrite?: boolean;
@@ -55,12 +55,12 @@ export async function generatePrayerSchedule(input: {
 }) {
   const config = await getPrayerRotationConfig(input.slotType);
   if (config.pool.length === 0) {
-    throw new Error(`Add members to the ${PRAYER_SLOT_META[input.slotType].label} rotation pool first.`);
+    throw new Error(`Add members to the ${SCHEDULE_SLOT_META[input.slotType].label} rotation pool first.`);
   }
 
   const startDate = input.startDate?.trim() || new Date().toISOString().slice(0, 10);
   const weeksAhead = input.weeksAhead ?? config.weeksAhead;
-  const dates = listPrayerAssignmentDates(
+  const dates = listScheduleAssignmentDates(
     input.slotType,
     startDate,
     weeksAhead,
@@ -111,7 +111,7 @@ export async function generatePrayerSchedule(input: {
 }
 
 export async function approvePrayerSchedule(input: {
-  slotType: PrayerSlotType;
+  slotType: ScheduleSlotType;
   actor: { id: string; name: string };
 }) {
   const config = await getPrayerRotationConfig(input.slotType);
@@ -167,4 +167,4 @@ export function groupAssignmentsByUser(
   }));
 }
 
-export type { PrayerRotationPoolMember, PrayerScheduleRotationConfig, PrayerSlotType };
+export type { PrayerRotationPoolMember, PrayerScheduleRotationConfig, ScheduleSlotType };

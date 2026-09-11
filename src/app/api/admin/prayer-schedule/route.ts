@@ -10,8 +10,8 @@ import {
   listUpcomingPrayerAssignments,
   savePrayerRotationConfig,
   type PrayerRotationPoolMember,
-  type PrayerSlotType,
 } from "@/lib/prayer-rotation-server";
+import { parseScheduleSlotType } from "@/lib/prayer-schedule-types";
 
 async function requireAdmin() {
   const cookieStore = await cookies();
@@ -29,10 +29,6 @@ async function requireAdmin() {
   return { user };
 }
 
-function parseSlotType(value: unknown): PrayerSlotType | null {
-  return value === "evening" ? "evening" : value === "morning" ? "morning" : null;
-}
-
 function parsePool(value: unknown): PrayerRotationPoolMember[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -44,26 +40,42 @@ function parsePool(value: unknown): PrayerRotationPoolMember[] {
     .filter((entry): entry is PrayerRotationPoolMember => Boolean(entry));
 }
 
+function searchMembers(people: Awaited<ReturnType<typeof getAdminPeopleDirectory>>, lookup: string) {
+  const needle = lookup.toLowerCase();
+  return people
+    .filter((person) => {
+      const haystack = [person.name, person.email, person.phone ?? ""].join(" ").toLowerCase();
+      return haystack.includes(needle);
+    })
+    .slice(0, 8)
+    .map((person) => ({ id: person.id, name: person.name }));
+}
+
 export async function GET(request: Request) {
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
 
   const { searchParams } = new URL(request.url);
-  const slotType = parseSlotType(searchParams.get("slot"));
-  if (!slotType) {
-    return NextResponse.json({ error: "slot=morning or slot=evening is required." }, { status: 400 });
+  const lookup = searchParams.get("lookup")?.trim();
+
+  if (lookup) {
+    const people = await getAdminPeopleDirectory(auth.user!.id);
+    return NextResponse.json({ members: searchMembers(people, lookup) });
   }
 
-  const [config, assignments, people] = await Promise.all([
+  const slotType = parseScheduleSlotType(searchParams.get("slot"));
+  if (!slotType) {
+    return NextResponse.json({ error: "slot is required." }, { status: 400 });
+  }
+
+  const [config, assignments] = await Promise.all([
     getPrayerRotationConfig(slotType),
     listUpcomingPrayerAssignments(slotType),
-    getAdminPeopleDirectory(auth.user!.id),
   ]);
 
   return NextResponse.json({
     config,
     assignments,
-    members: people.map((person) => ({ id: person.id, name: person.name })),
   });
 }
 
@@ -72,7 +84,7 @@ export async function POST(request: Request) {
   if (auth.error) return auth.error;
 
   const body = await request.json();
-  const slotType = parseSlotType(body.slotType ?? body.slot);
+  const slotType = parseScheduleSlotType(body.slotType ?? body.slot);
   if (!slotType) {
     return NextResponse.json({ error: "slotType is required." }, { status: 400 });
   }
@@ -126,7 +138,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ config });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not update prayer schedule." },
+      { error: error instanceof Error ? error.message : "Could not update schedule rotation." },
       { status: 400 },
     );
   }

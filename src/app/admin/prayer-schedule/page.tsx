@@ -22,8 +22,8 @@ export default async function AdminPrayerSchedulePage() {
     <>
       <PageHeader
         eyebrow="Admin"
-        title="Prayer rotations"
-        description="Create Shift Your Morning and Shift Your Evening leader schedules, then approve and send them to members in the app."
+        title="Schedule rotations"
+        description="Create leader rotations for Shift Your Morning, Shift Your Evening, Friday Glory Encounter preaching, and Sunday opening prayer. Add only the people who belong in each pool, then approve and send schedules through the app."
         sectionIndex={0}
         accentWord="rotations"
       />

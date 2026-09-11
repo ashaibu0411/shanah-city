@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RotationPoolEditor } from "@/components/admin/RotationPoolEditor";
 import { Button, Card } from "@/components/ui";
 import {
   formatPrayerAssignmentDate,
-  PRAYER_SLOT_META,
+  SCHEDULE_SLOT_GROUPS,
+  SCHEDULE_SLOT_META,
   type PrayerRotationPoolMember,
   type PrayerScheduleRotationConfig,
-  type PrayerSlotType,
+  type ScheduleSlotType,
 } from "@/lib/prayer-schedule-types";
-
-type RosterMember = { id: string; name: string };
 
 type Assignment = {
   assignmentDate: string;
@@ -20,9 +20,8 @@ type Assignment = {
 };
 
 export function AdminPrayerSchedulePanel() {
-  const [slotType, setSlotType] = useState<PrayerSlotType>("morning");
+  const [slotType, setSlotType] = useState<ScheduleSlotType>("morning");
   const [config, setConfig] = useState<PrayerScheduleRotationConfig | null>(null);
-  const [members, setMembers] = useState<RosterMember[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [pool, setPool] = useState<PrayerRotationPoolMember[]>([]);
   const [weeksAhead, setWeeksAhead] = useState(8);
@@ -40,12 +39,11 @@ export function AdminPrayerSchedulePanel() {
     setLoading(false);
 
     if (!response.ok) {
-      setMessage(data.error ?? "Could not load prayer schedule.");
+      setMessage(data.error ?? "Could not load schedule rotation.");
       return;
     }
 
     setConfig(data.config);
-    setMembers(data.members ?? []);
     setAssignments(data.assignments ?? []);
     setPool(data.config.pool ?? []);
     setWeeksAhead(data.config.weeksAhead ?? 8);
@@ -55,14 +53,6 @@ export function AdminPrayerSchedulePanel() {
   useEffect(() => {
     load(slotType);
   }, [slotType]);
-
-  function togglePoolMember(member: RosterMember) {
-    setPool((current) => {
-      const exists = current.some((entry) => entry.userId === member.id);
-      if (exists) return current.filter((entry) => entry.userId !== member.id);
-      return [...current, { userId: member.id, name: member.name }];
-    });
-  }
 
   async function saveConfig() {
     setSaving(true);
@@ -98,7 +88,7 @@ export function AdminPrayerSchedulePanel() {
 
   async function generateSchedule(overwrite = false) {
     if (pool.length === 0) {
-      setMessage("Select at least one member for the rotation pool.");
+      setMessage("Add at least one member to the rotation pool first.");
       return;
     }
 
@@ -139,7 +129,7 @@ export function AdminPrayerSchedulePanel() {
     }
 
     const confirmed = window.confirm(
-      `Approve and send this ${PRAYER_SLOT_META[slotType].label} schedule to everyone on the rotation list?`,
+      `Approve and send this ${SCHEDULE_SLOT_META[slotType].label} schedule to everyone on the rotation list?`,
     );
     if (!confirmed) return;
 
@@ -157,7 +147,7 @@ export function AdminPrayerSchedulePanel() {
       setMessage(
         `Schedule approved. Sent to ${data.notify?.leaderSent ?? 0} assigned member${
           (data.notify?.leaderSent ?? 0) === 1 ? "" : "s"
-        } and ${data.notify?.groupSent ?? 0} prayer ministry notification${
+        } and ${data.notify?.groupSent ?? 0} group notification${
           (data.notify?.groupSent ?? 0) === 1 ? "" : "s"
         }.`,
       );
@@ -169,35 +159,43 @@ export function AdminPrayerSchedulePanel() {
   }
 
   if (loading && !config) {
-    return <p className="text-sm text-night-500">Loading prayer schedules…</p>;
+    return <p className="text-sm text-night-500">Loading schedule rotations…</p>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2">
-        {(["morning", "evening"] as PrayerSlotType[]).map((slot) => (
-          <button
-            key={slot}
-            type="button"
-            onClick={() => setSlotType(slot)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              slotType === slot
-                ? "bg-night-900 text-sand-50"
-                : "bg-sand-100 text-night-700 hover:bg-sand-200"
-            }`}
-          >
-            {PRAYER_SLOT_META[slot].label}
-          </button>
-        ))}
-      </div>
+      {SCHEDULE_SLOT_GROUPS.map((group) => (
+        <div key={group.id}>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-night-500">
+            {group.label}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {group.slots.map((slot) => (
+              <button
+                key={slot}
+                type="button"
+                onClick={() => setSlotType(slot)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  slotType === slot
+                    ? "bg-night-900 text-sand-50"
+                    : "bg-sand-100 text-night-700 hover:bg-sand-200"
+                }`}
+              >
+                {SCHEDULE_SLOT_META[slot].label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
 
       <Card>
         <h3 className="font-display text-lg font-semibold text-night-900">
-          {PRAYER_SLOT_META[slotType].label} rotation
+          {SCHEDULE_SLOT_META[slotType].label} rotation
         </h3>
         <p className="mt-2 text-sm text-night-600">
-          Build a leader rotation for {PRAYER_SLOT_META[slotType].whenLabel}. When you approve the
-          schedule, each assigned member gets a notification with their dates.
+          Build a leader rotation for {SCHEDULE_SLOT_META[slotType].whenLabel}. Add only the people
+          who should be in this pool, generate the schedule, then approve and send it through the
+          app.
         </p>
 
         {config?.status === "published" && (
@@ -233,36 +231,7 @@ export function AdminPrayerSchedulePanel() {
           </label>
         </div>
 
-        <div className="mt-4">
-          <p className="text-sm font-semibold text-night-800">Rotation pool</p>
-          <p className="mt-1 text-xs text-night-500">
-            Choose members with app accounts. The app rotates through this list on valid prayer days.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {members.map((member) => {
-              const selected = pool.some((entry) => entry.userId === member.id);
-              return (
-                <button
-                  key={member.id}
-                  type="button"
-                  onClick={() => togglePoolMember(member)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    selected
-                      ? "bg-copper-600 text-white"
-                      : "bg-sand-100 text-night-700 hover:bg-sand-200"
-                  }`}
-                >
-                  {member.name}
-                </button>
-              );
-            })}
-          </div>
-          {pool.length > 0 && (
-            <p className="mt-3 text-xs text-night-500">
-              Order: {pool.map((entry) => entry.name).join(" → ")}
-            </p>
-          )}
-        </div>
+        <RotationPoolEditor pool={pool} onChange={setPool} />
 
         <div className="mt-4 flex flex-wrap gap-2">
           <Button onClick={saveConfig} disabled={saving}>
@@ -294,7 +263,7 @@ export function AdminPrayerSchedulePanel() {
                     {formatPrayerAssignmentDate(entry.assignmentDate)}
                   </p>
                   <p className="text-xs text-night-500">
-                    Leader: {entry.userName} · {entry.status}
+                    {entry.userName} · {entry.status}
                   </p>
                 </div>
               </li>

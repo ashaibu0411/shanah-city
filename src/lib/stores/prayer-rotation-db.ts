@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/db";
 import {
   defaultPrayerRotationConfig,
+  parseScheduleSlotType,
+  SCHEDULE_SLOT_TYPES,
   type PrayerAssignment,
   type PrayerRotationPoolMember,
   type PrayerScheduleRotationConfig,
-  type PrayerSlotType,
+  type ScheduleSlotType,
 } from "@/lib/prayer-schedule-types";
 
 function parsePool(value: unknown): PrayerRotationPoolMember[] {
@@ -38,7 +40,7 @@ function mapRotation(record: {
   updatedAt: Date;
 }): PrayerScheduleRotationConfig {
   return {
-    slotType: record.slotType === "evening" ? "evening" : "morning",
+    slotType: parseScheduleSlotType(record.slotType) ?? "morning",
     pool: parsePool(record.pool),
     rotationIndex: record.rotationIndex,
     skipDates: parseSkipDates(record.skipDates),
@@ -67,7 +69,7 @@ function mapAssignment(record: {
 }): PrayerAssignment {
   return {
     id: record.id,
-    slotType: record.slotType === "evening" ? "evening" : "morning",
+    slotType: parseScheduleSlotType(record.slotType) ?? "morning",
     assignmentDate: record.assignmentDate,
     userId: record.userId,
     userName: record.userName,
@@ -79,7 +81,7 @@ function mapAssignment(record: {
   };
 }
 
-export async function getPrayerRotationConfig(slotType: PrayerSlotType) {
+export async function getPrayerRotationConfig(slotType: ScheduleSlotType) {
   const record = await prisma.prayerScheduleRotation.findUnique({
     where: { slotType },
   });
@@ -87,7 +89,7 @@ export async function getPrayerRotationConfig(slotType: PrayerSlotType) {
 }
 
 export async function savePrayerRotationConfig(input: {
-  slotType: PrayerSlotType;
+  slotType: ScheduleSlotType;
   pool: PrayerRotationPoolMember[];
   rotationIndex?: number;
   skipDates?: string[];
@@ -139,7 +141,7 @@ export async function savePrayerRotationConfig(input: {
 }
 
 export async function listPrayerAssignments(options: {
-  slotType?: PrayerSlotType;
+  slotType?: ScheduleSlotType;
   since?: string;
   until?: string;
   userId?: string;
@@ -168,7 +170,7 @@ export async function listPrayerAssignments(options: {
   return records.map(mapAssignment);
 }
 
-export async function getPrayerAssignment(slotType: PrayerSlotType, assignmentDate: string) {
+export async function getPrayerAssignment(slotType: ScheduleSlotType, assignmentDate: string) {
   const record = await prisma.prayerAssignment.findUnique({
     where: {
       slotType_assignmentDate: { slotType, assignmentDate },
@@ -178,7 +180,7 @@ export async function getPrayerAssignment(slotType: PrayerSlotType, assignmentDa
 }
 
 export async function savePrayerAssignment(input: {
-  slotType: PrayerSlotType;
+  slotType: ScheduleSlotType;
   assignmentDate: string;
   userId: string;
   userName: string;
@@ -226,7 +228,7 @@ export async function savePrayerAssignment(input: {
   return mapAssignment(record);
 }
 
-export async function publishPrayerAssignments(slotType: PrayerSlotType, since?: string) {
+export async function publishPrayerAssignments(slotType: ScheduleSlotType, since?: string) {
   const now = new Date();
   const where: { slotType: string; status?: string; assignmentDate?: { gte: string } } = {
     slotType,
@@ -244,7 +246,7 @@ export async function publishPrayerAssignments(slotType: PrayerSlotType, since?:
   });
 }
 
-export async function markPrayerAssignmentsNotified(slotType: PrayerSlotType, userIds: string[]) {
+export async function markPrayerAssignmentsNotified(slotType: ScheduleSlotType, userIds: string[]) {
   if (userIds.length === 0) return;
   const now = new Date();
   await prisma.prayerAssignment.updateMany({

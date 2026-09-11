@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui";
-import { formatPrayerAssignmentDate, PRAYER_SLOT_META } from "@/lib/prayer-schedule-types";
+import {
+  formatPrayerAssignmentDate,
+  SCHEDULE_SLOT_META,
+  SCHEDULE_SLOT_TYPES,
+  type ScheduleSlotType,
+} from "@/lib/prayer-schedule-types";
 
 type Assignment = {
   assignmentDate: string;
@@ -10,14 +15,7 @@ type Assignment = {
 };
 
 type ScheduleResponse = {
-  mine: {
-    morning: Assignment[];
-    evening: Assignment[];
-  };
-  team: {
-    morning: Assignment[];
-    evening: Assignment[];
-  };
+  mine: Record<ScheduleSlotType, Assignment[]>;
 };
 
 export function PrayerScheduleMemberPanel() {
@@ -34,51 +32,28 @@ export function PrayerScheduleMemberPanel() {
       .catch(() => setLoading(false));
   }, []);
 
-  if (loading) return null;
+  if (loading || !data) return null;
 
-  const myMorning = data?.mine.morning ?? [];
-  const myEvening = data?.mine.evening ?? [];
-  const hasMine = myMorning.length > 0 || myEvening.length > 0;
-  const hasTeam =
-    (data?.team.morning.length ?? 0) > 0 || (data?.team.evening.length ?? 0) > 0;
-
-  if (!hasMine && !hasTeam) return null;
+  const mySlots = SCHEDULE_SLOT_TYPES.filter((slot) => (data.mine[slot]?.length ?? 0) > 0);
+  if (mySlots.length === 0) return null;
 
   return (
     <Card className="mb-6">
-      <h3 className="font-display text-lg font-semibold text-night-900">Prayer leader schedule</h3>
-      {hasMine ? (
-        <div className="mt-4 space-y-4">
-          {myMorning.length > 0 && (
-            <div>
-              <p className="text-sm font-semibold text-night-800">{PRAYER_SLOT_META.morning.label}</p>
-              <ul className="mt-2 space-y-1 text-sm text-night-700">
-                {myMorning.map((entry) => (
-                  <li key={`morning-${entry.assignmentDate}`}>
-                    {formatPrayerAssignmentDate(entry.assignmentDate)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {myEvening.length > 0 && (
-            <div>
-              <p className="text-sm font-semibold text-night-800">{PRAYER_SLOT_META.evening.label}</p>
-              <ul className="mt-2 space-y-1 text-sm text-night-700">
-                {myEvening.map((entry) => (
-                  <li key={`evening-${entry.assignmentDate}`}>
-                    {formatPrayerAssignmentDate(entry.assignmentDate)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      ) : (
-        <p className="mt-3 text-sm text-night-600">
-          Published prayer rotations are listed below when you are assigned to lead.
-        </p>
-      )}
+      <h3 className="font-display text-lg font-semibold text-night-900">Your schedule assignments</h3>
+      <div className="mt-4 space-y-4">
+        {mySlots.map((slot) => (
+          <div key={slot}>
+            <p className="text-sm font-semibold text-night-800">{SCHEDULE_SLOT_META[slot].label}</p>
+            <ul className="mt-2 space-y-1 text-sm text-night-700">
+              {data.mine[slot].map((entry) => (
+                <li key={`${slot}-${entry.assignmentDate}`}>
+                  {formatPrayerAssignmentDate(entry.assignmentDate)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }

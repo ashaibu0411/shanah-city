@@ -2,19 +2,19 @@ import {
   groupAssignmentsByUser,
   listUpcomingPrayerAssignments,
   markPrayerAssignmentsNotified,
-  type PrayerSlotType,
+  type ScheduleSlotType,
 } from "@/lib/prayer-rotation-server";
 import {
-  PRAYER_MINISTRY_GROUP_ID,
-  PRAYER_SLOT_META,
   formatPrayerAssignmentDate,
+  SCHEDULE_SLOT_META,
 } from "@/lib/prayer-schedule-types";
 import {
   notifyPrayerLeaderAssignments,
   notifyPrayerSchedulePublished,
 } from "@/lib/push-server";
 
-export async function publishPrayerScheduleNotifications(slotType: PrayerSlotType) {
+export async function publishPrayerScheduleNotifications(slotType: ScheduleSlotType) {
+  const meta = SCHEDULE_SLOT_META[slotType];
   const assignments = await listUpcomingPrayerAssignments(slotType);
   const published = assignments.filter((entry) => entry.status === "published");
   if (published.length === 0) {
@@ -28,12 +28,12 @@ export async function publishPrayerScheduleNotifications(slotType: PrayerSlotTyp
     .join("; ");
 
   const groupResult = await notifyPrayerSchedulePublished({
-    groupId: PRAYER_MINISTRY_GROUP_ID,
+    groupId: meta.notifyGroupId,
     slotType,
     body:
       scheduleSummary.length > 0
         ? scheduleSummary
-        : `${PRAYER_SLOT_META[slotType].label} rotation is ready in the app.`,
+        : `${meta.label} rotation is ready in the app.`,
   });
 
   let leaderSent = 0;
@@ -61,7 +61,7 @@ export async function publishPrayerScheduleNotifications(slotType: PrayerSlotTyp
 }
 
 export async function approveAndNotifyPrayerSchedule(input: {
-  slotType: PrayerSlotType;
+  slotType: ScheduleSlotType;
   actor: { id: string; name: string };
 }) {
   const { approvePrayerSchedule } = await import("@/lib/prayer-rotation-server");

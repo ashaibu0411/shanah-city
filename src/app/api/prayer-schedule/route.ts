@@ -6,15 +6,12 @@ import {
   listUpcomingPrayerAssignments,
 } from "@/lib/prayer-rotation-server";
 import {
-  PRAYER_SLOT_META,
-  type PrayerSlotType,
+  SCHEDULE_SLOT_META,
+  SCHEDULE_SLOT_TYPES,
+  type ScheduleSlotType,
 } from "@/lib/prayer-schedule-types";
 
-function parseSlotType(value: string | null): PrayerSlotType | null {
-  return value === "evening" ? "evening" : value === "morning" ? "morning" : null;
-}
-
-export async function GET(request: Request) {
+export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -23,36 +20,44 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const slotType = parseSlotType(searchParams.get("slot"));
   const since = new Date().toISOString().slice(0, 10);
+  const allAssignments = await Promise.all(
+    SCHEDULE_SLOT_TYPES.map((slotType) => listUpcomingPrayerAssignments(slotType)),
+  );
 
-  const [morning, evening] = await Promise.all([
-    listUpcomingPrayerAssignments("morning"),
-    listUpcomingPrayerAssignments("evening"),
-  ]);
+  const bySlot = Object.fromEntries(
+    SCHEDULE_SLOT_TYPES.map((slotType, index) => [slotType, allAssignments[index]]),
+  ) as Record<ScheduleSlotType, Awaited<ReturnType<typeof listUpcomingPrayerAssignments>>>;
 
-  const filterPublishedForUser = (slot: PrayerSlotType) =>
-    (slot === slotType ? (slotType === "morning" ? morning : evening) : slot === "morning" ? morning : evening)
-      .filter((entry) => entry.status === "published" && entry.userId === user.id && entry.assignmentDate >= since);
+  const mine = Object.fromEntries(
+    SCHEDULE_SLOT_TYPES.map((slotType) => [
+      slotType,
+      bySlot[slotType].filter(
+        (entry) =>
+          entry.status === "published" &&
+          entry.userId === user.id &&
+          entry.assignmentDate >= since,
+      ),
+    ]),
+  ) as Record<ScheduleSlotType, (typeof bySlot)[ScheduleSlotType]>;
 
-  const mine = {
-    morning: filterPublishedForUser("morning"),
-    evening: filterPublishedForUser("evening"),
-  };
+  const team = Object.fromEntries(
+    SCHEDULE_SLOT_TYPES.map((slotType) => [
+      slotType,
+      bySlot[slotType].filter(
+        (entry) => entry.status === "published" && entry.assignmentDate >= since,
+      ),
+    ]),
+  ) as Record<ScheduleSlotType, (typeof bySlot)[ScheduleSlotType]>;
 
-  const team = {
-    morning: morning.filter((entry) => entry.status === "published" && entry.assignmentDate >= since),
-    evening: evening.filter((entry) => entry.status === "published" && entry.assignmentDate >= since),
-  };
+  const grouped = Object.fromEntries(
+    SCHEDULE_SLOT_TYPES.map((slotType) => [slotType, groupAssignmentsByUser(mine[slotType])]),
+  ) as Record<ScheduleSlotType, ReturnType<typeof groupAssignmentsByUser>>;
 
   return NextResponse.json({
     mine,
-    grouped: {
-      morning: groupAssignmentsByUser(mine.morning),
-      evening: groupAssignmentsByUser(mine.evening),
-    },
+    grouped,
     team,
-    labels: PRAYER_SLOT_META,
+    labels: SCHEDULE_SLOT_META,
   });
 }

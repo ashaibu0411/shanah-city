@@ -2,17 +2,19 @@ import { promises as fs } from "fs";
 import path from "path";
 import {
   defaultPrayerRotationConfig,
+  parseScheduleSlotType,
+  SCHEDULE_SLOT_TYPES,
   type PrayerAssignment,
   type PrayerRotationPoolMember,
   type PrayerScheduleRotationConfig,
-  type PrayerSlotType,
+  type ScheduleSlotType,
 } from "@/lib/prayer-schedule-types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const ROTATION_FILE = path.join(DATA_DIR, "prayer-schedule-rotations.json");
 const ASSIGNMENTS_FILE = path.join(DATA_DIR, "prayer-assignments.json");
 
-type RotationStore = Record<PrayerSlotType, PrayerScheduleRotationConfig>;
+type RotationStore = Record<ScheduleSlotType, PrayerScheduleRotationConfig>;
 
 async function readJson<T>(file: string, fallback: T): Promise<T> {
   try {
@@ -30,19 +32,21 @@ async function writeJson<T>(file: string, data: T) {
 
 async function readRotations(): Promise<RotationStore> {
   const stored = await readJson<Partial<RotationStore>>(ROTATION_FILE, {});
-  return {
-    morning: stored.morning ?? defaultPrayerRotationConfig("morning"),
-    evening: stored.evening ?? defaultPrayerRotationConfig("evening"),
-  };
+  return Object.fromEntries(
+    SCHEDULE_SLOT_TYPES.map((slotType) => [
+      slotType,
+      stored[slotType] ?? defaultPrayerRotationConfig(slotType),
+    ]),
+  ) as RotationStore;
 }
 
-export async function getPrayerRotationConfig(slotType: PrayerSlotType) {
+export async function getPrayerRotationConfig(slotType: ScheduleSlotType) {
   const rotations = await readRotations();
   return rotations[slotType];
 }
 
 export async function savePrayerRotationConfig(input: {
-  slotType: PrayerSlotType;
+  slotType: ScheduleSlotType;
   pool: PrayerRotationPoolMember[];
   rotationIndex?: number;
   skipDates?: string[];
@@ -81,7 +85,7 @@ export async function savePrayerRotationConfig(input: {
 }
 
 export async function listPrayerAssignments(options: {
-  slotType?: PrayerSlotType;
+  slotType?: ScheduleSlotType;
   since?: string;
   until?: string;
   userId?: string;
@@ -97,16 +101,20 @@ export async function listPrayerAssignments(options: {
       if (options.until && entry.assignmentDate > options.until) return false;
       return true;
     })
+    .map((entry) => ({
+      ...entry,
+      slotType: parseScheduleSlotType(entry.slotType) ?? entry.slotType,
+    }))
     .sort((a, b) => a.assignmentDate.localeCompare(b.assignmentDate));
 }
 
-export async function getPrayerAssignment(slotType: PrayerSlotType, assignmentDate: string) {
+export async function getPrayerAssignment(slotType: ScheduleSlotType, assignmentDate: string) {
   const assignments = await listPrayerAssignments({ slotType, since: assignmentDate, until: assignmentDate });
   return assignments[0] ?? null;
 }
 
 export async function savePrayerAssignment(input: {
-  slotType: PrayerSlotType;
+  slotType: ScheduleSlotType;
   assignmentDate: string;
   userId: string;
   userName: string;
@@ -146,7 +154,7 @@ export async function savePrayerAssignment(input: {
   return next;
 }
 
-export async function publishPrayerAssignments(slotType: PrayerSlotType, since?: string) {
+export async function publishPrayerAssignments(slotType: ScheduleSlotType, since?: string) {
   const assignments = await readJson<PrayerAssignment[]>(ASSIGNMENTS_FILE, []);
   const now = new Date().toISOString();
   for (const entry of assignments) {
@@ -159,7 +167,7 @@ export async function publishPrayerAssignments(slotType: PrayerSlotType, since?:
   await writeJson(ASSIGNMENTS_FILE, assignments);
 }
 
-export async function markPrayerAssignmentsNotified(slotType: PrayerSlotType, userIds: string[]) {
+export async function markPrayerAssignmentsNotified(slotType: ScheduleSlotType, userIds: string[]) {
   if (userIds.length === 0) return;
   const assignments = await readJson<PrayerAssignment[]>(ASSIGNMENTS_FILE, []);
   const now = new Date().toISOString();

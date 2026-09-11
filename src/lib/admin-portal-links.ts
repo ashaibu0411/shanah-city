@@ -56,8 +56,8 @@ export const ADMIN_PORTAL_LINKS = [
   },
   {
     href: "/admin/prayer-schedule",
-    label: "Prayer rotations",
-    description: "Shift Your Morning & Evening leader schedules",
+    label: "Schedule rotations",
+    description: "Prayer, preaching, and opening prayer leader schedules",
     adminOnly: true,
   },
   {

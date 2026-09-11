@@ -16,6 +16,7 @@ import {
   shouldDropNativeToken,
 } from "@/lib/native-push-server";
 import { withPushBranding } from "@/lib/push-branding";
+import { SCHEDULE_SLOT_META, type ScheduleSlotType } from "@/lib/prayer-schedule-types";
 import {
   emptyPushDeliveryResult,
   getScheduledPushEligibility,
@@ -498,44 +499,38 @@ export async function notifyWorshipUploadDutyReminder(input: {
 
 export async function notifyPrayerSchedulePublished(input: {
   groupId: string;
-  slotType: "morning" | "evening";
+  slotType: ScheduleSlotType;
   body: string;
 }) {
-  const title =
-    input.slotType === "morning"
-      ? "Shift Your Morning schedule published"
-      : "Shift Your Evening schedule published";
+  const meta = SCHEDULE_SLOT_META[input.slotType];
   return sendPushToGroupMembers(
     input.groupId,
     {
-      title,
+      title: meta.publishedTitle,
       body: input.body,
-      url: "/meetings",
+      url: meta.memberUrl,
     },
-    "devotions",
+    meta.pushPreference,
   );
 }
 
 export async function notifyPrayerLeaderAssignments(input: {
   userId: string;
-  slotType: "morning" | "evening";
+  slotType: ScheduleSlotType;
   datesSummary: string;
   nextDateLabel: string;
 }) {
-  const title =
-    input.slotType === "morning"
-      ? "Your Shift Your Morning dates"
-      : "Your Shift Your Evening dates";
+  const meta = SCHEDULE_SLOT_META[input.slotType];
   return sendPushToUsers(
     [input.userId],
     {
-      title,
+      title: meta.assignedTitle,
       body: input.nextDateLabel
-        ? `You're scheduled to lead on ${input.datesSummary}. Next up: ${input.nextDateLabel}.`
-        : `You're scheduled to lead on ${input.datesSummary}.`,
-      url: "/meetings",
+        ? `You're scheduled on ${input.datesSummary}. Next up: ${input.nextDateLabel}.`
+        : `You're scheduled on ${input.datesSummary}.`,
+      url: meta.memberUrl,
     },
-    "devotions",
+    meta.pushPreference,
   );
 }
 
