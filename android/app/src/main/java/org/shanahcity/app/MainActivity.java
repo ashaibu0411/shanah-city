@@ -1,5 +1,6 @@
 package org.shanahcity.app;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -15,6 +16,7 @@ public class MainActivity extends BridgeActivity {
 
     WebView webView = getBridge().getWebView();
     if (webView != null) {
+      webView.setBackgroundColor(Color.parseColor("#FAF7F2"));
       // Keep long-press paste/copy menus working inside form fields.
       webView.setOnLongClickListener(view -> false);
       webView.setLongClickable(true);

@@ -19,6 +19,24 @@ function removeBootSplash() {
   document.getElementById("native-boot-splash")?.remove();
 }
 
+async function waitForBootLogo() {
+  const img = document.querySelector<HTMLImageElement>("#native-boot-splash img");
+  if (!img) return;
+
+  if (img.complete && img.naturalWidth > 0) {
+    await waitForPaint();
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      void waitForPaint().then(resolve);
+    };
+    img.addEventListener("load", done, { once: true });
+    img.addEventListener("error", done, { once: true });
+  });
+}
+
 export function NativeAppBoot() {
   useEffect(() => {
     if (!isNativeAppPlatform()) return;
@@ -32,10 +50,10 @@ export function NativeAppBoot() {
         import("@/lib/native-push-client"),
       ]);
 
-      await waitForPaint();
+      await waitForBootLogo();
 
       try {
-        await SplashScreen.hide();
+        await SplashScreen.hide({ fadeOutDuration: 0 });
       } catch {
         // Splash may already be hidden.
       }

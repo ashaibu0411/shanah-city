@@ -27,7 +27,7 @@ jobs:
 
     env:
       BUNDLE_ID: org.shanahcity.app
-      MARKETING_VERSION: 1.0.17
+      MARKETING_VERSION: 1.0.18
       XCODE_PROJECT: ios/App/App.xcodeproj
       XCODE_SCHEME: App
       CAPACITOR_SERVER_URL: https://shanah-city.vercel.app
@@ -53,6 +53,9 @@ jobs:
 
       - name: Generate iOS app icon
         run: node scripts/generate-ios-icon.cjs
+
+      - name: Generate splash screens
+        run: npm run mobile:splash
 
       - name: Sync Capacitor iOS
         run: npx cap sync ios

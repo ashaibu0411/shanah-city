@@ -64,6 +64,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate splash screens
+        run: npm run mobile:splash
+
       - name: Sync Capacitor Android project
         run: npx cap sync android
 
