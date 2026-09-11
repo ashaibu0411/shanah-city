@@ -133,3 +133,56 @@ export async function listUpcomingLeaderAssignments(config?: WorshipScheduleRota
       uploadDutyUserName: plan.uploadDutyUserName,
     }));
 }
+
+export async function approveWorshipRotationSchedule(actor: { id: string; name: string }) {
+  const config = await getWorshipRotationConfig();
+  const since = new Date().toISOString().slice(0, 10);
+  const untilDate = new Date();
+  untilDate.setDate(untilDate.getDate() + config.weeksAhead * 7);
+  const until = untilDate.toISOString().slice(0, 10);
+  const plans = await listWorshipPlans({ since, until, serviceTime: config.serviceTime });
+
+  let publishedCount = 0;
+  for (const plan of plans) {
+    if (plan.status === "published") continue;
+    await saveWorshipPlan({
+      serviceDate: plan.serviceDate,
+      serviceTime: plan.serviceTime,
+      serviceType: plan.serviceType,
+      title: plan.title ?? undefined,
+      songs: plan.songs,
+      team: plan.team,
+      rehearsalNotes: plan.rehearsalNotes ?? undefined,
+      rehearsalDate: plan.rehearsalDate ?? undefined,
+      rehearsalTime: plan.rehearsalTime ?? undefined,
+      calendarEventId: plan.calendarEventId ?? undefined,
+      uploadDutyUserId: plan.uploadDutyUserId ?? undefined,
+      uploadDutyUserName: plan.uploadDutyUserName ?? undefined,
+      memberSuggestions: plan.memberSuggestions,
+      status: "published",
+      actor,
+    });
+    publishedCount += 1;
+  }
+
+  const now = new Date();
+  await saveWorshipRotationConfig({
+    pool: config.pool,
+    serviceTime: config.serviceTime,
+    serviceKind: config.serviceKind,
+    rotationIndex: config.rotationIndex,
+    skipDates: config.skipDates,
+    weeksAhead: config.weeksAhead,
+    uploadDutyLeadDays: config.uploadDutyLeadDays,
+    status: "published",
+    publishedAt: now,
+    scheduleNotifiedAt: now,
+    actor,
+  });
+
+  return {
+    publishedCount,
+    config: await getWorshipRotationConfig(),
+    assignments: await listUpcomingLeaderAssignments(),
+  };
+}

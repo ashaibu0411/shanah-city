@@ -32,6 +32,9 @@ function mapRotation(record: {
   skipDates: unknown;
   weeksAhead: number;
   uploadDutyLeadDays: number;
+  status: string;
+  publishedAt: Date | null;
+  scheduleNotifiedAt: Date | null;
   updatedBy: string | null;
   updatedByName: string | null;
   createdAt: Date;
@@ -46,6 +49,9 @@ function mapRotation(record: {
     skipDates: parseSkipDates(record.skipDates),
     weeksAhead: record.weeksAhead,
     uploadDutyLeadDays: record.uploadDutyLeadDays,
+    status: record.status === "published" ? "published" : "draft",
+    publishedAt: record.publishedAt?.toISOString() ?? null,
+    scheduleNotifiedAt: record.scheduleNotifiedAt?.toISOString() ?? null,
     updatedBy: record.updatedBy,
     updatedByName: record.updatedByName,
     createdAt: record.createdAt.toISOString(),
@@ -68,6 +74,9 @@ export async function saveWorshipRotationConfig(input: {
   skipDates?: string[];
   weeksAhead?: number;
   uploadDutyLeadDays?: number;
+  status?: "draft" | "published";
+  publishedAt?: Date | null;
+  scheduleNotifiedAt?: Date | null;
   actor: { id: string; name: string };
 }) {
   const now = new Date();
@@ -83,6 +92,13 @@ export async function saveWorshipRotationConfig(input: {
     skipDates: input.skipDates ?? parseSkipDates(existing?.skipDates),
     weeksAhead: input.weeksAhead ?? existing?.weeksAhead ?? 8,
     uploadDutyLeadDays: input.uploadDutyLeadDays ?? existing?.uploadDutyLeadDays ?? 4,
+    status: input.status ?? existing?.status ?? "draft",
+    publishedAt:
+      input.publishedAt !== undefined ? input.publishedAt : existing?.publishedAt ?? null,
+    scheduleNotifiedAt:
+      input.scheduleNotifiedAt !== undefined
+        ? input.scheduleNotifiedAt
+        : existing?.scheduleNotifiedAt ?? null,
     updatedBy: input.actor.id,
     updatedByName: input.actor.name,
     updatedAt: now,

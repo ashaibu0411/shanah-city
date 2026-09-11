@@ -3,38 +3,29 @@
 import { useEffect, useState } from "react";
 import { Button, Card } from "@/components/ui";
 import {
-  WORSHIP_SERVICE_TIMES,
-  serviceDateTimeLabel,
-  type WorshipRotationPoolMember,
-  type WorshipScheduleRotationConfig,
-} from "@/lib/worship-types";
+  formatPrayerAssignmentDate,
+  PRAYER_SLOT_META,
+  type PrayerRotationPoolMember,
+  type PrayerScheduleRotationConfig,
+  type PrayerSlotType,
+} from "@/lib/prayer-schedule-types";
 
 type RosterMember = { id: string; name: string };
 
 type Assignment = {
-  serviceDate: string;
-  serviceTime: string;
+  assignmentDate: string;
+  userId: string;
+  userName: string;
   status: string;
-  leader?: { userId: string; name: string; role: string };
-  uploadDutyUserId?: string | null;
-  uploadDutyUserName?: string | null;
 };
 
-export function WorshipSchedulePanel({
-  onOpenService,
-  readOnly = false,
-}: {
-  onOpenService?: (serviceDate: string, serviceTime: string) => void;
-  readOnly?: boolean;
-}) {
-  const [config, setConfig] = useState<WorshipScheduleRotationConfig | null>(null);
+export function AdminPrayerSchedulePanel() {
+  const [slotType, setSlotType] = useState<PrayerSlotType>("morning");
+  const [config, setConfig] = useState<PrayerScheduleRotationConfig | null>(null);
   const [members, setMembers] = useState<RosterMember[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [pool, setPool] = useState<WorshipRotationPoolMember[]>([]);
-  const [serviceTime, setServiceTime] = useState("10:00");
-  const [serviceKind, setServiceKind] = useState<"sunday" | "friday">("sunday");
+  const [pool, setPool] = useState<PrayerRotationPoolMember[]>([]);
   const [weeksAhead, setWeeksAhead] = useState(8);
-  const [uploadDutyLeadDays, setUploadDutyLeadDays] = useState(4);
   const [skipDatesText, setSkipDatesText] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,14 +33,14 @@ export function WorshipSchedulePanel({
   const [approving, setApproving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  async function load() {
+  async function load(nextSlot = slotType) {
     setLoading(true);
-    const response = await fetch("/api/worship/schedule");
+    const response = await fetch(`/api/admin/prayer-schedule?slot=${nextSlot}`);
     const data = await response.json();
     setLoading(false);
 
     if (!response.ok) {
-      setMessage(data.error ?? "Could not load schedule settings.");
+      setMessage(data.error ?? "Could not load prayer schedule.");
       return;
     }
 
@@ -57,23 +48,18 @@ export function WorshipSchedulePanel({
     setMembers(data.members ?? []);
     setAssignments(data.assignments ?? []);
     setPool(data.config.pool ?? []);
-    setServiceTime(data.config.serviceTime ?? "10:00");
-    setServiceKind(data.config.serviceKind ?? "sunday");
     setWeeksAhead(data.config.weeksAhead ?? 8);
-    setUploadDutyLeadDays(data.config.uploadDutyLeadDays ?? 4);
     setSkipDatesText((data.config.skipDates ?? []).join("\n"));
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    load(slotType);
+  }, [slotType]);
 
   function togglePoolMember(member: RosterMember) {
     setPool((current) => {
       const exists = current.some((entry) => entry.userId === member.id);
-      if (exists) {
-        return current.filter((entry) => entry.userId !== member.id);
-      }
+      if (exists) return current.filter((entry) => entry.userId !== member.id);
       return [...current, { userId: member.id, name: member.name }];
     });
   }
@@ -86,16 +72,14 @@ export function WorshipSchedulePanel({
       .map((entry) => entry.trim())
       .filter(Boolean);
 
-    const response = await fetch("/api/worship/schedule", {
+    const response = await fetch("/api/admin/prayer-schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "save_config",
+        slotType,
         pool,
-        serviceTime,
-        serviceKind,
         weeksAhead,
-        uploadDutyLeadDays,
         skipDates,
       }),
     });
@@ -114,24 +98,18 @@ export function WorshipSchedulePanel({
 
   async function generateSchedule(overwrite = false) {
     if (pool.length === 0) {
-      setMessage("Select at least one worship leader for the rotation pool.");
+      setMessage("Select at least one member for the rotation pool.");
       return;
-    }
-
-    if (!overwrite && assignments.some((entry) => entry.leader)) {
-      const confirmed = window.confirm(
-        "Some dates already have leaders assigned. Generate only empty slots, or cancel and choose overwrite?",
-      );
-      if (!confirmed) return;
     }
 
     setGenerating(true);
     setMessage(null);
-    const response = await fetch("/api/worship/schedule", {
+    const response = await fetch("/api/admin/prayer-schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "generate",
+        slotType,
         weeksAhead,
         overwrite,
       }),
@@ -141,9 +119,9 @@ export function WorshipSchedulePanel({
 
     if (response.ok) {
       setMessage(
-        `Created or updated ${data.createdCount} service plan${data.createdCount === 1 ? "" : "s"}.${
+        `Created or updated ${data.createdCount} assignment${data.createdCount === 1 ? "" : "s"}.${
           data.skippedDates?.length
-            ? ` Skipped ${data.skippedDates.length} dates that already had plans.`
+            ? ` Skipped ${data.skippedDates.length} dates that already had assignments.`
             : ""
         }`,
       );
@@ -161,25 +139,25 @@ export function WorshipSchedulePanel({
     }
 
     const confirmed = window.confirm(
-      "Approve this worship leader rotation and send it to everyone in Shanah Worship (Choir)?",
+      `Approve and send this ${PRAYER_SLOT_META[slotType].label} schedule to everyone on the rotation list?`,
     );
     if (!confirmed) return;
 
     setApproving(true);
     setMessage(null);
-    const response = await fetch("/api/worship/schedule", {
+    const response = await fetch("/api/admin/prayer-schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "approve" }),
+      body: JSON.stringify({ action: "approve", slotType }),
     });
     const data = await response.json();
     setApproving(false);
 
     if (response.ok) {
       setMessage(
-        `Schedule approved. Published ${data.publishedCount ?? 0} service plan${
-          (data.publishedCount ?? 0) === 1 ? "" : "s"
-        } and sent ${data.notify?.groupSent ?? 0} choir notification${
+        `Schedule approved. Sent to ${data.notify?.leaderSent ?? 0} assigned member${
+          (data.notify?.leaderSent ?? 0) === 1 ? "" : "s"
+        } and ${data.notify?.groupSent ?? 0} prayer ministry notification${
           (data.notify?.groupSent ?? 0) === 1 ? "" : "s"
         }.`,
       );
@@ -190,25 +168,41 @@ export function WorshipSchedulePanel({
     setMessage(data.error ?? "Could not approve schedule.");
   }
 
-  if (loading) {
-    return <p className="text-sm text-night-500">Loading schedule settings…</p>;
+  if (loading && !config) {
+    return <p className="text-sm text-night-500">Loading prayer schedules…</p>;
   }
 
   return (
     <div className="space-y-6">
-      {!readOnly && (
+      <div className="flex flex-wrap gap-2">
+        {(["morning", "evening"] as PrayerSlotType[]).map((slot) => (
+          <button
+            key={slot}
+            type="button"
+            onClick={() => setSlotType(slot)}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              slotType === slot
+                ? "bg-night-900 text-sand-50"
+                : "bg-sand-100 text-night-700 hover:bg-sand-200"
+            }`}
+          >
+            {PRAYER_SLOT_META[slot].label}
+          </button>
+        ))}
+      </div>
+
       <Card>
         <h3 className="font-display text-lg font-semibold text-night-900">
-          Monthly leader rotation
+          {PRAYER_SLOT_META[slotType].label} rotation
         </h3>
         <p className="mt-2 text-sm text-night-600">
-          Pick who leads worship each week. The app rotates through your list and creates draft
-          service plans with an upload-duty reminder for whoever is on that Sunday.
+          Build a leader rotation for {PRAYER_SLOT_META[slotType].whenLabel}. When you approve the
+          schedule, each assigned member gets a notification with their dates.
         </p>
 
         {config?.status === "published" && (
           <p className="mt-3 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            Published rotation is visible to the choir in the app.
+            Published schedule is live in the app.
             {config.scheduleNotifiedAt
               ? ` Last sent ${new Date(config.scheduleNotifiedAt).toLocaleString()}.`
               : ""}
@@ -217,51 +211,13 @@ export function WorshipSchedulePanel({
 
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <label className="text-sm text-night-700">
-            <span className="font-semibold">Default service time</span>
-            <select
-              value={serviceTime}
-              onChange={(event) => setServiceTime(event.target.value)}
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
-            >
-              {WORSHIP_SERVICE_TIMES.map((slot) => (
-                <option key={slot.value} value={slot.value}>
-                  {slot.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm text-night-700">
-            <span className="font-semibold">Service day</span>
-            <select
-              value={serviceKind}
-              onChange={(event) =>
-                setServiceKind(event.target.value === "friday" ? "friday" : "sunday")
-              }
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
-            >
-              <option value="sunday">Sunday</option>
-              <option value="friday">Friday</option>
-            </select>
-          </label>
-          <label className="text-sm text-night-700">
             <span className="font-semibold">Weeks ahead to generate</span>
             <input
               type="number"
               min={1}
-              max={52}
+              max={26}
               value={weeksAhead}
               onChange={(event) => setWeeksAhead(Number(event.target.value) || 8)}
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
-            />
-          </label>
-          <label className="text-sm text-night-700">
-            <span className="font-semibold">Upload reminder (days before service)</span>
-            <input
-              type="number"
-              min={1}
-              max={14}
-              value={uploadDutyLeadDays}
-              onChange={(event) => setUploadDutyLeadDays(Number(event.target.value) || 4)}
               className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
             />
           </label>
@@ -280,7 +236,7 @@ export function WorshipSchedulePanel({
         <div className="mt-4">
           <p className="text-sm font-semibold text-night-800">Rotation pool</p>
           <p className="mt-1 text-xs text-night-500">
-            Tap names in order — the app rotates through this list each week.
+            Choose members with app accounts. The app rotates through this list on valid prayer days.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {members.map((member) => {
@@ -292,7 +248,7 @@ export function WorshipSchedulePanel({
                   onClick={() => togglePoolMember(member)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                     selected
-                      ? "bg-violet-700 text-white"
+                      ? "bg-copper-600 text-white"
                       : "bg-sand-100 text-night-700 hover:bg-sand-200"
                   }`}
                 >
@@ -319,20 +275,10 @@ export function WorshipSchedulePanel({
             Overwrite & regenerate
           </Button>
           <Button onClick={approveSchedule} disabled={approving || assignments.length === 0}>
-            {approving ? "Sending…" : "Approve & send to choir"}
+            {approving ? "Sending…" : "Approve & send to members"}
           </Button>
         </div>
       </Card>
-      )}
-
-      {readOnly && config?.status === "published" && (
-        <Card>
-          <h3 className="font-display text-lg font-semibold text-night-900">Leader rotation</h3>
-          <p className="mt-2 text-sm text-night-600">
-            Upcoming worship leaders for the published choir schedule.
-          </p>
-        </Card>
-      )}
 
       {assignments.length > 0 && (
         <Card>
@@ -340,42 +286,24 @@ export function WorshipSchedulePanel({
           <ul className="mt-4 space-y-2 text-sm">
             {assignments.map((entry) => (
               <li
-                key={`${entry.serviceDate}-${entry.serviceTime}`}
+                key={entry.assignmentDate}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-night-900/5 px-4 py-3"
               >
                 <div>
                   <p className="font-semibold text-night-900">
-                    {serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)}
+                    {formatPrayerAssignmentDate(entry.assignmentDate)}
                   </p>
                   <p className="text-xs text-night-500">
-                    Leader: {entry.leader?.name ?? "Not set"}
-                    {entry.uploadDutyUserName ? ` · Upload duty: ${entry.uploadDutyUserName}` : ""}
+                    Leader: {entry.userName} · {entry.status}
                   </p>
                 </div>
-                {onOpenService && (
-                  <button
-                    type="button"
-                    onClick={() => onOpenService(entry.serviceDate, entry.serviceTime)}
-                    className="text-sm font-semibold text-violet-700 hover:underline"
-                  >
-                    Open plan
-                  </button>
-                )}
               </li>
             ))}
           </ul>
         </Card>
       )}
 
-      {config && (
-        <p className="text-xs text-night-500">
-          Next rotation index: {config.rotationIndex + 1} (continues where the last generate left off).
-        </p>
-      )}
-
-      {message && (
-        <p className="rounded-xl bg-sand-100 px-4 py-3 text-sm text-night-700">{message}</p>
-      )}
+      {message && <p className="text-sm text-night-700">{message}</p>}
     </div>
   );
 }

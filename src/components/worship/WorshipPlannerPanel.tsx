@@ -423,6 +423,8 @@ export function WorshipPlannerPanel({
     if (canManage) {
       items.push({ id: "schedule", label: "Schedule" });
       items.push({ id: "library", label: "Song library" });
+    } else {
+      items.push({ id: "schedule", label: "Team schedule" });
     }
     return items;
   }, [canManage]);
@@ -488,16 +490,21 @@ export function WorshipPlannerPanel({
     setTeam((current) => current.filter((member) => member.userId !== userId));
   }
 
-  if (tab === "schedule" && canManage) {
+  if (tab === "schedule") {
     return (
       <>
         <PlannerTabBar />
         <WorshipSchedulePanel
-          onOpenService={(date, time) => {
-            setServiceDate(date);
-            setServiceTime(time);
-            setTab("plan");
-          }}
+          readOnly={!canManage}
+          onOpenService={
+            canManage
+              ? (date, time) => {
+                  setServiceDate(date);
+                  setServiceTime(time);
+                  setTab("plan");
+                }
+              : undefined
+          }
         />
       </>
     );

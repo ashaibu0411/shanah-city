@@ -36,6 +36,9 @@ export async function saveWorshipRotationConfig(input: {
   skipDates?: string[];
   weeksAhead?: number;
   uploadDutyLeadDays?: number;
+  status?: "draft" | "published";
+  publishedAt?: Date | null;
+  scheduleNotifiedAt?: Date | null;
   actor: { id: string; name: string };
 }) {
   const existing = await getWorshipRotationConfig();
@@ -50,6 +53,15 @@ export async function saveWorshipRotationConfig(input: {
     skipDates: input.skipDates ?? existing.skipDates,
     weeksAhead: input.weeksAhead ?? existing.weeksAhead,
     uploadDutyLeadDays: input.uploadDutyLeadDays ?? existing.uploadDutyLeadDays,
+    status: input.status ?? existing.status,
+    publishedAt:
+      input.publishedAt !== undefined
+        ? input.publishedAt?.toISOString() ?? null
+        : existing.publishedAt ?? null,
+    scheduleNotifiedAt:
+      input.scheduleNotifiedAt !== undefined
+        ? input.scheduleNotifiedAt?.toISOString() ?? null
+        : existing.scheduleNotifiedAt ?? null,
     updatedBy: input.actor.id,
     updatedByName: input.actor.name,
     updatedAt: now,

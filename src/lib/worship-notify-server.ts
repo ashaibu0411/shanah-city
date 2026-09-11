@@ -80,4 +80,68 @@ export async function publishWorshipPlanNotifications(plan: WorshipServicePlan) 
   });
 }
 
+export async function publishWorshipRotationScheduleNotifications(input: {
+  assignments: Awaited<ReturnType<typeof import("@/lib/worship-rotation-server").listUpcomingLeaderAssignments>>;
+}) {
+  const { getConfiguredWorshipGroupId } = await import("@/lib/worship-access-server");
+  const {
+    notifyWorshipRotationLeaderAssignments,
+    notifyWorshipRotationSchedulePublished,
+  } = await import("@/lib/push-server");
+
+  const published = input.assignments.filter((entry) => entry.status === "published" && entry.leader);
+  if (published.length === 0) {
+    return { groupSent: 0, leaderSent: 0 };
+  }
+
+  const scheduleSummary = published
+    .slice(0, 6)
+    .map(
+      (entry) =>
+        `${serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)} — ${entry.leader?.name ?? "TBD"}`,
+    )
+    .join("; ");
+
+  const groupResult = await notifyWorshipRotationSchedulePublished({
+    groupId: getConfiguredWorshipGroupId(),
+    body: scheduleSummary,
+  });
+
+  const grouped = new Map<string, { userId: string; dates: string[] }>();
+  for (const entry of published) {
+    if (!entry.leader) continue;
+    const current = grouped.get(entry.leader.userId) ?? {
+      userId: entry.leader.userId,
+      dates: [],
+    };
+    current.dates.push(serviceDateTimeLabel(entry.serviceDate, entry.serviceTime));
+    grouped.set(entry.leader.userId, current);
+  }
+
+  let leaderSent = 0;
+  for (const entry of grouped.values()) {
+    const dates = entry.dates.sort();
+    const result = await notifyWorshipRotationLeaderAssignments({
+      userId: entry.userId,
+      datesSummary: dates.slice(0, 4).join(", ") + (dates.length > 4 ? ` +${dates.length - 4} more` : ""),
+      nextDateLabel: dates[0] ?? "",
+    });
+    if (result.sent > 0) leaderSent += 1;
+  }
+
+  return { groupSent: groupResult.sent, leaderSent };
+}
+
+export async function approveAndNotifyWorshipRotationSchedule(actor: {
+  id: string;
+  name: string;
+}) {
+  const { approveWorshipRotationSchedule } = await import("@/lib/worship-rotation-server");
+  const result = await approveWorshipRotationSchedule(actor);
+  const notify = await publishWorshipRotationScheduleNotifications({
+    assignments: result.assignments,
+  });
+  return { ...result, notify };
+}
+
 export { getConfiguredWorshipGroupId };

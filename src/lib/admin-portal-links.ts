@@ -55,6 +55,12 @@ export const ADMIN_PORTAL_LINKS = [
     financeOnly: true,
   },
   {
+    href: "/admin/prayer-schedule",
+    label: "Prayer rotations",
+    description: "Shift Your Morning & Evening leader schedules",
+    adminOnly: true,
+  },
+  {
     href: "/admin/reports",
     label: "Reports",
     description: "Morning & evening clicks and leader reports",

@@ -496,6 +496,82 @@ export async function notifyWorshipUploadDutyReminder(input: {
   );
 }
 
+export async function notifyPrayerSchedulePublished(input: {
+  groupId: string;
+  slotType: "morning" | "evening";
+  body: string;
+}) {
+  const title =
+    input.slotType === "morning"
+      ? "Shift Your Morning schedule published"
+      : "Shift Your Evening schedule published";
+  return sendPushToGroupMembers(
+    input.groupId,
+    {
+      title,
+      body: input.body,
+      url: "/meetings",
+    },
+    "devotions",
+  );
+}
+
+export async function notifyPrayerLeaderAssignments(input: {
+  userId: string;
+  slotType: "morning" | "evening";
+  datesSummary: string;
+  nextDateLabel: string;
+}) {
+  const title =
+    input.slotType === "morning"
+      ? "Your Shift Your Morning dates"
+      : "Your Shift Your Evening dates";
+  return sendPushToUsers(
+    [input.userId],
+    {
+      title,
+      body: input.nextDateLabel
+        ? `You're scheduled to lead on ${input.datesSummary}. Next up: ${input.nextDateLabel}.`
+        : `You're scheduled to lead on ${input.datesSummary}.`,
+      url: "/meetings",
+    },
+    "devotions",
+  );
+}
+
+export async function notifyWorshipRotationSchedulePublished(input: {
+  groupId: string;
+  body: string;
+}) {
+  return sendPushToGroupMembers(
+    input.groupId,
+    {
+      title: "Worship leader schedule published",
+      body: input.body,
+      url: "/worship?tab=schedule",
+    },
+    "worship",
+  );
+}
+
+export async function notifyWorshipRotationLeaderAssignments(input: {
+  userId: string;
+  datesSummary: string;
+  nextDateLabel: string;
+}) {
+  return sendPushToUsers(
+    [input.userId],
+    {
+      title: "Your worship leader dates",
+      body: input.nextDateLabel
+        ? `You're scheduled to lead on ${input.datesSummary}. Next up: ${input.nextDateLabel}.`
+        : `You're scheduled to lead on ${input.datesSummary}.`,
+      url: "/worship?tab=schedule",
+    },
+    "worship",
+  );
+}
+
 export async function notifyChurchEvent(input: {
   title: string;
   authorId: string;

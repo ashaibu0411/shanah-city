@@ -130,6 +130,9 @@ export type WorshipScheduleRotationConfig = {
   skipDates: string[];
   weeksAhead: number;
   uploadDutyLeadDays: number;
+  status: "draft" | "published";
+  publishedAt?: string | null;
+  scheduleNotifiedAt?: string | null;
   updatedBy?: string | null;
   updatedByName?: string | null;
   createdAt: string;
@@ -554,6 +557,7 @@ export function defaultRotationConfig(): WorshipScheduleRotationConfig {
     skipDates: [],
     weeksAhead: 8,
     uploadDutyLeadDays: 4,
+    status: "draft",
     createdAt: now,
     updatedAt: now,
   };

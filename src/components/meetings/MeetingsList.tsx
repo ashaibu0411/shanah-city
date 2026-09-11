@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { MeetingCard } from "@/components/meetings/MeetingCard";
 import { MeetingsAdminPanel } from "@/components/meetings/MeetingsAdminPanel";
+import { PrayerScheduleMemberPanel } from "@/components/meetings/PrayerScheduleMemberPanel";
 import {
   MANUAL_PUSH_MEETING_IDS,
   isAutomatedReminderMeeting,
@@ -126,6 +127,8 @@ export function MeetingsList() {
           .
         </p>
       </div>
+
+      <PrayerScheduleMemberPanel />
 
       {dailyPrayer.length > 0 ? (
         <section>

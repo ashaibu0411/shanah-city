@@ -12,6 +12,7 @@ import {
   listUpcomingLeaderAssignments,
   saveWorshipRotationConfig,
 } from "@/lib/worship-rotation-server";
+import { approveAndNotifyWorshipRotationSchedule } from "@/lib/worship-notify-server";
 import { getGroupDetail } from "@/lib/group-server";
 import type { WorshipRotationPoolMember } from "@/lib/worship-types";
 
@@ -37,6 +38,24 @@ async function requireWorshipManager() {
   return { user };
 }
 
+async function requireWorshipAccess() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const user = await getUserFromSession(token);
+
+  if (!user) {
+    return { error: NextResponse.json({ error: "Sign in required." }, { status: 401 }) };
+  }
+
+  if (!(await canAccessWorshipPlanner(user))) {
+    return {
+      error: NextResponse.json({ error: "Join Shanah Worship (Choir) under Groups." }, { status: 403 }),
+    };
+  }
+
+  return { user, canManage: await canManageWorshipPlan(user) };
+}
+
 function parsePool(value: unknown): WorshipRotationPoolMember[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -49,7 +68,7 @@ function parsePool(value: unknown): WorshipRotationPoolMember[] {
 }
 
 export async function GET() {
-  const auth = await requireWorshipManager();
+  const auth = await requireWorshipAccess();
   if (auth.error) return auth.error;
 
   const [config, assignments, group] = await Promise.all([
@@ -58,10 +77,24 @@ export async function GET() {
     getGroupDetail(getConfiguredWorshipGroupId(), auth.user!.id),
   ]);
 
+  const visibleAssignments =
+    auth.canManage || config.status === "published"
+      ? assignments
+      : assignments.filter((entry) => entry.status === "published");
+
   return NextResponse.json({
-    config,
-    assignments,
-    members: group?.members ?? [],
+    config: auth.canManage
+      ? config
+      : {
+          serviceTime: config.serviceTime,
+          serviceKind: config.serviceKind,
+          weeksAhead: config.weeksAhead,
+          status: config.status,
+          publishedAt: config.publishedAt,
+        },
+    assignments: visibleAssignments,
+    members: auth.canManage ? group?.members ?? [] : [],
+    canManage: auth.canManage,
   });
 }
 
@@ -87,6 +120,21 @@ export async function POST(request: Request) {
         skippedDates: result.skipped,
         config: result.config,
         plans: result.created,
+      });
+    }
+
+    if (action === "approve") {
+      const result = await approveAndNotifyWorshipRotationSchedule({
+        id: auth.user!.id,
+        name: auth.user!.name,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        publishedCount: result.publishedCount,
+        config: result.config,
+        assignments: result.assignments,
+        notify: result.notify,
       });
     }
 

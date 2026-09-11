@@ -521,18 +521,57 @@ model WorshipServicePlan {
 }
 
 model WorshipScheduleRotation {
-  id                    String   @id
-  pool                  Json     @default("[]")
-  serviceTime           String   @default("10:00")
-  serviceKind           String   @default("sunday")
-  rotationIndex         Int      @default(0)
-  skipDates             Json     @default("[]")
-  weeksAhead            Int      @default(8)
-  uploadDutyLeadDays    Int      @default(4)
+  id                    String    @id
+  pool                  Json      @default("[]")
+  serviceTime           String    @default("10:00")
+  serviceKind           String    @default("sunday")
+  rotationIndex         Int       @default(0)
+  skipDates             Json      @default("[]")
+  weeksAhead            Int       @default(8)
+  uploadDutyLeadDays    Int       @default(4)
+  status                String    @default("draft")
+  publishedAt           DateTime?
+  scheduleNotifiedAt    DateTime?
   updatedBy             String?
   updatedByName         String?
   createdAt             DateTime
   updatedAt             DateTime
+}
+
+model PrayerScheduleRotation {
+  id                 String    @id
+  slotType           String
+  pool               Json      @default("[]")
+  rotationIndex      Int       @default(0)
+  skipDates          Json      @default("[]")
+  weeksAhead         Int       @default(8)
+  status             String    @default("draft")
+  publishedAt        DateTime?
+  scheduleNotifiedAt DateTime?
+  updatedBy          String?
+  updatedByName      String?
+  createdAt          DateTime
+  updatedAt          DateTime
+
+  @@unique([slotType])
+}
+
+model PrayerAssignment {
+  id             String    @id
+  slotType       String
+  assignmentDate String
+  userId         String
+  userName       String
+  status         String    @default("draft")
+  publishedAt    DateTime?
+  notifiedAt     DateTime?
+  createdAt      DateTime
+  updatedAt      DateTime
+
+  @@unique([slotType, assignmentDate])
+  @@index([userId])
+  @@index([slotType, assignmentDate])
+  @@index([status])
 }
 
 model MinistryLeaderReport {
