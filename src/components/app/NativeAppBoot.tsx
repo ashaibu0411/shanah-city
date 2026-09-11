@@ -9,9 +9,21 @@ function waitForPaint() {
   });
 }
 
+function showBootSplash() {
+  document.documentElement.classList.add("native-app-boot");
+  document.body.dataset.native = "true";
+}
+
+function removeBootSplash() {
+  document.documentElement.classList.remove("native-app-boot");
+  document.getElementById("native-boot-splash")?.remove();
+}
+
 export function NativeAppBoot() {
   useEffect(() => {
     if (!isNativeAppPlatform()) return;
+
+    showBootSplash();
 
     async function bootNativeShell() {
       const [{ SplashScreen }, { StatusBar, Style }, nativePush] = await Promise.all([
@@ -20,8 +32,6 @@ export function NativeAppBoot() {
         import("@/lib/native-push-client"),
       ]);
 
-      document.body.dataset.native = "true";
-
       await waitForPaint();
 
       try {
@@ -29,6 +39,9 @@ export function NativeAppBoot() {
       } catch {
         // Splash may already be hidden.
       }
+
+      await waitForPaint();
+      removeBootSplash();
 
       try {
         await nativePush.startNativePushListeners();

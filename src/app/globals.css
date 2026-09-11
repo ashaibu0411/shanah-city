@@ -1595,6 +1595,27 @@ body[data-shell="mobile"] .community-feed {
   padding-inline: 0.35rem;
 }
 
+.native-boot-splash {
+  display: none;
+}
+
+html.native-app-boot .native-boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #faf7f2;
+  pointer-events: none;
+}
+
+html.native-app-boot .native-boot-splash img {
+  display: block;
+  width: min(58vw, 280px);
+  height: auto;
+}
+
 @media print {
   .print-hidden {
     display: none !important;
