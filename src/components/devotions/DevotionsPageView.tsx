@@ -24,7 +24,7 @@ export function DevotionsPageView({ devotions }: DevotionsPageViewProps) {
 
   if (isMobileApp) {
     return (
-      <div className="mobile-devotions-page space-y-5">
+      <div className="mobile-devotions-page space-y-4">
         <MobileDevotionsPageHeader />
 
         {featured ? <MobileDevotionFeaturedHero devotion={featured} /> : null}
@@ -32,7 +32,7 @@ export function DevotionsPageView({ devotions }: DevotionsPageViewProps) {
         {archive.length > 0 ? (
           <section>
             <h2 className="mobile-section-title mb-2.5 px-0.5">Library</h2>
-            <div className="space-y-4">
+            <div className="space-y-2.5">
               {archive.map((devotion, index) => (
                 <MobileDevotionArchiveTile
                   key={devotion.id}

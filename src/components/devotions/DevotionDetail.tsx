@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import { useAppShell } from "@/components/app/AppShellContext";
 import type { Devotion } from "@/lib/types";
-import { getDevotionArtwork } from "@/lib/devotion-artwork";
+import { getDevotionCoverArtwork } from "@/lib/devotion-artwork";
 import { Button, Card } from "@/components/ui";
 import { DevotionBody } from "@/components/devotions/DevotionBody";
 import { DevotionBrowserPrompt } from "@/components/devotions/DevotionBrowserPrompt";
@@ -45,7 +45,7 @@ function ModeToggle({
 }
 
 function DevotionArtworkHero({ devotion }: { devotion: Devotion }) {
-  const artworkUrl = getDevotionArtwork(devotion, "wide");
+  const artworkUrl = getDevotionCoverArtwork(devotion, "wide");
   if (!artworkUrl) return null;
 
   return (
@@ -63,37 +63,35 @@ function DevotionMobileReaderHeader({
   devotion: Devotion;
   eyebrow: string;
 }) {
-  const artworkUrl = getDevotionArtwork(devotion, "square");
+  const artworkUrl = getDevotionCoverArtwork(devotion, "square");
 
   return (
     <MobilePremiumFrame variant="surface" className="mobile-devotion-reader-header mb-4">
-      <div className="relative flex min-h-[8.5rem] items-end overflow-hidden bg-clay-800/20">
+      <div className="flex min-h-[4.75rem] items-stretch bg-gradient-to-br from-white via-sand-50/80 to-clay-50/40">
         {artworkUrl ? (
-          <>
+          <div className="relative w-[4.75rem] shrink-0 overflow-hidden bg-sand-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={artworkUrl}
               alt=""
-              className="absolute inset-0 h-full w-full object-cover"
+              className="mobile-premium-4k__media h-full min-h-[4.75rem] w-full object-cover"
             />
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/92 via-night-950/55 to-night-950/15"
+              className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-night-900/8"
               aria-hidden
             />
-          </>
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-clay-800 via-night-900 to-sand-200/40" />
-        )}
+          </div>
+        ) : null}
 
-        <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-end px-4 py-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-clay-300">
+        <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-clay-700">
             {eyebrow} · {devotion.date} · {devotion.readingTime}
           </p>
-          <h1 className="mt-1 font-display text-[1.2rem] font-semibold leading-snug tracking-tight text-white drop-shadow-sm">
+          <h1 className="mt-1 font-display text-[1.15rem] font-semibold leading-snug tracking-tight text-night-900">
             {devotion.title}
           </h1>
           {devotion.reference ? (
-            <p className="mt-1 text-xs text-sand-200/80">{devotion.reference}</p>
+            <p className="mt-1 text-xs text-night-500">{devotion.reference}</p>
           ) : null}
         </div>
       </div>

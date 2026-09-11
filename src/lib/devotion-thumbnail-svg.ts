@@ -9,11 +9,12 @@ export type DevotionThumbnailInput = {
 
 const COLORS = {
   nightDeep: "#2d2418",
-  nightMid: "#3d3226",
   clayDeep: "#6b2a0f",
   clayMid: "#8b3f28",
   sand50: "#faf7f2",
+  sand100: "#f5f1ea",
   sand200: "#ece1cc",
+  sand300: "#e8dfd2",
   copperLight: "#d4765a",
   copperDark: "#a84d32",
   goldLight: "#c4a882",
@@ -21,9 +22,9 @@ const COLORS = {
 };
 
 const VARIANT_SIZE: Record<ArtworkVariant, { width: number; height: number }> = {
-  square: { width: 512, height: 512 },
-  wide: { width: 960, height: 540 },
-  banner: { width: 1200, height: 434 },
+  square: { width: 1024, height: 1024 },
+  wide: { width: 1920, height: 1080 },
+  banner: { width: 1920, height: 692 },
 };
 
 function escapeXml(value: string) {
@@ -75,7 +76,7 @@ function titleLines(title: string, variant: ArtworkVariant) {
   return wrapText(title, 24, 3);
 }
 
-function decorativeCircles(id: string, width: number, height: number) {
+function decorativeCircles(id: string, width: number, height: number, light = false) {
   const seed = hashSeed(id);
   const x1 = 80 + (seed % 120);
   const y1 = 60 + ((seed >> 4) % 80);
@@ -84,10 +85,27 @@ function decorativeCircles(id: string, width: number, height: number) {
   const y2 = height - 80 - ((seed >> 16) % 100);
   const r2 = 72 + ((seed >> 20) % 48);
 
+  if (light) {
+    return `
+    <circle cx="${x1}" cy="${y1}" r="${r1}" fill="${COLORS.copperLight}" opacity="0.14"/>
+    <circle cx="${x2}" cy="${y2}" r="${r2}" fill="${COLORS.goldLight}" opacity="0.18"/>
+  `;
+  }
+
   return `
     <circle cx="${x1}" cy="${y1}" r="${r1}" fill="${COLORS.copperLight}" opacity="0.12"/>
     <circle cx="${x2}" cy="${y2}" r="${r2}" fill="${COLORS.goldLight}" opacity="0.08"/>
   `;
+}
+
+function coverPalette(id: string) {
+  const seed = hashSeed(id);
+  const palettes = [
+    [COLORS.sand50, COLORS.sand100, COLORS.sand300],
+    ["#fffaf5", COLORS.sand50, COLORS.sand200],
+    [COLORS.sand100, "#f7efe4", COLORS.sand300],
+  ] as const;
+  return palettes[seed % palettes.length];
 }
 
 function renderTitle(lines: string[], x: number, startY: number, fontSize: number, lineHeight: number) {
@@ -97,6 +115,63 @@ function renderTitle(lines: string[], x: number, startY: number, fontSize: numbe
         `<text x="${x}" y="${startY + index * lineHeight}" fill="${COLORS.sand50}" font-family="Georgia, serif" font-size="${fontSize}" font-weight="600">${escapeXml(line)}</text>`,
     )
     .join("\n");
+}
+
+/** Text-free warm cover art for cards and lists (no duplicate titles in the UI). */
+export function buildDevotionCoverSvg(
+  devotion: DevotionThumbnailInput,
+  variant: ArtworkVariant = "square",
+) {
+  const { width, height } = VARIANT_SIZE[variant];
+  const uid = devotion.id.replace(/[^a-zA-Z0-9_-]/g, "") || "devotion";
+  const [toneA, toneB, toneC] = coverPalette(devotion.id);
+  const seed = hashSeed(devotion.id);
+  const glowX = 120 + (seed % (width - 240));
+  const glowY = 80 + ((seed >> 6) % (height - 160));
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+  <defs>
+    <linearGradient id="bg-${uid}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${toneA}"/>
+      <stop offset="55%" stop-color="${toneB}"/>
+      <stop offset="100%" stop-color="${toneC}"/>
+    </linearGradient>
+    <radialGradient id="glow-${uid}" cx="0.5" cy="0.5" r="0.65">
+      <stop offset="0%" stop-color="${COLORS.copperLight}" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="${COLORS.copperLight}" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent-${uid}" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="${COLORS.copperLight}"/>
+      <stop offset="100%" stop-color="${COLORS.goldDark}"/>
+    </linearGradient>
+    <filter id="grain-${uid}">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.035"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="${width}" height="${height}" fill="url(#bg-${uid})"/>
+  <rect x="0" y="0" width="${width}" height="${variant === "banner" ? 8 : 6}" fill="url(#accent-${uid})"/>
+  <ellipse cx="${glowX}" cy="${glowY}" rx="${width * 0.28}" ry="${height * 0.32}" fill="url(#glow-${uid})"/>
+  ${decorativeCircles(devotion.id, width, height, true)}
+  <rect width="${width}" height="${height}" filter="url(#grain-${uid})" opacity="0.55"/>
+  <text x="${width - 48}" y="56" fill="${COLORS.goldDark}" font-family="Georgia, serif" font-size="22" opacity="0.55" text-anchor="end">✦</text>
+</svg>`;
+}
+
+export function buildGenericDevotionCoverSvg(variant: ArtworkVariant = "square") {
+  return buildDevotionCoverSvg(
+    {
+      id: "placeholder",
+      title: "Daily Devotion",
+      reference: "Shanah City",
+      date: "",
+    },
+    variant,
+  );
 }
 
 export function buildDevotionThumbnailSvg(
