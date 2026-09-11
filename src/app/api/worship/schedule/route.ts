@@ -67,14 +67,31 @@ function parsePool(value: unknown): WorshipRotationPoolMember[] {
     .filter((entry): entry is WorshipRotationPoolMember => Boolean(entry));
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await requireWorshipAccess();
   if (auth.error) return auth.error;
 
-  const [config, assignments, group] = await Promise.all([
+  const { searchParams } = new URL(request.url);
+  const lookup = searchParams.get("lookup")?.trim();
+
+  if (lookup) {
+    if (!auth.canManage) {
+      return NextResponse.json({ error: "Worship leader access required." }, { status: 403 });
+    }
+
+    const group = await getGroupDetail(getConfiguredWorshipGroupId(), auth.user!.id);
+    const needle = lookup.toLowerCase();
+    const members = (group?.members ?? [])
+      .filter((member) => member.name.toLowerCase().includes(needle))
+      .slice(0, 8)
+      .map((member) => ({ id: member.id, name: member.name }));
+
+    return NextResponse.json({ members });
+  }
+
+  const [config, assignments] = await Promise.all([
     getWorshipRotationConfig(),
     listUpcomingLeaderAssignments(),
-    getGroupDetail(getConfiguredWorshipGroupId(), auth.user!.id),
   ]);
 
   const visibleAssignments =
@@ -93,7 +110,6 @@ export async function GET() {
           publishedAt: config.publishedAt,
         },
     assignments: visibleAssignments,
-    members: auth.canManage ? group?.members ?? [] : [],
     canManage: auth.canManage,
   });
 }

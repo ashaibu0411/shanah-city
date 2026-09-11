@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RotationPoolEditor } from "@/components/admin/RotationPoolEditor";
 import { Button, Card } from "@/components/ui";
 import {
   WORSHIP_SERVICE_TIMES,
@@ -8,8 +9,6 @@ import {
   type WorshipRotationPoolMember,
   type WorshipScheduleRotationConfig,
 } from "@/lib/worship-types";
-
-type RosterMember = { id: string; name: string };
 
 type Assignment = {
   serviceDate: string;
@@ -28,7 +27,6 @@ export function WorshipSchedulePanel({
   readOnly?: boolean;
 }) {
   const [config, setConfig] = useState<WorshipScheduleRotationConfig | null>(null);
-  const [members, setMembers] = useState<RosterMember[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [pool, setPool] = useState<WorshipRotationPoolMember[]>([]);
   const [serviceTime, setServiceTime] = useState("10:00");
@@ -54,7 +52,6 @@ export function WorshipSchedulePanel({
     }
 
     setConfig(data.config);
-    setMembers(data.members ?? []);
     setAssignments(data.assignments ?? []);
     setPool(data.config.pool ?? []);
     setServiceTime(data.config.serviceTime ?? "10:00");
@@ -67,16 +64,6 @@ export function WorshipSchedulePanel({
   useEffect(() => {
     load();
   }, []);
-
-  function togglePoolMember(member: RosterMember) {
-    setPool((current) => {
-      const exists = current.some((entry) => entry.userId === member.id);
-      if (exists) {
-        return current.filter((entry) => entry.userId !== member.id);
-      }
-      return [...current, { userId: member.id, name: member.name }];
-    });
-  }
 
   async function saveConfig() {
     setSaving(true);
@@ -114,7 +101,7 @@ export function WorshipSchedulePanel({
 
   async function generateSchedule(overwrite = false) {
     if (pool.length === 0) {
-      setMessage("Select at least one worship leader for the rotation pool.");
+      setMessage("Add at least one worship leader to the rotation pool first.");
       return;
     }
 
@@ -202,8 +189,8 @@ export function WorshipSchedulePanel({
           Monthly leader rotation
         </h3>
         <p className="mt-2 text-sm text-night-600">
-          Pick who leads worship each week. The app rotates through your list and creates draft
-          service plans with an upload-duty reminder for whoever is on that Sunday.
+          Search and add only the worship leaders who belong in this rotation. Generate the
+          schedule, then approve and send it to the choir.
         </p>
 
         {config?.status === "published" && (
@@ -277,36 +264,12 @@ export function WorshipSchedulePanel({
           </label>
         </div>
 
-        <div className="mt-4">
-          <p className="text-sm font-semibold text-night-800">Rotation pool</p>
-          <p className="mt-1 text-xs text-night-500">
-            Tap names in order — the app rotates through this list each week.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {members.map((member) => {
-              const selected = pool.some((entry) => entry.userId === member.id);
-              return (
-                <button
-                  key={member.id}
-                  type="button"
-                  onClick={() => togglePoolMember(member)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    selected
-                      ? "bg-violet-700 text-white"
-                      : "bg-sand-100 text-night-700 hover:bg-sand-200"
-                  }`}
-                >
-                  {member.name}
-                </button>
-              );
-            })}
-          </div>
-          {pool.length > 0 && (
-            <p className="mt-3 text-xs text-night-500">
-              Order: {pool.map((entry) => entry.name).join(" → ")}
-            </p>
-          )}
-        </div>
+        <RotationPoolEditor
+          pool={pool}
+          onChange={setPool}
+          lookupUrl="/api/worship/schedule"
+          chipClassName="bg-violet-700"
+        />
 
         <div className="mt-4 flex flex-wrap gap-2">
           <Button onClick={saveConfig} disabled={saving}>

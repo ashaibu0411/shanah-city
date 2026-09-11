@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { PrayerRotationPoolMember } from "@/lib/prayer-schedule-types";
+type PoolMember = { userId: string; name: string };
 
 type LookupMember = { id: string; name: string };
 
@@ -9,10 +9,12 @@ export function RotationPoolEditor({
   pool,
   onChange,
   lookupUrl = "/api/admin/prayer-schedule",
+  chipClassName = "bg-copper-600",
 }: {
-  pool: PrayerRotationPoolMember[];
-  onChange: (pool: PrayerRotationPoolMember[]) => void;
+  pool: PoolMember[];
+  onChange: (pool: PoolMember[]) => void;
   lookupUrl?: string;
+  chipClassName?: string;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<LookupMember[]>([]);
@@ -67,7 +69,7 @@ export function RotationPoolEditor({
           {pool.map((member, index) => (
             <span
               key={member.userId}
-              className="inline-flex items-center gap-2 rounded-full bg-copper-600 px-4 py-2 text-sm font-semibold text-white"
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white ${chipClassName}`}
             >
               <span>
                 {index + 1}. {member.name}
