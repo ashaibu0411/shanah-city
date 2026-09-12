@@ -13,6 +13,7 @@ import {
 } from "@/lib/prayer-schedule";
 import type { Meeting } from "@/lib/types";
 import { Card } from "@/components/ui";
+import { themeBannerDark, themeBannerText } from "@/lib/theme";
 
 type PrayerHomeBannerProps = {
   variant?: "desktop" | "mobile";
@@ -61,26 +62,29 @@ export function PrayerHomeBanner({ variant = "desktop" }: PrayerHomeBannerProps)
     return (
       <a
         href={href}
-        className="mobile-card block border border-amber-200/80 bg-gradient-to-r from-amber-50/95 to-sand-50/95 p-3.5 transition active:scale-[0.99]"
+        className={`theme-light-surface mobile-card block border border-amber-200/80 bg-gradient-to-r from-amber-50/95 to-sand-50/95 p-3.5 transition active:scale-[0.99] ${themeBannerDark.amber}`}
       >
-        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-700">
+        <p className={`text-[10px] font-bold uppercase tracking-[0.22em] ${themeBannerText.eyebrowAmberAlt}`}>
           {eyebrow}
         </p>
-        <h3 className="mt-1 font-display text-lg font-semibold tracking-tight text-night-900">
+        <h3 className={`mt-1 font-display text-lg font-semibold tracking-tight ${themeBannerText.title}`}>
           {active.title}
         </h3>
-        <p className="mt-1 text-sm text-night-600">{active.schedule} · Zoom</p>
-        <p className="mt-2 text-sm font-semibold text-night-800">Tap to join prayer →</p>
+        <p className={`mt-1 text-sm ${themeBannerText.body}`}>{active.schedule} · Zoom</p>
+        <p className={`mt-2 text-sm font-semibold ${themeBannerText.bodyStrong}`}>Tap to join prayer →</p>
       </a>
     );
   }
 
   return (
-    <Card href={href} className="mb-8 border-amber-200/80 bg-gradient-to-r from-amber-50/95 to-sand-50/95">
-      <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">{eyebrow}</p>
-      <h3 className="mt-2 font-display text-xl font-semibold text-night-900">{active.title}</h3>
-      <p className="mt-1 text-sm text-night-600">{active.schedule} · Zoom</p>
-      <p className="mt-3 text-sm font-semibold text-night-800">Tap to join prayer →</p>
+    <Card
+      href={href}
+      className={`theme-light-surface mb-8 border-amber-200/80 bg-gradient-to-r from-amber-50/95 to-sand-50/95 ${themeBannerDark.amber}`}
+    >
+      <p className={`text-xs font-semibold uppercase tracking-wider ${themeBannerText.eyebrowAmberAlt}`}>{eyebrow}</p>
+      <h3 className={`mt-2 font-display text-xl font-semibold ${themeBannerText.title}`}>{active.title}</h3>
+      <p className={`mt-1 text-sm ${themeBannerText.body}`}>{active.schedule} · Zoom</p>
+      <p className={`mt-3 text-sm font-semibold ${themeBannerText.bodyStrong}`}>Tap to join prayer →</p>
     </Card>
   );
 }

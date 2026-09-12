@@ -36,25 +36,25 @@ const todayShortcuts = [
     label: "Check in",
     href: "/check-in",
     detail: "FrontLiners & kids",
-    className: "from-sand-100 to-clay-100/90 text-night-900 ring-night-900/10",
+    className: "from-sand-100 to-clay-100/90 text-night-900 ring-night-900/10 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
   },
   {
     label: "Calendar",
     href: "/calendar",
     detail: "Worship & events",
-    className: "from-clay-50 to-sand-100 text-night-900 ring-clay-300/40",
+    className: "from-clay-50 to-sand-100 text-night-900 ring-clay-300/40 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
   },
   {
     label: "Meetings",
     href: "/meetings",
     detail: "Ministry Zoom links",
-    className: "from-sand-100 to-sand-200/90 text-night-900 ring-night-900/10",
+    className: "from-sand-100 to-sand-200/90 text-night-900 ring-night-900/10 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
   },
   {
     label: "Messages",
     href: "/messages",
     detail: "Chat & updates",
-    className: "from-clay-50 to-sand-100 text-night-900 ring-night-900/10",
+    className: "from-clay-50 to-sand-100 text-night-900 ring-night-900/10 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
   },
 ] as const;
 
@@ -121,11 +121,11 @@ export function MobileHome({
         variant="surface"
         className="mobile-home-welcome-stack overflow-hidden ring-1 ring-night-900/8"
       >
-        <div className="mobile-home-welcome-intro border-b border-night-900/8 bg-gradient-to-r from-sand-50 via-white to-sand-50 px-4 py-3.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-night-500">
+        <div className="mobile-home-welcome-intro border-b border-night-900/8 bg-gradient-to-r from-sand-50 via-white to-sand-50 px-4 py-3.5 dark:border-white/10">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-night-500 dark:text-sand-400">
             {homeGreeting(user ? getPublicDisplayFirstName(user) : null)}
           </p>
-          <p className="mt-1 font-display text-[0.95rem] font-semibold uppercase tracking-[0.14em] text-night-900">
+          <p className="mt-1 font-display text-[0.95rem] font-semibold uppercase tracking-[0.14em] text-night-900 dark:text-sand-100">
             Welcome to {site.name}
           </p>
         </div>

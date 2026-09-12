@@ -11,6 +11,7 @@ import {
   previousReportMonth,
 } from "@/lib/ministry-report-types";
 import { FOLLOW_UP_GROUP_ID } from "@/lib/follow-up-types";
+import { themeBannerDark, themeBannerText } from "@/lib/theme";
 
 type LeaderGroup = {
   id: string;
@@ -60,15 +61,15 @@ export function TrainingHomeBanner() {
   return (
     <Link
       href={`/groups/${encodeURIComponent(primary.groupId)}?training=1`}
-      className="block rounded-2xl border border-violet-200/80 bg-gradient-to-r from-violet-50/95 to-indigo-50/90 px-4 py-3 ring-1 ring-violet-100 transition hover:border-violet-300 active:scale-[0.99]"
+      className={`theme-light-surface block rounded-2xl border border-violet-200/80 bg-gradient-to-r from-violet-50/95 to-indigo-50/90 px-4 py-3 ring-1 ring-violet-100 transition hover:border-violet-300 active:scale-[0.99] ${themeBannerDark.violet}`}
     >
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-800">
+      <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${themeBannerText.eyebrowViolet}`}>
         Ministry training
       </p>
-      <p className="mt-1 font-display text-base font-semibold text-night-900">
+      <p className={`mt-1 font-display text-base font-semibold ${themeBannerText.title}`}>
         Complete Before You Serve
       </p>
-      <p className="mt-1 text-sm text-night-600">
+      <p className={`mt-1 text-sm ${themeBannerText.body}`}>
         {pending.length === 1
           ? `${primary.groupName} · Tap to start training`
           : `${pending.length} teams need training · Start with ${primary.groupName}`}
@@ -116,15 +117,15 @@ export function LeaderReportHomeBanner() {
   return (
     <Link
       href={`/groups/${encodeURIComponent(primaryGroup.id)}?report=1`}
-      className="block rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/95 to-orange-50/90 px-4 py-3 ring-1 ring-amber-100 transition hover:border-amber-300 active:scale-[0.99]"
+      className={`theme-light-surface block rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/95 to-orange-50/90 px-4 py-3 ring-1 ring-amber-100 transition hover:border-amber-300 active:scale-[0.99] ${themeBannerDark.amber}`}
     >
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-800">
+      <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${themeBannerText.eyebrowAmber}`}>
         Ministry report due
       </p>
-      <p className="mt-1 font-display text-base font-semibold text-night-900">
+      <p className={`mt-1 font-display text-base font-semibold ${themeBannerText.title}`}>
         Submit your {monthLabel} report
       </p>
-      <p className="mt-1 text-sm text-night-600">
+      <p className={`mt-1 text-sm ${themeBannerText.body}`}>
         {leaderGroups.length === 1
           ? `${primaryGroup.name} · Tap to open the monthly report tab`
           : `${missingCount} team${missingCount === 1 ? "" : "s"} still need ${monthLabel} reports`}
@@ -156,15 +157,15 @@ export function FollowUpHomeBanner() {
   return (
     <Link
       href={`/groups/${encodeURIComponent(FOLLOW_UP_GROUP_ID)}?guests=1`}
-      className="block rounded-2xl border border-clay-200/80 bg-gradient-to-r from-clay-50/95 to-orange-50/90 px-4 py-3 ring-1 ring-clay-100 transition hover:border-clay-300 active:scale-[0.99]"
+      className={`theme-light-surface block rounded-2xl border border-clay-200/80 bg-gradient-to-r from-clay-50/95 to-orange-50/90 px-4 py-3 ring-1 ring-clay-100 transition hover:border-clay-300 active:scale-[0.99] ${themeBannerDark.clay}`}
     >
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay-800">
+      <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${themeBannerText.eyebrowClay}`}>
         Guest follow-up
       </p>
-      <p className="mt-1 font-display text-base font-semibold text-night-900">
+      <p className={`mt-1 font-display text-base font-semibold ${themeBannerText.title}`}>
         {newCount} new guest{newCount === 1 ? "" : "s"} waiting
       </p>
-      <p className="mt-1 text-sm text-night-600">
+      <p className={`mt-1 text-sm ${themeBannerText.body}`}>
         Open the guest queue and contact visitors within 48 hours.
       </p>
     </Link>
@@ -223,13 +224,13 @@ export function AnniversaryHomeBanner() {
   return (
     <Link
       href={`/groups/${encodeURIComponent(SHANAH_POWER_COUPLES_GROUP_ID)}`}
-      className="block rounded-2xl border border-rose-200/80 bg-gradient-to-r from-rose-50/95 to-pink-50/90 px-4 py-3 ring-1 ring-rose-100 transition hover:border-rose-300 active:scale-[0.99]"
+      className={`theme-light-surface block rounded-2xl border border-rose-200/80 bg-gradient-to-r from-rose-50/95 to-pink-50/90 px-4 py-3 ring-1 ring-rose-100 transition hover:border-rose-300 active:scale-[0.99] ${themeBannerDark.rose}`}
     >
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-800">
+      <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${themeBannerText.eyebrowRose}`}>
         Power Couples
       </p>
-      <p className="mt-1 font-display text-base font-semibold text-night-900">{headline}</p>
-      <p className="mt-1 text-sm text-night-600">
+      <p className={`mt-1 font-display text-base font-semibold ${themeBannerText.title}`}>{headline}</p>
+      <p className={`mt-1 text-sm ${themeBannerText.body}`}>
         {yearsLine} · Tap for couples devotion and growth resources
       </p>
     </Link>

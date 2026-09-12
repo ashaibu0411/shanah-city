@@ -154,20 +154,61 @@
     background-color: var(--color-surface) !important;
   }
 
-  html.dark .text-night-950,
-  html.dark .text-night-900,
-  html.dark .text-night-800 {
+  /* Only remap night text on dark app surfaces — not on light-tinted banners/cards. */
+  html.dark :is(
+    .editorial-card:not(.theme-light-surface),
+    .editorial-surface:not(.theme-light-surface),
+    .editorial-page-header,
+    .editorial-lead-card,
+    .mobile-card:not(.theme-light-surface),
+    .mobile-more-sheet-card,
+    .mobile-more-sheet-panel,
+    .mobile-more-sheet-header,
+    .mobile-home-welcome-intro,
+    .groups-premium-page,
+    main.app-main
+  ) :is(.text-night-950, .text-night-900, .text-night-800) {
     color: var(--color-ink) !important;
   }
 
-  html.dark .text-night-700,
-  html.dark .text-night-600 {
+  html.dark :is(
+    .editorial-card:not(.theme-light-surface),
+    .editorial-surface:not(.theme-light-surface),
+    .editorial-page-header,
+    .editorial-lead-card,
+    .mobile-card:not(.theme-light-surface),
+    .mobile-more-sheet-card,
+    .mobile-more-sheet-panel,
+    .mobile-more-sheet-header,
+    .mobile-home-welcome-intro,
+    .groups-premium-page,
+    main.app-main
+  ) :is(.text-night-700, .text-night-600) {
     color: var(--color-ink-muted) !important;
   }
 
-  html.dark .text-night-500,
-  html.dark .text-night-400 {
+  html.dark :is(
+    .editorial-card:not(.theme-light-surface),
+    .editorial-surface:not(.theme-light-surface),
+    .editorial-page-header,
+    .editorial-lead-card,
+    .mobile-card:not(.theme-light-surface),
+    .mobile-more-sheet-card,
+    .mobile-more-sheet-panel,
+    .mobile-more-sheet-header,
+    .mobile-home-welcome-intro,
+    .groups-premium-page,
+    main.app-main
+  ) :is(.text-night-500, .text-night-400) {
     color: var(--color-ink-soft) !important;
+  }
+
+  html.dark .mobile-home-welcome-intro {
+    background: linear-gradient(
+      180deg,
+      var(--color-bg-soft) 0%,
+      var(--color-surface) 100%
+    ) !important;
   }
 
   html.dark .border-night-900\/6,
@@ -181,6 +222,16 @@
   html.dark .ring-night-900\/8,
   html.dark .ring-night-900\/10 {
     --tw-ring-color: var(--color-border) !important;
+  }
+
+  html.dark :is(input, textarea, select) {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    border-color: var(--color-border);
+  }
+
+  html.dark :is(input, textarea, select)::placeholder {
+    color: var(--color-ink-soft);
   }
 
 }

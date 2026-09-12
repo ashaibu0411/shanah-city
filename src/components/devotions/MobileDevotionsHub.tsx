@@ -23,7 +23,7 @@ export function MobileDevotionArchiveTile({ devotion, index }: MobileDevotionArc
     >
       <Link
         href={devotionHref(devotion)}
-        className="group flex min-h-[4.75rem] items-stretch bg-gradient-to-br from-white via-sand-50/80 to-clay-50/40 transition active:scale-[0.99]"
+        className="theme-light-surface group flex min-h-[4.75rem] items-stretch bg-gradient-to-br from-white via-sand-50/80 to-clay-50/40 transition active:scale-[0.99] dark:from-[var(--color-bg-soft)] dark:via-[var(--color-surface)] dark:to-[var(--color-bg-muted)]"
       >
         <div className="relative w-[4.25rem] shrink-0">
           <DevotionCoverArt
@@ -40,14 +40,14 @@ export function MobileDevotionArchiveTile({ devotion, index }: MobileDevotionArc
 
         <div className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-2.5">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-clay-700">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-clay-700 dark:text-clay-200">
               {devotion.date} · {devotion.readingTime}
             </p>
-            <p className="mt-0.5 font-display text-[0.98rem] font-semibold leading-snug tracking-tight text-night-900">
+            <p className="mt-0.5 font-display text-[0.98rem] font-semibold leading-snug tracking-tight text-night-900 dark:text-sand-100">
               {devotion.title}
             </p>
             {devotion.reference ? (
-              <p className="mt-0.5 truncate text-xs text-night-500">{devotion.reference}</p>
+              <p className="mt-0.5 truncate text-xs text-night-500 dark:text-sand-400">{devotion.reference}</p>
             ) : null}
           </div>
           <span className="mobile-devotion-spotlight-cta shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold text-white">
