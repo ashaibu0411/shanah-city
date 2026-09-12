@@ -1027,7 +1027,7 @@
   }
 
   .devotion-cover-art__label {
-    @apply font-display font-semibold tracking-tight text-night-900/78;
+    @apply font-display font-semibold tracking-tight text-night-900/75;
     font-size: 1.15rem;
     line-height: 1.1;
     text-shadow: 0 1px 10px rgba(255, 250, 245, 0.85);
