@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import type { LiveStreamSchedule, LiveStreamPlatform } from "@/lib/live-schedule-types";
 import {
   filterUpcomingLiveStreamSchedules,
+  resolvePublicLiveStreamDisplay,
   sortLiveStreamSchedules,
 } from "@/lib/live-schedule-utils";
 
@@ -29,6 +30,13 @@ function mapSchedule(record: {
     createdByName: record.createdByName,
     updatedAt: record.updatedAt.toISOString(),
   };
+}
+
+export async function getPublicLiveStreamSchedule(now = new Date()) {
+  const records = await prisma.liveStreamSchedule.findMany({
+    orderBy: { startsAt: "asc" },
+  });
+  return resolvePublicLiveStreamDisplay(records.map(mapSchedule), now);
 }
 
 export async function getUpcomingLiveStreamSchedule(now = new Date()) {

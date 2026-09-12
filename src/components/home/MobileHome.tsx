@@ -16,7 +16,7 @@ import { MobilePremiumExploreGrid } from "@/components/app/MobilePremiumTile";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import { HomeTagline } from "@/components/home/HomeTagline";
 import { HomePastorPortrait } from "@/components/home/HomePastorPortrait";
-import { LiveStreamCountdownInline } from "@/components/live/useLiveStreamSchedule";
+import { LiveStreamCountdownInline, useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSchedule";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import {
@@ -97,10 +97,13 @@ export function MobileHome({
       })
       .catch(() => undefined);
   }, []);
+  const { livePhase, schedule: liveSchedule } = useUpcomingLiveStreamSchedule();
   const anyLive =
     liveStream.isLive ||
     liveStream.youtube.isLive ||
     liveStream.facebook.isLive;
+  const scheduledLive = livePhase === "live";
+  const showAsLive = anyLive || scheduledLive;
   const liveVideoId = liveStream.youtube.videoId?.trim();
   const liveThumbnail = liveVideoId ? getYouTubeThumbnail(liveVideoId) : null;
   const nextService =
@@ -194,7 +197,7 @@ export function MobileHome({
             </p>
 
             <div>
-              {anyLive ? (
+              {showAsLive ? (
                 <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-red-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg shadow-red-900/40">
                   <span className="mobile-home-pulse h-1.5 w-1.5 rounded-full bg-white" />
                   Live now
@@ -206,18 +209,22 @@ export function MobileHome({
               )}
 
               <p className="font-display text-xl font-bold leading-tight tracking-tight text-white drop-shadow-md sm:text-2xl">
-                {anyLive ? liveStream.title : "Watch Live"}
+                {showAsLive
+                  ? scheduledLive && liveSchedule
+                    ? liveSchedule.title
+                    : liveStream.title
+                  : "Watch Live"}
               </p>
 
               <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-teal-100/85 sm:text-xs sm:tracking-[0.2em]">
-                {anyLive ? "Join the stream" : "Sundays & special services"}
+                {showAsLive ? "Join the stream" : "Sundays & special services"}
               </p>
 
               <span className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-teal-900 shadow-app-md backdrop-blur-sm sm:mt-3 sm:px-3.5 sm:py-2 sm:text-xs">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-night-950 text-[10px] text-white">
                   ▶
                 </span>
-                {anyLive ? "Join stream" : "Open live"}
+                {showAsLive ? "Join stream" : "Open live"}
               </span>
             </div>
           </div>

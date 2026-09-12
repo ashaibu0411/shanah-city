@@ -1,3 +1,4 @@
+import type { LiveStreamPlatform } from "./live-schedule-types";
 import type { StreamPreview } from "./types";
 import { site } from "./site";
 import { getFacebookVideoEmbedUrl, liveVideoConfig } from "./live-config";
@@ -63,6 +64,16 @@ export function getStreamThumbnail(preview: StreamPreview) {
     return getYouTubeThumbnail(preview.videoId);
   }
   return preview.thumbnail;
+}
+
+export function getStreamPreviewForPlatform(platform?: LiveStreamPlatform) {
+  const id =
+    platform === "facebook-city"
+      ? "facebook-city"
+      : platform === "facebook-revival"
+        ? "facebook-revival"
+        : "youtube";
+  return streamPreviews.find((preview) => preview.id === id) ?? streamPreviews[0];
 }
 
 export function getStreamFallbackThumbnail(preview: StreamPreview) {

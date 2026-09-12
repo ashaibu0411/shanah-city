@@ -4,6 +4,7 @@ import path from "path";
 import type { LiveStreamSchedule, LiveStreamPlatform } from "@/lib/live-schedule-types";
 import {
   filterUpcomingLiveStreamSchedules,
+  resolvePublicLiveStreamDisplay,
   sortLiveStreamSchedules,
 } from "@/lib/live-schedule-utils";
 
@@ -34,6 +35,10 @@ async function writeSchedules(schedules: LiveStreamSchedule[]) {
     return;
   }
   await fs.writeFile(FILE, JSON.stringify(sortLiveStreamSchedules(schedules), null, 2));
+}
+
+export async function getPublicLiveStreamSchedule(now = new Date()) {
+  return resolvePublicLiveStreamDisplay(await readSchedules(), now);
 }
 
 export async function getUpcomingLiveStreamSchedule(now = new Date()) {

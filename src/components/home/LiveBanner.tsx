@@ -21,13 +21,16 @@ type LiveBannerProps = {
 };
 
 export function LiveBanner({ liveFlyerImage }: LiveBannerProps) {
-  const { schedule, loading, clearSchedule } = useUpcomingLiveStreamSchedule();
+  const { schedule, livePhase, loading, refresh } = useUpcomingLiveStreamSchedule();
   const anyLive =
     liveStream.isLive ||
     liveStream.youtube.isLive ||
     liveStream.facebook.isLive;
+  const scheduledLive = livePhase === "live";
+  const showAsLive = anyLive || scheduledLive;
 
-  if (anyLive) {
+  if (showAsLive) {
+    const liveTitle = scheduledLive && schedule ? schedule.title : liveStream.title;
     return (
       <Link
         href="/live"
@@ -40,13 +43,15 @@ export function LiveBanner({ liveFlyerImage }: LiveBannerProps) {
               Live now
             </Badge>
             <h2 className="mt-3 font-display text-2xl font-semibold sm:text-3xl">
-              {liveStream.title}
+              {liveTitle}
             </h2>
             <p className="mt-1 text-sm text-white/80">
-              {liveStream.viewerCount.toLocaleString()} watching · Tap to join
+              {anyLive
+                ? `${liveStream.viewerCount.toLocaleString()} watching · Tap to join`
+                : "Tap to join the stream"}
             </p>
             <div className="mt-4">
-              <LiveStreamPublicShare title={liveStream.title} isLive onDark compact />
+              <LiveStreamPublicShare title={liveTitle} isLive onDark compact />
             </div>
           </div>
           <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15 text-2xl transition group-hover:bg-white/25">
@@ -57,7 +62,7 @@ export function LiveBanner({ liveFlyerImage }: LiveBannerProps) {
     );
   }
 
-  if (!loading && schedule) {
+  if (!loading && schedule && livePhase === "upcoming") {
     return (
       <Link
         href="/live"
@@ -85,7 +90,7 @@ export function LiveBanner({ liveFlyerImage }: LiveBannerProps) {
             <LiveStreamCountdown
               schedule={schedule}
               variant="desktop-flyer"
-              onComplete={clearSchedule}
+              onComplete={refresh}
             />
           </div>
         </div>

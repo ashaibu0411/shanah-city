@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { LiveStreamCountdown } from "@/components/live/LiveStreamCountdown";
 import type { LiveStreamSchedule } from "@/lib/live-schedule-types";
+import type { LiveStreamPhase } from "@/lib/live-schedule-utils";
 
 export function useUpcomingLiveStreamSchedule() {
   const [schedule, setSchedule] = useState<LiveStreamSchedule | null>(null);
+  const [livePhase, setLivePhase] = useState<LiveStreamPhase | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -13,6 +15,7 @@ export function useUpcomingLiveStreamSchedule() {
     const data = await response.json();
     if (response.ok) {
       setSchedule(data.schedule ?? null);
+      setLivePhase(data.livePhase ?? null);
     }
     setLoading(false);
   }, []);
@@ -21,7 +24,19 @@ export function useUpcomingLiveStreamSchedule() {
     void refresh();
   }, [refresh]);
 
-  return { schedule, loading, refresh, clearSchedule: () => setSchedule(null) };
+  useEffect(() => {
+    if (livePhase !== "live") return;
+    const id = window.setInterval(() => void refresh(), 60_000);
+    return () => window.clearInterval(id);
+  }, [livePhase, refresh]);
+
+  return {
+    schedule,
+    livePhase,
+    loading,
+    refresh,
+    clearSchedule: refresh,
+  };
 }
 
 type LiveStreamCountdownBannerProps = {
@@ -29,25 +44,25 @@ type LiveStreamCountdownBannerProps = {
 };
 
 export function LiveStreamCountdownBanner({ variant = "card" }: LiveStreamCountdownBannerProps) {
-  const { schedule, loading, clearSchedule } = useUpcomingLiveStreamSchedule();
+  const { schedule, livePhase, loading, refresh } = useUpcomingLiveStreamSchedule();
 
-  if (loading || !schedule) return null;
+  if (loading || !schedule || livePhase !== "upcoming") return null;
 
   return (
-    <LiveStreamCountdown schedule={schedule} variant={variant} onComplete={clearSchedule} />
+    <LiveStreamCountdown schedule={schedule} variant={variant} onComplete={refresh} />
   );
 }
 
 export function LiveStreamCountdownInline() {
-  const { schedule, loading, clearSchedule } = useUpcomingLiveStreamSchedule();
+  const { schedule, livePhase, loading, refresh } = useUpcomingLiveStreamSchedule();
 
-  if (loading || !schedule) return null;
+  if (loading || !schedule || livePhase !== "upcoming") return null;
 
   return (
     <LiveStreamCountdown
       schedule={schedule}
       variant="home-flyer"
-      onComplete={clearSchedule}
+      onComplete={refresh}
     />
   );
 }

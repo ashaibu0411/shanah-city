@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LiveStreamCountdown } from "@/components/live/LiveStreamCountdown";
 import { LiveStreamNotifyPanel } from "@/components/live/LiveStreamNotifyPanel";
 import { LiveStreamSchedulePanel } from "@/components/live/LiveStreamSchedulePanel";
@@ -9,7 +9,7 @@ import { useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSc
 import { formatLiveStreamStartLabel, liveStreamPlatformLabel } from "@/lib/live-schedule-utils";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
 import { liveStream, site } from "@/lib/site";
-import { streamPreviews } from "@/lib/streams";
+import { getStreamPreviewForPlatform, streamPreviews } from "@/lib/streams";
 import type { StreamPreview } from "@/lib/types";
 import { Badge, ExternalLink } from "@/components/ui";
 
@@ -36,17 +36,38 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
     liveStream.isLive ||
     liveStream.youtube.isLive ||
     liveStream.facebook.isLive;
-  const { schedule, loading: scheduleLoading, clearSchedule } = useUpcomingLiveStreamSchedule();
-  const showStageCountdown = !anyLive && !scheduleLoading && Boolean(schedule);
-  const stageTitle = showStageCountdown ? schedule!.title : anyLive ? liveStream.title : active.label;
+  const { schedule, livePhase, loading: scheduleLoading, refresh } = useUpcomingLiveStreamSchedule();
+  const scheduledLive = livePhase === "live";
+  const showAsLive = anyLive || scheduledLive;
+  const showStageCountdown =
+    !showAsLive && !scheduleLoading && Boolean(schedule) && livePhase === "upcoming";
+  const stagePreview =
+    scheduledLive && schedule
+      ? getStreamPreviewForPlatform(schedule.platform)
+      : active;
+  const stageTitle = showStageCountdown
+    ? schedule!.title
+    : showAsLive
+      ? scheduledLive && schedule
+        ? schedule.title
+        : liveStream.title
+      : active.label;
   const stageSubtitle = showStageCountdown
     ? formatLiveStreamStartLabel(schedule!.startsAt)
-    : anyLive
-      ? liveStream.scheduledAt
+    : showAsLive
+      ? scheduledLive
+        ? liveStreamPlatformLabel(schedule?.platform)
+        : liveStream.scheduledAt
       : `${active.platform} · Shanah City`;
   const stagePlatformLabel = showStageCountdown
     ? liveStreamPlatformLabel(schedule!.platform)
-    : active.platform;
+    : stagePreview.platform;
+
+  useEffect(() => {
+    if (scheduledLive && schedule) {
+      setActive(getStreamPreviewForPlatform(schedule.platform));
+    }
+  }, [scheduledLive, schedule]);
 
   const stageFrameClass = showStageCountdown
     ? "relative w-full min-h-[10.5rem] bg-black sm:min-h-[12rem]"
@@ -62,16 +83,16 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
             <LiveStreamCountdown
               schedule={schedule!}
               variant="stage"
-              onComplete={clearSchedule}
+              onComplete={refresh}
             />
           ) : (
-            <LiveStreamPlayer preview={active} compact />
+            <LiveStreamPlayer preview={stagePreview} compact />
           )}
           {!showStageCountdown ? (
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/50 via-transparent to-night-950/25" />
           ) : null}
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
-            {anyLive ? (
+            {showAsLive ? (
               <Badge variant="live">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 Live now
@@ -86,7 +107,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
               </span>
             )}
             <span className="rounded-full bg-black/50 px-3 py-1 text-[10px] font-semibold text-white/85 backdrop-blur-md">
-              {active.platform}
+              {stagePlatformLabel}
             </span>
           </div>
         </div>
@@ -102,7 +123,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
               isMobile ? "text-night-500" : "text-sand-300/80"
             }`}
           >
-            {anyLive ? "Now streaming" : showStageCountdown ? "Upcoming livestream" : "Featured channel"}
+            {showAsLive ? "Now streaming" : showStageCountdown ? "Upcoming livestream" : "Featured channel"}
           </p>
           <h2 className={`mt-1 font-home-hero font-semibold leading-snug tracking-tight ${isMobile ? "text-xl" : "text-2xl"}`}>
             {stageTitle}
@@ -182,9 +203,9 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
 
       <LiveStreamNotifyPanel
         compact={isMobile}
-        isLive={anyLive}
-        platform={active.id}
-        streamTitle={anyLive ? liveStream.title : active.label}
+        isLive={showAsLive}
+        platform={stagePreview.id}
+        streamTitle={showAsLive ? stageTitle : active.label}
       />
 
       <LiveStreamSchedulePanel compact={isMobile} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   formatLiveStreamCountdown,
   formatLiveStreamStartLabel,
@@ -114,12 +114,20 @@ export function LiveStreamCountdown({
   onComplete,
 }: LiveStreamCountdownProps) {
   const [parts, setParts] = useState(() => getLiveStreamCountdown(schedule.startsAt));
+  const completedRef = useRef(false);
+
+  useEffect(() => {
+    completedRef.current = false;
+  }, [schedule.startsAt]);
 
   useEffect(() => {
     const tick = () => {
       const next = getLiveStreamCountdown(schedule.startsAt);
       setParts(next);
-      if (next.done) onComplete?.();
+      if (next.done && !completedRef.current) {
+        completedRef.current = true;
+        onComplete?.();
+      }
     };
     tick();
     const id = window.setInterval(tick, 1000);

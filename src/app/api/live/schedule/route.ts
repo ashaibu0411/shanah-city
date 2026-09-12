@@ -7,7 +7,7 @@ import type { LiveStreamPlatform } from "@/lib/live-schedule-types";
 import {
   clearLiveStreamSchedule,
   getLiveStreamSchedules,
-  getUpcomingLiveStreamSchedule,
+  getPublicLiveStreamSchedule,
   getUpcomingLiveStreamSchedules,
   saveLiveStreamSchedule,
 } from "@/lib/live-schedule-server";
@@ -29,8 +29,8 @@ export async function GET() {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
   const canManage = await canPublishMediaClips(user);
-  const [schedule, schedules] = await Promise.all([
-    getUpcomingLiveStreamSchedule(),
+  const [publicSchedule, schedules] = await Promise.all([
+    getPublicLiveStreamSchedule(),
     getUpcomingLiveStreamSchedules(),
   ]);
 
@@ -38,7 +38,8 @@ export async function GET() {
   const managedSchedule = managedSchedules?.[0] ?? null;
 
   return NextResponse.json({
-    schedule,
+    schedule: publicSchedule.schedule,
+    livePhase: publicSchedule.livePhase,
     schedules,
     managedSchedule,
     managedSchedules,
@@ -66,13 +67,14 @@ export async function POST(request: Request) {
     await clearLiveStreamSchedule(scheduleId);
     revalidatePath("/");
     revalidatePath("/live");
-    const [schedule, schedules] = await Promise.all([
-      getUpcomingLiveStreamSchedule(),
+    const [publicSchedule, schedules] = await Promise.all([
+      getPublicLiveStreamSchedule(),
       getUpcomingLiveStreamSchedules(),
     ]);
     return NextResponse.json({
       ok: true,
-      schedule,
+      schedule: publicSchedule.schedule,
+      livePhase: publicSchedule.livePhase,
       schedules,
       managedSchedules: await getLiveStreamSchedules(),
     });
@@ -101,12 +103,13 @@ export async function POST(request: Request) {
     });
     revalidatePath("/");
     revalidatePath("/live");
-    const [schedule, schedules] = await Promise.all([
-      getUpcomingLiveStreamSchedule(),
+    const [publicSchedule, schedules] = await Promise.all([
+      getPublicLiveStreamSchedule(),
       getUpcomingLiveStreamSchedules(),
     ]);
     return NextResponse.json({
-      schedule,
+      schedule: publicSchedule.schedule,
+      livePhase: publicSchedule.livePhase,
       schedules,
       managedSchedules: await getLiveStreamSchedules(),
       saved,

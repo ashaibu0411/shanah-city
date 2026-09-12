@@ -4,6 +4,7 @@ import * as liveScheduleJson from "@/lib/stores/live-schedule-json";
 
 const store = () => (useDatabase() ? liveScheduleDb : liveScheduleJson);
 
+export const getPublicLiveStreamSchedule = () => store().getPublicLiveStreamSchedule();
 export const getUpcomingLiveStreamSchedule = () => store().getUpcomingLiveStreamSchedule();
 export const getUpcomingLiveStreamSchedules = () => store().getUpcomingLiveStreamSchedules();
 export const getLiveStreamSchedules = () => store().getLiveStreamSchedules();

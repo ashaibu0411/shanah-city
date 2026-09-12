@@ -1,5 +1,15 @@
 import type { LiveStreamSchedule } from "@/lib/live-schedule-types";
 
+/** How long a scheduled service stays in the "live" phase after start time. */
+export const DEFAULT_LIVE_STREAM_WINDOW_MS = 3 * 60 * 60 * 1000;
+
+export type LiveStreamPhase = "live" | "upcoming";
+
+export type PublicLiveStreamDisplay = {
+  schedule: LiveStreamSchedule | null;
+  livePhase: LiveStreamPhase | null;
+};
+
 export type LiveStreamCountdownParts = {
   totalMs: number;
   days: number;
@@ -8,6 +18,46 @@ export type LiveStreamCountdownParts = {
   seconds: number;
   done: boolean;
 };
+
+export function getLiveStreamWindowEndMs(
+  startsAt: string,
+  windowMs = DEFAULT_LIVE_STREAM_WINDOW_MS,
+) {
+  const startMs = Date.parse(startsAt);
+  if (!Number.isFinite(startMs)) return Number.NaN;
+  return startMs + windowMs;
+}
+
+export function isLiveStreamScheduleActive(
+  schedule: LiveStreamSchedule,
+  nowMs = Date.now(),
+  windowMs = DEFAULT_LIVE_STREAM_WINDOW_MS,
+) {
+  const startMs = Date.parse(schedule.startsAt);
+  if (!Number.isFinite(startMs)) return false;
+  return nowMs >= startMs && nowMs < getLiveStreamWindowEndMs(schedule.startsAt, windowMs);
+}
+
+export function resolvePublicLiveStreamDisplay(
+  schedules: LiveStreamSchedule[],
+  now: Date = new Date(),
+  windowMs = DEFAULT_LIVE_STREAM_WINDOW_MS,
+): PublicLiveStreamDisplay {
+  const sorted = sortLiveStreamSchedules(schedules);
+  const nowMs = now.getTime();
+
+  const active = sorted.find((schedule) => isLiveStreamScheduleActive(schedule, nowMs, windowMs));
+  if (active) {
+    return { schedule: active, livePhase: "live" };
+  }
+
+  const upcoming = filterUpcomingLiveStreamSchedules(sorted, now)[0] ?? null;
+  if (upcoming) {
+    return { schedule: upcoming, livePhase: "upcoming" };
+  }
+
+  return { schedule: null, livePhase: null };
+}
 
 export function filterUpcomingLiveStreamSchedules(
   schedules: LiveStreamSchedule[],
