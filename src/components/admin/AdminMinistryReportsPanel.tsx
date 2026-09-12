@@ -148,7 +148,7 @@ export function AdminMinistryReportsPanel({ embedded = false }: { embedded?: boo
     return (
       <Card className="p-6">
         <p className="text-night-700">
-          Leader reports are visible to Admin Group and approved Senior or Associate Pastor members.
+          Leader reports are visible to Admin Group and the assigned Senior or Associate Pastor.
         </p>
       </Card>
     );

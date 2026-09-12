@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { campuses, getCampus } from "@/lib/site";
-import {
-  ASSOCIATE_PASTOR_GROUP_ID,
-  SENIOR_PASTOR_GROUP_ID,
-} from "@/lib/church-groups";
+import type { PastoralRole } from "@/lib/pastoral-roles-types";
+import { PASTORAL_ROLE_LABELS, PASTORAL_ROLES } from "@/lib/pastoral-roles-types";
 import type { AdminPeopleEntry } from "@/lib/member-types";
 import { Button, Card } from "@/components/ui";
 
@@ -25,10 +23,10 @@ const roleOptions = [
   { value: "media", label: "Media" },
 ] as const;
 
-const pastoralRoleGroups = [
-  { id: SENIOR_PASTOR_GROUP_ID, label: "Senior Pastor" },
-  { id: ASSOCIATE_PASTOR_GROUP_ID, label: "Associate Pastor" },
-] as const;
+const pastoralRoleOptions = PASTORAL_ROLES.map((role) => ({
+  role,
+  label: PASTORAL_ROLE_LABELS[role],
+}));
 
 export function AdminMemberDetail({
   person,
@@ -190,23 +188,19 @@ export function AdminMemberDetail({
     }
   }
 
-  async function togglePastoralRole(groupId: string, groupLabel: string, isMember: boolean) {
+  async function setPastoralRole(role: PastoralRole, userId: string | null) {
     setBusy(true);
     setMessage(null);
-    const response = await fetch("/api/groups", {
-      method: "POST",
+    const response = await fetch("/api/admin/pastoral-roles", {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        isMember
-          ? { action: "remove-member", groupId, memberId: person.id }
-          : { action: "add-member", groupId, userId: person.id },
-      ),
+      body: JSON.stringify({ role, userId }),
     });
     const data = await response.json();
     setBusy(false);
 
     if (!response.ok) {
-      setMessage(data.error ?? `Could not update ${groupLabel} access.`);
+      setMessage(data.error ?? "Could not update pastoral role.");
       return;
     }
 
@@ -216,10 +210,11 @@ export function AdminMemberDetail({
       onUpdated(refreshData.person);
     }
 
+    const label = PASTORAL_ROLE_LABELS[role];
     setMessage(
-      isMember
-        ? `Removed ${groupLabel} access for ${person.name}.`
-        : `Added ${person.name} to ${groupLabel}. They may need to refresh the app.`,
+      userId
+        ? `${person.name} is now the ${label}.`
+        : `Removed ${label} role from ${person.name}.`,
     );
   }
 
@@ -322,31 +317,33 @@ export function AdminMemberDetail({
           )}
 
           <div className="mt-4 rounded-xl bg-violet-50/80 px-4 py-3 ring-1 ring-violet-200/60">
-            <p className="text-sm font-semibold text-night-900">Pastoral review access</p>
+            <p className="text-sm font-semibold text-night-900">Pastoral roles</p>
             <p className="mt-1 text-xs leading-snug text-night-600">
-              Senior and Associate Pastor roles can review leader reports. This is separate from the
-              general Pastors calendar group.
+              Admin assigns one Senior Pastor and one Associate Pastor. Each role belongs to only
+              one person and is separate from the general Pastors calendar group.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {pastoralRoleGroups.map((roleGroup) => {
-                const membership = person.groups.find(
-                  (group) => group.id === roleGroup.id && group.status === "member",
-                );
-                const isMember = Boolean(membership);
+              {pastoralRoleOptions.map((option) => {
+                const isAssigned = person.pastoralRole === option.role;
                 return (
                   <Button
-                    key={roleGroup.id}
-                    variant={isMember ? "secondary" : "primary"}
+                    key={option.role}
+                    variant={isAssigned ? "secondary" : "primary"}
                     disabled={busy}
                     onClick={() =>
-                      togglePastoralRole(roleGroup.id, roleGroup.label, isMember)
+                      setPastoralRole(option.role, isAssigned ? null : person.id)
                     }
                   >
-                    {isMember ? `Remove ${roleGroup.label}` : `Add ${roleGroup.label}`}
+                    {isAssigned ? `Remove ${option.label}` : `Assign ${option.label}`}
                   </Button>
                 );
               })}
             </div>
+            {person.pastoralRole ? (
+              <p className="mt-2 text-xs font-semibold text-violet-900">
+                Current role: {PASTORAL_ROLE_LABELS[person.pastoralRole]}
+              </p>
+            ) : null}
           </div>
 
           <p className="mt-3 text-xs text-night-500">

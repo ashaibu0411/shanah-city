@@ -65,6 +65,7 @@ export type AdminPeopleEntry = {
   phone?: string;
   campusId: string;
   role?: string;
+  pastoralRole?: "senior_pastor" | "associate_pastor" | null;
   createdAt: string;
   familyCount: number;
   family: AdminPeopleFamilyMember[];

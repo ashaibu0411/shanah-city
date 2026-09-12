@@ -1,6 +1,6 @@
 import { getUserByEmail, getUserById, getUsers } from "@/lib/auth-server";
 import { isAdminGroupMember } from "@/lib/admin-access-server";
-import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS } from "@/lib/church-groups";
+import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS, isDeprecatedPastoralRoleGroup } from "@/lib/church-groups";
 import { prisma } from "@/lib/db";
 import {
   assertAnotherAdminRemains,
@@ -160,7 +160,9 @@ export async function getSignupGroupOptions() {
     orderBy: { name: "asc" },
   });
 
-  return records.map((record) => ({
+  return records
+    .filter((record) => !isDeprecatedPastoralRoleGroup(record.id))
+    .map((record) => ({
     id: record.id,
     name: record.name,
     description: record.description,
@@ -208,7 +210,7 @@ async function getMemberPreviews(group: Group): Promise<GroupMemberPreview[]> {
 export async function getGroups() {
   await ensureChurchGroups();
   const records = await prisma.group.findMany();
-  return records.map(mapGroup);
+  return records.map(mapGroup).filter((group) => !isDeprecatedPastoralRoleGroup(group.id));
 }
 
 export async function listGroupsForUser(userId?: string, options?: { mine?: boolean }) {

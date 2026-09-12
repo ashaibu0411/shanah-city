@@ -95,7 +95,7 @@ export function AdminReportsHub() {
     return (
       <Card className="p-6">
         <p className="text-night-700">
-          Reports are available to Admin Group and approved Senior or Associate Pastor members.
+          Reports are available to Admin Group and the assigned Senior or Associate Pastor.
         </p>
       </Card>
     );

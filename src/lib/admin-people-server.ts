@@ -2,13 +2,19 @@ import { getUsers } from "@/lib/auth-server";
 import { getGroups } from "@/lib/group-server";
 import { isGroupMember } from "@/lib/group-admin-utils";
 import { listPendingJoinRequests } from "@/lib/group-join-server";
+import {
+  filterDeprecatedPastoralGroups,
+  getPastoralRoleAssignments,
+  pastoralRoleForUser,
+} from "@/lib/pastoral-roles-server";
 import type { AdminPeopleEntry } from "@/lib/member-types";
 
 export async function getAdminPeopleDirectory(adminId: string): Promise<AdminPeopleEntry[]> {
-  const [users, groups, pendingRequests] = await Promise.all([
+  const [users, groups, pendingRequests, pastoralRoles] = await Promise.all([
     getUsers(),
     getGroups(),
     listPendingJoinRequests(adminId),
+    getPastoralRoleAssignments(),
   ]);
 
   const pendingByUser = new Map<string, { id: string; name: string }[]>();
@@ -20,21 +26,25 @@ export async function getAdminPeopleDirectory(adminId: string): Promise<AdminPeo
 
   return users
     .map((user) => {
-      const memberGroups = groups
-        .filter((group) => isGroupMember(group, user.id))
-        .map((group) => ({
-          id: group.id,
-          name: group.name,
-          status: "member" as const,
-        }));
+      const memberGroups = filterDeprecatedPastoralGroups(
+        groups
+          .filter((group) => isGroupMember(group, user.id))
+          .map((group) => ({
+            id: group.id,
+            name: group.name,
+            status: "member" as const,
+          })),
+      );
 
-      const pendingGroups = (pendingByUser.get(user.id) ?? [])
-        .filter((pending) => !memberGroups.some((group) => group.id === pending.id))
-        .map((pending) => ({
-          id: pending.id,
-          name: pending.name,
-          status: "pending" as const,
-        }));
+      const pendingGroups = filterDeprecatedPastoralGroups(
+        (pendingByUser.get(user.id) ?? [])
+          .filter((pending) => !memberGroups.some((group) => group.id === pending.id))
+          .map((pending) => ({
+            id: pending.id,
+            name: pending.name,
+            status: "pending" as const,
+          })),
+      );
 
       return {
         id: user.id,
@@ -45,6 +55,7 @@ export async function getAdminPeopleDirectory(adminId: string): Promise<AdminPeo
         role: user.role,
         createdAt: user.createdAt,
         familyCount: user.family.length,
+        pastoralRole: pastoralRoleForUser(user.id, pastoralRoles),
         family: user.family.map((member) => ({
           id: member.id,
           name: member.name,

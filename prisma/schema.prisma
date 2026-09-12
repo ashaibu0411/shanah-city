@@ -984,3 +984,11 @@ model CoupleEnrichmentProgress {
   @@unique([moduleId, coupleLinkId])
   @@index([coupleLinkId])
 }
+
+model PastoralRoleSlot {
+  role          String   @id
+  userId        String?
+  updatedAt     DateTime @updatedAt
+  updatedBy     String?
+  updatedByName String?
+}

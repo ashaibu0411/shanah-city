@@ -1,10 +1,7 @@
 import { getGroups } from "@/lib/group-server";
 import { isGroupMember } from "@/lib/group-admin-utils";
-import {
-  ADMIN_GROUP_ID,
-  ASSOCIATE_PASTOR_GROUP_ID,
-  SENIOR_PASTOR_GROUP_ID,
-} from "@/lib/church-groups";
+import { ADMIN_GROUP_ID } from "@/lib/church-groups";
+import { getPastoralReviewerUserIds as getPastoralRoleReviewerUserIds } from "@/lib/pastoral-roles-server";
 import { getZonedDateParts } from "@/lib/denver-time";
 import {
   getMinistryReport,
@@ -17,15 +14,11 @@ import {
 } from "@/lib/ministry-report-types";
 import { sendPushToUsers } from "@/lib/push-server";
 
-const PASTORAL_GROUP_IDS = [
-  ADMIN_GROUP_ID,
-  SENIOR_PASTOR_GROUP_ID,
-  ASSOCIATE_PASTOR_GROUP_ID,
-] as const;
+const PASTORAL_GROUP_IDS = [ADMIN_GROUP_ID] as const;
 
 async function getPastoralReviewerUserIds() {
   const groups = await getGroups();
-  const userIds = new Set<string>();
+  const userIds = new Set<string>(await getPastoralRoleReviewerUserIds());
 
   for (const groupId of PASTORAL_GROUP_IDS) {
     const group = groups.find((entry) => entry.id === groupId);

@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { getUserByEmail, getUserById, getUsers } from "@/lib/auth-server";
 import { isAdminGroupMember } from "@/lib/admin-access-server";
-import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS } from "@/lib/church-groups";
+import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS, isDeprecatedPastoralRoleGroup } from "@/lib/church-groups";
 import {
   assertAnotherAdminRemains,
   assertGroupAdmin,
@@ -44,7 +44,8 @@ async function writeJson<T>(file: string, data: T) {
 
 export async function getGroups() {
   await ensureChurchGroups();
-  return readJson<Group[]>(GROUPS_FILE, []);
+  const groups = await readJson<Group[]>(GROUPS_FILE, []);
+  return groups.filter((group) => !isDeprecatedPastoralRoleGroup(group.id));
 }
 
 async function ensureChurchGroups() {
@@ -112,6 +113,7 @@ export async function getSignupGroupOptions() {
   const groups = await getGroups();
   return groups
     .filter((group) => group.signupVisible !== false)
+    .filter((group) => !isDeprecatedPastoralRoleGroup(group.id))
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((group) => ({
       id: group.id,

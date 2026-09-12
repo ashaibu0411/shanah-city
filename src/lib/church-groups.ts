@@ -1,8 +1,18 @@
 import type { GroupCategory, GroupVisibility } from "@/lib/group-types";
 
 export const ADMIN_GROUP_ID = "group-admin";
+/** @deprecated Legacy group ids kept for migration only — not real groups. */
 export const SENIOR_PASTOR_GROUP_ID = "group-senior-pastor";
+/** @deprecated Legacy group ids kept for migration only — not real groups. */
 export const ASSOCIATE_PASTOR_GROUP_ID = "group-associate-pastor";
+export const DEPRECATED_PASTORAL_ROLE_GROUP_IDS = new Set([
+  SENIOR_PASTOR_GROUP_ID,
+  ASSOCIATE_PASTOR_GROUP_ID,
+]);
+
+export function isDeprecatedPastoralRoleGroup(groupId: string) {
+  return DEPRECATED_PASTORAL_ROLE_GROUP_IDS.has(groupId);
+}
 export const TEAM_ZNCF_GROUP_ID = "group-team-zncf";
 export const SHANAH_POWER_COUPLES_GROUP_ID = "group-shanah-power-couples";
 export const FOLLOW_UP_GROUP_ID = "group-follow-up";
@@ -30,28 +40,6 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     description:
       "Church administrators with full access to calendar, member tools, and approvals.",
     category: "other",
-    visibility: "private",
-    requiresApproval: true,
-    signupVisible: true,
-    isSystem: true,
-  },
-  {
-    id: SENIOR_PASTOR_GROUP_ID,
-    name: "Senior Pastor",
-    description:
-      "Senior pastoral oversight — review leader reports and ministry accountability. Admin approval required.",
-    category: "ministry",
-    visibility: "private",
-    requiresApproval: true,
-    signupVisible: true,
-    isSystem: true,
-  },
-  {
-    id: ASSOCIATE_PASTOR_GROUP_ID,
-    name: "Associate Pastor",
-    description:
-      "Associate or assistant pastors with ministry management access. Admin approval required.",
-    category: "ministry",
     visibility: "private",
     requiresApproval: true,
     signupVisible: true,
@@ -232,8 +220,6 @@ export function isPrivilegedMinistryGroup(groupId: string) {
 
 export const GROUP_CALENDAR_EXCLUDED_IDS = new Set([
   ADMIN_GROUP_ID,
-  SENIOR_PASTOR_GROUP_ID,
-  ASSOCIATE_PASTOR_GROUP_ID,
   TEAM_ZNCF_GROUP_ID,
   "group-leaders",
   "group-team-lead",
