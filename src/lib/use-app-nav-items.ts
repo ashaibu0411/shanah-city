@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   adminNavItem,
+  followUpNavItem,
   frontlinersNavItem,
   kidsMinistryNavItem,
   site,
@@ -58,6 +59,19 @@ export function useAppNavItems(): AppNavItem[] {
       }
     }
 
+    if (permissions.canAccessFollowUp) {
+      const profileIndex = items.findIndex((item) => item.href === "/profile");
+      if (profileIndex === -1) {
+        items = [...items, followUpNavItem];
+      } else {
+        items = [
+          ...items.slice(0, profileIndex),
+          followUpNavItem,
+          ...items.slice(profileIndex),
+        ];
+      }
+    }
+
     if (permissions.canAccessKidsMinistry) {
       const profileIndex = items.findIndex((item) => item.href === "/profile");
       if (profileIndex === -1) {
@@ -91,6 +105,7 @@ export function useAppNavItems(): AppNavItem[] {
     permissions.canWriteDevotions,
     permissions.canAccessWorshipPlanner,
     permissions.canAccessFrontLiners,
+    permissions.canAccessFollowUp,
     permissions.canAccessKidsMinistry,
     permissions.canManageAdmin,
     permissions.canReviewMinistryReports,

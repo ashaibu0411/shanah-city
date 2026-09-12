@@ -5,6 +5,7 @@ export const SENIOR_PASTOR_GROUP_ID = "group-senior-pastor";
 export const ASSOCIATE_PASTOR_GROUP_ID = "group-associate-pastor";
 export const TEAM_ZNCF_GROUP_ID = "group-team-zncf";
 export const SHANAH_POWER_COUPLES_GROUP_ID = "group-shanah-power-couples";
+export const FOLLOW_UP_GROUP_ID = "group-follow-up";
 
 export const CALENDAR_GROUP_TABS = {
   choir: "group-choir",
@@ -123,6 +124,17 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     category: "ministry",
     visibility: "public",
     requiresApproval: false,
+    signupVisible: true,
+    isSystem: true,
+  },
+  {
+    id: FOLLOW_UP_GROUP_ID,
+    name: "Follow-Up Team",
+    description:
+      "Welcome guests, make follow-up calls within 48 hours, and connect visitors to pastoral care.",
+    category: "ministry",
+    visibility: "private",
+    requiresApproval: true,
     signupVisible: true,
     isSystem: true,
   },

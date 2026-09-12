@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AdminGuestsPanel } from "@/components/admin/AdminGuestsPanel";
 import { PageHeader } from "@/components/ui";
-import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { canManageGuestSubmissions } from "@/lib/frontliners-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 
 export default async function AdminGuestsPage() {
@@ -14,8 +14,8 @@ export default async function AdminGuestsPage() {
     redirect("/sign-in?next=/admin/guests");
   }
 
-  if (!(await canManageAsAdmin(user))) {
-    redirect("/admin/approvals");
+  if (!(await canManageGuestSubmissions(user))) {
+    redirect("/groups");
   }
 
   return (

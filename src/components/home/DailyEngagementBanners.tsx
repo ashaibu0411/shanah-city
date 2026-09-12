@@ -72,6 +72,44 @@ export function LeaderReportHomeBanner() {
   );
 }
 
+export function FollowUpHomeBanner() {
+  const { permissions, user } = useAuth();
+  const [newCount, setNewCount] = useState(0);
+
+  useEffect(() => {
+    if (!user || !permissions.canManageGuestSubmissions) return;
+
+    fetch("/api/guests")
+      .then((response) => response.json())
+      .then((data) => {
+        const guests = (data.guests ?? []) as Array<{ status: string }>;
+        setNewCount(guests.filter((guest) => guest.status === "new").length);
+      })
+      .catch(() => undefined);
+  }, [permissions.canManageGuestSubmissions, user]);
+
+  if (!permissions.canManageGuestSubmissions || newCount === 0) {
+    return null;
+  }
+
+  return (
+    <Link
+      href="/follow-up"
+      className="block rounded-2xl border border-clay-200/80 bg-gradient-to-r from-clay-50/95 to-orange-50/90 px-4 py-3 ring-1 ring-clay-100 transition hover:border-clay-300 active:scale-[0.99]"
+    >
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay-800">
+        Guest follow-up
+      </p>
+      <p className="mt-1 font-display text-base font-semibold text-night-900">
+        {newCount} new guest{newCount === 1 ? "" : "s"} waiting
+      </p>
+      <p className="mt-1 text-sm text-night-600">
+        Open the guest queue and contact visitors within 48 hours.
+      </p>
+    </Link>
+  );
+}
+
 export function DevotionBrowseNudge() {
   return (
     <Card className="flex items-center justify-between gap-3 px-4 py-3">

@@ -6,7 +6,9 @@ import {
   usherRoleLabel,
   type UsherSchedule,
 } from "@/lib/frontliners-types";
+import { FOLLOW_UP_GROUP_ID } from "@/lib/follow-up-types";
 import { canManageFrontLiners } from "@/lib/frontliners-access-server";
+import { listGuestSubmissions } from "@/lib/guest-submission-server";
 import { getGroupDetail, listGroupsForUser } from "@/lib/group-server";
 import { isMemberTrainingRequired } from "@/lib/ministry-readiness-server";
 import { isMediaGroup } from "@/lib/media-group";
@@ -99,6 +101,7 @@ function usherRoleRows(schedule: UsherSchedule): GroupDashboardRoleRow[] {
 export function resolveGroupScheduleKind(group: { id: string; name: string; category: GroupDetail["category"] }): GroupScheduleKind {
   if (isWorshipGroup(group) || group.id === "group-choir") return "worship";
   if (group.id === FRONTLINERS_GROUP_ID) return "frontliners";
+  if (group.id === FOLLOW_UP_GROUP_ID) return "followUp";
   if (groupUsesServiceRoster(group)) return "roster";
   return "generic";
 }
@@ -111,6 +114,7 @@ function baseQuickActions(
     showCalendar: boolean;
     showWorship: boolean;
     showFrontLiners: boolean;
+    showFollowUpHub: boolean;
     showRoster: boolean;
   },
 ): GroupDashboardQuickAction[] {
@@ -126,6 +130,9 @@ function baseQuickActions(
   }
   if (options.showFrontLiners) {
     actions.push({ id: "frontliners", label: "FrontLiners hub", href: "/frontliners" });
+  }
+  if (options.showFollowUpHub) {
+    actions.push({ id: "follow-up", label: "Guest queue", href: "/follow-up" });
   }
   if (options.showRoster && options.isLeader) {
     actions.push({ id: "roster", label: "Manage roster", action: "roster" });
@@ -329,6 +336,41 @@ async function buildGenericDashboard(
   };
 }
 
+async function buildFollowUpDashboard(): Promise<
+  Pick<GroupDashboardData, "nextService" | "myAssignments">
+> {
+  const guests = await listGuestSubmissions();
+  const newGuests = guests.filter((guest) => guest.status === "new");
+  const contacted = guests.filter((guest) => guest.status === "contacted");
+
+  const nextService: GroupDashboardNextService = {
+    title: "Guest follow-up",
+    subtitle:
+      newGuests.length > 0
+        ? `${newGuests.length} new guest${newGuests.length === 1 ? "" : "s"} waiting`
+        : contacted.length > 0
+          ? `${contacted.length} contacted · keep working the queue`
+          : "No new guest submissions right now",
+    roles: [
+      {
+        roleLabel: "Queue",
+        assignees: [
+          `${newGuests.length} new`,
+          `${contacted.length} contacted`,
+          `${guests.filter((guest) => guest.status === "archived").length} archived`,
+        ],
+      },
+    ],
+    href: "/follow-up",
+    emptyMessage:
+      newGuests.length === 0
+        ? "Share the /guest connect link at the door so visitors can reach the team."
+        : undefined,
+  };
+
+  return { nextService, myAssignments: [] };
+}
+
 export async function buildGroupDashboard(
   user: PublicMember,
   groupId: string,
@@ -357,6 +399,7 @@ export async function buildGroupDashboard(
   const showCalendar = group.isMember;
   const showWorship = scheduleKind === "worship";
   const showFrontLiners = scheduleKind === "frontliners";
+  const showFollowUpHub = scheduleKind === "followUp";
   const showRoster = scheduleKind === "roster";
 
   const quickActions = baseQuickActions(group, {
@@ -365,6 +408,7 @@ export async function buildGroupDashboard(
     showCalendar,
     showWorship,
     showFrontLiners,
+    showFollowUpHub,
     showRoster,
   });
 
@@ -381,6 +425,11 @@ export async function buildGroupDashboard(
     const canManage = await canManageFrontLiners(user);
     const frontliners = await buildFrontLinersDashboard(user, canManage);
     return { scheduleKind, quickActions, usesServiceRoster, canManageRoster, ...frontliners };
+  }
+
+  if (scheduleKind === "followUp") {
+    const followUp = await buildFollowUpDashboard();
+    return { scheduleKind, quickActions, usesServiceRoster, canManageRoster, ...followUp };
   }
 
   if (scheduleKind === "roster") {

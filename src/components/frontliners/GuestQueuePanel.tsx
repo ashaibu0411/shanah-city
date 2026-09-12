@@ -10,12 +10,23 @@ import {
   type GuestSubmissionStatus,
 } from "@/lib/frontliners-types";
 
-export function GuestQueuePanel() {
+type GuestQueuePanelProps = {
+  variant?: "admin" | "follow-up";
+  compactHeader?: boolean;
+};
+
+export function GuestQueuePanel({
+  variant = "admin",
+  compactHeader = false,
+}: GuestQueuePanelProps) {
   const { permissions } = useAuth();
   const [guests, setGuests] = useState<GuestSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<GuestSubmissionStatus | "all">("new");
+
+  const canManage = permissions.canManageGuestSubmissions;
+  const isFollowUp = variant === "follow-up";
 
   async function loadGuests() {
     setLoading(true);
@@ -28,10 +39,10 @@ export function GuestQueuePanel() {
   }
 
   useEffect(() => {
-    if (permissions.canManageAdmin) {
+    if (canManage) {
       loadGuests();
     }
-  }, [permissions.canManageAdmin]);
+  }, [canManage]);
 
   async function updateStatus(id: string, status: GuestSubmissionStatus) {
     const response = await fetch("/api/guests", {
@@ -46,34 +57,60 @@ export function GuestQueuePanel() {
     }
   }
 
-  if (!permissions.canManageAdmin) {
+  if (!canManage) {
     return (
       <Card>
-        <p className="text-sm text-night-600">Guest follow-up is managed by the Admin Group.</p>
+        <p className="text-sm text-night-600">
+          Guest follow-up is managed by the Follow-Up Team and Admin Group.
+        </p>
       </Card>
     );
   }
 
   const filtered =
     filter === "all" ? guests : guests.filter((guest) => guest.status === filter);
+  const newCount = guests.filter((guest) => guest.status === "new").length;
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden p-0 ring-1 ring-night-900/10">
-        <div className="bg-gradient-to-br from-emerald-700 to-teal-900 px-6 py-5 text-white">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">
-            Admin · Guest follow-up
-          </p>
-          <h2 className="mt-1 font-display text-2xl font-semibold">Guest queue</h2>
-          <p className="mt-2 text-sm text-emerald-100/90">
-            Visitors submit at{" "}
-            <a href="/guest" className="font-semibold underline" target="_blank" rel="noreferrer">
-              /guest
-            </a>{" "}
-            — no account needed. Share that link or QR code at the door.
-          </p>
-        </div>
-      </Card>
+      {!compactHeader ? (
+        <Card className="overflow-hidden p-0 ring-1 ring-night-900/10">
+          <div
+            className={
+              isFollowUp
+                ? "bg-gradient-to-br from-clay-700 via-clay-800 to-night-900 px-6 py-5 text-white"
+                : "bg-gradient-to-br from-emerald-700 to-teal-900 px-6 py-5 text-white"
+            }
+          >
+            <p
+              className={
+                isFollowUp
+                  ? "text-xs font-semibold uppercase tracking-[0.2em] text-clay-200"
+                  : "text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200"
+              }
+            >
+              {isFollowUp ? "Follow-Up Team · Guest care" : "Admin · Guest follow-up"}
+            </p>
+            <h2 className="mt-1 font-display text-2xl font-semibold">Guest queue</h2>
+            <p
+              className={
+                isFollowUp ? "mt-2 text-sm text-clay-100/90" : "mt-2 text-sm text-emerald-100/90"
+              }
+            >
+              Visitors submit at{" "}
+              <a href="/guest" className="font-semibold underline" target="_blank" rel="noreferrer">
+                /guest
+              </a>{" "}
+              — contact new guests within 48 hours, then mark contacted or archive.
+            </p>
+            {newCount > 0 ? (
+              <p className="mt-3 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-white">
+                {newCount} new guest{newCount === 1 ? "" : "s"} waiting
+              </p>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {(

@@ -19,9 +19,11 @@ import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel
 import { CoupleMentorPanel } from "@/components/groups/CoupleMentorPanel";
 import { CouplePrayerPanel } from "@/components/groups/CouplePrayerPanel";
 import { GroupResourcesPanel } from "@/components/groups/GroupResourcesPanel";
+import { GuestQueuePanel } from "@/components/frontliners/GuestQueuePanel";
 import { Button } from "@/components/ui";
 import {
   groupHasEmbeddedCalendar,
+  FOLLOW_UP_GROUP_ID,
   SHANAH_POWER_COUPLES_GROUP_ID,
   unavailabilityCalendarGroupForId,
 } from "@/lib/church-groups";
@@ -42,7 +44,8 @@ type DetailSection =
   | "resources"
   | "prayer"
   | "mentors"
-  | "growth";
+  | "growth"
+  | "guests";
 
 type ManageScrollTarget = "members" | "invite" | "roster" | null;
 
@@ -168,6 +171,9 @@ export function GroupDetailView({
     detail.isAdmin &&
     isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
   const isPowerCouplesGroup = detail.id === SHANAH_POWER_COUPLES_GROUP_ID;
+  const isFollowUpGroup = detail.id === FOLLOW_UP_GROUP_ID;
+  const showGuestQueueTab =
+    isFollowUpGroup && hasMemberAccess && permissions.canManageGuestSubmissions;
   const groupLeaders = useMemo(
     () =>
       detail.members.filter(
@@ -205,6 +211,7 @@ export function GroupDetailView({
       tabs.push({ id: "manage", label: "Manage" });
     }
     if (showLeaderReport) tabs.push({ id: "report", label: "Report" });
+    if (showGuestQueueTab) tabs.push({ id: "guests", label: "Guests" });
     if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Events" });
     if (isPowerCouplesGroup && hasMemberAccess) {
       tabs.push(
@@ -222,6 +229,7 @@ export function GroupDetailView({
   }, [
     showEmbeddedCalendar,
     showLeaderReport,
+    showGuestQueueTab,
     isPowerCouplesGroup,
     hasMemberAccess,
     detail.trainingPending,
@@ -440,6 +448,8 @@ export function GroupDetailView({
           <CoupleMentorPanel groupId={detail.id} />
         ) : detailSection === "growth" && isPowerCouplesGroup && hasMemberAccess && user ? (
           <CoupleEnrichmentPanel groupId={detail.id} />
+        ) : detailSection === "guests" && showGuestQueueTab && user ? (
+          <GuestQueuePanel variant="follow-up" compactHeader />
         ) : detailSection === "overview" && hasMemberAccess && user ? (
           <GroupDashboardPanel
             groupId={detail.id}

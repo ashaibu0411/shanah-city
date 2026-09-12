@@ -1,5 +1,6 @@
 import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { canAccessFollowUp } from "@/lib/follow-up-access-server";
 import { isGroupAdmin } from "@/lib/group-admin-utils";
 import { getGroupDetail, getGroups } from "@/lib/group-server";
 import { memberHasFullGroupAccess } from "@/lib/ministry-readiness-server";
@@ -52,7 +53,9 @@ export async function canManageFrontLiners(user: PublicMember | null) {
 }
 
 export async function canManageGuestSubmissions(user: PublicMember | null) {
-  return canManageAsAdmin(user);
+  if (!user) return false;
+  if (await canManageAsAdmin(user)) return true;
+  return canAccessFollowUp(user);
 }
 
 export async function getFrontLinersPermissions(user: PublicMember | null) {

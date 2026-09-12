@@ -23,6 +23,7 @@ import {
   AnniversaryHomeBanner,
   DevotionBrowseNudge,
   LeaderReportHomeBanner,
+  FollowUpHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
@@ -145,6 +146,7 @@ export function MobileHome({
       </MobilePremiumFrame>
 
       <LeaderReportHomeBanner />
+      <FollowUpHomeBanner />
 
       <section>
         <h2 className="mobile-section-title mb-2.5 px-0.5">Today</h2>

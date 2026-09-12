@@ -1,4 +1,4 @@
-export type GroupScheduleKind = "worship" | "frontliners" | "roster" | "generic";
+export type GroupScheduleKind = "worship" | "frontliners" | "roster" | "followUp" | "generic";
 
 export type GroupDashboardRoleRow = {
   roleLabel: string;

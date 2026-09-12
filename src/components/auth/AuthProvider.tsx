@@ -20,6 +20,9 @@ type AuthPermissions = {
   canManageWorshipPlan: boolean;
   canAccessFrontLiners: boolean;
   canManageFrontLiners: boolean;
+  canAccessFollowUp: boolean;
+  canManageFollowUp: boolean;
+  canManageGuestSubmissions: boolean;
   canAccessKidsMinistry: boolean;
   canManageKidsMinistry: boolean;
   canSubmitMinistryReports: boolean;
@@ -45,6 +48,9 @@ const defaultPermissions: AuthPermissions = {
   canManageWorshipPlan: false,
   canAccessFrontLiners: false,
   canManageFrontLiners: false,
+  canAccessFollowUp: false,
+  canManageFollowUp: false,
+  canManageGuestSubmissions: false,
   canAccessKidsMinistry: false,
   canManageKidsMinistry: false,
   canSubmitMinistryReports: false,

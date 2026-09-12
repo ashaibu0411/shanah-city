@@ -978,6 +978,7 @@ const GROUP_TEMPLATE_MAP: Record<string, keyof typeof MINISTRY_REPORT_TEMPLATES>
   "group-teens": "teens",
   "group-young-adults": "youngAdults",
   "group-ushering": "ushering",
+  "group-follow-up": "followUp",
   "group-shanah-ladies": "ladies",
   "group-men-legacy": "men",
   "group-shanah-power-couples": "couples",
