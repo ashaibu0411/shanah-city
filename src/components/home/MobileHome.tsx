@@ -24,6 +24,7 @@ import {
   DevotionBrowseNudge,
   LeaderReportHomeBanner,
   FollowUpHomeBanner,
+  TrainingHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
 import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
 import type { Devotion } from "@/lib/types";
@@ -149,6 +150,7 @@ export function MobileHome({
       </MobilePremiumFrame>
 
       <LeaderReportHomeBanner />
+      <TrainingHomeBanner />
       <FollowUpHomeBanner />
 
       <section>

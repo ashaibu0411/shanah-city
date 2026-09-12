@@ -65,3 +65,8 @@ export async function listMinistryReadinessCompletionsForGroup(
     )
     .sort((a, b) => b.agreedAt.localeCompare(a.agreedAt));
 }
+
+export async function getMinistryReadinessCompletionForUser(userId: string) {
+  const records = await load();
+  return records.filter((record) => record.userId === userId);
+}

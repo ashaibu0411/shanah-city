@@ -15,6 +15,7 @@ import {
   DevotionBrowseNudge,
   LeaderReportHomeBanner,
   FollowUpHomeBanner,
+  TrainingHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
 import { useUrgentAlertHighlight } from "@/components/home/useUrgentAlertHighlight";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
@@ -64,6 +65,7 @@ export function HomeView({
       <LiveBanner liveFlyerImage={churchImages.live} />
       <PendingRsvpHomeBanner />
       <LeaderReportHomeBanner />
+      <TrainingHomeBanner />
       <FollowUpHomeBanner />
       <AnniversaryHomeBanner />
       <QuickActions />

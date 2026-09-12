@@ -28,8 +28,10 @@ import { canManageAsAdmin } from "@/lib/admin-access-server";
 import {
   enrichGroupDetailWithReadiness,
   exemptMemberAddedByLeader,
+  isMemberTrainingRequired,
   requireMemberTraining,
 } from "@/lib/ministry-readiness-server";
+import { notifyMinistryTrainingRequired } from "@/lib/push-server";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -76,6 +78,17 @@ export async function GET(request: Request) {
   }
 
   const groups = await listGroupsForUser(user?.id, { mine });
+  if (user) {
+    const enriched = await Promise.all(
+      groups.map(async (group) => ({
+        ...group,
+        trainingPending:
+          group.isMember && (await isMemberTrainingRequired(user.id, group)),
+      })),
+    );
+    return NextResponse.json({ groups: enriched, user });
+  }
+
   return NextResponse.json({ groups, user });
 }
 
@@ -286,6 +299,12 @@ export async function POST(request: Request) {
         groupId,
         memberId,
         leaderId: user.id,
+      });
+      await notifyMinistryTrainingRequired({
+        userId: result.memberId,
+        groupId: result.groupId,
+        groupName: result.groupName,
+        packTitle: result.packTitle,
       });
       await recordActivity(
         user.id,

@@ -23,7 +23,11 @@ export function GroupListItem({ group }: { group: GroupSummary }) {
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-1.5">
-        {group.isMember ? (
+        {group.trainingPending ? (
+          <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+            Training
+          </span>
+        ) : group.isMember ? (
           <span className={groupsPremium.unreadBadge}>✓</span>
         ) : (
           <span className={groupsPremium.unreadBadgeMuted}>

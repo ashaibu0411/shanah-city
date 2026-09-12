@@ -69,6 +69,8 @@ export type GroupSummary = Group & {
   isMember: boolean;
   isAdmin: boolean;
   isAssistantLeader: boolean;
+  /** True when the signed-in viewer must complete assigned training for this group. */
+  trainingPending?: boolean;
 };
 
 export type GroupDetail = GroupSummary & {

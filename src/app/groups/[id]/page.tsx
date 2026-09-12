@@ -20,6 +20,7 @@ type GroupDetailPageProps = {
     info?: string;
     manage?: string;
     guests?: string;
+    training?: string;
     rosterDate?: string;
     rosterTime?: string;
   }>;
@@ -38,6 +39,7 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
     info,
     manage,
     guests,
+    training,
     rosterDate,
     rosterTime,
   } = await searchParams;
@@ -53,6 +55,7 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
   return (
     <GroupDetailView
       initialGroup={group}
+      autoStartTraining={training === "1"}
       rosterDate={rosterDate?.trim()}
       rosterTime={rosterTime?.trim()}
       initialSection={

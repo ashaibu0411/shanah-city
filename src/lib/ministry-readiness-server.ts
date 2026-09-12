@@ -3,7 +3,7 @@ import { canManageAsAdmin } from "@/lib/admin-access-server";
 import type { PublicMember } from "@/lib/auth-types";
 import { getUserById } from "@/lib/auth-server";
 import type { GroupDetail } from "@/lib/group-types";
-import { getGroupDetail } from "@/lib/group-server";
+import { getGroupDetail, getGroups } from "@/lib/group-server";
 import {
   isTrainingRequiredCompletion,
   minCorrectToPass,
@@ -230,8 +230,11 @@ export async function requireMemberTraining(input: {
 
   const member = await getUserById(input.memberId);
   return {
+    groupId: group.id,
+    memberId: input.memberId,
     memberName: member?.name ?? "Member",
     groupName: group.name,
+    packTitle: pack.title,
   };
 }
 
@@ -285,4 +288,32 @@ export async function listGroupReadinessCompletionsForLeaders(groupId: string, r
     }),
   );
   return enriched;
+}
+
+export type PendingMinistryTraining = {
+  groupId: string;
+  groupName: string;
+  packTitle: string;
+};
+
+export async function listPendingTrainingForUser(userId: string): Promise<PendingMinistryTraining[]> {
+  const groups = await getGroups();
+  const pending: PendingMinistryTraining[] = [];
+
+  for (const group of groups) {
+    if (!group.memberIds.includes(userId)) continue;
+    const pack = resolveMinistryReadiness(group);
+    if (!pack) continue;
+
+    const completion = await store().getMinistryReadinessCompletion(userId, pack.readinessKey);
+    if (!isTrainingRequiredCompletion(completion)) continue;
+
+    pending.push({
+      groupId: group.id,
+      groupName: group.name,
+      packTitle: pack.title,
+    });
+  }
+
+  return pending.sort((left, right) => left.groupName.localeCompare(right.groupName));
 }

@@ -17,6 +17,66 @@ type LeaderGroup = {
   name: string;
 };
 
+type PendingTraining = {
+  groupId: string;
+  groupName: string;
+  packTitle: string;
+};
+
+export function TrainingHomeBanner() {
+  const { user } = useAuth();
+  const [pending, setPending] = useState<PendingTraining[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    fetch("/api/groups?mine=1")
+      .then((response) => response.json())
+      .then((data) => {
+        const groups = (data.groups ?? []) as Array<{
+          id: string;
+          name: string;
+          trainingPending?: boolean;
+        }>;
+        setPending(
+          groups
+            .filter((group) => group.trainingPending)
+            .map((group) => ({
+              groupId: group.id,
+              groupName: group.name,
+              packTitle: "Before You Serve",
+            })),
+        );
+      })
+      .catch(() => undefined);
+  }, [user]);
+
+  if (!user || pending.length === 0) {
+    return null;
+  }
+
+  const primary = pending[0];
+
+  return (
+    <Link
+      href={`/groups/${encodeURIComponent(primary.groupId)}?training=1`}
+      className="block rounded-2xl border border-violet-200/80 bg-gradient-to-r from-violet-50/95 to-indigo-50/90 px-4 py-3 ring-1 ring-violet-100 transition hover:border-violet-300 active:scale-[0.99]"
+    >
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-800">
+        Ministry training
+      </p>
+      <p className="mt-1 font-display text-base font-semibold text-night-900">
+        Complete Before You Serve
+      </p>
+      <p className="mt-1 text-sm text-night-600">
+        {pending.length === 1
+          ? `${primary.groupName} · Tap to start training`
+          : `${pending.length} teams need training · Start with ${primary.groupName}`}
+      </p>
+    </Link>
+  );
+}
+
 export function LeaderReportHomeBanner() {
   const { permissions, user } = useAuth();
   const [leaderGroups, setLeaderGroups] = useState<LeaderGroup[]>([]);

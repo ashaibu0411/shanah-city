@@ -52,11 +52,13 @@ type ManageScrollTarget = "members" | "invite" | "roster" | null;
 export function GroupDetailView({
   initialGroup,
   initialSection = "overview",
+  autoStartTraining = false,
   rosterDate,
   rosterTime,
 }: {
   initialGroup: GroupDetail;
   initialSection?: DetailSection;
+  autoStartTraining?: boolean;
   rosterDate?: string;
   rosterTime?: string;
 }) {
@@ -112,14 +114,14 @@ export function GroupDetailView({
       .then((data) => {
         const pack = data?.pack ?? null;
         setReadinessPack(pack);
-        if (detail.trainingPending && pack?.requiredForRetraining) {
+        if (detail.trainingPending && (pack?.requiredForRetraining || autoStartTraining)) {
           setShowReadinessFlow(true);
         }
       })
       .catch(() => {
         setReadinessPack(null);
       });
-  }, [detail.id, detail.isMember, detail.trainingPending, user]);
+  }, [detail.id, detail.isMember, detail.trainingPending, user, autoStartTraining]);
 
   async function loadDetail(groupId: string) {
     const response = await fetch(`/api/groups?id=${encodeURIComponent(groupId)}`);
@@ -417,6 +419,9 @@ export function GroupDetailView({
             <Button className="mt-4 w-full" onClick={() => setShowReadinessFlow(true)}>
               Start training
             </Button>
+            <p className="mt-3 text-xs text-night-500">
+              Open Groups → {detail.name} anytime to finish this training.
+            </p>
           </GroupPremiumStackCard>
         ) : null}
 

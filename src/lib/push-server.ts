@@ -497,6 +497,24 @@ export async function notifyWorshipUploadDutyReminder(input: {
   );
 }
 
+export async function notifyMinistryTrainingRequired(input: {
+  userId: string;
+  groupId: string;
+  groupName: string;
+  packTitle?: string;
+}) {
+  const trainingUrl = `/groups/${encodeURIComponent(input.groupId)}?training=1`;
+  return sendPushToUsers(
+    [input.userId],
+    {
+      title: "Before You Serve training",
+      body: `Your leader assigned training for ${input.groupName}. Tap to start the quiz.`,
+      url: trainingUrl,
+    },
+    "announcements",
+  );
+}
+
 export async function notifyPrayerSchedulePublished(input: {
   groupId: string;
   slotType: ScheduleSlotType;
