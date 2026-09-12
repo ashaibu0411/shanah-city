@@ -976,6 +976,80 @@
     box-shadow: 0 4px 12px rgba(196, 93, 62, 0.22);
   }
 
+  .devotion-cover-art__background {
+    @apply absolute inset-0 h-full w-full object-cover;
+  }
+
+  .devotion-cover-art__overlay {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 250, 245, 0.08) 0%,
+      rgba(255, 255, 255, 0) 45%,
+      rgba(196, 93, 62, 0.06) 100%
+    );
+  }
+
+  .devotion-cover-art__brand {
+    @apply absolute inset-0 flex items-center justify-center gap-3 px-4 sm:gap-4;
+  }
+
+  .devotion-cover-art__brand--compact {
+    @apply flex-col gap-1 px-1;
+  }
+
+  .devotion-cover-art__portrait {
+    @apply shrink-0 overflow-hidden rounded-full bg-white shadow-md ring-2 ring-white/90;
+    height: 3rem;
+    width: 3rem;
+  }
+
+  .devotion-cover-art--wide .devotion-cover-art__portrait {
+    height: 3.25rem;
+    width: 3.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .devotion-cover-art--wide .devotion-cover-art__portrait {
+      height: 3.75rem;
+      width: 3.75rem;
+    }
+  }
+
+  .devotion-cover-art--square .devotion-cover-art__portrait {
+    height: 1.75rem;
+    width: 1.75rem;
+    box-shadow: 0 2px 8px rgba(45, 36, 24, 0.12);
+  }
+
+  .devotion-cover-art__portrait img {
+    @apply h-full w-full object-cover;
+    object-position: center 12%;
+  }
+
+  .devotion-cover-art__label {
+    @apply font-display font-semibold tracking-tight text-night-900/78;
+    font-size: 1.15rem;
+    line-height: 1.1;
+    text-shadow: 0 1px 10px rgba(255, 250, 245, 0.85);
+  }
+
+  .devotion-cover-art--wide .devotion-cover-art__label {
+    font-size: 1.35rem;
+  }
+
+  @media (min-width: 640px) {
+    .devotion-cover-art--wide .devotion-cover-art__label {
+      font-size: 1.55rem;
+    }
+  }
+
+  .devotion-cover-art--square .devotion-cover-art__label {
+    font-size: 0.5625rem;
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+    text-align: center;
+  }
+
   body[data-shell="mobile"] .mobile-explore-tile-icon {
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.65),

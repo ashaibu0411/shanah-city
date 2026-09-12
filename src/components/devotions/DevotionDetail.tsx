@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import { useAppShell } from "@/components/app/AppShellContext";
+import { DevotionCoverArt } from "@/components/devotions/DevotionCoverArt";
 import type { Devotion } from "@/lib/types";
-import { getDevotionCoverArtwork } from "@/lib/devotion-artwork";
 import { Button, Card } from "@/components/ui";
 import { DevotionBody } from "@/components/devotions/DevotionBody";
 import { DevotionBrowserPrompt } from "@/components/devotions/DevotionBrowserPrompt";
@@ -45,13 +45,9 @@ function ModeToggle({
 }
 
 function DevotionArtworkHero({ devotion }: { devotion: Devotion }) {
-  const artworkUrl = getDevotionCoverArtwork(devotion, "wide");
-  if (!artworkUrl) return null;
-
   return (
     <div className="-mx-5 -mt-5 mb-4 overflow-hidden rounded-t-2xl sm:-mx-6 sm:-mt-6">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={artworkUrl} alt="" className="aspect-[16/9] w-full object-cover" />
+      <DevotionCoverArt devotion={devotion} variant="wide" className="aspect-[16/9] w-full" />
     </div>
   );
 }
@@ -63,25 +59,16 @@ function DevotionMobileReaderHeader({
   devotion: Devotion;
   eyebrow: string;
 }) {
-  const artworkUrl = getDevotionCoverArtwork(devotion, "square");
-
   return (
     <MobilePremiumFrame variant="surface" className="mobile-devotion-reader-header mb-4">
       <div className="flex min-h-[4.75rem] items-stretch bg-gradient-to-br from-white via-sand-50/80 to-clay-50/40">
-        {artworkUrl ? (
-          <div className="relative w-[4.75rem] shrink-0 overflow-hidden bg-sand-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={artworkUrl}
-              alt=""
-              className="mobile-premium-4k__media h-full min-h-[4.75rem] w-full object-cover"
-            />
-            <div
-              className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-night-900/8"
-              aria-hidden
-            />
-          </div>
-        ) : null}
+        <div className="relative w-[4.75rem] shrink-0">
+          <DevotionCoverArt devotion={devotion} variant="square" className="h-full min-h-[4.75rem]" />
+          <div
+            className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-night-900/8"
+            aria-hidden
+          />
+        </div>
 
         <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-clay-700">

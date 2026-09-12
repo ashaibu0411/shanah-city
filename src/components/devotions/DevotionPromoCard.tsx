@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
+import { DevotionCoverArt } from "@/components/devotions/DevotionCoverArt";
 import type { Devotion } from "@/lib/types";
-import { getDevotionCoverArtwork } from "@/lib/devotion-artwork";
 
 type DevotionPromoCardProps = {
   devotion: Devotion;
@@ -16,7 +16,6 @@ export function DevotionPromoCard({
   className = "",
   variant = "default",
 }: DevotionPromoCardProps) {
-  const artworkUrl = getDevotionCoverArtwork(devotion, "wide");
   const href = `/devotions/${encodeURIComponent(devotion.id)}`;
 
   if (variant === "mobile") {
@@ -25,16 +24,11 @@ export function DevotionPromoCard({
         <h2 className="mobile-section-title mb-2.5 px-0.5">{eyebrow}</h2>
         <MobilePremiumFrame variant="cinema" className="mobile-devotion-spotlight">
           <Link href={href} className="group block transition active:scale-[0.99]">
-            <div className="relative aspect-[2/1] min-h-[8rem] overflow-hidden bg-sand-100">
-              {artworkUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={artworkUrl}
-                  alt=""
-                  className="mobile-premium-4k__media absolute inset-0 h-full w-full object-cover"
-                />
-              ) : null}
-            </div>
+            <DevotionCoverArt
+              devotion={devotion}
+              variant="wide"
+              className="aspect-[2/1] min-h-[8rem]"
+            />
             <div className="mobile-devotion-archive-footer px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay-700">
                 {devotion.date} · {devotion.readingTime}
@@ -64,10 +58,7 @@ export function DevotionPromoCard({
         href={href}
         className="mt-2 block overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-night-900/5 transition hover:shadow-md active:scale-[0.99]"
       >
-        {artworkUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={artworkUrl} alt="" className="aspect-[16/9] w-full object-cover" />
-        ) : null}
+        <DevotionCoverArt devotion={devotion} variant="wide" className="aspect-[16/9] w-full" />
         <div className="flex items-center justify-between gap-3 p-4">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-clay-600">

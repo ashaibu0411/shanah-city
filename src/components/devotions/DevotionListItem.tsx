@@ -1,26 +1,22 @@
 import Link from "next/link";
-import type { Devotion } from "@/lib/types";
-import { getDevotionCoverArtwork } from "@/lib/devotion-artwork";
+import { DevotionCoverArt } from "@/components/devotions/DevotionCoverArt";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
+import type { Devotion } from "@/lib/types";
 
 export function DevotionListItem({ devotion }: { devotion: Devotion }) {
-  const artworkUrl = getDevotionCoverArtwork(devotion, "square");
-
   return (
     <MobilePremiumFrame variant="surface" className="mobile-devotion-list-item overflow-hidden">
       <Link
         href={`/devotions/${devotion.id}`}
         className="group flex min-h-[4.75rem] items-stretch bg-gradient-to-br from-white via-sand-50/80 to-clay-50/40 transition active:scale-[0.99] hover:shadow-md sm:min-h-[5rem]"
       >
-        <div className="relative w-[4.25rem] shrink-0 overflow-hidden bg-sand-100 sm:w-[5rem]">
-          {artworkUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={artworkUrl}
-              alt=""
-              className="mobile-premium-4k__media h-full min-h-[4.75rem] w-full object-cover transition duration-500 group-hover:scale-[1.03] sm:min-h-[5rem]"
-            />
-          ) : null}
+        <div className="relative w-[4.25rem] shrink-0 sm:w-[5rem]">
+          <DevotionCoverArt
+            devotion={devotion}
+            variant="square"
+            className="h-full min-h-[4.75rem] sm:min-h-[5rem]"
+            imageClassName="transition duration-500 group-hover:scale-[1.03]"
+          />
           <div
             className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-night-900/8"
             aria-hidden
