@@ -10,6 +10,7 @@ import {
   formatReportMonth,
   previousReportMonth,
 } from "@/lib/ministry-report-types";
+import { FOLLOW_UP_GROUP_ID } from "@/lib/follow-up-types";
 
 type LeaderGroup = {
   id: string;
@@ -94,7 +95,7 @@ export function FollowUpHomeBanner() {
 
   return (
     <Link
-      href="/follow-up"
+      href={`/groups/${encodeURIComponent(FOLLOW_UP_GROUP_ID)}?guests=1`}
       className="block rounded-2xl border border-clay-200/80 bg-gradient-to-r from-clay-50/95 to-orange-50/90 px-4 py-3 ring-1 ring-clay-100 transition hover:border-clay-300 active:scale-[0.99]"
     >
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay-800">

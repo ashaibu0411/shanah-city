@@ -132,7 +132,7 @@ function baseQuickActions(
     actions.push({ id: "frontliners", label: "FrontLiners hub", href: "/frontliners" });
   }
   if (options.showFollowUpHub) {
-    actions.push({ id: "follow-up", label: "Guest queue", href: "/follow-up" });
+    actions.push({ id: "guests", label: "Guest queue", action: "guests" });
   }
   if (options.showRoster && options.isLeader) {
     actions.push({ id: "roster", label: "Manage roster", action: "roster" });
@@ -361,7 +361,7 @@ async function buildFollowUpDashboard(): Promise<
         ],
       },
     ],
-    href: "/follow-up",
+    href: `/groups/${FOLLOW_UP_GROUP_ID}?guests=1`,
     emptyMessage:
       newGuests.length === 0
         ? "Share the /guest connect link at the door so visitors can reach the team."

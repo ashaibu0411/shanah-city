@@ -129,9 +129,9 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
   },
   {
     id: FOLLOW_UP_GROUP_ID,
-    name: "Follow-Up Team",
+    name: "Follow-Up Ministry",
     description:
-      "Welcome guests, make follow-up calls within 48 hours, and connect visitors to pastoral care.",
+      "Welcome guests, make follow-up calls within 48 hours, and connect visitors to pastoral care. Admin approval required.",
     category: "ministry",
     visibility: "private",
     requiresApproval: true,

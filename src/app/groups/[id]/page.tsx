@@ -19,6 +19,7 @@ type GroupDetailPageProps = {
     growth?: string;
     info?: string;
     manage?: string;
+    guests?: string;
     rosterDate?: string;
     rosterTime?: string;
   }>;
@@ -26,8 +27,20 @@ type GroupDetailPageProps = {
 
 export default async function GroupDetailPage({ params, searchParams }: GroupDetailPageProps) {
   const { id } = await params;
-  const { chat, report, calendar, resources, prayer, mentors, growth, info, manage, rosterDate, rosterTime } =
-    await searchParams;
+  const {
+    chat,
+    report,
+    calendar,
+    resources,
+    prayer,
+    mentors,
+    growth,
+    info,
+    manage,
+    guests,
+    rosterDate,
+    rosterTime,
+  } = await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -45,23 +58,25 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
       initialSection={
         chat === "1"
           ? "chat"
-          : report === "1"
-            ? "report"
-            : calendar === "1"
-              ? "calendar"
-              : resources === "1"
-                ? "resources"
-                : prayer === "1"
-                  ? "prayer"
-                  : mentors === "1"
-                    ? "mentors"
-                    : growth === "1"
-                      ? "growth"
-                      : info === "1"
-                        ? "info"
-                        : manage === "1" || rosterDate?.trim() || rosterTime?.trim()
-                          ? "manage"
-                          : "overview"
+          : guests === "1"
+            ? "guests"
+            : report === "1"
+              ? "report"
+              : calendar === "1"
+                ? "calendar"
+                : resources === "1"
+                  ? "resources"
+                  : prayer === "1"
+                    ? "prayer"
+                    : mentors === "1"
+                      ? "mentors"
+                      : growth === "1"
+                        ? "growth"
+                        : info === "1"
+                          ? "info"
+                          : manage === "1" || rosterDate?.trim() || rosterTime?.trim()
+                            ? "manage"
+                            : "overview"
       }
     />
   );

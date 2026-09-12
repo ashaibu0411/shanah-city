@@ -19,8 +19,8 @@ import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel
 import { CoupleMentorPanel } from "@/components/groups/CoupleMentorPanel";
 import { CouplePrayerPanel } from "@/components/groups/CouplePrayerPanel";
 import { GroupResourcesPanel } from "@/components/groups/GroupResourcesPanel";
+import { Button, Card } from "@/components/ui";
 import { GuestQueuePanel } from "@/components/frontliners/GuestQueuePanel";
-import { Button } from "@/components/ui";
 import {
   groupHasEmbeddedCalendar,
   FOLLOW_UP_GROUP_ID,
@@ -268,6 +268,10 @@ export function GroupDetailView({
       setDetailSection("report");
       return;
     }
+    if (action.action === "guests") {
+      setDetailSection("guests");
+      return;
+    }
     if (action.action === "invite") {
       openManageSection("invite");
       return;
@@ -449,7 +453,21 @@ export function GroupDetailView({
         ) : detailSection === "growth" && isPowerCouplesGroup && hasMemberAccess && user ? (
           <CoupleEnrichmentPanel groupId={detail.id} />
         ) : detailSection === "guests" && showGuestQueueTab && user ? (
-          <GuestQueuePanel variant="follow-up" compactHeader />
+          <div className="space-y-6">
+            <Card className="p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay-700">
+                Follow-Up Ministry
+              </p>
+              <p className="mt-1 font-display text-lg font-semibold text-night-900">
+                Contact guests within 48 hours
+              </p>
+              <p className="mt-2 text-sm text-night-600">
+                Work the queue below, log outcomes in your monthly report, and escalate urgent
+                pastoral needs to staff immediately.
+              </p>
+            </Card>
+            <GuestQueuePanel variant="follow-up" compactHeader />
+          </div>
         ) : detailSection === "overview" && hasMemberAccess && user ? (
           <GroupDashboardPanel
             groupId={detail.id}

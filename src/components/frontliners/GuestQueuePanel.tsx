@@ -61,7 +61,7 @@ export function GuestQueuePanel({
     return (
       <Card>
         <p className="text-sm text-night-600">
-          Guest follow-up is managed by the Follow-Up Team and Admin Group.
+          Guest follow-up is managed by the Follow-Up Ministry and Admin Group.
         </p>
       </Card>
     );
@@ -89,7 +89,7 @@ export function GuestQueuePanel({
                   : "text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200"
               }
             >
-              {isFollowUp ? "Follow-Up Team · Guest care" : "Admin · Guest follow-up"}
+              {isFollowUp ? "Follow-Up Ministry · Guest care" : "Admin · Guest follow-up"}
             </p>
             <h2 className="mt-1 font-display text-2xl font-semibold">Guest queue</h2>
             <p

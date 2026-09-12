@@ -163,12 +163,6 @@ export const frontlinersNavItem = {
   icon: "☺",
 } as const;
 
-export const followUpNavItem = {
-  label: "Follow-Up",
-  href: "/follow-up",
-  icon: "☎",
-} as const;
-
 export const kidsMinistryNavItem = {
   label: "Kids Ministry",
   href: "/kids-ministry",
