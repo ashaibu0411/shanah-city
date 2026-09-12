@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
 import { CampusSelector } from "@/components/app/CampusSelector";
 import { TextSizeControl } from "@/components/app/TextSizeControl";
+import { ThemeControl } from "@/components/app/ThemeControl";
 import { liveStream, site } from "@/lib/site";
 import { Badge, ExternalLink } from "@/components/ui";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -22,7 +23,7 @@ export function TopBar() {
     liveStream.facebook.isLive;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-night-900/8 bg-sand-50/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-night-900/8 bg-[var(--color-bg)]/95 backdrop-blur-md dark:border-white/10">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" className="flex shrink-0 items-center gap-2">
@@ -39,12 +40,13 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
+          <ThemeControl variant="desktop" />
           <TextSizeControl variant="desktop" />
           <CampusSelector />
           {!loading && user ? <NotificationBell /> : null}
           <Link
             href="/shop"
-            className="relative rounded-xl p-2 text-night-700 transition hover:bg-white"
+            className="relative rounded-xl p-2 text-night-700 transition hover:bg-white dark:hover:bg-white/10"
             aria-label="Shop cart"
           >
             <span className="text-lg">🛒</span>
@@ -68,7 +70,7 @@ export function TopBar() {
 
           <ExternalLink
             href={site.website}
-            className="hidden rounded-full border border-night-900/15 px-3 py-1.5 text-xs font-semibold text-night-700 transition hover:bg-white lg:inline-flex"
+            className="hidden rounded-full border border-night-900/15 px-3 py-1.5 text-xs font-semibold text-night-700 transition hover:bg-white dark:hover:bg-white/10 lg:inline-flex"
           >
             shanahcity.org
           </ExternalLink>

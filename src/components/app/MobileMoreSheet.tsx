@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CampusSelector } from "@/components/app/CampusSelector";
 import { TextSizeControl } from "@/components/app/TextSizeControl";
+import { ThemeControl } from "@/components/app/ThemeControl";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { site } from "@/lib/site";
@@ -63,6 +64,10 @@ export function MobileMoreSheet() {
               Your campus
             </p>
             <CampusSelector />
+          </div>
+
+          <div className="mobile-more-sheet-card mb-4 p-3">
+            <ThemeControl variant="mobile" />
           </div>
 
           <div className="mobile-more-sheet-card mb-4 p-3">

@@ -1,6 +1,7 @@
 import { AppProvider } from "@/components/app/AppProvider";
 
 import { ReadabilityProvider } from "@/components/app/ReadabilityProvider";
+import { ThemeProvider } from "@/components/app/ThemeProvider";
 
 import { AppShellProvider } from "@/components/app/AppShellContext";
 
@@ -29,6 +30,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <AppProvider>
 
+        <ThemeProvider>
         <ReadabilityProvider>
 
         <AppShellProvider>
@@ -36,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <NativeAppBoot />
 
-          <div className="min-h-screen bg-sand-50">
+          <div className="min-h-screen bg-[var(--color-bg)]">
 
             <div className="app-desktop-topbar hidden lg:block">
 
@@ -73,6 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </AppShellProvider>
 
         </ReadabilityProvider>
+        </ThemeProvider>
 
       </AppProvider>
 

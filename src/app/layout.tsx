@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
 import { AppShell } from "@/components/app/AppShell";
+import { APP_THEME_STORAGE_KEY } from "@/lib/theme";
 import { brandLogos, site } from "@/lib/site";
 import "./globals.css";
 
@@ -51,9 +52,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="theme-color" content="#faf7f2" />
         <link rel="preload" as="image" href={bootLogoSrc} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem(${JSON.stringify(APP_THEME_STORAGE_KEY)});if(t==="dark"){document.documentElement.classList.add("dark");document.documentElement.dataset.theme="dark";document.documentElement.style.colorScheme="dark";var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content","#1b1409")}}catch(e){}})();`,
+          }}
+        />
         <style
           dangerouslySetInnerHTML={{
             __html: `#native-boot-splash{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:#faf7f2;pointer-events:none}html.native-app-boot #native-boot-splash{display:flex}html.native-app-boot #native-boot-splash img{display:block;width:min(58vw,280px);height:auto}`,

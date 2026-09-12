@@ -18,6 +18,21 @@
     --color-gold: #d4a853;
   }
 
+  html.dark {
+    --color-bg: #1b1409;
+    --color-bg-soft: #221c14;
+    --color-bg-muted: #2d2418;
+    --color-surface: #2a231c;
+    --color-ink: #f5f1ea;
+    --color-ink-muted: #d4c4ad;
+    --color-ink-soft: #b8a48a;
+    --color-border: rgba(245, 241, 234, 0.1);
+    --color-accent: #d4765a;
+    --color-accent-strong: #e08a6a;
+    --color-accent-soft: #c45d3e;
+    --color-gold: #e4c17a;
+  }
+
   html {
     --reading-scale: 1;
     scroll-behavior: smooth;
@@ -25,8 +40,14 @@
     color-scheme: light;
   }
 
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-sand-50 text-night-900 antialiased;
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    @apply antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -43,10 +64,17 @@
   }
 
   body[data-shell="mobile"] {
-    @apply text-[0.9375rem] leading-snug text-night-900;
+    @apply text-[0.9375rem] leading-snug;
+    color: var(--color-ink);
     background:
       radial-gradient(circle at 100% 0%, rgba(196, 93, 62, 0.06), transparent 42%),
-      linear-gradient(180deg, #faf7f2 0%, #f5f1ea 48%, #fffdfb 100%);
+      linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 48%, var(--color-surface) 100%);
+  }
+
+  html.dark body[data-shell="mobile"] {
+    background:
+      radial-gradient(circle at 100% 0%, rgba(212, 118, 90, 0.12), transparent 42%),
+      linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 48%, var(--color-bg-muted) 100%);
   }
 
   body[data-shell="mobile"] .text-xs {
@@ -65,7 +93,7 @@
     font-size: 0.75rem;
     line-height: 1rem;
     font-weight: 600;
-    color: rgba(45, 36, 24, 0.72);
+    color: color-mix(in srgb, var(--color-ink) 72%, transparent);
   }
 
   body[data-shell="mobile"] .mobile-nav-icon-shell {
@@ -84,19 +112,19 @@
 
   body[data-shell="mobile"] .mobile-nav-link.text-white .mobile-nav-label,
   body[data-shell="mobile"] .mobile-nav-link.text-night-900 .mobile-nav-label {
-    color: #2d2418;
+    color: var(--color-ink);
   }
 
   body[data-shell="mobile"] .mobile-app-header {
-    background: linear-gradient(180deg, #faf7f2 0%, #f5f1ea 100%);
-    box-shadow: 0 1px 0 rgba(45, 36, 24, 0.06), 0 8px 24px rgba(45, 36, 24, 0.05);
+    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 100%);
+    box-shadow: 0 1px 0 var(--color-border), 0 8px 24px rgba(0, 0, 0, 0.12);
   }
 
   body[data-shell="mobile"] .mobile-bottom-nav {
-    background: linear-gradient(180deg, #faf7f2 0%, #f5f1ea 100%);
+    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 100%);
     box-shadow:
-      0 -1px 0 rgba(45, 36, 24, 0.08),
-      0 -10px 32px rgba(45, 36, 24, 0.06);
+      0 -1px 0 var(--color-border),
+      0 -10px 32px rgba(0, 0, 0, 0.14);
   }
 
   body[data-shell="mobile"] .mobile-bottom-nav::after {
@@ -104,8 +132,55 @@
     position: absolute;
     inset: auto 0 0 0;
     height: env(safe-area-inset-bottom, 0px);
-    background: #f5f1ea;
+    background: var(--color-bg-soft);
     pointer-events: none;
+  }
+
+  html.dark .bg-sand-50,
+  html.dark .bg-sand-50\/95,
+  html.dark .bg-sand-50\/90 {
+    background-color: var(--color-bg) !important;
+  }
+
+  html.dark .bg-sand-100,
+  html.dark .bg-sand-100\/90 {
+    background-color: var(--color-bg-soft) !important;
+  }
+
+  html.dark .bg-white,
+  html.dark .bg-white\/70,
+  html.dark .bg-white\/80,
+  html.dark .bg-white\/82 {
+    background-color: var(--color-surface) !important;
+  }
+
+  html.dark .text-night-950,
+  html.dark .text-night-900,
+  html.dark .text-night-800 {
+    color: var(--color-ink) !important;
+  }
+
+  html.dark .text-night-700,
+  html.dark .text-night-600 {
+    color: var(--color-ink-muted) !important;
+  }
+
+  html.dark .text-night-500,
+  html.dark .text-night-400 {
+    color: var(--color-ink-soft) !important;
+  }
+
+  html.dark .border-night-900\/6,
+  html.dark .border-night-900\/8,
+  html.dark .border-night-900\/10,
+  html.dark .border-night-900\/12,
+  html.dark .border-night-900\/15 {
+    border-color: var(--color-border) !important;
+  }
+
+  html.dark .ring-night-900\/8,
+  html.dark .ring-night-900\/10 {
+    --tw-ring-color: var(--color-border) !important;
   }
 
 }
@@ -540,11 +615,11 @@
   body[data-shell="mobile"] .editorial-card,
   body[data-shell="mobile"] .editorial-surface {
     border-radius: 1.35rem;
-    background: #ffffff;
-    border: 1px solid rgba(45, 36, 24, 0.08);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     box-shadow:
-      0 1px 2px rgba(45, 36, 24, 0.04),
-      0 8px 24px rgba(45, 36, 24, 0.06);
+      0 1px 2px rgba(0, 0, 0, 0.08),
+      0 8px 24px rgba(0, 0, 0, 0.12);
   }
 
   body[data-shell="mobile"] .mobile-premium-surface,
@@ -682,21 +757,27 @@
   body[data-shell="mobile"] .mobile-more-sheet-panel {
     background:
       radial-gradient(circle at 100% 0%, rgba(196, 93, 62, 0.06), transparent 40%),
-      linear-gradient(180deg, #faf7f2 0%, #fffdfb 100%);
+      linear-gradient(180deg, var(--color-bg) 0%, var(--color-surface) 100%);
     box-shadow:
-      0 -12px 48px rgba(45, 36, 24, 0.12),
-      0 -1px 0 rgba(45, 36, 24, 0.06);
+      0 -12px 48px rgba(0, 0, 0, 0.24),
+      0 -1px 0 var(--color-border);
+  }
+
+  html.dark body[data-shell="mobile"] .mobile-more-sheet-panel {
+    background:
+      radial-gradient(circle at 100% 0%, rgba(212, 118, 90, 0.1), transparent 40%),
+      linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 100%);
   }
 
   body[data-shell="mobile"] .mobile-more-sheet-header {
-    background: linear-gradient(180deg, #faf7f2 0%, #fffdfb 100%);
+    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-surface) 100%);
   }
 
   body[data-shell="mobile"] .mobile-more-sheet-card {
     border-radius: 1.15rem;
-    border: 1px solid rgba(45, 36, 24, 0.08);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    border: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-ink) 8%, transparent);
   }
 
   body[data-shell="mobile"] .mobile-devotion-reader-header {

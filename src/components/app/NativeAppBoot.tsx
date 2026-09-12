@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { isNativeAppPlatform } from "@/lib/native-app";
+import { APP_THEME_META, readStoredAppTheme } from "@/lib/theme";
 
 function waitForPaint() {
   return new Promise<void>((resolve) => {
@@ -68,8 +69,12 @@ export function NativeAppBoot() {
       }
 
       try {
-        await StatusBar.setStyle({ style: Style.Light });
-        await StatusBar.setBackgroundColor({ color: "#1a2332" });
+        const theme = readStoredAppTheme();
+        const statusStyle = theme === "dark" ? Style.Dark : Style.Light;
+        await StatusBar.setStyle({ style: statusStyle });
+        await StatusBar.setBackgroundColor({
+          color: APP_THEME_META[theme].themeColor,
+        });
       } catch {
         // Status bar plugin is iOS/Android only.
       }

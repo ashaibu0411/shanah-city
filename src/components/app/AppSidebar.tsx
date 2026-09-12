@@ -9,7 +9,7 @@ export function AppSidebar() {
   const navItems = useAppNavItems();
 
   return (
-    <aside className="app-desktop-sidebar hidden w-64 shrink-0 border-r border-night-900/8 bg-sand-50 lg:block">
+    <aside className="app-desktop-sidebar hidden w-64 shrink-0 border-r border-night-900/8 bg-[var(--color-bg)] dark:border-white/10 lg:block">
       <nav className="sticky top-[65px] flex h-[calc(100vh-65px)] flex-col p-4">
         <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-night-400">
           Menu
@@ -24,7 +24,7 @@ export function AppSidebar() {
                   className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                     active
                       ? "bg-night-900 text-sand-50 shadow-sm"
-                      : "text-night-600 hover:bg-white/70 hover:text-night-900"
+                      : "text-night-600 hover:bg-white/70 hover:text-night-900 dark:hover:bg-white/10 dark:hover:text-sand-100"
                   }`}
                 >
                   <span className="w-4 text-center">{item.icon}</span>
