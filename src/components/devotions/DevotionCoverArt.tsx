@@ -36,7 +36,7 @@ export function DevotionCoverArt({
         <div className={`devotion-cover-art__brand ${compact ? "devotion-cover-art__brand--compact" : ""}`}>
           <div className="devotion-cover-art__portrait">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={site.pastorPortrait} alt="" decoding="async" />
+            <img src={site.devotionPortrait} alt="" decoding="async" />
           </div>
           <p className="devotion-cover-art__label">Daily Word</p>
         </div>

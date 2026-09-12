@@ -1023,7 +1023,7 @@
 
   .devotion-cover-art__portrait img {
     @apply h-full w-full object-cover;
-    object-position: center 12%;
+    object-position: center 18%;
   }
 
   .devotion-cover-art__label {
