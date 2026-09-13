@@ -111,7 +111,7 @@ export function ChatMessageBubble({
           className={`text-sm ${
             whatsapp
               ? `${whatsappRadius} px-2 py-1.5 shadow-sm ${
-                  mine ? "bg-[#d9fdd3] text-[#111b21]" : "bg-white text-[#111b21]"
+                  mine ? "messages-hub-bubble-out" : "messages-hub-bubble-in"
                 }`
               : compact
               ? mine
@@ -174,7 +174,7 @@ export function ChatMessageBubble({
           <div
             className={`mt-1 flex flex-wrap items-center gap-1.5 ${
               whatsapp
-                ? "justify-end text-[11px] leading-none text-[#667781]"
+                ? "justify-end text-[11px] leading-none text-night-500 dark:text-sand-400"
                 : compact
                 ? "text-[10px] text-night-500"
                 : "text-[10px] opacity-60"
@@ -183,7 +183,7 @@ export function ChatMessageBubble({
             <span>{createdAtLabel}</span>
             {editedAt && !deletedAt && <span>· edited</span>}
             {showReadReceipt && mine && !deletedAt && whatsapp && (
-              <span className={readAt ? "text-[#53bdeb]" : "text-[#667781]"}>
+              <span className={readAt ? "text-sky-600 dark:text-sky-300" : "text-night-500 dark:text-sand-400"}>
                 {readAt ? " ✓✓" : " ✓"}
               </span>
             )}

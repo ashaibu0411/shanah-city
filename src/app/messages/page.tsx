@@ -14,8 +14,8 @@ export default function MessagesPage() {
       </div>
       <Suspense
         fallback={
-          <div className="flex h-[calc(100dvh-5rem)] items-center justify-center rounded-2xl border border-night-900/8 bg-white">
-            <p className="text-sm text-night-600">Loading messages…</p>
+          <div className="flex h-[calc(100dvh-5rem)] items-center justify-center rounded-2xl border border-night-900/8 bg-white dark:border-white/10 dark:bg-[var(--color-surface)]">
+            <p className="text-sm text-night-600 dark:text-sand-400">Loading messages…</p>
           </div>
         }
       >

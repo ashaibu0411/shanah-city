@@ -207,7 +207,8 @@
   html.dark .groups-premium-page [class*="bg-white"],
   html.dark .mobile-home [class*="bg-white"],
   html.dark .mobile-devotions-page [class*="bg-white"],
-  html.dark .mobile-media-hub [class*="bg-white"] {
+  html.dark .mobile-media-hub [class*="bg-white"],
+  html.dark .messages-hub-root [class*="bg-white"] {
     background-color: var(--color-surface) !important;
   }
 
@@ -260,7 +261,8 @@
   html.dark .mobile-devotions-page :is(.text-night-950, .text-night-900, .text-night-800),
   html.dark .mobile-media-hub :is(.text-night-950, .text-night-900, .text-night-800),
   html.dark .mobile-more-sheet-panel :is(.text-night-950, .text-night-900, .text-night-800),
-  html.dark .mobile-more-sheet-card :is(.text-night-950, .text-night-900, .text-night-800) {
+  html.dark .mobile-more-sheet-card :is(.text-night-950, .text-night-900, .text-night-800),
+  html.dark .messages-hub-root :is(.text-night-950, .text-night-900, .text-night-800) {
     color: var(--color-ink) !important;
   }
 
@@ -270,7 +272,8 @@
   html.dark .mobile-devotions-page :is(.text-night-700, .text-night-600),
   html.dark .mobile-media-hub :is(.text-night-700, .text-night-600),
   html.dark .mobile-more-sheet-panel :is(.text-night-700, .text-night-600),
-  html.dark .mobile-more-sheet-card :is(.text-night-700, .text-night-600) {
+  html.dark .mobile-more-sheet-card :is(.text-night-700, .text-night-600),
+  html.dark .messages-hub-root :is(.text-night-700, .text-night-600) {
     color: var(--color-ink-muted) !important;
   }
 
@@ -280,7 +283,8 @@
   html.dark .mobile-devotions-page :is(.text-night-500, .text-night-400),
   html.dark .mobile-media-hub :is(.text-night-500, .text-night-400),
   html.dark .mobile-more-sheet-panel :is(.text-night-500, .text-night-400),
-  html.dark .mobile-more-sheet-card :is(.text-night-500, .text-night-400) {
+  html.dark .mobile-more-sheet-card :is(.text-night-500, .text-night-400),
+  html.dark .messages-hub-root :is(.text-night-500, .text-night-400) {
     color: var(--color-ink-soft) !important;
   }
 
@@ -1334,6 +1338,182 @@
     background-image:
       radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.55), transparent 32%),
       radial-gradient(circle at 88% 4%, rgba(255, 255, 255, 0.35), transparent 28%);
+  }
+
+  html.dark .group-chat-wallpaper {
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(212, 118, 90, 0.08), transparent 32%),
+      radial-gradient(circle at 88% 4%, rgba(228, 193, 122, 0.06), transparent 28%);
+  }
+
+  .messages-hub-root {
+    background: var(--color-bg-soft);
+    color: var(--color-ink);
+  }
+
+  .messages-hub-inbox {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+  }
+
+  .messages-hub-header {
+    background:
+      radial-gradient(circle at 100% 0%, rgba(212, 168, 83, 0.16), transparent 42%),
+      linear-gradient(180deg, #2d2418 0%, #1b1409 100%);
+    color: #f5f1ea;
+    box-shadow: inset 0 -1px 0 rgba(245, 241, 234, 0.08);
+  }
+
+  html.dark .messages-hub-header {
+    background:
+      radial-gradient(circle at 100% 0%, rgba(212, 118, 90, 0.18), transparent 42%),
+      linear-gradient(180deg, var(--color-bg-muted) 0%, var(--color-bg) 100%);
+    box-shadow: inset 0 -1px 0 var(--color-border);
+  }
+
+  .messages-hub-header-title {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+    letter-spacing: -0.02em;
+  }
+
+  .messages-hub-search {
+    background: rgba(255, 253, 251, 0.1);
+    border: 1px solid rgba(245, 241, 234, 0.14);
+    color: #f5f1ea;
+  }
+
+  .messages-hub-search::placeholder {
+    color: rgba(245, 241, 234, 0.55);
+  }
+
+  .messages-hub-search:focus {
+    outline: none;
+    border-color: rgba(212, 168, 83, 0.45);
+    box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.16);
+  }
+
+  html.dark .messages-hub-search {
+    background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+    border-color: var(--color-border);
+    color: var(--color-ink);
+  }
+
+  html.dark .messages-hub-search::placeholder {
+    color: var(--color-ink-soft);
+  }
+
+  .messages-hub-thread {
+    border-color: var(--color-border);
+    background: var(--color-surface);
+    transition: background-color 0.15s ease;
+  }
+
+  .messages-hub-thread:hover {
+    background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
+  }
+
+  .messages-hub-thread.is-active {
+    background: color-mix(in srgb, var(--color-accent) 12%, var(--color-bg-soft));
+  }
+
+  .messages-hub-avatar {
+    background: color-mix(in srgb, var(--color-bg-muted) 72%, white);
+    color: var(--color-ink-muted);
+    font-weight: 600;
+  }
+
+  html.dark .messages-hub-avatar {
+    background: color-mix(in srgb, var(--color-bg-muted) 88%, black);
+    color: var(--color-ink);
+  }
+
+  .messages-hub-chat-header {
+    background:
+      radial-gradient(circle at 0% 0%, rgba(212, 168, 83, 0.12), transparent 40%),
+      linear-gradient(180deg, #2d2418 0%, #221c14 100%);
+    color: #f5f1ea;
+    box-shadow: 0 1px 0 rgba(245, 241, 234, 0.08);
+  }
+
+  html.dark .messages-hub-chat-header {
+    background:
+      radial-gradient(circle at 0% 0%, rgba(212, 118, 90, 0.14), transparent 40%),
+      linear-gradient(180deg, var(--color-bg-muted) 0%, var(--color-bg) 100%);
+  }
+
+  .messages-hub-chat-pane {
+    background: var(--color-bg-soft);
+  }
+
+  .messages-hub-empty {
+    background:
+      radial-gradient(circle at 50% 20%, rgba(196, 93, 62, 0.08), transparent 45%),
+      var(--color-bg-soft);
+  }
+
+  html.dark .messages-hub-empty {
+    background:
+      radial-gradient(circle at 50% 20%, rgba(212, 118, 90, 0.1), transparent 45%),
+      var(--color-bg);
+  }
+
+  .messages-hub-composer {
+    background: color-mix(in srgb, var(--color-surface) 92%, var(--color-bg-soft));
+    border-top: 1px solid var(--color-border);
+  }
+
+  .messages-hub-composer-field {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-ink);
+    box-shadow: 0 1px 2px rgba(45, 36, 24, 0.04);
+  }
+
+  .messages-hub-composer-field::placeholder {
+    color: var(--color-ink-soft);
+  }
+
+  .messages-hub-send {
+    background: var(--color-accent);
+    color: #fffdfb;
+  }
+
+  .messages-hub-send:disabled {
+    background: color-mix(in srgb, var(--color-ink-soft) 45%, var(--color-bg-muted));
+  }
+
+  .messages-hub-bubble-out {
+    background: color-mix(in srgb, var(--color-accent) 18%, #fffdfb);
+    color: var(--color-ink);
+  }
+
+  html.dark .messages-hub-bubble-out {
+    background: color-mix(in srgb, var(--color-accent) 24%, var(--color-bg-muted));
+    color: var(--color-ink);
+  }
+
+  .messages-hub-bubble-in {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    border: 1px solid var(--color-border);
+  }
+
+  .messages-hub-accent-btn {
+    background: var(--color-accent);
+    color: #fffdfb;
+  }
+
+  .messages-hub-accent-btn:hover {
+    background: var(--color-accent-strong);
+  }
+
+  .messages-hub-accent-text {
+    color: var(--color-accent-strong);
+  }
+
+  html.dark .messages-hub-accent-text {
+    color: var(--color-accent-soft);
   }
 }
 

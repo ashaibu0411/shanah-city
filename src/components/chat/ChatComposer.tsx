@@ -105,9 +105,9 @@ export function ChatComposer({
 
   if (whatsapp) {
     return (
-      <div className="bg-[#f0f2f5] px-2 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+      <div className="messages-hub-composer px-2 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
         {pendingAttachment && (
-          <div className="mb-2 flex items-center gap-2 rounded-xl bg-white p-2 shadow-sm">
+          <div className="mb-2 flex items-center gap-2 rounded-xl border border-night-900/8 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-[var(--color-surface)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={pendingAttachment.previewUrl}
@@ -115,14 +115,14 @@ export function ChatComposer({
               className="h-14 w-14 rounded-lg object-cover"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-[#111b21]">
+              <p className="truncate text-sm font-medium text-night-900 dark:text-sand-100">
                 {pendingAttachment.attachmentName}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setPendingAttachment(null)}
-              className="text-sm font-semibold text-[#667781]"
+              className="text-sm font-semibold text-night-500 dark:text-sand-400"
             >
               ✕
             </button>
@@ -130,13 +130,13 @@ export function ChatComposer({
         )}
 
         {showEmojiPicker && (
-          <div className="mb-2 flex flex-wrap gap-1 rounded-2xl bg-white p-2 shadow-sm">
+          <div className="mb-2 flex flex-wrap gap-1 rounded-2xl border border-night-900/8 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-[var(--color-surface)]">
             {QUICK_CHAT_EMOJIS.map((emoji) => (
               <button
                 key={emoji}
                 type="button"
                 onClick={() => appendEmoji(emoji)}
-                className="rounded-lg px-1.5 py-0.5 text-lg hover:bg-[#f0f2f5]"
+                className="rounded-lg px-1.5 py-0.5 text-lg hover:bg-sand-50 dark:hover:bg-[var(--color-bg-muted)]"
                 aria-label={`Insert ${emoji}`}
               >
                 {emoji}
@@ -159,7 +159,7 @@ export function ChatComposer({
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={disabled || attachmentBusy}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl text-[#54656f] disabled:opacity-40"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl text-night-600 disabled:opacity-40 dark:text-sand-300"
                 aria-label="Add photo"
               >
                 {attachmentBusy ? "…" : "📎"}
@@ -167,7 +167,7 @@ export function ChatComposer({
             </>
           )}
 
-          <div className="flex min-w-0 flex-1 items-center gap-1 rounded-3xl bg-white px-3 py-1.5 shadow-sm">
+          <div className="messages-hub-composer-field flex min-w-0 flex-1 items-center gap-1 rounded-3xl px-3 py-1.5">
             <button
               type="button"
               onClick={() => setShowEmojiPicker((current) => !current)}
@@ -186,7 +186,7 @@ export function ChatComposer({
               }}
               placeholder={placeholder}
               disabled={disabled}
-              className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] text-[#111b21] outline-none placeholder:text-[#667781] disabled:opacity-50"
+              className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] outline-none disabled:opacity-50"
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
                   event.preventDefault();
@@ -200,7 +200,7 @@ export function ChatComposer({
             type="button"
             onClick={handleSend}
             disabled={busy || disabled || !canSend}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#00a884] text-lg font-bold text-white disabled:bg-[#8696a0]"
+            className="messages-hub-send flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-bold disabled:opacity-60"
             aria-label={sendLabel}
           >
             {busy ? "…" : "➤"}

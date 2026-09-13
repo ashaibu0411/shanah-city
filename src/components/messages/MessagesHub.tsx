@@ -71,8 +71,8 @@ function MemberAvatar({
         : "h-14 w-14 text-base";
   return (
     <div
-      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-[#dfe5e7] font-medium text-[#54656f] ${
-        ring ? "ring-4 ring-white/90" : ""
+      className={`${sizeClass} messages-hub-avatar flex shrink-0 items-center justify-center rounded-full ${
+        ring ? "ring-4 ring-white/90 dark:ring-[var(--color-bg-muted)]" : ""
       }`}
       aria-hidden
     >
@@ -95,7 +95,7 @@ function BackChevron({
       type="button"
       onClick={onClick}
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-        light ? "text-white hover:bg-white/10" : "text-night-900 hover:bg-black/5"
+        light ? "text-sand-100 hover:bg-white/10" : "text-night-900 hover:bg-black/5 dark:text-sand-100 dark:hover:bg-white/10"
       }`}
       aria-label={label}
     >
@@ -122,14 +122,14 @@ function WhatsAppChatHeader({
   menu?: ReactNode;
 }) {
   return (
-    <header className="flex shrink-0 items-center gap-1 bg-[#008069] px-1 py-1.5 pt-[max(0.35rem,env(safe-area-inset-top))] text-white shadow-sm">
+    <header className="messages-hub-chat-header flex shrink-0 items-center gap-1 px-1 py-1.5 pt-[max(0.35rem,env(safe-area-inset-top))] shadow-sm">
       {showBack && onBack ? <BackChevron label="Back to chats" onClick={onBack} light /> : null}
       <div className="flex min-w-0 flex-1 items-center gap-3 px-1">
         {avatarName ? <MemberAvatar name={avatarName} size="sm" /> : null}
         <div className="min-w-0 flex-1">
           <p className="truncate text-[16px] font-semibold leading-tight">{title}</p>
           {subtitle ? (
-            <p className="truncate text-[12px] text-white/85">{subtitle}</p>
+            <p className="truncate text-[12px] text-sand-200/90">{subtitle}</p>
           ) : null}
         </div>
       </div>
@@ -623,19 +623,19 @@ export function MessagesHub() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100dvh-5rem)] items-center justify-center rounded-2xl border border-night-900/8 bg-white">
-        <p className="text-sm text-night-500">Loading messages…</p>
+      <div className="flex h-[calc(100dvh-5rem)] items-center justify-center rounded-2xl border border-night-900/8 bg-white dark:border-white/10 dark:bg-[var(--color-surface)]">
+        <p className="text-sm text-night-500 dark:text-sand-400">Loading messages…</p>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="rounded-2xl border border-night-900/8 bg-white px-6 py-10 text-center">
-        <h2 className="font-display text-xl font-semibold text-night-900">
+      <div className="rounded-2xl border border-night-900/8 bg-white px-6 py-10 text-center dark:border-white/10 dark:bg-[var(--color-surface)]">
+        <h2 className="font-display text-xl font-semibold text-night-900 dark:text-sand-100">
           Sign in to message members
         </h2>
-        <p className="mt-2 text-sm text-night-600">
+        <p className="mt-2 text-sm text-night-600 dark:text-sand-400">
           Connect privately with other Shanah City members after you create an account.
         </p>
         <div className="mt-5 flex justify-center gap-3">
@@ -650,28 +650,30 @@ export function MessagesHub() {
 
   return (
     <div
-      className={`messages-hub-root flex overflow-hidden bg-[#f0f2f5] ${
+      className={`messages-hub-root flex overflow-hidden ${
         immersive
           ? "h-[100dvh]"
           : isMobileApp
             ? "h-[calc(100dvh-3.5rem)]"
-            : "h-[calc(100dvh-5rem)] rounded-2xl border border-night-900/8 shadow-sm md:h-[calc(100dvh-11rem)]"
+            : "h-[calc(100dvh-5rem)] rounded-2xl border border-night-900/8 shadow-sm md:h-[calc(100dvh-11rem)] dark:border-white/10"
       }`}
     >
       <aside
-        className={`flex w-full shrink-0 flex-col border-[#d1d7db] bg-white lg:w-[min(100%,390px)] lg:border-r ${
+        className={`messages-hub-inbox flex w-full shrink-0 flex-col border-night-900/8 lg:w-[min(100%,390px)] lg:border-r dark:border-white/10 ${
           showInbox ? "flex" : "hidden lg:flex"
         }`}
       >
-        <div className="bg-[#008069] px-4 pb-3 pt-[max(0.65rem,env(safe-area-inset-top))] text-white">
+        <div className="messages-hub-header px-4 pb-3 pt-[max(0.65rem,env(safe-area-inset-top))]">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-[22px] font-semibold tracking-tight">Chats</h2>
+            <h2 className="messages-hub-header-title text-[22px] font-semibold tracking-tight">
+              Chats
+            </h2>
             <div className="flex items-center gap-1">
               {!isMobileApp ? (
                 <button
                   type="button"
                   onClick={() => setShowSafety((value) => !value)}
-                  className="rounded-full px-2 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/10"
+                  className="rounded-full px-2 py-1.5 text-xs font-semibold text-sand-200/90 hover:bg-white/10"
                 >
                   Safety
                 </button>
@@ -679,7 +681,7 @@ export function MessagesHub() {
               <button
                 type="button"
                 onClick={openNewMessage}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-white hover:bg-white/10"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-sand-100 hover:bg-white/10"
                 aria-label="New message"
               >
                 ✎
@@ -687,7 +689,7 @@ export function MessagesHub() {
             </div>
           </div>
           <div className="relative mt-3">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#54656f]">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-sand-300/80">
               ⌕
             </span>
             <input
@@ -695,13 +697,13 @@ export function MessagesHub() {
               value={inboxSearch}
               onChange={(event) => setInboxSearch(event.target.value)}
               placeholder="Search or start new chat"
-              className="w-full rounded-lg bg-white py-2 pl-9 pr-3 text-sm text-[#111b21] outline-none placeholder:text-[#667781] focus:ring-2 focus:ring-[#00a884]/30"
+              className="messages-hub-search w-full rounded-xl py-2.5 pl-9 pr-3 text-sm outline-none"
             />
           </div>
         </div>
 
         {showSafety && (
-          <div className="border-b border-night-900/8 bg-sand-50/80 px-4 py-3">
+          <div className="border-b border-night-900/8 bg-sand-50/80 px-4 py-3 dark:border-white/10 dark:bg-[var(--color-bg-soft)]">
             <p className="text-[11px] text-night-500">
               Block someone to stop messages. Report harassment for church leaders to review.
             </p>
@@ -712,7 +714,7 @@ export function MessagesHub() {
                 {blocks.map((block) => (
                   <div
                     key={block.id}
-                    className="flex items-center justify-between rounded-xl bg-white px-3 py-2"
+                    className="flex items-center justify-between rounded-xl bg-white px-3 py-2 dark:bg-[var(--color-surface)]"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-night-900">
@@ -726,7 +728,7 @@ export function MessagesHub() {
                       type="button"
                       onClick={() => unblockMember(block.blockedUserId, block.blockedUserName)}
                       disabled={busy}
-                      className="shrink-0 text-xs font-semibold text-[#00a884]"
+                      className="messages-hub-accent-text shrink-0 text-xs font-semibold"
                     >
                       Unblock
                     </button>
@@ -764,7 +766,7 @@ export function MessagesHub() {
               <button
                 type="button"
                 onClick={openNewMessage}
-                className="mt-4 rounded-full bg-[#00a884] px-4 py-2 text-xs font-semibold text-white"
+                className="messages-hub-accent-btn mt-4 rounded-full px-4 py-2 text-xs font-semibold shadow-sm"
               >
                 New message
               </button>
@@ -778,23 +780,25 @@ export function MessagesHub() {
                   key={thread.id}
                   type="button"
                   onClick={() => loadThread(thread.id)}
-                  className={`flex w-full items-center gap-3 border-b border-[#e9edef] px-4 py-3 text-left transition hover:bg-[#f5f6f6] ${
-                    active ? "bg-[#f0f2f5]" : "bg-white"
+                  className={`messages-hub-thread flex w-full items-center gap-3 border-b px-4 py-3 text-left ${
+                    active ? "is-active" : ""
                   }`}
                 >
                   <MemberAvatar name={thread.otherName} size="sm" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p
-                        className={`truncate text-[17px] text-[#111b21] ${
-                          unread > 0 ? "font-semibold" : "font-normal"
+                        className={`truncate text-[17px] text-night-900 dark:text-sand-100 ${
+                          unread > 0 ? "font-semibold" : "font-medium"
                         }`}
                       >
                         {thread.otherName}
                       </p>
                       <span
                         className={`shrink-0 text-xs ${
-                          unread > 0 ? "font-medium text-[#25d366]" : "text-[#667781]"
+                          unread > 0
+                            ? "font-semibold text-amber-600 dark:text-amber-300"
+                            : "text-night-500 dark:text-sand-400"
                         }`}
                       >
                         {formatInboxTime(thread.lastMessageAt)}
@@ -803,13 +807,15 @@ export function MessagesHub() {
                     <div className="mt-0.5 flex items-center gap-2">
                       <p
                         className={`min-w-0 flex-1 truncate text-sm ${
-                          unread > 0 ? "font-medium text-[#111b21]" : "font-normal text-[#667781]"
+                          unread > 0
+                            ? "font-medium text-night-800 dark:text-sand-100"
+                            : "font-normal text-night-500 dark:text-sand-400"
                         }`}
                       >
                         {thread.lastMessage}
                       </p>
                       {unread > 0 ? (
-                        <span className="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-[#25d366] px-1.5 text-[11px] font-semibold text-white">
+                        <span className="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[11px] font-semibold text-night-950">
                           {unread > 9 ? "9+" : unread}
                         </span>
                       ) : null}
@@ -823,7 +829,7 @@ export function MessagesHub() {
       </aside>
 
       <section
-        className={`min-w-0 flex-1 flex-col bg-[#efeae2] ${
+        className={`messages-hub-chat-pane min-w-0 flex-1 flex-col ${
           showChatPane ? "flex" : "hidden lg:flex"
         }`}
       >
@@ -836,7 +842,7 @@ export function MessagesHub() {
               onBack={closeChatView}
             />
 
-            <div className="flex-1 overflow-y-auto bg-[#efeae2] px-4 py-3">
+            <div className="messages-hub-chat-pane flex-1 overflow-y-auto px-4 py-3">
               <div className="relative">
                 <label className="text-xs font-semibold uppercase tracking-wide text-night-500">
                   To:
@@ -872,7 +878,7 @@ export function MessagesHub() {
                     <button
                       type="button"
                       onClick={clearRecipient}
-                      className="text-xs font-semibold text-[#00a884]"
+                      className="messages-hub-accent-text text-xs font-semibold"
                     >
                       Change
                     </button>
@@ -880,13 +886,13 @@ export function MessagesHub() {
                 )}
 
                 {memberSearch.trim() && !selectedRecipient && matchingMembers.length > 0 && (
-                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border border-night-900/10 bg-white py-1 shadow-xl">
+                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border border-night-900/10 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-[var(--color-surface)]">
                     {matchingMembers.map((member) => (
                       <li key={member.id}>
                         <button
                           type="button"
                           onClick={() => selectRecipient(member)}
-                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-sand-50"
+                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-sand-50 dark:hover:bg-[var(--color-bg-muted)]"
                         >
                           <MemberAvatar name={member.name} size="sm" />
                           <div className="min-w-0 flex-1">
@@ -938,13 +944,13 @@ export function MessagesHub() {
                     <button
                       type="button"
                       onClick={() => setShowChatMenu((value) => !value)}
-                      className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-white hover:bg-white/10"
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-sand-100 hover:bg-white/10"
                       aria-label="Conversation options"
                     >
                       ⋮
                     </button>
                     {showChatMenu && (
-                      <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] overflow-hidden rounded-xl bg-white py-1 text-[#111b21] shadow-xl">
+                      <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] overflow-hidden rounded-xl border border-night-900/10 bg-white py-1 text-night-900 shadow-xl dark:border-white/10 dark:bg-[var(--color-surface)] dark:text-sand-100">
                         {!isActiveBlocked ? (
                           <button
                             type="button"
@@ -953,7 +959,7 @@ export function MessagesHub() {
                               blockMember(activeOtherUserId, activeThread.otherName);
                             }}
                             disabled={busy}
-                            className="block w-full px-4 py-2.5 text-left text-sm hover:bg-[#f0f2f5]"
+                            className="block w-full px-4 py-2.5 text-left text-sm hover:bg-sand-50 dark:hover:bg-[var(--color-bg-muted)]"
                           >
                             Block
                           </button>
@@ -965,7 +971,7 @@ export function MessagesHub() {
                               unblockMember(activeOtherUserId, activeThread.otherName);
                             }}
                             disabled={busy}
-                            className="block w-full px-4 py-2.5 text-left text-sm hover:bg-[#f0f2f5]"
+                            className="block w-full px-4 py-2.5 text-left text-sm hover:bg-sand-50 dark:hover:bg-[var(--color-bg-muted)]"
                           >
                             Unblock
                           </button>
@@ -1034,10 +1040,10 @@ export function MessagesHub() {
               {messages.length === 0 ? (
                 <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-8 text-center">
                   <MemberAvatar name={activeThread.otherName} size="lg" ring />
-                  <p className="mt-4 text-lg font-semibold text-[#111b21]">
+                  <p className="mt-4 text-lg font-semibold text-night-900 dark:text-sand-100">
                     {activeThread.otherName}
                   </p>
-                  <p className="mt-1 text-sm text-[#667781]">
+                  <p className="mt-1 text-sm text-night-500 dark:text-sand-400">
                     Messages and calls are end-to-end visible to members of this church app.
                     Say hi to start the conversation.
                   </p>
@@ -1056,7 +1062,7 @@ export function MessagesHub() {
                     <div key={message.id}>
                       {showDate ? (
                         <div className="my-3 flex justify-center px-4">
-                          <span className="rounded-lg bg-[#ffffffd9] px-3 py-1 text-[12px] font-medium text-[#54656f] shadow-sm">
+                          <span className="rounded-lg bg-white/90 px-3 py-1 text-[12px] font-medium text-night-600 shadow-sm dark:bg-[var(--color-surface)] dark:text-sand-300">
                             {chatDateSeparatorLabel(message.createdAt)}
                           </span>
                         </div>
@@ -1107,18 +1113,20 @@ export function MessagesHub() {
             />
           </>
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center bg-[#f8f9fa] px-8 text-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#008069]/10 text-4xl">
+          <div className="messages-hub-empty flex flex-1 flex-col items-center justify-center px-8 text-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-amber-400/15 text-4xl ring-1 ring-amber-400/20">
               💬
             </div>
-            <p className="mt-4 text-2xl font-light text-[#41525d]">Shanah City Messages</p>
-            <p className="mt-2 max-w-sm text-sm text-[#667781]">
+            <p className="mt-4 font-display text-2xl font-light text-night-800 dark:text-sand-100">
+              Shanah City Messages
+            </p>
+            <p className="mt-2 max-w-sm text-sm text-night-500 dark:text-sand-400">
               Send private messages and photos to other members. Select a chat or start a new one.
             </p>
             <button
               type="button"
               onClick={openNewMessage}
-              className="mt-5 rounded-full bg-[#00a884] px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+              className="messages-hub-accent-btn mt-5 rounded-full px-5 py-2.5 text-sm font-semibold shadow-sm"
             >
               New chat
             </button>
