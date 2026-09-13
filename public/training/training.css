@@ -141,6 +141,16 @@ li:last-child {
   font-weight: 600;
 }
 
+.footer button.no-print {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .index-page {
   max-width: 720px;
 }
