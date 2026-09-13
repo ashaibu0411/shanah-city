@@ -40,15 +40,17 @@ export function MobileMoreSheet() {
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-night-900/15" />
             <div className="mb-2 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-night-500">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-night-500 dark:text-sand-400">
                   Explore
                 </p>
-                <h2 className="font-display text-xl font-semibold text-night-900">More</h2>
+                <h2 className="font-display text-xl font-semibold text-night-900 dark:text-sand-100">
+                  More
+                </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setMoreMenuOpen(false)}
-                className="shrink-0 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-night-800 ring-1 ring-night-900/10"
+                className="shrink-0 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-night-800 ring-1 ring-night-900/10 dark:bg-[var(--color-surface)] dark:text-sand-100 dark:ring-white/10"
               >
                 Done
               </button>
@@ -60,7 +62,7 @@ export function MobileMoreSheet() {
           <div className="app-mobile-inner relative mx-auto w-full">
 
           <div className="mobile-more-sheet-card mb-4 p-3">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-night-500">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-night-500 dark:text-sand-400">
               Your campus
             </p>
             <CampusSelector />
@@ -84,8 +86,8 @@ export function MobileMoreSheet() {
                   onClick={() => setMoreMenuOpen(false)}
                   className={`relative flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition active:scale-[0.97] ${
                     active
-                      ? "bg-amber-400 text-night-950 shadow-md ring-1 ring-amber-300/60"
-                      : "bg-white text-night-800 ring-1 ring-night-900/8"
+                      ? "bg-amber-400 text-night-950 shadow-md ring-1 ring-amber-300/60 dark:bg-amber-500 dark:text-night-950 dark:ring-amber-400/50"
+                      : "bg-white text-night-800 ring-1 ring-night-900/8 dark:bg-[var(--color-bg-muted)] dark:text-sand-100 dark:ring-white/10"
                   }`}
                 >
                   <span className="text-lg">{item.icon}</span>
@@ -113,7 +115,7 @@ export function MobileMoreSheet() {
               <Link
                 href="/sign-in"
                 onClick={() => setMoreMenuOpen(false)}
-                className="rounded-2xl bg-white px-4 py-3 text-center text-sm font-semibold text-night-800 ring-1 ring-night-900/10"
+                className="rounded-2xl bg-white px-4 py-3 text-center text-sm font-semibold text-night-800 ring-1 ring-night-900/10 dark:bg-[var(--color-surface)] dark:text-sand-100 dark:ring-white/10"
               >
                 Sign in
               </Link>
@@ -130,14 +132,14 @@ export function MobileMoreSheet() {
           <Link
             href="/privacy"
             onClick={() => setMoreMenuOpen(false)}
-            className="mt-4 block text-center text-xs font-semibold text-night-500 underline"
+            className="mt-4 block text-center text-xs font-semibold text-night-500 underline dark:text-sand-400"
           >
             Privacy Policy
           </Link>
           <Link
             href="/delete-account"
             onClick={() => setMoreMenuOpen(false)}
-            className="mt-1 block text-center text-xs font-semibold text-night-500 underline"
+            className="mt-1 block text-center text-xs font-semibold text-night-500 underline dark:text-sand-400"
           >
             Delete account
           </Link>

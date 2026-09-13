@@ -19,8 +19,8 @@ export function ThemeControl({ variant = "mobile" }: ThemeControlProps) {
     : "rounded-lg px-2.5 py-1.5 text-xs font-semibold transition";
 
   const activeClass = isMobile
-    ? "bg-night-950 text-white dark:bg-sand-100 dark:text-night-950"
-    : "bg-night-900 text-sand-50 dark:bg-sand-100 dark:text-night-950";
+    ? "bg-night-950 text-white dark:bg-white/15 dark:text-sand-100 dark:ring-1 dark:ring-white/20"
+    : "bg-night-900 text-sand-50 dark:bg-white/15 dark:text-sand-100 dark:ring-1 dark:ring-white/20";
 
   const inactiveClass = isMobile
     ? "text-night-700 hover:bg-sand-100 dark:text-sand-300 dark:hover:bg-night-800"

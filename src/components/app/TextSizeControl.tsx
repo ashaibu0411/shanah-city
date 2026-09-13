@@ -29,8 +29,8 @@ export function TextSizeControl({ variant = "mobile" }: TextSizeControlProps) {
     : "rounded-lg px-2.5 py-1.5 text-xs font-semibold transition";
 
   const activeClass = isMobile
-    ? "bg-night-950 text-white dark:bg-sand-100 dark:text-night-950"
-    : "bg-night-900 text-sand-50 dark:bg-sand-100 dark:text-night-950";
+    ? "bg-night-950 text-white dark:bg-white/15 dark:text-sand-100 dark:ring-1 dark:ring-white/20"
+    : "bg-night-900 text-sand-50 dark:bg-white/15 dark:text-sand-100 dark:ring-1 dark:ring-white/20";
 
   const inactiveClass = isMobile
     ? "text-night-700 hover:bg-sand-100 dark:text-sand-300 dark:hover:bg-night-800"
@@ -72,7 +72,7 @@ export function TextSizeControl({ variant = "mobile" }: TextSizeControlProps) {
           <p
             className={
               isMobile
-                ? "min-w-[5.5rem] text-center text-xs font-semibold uppercase tracking-[0.16em] text-night-600"
+                ? "min-w-[5.5rem] text-center text-xs font-semibold uppercase tracking-[0.16em] text-night-600 dark:text-sand-300"
                 : "min-w-[4.5rem] text-center text-[11px] font-semibold text-night-600 lg:hidden"
             }
           >

@@ -258,7 +258,9 @@
   html.dark .groups-premium-page :is(.text-night-950, .text-night-900, .text-night-800),
   html.dark .mobile-home :is(.text-night-950, .text-night-900, .text-night-800),
   html.dark .mobile-devotions-page :is(.text-night-950, .text-night-900, .text-night-800),
-  html.dark .mobile-media-hub :is(.text-night-950, .text-night-900, .text-night-800) {
+  html.dark .mobile-media-hub :is(.text-night-950, .text-night-900, .text-night-800),
+  html.dark .mobile-more-sheet-panel :is(.text-night-950, .text-night-900, .text-night-800),
+  html.dark .mobile-more-sheet-card :is(.text-night-950, .text-night-900, .text-night-800) {
     color: var(--color-ink) !important;
   }
 
@@ -266,7 +268,9 @@
   html.dark .groups-premium-page :is(.text-night-700, .text-night-600),
   html.dark .mobile-home :is(.text-night-700, .text-night-600),
   html.dark .mobile-devotions-page :is(.text-night-700, .text-night-600),
-  html.dark .mobile-media-hub :is(.text-night-700, .text-night-600) {
+  html.dark .mobile-media-hub :is(.text-night-700, .text-night-600),
+  html.dark .mobile-more-sheet-panel :is(.text-night-700, .text-night-600),
+  html.dark .mobile-more-sheet-card :is(.text-night-700, .text-night-600) {
     color: var(--color-ink-muted) !important;
   }
 
@@ -274,7 +278,9 @@
   html.dark .groups-premium-page :is(.text-night-500, .text-night-400),
   html.dark .mobile-home :is(.text-night-500, .text-night-400),
   html.dark .mobile-devotions-page :is(.text-night-500, .text-night-400),
-  html.dark .mobile-media-hub :is(.text-night-500, .text-night-400) {
+  html.dark .mobile-media-hub :is(.text-night-500, .text-night-400),
+  html.dark .mobile-more-sheet-panel :is(.text-night-500, .text-night-400),
+  html.dark .mobile-more-sheet-card :is(.text-night-500, .text-night-400) {
     color: var(--color-ink-soft) !important;
   }
 
