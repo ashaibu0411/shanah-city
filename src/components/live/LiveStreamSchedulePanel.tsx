@@ -160,15 +160,15 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
   }
 
   return (
-    <div className={`rounded-2xl border border-violet-200 bg-violet-50/70 ${compact ? "p-3.5" : "p-4"}`}>
-      <p className="text-sm font-semibold text-night-900">Schedule live services</p>
-      <p className="mt-1 text-xs text-night-600">
+    <div className={`rounded-2xl border border-violet-200 bg-violet-50/70 dark:border-violet-800/40 dark:bg-[var(--color-surface)] ${compact ? "p-3.5" : "p-4"}`}>
+      <p className="text-sm font-semibold text-night-900 dark:text-sand-100">Schedule live services</p>
+      <p className="mt-1 text-xs text-night-600 dark:text-sand-300">
         Add Friday and Sunday (or any services) ahead of time. Members always see a countdown to
         the next upcoming stream only.
       </p>
 
       {expiredSchedules.length > 0 ? (
-        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950 ring-1 ring-amber-200">
+        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-800/40">
           {expiredSchedules.length} saved time
           {expiredSchedules.length === 1 ? " has" : "s have"} already passed. Edit or remove them,
           then add new start times.
@@ -177,13 +177,13 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
 
       {upcomingSchedules.length > 0 ? (
         <div className="mt-4 space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-900 dark:text-violet-200">
             Upcoming ({upcomingSchedules.length})
           </p>
           {upcomingSchedules.map((item, index) => (
             <div
               key={item.id}
-              className="rounded-xl border border-violet-200/80 bg-white/80 p-3 ring-1 ring-white/60"
+              className="rounded-xl border border-violet-200/80 bg-white/80 p-3 ring-1 ring-white/60 dark:border-white/10 dark:bg-[var(--color-bg-muted)] dark:ring-white/10"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
@@ -193,7 +193,7 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
                     {index === 0 ? " · Countdown active" : " · Queued next"}
                   </p>
                   {item.notifyEnabled ? (
-                    <p className="mt-1 text-[11px] text-violet-800">
+                    <p className="mt-1 text-[11px] text-violet-800 dark:text-violet-200">
                       {item.notifySentAt
                         ? "Live push notification was sent."
                         : "Push notification scheduled."}
@@ -218,12 +218,12 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
           ))}
         </div>
       ) : (
-        <p className="mt-4 rounded-xl bg-white/70 px-3 py-2 text-sm text-night-600 ring-1 ring-violet-100">
+        <p className="mt-4 rounded-xl bg-white/70 px-3 py-2 text-sm text-night-600 ring-1 ring-violet-100 dark:bg-[var(--color-bg-muted)] dark:text-sand-300 dark:ring-white/10">
           No upcoming services scheduled yet.
         </p>
       )}
 
-      <div className="mt-4 rounded-xl border border-violet-200/70 bg-white/75 p-3 ring-1 ring-white/70">
+      <div className="mt-4 rounded-xl border border-violet-200/70 bg-white/75 p-3 ring-1 ring-white/70 dark:border-white/10 dark:bg-[var(--color-bg-muted)] dark:ring-white/10">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-semibold text-night-900">
             {editingId ? "Edit service" : "Add service"}
@@ -234,7 +234,7 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
                 key={preset.label}
                 type="button"
                 onClick={() => setTitle(preset.title)}
-                className="rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-900 ring-1 ring-violet-200/80"
+                className="rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-900 ring-1 ring-violet-200/80 dark:bg-violet-950/50 dark:text-violet-100 dark:ring-violet-800/40"
               >
                 {preset.label}
               </button>
@@ -244,28 +244,28 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
 
         <div className={`mt-3 grid gap-3 ${compact ? "" : "md:grid-cols-2"}`}>
           <label className="block">
-            <span className="text-sm font-semibold text-night-800">Title</span>
+            <span className="text-sm font-semibold text-night-800 dark:text-sand-200">Title</span>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 dark:border-white/10 dark:bg-[var(--color-surface)] dark:text-sand-100"
             />
           </label>
           <label className="block">
-            <span className="text-sm font-semibold text-night-800">Start date &amp; time</span>
+            <span className="text-sm font-semibold text-night-800 dark:text-sand-200">Start date &amp; time</span>
             <input
               type="datetime-local"
               value={startsAt}
               onChange={(event) => setStartsAt(event.target.value)}
-              className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 dark:border-white/10 dark:bg-[var(--color-surface)] dark:text-sand-100"
             />
           </label>
           <label className="block md:col-span-2">
-            <span className="text-sm font-semibold text-night-800">Primary platform</span>
+            <span className="text-sm font-semibold text-night-800 dark:text-sand-200">Primary platform</span>
             <select
               value={platform}
               onChange={(event) => setPlatform(event.target.value)}
-              className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+              className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 dark:border-white/10 dark:bg-[var(--color-surface)] dark:text-sand-100"
             >
               <option value="all">YouTube &amp; Facebook</option>
               <option value="youtube">YouTube</option>
@@ -281,10 +281,10 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
               className="mt-1 h-4 w-4 rounded border-night-900/20"
             />
             <span>
-              <span className="text-sm font-semibold text-night-800">
+              <span className="text-sm font-semibold text-night-800 dark:text-sand-200">
                 Send push notification when we go live
               </span>
-              <span className="mt-1 block text-xs text-night-600">
+              <span className="mt-1 block text-xs text-night-600 dark:text-sand-300">
                 Uses the start date &amp; time above. Members need church announcements enabled in
                 Profile.
               </span>

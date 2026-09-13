@@ -44,7 +44,7 @@ export function GroupsThisSundayCard() {
               <Link
                 key={`${assignment.groupId}-${assignment.leftLabel}`}
                 href={assignment.href}
-                className={`${groupsPremium.rowInset} transition hover:bg-white`}
+                className={`${groupsPremium.rowInset} transition hover:bg-white dark:hover:bg-[var(--color-surface)]`}
               >
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-night-900">{assignment.leftLabel}</p>
@@ -66,7 +66,7 @@ export function GroupsThisSundayCard() {
               <Link
                 key={service.groupId}
                 href={service.href ?? `/groups/${service.groupId}`}
-                className={`${groupsPremium.rowInset} transition hover:bg-white`}
+                className={`${groupsPremium.rowInset} transition hover:bg-white dark:hover:bg-[var(--color-surface)]`}
               >
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-night-900">{service.groupName}</p>

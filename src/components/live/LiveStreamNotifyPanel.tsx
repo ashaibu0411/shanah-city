@@ -63,31 +63,31 @@ export function LiveStreamNotifyPanel({
 
   return (
     <div
-      className={`rounded-2xl border border-red-200 bg-gradient-to-br from-red-50 to-orange-50/80 ${
+      className={`rounded-2xl border border-red-200 bg-gradient-to-br from-red-50 to-orange-50/80 dark:border-red-900/40 dark:from-red-950/50 dark:to-orange-950/40 ${
         compact ? "p-3.5" : "p-4"
       }`}
     >
-      <p className="text-sm font-semibold text-night-900">Go live — notify everyone</p>
-      <p className="mt-1 text-xs text-night-600">
+      <p className="text-sm font-semibold text-night-900 dark:text-sand-100">Go live — notify everyone</p>
+      <p className="mt-1 text-xs text-night-600 dark:text-sand-300">
         Media team only. Send a push now, or schedule one automatically in{" "}
         <strong>Schedule next livestream</strong> below (uses the same start time as the countdown).
       </p>
 
       <div className={`mt-4 grid gap-3 ${compact ? "" : "md:grid-cols-2"}`}>
         <label className="block md:col-span-2">
-          <span className="text-sm font-semibold text-night-800">Notification title</span>
+          <span className="text-sm font-semibold text-night-800 dark:text-sand-200">Notification title</span>
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 dark:border-white/10 dark:bg-[var(--color-surface)] dark:text-sand-100"
           />
         </label>
         <label className="block md:col-span-2">
-          <span className="text-sm font-semibold text-night-800">Short message</span>
+          <span className="text-sm font-semibold text-night-800 dark:text-sand-200">Short message</span>
           <input
             value={body}
             onChange={(event) => setBody(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
+            className="mt-1 w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 dark:border-white/10 dark:bg-[var(--color-surface)] dark:text-sand-100"
           />
         </label>
       </div>

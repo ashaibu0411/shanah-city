@@ -341,7 +341,7 @@ export function GroupDetailView({
     </Button>
   ) : !detail.isMember ? (
     isSiteAdminManaging ? (
-      <p className="rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900">
+      <p className="rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-900 dark:bg-violet-950/45 dark:text-violet-100">
         Admin access — open Manage to add members and assign a group leader.
       </p>
     ) : (

@@ -30,14 +30,14 @@ export function DevotionPromoCard({
               className="aspect-[2/1] min-h-[8rem]"
             />
             <div className="mobile-devotion-archive-footer px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay-700">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay-700 dark:text-clay-200">
                 {devotion.date} · {devotion.readingTime}
               </p>
-              <p className="mt-1 font-display text-[1.05rem] font-semibold leading-snug tracking-tight text-night-950">
+              <p className="mt-1 font-display text-[1.05rem] font-semibold leading-snug tracking-tight text-night-950 dark:text-sand-100">
                 {devotion.title}
               </p>
               {devotion.reference ? (
-                <p className="mt-0.5 truncate text-xs text-night-500">{devotion.reference}</p>
+                <p className="mt-0.5 truncate text-xs text-night-500 dark:text-sand-400">{devotion.reference}</p>
               ) : null}
               <span className="mobile-devotion-spotlight-cta mt-2 inline-flex rounded-full px-3.5 py-1.5 text-[11px] font-bold text-white">
                 Read

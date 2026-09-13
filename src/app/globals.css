@@ -150,57 +150,11 @@
   html.dark .bg-white,
   html.dark .bg-white\/70,
   html.dark .bg-white\/80,
-  html.dark .bg-white\/82 {
+  html.dark .bg-white\/82,
+  html.dark .bg-white\/75,
+  html.dark .bg-white\/90,
+  html.dark .bg-white\/95 {
     background-color: var(--color-surface) !important;
-  }
-
-  /* Only remap night text on dark app surfaces — not on light-tinted banners/cards. */
-  html.dark :is(
-    .editorial-card:not(.theme-light-surface),
-    .editorial-surface:not(.theme-light-surface),
-    .editorial-page-header,
-    .editorial-lead-card,
-    .mobile-card:not(.theme-light-surface),
-    .mobile-more-sheet-card,
-    .mobile-more-sheet-panel,
-    .mobile-more-sheet-header,
-    .mobile-home-welcome-intro,
-    .groups-premium-page,
-    main.app-main
-  ) :is(.text-night-950, .text-night-900, .text-night-800) {
-    color: var(--color-ink) !important;
-  }
-
-  html.dark :is(
-    .editorial-card:not(.theme-light-surface),
-    .editorial-surface:not(.theme-light-surface),
-    .editorial-page-header,
-    .editorial-lead-card,
-    .mobile-card:not(.theme-light-surface),
-    .mobile-more-sheet-card,
-    .mobile-more-sheet-panel,
-    .mobile-more-sheet-header,
-    .mobile-home-welcome-intro,
-    .groups-premium-page,
-    main.app-main
-  ) :is(.text-night-700, .text-night-600) {
-    color: var(--color-ink-muted) !important;
-  }
-
-  html.dark :is(
-    .editorial-card:not(.theme-light-surface),
-    .editorial-surface:not(.theme-light-surface),
-    .editorial-page-header,
-    .editorial-lead-card,
-    .mobile-card:not(.theme-light-surface),
-    .mobile-more-sheet-card,
-    .mobile-more-sheet-panel,
-    .mobile-more-sheet-header,
-    .mobile-home-welcome-intro,
-    .groups-premium-page,
-    main.app-main
-  ) :is(.text-night-500, .text-night-400) {
-    color: var(--color-ink-soft) !important;
   }
 
   html.dark .mobile-home-welcome-intro {
@@ -232,6 +186,124 @@
 
   html.dark :is(input, textarea, select)::placeholder {
     color: var(--color-ink-soft);
+  }
+
+  /* Dark theme: convert light-tinted surfaces to theme tokens app-wide. */
+  html.dark main.app-main [class*="bg-sand-50"],
+  html.dark main.app-main [class*="bg-sand-100"],
+  html.dark main.app-main [class*="bg-sand-200"],
+  html.dark .groups-premium-page [class*="bg-sand-50"],
+  html.dark .groups-premium-page [class*="bg-sand-100"],
+  html.dark .groups-premium-page [class*="bg-sand-200"],
+  html.dark .mobile-home [class*="bg-sand-50"],
+  html.dark .mobile-home [class*="bg-sand-100"],
+  html.dark .mobile-devotions-page [class*="bg-sand-50"],
+  html.dark .mobile-devotions-page [class*="bg-sand-100"] {
+    background-color: var(--color-bg-soft) !important;
+    background-image: none !important;
+  }
+
+  html.dark main.app-main [class*="bg-white"],
+  html.dark .groups-premium-page [class*="bg-white"],
+  html.dark .mobile-home [class*="bg-white"],
+  html.dark .mobile-devotions-page [class*="bg-white"],
+  html.dark .mobile-media-hub [class*="bg-white"] {
+    background-color: var(--color-surface) !important;
+  }
+
+  html.dark main.app-main [class*="bg-violet-50"],
+  html.dark main.app-main [class*="bg-amber-50"],
+  html.dark main.app-main [class*="bg-clay-50"],
+  html.dark main.app-main [class*="bg-rose-50"],
+  html.dark main.app-main [class*="bg-orange-50"],
+  html.dark main.app-main [class*="bg-yellow-50"],
+  html.dark main.app-main [class*="bg-red-50"],
+  html.dark main.app-main [class*="bg-emerald-50"],
+  html.dark main.app-main [class*="bg-teal-50"],
+  html.dark main.app-main [class*="bg-pink-50"],
+  html.dark main.app-main [class*="bg-indigo-50"],
+  html.dark .groups-premium-page [class*="bg-violet-50"],
+  html.dark .groups-premium-page [class*="bg-amber-50"] {
+    background-color: var(--color-surface) !important;
+    background-image: none !important;
+  }
+
+  html.dark main.app-main [class*="from-amber-50"],
+  html.dark main.app-main [class*="from-violet-50"],
+  html.dark main.app-main [class*="from-clay-50"],
+  html.dark main.app-main [class*="from-rose-50"],
+  html.dark main.app-main [class*="from-orange-50"],
+  html.dark main.app-main [class*="from-red-50"],
+  html.dark main.app-main [class*="from-sand-50"],
+  html.dark main.app-main [class*="from-white"],
+  html.dark main.app-main [class*="via-white"],
+  html.dark main.app-main [class*="to-orange-50"],
+  html.dark main.app-main [class*="to-red-50"],
+  html.dark main.app-main [class*="to-sand-50"],
+  html.dark main.app-main [class*="to-indigo-50"],
+  html.dark main.app-main [class*="to-pink-50"],
+  html.dark .mobile-home [class*="from-amber-50"],
+  html.dark .mobile-home [class*="from-violet-50"],
+  html.dark .mobile-home [class*="from-clay-50"],
+  html.dark .mobile-home [class*="from-rose-50"],
+  html.dark .mobile-home [class*="from-sand-50"],
+  html.dark .mobile-home [class*="via-white"],
+  html.dark .theme-light-surface[class*="from-"] {
+    background-image: none !important;
+    background-color: var(--color-surface) !important;
+  }
+
+  /* Readable ink on dark surfaces across the app shell. */
+  html.dark main.app-main :is(.text-night-950, .text-night-900, .text-night-800),
+  html.dark .groups-premium-page :is(.text-night-950, .text-night-900, .text-night-800),
+  html.dark .mobile-home :is(.text-night-950, .text-night-900, .text-night-800),
+  html.dark .mobile-devotions-page :is(.text-night-950, .text-night-900, .text-night-800),
+  html.dark .mobile-media-hub :is(.text-night-950, .text-night-900, .text-night-800) {
+    color: var(--color-ink) !important;
+  }
+
+  html.dark main.app-main :is(.text-night-700, .text-night-600),
+  html.dark .groups-premium-page :is(.text-night-700, .text-night-600),
+  html.dark .mobile-home :is(.text-night-700, .text-night-600),
+  html.dark .mobile-devotions-page :is(.text-night-700, .text-night-600),
+  html.dark .mobile-media-hub :is(.text-night-700, .text-night-600) {
+    color: var(--color-ink-muted) !important;
+  }
+
+  html.dark main.app-main :is(.text-night-500, .text-night-400),
+  html.dark .groups-premium-page :is(.text-night-500, .text-night-400),
+  html.dark .mobile-home :is(.text-night-500, .text-night-400),
+  html.dark .mobile-devotions-page :is(.text-night-500, .text-night-400),
+  html.dark .mobile-media-hub :is(.text-night-500, .text-night-400) {
+    color: var(--color-ink-soft) !important;
+  }
+
+  html.dark main.app-main :is(.text-violet-900, .text-violet-800),
+  html.dark .groups-premium-page :is(.text-violet-900, .text-violet-800) {
+    color: #ddd6fe !important;
+  }
+
+  html.dark main.app-main :is(.text-amber-950, .text-amber-900, .text-amber-800),
+  html.dark .groups-premium-page :is(.text-amber-950, .text-amber-900, .text-amber-800) {
+    color: #fde68a !important;
+  }
+
+  html.dark main.app-main :is(.text-clay-700, .text-clay-800, .text-clay-600),
+  html.dark .mobile-home :is(.text-clay-700, .text-clay-800, .text-clay-600),
+  html.dark .mobile-devotions-page :is(.text-clay-700, .text-clay-800, .text-clay-600) {
+    color: #fdba74 !important;
+  }
+
+  html.dark main.app-main [class*="border-violet-2"],
+  html.dark main.app-main [class*="ring-violet-1"],
+  html.dark main.app-main [class*="border-amber-2"],
+  html.dark main.app-main [class*="ring-amber-2"],
+  html.dark main.app-main [class*="border-clay-2"],
+  html.dark main.app-main [class*="ring-clay-1"],
+  html.dark main.app-main [class*="border-rose-2"],
+  html.dark .groups-premium-page [class*="border-violet-2"] {
+    border-color: var(--color-border) !important;
+    --tw-ring-color: var(--color-border) !important;
   }
 
 }
@@ -1019,6 +1091,20 @@
   body[data-shell="mobile"] .mobile-devotion-archive-footer {
     background: linear-gradient(135deg, #fffaf5 0%, #faf7f2 55%, #f5f1ea 100%);
     border-top: 1px solid rgba(45, 36, 24, 0.06);
+  }
+
+  html.dark body[data-shell="mobile"] .mobile-devotion-archive-footer {
+    background: linear-gradient(
+      135deg,
+      var(--color-bg-soft) 0%,
+      var(--color-surface) 55%,
+      var(--color-bg-muted) 100%
+    );
+    border-top-color: var(--color-border);
+  }
+
+  html.dark body[data-shell="mobile"] .mobile-section-title {
+    color: var(--color-ink);
   }
 
   body[data-shell="mobile"] .mobile-devotions-page {
