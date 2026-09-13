@@ -11,6 +11,7 @@ import { DevotionBody } from "@/components/devotions/DevotionBody";
 import { DevotionBrowserPrompt } from "@/components/devotions/DevotionBrowserPrompt";
 import { DevotionListenPlayer } from "@/components/devotions/DevotionListenPlayer";
 import { DevotionPromoCard } from "@/components/devotions/DevotionPromoCard";
+import { DevotionReactions } from "@/components/devotions/DevotionReactions";
 
 type DevotionMode = "read" | "listen";
 
@@ -155,13 +156,18 @@ export function DevotionDetail({
 
           <DevotionBody devotion={devotion} className="mt-4" />
 
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button onClick={() => setCompleted(true)}>
-              {completed ? "Completed" : "Mark as read"}
-            </Button>
-            <Button href={backHref} variant="secondary">
-              {backLabel}
-            </Button>
+          <div className="mt-5 border-t border-night-900/8 pt-4 dark:border-white/10">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <DevotionReactions devotionId={devotion.id} />
+              <div className="flex flex-wrap gap-3 sm:justify-end">
+                <Button onClick={() => setCompleted(true)}>
+                  {completed ? "Completed" : "Mark as read"}
+                </Button>
+                <Button href={backHref} variant="secondary">
+                  {backLabel}
+                </Button>
+              </div>
+            </div>
           </div>
         </>
       ) : (

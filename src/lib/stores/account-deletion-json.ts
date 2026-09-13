@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { deleteUserAvatar } from "@/lib/avatar-server";
+import { deleteDevotionReactionsForUser } from "@/lib/devotion-reaction-server";
 import type { MemberProfile } from "@/lib/auth-types";
 import type { UserBlock, MessageReport } from "@/lib/block-types";
 import type { Group, GroupJoinRequest } from "@/lib/group-types";
@@ -118,4 +119,6 @@ export async function deleteUserAccountData(userId: string) {
       devotion.authorId === userId ? { ...devotion, authorId: null } : devotion,
   );
   await writeJson(DEVOTIONS_FILE, devotions);
+
+  await deleteDevotionReactionsForUser(userId);
 }

@@ -33,6 +33,8 @@ export async function deleteUserAccountData(userId: string) {
       data: { authorId: null },
     });
 
+    await tx.devotionReaction.deleteMany({ where: { userId } });
+
     await tx.galleryPhoto.deleteMany({ where: { uploadedBy: userId } });
 
     const groups = await tx.group.findMany();

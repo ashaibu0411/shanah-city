@@ -209,6 +209,18 @@ model Devotion {
   tags        Json?
 }
 
+model DevotionReaction {
+  id         String   @id
+  devotionId String
+  userId     String
+  userName   String
+  emoji      String
+  createdAt  DateTime
+
+  @@unique([devotionId, userId, emoji])
+  @@index([devotionId])
+}
+
 model ChurchEvent {
   id               String      @id
   title            String
