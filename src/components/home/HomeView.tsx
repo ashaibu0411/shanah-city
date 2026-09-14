@@ -18,6 +18,7 @@ import {
   TrainingHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
 import { useUrgentAlertHighlight } from "@/components/home/useUrgentAlertHighlight";
+import { HomeStoriesSection } from "@/components/home/HomeStoriesSection";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { SermonCard } from "@/components/sermons/SermonCard";
 import { SectionTitle } from "@/components/ui";
@@ -73,6 +74,10 @@ export function HomeView({
       {todayDevotion ? <DevotionPreview devotion={todayDevotion} /> : null}
       <DevotionBrowseNudge />
       <PrayerHomeBanner />
+
+      <section className="mb-8">
+        <HomeStoriesSection />
+      </section>
 
       <section className="mb-8">
         <SectionTitle title="Latest sermon" href="/sermons" />

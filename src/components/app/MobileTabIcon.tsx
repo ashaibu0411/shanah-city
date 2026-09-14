@@ -1,5 +1,5 @@
 type MobileTabIconProps = {
-  name: "home" | "live" | "devotions" | "messages" | "more";
+  name: "home" | "live" | "devotions" | "messages" | "community" | "more";
   className?: string;
 };
 
@@ -43,6 +43,14 @@ export function MobileTabIcon({ name, className = "h-5 w-5" }: MobileTabIconProp
           <path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 16 0Z" />
         </svg>
       );
+    case "community":
+      return (
+        <svg {...shared}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8 12h8" />
+          <path d="M12 8v8" strokeWidth={2.2} />
+        </svg>
+      );
     case "more":
       return (
         <svg {...shared}>
@@ -62,6 +70,8 @@ export function navHrefToTabIcon(href: string): MobileTabIconProps["name"] | nul
       return "live";
     case "/devotions":
       return "devotions";
+    case "/community":
+      return "community";
     case "/messages":
       return "messages";
     default:

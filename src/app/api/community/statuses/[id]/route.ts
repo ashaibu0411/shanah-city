@@ -1,6 +1,11 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import {
+  COMMUNITY_STORY_REACTION_KINDS,
+  toggleCommunityStatusReaction,
+} from "@/lib/community-status-reaction-server";
+import type { CommunityStoryReactionKind } from "@/lib/member-types";
 import { deleteCommunityStatus } from "@/lib/community-status-server";
 
 type RouteContext = {
@@ -39,6 +44,36 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return NextResponse.json({ ok: true, status: result });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not delete story.";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
+
+export async function PATCH(request: Request, context: RouteContext) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const user = await getUserFromSession(token);
+
+  if (!user) {
+    return NextResponse.json({ error: "Sign in to react." }, { status: 401 });
+  }
+
+  const { id: statusId } = await context.params;
+  const body = (await request.json()) as { kind?: string };
+  const kind = String(body.kind ?? "") as CommunityStoryReactionKind;
+
+  if (!COMMUNITY_STORY_REACTION_KINDS.includes(kind)) {
+    return NextResponse.json({ error: "Invalid reaction." }, { status: 400 });
+  }
+
+  try {
+    const result = await toggleCommunityStatusReaction({
+      statusId,
+      userId: user.id,
+      kind,
+    });
+    return NextResponse.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not react.";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

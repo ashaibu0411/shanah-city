@@ -10,9 +10,9 @@ import { useAppNavItems } from "@/lib/use-app-nav-items";
 
 const tabs = [
   site.nav[0],
-  site.nav[1],
+  site.nav[4],
   site.nav[2],
-  site.nav[5],
+  site.nav[6],
 ];
 
 export function MobileNav() {

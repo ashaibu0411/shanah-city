@@ -25,7 +25,7 @@ export default async function CommunityPage() {
       <PageHeader
         eyebrow="Together"
         title="Community"
-        description="Pray for one another, share praise reports, and stay connected across the Shanah City family."
+        description="See moments from your groups and friends, pray in one tap, and stay connected day to day."
       />
       <MarkFeedRead feed="community" />
       <PollsSection

@@ -176,6 +176,17 @@ model CommunityStatus {
   @@index([authorId])
 }
 
+model CommunityStatusReaction {
+  id        String   @id
+  statusId  String
+  userId    String
+  kind      String
+  createdAt DateTime @default(now())
+
+  @@unique([statusId, userId, kind])
+  @@index([statusId])
+}
+
 model Comment {
   id        String        @id
   postId    String

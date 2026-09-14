@@ -6,11 +6,18 @@ import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { formatCommunityTimeAgo } from "@/lib/community-ui-utils";
 import { inferCommunityVideoContentType } from "@/lib/community-media-shared";
 import { readJsonResponse } from "@/lib/read-json-response";
+import type { CommunityStatus, CommunityStoryReactionKind } from "@/lib/member-types";
 import {
   resolveStoryMediaUrl,
   STORY_IMAGE_MS,
   type StoryDeck,
 } from "@/lib/community-story-utils";
+
+const REACTION_BUTTONS: { kind: CommunityStoryReactionKind; label: string; emoji: string }[] = [
+  { kind: "pray", label: "Pray", emoji: "🙏" },
+  { kind: "coming", label: "I'm in", emoji: "✓" },
+  { kind: "amen", label: "Amen", emoji: "🙌" },
+];
 
 type CommunityStoryViewerProps = {
   decks: StoryDeck[];
@@ -20,6 +27,11 @@ type CommunityStoryViewerProps = {
   onClose: () => void;
   onStoriesSeen?: (statusIds: string[]) => void;
   onStoryDeleted?: (statusId: string) => void;
+  onStatusReactionChange?: (
+    statusId: string,
+    reactions: NonNullable<CommunityStatus["reactions"]>,
+    viewerReactions: CommunityStoryReactionKind[],
+  ) => void;
 };
 
 function StorySlideVideo({
@@ -88,6 +100,7 @@ export function CommunityStoryViewer({
   onClose,
   onStoriesSeen,
   onStoryDeleted,
+  onStatusReactionChange,
 }: CommunityStoryViewerProps) {
   const [mounted, setMounted] = useState(false);
   const [deckIndex, setDeckIndex] = useState(initialDeckIndex);
@@ -100,6 +113,8 @@ export function CommunityStoryViewer({
   const [replyNotice, setReplyNotice] = useState("");
   const [replyError, setReplyError] = useState("");
   const [replyFocused, setReplyFocused] = useState(false);
+  const [reactionBusy, setReactionBusy] = useState(false);
+  const [reactionError, setReactionError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const pausedRef = useRef(false);
   const elapsedRef = useRef(0);
@@ -295,6 +310,33 @@ export function CommunityStoryViewer({
       goPrev();
     } else {
       goNext();
+    }
+  }
+
+  async function toggleReaction(kind: CommunityStoryReactionKind) {
+    if (!slide || isOwnStory || reactionBusy) return;
+    setReactionBusy(true);
+    setReactionError("");
+    try {
+      const response = await fetch(`/api/community/statuses/${encodeURIComponent(slide.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind }),
+      });
+      const data = await readJsonResponse<{
+        error?: string;
+        reactions?: NonNullable<CommunityStatus["reactions"]>;
+        viewerReactions?: CommunityStoryReactionKind[];
+      }>(response);
+      if (!response.ok || !data.reactions) {
+        setReactionError(data.error ?? "Could not react.");
+        return;
+      }
+      onStatusReactionChange?.(slide.id, data.reactions, data.viewerReactions ?? []);
+    } catch (error) {
+      setReactionError(error instanceof Error ? error.message : "Could not react.");
+    } finally {
+      setReactionBusy(false);
     }
   }
 
@@ -514,6 +556,32 @@ export function CommunityStoryViewer({
 
       {slide.caption ? (
         <p className="community-story-viewer-caption">{slide.caption}</p>
+      ) : null}
+
+      {!isOwnStory && slide ? (
+        <div className="community-story-viewer-reactions">
+          {REACTION_BUTTONS.map((button) => {
+            const active = slide.viewerReactions?.includes(button.kind);
+            const count = slide.reactions?.[button.kind] ?? 0;
+            return (
+              <button
+                key={button.kind}
+                type="button"
+                disabled={reactionBusy}
+                onClick={() => void toggleReaction(button.kind)}
+                className={`community-story-reaction-btn ${active ? "community-story-reaction-btn-active" : ""}`}
+              >
+                <span aria-hidden>{button.emoji}</span>
+                <span>{button.label}</span>
+                {count > 0 ? <span className="community-story-reaction-count">{count}</span> : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {reactionError ? (
+        <p className="community-story-viewer-feedback">{reactionError}</p>
       ) : null}
 
       {replyError ? <p className="community-story-viewer-feedback">{replyError}</p> : null}

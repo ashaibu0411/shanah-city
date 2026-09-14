@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { CommunityStoryRing } from "@/components/community/CommunityStoryRing";
@@ -20,10 +21,15 @@ import {
   markStoriesSeen,
 } from "@/lib/community-story-utils";
 
-export function CommunityStatusRow() {
+type CommunityStatusRowProps = {
+  variant?: "feed" | "home";
+};
+
+export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps) {
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [statuses, setStatuses] = useState<CommunityStatus[]>([]);
+  const [priorityAuthorIds, setPriorityAuthorIds] = useState<string[]>([]);
   const [seenIds, setSeenIds] = useState<Set<string>>(() => loadSeenStoryIds());
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerStart, setViewerStart] = useState({ deckIndex: 0, slideIndex: 0 });
@@ -33,6 +39,14 @@ export function CommunityStatusRow() {
   );
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [captionOpen, setCaptionOpen] = useState(false);
+  const [captionDraft, setCaptionDraft] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setSeenIds(loadSeenStoryIds());
@@ -41,15 +55,19 @@ export function CommunityStatusRow() {
   useEffect(() => {
     fetch("/api/community/statuses", { cache: "no-store" })
       .then(async (response) => {
-        const data = await readJsonResponse<{ error?: string; statuses?: CommunityStatus[] }>(
-          response,
-        );
+        const data = await readJsonResponse<{
+          error?: string;
+          statuses?: CommunityStatus[];
+          priorityAuthorIds?: string[];
+        }>(response);
         if (data.error) {
           setError(data.error);
           setStatuses([]);
+          setPriorityAuthorIds([]);
           return;
         }
         setStatuses(data.statuses ?? []);
+        setPriorityAuthorIds(data.priorityAuthorIds ?? []);
       })
       .catch((loadError) => {
         setError(
@@ -60,8 +78,8 @@ export function CommunityStatusRow() {
   }, []);
 
   const decks = useMemo(
-    () => buildStoryDecks(statuses, seenIds, user?.id),
-    [seenIds, statuses, user?.id],
+    () => buildStoryDecks(statuses, seenIds, user?.id, priorityAuthorIds),
+    [seenIds, statuses, user?.id, priorityAuthorIds],
   );
 
   const myDeck = useMemo(
@@ -78,10 +96,26 @@ export function CommunityStatusRow() {
     openCommunityGalleryPicker(
       fileRef.current,
       (files) => {
-        void uploadStatuses(files);
+        if (files.length === 0) return;
+        setPendingFiles(files);
+        setCaptionDraft("");
+        setCaptionOpen(true);
       },
       { preferNativePhotoPicker: true },
     );
+  }
+
+  function closeCaptionDialog() {
+    setCaptionOpen(false);
+    setPendingFiles([]);
+    setCaptionDraft("");
+  }
+
+  function confirmCaptionAndUpload() {
+    const files = pendingFiles;
+    const caption = captionDraft.trim();
+    closeCaptionDialog();
+    void uploadStatuses(files, caption || undefined);
   }
 
   function openViewer(deckIndex: number, slideIndex = 0) {
@@ -89,7 +123,7 @@ export function CommunityStatusRow() {
     setViewerOpen(true);
   }
 
-  async function uploadStatuses(fileList: File[]) {
+  async function uploadStatuses(fileList: File[], caption?: string) {
     if (!user || fileList.length === 0) return;
 
     const files = fileList.slice(0, COMMUNITY_STORY_MAX_MEDIA);
@@ -119,10 +153,11 @@ export function CommunityStatusRow() {
 
       try {
         const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
+        const statusCaption = index === 0 ? caption : undefined;
         const response = await fetch("/api/community/statuses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mediaUrl, mediaType }),
+          body: JSON.stringify({ mediaUrl, mediaType, caption: statusCaption }),
         });
         const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
         if (!response.ok || !data.status) {
@@ -159,7 +194,7 @@ export function CommunityStatusRow() {
     const firstSaved = savedStatuses[0];
     setStatuses((current) => {
       const next = [...savedStatuses.toReversed(), ...current];
-      const nextDecks = buildStoryDecks(next, seenIds, user.id);
+      const nextDecks = buildStoryDecks(next, seenIds, user.id, priorityAuthorIds);
       const myDeckIndex = findDeckIndex(nextDecks, user.id);
       const myDeckItems = nextDecks[myDeckIndex]?.items ?? [];
       const slideIndex = Math.max(
@@ -179,13 +214,96 @@ export function CommunityStatusRow() {
       ? `Uploading ${uploadProgress.current} of ${uploadProgress.total}…`
       : "Uploading…";
 
+  const cardClass =
+    variant === "home"
+      ? "community-stories-card community-stories-card-home border-0 bg-transparent shadow-none"
+      : "community-feed-card community-stories-card";
+
+  const captionDialog =
+    captionOpen && mounted && pendingFiles.length > 0
+      ? createPortal(
+          <div
+            className="community-composer-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add a caption to your moment"
+          >
+            <button
+              type="button"
+              className="community-composer-backdrop"
+              onClick={closeCaptionDialog}
+              aria-label="Close"
+            />
+            <div className="community-composer-dialog community-story-caption-dialog">
+              <div className="flex items-center justify-between border-b border-night-900/10 px-4 py-3 dark:border-white/10">
+                <h2 className="flex-1 text-center font-display text-[17px] font-bold text-night-900 dark:text-sand-100">
+                  Share moment
+                </h2>
+                <button
+                  type="button"
+                  onClick={closeCaptionDialog}
+                  className="rounded-full p-2 text-night-600 hover:bg-sand-100 dark:text-sand-300 dark:hover:bg-white/10"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="px-4 py-3">
+                <p className="text-sm text-night-600 dark:text-sand-300">
+                  {pendingFiles.length === 1
+                    ? "Add an optional caption (shown on your story and in push previews)."
+                    : `Sharing ${Math.min(pendingFiles.length, COMMUNITY_STORY_MAX_MEDIA)} items — caption applies to the first only.`}
+                </p>
+                <textarea
+                  value={captionDraft}
+                  onChange={(event) => setCaptionDraft(event.target.value.slice(0, 200))}
+                  rows={3}
+                  maxLength={200}
+                  placeholder="What's on your heart?"
+                  className="community-story-caption-input mt-3 w-full resize-none rounded-xl border border-night-900/12 bg-white px-3 py-2.5 text-[15px] text-night-900 placeholder:text-night-400 focus:border-clay-500 focus:outline-none focus:ring-2 focus:ring-clay-500/20 dark:border-white/15 dark:bg-night-900 dark:text-sand-100"
+                  autoFocus
+                />
+                <p className="mt-1 text-right text-xs text-night-500 dark:text-sand-400">
+                  {captionDraft.length}/200
+                </p>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={closeCaptionDialog}
+                    className="flex-1 rounded-xl border border-night-900/12 px-4 py-2.5 text-sm font-semibold text-night-700 hover:bg-sand-50 dark:border-white/15 dark:text-sand-200 dark:hover:bg-white/5"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmCaptionAndUpload}
+                    className="flex-1 rounded-xl bg-clay-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-clay-700"
+                  >
+                    Share
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <>
-      <div className="community-feed-card community-stories-card">
-        <div className="flex items-center justify-between gap-2 px-1 pb-1">
-          <p className="text-[15px] font-semibold text-night-900 font-display">Stories</p>
-          {uploading ? <span className="text-xs text-night-600">{uploadLabel}</span> : null}
-        </div>
+      {captionDialog}
+      <div className={cardClass}>
+        {variant === "feed" ? (
+          <div className="flex items-center justify-between gap-2 px-1 pb-1">
+            <p className="text-[15px] font-semibold text-night-900 font-display">Stories</p>
+            {uploading ? <span className="text-xs text-night-600">{uploadLabel}</span> : null}
+          </div>
+        ) : null}
+        {variant === "feed" ? (
+          <p className="px-1 pb-1 text-xs text-night-600">
+            Your groups and message friends appear first · gone in 24h
+          </p>
+        ) : null}
         {error ? <p className="px-1 text-xs text-rose-600">{error}</p> : null}
         {notice ? <p className="px-1 text-xs text-emerald-700">{notice}</p> : null}
         <div className="community-stories-row">
@@ -243,6 +361,15 @@ export function CommunityStatusRow() {
           }}
           onStoryDeleted={(statusId) => {
             setStatuses((current) => current.filter((status) => status.id !== statusId));
+          }}
+          onStatusReactionChange={(statusId, reactions, viewerReactions) => {
+            setStatuses((current) =>
+              current.map((status) =>
+                status.id === statusId
+                  ? { ...status, reactions, viewerReactions }
+                  : status,
+              ),
+            );
           }}
         />
       ) : null}

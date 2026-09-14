@@ -30,6 +30,14 @@ export type CommunityPost = {
   canManage?: boolean;
 };
 
+export type CommunityStatusReactionCounts = {
+  pray: number;
+  coming: number;
+  amen: number;
+};
+
+export type CommunityStoryReactionKind = "pray" | "coming" | "amen";
+
 export type CommunityStatus = {
   id: string;
   authorId: string;
@@ -39,6 +47,8 @@ export type CommunityStatus = {
   caption?: string;
   createdAt: string;
   expiresAt: string;
+  reactions?: CommunityStatusReactionCounts;
+  viewerReactions?: CommunityStoryReactionKind[];
 };
 
 export type AdminPeopleGroupStatus = {

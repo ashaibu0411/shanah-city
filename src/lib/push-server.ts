@@ -425,6 +425,27 @@ export async function notifyCommunityPost(input: {
   return sendPushToAllMembers(payload, "announcements", input.authorId);
 }
 
+export async function notifyCommunityStory(input: {
+  authorId: string;
+  authorName: string;
+  caption?: string;
+  recipientIds: string[];
+}) {
+  const unique = [...new Set(input.recipientIds.filter((id) => id !== input.authorId))];
+  if (unique.length === 0) {
+    return emptyPushDeliveryResult(isPushConfigured());
+  }
+
+  const preview = input.caption?.trim() || "Tap to see their moment.";
+  const payload = {
+    title: `${input.authorName} shared a moment`,
+    body: preview.slice(0, 120),
+    url: "/community",
+  };
+
+  return sendPushToUsers(unique, payload, "announcements");
+}
+
 export async function notifyNewMediaClip(input: {
   authorId?: string;
   title: string;

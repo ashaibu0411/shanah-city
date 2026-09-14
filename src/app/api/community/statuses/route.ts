@@ -4,21 +4,27 @@ import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { isAllowedCommunityMediaUrl } from "@/lib/community-media-shared";
 import { saveCommunityMedia } from "@/lib/community-media-server";
+import { attachReactionsToStatuses } from "@/lib/community-status-reaction-server";
 import {
-  addCommunityStatus,
-  deleteExpiredCommunityStatuses,
-  getActiveCommunityStatuses,
-} from "@/lib/community-status-server";
+  loadCommunityStatusesForViewer,
+  notifyStoryPosted,
+} from "@/lib/community-status-viewer-server";
+import { addCommunityStatus } from "@/lib/community-status-server";
 
 export async function GET() {
   try {
-    await deleteExpiredCommunityStatuses();
-    const statuses = await getActiveCommunityStatuses();
-    return NextResponse.json({ statuses });
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
+    const user = await getUserFromSession(token);
+    const { statuses, priorityAuthorIds } = await loadCommunityStatusesForViewer(user?.id);
+    return NextResponse.json({ statuses, priorityAuthorIds });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Stories are unavailable right now.";
-    return NextResponse.json({ error: message, statuses: [] }, { status: 503 });
+    return NextResponse.json(
+      { error: message, statuses: [], priorityAuthorIds: [] },
+      { status: 503 },
+    );
   }
 }
 
@@ -76,7 +82,16 @@ export async function POST(request: Request) {
       mediaType,
       caption: caption || undefined,
     });
-    return NextResponse.json({ status }, { status: 201 });
+
+    const [withReactions] = await attachReactionsToStatuses([status], user.id);
+
+    void notifyStoryPosted({
+      authorId: user.id,
+      authorName: getPublicDisplayName(user),
+      caption: caption || undefined,
+    });
+
+    return NextResponse.json({ status: withReactions }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not share story.";
     return NextResponse.json({ error: message }, { status: 400 });

@@ -14,6 +14,7 @@ import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { churchSocialImageForAction } from "@/lib/facebook-church-media";
 import { MobilePremiumExploreGrid } from "@/components/app/MobilePremiumTile";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
+import { HomeStoriesSection } from "@/components/home/HomeStoriesSection";
 import { HomeTagline } from "@/components/home/HomeTagline";
 import { HomePastorPortrait } from "@/components/home/HomePastorPortrait";
 import { LiveStreamCountdownInline, useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSchedule";
@@ -116,6 +117,8 @@ export function MobileHome({
       <PendingRsvpHomeBanner />
       <AnniversaryHomeBanner />
       <PrayerHomeBanner variant="mobile" />
+
+      <HomeStoriesSection />
 
       <MobilePremiumFrame
         variant="surface"

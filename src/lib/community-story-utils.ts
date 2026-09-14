@@ -57,7 +57,9 @@ export function buildStoryDecks(
   statuses: CommunityStatus[],
   seenIds: Set<string>,
   currentUserId?: string,
+  priorityAuthorIds: string[] = [],
 ): StoryDeck[] {
+  const priority = new Set(priorityAuthorIds);
   const byAuthor = new Map<string, CommunityStatus[]>();
 
   for (const status of statuses) {
@@ -90,6 +92,15 @@ export function buildStoryDecks(
       if (a.authorId === currentUserId) return -1;
       if (b.authorId === currentUserId) return 1;
     }
+
+    const aPriority = priority.has(a.authorId) ? 1 : 0;
+    const bPriority = priority.has(b.authorId) ? 1 : 0;
+    if (aPriority !== bPriority) return bPriority - aPriority;
+
+    if (a.hasUnseen !== b.hasUnseen) {
+      return a.hasUnseen ? -1 : 1;
+    }
+
     return (
       new Date(b.previewItem.createdAt).getTime() - new Date(a.previewItem.createdAt).getTime()
     );
