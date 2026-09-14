@@ -15,6 +15,8 @@ import {
   uploadCommunityMediaClient,
   validateCommunityStoryFile,
 } from "@/lib/community-media-client";
+import { validateCommunityStoryVideoFile } from "@/lib/community-story-video-client";
+import { isCommunityVideoFile } from "@/lib/community-media-shared";
 import { openCommunityGalleryPicker } from "@/lib/native-media-picker";
 import { readJsonResponse } from "@/lib/read-json-response";
 import {
@@ -308,7 +310,9 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
       const file = files[index];
       setUploadProgress({ current: index + 1, total: files.length });
 
-      const validationError = validateCommunityStoryFile(file);
+      const validationError = isCommunityVideoFile(file)
+        ? await validateCommunityStoryVideoFile(file)
+        : validateCommunityStoryFile(file);
       if (validationError) {
         lastError = validationError;
         continue;

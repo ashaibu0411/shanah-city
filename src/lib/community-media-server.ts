@@ -81,7 +81,7 @@ export async function saveCommunityVideo(file: File) {
     throw new Error("Upload an MP4, MOV, or WEBM video.");
   }
   if (file.size > COMMUNITY_VIDEO_MAX_BYTES) {
-    throw new Error("Video must be under 50 MB.");
+    throw new Error("Video must be under 100 MB.");
   }
   return savePublicFile(file, "videos", "video/mp4");
 }

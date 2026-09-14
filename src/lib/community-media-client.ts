@@ -43,6 +43,9 @@ function uploadFolder(mediaType: "image" | "video" | "audio") {
   return "images";
 }
 
+/** Vercel serverless POST body limit — fallback `/api/community/media` cannot accept larger files. */
+const COMMUNITY_MEDIA_FALLBACK_MAX_BYTES = 4 * 1024 * 1024;
+
 export async function uploadCommunityMediaClient(file: File) {
   const mediaType = inferCommunityMediaType(file);
   if (!mediaType) {
@@ -52,7 +55,7 @@ export async function uploadCommunityMediaClient(file: File) {
     throw new Error("Image must be under 12 MB.");
   }
   if (mediaType === "video" && file.size > COMMUNITY_VIDEO_MAX_BYTES) {
-    throw new Error("Video must be under 50 MB.");
+    throw new Error("Video must be under 100 MB. Try a shorter clip or lower quality.");
   }
   if (mediaType === "audio" && file.size > COMMUNITY_AUDIO_MAX_BYTES) {
     throw new Error("Audio must be under 15 MB.");
@@ -70,6 +73,15 @@ export async function uploadCommunityMediaClient(file: File) {
     });
     return { mediaUrl: blob.url, mediaType };
   } catch (blobError) {
+    if (file.size > COMMUNITY_MEDIA_FALLBACK_MAX_BYTES) {
+      const blobMessage =
+        blobError instanceof Error ? blobError.message : "Direct upload failed.";
+      throw new Error(
+        blobMessage.includes("Sign in")
+          ? blobMessage
+          : `${blobMessage} Large videos must upload directly — check your connection and try again.`,
+      );
+    }
     try {
       return await uploadCommunityMediaFallback(file, mediaType);
     } catch (fallbackError) {
@@ -109,7 +121,7 @@ export function validateCommunityStoryFile(file: File) {
     return "Image must be under 12 MB.";
   }
   if (isCommunityVideoFile(file) && file.size > COMMUNITY_VIDEO_MAX_BYTES) {
-    return "Video must be under 50 MB.";
+    return "Video must be under 100 MB. Try a shorter clip or lower quality.";
   }
   if (isCommunityAudioFile(file) && file.size > COMMUNITY_AUDIO_MAX_BYTES) {
     return "Audio must be under 15 MB.";
@@ -126,7 +138,7 @@ export function validateCommunityPostMediaFile(file: File) {
     return "Image must be under 12 MB.";
   }
   if (isCommunityVideoFile(file) && file.size > COMMUNITY_VIDEO_MAX_BYTES) {
-    return "Video must be under 50 MB.";
+    return "Video must be under 100 MB. Try a shorter clip or lower quality.";
   }
   return null;
 }

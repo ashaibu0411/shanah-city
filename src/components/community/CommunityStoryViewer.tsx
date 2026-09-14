@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { formatCommunityTimeAgo } from "@/lib/community-ui-utils";
-import { inferCommunityVideoContentType, inferCommunityAudioContentType } from "@/lib/community-media-shared";
+import { inferCommunityAudioContentType } from "@/lib/community-media-shared";
 import { readJsonResponse } from "@/lib/read-json-response";
 import type { CommunityStatus, CommunityStoryReactionKind } from "@/lib/member-types";
 import { getNextWorshipService } from "@/lib/community-worship-service";
@@ -47,7 +47,6 @@ type CommunityStoryViewerProps = {
 
 function StorySlideVideo({
   src,
-  fileName,
   paused,
   onProgress,
   onEnded,
@@ -58,18 +57,18 @@ function StorySlideVideo({
   paused: boolean;
   onProgress: (percent: number) => void;
   onEnded: () => void;
-  onError: () => void;
+  onError: (detail?: string) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const mediaUrl = resolveStoryMediaUrl(src);
-  const mimeType = inferCommunityVideoContentType(fileName ?? mediaUrl);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.load();
+    setProgressSafe(video, onProgress);
     void video.play().catch(() => undefined);
-  }, [mediaUrl]);
+  }, [mediaUrl, onProgress, reloadKey]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -81,25 +80,51 @@ function StorySlideVideo({
     }
   }, [paused]);
 
+  function setProgressSafe(video: HTMLVideoElement, progress: (percent: number) => void) {
+    if (!video.duration || !Number.isFinite(video.duration)) return;
+    progress(Math.min(100, (video.currentTime / video.duration) * 100));
+  }
+
   return (
     <video
       ref={videoRef}
-      key={mediaUrl}
+      key={`${mediaUrl}-${reloadKey}`}
+      src={mediaUrl}
       playsInline
       muted
       autoPlay
       preload="auto"
       className="h-full w-full object-contain"
+      onLoadedMetadata={(event) => {
+        setProgressSafe(event.currentTarget, onProgress);
+        void event.currentTarget.play().catch(() => undefined);
+      }}
       onTimeUpdate={(event) => {
-        const video = event.currentTarget;
-        if (!video.duration || !Number.isFinite(video.duration)) return;
-        onProgress(Math.min(100, (video.currentTime / video.duration) * 100));
+        setProgressSafe(event.currentTarget, onProgress);
+      }}
+      onWaiting={() => {
+        const video = videoRef.current;
+        if (video && video.paused && !paused) {
+          void video.play().catch(() => undefined);
+        }
+      }}
+      onStalled={() => {
+        const video = videoRef.current;
+        if (video && !paused) {
+          void video.play().catch(() => undefined);
+        }
       }}
       onEnded={onEnded}
-      onError={onError}
-    >
-      <source src={mediaUrl} type={mimeType} />
-    </video>
+      onError={() => {
+        if (reloadKey === 0) {
+          setReloadKey(1);
+          return;
+        }
+        onError(
+          "This video could not play on this device. Try posting an MP4 (under 100 MB) or a shorter clip.",
+        );
+      }}
+    />
   );
 }
 
@@ -181,6 +206,7 @@ export function CommunityStoryViewer({
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const [mediaFailed, setMediaFailed] = useState(false);
+  const [mediaErrorDetail, setMediaErrorDetail] = useState("");
   const [replyDraft, setReplyDraft] = useState("");
   const [replyBusy, setReplyBusy] = useState(false);
   const [replyNotice, setReplyNotice] = useState("");
@@ -249,6 +275,8 @@ export function CommunityStoryViewer({
     setReplyDraft("");
     setReplyNotice("");
     setReplyError("");
+    setMediaFailed(false);
+    setMediaErrorDetail("");
   }, [slide?.id]);
 
   const markCurrentSeen = useCallback(() => {
@@ -589,7 +617,9 @@ export function CommunityStoryViewer({
       <div className="community-story-viewer-media">
         {mediaFailed ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-white">
-            <p className="text-sm text-white/80">This story could not be loaded.</p>
+            <p className="text-sm text-white/80">
+              {mediaErrorDetail || "This story could not be loaded."}
+            </p>
             {mediaUrl ? (
               <a
                 href={mediaUrl}
@@ -632,7 +662,10 @@ export function CommunityStoryViewer({
             paused={playbackPaused}
             onProgress={setProgress}
             onEnded={goNext}
-            onError={() => setMediaFailed(true)}
+            onError={(detail) => {
+              setMediaErrorDetail(detail ?? "");
+              setMediaFailed(true);
+            }}
           />
         ) : slide.mediaType === "audio" ? (
           <StorySlideAudio
