@@ -48,6 +48,7 @@ type CommunityStoryViewerProps = {
 function StorySlideVideo({
   src,
   paused,
+  muted,
   onProgress,
   onEnded,
   onError,
@@ -55,6 +56,7 @@ function StorySlideVideo({
   src: string;
   fileName?: string;
   paused: boolean;
+  muted: boolean;
   onProgress: (percent: number) => void;
   onEnded: () => void;
   onError: (detail?: string) => void;
@@ -80,6 +82,15 @@ function StorySlideVideo({
     }
   }, [paused]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = muted;
+    if (!paused) {
+      void video.play().catch(() => undefined);
+    }
+  }, [muted, paused]);
+
   function setProgressSafe(video: HTMLVideoElement, progress: (percent: number) => void) {
     if (!video.duration || !Number.isFinite(video.duration)) return;
     progress(Math.min(100, (video.currentTime / video.duration) * 100));
@@ -91,7 +102,7 @@ function StorySlideVideo({
       key={`${mediaUrl}-${reloadKey}`}
       src={mediaUrl}
       playsInline
-      muted
+      muted={muted}
       autoPlay
       preload="auto"
       className="h-full w-full object-contain"
@@ -215,6 +226,7 @@ export function CommunityStoryViewer({
   const [reactionBusy, setReactionBusy] = useState(false);
   const [reactionError, setReactionError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [soundOn, setSoundOn] = useState(false);
   const pausedRef = useRef(false);
   const elapsedRef = useRef(0);
   const startRef = useRef(Date.now());
@@ -277,6 +289,7 @@ export function CommunityStoryViewer({
     setReplyError("");
     setMediaFailed(false);
     setMediaErrorDetail("");
+    setSoundOn(false);
   }, [slide?.id]);
 
   const markCurrentSeen = useCallback(() => {
@@ -599,6 +612,31 @@ export function CommunityStoryViewer({
             </svg>
           </button>
         ) : null}
+        {slide.mediaType === "video" ? (
+          <button
+            type="button"
+            onClick={() => setSoundOn((current) => !current)}
+            className="rounded-full p-2 text-white/90 hover:bg-white/10"
+            aria-label={soundOn ? "Mute video" : "Turn on sound"}
+            aria-pressed={soundOn}
+          >
+            {soundOn ? (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.06c1.48-.74 2.5-2.26 2.5-4.03zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+                />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z"
+                />
+              </svg>
+            )}
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={onClose}
@@ -660,6 +698,7 @@ export function CommunityStoryViewer({
             src={slide.mediaUrl}
             fileName={slide.mediaUrl}
             paused={playbackPaused}
+            muted={!soundOn}
             onProgress={setProgress}
             onEnded={goNext}
             onError={(detail) => {
