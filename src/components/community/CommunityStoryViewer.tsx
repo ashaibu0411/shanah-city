@@ -1,23 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { formatCommunityTimeAgo } from "@/lib/community-ui-utils";
 import { inferCommunityVideoContentType } from "@/lib/community-media-shared";
 import { readJsonResponse } from "@/lib/read-json-response";
 import type { CommunityStatus, CommunityStoryReactionKind } from "@/lib/member-types";
+import { getNextWorshipService } from "@/lib/community-worship-service";
 import {
   resolveStoryMediaUrl,
   STORY_IMAGE_MS,
   type StoryDeck,
 } from "@/lib/community-story-utils";
 
-const REACTION_BUTTONS: { kind: CommunityStoryReactionKind; label: string; emoji: string }[] = [
-  { kind: "pray", label: "Pray", emoji: "🙏" },
-  { kind: "coming", label: "I'm in", emoji: "✓" },
-  { kind: "amen", label: "Amen", emoji: "🙌" },
-];
+function reactionButtonsForSlide(slide: CommunityStatus) {
+  if (slide.storyKind === "service_invite") {
+    return [
+      { kind: "coming" as const, label: "I'm going", emoji: "🙋" },
+      { kind: "pray" as const, label: "Pray", emoji: "🙏" },
+      { kind: "amen" as const, label: "Amen", emoji: "🙌" },
+    ];
+  }
+  return [
+    { kind: "pray" as const, label: "Pray", emoji: "🙏" },
+    { kind: "coming" as const, label: "I'm in", emoji: "✓" },
+    { kind: "amen" as const, label: "Amen", emoji: "🙌" },
+  ];
+}
 
 type CommunityStoryViewerProps = {
   decks: StoryDeck[];
@@ -129,6 +139,10 @@ export function CommunityStoryViewer({
   const mediaUrl = slide ? resolveStoryMediaUrl(slide.mediaUrl) : "";
   const isOwnStory = deck?.authorId === currentUserId;
   const playbackPaused = paused || replyFocused;
+  const nextService = useMemo(() => getNextWorshipService(), []);
+  const reactionButtons = slide ? reactionButtonsForSlide(slide) : [];
+  const goingCount = slide?.reactions?.coming ?? 0;
+  const isServiceInvite = slide?.storyKind === "service_invite";
 
   useEffect(() => {
     setMounted(true);
@@ -226,7 +240,8 @@ export function CommunityStoryViewer({
   }, [deckIndex, decks, markCurrentSeen, slideIndex]);
 
   useEffect(() => {
-    if (!slide || slide.mediaType !== "image" || playbackPaused) return;
+    if (!slide || playbackPaused) return;
+    if (slide.mediaType !== "image" && slide.mediaType !== "text") return;
 
     elapsedRef.current = 0;
     startRef.current = Date.now();
@@ -514,6 +529,23 @@ export function CommunityStoryViewer({
               </a>
             ) : null}
           </div>
+        ) : slide.mediaType === "text" ? (
+          <div
+            className={`community-story-text-slide ${isServiceInvite ? "community-story-text-slide-service" : ""}`}
+          >
+            {isServiceInvite ? (
+              <>
+                <p className="community-story-text-slide-kicker">Worship together</p>
+                <p className="community-story-text-slide-service-time">{nextService.scheduleLabel}</p>
+                {goingCount > 0 ? (
+                  <p className="community-story-text-slide-going">
+                    {goingCount} {goingCount === 1 ? "person is" : "people are"} going
+                  </p>
+                ) : null}
+              </>
+            ) : null}
+            <p className="community-story-text-slide-body">{slide.caption ?? ""}</p>
+          </div>
         ) : slide.mediaType === "video" ? (
           <StorySlideVideo
             src={slide.mediaUrl}
@@ -554,13 +586,13 @@ export function CommunityStoryViewer({
         />
       </div>
 
-      {slide.caption ? (
+      {slide.caption && slide.mediaType !== "text" ? (
         <p className="community-story-viewer-caption">{slide.caption}</p>
       ) : null}
 
       {!isOwnStory && slide ? (
         <div className="community-story-viewer-reactions">
-          {REACTION_BUTTONS.map((button) => {
+          {reactionButtons.map((button) => {
             const active = slide.viewerReactions?.includes(button.kind);
             const count = slide.reactions?.[button.kind] ?? 0;
             return (

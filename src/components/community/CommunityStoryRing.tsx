@@ -35,8 +35,11 @@ export function CommunityStoryRing({
       ? `/api/profile/avatar?userId=${encodeURIComponent(authorId)}`
       : null;
   const previewUrl = preview ? resolveStoryMediaUrl(preview.mediaUrl) : null;
+  const isTextPreview = preview?.mediaType === "text";
+  const textPreview = isTextPreview ? preview.caption?.trim() : "";
   const showPreview =
     preview &&
+    !isTextPreview &&
     previewUrl &&
     !previewFailed &&
     (preview.mediaType === "image" || preview.mediaType === "video");
@@ -74,6 +77,10 @@ export function CommunityStoryRing({
                 className="h-full w-full object-cover"
                 onError={() => setPreviewFailed(true)}
               />
+            ) : isTextPreview && textPreview ? (
+              <div className="community-story-ring-text-preview">
+                <span>{textPreview.slice(0, 48)}{textPreview.length > 48 ? "…" : ""}</span>
+              </div>
             ) : avatarSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img

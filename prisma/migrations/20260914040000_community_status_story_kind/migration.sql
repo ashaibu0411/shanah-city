@@ -1,0 +1,1 @@
+ALTER TABLE "CommunityStatus" ADD COLUMN IF NOT EXISTS "storyKind" TEXT NOT NULL DEFAULT 'default';

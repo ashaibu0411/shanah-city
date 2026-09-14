@@ -25,7 +25,7 @@ export function HomeStoriesSection() {
           </Link>
         </div>
         <p className="mt-1 text-xs text-night-600 dark:text-sand-300/90">
-          Friends and small groups first · vanishes in 24 hours
+          Whole church family · your groups show first · vanishes in 24 hours
         </p>
       </div>
       <div className="px-1 pb-2 pt-1">

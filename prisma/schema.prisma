@@ -169,6 +169,7 @@ model CommunityStatus {
   mediaUrl   String
   mediaType  String
   caption    String?
+  storyKind  String   @default("default")
   createdAt  DateTime @default(now())
   expiresAt  DateTime
 

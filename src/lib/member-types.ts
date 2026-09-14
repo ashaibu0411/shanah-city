@@ -38,13 +38,18 @@ export type CommunityStatusReactionCounts = {
 
 export type CommunityStoryReactionKind = "pray" | "coming" | "amen";
 
+export type CommunityStatusMediaType = "image" | "video" | "text";
+
+export type CommunityStatusStoryKind = "default" | "service_invite";
+
 export type CommunityStatus = {
   id: string;
   authorId: string;
   authorName: string;
   mediaUrl: string;
-  mediaType: "image" | "video";
+  mediaType: CommunityStatusMediaType;
   caption?: string;
+  storyKind?: CommunityStatusStoryKind;
   createdAt: string;
   expiresAt: string;
   reactions?: CommunityStatusReactionCounts;

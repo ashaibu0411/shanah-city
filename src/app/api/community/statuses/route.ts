@@ -10,6 +10,12 @@ import {
   notifyStoryPosted,
 } from "@/lib/community-status-viewer-server";
 import { addCommunityStatus } from "@/lib/community-status-server";
+import { defaultServiceInviteCaption } from "@/lib/community-worship-service";
+import type { CommunityStatusStoryKind } from "@/lib/member-types";
+
+function parseStoryKind(value: unknown): CommunityStatusStoryKind {
+  return value === "service_invite" ? "service_invite" : "default";
+}
 
 export async function GET() {
   try {
@@ -39,25 +45,43 @@ export async function POST(request: Request) {
 
   const contentType = request.headers.get("content-type") ?? "";
   let mediaUrl = "";
-  let mediaType: "image" | "video" | null = null;
+  let mediaType: "image" | "video" | "text" | null = null;
   let caption = "";
+  let storyKind: CommunityStatusStoryKind = "default";
 
   if (contentType.includes("application/json")) {
     const body = (await request.json()) as {
       mediaUrl?: string;
-      mediaType?: "image" | "video";
+      mediaType?: "image" | "video" | "text";
       caption?: string;
+      storyKind?: CommunityStatusStoryKind;
     };
     mediaUrl = String(body.mediaUrl ?? "").trim();
-    mediaType = body.mediaType === "video" ? "video" : body.mediaType === "image" ? "image" : null;
+    storyKind = parseStoryKind(body.storyKind);
     caption = String(body.caption ?? "").trim();
-    if (!mediaUrl || !mediaType || !isAllowedCommunityMediaUrl(mediaUrl)) {
-      return NextResponse.json({ error: "Photo or video is required." }, { status: 400 });
+
+    if (body.mediaType === "text") {
+      mediaType = "text";
+      mediaUrl = "";
+      if (!caption) {
+        return NextResponse.json({ error: "Write something for your moment." }, { status: 400 });
+      }
+    } else {
+      mediaType =
+        body.mediaType === "video" ? "video" : body.mediaType === "image" ? "image" : null;
+      if (!mediaUrl || !mediaType || !isAllowedCommunityMediaUrl(mediaUrl)) {
+        return NextResponse.json({ error: "Photo or video is required." }, { status: 400 });
+      }
+    }
+
+    if (storyKind === "service_invite" && !caption) {
+      caption = defaultServiceInviteCaption();
     }
   } else {
     const formData = await request.formData();
     const file = formData.get("file");
     caption = String(formData.get("caption") ?? "").trim();
+    storyKind = parseStoryKind(formData.get("storyKind"));
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "Photo or video is required." }, { status: 400 });
@@ -79,8 +103,9 @@ export async function POST(request: Request) {
       authorId: user.id,
       authorName: getPublicDisplayName(user),
       mediaUrl,
-      mediaType,
+      mediaType: mediaType ?? "text",
       caption: caption || undefined,
+      storyKind,
     });
 
     const [withReactions] = await attachReactionsToStatuses([status], user.id);
