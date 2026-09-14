@@ -290,40 +290,37 @@ export function CommunityPostCard({
 
   return (
     <article id={`post-${post.id}`} className="community-post-card">
-      <header className="flex items-start gap-2.5 px-3 pt-3">
+      <header className="community-post-header">
         <CommunityAvatar name={post.author} authorId={post.authorId} size="md" />
-        <div className="min-w-0 flex-1 pt-0.5">
+        <div className="community-post-header-main min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h3 className="truncate text-[15px] font-semibold leading-tight text-night-900">
-                {post.author}
-              </h3>
-              <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-night-600">
-                <span>{timeLabel}</span>
-                <span aria-hidden>·</span>
-                <span className="inline-flex items-center gap-1">
-                  {audienceLabel}
-                  <GlobeIcon />
-                </span>
-              </div>
-            </div>
-            <div className="flex shrink-0 items-start gap-1">
-              <span className="community-post-badge">{postTypeLabel(post.type)}</span>
-              {canManage && !compact && !editing ? (
-                <button
-                  ref={menuButtonRef}
-                  type="button"
-                  aria-label="Post options"
-                  aria-haspopup="menu"
-                  aria-expanded={menuOpen}
-                  onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}
-                  className="community-post-menu-btn rounded-full px-2.5 py-1.5 text-base font-bold leading-none text-night-900 hover:bg-sand-100"
-                >
-                  •••
-                </button>
-              ) : null}
-            </div>
+            <p className="community-post-author min-w-0 flex-1 truncate">{post.author}</p>
+            {canManage && !compact && !editing ? (
+              <button
+                ref={menuButtonRef}
+                type="button"
+                aria-label="Post options"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}
+                className="community-post-menu-btn -mr-1 shrink-0 rounded-full px-2 py-1 text-lg font-bold leading-none text-night-600 hover:bg-sand-100 dark:text-sand-300 dark:hover:bg-[var(--color-bg-soft)]"
+              >
+                •••
+              </button>
+            ) : null}
           </div>
+          <p className="community-post-meta" title={`${timeLabel} · ${audienceLabel}`}>
+            <span className="community-post-meta-type">{postTypeLabel(post.type)}</span>
+            <span className="community-post-meta-dot" aria-hidden>
+              ·
+            </span>
+            <span>{timeLabel}</span>
+            <span className="community-post-meta-dot" aria-hidden>
+              ·
+            </span>
+            <span className="min-w-0 truncate">{audienceLabel}</span>
+            <GlobeIcon />
+          </p>
         </div>
       </header>
 
@@ -383,8 +380,8 @@ export function CommunityPostCard({
           </div>
         </div>
       ) : (
-        <div className={`px-3 ${compact ? "pb-2 pt-2" : "pb-3 pt-2.5"}`}>
-          <p className="community-post-content whitespace-pre-wrap text-[15px] leading-[1.3333] text-night-900">
+        <div className={`community-post-body px-3 ${compact ? "pb-2 pt-1" : "pb-3 pt-1"}`}>
+          <p className="community-post-content whitespace-pre-wrap text-night-900 dark:text-sand-100">
             {post.content}
           </p>
         </div>
