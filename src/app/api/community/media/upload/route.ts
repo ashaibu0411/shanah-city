@@ -10,8 +10,29 @@ import {
   COMMUNITY_VIDEO_CONTENT_TYPES,
   COMMUNITY_VIDEO_MAX_BYTES,
 } from "@/lib/community-media-shared";
+import { isBlobConfigured } from "@/lib/use-blob";
+
+const COMMUNITY_MEDIA_FALLBACK_MAX_BYTES = 4 * 1024 * 1024;
+
+export async function GET() {
+  return NextResponse.json({
+    directUpload: isBlobConfigured(),
+    maxVideoBytes: COMMUNITY_VIDEO_MAX_BYTES,
+    maxFallbackBytes: COMMUNITY_MEDIA_FALLBACK_MAX_BYTES,
+  });
+}
 
 export async function POST(request: Request) {
+  if (!isBlobConfigured()) {
+    return NextResponse.json(
+      {
+        error:
+          "Video storage is not configured on the server. The church team needs to add BLOB_READ_WRITE_TOKEN in Vercel.",
+      },
+      { status: 503 },
+    );
+  }
+
   const body = (await request.json()) as HandleUploadBody;
 
   try {

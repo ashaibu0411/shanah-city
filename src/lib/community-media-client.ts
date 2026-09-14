@@ -14,8 +14,26 @@ import {
 import { readJsonResponse } from "@/lib/read-json-response";
 
 function uploadHandleUrl() {
-  if (typeof window === "undefined") return "/api/community/media/upload";
-  return `${window.location.origin}/api/community/media/upload`;
+  return "/api/community/media/upload";
+}
+
+function friendlyCommunityUploadError(message: string, fileSize: number) {
+  const lower = message.toLowerCase();
+  if (
+    lower.includes("access denied") ||
+    lower.includes("valid token") ||
+    lower.includes("blob_read_write_token") ||
+    lower.includes("storage is not configured")
+  ) {
+    return "Moments video upload isn't set up on the server yet. Please tell the church team to connect Vercel Blob (BLOB_READ_WRITE_TOKEN), or try again later.";
+  }
+  if (lower.includes("sign in")) {
+    return message;
+  }
+  if (fileSize > COMMUNITY_MEDIA_FALLBACK_MAX_BYTES) {
+    return "Couldn't upload this video. Check your connection and try a shorter clip or lower quality.";
+  }
+  return message;
 }
 
 function safeFileName(name: string) {
@@ -73,23 +91,19 @@ export async function uploadCommunityMediaClient(file: File) {
     });
     return { mediaUrl: blob.url, mediaType };
   } catch (blobError) {
+    const blobMessage =
+      blobError instanceof Error ? blobError.message : "Direct upload failed.";
     if (file.size > COMMUNITY_MEDIA_FALLBACK_MAX_BYTES) {
-      const blobMessage =
-        blobError instanceof Error ? blobError.message : "Direct upload failed.";
-      throw new Error(
-        blobMessage.includes("Sign in")
-          ? blobMessage
-          : `${blobMessage} Large videos must upload directly — check your connection and try again.`,
-      );
+      throw new Error(friendlyCommunityUploadError(blobMessage, file.size));
     }
     try {
       return await uploadCommunityMediaFallback(file, mediaType);
     } catch (fallbackError) {
-      const blobMessage =
-        blobError instanceof Error ? blobError.message : "Direct upload failed.";
       const fallbackMessage =
         fallbackError instanceof Error ? fallbackError.message : "Upload failed.";
-      throw new Error(fallbackMessage || blobMessage);
+      throw new Error(
+        friendlyCommunityUploadError(fallbackMessage || blobMessage, file.size),
+      );
     }
   }
 }

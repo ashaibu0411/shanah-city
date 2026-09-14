@@ -7,7 +7,11 @@ const PRODUCTION_REQUIRED = [
   "CRON_SECRET",
 ] as const;
 
-const PRODUCTION_RECOMMENDED = ["ADMIN_BOOTSTRAP_EMAIL", "VAPID_SUBJECT"] as const;
+const PRODUCTION_RECOMMENDED = [
+  "ADMIN_BOOTSTRAP_EMAIL",
+  "VAPID_SUBJECT",
+  "BLOB_READ_WRITE_TOKEN",
+] as const;
 
 function missingVars(keys: readonly string[]) {
   return keys.filter((key) => !process.env[key]?.trim());
