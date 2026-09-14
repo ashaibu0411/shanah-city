@@ -5,21 +5,15 @@ import { usePathname } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MobileTabIcon, navHrefToTabIcon } from "@/components/app/MobileTabIcon";
 import { premiumTeal } from "@/components/app/mobile-premium";
-import { site } from "@/lib/site";
+import { mobilePrimaryNavTabs } from "@/lib/mobile-primary-nav-tabs";
 import { useAppNavItems } from "@/lib/use-app-nav-items";
-
-const tabs = [
-  site.nav[0],
-  site.nav[4],
-  site.nav[2],
-  site.nav[6],
-];
 
 export function MobileNav() {
   const pathname = usePathname();
   const { setMoreMenuOpen, messagesImmersive } = useAppShell();
   const navItems = useAppNavItems();
   if (messagesImmersive) return null;
+  const tabs = mobilePrimaryNavTabs;
   const moreActive = navItems
     .filter((item) => !tabs.some((tab) => tab.href === item.href))
     .some((item) => item.href === pathname);

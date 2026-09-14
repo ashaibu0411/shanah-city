@@ -8,6 +8,7 @@ import { ThemeControl } from "@/components/app/ThemeControl";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { site } from "@/lib/site";
+import { mobilePrimaryNavTabs } from "@/lib/mobile-primary-nav-tabs";
 import { useAppNavItems } from "@/lib/use-app-nav-items";
 import { useNotifications } from "@/lib/use-notifications";
 
@@ -18,7 +19,7 @@ export function MobileMoreSheet() {
   const navItems = useAppNavItems();
   const { total: unreadTotal } = useNotifications();
 
-  const primaryTabs = [site.nav[0], site.nav[1], site.nav[2], site.nav[5]];
+  const primaryTabs = mobilePrimaryNavTabs;
 
   const moreLinks = navItems.filter(
     (item) => !primaryTabs.some((tab) => tab.href === item.href),
