@@ -4,10 +4,10 @@
 
 @layer base {
   :root {
-    --color-bg: #faf7f2;
-    --color-bg-soft: #f5f1ea;
-    --color-bg-muted: #ece1cc;
-    --color-surface: #fffdfb;
+    --color-bg: #f7f3eb;
+    --color-bg-soft: #f5efe6;
+    --color-bg-muted: #e8ddd0;
+    --color-surface: #fffcf7;
     --color-ink: #2d2418;
     --color-ink-muted: #4a3d2e;
     --color-ink-soft: #6b5a45;
@@ -67,7 +67,8 @@
     @apply text-[0.9375rem] leading-snug;
     color: var(--color-ink);
     background:
-      radial-gradient(circle at 100% 0%, rgba(196, 93, 62, 0.06), transparent 42%),
+      radial-gradient(circle at 100% 0%, rgba(212, 168, 83, 0.12), transparent 44%),
+      radial-gradient(circle at 0% 88%, rgba(196, 93, 62, 0.06), transparent 40%),
       linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 48%, var(--color-surface) 100%);
   }
 
@@ -645,7 +646,7 @@
   }
 
   body[data-shell="mobile"] .mobile-field {
-    background-color: #ece1cc;
+    background-color: var(--color-bg-muted);
     color: #2d2418;
     -webkit-text-fill-color: #2d2418;
     border: 1px solid rgba(45, 36, 24, 0.08);
@@ -860,8 +861,8 @@
 
   body[data-shell="mobile"] .mobile-warm-page-header {
     background:
-      radial-gradient(circle at 100% 0%, rgba(196, 93, 62, 0.06), transparent 40%),
-      linear-gradient(180deg, #faf7f2 0%, #fffdfb 100%);
+      radial-gradient(circle at 100% 0%, rgba(212, 168, 83, 0.14), transparent 40%),
+      linear-gradient(180deg, var(--color-bg) 0%, var(--color-surface) 100%);
     box-shadow:
       0 1px 2px rgba(45, 36, 24, 0.04),
       0 10px 28px rgba(45, 36, 24, 0.06);
@@ -871,7 +872,7 @@
   body[data-shell="mobile"] .editorial-quote {
     border-radius: 1.35rem;
     border: 1px solid rgba(45, 36, 24, 0.08);
-    background: linear-gradient(135deg, #ffffff 0%, #faf7f2 58%, #fffdfb 100%);
+    background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-bg) 58%, var(--color-bg-soft) 100%);
     box-shadow:
       0 1px 2px rgba(45, 36, 24, 0.04),
       0 8px 24px rgba(45, 36, 24, 0.06);
@@ -1099,7 +1100,7 @@
   }
 
   body[data-shell="mobile"] .mobile-devotion-archive-footer {
-    background: linear-gradient(135deg, #fffaf5 0%, #faf7f2 55%, #f5f1ea 100%);
+    background: linear-gradient(135deg, #fffaf5 0%, var(--color-bg) 55%, var(--color-bg-soft) 100%);
     border-top: 1px solid rgba(45, 36, 24, 0.06);
   }
 
@@ -1334,7 +1335,7 @@
   }
 
   .group-chat-wallpaper {
-    background-color: #faf7f2;
+    background-color: var(--color-bg);
     background-image:
       radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.55), transparent 32%),
       radial-gradient(circle at 88% 4%, rgba(255, 255, 255, 0.35), transparent 28%);
@@ -1992,7 +1993,7 @@
   padding: 0.55rem 0.95rem;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #faf7f2;
+  color: #fffcf7;
 }
 
 .community-story-viewer-reply-send:disabled {
@@ -2450,7 +2451,7 @@ html.native-app-boot .native-boot-splash {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #faf7f2;
+  background: var(--color-bg);
   pointer-events: none;
 }
 

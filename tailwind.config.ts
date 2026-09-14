@@ -12,9 +12,9 @@ const config: Config = {
     extend: {
       colors: {
         sand: {
-          50: "#faf7f2",
-          100: "#f5f1ea",
-          200: "#ece1cc",
+          50: "#f7f3eb",
+          100: "#f5efe6",
+          200: "#e8ddd0",
           300: "#e8e2d9",
           400: "#d4c4ad",
           500: "#b8a48a",
@@ -24,9 +24,9 @@ const config: Config = {
           900: "#4a3d2e",
         },
         night: {
-          50: "#fffdfb",
-          100: "#f5f1ea",
-          200: "#ece1cc",
+          50: "#fffcf7",
+          100: "#f5efe6",
+          200: "#e8ddd0",
           300: "#e8e2d9",
           400: "#a89882",
           500: "#8b7355",

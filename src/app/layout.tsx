@@ -42,7 +42,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   viewportFit: "cover",
-  themeColor: "#faf7f2",
+  themeColor: "#f7f3eb",
   colorScheme: "light",
 };
 
@@ -54,7 +54,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#faf7f2" />
+        <meta name="theme-color" content="#f7f3eb" />
         <link rel="preload" as="image" href={bootLogoSrc} />
         <script
           dangerouslySetInnerHTML={{
@@ -63,7 +63,7 @@ export default function RootLayout({
         />
         <style
           dangerouslySetInnerHTML={{
-            __html: `#native-boot-splash{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:#faf7f2;pointer-events:none}html.native-app-boot #native-boot-splash{display:flex}html.native-app-boot #native-boot-splash img{display:block;width:min(58vw,280px);height:auto}`,
+            __html: `#native-boot-splash{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:#f7f3eb;pointer-events:none}html.native-app-boot #native-boot-splash{display:flex}html.native-app-boot #native-boot-splash img{display:block;width:min(58vw,280px);height:auto}`,
           }}
         />
       </head>
