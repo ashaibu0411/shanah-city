@@ -13,6 +13,7 @@ import {
   STORY_IMAGE_MS,
   type StoryDeck,
 } from "@/lib/community-story-utils";
+import { StorySlideLink } from "@/components/community/StorySlideLink";
 
 function reactionButtonsForSlide(slide: CommunityStatus) {
   if (slide.storyKind === "service_invite") {
@@ -303,7 +304,16 @@ export function CommunityStoryViewer({
 
   useEffect(() => {
     if (!slide || playbackPaused) return;
-    if (slide.mediaType !== "image" && slide.mediaType !== "text") return;
+    if (
+      slide.mediaType !== "image" &&
+      slide.mediaType !== "text" &&
+      slide.mediaType !== "link"
+    ) {
+      return;
+    }
+    if (slide.mediaType === "link") {
+      return;
+    }
 
     elapsedRef.current = 0;
     startRef.current = Date.now();
@@ -608,6 +618,13 @@ export function CommunityStoryViewer({
             ) : null}
             <p className="community-story-text-slide-body">{slide.caption ?? ""}</p>
           </div>
+        ) : slide.mediaType === "link" ? (
+          <StorySlideLink
+            slide={slide}
+            paused={playbackPaused}
+            onProgress={setProgress}
+            onAdvance={goNext}
+          />
         ) : slide.mediaType === "video" ? (
           <StorySlideVideo
             src={slide.mediaUrl}
@@ -636,6 +653,7 @@ export function CommunityStoryViewer({
           />
         )}
 
+        {slide.mediaType !== "link" ? (
         <div
           className="community-story-viewer-tap-layer"
           onPointerDown={handleMediaPointerDown}
@@ -655,6 +673,22 @@ export function CommunityStoryViewer({
             }
           }}
         />
+        ) : (
+          <>
+            <button
+              type="button"
+              className="community-story-link-nav community-story-link-nav-prev"
+              aria-label="Previous story"
+              onClick={goPrev}
+            />
+            <button
+              type="button"
+              className="community-story-link-nav community-story-link-nav-next"
+              aria-label="Next story"
+              onClick={goNext}
+            />
+          </>
+        )}
       </div>
 
       {slide.caption && slide.mediaType !== "text" ? (

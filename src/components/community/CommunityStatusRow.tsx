@@ -427,7 +427,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                 >
                   <p className="font-semibold text-night-900 dark:text-sand-100">Instagram or social link</p>
                   <p className="text-xs text-night-600 dark:text-sand-400">
-                    Copy link from Instagram, Facebook, YouTube… paste here
+                    YouTube &amp; IG posts play in-app. IG <strong>stories</strong>: save video → Photo/video moment
                   </p>
                 </button>
                 <button
@@ -497,9 +497,9 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                   </p>
                 ) : composeMode === "link" ? (
                   <p className="text-sm text-night-600 dark:text-sand-300">
-                    In Instagram: tap your story → ⋯ → <strong>Link</strong> or{" "}
-                    <strong>Copy link</strong>, then paste below. Same idea for Facebook, YouTube,
-                    TikTok, and X.
+                    <strong>YouTube</strong> and <strong>Instagram posts/reels</strong> play inside the app.
+                    Instagram <strong>story</strong> links usually cannot — save the clip and use{" "}
+                    <strong>Photo, video, or audio</strong> instead.
                   </p>
                 ) : (
                   <p className="text-sm text-night-600 dark:text-sand-300">

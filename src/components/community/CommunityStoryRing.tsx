@@ -37,11 +37,13 @@ export function CommunityStoryRing({
   const previewUrl = preview ? resolveStoryMediaUrl(preview.mediaUrl) : null;
   const isTextPreview = preview?.mediaType === "text";
   const isAudioPreview = preview?.mediaType === "audio";
+  const isLinkPreview = preview?.mediaType === "link";
   const textPreview = isTextPreview ? preview.caption?.trim() : "";
   const showPreview =
     preview &&
     !isTextPreview &&
     !isAudioPreview &&
+    !isLinkPreview &&
     previewUrl &&
     !previewFailed &&
     (preview.mediaType === "image" || preview.mediaType === "video");
@@ -86,6 +88,10 @@ export function CommunityStoryRing({
             ) : isAudioPreview ? (
               <div className="community-story-ring-audio-preview" aria-hidden>
                 ♪
+              </div>
+            ) : isLinkPreview ? (
+              <div className="community-story-ring-link-preview" aria-hidden>
+                ↗
               </div>
             ) : avatarSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
