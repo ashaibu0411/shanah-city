@@ -1640,7 +1640,7 @@
 .community-feed-card {
   border-radius: 1.15rem;
   border: 1px solid var(--color-border);
-  background: #ffffff;
+  background: var(--color-surface);
   box-shadow:
     0 1px 2px rgba(45, 36, 24, 0.04),
     0 8px 24px rgba(45, 36, 24, 0.05);
@@ -1656,7 +1656,7 @@
   overflow: visible;
   border-radius: 1.15rem;
   border: 1px solid var(--color-border);
-  background: #ffffff;
+  background: var(--color-surface);
   box-shadow:
     0 1px 2px rgba(45, 36, 24, 0.04),
     0 8px 24px rgba(45, 36, 24, 0.05);
@@ -1665,13 +1665,13 @@
 .community-post-badge {
   flex-shrink: 0;
   border-radius: 9999px;
-  background: #f5f1ea;
+  background: var(--color-bg-soft);
   padding: 0.2rem 0.55rem;
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #6b5a45;
+  color: var(--color-ink-soft);
 }
 
 .community-post-menu-btn {
@@ -1689,40 +1689,40 @@
   border-radius: 0.75rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #6b5a45;
+  color: var(--color-ink-soft);
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .community-action-btn:hover {
-  background: #f5f1ea;
+  background: var(--color-bg-soft);
 }
 
 .community-action-btn-active {
-  color: #a84d32;
+  color: var(--color-accent-strong);
 }
 
 .community-comment-bubble {
   display: inline-block;
   max-width: 100%;
   border-radius: 1.125rem;
-  background: #f5f1ea;
+  background: var(--color-bg-soft);
   padding: 0.45rem 0.75rem;
 }
 
 .community-comment-input {
   width: 100%;
   border-radius: 9999px;
-  border: 1px solid rgba(45, 36, 24, 0.08);
-  background: #f5f1ea;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
   padding: 0.55rem 3.25rem 0.55rem 0.85rem;
   font-size: 0.9375rem;
-  color: #2d2418;
+  color: var(--color-ink);
   outline: none;
 }
 
 .community-comment-input:focus {
-  background: #fffdfb;
-  border-color: rgba(196, 93, 62, 0.28);
+  background: var(--color-surface);
+  border-color: color-mix(in srgb, var(--color-accent) 28%, transparent);
 }
 
 .community-composer-bar {
@@ -1735,20 +1735,20 @@
   align-items: center;
   gap: 0.625rem;
   border-radius: 9999px;
-  background: #f5f1ea;
+  background: var(--color-bg-soft);
   padding: 0.5rem 0.75rem;
   text-align: left;
   transition: background-color 0.15s ease;
 }
 
 .community-composer-trigger:hover {
-  background: #ece1cc;
+  background: var(--color-bg-muted);
 }
 
 .community-composer-placeholder {
   flex: 1;
   font-size: 1.0625rem;
-  color: #6b5a45;
+  color: var(--color-ink-soft);
 }
 
 .community-composer-actions {
@@ -1757,7 +1757,7 @@
   gap: 0.25rem;
   margin-top: 0.625rem;
   padding-top: 0.625rem;
-  border-top: 1px solid rgba(45, 36, 24, 0.08);
+  border-top: 1px solid var(--color-border);
 }
 
 .community-composer-action {
@@ -1769,13 +1769,13 @@
   border-radius: 0.75rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #6b5a45;
+  color: var(--color-ink-soft);
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .community-composer-action:hover {
-  background: #f5f1ea;
-  color: #2d2418;
+  background: var(--color-bg-soft);
+  color: var(--color-ink);
 }
 
 .community-feed-tabs {
@@ -1796,17 +1796,17 @@
   padding: 0.45rem 0.85rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #6b5a45;
+  color: var(--color-ink-soft);
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .community-feed-tab:hover {
-  background: #f5f1ea;
+  background: var(--color-bg-soft);
 }
 
 .community-feed-tab-active {
-  background: #c45d3e;
-  color: #faf7f2;
+  background: var(--color-accent);
+  color: var(--color-bg);
 }
 
 .community-feed-empty {
@@ -1846,7 +1846,7 @@
   white-space: nowrap;
   font-size: 0.6875rem;
   font-weight: 600;
-  color: #2d2418;
+  color: var(--color-ink);
 }
 
 .community-story-ring {
@@ -1864,7 +1864,7 @@
   justify-content: center;
   overflow: hidden;
   border-radius: 9999px;
-  background: #fff;
+  background: var(--color-surface);
   padding: 2px;
 }
 
@@ -1873,11 +1873,11 @@
 }
 
 .community-story-ring-seen {
-  background: #ece1cc;
+  background: var(--color-bg-muted);
 }
 
 .community-story-ring-empty {
-  background: #ece1cc;
+  background: var(--color-bg-muted);
 }
 
 .community-story-viewer {
@@ -2328,7 +2328,7 @@
   overflow: hidden;
   border-radius: 1.15rem;
   border: 1px solid var(--color-border);
-  background: #ffffff;
+  background: var(--color-surface);
   box-shadow: 0 12px 28px rgba(45, 36, 24, 0.16);
 }
 
@@ -2345,19 +2345,52 @@ body[data-shell="mobile"] .community-feed {
 body[data-shell="mobile"] .community-feed-card,
 body[data-shell="mobile"] .community-post-card {
   border-radius: 1.15rem;
-  border: 1px solid rgba(45, 36, 24, 0.06);
+  border: 1px solid var(--color-border);
   box-shadow:
     0 1px 2px rgba(45, 36, 24, 0.04),
     0 8px 24px rgba(45, 36, 24, 0.06);
 }
 
 body[data-shell="mobile"] .community-feed-tab-active {
-  background: #c45d3e;
-  color: #faf7f2;
+  background: var(--color-accent);
+  color: var(--color-bg);
 }
 
 body[data-shell="mobile"] .community-action-btn-active {
-  color: #a84d32;
+  color: var(--color-accent-strong);
+}
+
+html.dark .community-feed-card,
+html.dark .community-post-card {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.22),
+    0 8px 24px rgba(0, 0, 0, 0.32);
+}
+
+html.dark .community-composer-backdrop {
+  background: rgba(0, 0, 0, 0.58);
+}
+
+html.dark .community-composer-dialog {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .community-page :is(.text-night-950, .text-night-900, .text-night-800) {
+  color: var(--color-ink) !important;
+}
+
+html.dark .community-page :is(.text-night-700, .text-night-600) {
+  color: var(--color-ink-muted) !important;
+}
+
+html.dark .community-page :is(.text-night-500, .text-night-400) {
+  color: var(--color-ink-soft) !important;
+}
+
+html.dark .community-page [class*="bg-sand-50"],
+html.dark .community-page [class*="bg-sand-100"],
+html.dark .community-page [class*="bg-sand-200"] {
+  background-color: var(--color-bg-soft) !important;
 }
 
 body[data-shell="mobile"] .community-feed {
