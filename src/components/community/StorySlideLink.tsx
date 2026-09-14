@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   parseStoryLinkFromStatus,
   storySocialPlatformLabel,
@@ -20,23 +20,33 @@ type StorySlideLinkProps = {
 
 export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySlideLinkProps) {
   const linkMeta = parseStoryLinkFromStatus(slide.mediaType, slide.mediaUrl);
+  const linkUrl = useMemo(
+    () => (linkMeta?.url ?? "").trim(),
+    [linkMeta?.url],
+  );
   const [preview, setPreview] = useState<StoryLinkPreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!linkMeta) {
+    if (!linkUrl) {
       setLoading(false);
       setError("Invalid link.");
+      setPreview(null);
       return;
     }
 
     let cancelled = false;
     setLoading(true);
     setError("");
+    setPreview(null);
 
-    fetch(`/api/community/statuses/link-preview?url=${encodeURIComponent(linkMeta.url)}`, {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12_000);
+
+    fetch(`/api/community/statuses/link-preview?url=${encodeURIComponent(linkUrl)}`, {
       cache: "no-store",
+      signal: controller.signal,
     })
       .then(async (response) => {
         const data = await readJsonResponse<{ preview?: StoryLinkPreview; error?: string }>(
@@ -52,16 +62,24 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
       })
       .catch((loadError) => {
         if (cancelled) return;
-        setError(loadError instanceof Error ? loadError.message : "Could not load this link.");
+        if (loadError instanceof Error && loadError.name === "AbortError") {
+          setError("Preview took too long. Tap the right side to continue or open the link below.");
+        } else {
+          setError(loadError instanceof Error ? loadError.message : "Could not load this link.");
+        }
+        setPreview(null);
       })
       .finally(() => {
+        window.clearTimeout(timeout);
         if (!cancelled) setLoading(false);
       });
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timeout);
+      controller.abort();
     };
-  }, [linkMeta, slide.id]);
+  }, [linkUrl, slide.id]);
 
   useEffect(() => {
     if (loading || preview?.kind === "youtube" || preview?.kind === "instagram_embed") {
@@ -111,9 +129,21 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
 
   if (error || !preview) {
     return (
-      <div className="community-story-link-slide">
+      <div className="community-story-link-slide community-story-link-slide-card">
         <p className="community-story-link-kicker">{platformLabel}</p>
-        <p className="community-story-link-body">{slide.caption ?? error ?? "Link unavailable."}</p>
+        <p className="community-story-link-body">
+          {slide.caption?.trim() || error || "Link unavailable."}
+        </p>
+        {linkUrl ? (
+          <a
+            href={linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="community-story-link-open"
+          >
+            Open on {platformLabel}
+          </a>
+        ) : null}
       </div>
     );
   }

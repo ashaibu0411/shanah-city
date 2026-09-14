@@ -73,7 +73,7 @@ function isInstagramStoryUrl(url: string) {
   }
 }
 
-async function fetchOpenGraph(url: string) {
+async function fetchOpenGraph(url: string, timeoutMs = 8000) {
   try {
     const response = await fetch(url, {
       headers: {
@@ -82,7 +82,7 @@ async function fetchOpenGraph(url: string) {
         Accept: "text/html",
       },
       redirect: "follow",
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) return null;
     const html = await response.text();
@@ -152,22 +152,31 @@ export async function resolveStoryLinkPreview(url: string): Promise<StoryLinkPre
       };
     }
     if (isInstagramStoryUrl(normalized)) {
-      const og = await fetchOpenGraph(normalized);
       return {
         kind: "card",
         platform: "instagram",
         url: normalized,
-        title: og?.title ?? "Instagram story",
+        title: "Instagram story",
         description:
-          og?.description ??
           "Instagram stories can't play inside the church app. Save the clip to your phone and post it as a photo/video moment for everyone to watch here.",
-        imageUrl: og?.imageUrl,
         note: "story_no_embed",
       };
     }
+
+    const og = await fetchOpenGraph(normalized, 4500);
+    return {
+      kind: "card",
+      platform: "instagram",
+      url: normalized,
+      title: og?.title ?? `${storySocialPlatformLabel(platform)} link`,
+      description:
+        og?.description ??
+        "Open this link on Instagram. For video that plays in the app, save it and post with Photo, video, or audio.",
+      imageUrl: og?.imageUrl,
+    };
   }
 
-  const og = await fetchOpenGraph(normalized);
+  const og = await fetchOpenGraph(normalized, 6000);
   return {
     kind: "card",
     platform,

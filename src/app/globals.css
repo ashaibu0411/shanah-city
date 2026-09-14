@@ -2238,6 +2238,22 @@
   text-align: left;
 }
 
+.community-story-link-open {
+  margin-top: 1rem;
+  display: inline-flex;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.16);
+  padding: 0.55rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+}
+
+.community-story-link-open:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
 .community-story-link-nav {
   position: absolute;
   top: 0;
