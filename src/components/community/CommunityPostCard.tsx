@@ -384,7 +384,7 @@ export function CommunityPostCard({
         </div>
       ) : (
         <div className={`px-3 ${compact ? "pb-2 pt-2" : "pb-3 pt-2.5"}`}>
-          <p className="whitespace-pre-wrap text-[15px] leading-[1.3333] text-night-900">
+          <p className="community-post-content whitespace-pre-wrap text-[15px] leading-[1.3333] text-night-900">
             {post.content}
           </p>
         </div>
@@ -467,7 +467,7 @@ export function CommunityPostCard({
                   <p className="text-[13px] font-semibold leading-tight text-night-900">
                     {comment.author}
                   </p>
-                  <p className="mt-0.5 text-[15px] leading-snug text-night-900">{comment.content}</p>
+                  <p className="community-post-content mt-0.5 text-[15px] leading-snug text-night-900">{comment.content}</p>
                 </div>
                 <p className="mt-1 px-3 text-[11px] font-semibold text-night-600">
                   {formatCommunityTimeAgo(comment.createdAt)}

@@ -1649,6 +1649,9 @@
 
 /* Community feed — Levites-inspired warm editorial layout */
 .community-page {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
   margin-inline: calc(var(--community-feed-bleed, 0px) * -1);
 }
 
@@ -1657,6 +1660,9 @@
   background: var(--community-feed-bg);
   border-radius: 1.15rem;
   padding: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .community-feed-preview {
@@ -1667,6 +1673,8 @@
   display: grid;
   gap: 0.75rem;
   padding-bottom: 0.625rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .community-feed-card {
@@ -1682,16 +1690,25 @@
   display: grid;
   gap: 0.75rem;
   padding-top: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .community-post-card {
-  overflow: visible;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
   border-radius: 1.15rem;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   box-shadow:
     0 1px 2px rgba(45, 36, 24, 0.04),
     0 8px 24px rgba(45, 36, 24, 0.05);
+}
+
+.community-post-content {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .community-post-badge {
@@ -1813,9 +1830,12 @@
 .community-feed-tabs {
   display: flex;
   gap: 0.35rem;
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 0.45rem;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .community-feed-tabs::-webkit-scrollbar {
@@ -1848,14 +1868,20 @@
 
 .community-stories-card {
   padding: 0.75rem 0.75rem 0.85rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .community-stories-row {
   display: flex;
   gap: 0.65rem;
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 0.35rem 0.15rem 0.15rem;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .community-stories-row::-webkit-scrollbar {
@@ -2325,8 +2351,15 @@
   padding-bottom: 0.25rem;
 }
 
+.community-media-carousel {
+  max-width: 100%;
+  overflow: hidden;
+}
+
 .community-media-carousel-track {
   display: flex;
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
@@ -2341,6 +2374,9 @@
 .community-media-carousel-slide {
   position: relative;
   flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   scroll-snap-align: start;
   aspect-ratio: 4 / 5;
   max-height: 32rem;

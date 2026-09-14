@@ -21,7 +21,7 @@ export default async function CommunityPage() {
   const postsWithAccess = attachCanManageToPosts(posts, user, isAdmin);
 
   return (
-    <div className="community-page">
+    <div className="community-page min-w-0 max-w-full overflow-x-clip">
       <PageHeader
         eyebrow="Together"
         title="Community"
