@@ -11,6 +11,7 @@ import { MemberGivingHistory } from "@/components/give/MemberGivingHistory";
 import { ProfileAvatarUpload } from "@/components/auth/ProfileAvatarUpload";
 import { MemberEventRsvps } from "@/components/calendar/MemberEventRsvps";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
+import { LeaderTrainingPanel } from "@/components/profile/LeaderTrainingPanel";
 import { Button, Card, PageHeader } from "@/components/ui";
 import { campuses, getCampus, site } from "@/lib/site";
 import { getPublicDisplayFirstName, getPublicDisplayName } from "@/lib/member-display-name";
@@ -201,6 +202,7 @@ export function MemberProfile() {
 
       <div className={`grid ${isMobileApp ? "gap-3" : "gap-6 lg:grid-cols-3"}`}>
         <div className={`${isMobileApp ? "space-y-3" : "space-y-6 lg:col-span-2"}`}>
+          <LeaderTrainingPanel />
           <MemberGivingHistory />
           <PushNotificationSettings />
           <Card>
