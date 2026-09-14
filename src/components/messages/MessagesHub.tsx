@@ -165,7 +165,7 @@ export function MessagesHub() {
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [draft, setDraft] = useState("");
-  const [newRecipientId, setNewRecipientId] = useState("");
+  const [newRecipientIds, setNewRecipientIds] = useState<string[]>([]);
   const [memberSearch, setMemberSearch] = useState("");
   const [inboxSearch, setInboxSearch] = useState("");
   const [showNew, setShowNew] = useState(false);
@@ -193,9 +193,12 @@ export function MessagesHub() {
     [blocks, activeOtherUserId],
   );
 
-  const selectedRecipient = useMemo(
-    () => members.find((member) => member.id === newRecipientId) ?? null,
-    [members, newRecipientId],
+  const selectedRecipients = useMemo(
+    () =>
+      newRecipientIds
+        .map((id) => members.find((member) => member.id === id))
+        .filter((member): member is MemberDirectoryEntry => Boolean(member)),
+    [members, newRecipientIds],
   );
 
   const matchingMembers = useMemo(() => {
@@ -203,17 +206,28 @@ export function MessagesHub() {
     if (query.length < 1) return [];
 
     return members
-      .filter((member) => member.name.toLowerCase().includes(query))
+      .filter(
+        (member) =>
+          member.id !== user?.id &&
+          !newRecipientIds.includes(member.id) &&
+          member.name.toLowerCase().includes(query),
+      )
       .slice(0, 8);
-  }, [members, memberSearch]);
+  }, [members, memberSearch, newRecipientIds, user?.id]);
 
-  function selectRecipient(member: MemberDirectoryEntry) {
-    setNewRecipientId(member.id);
-    setMemberSearch(member.name);
+  function addRecipient(member: MemberDirectoryEntry) {
+    setNewRecipientIds((current) =>
+      current.includes(member.id) ? current : [...current, member.id],
+    );
+    setMemberSearch("");
   }
 
-  function clearRecipient() {
-    setNewRecipientId("");
+  function removeRecipient(memberId: string) {
+    setNewRecipientIds((current) => current.filter((id) => id !== memberId));
+  }
+
+  function clearRecipients() {
+    setNewRecipientIds([]);
     setMemberSearch("");
   }
 
@@ -282,7 +296,7 @@ export function MessagesHub() {
           return;
         }
         if (memberFromUrl && memberFromUrl !== user.id) {
-          setNewRecipientId(memberFromUrl);
+          setNewRecipientIds([memberFromUrl]);
           setShowNew(true);
           setActiveThreadId(null);
           setMessages([]);
@@ -479,15 +493,30 @@ export function MessagesHub() {
     setBusy(true);
     setStatus("");
 
-    const recipient = members.find((member) => member.id === (options?.recipientId ?? newRecipientId));
+    const recipientNames: Record<string, string> = {};
+    for (const member of selectedRecipients) {
+      recipientNames[member.id] = member.name;
+    }
     const response = await fetch("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         content: draft.trim(),
         threadId: activeThreadId ?? undefined,
-        recipientId: options?.recipientId ?? recipient?.id ?? newRecipientId,
-        recipientName: options?.recipientName ?? recipient?.name ?? "Member",
+        recipientIds:
+          activeThreadId || newRecipientIds.length === 0
+            ? undefined
+            : newRecipientIds,
+        recipientNames:
+          activeThreadId || newRecipientIds.length === 0 ? undefined : recipientNames,
+        recipientId:
+          activeThreadId || newRecipientIds.length !== 1
+            ? undefined
+            : newRecipientIds[0],
+        recipientName:
+          activeThreadId || newRecipientIds.length !== 1
+            ? undefined
+            : selectedRecipients[0]?.name ?? "Member",
         attachmentUrl: attachment?.attachmentUrl,
         attachmentType: attachment?.attachmentType,
         attachmentName: attachment?.attachmentName,
@@ -503,8 +532,7 @@ export function MessagesHub() {
 
     setDraft("");
     setShowNew(false);
-    setNewRecipientId("");
-    setMemberSearch("");
+    clearRecipients();
     await loadInbox();
     await loadThread(data.thread.id);
   }
@@ -597,8 +625,7 @@ export function MessagesHub() {
     setShowReport(false);
     setShowChatMenu(false);
     setMessages([]);
-    setNewRecipientId("");
-    setMemberSearch("");
+    clearRecipients();
     router.push("/messages");
   }
 
@@ -607,8 +634,7 @@ export function MessagesHub() {
     setActiveThreadId(null);
     setShowChatMenu(false);
     setMessages([]);
-    setNewRecipientId("");
-    setMemberSearch("");
+    clearRecipients();
     router.push("/messages?new=1");
   }
 
@@ -837,80 +863,85 @@ export function MessagesHub() {
           <>
             <WhatsAppChatHeader
               title="New chat"
-              subtitle="Search for a member to message"
+              subtitle="Add one or more members for a group message"
               showBack={isMobileApp}
               onBack={closeChatView}
             />
 
             <div className="messages-hub-chat-pane flex-1 overflow-y-auto px-4 py-3">
               <div className="relative">
-                <label className="text-xs font-semibold uppercase tracking-wide text-night-500">
+                <label className="text-xs font-semibold uppercase tracking-wide text-night-500 dark:text-sand-400">
                   To:
                 </label>
                 <input
                   type="search"
                   value={memberSearch}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    setMemberSearch(value);
-                    if (
-                      selectedRecipient &&
-                      value.trim().toLowerCase() !== selectedRecipient.name.toLowerCase()
-                    ) {
-                      setNewRecipientId("");
-                    }
-                  }}
+                  onChange={(event) => setMemberSearch(event.target.value)}
                   placeholder="Search members…"
-                  className="mt-1 w-full border-b border-night-900/10 bg-transparent py-2 text-sm outline-none placeholder:text-night-400 focus:border-night-900/30"
+                  className="messages-hub-new-recipient-input mt-1 w-full border-b py-2 text-sm outline-none"
                 />
 
-                {selectedRecipient && (
-                  <div className="mt-3 flex items-center gap-3 rounded-2xl bg-sand-50 px-3 py-2">
-                    <MemberAvatar name={selectedRecipient.name} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-night-900">
-                        {selectedRecipient.name}
-                      </p>
-                      <p className="text-xs text-night-500">
-                        {getCampus(selectedRecipient.campusId).city}
-                      </p>
-                    </div>
+                {selectedRecipients.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedRecipients.map((member) => (
+                      <div
+                        key={member.id}
+                        className="messages-hub-recipient-chip flex items-center gap-2 rounded-full py-1 pl-1 pr-2"
+                      >
+                        <MemberAvatar name={member.name} size="sm" />
+                        <span className="max-w-[8rem] truncate text-sm font-semibold">
+                          {member.name.split(" ")[0]}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeRecipient(member.id)}
+                          className="rounded-full px-1.5 text-xs font-bold opacity-70 hover:opacity-100"
+                          aria-label={`Remove ${member.name}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                     <button
                       type="button"
-                      onClick={clearRecipient}
-                      className="messages-hub-accent-text text-xs font-semibold"
+                      onClick={clearRecipients}
+                      className="messages-hub-accent-text self-center text-xs font-semibold"
                     >
-                      Change
+                      Clear all
                     </button>
                   </div>
-                )}
+                ) : null}
 
-                {memberSearch.trim() && !selectedRecipient && matchingMembers.length > 0 && (
-                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border border-night-900/10 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-[var(--color-surface)]">
-                    {matchingMembers.map((member) => (
+                {memberSearch.trim() && matchingMembers.length > 0 && (
+                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border py-1 shadow-xl messages-hub-member-picker">
+                    {matchingMembers.map((member) => {
+                      const selected = newRecipientIds.includes(member.id);
+                      return (
                       <li key={member.id}>
                         <button
                           type="button"
-                          onClick={() => selectRecipient(member)}
+                          onClick={() => addRecipient(member)}
                           className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-sand-50 dark:hover:bg-[var(--color-bg-muted)]"
                         >
                           <MemberAvatar name={member.name} size="sm" />
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-night-900">
+                            <p className="truncate text-sm font-medium text-night-900 dark:text-sand-100">
                               {member.name}
                             </p>
-                            <p className="text-xs text-night-500">
+                            <p className="text-xs text-night-500 dark:text-sand-400">
                               {getCampus(member.campusId).city}
+                              {selected ? " · added" : ""}
                             </p>
                           </div>
                         </button>
                       </li>
-                    ))}
+                    );
+                    })}
                   </ul>
                 )}
 
-                {memberSearch.trim() && !selectedRecipient && matchingMembers.length === 0 && (
-                  <p className="mt-2 text-xs text-night-500">No members match that name.</p>
+                {memberSearch.trim() && matchingMembers.length === 0 && (
+                  <p className="mt-2 text-xs text-night-500 dark:text-sand-400">No members match that name.</p>
                 )}
               </div>
             </div>
@@ -920,7 +951,7 @@ export function MessagesHub() {
               onChange={setDraft}
               onSend={(attachment) => sendMessage(undefined, attachment)}
               busy={busy}
-              disabled={!newRecipientId}
+              disabled={newRecipientIds.length === 0}
               placeholder="Message"
               sendLabel="Send"
               allowAttachment={false}

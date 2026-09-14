@@ -184,6 +184,13 @@ export async function POST(request: Request) {
   const content = String(body.content ?? "").trim();
   let recipientId = String(body.recipientId ?? "");
   let recipientName = String(body.recipientName ?? "Member").trim();
+  const recipientIds = Array.isArray(body.recipientIds)
+    ? body.recipientIds.map((id: unknown) => String(id).trim()).filter(Boolean)
+    : [];
+  const recipientNames =
+    body.recipientNames && typeof body.recipientNames === "object"
+      ? (body.recipientNames as Record<string, string>)
+      : undefined;
   const threadId = body.threadId ? String(body.threadId) : undefined;
   const attachmentUrl = String(body.attachmentUrl ?? "").trim() || undefined;
   const attachmentType = String(body.attachmentType ?? "").trim() || undefined;
@@ -205,14 +212,14 @@ export async function POST(request: Request) {
     }
   }
 
-  if (!threadId && !recipientId) {
+  if (!threadId && recipientIds.length === 0 && !recipientId) {
     return NextResponse.json(
-      { error: "Choose a member to message." },
+      { error: "Choose at least one member to message." },
       { status: 400 },
     );
   }
 
-  if (recipientId === user.id) {
+  if (!threadId && recipientIds.length === 0 && recipientId === user.id) {
     return NextResponse.json(
       { error: "You cannot message yourself." },
       { status: 400 },
@@ -223,8 +230,10 @@ export async function POST(request: Request) {
     const result = await sendDirectMessage({
       senderId: user.id,
       senderName: getPublicDisplayName(user),
-      recipientId,
+      recipientId: recipientIds.length === 0 ? recipientId : undefined,
       recipientName,
+      recipientIds: recipientIds.length > 0 ? recipientIds : undefined,
+      recipientNames,
       content,
       threadId,
       attachmentUrl,
@@ -232,20 +241,26 @@ export async function POST(request: Request) {
       attachmentName,
     });
 
-    await recordActivity(user.id, "message_sent", `Messaged ${recipientName || "a member"}`);
+    const label =
+      recipientIds.length > 1
+        ? `${recipientIds.length} members`
+        : recipientName || "a member";
+    await recordActivity(user.id, "message_sent", `Messaged ${label}`);
 
-    if (recipientId && recipientId !== user.id) {
-      const blocked = await isUserBlocked(recipientId, user.id);
-      if (!blocked) {
-        const preview = content || attachmentName || "Photo";
-        const notify = await notifyNewMessage({
-          recipientId,
-          senderName: getPublicDisplayName(user),
-          preview: preview.slice(0, 120),
-          threadId: result.thread.id,
-        });
-        return NextResponse.json({ ...result, notify }, { status: 201 });
-      }
+    const notifyTargets = result.thread.participantIds.filter((id) => id !== user.id);
+    let lastNotify;
+    for (const targetId of notifyTargets) {
+      if (await isUserBlocked(targetId, user.id)) continue;
+      const preview = content || attachmentName || "Photo";
+      lastNotify = await notifyNewMessage({
+        recipientId: targetId,
+        senderName: getPublicDisplayName(user),
+        preview: preview.slice(0, 120),
+        threadId: result.thread.id,
+      });
+    }
+    if (lastNotify) {
+      return NextResponse.json({ ...result, notify: lastNotify }, { status: 201 });
     }
 
     return NextResponse.json(result, { status: 201 });

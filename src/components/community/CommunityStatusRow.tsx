@@ -426,16 +426,6 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                 </button>
                 <button
                   type="button"
-                  onClick={openLinkComposer}
-                  className="rounded-xl border border-night-900/10 px-4 py-3 text-left hover:bg-sand-50 dark:border-white/10 dark:hover:bg-white/5"
-                >
-                  <p className="font-semibold text-night-900 dark:text-sand-100">Instagram or social link</p>
-                  <p className="text-xs text-night-600 dark:text-sand-400">
-                    YouTube &amp; IG posts play in-app. IG <strong>stories</strong>: save video → Photo/video moment
-                  </p>
-                </button>
-                <button
-                  type="button"
                   onClick={openServiceComposer}
                   className="rounded-xl border border-clay-500/30 bg-clay-500/5 px-4 py-3 text-left hover:bg-clay-500/10"
                 >

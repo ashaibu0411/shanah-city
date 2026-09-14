@@ -639,9 +639,9 @@
   body[data-shell="mobile"] select {
     font-size: max(1rem, 16px);
     touch-action: manipulation;
-    color: #2d2418;
-    -webkit-text-fill-color: #2d2418;
-    caret-color: #2d2418;
+    color: var(--color-ink);
+    -webkit-text-fill-color: var(--color-ink);
+    caret-color: var(--color-ink);
   }
 
   body[data-shell="mobile"] .mobile-field {
@@ -1514,6 +1514,30 @@
 
   html.dark .messages-hub-accent-text {
     color: var(--color-accent-soft);
+  }
+
+  .messages-hub-new-recipient-input {
+    border-color: var(--color-border);
+    background: transparent;
+    color: var(--color-ink);
+    -webkit-text-fill-color: var(--color-ink);
+    caret-color: var(--color-ink);
+  }
+
+  .messages-hub-new-recipient-input::placeholder {
+    color: var(--color-ink-soft);
+  }
+
+  .messages-hub-recipient-chip {
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    color: var(--color-ink);
+  }
+
+  .messages-hub-member-picker {
+    border-color: var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-ink);
   }
 }
 

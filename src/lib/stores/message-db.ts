@@ -12,29 +12,32 @@ import type {
   MemberDirectoryEntry,
   MessageThread,
 } from "@/lib/member-types";
-
-function threadKey(userA: string, userB: string): [string, string] {
-  return userA < userB ? [userA, userB] : [userB, userA];
-}
-
-function buildThreadId(userA: string, userB: string) {
-  const [first, second] = threadKey(userA, userB);
-  return `thread-${first}-${second}`;
-}
+import {
+  buildDirectThreadId,
+  buildGroupThreadId,
+  getPrimaryOtherParticipantId,
+  getThreadDisplayName,
+  normalizeThreadParticipantIds,
+  threadKey,
+} from "@/lib/message-thread-utils";
 
 function mapThread(record: {
   id: string;
   participantAId: string;
   participantBId: string;
   participantNames: unknown;
+  participantIds?: unknown;
+  isGroup?: boolean;
   lastMessage: string;
   lastMessageAt: Date;
   createdAt: Date;
 }): MessageThread {
+  const participantIds = normalizeThreadParticipantIds(record);
   return {
     id: record.id,
-    participantIds: [record.participantAId, record.participantBId],
+    participantIds,
     participantNames: record.participantNames as Record<string, string>,
+    isGroup: record.isGroup ?? participantIds.length > 2,
     lastMessage: record.lastMessage,
     lastMessageAt: record.lastMessageAt.toISOString(),
     createdAt: record.createdAt.toISOString(),
@@ -106,18 +109,24 @@ export async function getMemberDirectory(currentUserId: string) {
 }
 
 export async function getThreadsForUser(userId: string) {
-  const records = await prisma.messageThread.findMany({
-    where: {
-      OR: [{ participantAId: userId }, { participantBId: userId }],
-    },
-  });
-
+  const records = await prisma.messageThread.findMany();
   const filtered = [];
+
   for (const record of records) {
-    const thread = mapThread(record);
-    const otherId = thread.participantIds.find((id) => id !== userId);
-    if (otherId && (await hasMessagingBlock(userId, otherId))) continue;
-    filtered.push(thread);
+    const participantIds = normalizeThreadParticipantIds(record);
+    if (!participantIds.includes(userId)) continue;
+
+    const others = participantIds.filter((id) => id !== userId);
+    let skip = false;
+    for (const otherId of others) {
+      if (await hasMessagingBlock(userId, otherId)) {
+        skip = true;
+        break;
+      }
+    }
+    if (skip) continue;
+
+    filtered.push(mapThread(record));
   }
 
   return filtered.sort(
@@ -135,8 +144,10 @@ export async function getMessagesForThread(threadId: string, userId: string) {
   const thread = mapThread(record);
   if (!thread.participantIds.includes(userId)) return null;
 
-  const otherId = thread.participantIds.find((id) => id !== userId);
-  if (otherId && (await hasMessagingBlock(userId, otherId))) return null;
+  const otherIds = thread.participantIds.filter((id) => id !== userId);
+  for (const otherId of otherIds) {
+    if (await hasMessagingBlock(userId, otherId)) return null;
+  }
 
   await markThreadRead(threadId, userId);
 
@@ -154,7 +165,7 @@ export async function getMessagesForThread(threadId: string, userId: string) {
 export async function markThreadRead(threadId: string, userId: string) {
   const record = await prisma.messageThread.findUnique({ where: { id: threadId } });
   if (!record) return;
-  const participantIds = [record.participantAId, record.participantBId];
+  const participantIds = normalizeThreadParticipantIds(record);
   if (!participantIds.includes(userId)) return;
 
   await prisma.message.updateMany({
@@ -170,8 +181,10 @@ export async function markThreadRead(threadId: string, userId: string) {
 export async function sendDirectMessage(input: {
   senderId: string;
   senderName: string;
-  recipientId: string;
-  recipientName: string;
+  recipientId?: string;
+  recipientName?: string;
+  recipientIds?: string[];
+  recipientNames?: Record<string, string>;
   content: string;
   threadId?: string;
   attachmentUrl?: string;
@@ -180,26 +193,62 @@ export async function sendDirectMessage(input: {
 }) {
   const content = validateChatContent(input.content, Boolean(input.attachmentUrl));
 
-  const blockReason = await getMessagingBlockReason(
-    input.senderId,
-    input.recipientId,
-  );
-  if (blockReason) {
-    throw new Error(blockReason);
+  const explicitRecipients = (input.recipientIds ?? [])
+    .map((id) => id.trim())
+    .filter((id) => id && id !== input.senderId);
+  const singleRecipientId = String(input.recipientId ?? "").trim();
+  const recipientIds =
+    explicitRecipients.length > 0
+      ? explicitRecipients
+      : singleRecipientId
+        ? [singleRecipientId]
+        : [];
+
+  if (recipientIds.length === 0 && !input.threadId) {
+    throw new Error("Choose at least one member to message.");
+  }
+
+  for (const recipientId of recipientIds) {
+    const blockReason = await getMessagingBlockReason(input.senderId, recipientId);
+    if (blockReason) {
+      throw new Error(blockReason);
+    }
   }
 
   const now = new Date();
-  const threadId =
-    input.threadId ?? buildThreadId(input.senderId, input.recipientId);
+  let threadId = input.threadId;
+  let allParticipantIds: string[] = [];
+  let isGroup = false;
+
+  if (threadId) {
+    const existing = await prisma.messageThread.findUnique({ where: { id: threadId } });
+    if (!existing) {
+      throw new Error("Conversation not found.");
+    }
+    allParticipantIds = normalizeThreadParticipantIds(existing);
+    isGroup = existing.isGroup ?? allParticipantIds.length > 2;
+  } else {
+    allParticipantIds = [...new Set([input.senderId, ...recipientIds])].sort();
+    isGroup = allParticipantIds.length > 2;
+    threadId = isGroup
+      ? buildGroupThreadId(allParticipantIds)
+      : buildDirectThreadId(input.senderId, recipientIds[0]!);
+  }
+
   const [participantAId, participantBId] = threadKey(
-    input.senderId,
-    input.recipientId,
+    allParticipantIds[0]!,
+    allParticipantIds[1] ?? allParticipantIds[0]!,
   );
 
-  const participantNames = {
+  const participantNames: Record<string, string> = {
     [input.senderId]: input.senderName,
-    [input.recipientId]: input.recipientName,
   };
+  for (const recipientId of recipientIds) {
+    participantNames[recipientId] =
+      input.recipientNames?.[recipientId] ??
+      (recipientId === singleRecipientId ? input.recipientName : undefined) ??
+      "Member";
+  }
 
   const existingThread = await prisma.messageThread.findUnique({
     where: { id: threadId },
@@ -212,6 +261,8 @@ export async function sendDirectMessage(input: {
         participantAId,
         participantBId,
         participantNames,
+        participantIds: allParticipantIds,
+        isGroup,
         lastMessage: "",
         lastMessageAt: now,
         createdAt: now,
@@ -247,6 +298,8 @@ export async function sendDirectMessage(input: {
       lastMessage: previewForMessage(message),
       lastMessageAt: now,
       participantNames: updatedNames,
+      participantIds: allParticipantIds,
+      isGroup,
     },
   });
 
@@ -262,7 +315,7 @@ export async function editDirectMessage(input: {
   const content = validateChatContent(input.content, false);
   const thread = await prisma.messageThread.findUnique({ where: { id: input.threadId } });
   if (!thread) return null;
-  const participantIds = [thread.participantAId, thread.participantBId];
+  const participantIds = normalizeThreadParticipantIds(thread);
   if (!participantIds.includes(input.userId)) return null;
 
   const message = await prisma.message.findFirst({
@@ -303,7 +356,7 @@ export async function deleteDirectMessage(input: {
 }) {
   const thread = await prisma.messageThread.findUnique({ where: { id: input.threadId } });
   if (!thread) return null;
-  const participantIds = [thread.participantAId, thread.participantBId];
+  const participantIds = normalizeThreadParticipantIds(thread);
   if (!participantIds.includes(input.userId)) return null;
 
   const message = await prisma.message.findFirst({
@@ -341,7 +394,7 @@ export async function toggleDirectMessageReaction(input: {
 }) {
   const thread = await prisma.messageThread.findUnique({ where: { id: input.threadId } });
   if (!thread) return null;
-  const participantIds = [thread.participantAId, thread.participantBId];
+  const participantIds = normalizeThreadParticipantIds(thread);
   if (!participantIds.includes(input.userId)) return null;
 
   const message = await prisma.message.findFirst({
@@ -364,13 +417,11 @@ export async function toggleDirectMessageReaction(input: {
 }
 
 export function getOtherParticipant(thread: MessageThread, userId: string) {
-  const otherId = thread.participantIds.find((id) => id !== userId);
-  if (!otherId) return "Member";
-  return thread.participantNames[otherId] ?? "Member";
+  return getThreadDisplayName(thread, userId);
 }
 
 export function getOtherParticipantId(thread: MessageThread, userId: string) {
-  return thread.participantIds.find((id) => id !== userId) ?? null;
+  return getPrimaryOtherParticipantId(thread, userId);
 }
 
 export async function getUnreadDirectMessageSummary(userId: string) {

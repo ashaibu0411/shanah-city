@@ -63,6 +63,8 @@ model MessageThread {
   participantAId   String
   participantBId   String
   participantNames Json
+  participantIds   Json?
+  isGroup          Boolean   @default(false)
   lastMessage      String
   lastMessageAt    DateTime
   createdAt        DateTime

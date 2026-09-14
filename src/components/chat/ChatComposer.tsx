@@ -186,7 +186,7 @@ export function ChatComposer({
               }}
               placeholder={placeholder}
               disabled={disabled}
-              className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] outline-none disabled:opacity-50"
+              className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] text-[var(--color-ink)] caret-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-soft)] disabled:opacity-50"
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
                   event.preventDefault();

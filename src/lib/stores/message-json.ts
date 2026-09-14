@@ -13,6 +13,13 @@ import type {
   MemberDirectoryEntry,
   MessageThread,
 } from "@/lib/member-types";
+import {
+  buildDirectThreadId,
+  buildGroupThreadId,
+  getPrimaryOtherParticipantId,
+  getThreadDisplayName,
+  threadKey,
+} from "@/lib/message-thread-utils";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const THREADS_FILE = path.join(DATA_DIR, "message-threads.json");
@@ -32,13 +39,8 @@ async function writeJson<T>(file: string, data: T) {
   await fs.writeFile(file, JSON.stringify(data, null, 2));
 }
 
-function threadKey(userA: string, userB: string): [string, string] {
-  return userA < userB ? [userA, userB] : [userB, userA];
-}
-
 function buildThreadId(userA: string, userB: string) {
-  const [first, second] = threadKey(userA, userB);
-  return `thread-${first}-${second}`;
+  return buildDirectThreadId(userA, userB);
 }
 
 function mapMessage(message: DirectMessage): DirectMessage {
@@ -84,8 +86,15 @@ export async function getThreadsForUser(userId: string) {
 
   for (const thread of threads) {
     if (!thread.participantIds.includes(userId)) continue;
-    const otherId = thread.participantIds.find((id) => id !== userId);
-    if (otherId && (await hasMessagingBlock(userId, otherId))) continue;
+    const others = thread.participantIds.filter((id) => id !== userId);
+    let skip = false;
+    for (const otherId of others) {
+      if (await hasMessagingBlock(userId, otherId)) {
+        skip = true;
+        break;
+      }
+    }
+    if (skip) continue;
     filtered.push(thread);
   }
 
@@ -102,9 +111,11 @@ export async function getMessagesForThread(threadId: string, userId: string) {
     return null;
   }
 
-  const otherId = thread.participantIds.find((id) => id !== userId);
-  if (otherId && (await hasMessagingBlock(userId, otherId))) {
-    return null;
+  const others = thread.participantIds.filter((id) => id !== userId);
+  for (const otherId of others) {
+    if (await hasMessagingBlock(userId, otherId)) {
+      return null;
+    }
   }
 
   const messages = await readJson<DirectMessage[]>(MESSAGES_FILE, []);
@@ -157,8 +168,10 @@ export async function markThreadRead(threadId: string, userId: string) {
 export async function sendDirectMessage(input: {
   senderId: string;
   senderName: string;
-  recipientId: string;
-  recipientName: string;
+  recipientId?: string;
+  recipientName?: string;
+  recipientIds?: string[];
+  recipientNames?: Record<string, string>;
   content: string;
   threadId?: string;
   attachmentUrl?: string;
@@ -167,19 +180,50 @@ export async function sendDirectMessage(input: {
 }) {
   const content = validateChatContent(input.content, Boolean(input.attachmentUrl));
 
-  const blockReason = await getMessagingBlockReason(
-    input.senderId,
-    input.recipientId,
-  );
-  if (blockReason) {
-    throw new Error(blockReason);
+  const explicitRecipients = (input.recipientIds ?? [])
+    .map((id) => id.trim())
+    .filter((id) => id && id !== input.senderId);
+  const singleRecipientId = String(input.recipientId ?? "").trim();
+  const recipientIds =
+    explicitRecipients.length > 0
+      ? explicitRecipients
+      : singleRecipientId
+        ? [singleRecipientId]
+        : [];
+
+  if (recipientIds.length === 0 && !input.threadId) {
+    throw new Error("Choose at least one member to message.");
+  }
+
+  for (const recipientId of recipientIds) {
+    const blockReason = await getMessagingBlockReason(input.senderId, recipientId);
+    if (blockReason) {
+      throw new Error(blockReason);
+    }
   }
 
   const threads = await readJson<MessageThread[]>(THREADS_FILE, []);
   const messages = await readJson<DirectMessage[]>(MESSAGES_FILE, []);
   const now = new Date().toISOString();
-  const threadId =
-    input.threadId ?? buildThreadId(input.senderId, input.recipientId);
+
+  let threadId = input.threadId;
+  let allParticipantIds: string[] = [];
+  let isGroup = false;
+
+  if (threadId) {
+    const existing = threads.find((item) => item.id === threadId);
+    if (!existing) {
+      throw new Error("Conversation not found.");
+    }
+    allParticipantIds = existing.participantIds;
+    isGroup = existing.isGroup ?? allParticipantIds.length > 2;
+  } else {
+    allParticipantIds = [...new Set([input.senderId, ...recipientIds])].sort();
+    isGroup = allParticipantIds.length > 2;
+    threadId = isGroup
+      ? buildGroupThreadId(allParticipantIds)
+      : buildDirectThreadId(input.senderId, recipientIds[0]!);
+  }
 
   let thread = threads.find((item) => item.id === threadId);
   const message: DirectMessage = {
@@ -195,15 +239,22 @@ export async function sendDirectMessage(input: {
     createdAt: now,
   };
 
+  const participantNames: Record<string, string> = {
+    [input.senderId]: input.senderName,
+  };
+  for (const recipientId of recipientIds) {
+    participantNames[recipientId] =
+      input.recipientNames?.[recipientId] ??
+      (recipientId === singleRecipientId ? input.recipientName : undefined) ??
+      "Member";
+  }
+
   if (!thread) {
-    const participantIds = threadKey(input.senderId, input.recipientId);
     thread = {
-      id: threadId,
-      participantIds,
-      participantNames: {
-        [input.senderId]: input.senderName,
-        [input.recipientId]: input.recipientName,
-      },
+      id: threadId!,
+      participantIds: allParticipantIds,
+      participantNames,
+      isGroup,
       lastMessage: previewForMessage(message),
       lastMessageAt: now,
       createdAt: now,
@@ -212,8 +263,9 @@ export async function sendDirectMessage(input: {
   } else {
     thread.lastMessage = previewForMessage(message);
     thread.lastMessageAt = now;
-    thread.participantNames[input.senderId] = input.senderName;
-    thread.participantNames[input.recipientId] = input.recipientName;
+    thread.participantNames = { ...thread.participantNames, ...participantNames };
+    thread.participantIds = allParticipantIds;
+    thread.isGroup = isGroup;
   }
 
   messages.push(message);
@@ -328,13 +380,11 @@ export async function toggleDirectMessageReaction(input: {
 }
 
 export function getOtherParticipant(thread: MessageThread, userId: string) {
-  const otherId = thread.participantIds.find((id) => id !== userId);
-  if (!otherId) return "Member";
-  return thread.participantNames[otherId] ?? "Member";
+  return getThreadDisplayName(thread, userId);
 }
 
 export function getOtherParticipantId(thread: MessageThread, userId: string) {
-  return thread.participantIds.find((id) => id !== userId) ?? null;
+  return getPrimaryOtherParticipantId(thread, userId);
 }
 
 export async function getUnreadDirectMessageSummary(userId: string) {

@@ -140,8 +140,9 @@ export type UnavailabilityRequest = {
 
 export type MessageThread = {
   id: string;
-  participantIds: [string, string];
+  participantIds: string[];
   participantNames: Record<string, string>;
+  isGroup?: boolean;
   lastMessage: string;
   lastMessageAt: string;
   createdAt: string;
