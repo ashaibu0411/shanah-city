@@ -2,10 +2,13 @@ import { promises as fs } from "fs";
 import path from "path";
 import { getUserById } from "@/lib/auth-server";
 import { isAdminGroupMember } from "@/lib/admin-access-server";
+import { isStaffManagedMinistryGroup } from "@/lib/church-groups";
+import { canManageStaffOnlyGroups } from "@/lib/group-staff-access-server";
 import { isGroupAdmin, isGroupMember } from "@/lib/group-admin-utils";
 import { getReadinessJoinPolicy } from "@/lib/ministry-readiness-server";
 import type { GroupJoinRequest } from "@/lib/group-types";
 import { getPublicDisplayName } from "@/lib/member-display-name";
+import { assertStaffManagedGroupNotSelfServe } from "@/lib/group-visibility-server";
 import { getGroups, grantGroupMembership, joinGroup } from "@/lib/stores/group-json";
 
 const REQUESTS_FILE = path.join(process.cwd(), "data", "group-join-requests.json");
@@ -33,6 +36,9 @@ async function saveRequests(requests: GroupJoinRequest[]) {
 }
 
 async function canReviewJoinRequest(reviewerId: string, groupId: string) {
+  if (isStaffManagedMinistryGroup(groupId)) {
+    return canManageStaffOnlyGroups(reviewerId);
+  }
   if (await isAdminGroupMember(reviewerId)) {
     return true;
   }
@@ -90,6 +96,8 @@ export async function requestGroupJoin(
   if (!group) {
     throw new Error("Group not found.");
   }
+
+  assertStaffManagedGroupNotSelfServe(group);
 
   if (isGroupMember(group, user.id)) {
     return { status: "member" as const, groupName: group.name };

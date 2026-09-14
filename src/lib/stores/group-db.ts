@@ -1,6 +1,20 @@
 import { getUserByEmail, getUserById, getUsers } from "@/lib/auth-server";
-import { isAdminGroupMember } from "@/lib/admin-access-server";
-import { ADMIN_GROUP_ID, CHURCH_MINISTRY_GROUPS, isDeprecatedPastoralRoleGroup } from "@/lib/church-groups";
+import {
+  ADMIN_GROUP_ID,
+  CHURCH_MINISTRY_GROUPS,
+  isDeprecatedPastoralRoleGroup,
+  isSignupGroupOption,
+  isStaffManagedMinistryGroup,
+} from "@/lib/church-groups";
+import {
+  assertCanManageGroupLeadershipForGroup,
+  assertCanManageGroupMembersForGroup,
+  assertCanManageStaffOnlyGroup,
+} from "@/lib/group-staff-access-server";
+import {
+  assertStaffManagedGroupNotSelfServe,
+  canUserViewGroup,
+} from "@/lib/group-visibility-server";
 import { prisma } from "@/lib/db";
 import {
   assertAnotherAdminRemains,
@@ -12,8 +26,6 @@ import {
 } from "@/lib/group-admin-utils";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import {
-  assertCanManageGroupLeadership,
-  assertCanManageGroupMembers,
   assertCanRemoveGroupMember,
 } from "@/lib/group-leadership-access";
 import type {
@@ -161,20 +173,36 @@ export async function getSignupGroupOptions() {
   });
 
   return records
+    .map(mapGroup)
+    .filter((record) => isSignupGroupOption(record))
     .filter((record) => !isDeprecatedPastoralRoleGroup(record.id))
     .map((record) => ({
-    id: record.id,
-    name: record.name,
-    description: record.description,
-    category: record.category as GroupCategory,
-    requiresApproval: record.requiresApproval,
-  }));
+      id: record.id,
+      name: record.name,
+      description: record.description,
+      category: record.category as GroupCategory,
+      requiresApproval: record.requiresApproval,
+    }));
 }
 
-function canViewGroup(group: Group, userId?: string) {
-  if (group.visibility === "public") return true;
-  if (!userId) return false;
-  return isGroupMember(group, userId) || isGroupAdmin(group, userId);
+async function filterGroupsForUser(
+  groups: Group[],
+  userId?: string,
+  options?: { mine?: boolean },
+) {
+  const visible: Group[] = [];
+  for (const group of groups) {
+    if (options?.mine && userId) {
+      if (isGroupMember(group, userId)) {
+        visible.push(group);
+      }
+      continue;
+    }
+    if (await canUserViewGroup(group, userId)) {
+      visible.push(group);
+    }
+  }
+  return visible;
 }
 
 function toSummary(group: Group, userId?: string): GroupSummary {
@@ -215,13 +243,7 @@ export async function getGroups() {
 
 export async function listGroupsForUser(userId?: string, options?: { mine?: boolean }) {
   const groups = await getGroups();
-
-  const visible = groups.filter((group) => {
-    if (options?.mine && userId) {
-      return isGroupMember(group, userId);
-    }
-    return canViewGroup(group, userId);
-  });
+  const visible = await filterGroupsForUser(groups, userId, options);
 
   return visible
     .map((group) => toSummary(group, userId))
@@ -235,16 +257,7 @@ export async function getGroupDetail(groupId: string, userId?: string) {
   }
 
   const group = mapGroup(record);
-  const actorIsSiteAdmin = userId ? await isAdminGroupMember(userId) : false;
-
-  if (!canViewGroup(group, userId) && !actorIsSiteAdmin) {
-    if (group.visibility === "private" && userId) {
-      const summary = toSummary(group, userId);
-      return {
-        ...summary,
-        members: [],
-      } satisfies GroupDetail;
-    }
+  if (!(await canUserViewGroup(group, userId))) {
     return null;
   }
 
@@ -316,6 +329,7 @@ export async function joinGroup(groupId: string, userId: string) {
   }
 
   const group = mapGroup(record);
+  assertStaffManagedGroupNotSelfServe(group);
   if (group.visibility === "private" && !userId) {
     throw new Error("Sign in to join this private group.");
   }
@@ -391,7 +405,9 @@ export async function updateGroup(
   }
 
   const group = mapGroup(record);
-  if (!isGroupAdmin(group, userId)) {
+  if (isStaffManagedMinistryGroup(group.id)) {
+    await assertCanManageStaffOnlyGroup(userId);
+  } else if (!isGroupAdmin(group, userId)) {
     throw new Error("Only group leaders can update this group.");
   }
 
@@ -492,7 +508,17 @@ export async function removeGroupMember(
   }
 
   const group = mapGroup(record);
-  assertCanRemoveGroupMember(group, adminId, memberId, Boolean(options?.actorIsSiteAdmin));
+  if (isStaffManagedMinistryGroup(group.id)) {
+    await assertCanManageStaffOnlyGroup(adminId);
+    if (!isGroupMember(group, memberId)) {
+      throw new Error("That member is not in this group.");
+    }
+    if (isGroupAdmin(group, memberId)) {
+      assertAnotherAdminRemains(group, memberId);
+    }
+  } else {
+    assertCanRemoveGroupMember(group, adminId, memberId, Boolean(options?.actorIsSiteAdmin));
+  }
 
   const memberIds = group.memberIds.filter((id) => id !== memberId);
   const adminIds = group.adminIds.filter((id) => id !== memberId);
@@ -527,7 +553,7 @@ export async function addGroupMember(
   }
 
   const group = mapGroup(record);
-  assertCanManageGroupMembers(group, adminId, Boolean(options?.actorIsSiteAdmin));
+  await assertCanManageGroupMembersForGroup(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   const normalizedEmail = email.trim().toLowerCase();
   if (!normalizedEmail) {
@@ -570,7 +596,7 @@ export async function addGroupMemberById(
   }
 
   const group = mapGroup(record);
-  assertCanManageGroupMembers(group, adminId, Boolean(options?.actorIsSiteAdmin));
+  await assertCanManageGroupMembersForGroup(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   const member = await getUserById(memberId);
   if (!member) {
@@ -608,7 +634,7 @@ export async function searchGroupMemberCandidates(
   }
 
   const group = mapGroup(record);
-  assertCanManageGroupMembers(group, actorId, Boolean(options?.actorIsSiteAdmin));
+  await assertCanManageGroupMembersForGroup(group, actorId, Boolean(options?.actorIsSiteAdmin));
 
   const q = query.trim().toLowerCase();
   if (q.length < 2) {
@@ -645,7 +671,7 @@ export async function promoteGroupAdmin(
   }
 
   const group = mapGroup(record);
-  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
+  await assertCanManageGroupLeadershipForGroup(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   if (!isGroupMember(group, memberId)) {
     throw new Error("That person must be a group member before becoming a leader.");
@@ -687,7 +713,7 @@ export async function demoteGroupAdmin(
   }
 
   const group = mapGroup(record);
-  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
+  await assertCanManageGroupLeadershipForGroup(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   if (!isGroupAdmin(group, memberId)) {
     throw new Error("That member is not a group leader.");
@@ -722,7 +748,7 @@ export async function promoteGroupAssistant(
   }
 
   const group = mapGroup(record);
-  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
+  await assertCanManageGroupLeadershipForGroup(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   if (!isGroupMember(group, memberId)) {
     throw new Error("That person must be a group member before becoming an assistant leader.");
@@ -768,7 +794,7 @@ export async function demoteGroupAssistant(
   }
 
   const group = mapGroup(record);
-  assertCanManageGroupLeadership(group, adminId, Boolean(options?.actorIsSiteAdmin));
+  await assertCanManageGroupLeadershipForGroup(group, adminId, Boolean(options?.actorIsSiteAdmin));
 
   if (!isGroupAssistantLeader(group, memberId)) {
     throw new Error("That member is not an assistant leader.");

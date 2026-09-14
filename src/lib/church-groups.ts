@@ -14,6 +14,8 @@ export function isDeprecatedPastoralRoleGroup(groupId: string) {
   return DEPRECATED_PASTORAL_ROLE_GROUP_IDS.has(groupId);
 }
 export const TEAM_ZNCF_GROUP_ID = "group-team-zncf";
+export const PASTORS_GROUP_ID = "group-pastors";
+export const LEADERS_GROUP_ID = "group-leaders";
 export const SHANAH_POWER_COUPLES_GROUP_ID = "group-shanah-power-couples";
 export const FOLLOW_UP_GROUP_ID = "group-follow-up";
 
@@ -42,11 +44,11 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     category: "other",
     visibility: "private",
     requiresApproval: true,
-    signupVisible: true,
+    signupVisible: false,
     isSystem: true,
   },
   {
-    id: "group-pastors",
+    id: PASTORS_GROUP_ID,
     name: "Pastors",
     description: "Pastoral team calendar and time away — not ministry report review.",
     category: "ministry",
@@ -66,13 +68,13 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     isSystem: true,
   },
   {
-    id: "group-leaders",
+    id: LEADERS_GROUP_ID,
     name: "Leaders",
     description: "Ministry and service leaders across the church.",
     category: "ministry",
     visibility: "private",
     requiresApproval: true,
-    signupVisible: true,
+    signupVisible: false,
     isSystem: true,
   },
   {
@@ -210,7 +212,28 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
 ];
 
 export function getSignupMinistryGroups() {
-  return CHURCH_MINISTRY_GROUPS.filter((group) => group.signupVisible);
+  return CHURCH_MINISTRY_GROUPS.filter(
+    (group) => group.signupVisible && !isStaffManagedMinistryGroup(group.id),
+  );
+}
+
+/** Admin, ZNCF, Pastors, and Leaders — visible/joinable only by church admins and assigned pastors. */
+export const STAFF_MANAGED_GROUP_IDS = new Set<string>([
+  ADMIN_GROUP_ID,
+  TEAM_ZNCF_GROUP_ID,
+  PASTORS_GROUP_ID,
+  LEADERS_GROUP_ID,
+]);
+
+export function isStaffManagedMinistryGroup(groupId: string) {
+  return STAFF_MANAGED_GROUP_IDS.has(groupId);
+}
+
+export function isSignupGroupOption(group: { id: string; signupVisible?: boolean }) {
+  if (isStaffManagedMinistryGroup(group.id)) {
+    return false;
+  }
+  return group.signupVisible !== false;
 }
 
 export function isPrivilegedMinistryGroup(groupId: string) {
