@@ -9,7 +9,7 @@ import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { CommunityMediaPreviewCarousel } from "@/components/community/CommunityMediaCarousel";
 import {
   uploadCommunityMediaClient,
-  validateCommunityStoryFile,
+  validateCommunityPostMediaFile,
 } from "@/lib/community-media-client";
 import { COMMUNITY_POST_MAX_MEDIA } from "@/lib/community-post-media";
 import type { SignupGroupOption } from "@/lib/group-types";
@@ -111,6 +111,9 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
   async function uploadSinglePendingMedia(id: string, file: File) {
     try {
       const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
+      if (mediaType === "audio") {
+        throw new Error("For audio, use Moments (+ on Stories).");
+      }
       setPendingMedia((current) =>
         current.map((item) =>
           item.id === id ? { ...item, mediaUrl, mediaType, uploading: false } : item,
@@ -136,7 +139,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
     setError("");
 
     for (const file of chosen) {
-      const validationError = validateCommunityStoryFile(file);
+      const validationError = validateCommunityPostMediaFile(file);
       if (validationError) {
         setError(validationError);
         continue;

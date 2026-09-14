@@ -38,7 +38,7 @@ export type CommunityStatusReactionCounts = {
 
 export type CommunityStoryReactionKind = "pray" | "coming" | "amen";
 
-export type CommunityStatusMediaType = "image" | "video" | "text";
+export type CommunityStatusMediaType = "image" | "video" | "text" | "link" | "audio";
 
 export type CommunityStatusStoryKind = "default" | "service_invite";
 

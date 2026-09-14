@@ -21,6 +21,8 @@ function parseStoryKind(value: string | null | undefined): CommunityStatusStoryK
 function parseMediaType(value: string): CommunityStatusMediaType {
   if (value === "video") return "video";
   if (value === "text") return "text";
+  if (value === "link") return "link";
+  if (value === "audio") return "audio";
   return "image";
 }
 

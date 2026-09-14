@@ -24,12 +24,13 @@ import {
   loadSeenStoryIds,
   markStoriesSeen,
 } from "@/lib/community-story-utils";
+import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
 
 type CommunityStatusRowProps = {
   variant?: "feed" | "home";
 };
 
-type ComposeMode = "media" | "text" | "service";
+type ComposeMode = "media" | "text" | "service" | "link";
 
 export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps) {
   const { user } = useAuth();
@@ -49,6 +50,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
   const [composeMode, setComposeMode] = useState<ComposeMode>("media");
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [captionDraft, setCaptionDraft] = useState("");
+  const [linkDraft, setLinkDraft] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [mounted, setMounted] = useState(false);
   const nextService = useMemo(() => getNextWorshipService(), []);
@@ -136,7 +138,17 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     closeShareMenu();
     setComposeMode("service");
     setPendingFiles([]);
+    setLinkDraft("");
     setCaptionDraft(defaultServiceInviteCaption());
+    setCaptionOpen(true);
+  }
+
+  function openLinkComposer() {
+    closeShareMenu();
+    setComposeMode("link");
+    setPendingFiles([]);
+    setCaptionDraft("");
+    setLinkDraft("");
     setCaptionOpen(true);
   }
 
@@ -144,6 +156,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     setCaptionOpen(false);
     setPendingFiles([]);
     setCaptionDraft("");
+    setLinkDraft("");
     setComposeMode("media");
   }
 
@@ -153,6 +166,24 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
       const caption = captionDraft.trim();
       closeComposeDialog();
       void uploadStatuses(files, caption || undefined);
+      return;
+    }
+
+    if (composeMode === "link") {
+      const rawLink = linkDraft.trim();
+      if (!rawLink) {
+        setError("Paste the link from Instagram or another social app.");
+        return;
+      }
+      try {
+        normalizeStorySocialLink(rawLink);
+      } catch (linkError) {
+        setError(linkError instanceof Error ? linkError.message : "Invalid link.");
+        return;
+      }
+      const note = captionDraft.trim();
+      closeComposeDialog();
+      void postLinkMoment({ linkUrl: rawLink, caption: note || undefined });
       return;
     }
 
@@ -171,6 +202,36 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
   function openViewer(deckIndex: number, slideIndex = 0) {
     setViewerStart({ deckIndex, slideIndex });
     setViewerOpen(true);
+  }
+
+  async function postLinkMoment(input: { linkUrl: string; caption?: string }) {
+    if (!user) return;
+
+    setUploading(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const response = await fetch("/api/community/statuses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mediaType: "link",
+          linkUrl: input.linkUrl,
+          caption: input.caption,
+        }),
+      });
+      const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
+      if (!response.ok || !data.status) {
+        setError(data.error ?? "Could not share link.");
+        return;
+      }
+      applySavedStatuses([data.status]);
+    } catch (postError) {
+      setError(postError instanceof Error ? postError.message : "Could not share link.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function postWrittenMoment(input: {
@@ -309,7 +370,12 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
       : "community-feed-card community-stories-card";
 
   const composeDialogOpen =
-    captionOpen && mounted && (composeMode !== "media" || pendingFiles.length > 0);
+    captionOpen &&
+    mounted &&
+    (composeMode === "link" ||
+      composeMode === "text" ||
+      composeMode === "service" ||
+      (composeMode === "media" && pendingFiles.length > 0));
 
   const shareMenu =
     shareMenuOpen && mounted
@@ -341,8 +407,10 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                   onClick={openMediaPicker}
                   className="rounded-xl border border-night-900/10 px-4 py-3 text-left hover:bg-sand-50 dark:border-white/10 dark:hover:bg-white/5"
                 >
-                  <p className="font-semibold text-night-900 dark:text-sand-100">Photo or video</p>
-                  <p className="text-xs text-night-600 dark:text-sand-400">Worship clip, selfie, scenery…</p>
+                  <p className="font-semibold text-night-900 dark:text-sand-100">Photo, video, or audio</p>
+                  <p className="text-xs text-night-600 dark:text-sand-400">
+                    Worship clip, voice note, music snippet (MP3, M4A…)
+                  </p>
                 </button>
                 <button
                   type="button"
@@ -351,6 +419,16 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                 >
                   <p className="font-semibold text-night-900 dark:text-sand-100">Text moment</p>
                   <p className="text-xs text-night-600 dark:text-sand-400">Prayer ask, verse, “on my way”…</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={openLinkComposer}
+                  className="rounded-xl border border-night-900/10 px-4 py-3 text-left hover:bg-sand-50 dark:border-white/10 dark:hover:bg-white/5"
+                >
+                  <p className="font-semibold text-night-900 dark:text-sand-100">Instagram or social link</p>
+                  <p className="text-xs text-night-600 dark:text-sand-400">
+                    Copy link from Instagram, Facebook, YouTube… paste here
+                  </p>
                 </button>
                 <button
                   type="button"
@@ -392,7 +470,9 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                     ? "Service invite"
                     : composeMode === "text"
                       ? "Text moment"
-                      : "Share moment"}
+                      : composeMode === "link"
+                        ? "Social link"
+                        : "Share moment"}
                 </h2>
                 <button
                   type="button"
@@ -415,25 +495,44 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                     Invite the church family to {nextService.scheduleLabel}. People can tap
                     &quot;I&apos;m going&quot; on your moment.
                   </p>
+                ) : composeMode === "link" ? (
+                  <p className="text-sm text-night-600 dark:text-sand-300">
+                    In Instagram: tap your story → ⋯ → <strong>Link</strong> or{" "}
+                    <strong>Copy link</strong>, then paste below. Same idea for Facebook, YouTube,
+                    TikTok, and X.
+                  </p>
                 ) : (
                   <p className="text-sm text-night-600 dark:text-sand-300">
                     Share a short note the whole church family can see for 24 hours.
                   </p>
                 )}
+                {composeMode === "link" ? (
+                  <input
+                    type="url"
+                    inputMode="url"
+                    value={linkDraft}
+                    onChange={(event) => setLinkDraft(event.target.value)}
+                    placeholder="https://www.instagram.com/stories/…"
+                    className="community-story-caption-input mt-3 w-full rounded-xl border border-night-900/12 bg-white px-3 py-2.5 text-[15px] text-night-900 placeholder:text-night-400 focus:border-clay-500 focus:outline-none focus:ring-2 focus:ring-clay-500/20 dark:border-white/15 dark:bg-night-900 dark:text-sand-100"
+                    autoFocus
+                  />
+                ) : null}
                 <textarea
                   value={captionDraft}
                   onChange={(event) => setCaptionDraft(event.target.value.slice(0, 200))}
-                  rows={composeMode === "text" ? 4 : 3}
+                  rows={composeMode === "text" ? 4 : composeMode === "link" ? 2 : 3}
                   maxLength={200}
                   placeholder={
                     composeMode === "service"
                       ? nextService.inviteHeadline
                       : composeMode === "text"
                         ? "Need prayer, on my way, grabbing food after…"
-                        : "What's on your heart?"
+                        : composeMode === "link"
+                          ? "Optional note (e.g. Come see our Friday worship reel)"
+                          : "What's on your heart?"
                   }
-                  className="community-story-caption-input mt-3 w-full resize-none rounded-xl border border-night-900/12 bg-white px-3 py-2.5 text-[15px] text-night-900 placeholder:text-night-400 focus:border-clay-500 focus:outline-none focus:ring-2 focus:ring-clay-500/20 dark:border-white/15 dark:bg-night-900 dark:text-sand-100"
-                  autoFocus
+                  className={`community-story-caption-input w-full resize-none rounded-xl border border-night-900/12 bg-white px-3 py-2.5 text-[15px] text-night-900 placeholder:text-night-400 focus:border-clay-500 focus:outline-none focus:ring-2 focus:ring-clay-500/20 dark:border-white/15 dark:bg-night-900 dark:text-sand-100 ${composeMode === "link" ? "mt-2" : "mt-3"}`}
+                  autoFocus={composeMode !== "link"}
                 />
                 <p className="mt-1 text-right text-xs text-night-500 dark:text-sand-400">
                   {captionDraft.length}/200
@@ -517,7 +616,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
           ref={fileRef}
           type="file"
           multiple
-          accept="image/*,video/*,.heic,.heif,.3gp,.mp4,.mov,.webm"
+          accept="image/*,video/*,audio/*,.heic,.heif,.3gp,.mp4,.mov,.webm,.mp3,.m4a,.aac,.wav,.ogg"
           className="hidden"
         />
       </div>

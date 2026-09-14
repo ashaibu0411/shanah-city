@@ -2091,6 +2091,67 @@
   background: linear-gradient(145deg, #405578, #6b8cae);
 }
 
+.community-story-ring-audio-preview {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(145deg, #1f2937, #405578);
+}
+
+.community-story-audio-slide {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 1.5rem;
+  background: radial-gradient(circle at 30% 20%, #6b8cae 0%, #1a2332 55%, #0f1419 100%);
+}
+
+.community-story-audio-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  color: #fff;
+}
+
+.community-story-audio-icon {
+  display: flex;
+  height: 5rem;
+  width: 5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.community-story-audio-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.community-story-audio-element {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .community-story-share-menu {
   max-width: 22rem;
 }

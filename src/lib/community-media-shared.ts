@@ -1,5 +1,6 @@
 export const COMMUNITY_IMAGE_MAX_BYTES = 12 * 1024 * 1024;
 export const COMMUNITY_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
+export const COMMUNITY_AUDIO_MAX_BYTES = 15 * 1024 * 1024;
 export const COMMUNITY_STATUS_HOURS = 24;
 
 export const COMMUNITY_IMAGE_CONTENT_TYPES = [
@@ -20,6 +21,20 @@ export const COMMUNITY_VIDEO_CONTENT_TYPES = [
   "video/x-m4v",
   "video/3gpp",
   "video/3gpp2",
+  "application/octet-stream",
+] as const;
+
+export const COMMUNITY_AUDIO_CONTENT_TYPES = [
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/mp4",
+  "audio/x-m4a",
+  "audio/m4a",
+  "audio/aac",
+  "audio/wav",
+  "audio/x-wav",
+  "audio/ogg",
+  "audio/webm",
   "application/octet-stream",
 ] as const;
 
@@ -51,6 +66,18 @@ export function isCommunityVideoName(name: string) {
   );
 }
 
+export function isCommunityAudioName(name: string) {
+  const lower = lowerName(name);
+  return (
+    lower.endsWith(".mp3") ||
+    lower.endsWith(".m4a") ||
+    lower.endsWith(".aac") ||
+    lower.endsWith(".wav") ||
+    lower.endsWith(".ogg") ||
+    lower.endsWith(".weba")
+  );
+}
+
 export function isCommunityImageFile(file: File) {
   return COMMUNITY_IMAGE_CONTENT_TYPES.includes(file.type as (typeof COMMUNITY_IMAGE_CONTENT_TYPES)[number]) ||
     isCommunityImageName(file.name);
@@ -61,9 +88,15 @@ export function isCommunityVideoFile(file: File) {
     isCommunityVideoName(file.name);
 }
 
-export function inferCommunityMediaType(file: File): "image" | "video" | null {
+export function isCommunityAudioFile(file: File) {
+  return COMMUNITY_AUDIO_CONTENT_TYPES.includes(file.type as (typeof COMMUNITY_AUDIO_CONTENT_TYPES)[number]) ||
+    isCommunityAudioName(file.name);
+}
+
+export function inferCommunityMediaType(file: File): "image" | "video" | "audio" | null {
   if (isCommunityImageFile(file)) return "image";
   if (isCommunityVideoFile(file)) return "video";
+  if (isCommunityAudioFile(file)) return "audio";
   return null;
 }
 
@@ -77,6 +110,17 @@ export function inferCommunityVideoContentType(fileName: string, fileType?: stri
   if (lower.endsWith(".m4v")) return "video/x-m4v";
   if (lower.endsWith(".3gp")) return "video/3gpp";
   return "video/mp4";
+}
+
+export function inferCommunityAudioContentType(fileName: string, fileType?: string) {
+  if (fileType && COMMUNITY_AUDIO_CONTENT_TYPES.includes(fileType as (typeof COMMUNITY_AUDIO_CONTENT_TYPES)[number])) {
+    return fileType;
+  }
+  const lower = lowerName(fileName);
+  if (lower.endsWith(".wav")) return "audio/wav";
+  if (lower.endsWith(".ogg") || lower.endsWith(".weba")) return "audio/ogg";
+  if (lower.endsWith(".m4a") || lower.endsWith(".aac")) return "audio/mp4";
+  return "audio/mpeg";
 }
 
 export function inferCommunityImageContentType(fileName: string, fileType?: string) {

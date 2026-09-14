@@ -188,6 +188,17 @@ model CommunityStatusReaction {
   @@index([statusId])
 }
 
+model CommunityStatusReply {
+  id         String   @id
+  statusId   String
+  authorId   String
+  authorName String
+  content    String
+  createdAt  DateTime @default(now())
+
+  @@index([statusId])
+}
+
 model Comment {
   id        String        @id
   postId    String

@@ -2,17 +2,21 @@ import { put } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
 import {
+  COMMUNITY_AUDIO_MAX_BYTES,
   COMMUNITY_IMAGE_MAX_BYTES,
   COMMUNITY_STATUS_HOURS,
   COMMUNITY_VIDEO_MAX_BYTES,
+  inferCommunityAudioContentType,
   inferCommunityImageContentType,
   inferCommunityVideoContentType,
+  isCommunityAudioFile,
   isCommunityImageFile,
   isCommunityVideoFile,
 } from "@/lib/community-media-shared";
 import { useBlobStorage } from "@/lib/use-blob";
 
 export {
+  COMMUNITY_AUDIO_MAX_BYTES,
   COMMUNITY_IMAGE_MAX_BYTES,
   COMMUNITY_VIDEO_MAX_BYTES,
   COMMUNITY_STATUS_HOURS,
@@ -32,13 +36,15 @@ function safeFileName(name: string) {
 
 async function savePublicFile(
   file: File,
-  folder: "images" | "videos",
+  folder: "images" | "videos" | "audio",
   fallbackType: string,
 ) {
   const contentType =
     folder === "videos"
       ? inferCommunityVideoContentType(file.name, file.type)
-      : inferCommunityImageContentType(file.name, file.type);
+      : folder === "audio"
+        ? inferCommunityAudioContentType(file.name, file.type)
+        : inferCommunityImageContentType(file.name, file.type);
 
   if (useBlobStorage()) {
     const bytes = await file.arrayBuffer();
@@ -80,6 +86,16 @@ export async function saveCommunityVideo(file: File) {
   return savePublicFile(file, "videos", "video/mp4");
 }
 
+export async function saveCommunityAudio(file: File) {
+  if (!isCommunityAudioFile(file)) {
+    throw new Error("Upload an MP3, M4A, WAV, or OGG audio file.");
+  }
+  if (file.size > COMMUNITY_AUDIO_MAX_BYTES) {
+    throw new Error("Audio must be under 15 MB.");
+  }
+  return savePublicFile(file, "audio", "audio/mpeg");
+}
+
 export async function saveCommunityMedia(file: File) {
   if (isCommunityImageFile(file)) {
     return { mediaUrl: await saveCommunityImage(file), mediaType: "image" as const };
@@ -87,7 +103,10 @@ export async function saveCommunityMedia(file: File) {
   if (isCommunityVideoFile(file)) {
     return { mediaUrl: await saveCommunityVideo(file), mediaType: "video" as const };
   }
-  throw new Error("Upload a photo or video file.");
+  if (isCommunityAudioFile(file)) {
+    return { mediaUrl: await saveCommunityAudio(file), mediaType: "audio" as const };
+  }
+  throw new Error("Upload a photo, video, or audio file.");
 }
 
 export function communityStatusExpiry() {

@@ -1,6 +1,7 @@
 import type { CommunityStatus } from "@/lib/member-types";
 
 export const STORY_IMAGE_MS = 5000;
+export const STORY_LINK_MS = 8000;
 export const SEEN_STORIES_STORAGE_KEY = "shanah-community-story-seen";
 export const COMMUNITY_STORY_MAX_MEDIA = 10;
 

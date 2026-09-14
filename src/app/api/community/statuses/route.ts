@@ -11,6 +11,7 @@ import {
 } from "@/lib/community-status-viewer-server";
 import { addCommunityStatus } from "@/lib/community-status-server";
 import { defaultServiceInviteCaption } from "@/lib/community-worship-service";
+import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
 import type { CommunityStatusStoryKind } from "@/lib/member-types";
 
 function parseStoryKind(value: unknown): CommunityStatusStoryKind {
@@ -45,22 +46,35 @@ export async function POST(request: Request) {
 
   const contentType = request.headers.get("content-type") ?? "";
   let mediaUrl = "";
-  let mediaType: "image" | "video" | "text" | null = null;
+  let mediaType: "image" | "video" | "text" | "link" | "audio" | null = null;
   let caption = "";
   let storyKind: CommunityStatusStoryKind = "default";
 
   if (contentType.includes("application/json")) {
     const body = (await request.json()) as {
       mediaUrl?: string;
-      mediaType?: "image" | "video" | "text";
+      mediaType?: "image" | "video" | "text" | "link" | "audio";
       caption?: string;
       storyKind?: CommunityStatusStoryKind;
+      linkUrl?: string;
     };
-    mediaUrl = String(body.mediaUrl ?? "").trim();
+    mediaUrl = String(body.mediaUrl ?? body.linkUrl ?? "").trim();
     storyKind = parseStoryKind(body.storyKind);
     caption = String(body.caption ?? "").trim();
 
-    if (body.mediaType === "text") {
+    if (body.mediaType === "link") {
+      try {
+        const normalized = normalizeStorySocialLink(mediaUrl);
+        mediaType = "link";
+        mediaUrl = normalized.url;
+        if (!caption) {
+          caption = `Shared on ${normalized.label}`;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Invalid link.";
+        return NextResponse.json({ error: message }, { status: 400 });
+      }
+    } else if (body.mediaType === "text") {
       mediaType = "text";
       mediaUrl = "";
       if (!caption) {
@@ -68,7 +82,13 @@ export async function POST(request: Request) {
       }
     } else {
       mediaType =
-        body.mediaType === "video" ? "video" : body.mediaType === "image" ? "image" : null;
+        body.mediaType === "video"
+          ? "video"
+          : body.mediaType === "audio"
+            ? "audio"
+            : body.mediaType === "image"
+              ? "image"
+              : null;
       if (!mediaUrl || !mediaType || !isAllowedCommunityMediaUrl(mediaUrl)) {
         return NextResponse.json({ error: "Photo or video is required." }, { status: 400 });
       }

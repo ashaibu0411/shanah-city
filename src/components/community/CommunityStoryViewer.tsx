@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { formatCommunityTimeAgo } from "@/lib/community-ui-utils";
-import { inferCommunityVideoContentType } from "@/lib/community-media-shared";
+import { inferCommunityVideoContentType, inferCommunityAudioContentType } from "@/lib/community-media-shared";
 import { readJsonResponse } from "@/lib/read-json-response";
 import type { CommunityStatus, CommunityStoryReactionKind } from "@/lib/member-types";
 import { getNextWorshipService } from "@/lib/community-worship-service";
@@ -99,6 +99,68 @@ function StorySlideVideo({
     >
       <source src={mediaUrl} type={mimeType} />
     </video>
+  );
+}
+
+function StorySlideAudio({
+  src,
+  fileName,
+  paused,
+  onProgress,
+  onEnded,
+  onError,
+}: {
+  src: string;
+  fileName?: string;
+  paused: boolean;
+  onProgress: (percent: number) => void;
+  onEnded: () => void;
+  onError: () => void;
+}) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const mediaUrl = resolveStoryMediaUrl(src);
+  const mimeType = inferCommunityAudioContentType(fileName ?? mediaUrl);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.load();
+    void audio.play().catch(() => undefined);
+  }, [mediaUrl]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (paused) {
+      audio.pause();
+    } else {
+      void audio.play().catch(() => undefined);
+    }
+  }, [paused]);
+
+  return (
+    <div className="community-story-audio-slide">
+      <div className="community-story-audio-visual" aria-hidden>
+        <span className="community-story-audio-icon">♪</span>
+        <p className="community-story-audio-label">Audio moment</p>
+      </div>
+      <audio
+        ref={audioRef}
+        key={mediaUrl}
+        playsInline
+        preload="auto"
+        className="community-story-audio-element"
+        onTimeUpdate={(event) => {
+          const audio = event.currentTarget;
+          if (!audio.duration || !Number.isFinite(audio.duration)) return;
+          onProgress(Math.min(100, (audio.currentTime / audio.duration) * 100));
+        }}
+        onEnded={onEnded}
+        onError={onError}
+      >
+        <source src={mediaUrl} type={mimeType} />
+      </audio>
+    </div>
   );
 }
 
@@ -548,6 +610,15 @@ export function CommunityStoryViewer({
           </div>
         ) : slide.mediaType === "video" ? (
           <StorySlideVideo
+            src={slide.mediaUrl}
+            fileName={slide.mediaUrl}
+            paused={playbackPaused}
+            onProgress={setProgress}
+            onEnded={goNext}
+            onError={() => setMediaFailed(true)}
+          />
+        ) : slide.mediaType === "audio" ? (
+          <StorySlideAudio
             src={slide.mediaUrl}
             fileName={slide.mediaUrl}
             paused={playbackPaused}

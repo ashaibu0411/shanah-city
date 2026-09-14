@@ -36,10 +36,12 @@ export function CommunityStoryRing({
       : null;
   const previewUrl = preview ? resolveStoryMediaUrl(preview.mediaUrl) : null;
   const isTextPreview = preview?.mediaType === "text";
+  const isAudioPreview = preview?.mediaType === "audio";
   const textPreview = isTextPreview ? preview.caption?.trim() : "";
   const showPreview =
     preview &&
     !isTextPreview &&
+    !isAudioPreview &&
     previewUrl &&
     !previewFailed &&
     (preview.mediaType === "image" || preview.mediaType === "video");
@@ -80,6 +82,10 @@ export function CommunityStoryRing({
             ) : isTextPreview && textPreview ? (
               <div className="community-story-ring-text-preview">
                 <span>{textPreview.slice(0, 48)}{textPreview.length > 48 ? "…" : ""}</span>
+              </div>
+            ) : isAudioPreview ? (
+              <div className="community-story-ring-audio-preview" aria-hidden>
+                ♪
               </div>
             ) : avatarSrc ? (
               // eslint-disable-next-line @next/next/no-img-element

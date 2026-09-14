@@ -3,6 +3,8 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
+  COMMUNITY_AUDIO_CONTENT_TYPES,
+  COMMUNITY_AUDIO_MAX_BYTES,
   COMMUNITY_IMAGE_CONTENT_TYPES,
   COMMUNITY_IMAGE_MAX_BYTES,
   COMMUNITY_VIDEO_CONTENT_TYPES,
@@ -26,15 +28,22 @@ export async function POST(request: Request) {
 
         const isImagePath = pathname.startsWith("community/images/");
         const isVideoPath = pathname.startsWith("community/videos/");
-        if (!isImagePath && !isVideoPath) {
+        const isAudioPath = pathname.startsWith("community/audio/");
+        if (!isImagePath && !isVideoPath && !isAudioPath) {
           throw new Error("Invalid upload path.");
         }
 
         return {
           allowedContentTypes: isVideoPath
             ? [...COMMUNITY_VIDEO_CONTENT_TYPES]
-            : [...COMMUNITY_IMAGE_CONTENT_TYPES],
-          maximumSizeInBytes: isVideoPath ? COMMUNITY_VIDEO_MAX_BYTES : COMMUNITY_IMAGE_MAX_BYTES,
+            : isAudioPath
+              ? [...COMMUNITY_AUDIO_CONTENT_TYPES]
+              : [...COMMUNITY_IMAGE_CONTENT_TYPES],
+          maximumSizeInBytes: isVideoPath
+            ? COMMUNITY_VIDEO_MAX_BYTES
+            : isAudioPath
+              ? COMMUNITY_AUDIO_MAX_BYTES
+              : COMMUNITY_IMAGE_MAX_BYTES,
           addRandomSuffix: false,
         };
       },
