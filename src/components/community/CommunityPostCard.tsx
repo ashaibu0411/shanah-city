@@ -72,7 +72,7 @@ export function CommunityPostCard({
   const { user, permissions } = useAuth();
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
-  const [showAllComments, setShowAllComments] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reacted, setReacted] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
@@ -127,9 +127,16 @@ export function CommunityPostCard({
   }, [post.content, post.type, editing]);
 
   const comments = post.comments ?? [];
-  const visibleComments = showAllComments ? comments : comments.slice(-2);
-  const hiddenCommentCount = Math.max(0, comments.length - visibleComments.length);
   const timeLabel = formatCommunityTimeAgo(post.createdAt, post.timeAgo);
+
+  function openComments(focusInput = false) {
+    setCommentsOpen(true);
+    if (focusInput) {
+      window.setTimeout(() => {
+        document.getElementById(`comment-input-${post.id}`)?.focus();
+      }, 0);
+    }
+  }
 
   const audienceLabel = useMemo(() => {
     if (post.targetGroupName) return post.targetGroupName;
@@ -154,7 +161,7 @@ export function CommunityPostCard({
     if (response.ok) {
       onUpdate(data.post);
       setCommentDraft("");
-      setShowAllComments(true);
+      setCommentsOpen(true);
     }
   }
 
@@ -406,7 +413,7 @@ export function CommunityPostCard({
           {comments.length > 0 ? (
             <button
               type="button"
-              onClick={() => setShowAllComments(true)}
+              onClick={() => openComments()}
               className="hover:underline"
             >
               {comments.length} comment{comments.length === 1 ? "" : "s"}
@@ -429,10 +436,7 @@ export function CommunityPostCard({
         </button>
         <button
           type="button"
-          onClick={() => {
-            setShowAllComments(true);
-            document.getElementById(`comment-input-${post.id}`)?.focus();
-          }}
+          onClick={() => openComments(true)}
           className="community-action-btn"
         >
           <CommentIcon />
@@ -444,67 +448,59 @@ export function CommunityPostCard({
         </button>
       </div>
 
-      {(visibleComments.length > 0 || !compact) && (
+      {commentsOpen && !compact ? (
         <div className="space-y-2 px-3 pb-3 pt-1">
-          {hiddenCommentCount > 0 && !showAllComments ? (
-            <button
-              type="button"
-              onClick={() => setShowAllComments(true)}
-              className="text-xs font-semibold text-night-600 hover:underline"
-            >
-              View previous comments
-            </button>
-          ) : null}
-
-          {visibleComments.map((comment) => (
-            <div key={comment.id} className="flex items-start gap-2">
-              <CommunityAvatar name={comment.author} size="sm" />
-              <div className="min-w-0 flex-1">
-                <div className="community-comment-bubble">
-                  <p className="text-[13px] font-semibold leading-tight text-night-900">
-                    {comment.author}
+          {comments.length > 0 ? (
+            comments.map((comment) => (
+              <div key={comment.id} className="flex items-start gap-2">
+                <CommunityAvatar name={comment.author} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <div className="community-comment-bubble">
+                    <p className="text-[13px] font-semibold leading-tight text-night-900">
+                      {comment.author}
+                    </p>
+                    <p className="community-post-content mt-0.5 text-[15px] leading-snug text-night-900">
+                      {comment.content}
+                    </p>
+                  </div>
+                  <p className="mt-1 px-3 text-[11px] font-semibold text-night-600">
+                    {formatCommunityTimeAgo(comment.createdAt)}
                   </p>
-                  <p className="community-post-content mt-0.5 text-[15px] leading-snug text-night-900">{comment.content}</p>
                 </div>
-                <p className="mt-1 px-3 text-[11px] font-semibold text-night-600">
-                  {formatCommunityTimeAgo(comment.createdAt)}
-                </p>
               </div>
-            </div>
-          ))}
-
-          {!compact ? (
-            <div className="flex items-center gap-2 pt-1">
-              <CommunityAvatar name="You" size="sm" />
-              <div className="relative min-w-0 flex-1">
-                <input
-                  id={`comment-input-${post.id}`}
-                  value={commentDraft}
-                  onChange={(event) => setCommentDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      void submitComment();
-                    }
-                  }}
-                  placeholder="Write a comment..."
-                  className="community-comment-input"
-                />
-                {commentDraft.trim() ? (
-                  <button
-                    type="button"
-                    onClick={submitComment}
-                    disabled={loading}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-clay-600 disabled:opacity-50"
-                  >
-                    {loading ? "..." : "Post"}
-                  </button>
-                ) : null}
-              </div>
-            </div>
+            ))
           ) : null}
+
+          <div className="flex items-center gap-2 pt-1">
+            <CommunityAvatar name="You" size="sm" />
+            <div className="relative min-w-0 flex-1">
+              <input
+                id={`comment-input-${post.id}`}
+                value={commentDraft}
+                onChange={(event) => setCommentDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void submitComment();
+                  }
+                }}
+                placeholder="Write a comment..."
+                className="community-comment-input"
+              />
+              {commentDraft.trim() ? (
+                <button
+                  type="button"
+                  onClick={submitComment}
+                  disabled={loading}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-clay-600 disabled:opacity-50"
+                >
+                  {loading ? "..." : "Post"}
+                </button>
+              ) : null}
+            </div>
+          </div>
         </div>
-      )}
+      ) : null}
       {menu}
     </article>
   );
