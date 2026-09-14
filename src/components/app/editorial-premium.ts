@@ -1,9 +1,9 @@
 /** Levites-inspired editorial tokens — cream surfaces, dark brown type, terracotta accents. */
 
 export const editorialClay = {
-  50: "#f7f3eb",
-  100: "#f5efe6",
-  200: "#e8ddd0",
+  50: "#f5f2e8",
+  100: "#f2efe8",
+  200: "#e8e2d6",
   400: "#d4765a",
   500: "#c45d3e",
   600: "#a84d32",

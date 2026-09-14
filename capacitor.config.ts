@@ -20,7 +20,7 @@ const config: CapacitorConfig = {
       launchShowDuration: 0,
       launchAutoHide: false,
       launchFadeOutDuration: 0,
-      backgroundColor: "#f7f3eb",
+      backgroundColor: "#f5f2e8",
       showSpinner: false,
     },
     StatusBar: {

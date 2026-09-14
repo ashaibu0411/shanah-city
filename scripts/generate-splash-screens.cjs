@@ -3,7 +3,7 @@ const path = require("path");
 const sharp = require("sharp");
 
 const LOGO = path.resolve(__dirname, "../public/shanah-city-logo-light.png");
-const BACKGROUND = { r: 247, g: 243, b: 235, alpha: 1 }; // #f7f3eb
+const BACKGROUND = { r: 245, g: 242, b: 232, alpha: 1 }; // #f5f2e8
 const BACKGROUND_ONLY = process.argv.includes("--background-only");
 
 const IOS_SPLASH_DIR = path.resolve(

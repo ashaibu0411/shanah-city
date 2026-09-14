@@ -9,7 +9,7 @@ export const APP_THEME_META: Record<
   light: {
     label: "Light",
     description: "Warm cream background (default)",
-    themeColor: "#f7f3eb",
+    themeColor: "#f5f2e8",
   },
   dark: {
     label: "Dark",

@@ -4,14 +4,14 @@
 
 @layer base {
   :root {
-    --color-bg: #f7f3eb;
-    --color-bg-soft: #f5efe6;
-    --color-bg-muted: #e8ddd0;
-    --color-surface: #fffcf7;
-    --color-ink: #2d2418;
-    --color-ink-muted: #4a3d2e;
-    --color-ink-soft: #6b5a45;
-    --color-border: rgba(45, 36, 24, 0.08);
+    --color-bg: #f5f2e8;
+    --color-bg-soft: #f2efe8;
+    --color-bg-muted: #e8e2d6;
+    --color-surface: #ffffff;
+    --color-ink: #292524;
+    --color-ink-muted: #44403c;
+    --color-ink-soft: #78716c;
+    --color-border: rgba(41, 37, 36, 0.08);
     --color-accent: #c45d3e;
     --color-accent-strong: #a84d32;
     --color-accent-soft: #d4765a;
@@ -53,6 +53,13 @@
     text-rendering: optimizeLegibility;
   }
 
+  html:not(.dark) body {
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(ellipse 125% 90% at 50% -20%, #fdfbf7 0%, transparent 52%),
+      radial-gradient(ellipse 95% 70% at 50% 105%, #ede8dc 0%, transparent 48%);
+  }
+
   h1 {
     @apply font-home-hero;
   }
@@ -66,10 +73,10 @@
   body[data-shell="mobile"] {
     @apply text-[0.9375rem] leading-snug;
     color: var(--color-ink);
-    background:
-      radial-gradient(circle at 100% 0%, rgba(212, 168, 83, 0.12), transparent 44%),
-      radial-gradient(circle at 0% 88%, rgba(196, 93, 62, 0.06), transparent 40%),
-      linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 48%, var(--color-surface) 100%);
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(ellipse 125% 90% at 50% -20%, #fdfbf7 0%, transparent 52%),
+      radial-gradient(ellipse 95% 70% at 50% 105%, #ede8dc 0%, transparent 48%);
   }
 
   html.dark body[data-shell="mobile"] {
@@ -861,8 +868,8 @@
 
   body[data-shell="mobile"] .mobile-warm-page-header {
     background:
-      radial-gradient(circle at 100% 0%, rgba(212, 168, 83, 0.14), transparent 40%),
-      linear-gradient(180deg, var(--color-bg) 0%, var(--color-surface) 100%);
+      radial-gradient(ellipse 120% 80% at 50% 0%, #fdfbf7 0%, transparent 55%),
+      linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 100%);
     box-shadow:
       0 1px 2px rgba(45, 36, 24, 0.04),
       0 10px 28px rgba(45, 36, 24, 0.06);
