@@ -154,12 +154,14 @@ export function PageHeader({
   description,
   sectionIndex,
   accentWord,
+  variant = "default",
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   sectionIndex?: number;
   accentWord?: string;
+  variant?: "default" | "flat";
 }) {
   const { isMobileApp } = useAppShell();
 
@@ -171,6 +173,7 @@ export function PageHeader({
         description={description}
         sectionIndex={sectionIndex}
         accentWord={accentWord}
+        variant={variant}
       />
     );
   }
@@ -191,8 +194,12 @@ export function PageHeader({
       title
     );
 
+  const headerClass =
+    variant === "flat" ? editorialPremium.pageHeaderFlat : editorialPremium.pageHeader;
+  const headerMargin = variant === "flat" ? "mb-4" : "mb-8";
+
   return (
-    <div className={`${editorialPremium.pageHeader} mb-8`}>
+    <div className={`${headerClass} ${headerMargin}`}>
       {eyebrowText ? (
         <p className={editorialPremium.pageEyebrow}>{eyebrowText}</p>
       ) : null}

@@ -1704,6 +1704,7 @@
 
 .community-page-solid {
   --community-feed-bleed: 0.875rem;
+  background: var(--color-bg);
 }
 
 body[data-shell="mobile"] .community-page-solid {
@@ -1730,8 +1731,8 @@ body[data-shell="mobile"] .community-page-solid {
 }
 
 .community-feed-solid {
-  --community-feed-bg: var(--color-surface);
-  background: var(--color-surface);
+  --community-feed-bg: var(--color-bg);
+  background: var(--color-bg);
   border-radius: 0;
   padding: 0;
 }
@@ -1751,7 +1752,7 @@ body[data-shell="mobile"] .community-page-solid {
   border: none;
   border-bottom: 1px solid var(--color-border);
   box-shadow: none;
-  background: var(--color-surface);
+  background: var(--color-bg);
 }
 
 .community-feed-solid .community-feed-card,
@@ -1760,7 +1761,7 @@ body[data-shell="mobile"] .community-page-solid {
   border: none;
   border-bottom: 1px solid var(--color-border);
   box-shadow: none;
-  background: var(--color-surface);
+  background: var(--color-bg);
 }
 
 .community-feed-solid .community-media-carousel,
@@ -1777,7 +1778,7 @@ body[data-shell="mobile"] .community-page-solid {
   border: none;
   border-bottom: 1px solid var(--color-border);
   box-shadow: none;
-  background: var(--color-surface);
+  background: var(--color-bg);
   padding: 0.35rem var(--community-feed-bleed, 0.75rem);
 }
 
@@ -1785,13 +1786,13 @@ body[data-shell="mobile"] .community-page-solid {
   border-radius: 0;
   border: none;
   box-shadow: none;
-  background: var(--color-surface);
+  background: var(--color-bg);
 }
 
 .community-stories-strip {
   padding: 0.55rem 0 0.65rem;
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-bg);
 }
 
 .community-stories-status {
@@ -1799,7 +1800,7 @@ body[data-shell="mobile"] .community-page-solid {
 }
 
 .community-home-stories {
-  background: var(--color-surface);
+  background: var(--color-bg);
   border-radius: 0;
   border-bottom: 1px solid var(--color-border);
 }
@@ -2045,6 +2046,11 @@ html.dark .community-post-reaction-btn-active {
 
 .community-feed-solid .community-post-reactions {
   padding-inline: var(--community-feed-bleed, 0.75rem);
+}
+
+.community-feed-solid .community-composer-trigger {
+  background: color-mix(in srgb, var(--color-ink) 4%, var(--color-bg));
+  border: 1px solid var(--color-border);
 }
 
 .community-composer-bar {
@@ -3068,13 +3074,28 @@ body[data-shell="mobile"] .community-page .mobile-warm-page-header {
   margin-bottom: 0.75rem;
 }
 
+body[data-shell="mobile"] .community-page .editorial-page-header-flat {
+  padding: 0 var(--community-feed-bleed, 0.875rem) 0.75rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  box-shadow: none;
+}
+
+body[data-shell="mobile"] .editorial-page-header-flat {
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
 body[data-shell="mobile"] .community-page-solid {
   --community-feed-bleed: 0.875rem;
 }
 
 body[data-shell="mobile"] .community-feed-solid {
-  --community-feed-bg: var(--color-surface);
-  background: var(--color-surface);
+  --community-feed-bg: var(--color-bg);
+  background: var(--color-bg);
   margin-inline: 0;
   padding: 0;
 }

@@ -14,6 +14,8 @@ export const editorialClay = {
 export const editorialPremium = {
   pageHeader:
     "editorial-page-header mb-4 overflow-hidden rounded-[1.35rem] border border-night-900/8 bg-sand-50 p-5 shadow-[0_1px_2px_rgba(45,36,24,0.04),0_12px_32px_rgba(45,36,24,0.06)] dark:border-white/10 dark:bg-[var(--color-bg-soft)]",
+  pageHeaderFlat:
+    "editorial-page-header editorial-page-header-flat mb-0 rounded-none border-0 bg-transparent p-0 shadow-none dark:bg-transparent",
   pageEyebrow:
     "editorial-page-eyebrow text-[10px] font-bold uppercase tracking-[0.28em] text-night-500",
   pageTitle:

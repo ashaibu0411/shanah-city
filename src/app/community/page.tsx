@@ -24,18 +24,19 @@ export default async function CommunityPage() {
 
   return (
     <div className="community-page min-w-0 max-w-full overflow-x-clip">
-      <PageHeader
-        eyebrow="Together"
-        title="Community"
-        description="See moments from your groups and friends, pray in one tap, and stay connected day to day."
-      />
-      <MarkFeedRead feed="community" />
-      <PollsSection
-        initialPolls={polls.filter((poll) => !poll.targetGroupId)}
-        compact
-        hideWhenEmpty
-      />
       <div className="community-page-solid">
+        <PageHeader
+          variant="flat"
+          eyebrow="Together"
+          title="Community"
+          description="See moments from your groups and friends, pray in one tap, and stay connected day to day."
+        />
+        <MarkFeedRead feed="community" />
+        <PollsSection
+          initialPolls={polls.filter((poll) => !poll.targetGroupId)}
+          compact
+          hideWhenEmpty
+        />
         <CommunityFeed initialPosts={postsWithAccess} />
       </div>
     </div>

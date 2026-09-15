@@ -8,6 +8,7 @@ type MobilePageHeroProps = {
   description?: string;
   sectionIndex?: number;
   accentWord?: string;
+  variant?: "default" | "flat";
   className?: string;
   children?: React.ReactNode;
 };
@@ -33,6 +34,7 @@ export function MobilePageHero({
   description,
   sectionIndex,
   accentWord,
+  variant = "default",
   className = "",
   children,
 }: MobilePageHeroProps) {
@@ -41,8 +43,11 @@ export function MobilePageHero({
       ? formatEditorialSectionLabel(sectionIndex, eyebrow)
       : eyebrow;
 
+  const headerClass =
+    variant === "flat" ? editorialPremium.pageHeaderFlat : editorialPremium.pageHeader;
+
   return (
-    <div className={`${editorialPremium.pageHeader} ${className}`}>
+    <div className={`${headerClass} ${className}`}>
       {eyebrowText ? (
         <p className={editorialPremium.pageEyebrow}>{eyebrowText}</p>
       ) : null}
