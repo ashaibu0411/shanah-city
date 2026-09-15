@@ -16,6 +16,7 @@ import {
 import type { CommunityStatus, CommunityStoryReactionKind } from "@/lib/member-types";
 import { getNextWorshipService } from "@/lib/community-worship-service";
 import {
+  findDeckIndex,
   resolveStoryMediaUrl,
   STORY_IMAGE_MS,
   type StoryDeck,
@@ -221,7 +222,9 @@ export function CommunityStoryViewer({
   onStatusReactionChange,
 }: CommunityStoryViewerProps) {
   const [mounted, setMounted] = useState(false);
-  const [deckIndex, setDeckIndex] = useState(initialDeckIndex);
+  const [activeAuthorId, setActiveAuthorId] = useState(
+    () => decks[initialDeckIndex]?.authorId ?? "",
+  );
   const [slideIndex, setSlideIndex] = useState(initialSlideIndex);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -247,8 +250,14 @@ export function CommunityStoryViewer({
   const dragStartYRef = useRef<number | null>(null);
   const holdTimerRef = useRef<number | null>(null);
   const didHoldRef = useRef(false);
+  const slideIndexRef = useRef(initialSlideIndex);
+  const navBusyRef = useRef(false);
 
-  const deck = decks[deckIndex];
+  const deckIndex = useMemo(
+    () => (activeAuthorId ? findDeckIndex(decks, activeAuthorId) : -1),
+    [activeAuthorId, decks],
+  );
+  const deck = deckIndex >= 0 ? decks[deckIndex] : undefined;
   const slide = deck?.items[slideIndex];
   const mediaUrl = slide ? resolveStoryMediaUrl(slide.mediaUrl) : "";
   const isOwnStory = deck?.authorId === currentUserId;
@@ -271,9 +280,16 @@ export function CommunityStoryViewer({
   }, []);
 
   useEffect(() => {
-    setDeckIndex(initialDeckIndex);
+    slideIndexRef.current = slideIndex;
+  }, [slideIndex]);
+
+  useEffect(() => {
+    const authorId = decks[initialDeckIndex]?.authorId;
+    if (!authorId) return;
+    setActiveAuthorId(authorId);
     setSlideIndex(initialSlideIndex);
-  }, [initialDeckIndex, initialSlideIndex]);
+    slideIndexRef.current = initialSlideIndex;
+  }, [initialDeckIndex, initialSlideIndex, decks]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -289,12 +305,10 @@ export function CommunityStoryViewer({
       onClose();
       return;
     }
-    if (deckIndex >= decks.length) {
-      setDeckIndex(Math.max(0, decks.length - 1));
-      setSlideIndex(0);
-      setProgress(0);
+    if (activeAuthorId && deckIndex < 0) {
+      onClose();
     }
-  }, [deckIndex, decks.length, onClose]);
+  }, [activeAuthorId, deckIndex, decks.length, onClose]);
 
   useEffect(() => {
     if (!deck) return;
@@ -324,18 +338,35 @@ export function CommunityStoryViewer({
   }, [onStoriesSeen, slide]);
 
   const goNext = useCallback(() => {
-    if (!deck) return;
-    markCurrentSeen();
+    if (navBusyRef.current) return;
+    navBusyRef.current = true;
+    window.setTimeout(() => {
+      navBusyRef.current = false;
+    }, 280);
 
-    if (slideIndex < deck.items.length - 1) {
-      setSlideIndex((current) => current + 1);
+    const dIdx = findDeckIndex(decks, activeAuthorId);
+    if (dIdx < 0) {
+      onClose();
+      return;
+    }
+
+    const currentDeck = decks[dIdx];
+    markCurrentSeen();
+    const sIdx = slideIndexRef.current;
+
+    if (sIdx < currentDeck.items.length - 1) {
+      const next = sIdx + 1;
+      slideIndexRef.current = next;
+      setSlideIndex(next);
       setProgress(0);
       setMediaFailed(false);
       return;
     }
 
-    if (deckIndex < decks.length - 1) {
-      setDeckIndex((current) => current + 1);
+    if (dIdx < decks.length - 1) {
+      const nextDeck = decks[dIdx + 1];
+      slideIndexRef.current = 0;
+      setActiveAuthorId(nextDeck.authorId);
       setSlideIndex(0);
       setProgress(0);
       setMediaFailed(false);
@@ -343,29 +374,43 @@ export function CommunityStoryViewer({
     }
 
     onClose();
-  }, [deck, deckIndex, decks.length, markCurrentSeen, onClose, slideIndex]);
+  }, [activeAuthorId, decks, markCurrentSeen, onClose]);
 
   const goPrev = useCallback(() => {
-    markCurrentSeen();
+    if (navBusyRef.current) return;
+    navBusyRef.current = true;
+    window.setTimeout(() => {
+      navBusyRef.current = false;
+    }, 280);
 
-    if (slideIndex > 0) {
-      setSlideIndex((current) => current - 1);
+    markCurrentSeen();
+    const dIdx = findDeckIndex(decks, activeAuthorId);
+    if (dIdx < 0) return;
+
+    const sIdx = slideIndexRef.current;
+
+    if (sIdx > 0) {
+      const next = sIdx - 1;
+      slideIndexRef.current = next;
+      setSlideIndex(next);
       setProgress(0);
       setMediaFailed(false);
       return;
     }
 
-    if (deckIndex > 0) {
-      const previousDeck = decks[deckIndex - 1];
-      setDeckIndex((current) => current - 1);
-      setSlideIndex(Math.max(0, previousDeck.items.length - 1));
+    if (dIdx > 0) {
+      const previousDeck = decks[dIdx - 1];
+      const nextSlide = Math.max(0, previousDeck.items.length - 1);
+      slideIndexRef.current = nextSlide;
+      setActiveAuthorId(previousDeck.authorId);
+      setSlideIndex(nextSlide);
       setProgress(0);
       setMediaFailed(false);
       return;
     }
 
     setProgress(0);
-  }, [deckIndex, decks, markCurrentSeen, slideIndex]);
+  }, [activeAuthorId, decks, markCurrentSeen]);
 
   useEffect(() => {
     if (!slide || playbackPaused) return;
@@ -471,9 +516,10 @@ export function CommunityStoryViewer({
 
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left;
-    if (x < rect.width * 0.25) {
+    const ratio = x / rect.width;
+    if (ratio < 0.33) {
       goPrev();
-    } else {
+    } else if (ratio > 0.66) {
       goNext();
     }
   }
@@ -562,17 +608,25 @@ export function CommunityStoryViewer({
           onClose();
           return;
         }
-        if (deckIndex >= decks.length - 1) {
-          setDeckIndex((current) => Math.max(0, current - 1));
-          setSlideIndex(0);
+        const dIdx = findDeckIndex(decks, activeAuthorId);
+        if (dIdx >= decks.length - 1) {
+          const fallback = decks[Math.max(0, dIdx - 1)];
+          if (fallback) {
+            slideIndexRef.current = 0;
+            setActiveAuthorId(fallback.authorId);
+            setSlideIndex(0);
+          }
         }
         setProgress(0);
         setMediaFailed(false);
         return;
       }
 
-      if (slideIndex >= remainingInDeck) {
-        setSlideIndex(Math.max(0, remainingInDeck - 1));
+      const sIdx = slideIndexRef.current;
+      if (sIdx >= remainingInDeck) {
+        const nextSlide = Math.max(0, remainingInDeck - 1);
+        slideIndexRef.current = nextSlide;
+        setSlideIndex(nextSlide);
       }
       setProgress(0);
       setMediaFailed(false);
