@@ -8,27 +8,18 @@ import type { CommunityPost } from "@/lib/member-types";
 import {
   formatCommunityTimeAgo,
   postTypeLabel,
-  reactionActionLabel,
   reactionEmoji,
 } from "@/lib/community-ui-utils";
+import {
+  postReactionButtons,
+  topPostReactionEmojis,
+  totalPostReactionCount,
+  type CommunityPostReactionKind,
+} from "@/lib/community-post-reactions";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { CommunityMediaCarousel } from "@/components/community/CommunityMediaCarousel";
 import { canManageCommunityPostClient } from "@/lib/community-post-access";
 import { communityPostHasMedia, communityPostMediaItems } from "@/lib/community-post-media";
-
-function LikeIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden
-      className={`h-[18px] w-[18px] ${active ? "fill-clay-500" : "fill-none stroke-current"}`}
-      strokeWidth={active ? 0 : 1.8}
-    >
-      <path d="M7.5 10.5V18h-2.25A1.125 1.125 0 0 1 4.125 16.875V11.625A1.125 1.125 0 0 1 5.25 10.5H7.5Z" />
-      <path d="M7.5 10.5 9.75 4.875A2.25 2.25 0 0 1 14.25 6.75V10.5h4.125a2.25 2.25 0 0 1 2.205 2.775l-1.125 4.5A2.25 2.25 0 0 1 17.25 18H10.5" />
-    </svg>
-  );
-}
 
 function CommentIcon() {
   return (
@@ -74,7 +65,7 @@ export function CommunityPostCard({
   const [commentDraft, setCommentDraft] = useState("");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [reacted, setReacted] = useState(false);
+  const [reactionBusy, setReactionBusy] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 16 });
@@ -128,8 +119,20 @@ export function CommunityPostCard({
 
   const comments = post.comments ?? [];
   const timeLabel = formatCommunityTimeAgo(post.createdAt, post.timeAgo);
+  const reactionButtons = postReactionButtons();
+  const reactionTotal = totalPostReactionCount(post.reactionCounts, post.reactions);
+  const reactionSummaryEmojis =
+    post.reactionCounts && reactionTotal > 0
+      ? topPostReactionEmojis(post.reactionCounts)
+      : post.reactions > 0
+        ? [reactionEmoji(post.type)]
+        : [];
 
-  function openComments(focusInput = false) {
+  function toggleComments(focusInput = false) {
+    if (commentsOpen && !focusInput) {
+      setCommentsOpen(false);
+      return;
+    }
     setCommentsOpen(true);
     if (focusInput) {
       window.setTimeout(() => {
@@ -165,17 +168,21 @@ export function CommunityPostCard({
     }
   }
 
-  async function react() {
-    if (reacted) return;
-    const response = await fetch("/api/community", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "react", postId: post.id }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      onUpdate(data.post);
-      setReacted(true);
+  async function toggleReaction(kind: CommunityPostReactionKind) {
+    if (reactionBusy) return;
+    setReactionBusy(true);
+    try {
+      const response = await fetch("/api/community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "react", postId: post.id, kind }),
+      });
+      const data = await response.json();
+      if (response.ok && data.post) {
+        onUpdate(data.post);
+      }
+    } finally {
+      setReactionBusy(false);
     }
   }
 
@@ -398,22 +405,29 @@ export function CommunityPostCard({
         <CommunityMediaCarousel items={communityPostMediaItems(post)} />
       ) : null}
 
-      {(post.reactions > 0 || comments.length > 0) && (
+      {(reactionTotal > 0 || comments.length > 0) && (
         <div className="flex items-center justify-between px-3 py-2.5 text-xs text-night-600">
           <div className="inline-flex items-center gap-1.5">
-            {post.reactions > 0 ? (
+            {reactionTotal > 0 ? (
               <>
-                <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-clay-500 text-[10px] text-sand-50">
-                  {reactionEmoji(post.type)}
+                <span className="inline-flex items-center -space-x-1">
+                  {reactionSummaryEmojis.map((emoji, index) => (
+                    <span
+                      key={`${emoji}-${index}`}
+                      className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-clay-500 text-[10px] text-sand-50 ring-2 ring-white dark:ring-[var(--color-surface)]"
+                    >
+                      {emoji}
+                    </span>
+                  ))}
                 </span>
-                <span>{post.reactions}</span>
+                <span>{reactionTotal}</span>
               </>
             ) : null}
           </div>
           {comments.length > 0 ? (
             <button
               type="button"
-              onClick={() => openComments()}
+              onClick={() => toggleComments()}
               className="hover:underline"
             >
               {comments.length} comment{comments.length === 1 ? "" : "s"}
@@ -422,25 +436,42 @@ export function CommunityPostCard({
         </div>
       )}
 
+      {!compact && !editing ? (
+        <div
+          className="community-post-reactions"
+          role="toolbar"
+          aria-label="React to post"
+        >
+          {reactionButtons.map((button) => {
+            const active = post.viewerReactions?.includes(button.kind);
+            return (
+              <button
+                key={button.kind}
+                type="button"
+                disabled={reactionBusy}
+                onClick={() => void toggleReaction(button.kind)}
+                className={`community-post-reaction-btn ${active ? "community-post-reaction-btn-active" : ""}`}
+                aria-label={button.label}
+                aria-pressed={active}
+              >
+                <span aria-hidden>{button.emoji}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
       <div className="mx-3 border-t border-night-900/10" />
 
-      <div className="grid grid-cols-3 px-1 py-0.5">
+      <div className="grid grid-cols-2 px-1 py-0.5">
         <button
           type="button"
-          onClick={react}
-          disabled={reacted}
-          className={`community-action-btn ${reacted ? "community-action-btn-active" : ""}`}
-        >
-          <LikeIcon active={reacted} />
-          <span>{reactionActionLabel(post.type)}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => openComments(true)}
-          className="community-action-btn"
+          onClick={() => toggleComments(true)}
+          className={`community-action-btn ${commentsOpen ? "community-action-btn-active" : ""}`}
+          aria-expanded={commentsOpen}
         >
           <CommentIcon />
-          <span>Comment</span>
+          <span>{commentsOpen ? "Hide comments" : "Comment"}</span>
         </button>
         <button type="button" onClick={sharePost} className="community-action-btn">
           <ShareIcon />
@@ -450,7 +481,9 @@ export function CommunityPostCard({
 
       {commentsOpen && !compact ? (
         <div className="space-y-2 px-3 pb-3 pt-1">
-          {comments.length > 0 ? (
+          {comments.length === 0 ? (
+            <p className="px-1 text-sm text-night-500">No comments yet. Be the first.</p>
+          ) : (
             comments.map((comment) => (
               <div key={comment.id} className="flex items-start gap-2">
                 <CommunityAvatar name={comment.author} size="sm" />
@@ -469,7 +502,7 @@ export function CommunityPostCard({
                 </div>
               </div>
             ))
-          ) : null}
+          )}
 
           <div className="flex items-center gap-2 pt-1">
             <CommunityAvatar name="You" size="sm" />

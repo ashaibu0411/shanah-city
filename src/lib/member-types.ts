@@ -22,6 +22,8 @@ export type CommunityPost = {
   timeAgo: string;
   type: "prayer" | "praise" | "announcement";
   reactions: number;
+  reactionCounts?: import("@/lib/community-post-reactions").CommunityPostReactionCounts;
+  viewerReactions?: import("@/lib/community-post-reactions").CommunityPostReactionKind[];
   targetGroupId?: string;
   targetGroupName?: string;
   comments: Comment[];

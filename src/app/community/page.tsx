@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { attachCanManageToPosts } from "@/lib/community-post-access";
+import { attachReactionsToPosts } from "@/lib/community-post-reaction-server";
 import { getCommunityPostsForViewer } from "@/lib/member-server";
 import { getPollsForViewer } from "@/lib/poll-server";
 import { cookies } from "next/headers";
@@ -18,7 +19,8 @@ export default async function CommunityPage() {
     getPollsForViewer(user),
     user ? canManageAsAdmin(user) : Promise.resolve(false),
   ]);
-  const postsWithAccess = attachCanManageToPosts(posts, user, isAdmin);
+  const postsWithReactions = await attachReactionsToPosts(posts, user?.id);
+  const postsWithAccess = attachCanManageToPosts(postsWithReactions, user, isAdmin);
 
   return (
     <div className="community-page min-w-0 max-w-full overflow-x-clip">
