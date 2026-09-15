@@ -1386,18 +1386,6 @@
       0 6px 20px rgba(0, 0, 0, 0.18);
   }
 
-  .messages-hub-header-eyebrow {
-    font-size: 0.625rem;
-    font-weight: 700;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: rgba(228, 193, 122, 0.82);
-  }
-
-  html.dark .messages-hub-header-eyebrow {
-    color: color-mix(in srgb, var(--color-accent) 72%, var(--color-ink-soft));
-  }
-
   .messages-hub-header-title {
     font-family: var(--font-home-hero), var(--font-display), ui-serif, Georgia, serif;
     font-size: clamp(1.65rem, 4.5vw, 1.95rem);

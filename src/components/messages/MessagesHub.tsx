@@ -694,8 +694,7 @@ export function MessagesHub() {
         }`}
       >
         <div className="messages-hub-header px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <p className="messages-hub-header-eyebrow">Levites · Messages</p>
-          <div className="mt-1 flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
             <h2 className="messages-hub-header-title">Chats</h2>
             <div className="flex items-center gap-1">
               {!isMobileApp ? (
