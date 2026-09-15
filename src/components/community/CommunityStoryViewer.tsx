@@ -30,6 +30,22 @@ function reactionButtonsForSlide(slide: CommunityStatus) {
   ];
 }
 
+type StoryInsightsPayload = {
+  reactions: {
+    userId: string;
+    name: string;
+    kind: CommunityStoryReactionKind;
+    createdAt: string;
+  }[];
+  replies: {
+    id: string;
+    authorId: string;
+    authorName: string;
+    content: string;
+    createdAt: string;
+  }[];
+};
+
 type CommunityStoryViewerProps = {
   decks: StoryDeck[];
   initialDeckIndex: number;
@@ -227,6 +243,10 @@ export function CommunityStoryViewer({
   const [reactionError, setReactionError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [insightsError, setInsightsError] = useState("");
+  const [insightsData, setInsightsData] = useState<StoryInsightsPayload | null>(null);
   const pausedRef = useRef(false);
   const elapsedRef = useRef(0);
   const startRef = useRef(Date.now());
@@ -244,6 +264,10 @@ export function CommunityStoryViewer({
   const reactionButtons = slide ? reactionButtonsForSlide(slide) : [];
   const goingCount = slide?.reactions?.coming ?? 0;
   const isServiceInvite = slide?.storyKind === "service_invite";
+  const totalResponseCount = useMemo(() => {
+    if (!slide?.reactions) return 0;
+    return slide.reactions.pray + slide.reactions.coming + slide.reactions.amen;
+  }, [slide?.reactions]);
 
   useEffect(() => {
     setMounted(true);
@@ -290,6 +314,9 @@ export function CommunityStoryViewer({
     setMediaFailed(false);
     setMediaErrorDetail("");
     setSoundOn(false);
+    setShowInsights(false);
+    setInsightsData(null);
+    setInsightsError("");
   }, [slide?.id]);
 
   const markCurrentSeen = useCallback(() => {
@@ -385,16 +412,29 @@ export function CommunityStoryViewer({
     return () => window.clearTimeout(timer);
   }, [markCurrentSeen, slide]);
 
+  const closeStoryInsights = useCallback(() => {
+    setShowInsights(false);
+    if (!replyFocused) {
+      resumePlayback();
+    }
+  }, [replyFocused]);
+
   useEffect(() => {
     if (!mounted) return;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        if (showInsights) {
+          closeStoryInsights();
+          return;
+        }
+        onClose();
+      }
       if (event.key === "ArrowRight") goNext();
       if (event.key === "ArrowLeft") goPrev();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [goNext, goPrev, mounted, onClose]);
+  }, [closeStoryInsights, goNext, goPrev, mounted, onClose, showInsights]);
 
   function pausePlayback() {
     pausedRef.current = true;
@@ -439,6 +479,40 @@ export function CommunityStoryViewer({
     } else {
       goNext();
     }
+  }
+
+  async function loadStoryInsights() {
+    if (!slide || !isOwnStory) return;
+    setInsightsLoading(true);
+    setInsightsError("");
+    try {
+      const response = await fetch(
+        `/api/community/statuses/${encodeURIComponent(slide.id)}/insights`,
+        { cache: "no-store" },
+      );
+      const data = await readJsonResponse<StoryInsightsPayload & { error?: string }>(response);
+      if (!response.ok) {
+        setInsightsError(data.error ?? "Could not load responses.");
+        setInsightsData(null);
+        return;
+      }
+      setInsightsData({
+        reactions: data.reactions ?? [],
+        replies: data.replies ?? [],
+      });
+    } catch (error) {
+      setInsightsError(error instanceof Error ? error.message : "Could not load responses.");
+      setInsightsData(null);
+    } finally {
+      setInsightsLoading(false);
+    }
+  }
+
+  async function openStoryInsights() {
+    if (!slide || !isOwnStory) return;
+    pausePlayback();
+    setShowInsights(true);
+    await loadStoryInsights();
   }
 
   async function toggleReaction(kind: CommunityStoryReactionKind) {
@@ -597,20 +671,30 @@ export function CommunityStoryViewer({
           <p className="text-xs text-white/70">{formatCommunityTimeAgo(slide.createdAt)}</p>
         </div>
         {isOwnStory ? (
-          <button
-            type="button"
-            onClick={() => void deleteCurrentStory()}
-            disabled={deleting}
-            className="rounded-full p-2 text-white/90 hover:bg-white/10 disabled:opacity-50"
-            aria-label="Delete story"
-          >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-              />
-            </svg>
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => void openStoryInsights()}
+              className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-white/95 hover:bg-white/10"
+              aria-label="View story responses"
+            >
+              Responses{totalResponseCount > 0 ? ` · ${totalResponseCount}` : ""}
+            </button>
+            <button
+              type="button"
+              onClick={() => void deleteCurrentStory()}
+              disabled={deleting}
+              className="rounded-full p-2 text-white/90 hover:bg-white/10 disabled:opacity-50"
+              aria-label="Delete story"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                />
+              </svg>
+            </button>
+          </>
         ) : null}
         {slide.mediaType === "video" ? (
           <button
@@ -678,9 +762,19 @@ export function CommunityStoryViewer({
                 <p className="community-story-text-slide-kicker">Worship together</p>
                 <p className="community-story-text-slide-service-time">{nextService.scheduleLabel}</p>
                 {goingCount > 0 ? (
-                  <p className="community-story-text-slide-going">
-                    {goingCount} {goingCount === 1 ? "person is" : "people are"} going
-                  </p>
+                  isOwnStory ? (
+                    <button
+                      type="button"
+                      onClick={() => void openStoryInsights()}
+                      className="community-story-text-slide-going community-story-text-slide-going-btn"
+                    >
+                      {goingCount} {goingCount === 1 ? "person is" : "people are"} going · tap to see who
+                    </button>
+                  ) : (
+                    <p className="community-story-text-slide-going">
+                      {goingCount} {goingCount === 1 ? "person is" : "people are"} going
+                    </p>
+                  )
                 ) : null}
               </>
             ) : null}
@@ -786,6 +880,121 @@ export function CommunityStoryViewer({
               </button>
             );
           })}
+        </div>
+      ) : null}
+
+      {isOwnStory && slide ? (
+        <div className="community-story-viewer-author-bar">
+          {reactionButtons.map((button) => {
+            const count = slide.reactions?.[button.kind] ?? 0;
+            return (
+              <button
+                key={button.kind}
+                type="button"
+                onClick={() => void openStoryInsights()}
+                className="community-story-author-stat"
+                disabled={insightsLoading && showInsights}
+              >
+                <span aria-hidden>{button.emoji}</span>
+                <span>{button.label}</span>
+                <span className="community-story-reaction-count">{count}</span>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => void openStoryInsights()}
+            className="community-story-author-view-all"
+            disabled={insightsLoading && showInsights}
+          >
+            {insightsLoading && showInsights ? "Loading…" : "See who responded"}
+          </button>
+        </div>
+      ) : null}
+
+      {showInsights && isOwnStory && slide ? (
+        <div
+          className="community-story-insights-backdrop"
+          role="presentation"
+          onClick={closeStoryInsights}
+        >
+          <div
+            className="community-story-insights-sheet"
+            role="dialog"
+            aria-label="Story responses"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="community-story-insights-header">
+              <h2 className="community-story-insights-title">Responses</h2>
+              <button
+                type="button"
+                onClick={closeStoryInsights}
+                className="community-story-insights-close"
+                aria-label="Close responses"
+              >
+                ×
+              </button>
+            </div>
+
+            {insightsLoading ? (
+              <p className="community-story-insights-status">Loading…</p>
+            ) : insightsError ? (
+              <p className="community-story-insights-error">{insightsError}</p>
+            ) : insightsData &&
+              insightsData.reactions.length === 0 &&
+              insightsData.replies.length === 0 ? (
+              <p className="community-story-insights-status">No responses yet.</p>
+            ) : insightsData ? (
+              <div className="community-story-insights-body">
+                {reactionButtons.map((button) => {
+                  const rows = insightsData.reactions.filter((row) => row.kind === button.kind);
+                  if (rows.length === 0) return null;
+                  return (
+                    <section key={button.kind} className="community-story-insights-section">
+                      <h3 className="community-story-insights-section-title">
+                        <span aria-hidden>{button.emoji}</span>
+                        {button.label}
+                        <span className="community-story-insights-section-count">{rows.length}</span>
+                      </h3>
+                      <ul className="community-story-insights-list">
+                        {rows.map((row) => (
+                          <li key={`${row.userId}-${row.kind}-${row.createdAt}`}>
+                            <span className="community-story-insights-name">{row.name}</span>
+                            <span className="community-story-insights-time">
+                              {formatCommunityTimeAgo(row.createdAt)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  );
+                })}
+                {insightsData.replies.length > 0 ? (
+                  <section className="community-story-insights-section">
+                    <h3 className="community-story-insights-section-title">
+                      Replies
+                      <span className="community-story-insights-section-count">
+                        {insightsData.replies.length}
+                      </span>
+                    </h3>
+                    <ul className="community-story-insights-list community-story-insights-replies">
+                      {insightsData.replies.map((reply) => (
+                        <li key={reply.id}>
+                          <p className="community-story-insights-reply-meta">
+                            <span className="community-story-insights-name">{reply.authorName}</span>
+                            <span className="community-story-insights-time">
+                              {formatCommunityTimeAgo(reply.createdAt)}
+                            </span>
+                          </p>
+                          <p className="community-story-insights-reply-body">{reply.content}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
 
