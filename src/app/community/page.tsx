@@ -35,7 +35,9 @@ export default async function CommunityPage() {
         compact
         hideWhenEmpty
       />
-      <CommunityFeed initialPosts={postsWithAccess} />
+      <div className="community-page-solid">
+        <CommunityFeed initialPosts={postsWithAccess} />
+      </div>
     </div>
   );
 }

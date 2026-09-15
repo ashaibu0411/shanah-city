@@ -44,12 +44,12 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
   }
 
   return (
-    <div className="community-feed min-w-0 max-w-full">
+    <div className="community-feed community-feed-solid min-w-0 max-w-full">
       <div className="community-feed-header">
         <CommunityStatusRow />
         <CommunityComposer onLocalPost={prependPost} />
 
-        <div className="community-feed-card community-feed-tabs" role="tablist" aria-label="Feed filters">
+        <div className="community-feed-tabs" role="tablist" aria-label="Feed filters">
           {COMMUNITY_FEED_FILTERS.map((entry) => (
             <button
               key={entry.id}

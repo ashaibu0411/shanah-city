@@ -370,8 +370,8 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
 
   const cardClass =
     variant === "home"
-      ? "community-stories-card community-stories-card-home border-0 bg-transparent shadow-none"
-      : "community-feed-card community-stories-card";
+      ? "community-stories-strip community-stories-strip-home"
+      : "community-stories-strip";
 
   const composeDialogOpen =
     captionOpen &&
@@ -569,25 +569,17 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
       {shareMenu}
       {captionDialog}
       <div className={cardClass}>
-        {variant === "feed" ? (
-          <div className="flex items-center justify-between gap-2 px-1 pb-1">
-            <p className="text-[15px] font-semibold text-night-900 font-display">Stories</p>
-            {uploading ? <span className="text-xs text-night-600">{uploadLabel}</span> : null}
-          </div>
+        {variant === "feed" && uploading ? (
+          <p className="community-stories-status text-xs text-night-600 dark:text-sand-400">{uploadLabel}</p>
         ) : null}
-        {variant === "feed" ? (
-          <p className="px-1 pb-1 text-xs text-night-600">
-            Whole church family · your groups show first · gone in 24h
-          </p>
-        ) : null}
-        {error ? <p className="px-1 text-xs text-rose-600">{error}</p> : null}
-        {notice ? <p className="px-1 text-xs text-emerald-700">{notice}</p> : null}
+        {error ? <p className="community-stories-status text-xs text-rose-600">{error}</p> : null}
+        {notice ? <p className="community-stories-status text-xs text-emerald-700">{notice}</p> : null}
         <div className="community-stories-row">
           <CommunityStoryRing
             authorName={getPublicDisplayName(user)}
             authorId={user.id}
             preview={myDeck?.previewItem ?? null}
-            hasUnseen={Boolean(myDeck)}
+            hasUnseen={myDeck?.hasUnseen ?? false}
             showAddBadge
             disabled={uploading}
             label="Your story"

@@ -118,8 +118,6 @@ export function MobileHome({
       <AnniversaryHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
-      <HomeStoriesSection />
-
       <MobilePremiumFrame
         variant="surface"
         className="mobile-home-welcome-stack overflow-hidden ring-1 ring-night-900/8"
@@ -151,6 +149,8 @@ export function MobileHome({
           </div>
         </div>
       </MobilePremiumFrame>
+
+      <HomeStoriesSection />
 
       <LeaderReportHomeBanner />
       <TrainingHomeBanner />

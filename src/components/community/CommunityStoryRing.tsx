@@ -121,7 +121,7 @@ export function CommunityStoryRing({
                 onAddPress?.();
               }
             }}
-            className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-clay-500 text-lg font-bold leading-none text-sand-50 ring-2 ring-white"
+            className="community-story-add-badge absolute bottom-0 right-0 flex h-[22px] w-[22px] items-center justify-center rounded-full text-[15px] font-bold leading-none text-white ring-2 ring-[var(--color-surface)]"
             aria-label="Add story"
           >
             +

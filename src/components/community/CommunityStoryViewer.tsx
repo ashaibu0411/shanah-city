@@ -115,7 +115,7 @@ function StorySlideVideo({
       muted={muted}
       autoPlay
       preload="auto"
-      className="h-full w-full object-contain"
+      className="h-full w-full object-cover"
       onLoadedMetadata={(event) => {
         setProgressSafe(event.currentTarget, onProgress);
         void event.currentTarget.play().catch(() => undefined);
@@ -869,7 +869,7 @@ export function CommunityStoryViewer({
           <img
             src={mediaUrl}
             alt=""
-            className="h-full w-full object-contain"
+            className="h-full w-full object-cover"
             onError={() => setMediaFailed(true)}
           />
         )}
