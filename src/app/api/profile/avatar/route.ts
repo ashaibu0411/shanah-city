@@ -10,6 +10,7 @@ import {
 import {
   deleteUserAvatar,
   readAvatarFile,
+  registerDirectUploadAvatar,
   saveUserAvatar,
 } from "@/lib/avatar-server";
 import { getMemberAvatarApiUrl } from "@/lib/avatar-utils";
@@ -48,7 +49,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
 
+  const contentType = request.headers.get("content-type") ?? "";
+
   try {
+    if (contentType.includes("application/json")) {
+      const body = (await request.json()) as { completedDirectUpload?: boolean };
+      if (!body.completedDirectUpload) {
+        return NextResponse.json({ error: "Invalid upload request." }, { status: 400 });
+      }
+
+      const avatarUrl = await registerDirectUploadAvatar(user.id);
+      const updated = await updateUserProfile(user.id, { avatarUrl });
+
+      await recordActivity(user.id, "profile_update", "Updated profile photo");
+
+      return NextResponse.json({
+        user: updated ? toPublicMember(updated) : null,
+        avatarSrc: getMemberAvatarApiUrl(user.id, avatarUrl, updated?.updatedAt),
+      });
+    }
+
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -63,7 +83,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       user: updated ? toPublicMember(updated) : null,
-      avatarSrc: getMemberAvatarApiUrl(user.id, avatarUrl),
+      avatarSrc: getMemberAvatarApiUrl(user.id, avatarUrl, updated?.updatedAt),
     });
   } catch (error) {
     return NextResponse.json(

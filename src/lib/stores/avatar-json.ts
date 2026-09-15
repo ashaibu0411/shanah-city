@@ -1,10 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
-
-function isAllowedImage(file: File) {
-  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-  return allowed.includes(file.type) && file.size <= 10 * 1024 * 1024;
-}
+import {
+  avatarFileExtension,
+  isAllowedAvatarImage,
+  normalizeAvatarFile,
+} from "@/lib/avatar-image";
 
 function guessContentType(filepath: string) {
   const ext = path.extname(filepath).toLowerCase();
@@ -26,16 +26,7 @@ function guessContentType(filepath: string) {
 const AVATAR_DIR = path.join(process.cwd(), "data", "avatars");
 
 function extensionForFile(file: File) {
-  switch (file.type) {
-    case "image/png":
-      return ".png";
-    case "image/webp":
-      return ".webp";
-    case "image/gif":
-      return ".gif";
-    default:
-      return ".jpg";
-  }
+  return avatarFileExtension(file);
 }
 
 async function findAvatarFiles(userId: string) {
@@ -54,13 +45,14 @@ export async function getAvatarFilePath(userId: string) {
 }
 
 export async function saveUserAvatar(userId: string, file: File) {
-  if (!isAllowedImage(file)) {
+  const normalized = normalizeAvatarFile(file);
+  if (!isAllowedAvatarImage(normalized)) {
     throw new Error("Use JPG, PNG, WEBP, or GIF under 10 MB.");
   }
 
-  const bytes = await file.arrayBuffer();
+  const bytes = await normalized.arrayBuffer();
   const buffer = Buffer.from(bytes);
-  const ext = extensionForFile(file);
+  const ext = extensionForFile(normalized);
   const filename = `${userId}${ext}`;
 
   await fs.mkdir(AVATAR_DIR, { recursive: true });

@@ -1,19 +1,15 @@
 import { del, list, put } from "@vercel/blob";
-import { guessContentType, isAllowedImage } from "@/lib/gallery-server";
+import { guessContentType } from "@/lib/gallery-server";
+import {
+  avatarFileExtension,
+  isAllowedAvatarImage,
+  normalizeAvatarFile,
+} from "@/lib/avatar-image";
 import { useBlobStorage } from "@/lib/use-blob";
 import * as avatarJson from "@/lib/stores/avatar-json";
 
 function extensionForFile(file: File) {
-  switch (file.type) {
-    case "image/png":
-      return ".png";
-    case "image/webp":
-      return ".webp";
-    case "image/gif":
-      return ".gif";
-    default:
-      return ".jpg";
-  }
+  return avatarFileExtension(file);
 }
 
 async function findAvatarBlobs(userId: string) {
@@ -31,14 +27,15 @@ export async function getAvatarFilePath(userId: string) {
 }
 
 export async function saveUserAvatar(userId: string, file: File) {
-  if (!isAllowedImage(file)) {
+  const normalized = normalizeAvatarFile(file);
+  if (!isAllowedAvatarImage(normalized)) {
     throw new Error("Use JPG, PNG, WEBP, or GIF under 10 MB.");
   }
 
   if (useBlobStorage()) {
-    const bytes = await file.arrayBuffer();
+    const bytes = await normalized.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const ext = extensionForFile(file);
+    const ext = extensionForFile(normalized);
     const pathname = `avatars/${userId}${ext}`;
 
     for (const blob of await findAvatarBlobs(userId)) {
@@ -47,13 +44,42 @@ export async function saveUserAvatar(userId: string, file: File) {
 
     await put(pathname, buffer, {
       access: "public",
-      contentType: file.type || undefined,
+      contentType: normalized.type || undefined,
     });
 
     return `avatar:${userId}`;
   }
 
-  return avatarJson.saveUserAvatar(userId, file);
+  if (process.env.VERCEL) {
+    throw new Error(
+      "Profile photos need cloud storage. Add BLOB_READ_WRITE_TOKEN in Vercel (Production), then redeploy.",
+    );
+  }
+
+  return avatarJson.saveUserAvatar(userId, normalized);
+}
+
+export async function registerDirectUploadAvatar(userId: string) {
+  if (!useBlobStorage()) {
+    throw new Error(
+      "Profile photos need cloud storage. Add BLOB_READ_WRITE_TOKEN in Vercel (Production), then redeploy.",
+    );
+  }
+
+  const blobs = await findAvatarBlobs(userId);
+  if (blobs.length === 0) {
+    throw new Error("Photo upload did not finish. Check your connection and try again.");
+  }
+
+  const sorted = [...blobs].sort(
+    (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
+  );
+
+  for (const blob of sorted.slice(1)) {
+    await del(blob.url).catch(() => undefined);
+  }
+
+  return `avatar:${userId}`;
 }
 
 export async function deleteUserAvatar(userId: string) {

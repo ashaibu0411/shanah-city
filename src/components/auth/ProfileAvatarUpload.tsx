@@ -7,6 +7,11 @@ import { getMemberAvatarApiUrl } from "@/lib/avatar-utils";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { isNativeAppPlatform } from "@/lib/native-app";
 import { pickProfilePhotoFile } from "@/lib/native-media-picker";
+import {
+  fetchProfileAvatarUploadConfig,
+  uploadProfileAvatarClient,
+} from "@/lib/profile-avatar-client";
+import { normalizeAvatarFile, isAllowedAvatarImage } from "@/lib/avatar-image";
 import { Button } from "@/components/ui";
 
 type ProfileAvatarUploadProps = {
@@ -19,35 +24,75 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+  const [previewVersion, setPreviewVersion] = useState(0);
 
-  const avatarSrc = useMemo(
-    () => getMemberAvatarApiUrl(user.id, user.avatarUrl, user.updatedAt),
-    [user.id, user.avatarUrl, user.updatedAt],
-  );
+  const avatarSrc = useMemo(() => {
+    const cacheKey = user.updatedAt ?? (previewVersion > 0 ? String(previewVersion) : undefined);
+    return getMemberAvatarApiUrl(user.id, user.avatarUrl, cacheKey);
+  }, [user.id, user.avatarUrl, user.updatedAt, previewVersion]);
 
-  async function uploadAvatar(file: File) {
-    setBusy(true);
-    setMessage(null);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch("/api/profile/avatar", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await response.json();
-    setBusy(false);
-
-    if (!response.ok) {
-      setMessage(data.error ?? "Could not upload photo.");
+  async function applyUploadResult(data: {
+    user?: PublicMember | null;
+    avatarSrc?: string | null;
+  }) {
+    if (!data.user) {
+      setError(true);
+      setMessage("Photo uploaded but profile did not update. Try again.");
       return;
     }
 
-    if (data.user) {
-      onUpdated(data.user);
-      await refresh();
-      setMessage("Profile photo updated.");
+    onUpdated(data.user);
+    await refresh();
+    setPreviewVersion(Date.now());
+    setError(false);
+    setMessage("Profile photo updated.");
+  }
+
+  async function uploadAvatar(file: File) {
+    const normalized = normalizeAvatarFile(file);
+    if (!isAllowedAvatarImage(normalized)) {
+      setError(true);
+      setMessage("Use JPG, PNG, WEBP, or GIF under 10 MB.");
+      return;
+    }
+
+    setBusy(true);
+    setMessage(null);
+    setError(false);
+
+    try {
+      const config = await fetchProfileAvatarUploadConfig();
+
+      if (config.directUpload) {
+        const data = await uploadProfileAvatarClient(user.id, normalized);
+        await applyUploadResult(data);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", normalized);
+
+      const response = await fetch("/api/profile/avatar", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(true);
+        setMessage(data.error ?? "Could not upload photo.");
+        return;
+      }
+
+      await applyUploadResult(data);
+    } catch (uploadError) {
+      setError(true);
+      setMessage(
+        uploadError instanceof Error ? uploadError.message : "Could not upload photo.",
+      );
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -57,12 +102,14 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
 
     setBusy(true);
     setMessage(null);
+    setError(false);
 
     const response = await fetch("/api/profile/avatar", { method: "DELETE" });
     const data = await response.json();
     setBusy(false);
 
     if (!response.ok) {
+      setError(true);
       setMessage(data.error ?? "Could not remove photo.");
       return;
     }
@@ -70,6 +117,8 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
     if (data.user) {
       onUpdated(data.user);
       await refresh();
+      setPreviewVersion(Date.now());
+      setError(false);
       setMessage("Profile photo removed.");
     }
   }
@@ -92,7 +141,8 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
       <div>
         <p className="font-semibold text-night-900">Profile photo</p>
         <p className="mt-1 text-sm text-night-600">
-          Upload a photo after you create your account. JPG, PNG, WEBP, or GIF up to 10 MB.
+          JPG, PNG, WEBP, or GIF up to 10 MB. On the app, use the camera or photo picker for best
+          results.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <input
@@ -103,7 +153,7 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
             onChange={(event) => {
               const file = event.target.files?.[0];
               if (file) {
-                uploadAvatar(file);
+                void uploadAvatar(file);
               }
               event.target.value = "";
             }}
@@ -128,14 +178,16 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
             <button
               type="button"
               disabled={busy}
-              onClick={removeAvatar}
+              onClick={() => void removeAvatar()}
               className="rounded-xl px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
             >
               Remove
             </button>
           ) : null}
         </div>
-        {message ? <p className="mt-2 text-sm text-emerald-700">{message}</p> : null}
+        {message ? (
+          <p className={`mt-2 text-sm ${error ? "text-red-700" : "text-emerald-700"}`}>{message}</p>
+        ) : null}
       </div>
     </div>
   );
