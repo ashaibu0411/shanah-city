@@ -21,6 +21,20 @@ export type StoryLinkPreview =
       title?: string;
     }
   | {
+      kind: "tiktok_embed";
+      platform: "tiktok";
+      url: string;
+      embedUrl: string;
+      title?: string;
+    }
+  | {
+      kind: "facebook_embed";
+      platform: "facebook";
+      url: string;
+      embedUrl: string;
+      title?: string;
+    }
+  | {
       kind: "card";
       platform: StorySocialPlatform;
       url: string;
@@ -73,6 +87,60 @@ function isInstagramStoryUrl(url: string) {
   }
 }
 
+async function resolveCanonicalSocialUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    if (host.includes("vm.tiktok.com") || host.includes("vt.tiktok.com")) {
+      const response = await fetch(url, {
+        method: "GET",
+        redirect: "follow",
+        signal: AbortSignal.timeout(6000),
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; ShanahCityBot/1.0; +https://shanah-city.vercel.app)",
+        },
+      });
+      if (response.url && response.url.startsWith("http")) {
+        return response.url;
+      }
+    }
+  } catch {
+    return url;
+  }
+  return url;
+}
+
+function extractTikTokVideoId(url: string) {
+  try {
+    const path = new URL(url).pathname;
+    const match = path.match(/\/video\/(\d+)/i);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function isFacebookVideoUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    const path = parsed.pathname.toLowerCase();
+    if (host.includes("fb.watch")) return true;
+    if (path.includes("/reel/")) return true;
+    if (path.includes("/watch")) return true;
+    if (path.includes("/videos/")) return true;
+    if (parsed.searchParams.has("v")) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function facebookVideoEmbedUrl(url: string) {
+  return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=500`;
+}
+
 async function fetchOpenGraph(url: string, timeoutMs = 8000) {
   try {
     const response = await fetch(url, {
@@ -113,9 +181,10 @@ async function fetchOpenGraph(url: string, timeoutMs = 8000) {
 }
 
 export async function resolveStoryLinkPreview(url: string): Promise<StoryLinkPreview> {
-  const normalized = url.trim();
+  let normalized = url.trim();
   let hostname = "";
   try {
+    normalized = await resolveCanonicalSocialUrl(normalized);
     hostname = new URL(normalized).hostname;
   } catch {
     return {
@@ -141,6 +210,27 @@ export async function resolveStoryLinkPreview(url: string): Promise<StoryLinkPre
     }
   }
 
+  if (platform === "tiktok") {
+    const videoId = extractTikTokVideoId(normalized);
+    if (videoId) {
+      return {
+        kind: "tiktok_embed",
+        platform: "tiktok",
+        url: normalized,
+        embedUrl: `https://www.tiktok.com/embed/v2/${videoId}`,
+      };
+    }
+  }
+
+  if (platform === "facebook" && isFacebookVideoUrl(normalized)) {
+    return {
+      kind: "facebook_embed",
+      platform: "facebook",
+      url: normalized,
+      embedUrl: facebookVideoEmbedUrl(normalized),
+    };
+  }
+
   if (platform === "instagram") {
     const embedPath = instagramEmbedPath(normalized);
     if (embedPath) {
@@ -157,9 +247,8 @@ export async function resolveStoryLinkPreview(url: string): Promise<StoryLinkPre
         platform: "instagram",
         url: normalized,
         title: "Instagram story",
-        description:
-          "Instagram stories can't play inside the church app. Save the clip to your phone and post it as a photo/video moment for everyone to watch here.",
-        note: "story_no_embed",
+        description: "Tap below to open this story in Instagram.",
+        note: "external_only",
       };
     }
 
@@ -171,7 +260,7 @@ export async function resolveStoryLinkPreview(url: string): Promise<StoryLinkPre
       title: og?.title ?? `${storySocialPlatformLabel(platform)} link`,
       description:
         og?.description ??
-        "Open this link on Instagram. For video that plays in the app, save it and post with Photo, video, or audio.",
+        "Tap below to open on Instagram. Reels and posts may play here when Instagram allows embeds.",
       imageUrl: og?.imageUrl,
     };
   }
@@ -182,7 +271,9 @@ export async function resolveStoryLinkPreview(url: string): Promise<StoryLinkPre
     platform,
     url: normalized,
     title: og?.title ?? `${storySocialPlatformLabel(platform)} link`,
-    description: og?.description,
+    description:
+      og?.description ??
+      `Tap below to open on ${storySocialPlatformLabel(platform)}.`,
     imageUrl: og?.imageUrl,
   };
 }

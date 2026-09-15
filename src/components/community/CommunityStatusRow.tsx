@@ -436,6 +436,16 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                     Next up: {nextService.scheduleLabel} · friends tap &quot;I&apos;m going&quot;
                   </p>
                 </button>
+                <button
+                  type="button"
+                  onClick={openLinkComposer}
+                  className="rounded-xl border border-night-900/10 px-4 py-3 text-left hover:bg-sand-50 dark:border-white/10 dark:hover:bg-white/5"
+                >
+                  <p className="font-semibold text-night-900 dark:text-sand-100">Social link</p>
+                  <p className="text-xs text-night-600 dark:text-sand-400">
+                    Instagram, TikTok, Facebook, YouTube — plays here when possible
+                  </p>
+                </button>
               </div>
             </div>
           </div>,
@@ -491,9 +501,9 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                   </p>
                 ) : composeMode === "link" ? (
                   <p className="text-sm text-night-600 dark:text-sand-300">
-                    <strong>YouTube</strong> and <strong>Instagram posts/reels</strong> play inside the app.
-                    Instagram <strong>story</strong> links usually cannot — save the clip and use{" "}
-                    <strong>Photo, video, or audio</strong> instead.
+                    Paste a share link from <strong>Instagram</strong>, <strong>TikTok</strong>,{" "}
+                    <strong>Facebook</strong>, or <strong>YouTube</strong>. Clips that can embed
+                    play inside the app; everything else opens in that app or your browser.
                   </p>
                 ) : (
                   <p className="text-sm text-night-600 dark:text-sand-300">
@@ -506,7 +516,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                     inputMode="url"
                     value={linkDraft}
                     onChange={(event) => setLinkDraft(event.target.value)}
-                    placeholder="https://www.instagram.com/stories/…"
+                    placeholder="https://instagram.com/… · tiktok.com/… · facebook.com/…"
                     className="community-story-caption-input mt-3 w-full rounded-xl border border-night-900/12 bg-white px-3 py-2.5 text-[15px] text-night-900 placeholder:text-night-400 focus:border-clay-500 focus:outline-none focus:ring-2 focus:ring-clay-500/20 dark:border-white/15 dark:bg-night-900 dark:text-sand-100"
                     autoFocus
                   />

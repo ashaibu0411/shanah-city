@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   parseStoryLinkFromStatus,
+  storySocialOpenLabel,
   storySocialPlatformLabel,
 } from "@/lib/community-story-link-shared";
 import { readJsonResponse } from "@/lib/read-json-response";
 import type { CommunityStatus } from "@/lib/member-types";
 import { STORY_LINK_MS } from "@/lib/community-story-utils";
+import { openExternalUrl } from "@/lib/native-app";
 
 type StoryLinkPreview = import("@/lib/community-story-link-preview-server").StoryLinkPreview;
 
@@ -18,12 +20,30 @@ type StorySlideLinkProps = {
   onAdvance: () => void;
 };
 
+function isInAppEmbedKind(kind: StoryLinkPreview["kind"]) {
+  return (
+    kind === "youtube" ||
+    kind === "instagram_embed" ||
+    kind === "tiktok_embed" ||
+    kind === "facebook_embed"
+  );
+}
+
+function StoryLinkOpenButton({ url, label }: { url: string; label: string }) {
+  return (
+    <button
+      type="button"
+      className="community-story-link-open"
+      onClick={() => void openExternalUrl(url)}
+    >
+      {label}
+    </button>
+  );
+}
+
 export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySlideLinkProps) {
   const linkMeta = parseStoryLinkFromStatus(slide.mediaType, slide.mediaUrl);
-  const linkUrl = useMemo(
-    () => (linkMeta?.url ?? "").trim(),
-    [linkMeta?.url],
-  );
+  const linkUrl = useMemo(() => (linkMeta?.url ?? "").trim(), [linkMeta?.url]);
   const [preview, setPreview] = useState<StoryLinkPreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -63,7 +83,7 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
       .catch((loadError) => {
         if (cancelled) return;
         if (loadError instanceof Error && loadError.name === "AbortError") {
-          setError("Preview took too long. Tap the right side to continue or open the link below.");
+          setError("Preview took too long. Tap Open below or swipe to continue.");
         } else {
           setError(loadError instanceof Error ? loadError.message : "Could not load this link.");
         }
@@ -82,7 +102,7 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
   }, [linkUrl, slide.id]);
 
   useEffect(() => {
-    if (loading || preview?.kind === "youtube" || preview?.kind === "instagram_embed") {
+    if (loading || (preview && isInAppEmbedKind(preview.kind))) {
       return;
     }
 
@@ -105,18 +125,18 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
 
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [loading, onAdvance, onProgress, paused, preview?.kind]);
+  }, [loading, onAdvance, onProgress, paused, preview]);
 
   useEffect(() => {
-    if (paused) return;
-    if (preview?.kind === "youtube" || preview?.kind === "instagram_embed") {
-      onProgress(20);
-    }
-  }, [onProgress, paused, preview?.kind]);
+    if (paused || !preview || !isInAppEmbedKind(preview.kind)) return;
+    onProgress(20);
+  }, [onProgress, paused, preview]);
 
   const platformLabel = linkMeta
     ? storySocialPlatformLabel(linkMeta.platform)
     : "Social";
+  const openLabel = linkMeta?.openLabel ?? `Open on ${platformLabel}`;
+  const openUrl = preview?.url ?? linkUrl;
 
   if (loading) {
     return (
@@ -134,16 +154,7 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
         <p className="community-story-link-body">
           {slide.caption?.trim() || error || "Link unavailable."}
         </p>
-        {linkUrl ? (
-          <a
-            href={linkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="community-story-link-open"
-          >
-            Open on {platformLabel}
-          </a>
-        ) : null}
+        {linkUrl ? <StoryLinkOpenButton url={linkUrl} label={openLabel} /> : null}
       </div>
     );
   }
@@ -158,6 +169,7 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
+        <StoryLinkOpenButton url={preview.url} label={openLabel} />
       </div>
     );
   }
@@ -172,6 +184,37 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
           allow="autoplay; encrypted-media"
           allowFullScreen
         />
+        <StoryLinkOpenButton url={preview.url} label={openLabel} />
+      </div>
+    );
+  }
+
+  if (preview.kind === "tiktok_embed") {
+    return (
+      <div className="community-story-link-slide community-story-link-slide-embed">
+        <iframe
+          title="TikTok video"
+          src={preview.embedUrl}
+          className="community-story-link-iframe community-story-link-iframe-tiktok"
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+        <StoryLinkOpenButton url={preview.url} label={openLabel} />
+      </div>
+    );
+  }
+
+  if (preview.kind === "facebook_embed") {
+    return (
+      <div className="community-story-link-slide community-story-link-slide-embed">
+        <iframe
+          title="Facebook video"
+          src={preview.embedUrl}
+          className="community-story-link-iframe community-story-link-iframe-facebook"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+        <StoryLinkOpenButton url={preview.url} label={openLabel} />
       </div>
     );
   }
@@ -192,12 +235,13 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
             preview.description ||
             "Shared from social media."}
         </p>
-        {preview.note === "story_no_embed" ? (
+        {preview.note === "external_only" ? (
           <p className="community-story-link-tip">
-            Tip: save the story to your gallery, then post it with{" "}
-            <strong>Photo, video, or audio</strong> so it plays inside Shanah City.
+            Instagram stories open in the Instagram app or browser. To play a clip inside Shanah
+            City, save it and post with <strong>Photo, video, or audio</strong>.
           </p>
         ) : null}
+        <StoryLinkOpenButton url={openUrl} label={openLabel} />
       </div>
     </div>
   );

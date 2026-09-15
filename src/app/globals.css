@@ -2697,8 +2697,28 @@ html.dark .community-story-viewer-reply-input {
 }
 
 .community-story-link-slide-embed {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   padding: 0;
   background: #000;
+}
+
+.community-story-link-slide-embed .community-story-link-iframe {
+  flex: 1;
+  min-height: 0;
+}
+
+.community-story-link-slide-embed .community-story-link-open {
+  flex-shrink: 0;
+  margin: 0.5rem auto 0.75rem;
+  border: 0;
+  cursor: pointer;
+}
+
+.community-story-link-iframe-tiktok,
+.community-story-link-iframe-facebook {
+  max-width: 100%;
 }
 
 .community-story-link-iframe {
@@ -2773,12 +2793,14 @@ html.dark .community-story-viewer-reply-input {
   margin-top: 1rem;
   display: inline-flex;
   border-radius: 9999px;
+  border: none;
   background: rgba(255, 255, 255, 0.16);
   padding: 0.55rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: #fff;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .community-story-link-open:hover {
