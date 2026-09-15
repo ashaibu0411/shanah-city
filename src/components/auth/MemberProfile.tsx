@@ -228,9 +228,6 @@ export function MemberProfile() {
 
       <div className={`grid ${isMobileApp ? "gap-3" : "gap-6 lg:grid-cols-3"}`}>
         <div className={`${isMobileApp ? "space-y-3" : "space-y-6 lg:col-span-2"}`}>
-          <LeaderTrainingPanel />
-          <MemberGivingHistory />
-          <PushNotificationSettings />
           <Card>
             <ProfileAvatarUpload user={user} onUpdated={setUser} />
           </Card>
@@ -286,6 +283,9 @@ export function MemberProfile() {
               Save profile
             </Button>
           </Card>
+
+          <MemberGivingHistory />
+          <PushNotificationSettings />
 
           <Card className={isMobileApp ? "!p-3.5" : ""}>
             <h2 className={`font-display font-semibold text-night-900 ${isMobileApp ? "text-base" : "text-xl"}`}>
@@ -460,6 +460,7 @@ export function MemberProfile() {
             <CoupleAccountLinkPanel />
           </Card>
 
+          <LeaderTrainingPanel />
           <DeleteAccountPanel />
         </div>
 
