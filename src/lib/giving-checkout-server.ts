@@ -25,6 +25,12 @@ import {
   STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES,
 } from "@/lib/stripe-server";
 import { estimateProcessingFeeCoverage } from "@/lib/giving-fees";
+import {
+  givingTodayDateKey,
+  normalizeRecurringStartDateInput,
+  stripeTrialEndForRecurringStart,
+  validateRecurringStartDate,
+} from "@/lib/giving-recurring-start";
 
 export { isStripeGivingConfigured };
 
@@ -57,6 +63,7 @@ export async function createGivingCheckoutSession(input: {
   fund: GivingFund;
   frequency: GivingCheckoutFrequency;
   coverFees?: boolean;
+  recurringStartDate?: string;
   user?: PublicMember | null;
 }) {
   if (!isStripeGivingConfigured()) {
@@ -74,6 +81,15 @@ export async function createGivingCheckoutSession(input: {
   const feeCoverage = input.coverFees ? estimateProcessingFeeCoverage(giftAmount) : { fee: 0, total: giftAmount };
   const feeCents = Math.round(feeCoverage.fee * 100);
   const fundLabelText = fundLabel(input.fund);
+  let recurringStartDate: string | undefined;
+  if (isRecurringCheckoutFrequency(input.frequency)) {
+    const rawStart =
+      input.recurringStartDate !== undefined && input.recurringStartDate !== ""
+        ? normalizeRecurringStartDateInput(input.recurringStartDate)
+        : givingTodayDateKey();
+    recurringStartDate = validateRecurringStartDate(rawStart ?? givingTodayDateKey());
+  }
+
   const metadata = {
     fund: input.fund,
     frequency: input.frequency,
@@ -83,6 +99,7 @@ export async function createGivingCheckoutSession(input: {
     giftAmount: String(giftAmount),
     feeAmount: String(feeCoverage.fee),
     coverFees: input.coverFees ? "true" : "false",
+    ...(recurringStartDate ? { recurringStartDate } : {}),
   };
 
   function giftLineItem(
@@ -143,6 +160,8 @@ export async function createGivingCheckoutSession(input: {
           ? "Every 2 weeks"
           : "Monthly";
 
+    const trialEnd = stripeTrialEndForRecurringStart(recurringStartDate!);
+
     return stripe.checkout.sessions.create({
       mode: "subscription",
       ...common,
@@ -152,6 +171,7 @@ export async function createGivingCheckoutSession(input: {
       ],
       subscription_data: {
         metadata,
+        ...(trialEnd ? { trial_end: trialEnd } : {}),
       },
     });
   }
@@ -317,6 +337,9 @@ export async function recordGiftFromInvoice(
     invoice.billing_reason === "subscription_cycle"
       ? recurringGiftNote(metadata.frequency)
       : `${recurringGiftNote(metadata.frequency)} (initial)`;
+  const startNote = metadata.recurringStartDate
+    ? ` Scheduled start ${metadata.recurringStartDate}.`
+    : "";
 
   return recordStripeGift({
     amount: giftAmount,
@@ -326,7 +349,7 @@ export async function recordGiftFromInvoice(
     donorEmail,
     userId: metadataUserId(metadata.userId),
     campusId: metadataValue(metadata.campusId),
-    notes: giftNotesFromMetadata(metadata, frequencyNote),
+    notes: giftNotesFromMetadata(metadata, `${frequencyNote}${startNote}`),
     stripeInvoiceId: invoice.id,
   });
 }

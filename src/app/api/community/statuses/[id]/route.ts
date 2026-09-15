@@ -2,11 +2,11 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
-  COMMUNITY_STORY_REACTION_KINDS,
-  toggleCommunityStatusReaction,
-} from "@/lib/community-status-reaction-server";
-import type { CommunityStoryReactionKind } from "@/lib/member-types";
+  isStoryReactionKind,
+} from "@/lib/community-story-reactions";
+import { toggleCommunityStatusReaction } from "@/lib/community-status-reaction-server";
 import { deleteCommunityStatus } from "@/lib/community-status-server";
+import type { CommunityStoryReactionKind } from "@/lib/member-types";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -61,7 +61,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   const body = (await request.json()) as { kind?: string };
   const kind = String(body.kind ?? "") as CommunityStoryReactionKind;
 
-  if (!COMMUNITY_STORY_REACTION_KINDS.includes(kind)) {
+  if (!isStoryReactionKind(kind)) {
     return NextResponse.json({ error: "Invalid reaction." }, { status: 400 });
   }
 

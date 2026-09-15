@@ -7,9 +7,14 @@ import {
 import {
   GIVING_CHECKOUT_FUNDS,
   GIVING_CHECKOUT_FREQUENCIES,
+  isRecurringCheckoutFrequency,
   type GivingCheckoutFrequency,
   type GivingFund,
 } from "@/lib/giving-types";
+import {
+  normalizeRecurringStartDateInput,
+  validateRecurringStartDate,
+} from "@/lib/giving-recurring-start";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
   enforceRateLimit,
@@ -55,6 +60,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a valid giving frequency." }, { status: 400 });
   }
 
+  let recurringStartDate: string | undefined;
+  if (isRecurringCheckoutFrequency(frequency)) {
+    if (body.recurringStartDate !== undefined && body.recurringStartDate !== "") {
+      try {
+        recurringStartDate = validateRecurringStartDate(
+          normalizeRecurringStartDateInput(body.recurringStartDate)!,
+        );
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : "Invalid start date." },
+          { status: 400 },
+        );
+      }
+    }
+  } else if (body.recurringStartDate) {
+    return NextResponse.json(
+      { error: "Start date applies to recurring gifts only." },
+      { status: 400 },
+    );
+  }
+
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -65,6 +91,7 @@ export async function POST(request: Request) {
       fund,
       frequency,
       coverFees,
+      recurringStartDate,
       user,
     });
 

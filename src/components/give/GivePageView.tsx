@@ -3,8 +3,10 @@
 import { GiveCheckoutPanel } from "@/components/give/GiveCheckoutPanel";
 import { GivePlatformGrid } from "@/components/give/GivePlatformGrid";
 import { TextToGivePanel } from "@/components/give/TextToGivePanel";
-import { editorialPremium } from "@/components/app/editorial-premium";
-import { PageHeader } from "@/components/ui";
+import {
+  editorialPremium,
+  formatEditorialSectionLabel,
+} from "@/components/app/editorial-premium";
 import type { TextToGiveConfig } from "@/lib/giving-text";
 import type { GivingPlatform } from "@/lib/types";
 import { site } from "@/lib/site";
@@ -15,60 +17,70 @@ type GivePageViewProps = {
 };
 
 export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
-  const quoteClass = `${editorialPremium.quote} mb-6`;
-  const sectionClass = `${editorialPremium.section} mb-6`;
-  const methodClass = editorialPremium.section;
-
   return (
-    <>
-      <PageHeader
-        eyebrow="Giving"
-        title="Give"
-        description="Glorify God with every area of your life — including your finances."
-      />
+    <div className="give-page-premium pb-4">
+      <header className={`${editorialPremium.pageHeader} mb-8`}>
+        <p className={editorialPremium.pageEyebrow}>Giving</p>
+        <h1 className={editorialPremium.pageTitle}>Give with joy</h1>
+        <p className={editorialPremium.pageDescription}>
+          Glorify God with every area of your life — including your finances. Choose secure online
+          giving or another option that works for you.
+        </p>
+      </header>
 
-      <blockquote className={quoteClass}>
-        <p className="font-display text-lg italic text-night-800">
+      <blockquote className={`${editorialPremium.quote} mb-8`}>
+        <p className="font-display text-lg italic leading-relaxed text-night-800 dark:text-sand-100">
           &ldquo;{site.giving.verse}&rdquo;
         </p>
-        <footer className="mt-2 text-sm font-semibold text-night-500">
+        <footer className="mt-3 text-sm font-semibold text-night-500 dark:text-sand-400">
           — {site.giving.reference}
         </footer>
       </blockquote>
 
-      <div className={sectionClass}>
-        <h2 className="font-display text-xl font-semibold text-night-900">Why we give</h2>
-        <p className="mt-3 leading-relaxed text-night-600">{site.giving.why}</p>
-      </div>
+      <section className={`${editorialPremium.section} mb-8`}>
+        <p className={editorialPremium.sectionLabel}>
+          {formatEditorialSectionLabel(1, "Why we give")}
+        </p>
+        <p className="mt-3 leading-relaxed text-night-600 dark:text-sand-200">{site.giving.why}</p>
+      </section>
 
       <GiveCheckoutPanel />
 
-      {textToGive ? <TextToGivePanel config={textToGive} /> : null}
+      {textToGive ? (
+        <div className="mb-10">
+          <p className={`${editorialPremium.sectionLabel} mb-3`}>
+            {formatEditorialSectionLabel(2, "Text to give")}
+          </p>
+          <TextToGivePanel config={textToGive} />
+        </div>
+      ) : null}
 
-      <section className="mb-8">
-        <h2 className="mb-4 font-display text-xl font-semibold text-night-900">
-          Other online options
-        </h2>
-        <p className="mb-4 text-sm text-night-600">
-          Choose the option that works best for you. PayPal, Cash App, and Venmo open in
-          their apps on mobile when installed.
+      <section className="mb-10">
+        <p className={`${editorialPremium.sectionLabel} mb-3`}>
+          {formatEditorialSectionLabel(textToGive ? 3 : 2, "Other online options")}
+        </p>
+        <p className="mb-5 max-w-2xl text-sm leading-relaxed text-night-600 dark:text-sand-300">
+          PayPal, Cash App, and Venmo open in their apps on mobile when installed.
         </p>
         <GivePlatformGrid platforms={platforms} />
       </section>
 
-      <section>
-        <h2 className="mb-4 font-display text-xl font-semibold text-night-900">
-          Other ways to give
-        </h2>
-        <div className="grid gap-4 md:grid-cols-3">
+      <section className={`${editorialPremium.section} mb-8`}>
+        <p className={editorialPremium.sectionLabel}>
+          {formatEditorialSectionLabel(textToGive ? 4 : 3, "In person & other ways")}
+        </p>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
           {site.giving.methods
             .filter((method) => method.title !== "Give Online")
             .map((method) => (
-              <div key={method.title} className={methodClass}>
-                <h3 className="font-display text-xl font-semibold text-night-900">
+              <div
+                key={method.title}
+                className="rounded-2xl border border-night-900/6 bg-sand-50/80 p-5 dark:border-white/10 dark:bg-[var(--color-bg-soft)]"
+              >
+                <h3 className="font-display text-lg font-semibold text-night-950 dark:text-sand-50">
                   {method.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-night-600">
+                <p className="mt-2 text-sm leading-relaxed text-night-600 dark:text-sand-300">
                   {method.description}
                 </p>
               </div>
@@ -76,15 +88,15 @@ export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
         </div>
       </section>
 
-      <p className="mt-6 text-sm text-night-500">
+      <p className="text-sm text-night-500 dark:text-sand-400">
         Questions? Call {site.phone} or email{" "}
         <a
           href={`mailto:${site.giving.financeEmail}`}
-          className="font-semibold text-night-700 hover:underline"
+          className="font-semibold text-night-800 hover:underline dark:text-sand-200"
         >
           {site.giving.financeEmail}
         </a>
       </p>
-    </>
+    </div>
   );
 }

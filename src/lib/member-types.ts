@@ -30,13 +30,9 @@ export type CommunityPost = {
   canManage?: boolean;
 };
 
-export type CommunityStatusReactionCounts = {
-  pray: number;
-  coming: number;
-  amen: number;
-};
+export type CommunityStatusReactionCounts = import("@/lib/community-story-reactions").CommunityStatusReactionCounts;
 
-export type CommunityStoryReactionKind = "pray" | "coming" | "amen";
+export type CommunityStoryReactionKind = import("@/lib/community-story-reactions").CommunityStoryReactionKind;
 
 export type CommunityStatusMediaType = "image" | "video" | "text" | "link" | "audio";
 

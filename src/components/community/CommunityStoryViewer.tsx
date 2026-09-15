@@ -6,6 +6,14 @@ import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { formatCommunityTimeAgo } from "@/lib/community-ui-utils";
 import { inferCommunityAudioContentType } from "@/lib/community-media-shared";
 import { readJsonResponse } from "@/lib/read-json-response";
+import {
+  COMMUNITY_STORY_REACTION_KINDS,
+  expandedQuickReactionButtonsForStory,
+  quickReactionButtonsForStory,
+  reactionButtonsForStory,
+  reactionMeta,
+  totalStoryReactionCount,
+} from "@/lib/community-story-reactions";
 import type { CommunityStatus, CommunityStoryReactionKind } from "@/lib/member-types";
 import { getNextWorshipService } from "@/lib/community-worship-service";
 import {
@@ -14,21 +22,6 @@ import {
   type StoryDeck,
 } from "@/lib/community-story-utils";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
-
-function reactionButtonsForSlide(slide: CommunityStatus) {
-  if (slide.storyKind === "service_invite") {
-    return [
-      { kind: "coming" as const, label: "I'm going", emoji: "🙋" },
-      { kind: "pray" as const, label: "Pray", emoji: "🙏" },
-      { kind: "amen" as const, label: "Amen", emoji: "🙌" },
-    ];
-  }
-  return [
-    { kind: "pray" as const, label: "Pray", emoji: "🙏" },
-    { kind: "coming" as const, label: "I'm in", emoji: "✓" },
-    { kind: "amen" as const, label: "Amen", emoji: "🙌" },
-  ];
-}
 
 type StoryInsightsPayload = {
   reactions: {
@@ -261,13 +254,18 @@ export function CommunityStoryViewer({
   const isOwnStory = deck?.authorId === currentUserId;
   const playbackPaused = paused || replyFocused;
   const nextService = useMemo(() => getNextWorshipService(), []);
-  const reactionButtons = slide ? reactionButtonsForSlide(slide) : [];
+  const reactionButtons = slide ? reactionButtonsForStory(slide.storyKind) : [];
+  const quickReactionButtons = slide ? quickReactionButtonsForStory(slide.storyKind) : [];
+  const expandedReactionButtons = slide ? expandedQuickReactionButtonsForStory(slide.storyKind) : [];
+  const visibleQuickReactions = replyFocused
+    ? [...quickReactionButtons, ...expandedReactionButtons]
+    : quickReactionButtons;
   const goingCount = slide?.reactions?.coming ?? 0;
   const isServiceInvite = slide?.storyKind === "service_invite";
-  const totalResponseCount = useMemo(() => {
-    if (!slide?.reactions) return 0;
-    return slide.reactions.pray + slide.reactions.coming + slide.reactions.amen;
-  }, [slide?.reactions]);
+  const totalResponseCount = useMemo(
+    () => totalStoryReactionCount(slide?.reactions),
+    [slide?.reactions],
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -862,30 +860,63 @@ export function CommunityStoryViewer({
       ) : null}
 
       {!isOwnStory && slide ? (
-        <div className="community-story-viewer-reactions">
-          {reactionButtons.map((button) => {
-            const active = slide.viewerReactions?.includes(button.kind);
-            const count = slide.reactions?.[button.kind] ?? 0;
-            return (
-              <button
-                key={button.kind}
-                type="button"
-                disabled={reactionBusy}
-                onClick={() => void toggleReaction(button.kind)}
-                className={`community-story-reaction-btn ${active ? "community-story-reaction-btn-active" : ""}`}
-              >
-                <span aria-hidden>{button.emoji}</span>
-                <span>{button.label}</span>
-                {count > 0 ? <span className="community-story-reaction-count">{count}</span> : null}
-              </button>
-            );
-          })}
+        <div className="community-story-viewer-compose">
+          <div
+            className={`community-story-quick-reactions ${replyFocused ? "community-story-quick-reactions-expanded" : ""}`}
+            role="toolbar"
+            aria-label="Quick reactions"
+          >
+            {visibleQuickReactions.map((button) => {
+              const active = slide.viewerReactions?.includes(button.kind);
+              return (
+                <button
+                  key={button.kind}
+                  type="button"
+                  disabled={reactionBusy}
+                  onClick={() => void toggleReaction(button.kind)}
+                  className={`community-story-quick-reaction-btn ${active ? "community-story-quick-reaction-btn-active" : ""}`}
+                  aria-label={button.label}
+                  aria-pressed={active}
+                >
+                  <span aria-hidden>{button.emoji}</span>
+                </button>
+              );
+            })}
+          </div>
+          <form className="community-story-viewer-reply" onSubmit={(event) => void sendStoryReply(event)}>
+            <input
+              type="text"
+              value={replyDraft}
+              onChange={(event) => setReplyDraft(event.target.value)}
+              onFocus={() => {
+                setReplyFocused(true);
+                pausePlayback();
+              }}
+              onBlur={() => {
+                setReplyFocused(false);
+                if (!replyDraft.trim()) resumePlayback();
+              }}
+              placeholder="Send message…"
+              maxLength={500}
+              className="community-story-viewer-reply-input"
+              disabled={replyBusy}
+            />
+            <button
+              type="submit"
+              disabled={replyBusy || !replyDraft.trim()}
+              className="community-story-viewer-reply-send"
+            >
+              Send
+            </button>
+          </form>
         </div>
       ) : null}
 
       {isOwnStory && slide ? (
         <div className="community-story-viewer-author-bar">
-          {reactionButtons.map((button) => {
+          {reactionButtons
+            .filter((button) => (slide.reactions?.[button.kind] ?? 0) > 0)
+            .map((button) => {
             const count = slide.reactions?.[button.kind] ?? 0;
             return (
               <button
@@ -896,7 +927,6 @@ export function CommunityStoryViewer({
                 disabled={insightsLoading && showInsights}
               >
                 <span aria-hidden>{button.emoji}</span>
-                <span>{button.label}</span>
                 <span className="community-story-reaction-count">{count}</span>
               </button>
             );
@@ -946,14 +976,15 @@ export function CommunityStoryViewer({
               <p className="community-story-insights-status">No responses yet.</p>
             ) : insightsData ? (
               <div className="community-story-insights-body">
-                {reactionButtons.map((button) => {
-                  const rows = insightsData.reactions.filter((row) => row.kind === button.kind);
+                {COMMUNITY_STORY_REACTION_KINDS.map((kind) => {
+                  const rows = insightsData.reactions.filter((row) => row.kind === kind);
                   if (rows.length === 0) return null;
+                  const meta = reactionMeta(kind);
                   return (
-                    <section key={button.kind} className="community-story-insights-section">
+                    <section key={kind} className="community-story-insights-section">
                       <h3 className="community-story-insights-section-title">
-                        <span aria-hidden>{button.emoji}</span>
-                        {button.label}
+                        <span aria-hidden>{meta.emoji}</span>
+                        {meta.label}
                         <span className="community-story-insights-section-count">{rows.length}</span>
                       </h3>
                       <ul className="community-story-insights-list">
@@ -1007,35 +1038,6 @@ export function CommunityStoryViewer({
         <p className="community-story-viewer-feedback community-story-viewer-feedback-success">
           {replyNotice}
         </p>
-      ) : null}
-
-      {!isOwnStory ? (
-        <form className="community-story-viewer-reply" onSubmit={(event) => void sendStoryReply(event)}>
-          <input
-            type="text"
-            value={replyDraft}
-            onChange={(event) => setReplyDraft(event.target.value)}
-            onFocus={() => {
-              setReplyFocused(true);
-              pausePlayback();
-            }}
-            onBlur={() => {
-              setReplyFocused(false);
-              if (!replyDraft.trim()) resumePlayback();
-            }}
-            placeholder={`Reply to ${deck.authorName.split(" ")[0] ?? deck.authorName}…`}
-            maxLength={500}
-            className="community-story-viewer-reply-input"
-            disabled={replyBusy}
-          />
-          <button
-            type="submit"
-            disabled={replyBusy || !replyDraft.trim()}
-            className="community-story-viewer-reply-send"
-          >
-            Send
-          </button>
-        </form>
       ) : null}
     </div>,
     document.body,

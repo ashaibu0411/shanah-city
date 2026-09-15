@@ -2113,24 +2113,82 @@
   color: rgba(255, 255, 255, 0.95);
 }
 
+.community-story-viewer-compose {
+  margin-top: auto;
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.community-story-quick-reactions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  padding: 0.35rem 1rem 0.5rem;
+}
+
+.community-story-quick-reactions-expanded {
+  gap: 0.5rem 0.65rem;
+}
+
+.community-story-quick-reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 1.65rem;
+  line-height: 1;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.community-story-quick-reaction-btn:active {
+  transform: scale(1.12);
+}
+
+.community-story-quick-reaction-btn-active {
+  background: rgba(255, 255, 255, 0.32);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
+}
+
 .community-story-viewer-reactions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  overflow-x: auto;
   padding: 0 1rem 0.75rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.community-story-viewer-reactions::-webkit-scrollbar {
+  display: none;
 }
 
 .community-story-reaction-btn {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.12);
-  padding: 0.4rem 0.75rem;
+  padding: 0.4rem 0.65rem;
   font-size: 0.8125rem;
   font-weight: 600;
   color: #fff;
+}
+
+.community-story-reaction-btn-label {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .community-story-reaction-btn-label {
+    display: inline;
+  }
 }
 
 .community-story-reaction-btn-active {
@@ -2147,14 +2205,22 @@
 
 .community-story-viewer-author-bar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  overflow-x: auto;
   padding: 0 1rem 0.75rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.community-story-viewer-author-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .community-story-author-stat {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 0.35rem;
   border-radius: 999px;
@@ -2167,6 +2233,7 @@
 }
 
 .community-story-author-view-all {
+  flex-shrink: 0;
   margin-left: auto;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.35);

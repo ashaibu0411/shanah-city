@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import type { CommunityStoryReactionKind } from "@/lib/member-types";
-import { COMMUNITY_STORY_REACTION_KINDS } from "@/lib/community-status-reaction-server";
+import { isStoryReactionKind } from "@/lib/community-story-reactions";
 
 export type StoryReactionInsight = {
   userId: string;
@@ -19,7 +19,7 @@ export type StoryReplyInsight = {
 };
 
 function isReactionKind(value: string): value is CommunityStoryReactionKind {
-  return (COMMUNITY_STORY_REACTION_KINDS as readonly string[]).includes(value);
+  return isStoryReactionKind(value);
 }
 
 export async function getStoryInsightsForAuthor(input: { statusId: string; authorId: string }) {

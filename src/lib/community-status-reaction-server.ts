@@ -1,19 +1,16 @@
 import { prisma } from "@/lib/db";
-import type {
-  CommunityStatus,
-  CommunityStatusReactionCounts,
-  CommunityStoryReactionKind,
-} from "@/lib/member-types";
+import type { CommunityStatus } from "@/lib/member-types";
+import {
+  COMMUNITY_STORY_REACTION_KINDS,
+  emptyReactionCounts,
+  isStoryReactionKind,
+  type CommunityStatusReactionCounts,
+  type CommunityStoryReactionKind,
+} from "@/lib/community-story-reactions";
 
-export const COMMUNITY_STORY_REACTION_KINDS = ["pray", "coming", "amen"] as const;
+export { COMMUNITY_STORY_REACTION_KINDS };
 
-export function emptyReactionCounts(): CommunityStatusReactionCounts {
-  return { pray: 0, coming: 0, amen: 0 };
-}
-
-function isReactionKind(value: string): value is CommunityStoryReactionKind {
-  return (COMMUNITY_STORY_REACTION_KINDS as readonly string[]).includes(value);
-}
+export { emptyReactionCounts };
 
 export async function attachReactionsToStatuses(
   statuses: CommunityStatus[],
@@ -37,7 +34,7 @@ export async function attachReactionsToStatuses(
   const viewerByStatus = new Map<string, CommunityStoryReactionKind[]>();
 
   for (const record of records) {
-    if (!isReactionKind(record.kind)) continue;
+    if (!isStoryReactionKind(record.kind)) continue;
     const counts = countsByStatus.get(record.statusId) ?? emptyReactionCounts();
     counts[record.kind] += 1;
     countsByStatus.set(record.statusId, counts);
@@ -102,7 +99,7 @@ export async function toggleCommunityStatusReaction(input: {
   const viewerReactions: CommunityStoryReactionKind[] = [];
 
   for (const record of records) {
-    if (!isReactionKind(record.kind)) continue;
+    if (!isStoryReactionKind(record.kind)) continue;
     reactions[record.kind] += 1;
     if (record.userId === input.userId && !viewerReactions.includes(record.kind)) {
       viewerReactions.push(record.kind);
