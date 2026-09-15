@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth-server";
 import type { AuthorizedPickupContact, FamilyMember, MemberProfile } from "@/lib/auth-types";
 import { getAdminPeopleDirectory } from "@/lib/admin-people-server";
+import { createFamilyMemberId } from "@/lib/family-member-id";
 
 const roles: NonNullable<MemberProfile["role"]>[] = ["member", "leader", "team", "media"];
 
@@ -56,7 +57,7 @@ export async function updateAdminPerson(
     }
 
     const user = await addFamilyMember(userId, {
-      id: `fam-${Date.now()}`,
+      id: createFamilyMemberId(),
       name,
       relationship: (body.relationship as FamilyMember["relationship"]) ?? "other",
       birthYear: body.birthYear ? String(body.birthYear) : undefined,

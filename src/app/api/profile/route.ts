@@ -17,6 +17,8 @@ import {
   getClientIp,
   rateLimitResponse,
 } from "@/lib/rate-limit-server";
+import { createFamilyMemberId } from "@/lib/family-member-id";
+import type { FamilyMember } from "@/lib/auth-types";
 
 export async function PATCH(request: Request) {
   const cookieStore = await cookies();
@@ -29,23 +31,46 @@ export async function PATCH(request: Request) {
   const body = await request.json();
 
   if (body.action === "add_family") {
-    const member = await addFamilyMember(user.id, {
-      id: `fam-${Date.now()}`,
-      name: String(body.name ?? "").trim(),
-      relationship: body.relationship ?? "other",
+    const name = String(body.name ?? "").trim();
+    if (!name) {
+      return NextResponse.json({ error: "Family member name is required." }, { status: 400 });
+    }
+
+    const relationship = (body.relationship as FamilyMember["relationship"]) ?? "other";
+    const payload: FamilyMember = {
+      id: createFamilyMemberId(),
+      name,
+      relationship,
       birthYear: body.birthYear ? String(body.birthYear) : undefined,
       notes: body.notes ? String(body.notes).trim() : undefined,
       allergies: body.allergies ? String(body.allergies).trim() : undefined,
       medicalNotes: body.medicalNotes ? String(body.medicalNotes).trim() : undefined,
       authorizedPickup: Array.isArray(body.authorizedPickup)
-        ? body.authorizedPickup.map((contact: { name?: string; phone?: string; relationship?: string }) => ({
-            name: String(contact.name ?? "").trim(),
-            phone: contact.phone ? String(contact.phone).trim() : undefined,
-            relationship: contact.relationship ? String(contact.relationship).trim() : undefined,
-          })).filter((contact: { name: string }) => contact.name)
+        ? body.authorizedPickup
+            .map((contact: { name?: string; phone?: string; relationship?: string }) => ({
+              name: String(contact.name ?? "").trim(),
+              phone: contact.phone ? String(contact.phone).trim() : undefined,
+              relationship: contact.relationship ? String(contact.relationship).trim() : undefined,
+            }))
+            .filter((contact: { name: string }) => contact.name)
         : undefined,
-    });
-    return NextResponse.json({ user: member ? toPublicMember(member) : null });
+    };
+
+    try {
+      const member = await addFamilyMember(user.id, payload);
+      if (!member) {
+        return NextResponse.json({ error: "Could not add family member." }, { status: 500 });
+      }
+      return NextResponse.json({ user: toPublicMember(member) });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error ? error.message : "Could not add family member.",
+        },
+        { status: 500 },
+      );
+    }
   }
 
   if (body.action === "update_family") {

@@ -27,7 +27,7 @@ const relationships = [
 export function MemberProfile() {
   const router = useRouter();
   const { isMobileApp } = useAppShell();
-  const { user, activity, loading, signOut, setUser, permissions } = useAuth();
+  const { user, activity, loading, signOut, setUser, refresh, permissions } = useAuth();
   const { setCampusId } = useApp();
 
   const [name, setName] = useState("");
@@ -44,6 +44,11 @@ export function MemberProfile() {
   const [pickupName, setPickupName] = useState("");
   const [pickupPhone, setPickupPhone] = useState("");
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [familyFeedback, setFamilyFeedback] = useState<{
+    ok: boolean;
+    text: string;
+  } | null>(null);
+  const [addingFamily, setAddingFamily] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -77,10 +82,16 @@ export function MemberProfile() {
   }
 
   async function addFamilyMember() {
-    if (!memberName.trim()) return;
+    if (!memberName.trim()) {
+      setFamilyFeedback({ ok: false, text: "Enter a name before adding." });
+      return;
+    }
+    setAddingFamily(true);
+    setFamilyFeedback(null);
+    const addedName = memberName.trim();
     const payload: Record<string, unknown> = {
       action: "add_family",
-      name: memberName,
+      name: addedName,
       relationship,
       birthYear,
     };
@@ -97,21 +108,36 @@ export function MemberProfile() {
         ];
       }
     }
-    const response = await fetch("/api/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      setUser(data.user);
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setFamilyFeedback({
+          ok: false,
+          text: data.error ?? "Could not add family member. Try again.",
+        });
+        return;
+      }
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        await refresh();
+      }
       setMemberName("");
       setBirthYear("");
       setChildAllergies("");
       setChildMedicalNotes("");
       setPickupName("");
       setPickupPhone("");
-      setMessage(`${memberName} added to your family.`);
+      setFamilyFeedback({ ok: true, text: `${addedName} added to your family.` });
+    } catch {
+      setFamilyFeedback({ ok: false, text: "Could not add family member. Check your connection." });
+    } finally {
+      setAddingFamily(false);
     }
   }
 
@@ -324,9 +350,22 @@ export function MemberProfile() {
                 />
               </div>
             )}
-            <Button className="mt-3" variant="secondary" onClick={addFamilyMember}>
-              Add family member
+            <Button
+              className="mt-3"
+              variant="secondary"
+              onClick={addFamilyMember}
+              disabled={addingFamily}
+            >
+              {addingFamily ? "Adding…" : "Add family member"}
             </Button>
+            {familyFeedback ? (
+              <p
+                className={`mt-2 text-sm ${familyFeedback.ok ? "text-emerald-700" : "text-red-700"}`}
+                role="status"
+              >
+                {familyFeedback.text}
+              </p>
+            ) : null}
 
             {user.family.length === 0 ? (
               <p className="mt-4 text-sm text-night-500">No family members added yet.</p>
