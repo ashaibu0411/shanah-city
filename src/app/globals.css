@@ -2117,8 +2117,19 @@
   font-size: 0.9375rem;
   font-weight: 400;
   color: #fff;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
   outline: none;
   backdrop-filter: blur(8px);
+}
+
+body[data-shell="mobile"] .community-story-viewer-reply-input,
+html.dark .community-story-viewer-reply-input {
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .community-story-viewer-reply-input::placeholder {
@@ -2183,6 +2194,42 @@
 .community-story-viewer-compose {
   margin-top: auto;
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.community-story-reply-presets {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.85rem 0.45rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.community-story-reply-presets::-webkit-scrollbar {
+  display: none;
+}
+
+.community-story-reply-preset-btn {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.14);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+
+.community-story-reply-preset-btn:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.community-story-reply-preset-btn:disabled {
+  opacity: 0.5;
 }
 
 .community-story-quick-reactions {

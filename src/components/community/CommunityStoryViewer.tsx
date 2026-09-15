@@ -20,6 +20,7 @@ import {
   STORY_IMAGE_MS,
   type StoryDeck,
 } from "@/lib/community-story-utils";
+import { storyReplyPresetsForKind } from "@/lib/community-story-reply-presets";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
 
 type StoryInsightsPayload = {
@@ -257,6 +258,7 @@ export function CommunityStoryViewer({
   const floatingQuickReactions = slide
     ? instagramFloatingQuickReactionButtonsForStory(slide.storyKind)
     : [];
+  const replyPresets = slide ? storyReplyPresetsForKind(slide.storyKind) : [];
   const goingCount = slide?.reactions?.coming ?? 0;
   const isServiceInvite = slide?.storyKind === "service_invite";
   const totalResponseCount = useMemo(
@@ -583,12 +585,11 @@ export function CommunityStoryViewer({
     }
   }
 
-  async function sendStoryReply(event: React.FormEvent) {
-    event.preventDefault();
+  async function sendStoryReplyMessage(message: string) {
     if (!deck || !slide || isOwnStory || replyBusy) return;
 
-    const message = replyDraft.trim();
-    if (!message) return;
+    const trimmed = message.trim();
+    if (!trimmed) return;
 
     setReplyBusy(true);
     setReplyError("");
@@ -602,7 +603,7 @@ export function CommunityStoryViewer({
         body: JSON.stringify({
           recipientId: deck.authorId,
           recipientName: deck.authorName,
-          content: `Replied to your story: ${message}`,
+          content: `Replied to your story: ${trimmed}`,
         }),
       });
       const data = await readJsonResponse<{ error?: string }>(response);
@@ -622,6 +623,11 @@ export function CommunityStoryViewer({
     } finally {
       setReplyBusy(false);
     }
+  }
+
+  async function sendStoryReply(event: React.FormEvent) {
+    event.preventDefault();
+    await sendStoryReplyMessage(replyDraft);
   }
 
   if (!mounted || !deck || !slide) return null;
@@ -883,6 +889,24 @@ export function CommunityStoryViewer({
               })}
             </div>
           ) : null}
+          <div
+            className="community-story-reply-presets"
+            role="toolbar"
+            aria-label="Quick replies"
+          >
+            {replyPresets.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                disabled={replyBusy}
+                className="community-story-reply-preset-btn"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => void sendStoryReplyMessage(preset.message)}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
           <form className="community-story-viewer-reply" onSubmit={(event) => void sendStoryReply(event)}>
             <div className="community-story-viewer-reply-field">
               <input
@@ -901,6 +925,7 @@ export function CommunityStoryViewer({
                 maxLength={500}
                 className="community-story-viewer-reply-input"
                 disabled={replyBusy}
+                autoComplete="off"
               />
               {replyDraft.trim() ? (
                 <button
