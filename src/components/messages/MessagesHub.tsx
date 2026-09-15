@@ -122,14 +122,18 @@ function WhatsAppChatHeader({
   menu?: ReactNode;
 }) {
   return (
-    <header className="messages-hub-chat-header flex shrink-0 items-center gap-1 px-1 py-1.5 pt-[max(0.35rem,env(safe-area-inset-top))] shadow-sm">
+    <header className="messages-hub-chat-header flex shrink-0 items-center gap-1 px-2 pb-2.5 pt-[max(0.5rem,env(safe-area-inset-top))]">
       {showBack && onBack ? <BackChevron label="Back to chats" onClick={onBack} light /> : null}
       <div className="flex min-w-0 flex-1 items-center gap-3 px-1">
-        {avatarName ? <MemberAvatar name={avatarName} size="sm" /> : null}
+        {avatarName ? (
+          <div className="messages-hub-chat-header-avatar-ring shrink-0">
+            <MemberAvatar name={avatarName} size="sm" />
+          </div>
+        ) : null}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[16px] font-semibold leading-tight">{title}</p>
+          <p className="messages-hub-chat-header-title truncate leading-tight">{title}</p>
           {subtitle ? (
-            <p className="truncate text-[12px] text-sand-200/90">{subtitle}</p>
+            <p className="messages-hub-chat-header-subtitle truncate">{subtitle}</p>
           ) : null}
         </div>
       </div>
@@ -689,11 +693,10 @@ export function MessagesHub() {
           showInbox ? "flex" : "hidden lg:flex"
         }`}
       >
-        <div className="messages-hub-header px-4 pb-3 pt-[max(0.65rem,env(safe-area-inset-top))]">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="messages-hub-header-title text-[22px] font-semibold tracking-tight">
-              Chats
-            </h2>
+        <div className="messages-hub-header px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
+          <p className="messages-hub-header-eyebrow">Levites · Messages</p>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <h2 className="messages-hub-header-title">Chats</h2>
             <div className="flex items-center gap-1">
               {!isMobileApp ? (
                 <button

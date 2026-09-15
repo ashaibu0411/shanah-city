@@ -130,6 +130,26 @@ export function expandedQuickReactionButtonsForStory(
   return extras.map((kind) => ({ kind, ...REACTION_META[kind] }));
 }
 
+/** Full floating tray when the story reply field is focused (Instagram keyboard-up row). */
+export function instagramFloatingQuickReactionButtonsForStory(
+  storyKind: CommunityStatusStoryKind | undefined,
+): StoryReactionButton[] {
+  if (storyKind === "service_invite") {
+    return [
+      { kind: "coming", ...REACTION_META.coming },
+      ...INSTAGRAM_QUICK_REACTION_KINDS.map((kind) => ({
+        kind,
+        ...REACTION_META[kind],
+      })),
+    ];
+  }
+
+  return INSTAGRAM_QUICK_REACTION_KINDS.map((kind) => ({
+    kind,
+    ...REACTION_META[kind],
+  }));
+}
+
 /** Full list for author insights grouped sections. */
 export function insightReactionButtonsForStory(
   storyKind: CommunityStatusStoryKind | undefined,

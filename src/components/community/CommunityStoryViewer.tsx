@@ -8,8 +8,7 @@ import { inferCommunityAudioContentType } from "@/lib/community-media-shared";
 import { readJsonResponse } from "@/lib/read-json-response";
 import {
   COMMUNITY_STORY_REACTION_KINDS,
-  expandedQuickReactionButtonsForStory,
-  quickReactionButtonsForStory,
+  instagramFloatingQuickReactionButtonsForStory,
   reactionButtonsForStory,
   reactionMeta,
   totalStoryReactionCount,
@@ -255,11 +254,9 @@ export function CommunityStoryViewer({
   const playbackPaused = paused || replyFocused;
   const nextService = useMemo(() => getNextWorshipService(), []);
   const reactionButtons = slide ? reactionButtonsForStory(slide.storyKind) : [];
-  const quickReactionButtons = slide ? quickReactionButtonsForStory(slide.storyKind) : [];
-  const expandedReactionButtons = slide ? expandedQuickReactionButtonsForStory(slide.storyKind) : [];
-  const visibleQuickReactions = replyFocused
-    ? [...quickReactionButtons, ...expandedReactionButtons]
-    : quickReactionButtons;
+  const floatingQuickReactions = slide
+    ? instagramFloatingQuickReactionButtonsForStory(slide.storyKind)
+    : [];
   const goingCount = slide?.reactions?.coming ?? 0;
   const isServiceInvite = slide?.storyKind === "service_invite";
   const totalResponseCount = useMemo(
@@ -861,53 +858,83 @@ export function CommunityStoryViewer({
 
       {!isOwnStory && slide ? (
         <div className="community-story-viewer-compose">
-          <div
-            className={`community-story-quick-reactions ${replyFocused ? "community-story-quick-reactions-expanded" : ""}`}
-            role="toolbar"
-            aria-label="Quick reactions"
-          >
-            {visibleQuickReactions.map((button) => {
-              const active = slide.viewerReactions?.includes(button.kind);
-              return (
+          {replyFocused ? (
+            <div
+              className="community-story-quick-reactions community-story-quick-reactions-floating"
+              role="toolbar"
+              aria-label="Quick reactions"
+            >
+              {floatingQuickReactions.map((button) => {
+                const active = slide.viewerReactions?.includes(button.kind);
+                return (
+                  <button
+                    key={button.kind}
+                    type="button"
+                    disabled={reactionBusy}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => void toggleReaction(button.kind)}
+                    className={`community-story-quick-reaction-btn ${active ? "community-story-quick-reaction-btn-active" : ""}`}
+                    aria-label={button.label}
+                    aria-pressed={active}
+                  >
+                    <span aria-hidden>{button.emoji}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+          <form className="community-story-viewer-reply" onSubmit={(event) => void sendStoryReply(event)}>
+            <div className="community-story-viewer-reply-field">
+              <input
+                type="text"
+                value={replyDraft}
+                onChange={(event) => setReplyDraft(event.target.value)}
+                onFocus={() => {
+                  setReplyFocused(true);
+                  pausePlayback();
+                }}
+                onBlur={() => {
+                  setReplyFocused(false);
+                  if (!replyDraft.trim()) resumePlayback();
+                }}
+                placeholder="Send message"
+                maxLength={500}
+                className="community-story-viewer-reply-input"
+                disabled={replyBusy}
+              />
+              {replyDraft.trim() ? (
                 <button
-                  key={button.kind}
+                  type="submit"
+                  disabled={replyBusy}
+                  className="community-story-viewer-reply-send-icon"
+                  aria-label="Send message"
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                    <path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
+                </button>
+              ) : (
+                <button
                   type="button"
                   disabled={reactionBusy}
-                  onClick={() => void toggleReaction(button.kind)}
-                  className={`community-story-quick-reaction-btn ${active ? "community-story-quick-reaction-btn-active" : ""}`}
-                  aria-label={button.label}
-                  aria-pressed={active}
+                  className="community-story-viewer-reply-heart"
+                  aria-label="React with love"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void toggleReaction("love")}
                 >
-                  <span aria-hidden>{button.emoji}</span>
+                  <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
+                    <path
+                      fill={
+                        slide.viewerReactions?.includes("love") ? "currentColor" : "none"
+                      }
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      d="M16.5 3c-1.74 0-3.41 1.01-4.5 2.09C10.91 4.01 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3z"
+                    />
+                  </svg>
                 </button>
-              );
-            })}
-          </div>
-          <form className="community-story-viewer-reply" onSubmit={(event) => void sendStoryReply(event)}>
-            <input
-              type="text"
-              value={replyDraft}
-              onChange={(event) => setReplyDraft(event.target.value)}
-              onFocus={() => {
-                setReplyFocused(true);
-                pausePlayback();
-              }}
-              onBlur={() => {
-                setReplyFocused(false);
-                if (!replyDraft.trim()) resumePlayback();
-              }}
-              placeholder="Send message…"
-              maxLength={500}
-              className="community-story-viewer-reply-input"
-              disabled={replyBusy}
-            />
-            <button
-              type="submit"
-              disabled={replyBusy || !replyDraft.trim()}
-              className="community-story-viewer-reply-send"
-            >
-              Send
-            </button>
+              )}
+            </div>
           </form>
         </div>
       ) : null}
