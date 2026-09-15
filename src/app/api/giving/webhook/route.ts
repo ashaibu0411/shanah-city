@@ -4,6 +4,7 @@ import {
   recordGiftFromCheckoutSession,
   recordGiftFromInvoice,
 } from "@/lib/giving-checkout-server";
+import { linkStripeCustomerFromCheckoutSession } from "@/lib/giving-billing-server";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe-server";
 
 export const runtime = "nodejs";
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
       case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
         const fullSession = await getStripe().checkout.sessions.retrieve(session.id);
+        await linkStripeCustomerFromCheckoutSession(fullSession);
         const record = await recordGiftFromCheckoutSession(fullSession);
         if (!record) {
           console.warn("Stripe checkout completed but gift was not recorded.", {

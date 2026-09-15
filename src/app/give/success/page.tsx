@@ -14,6 +14,13 @@ export default function GiveSuccessPage() {
           Your payment was submitted successfully. If you signed in before giving, your gift will
           appear on your profile shortly.
         </p>
+        <p className="mt-3 text-sm text-night-600">
+          For <strong>recurring</strong> gifts: open{" "}
+          <Link href="/profile" className="font-semibold text-night-900 underline">
+            Profile → Your giving
+          </Link>{" "}
+          and tap <strong>Manage or cancel in Stripe</strong> to change amount, card, or cancel.
+        </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Button href="/profile">View profile</Button>
           <Button href="/give" variant="secondary">

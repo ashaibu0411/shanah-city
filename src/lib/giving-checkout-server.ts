@@ -24,6 +24,7 @@ import {
   STRIPE_CHECKOUT_PAYMENT_METHOD_OPTIONS,
   STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES,
 } from "@/lib/stripe-server";
+import { linkStripeCustomerFromCheckoutSession } from "@/lib/giving-billing-server";
 import { estimateProcessingFeeCoverage } from "@/lib/giving-fees";
 import {
   givingTodayDateKey,
@@ -261,6 +262,8 @@ async function recordStripeGift(input: {
 }
 
 export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Session) {
+  await linkStripeCustomerFromCheckoutSession(session);
+
   if (session.mode !== "payment") {
     return null;
   }

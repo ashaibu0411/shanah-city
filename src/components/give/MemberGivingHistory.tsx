@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
+import { MemberRecurringGivingPanel } from "@/components/give/MemberRecurringGivingPanel";
 import { getDenverWeekRange } from "@/lib/denver-time";
 import type { GivingRecord } from "@/lib/giving-types";
 
@@ -81,6 +82,8 @@ export function MemberGivingHistory() {
           </p>
         </div>
       </div>
+
+      <MemberRecurringGivingPanel />
 
       {fetching ? (
         <p className="mt-4 text-sm text-night-500">Loading giving history…</p>

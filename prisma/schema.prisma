@@ -22,6 +22,7 @@ model User {
   notifyAnnouncements Boolean        @default(true)
   notifyWorship       Boolean        @default(true)
   notifyKids          Boolean        @default(true)
+  stripeCustomerId    String?        @unique
   createdAt           DateTime
   updatedAt           DateTime
   family              FamilyMember[]

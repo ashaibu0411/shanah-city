@@ -293,7 +293,11 @@ export function GiveCheckoutPanel() {
           </div>
           <p className="mt-4 text-xs leading-relaxed text-night-500 dark:text-sand-400">
             Payments are processed securely by Stripe. Bank debits may take a few business days to
-            settle.
+            settle. Recurring gifts can be updated anytime from{" "}
+            <Link href="/profile" className="font-semibold text-night-700 underline dark:text-sand-200">
+              Profile → Your giving
+            </Link>
+            .
           </p>
         </div>
 
