@@ -11,6 +11,32 @@ export function getPublicDisplayName(user: {
   return user.displayName?.trim() || user.name;
 }
 
+/** Title-case each name part for display (e.g. "john smith" → "John Smith"). */
+export function formatPersonNameForDisplay(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return trimmed;
+
+  return trimmed
+    .split(/\s+/)
+    .map((part) =>
+      part
+        .split("-")
+        .map((segment) => {
+          if (!segment) return segment;
+          return segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase();
+        })
+        .join("-"),
+    )
+    .join(" ");
+}
+
+export function getFormattedPublicDisplayName(user: {
+  name: string;
+  displayName?: string | null;
+}) {
+  return formatPersonNameForDisplay(getPublicDisplayName(user));
+}
+
 export function getPublicDisplayFirstName(user: {
   name: string;
   displayName?: string | null;

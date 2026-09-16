@@ -24,6 +24,7 @@ import {
   type GivingFund,
 } from "@/lib/giving-types";
 import { openExternalUrl } from "@/lib/native-app";
+import { getFormattedPublicDisplayName } from "@/lib/member-display-name";
 
 function formatMoney(amount: number) {
   return amount.toLocaleString(undefined, { style: "currency", currency: "USD" });
@@ -120,31 +121,24 @@ export function GiveCheckoutPanel() {
       className={`${editorialPremium.surface} give-checkout-premium mb-10 overflow-hidden`}
       aria-labelledby="give-checkout-title"
     >
-      <div className="give-checkout-premium-hero relative overflow-hidden px-6 py-8 sm:px-8 sm:py-10">
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-night-950 via-night-900 to-clay-900/40"
-          aria-hidden
-        />
-        <div className="pointer-events-none absolute -right-16 top-0 h-48 w-48 rounded-full bg-clay-500/20 blur-3xl" aria-hidden />
-        <p className="relative text-[10px] font-bold uppercase tracking-[0.28em] text-sand-300/90">
-          Shanah City giving
-        </p>
+      <div className="border-b border-night-900/8 px-6 py-5 sm:px-8 dark:border-white/10">
+        <p className={editorialPremium.sectionLabel}>Online giving</p>
         <h2
           id="give-checkout-title"
-          className="relative mt-2 font-display text-2xl font-semibold tracking-tight text-sand-50 sm:text-[1.75rem]"
+          className="mt-1 font-display text-xl font-semibold tracking-tight text-night-950 dark:text-sand-50"
         >
-          Give securely online
+          Card, Apple Pay, or bank (ACH)
         </h2>
-        <p className="relative mt-3 max-w-2xl text-sm leading-relaxed text-sand-200/90">
-          Card, Apple Pay, or bank (ACH) through Stripe. Signed-in members see gifts on their
-          profile automatically.
-        </p>
       </div>
 
-      <div className="space-y-8 px-6 py-8 sm:px-8">
+      <div className="space-y-8 px-6 py-6 sm:px-8 sm:py-8">
         {!loading && user ? (
           <p className={`${editorialPremium.leadCard} !py-3.5`}>
-            Giving as <span className="font-semibold text-night-950">{user.name}</span>. History
+            Giving as{" "}
+            <span className="font-semibold text-night-950 dark:text-sand-50">
+              {getFormattedPublicDisplayName(user)}
+            </span>
+            . History
             appears on your profile.
           </p>
         ) : (

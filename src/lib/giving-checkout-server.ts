@@ -17,6 +17,7 @@ import {
 } from "@/lib/giving-server";
 import { sendGivingThankYou } from "@/lib/giving-notify-server";
 import { getZonedDateParts } from "@/lib/denver-time";
+import { getFormattedPublicDisplayName } from "@/lib/member-display-name";
 import {
   getAppBaseUrl,
   getStripe,
@@ -106,7 +107,7 @@ export async function createGivingCheckoutSession(input: {
     frequency: input.frequency,
     userId: input.user?.id ?? "",
     campusId: input.user?.campusId ?? "",
-    donorName: input.user?.name ?? "",
+    donorName: input.user ? getFormattedPublicDisplayName(input.user) : "",
     giftAmount: String(giftAmount),
     feeAmount: String(feeCoverage.fee),
     coverFees: input.coverFees ? "true" : "false",

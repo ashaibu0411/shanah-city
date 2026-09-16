@@ -3,10 +3,7 @@
 import { GiveCheckoutPanel } from "@/components/give/GiveCheckoutPanel";
 import { GivePlatformGrid } from "@/components/give/GivePlatformGrid";
 import { TextToGivePanel } from "@/components/give/TextToGivePanel";
-import {
-  editorialPremium,
-  formatEditorialSectionLabel,
-} from "@/components/app/editorial-premium";
+import { editorialPremium } from "@/components/app/editorial-premium";
 import type { TextToGiveConfig } from "@/lib/giving-text";
 import type { GivingPlatform } from "@/lib/types";
 import { site } from "@/lib/site";
@@ -19,16 +16,12 @@ type GivePageViewProps = {
 export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
   return (
     <div className="give-page-premium pb-4">
-      <header className={`${editorialPremium.pageHeader} mb-8`}>
+      <header className={`${editorialPremium.pageHeader} mb-5`}>
         <p className={editorialPremium.pageEyebrow}>Giving</p>
-        <h1 className={editorialPremium.pageTitle}>Give with joy</h1>
-        <p className={editorialPremium.pageDescription}>
-          Glorify God with every area of your life — including your finances. Choose secure online
-          giving or another option that works for you.
-        </p>
+        <h1 className={editorialPremium.pageTitle}>Give</h1>
       </header>
 
-      <blockquote className={`${editorialPremium.quote} mb-8`}>
+      <blockquote className={`${editorialPremium.quote} mb-6`}>
         <p className="font-display text-lg italic leading-relaxed text-night-800 dark:text-sand-100">
           &ldquo;{site.giving.verse}&rdquo;
         </p>
@@ -37,28 +30,17 @@ export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
         </footer>
       </blockquote>
 
-      <section className={`${editorialPremium.section} mb-8`}>
-        <p className={editorialPremium.sectionLabel}>
-          {formatEditorialSectionLabel(1, "Why we give")}
-        </p>
-        <p className="mt-3 leading-relaxed text-night-600 dark:text-sand-200">{site.giving.why}</p>
-      </section>
-
       <GiveCheckoutPanel />
 
       {textToGive ? (
         <div className="mb-10">
-          <p className={`${editorialPremium.sectionLabel} mb-3`}>
-            {formatEditorialSectionLabel(2, "Text to give")}
-          </p>
+          <p className={`${editorialPremium.sectionLabel} mb-3`}>Text to give</p>
           <TextToGivePanel config={textToGive} />
         </div>
       ) : null}
 
       <section className="mb-10">
-        <p className={`${editorialPremium.sectionLabel} mb-3`}>
-          {formatEditorialSectionLabel(textToGive ? 3 : 2, "Other online options")}
-        </p>
+        <p className={`${editorialPremium.sectionLabel} mb-3`}>Other online options</p>
         <p className="mb-5 max-w-2xl text-sm leading-relaxed text-night-600 dark:text-sand-300">
           PayPal, Cash App, and Venmo open in their apps on mobile when installed.
         </p>
@@ -66,9 +48,7 @@ export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
       </section>
 
       <section className={`${editorialPremium.section} mb-8`}>
-        <p className={editorialPremium.sectionLabel}>
-          {formatEditorialSectionLabel(textToGive ? 4 : 3, "In person & other ways")}
-        </p>
+        <p className={editorialPremium.sectionLabel}>In person & other ways</p>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {site.giving.methods
             .filter((method) => method.title !== "Give Online")
