@@ -15,6 +15,7 @@ import {
   normalizeRecurringStartDateInput,
   validateRecurringStartDate,
 } from "@/lib/giving-recurring-start";
+import { isGivingFeePaymentMethod, type GivingFeePaymentMethod } from "@/lib/giving-fees";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
   enforceRateLimit,
@@ -51,6 +52,13 @@ export async function POST(request: Request) {
   const fund = String(body.fund ?? "offering") as GivingFund;
   const frequency = String(body.frequency ?? "once") as GivingCheckoutFrequency;
   const coverFees = body.coverFees === true;
+  let paymentMethod: GivingFeePaymentMethod = "card";
+  if (body.paymentMethod !== undefined && body.paymentMethod !== "") {
+    if (!isGivingFeePaymentMethod(body.paymentMethod)) {
+      return NextResponse.json({ error: "Choose card or bank (ACH)." }, { status: 400 });
+    }
+    paymentMethod = body.paymentMethod;
+  }
 
   if (!GIVING_CHECKOUT_FUNDS.some((option) => option.value === fund)) {
     return NextResponse.json({ error: "Choose a valid fund." }, { status: 400 });
@@ -91,6 +99,7 @@ export async function POST(request: Request) {
       fund,
       frequency,
       coverFees,
+      paymentMethod,
       recurringStartDate,
       user,
     });

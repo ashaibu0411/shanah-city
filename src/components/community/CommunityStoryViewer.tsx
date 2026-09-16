@@ -308,8 +308,10 @@ export function CommunityStoryViewer({
     if (!mounted) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.dataset.storyViewerOpen = "true";
     return () => {
       document.body.style.overflow = previousOverflow;
+      delete document.body.dataset.storyViewerOpen;
     };
   }, [mounted]);
 

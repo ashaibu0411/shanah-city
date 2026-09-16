@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useOnAppRefresh } from "@/hooks/useOnAppRefresh";
+import { readJsonResponse } from "@/lib/read-json-response";
 import type { CommunityPost } from "@/lib/member-types";
 import {
   COMMUNITY_FEED_FILTERS,
@@ -19,6 +21,17 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
   useEffect(() => {
     setPosts(initialPosts);
   }, [initialPosts]);
+
+  useOnAppRefresh(() => {
+    void fetch("/api/community", { cache: "no-store" })
+      .then(async (response) => {
+        const data = await readJsonResponse<{ posts?: CommunityPost[] }>(response);
+        if (response.ok && data.posts) {
+          setPosts(data.posts);
+        }
+      })
+      .catch(() => undefined);
+  });
 
   const filteredPosts = useMemo(
     () => filterCommunityPosts(posts, filter),

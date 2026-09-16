@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useOnAppRefresh } from "@/hooks/useOnAppRefresh";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
@@ -183,6 +184,7 @@ export function MessagesHub() {
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [unreadByThread, setUnreadByThread] = useState<Record<string, number>>({});
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const activeThreadIdRef = useRef<string | null>(null);
 
   const isStaff = permissions.canManageAdmin;
 
@@ -254,7 +256,7 @@ export function MessagesHub() {
     }
   }
 
-  async function loadInbox() {
+  const loadInbox = useCallback(async () => {
     const response = await fetch("/api/messages");
     const data = await response.json();
     if (!response.ok) {
@@ -266,7 +268,7 @@ export function MessagesHub() {
     setStatus("");
     notifyNotificationsChanged();
     void loadUnreadCounts();
-  }
+  }, []);
 
   async function loadThread(threadId: string, options?: { replace?: boolean }) {
     setActiveThreadId(threadId);
@@ -291,6 +293,25 @@ export function MessagesHub() {
       setMessages([]);
     }
   }
+
+  useEffect(() => {
+    activeThreadIdRef.current = activeThreadId;
+  }, [activeThreadId]);
+
+  useOnAppRefresh(() => {
+    void (async () => {
+      await loadInbox();
+      const threadId = activeThreadIdRef.current;
+      if (!threadId) return;
+      const response = await fetch(`/api/messages?threadId=${encodeURIComponent(threadId)}`);
+      const data = await response.json();
+      if (response.ok) {
+        setMessages(data.messages ?? []);
+        setTypingUsers(data.typingUsers ?? []);
+        notifyNotificationsChanged();
+      }
+    })();
+  });
 
   useEffect(() => {
     if (user) {

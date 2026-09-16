@@ -15,6 +15,8 @@ import { MobileMoreSheet } from "@/components/app/MobileMoreSheet";
 
 import { MobileNav } from "@/components/app/MobileNav";
 
+import { AppMain } from "@/components/app/AppMain";
+import { AppRefreshBridge } from "@/components/app/AppRefreshBridge";
 import { NativeAppBoot } from "@/components/app/NativeAppBoot";
 import { DevotionMiniPlayer } from "@/components/devotions/DevotionMiniPlayer";
 import { DevotionPlayerProvider } from "@/components/devotions/DevotionPlayerProvider";
@@ -37,6 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <DevotionPlayerProvider>
 
           <NativeAppBoot />
+          <AppRefreshBridge />
 
           <div className="min-h-screen bg-[var(--color-bg)]">
 
@@ -54,11 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
               <AppSidebar />
 
-              <main className="app-main min-w-0 flex-1 px-4 py-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:px-6 lg:py-6 lg:pb-8">
-
-                {children}
-
-              </main>
+              <AppMain>{children}</AppMain>
 
             </div>
 

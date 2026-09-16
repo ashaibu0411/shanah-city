@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useOnAppRefresh } from "@/hooks/useOnAppRefresh";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { PollCard } from "@/components/polls/PollCard";
 import { PollComposer } from "@/components/polls/PollComposer";
@@ -53,6 +54,10 @@ export function PollsSection({
       void refresh();
     }
   }, [groupId]);
+
+  useOnAppRefresh(() => {
+    void refresh();
+  });
 
   const scopeLabel = groupName ? `${groupName} members` : "the church";
 

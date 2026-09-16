@@ -22,10 +22,13 @@ import {
   getStripe,
   isStripeGivingConfigured,
   STRIPE_CHECKOUT_PAYMENT_METHOD_OPTIONS,
-  STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES,
 } from "@/lib/stripe-server";
 import { linkStripeCustomerFromCheckoutSession } from "@/lib/giving-billing-server";
-import { estimateProcessingFeeCoverage } from "@/lib/giving-fees";
+import {
+  estimateProcessingFeeCoverage,
+  isGivingFeePaymentMethod,
+  type GivingFeePaymentMethod,
+} from "@/lib/giving-fees";
 import {
   givingTodayDateKey,
   normalizeRecurringStartDateInput,
@@ -64,6 +67,7 @@ export async function createGivingCheckoutSession(input: {
   fund: GivingFund;
   frequency: GivingCheckoutFrequency;
   coverFees?: boolean;
+  paymentMethod?: GivingFeePaymentMethod;
   recurringStartDate?: string;
   user?: PublicMember | null;
 }) {
@@ -79,7 +83,13 @@ export async function createGivingCheckoutSession(input: {
   const baseUrl = getAppBaseUrl();
   const giftAmount = roundMoney(input.amount);
   const giftCents = Math.round(giftAmount * 100);
-  const feeCoverage = input.coverFees ? estimateProcessingFeeCoverage(giftAmount) : { fee: 0, total: giftAmount };
+  const feePaymentMethod: GivingFeePaymentMethod =
+    input.paymentMethod && isGivingFeePaymentMethod(input.paymentMethod)
+      ? input.paymentMethod
+      : "card";
+  const feeCoverage = input.coverFees
+    ? estimateProcessingFeeCoverage(giftAmount, feePaymentMethod)
+    : { fee: 0, total: giftAmount };
   const feeCents = Math.round(feeCoverage.fee * 100);
   const fundLabelText = fundLabel(input.fund);
   let recurringStartDate: string | undefined;
@@ -100,6 +110,7 @@ export async function createGivingCheckoutSession(input: {
     giftAmount: String(giftAmount),
     feeAmount: String(feeCoverage.fee),
     coverFees: input.coverFees ? "true" : "false",
+    feePaymentMethod,
     ...(recurringStartDate ? { recurringStartDate } : {}),
   };
 
@@ -122,12 +133,16 @@ export async function createGivingCheckoutSession(input: {
   }
 
   function feeLineItem(recurring?: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.Recurring) {
+    const feeDescription =
+      feePaymentMethod === "ach"
+        ? "Optional help covering bank (ACH) processing costs"
+        : "Optional help covering card processing costs";
     return {
       price_data: {
         currency: "usd",
         product_data: {
           name: "Processing fee contribution",
-          description: "Optional help covering card/bank processing costs",
+          description: feeDescription,
         },
         unit_amount: feeCents,
         ...(recurring ? { recurring } : {}),
@@ -136,13 +151,16 @@ export async function createGivingCheckoutSession(input: {
     };
   }
 
+  const checkoutPaymentMethodTypes: Stripe.Checkout.SessionCreateParams["payment_method_types"] =
+    feePaymentMethod === "ach" ? ["us_bank_account"] : ["card"];
+
   const common = {
     success_url: `${baseUrl}/give/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/give/cancel`,
     client_reference_id: input.user?.id,
     customer_email: input.user?.email,
     metadata,
-    payment_method_types: STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES,
+    payment_method_types: checkoutPaymentMethodTypes,
     payment_method_options: STRIPE_CHECKOUT_PAYMENT_METHOD_OPTIONS,
   };
 

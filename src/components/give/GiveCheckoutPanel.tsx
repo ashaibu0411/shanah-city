@@ -9,6 +9,7 @@ import { Button } from "@/components/ui";
 import {
   estimateProcessingFeeCoverage,
   formatGivingFeeHint,
+  type GivingFeePaymentMethod,
 } from "@/lib/giving-fees";
 import {
   givingTodayDateKey,
@@ -36,6 +37,7 @@ export function GiveCheckoutPanel() {
   const [preset, setPreset] = useState<number | "custom">(50);
   const [customAmount, setCustomAmount] = useState("");
   const [coverFees, setCoverFees] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<GivingFeePaymentMethod>("card");
   const [recurringStartDate, setRecurringStartDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -68,8 +70,8 @@ export function GiveCheckoutPanel() {
     if (!Number.isFinite(amount) || amount < 1) {
       return { fee: 0, total: 0 };
     }
-    return estimateProcessingFeeCoverage(amount);
-  }, [amount]);
+    return estimateProcessingFeeCoverage(amount, paymentMethod);
+  }, [amount, paymentMethod]);
 
   const checkoutTotal = coverFees ? feeCoverage.total : amount;
   const startSummary = isRecurring
@@ -80,7 +82,7 @@ export function GiveCheckoutPanel() {
     setMessage(null);
     setSubmitting(true);
 
-    const payload: Record<string, unknown> = { amount, fund, frequency, coverFees };
+    const payload: Record<string, unknown> = { amount, fund, frequency, coverFees, paymentMethod };
     if (isRecurring && recurringStartDate) {
       payload.recurringStartDate = recurringStartDate;
     }
@@ -242,6 +244,30 @@ export function GiveCheckoutPanel() {
               ) : null}
             </fieldset>
 
+            <fieldset>
+              <legend className={editorialPremium.sectionLabel}>Pay with</legend>
+              <p className="mt-1 text-xs leading-relaxed text-night-500 dark:text-sand-400">
+                Card ~2.9% + $0.30; bank (ACH) ~0.8% (max $5). Fee coverage matches your choice
+                below.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("card")}
+                  className={premiumTabPill(paymentMethod === "card", "px-4 py-2.5")}
+                >
+                  Card / Apple Pay
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("ach")}
+                  className={premiumTabPill(paymentMethod === "ach", "px-4 py-2.5")}
+                >
+                  Bank (ACH)
+                </button>
+              </div>
+            </fieldset>
+
             {Number.isFinite(amount) && amount >= 1 ? (
               <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-night-900/8 bg-sand-50/90 px-4 py-4 dark:border-white/10 dark:bg-[var(--color-bg-soft)]">
                 <input
@@ -256,7 +282,11 @@ export function GiveCheckoutPanel() {
                   </span>
                   <span className="mt-1 block text-xs text-night-500 dark:text-sand-400">
                     Shanah City receives your full {formatMoney(amount)} gift.{" "}
-                    {formatGivingFeeHint(amount)}
+                    {coverFees
+                      ? paymentMethod === "ach"
+                        ? `Bank fee coverage ${formatMoney(feeCoverage.fee)}.`
+                        : `Card fee coverage ${formatMoney(feeCoverage.fee)}.`
+                      : formatGivingFeeHint(amount)}
                   </span>
                 </span>
               </label>

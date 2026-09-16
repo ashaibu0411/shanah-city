@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -19,6 +19,7 @@ import {
 import { validateCommunityStoryVideoFile } from "@/lib/community-story-video-client";
 import { isCommunityVideoFile } from "@/lib/community-media-shared";
 import { openCommunityGalleryPicker } from "@/lib/native-media-picker";
+import { useOnAppRefresh } from "@/hooks/useOnAppRefresh";
 import { readJsonResponse } from "@/lib/read-json-response";
 import {
   buildStoryDecks,
@@ -63,52 +64,49 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     setMounted(true);
   }, []);
 
+  const loadStatuses = useCallback(async () => {
+    try {
+      const response = await fetch("/api/community/statuses", { cache: "no-store" });
+      const data = await readJsonResponse<{
+        error?: string;
+        statuses?: CommunityStatus[];
+        priorityAuthorIds?: string[];
+      }>(response);
+      if (data.error) {
+        setError(data.error);
+        setStatuses([]);
+        setPriorityAuthorIds([]);
+        return;
+      }
+      setError("");
+      setStatuses(data.statuses ?? []);
+      setPriorityAuthorIds(data.priorityAuthorIds ?? []);
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error ? loadError.message : "Stories are unavailable right now.",
+      );
+      setStatuses([]);
+    }
+  }, []);
+
   useEffect(() => {
     setSeenIds(loadSeenStoryIds());
   }, []);
 
   useEffect(() => {
-    fetch("/api/community/statuses", { cache: "no-store" })
-      .then(async (response) => {
-        const data = await readJsonResponse<{
-          error?: string;
-          statuses?: CommunityStatus[];
-          priorityAuthorIds?: string[];
-        }>(response);
-        if (data.error) {
-          setError(data.error);
-          setStatuses([]);
-          setPriorityAuthorIds([]);
-          return;
-        }
-        setStatuses(data.statuses ?? []);
-        setPriorityAuthorIds(data.priorityAuthorIds ?? []);
-      })
-      .catch((loadError) => {
-        setError(
-          loadError instanceof Error ? loadError.message : "Stories are unavailable right now.",
-        );
-        setStatuses([]);
-      });
-  }, []);
+    void loadStatuses();
+  }, [loadStatuses]);
+
+  useOnAppRefresh(() => {
+    void loadStatuses();
+  });
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      fetch("/api/community/statuses", { cache: "no-store" })
-        .then(async (response) => {
-          const data = await readJsonResponse<{
-            statuses?: CommunityStatus[];
-            priorityAuthorIds?: string[];
-          }>(response);
-          if (response.ok) {
-            setStatuses(data.statuses ?? []);
-            setPriorityAuthorIds(data.priorityAuthorIds ?? []);
-          }
-        })
-        .catch(() => undefined);
+      void loadStatuses();
     }, 12000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [loadStatuses]);
 
   const decks = useMemo(
     () => buildStoryDecks(statuses, seenIds, user?.id, priorityAuthorIds),
