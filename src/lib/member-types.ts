@@ -36,7 +36,7 @@ export type CommunityStatusReactionCounts = import("@/lib/community-story-reacti
 
 export type CommunityStoryReactionKind = import("@/lib/community-story-reactions").CommunityStoryReactionKind;
 
-export type CommunityStatusMediaType = "image" | "video" | "text" | "link" | "audio";
+export type CommunityStatusMediaType = "image" | "video" | "text" | "link" | "audio" | "live";
 
 export type CommunityStatusStoryKind = "default" | "service_invite";
 

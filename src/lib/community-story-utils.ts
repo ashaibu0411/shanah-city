@@ -89,6 +89,10 @@ export function buildStoryDecks(
   }
 
   decks.sort((a, b) => {
+    const aLive = a.items.some((item) => item.mediaType === "live");
+    const bLive = b.items.some((item) => item.mediaType === "live");
+    if (aLive !== bLive) return aLive ? -1 : 1;
+
     if (currentUserId) {
       if (a.authorId === currentUserId) return -1;
       if (b.authorId === currentUserId) return 1;

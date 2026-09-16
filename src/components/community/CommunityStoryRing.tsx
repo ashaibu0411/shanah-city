@@ -35,6 +35,7 @@ export function CommunityStoryRing({
       ? `/api/profile/avatar?userId=${encodeURIComponent(authorId)}`
       : null;
   const previewUrl = preview ? resolveStoryMediaUrl(preview.mediaUrl) : null;
+  const isLivePreview = preview?.mediaType === "live";
   const isTextPreview = preview?.mediaType === "text";
   const isAudioPreview = preview?.mediaType === "audio";
   const isLinkPreview = preview?.mediaType === "link";
@@ -44,14 +45,17 @@ export function CommunityStoryRing({
     !isTextPreview &&
     !isAudioPreview &&
     !isLinkPreview &&
+    !isLivePreview &&
     previewUrl &&
     !previewFailed &&
     (preview.mediaType === "image" || preview.mediaType === "video");
-  const ringClass = preview
-    ? hasUnseen
-      ? "community-story-ring-unseen"
-      : "community-story-ring-seen"
-    : "community-story-ring-empty";
+  const ringClass = isLivePreview
+    ? "community-story-ring-live"
+    : preview
+      ? hasUnseen
+        ? "community-story-ring-unseen"
+        : "community-story-ring-seen"
+      : "community-story-ring-empty";
 
   return (
     <div className="community-story-item">
@@ -93,6 +97,18 @@ export function CommunityStoryRing({
               <div className="community-story-ring-link-preview" aria-hidden>
                 ↗
               </div>
+            ) : isLivePreview && avatarSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarSrc}
+                alt={authorName}
+                className="h-full w-full object-cover"
+                onError={() => setAvatarFailed(true)}
+              />
+            ) : isLivePreview ? (
+              <div className="community-story-ring-live-preview" aria-hidden>
+                LIVE
+              </div>
             ) : avatarSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -106,6 +122,11 @@ export function CommunityStoryRing({
             )}
           </div>
         </div>
+        {isLivePreview ? (
+          <span className="community-story-ring-live-chip" aria-hidden>
+            LIVE
+          </span>
+        ) : null}
         {showAddBadge ? (
           <span
             role="button"

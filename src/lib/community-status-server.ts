@@ -23,6 +23,7 @@ function parseMediaType(value: string): CommunityStatusMediaType {
   if (value === "text") return "text";
   if (value === "link") return "link";
   if (value === "audio") return "audio";
+  if (value === "live") return "live";
   return "image";
 }
 
@@ -67,6 +68,7 @@ export async function addCommunityStatus(input: {
   mediaType: CommunityStatusMediaType;
   caption?: string;
   storyKind?: CommunityStatusStoryKind;
+  expiresAt?: Date;
 }) {
   const created = await prisma.communityStatus.create({
     data: {
@@ -77,10 +79,20 @@ export async function addCommunityStatus(input: {
       mediaType: input.mediaType,
       caption: input.caption ?? null,
       storyKind: input.storyKind ?? "default",
-      expiresAt: communityStatusExpiry(),
+      expiresAt: input.expiresAt ?? communityStatusExpiry(),
     },
   });
   return mapStatus(created);
+}
+
+export async function deleteActiveLiveStatusesForAuthor(authorId: string) {
+  await prisma.communityStatus.deleteMany({
+    where: {
+      authorId,
+      mediaType: "live",
+      expiresAt: { gt: new Date() },
+    },
+  });
 }
 
 export async function deleteExpiredCommunityStatuses() {

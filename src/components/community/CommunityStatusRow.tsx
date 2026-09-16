@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { CommunityStoryRing } from "@/components/community/CommunityStoryRing";
@@ -36,6 +37,7 @@ type ComposeMode = "media" | "text" | "service" | "link";
 
 export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [statuses, setStatuses] = useState<CommunityStatus[]>([]);
   const [priorityAuthorIds, setPriorityAuthorIds] = useState<string[]>([]);
@@ -88,6 +90,24 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
         );
         setStatuses([]);
       });
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      fetch("/api/community/statuses", { cache: "no-store" })
+        .then(async (response) => {
+          const data = await readJsonResponse<{
+            statuses?: CommunityStatus[];
+            priorityAuthorIds?: string[];
+          }>(response);
+          if (response.ok) {
+            setStatuses(data.statuses ?? []);
+            setPriorityAuthorIds(data.priorityAuthorIds ?? []);
+          }
+        })
+        .catch(() => undefined);
+    }, 12000);
+    return () => window.clearInterval(timer);
   }, []);
 
   const decks = useMemo(
@@ -152,6 +172,11 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     setCaptionDraft("");
     setLinkDraft("");
     setCaptionOpen(true);
+  }
+
+  function openLiveHost() {
+    closeShareMenu();
+    router.push("/community/live/host");
   }
 
   function closeComposeDialog() {
@@ -444,6 +469,16 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                   <p className="font-semibold text-night-900 dark:text-sand-100">Social link</p>
                   <p className="text-xs text-night-600 dark:text-sand-400">
                     Instagram, TikTok, Facebook, YouTube — plays here when possible
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={openLiveHost}
+                  className="rounded-xl border border-red-500/35 bg-red-500/8 px-4 py-3 text-left hover:bg-red-500/12"
+                >
+                  <p className="font-semibold text-night-900 dark:text-sand-100">Go live</p>
+                  <p className="text-xs text-night-600 dark:text-sand-400">
+                    Stream to your story · church family can watch in real time
                   </p>
                 </button>
               </div>

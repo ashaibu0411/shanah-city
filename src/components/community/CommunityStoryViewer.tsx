@@ -23,6 +23,7 @@ import {
 } from "@/lib/community-story-utils";
 import { storyReplyPresetsForKind } from "@/lib/community-story-reply-presets";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
+import { CommunityLivePlayer } from "@/components/community/CommunityLivePlayer";
 
 type StoryInsightsPayload = {
   reactions: {
@@ -429,6 +430,10 @@ export function CommunityStoryViewer({
 
   useEffect(() => {
     if (!slide || playbackPaused) return;
+    if (slide.mediaType === "live") {
+      setProgress(100);
+      return;
+    }
     if (
       slide.mediaType !== "image" &&
       slide.mediaType !== "text" &&
@@ -857,6 +862,16 @@ export function CommunityStoryViewer({
             paused={playbackPaused}
             onProgress={setProgress}
             onAdvance={goNext}
+          />
+        ) : slide.mediaType === "live" ? (
+          <CommunityLivePlayer
+            statusId={slide.id}
+            authorName={deck?.authorName ?? slide.authorName}
+            paused={playbackPaused}
+            onLiveEnded={() => {
+              setMediaFailed(false);
+              goNext();
+            }}
           />
         ) : slide.mediaType === "video" ? (
           <StorySlideVideo
