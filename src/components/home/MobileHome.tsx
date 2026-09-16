@@ -149,6 +149,10 @@ export function MobileHome({
           </p>
         </div>
 
+        <div className="mobile-home-welcome-stories border-b border-night-900/8 bg-[var(--color-bg)] px-1 py-2.5 dark:border-white/10">
+          <HomeStoriesSection />
+        </div>
+
         <div className="mobile-home-welcome mobile-home-welcome-hero relative overflow-hidden text-white">
           <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
           <HomePastorPortrait variant="mobile" />
@@ -167,8 +171,6 @@ export function MobileHome({
           </div>
         </div>
       </MobilePremiumFrame>
-
-      <HomeStoriesSection />
 
       <LeaderReportHomeBanner />
       <TrainingHomeBanner />

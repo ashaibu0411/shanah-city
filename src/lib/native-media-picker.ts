@@ -5,6 +5,15 @@ import { COMMUNITY_STORY_MAX_MEDIA } from "@/lib/community-story-utils";
 import { isNativeAppPlatform } from "@/lib/native-app";
 import { setNativeBackgroundAudioActive, setNativeFilePickerOpen } from "@/lib/native-webview-bridge";
 
+async function readPhotoBlob(webPath: string) {
+  const readUrl = Capacitor.isNativePlatform() ? Capacitor.convertFileSrc(webPath) : webPath;
+  const response = await fetch(readUrl);
+  if (!response.ok) {
+    throw new Error("Could not read the selected photo.");
+  }
+  return response.blob();
+}
+
 async function blobToStoryFile(blob: Blob, ext: string, index: number) {
   const type = blob.type || `image/${ext}`;
   return new File([blob], `story-${Date.now()}-${index}.${ext}`, { type });
@@ -16,8 +25,7 @@ async function blobToProfileFile(blob: Blob, ext: string) {
 }
 
 async function uriToImageFile(webPath: string, format: string | undefined, prefix: string, index = 0) {
-  const response = await fetch(webPath);
-  const blob = await response.blob();
+  const blob = await readPhotoBlob(webPath);
   const ext = format === "png" ? "png" : format === "webp" ? "webp" : "jpeg";
   return prefix === "profile"
     ? blobToProfileFile(blob, ext)
@@ -38,8 +46,11 @@ export async function pickProfilePhotoFile(): Promise<File | null> {
     });
     if (!photo.webPath) return null;
     return uriToImageFile(photo.webPath, photo.format, "profile");
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof Error && /cancel/i.test(error.message)) {
+      return null;
+    }
+    throw error instanceof Error ? error : new Error("Could not open the photo picker.");
   }
 }
 

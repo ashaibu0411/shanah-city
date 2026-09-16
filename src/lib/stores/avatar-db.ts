@@ -14,7 +14,13 @@ function extensionForFile(file: File) {
 
 async function findAvatarBlobs(userId: string) {
   const { blobs } = await list({ prefix: `avatars/${userId}.` });
-  return blobs;
+  return [...blobs].sort(
+    (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
+  );
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function getAvatarFilePath(userId: string) {
@@ -66,16 +72,18 @@ export async function registerDirectUploadAvatar(userId: string) {
     );
   }
 
-  const blobs = await findAvatarBlobs(userId);
+  let blobs: Awaited<ReturnType<typeof findAvatarBlobs>> = [];
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    blobs = await findAvatarBlobs(userId);
+    if (blobs.length > 0) break;
+    await sleep(250 * (attempt + 1));
+  }
+
   if (blobs.length === 0) {
     throw new Error("Photo upload did not finish. Check your connection and try again.");
   }
 
-  const sorted = [...blobs].sort(
-    (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
-  );
-
-  for (const blob of sorted.slice(1)) {
+  for (const blob of blobs.slice(1)) {
     await del(blob.url).catch(() => undefined);
   }
 

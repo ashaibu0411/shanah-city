@@ -14,7 +14,10 @@ function uploadHandleUrl() {
 }
 
 export async function fetchProfileAvatarUploadConfig() {
-  const response = await fetch("/api/profile/avatar/upload", { cache: "no-store" });
+  const response = await fetch("/api/profile/avatar/upload", {
+    cache: "no-store",
+    credentials: "include",
+  });
   const data = await readJsonResponse<{ directUpload?: boolean; maxBytes?: number; error?: string }>(
     response,
   );
@@ -41,6 +44,7 @@ export async function uploadProfileAvatarClient(userId: string, file: File) {
   const response = await fetch("/api/profile/avatar", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ completedDirectUpload: true }),
   });
   const data = await readJsonResponse<{

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PublicMember } from "@/lib/auth-types";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getMemberAvatarApiUrl } from "@/lib/avatar-utils";
@@ -20,33 +20,66 @@ type ProfileAvatarUploadProps = {
 };
 
 export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProps) {
-  const { refresh } = useAuth();
+  const { setUser, refresh } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
+  const localPreviewRef = useRef<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [previewVersion, setPreviewVersion] = useState(0);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
+  const [forcedAvatarSrc, setForcedAvatarSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (localPreviewRef.current) {
+        URL.revokeObjectURL(localPreviewRef.current);
+        localPreviewRef.current = null;
+      }
+    };
+  }, []);
 
   const avatarSrc = useMemo(() => {
+    if (localPreviewUrl) return localPreviewUrl;
+    if (forcedAvatarSrc) return forcedAvatarSrc;
     const cacheKey = user.updatedAt ?? (previewVersion > 0 ? String(previewVersion) : undefined);
     return getMemberAvatarApiUrl(user.id, user.avatarUrl, cacheKey);
-  }, [user.id, user.avatarUrl, user.updatedAt, previewVersion]);
+  }, [
+    user.id,
+    user.avatarUrl,
+    user.updatedAt,
+    previewVersion,
+    localPreviewUrl,
+    forcedAvatarSrc,
+  ]);
+
+  function clearLocalPreview() {
+    if (localPreviewRef.current) {
+      URL.revokeObjectURL(localPreviewRef.current);
+      localPreviewRef.current = null;
+    }
+    setLocalPreviewUrl(null);
+  }
 
   async function applyUploadResult(data: {
     user?: PublicMember | null;
     avatarSrc?: string | null;
   }) {
+    clearLocalPreview();
+
     if (!data.user) {
       setError(true);
       setMessage("Photo uploaded but profile did not update. Try again.");
       return;
     }
 
+    setUser(data.user);
     onUpdated(data.user);
-    await refresh();
+    setForcedAvatarSrc(data.avatarSrc ?? null);
     setPreviewVersion(Date.now());
     setError(false);
     setMessage("Profile photo updated.");
+    void refresh();
   }
 
   async function uploadAvatar(file: File) {
@@ -56,6 +89,11 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
       setMessage("Use JPG, PNG, WEBP, or GIF under 10 MB.");
       return;
     }
+
+    clearLocalPreview();
+    const preview = URL.createObjectURL(normalized);
+    localPreviewRef.current = preview;
+    setLocalPreviewUrl(preview);
 
     setBusy(true);
     setMessage(null);
@@ -76,10 +114,12 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
       const response = await fetch("/api/profile/avatar", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
       const data = await response.json();
 
       if (!response.ok) {
+        clearLocalPreview();
         setError(true);
         setMessage(data.error ?? "Could not upload photo.");
         return;
@@ -87,6 +127,7 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
 
       await applyUploadResult(data);
     } catch (uploadError) {
+      clearLocalPreview();
       setError(true);
       setMessage(
         uploadError instanceof Error ? uploadError.message : "Could not upload photo.",
@@ -103,8 +144,12 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
     setBusy(true);
     setMessage(null);
     setError(false);
+    setForcedAvatarSrc(null);
 
-    const response = await fetch("/api/profile/avatar", { method: "DELETE" });
+    const response = await fetch("/api/profile/avatar", {
+      method: "DELETE",
+      credentials: "include",
+    });
     const data = await response.json();
     setBusy(false);
 
@@ -115,11 +160,12 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
     }
 
     if (data.user) {
+      setUser(data.user);
       onUpdated(data.user);
-      await refresh();
       setPreviewVersion(Date.now());
       setError(false);
       setMessage("Profile photo removed.");
+      void refresh();
     }
   }
 
@@ -130,7 +176,18 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
       <div className="relative h-20 w-20 overflow-hidden rounded-full bg-night-900 text-2xl font-bold text-sand-50 ring-2 ring-sand-200">
         {avatarSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatarSrc} alt={publicName} className="h-full w-full object-cover" />
+          <img
+            key={avatarSrc}
+            src={avatarSrc}
+            alt={publicName}
+            className="h-full w-full object-cover"
+            onError={() => {
+              if (forcedAvatarSrc) {
+                setForcedAvatarSrc(null);
+                setPreviewVersion(Date.now());
+              }
+            }}
+          />
         ) : (
           <span className="flex h-full w-full items-center justify-center">
             {publicName.charAt(0).toUpperCase()}
@@ -163,11 +220,20 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
             disabled={busy}
             onClick={async () => {
               if (isNativeAppPlatform()) {
-                const file = await pickProfilePhotoFile();
-                if (file) {
-                  await uploadAvatar(file);
-                  return;
+                try {
+                  const file = await pickProfilePhotoFile();
+                  if (file) {
+                    await uploadAvatar(file);
+                  }
+                } catch (pickError) {
+                  setError(true);
+                  setMessage(
+                    pickError instanceof Error
+                      ? pickError.message
+                      : "Could not read the selected photo.",
+                  );
                 }
+                return;
               }
               inputRef.current?.click();
             }}

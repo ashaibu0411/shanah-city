@@ -3,7 +3,7 @@ export function getMemberAvatarApiUrl(
   avatarUrl?: string | null,
   cacheKey?: string,
 ) {
-  if (!avatarUrl?.startsWith("avatar:")) return null;
+  if (!avatarUrl?.startsWith("avatar:") && !avatarUrl?.startsWith("blob:")) return null;
   const base = `/api/profile/avatar?userId=${encodeURIComponent(userId)}`;
   return cacheKey ? `${base}&v=${encodeURIComponent(cacheKey)}` : base;
 }

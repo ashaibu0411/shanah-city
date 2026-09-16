@@ -26,6 +26,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId") ?? viewer.id;
+  const cacheVersion = searchParams.get("v");
 
   const file = await readAvatarFile(userId);
   if (!file) {
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
   return new NextResponse(file.buffer, {
     headers: {
       "Content-Type": file.contentType,
-      "Cache-Control": "private, max-age=300",
+      "Cache-Control": cacheVersion ? "private, no-store" : "private, max-age=300",
     },
   });
 }
