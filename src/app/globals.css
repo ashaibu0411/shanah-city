@@ -1747,6 +1747,40 @@
   background: var(--color-bg);
 }
 
+.community-page .editorial-page-header-flat {
+  margin-bottom: 0.25rem;
+}
+
+.community-page-stories .community-stories-strip {
+  border-bottom: none;
+  padding-top: 0.15rem;
+  padding-bottom: 0.35rem;
+}
+
+.community-page-intro {
+  margin-top: 0;
+  padding: 0 var(--community-feed-bleed, 0.875rem) 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+body[data-shell="mobile"] .community-page .editorial-page-header-flat {
+  padding-bottom: 0.35rem;
+}
+
+body[data-shell="mobile"] .community-page-stories {
+  margin-inline: calc(var(--community-feed-bleed, 0.875rem) * -1);
+  width: calc(100% + 2 * var(--community-feed-bleed, 0.875rem));
+  max-width: none;
+}
+
+body[data-shell="mobile"] .community-page-stories .community-stories-row {
+  padding-inline: var(--community-feed-bleed, 0.875rem);
+}
+
+body[data-shell="mobile"] .community-page-stories .community-stories-status {
+  padding-inline: var(--community-feed-bleed, 0.875rem);
+}
+
 body[data-shell="mobile"] .community-page-solid {
   margin-inline: calc(var(--community-feed-bleed, 0px) * -1);
   width: calc(100% + 2 * var(--community-feed-bleed, 0px));
