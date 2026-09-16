@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import type { PublicMember } from "@/lib/auth-types";
-import { getUserByEmail } from "@/lib/auth-server";
+import { getUserByEmail, getUserById } from "@/lib/auth-server";
 import {
   fundLabel,
   isRecurringCheckoutFrequency,
@@ -17,7 +17,7 @@ import {
 } from "@/lib/giving-server";
 import { sendGivingThankYou } from "@/lib/giving-notify-server";
 import { getZonedDateParts } from "@/lib/denver-time";
-import { getFormattedPublicDisplayName } from "@/lib/member-display-name";
+import { formatPersonNameForDisplay, getFormattedAccountName } from "@/lib/member-display-name";
 import {
   getAppBaseUrl,
   getStripe,
@@ -107,7 +107,7 @@ export async function createGivingCheckoutSession(input: {
     frequency: input.frequency,
     userId: input.user?.id ?? "",
     campusId: input.user?.campusId ?? "",
-    donorName: input.user ? getFormattedPublicDisplayName(input.user) : "",
+    donorName: input.user ? getFormattedAccountName(input.user) : "",
     giftAmount: String(giftAmount),
     feeAmount: String(feeCoverage.fee),
     coverFees: input.coverFees ? "true" : "false",
@@ -210,6 +210,29 @@ function roundMoney(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+async function donorNameForGivingRecord(input: {
+  userId?: string;
+  donorEmail?: string;
+  fallbackName: string;
+}) {
+  if (input.userId) {
+    const member = await getUserById(input.userId);
+    if (member?.name?.trim()) {
+      return formatPersonNameForDisplay(member.name);
+    }
+  }
+
+  if (input.donorEmail) {
+    const member = await getUserByEmail(input.donorEmail);
+    if (member?.name?.trim()) {
+      return formatPersonNameForDisplay(member.name);
+    }
+  }
+
+  const fallback = input.fallbackName.trim() || "Online donor";
+  return formatPersonNameForDisplay(fallback) || fallback;
+}
+
 function giftAmountFromMetadata(metadata: Record<string, string> | null | undefined, fallbackTotal: number) {
   const gift = Number(metadata?.giftAmount);
   if (Number.isFinite(gift) && gift > 0) return roundMoney(gift);
@@ -300,7 +323,7 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
   const donorEmail = normalizeGivingEmail(
     session.customer_details?.email ?? session.customer_email ?? undefined,
   );
-  const donorName =
+  const stripeName =
     session.customer_details?.name?.trim() ||
     session.metadata?.donorName?.trim() ||
     donorEmail?.split("@")[0] ||
@@ -315,6 +338,12 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
       campusId = campusId ?? member.campusId;
     }
   }
+
+  const donorName = await donorNameForGivingRecord({
+    userId,
+    donorEmail,
+    fallbackName: stripeName,
+  });
 
   const baseNote =
     metadata.frequency && metadata.frequency !== "once"
@@ -349,11 +378,18 @@ export async function recordGiftFromInvoice(
   const giftAmount = giftAmountFromMetadata(metadata, totalPaid);
   const fund = parseFund(metadata.fund);
   const donorEmail = normalizeGivingEmail(invoice.customer_email ?? undefined);
-  const donorName =
+  const stripeName =
     invoice.customer_name?.trim() ||
     metadata.donorName?.trim() ||
     donorEmail?.split("@")[0] ||
     "Online donor";
+
+  const userId = metadataUserId(metadata.userId);
+  const donorName = await donorNameForGivingRecord({
+    userId,
+    donorEmail,
+    fallbackName: stripeName,
+  });
 
   const frequencyNote =
     invoice.billing_reason === "subscription_cycle"

@@ -37,6 +37,11 @@ export function getFormattedPublicDisplayName(user: {
   return formatPersonNameForDisplay(getPublicDisplayName(user));
 }
 
+/** Legal/account name for giving and finance records (ignores community display name). */
+export function getFormattedAccountName(user: { name: string }) {
+  return formatPersonNameForDisplay(user.name);
+}
+
 export function getPublicDisplayFirstName(user: {
   name: string;
   displayName?: string | null;

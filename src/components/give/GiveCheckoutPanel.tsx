@@ -24,7 +24,7 @@ import {
   type GivingFund,
 } from "@/lib/giving-types";
 import { openExternalUrl } from "@/lib/native-app";
-import { getFormattedPublicDisplayName } from "@/lib/member-display-name";
+import { getFormattedAccountName } from "@/lib/member-display-name";
 
 function formatMoney(amount: number) {
   return amount.toLocaleString(undefined, { style: "currency", currency: "USD" });
@@ -136,7 +136,7 @@ export function GiveCheckoutPanel() {
           <p className={`${editorialPremium.leadCard} !py-3.5`}>
             Giving as{" "}
             <span className="font-semibold text-night-950 dark:text-sand-50">
-              {getFormattedPublicDisplayName(user)}
+              {getFormattedAccountName(user)}
             </span>
             . History
             appears on your profile.
