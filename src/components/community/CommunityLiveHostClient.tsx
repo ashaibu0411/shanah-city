@@ -5,35 +5,10 @@ import { useRouter } from "next/navigation";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
-  useLocalParticipant,
-  VideoTrack,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
-import { Track } from "livekit-client";
 import { readJsonResponse } from "@/lib/read-json-response";
-
-function HostPreview() {
-  const { cameraTrack, localParticipant } = useLocalParticipant();
-  const videoPublication = cameraTrack?.track
-    ? {
-        participant: localParticipant,
-        publication: cameraTrack,
-        source: Track.Source.Camera,
-      }
-    : undefined;
-
-  if (!videoPublication) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-sm text-white/80">
-        Starting camera…
-      </div>
-    );
-  }
-
-  return (
-    <VideoTrack trackRef={videoPublication} className="h-full w-full object-cover" />
-  );
-}
+import { CommunityLiveHostStage } from "@/components/community/CommunityLiveHostStage";
 
 export function CommunityLiveHostClient() {
   const router = useRouter();
@@ -148,6 +123,10 @@ export function CommunityLiveHostClient() {
         connect
         audio
         video
+        options={{
+          adaptiveStream: true,
+          dynacast: true,
+        }}
         className="community-live-host-room flex h-full w-full flex-col"
         onDisconnected={() => void endLive()}
       >
@@ -156,7 +135,7 @@ export function CommunityLiveHostClient() {
           <p className="text-xs font-semibold text-white/90">Your story · church family can join</p>
         </div>
         <div className="relative min-h-0 flex-1 bg-black">
-          <HostPreview />
+          <CommunityLiveHostStage />
         </div>
         <div className="community-live-host-actions">
           <button

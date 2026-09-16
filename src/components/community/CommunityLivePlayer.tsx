@@ -4,12 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
-  useTracks,
-  VideoTrack,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
-import { Track } from "livekit-client";
 import { readJsonResponse } from "@/lib/read-json-response";
+import { CommunityLiveViewerStage } from "@/components/community/CommunityLiveViewerStage";
 
 type CommunityLivePlayerProps = {
   statusId: string;
@@ -17,29 +15,6 @@ type CommunityLivePlayerProps = {
   paused: boolean;
   onLiveEnded: () => void;
 };
-
-function LiveViewerStage({ authorName }: { authorName: string }) {
-  const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
-    onlySubscribed: true,
-  });
-  const videoTrack = tracks.find((entry) => entry.publication.kind === Track.Kind.Video);
-
-  if (!videoTrack) {
-    return (
-      <div className="community-story-live-waiting">
-        <span className="community-story-live-badge">LIVE</span>
-        <p className="mt-4 text-sm text-white/85">Connecting to {authorName}&apos;s live…</p>
-      </div>
-    );
-  }
-
-  return (
-    <VideoTrack
-      trackRef={videoTrack}
-      className="h-full w-full object-cover"
-    />
-  );
-}
 
 export function CommunityLivePlayer({
   statusId,
@@ -121,7 +96,7 @@ export function CommunityLivePlayer({
       className="community-story-live-room h-full w-full"
       onDisconnected={() => onLiveEnded()}
     >
-      <LiveViewerStage authorName={authorName} />
+      <CommunityLiveViewerStage authorName={authorName} />
       <RoomAudioRenderer />
     </LiveKitRoom>
   );
