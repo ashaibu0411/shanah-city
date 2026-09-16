@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const response = await fetch("/api/auth");
+    const response = await fetch("/api/auth", { cache: "no-store" });
     const data = await response.json();
     setUser(data.user ?? null);
     setActivity(data.activity ?? []);

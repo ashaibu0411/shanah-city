@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { useAppShell } from "@/components/app/AppShellContext";
 import { runAppRefresh } from "@/lib/app-refresh";
 
-const PULL_THRESHOLD = 72;
-const MAX_PULL = 112;
+const PULL_THRESHOLD = 64;
+const MAX_PULL = 108;
 
 function isRefreshBlocked() {
   if (typeof document === "undefined") return true;
@@ -14,8 +14,39 @@ function isRefreshBlocked() {
   return false;
 }
 
-function scrollTop() {
-  return window.scrollY || document.documentElement.scrollTop || 0;
+function pageScrollTop() {
+  return (
+    window.scrollY ||
+    document.documentElement.scrollTop ||
+    document.body.scrollTop ||
+    0
+  );
+}
+
+function findScrollableAncestor(start: EventTarget | null): Element | null {
+  if (!(start instanceof Element)) return null;
+
+  let node: Element | null = start;
+  while (node && node !== document.body && node !== document.documentElement) {
+    const style = window.getComputedStyle(node);
+    const overflowY = style.overflowY;
+    if (
+      (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") &&
+      node.scrollHeight > node.clientHeight + 1
+    ) {
+      return node;
+    }
+    node = node.parentElement;
+  }
+
+  return null;
+}
+
+function isAtScrollTop(scroller: Element | null) {
+  if (scroller) {
+    return scroller.scrollTop <= 2;
+  }
+  return pageScrollTop() <= 2;
 }
 
 type PullToRefreshProps = {
@@ -23,15 +54,16 @@ type PullToRefreshProps = {
 };
 
 export function PullToRefresh({ children }: PullToRefreshProps) {
-  const { isMobileApp, messagesImmersive } = useAppShell();
+  const { isMobileApp, isNativeApp, messagesImmersive } = useAppShell();
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startYRef = useRef<number | null>(null);
+  const scrollRootRef = useRef<Element | null>(null);
   const pullingRef = useRef(false);
   const pullRef = useRef(0);
   const refreshingRef = useRef(false);
 
-  const enabled = isMobileApp && !messagesImmersive;
+  const enabled = (isMobileApp || isNativeApp) && !messagesImmersive;
 
   useEffect(() => {
     pullRef.current = pull;
@@ -46,19 +78,26 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     setRefreshing(true);
     setPull(PULL_THRESHOLD);
     try {
+      if (isNativeApp) {
+        window.location.reload();
+        return;
+      }
       await runAppRefresh();
     } finally {
-      setRefreshing(false);
-      setPull(0);
+      if (!isNativeApp) {
+        setRefreshing(false);
+        setPull(0);
+      }
     }
-  }, []);
+  }, [isNativeApp]);
 
   useEffect(() => {
     if (!enabled) return;
 
     function onTouchStart(event: TouchEvent) {
       if (refreshingRef.current || isRefreshBlocked()) return;
-      if (scrollTop() > 2) return;
+      scrollRootRef.current = findScrollableAncestor(event.target);
+      if (!isAtScrollTop(scrollRootRef.current)) return;
       const target = event.target;
       if (target instanceof Element && target.closest("[data-no-pull-refresh]")) return;
       startYRef.current = event.touches[0]?.clientY ?? null;
@@ -67,7 +106,7 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
 
     function onTouchMove(event: TouchEvent) {
       if (refreshingRef.current || startYRef.current == null || isRefreshBlocked()) return;
-      if (scrollTop() > 2) {
+      if (!isAtScrollTop(scrollRootRef.current)) {
         startYRef.current = null;
         setPull(0);
         return;
@@ -81,9 +120,9 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
       }
 
       pullingRef.current = true;
-      const next = Math.min(MAX_PULL, delta * 0.55);
+      const next = Math.min(MAX_PULL, delta * 0.5);
       setPull(next);
-      if (next > 8) {
+      if (next > 0) {
         event.preventDefault();
       }
     }
@@ -92,6 +131,7 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
       if (refreshingRef.current) return;
       const shouldRefresh = pullingRef.current && pullRef.current >= PULL_THRESHOLD;
       startYRef.current = null;
+      scrollRootRef.current = null;
       pullingRef.current = false;
       if (shouldRefresh) {
         void triggerRefresh();
@@ -100,16 +140,17 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
       setPull(0);
     }
 
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
-    window.addEventListener("touchend", onTouchEnd);
-    window.addEventListener("touchcancel", onTouchEnd);
+    const opts = { capture: true };
+    document.addEventListener("touchstart", onTouchStart, { ...opts, passive: true });
+    document.addEventListener("touchmove", onTouchMove, { ...opts, passive: false });
+    document.addEventListener("touchend", onTouchEnd, opts);
+    document.addEventListener("touchcancel", onTouchEnd, opts);
 
     return () => {
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onTouchEnd);
-      window.removeEventListener("touchcancel", onTouchEnd);
+      document.removeEventListener("touchstart", onTouchStart, opts);
+      document.removeEventListener("touchmove", onTouchMove, opts);
+      document.removeEventListener("touchend", onTouchEnd, opts);
+      document.removeEventListener("touchcancel", onTouchEnd, opts);
     };
   }, [enabled, triggerRefresh]);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useOnAppRefresh } from "@/hooks/useOnAppRefresh";
 import { LiveStreamCountdown } from "@/components/live/LiveStreamCountdown";
 import type { LiveStreamSchedule } from "@/lib/live-schedule-types";
 import type { LiveStreamPhase } from "@/lib/live-schedule-utils";
@@ -11,7 +12,7 @@ export function useUpcomingLiveStreamSchedule() {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const response = await fetch("/api/live/schedule");
+    const response = await fetch("/api/live/schedule", { cache: "no-store" });
     const data = await response.json();
     if (response.ok) {
       setSchedule(data.schedule ?? null);
@@ -23,6 +24,10 @@ export function useUpcomingLiveStreamSchedule() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useOnAppRefresh(() => {
+    void refresh();
+  });
 
   useEffect(() => {
     if (livePhase !== "live") return;

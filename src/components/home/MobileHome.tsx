@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useOnAppRefresh } from "@/hooks/useOnAppRefresh";
 import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { DevotionPromoCard } from "@/components/devotions/DevotionPromoCard";
@@ -99,7 +100,24 @@ export function MobileHome({
       })
       .catch(() => undefined);
   }, []);
-  const { livePhase, schedule: liveSchedule } = useUpcomingLiveStreamSchedule();
+
+  useOnAppRefresh(() => {
+    fetch("/api/devotions", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data.devotions)) {
+          setDevotion(pickTodayDevotion(data.devotions));
+        }
+      })
+      .catch(() => undefined);
+  });
+
+  const { livePhase, schedule: liveSchedule, refresh: refreshLiveSchedule } =
+    useUpcomingLiveStreamSchedule();
+
+  useOnAppRefresh(() => {
+    void refreshLiveSchedule();
+  });
   const anyLive =
     liveStream.isLive ||
     liveStream.youtube.isLive ||

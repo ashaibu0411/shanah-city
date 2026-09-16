@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useOnAppRefresh } from "@/hooks/useOnAppRefresh";
 import type { MyEventRsvpsResponse } from "@/lib/event-rsvp-types";
 
 const empty: MyEventRsvpsResponse = {
@@ -21,7 +22,7 @@ export function useMyEventRsvps(enabled = true) {
     }
 
     setLoading(true);
-    const response = await fetch("/api/events/rsvp/mine");
+    const response = await fetch("/api/events/rsvp/mine", { cache: "no-store" });
     const payload = await response.json();
     setLoading(false);
 
@@ -39,6 +40,10 @@ export function useMyEventRsvps(enabled = true) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useOnAppRefresh(() => {
+    void refresh();
+  });
 
   const pendingEventIds = new Set(data.pending.map((item) => item.eventId));
 
