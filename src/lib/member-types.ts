@@ -3,6 +3,10 @@ export type Comment = {
   author: string;
   content: string;
   createdAt: string;
+  parentId?: string;
+  replies?: Comment[];
+  reactionCounts?: import("@/lib/community-post-reactions").CommunityPostReactionCounts;
+  viewerReactions?: import("@/lib/community-post-reactions").CommunityPostReactionKind[];
 };
 
 export type CommunityPostMediaItem = {

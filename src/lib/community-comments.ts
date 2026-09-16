@@ -1,0 +1,67 @@
+import type { Comment } from "@/lib/member-types";
+
+/** Flat list from the database → top-level comments with nested replies. */
+export function nestComments(flat: Comment[]): Comment[] {
+  if (flat.length === 0) return [];
+
+  const nodes = new Map<string, Comment>();
+  for (const entry of flat) {
+    nodes.set(entry.id, { ...entry, replies: [] });
+  }
+
+  const roots: Comment[] = [];
+  for (const entry of flat) {
+    const node = nodes.get(entry.id);
+    if (!node) continue;
+    if (entry.parentId && nodes.has(entry.parentId)) {
+      const parent = nodes.get(entry.parentId)!;
+      parent.replies = parent.replies ?? [];
+      parent.replies.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  return roots;
+}
+
+/** Count comments including nested replies. */
+export function totalCommentCount(comments: Comment[] | undefined): number {
+  if (!comments?.length) return 0;
+  let total = 0;
+  function walk(list: Comment[]) {
+    for (const comment of list) {
+      total += 1;
+      if (comment.replies?.length) walk(comment.replies);
+    }
+  }
+  walk(comments);
+  return total;
+}
+
+/** Collect every comment id in a nested tree (for batch loads). */
+export function collectCommentIds(comments: Comment[]): string[] {
+  const ids: string[] = [];
+  function walk(list: Comment[]) {
+    for (const comment of list) {
+      ids.push(comment.id);
+      if (comment.replies?.length) walk(comment.replies);
+    }
+  }
+  walk(comments);
+  return ids;
+}
+
+/** Flatten nested comments (e.g. after nesting) for reaction attachment. */
+export function flattenComments(comments: Comment[]): Comment[] {
+  const flat: Comment[] = [];
+  function walk(list: Comment[]) {
+    for (const comment of list) {
+      const { replies, ...rest } = comment;
+      flat.push(rest);
+      if (replies?.length) walk(replies);
+    }
+  }
+  walk(comments);
+  return flat;
+}

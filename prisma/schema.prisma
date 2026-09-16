@@ -238,12 +238,31 @@ model CommunityLiveCoHost {
 }
 
 model Comment {
-  id        String        @id
+  id        String                     @id
   postId    String
-  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      CommunityPost              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Comment?                   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]                  @relation("CommentReplies")
   author    String
   content   String
   createdAt DateTime
+  reactions CommunityCommentReaction[]
+
+  @@index([postId])
+  @@index([parentId])
+}
+
+model CommunityCommentReaction {
+  id        String   @id
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  kind      String
+  createdAt DateTime @default(now())
+
+  @@unique([commentId, userId, kind])
+  @@index([commentId])
 }
 
 model Devotion {

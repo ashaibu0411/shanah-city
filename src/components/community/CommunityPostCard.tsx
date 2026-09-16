@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getCampus } from "@/lib/site";
-import type { CommunityPost } from "@/lib/member-types";
+import type { Comment, CommunityPost } from "@/lib/member-types";
+import { totalCommentCount } from "@/lib/community-comments";
 import {
   COMMUNITY_SHARE_POST_TYPES,
   formatCommunityTimeAgo,
@@ -55,6 +56,110 @@ type CommunityPostCardProps = {
   compact?: boolean;
 };
 
+type PostCommentRowProps = {
+  comment: Comment;
+  depth?: number;
+  postId: string;
+  reactionButtons: ReturnType<typeof postReactionButtons>;
+  reactionBusy: boolean;
+  onReact: (commentId: string, kind: CommunityPostReactionKind) => void;
+  onReply: (comment: Comment) => void;
+};
+
+function PostCommentRow({
+  comment,
+  depth = 0,
+  postId,
+  reactionButtons,
+  reactionBusy,
+  onReact,
+  onReply,
+}: PostCommentRowProps) {
+  const reactionTotal = totalPostReactionCount(comment.reactionCounts);
+  const reactionSummaryEmojis =
+    reactionTotal > 0 ? topPostReactionEmojis(comment.reactionCounts) : [];
+
+  return (
+    <div className={depth > 0 ? "mt-2 border-l-2 border-night-900/8 pl-2 dark:border-sand-100/10" : ""}>
+      <div className="flex items-start gap-2">
+        <CommunityAvatar name={comment.author} size="sm" />
+        <div className="min-w-0 flex-1">
+          <div className="community-comment-bubble">
+            <p className="text-[13px] font-semibold leading-tight text-night-900 dark:text-sand-100">
+              {comment.author}
+            </p>
+            <p className="community-post-content mt-0.5 text-[15px] leading-snug text-night-900 dark:text-sand-100">
+              {comment.content}
+            </p>
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
+            <span className="text-[11px] font-semibold text-night-600">
+              {formatCommunityTimeAgo(comment.createdAt)}
+            </span>
+            {reactionTotal > 0 ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-night-600">
+                <span className="inline-flex items-center -space-x-0.5">
+                  {reactionSummaryEmojis.map((emoji, index) => (
+                    <span key={`${comment.id}-rx-${index}`} className="text-[11px]">
+                      {emoji}
+                    </span>
+                  ))}
+                </span>
+                {reactionTotal}
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => onReply(comment)}
+              className="text-[11px] font-semibold text-night-600 hover:text-clay-600"
+            >
+              Reply
+            </button>
+          </div>
+          <div
+            className="community-comment-reactions mt-1 flex flex-wrap gap-0.5 px-0.5"
+            role="toolbar"
+            aria-label={`React to ${comment.author}'s comment`}
+          >
+            {reactionButtons.map((button) => {
+              const active = comment.viewerReactions?.includes(button.kind);
+              return (
+                <button
+                  key={`${comment.id}-${button.kind}`}
+                  type="button"
+                  disabled={reactionBusy}
+                  onClick={() => onReact(comment.id, button.kind)}
+                  className={`community-comment-reaction-btn ${active ? "community-comment-reaction-btn-active" : ""}`}
+                  aria-label={button.label}
+                  aria-pressed={active}
+                >
+                  <span aria-hidden>{button.emoji}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      {comment.replies?.length ? (
+        <div className="mt-1 space-y-0">
+          {comment.replies.map((reply) => (
+            <PostCommentRow
+              key={reply.id}
+              comment={reply}
+              depth={depth + 1}
+              postId={postId}
+              reactionButtons={reactionButtons}
+              reactionBusy={reactionBusy}
+              onReact={onReact}
+              onReply={onReply}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function CommunityPostCard({
   post,
   onUpdate,
@@ -64,6 +169,8 @@ export function CommunityPostCard({
   const { user, permissions } = useAuth();
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
+  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+  const [commentReactionBusy, setCommentReactionBusy] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reactionBusy, setReactionBusy] = useState(false);
@@ -119,6 +226,7 @@ export function CommunityPostCard({
   }, [post.content, post.type, editing]);
 
   const comments = post.comments ?? [];
+  const commentCount = totalCommentCount(comments);
   const timeLabel = formatCommunityTimeAgo(post.createdAt, post.timeAgo);
   const reactionButtons = postReactionButtons();
   const reactionTotal = totalPostReactionCount(post.reactionCounts, post.reactions);
@@ -150,13 +258,14 @@ export function CommunityPostCard({
   async function submitComment() {
     if (!commentDraft.trim()) return;
     setLoading(true);
+    const isReply = Boolean(replyingTo?.id);
     const response = await fetch("/api/community", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        action: "comment",
+        action: isReply ? "reply" : "comment",
         postId: post.id,
-        author: "You",
+        parentCommentId: replyingTo?.id,
         content: commentDraft.trim(),
       }),
     });
@@ -165,8 +274,40 @@ export function CommunityPostCard({
     if (response.ok) {
       onUpdate(data.post);
       setCommentDraft("");
+      setReplyingTo(null);
       setCommentsOpen(true);
     }
+  }
+
+  async function toggleCommentReaction(commentId: string, kind: CommunityPostReactionKind) {
+    if (commentReactionBusy) return;
+    setCommentReactionBusy(true);
+    try {
+      const response = await fetch("/api/community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "reactComment",
+          postId: post.id,
+          commentId,
+          kind,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        onUpdate(data.post);
+      }
+    } finally {
+      setCommentReactionBusy(false);
+    }
+  }
+
+  function startReply(comment: Comment) {
+    setReplyingTo(comment);
+    setCommentsOpen(true);
+    window.setTimeout(() => {
+      document.getElementById(`comment-input-${post.id}`)?.focus();
+    }, 0);
   }
 
   async function toggleReaction(kind: CommunityPostReactionKind) {
@@ -408,7 +549,7 @@ export function CommunityPostCard({
         </div>
       ) : null}
 
-      {(reactionTotal > 0 || comments.length > 0) && (
+      {(reactionTotal > 0 || commentCount > 0) && (
         <div className="community-post-stats flex items-center justify-between text-xs text-night-600">
           <div className="inline-flex items-center gap-1.5">
             {reactionTotal > 0 ? (
@@ -427,13 +568,13 @@ export function CommunityPostCard({
               </>
             ) : null}
           </div>
-          {comments.length > 0 ? (
+          {commentCount > 0 ? (
             <button
               type="button"
               onClick={() => toggleComments()}
               className="hover:underline"
             >
-              {comments.length} comment{comments.length === 1 ? "" : "s"}
+              {commentCount} comment{commentCount === 1 ? "" : "s"}
             </button>
           ) : null}
         </div>
@@ -483,29 +624,37 @@ export function CommunityPostCard({
       </div>
 
       {commentsOpen && !compact ? (
-        <div className="community-post-comments space-y-2 pt-1">
+        <div className="community-post-comments space-y-3 pt-1">
           {comments.length === 0 ? (
             <p className="px-1 text-sm text-night-500">No comments yet. Be the first.</p>
           ) : (
             comments.map((comment) => (
-              <div key={comment.id} className="flex items-start gap-2">
-                <CommunityAvatar name={comment.author} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <div className="community-comment-bubble">
-                    <p className="text-[13px] font-semibold leading-tight text-night-900">
-                      {comment.author}
-                    </p>
-                    <p className="community-post-content mt-0.5 text-[15px] leading-snug text-night-900">
-                      {comment.content}
-                    </p>
-                  </div>
-                  <p className="mt-1 px-3 text-[11px] font-semibold text-night-600">
-                    {formatCommunityTimeAgo(comment.createdAt)}
-                  </p>
-                </div>
-              </div>
+              <PostCommentRow
+                key={comment.id}
+                comment={comment}
+                postId={post.id}
+                reactionButtons={reactionButtons}
+                reactionBusy={commentReactionBusy}
+                onReact={(commentId, kind) => void toggleCommentReaction(commentId, kind)}
+                onReply={startReply}
+              />
             ))
           )}
+
+          {replyingTo ? (
+            <div className="flex items-center justify-between gap-2 rounded-xl bg-sand-100 px-3 py-2 text-xs text-night-700 dark:bg-night-900/40 dark:text-sand-200">
+              <span>
+                Replying to <span className="font-semibold">{replyingTo.author}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setReplyingTo(null)}
+                className="font-semibold text-clay-600"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : null}
 
           <div className="flex items-center gap-2 pt-1">
             <CommunityAvatar name="You" size="sm" />
@@ -520,7 +669,9 @@ export function CommunityPostCard({
                     void submitComment();
                   }
                 }}
-                placeholder="Write a comment..."
+                placeholder={
+                  replyingTo ? `Reply to ${replyingTo.author}...` : "Write a comment..."
+                }
                 className="community-comment-input"
               />
               {commentDraft.trim() ? (

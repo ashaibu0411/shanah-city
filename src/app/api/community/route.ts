@@ -2,9 +2,12 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { canManageCommunityPost } from "@/lib/community-access-server";
+import {
+  enrichCommunityPostsForViewer,
+  toggleCommunityCommentReaction,
+} from "@/lib/community-comment-reaction-server";
 import { attachCanManageToPosts } from "@/lib/community-post-access";
 import {
-  attachReactionsToPosts,
   toggleCommunityPostReaction,
 } from "@/lib/community-post-reaction-server";
 import { isPostReactionKind } from "@/lib/community-post-reactions";
@@ -88,7 +91,7 @@ export async function GET() {
   const user = await getUserFromSession(token);
   const posts = await getCommunityPostsForViewer(user?.id);
   const isAdmin = user ? await canManageAsAdmin(user) : false;
-  const withReactions = await attachReactionsToPosts(posts, user?.id);
+  const withReactions = await enrichCommunityPostsForViewer(posts, user?.id);
   return NextResponse.json({ posts: attachCanManageToPosts(withReactions, user, isAdmin) });
 }
 
@@ -99,18 +102,70 @@ export async function POST(request: Request) {
   const body = await request.json();
   const authorName = user ? getPublicDisplayName(user) : body.author ?? "Member";
 
-  if (body.action === "comment") {
+  if (body.action === "comment" || body.action === "reply") {
+    const parentCommentId =
+      body.action === "reply" ? String(body.parentCommentId ?? body.commentId ?? "").trim() : "";
+    if (body.action === "reply" && !parentCommentId) {
+      return NextResponse.json({ error: "Comment not found." }, { status: 404 });
+    }
+
     const comment = await addCommentToPost(body.postId, {
       id: `c-${Date.now()}`,
       author: authorName,
       content: String(body.content ?? "").trim(),
       createdAt: new Date().toISOString(),
+      parentId: parentCommentId || undefined,
     });
     if (!comment) {
+      const postExists = await getCommunityPostById(String(body.postId ?? ""));
+      if (!postExists) {
+        return NextResponse.json({ error: "Post not found." }, { status: 404 });
+      }
+      return NextResponse.json({ error: "Comment not found." }, { status: 404 });
+    }
+    const isAdmin = user ? await canManageAsAdmin(user) : false;
+    const [enriched] = await enrichCommunityPostsForViewer([comment], user?.id);
+    return NextResponse.json({ post: attachCanManageToPosts([enriched], user, isAdmin)[0] });
+  }
+
+  if (body.action === "reactComment") {
+    const commentId = String(body.commentId ?? "").trim();
+    const kind = String(body.kind ?? "").trim();
+
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to react to comments." }, { status: 401 });
+    }
+
+    if (!commentId) {
+      return NextResponse.json({ error: "Comment not found." }, { status: 404 });
+    }
+
+    if (!isPostReactionKind(kind)) {
+      return NextResponse.json({ error: "Invalid reaction." }, { status: 400 });
+    }
+
+    try {
+      await toggleCommunityCommentReaction({ commentId, userId: user.id, kind });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not react.";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    const postId = String(body.postId ?? "").trim();
+    if (!postId) {
       return NextResponse.json({ error: "Post not found." }, { status: 404 });
     }
-    const [enriched] = await attachReactionsToPosts([comment], user?.id);
-    return NextResponse.json({ post: enriched });
+
+    const post = await getCommunityPostById(postId);
+    if (!post) {
+      return NextResponse.json({ error: "Post not found." }, { status: 404 });
+    }
+
+    const isAdmin = await canManageAsAdmin(user);
+    const [enriched] = await enrichCommunityPostsForViewer([post], user.id);
+    return NextResponse.json({
+      post: attachCanManageToPosts([enriched], user, isAdmin)[0],
+    });
   }
 
   if (body.action === "react") {
@@ -142,7 +197,7 @@ export async function POST(request: Request) {
     }
 
     const isAdmin = await canManageAsAdmin(user);
-    const [enriched] = await attachReactionsToPosts([post], user.id);
+    const [enriched] = await enrichCommunityPostsForViewer([post], user.id);
     return NextResponse.json({
       post: attachCanManageToPosts([enriched], user, isAdmin)[0],
     });

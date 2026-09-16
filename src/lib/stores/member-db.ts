@@ -19,12 +19,14 @@ function mapComment(record: {
   author: string;
   content: string;
   createdAt: Date;
+  parentId?: string | null;
 }): Comment {
   return {
     id: record.id,
     author: record.author,
     content: record.content,
     createdAt: record.createdAt.toISOString(),
+    parentId: record.parentId ?? undefined,
   };
 }
 
@@ -48,6 +50,7 @@ function mapCommunityPost(record: {
     author: string;
     content: string;
     createdAt: Date;
+    parentId?: string | null;
   }[];
 }): CommunityPost {
   const parsedItems = parseCommunityPostMediaItems(record.mediaItems);
@@ -207,6 +210,7 @@ export async function saveCommunityPosts(posts: CommunityPost[]) {
               id: comment.id,
               author: comment.author,
               content: comment.content,
+              parentId: comment.parentId ?? null,
               createdAt: new Date(comment.createdAt),
             })),
           },
@@ -241,6 +245,7 @@ export async function addCommunityPost(post: CommunityPost) {
           id: comment.id,
           author: comment.author,
           content: comment.content,
+          parentId: comment.parentId ?? null,
           createdAt: new Date(comment.createdAt),
         })),
       },
@@ -255,12 +260,20 @@ export async function addCommentToPost(postId: string, comment: Comment) {
   const existing = await prisma.communityPost.findUnique({ where: { id: postId } });
   if (!existing) return null;
 
+  if (comment.parentId) {
+    const parent = await prisma.comment.findFirst({
+      where: { id: comment.parentId, postId },
+    });
+    if (!parent) return null;
+  }
+
   await prisma.comment.create({
     data: {
       id: comment.id,
       postId,
       author: comment.author,
       content: comment.content,
+      parentId: comment.parentId ?? null,
       createdAt: new Date(comment.createdAt),
     },
   });
