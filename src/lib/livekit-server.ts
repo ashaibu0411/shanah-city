@@ -3,7 +3,7 @@ import { getLiveKitPublicUrl, isLiveKitConfigured } from "@/lib/livekit-config";
 
 export { getLiveKitPublicUrl, isLiveKitConfigured };
 
-export type LiveKitParticipantRole = "host" | "viewer";
+export type LiveKitParticipantRole = "host" | "viewer" | "cohost";
 
 export function createStoryLiveRoomName(authorId: string) {
   const safe = authorId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32);
@@ -29,13 +29,14 @@ export async function createLiveKitRoomToken(input: {
     ttl: 60 * 60 * 4,
   });
 
-  const canPublish = input.role === "host";
+  const canPublish = input.role === "host" || input.role === "cohost";
   token.addGrant({
     roomJoin: true,
     room: input.roomName,
     canPublish,
     canSubscribe: true,
-    canPublishData: canPublish,
+    canPublishData: true,
+    roomAdmin: input.role === "host",
   });
 
   return token.toJwt();

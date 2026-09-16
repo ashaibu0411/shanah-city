@@ -867,6 +867,8 @@ export function CommunityStoryViewer({
           <CommunityLivePlayer
             statusId={slide.id}
             authorName={deck?.authorName ?? slide.authorName}
+            authorId={deck?.authorId ?? slide.authorId}
+            viewerIsHost={deck?.authorId === currentUserId}
             paused={playbackPaused}
             onLiveEnded={() => {
               setMediaFailed(false);
@@ -905,7 +907,7 @@ export function CommunityStoryViewer({
           />
         )}
 
-        {slide.mediaType !== "link" ? (
+        {slide.mediaType !== "link" && slide.mediaType !== "live" ? (
         <div
           className="community-story-viewer-tap-layer"
           onPointerDown={handleMediaPointerDown}
@@ -947,7 +949,7 @@ export function CommunityStoryViewer({
         <p className="community-story-viewer-caption">{slide.caption}</p>
       ) : null}
 
-      {!isOwnStory && slide ? (
+      {!isOwnStory && slide && slide.mediaType !== "live" ? (
         <div className="community-story-viewer-compose">
           {replyFocused ? (
             <div

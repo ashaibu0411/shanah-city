@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { endCommunityStoryLive, startCommunityStoryLive } from "@/lib/community-live-server";
+import { clearLiveSocialData } from "@/lib/community-live-social-server";
 import { notifyStoryPosted } from "@/lib/community-status-viewer-server";
 import { attachReactionsToStatuses } from "@/lib/community-status-reaction-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
@@ -98,6 +99,8 @@ export async function DELETE(request: Request) {
   if (!result) {
     return NextResponse.json({ error: "Live not found." }, { status: 404 });
   }
+
+  await clearLiveSocialData(statusId);
 
   return NextResponse.json({ ok: true });
 }

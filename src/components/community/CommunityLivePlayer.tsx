@@ -1,17 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  LiveKitRoom,
-  RoomAudioRenderer,
-} from "@livekit/components-react";
+import { useRouter } from "next/navigation";
+import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { readJsonResponse } from "@/lib/read-json-response";
-import { CommunityLiveViewerStage } from "@/components/community/CommunityLiveViewerStage";
+import {
+  CommunityLiveAudienceStage,
+  CommunityLiveJoinActions,
+} from "@/components/community/CommunityLiveAudienceStage";
+import { CommunityLiveCommentsPanel } from "@/components/community/CommunityLiveCommentsPanel";
 
 type CommunityLivePlayerProps = {
   statusId: string;
   authorName: string;
+  authorId: string;
+  viewerIsHost: boolean;
   paused: boolean;
   onLiveEnded: () => void;
 };
@@ -19,13 +23,20 @@ type CommunityLivePlayerProps = {
 export function CommunityLivePlayer({
   statusId,
   authorName,
+  authorId,
+  viewerIsHost,
   paused,
   onLiveEnded,
 }: CommunityLivePlayerProps) {
+  const router = useRouter();
   const [serverUrl, setServerUrl] = useState("");
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const goCoHost = useCallback(() => {
+    router.push(`/community/live/cohost?statusId=${encodeURIComponent(statusId)}`);
+  }, [router, statusId]);
 
   const loadToken = useCallback(async () => {
     setLoading(true);
@@ -34,7 +45,7 @@ export function CommunityLivePlayer({
       const response = await fetch("/api/community/live/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statusId }),
+        body: JSON.stringify({ statusId, role: "viewer" }),
       });
       const data = await readJsonResponse<{
         error?: string;
@@ -87,17 +98,25 @@ export function CommunityLivePlayer({
   }
 
   return (
-    <LiveKitRoom
-      token={token}
-      serverUrl={serverUrl}
-      connect={!paused}
-      audio
-      video={false}
-      className="community-story-live-room h-full w-full"
-      onDisconnected={() => onLiveEnded()}
-    >
-      <CommunityLiveViewerStage authorName={authorName} />
-      <RoomAudioRenderer />
-    </LiveKitRoom>
+    <div className="community-story-live-stack">
+      <LiveKitRoom
+        token={token}
+        serverUrl={serverUrl}
+        connect={!paused}
+        audio
+        video={false}
+        className="community-story-live-room h-full w-full min-h-0 flex-1"
+        onDisconnected={() => onLiveEnded()}
+      >
+        <CommunityLiveAudienceStage authorName={authorName} />
+        <RoomAudioRenderer />
+      </LiveKitRoom>
+      <div className="community-story-live-overlay">
+        <CommunityLiveCommentsPanel statusId={statusId} compact className="community-story-live-comments" />
+        {!viewerIsHost && authorId ? (
+          <CommunityLiveJoinActions statusId={statusId} onApproved={goCoHost} />
+        ) : null}
+      </div>
+    </div>
   );
 }

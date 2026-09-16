@@ -213,6 +213,30 @@ model CommunityStatusReply {
   @@index([statusId])
 }
 
+model CommunityLiveJoinRequest {
+  id        String   @id
+  statusId  String
+  userId    String
+  userName  String
+  state     String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([statusId, userId])
+  @@index([statusId, state])
+}
+
+model CommunityLiveCoHost {
+  id        String   @id
+  statusId  String
+  userId    String
+  userName  String
+  createdAt DateTime @default(now())
+
+  @@unique([statusId, userId])
+  @@index([statusId])
+}
+
 model Comment {
   id        String        @id
   postId    String

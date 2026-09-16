@@ -1,38 +1,36 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  LiveKitRoom,
-  RoomAudioRenderer,
-} from "@livekit/components-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { CommunityLivePublisherStage } from "@/components/community/CommunityLivePublisherStage";
-import { CommunityLiveHostSessionPanel } from "@/components/community/CommunityLiveHostSessionPanel";
 import { CommunityLiveCommentsPanel } from "@/components/community/CommunityLiveCommentsPanel";
 
-export function CommunityLiveHostClient() {
+export function CommunityLiveCoHostClient() {
   const router = useRouter();
-  const endingRef = useRef(false);
+  const searchParams = useSearchParams();
+  const statusId = searchParams.get("statusId")?.trim() ?? "";
+  const leavingRef = useRef(false);
+
   const [serverUrl, setServerUrl] = useState("");
   const [token, setToken] = useState("");
-  const [statusId, setStatusId] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(true);
 
-  const endLive = useCallback(async () => {
-    if (endingRef.current) return;
-    endingRef.current = true;
+  const leaveCoHost = useCallback(async () => {
+    if (leavingRef.current) return;
+    leavingRef.current = true;
     if (statusId) {
       try {
-        await fetch("/api/community/live/start", {
-          method: "DELETE",
+        await fetch("/api/community/live/cohost", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ statusId }),
+          body: JSON.stringify({ statusId, action: "leave" }),
         });
       } catch {
-        // Best effort end.
+        // best effort
       }
     }
     router.replace("/community");
@@ -40,54 +38,79 @@ export function CommunityLiveHostClient() {
   }, [router, statusId]);
 
   useEffect(() => {
+    if (!statusId) {
+      setError("Missing live id.");
+      setBusy(false);
+      return;
+    }
+
     let cancelled = false;
 
-    async function start() {
+    async function connect() {
       setBusy(true);
       setError("");
       try {
-        const response = await fetch("/api/community/live/start", {
+        const sessionRes = await fetch(
+          `/api/community/live/session?statusId=${encodeURIComponent(statusId)}`,
+          { cache: "no-store" },
+        );
+        const sessionData = await readJsonResponse<{
+          error?: string;
+          isCoHost?: boolean;
+          joinRequestState?: string;
+        }>(sessionRes);
+        if (cancelled) return;
+        if (!sessionRes.ok) {
+          setError(sessionData.error ?? "Live unavailable.");
+          setBusy(false);
+          return;
+        }
+        if (!sessionData.isCoHost && sessionData.joinRequestState !== "approved") {
+          setError("The host has not approved you as a co-host yet.");
+          setBusy(false);
+          return;
+        }
+
+        const response = await fetch("/api/community/live/token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ caption: "Live now" }),
+          body: JSON.stringify({ statusId, role: "cohost" }),
         });
         const data = await readJsonResponse<{
           error?: string;
           token?: string;
           serverUrl?: string;
-          status?: { id: string };
         }>(response);
         if (cancelled) return;
-        if (!response.ok || !data.token || !data.serverUrl || !data.status?.id) {
-          setError(data.error ?? "Could not go live.");
+        if (!response.ok || !data.token || !data.serverUrl) {
+          setError(data.error ?? "Could not join as co-host.");
           setBusy(false);
           return;
         }
         setServerUrl(data.serverUrl);
         setToken(data.token);
-        setStatusId(data.status.id);
         setBusy(false);
-      } catch (startError) {
+      } catch (connectError) {
         if (!cancelled) {
-          setError(startError instanceof Error ? startError.message : "Could not go live.");
+          setError(connectError instanceof Error ? connectError.message : "Could not join live.");
           setBusy(false);
         }
       }
     }
 
-    void start();
+    void connect();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [statusId]);
 
   useEffect(() => {
     return () => {
-      if (statusId && !endingRef.current) {
-        void fetch("/api/community/live/start", {
-          method: "DELETE",
+      if (statusId && !leavingRef.current) {
+        void fetch("/api/community/live/cohost", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ statusId }),
+          body: JSON.stringify({ statusId, action: "leave" }),
           keepalive: true,
         });
       }
@@ -97,12 +120,12 @@ export function CommunityLiveHostClient() {
   if (busy) {
     return (
       <div className="community-live-host-shell">
-        <p className="text-sm text-white/85">Starting your live story…</p>
+        <p className="text-sm text-white/85">Joining as co-host…</p>
       </div>
     );
   }
 
-  if (error || !token || !serverUrl) {
+  if (error || !token || !serverUrl || !statusId) {
     return (
       <div className="community-live-host-shell">
         <p className="max-w-sm text-center text-sm text-rose-200">{error || "Live unavailable."}</p>
@@ -125,29 +148,25 @@ export function CommunityLiveHostClient() {
         connect
         audio
         video
-        options={{
-          adaptiveStream: true,
-          dynacast: true,
-        }}
+        options={{ adaptiveStream: true, dynacast: true }}
         className="community-live-host-room flex h-full w-full flex-col"
-        onDisconnected={() => void endLive()}
+        onDisconnected={() => void leaveCoHost()}
       >
         <div className="community-live-host-top">
           <span className="community-story-live-badge">LIVE</span>
-          <p className="text-xs font-semibold text-white/90">Your story · church family can join</p>
+          <p className="text-xs font-semibold text-white/90">Co-host · mic &amp; video controls below</p>
         </div>
-        <CommunityLiveHostSessionPanel statusId={statusId} />
         <div className="relative min-h-0 flex-1 bg-black">
-          <CommunityLivePublisherStage />
+          <CommunityLivePublisherStage showRemoteCoHosts={false} />
         </div>
         <CommunityLiveCommentsPanel statusId={statusId} compact />
-        <div className="community-live-host-actions">
+        <div className="community-live-host-actions community-live-host-actions-split">
           <button
             type="button"
-            onClick={() => void endLive()}
-            className="rounded-full bg-red-600 px-6 py-3 text-sm font-bold text-white shadow-lg"
+            onClick={() => void leaveCoHost()}
+            className="rounded-full bg-white/15 px-6 py-3 text-sm font-bold text-white"
           >
-            End live
+            Leave co-host
           </button>
         </div>
         <RoomAudioRenderer />
