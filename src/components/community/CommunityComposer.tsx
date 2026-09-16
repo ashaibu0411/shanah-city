@@ -12,6 +12,10 @@ import {
   validateCommunityPostMediaFile,
 } from "@/lib/community-media-client";
 import { COMMUNITY_POST_MAX_MEDIA } from "@/lib/community-post-media";
+import {
+  COMMUNITY_SHARE_POST_TYPES,
+  type CommunityMemberPostType,
+} from "@/lib/community-ui-utils";
 import type { SignupGroupOption } from "@/lib/group-types";
 import { openCommunityGalleryPicker } from "@/lib/native-media-picker";
 
@@ -45,6 +49,10 @@ function PraiseIcon() {
   return <span className="text-lg leading-none">✨</span>;
 }
 
+function UpdateIcon() {
+  return <span className="text-lg leading-none">💬</span>;
+}
+
 export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
   const { campus } = useApp();
   const { user, permissions } = useAuth();
@@ -54,7 +62,7 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<ComposerMode>("share");
-  const [postType, setPostType] = useState<"prayer" | "praise">("prayer");
+  const [postType, setPostType] = useState<CommunityMemberPostType>("prayer");
   const [draft, setDraft] = useState("");
   const [announcementDraft, setAnnouncementDraft] = useState("");
   const [targetGroupId, setTargetGroupId] = useState("");
@@ -273,19 +281,19 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
               <div>
                 <p className="text-[15px] font-semibold text-night-900">{composerName}</p>
                 {mode === "share" ? (
-                  <div className="mt-1 flex gap-1">
-                    {(["prayer", "praise"] as const).map((type) => (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {COMMUNITY_SHARE_POST_TYPES.map((option) => (
                       <button
-                        key={type}
+                        key={option.id}
                         type="button"
-                        onClick={() => setPostType(type)}
-                        className={`rounded-md px-2 py-0.5 text-xs font-semibold capitalize ${
-                          postType === type
+                        onClick={() => setPostType(option.id)}
+                        className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
+                          postType === option.id
                             ? "bg-clay-500/10 text-clay-600"
                             : "bg-sand-100 text-night-600"
                         }`}
                       >
-                        {type}
+                        {option.label}
                       </button>
                     ))}
                   </div>
@@ -448,6 +456,19 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
             type="button"
             onClick={() => {
               setMode("share");
+              setPostType("general");
+              setOpen(true);
+            }}
+            className="community-composer-action"
+          >
+            <UpdateIcon />
+            <span>Update</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("share");
+              setPostType("general");
               setOpen(true);
             }}
             className="community-composer-action"

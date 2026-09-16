@@ -29,7 +29,7 @@ import {
 import { notifyCommunityPost } from "@/lib/push-server";
 
 function parseMemberPostType(value: unknown): CommunityPost["type"] | null {
-  if (value === "prayer" || value === "praise") return value;
+  if (value === "prayer" || value === "praise" || value === "general") return value;
   return null;
 }
 
@@ -216,7 +216,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign in to post." }, { status: 401 });
   }
 
-  const postType = body.type ?? "prayer";
+  const rawType = body.type;
+  let postType: CommunityPost["type"] = "prayer";
+  if (rawType === "announcement") {
+    postType = "announcement";
+  } else {
+    postType = parseMemberPostType(rawType) ?? "prayer";
+  }
 
   if (postType === "announcement") {
     if (!(await canManageAsAdmin(user))) {

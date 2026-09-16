@@ -20,7 +20,7 @@ export type CommunityPost = {
   mediaType?: "image" | "video";
   mediaItems?: CommunityPostMediaItem[];
   timeAgo: string;
-  type: "prayer" | "praise" | "announcement";
+  type: "prayer" | "praise" | "general" | "announcement";
   reactions: number;
   reactionCounts?: import("@/lib/community-post-reactions").CommunityPostReactionCounts;
   viewerReactions?: import("@/lib/community-post-reactions").CommunityPostReactionKind[];

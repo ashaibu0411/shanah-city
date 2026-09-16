@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getCampus } from "@/lib/site";
 import type { CommunityPost } from "@/lib/member-types";
 import {
+  COMMUNITY_SHARE_POST_TYPES,
   formatCommunityTimeAgo,
   postTypeLabel,
   reactionEmoji,
@@ -342,18 +343,18 @@ export function CommunityPostCard({
         <div className="space-y-3 px-3 pb-3 pt-1">
           {canChangeType ? (
             <div className="flex flex-wrap gap-2">
-              {(["prayer", "praise"] as const).map((type) => (
+              {COMMUNITY_SHARE_POST_TYPES.map((option) => (
                 <button
-                  key={type}
+                  key={option.id}
                   type="button"
-                  onClick={() => setEditType(type)}
+                  onClick={() => setEditType(option.id)}
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                    editType === type
+                    editType === option.id
                       ? "bg-clay-500 text-sand-50"
                       : "bg-sand-100 text-night-900"
                   }`}
                 >
-                  {type === "prayer" ? "Prayer request" : "Praise report"}
+                  {postTypeLabel(option.id)}
                 </button>
               ))}
             </div>

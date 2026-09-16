@@ -1,11 +1,21 @@
 import type { CommunityPost } from "@/lib/member-types";
 
-export type CommunityFeedFilter = "all" | "prayer" | "praise" | "announcement";
+export type CommunityFeedFilter = "all" | "prayer" | "praise" | "general" | "announcement";
+
+export type CommunityMemberPostType = "prayer" | "praise" | "general";
+
+/** Prayer, praise, or everyday community updates (shown as "Update" in the UI). */
+export const COMMUNITY_SHARE_POST_TYPES: Array<{ id: CommunityMemberPostType; label: string }> = [
+  { id: "prayer", label: "Prayer" },
+  { id: "praise", label: "Praise" },
+  { id: "general", label: "Update" },
+];
 
 export const COMMUNITY_FEED_FILTERS: Array<{ id: CommunityFeedFilter; label: string }> = [
   { id: "all", label: "All" },
   { id: "prayer", label: "Prayer" },
   { id: "praise", label: "Praise" },
+  { id: "general", label: "Updates" },
   { id: "announcement", label: "News" },
 ];
 
@@ -37,18 +47,21 @@ export function authorInitial(name: string) {
 export function reactionActionLabel(type: CommunityPost["type"]) {
   if (type === "prayer") return "Pray";
   if (type === "announcement") return "Noted";
+  if (type === "general") return "Like";
   return "Amen";
 }
 
 export function reactionEmoji(type: CommunityPost["type"]) {
   if (type === "prayer") return "🙏";
   if (type === "announcement") return "📣";
+  if (type === "general") return "👍";
   return "❤️";
 }
 
 export function postTypeLabel(type: CommunityPost["type"]) {
   if (type === "prayer") return "Prayer request";
   if (type === "announcement") return "Announcement";
+  if (type === "general") return "Update";
   return "Praise report";
 }
 

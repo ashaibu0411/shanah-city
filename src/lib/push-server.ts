@@ -395,13 +395,14 @@ export async function notifyCommunityPost(input: {
   authorId?: string;
   authorName: string;
   content: string;
-  type: "prayer" | "praise" | "announcement";
+  type: "prayer" | "praise" | "general" | "announcement";
   targetGroupId?: string;
   targetGroupName?: string;
 }) {
   const titles = {
     prayer: "New prayer on the wall",
     praise: "New praise shared",
+    general: "New community update",
     announcement: input.targetGroupName
       ? `${input.targetGroupName} announcement`
       : "Church announcement",

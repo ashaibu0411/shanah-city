@@ -172,7 +172,7 @@ export type CommunityPost = {
   campusId: string;
   content: string;
   timeAgo: string;
-  type: "prayer" | "praise" | "announcement";
+  type: "prayer" | "praise" | "general" | "announcement";
   reactions: number;
 };
 

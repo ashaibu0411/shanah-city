@@ -71,7 +71,7 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
             <p className="text-[15px] font-semibold text-night-900 font-display">No posts yet</p>
             <p className="mt-1 text-sm text-night-600">
               {filter === "all"
-                ? "Be the first to share a prayer or praise with the community."
+                ? "Be the first to share a prayer, praise, or update with the community."
                 : `No ${entryLabel(filter)} posts yet.`}
             </p>
           </div>
