@@ -340,7 +340,7 @@ export function CommunityPostCard({
       </header>
 
       {editing ? (
-        <div className="space-y-3 px-3 pb-3 pt-1">
+        <div className="community-post-edit-panel space-y-3">
           {canChangeType ? (
             <div className="flex flex-wrap gap-2">
               {COMMUNITY_SHARE_POST_TYPES.map((option) => (
@@ -403,7 +403,9 @@ export function CommunityPostCard({
       )}
 
       {!editing && communityPostMediaItems(post).length > 0 ? (
-        <CommunityMediaCarousel items={communityPostMediaItems(post)} />
+        <div className="community-post-media">
+          <CommunityMediaCarousel items={communityPostMediaItems(post)} />
+        </div>
       ) : null}
 
       {(reactionTotal > 0 || comments.length > 0) && (
@@ -464,7 +466,7 @@ export function CommunityPostCard({
 
       <div className="community-post-divider border-t border-night-900/10" />
 
-      <div className="grid grid-cols-2 px-1 py-0.5">
+      <div className="community-post-actions grid grid-cols-2 py-0.5">
         <button
           type="button"
           onClick={() => toggleComments(true)}
@@ -481,7 +483,7 @@ export function CommunityPostCard({
       </div>
 
       {commentsOpen && !compact ? (
-        <div className="space-y-2 px-3 pb-3 pt-1">
+        <div className="community-post-comments space-y-2 pt-1">
           {comments.length === 0 ? (
             <p className="px-1 text-sm text-night-500">No comments yet. Be the first.</p>
           ) : (
