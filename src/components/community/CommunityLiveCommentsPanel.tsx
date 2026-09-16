@@ -15,17 +15,20 @@ type CommunityLiveCommentsPanelProps = {
   statusId: string;
   compact?: boolean;
   className?: string;
+  onLiveUiActiveChange?: (active: boolean) => void;
 };
 
 export function CommunityLiveCommentsPanel({
   statusId,
   compact = false,
   className = "",
+  onLiveUiActiveChange,
 }: CommunityLiveCommentsPanelProps) {
   const [comments, setComments] = useState<LiveComment[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
   const lastTimestampRef = useRef<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
@@ -37,7 +40,13 @@ export function CommunityLiveCommentsPanel({
     try {
       const response = await fetch(`/api/community/live/comments${query}`, { cache: "no-store" });
       const data = await readJsonResponse<{ comments?: LiveComment[]; error?: string }>(response);
-      if (!response.ok) return;
+      if (!response.ok) {
+        if (!since) {
+          setLoadError(data.error ?? "Comments unavailable for this live.");
+        }
+        return;
+      }
+      setLoadError("");
       const incoming = data.comments ?? [];
       if (incoming.length === 0) return;
       setComments((current) => {
@@ -50,13 +59,16 @@ export function CommunityLiveCommentsPanel({
       });
       lastTimestampRef.current = incoming[incoming.length - 1]?.createdAt ?? since;
     } catch {
-      // ignore poll errors
+      if (!since) {
+        setLoadError("Could not load live comments.");
+      }
     }
   }, [statusId]);
 
   useEffect(() => {
     lastTimestampRef.current = null;
     setComments([]);
+    setLoadError("");
     void pollComments();
     const timer = window.setInterval(() => void pollComments(), 2500);
     return () => window.clearInterval(timer);
@@ -70,6 +82,7 @@ export function CommunityLiveCommentsPanel({
 
   async function submitComment(event: React.FormEvent) {
     event.preventDefault();
+    event.stopPropagation();
     if (!draft.trim() || busy) return;
     setBusy(true);
     setError("");
@@ -87,16 +100,28 @@ export function CommunityLiveCommentsPanel({
       setComments((current) => [...current, data.comment!].slice(-120));
       lastTimestampRef.current = data.comment.createdAt;
       setDraft("");
+      setLoadError("");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className={`community-live-comments ${compact ? "community-live-comments-compact" : ""} ${className}`}>
+    <div
+      className={`community-live-comments ${compact ? "community-live-comments-compact" : ""} ${className}`}
+      onFocusCapture={() => onLiveUiActiveChange?.(true)}
+      onBlurCapture={(event) => {
+        const next = event.relatedTarget as Node | null;
+        if (!next || !event.currentTarget.contains(next)) {
+          onLiveUiActiveChange?.(false);
+        }
+      }}
+    >
       <div ref={scrollerRef} className="community-live-comments-scroll" aria-live="polite">
         {comments.length === 0 ? (
-          <p className="community-live-comments-empty">Be the first to comment on this live.</p>
+          <p className="community-live-comments-empty">
+            {loadError || "Be the first to comment on this live."}
+          </p>
         ) : (
           comments.map((comment) => (
             <div key={comment.id} className="community-live-comment">
@@ -106,7 +131,11 @@ export function CommunityLiveCommentsPanel({
           ))
         )}
       </div>
-      <form className="community-live-comments-form" onSubmit={(event) => void submitComment(event)}>
+      <form
+        className="community-live-comments-form"
+        onSubmit={(event) => void submitComment(event)}
+        onPointerDown={(event) => event.stopPropagation()}
+      >
         <input
           type="text"
           value={draft}
@@ -114,12 +143,16 @@ export function CommunityLiveCommentsPanel({
           placeholder="Comment on live…"
           className="community-live-comments-input"
           maxLength={280}
+          autoComplete="off"
         />
         <button type="submit" disabled={busy || !draft.trim()} className="community-live-comments-send">
           Send
         </button>
       </form>
       {error ? <p className="community-live-comments-error">{error}</p> : null}
+      {loadError && comments.length > 0 ? (
+        <p className="community-live-comments-error">{loadError}</p>
+      ) : null}
     </div>
   );
 }

@@ -10,9 +10,14 @@ import "@livekit/components-styles";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { CommunityLivePublisherStage } from "@/components/community/CommunityLivePublisherStage";
 import { CommunityLiveHostSessionPanel } from "@/components/community/CommunityLiveHostSessionPanel";
+import { CommunityLiveHostRemoteControls } from "@/components/community/CommunityLiveHostRemoteControls";
 import { CommunityLiveCommentsPanel } from "@/components/community/CommunityLiveCommentsPanel";
 
-export function CommunityLiveHostClient() {
+type CommunityLiveHostClientProps = {
+  hostUserId: string;
+};
+
+export function CommunityLiveHostClient({ hostUserId }: CommunityLiveHostClientProps) {
   const router = useRouter();
   const endingRef = useRef(false);
   const [serverUrl, setServerUrl] = useState("");
@@ -136,7 +141,8 @@ export function CommunityLiveHostClient() {
           <span className="community-story-live-badge">LIVE</span>
           <p className="text-xs font-semibold text-white/90">Your story · church family can join</p>
         </div>
-        <CommunityLiveHostSessionPanel statusId={statusId} />
+        <CommunityLiveHostSessionPanel statusId={statusId} alwaysShow />
+        <CommunityLiveHostRemoteControls statusId={statusId} hostUserId={hostUserId} />
         <div className="relative min-h-0 flex-1 bg-black">
           <CommunityLivePublisherStage />
         </div>

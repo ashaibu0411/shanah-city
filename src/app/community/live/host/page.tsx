@@ -24,5 +24,5 @@ export default async function CommunityLiveHostPage() {
     );
   }
 
-  return <CommunityLiveHostClient />;
+  return <CommunityLiveHostClient hostUserId={user.id} />;
 }

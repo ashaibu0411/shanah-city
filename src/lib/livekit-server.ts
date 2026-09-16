@@ -1,5 +1,5 @@
-import { AccessToken } from "livekit-server-sdk";
-import { getLiveKitPublicUrl, isLiveKitConfigured } from "@/lib/livekit-config";
+import { AccessToken, RoomServiceClient, TrackSource } from "livekit-server-sdk";
+import { getLiveKitApiHost, getLiveKitPublicUrl, isLiveKitConfigured } from "@/lib/livekit-config";
 
 export { getLiveKitPublicUrl, isLiveKitConfigured };
 
@@ -40,4 +40,39 @@ export async function createLiveKitRoomToken(input: {
   });
 
   return token.toJwt();
+}
+
+function getRoomServiceClient() {
+  const host = getLiveKitApiHost();
+  if (!host) {
+    throw new Error("Live streaming is not configured yet.");
+  }
+  return new RoomServiceClient(host, process.env.LIVEKIT_API_KEY!.trim(), process.env.LIVEKIT_API_SECRET!.trim());
+}
+
+export async function setRemoteParticipantSourceMuted(input: {
+  roomName: string;
+  identity: string;
+  source: "microphone" | "camera";
+  muted: boolean;
+}) {
+  if (!isLiveKitConfigured()) {
+    throw new Error("Live streaming is not configured yet.");
+  }
+
+  const client = getRoomServiceClient();
+  const participants = await client.listParticipants(input.roomName);
+  const participant = participants.find((entry) => entry.identity === input.identity);
+  if (!participant) {
+    throw new Error("Guest is not connected to the room right now.");
+  }
+
+  const trackSource =
+    input.source === "camera" ? TrackSource.CAMERA : TrackSource.MICROPHONE;
+  const track = participant.tracks.find((entry) => entry.source === trackSource);
+  if (!track?.sid) {
+    throw new Error(input.source === "camera" ? "Guest video is off." : "Guest mic is off.");
+  }
+
+  await client.mutePublishedTrack(input.roomName, input.identity, track.sid, input.muted);
 }

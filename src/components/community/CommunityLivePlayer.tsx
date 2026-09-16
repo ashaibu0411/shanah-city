@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { readJsonResponse } from "@/lib/read-json-response";
@@ -17,8 +16,42 @@ type CommunityLivePlayerProps = {
   authorId: string;
   viewerIsHost: boolean;
   paused: boolean;
+  onLiveUiActiveChange?: (active: boolean) => void;
+  onNavigateToCoHost?: () => void;
+  /** Called when the viewer chooses to leave after live has ended. */
   onLiveEnded: () => void;
 };
+
+function isLiveEndedMessage(message: string | undefined) {
+  if (!message) return false;
+  const lower = message.toLowerCase();
+  return lower.includes("ended") || lower.includes("not found");
+}
+
+export function CommunityLiveEndedNotice({
+  authorName,
+  onContinue,
+  continueLabel = "Continue",
+}: {
+  authorName?: string;
+  onContinue: () => void;
+  continueLabel?: string;
+}) {
+  return (
+    <div className="community-story-live-ended" role="alert">
+      <span className="community-story-live-ended-badge">Live ended</span>
+      <p className="community-story-live-ended-title">This live is over</p>
+      <p className="community-story-live-ended-body">
+        {authorName
+          ? `${authorName} has ended this live story.`
+          : "The host has ended this live story."}
+      </p>
+      <button type="button" onClick={onContinue} className="community-story-live-ended-btn">
+        {continueLabel}
+      </button>
+    </div>
+  );
+}
 
 export function CommunityLivePlayer({
   statusId,
@@ -26,21 +59,34 @@ export function CommunityLivePlayer({
   authorId,
   viewerIsHost,
   paused,
+  onLiveUiActiveChange,
+  onNavigateToCoHost,
   onLiveEnded,
 }: CommunityLivePlayerProps) {
-  const router = useRouter();
   const [serverUrl, setServerUrl] = useState("");
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [liveEnded, setLiveEnded] = useState(false);
+
+  const markLiveEnded = useCallback(() => {
+    setLiveEnded(true);
+    setToken("");
+    setServerUrl("");
+  }, []);
 
   const goCoHost = useCallback(() => {
-    router.push(`/community/live/cohost?statusId=${encodeURIComponent(statusId)}`);
-  }, [router, statusId]);
+    if (onNavigateToCoHost) {
+      onNavigateToCoHost();
+      return;
+    }
+    window.location.assign(`/community/live/cohost?statusId=${encodeURIComponent(statusId)}`);
+  }, [onNavigateToCoHost, statusId]);
 
   const loadToken = useCallback(async () => {
     setLoading(true);
     setError("");
+    setLiveEnded(false);
     try {
       const response = await fetch("/api/community/live/token", {
         method: "POST",
@@ -53,8 +99,8 @@ export function CommunityLivePlayer({
         serverUrl?: string;
       }>(response);
       if (!response.ok || !data.token || !data.serverUrl) {
-        if (response.status === 404) {
-          onLiveEnded();
+        if (response.status === 404 || isLiveEndedMessage(data.error)) {
+          markLiveEnded();
           return;
         }
         setError(data.error ?? "Could not join this live.");
@@ -67,11 +113,52 @@ export function CommunityLivePlayer({
     } finally {
       setLoading(false);
     }
-  }, [onLiveEnded, statusId]);
+  }, [markLiveEnded, statusId]);
 
   useEffect(() => {
     void loadToken();
   }, [loadToken]);
+
+  useEffect(() => {
+    if (!token || liveEnded) return;
+    let cancelled = false;
+
+    async function watchLiveStatus() {
+      try {
+        const response = await fetch(
+          `/api/community/live/comments?statusId=${encodeURIComponent(statusId)}`,
+          { cache: "no-store" },
+        );
+        if (cancelled) return;
+        if (response.status === 404) {
+          markLiveEnded();
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    void watchLiveStatus();
+    const timer = window.setInterval(() => void watchLiveStatus(), 8000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [liveEnded, markLiveEnded, statusId, token]);
+
+  function stopStoryGestures(event: React.SyntheticEvent) {
+    event.stopPropagation();
+  }
+
+  if (liveEnded) {
+    return (
+      <CommunityLiveEndedNotice
+        authorName={authorName}
+        onContinue={() => onLiveEnded()}
+        continueLabel="Next story"
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -106,15 +193,29 @@ export function CommunityLivePlayer({
         audio
         video={false}
         className="community-story-live-room h-full w-full min-h-0 flex-1"
-        onDisconnected={() => onLiveEnded()}
+        onDisconnected={() => markLiveEnded()}
       >
         <CommunityLiveAudienceStage authorName={authorName} />
         <RoomAudioRenderer />
       </LiveKitRoom>
-      <div className="community-story-live-overlay">
-        <CommunityLiveCommentsPanel statusId={statusId} compact className="community-story-live-comments" />
+      <div
+        className="community-story-live-overlay"
+        onPointerDown={stopStoryGestures}
+        onPointerUp={stopStoryGestures}
+        onClick={stopStoryGestures}
+      >
+        <CommunityLiveCommentsPanel
+          statusId={statusId}
+          compact
+          className="community-story-live-comments"
+          onLiveUiActiveChange={onLiveUiActiveChange}
+        />
         {!viewerIsHost && authorId ? (
-          <CommunityLiveJoinActions statusId={statusId} onApproved={goCoHost} />
+          <CommunityLiveJoinActions
+            statusId={statusId}
+            onApproved={goCoHost}
+            onLiveUiActiveChange={onLiveUiActiveChange}
+          />
         ) : null}
       </div>
     </div>

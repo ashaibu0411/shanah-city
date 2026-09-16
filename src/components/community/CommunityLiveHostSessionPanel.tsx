@@ -16,13 +16,18 @@ type CoHostEntry = {
 
 type CommunityLiveHostSessionPanelProps = {
   statusId: string;
+  alwaysShow?: boolean;
 };
 
-export function CommunityLiveHostSessionPanel({ statusId }: CommunityLiveHostSessionPanelProps) {
+export function CommunityLiveHostSessionPanel({
+  statusId,
+  alwaysShow = false,
+}: CommunityLiveHostSessionPanelProps) {
   const [pending, setPending] = useState<PendingRequest[]>([]);
   const [coHosts, setCoHosts] = useState<CoHostEntry[]>([]);
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
+  const [sessionError, setSessionError] = useState("");
 
   const refresh = useCallback(async () => {
     try {
@@ -36,11 +41,19 @@ export function CommunityLiveHostSessionPanel({ statusId }: CommunityLiveHostSes
         coHosts?: CoHostEntry[];
         isHost?: boolean;
       }>(response);
-      if (!response.ok || !data.isHost) return;
+      if (!response.ok) {
+        setSessionError(data.error ?? "Could not load live session.");
+        return;
+      }
+      if (!data.isHost) {
+        setSessionError("You are not the host of this live.");
+        return;
+      }
+      setSessionError("");
       setPending(data.pendingRequests ?? []);
       setCoHosts(data.coHosts ?? []);
     } catch {
-      // ignore poll errors
+      setSessionError("Could not refresh join requests.");
     }
   }, [statusId]);
 
@@ -70,15 +83,22 @@ export function CommunityLiveHostSessionPanel({ statusId }: CommunityLiveHostSes
     }
   }
 
-  if (pending.length === 0 && coHosts.length === 0) {
+  if (!alwaysShow && pending.length === 0 && coHosts.length === 0 && !sessionError) {
     return null;
   }
 
   return (
     <div className="community-live-host-session-panel">
-      {pending.length > 0 ? (
-        <div className="community-live-host-session-block">
-          <p className="community-live-host-session-title">Join requests</p>
+      {sessionError ? (
+        <p className="community-live-host-session-error">{sessionError}</p>
+      ) : null}
+      <div className="community-live-host-session-block">
+        <p className="community-live-host-session-title">Join requests</p>
+        {pending.length === 0 ? (
+          <p className="community-live-host-session-empty">
+            No pending requests — viewers tap &quot;Request to join live&quot; on your story.
+          </p>
+        ) : (
           <ul className="community-live-host-session-list">
             {pending.map((entry) => (
               <li key={entry.userId} className="community-live-host-session-row">
@@ -104,8 +124,8 @@ export function CommunityLiveHostSessionPanel({ statusId }: CommunityLiveHostSes
               </li>
             ))}
           </ul>
-        </div>
-      ) : null}
+        )}
+      </div>
       {coHosts.length > 0 ? (
         <div className="community-live-host-session-block">
           <p className="community-live-host-session-title">Co-hosts on camera</p>

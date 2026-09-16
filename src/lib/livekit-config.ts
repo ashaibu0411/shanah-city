@@ -24,3 +24,16 @@ export function isLiveKitConfigured() {
       getLiveKitPublicUrl(),
   );
 }
+
+/** HTTPS base URL for LiveKit server API (RoomService, etc.). */
+export function getLiveKitApiHost() {
+  const wss = getLiveKitPublicUrl();
+  if (!wss) return "";
+  if (wss.startsWith("wss://")) {
+    return wss.replace(/^wss:\/\//i, "https://");
+  }
+  if (wss.startsWith("ws://")) {
+    return wss.replace(/^ws:\/\//i, "http://");
+  }
+  return wss;
+}

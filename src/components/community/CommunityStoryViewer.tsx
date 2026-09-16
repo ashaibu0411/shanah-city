@@ -277,7 +277,8 @@ export function CommunityStoryViewer({
   const slide = deck?.items[slideIndex];
   const mediaUrl = slide ? resolveStoryMediaUrl(slide.mediaUrl) : "";
   const isOwnStory = deck?.authorId === currentUserId;
-  const playbackPaused = paused || replyFocused;
+  const [liveStoryUiActive, setLiveStoryUiActive] = useState(false);
+  const playbackPaused = paused || replyFocused || liveStoryUiActive;
   const nextService = useMemo(() => getNextWorshipService(), []);
   const reactionButtons = slide ? reactionButtonsForStory(slide.storyKind) : [];
   const floatingQuickReactions = slide
@@ -870,6 +871,13 @@ export function CommunityStoryViewer({
             authorId={deck?.authorId ?? slide.authorId}
             viewerIsHost={deck?.authorId === currentUserId}
             paused={playbackPaused}
+            onLiveUiActiveChange={setLiveStoryUiActive}
+            onNavigateToCoHost={() => {
+              onClose();
+              window.location.assign(
+                `/community/live/cohost?statusId=${encodeURIComponent(slide.id)}`,
+              );
+            }}
             onLiveEnded={() => {
               setMediaFailed(false);
               goNext();
@@ -907,27 +915,7 @@ export function CommunityStoryViewer({
           />
         )}
 
-        {slide.mediaType !== "link" && slide.mediaType !== "live" ? (
-        <div
-          className="community-story-viewer-tap-layer"
-          onPointerDown={handleMediaPointerDown}
-          onPointerUp={handleMediaPointerUp}
-          onPointerCancel={() => {
-            clearHoldTimer();
-            if (didHoldRef.current) {
-              didHoldRef.current = false;
-              resumePlayback();
-            }
-          }}
-          onPointerLeave={() => {
-            clearHoldTimer();
-            if (didHoldRef.current) {
-              didHoldRef.current = false;
-              resumePlayback();
-            }
-          }}
-        />
-        ) : (
+        {slide.mediaType === "link" ? (
           <>
             <button
               type="button"
@@ -942,6 +930,26 @@ export function CommunityStoryViewer({
               onClick={goNext}
             />
           </>
+        ) : slide.mediaType === "live" ? null : (
+          <div
+            className="community-story-viewer-tap-layer"
+            onPointerDown={handleMediaPointerDown}
+            onPointerUp={handleMediaPointerUp}
+            onPointerCancel={() => {
+              clearHoldTimer();
+              if (didHoldRef.current) {
+                didHoldRef.current = false;
+                resumePlayback();
+              }
+            }}
+            onPointerLeave={() => {
+              clearHoldTimer();
+              if (didHoldRef.current) {
+                didHoldRef.current = false;
+                resumePlayback();
+              }
+            }}
+          />
         )}
       </div>
 

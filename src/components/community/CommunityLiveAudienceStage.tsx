@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useConnectionState,
   useTracks,
@@ -56,12 +56,18 @@ export function CommunityLiveAudienceStage({ authorName }: { authorName: string 
 type CommunityLiveJoinActionsProps = {
   statusId: string;
   onApproved: () => void;
+  onLiveUiActiveChange?: (active: boolean) => void;
 };
 
-export function CommunityLiveJoinActions({ statusId, onApproved }: CommunityLiveJoinActionsProps) {
+export function CommunityLiveJoinActions({
+  statusId,
+  onApproved,
+  onLiveUiActiveChange,
+}: CommunityLiveJoinActionsProps) {
   const [state, setState] = useState<"none" | "pending" | "approved" | "rejected">("none");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const approvedRef = useRef(false);
 
   const refreshSession = useCallback(async () => {
     try {
@@ -70,11 +76,19 @@ export function CommunityLiveJoinActions({ statusId, onApproved }: CommunityLive
         { cache: "no-store" },
       );
       const data = await response.json();
-      if (!response.ok) return;
+      if (!response.ok) {
+        if (response.status === 401) {
+          setMessage("Sign in to request joining live.");
+        }
+        return;
+      }
       const next = data.joinRequestState ?? "none";
       if (next === "approved" || data.isCoHost) {
         setState("approved");
-        onApproved();
+        if (!approvedRef.current) {
+          approvedRef.current = true;
+          onApproved();
+        }
         return;
       }
       if (next === "pending" || next === "rejected" || next === "none") {
@@ -91,7 +105,10 @@ export function CommunityLiveJoinActions({ statusId, onApproved }: CommunityLive
     return () => window.clearInterval(timer);
   }, [refreshSession]);
 
-  async function requestJoin() {
+  async function requestJoin(event: React.MouseEvent) {
+    event.stopPropagation();
+    event.preventDefault();
+    onLiveUiActiveChange?.(true);
     setBusy(true);
     setMessage("");
     try {
@@ -109,24 +126,26 @@ export function CommunityLiveJoinActions({ statusId, onApproved }: CommunityLive
       setMessage("Request sent — waiting for host approval.");
     } finally {
       setBusy(false);
+      onLiveUiActiveChange?.(false);
     }
   }
 
   if (state === "approved") {
-    return (
-      <p className="community-live-join-msg">Approved — opening co-host…</p>
-    );
+    return <p className="community-live-join-msg">Approved — opening co-host…</p>;
   }
 
   return (
-    <div className="community-live-join-actions">
+    <div
+      className="community-live-join-actions"
+      onPointerDown={(event) => event.stopPropagation()}
+    >
       {state === "pending" ? (
         <p className="community-live-join-msg">Waiting for host to approve…</p>
       ) : (
         <button
           type="button"
           disabled={busy || state === "rejected"}
-          onClick={() => void requestJoin()}
+          onClick={(event) => void requestJoin(event)}
           className="community-live-join-btn"
         >
           Request to join live

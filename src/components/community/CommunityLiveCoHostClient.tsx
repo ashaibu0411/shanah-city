@@ -7,6 +7,7 @@ import "@livekit/components-styles";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { CommunityLivePublisherStage } from "@/components/community/CommunityLivePublisherStage";
 import { CommunityLiveCommentsPanel } from "@/components/community/CommunityLiveCommentsPanel";
+import { CommunityLiveEndedNotice } from "@/components/community/CommunityLivePlayer";
 
 export function CommunityLiveCoHostClient() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export function CommunityLiveCoHostClient() {
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(true);
+  const [liveEnded, setLiveEnded] = useState(false);
 
   const leaveCoHost = useCallback(async () => {
     if (leavingRef.current) return;
@@ -61,7 +63,12 @@ export function CommunityLiveCoHostClient() {
         }>(sessionRes);
         if (cancelled) return;
         if (!sessionRes.ok) {
-          setError(sessionData.error ?? "Live unavailable.");
+          const msg = sessionData.error ?? "Live unavailable.";
+          if (msg.toLowerCase().includes("ended")) {
+            setLiveEnded(true);
+          } else {
+            setError(msg);
+          }
           setBusy(false);
           return;
         }
@@ -83,7 +90,12 @@ export function CommunityLiveCoHostClient() {
         }>(response);
         if (cancelled) return;
         if (!response.ok || !data.token || !data.serverUrl) {
-          setError(data.error ?? "Could not join as co-host.");
+          const msg = data.error ?? "Could not join as co-host.";
+          if (msg.toLowerCase().includes("ended")) {
+            setLiveEnded(true);
+          } else {
+            setError(msg);
+          }
           setBusy(false);
           return;
         }
@@ -116,6 +128,17 @@ export function CommunityLiveCoHostClient() {
       }
     };
   }, [statusId]);
+
+  if (liveEnded) {
+    return (
+      <div className="community-live-host-shell">
+        <CommunityLiveEndedNotice
+          onContinue={() => router.replace("/community")}
+          continueLabel="Back to community"
+        />
+      </div>
+    );
+  }
 
   if (busy) {
     return (
@@ -150,7 +173,9 @@ export function CommunityLiveCoHostClient() {
         video
         options={{ adaptiveStream: true, dynacast: true }}
         className="community-live-host-room flex h-full w-full flex-col"
-        onDisconnected={() => void leaveCoHost()}
+        onDisconnected={() => {
+          setLiveEnded(true);
+        }}
       >
         <div className="community-live-host-top">
           <span className="community-story-live-badge">LIVE</span>
