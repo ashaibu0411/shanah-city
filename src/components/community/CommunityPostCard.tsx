@@ -395,7 +395,7 @@ export function CommunityPostCard({
           </div>
         </div>
       ) : (
-        <div className={`community-post-body px-3 ${compact ? "pb-2 pt-1" : "pb-3 pt-1"}`}>
+        <div className={`community-post-body ${compact ? "community-post-body-compact" : ""}`}>
           <p className="community-post-content whitespace-pre-wrap text-night-900 dark:text-sand-100">
             {post.content}
           </p>
@@ -407,7 +407,7 @@ export function CommunityPostCard({
       ) : null}
 
       {(reactionTotal > 0 || comments.length > 0) && (
-        <div className="flex items-center justify-between px-3 py-2.5 text-xs text-night-600">
+        <div className="community-post-stats flex items-center justify-between text-xs text-night-600">
           <div className="inline-flex items-center gap-1.5">
             {reactionTotal > 0 ? (
               <>
@@ -462,7 +462,7 @@ export function CommunityPostCard({
         </div>
       ) : null}
 
-      <div className="mx-3 border-t border-night-900/10" />
+      <div className="community-post-divider border-t border-night-900/10" />
 
       <div className="grid grid-cols-2 px-1 py-0.5">
         <button
