@@ -251,13 +251,28 @@ export function CommunityStoryViewer({
   const holdTimerRef = useRef<number | null>(null);
   const didHoldRef = useRef(false);
   const slideIndexRef = useRef(initialSlideIndex);
+  const activeAuthorIdRef = useRef(activeAuthorId);
   const navBusyRef = useRef(false);
 
-  const deckIndex = useMemo(
-    () => (activeAuthorId ? findDeckIndex(decks, activeAuthorId) : -1),
-    [activeAuthorId, decks],
+  /** Deck order frozen for this viewing session so marking seen does not reorder mid-playback. */
+  const sessionAuthorOrder = useMemo(
+    () => decks.map((entry) => entry.authorId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- capture order only when viewer opens
+    [],
   );
-  const deck = deckIndex >= 0 ? decks[deckIndex] : undefined;
+
+  const navigationDecks = useMemo(() => {
+    const liveByAuthor = new Map(decks.map((entry) => [entry.authorId, entry]));
+    return sessionAuthorOrder
+      .map((authorId) => liveByAuthor.get(authorId))
+      .filter((entry): entry is StoryDeck => Boolean(entry));
+  }, [decks, sessionAuthorOrder]);
+
+  const deckIndex = useMemo(
+    () => (activeAuthorId ? findDeckIndex(navigationDecks, activeAuthorId) : -1),
+    [activeAuthorId, navigationDecks],
+  );
+  const deck = deckIndex >= 0 ? navigationDecks[deckIndex] : undefined;
   const slide = deck?.items[slideIndex];
   const mediaUrl = slide ? resolveStoryMediaUrl(slide.mediaUrl) : "";
   const isOwnStory = deck?.authorId === currentUserId;
@@ -284,12 +299,8 @@ export function CommunityStoryViewer({
   }, [slideIndex]);
 
   useEffect(() => {
-    const authorId = decks[initialDeckIndex]?.authorId;
-    if (!authorId) return;
-    setActiveAuthorId(authorId);
-    setSlideIndex(initialSlideIndex);
-    slideIndexRef.current = initialSlideIndex;
-  }, [initialDeckIndex, initialSlideIndex, decks]);
+    activeAuthorIdRef.current = activeAuthorId;
+  }, [activeAuthorId]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -301,14 +312,14 @@ export function CommunityStoryViewer({
   }, [mounted]);
 
   useEffect(() => {
-    if (decks.length === 0) {
+    if (navigationDecks.length === 0) {
       onClose();
       return;
     }
     if (activeAuthorId && deckIndex < 0) {
       onClose();
     }
-  }, [activeAuthorId, deckIndex, decks.length, onClose]);
+  }, [activeAuthorId, deckIndex, navigationDecks.length, onClose]);
 
   useEffect(() => {
     if (!deck) return;
@@ -342,15 +353,16 @@ export function CommunityStoryViewer({
     navBusyRef.current = true;
     window.setTimeout(() => {
       navBusyRef.current = false;
-    }, 280);
+    }, 320);
 
-    const dIdx = findDeckIndex(decks, activeAuthorId);
+    const authorId = activeAuthorIdRef.current;
+    const dIdx = findDeckIndex(navigationDecks, authorId);
     if (dIdx < 0) {
       onClose();
       return;
     }
 
-    const currentDeck = decks[dIdx];
+    const currentDeck = navigationDecks[dIdx];
     markCurrentSeen();
     const sIdx = slideIndexRef.current;
 
@@ -363,9 +375,10 @@ export function CommunityStoryViewer({
       return;
     }
 
-    if (dIdx < decks.length - 1) {
-      const nextDeck = decks[dIdx + 1];
+    if (dIdx < navigationDecks.length - 1) {
+      const nextDeck = navigationDecks[dIdx + 1];
       slideIndexRef.current = 0;
+      activeAuthorIdRef.current = nextDeck.authorId;
       setActiveAuthorId(nextDeck.authorId);
       setSlideIndex(0);
       setProgress(0);
@@ -374,17 +387,18 @@ export function CommunityStoryViewer({
     }
 
     onClose();
-  }, [activeAuthorId, decks, markCurrentSeen, onClose]);
+  }, [markCurrentSeen, navigationDecks, onClose]);
 
   const goPrev = useCallback(() => {
     if (navBusyRef.current) return;
     navBusyRef.current = true;
     window.setTimeout(() => {
       navBusyRef.current = false;
-    }, 280);
+    }, 320);
 
     markCurrentSeen();
-    const dIdx = findDeckIndex(decks, activeAuthorId);
+    const authorId = activeAuthorIdRef.current;
+    const dIdx = findDeckIndex(navigationDecks, authorId);
     if (dIdx < 0) return;
 
     const sIdx = slideIndexRef.current;
@@ -399,9 +413,10 @@ export function CommunityStoryViewer({
     }
 
     if (dIdx > 0) {
-      const previousDeck = decks[dIdx - 1];
+      const previousDeck = navigationDecks[dIdx - 1];
       const nextSlide = Math.max(0, previousDeck.items.length - 1);
       slideIndexRef.current = nextSlide;
+      activeAuthorIdRef.current = previousDeck.authorId;
       setActiveAuthorId(previousDeck.authorId);
       setSlideIndex(nextSlide);
       setProgress(0);
@@ -410,7 +425,7 @@ export function CommunityStoryViewer({
     }
 
     setProgress(0);
-  }, [activeAuthorId, decks, markCurrentSeen]);
+  }, [markCurrentSeen, navigationDecks]);
 
   useEffect(() => {
     if (!slide || playbackPaused) return;
@@ -446,7 +461,7 @@ export function CommunityStoryViewer({
 
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [deckIndex, goNext, playbackPaused, slide, slideIndex]);
+  }, [goNext, playbackPaused, slide?.id, slide?.mediaType, slideIndex]);
 
   useEffect(() => {
     if (!slide) return;
@@ -604,15 +619,16 @@ export function CommunityStoryViewer({
 
       const remainingInDeck = deck.items.length - 1;
       if (remainingInDeck <= 0) {
-        if (decks.length <= 1) {
+        if (navigationDecks.length <= 1) {
           onClose();
           return;
         }
-        const dIdx = findDeckIndex(decks, activeAuthorId);
-        if (dIdx >= decks.length - 1) {
-          const fallback = decks[Math.max(0, dIdx - 1)];
+        const dIdx = findDeckIndex(navigationDecks, activeAuthorIdRef.current);
+        if (dIdx >= navigationDecks.length - 1) {
+          const fallback = navigationDecks[Math.max(0, dIdx - 1)];
           if (fallback) {
             slideIndexRef.current = 0;
+            activeAuthorIdRef.current = fallback.authorId;
             setActiveAuthorId(fallback.authorId);
             setSlideIndex(0);
           }

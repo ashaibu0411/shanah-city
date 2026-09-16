@@ -619,6 +619,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
 
       {viewerOpen && decks.length > 0 ? (
         <CommunityStoryViewer
+          key={`${viewerStart.deckIndex}-${viewerStart.slideIndex}-${decks[viewerStart.deckIndex]?.authorId ?? "story"}`}
           decks={decks}
           initialDeckIndex={viewerStart.deckIndex}
           initialSlideIndex={viewerStart.slideIndex}
