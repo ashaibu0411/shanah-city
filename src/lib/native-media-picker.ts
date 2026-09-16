@@ -32,6 +32,24 @@ async function uriToImageFile(webPath: string, format: string | undefined, prefi
     : blobToStoryFile(blob, ext, index);
 }
 
+function dataUrlToProfileFile(dataUrl: string, format: string | undefined) {
+  const parts = dataUrl.split(",");
+  const base64 = parts[1];
+  if (!base64) {
+    throw new Error("Could not read the selected photo.");
+  }
+  const mime =
+    parts[0]?.match(/data:(.*?);/i)?.[1] ??
+    (format === "png" ? "image/png" : format === "webp" ? "image/webp" : "image/jpeg");
+  const ext = format === "png" ? "png" : format === "webp" ? "webp" : "jpg";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return new File([bytes], `profile-${Date.now()}.${ext}`, { type: mime });
+}
+
 /** Native camera / photo library picker for profile photos (avoids WKWebView camera crash on iOS). */
 export async function pickProfilePhotoFile(): Promise<File | null> {
   if (!isNativeAppPlatform()) return null;
@@ -41,11 +59,11 @@ export async function pickProfilePhotoFile(): Promise<File | null> {
     const photo = await Camera.getPhoto({
       quality: 90,
       allowEditing: true,
-      resultType: CameraResultType.Uri,
+      resultType: CameraResultType.DataUrl,
       source: CameraSource.Prompt,
     });
-    if (!photo.webPath) return null;
-    return uriToImageFile(photo.webPath, photo.format, "profile");
+    if (!photo.dataUrl) return null;
+    return dataUrlToProfileFile(photo.dataUrl, photo.format);
   } catch (error) {
     if (error instanceof Error && /cancel/i.test(error.message)) {
       return null;

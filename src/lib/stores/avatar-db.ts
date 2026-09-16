@@ -12,11 +12,20 @@ function extensionForFile(file: File) {
   return avatarFileExtension(file);
 }
 
+function avatarPathnamePattern(userId: string) {
+  const escaped = userId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^avatars/${escaped}\\.(jpe?g|png|webp|gif)$`, "i");
+}
+
+function isAvatarPathnameForUser(userId: string, pathname: string) {
+  return avatarPathnamePattern(userId).test(pathname);
+}
+
 async function findAvatarBlobs(userId: string) {
-  const { blobs } = await list({ prefix: `avatars/${userId}.` });
-  return [...blobs].sort(
-    (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
-  );
+  const { blobs } = await list({ prefix: `avatars/${userId}` });
+  return blobs
+    .filter((blob) => isAvatarPathnameForUser(userId, blob.pathname))
+    .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
 }
 
 function sleep(ms: number) {
@@ -65,11 +74,25 @@ export async function saveUserAvatar(userId: string, file: File) {
   return avatarJson.saveUserAvatar(userId, normalized);
 }
 
-export async function registerDirectUploadAvatar(userId: string) {
+export async function registerDirectUploadAvatar(userId: string, blobPathname?: string) {
   if (!useBlobStorage()) {
     throw new Error(
       "Profile photos need cloud storage. Add BLOB_READ_WRITE_TOKEN in Vercel (Production), then redeploy.",
     );
+  }
+
+  if (blobPathname) {
+    if (!isAvatarPathnameForUser(userId, blobPathname)) {
+      throw new Error("Invalid profile photo upload.");
+    }
+
+    for (const blob of await findAvatarBlobs(userId)) {
+      if (blob.pathname !== blobPathname) {
+        await del(blob.url).catch(() => undefined);
+      }
+    }
+
+    return `avatar:${userId}`;
   }
 
   let blobs: Awaited<ReturnType<typeof findAvatarBlobs>> = [];

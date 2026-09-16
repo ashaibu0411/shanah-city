@@ -9,7 +9,7 @@ import { isNativeAppPlatform } from "@/lib/native-app";
 import { pickProfilePhotoFile } from "@/lib/native-media-picker";
 import {
   fetchProfileAvatarUploadConfig,
-  uploadProfileAvatarClient,
+  uploadProfileAvatar,
 } from "@/lib/profile-avatar-client";
 import { normalizeAvatarFile, isAllowedAvatarImage } from "@/lib/avatar-image";
 import { Button } from "@/components/ui";
@@ -101,30 +101,7 @@ export function ProfileAvatarUpload({ user, onUpdated }: ProfileAvatarUploadProp
 
     try {
       const config = await fetchProfileAvatarUploadConfig();
-
-      if (config.directUpload) {
-        const data = await uploadProfileAvatarClient(user.id, normalized);
-        await applyUploadResult(data);
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("file", normalized);
-
-      const response = await fetch("/api/profile/avatar", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        clearLocalPreview();
-        setError(true);
-        setMessage(data.error ?? "Could not upload photo.");
-        return;
-      }
-
+      const data = await uploadProfileAvatar(user.id, normalized, config.directUpload);
       await applyUploadResult(data);
     } catch (uploadError) {
       clearLocalPreview();

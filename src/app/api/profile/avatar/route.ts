@@ -54,12 +54,18 @@ export async function POST(request: Request) {
 
   try {
     if (contentType.includes("application/json")) {
-      const body = (await request.json()) as { completedDirectUpload?: boolean };
+      const body = (await request.json()) as {
+        completedDirectUpload?: boolean;
+        blobPathname?: string;
+      };
       if (!body.completedDirectUpload) {
         return NextResponse.json({ error: "Invalid upload request." }, { status: 400 });
       }
 
-      const avatarUrl = await registerDirectUploadAvatar(user.id);
+      const avatarUrl = await registerDirectUploadAvatar(
+        user.id,
+        body.blobPathname?.trim() || undefined,
+      );
       const updated = await updateUserProfile(user.id, { avatarUrl });
 
       await recordActivity(user.id, "profile_update", "Updated profile photo");

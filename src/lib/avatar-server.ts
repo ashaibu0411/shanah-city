@@ -18,11 +18,6 @@ export const saveUserAvatar = (userId: string, file: File) => store().saveUserAv
 export const deleteUserAvatar = (userId: string) => store().deleteUserAvatar(userId);
 export const readAvatarFile = (userId: string) => store().readAvatarFile(userId);
 
-export async function registerDirectUploadAvatar(userId: string) {
-  if (!useDatabase()) {
-    throw new Error(
-      "Profile photos need cloud storage. Add BLOB_READ_WRITE_TOKEN in Vercel (Production), then redeploy.",
-    );
-  }
-  return avatarDb.registerDirectUploadAvatar(userId);
+export async function registerDirectUploadAvatar(userId: string, blobPathname?: string) {
+  return avatarDb.registerDirectUploadAvatar(userId, blobPathname);
 }
