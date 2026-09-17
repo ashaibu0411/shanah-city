@@ -9,6 +9,7 @@ import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
 import { CampusSelector } from "@/components/app/CampusSelector";
 import { TextSizeControl } from "@/components/app/TextSizeControl";
 import { ThemeControl } from "@/components/app/ThemeControl";
+import { useTheme } from "@/components/app/ThemeProvider";
 import { liveStream, site } from "@/lib/site";
 import { Badge, ExternalLink } from "@/components/ui";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -17,6 +18,7 @@ export function TopBar() {
   const pathname = usePathname();
   const { cartCount } = useApp();
   const { user, loading } = useAuth();
+  const { isDark } = useTheme();
   const anyLive =
     liveStream.isLive ||
     liveStream.youtube.isLive ||
@@ -43,7 +45,9 @@ export function TopBar() {
           <ThemeControl variant="desktop" />
           <TextSizeControl variant="desktop" />
           <CampusSelector />
-          {!loading && user ? <NotificationBell /> : null}
+          {!loading && user ? (
+            <NotificationBell variant={isDark ? "light" : "dark"} />
+          ) : null}
           <Link
             href="/shop"
             className="relative rounded-xl p-2 text-night-700 transition hover:bg-white dark:hover:bg-white/10"

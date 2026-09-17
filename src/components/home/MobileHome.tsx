@@ -138,7 +138,7 @@ export function MobileHome({
 
       <MobilePremiumFrame
         variant="surface"
-        className="mobile-home-welcome-stack overflow-hidden ring-1 ring-night-900/8"
+        className="mobile-home-welcome-stack ring-1 ring-night-900/8 dark:ring-white/10"
       >
         <div className="mobile-home-welcome-intro border-b border-night-900/8 bg-gradient-to-r from-sand-50 via-white to-sand-50 px-4 py-3.5 dark:border-white/10">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-night-500 dark:text-sand-400">
@@ -149,7 +149,7 @@ export function MobileHome({
           </p>
         </div>
 
-        <div className="mobile-home-welcome-stories border-b border-night-900/8 bg-[var(--color-bg)] px-1 py-2.5 dark:border-white/10">
+        <div className="mobile-home-welcome-stories border-b border-night-900/8 bg-[var(--color-bg)] px-3 py-2 dark:border-white/10">
           <HomeStoriesSection />
         </div>
 

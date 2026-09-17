@@ -1,10 +1,13 @@
+"use client";
+
 import Image from "next/image";
+import { useTheme } from "@/components/app/ThemeProvider";
 import { brandLogos, site } from "@/lib/site";
 
 type BrandLogoProps = {
   size?: "sm" | "md" | "lg";
-  /** light = cream headers; dark = navy hero areas */
-  variant?: "light" | "dark";
+  /** light = cream headers; dark = navy hero areas; auto = follows app theme */
+  variant?: "light" | "dark" | "auto";
   className?: string;
   priority?: boolean;
 };
@@ -29,12 +32,15 @@ const sizes = {
 
 export function BrandLogo({
   size = "md",
-  variant = "light",
+  variant = "auto",
   className = "",
   priority,
 }: BrandLogoProps) {
+  const { isDark } = useTheme();
   const config = sizes[size];
-  const src = variant === "dark" ? brandLogos.dark : brandLogos.light;
+  const resolvedVariant =
+    variant === "auto" ? (isDark ? "dark" : "light") : variant;
+  const src = resolvedVariant === "dark" ? brandLogos.dark : brandLogos.light;
 
   return (
     <span className={`inline-flex w-fit shrink-0 items-center justify-center leading-none ${className}`}>

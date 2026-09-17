@@ -73,7 +73,7 @@ export function CommunityStoryRing({
               <img
                 src={previewUrl}
                 alt=""
-                className="h-full w-full object-cover"
+                className="community-story-ring-photo"
                 onError={() => setPreviewFailed(true)}
               />
             ) : showPreview && preview.mediaType === "video" ? (

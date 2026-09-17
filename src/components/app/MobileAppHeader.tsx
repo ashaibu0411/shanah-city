@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { BrandLogo } from "@/components/app/BrandLogo";
+import { useTheme } from "@/components/app/ThemeProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -47,6 +48,7 @@ export function MobileAppHeader() {
   const pathname = usePathname();
   const { messagesImmersive } = useAppShell();
   const { user, loading } = useAuth();
+  const { isDark } = useTheme();
   if (messagesImmersive) return null;
   const title = pageTitles[pathname] ?? site.name;
   const isHome = pathname === "/";
@@ -57,7 +59,7 @@ export function MobileAppHeader() {
     liveStream.facebook.isLive;
 
   return (
-    <header className="app-mobile-header mobile-app-header sticky top-0 z-40 border-b border-night-900/8 backdrop-blur-xl lg:hidden">
+    <header className="app-mobile-header mobile-app-header sticky top-0 z-40 border-b border-night-900/8 backdrop-blur-xl dark:border-white/10 lg:hidden">
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-clay-400/20 to-transparent" />
       <div className="relative mx-auto flex app-mobile-inner w-full items-center justify-between gap-3 px-3.5 pb-2.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
@@ -75,22 +77,24 @@ export function MobileAppHeader() {
             </div>
           ) : showPageTitle ? (
             <>
-              <p className="mobile-header-subtitle text-xs font-medium text-night-500">
+              <p className="mobile-header-subtitle text-xs font-medium text-night-500 dark:text-sand-400">
                 {site.name}
               </p>
-              <h1 className="mobile-header-title truncate font-home-hero text-base font-semibold tracking-tight text-night-900">
+              <h1 className="mobile-header-title truncate font-home-hero text-base font-semibold tracking-tight text-night-900 dark:text-sand-100">
                 {title}
               </h1>
             </>
           ) : (
-            <p className="mobile-header-subtitle text-xs font-semibold uppercase tracking-[0.18em] text-night-500">
+            <p className="mobile-header-subtitle text-xs font-semibold uppercase tracking-[0.18em] text-night-500 dark:text-sand-400">
               {site.name}
             </p>
           )}
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          {!loading && user ? <NotificationBell variant="dark" /> : null}
+          {!loading && user ? (
+            <NotificationBell variant={isDark ? "light" : "dark"} />
+          ) : null}
           <MemberAvatarLink user={user} loading={loading} />
         </div>
       </div>
