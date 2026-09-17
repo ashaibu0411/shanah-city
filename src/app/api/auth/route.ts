@@ -33,105 +33,124 @@ async function checkAuthRateLimit(request: Request, action: string) {
   return null;
 }
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-  const user = await getUserFromSession(token);
-  if (!user) {
-    return NextResponse.json({
-      user: null,
-      permissions: {
-        canUploadGallery: false,
-        canWriteDevotions: false,
-        canManageAdmin: false,
-        canAccessFinance: false,
-        canAccessWorshipPlanner: false,
-        canManageWorshipPlan: false,
-        canAccessFrontLiners: false,
-        canManageFrontLiners: false,
-        canAccessFollowUp: false,
-        canManageFollowUp: false,
-        canManageGuestSubmissions: false,
-        canAccessKidsMinistry: false,
-        canManageKidsMinistry: false,
-        canSubmitMinistryReports: false,
-        canReviewMinistryReports: false,
-      },
-    });
-  }
-  const [activity, permissions] = await Promise.all([
-    getActivity(user.id),
-    getSessionPermissions(user),
-  ]);
-  return NextResponse.json({ user, activity, permissions });
-}
-export async function POST(request: Request) {
-  const body = await request.json();
-  const action = body.action ?? "signin";
-  const rateLimited = await checkAuthRateLimit(
-    request,
-    action === "signup" ? "signup" : "signin",
+async function authServerError(error: unknown) {
+  console.error("[api/auth]", error);
+  return NextResponse.json(
+    { error: "Sign-in is temporarily unavailable. Please try again in a moment." },
+    { status: 500 },
   );
-  if (rateLimited) return rateLimited;
+}
 
-  if (action === "signup") {
-    try {
-      const user = await createUser({
-        name: body.name,
-        displayName: body.displayName,
-        email: body.email,
-        password: body.password,
-        phone: body.phone,
-        campusId: body.campusId ?? "colorado",
-        participationType: parseMemberParticipationType(body.participationType),
+export async function GET() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
+    const user = await getUserFromSession(token);
+    if (!user) {
+      return NextResponse.json({
+        user: null,
+        permissions: {
+          canUploadGallery: false,
+          canWriteDevotions: false,
+          canManageAdmin: false,
+          canAccessFinance: false,
+          canAccessWorshipPlanner: false,
+          canManageWorshipPlan: false,
+          canAccessFrontLiners: false,
+          canManageFrontLiners: false,
+          canAccessFollowUp: false,
+          canManageFollowUp: false,
+          canManageGuestSubmissions: false,
+          canAccessKidsMinistry: false,
+          canManageKidsMinistry: false,
+          canSubmitMinistryReports: false,
+          canReviewMinistryReports: false,
+        },
       });
-      const groupIds = Array.isArray(body.groupIds)
-        ? body.groupIds.map(String)
-        : [];
-      const ministryResults = await processSignupGroupSelections(
-        { id: user.id, name: getPublicDisplayName(user), email: user.email },
-        groupIds,
-      );
-      const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
-      const session = await createSession(user.id);
-      const publicUser = toPublicMember(user);
-      const permissions = await getSessionPermissions(publicUser);
-      const response = NextResponse.json(
-        { user: publicUser, permissions, ministryResults, linkedGifts },
-        { status: 201 },
-      );      response.cookies.set(SESSION_COOKIE, session.token, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: SESSION_DAYS * 24 * 60 * 60,
-        path: "/",
-      });
-      return response;
-    } catch (error) {
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : "Sign up failed." },
-        { status: 400 },
-      );
     }
+    const [activity, permissions] = await Promise.all([
+      getActivity(user.id),
+      getSessionPermissions(user),
+    ]);
+    return NextResponse.json({ user, activity, permissions });
+  } catch (error) {
+    return authServerError(error);
   }
+}
 
-  const user = await verifyCredentials(body.email, body.password);
-  if (!user) {
-    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const action = body.action ?? "signin";
+    const rateLimited = await checkAuthRateLimit(
+      request,
+      action === "signup" ? "signup" : "signin",
+    );
+    if (rateLimited) return rateLimited;
+
+    if (action === "signup") {
+      try {
+        const user = await createUser({
+          name: body.name,
+          displayName: body.displayName,
+          email: body.email,
+          password: body.password,
+          phone: body.phone,
+          campusId: body.campusId ?? "colorado",
+          participationType: parseMemberParticipationType(body.participationType),
+        });
+        const groupIds = Array.isArray(body.groupIds)
+          ? body.groupIds.map(String)
+          : [];
+        const ministryResults = await processSignupGroupSelections(
+          { id: user.id, name: getPublicDisplayName(user), email: user.email },
+          groupIds,
+        );
+        const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
+        const session = await createSession(user.id);
+        const publicUser = toPublicMember(user);
+        const permissions = await getSessionPermissions(publicUser);
+        const response = NextResponse.json(
+          { user: publicUser, permissions, ministryResults, linkedGifts },
+          { status: 201 },
+        );
+        response.cookies.set(SESSION_COOKIE, session.token, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          maxAge: SESSION_DAYS * 24 * 60 * 60,
+          path: "/",
+        });
+        return response;
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : "Sign up failed." },
+          { status: 400 },
+        );
+      }
+    }
+
+    const user = await verifyCredentials(body.email, body.password);
+    if (!user) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    }
+
+    const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
+    const session = await createSession(user.id);
+    const publicUser = toPublicMember(user);
+    const permissions = await getSessionPermissions(publicUser);
+    const response = NextResponse.json({ user: publicUser, permissions, linkedGifts });
+    response.cookies.set(SESSION_COOKIE, session.token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: SESSION_DAYS * 24 * 60 * 60,
+      path: "/",
+    });
+    return response;
+  } catch (error) {
+    return authServerError(error);
   }
-
-  const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
-  const session = await createSession(user.id);
-  const publicUser = toPublicMember(user);
-  const permissions = await getSessionPermissions(publicUser);
-  const response = NextResponse.json({ user: publicUser, permissions, linkedGifts });  response.cookies.set(SESSION_COOKIE, session.token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: SESSION_DAYS * 24 * 60 * 60,
-    path: "/",
-  });
-  return response;
 }
 
 export async function DELETE() {

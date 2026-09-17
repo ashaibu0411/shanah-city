@@ -66,12 +66,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const response = await fetch("/api/auth", { cache: "no-store" });
-    const data = await response.json();
-    setUser(data.user ?? null);
-    setActivity(data.activity ?? []);
-    setPermissions(data.permissions ?? defaultPermissions);
-    setLoading(false);
+    try {
+      const response = await fetch("/api/auth", { cache: "no-store" });
+      const data = (await response.json().catch(() => ({}))) as {
+        user?: PublicMember | null;
+        activity?: ActivityItem[];
+        permissions?: AuthPermissions;
+      };
+      setUser(data.user ?? null);
+      setActivity(data.activity ?? []);
+      setPermissions(data.permissions ?? defaultPermissions);
+    } catch {
+      setUser(null);
+      setActivity([]);
+      setPermissions(defaultPermissions);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {

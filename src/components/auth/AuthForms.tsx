@@ -50,22 +50,27 @@ export function SignInForm() {
     setLoading(true);
     setError(null);
 
-    const response = await fetch("/api/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await response.json();
-    setLoading(false);
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { error?: string };
 
-    if (!response.ok) {
-      setError(data.error ?? "Sign in failed.");
-      return;
+      if (!response.ok) {
+        setError(data.error ?? "Sign in failed.");
+        return;
+      }
+
+      await refresh();
+      router.push(nextPath);
+      router.refresh();
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
-
-    await refresh();
-    router.push(nextPath);
-    router.refresh();
   }
 
   return (

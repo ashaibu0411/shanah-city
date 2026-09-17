@@ -25,21 +25,16 @@ function getDirectDatabaseUrl() {
   return pooled;
 }
 
-if (process.env.VERCEL === "1") {
-  console.log(
-    "Vercel build: skipping prisma migrate deploy (database migrations are already applied).",
-  );
-  console.log("After schema changes, run: npm run db:deploy");
+const directUrl = getDirectDatabaseUrl();
+if (directUrl) {
+  run("npx prisma migrate deploy", {
+    ...process.env,
+    DATABASE_URL: directUrl,
+  });
+} else if (process.env.DATABASE_URL?.trim()) {
+  run("npx prisma migrate deploy");
 } else {
-  const directUrl = getDirectDatabaseUrl();
-  if (directUrl) {
-    run("npx prisma migrate deploy", {
-      ...process.env,
-      DATABASE_URL: directUrl,
-    });
-  } else {
-    run("npx prisma migrate deploy");
-  }
+  console.log("Skipping prisma migrate deploy (DATABASE_URL not set).");
 }
 
 run("npx next build");
