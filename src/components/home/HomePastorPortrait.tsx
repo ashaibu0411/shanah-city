@@ -8,7 +8,7 @@ type HomePastorPortraitProps = {
   className?: string;
 };
 
-const SLIDE_INTERVAL_MS = 7000;
+const SLIDE_INTERVAL_MS = 5500;
 
 /** Blended lead pastor portraits for home tagline heroes — gentle crossfade when multiple slides. */
 export function HomePastorPortrait({

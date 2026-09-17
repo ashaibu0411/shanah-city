@@ -8,6 +8,7 @@ import type {
   ShopProduct,
 } from "./types";
 import { canonicalMeetings } from "./meeting-catalog";
+import { homePortraitSlides } from "./home-portrait-slides";
 
 export const brandLogos = {
   light: "/shanah-city-logo-light.png",
@@ -23,11 +24,7 @@ export const site = {
   taglineReference: "2 Cor 3:18",
   leadPastor: "Aps. Zaq Nombre",
   /** Crossfading hero portraits on home (mobile welcome + desktop hero). */
-  homePortraitSlides: [
-    "/home/pastor-portrait.jpg",
-    "/home/pastor-portrait-casual.jpg",
-    "/home/pastor-portrait-ministry.jpg",
-  ],
+  homePortraitSlides: [...homePortraitSlides],
   /** First home slide; kept for older references. */
   pastorPortrait: "/home/pastor-portrait.jpg",
   devotionPortrait: "/devotions/daily-word-portrait.jpg",

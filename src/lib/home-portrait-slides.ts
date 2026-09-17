@@ -1,0 +1,21 @@
+/** Home hero crossfade slides (paths under /public/home). */
+export const homePortraitSlides = [
+  "/home/pastor-portrait.jpg",
+  "/home/pastor-portrait-casual.jpg",
+  "/home/pastor-portrait-ministry.jpg",
+  "/home/home-gallery-01.jpg",
+  "/home/home-gallery-02.jpg",
+  "/home/home-gallery-03.jpg",
+  "/home/home-gallery-04.jpg",
+  "/home/home-gallery-05.jpg",
+  "/home/home-gallery-06.jpg",
+  "/home/home-gallery-07.jpg",
+  "/home/home-gallery-08.jpg",
+  "/home/home-gallery-09.jpg",
+  "/home/home-gallery-10.jpg",
+  "/home/home-gallery-11.jpg",
+  "/home/home-gallery-12.jpg",
+  "/home/home-gallery-13.jpg",
+  "/home/home-gallery-14.jpg",
+  "/home/home-gallery-15.jpg",
+] as const;
