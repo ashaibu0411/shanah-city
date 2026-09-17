@@ -17,6 +17,7 @@ import { Prisma } from "@prisma/client";
 function mapComment(record: {
   id: string;
   author: string;
+  authorId?: string | null;
   content: string;
   createdAt: Date;
   parentId?: string | null;
@@ -24,6 +25,7 @@ function mapComment(record: {
   return {
     id: record.id,
     author: record.author,
+    authorId: record.authorId ?? undefined,
     content: record.content,
     createdAt: record.createdAt.toISOString(),
     parentId: record.parentId ?? undefined,
@@ -48,6 +50,7 @@ function mapCommunityPost(record: {
   comments: {
     id: string;
     author: string;
+    authorId?: string | null;
     content: string;
     createdAt: Date;
     parentId?: string | null;
@@ -209,6 +212,7 @@ export async function saveCommunityPosts(posts: CommunityPost[]) {
             create: (post.comments ?? []).map((comment) => ({
               id: comment.id,
               author: comment.author,
+              authorId: comment.authorId ?? null,
               content: comment.content,
               parentId: comment.parentId ?? null,
               createdAt: new Date(comment.createdAt),
@@ -244,6 +248,7 @@ export async function addCommunityPost(post: CommunityPost) {
         create: (post.comments ?? []).map((comment) => ({
           id: comment.id,
           author: comment.author,
+          authorId: comment.authorId ?? null,
           content: comment.content,
           parentId: comment.parentId ?? null,
           createdAt: new Date(comment.createdAt),
@@ -272,6 +277,7 @@ export async function addCommentToPost(postId: string, comment: Comment) {
       id: comment.id,
       postId,
       author: comment.author,
+      authorId: comment.authorId ?? null,
       content: comment.content,
       parentId: comment.parentId ?? null,
       createdAt: new Date(comment.createdAt),
@@ -279,6 +285,38 @@ export async function addCommentToPost(postId: string, comment: Comment) {
   });
 
   return findCommunityPost(postId);
+}
+
+export async function updateCommentOnPost(postId: string, commentId: string, content: string) {
+  const existing = await prisma.comment.findFirst({
+    where: { id: commentId, postId },
+  });
+  if (!existing) return null;
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: { content },
+  });
+
+  return findCommunityPost(postId);
+}
+
+export async function deleteCommentFromPost(postId: string, commentId: string) {
+  const existing = await prisma.comment.findFirst({
+    where: { id: commentId, postId },
+  });
+  if (!existing) return null;
+
+  await prisma.comment.delete({ where: { id: commentId } });
+
+  return findCommunityPost(postId);
+}
+
+export async function getCommentOnPost(postId: string, commentId: string) {
+  const record = await prisma.comment.findFirst({
+    where: { id: commentId, postId },
+  });
+  return record ? mapComment(record) : null;
 }
 
 export async function reactToPost(postId: string) {

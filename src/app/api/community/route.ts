@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
-import { canManageCommunityPost } from "@/lib/community-access-server";
+import { canManageCommunityPost, canManageCommunityComment } from "@/lib/community-access-server";
+import { attachCanManageToPostComments } from "@/lib/community-comment-access";
 import {
   enrichCommunityPostsForViewer,
   toggleCommunityCommentReaction,
@@ -24,9 +25,12 @@ import type { CommunityPost } from "@/lib/member-types";
 import {
   addCommentToPost,
   addCommunityPost,
+  deleteCommentFromPost,
   deleteCommunityPost,
+  getCommentOnPost,
   getCommunityPostById,
   getCommunityPostsForViewer,
+  updateCommentOnPost,
   updateCommunityPost,
 } from "@/lib/member-server";
 import { notifyCommunityPost } from "@/lib/push-server";
@@ -85,6 +89,16 @@ async function resolveEditedPostFields(
   };
 }
 
+async function finalizeCommunityPostForViewer(
+  post: CommunityPost,
+  user: Awaited<ReturnType<typeof getUserFromSession>>,
+) {
+  const isAdmin = user ? await canManageAsAdmin(user) : false;
+  const [enriched] = await enrichCommunityPostsForViewer([post], user?.id);
+  const withPostAccess = attachCanManageToPosts([enriched], user, isAdmin)[0];
+  return attachCanManageToPostComments([withPostAccess], user, isAdmin)[0];
+}
+
 export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
@@ -92,7 +106,9 @@ export async function GET() {
   const posts = await getCommunityPostsForViewer(user?.id);
   const isAdmin = user ? await canManageAsAdmin(user) : false;
   const withReactions = await enrichCommunityPostsForViewer(posts, user?.id);
-  return NextResponse.json({ posts: attachCanManageToPosts(withReactions, user, isAdmin) });
+  const withPostAccess = attachCanManageToPosts(withReactions, user, isAdmin);
+  const withCommentAccess = attachCanManageToPostComments(withPostAccess, user, isAdmin);
+  return NextResponse.json({ posts: withCommentAccess });
 }
 
 export async function POST(request: Request) {
@@ -112,6 +128,7 @@ export async function POST(request: Request) {
     const comment = await addCommentToPost(body.postId, {
       id: `c-${Date.now()}`,
       author: authorName,
+      authorId: user?.id,
       content: String(body.content ?? "").trim(),
       createdAt: new Date().toISOString(),
       parentId: parentCommentId || undefined,
@@ -123,9 +140,53 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({ error: "Comment not found." }, { status: 404 });
     }
-    const isAdmin = user ? await canManageAsAdmin(user) : false;
-    const [enriched] = await enrichCommunityPostsForViewer([comment], user?.id);
-    return NextResponse.json({ post: attachCanManageToPosts([enriched], user, isAdmin)[0] });
+    const post = await finalizeCommunityPostForViewer(comment, user);
+    return NextResponse.json({ post });
+  }
+
+  if (body.action === "editComment" || body.action === "deleteComment") {
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to manage your comment." }, { status: 401 });
+    }
+
+    const postId = String(body.postId ?? "").trim();
+    const commentId = String(body.commentId ?? "").trim();
+    if (!postId || !commentId) {
+      return NextResponse.json({ error: "Comment not found." }, { status: 404 });
+    }
+
+    const existing = await getCommentOnPost(postId, commentId);
+    if (!existing) {
+      return NextResponse.json({ error: "Comment not found." }, { status: 404 });
+    }
+
+    if (!(await canManageCommunityComment(user, existing))) {
+      return NextResponse.json(
+        { error: "You can only edit or delete your own comments." },
+        { status: 403 },
+      );
+    }
+
+    if (body.action === "deleteComment") {
+      const updated = await deleteCommentFromPost(postId, commentId);
+      if (!updated) {
+        return NextResponse.json({ error: "Comment not found." }, { status: 404 });
+      }
+      const post = await finalizeCommunityPostForViewer(updated, user);
+      return NextResponse.json({ post });
+    }
+
+    const content = String(body.content ?? "").trim();
+    if (!content) {
+      return NextResponse.json({ error: "Add a message." }, { status: 400 });
+    }
+
+    const updated = await updateCommentOnPost(postId, commentId, content);
+    if (!updated) {
+      return NextResponse.json({ error: "Comment not found." }, { status: 404 });
+    }
+    const post = await finalizeCommunityPostForViewer(updated, user);
+    return NextResponse.json({ post });
   }
 
   if (body.action === "reactComment") {
@@ -156,16 +217,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Post not found." }, { status: 404 });
     }
 
-    const post = await getCommunityPostById(postId);
-    if (!post) {
+    const refreshed = await getCommunityPostById(postId);
+    if (!refreshed) {
       return NextResponse.json({ error: "Post not found." }, { status: 404 });
     }
 
-    const isAdmin = await canManageAsAdmin(user);
-    const [enriched] = await enrichCommunityPostsForViewer([post], user.id);
-    return NextResponse.json({
-      post: attachCanManageToPosts([enriched], user, isAdmin)[0],
-    });
+    const enrichedPost = await finalizeCommunityPostForViewer(refreshed, user);
+    return NextResponse.json({ post: enrichedPost });
   }
 
   if (body.action === "react") {
@@ -191,16 +249,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const post = await getCommunityPostById(postId);
-    if (!post) {
+    const refreshed = await getCommunityPostById(postId);
+    if (!refreshed) {
       return NextResponse.json({ error: "Post not found." }, { status: 404 });
     }
 
-    const isAdmin = await canManageAsAdmin(user);
-    const [enriched] = await enrichCommunityPostsForViewer([post], user.id);
-    return NextResponse.json({
-      post: attachCanManageToPosts([enriched], user, isAdmin)[0],
-    });
+    const enrichedPost = await finalizeCommunityPostForViewer(refreshed, user);
+    return NextResponse.json({ post: enrichedPost });
   }
 
   if (body.action === "edit" || body.action === "delete") {

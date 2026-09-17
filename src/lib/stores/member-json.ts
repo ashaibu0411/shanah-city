@@ -7,6 +7,7 @@ import type {
   UnavailabilityRequest,
   VolunteerCheckIn,
 } from "@/lib/member-types";
+import { collectCommentSubtreeIds } from "@/lib/community-comments";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
@@ -43,9 +44,44 @@ export async function addCommentToPost(postId: string, comment: Comment) {
   const posts = await getCommunityPosts();
   const index = posts.findIndex((post) => post.id === postId);
   if (index === -1) return null;
+  if (comment.parentId) {
+    const parent = (posts[index].comments ?? []).find((entry) => entry.id === comment.parentId);
+    if (!parent) return null;
+  }
   posts[index].comments = [...(posts[index].comments ?? []), comment];
   await saveCommunityPosts(posts);
   return posts[index];
+}
+
+export async function updateCommentOnPost(postId: string, commentId: string, content: string) {
+  const posts = await getCommunityPosts();
+  const index = posts.findIndex((post) => post.id === postId);
+  if (index === -1) return null;
+  const comments = posts[index].comments ?? [];
+  const commentIndex = comments.findIndex((entry) => entry.id === commentId);
+  if (commentIndex === -1) return null;
+  comments[commentIndex] = { ...comments[commentIndex], content };
+  posts[index].comments = comments;
+  await saveCommunityPosts(posts);
+  return posts[index];
+}
+
+export async function deleteCommentFromPost(postId: string, commentId: string) {
+  const posts = await getCommunityPosts();
+  const index = posts.findIndex((post) => post.id === postId);
+  if (index === -1) return null;
+  const flat = posts[index].comments ?? [];
+  const removeIds = collectCommentSubtreeIds(flat, commentId);
+  if (removeIds.size === 0) return null;
+  posts[index].comments = flat.filter((entry) => !removeIds.has(entry.id));
+  await saveCommunityPosts(posts);
+  return posts[index];
+}
+
+export async function getCommentOnPost(postId: string, commentId: string) {
+  const post = await getCommunityPostById(postId);
+  if (!post) return null;
+  return (post.comments ?? []).find((entry) => entry.id === commentId) ?? null;
 }
 
 export async function reactToPost(postId: string) {

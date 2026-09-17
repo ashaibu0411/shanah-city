@@ -21,6 +21,7 @@ import {
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { CommunityMediaCarousel } from "@/components/community/CommunityMediaCarousel";
 import { canManageCommunityPostClient } from "@/lib/community-post-access";
+import { canManageCommunityComment } from "@/lib/community-comment-access";
 import { communityPostHasMedia, communityPostMediaItems } from "@/lib/community-post-media";
 
 function CommentIcon() {
@@ -62,8 +63,12 @@ type PostCommentRowProps = {
   postId: string;
   reactionButtons: ReturnType<typeof postReactionButtons>;
   reactionBusy: boolean;
+  manageBusy: boolean;
+  canManageForComment: (comment: Comment) => boolean;
   onReact: (commentId: string, kind: CommunityPostReactionKind) => void;
   onReply: (comment: Comment) => void;
+  onEdit: (commentId: string, content: string) => Promise<boolean>;
+  onDelete: (commentId: string) => void;
 };
 
 function PostCommentRow({
@@ -72,75 +77,170 @@ function PostCommentRow({
   postId,
   reactionButtons,
   reactionBusy,
+  manageBusy,
+  canManageForComment,
   onReact,
   onReply,
+  onEdit,
+  onDelete,
 }: PostCommentRowProps) {
+  const [editing, setEditing] = useState(false);
+  const [editDraft, setEditDraft] = useState(comment.content);
+  const [editError, setEditError] = useState("");
+
+  useEffect(() => {
+    if (!editing) {
+      setEditDraft(comment.content);
+      setEditError("");
+    }
+  }, [comment.content, editing]);
+
   const reactionTotal = totalPostReactionCount(comment.reactionCounts);
   const reactionSummaryEmojis =
     reactionTotal > 0 ? topPostReactionEmojis(comment.reactionCounts) : [];
+
+  const canManageComment = canManageForComment(comment);
+
+  function startEdit() {
+    setEditDraft(comment.content);
+    setEditError("");
+    setEditing(true);
+  }
+
+  function cancelEdit() {
+    setEditing(false);
+    setEditDraft(comment.content);
+    setEditError("");
+  }
+
+  function saveEdit() {
+    const next = editDraft.trim();
+    if (!next) {
+      setEditError("Add a message.");
+      return;
+    }
+    void (async () => {
+      const saved = await onEdit(comment.id, next);
+      if (saved) {
+        setEditing(false);
+      }
+    })();
+  }
 
   return (
     <div className={depth > 0 ? "mt-2 border-l-2 border-night-900/8 pl-2 dark:border-sand-100/10" : ""}>
       <div className="flex items-start gap-2">
         <CommunityAvatar name={comment.author} size="sm" />
         <div className="min-w-0 flex-1">
-          <div className="community-comment-bubble">
-            <p className="text-[13px] font-semibold leading-tight text-night-900 dark:text-sand-100">
-              {comment.author}
-            </p>
-            <p className="community-post-content mt-0.5 text-[15px] leading-snug text-night-900 dark:text-sand-100">
-              {comment.content}
-            </p>
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
-            <span className="text-[11px] font-semibold text-night-600">
-              {formatCommunityTimeAgo(comment.createdAt)}
-            </span>
-            {reactionTotal > 0 ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-night-600">
-                <span className="inline-flex items-center -space-x-0.5">
-                  {reactionSummaryEmojis.map((emoji, index) => (
-                    <span key={`${comment.id}-rx-${index}`} className="text-[11px]">
-                      {emoji}
-                    </span>
-                  ))}
-                </span>
-                {reactionTotal}
-              </span>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => onReply(comment)}
-              className="text-[11px] font-semibold text-night-600 hover:text-clay-600"
-            >
-              Reply
-            </button>
-          </div>
-          <div
-            className="community-comment-reactions mt-1 flex flex-wrap gap-0.5 px-0.5"
-            role="toolbar"
-            aria-label={`React to ${comment.author}'s comment`}
-          >
-            {reactionButtons.map((button) => {
-              const active = comment.viewerReactions?.includes(button.kind);
-              return (
+          {editing ? (
+            <div className="space-y-2">
+              <textarea
+                value={editDraft}
+                onChange={(event) => setEditDraft(event.target.value)}
+                rows={2}
+                className="w-full rounded-2xl border border-night-900/12 bg-sand-100 px-3 py-2 text-[15px] text-night-900 outline-none focus:border-clay-500 dark:border-white/15 dark:bg-night-900 dark:text-sand-100"
+              />
+              {editError ? <p className="text-xs text-red-600">{editError}</p> : null}
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={`${comment.id}-${button.kind}`}
                   type="button"
-                  disabled={reactionBusy}
-                  onClick={() => onReact(comment.id, button.kind)}
-                  className={`community-comment-reaction-btn ${active ? "community-comment-reaction-btn-active" : ""}`}
-                  aria-label={button.label}
-                  aria-pressed={active}
+                  disabled={manageBusy}
+                  onClick={saveEdit}
+                  className="rounded-lg bg-clay-500 px-3 py-1.5 text-xs font-semibold text-sand-50 disabled:opacity-60"
                 >
-                  <span aria-hidden>{button.emoji}</span>
+                  {manageBusy ? "Saving..." : "Save"}
                 </button>
-              );
-            })}
-          </div>
+                <button
+                  type="button"
+                  disabled={manageBusy}
+                  onClick={cancelEdit}
+                  className="rounded-lg bg-sand-200 px-3 py-1.5 text-xs font-semibold text-night-900 disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="community-comment-bubble">
+                <p className="text-[13px] font-semibold leading-tight text-night-900 dark:text-sand-100">
+                  {comment.author}
+                </p>
+                <p className="community-post-content mt-0.5 text-[15px] leading-snug text-night-900 dark:text-sand-100">
+                  {comment.content}
+                </p>
+              </div>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
+                <span className="text-[11px] font-semibold text-night-600">
+                  {formatCommunityTimeAgo(comment.createdAt)}
+                </span>
+                {reactionTotal > 0 ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-night-600">
+                    <span className="inline-flex items-center -space-x-0.5">
+                      {reactionSummaryEmojis.map((emoji, index) => (
+                        <span key={`${comment.id}-rx-${index}`} className="text-[11px]">
+                          {emoji}
+                        </span>
+                      ))}
+                    </span>
+                    {reactionTotal}
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => onReply(comment)}
+                  className="text-[11px] font-semibold text-night-600 hover:text-clay-600"
+                >
+                  Reply
+                </button>
+                {canManageComment ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={startEdit}
+                      disabled={manageBusy}
+                      className="text-[11px] font-semibold text-night-600 hover:text-clay-600 disabled:opacity-50"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(comment.id)}
+                      disabled={manageBusy}
+                      className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                    >
+                      Delete
+                    </button>
+                  </>
+                ) : null}
+              </div>
+              <div
+                className="community-comment-reactions mt-1 flex flex-wrap gap-0.5 px-0.5"
+                role="toolbar"
+                aria-label={`React to ${comment.author}'s comment`}
+              >
+                {reactionButtons.map((button) => {
+                  const active = comment.viewerReactions?.includes(button.kind);
+                  return (
+                    <button
+                      key={`${comment.id}-${button.kind}`}
+                      type="button"
+                      disabled={reactionBusy}
+                      onClick={() => onReact(comment.id, button.kind)}
+                      className={`community-comment-reaction-btn ${active ? "community-comment-reaction-btn-active" : ""}`}
+                      aria-label={button.label}
+                      aria-pressed={active}
+                    >
+                      <span aria-hidden>{button.emoji}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </div>
-      {comment.replies?.length ? (
+      {!editing && comment.replies?.length ? (
         <div className="mt-1 space-y-0">
           {comment.replies.map((reply) => (
             <PostCommentRow
@@ -150,8 +250,12 @@ function PostCommentRow({
               postId={postId}
               reactionButtons={reactionButtons}
               reactionBusy={reactionBusy}
+              manageBusy={manageBusy}
+              canManageForComment={canManageForComment}
               onReact={onReact}
               onReply={onReply}
+              onEdit={onEdit}
+              onDelete={onDelete}
             />
           ))}
         </div>
@@ -171,6 +275,7 @@ export function CommunityPostCard({
   const [commentDraft, setCommentDraft] = useState("");
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
   const [commentReactionBusy, setCommentReactionBusy] = useState(false);
+  const [commentManageBusy, setCommentManageBusy] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reactionBusy, setReactionBusy] = useState(false);
@@ -276,6 +381,62 @@ export function CommunityPostCard({
       setCommentDraft("");
       setReplyingTo(null);
       setCommentsOpen(true);
+    }
+  }
+
+  function commentCanManage(comment: Comment) {
+    return Boolean(
+      comment.canManage ??
+        (user && canManageCommunityComment(user, comment, permissions.canManageAdmin)),
+    );
+  }
+
+  async function editComment(commentId: string, content: string) {
+    setCommentManageBusy(true);
+    try {
+      const response = await fetch("/api/community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "editComment",
+          postId: post.id,
+          commentId,
+          content,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        onUpdate(data.post);
+        return true;
+      }
+      return false;
+    } finally {
+      setCommentManageBusy(false);
+    }
+  }
+
+  async function deleteComment(commentId: string) {
+    if (!window.confirm("Delete this comment? Replies will be removed too.")) return;
+    setCommentManageBusy(true);
+    try {
+      const response = await fetch("/api/community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "deleteComment",
+          postId: post.id,
+          commentId,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        onUpdate(data.post);
+        if (replyingTo?.id === commentId) {
+          setReplyingTo(null);
+        }
+      }
+    } finally {
+      setCommentManageBusy(false);
     }
   }
 
@@ -635,8 +796,12 @@ export function CommunityPostCard({
                 postId={post.id}
                 reactionButtons={reactionButtons}
                 reactionBusy={commentReactionBusy}
+                manageBusy={commentManageBusy}
+                canManageForComment={commentCanManage}
                 onReact={(commentId, kind) => void toggleCommentReaction(commentId, kind)}
                 onReply={startReply}
+                onEdit={(commentId, content) => editComment(commentId, content)}
+                onDelete={(commentId) => void deleteComment(commentId)}
               />
             ))
           )}

@@ -245,6 +245,7 @@ model Comment {
   parent    Comment?                   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   Comment[]                  @relation("CommentReplies")
   author    String
+  authorId  String?
   content   String
   createdAt DateTime
   reactions CommunityCommentReaction[]

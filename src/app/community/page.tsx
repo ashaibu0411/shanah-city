@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { attachCanManageToPosts } from "@/lib/community-post-access";
+import { attachCanManageToPostComments } from "@/lib/community-comment-access";
 import { enrichCommunityPostsForViewer } from "@/lib/community-comment-reaction-server";
 import { getCommunityPostsForViewer } from "@/lib/member-server";
 import { getPollsForViewer } from "@/lib/poll-server";
@@ -23,6 +24,7 @@ export default async function CommunityPage() {
   ]);
   const postsWithReactions = await enrichCommunityPostsForViewer(posts, user?.id);
   const postsWithAccess = attachCanManageToPosts(postsWithReactions, user, isAdmin);
+  const postsWithCommentAccess = attachCanManageToPostComments(postsWithAccess, user, isAdmin);
 
   return (
     <div className="community-page min-w-0 max-w-full overflow-x-clip">
@@ -42,7 +44,7 @@ export default async function CommunityPage() {
           compact
           hideWhenEmpty
         />
-        <CommunityFeed initialPosts={postsWithAccess} />
+        <CommunityFeed initialPosts={postsWithCommentAccess} />
       </div>
     </div>
   );

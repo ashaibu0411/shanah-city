@@ -1,12 +1,15 @@
 export type Comment = {
   id: string;
   author: string;
+  authorId?: string;
   content: string;
   createdAt: string;
   parentId?: string;
   replies?: Comment[];
   reactionCounts?: import("@/lib/community-post-reactions").CommunityPostReactionCounts;
   viewerReactions?: import("@/lib/community-post-reactions").CommunityPostReactionKind[];
+  /** Set when loading for the signed-in viewer; not stored in the database. */
+  canManage?: boolean;
 };
 
 export type CommunityPostMediaItem = {

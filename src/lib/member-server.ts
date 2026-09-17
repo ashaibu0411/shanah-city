@@ -31,6 +31,12 @@ export const saveCommunityPosts = (posts: CommunityPost[]) => store().saveCommun
 export const addCommunityPost = (post: CommunityPost) => store().addCommunityPost(post);
 export const addCommentToPost = (postId: string, comment: Comment) =>
   store().addCommentToPost(postId, comment);
+export const updateCommentOnPost = (postId: string, commentId: string, content: string) =>
+  store().updateCommentOnPost(postId, commentId, content);
+export const deleteCommentFromPost = (postId: string, commentId: string) =>
+  store().deleteCommentFromPost(postId, commentId);
+export const getCommentOnPost = (postId: string, commentId: string) =>
+  store().getCommentOnPost(postId, commentId);
 export const reactToPost = (postId: string) => store().reactToPost(postId);
 export const getCommunityPostById = (postId: string) => store().getCommunityPostById(postId);
 export const updateCommunityPost = (
