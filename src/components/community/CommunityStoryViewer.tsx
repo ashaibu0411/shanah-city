@@ -912,7 +912,7 @@ export function CommunityStoryViewer({
           <img
             src={mediaUrl}
             alt=""
-            className="h-full w-full object-cover"
+            className="community-story-viewer-photo"
             onError={() => setMediaFailed(true)}
           />
         )}

@@ -2454,6 +2454,14 @@ html.dark .community-comment-reaction-btn-active {
   background: #000;
 }
 
+.community-story-viewer-photo {
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
 .community-story-viewer-tap-layer {
   position: absolute;
   inset: 0;
