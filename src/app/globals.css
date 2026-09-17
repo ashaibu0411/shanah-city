@@ -1041,8 +1041,9 @@
     max-width: 50%;
     object-fit: cover;
     object-position: 50% 0%;
-    opacity: 0.95;
+    opacity: 0;
     filter: saturate(0.94) contrast(1.05) brightness(0.98);
+    transition: opacity 1.35s ease;
     -webkit-mask-image: linear-gradient(
       to left,
       #000 28%,
@@ -1055,6 +1056,10 @@
       rgba(0, 0, 0, 0.72) 54%,
       transparent 90%
     );
+  }
+
+  .home-pastor-portrait__photo--active {
+    opacity: 0.95;
   }
 
   .home-pastor-portrait__scrim {
@@ -1076,6 +1081,9 @@
     height: 100%;
     max-width: 44%;
     object-position: 50% 0%;
+  }
+
+  .home-pastor-portrait--desktop .home-pastor-portrait__photo--active {
     opacity: 0.92;
   }
 

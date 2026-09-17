@@ -22,7 +22,13 @@ export const site = {
   tagline: "Changing Lives To Higher Levels In God.",
   taglineReference: "2 Cor 3:18",
   leadPastor: "Aps. Zaq Nombre",
-  pastorPortrait: "/home/pastor-portrait.jpg",
+  /** Crossfading hero portraits on home (mobile welcome + desktop hero). */
+  homePortraitSlides: [
+    "/home/pastor-portrait-casual.jpg",
+    "/home/pastor-portrait-ministry.jpg",
+  ],
+  /** First home slide; kept for older references. */
+  pastorPortrait: "/home/pastor-portrait-casual.jpg",
   devotionPortrait: "/devotions/daily-word-portrait.jpg",
   scripture: "2 Corinthians 3:18",
   mission:
