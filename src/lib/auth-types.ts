@@ -34,6 +34,7 @@ export type MemberProfile = {
   phone?: string;
   campusId: string;
   role?: "member" | "leader" | "team" | "media";
+  participationType?: import("@/lib/member-participation").MemberParticipationType;
   avatarUrl?: string;
   notificationPrefs?: NotificationPrefs;
   passwordHash: string;

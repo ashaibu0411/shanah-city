@@ -10,6 +10,7 @@ import type {
   PublicMember,
 } from "@/lib/auth-types";
 import { normalizeDisplayName } from "@/lib/member-display-name";
+import { parseMemberParticipationType } from "@/lib/member-participation";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
@@ -57,6 +58,7 @@ export async function createUser(input: {
   password: string;
   phone?: string;
   campusId: string;
+  participationType?: string;
 }) {
   const existing = await getUserByEmail(input.email);
   if (existing) {
@@ -72,6 +74,7 @@ export async function createUser(input: {
     phone: input.phone?.trim(),
     campusId: input.campusId,
     role: "member",
+    participationType: parseMemberParticipationType(input.participationType),
     notificationPrefs: {
       pushEnabled: true,
       devotions: true,
@@ -105,7 +108,7 @@ export async function updateUserProfile(
   update: Partial<
     Pick<
       MemberProfile,
-      "name" | "displayName" | "phone" | "campusId" | "role" | "notificationPrefs" | "avatarUrl"
+      "name" | "displayName" | "phone" | "campusId" | "role" | "notificationPrefs" | "avatarUrl" | "participationType"
     >
   >,
 ) {
@@ -116,6 +119,10 @@ export async function updateUserProfile(
   const next = {
     ...users[index],
     ...update,
+    participationType:
+      update.participationType !== undefined
+        ? parseMemberParticipationType(update.participationType)
+        : users[index].participationType,
     displayName:
       update.displayName === ""
         ? undefined

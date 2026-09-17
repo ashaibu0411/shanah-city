@@ -12,7 +12,12 @@ import { ProfileAvatarUpload } from "@/components/auth/ProfileAvatarUpload";
 import { MemberEventRsvps } from "@/components/calendar/MemberEventRsvps";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { LeaderTrainingPanel } from "@/components/profile/LeaderTrainingPanel";
+import { ParticipationTypePicker } from "@/components/profile/ParticipationTypePicker";
 import { Button, Card, PageHeader } from "@/components/ui";
+import type { MemberParticipationType } from "@/lib/member-participation";
+import {
+  participationTypeDescription,
+} from "@/lib/member-participation";
 import { campuses, getCampus, site } from "@/lib/site";
 import { getPublicDisplayFirstName, getPublicDisplayName } from "@/lib/member-display-name";
 
@@ -34,6 +39,10 @@ export function MemberProfile() {
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [participationType, setParticipationType] = useState<MemberParticipationType>("member");
+  const [participationMessage, setParticipationMessage] = useState<string | null>(null);
+  const [participationSaving, setParticipationSaving] = useState(false);
+  const [inAnyGroup, setInAnyGroup] = useState(false);
 
   const [memberName, setMemberName] = useState("");
   const [relationship, setRelationship] =
@@ -59,14 +68,44 @@ export function MemberProfile() {
       setDisplayName(user.displayName ?? "");
       setPhone(user.phone ?? "");
       setCampusId(user.campusId);
+      setParticipationType(user.participationType ?? "member");
     }
   }, [user, loading, router, setCampusId]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/groups?mine=1")
+      .then((response) => response.json())
+      .then((data) => {
+        const groups = Array.isArray(data.groups) ? data.groups : [];
+        setInAnyGroup(groups.some((group: { isMember?: boolean }) => group.isMember));
+      })
+      .catch(() => setInAnyGroup(false));
+  }, [user?.id]);
 
   if (loading || !user) {
     return <p className="text-night-600">Loading your profile...</p>;
   }
 
   const campus = getCampus(user.campusId);
+
+  async function saveParticipationType() {
+    setParticipationSaving(true);
+    setParticipationMessage(null);
+    const response = await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ participationType }),
+    });
+    const data = await response.json();
+    setParticipationSaving(false);
+    if (response.ok && data.user) {
+      setUser(data.user);
+      setParticipationMessage("Connection type updated.");
+    } else {
+      setParticipationMessage(data.error ?? "Could not update connection type.");
+    }
+  }
 
   async function saveProfile() {
     const response = await fetch("/api/profile", {
@@ -282,6 +321,45 @@ export function MemberProfile() {
             <Button className="mt-3" onClick={saveProfile}>
               Save profile
             </Button>
+          </Card>
+
+          <Card className={isMobileApp ? "!p-3.5" : ""}>
+            <h2
+              className={`font-display font-semibold text-night-900 ${isMobileApp ? "text-base" : "text-xl"}`}
+            >
+              Church connection
+            </h2>
+            <p className="mt-1 text-sm text-night-600">
+              {participationTypeDescription(participationType, inAnyGroup)}
+            </p>
+            <div className="mt-4">
+              <ParticipationTypePicker
+                value={participationType}
+                onChange={setParticipationType}
+                emphasizeNoGroups={!inAnyGroup}
+                name="profile-participationType"
+              />
+            </div>
+            {participationMessage ? (
+              <p className="mt-2 text-sm text-emerald-700">{participationMessage}</p>
+            ) : null}
+            <Button
+              className="mt-3"
+              variant="secondary"
+              onClick={() => void saveParticipationType()}
+              disabled={participationSaving}
+            >
+              {participationSaving ? "Saving..." : "Save connection type"}
+            </Button>
+            {!inAnyGroup ? (
+              <p className="mt-3 text-sm text-night-600">
+                Browse{" "}
+                <a href="/groups" className="font-semibold text-clay-600 underline">
+                  Groups
+                </a>{" "}
+                when you&apos;re ready to join a ministry team.
+              </p>
+            ) : null}
           </Card>
 
           <MemberGivingHistory />

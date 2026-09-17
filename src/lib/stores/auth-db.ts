@@ -9,6 +9,7 @@ import type {
 } from "@/lib/auth-types";
 import { mapDbUserToProfile, notificationPrefsToDb } from "@/lib/auth-user-mapper";
 import { normalizeDisplayName } from "@/lib/member-display-name";
+import { parseMemberParticipationType } from "@/lib/member-participation";
 import { prisma } from "@/lib/db";
 
 export const SESSION_DAYS = 30;
@@ -50,6 +51,7 @@ export async function createUser(input: {
   password: string;
   phone?: string;
   campusId: string;
+  participationType?: string;
 }) {
   const existing = await getUserByEmail(input.email);
   if (existing) {
@@ -66,6 +68,7 @@ export async function createUser(input: {
       phone: input.phone?.trim(),
       campusId: input.campusId,
       role: "member",
+      participationType: parseMemberParticipationType(input.participationType),
       passwordHash: await bcrypt.hash(input.password, 10),
       createdAt: now,
       updatedAt: now,
@@ -89,7 +92,7 @@ export async function updateUserProfile(
   update: Partial<
     Pick<
       MemberProfile,
-      "name" | "displayName" | "phone" | "campusId" | "role" | "notificationPrefs" | "avatarUrl"
+      "name" | "displayName" | "phone" | "campusId" | "role" | "notificationPrefs" | "avatarUrl" | "participationType"
     >
   >,
 ) {
@@ -113,6 +116,10 @@ export async function updateUserProfile(
       phone: update.phone?.trim(),
       campusId: update.campusId,
       role: update.role,
+      participationType:
+        update.participationType !== undefined
+          ? parseMemberParticipationType(update.participationType)
+          : undefined,
       avatarUrl: update.avatarUrl === "" ? null : update.avatarUrl,
       updatedAt: new Date(),
       ...prefs,

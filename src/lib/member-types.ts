@@ -85,6 +85,7 @@ export type AdminPeopleEntry = {
   phone?: string;
   campusId: string;
   role?: string;
+  participationType?: import("@/lib/member-participation").MemberParticipationType;
   pastoralRole?: "senior_pastor" | "associate_pastor" | null;
   createdAt: string;
   familyCount: number;

@@ -14,6 +14,8 @@ model User {
   phone               String?
   campusId            String
   role                String         @default("member")
+  /** member = church member (may have no groups); visitor; guest */
+  participationType   String         @default("member")
   avatarUrl           String?
   passwordHash        String
   pushEnabled         Boolean        @default(true)

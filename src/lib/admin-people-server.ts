@@ -53,6 +53,7 @@ export async function getAdminPeopleDirectory(adminId: string): Promise<AdminPeo
         phone: user.phone,
         campusId: user.campusId,
         role: user.role,
+        participationType: user.participationType ?? "member",
         createdAt: user.createdAt,
         familyCount: user.family.length,
         pastoralRole: pastoralRoleForUser(user.id, pastoralRoles),

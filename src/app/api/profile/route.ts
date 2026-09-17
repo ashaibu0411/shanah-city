@@ -18,6 +18,7 @@ import {
   rateLimitResponse,
 } from "@/lib/rate-limit-server";
 import { createFamilyMemberId } from "@/lib/family-member-id";
+import { parseMemberParticipationType } from "@/lib/member-participation";
 import type { FamilyMember } from "@/lib/auth-types";
 
 export async function PATCH(request: Request) {
@@ -103,6 +104,10 @@ export async function PATCH(request: Request) {
       body.displayName !== undefined ? String(body.displayName) : undefined,
     phone: body.phone ? String(body.phone).trim() : undefined,
     campusId: body.campusId,
+    participationType:
+      body.participationType !== undefined
+        ? parseMemberParticipationType(body.participationType)
+        : undefined,
   });
 
   return NextResponse.json({

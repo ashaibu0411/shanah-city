@@ -1,4 +1,5 @@
 import type { FamilyMember, MemberProfile, NotificationPrefs } from "@/lib/auth-types";
+import { parseMemberParticipationType } from "@/lib/member-participation";
 import type { FamilyMember as DbFamilyMember, User as DbUser } from "@prisma/client";
 
 type DbUserWithFamily = DbUser & { family: DbFamilyMember[] };
@@ -12,6 +13,7 @@ export function mapDbUserToProfile(user: DbUserWithFamily): MemberProfile {
     phone: user.phone ?? undefined,
     campusId: user.campusId,
     role: user.role as MemberProfile["role"],
+    participationType: parseMemberParticipationType(user.participationType),
     avatarUrl: user.avatarUrl ?? undefined,
     notificationPrefs: {
       pushEnabled: user.pushEnabled,

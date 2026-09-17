@@ -18,6 +18,7 @@ import {
 import { processSignupGroupSelections } from "@/lib/group-join-server";
 import { linkGivingRecordsToUser } from "@/lib/giving-server";
 import { getPublicDisplayName } from "@/lib/member-display-name";
+import { parseMemberParticipationType } from "@/lib/member-participation";
 import { getSessionPermissions } from "@/lib/session-permissions";
 
 async function checkAuthRateLimit(request: Request, action: string) {
@@ -82,6 +83,7 @@ export async function POST(request: Request) {
         password: body.password,
         phone: body.phone,
         campusId: body.campusId ?? "colorado",
+        participationType: parseMemberParticipationType(body.participationType),
       });
       const groupIds = Array.isArray(body.groupIds)
         ? body.groupIds.map(String)

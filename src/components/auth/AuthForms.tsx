@@ -7,6 +7,9 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getSafeNextPath } from "@/components/auth/AuthPageShell";
 import { Button, Card } from "@/components/ui";
 import type { SignupGroupOption } from "@/lib/group-types";
+import { ParticipationTypePicker } from "@/components/profile/ParticipationTypePicker";
+import type { MemberParticipationType } from "@/lib/member-participation";
+import { participationTypeLabel } from "@/lib/member-participation";
 import { campuses } from "@/lib/site";
 
 function Field({
@@ -148,6 +151,7 @@ export function SignUpForm() {
   const [campusId, setCampusId] = useState("colorado");
   const [ministryOptions, setMinistryOptions] = useState<SignupGroupOption[]>([]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
+  const [participationType, setParticipationType] = useState<MemberParticipationType>("member");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -199,6 +203,7 @@ export function SignUpForm() {
         password,
         campusId,
         groupIds: selectedGroupIds,
+        participationType,
       }),
     });
     const data = await response.json();
@@ -227,9 +232,17 @@ export function SignUpForm() {
           Your ministries
         </h2>
         <p className="mt-1 text-sm text-night-600">
-          Select the groups you belong to. Leadership groups require admin approval before
-          you receive access.
+          Select the groups you belong to, or skip groups and connect as a church member, visitor,
+          or guest below.
         </p>
+
+        <div className="mt-5">
+          <ParticipationTypePicker
+            value={participationType}
+            onChange={setParticipationType}
+            emphasizeNoGroups={selectedGroupIds.length === 0}
+          />
+        </div>
 
         <div className="mt-6 space-y-3">
           {ministryOptions.map((group) => (
@@ -294,6 +307,9 @@ export function SignUpForm() {
           <p>
             <strong>Campus:</strong>{" "}
             {campuses.find((campus) => campus.id === campusId)?.name ?? campusId}
+          </p>
+          <p>
+            <strong>Connection type:</strong> {participationTypeLabel(participationType)}
           </p>
           {selectedGroups.length === 0 ? (
             <p>

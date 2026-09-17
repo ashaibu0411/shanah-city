@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { participationTypeLabel } from "@/lib/member-participation";
 import { campuses, getCampus } from "@/lib/site";
 import type { PastoralRole } from "@/lib/pastoral-roles-types";
 import { PASTORAL_ROLE_LABELS, PASTORAL_ROLES } from "@/lib/pastoral-roles-types";
@@ -348,7 +349,11 @@ export function AdminMemberDetail({
 
           <p className="mt-3 text-xs text-night-500">
             Joined {new Date(person.createdAt).toLocaleDateString()} ·{" "}
-            {getCampus(person.campusId).name}
+            {getCampus(person.campusId).name} ·{" "}
+            {participationTypeLabel(person.participationType ?? "member")}
+            {person.groups.filter((group) => group.status === "member").length === 0
+              ? " · no ministry groups"
+              : ""}
           </p>
           <p className="mt-2 text-sm">
             <Link
