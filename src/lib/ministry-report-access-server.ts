@@ -1,5 +1,5 @@
 import type { PublicMember } from "@/lib/auth-types";
-import { isGroupAdmin } from "@/lib/group-admin-utils";
+import { isGroupLeaderOrAssistant } from "@/lib/group-admin-utils";
 import { getGroups } from "@/lib/group-server";
 import { getMinistryManagementPermissions } from "@/lib/ministry-management-access-server";
 import {
@@ -18,7 +18,9 @@ export async function canReviewMinistryReports(user: Pick<PublicMember, "id"> | 
 export async function getLeaderMinistryGroups(userId: string) {
   const groups = await getGroups();
   return groups
-    .filter((group) => isGroupAdmin(group, userId) && isReportableMinistryGroup(group))
+    .filter(
+      (group) => isGroupLeaderOrAssistant(group, userId) && isReportableMinistryGroup(group),
+    )
     .map((group) => ({
       id: group.id,
       name: group.name,

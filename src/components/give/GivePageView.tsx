@@ -1,6 +1,7 @@
 "use client";
 
 import { GiveCheckoutPanel } from "@/components/give/GiveCheckoutPanel";
+import { ManageRecurringGivingCallout } from "@/components/give/ManageRecurringGivingCallout";
 import { GivePlatformGrid } from "@/components/give/GivePlatformGrid";
 import { TextToGivePanel } from "@/components/give/TextToGivePanel";
 import { editorialPremium } from "@/components/app/editorial-premium";
@@ -29,6 +30,8 @@ export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
           — {site.giving.reference}
         </footer>
       </blockquote>
+
+      <ManageRecurringGivingCallout />
 
       <GiveCheckoutPanel />
 

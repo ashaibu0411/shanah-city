@@ -47,6 +47,7 @@ export function MemberGivingHistory() {
   if (loading || !user) return null;
 
   return (
+    <div id="your-giving">
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -122,5 +123,6 @@ export function MemberGivingHistory() {
         </div>
       )}
     </Card>
+    </div>
   );
 }

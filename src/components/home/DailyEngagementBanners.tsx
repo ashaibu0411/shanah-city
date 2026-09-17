@@ -10,7 +10,6 @@ import {
   formatReportMonth,
   previousReportMonth,
 } from "@/lib/ministry-report-types";
-import { FOLLOW_UP_GROUP_ID } from "@/lib/follow-up-types";
 import { themeBannerDark, themeBannerText } from "@/lib/theme";
 
 type LeaderGroup = {
@@ -139,7 +138,7 @@ export function FollowUpHomeBanner() {
   const [newCount, setNewCount] = useState(0);
 
   useEffect(() => {
-    if (!user || !permissions.canManageGuestSubmissions) return;
+    if (!user || !permissions.canAccessFollowUp) return;
 
     fetch("/api/guests")
       .then((response) => response.json())
@@ -148,15 +147,15 @@ export function FollowUpHomeBanner() {
         setNewCount(guests.filter((guest) => guest.status === "new").length);
       })
       .catch(() => undefined);
-  }, [permissions.canManageGuestSubmissions, user]);
+  }, [permissions.canAccessFollowUp, user]);
 
-  if (!permissions.canManageGuestSubmissions || newCount === 0) {
+  if (!permissions.canAccessFollowUp || newCount === 0) {
     return null;
   }
 
   return (
     <Link
-      href={`/groups/${encodeURIComponent(FOLLOW_UP_GROUP_ID)}?guests=1`}
+      href="/follow-up/guests"
       className={`theme-light-surface block rounded-2xl border border-clay-200/80 bg-gradient-to-r from-clay-50/95 to-orange-50/90 px-4 py-3 ring-1 ring-clay-100 transition hover:border-clay-300 active:scale-[0.99] ${themeBannerDark.clay}`}
     >
       <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${themeBannerText.eyebrowClay}`}>

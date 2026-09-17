@@ -675,15 +675,14 @@ export function CommunityStoryViewer({
     pausePlayback();
 
     try {
-      const response = await fetch("/api/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipientId: deck.authorId,
-          recipientName: deck.authorName,
-          content: `Replied to your story: ${trimmed}`,
-        }),
-      });
+      const response = await fetch(
+        `/api/community/statuses/${encodeURIComponent(slide.id)}/replies`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: trimmed }),
+        },
+      );
       const data = await readJsonResponse<{ error?: string }>(response);
       if (!response.ok) {
         setReplyError(data.error ?? "Could not send reply.");

@@ -170,12 +170,12 @@ export function GroupDetailView({
   const showEmbeddedCalendar =
     hasMemberAccess && groupHasEmbeddedCalendar(detail);
   const showLeaderReport =
-    detail.isAdmin &&
+    (detail.isAdmin || detail.isAssistantLeader) &&
     isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
   const isPowerCouplesGroup = detail.id === SHANAH_POWER_COUPLES_GROUP_ID;
   const isFollowUpGroup = detail.id === FOLLOW_UP_GROUP_ID;
   const showGuestQueueTab =
-    isFollowUpGroup && hasMemberAccess && permissions.canManageGuestSubmissions;
+    isFollowUpGroup && hasMemberAccess && permissions.canAccessFollowUp;
   const groupLeaders = useMemo(
     () =>
       detail.members.filter(
