@@ -24,11 +24,12 @@ export const site = {
   leadPastor: "Aps. Zaq Nombre",
   /** Crossfading hero portraits on home (mobile welcome + desktop hero). */
   homePortraitSlides: [
+    "/home/pastor-portrait.jpg",
     "/home/pastor-portrait-casual.jpg",
     "/home/pastor-portrait-ministry.jpg",
   ],
   /** First home slide; kept for older references. */
-  pastorPortrait: "/home/pastor-portrait-casual.jpg",
+  pastorPortrait: "/home/pastor-portrait.jpg",
   devotionPortrait: "/devotions/daily-word-portrait.jpg",
   scripture: "2 Corinthians 3:18",
   mission:
