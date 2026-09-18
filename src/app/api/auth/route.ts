@@ -64,7 +64,9 @@ export async function GET() {
           canAccessKidsMinistry: false,
           canManageKidsMinistry: false,
           canSubmitMinistryReports: false,
+          canShowLeaderReportHomeBanner: false,
           canReviewMinistryReports: false,
+          canSeeGuestHomeBanner: false,
         },
       });
     }

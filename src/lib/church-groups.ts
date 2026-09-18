@@ -217,7 +217,7 @@ export function getSignupMinistryGroups() {
   );
 }
 
-/** Admin, ZNCF, Pastors, and Leaders — visible/joinable only by church admins and assigned pastors. */
+/** Admin, ZNCF, Pastors, and Leaders — not on signup; ZNCF is admin-only to discover. */
 export const STAFF_MANAGED_GROUP_IDS = new Set<string>([
   ADMIN_GROUP_ID,
   TEAM_ZNCF_GROUP_ID,
@@ -225,12 +225,19 @@ export const STAFF_MANAGED_GROUP_IDS = new Set<string>([
   LEADERS_GROUP_ID,
 ]);
 
+export function isAdminManagedOnlyGroup(groupId: string) {
+  return groupId === TEAM_ZNCF_GROUP_ID;
+}
+
 export function isStaffManagedMinistryGroup(groupId: string) {
   return STAFF_MANAGED_GROUP_IDS.has(groupId);
 }
 
-export function isSignupGroupOption(group: { id: string; signupVisible?: boolean }) {
+export function isSignupGroupOption(group: { id: string; name?: string; signupVisible?: boolean }) {
   if (isStaffManagedMinistryGroup(group.id)) {
+    return false;
+  }
+  if (group.name && /\bzncf\b/i.test(group.name)) {
     return false;
   }
   return group.signupVisible !== false;

@@ -6,6 +6,7 @@ import {
   canReviewMinistryReports,
   canSubmitMinistryReports,
   getLeaderMinistryGroups,
+  getPrimaryLeaderMinistryGroups,
 } from "@/lib/ministry-report-access-server";
 import {
   getMinistryReport,
@@ -57,10 +58,11 @@ export async function GET(request: Request) {
   const since = searchParams.get("since") ?? undefined;
   const until = searchParams.get("until") ?? undefined;
 
-  const [canSubmit, canReview, leaderGroups] = await Promise.all([
+  const [canSubmit, canReview, leaderGroups, primaryLeaderGroups] = await Promise.all([
     canSubmitMinistryReports(auth.user!),
     canReviewMinistryReports(auth.user!),
     getLeaderMinistryGroups(auth.user!.id),
+    getPrimaryLeaderMinistryGroups(auth.user!.id),
   ]);
 
   if (!canSubmit && !canReview) {
@@ -118,6 +120,7 @@ export async function GET(request: Request) {
     canSubmit,
     canReview,
     leaderGroups,
+    primaryLeaderGroups,
     defaultMonth: currentReportMonth(),
   });
 }

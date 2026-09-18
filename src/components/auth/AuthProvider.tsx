@@ -26,7 +26,9 @@ type AuthPermissions = {
   canAccessKidsMinistry: boolean;
   canManageKidsMinistry: boolean;
   canSubmitMinistryReports: boolean;
+  canShowLeaderReportHomeBanner: boolean;
   canReviewMinistryReports: boolean;
+  canSeeGuestHomeBanner: boolean;
 };
 
 type AuthContextValue = {
@@ -54,7 +56,9 @@ const defaultPermissions: AuthPermissions = {
   canAccessKidsMinistry: false,
   canManageKidsMinistry: false,
   canSubmitMinistryReports: false,
+  canShowLeaderReportHomeBanner: false,
   canReviewMinistryReports: false,
+  canSeeGuestHomeBanner: false,
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);

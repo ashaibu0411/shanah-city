@@ -54,11 +54,20 @@ export async function canManageFollowUp(user: PublicMember | null) {
   return userIsFollowUpLeader(user.id);
 }
 
+/** Home guest queue banner — Admin Group or Follow-Up Ministry members only. */
+export async function canSeeGuestHomeBanner(user: Pick<PublicMember, "id"> | null) {
+  if (!user) return false;
+  if (await canManageAsAdmin(user)) return true;
+  return userIsInFollowUpGroup(user.id);
+}
+
 export async function getFollowUpPermissions(user: PublicMember | null) {
   const canAccess = await canAccessFollowUp(user);
   const canManage = canAccess ? await canManageFollowUp(user) : false;
+  const canSeeGuestBanner = await canSeeGuestHomeBanner(user);
   return {
     canAccessFollowUp: canAccess,
     canManageFollowUp: canManage,
+    canSeeGuestHomeBanner: canSeeGuestBanner,
   };
 }

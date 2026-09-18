@@ -27,7 +27,9 @@ const defaultPermissions = {
   canAccessKidsMinistry: false,
   canManageKidsMinistry: false,
   canSubmitMinistryReports: false,
+  canShowLeaderReportHomeBanner: false,
   canReviewMinistryReports: false,
+  canSeeGuestHomeBanner: false,
 };
 
 export async function getSessionPermissions(user: PublicMember | null) {
@@ -60,6 +62,8 @@ export async function getSessionPermissions(user: PublicMember | null) {
     ...kids,
     canManageGuestSubmissions: guestQueue,
     canSubmitMinistryReports: ministryReports.canSubmitMinistryReports,
+    canShowLeaderReportHomeBanner: ministryReports.canShowLeaderReportHomeBanner,
     canReviewMinistryReports: ministryReports.canReviewMinistryReports,
+    canSeeGuestHomeBanner: followUp.canSeeGuestHomeBanner,
   };
 }

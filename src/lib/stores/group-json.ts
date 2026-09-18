@@ -107,6 +107,7 @@ async function ensureChurchGroups() {
       requiresApproval: seed.requiresApproval,
       isSystem: seed.isSystem,
       signupVisible: seed.signupVisible,
+      visibility: seed.visibility,
     };
 
     if (seed.id === ADMIN_GROUP_ID && bootstrapIds.length > 0) {
@@ -351,7 +352,7 @@ export async function updateGroup(
 
   const group = groups[index];
   if (isStaffManagedMinistryGroup(group.id)) {
-    await assertCanManageStaffOnlyGroup(userId);
+    await assertCanManageStaffOnlyGroup(userId, group.id);
   } else if (!isGroupAdmin(group, userId)) {
     throw new Error("Only group leaders can update this group.");
   }
@@ -449,7 +450,7 @@ export async function removeGroupMember(
 
   const group = groups[index];
   if (isStaffManagedMinistryGroup(group.id)) {
-    await assertCanManageStaffOnlyGroup(adminId);
+    await assertCanManageStaffOnlyGroup(adminId, group.id);
     if (!isGroupMember(group, memberId)) {
       throw new Error("That member is not in this group.");
     }

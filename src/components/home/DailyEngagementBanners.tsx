@@ -83,13 +83,13 @@ export function LeaderReportHomeBanner() {
   const [missingCount, setMissingCount] = useState(0);
 
   useEffect(() => {
-    if (!user || !permissions.canSubmitMinistryReports) return;
+    if (!user || !permissions.canShowLeaderReportHomeBanner) return;
 
     const reportMonth = previousReportMonth();
     fetch(`/api/ministry-reports?reportMonth=${encodeURIComponent(reportMonth)}`)
       .then((response) => response.json())
       .then((data) => {
-        const groups = (data.leaderGroups ?? []) as LeaderGroup[];
+        const groups = (data.primaryLeaderGroups ?? data.leaderGroups ?? []) as LeaderGroup[];
         setLeaderGroups(groups);
         const reports = (data.reports ?? []) as Array<{ groupId: string; status: string }>;
         const missing = groups.filter((group) => {
@@ -103,9 +103,9 @@ export function LeaderReportHomeBanner() {
         setMissingCount(missing.length);
       })
       .catch(() => undefined);
-  }, [permissions.canSubmitMinistryReports, user]);
+  }, [permissions.canShowLeaderReportHomeBanner, user]);
 
-  if (!permissions.canSubmitMinistryReports || missingCount === 0 || leaderGroups.length === 0) {
+  if (!permissions.canShowLeaderReportHomeBanner || missingCount === 0 || leaderGroups.length === 0) {
     return null;
   }
 
@@ -138,7 +138,7 @@ export function FollowUpHomeBanner() {
   const [newCount, setNewCount] = useState(0);
 
   useEffect(() => {
-    if (!user || !permissions.canAccessFollowUp) return;
+    if (!user || !permissions.canSeeGuestHomeBanner) return;
 
     fetch("/api/guests")
       .then((response) => response.json())
@@ -147,9 +147,9 @@ export function FollowUpHomeBanner() {
         setNewCount(guests.filter((guest) => guest.status === "new").length);
       })
       .catch(() => undefined);
-  }, [permissions.canAccessFollowUp, user]);
+  }, [permissions.canSeeGuestHomeBanner, user]);
 
-  if (!permissions.canAccessFollowUp || newCount === 0) {
+  if (!permissions.canSeeGuestHomeBanner || newCount === 0) {
     return null;
   }
 

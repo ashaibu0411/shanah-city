@@ -1,5 +1,5 @@
 import { isAdminGroupMember } from "@/lib/admin-access-server";
-import { isStaffManagedMinistryGroup } from "@/lib/church-groups";
+import { isAdminManagedOnlyGroup, isStaffManagedMinistryGroup } from "@/lib/church-groups";
 import {
   assertCanManageGroupLeadership,
   assertCanManageGroupMembers,
@@ -15,7 +15,13 @@ export async function canManageStaffOnlyGroups(userId: string) {
   return userHasPastoralMinistryRole(userId);
 }
 
-export async function assertCanManageStaffOnlyGroup(userId: string) {
+export async function assertCanManageStaffOnlyGroup(userId: string, groupId?: string) {
+  if (groupId && isAdminManagedOnlyGroup(groupId)) {
+    if (await isAdminGroupMember(userId)) {
+      return;
+    }
+    throw new Error("Only Admin Group members can manage Team ZNCF.");
+  }
   if (await canManageStaffOnlyGroups(userId)) {
     return;
   }
@@ -28,7 +34,7 @@ export async function assertCanManageGroupMembersForGroup(
   actorIsSiteAdmin: boolean,
 ) {
   if (isStaffManagedMinistryGroup(group.id)) {
-    await assertCanManageStaffOnlyGroup(actorId);
+    await assertCanManageStaffOnlyGroup(actorId, group.id);
     return;
   }
   assertCanManageGroupMembers(group, actorId, actorIsSiteAdmin);
@@ -40,7 +46,7 @@ export async function assertCanManageGroupLeadershipForGroup(
   actorIsSiteAdmin: boolean,
 ) {
   if (isStaffManagedMinistryGroup(group.id)) {
-    await assertCanManageStaffOnlyGroup(actorId);
+    await assertCanManageStaffOnlyGroup(actorId, group.id);
     return;
   }
   assertCanManageGroupLeadership(group, actorId, actorIsSiteAdmin);

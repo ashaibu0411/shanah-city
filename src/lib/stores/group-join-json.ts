@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { getUserById } from "@/lib/auth-server";
 import { isAdminGroupMember } from "@/lib/admin-access-server";
-import { isStaffManagedMinistryGroup } from "@/lib/church-groups";
+import { isAdminManagedOnlyGroup, isSignupGroupOption, isStaffManagedMinistryGroup } from "@/lib/church-groups";
 import { canManageStaffOnlyGroups } from "@/lib/group-staff-access-server";
 import { isGroupAdmin, isGroupMember } from "@/lib/group-admin-utils";
 import { getReadinessJoinPolicy } from "@/lib/ministry-readiness-server";
@@ -36,6 +36,9 @@ async function saveRequests(requests: GroupJoinRequest[]) {
 }
 
 async function canReviewJoinRequest(reviewerId: string, groupId: string) {
+  if (isAdminManagedOnlyGroup(groupId)) {
+    return await isAdminGroupMember(reviewerId);
+  }
   if (isStaffManagedMinistryGroup(groupId)) {
     return canManageStaffOnlyGroups(reviewerId);
   }
@@ -129,8 +132,13 @@ export async function processSignupGroupSelections(
 ) {
   const uniqueIds = [...new Set(groupIds.filter(Boolean))];
   const results: Array<{ groupId: string; groupName: string; status: string }> = [];
+  const groups = await getGroups();
 
   for (const groupId of uniqueIds) {
+    const group = groups.find((entry) => entry.id === groupId);
+    if (!group || !isSignupGroupOption(group)) {
+      continue;
+    }
     const result = await requestGroupJoin(groupId, user);
     results.push({ groupId, groupName: result.groupName, status: result.status });
   }

@@ -141,6 +141,7 @@ async function ensureChurchGroups() {
       requiresApproval: boolean;
       isSystem: boolean;
       signupVisible: boolean;
+      visibility: GroupVisibility;
       updatedAt: Date;
       memberIds?: string[];
       adminIds?: string[];
@@ -150,6 +151,7 @@ async function ensureChurchGroups() {
       requiresApproval: seed.requiresApproval,
       isSystem: seed.isSystem,
       signupVisible: seed.signupVisible,
+      visibility: seed.visibility,
       updatedAt: now,
     };
 
@@ -168,7 +170,6 @@ async function ensureChurchGroups() {
 export async function getSignupGroupOptions() {
   await ensureChurchGroups();
   const records = await prisma.group.findMany({
-    where: { signupVisible: true },
     orderBy: { name: "asc" },
   });
 
@@ -406,7 +407,7 @@ export async function updateGroup(
 
   const group = mapGroup(record);
   if (isStaffManagedMinistryGroup(group.id)) {
-    await assertCanManageStaffOnlyGroup(userId);
+    await assertCanManageStaffOnlyGroup(userId, group.id);
   } else if (!isGroupAdmin(group, userId)) {
     throw new Error("Only group leaders can update this group.");
   }
@@ -509,7 +510,7 @@ export async function removeGroupMember(
 
   const group = mapGroup(record);
   if (isStaffManagedMinistryGroup(group.id)) {
-    await assertCanManageStaffOnlyGroup(adminId);
+    await assertCanManageStaffOnlyGroup(adminId, group.id);
     if (!isGroupMember(group, memberId)) {
       throw new Error("That member is not in this group.");
     }

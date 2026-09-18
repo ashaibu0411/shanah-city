@@ -1,5 +1,5 @@
 import type { PublicMember } from "@/lib/auth-types";
-import { isGroupLeaderOrAssistant } from "@/lib/group-admin-utils";
+import { isGroupAdmin, isGroupLeaderOrAssistant } from "@/lib/group-admin-utils";
 import { getGroups } from "@/lib/group-server";
 import { getMinistryManagementPermissions } from "@/lib/ministry-management-access-server";
 import {
@@ -29,6 +29,25 @@ export async function getLeaderMinistryGroups(userId: string) {
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
+/** Primary group leaders only (not assistant leaders) — for home report nudges. */
+export async function getPrimaryLeaderMinistryGroups(userId: string) {
+  const groups = await getGroups();
+  return groups
+    .filter((group) => isGroupAdmin(group, userId) && isReportableMinistryGroup(group))
+    .map((group) => ({
+      id: group.id,
+      name: group.name,
+      template: getReportTemplateForGroup(group),
+    }))
+    .sort((left, right) => left.name.localeCompare(right.name));
+}
+
+export async function canShowLeaderReportHomeBanner(user: Pick<PublicMember, "id"> | null) {
+  if (!user) return false;
+  const groups = await getPrimaryLeaderMinistryGroups(user.id);
+  return groups.length > 0;
+}
+
 export async function canSubmitMinistryReports(user: Pick<PublicMember, "id"> | null) {
   if (!user) return false;
   const groups = await getLeaderMinistryGroups(user.id);
@@ -55,13 +74,15 @@ export async function assertCanAccessReport(
 }
 
 export async function getMinistryReportPermissions(user: Pick<PublicMember, "id"> | null) {
-  const [management, leaderGroups] = await Promise.all([
+  const [management, leaderGroups, primaryLeaderGroups] = await Promise.all([
     getMinistryManagementPermissions(user),
     user ? getLeaderMinistryGroups(user.id) : Promise.resolve([]),
+    user ? getPrimaryLeaderMinistryGroups(user.id) : Promise.resolve([]),
   ]);
 
   return {
     canSubmitMinistryReports: leaderGroups.length > 0,
+    canShowLeaderReportHomeBanner: primaryLeaderGroups.length > 0,
     canManageMinistry: management.canManageMinistry,
     canReviewMinistryReports: management.canReviewMinistryReports,
     leaderMinistryGroups: leaderGroups.map((group) => ({
