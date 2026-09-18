@@ -196,11 +196,123 @@ li:last-child {
     border-radius: 0;
     box-shadow: none;
     padding: 0.45in 0.5in;
+    page-break-after: always;
+  }
+
+  .sheet:last-child {
+    page-break-after: auto;
+  }
+
+  .page-break {
+    page-break-before: always;
   }
 
   .no-print {
     display: none !important;
   }
+}
+
+.page-break {
+  break-before: page;
+}
+
+.doc-title {
+  margin: 0 0 8px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 16pt;
+  line-height: 1.2;
+}
+
+.doc-title--sm {
+  font-size: 13pt;
+}
+
+.lead {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 10pt;
+}
+
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5pt;
+  margin: 8px 0 12px;
+}
+
+table.data th,
+table.data td {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+table.data th {
+  background: var(--soft);
+  font-weight: 700;
+}
+
+table.data td strong {
+  font-weight: 700;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.steps li {
+  margin-bottom: 8px;
+}
+
+.diagram {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--soft);
+  overflow-x: auto;
+}
+
+.diagram svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.diagram-caption {
+  margin: 8px 0 0;
+  font-size: 9pt;
+  color: var(--muted);
+  text-align: center;
+}
+
+.toc {
+  margin: 0;
+  padding-left: 1.1em;
+  columns: 2;
+  column-gap: 24px;
+}
+
+.toc li {
+  margin-bottom: 6px;
+  break-inside: avoid;
+}
+
+.download-bar {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ede4f5;
+  border: 1px solid #c4b5d8;
+  font-size: 10pt;
+}
+
+.download-bar a {
+  color: #5b3d8a;
+  font-weight: 700;
 }
 
 @media (max-width: 700px) {

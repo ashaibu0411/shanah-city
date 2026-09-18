@@ -44,6 +44,7 @@ export default async function TrainingHandoutPage({ params }: PageProps) {
     <TrainingHandoutViewer
       title={handout.title}
       staticPath={trainingHandoutStaticPath(handout)}
+      pdfPath={handout.pdfFile ? `/training/${handout.pdfFile}` : undefined}
     />
   );
 }

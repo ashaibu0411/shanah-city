@@ -3,78 +3,525 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Choir / Worship Leader — Shanah City Training</title>
+    <title>Choir / Worship Leader — Full Training &amp; Worship Planner Guide</title>
     <link rel="stylesheet" href="training.css" />
   </head>
   <body>
-    <div class="sheet">
-      <div class="header">
-        <div>
-          <div class="brand">Shanah City App · Training</div>
-          <h1>Choir / Worship leader</h1>
-          <p class="path">Main path: <strong>Worship</strong> (♫) · Group: <strong>Shanah Worship (Choir)</strong></p>
+    <div class="doc">
+      <!-- PAGE 1: Cover + quick reference -->
+      <div class="sheet">
+        <div class="no-print download-bar">
+          <strong>PDF:</strong>
+          <a href="choir-worship-leader-guide.pdf" download="Shanah-City-Choir-Worship-Leader-Guide.pdf">
+            Download full guide (PDF)
+          </a>
+          · Use <strong>Print</strong> in the app handout viewer to save as PDF locally.
         </div>
-        <div class="role-tag">Group leader<br />+ team member</div>
+
+        <div class="header">
+          <div>
+            <div class="brand">Shanah City App · Training</div>
+            <h1>Choir / Worship leader</h1>
+            <p class="path">
+              Full guide: worship planner, permissions, diagrams ·
+              <strong>Worship</strong> (♫) · <strong>Shanah Worship (Choir)</strong>
+            </p>
+          </div>
+          <div class="role-tag">Group leader<br />+ team member</div>
+        </div>
+
+        <div class="grid">
+          <section class="full">
+            <h2>What this helps you achieve</h2>
+            <ul>
+              <li>Plan Sunday services in one place instead of scattered chats</li>
+              <li>Give each singer and musician their part, charts, and practice audio</li>
+              <li>Keep rehearsal, upload duty, and schedules visible to the whole team</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Every choir member</h2>
+            <ul>
+              <li><strong>My Part</strong> — role notes and practice tracks</li>
+              <li><strong>Rehearsals</strong> — rehearsal recordings</li>
+              <li><strong>Schedule</strong> — upcoming assignments</li>
+              <li>Request <strong>time away</strong> on the choir calendar</li>
+              <li>Group chat, events, and polls</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Worship group leader only</h2>
+            <ul>
+              <li><strong>Service plan</strong> — setlists and roles</li>
+              <li>Rehearsal time and upload duty</li>
+              <li><strong>Publish</strong> plans for the team</li>
+              <li>Copy plans between service times</li>
+              <li>Song library and rotation schedule</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Monthly accountability</h2>
+            <ul>
+              <li><strong>Groups → Shanah Worship (Choir) → Report</strong></li>
+              <li>Due by the <strong>5th</strong> for the prior month</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Before you start</h2>
+            <ul>
+              <li>Join the choir group in <strong>Groups</strong></li>
+              <li>Complete <strong>Before You Serve</strong> training</li>
+              <li>Choir uses <strong>Worship</strong>, not FrontLiners</li>
+            </ul>
+          </section>
+        </div>
+
+        <section class="full" style="margin-top: 14px">
+          <h2>In this document</h2>
+          <ol class="toc">
+            <li>Who can access &amp; edit the planner</li>
+            <li>How to open the Worship planner</li>
+            <li>Planner tabs overview</li>
+            <li>Step-by-step: plan one service</li>
+            <li>Publish vs draft · team readiness</li>
+            <li>Monthly leader rotation</li>
+            <li>What members should do</li>
+            <li>Weekly rhythm &amp; troubleshooting</li>
+          </ol>
+        </section>
+
+        <div class="callout">
+          <strong>Training tip:</strong> Publish the service plan early so the team can open
+          <strong>My Part</strong> before rehearsal.
+        </div>
+
+        <div class="footer">
+          <span>Shanah City · Choir / Worship leader · Page 1</span>
+          <a href="index.html">All handouts</a>
+        </div>
       </div>
 
-      <div class="grid">
-        <section class="full">
-          <h2>What this helps you achieve</h2>
-          <ul>
-            <li>Plan Sunday services in one place instead of scattered chats</li>
-            <li>Give each singer and musician their part, charts, and practice audio</li>
-            <li>Keep rehearsal, upload duty, and schedules visible to the whole team</li>
-          </ul>
-        </section>
+      <!-- PAGE 2: Permissions -->
+      <div class="sheet page-break">
+        <div class="brand">Shanah City · Worship planner</div>
+        <h2 class="doc-title">Who can do what</h2>
+        <p class="lead">
+          Access requires sign-in, membership in <strong>Shanah Worship (Choir)</strong>, and full
+          group access (complete <strong>Before You Serve</strong> if the app shows it pending).
+        </p>
 
-        <section>
-          <h2>Every choir member</h2>
-          <ul>
-            <li><strong>My Part</strong> — your role notes and practice tracks</li>
-            <li><strong>Rehearsals</strong> — listen to rehearsal recordings</li>
-            <li><strong>Schedule</strong> — see upcoming assignments</li>
-            <li>Request <strong>time away</strong> on the choir calendar</li>
-            <li>Group chat, events, and polls</li>
-          </ul>
-        </section>
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Open planner</th>
+              <th>Build &amp; publish plans</th>
+              <th>Song library &amp; rotation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Choir member</strong></td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>View schedule only</td>
+            </tr>
+            <tr>
+              <td><strong>Choir group leader</strong> (Leader on Manage tab)</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td><strong>Admin Group</strong> (church app admin)</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size: 9.5pt; color: var(--muted)">
+          Assistant leaders can manage regular members in Groups but <strong>cannot</strong> change
+          worship leadership roles in the planner by themselves.
+        </p>
 
-        <section>
-          <h2>Worship group leader only</h2>
-          <ul>
-            <li><strong>Plan</strong> tab — build setlists and assign roles</li>
-            <li>Set rehearsal time and upload duty</li>
-            <li>Save drafts and <strong>publish</strong> plans for the team</li>
-            <li>Copy plans between service times</li>
-            <li>Manage song library and review chart uploads</li>
-          </ul>
-        </section>
+        <div class="diagram">
+          <svg viewBox="0 0 520 200" width="520" height="200" role="img" aria-label="Access flow">
+            <defs>
+              <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#6b5a45" />
+              </marker>
+            </defs>
+            <rect x="10" y="20" width="120" height="44" rx="8" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="70" y="47" text-anchor="middle" font-size="11" font-family="sans-serif">
+              Sign in
+            </text>
+            <line x1="130" y1="42" x2="158" y2="42" stroke="#6b5a45" marker-end="url(#arr)" />
+            <rect x="160" y="20" width="140" height="44" rx="8" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="230" y="47" text-anchor="middle" font-size="11" font-family="sans-serif">
+              Join choir group
+            </text>
+            <line x1="300" y1="42" x2="328" y2="42" stroke="#6b5a45" marker-end="url(#arr)" />
+            <rect x="330" y="20" width="180" height="44" rx="8" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="420" y="40" text-anchor="middle" font-size="10" font-family="sans-serif">
+              Before You Serve
+            </text>
+            <text x="420" y="55" text-anchor="middle" font-size="10" font-family="sans-serif">
+              (if assigned)
+            </text>
+            <line x1="420" y1="64" x2="420" y2="88" stroke="#6b5a45" marker-end="url(#arr)" />
+            <rect x="300" y="90" width="240" height="40" rx="8" fill="#ede4f5" stroke="#5b3d8a" />
+            <text x="420" y="115" text-anchor="middle" font-size="11" font-weight="bold" font-family="sans-serif">
+              Worship menu appears
+            </text>
+            <line x1="180" y1="130" x2="180" y2="158" stroke="#6b5a45" marker-end="url(#arr)" />
+            <rect x="60" y="160" width="240" height="36" rx="8" fill="#e8f5e9" stroke="#2e7d32" />
+            <text x="180" y="182" text-anchor="middle" font-size="11" font-family="sans-serif">
+              Member: view published plans
+            </text>
+            <line x1="360" y1="130" x2="360" y2="158" stroke="#6b5a45" marker-end="url(#arr)" />
+            <rect x="280" y="160" width="230" height="36" rx="8" fill="#fff3e0" stroke="#e65100" />
+            <text x="395" y="182" text-anchor="middle" font-size="11" font-family="sans-serif">
+              Leader: edit &amp; publish
+            </text>
+          </svg>
+          <p class="diagram-caption">Figure 1 — From sign-in to Worship planner access</p>
+        </div>
 
-        <section>
-          <h2>Monthly accountability</h2>
-          <ul>
-            <li><strong>Groups → Shanah Worship (Choir) → Report</strong></li>
-            <li>Due by the <strong>5th</strong> for the prior month</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2>Before you start</h2>
-          <ul>
-            <li>Join the choir group in <strong>Groups</strong></li>
-            <li>Complete <strong>Before You Serve</strong> training</li>
-            <li>Choir uses <strong>Worship</strong>, not FrontLiners</li>
-          </ul>
-        </section>
+        <div class="footer">
+          <span>Shanah City · Choir / Worship leader · Page 2</span>
+          <span>Permissions</span>
+        </div>
       </div>
 
-      <div class="callout">
-        <strong>Training tip:</strong> Publish the service plan early so the team can open
-        <strong>My Part</strong> before rehearsal.
+      <!-- PAGE 3: Navigation + tabs -->
+      <div class="sheet page-break">
+        <div class="brand">Shanah City · Worship planner</div>
+        <h2 class="doc-title">How to open the planner</h2>
+        <ol class="steps">
+          <li>
+            <strong>Menu</strong> — Tap <strong>Worship</strong> (♫) in the app (after choir access).
+          </li>
+          <li>
+            <strong>Group calendar</strong> — <strong>Groups → Shanah Worship (Choir) → Calendar</strong>
+            → <strong>Open planner</strong>.
+          </li>
+          <li><strong>Web path</strong> — Open <strong>/worship</strong> while signed in.</li>
+        </ol>
+
+        <div class="diagram">
+          <svg viewBox="0 0 520 120" width="520" height="120" role="img" aria-label="Navigation paths">
+            <rect x="200" y="8" width="120" height="36" rx="18" fill="#5b3d8a" />
+            <text x="260" y="31" text-anchor="middle" fill="#fff" font-size="12" font-family="sans-serif">
+              Worship planner
+            </text>
+            <line x1="80" y1="50" x2="200" y2="26" stroke="#6b5a45" />
+            <line x1="260" y1="50" x2="260" y2="44" stroke="#6b5a45" />
+            <line x1="440" y1="50" x2="320" y2="26" stroke="#6b5a45" />
+            <rect x="20" y="52" width="120" height="56" rx="8" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="80" y="74" text-anchor="middle" font-size="10" font-family="sans-serif">App menu</text>
+            <text x="80" y="92" text-anchor="middle" font-size="10" font-family="sans-serif">Worship ♫</text>
+            <rect x="200" y="52" width="120" height="56" rx="8" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="260" y="74" text-anchor="middle" font-size="10" font-family="sans-serif">Choir group</text>
+            <text x="260" y="92" text-anchor="middle" font-size="10" font-family="sans-serif">Calendar card</text>
+            <rect x="380" y="52" width="120" height="56" rx="8" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="440" y="74" text-anchor="middle" font-size="10" font-family="sans-serif">Direct URL</text>
+            <text x="440" y="92" text-anchor="middle" font-size="10" font-family="sans-serif">/worship</text>
+          </svg>
+          <p class="diagram-caption">Figure 2 — Three ways to reach the planner</p>
+        </div>
+
+        <h2 class="doc-title doc-title--sm">Planner tabs</h2>
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Tab</th>
+              <th>Leaders</th>
+              <th>Team members</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Service plan</strong></td>
+              <td>Setlist, team, notes; save &amp; publish</td>
+              <td>View plan; mark prepared &amp; ready</td>
+            </tr>
+            <tr>
+              <td><strong>My part</strong></td>
+              <td colspan="2">Notes, YouTube, practice audio for your assigned part</td>
+            </tr>
+            <tr>
+              <td><strong>Rehearsals</strong></td>
+              <td>Upload / manage recordings</td>
+              <td>Listen</td>
+            </tr>
+            <tr>
+              <td><strong>Schedule</strong></td>
+              <td>Leader rotation pool, generate &amp; approve</td>
+              <td><strong>Team schedule</strong> — who leads when</td>
+            </tr>
+            <tr>
+              <td><strong>Song library</strong></td>
+              <td>Reusable songs, charts, YouTube</td>
+              <td>Not shown</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <span>Shanah City · Choir / Worship leader · Page 3</span>
+          <span>Navigation &amp; tabs</span>
+        </div>
       </div>
 
-      <div class="footer">
-        <span>Shanah City · Choir / Worship leader</span>
-        <a href="index.html">All handouts</a>
+      <!-- PAGE 4: Plan a service -->
+      <div class="sheet page-break">
+        <div class="brand">Shanah City · Worship planner</div>
+        <h2 class="doc-title">Step-by-step: plan one service (leaders)</h2>
+
+        <h2 class="doc-title doc-title--sm">1. Pick the service</h2>
+        <p class="lead">On <strong>Service plan</strong>, choose date and time:</p>
+        <ul>
+          <li><strong>9:00 AM</strong>, <strong>10:00 AM</strong>, <strong>11:30 AM</strong> (Sunday)</li>
+          <li><strong>7:00 PM</strong> (Friday worship)</li>
+        </ul>
+        <p>
+          Shortcuts: <strong>Copy from last Sunday</strong> · <strong>Copy to time</strong> (same day,
+          another slot).
+        </p>
+
+        <h2 class="doc-title doc-title--sm">2. Build the setlist</h2>
+        <ul>
+          <li><strong>Add from library</strong> or <strong>Add song</strong></li>
+          <li>Set title, key, BPM, segment (opener, worship, offering, etc.)</li>
+          <li>Order with Up/Down; expand song for charts, YouTube, part notes, practice stems</li>
+        </ul>
+
+        <h2 class="doc-title doc-title--sm">3. Rehearsal &amp; calendar</h2>
+        <ul>
+          <li>Rehearsal date &amp; time (push reminder ~24h before, if enabled)</li>
+          <li>Optionally link a choir calendar event</li>
+        </ul>
+
+        <h2 class="doc-title doc-title--sm">4. Team roster</h2>
+        <ul>
+          <li>Add members from the choir group</li>
+          <li>Set role (worship leader, singer, musician, tech) and <strong>part</strong> (soprano, keys, …)</li>
+          <li>Assign <strong>upload duty</strong> for songs &amp; YouTube before service</li>
+        </ul>
+
+        <div class="diagram">
+          <svg viewBox="0 0 520 100" width="520" height="100" role="img" aria-label="Planning workflow">
+            <rect x="8" y="30" width="88" height="40" rx="6" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="52" y="55" text-anchor="middle" font-size="9" font-family="sans-serif">Date/time</text>
+            <rect x="108" y="30" width="88" height="40" rx="6" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="152" y="55" text-anchor="middle" font-size="9" font-family="sans-serif">Setlist</text>
+            <rect x="208" y="30" width="88" height="40" rx="6" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="252" y="55" text-anchor="middle" font-size="9" font-family="sans-serif">Team</text>
+            <rect x="308" y="30" width="88" height="40" rx="6" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="352" y="50" text-anchor="middle" font-size="9" font-family="sans-serif">Rehearsal</text>
+            <text x="352" y="62" text-anchor="middle" font-size="9" font-family="sans-serif">notes</text>
+            <rect x="408" y="30" width="100" height="40" rx="6" fill="#5b3d8a" />
+            <text x="458" y="50" text-anchor="middle" fill="#fff" font-size="9" font-family="sans-serif">Save</text>
+            <text x="458" y="62" text-anchor="middle" fill="#fff" font-size="9" font-family="sans-serif">Publish</text>
+            <path d="M96 50 H108 M196 50 H208 M296 50 H308 M396 50 H408" stroke="#6b5a45" marker-end="url(#arr2)" />
+            <defs>
+              <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#6b5a45" />
+              </marker>
+            </defs>
+          </svg>
+          <p class="diagram-caption">Figure 3 — Leader workflow for one service</p>
+        </div>
+
+        <div class="footer">
+          <span>Shanah City · Choir / Worship leader · Page 4</span>
+          <span>Plan a service</span>
+        </div>
+      </div>
+
+      <!-- PAGE 5: Publish + readiness -->
+      <div class="sheet page-break">
+        <div class="brand">Shanah City · Worship planner</div>
+        <h2 class="doc-title">Save, publish, and run sheet</h2>
+
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>What happens</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Save draft</strong></td>
+              <td>Saves work; team still sees “Plan not published yet”</td>
+            </tr>
+            <tr>
+              <td><strong>Publish for team</strong></td>
+              <td>Full plan visible; members mark prepared &amp; ready</td>
+            </tr>
+            <tr>
+              <td><strong>Unpublish</strong></td>
+              <td>Returns to draft (hides from team)</td>
+            </tr>
+            <tr>
+              <td><strong>Run sheet</strong></td>
+              <td>Opens printable flow for stage / sound (after plan exists)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="diagram">
+          <svg viewBox="0 0 480 140" width="480" height="140" role="img" aria-label="Draft vs publish">
+            <rect x="20" y="20" width="100" height="50" rx="8" fill="#fff3e0" stroke="#e65100" />
+            <text x="70" y="42" text-anchor="middle" font-size="11" font-family="sans-serif">Draft</text>
+            <text x="70" y="58" text-anchor="middle" font-size="9" font-family="sans-serif">Leader only</text>
+            <line x1="120" y1="45" x2="160" y2="45" stroke="#6b5a45" marker-end="url(#arr3)" />
+            <text x="140" y="38" text-anchor="middle" font-size="8" font-family="sans-serif">Publish</text>
+            <rect x="162" y="20" width="120" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32" />
+            <text x="222" y="42" text-anchor="middle" font-size="11" font-family="sans-serif">Published</text>
+            <text x="222" y="58" text-anchor="middle" font-size="9" font-family="sans-serif">Whole team</text>
+            <line x1="282" y1="45" x2="322" y2="45" stroke="#6b5a45" />
+            <rect x="324" y="20" width="136" height="50" rx="8" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="392" y="42" text-anchor="middle" font-size="10" font-family="sans-serif">My Part · Ready</text>
+            <text x="392" y="58" text-anchor="middle" font-size="9" font-family="sans-serif">Rehearsals</text>
+            <rect x="162" y="88" width="120" height="40" rx="8" fill="#ede4f5" stroke="#5b3d8a" />
+            <text x="222" y="113" text-anchor="middle" font-size="10" font-family="sans-serif">Team readiness bar</text>
+            <line x1="222" y1="70" x2="222" y2="88" stroke="#6b5a45" />
+            <defs>
+              <marker id="arr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#6b5a45" />
+              </marker>
+            </defs>
+          </svg>
+          <p class="diagram-caption">Figure 4 — Draft stays private until you publish</p>
+        </div>
+
+        <h2 class="doc-title doc-title--sm">Team readiness (after publish)</h2>
+        <ul>
+          <li><strong>Team readiness</strong> — count of members who marked <strong>Ready</strong></li>
+          <li><strong>Member progress</strong> — songs marked prepared per person</li>
+          <li>Approve pending member practice uploads in song workspace when needed</li>
+        </ul>
+
+        <div class="footer">
+          <span>Shanah City · Choir / Worship leader · Page 5</span>
+          <span>Publish &amp; readiness</span>
+        </div>
+      </div>
+
+      <!-- PAGE 6: Rotation + library -->
+      <div class="sheet page-break">
+        <div class="brand">Shanah City · Worship planner</div>
+        <h2 class="doc-title">Schedule tab — monthly leader rotation</h2>
+        <ol class="steps">
+          <li>Open <strong>Schedule</strong> (leaders only for editing).</li>
+          <li>Add worship leaders to the <strong>rotation pool</strong>.</li>
+          <li>Set default service time, Sunday vs Friday, weeks ahead, skip dates.</li>
+          <li><strong>Save</strong> settings → <strong>Generate schedule</strong> → <strong>Approve</strong> (notifies choir).</li>
+        </ol>
+        <p>Members use the same tab as <strong>Team schedule</strong> (read-only) to see who leads upcoming services.</p>
+
+        <h2 class="doc-title doc-title--sm">Song library (leaders)</h2>
+        <ul>
+          <li>Search and maintain reusable songs (key, BPM, CCLI, notes)</li>
+          <li>Paste YouTube links; upload charts once</li>
+          <li><strong>Add to plan</strong> on future Sundays</li>
+        </ul>
+
+        <h2 class="doc-title doc-title--sm">Choir calendar &amp; absences</h2>
+        <p>
+          <strong>Groups → Shanah Worship (Choir) → Calendar</strong> — events, rehearsal dates,
+          unavailability requests (leaders approve time away).
+        </p>
+
+        <div class="footer">
+          <span>Shanah City · Choir / Worship leader · Page 6</span>
+          <span>Rotation &amp; library</span>
+        </div>
+      </div>
+
+      <!-- PAGE 7: Members + weekly rhythm -->
+      <div class="sheet page-break">
+        <div class="brand">Shanah City · Worship planner</div>
+        <h2 class="doc-title">What choir members should do</h2>
+        <ol class="steps">
+          <li>Open <strong>Worship → Service plan</strong> after the leader publishes.</li>
+          <li>Read rehearsal notes and setlist (keys, charts).</li>
+          <li>Use <strong>My part</strong> for their line (soprano, keys, etc.).</li>
+          <li><strong>Mark prepared</strong> on each song, then <strong>Mark myself ready</strong>.</li>
+          <li>Use <strong>Rehearsals</strong> for uploaded recordings.</li>
+        </ol>
+
+        <h2 class="doc-title doc-title--sm">Suggested weekly rhythm for leaders</h2>
+        <div class="diagram">
+          <svg viewBox="0 0 520 72" width="520" height="72" role="img" aria-label="Weekly rhythm">
+            <rect x="4" y="10" width="118" height="52" rx="6" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="63" y="28" text-anchor="middle" font-size="9" font-weight="bold" font-family="sans-serif">Mon–Tue</text>
+            <text x="63" y="44" text-anchor="middle" font-size="8" font-family="sans-serif">Draft plan</text>
+            <text x="63" y="56" text-anchor="middle" font-size="8" font-family="sans-serif">Assign team</text>
+            <rect x="134" y="10" width="118" height="52" rx="6" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="193" y="28" text-anchor="middle" font-size="9" font-weight="bold" font-family="sans-serif">Midweek</text>
+            <text x="193" y="44" text-anchor="middle" font-size="8" font-family="sans-serif">Publish</text>
+            <text x="193" y="56" text-anchor="middle" font-size="8" font-family="sans-serif">Team prepares</text>
+            <rect x="264" y="10" width="118" height="52" rx="6" fill="#f5f1ea" stroke="#c45d3e" />
+            <text x="323" y="28" text-anchor="middle" font-size="9" font-weight="bold" font-family="sans-serif">Rehearsal</text>
+            <text x="323" y="44" text-anchor="middle" font-size="8" font-family="sans-serif">Notes +</text>
+            <text x="323" y="56" text-anchor="middle" font-size="8" font-family="sans-serif">recordings</text>
+            <rect x="394" y="10" width="118" height="52" rx="6" fill="#ede4f5" stroke="#5b3d8a" />
+            <text x="453" y="28" text-anchor="middle" font-size="9" font-weight="bold" font-family="sans-serif">Sunday</text>
+            <text x="453" y="44" text-anchor="middle" font-size="8" font-family="sans-serif">Run sheet</text>
+            <text x="453" y="56" text-anchor="middle" font-size="8" font-family="sans-serif">Debrief</text>
+          </svg>
+          <p class="diagram-caption">Figure 5 — Suggested leader rhythm</p>
+        </div>
+
+        <h2 class="doc-title doc-title--sm">Troubleshooting</h2>
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Issue</th>
+              <th>Fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>No Worship in menu</td>
+              <td>Join choir; finish Before You Serve if pending</td>
+            </tr>
+            <tr>
+              <td>Can’t edit plans</td>
+              <td>Must be choir <strong>Leader</strong> or Admin Group</td>
+            </tr>
+            <tr>
+              <td>Team sees empty plan</td>
+              <td><strong>Publish for team</strong>, not only Save draft</td>
+            </tr>
+            <tr>
+              <td>My part empty</td>
+              <td>Leader adds to roster + assigns a part</td>
+            </tr>
+            <tr>
+              <td>Can’t remove a leader in Groups</td>
+              <td>Promote another leader first (group must keep one leader)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <strong>Share this guide:</strong> Profile → Training handouts → <strong>Choir / Worship leader</strong>,
+          or download <strong>choir-worship-leader-guide.pdf</strong> from the handout page.
+        </div>
+
+        <div class="footer">
+          <span>Shanah City · Choir / Worship leader · Page 7</span>
+          <a href="index.html">All handouts</a>
+        </div>
       </div>
     </div>
   </body>

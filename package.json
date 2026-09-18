@@ -23,7 +23,8 @@
     "mobile:logos": "node scripts/generate-logo-variants.cjs",
     "mobile:splash": "node scripts/generate-splash-screens.cjs",
     "mobile:ios:screenshots": "node scripts/capture-app-store-screenshots.cjs && node scripts/compose-app-store-screenshots.cjs",
-    "mobile:ios:screenshots:ipad": "node scripts/compose-app-store-ipad-screenshots.cjs"
+    "mobile:ios:screenshots:ipad": "node scripts/compose-app-store-ipad-screenshots.cjs",
+    "training:choir-pdf": "node scripts/render-choir-training-pdf.mjs"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "^8.0.2",
@@ -65,6 +66,7 @@
     "@types/web-push": "^3.6.4",
     "postcss": "^8.4.49",
     "prisma": "^7.9.1",
+    "puppeteer": "^24.36.1",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.23.12",
     "typescript": "^5.7.2"

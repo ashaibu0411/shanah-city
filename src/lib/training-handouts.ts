@@ -18,14 +18,17 @@ export type TrainingHandout = {
   file: string;
   title: string;
   description: string;
+  /** Optional companion PDF (same folder as HTML handouts). */
+  pdfFile?: string;
 };
 
 export const TRAINING_HANDOUTS: TrainingHandout[] = [
   {
     slug: "choir-worship-leader",
     file: "choir-worship-leader.html",
+    pdfFile: "choir-worship-leader-guide.pdf",
     title: "Choir / Worship leader",
-    description: "Worship planner, setlists, My Part, monthly report",
+    description: "Full worship planner guide (PDF) with diagrams, setlists, My Part, monthly report",
   },
   {
     slug: "finance-team",

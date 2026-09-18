@@ -8,10 +8,11 @@ import { trainingHandoutStaticPath } from "@/lib/training-handouts";
 type Props = {
   title: string;
   staticPath: string;
+  pdfPath?: string;
   backHref?: string;
 };
 
-export function TrainingHandoutViewer({ title, staticPath, backHref = "/profile" }: Props) {
+export function TrainingHandoutViewer({ title, staticPath, pdfPath, backHref = "/profile" }: Props) {
   const router = useRouter();
   const frameRef = useRef<HTMLIFrameElement>(null);
 
@@ -44,6 +45,15 @@ export function TrainingHandoutViewer({ title, staticPath, backHref = "/profile"
           {title}
         </p>
         <div className="flex shrink-0 items-center gap-2">
+          {pdfPath ? (
+            <Link
+              href={pdfPath}
+              download
+              className="text-xs font-semibold text-clay-700 hover:underline"
+            >
+              PDF
+            </Link>
+          ) : null}
           <Link
             href={staticPath}
             target="_blank"
