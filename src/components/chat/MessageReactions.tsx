@@ -12,6 +12,8 @@ type MessageReactionsProps = {
   currentUserId: string;
   onToggle: (emoji: string) => void;
   compact?: boolean;
+  /** Hide the “+” picker until someone has reacted (cleaner DM-style thread). */
+  hideAddWhenEmpty?: boolean;
 };
 
 export function MessageReactions({
@@ -19,6 +21,7 @@ export function MessageReactions({
   currentUserId,
   onToggle,
   compact = false,
+  hideAddWhenEmpty = false,
 }: MessageReactionsProps) {
   const [showPicker, setShowPicker] = useState(false);
   const summary = summarizeChatReactions(reactions, currentUserId);
@@ -42,14 +45,16 @@ export function MessageReactions({
         </button>
       ))}
 
-      <button
-        type="button"
-        onClick={() => setShowPicker((current) => !current)}
-        className="rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
-        aria-label="Add reaction"
-      >
-        +
-      </button>
+      {!(hideAddWhenEmpty && summary.length === 0) ? (
+        <button
+          type="button"
+          onClick={() => setShowPicker((current) => !current)}
+          className="rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
+          aria-label="Add reaction"
+        >
+          +
+        </button>
+      ) : null}
 
       {showPicker && (
         <div className="flex flex-wrap gap-1 rounded-xl bg-white p-1 shadow-sm ring-1 ring-night-900/10">

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { ChatMessageReaction } from "@/lib/chat-utils";
 import { formatDeletedMessageContent, getChatAttachmentApiUrl } from "@/lib/chat-utils";
+import { ChatMessageText } from "@/components/chat/ChatMessageText";
 import { MessageReactions } from "@/components/chat/MessageReactions";
+import { senderAccentColor } from "@/lib/chat-ui-utils";
 
 type ChatMessageBubbleProps = {
   mine: boolean;
@@ -66,6 +68,7 @@ export function ChatMessageBubble({
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(content);
   const [actionBusy, setActionBusy] = useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
 
   const displayContent = formatDeletedMessageContent(content, deletedAt);
   const imageSrc = getChatAttachmentApiUrl(attachmentUrl);
@@ -91,6 +94,87 @@ export function ChatMessageBubble({
     ? "rounded-lg rounded-br-none"
     : "rounded-lg rounded-bl-none";
 
+  function openActionsMenu() {
+    if (!hasActions) return;
+    setShowActions(true);
+  }
+
+  function clearLongPressTimer() {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }
+
+  function startLongPress() {
+    if (!compact || !hasActions) return;
+    clearLongPressTimer();
+    longPressTimerRef.current = window.setTimeout(openActionsMenu, 480);
+  }
+
+  const actionsMenu = showActions && hasActions && (
+    <div
+      className={`absolute z-10 mt-1 min-w-[120px] rounded-xl border border-night-900/10 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[var(--color-surface)] ${
+        mine ? "right-0" : "left-0"
+      }`}
+    >
+      {canEdit && onEdit && (
+        <button
+          type="button"
+          className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50 dark:text-sand-100 dark:hover:bg-white/5"
+          onClick={() => {
+            setShowActions(false);
+            setEditing(true);
+            setEditDraft(content);
+          }}
+        >
+          Edit
+        </button>
+      )}
+      {canDelete && onDelete && (
+        <button
+          type="button"
+          className="block w-full px-3 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50"
+          onClick={async () => {
+            setShowActions(false);
+            if (!window.confirm("Delete this message?")) return;
+            setActionBusy(true);
+            await onDelete();
+            setActionBusy(false);
+          }}
+        >
+          Delete
+        </button>
+      )}
+      {canReport && onReport && (
+        <button
+          type="button"
+          className="block w-full px-3 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50"
+          onClick={() => {
+            setShowActions(false);
+            onReport();
+          }}
+        >
+          Report
+        </button>
+      )}
+      {canBlock && onBlock && !isBlocked && (
+        <button
+          type="button"
+          className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50 dark:text-sand-100 dark:hover:bg-white/5"
+          onClick={async () => {
+            setShowActions(false);
+            setActionBusy(true);
+            await onBlock();
+            setActionBusy(false);
+          }}
+        >
+          Block
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div
       className={`flex ${mine ? "justify-end" : "justify-start"} ${compact || whatsapp ? "px-3" : ""}`}
@@ -98,6 +182,15 @@ export function ChatMessageBubble({
       <div
         className={`${compact || whatsapp ? "max-w-[82%]" : "max-w-[85%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}
       >
+        {compact && !mine && senderName && (
+          <p
+            className="mb-0.5 px-1 text-[11px] font-semibold text-night-500 dark:text-sand-400"
+            style={{ color: senderAccent ?? senderAccentColor(senderName) }}
+          >
+            {senderName}
+          </p>
+        )}
+
         {whatsapp && !mine && senderName && (
           <p
             className="mb-0.5 px-1 text-[12.5px] font-semibold"
@@ -108,7 +201,7 @@ export function ChatMessageBubble({
         )}
 
         <div
-          className={`text-sm ${
+          className={`relative text-sm ${
             whatsapp
               ? `${whatsappRadius} px-2 py-1.5 shadow-sm ${
                   mine ? "messages-hub-bubble-out" : "messages-hub-bubble-in"
@@ -116,11 +209,19 @@ export function ChatMessageBubble({
               : compact
               ? mine
                 ? "rounded-[22px] rounded-br-md bg-[#3797F0] px-3.5 py-2 text-white shadow-sm"
-                : "rounded-[22px] rounded-bl-md bg-[#efefef] px-3.5 py-2 text-[#262626]"
+                : "rounded-[22px] rounded-bl-md bg-[#efefef] px-3.5 py-2 text-[#262626] dark:bg-[var(--color-bg-muted)] dark:text-sand-100 dark:ring-1 dark:ring-white/10"
               : mine
                 ? "rounded-2xl bg-night-900 px-4 py-3 text-sand-50"
                 : "rounded-2xl bg-sand-100 px-4 py-3 text-night-800"
           } ${deletedAt ? "italic opacity-70" : ""}`}
+          onContextMenu={(event) => {
+            if (!compact || !hasActions) return;
+            event.preventDefault();
+            openActionsMenu();
+          }}
+          onTouchStart={startLongPress}
+          onTouchEnd={clearLongPressTimer}
+          onTouchMove={clearLongPressTimer}
         >
           {!mine && senderName && !compact && !whatsapp && (
             <p className="mb-1 text-xs font-semibold opacity-70">{senderName}</p>
@@ -167,7 +268,21 @@ export function ChatMessageBubble({
                   />
                 </a>
               )}
-              {displayContent && <p className="whitespace-pre-wrap">{displayContent}</p>}
+              {displayContent ? (
+                <ChatMessageText
+                  text={displayContent}
+                  className="whitespace-pre-wrap break-words"
+                  linkClassName={
+                    mine && compact
+                      ? "font-semibold text-white underline decoration-white/60 underline-offset-2"
+                      : compact
+                        ? "font-semibold text-[#00376B] underline decoration-[#00376B]/35 underline-offset-2 dark:text-sky-300 dark:decoration-sky-300/40"
+                        : mine
+                          ? "font-semibold text-sand-50 underline decoration-sand-50/50 underline-offset-2"
+                          : "font-semibold text-night-900 underline decoration-night-900/30 underline-offset-2"
+                  }
+                />
+              ) : null}
             </>
           )}
 
@@ -194,9 +309,11 @@ export function ChatMessageBubble({
               <span>· Seen by {seenCount}</span>
             )}
           </div>
+
+          {compact && actionsMenu}
         </div>
 
-        {hasActions && (
+        {hasActions && !compact && (
           <div className={`relative ${compact ? "mt-0.5" : "mt-1"}`}>
             <button
               type="button"
@@ -207,64 +324,7 @@ export function ChatMessageBubble({
             >
               •••
             </button>
-            {showActions && (
-              <div className="absolute left-0 z-10 mt-1 min-w-[120px] rounded-xl border border-night-900/10 bg-white py-1 shadow-lg">
-                {canEdit && onEdit && (
-                  <button
-                    type="button"
-                    className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50"
-                    onClick={() => {
-                      setShowActions(false);
-                      setEditing(true);
-                      setEditDraft(content);
-                    }}
-                  >
-                    Edit
-                  </button>
-                )}
-                {canDelete && onDelete && (
-                  <button
-                    type="button"
-                    className="block w-full px-3 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50"
-                    onClick={async () => {
-                      setShowActions(false);
-                      if (!window.confirm("Delete this message?")) return;
-                      setActionBusy(true);
-                      await onDelete();
-                      setActionBusy(false);
-                    }}
-                  >
-                    Delete
-                  </button>
-                )}
-                {canReport && onReport && (
-                  <button
-                    type="button"
-                    className="block w-full px-3 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50"
-                    onClick={() => {
-                      setShowActions(false);
-                      onReport();
-                    }}
-                  >
-                    Report
-                  </button>
-                )}
-                {canBlock && onBlock && !isBlocked && (
-                  <button
-                    type="button"
-                    className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50"
-                    onClick={async () => {
-                      setShowActions(false);
-                      setActionBusy(true);
-                      await onBlock();
-                      setActionBusy(false);
-                    }}
-                  >
-                    Block
-                  </button>
-                )}
-              </div>
-            )}
+            {actionsMenu}
           </div>
         )}
 
@@ -274,6 +334,7 @@ export function ChatMessageBubble({
             currentUserId={currentUserId}
             onToggle={onToggleReaction}
             compact
+            hideAddWhenEmpty={compact}
           />
         )}
       </div>

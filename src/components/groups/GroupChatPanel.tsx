@@ -354,7 +354,7 @@ export function GroupChatPanel({
                     setShowMenu(false);
                     setReportTarget(null);
                     setReportReason("");
-                    setStatus("Tap ••• on a message to report or block a member.");
+                    setStatus("Long-press a message for report, block, or delete.");
                   }}
                   className={groupsPremium.chatMenuItem}
                 >
@@ -449,7 +449,7 @@ export function GroupChatPanel({
                     seenCount={message.seenCount}
                     showSeenCount={mine && group.isLast}
                     showMeta={group.showMeta}
-                    density="default"
+                    density="compact"
                     canEdit={message.senderId === userId}
                     canDelete={message.senderId === userId}
                     canReport={message.senderId !== userId}
