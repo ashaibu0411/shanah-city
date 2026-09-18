@@ -1,54 +1,16 @@
 /** Home hero crossfade slides (paths under /public/home). */
-export const homePortraitSlides = [
+
+const pastorSlides = [
   "/home/pastor-portrait.jpg",
   "/home/pastor-portrait-casual.jpg",
   "/home/pastor-portrait-ministry.jpg",
-  "/home/home-gallery-01.jpg",
-  "/home/home-gallery-02.jpg",
-  "/home/home-gallery-03.jpg",
-  "/home/home-gallery-04.jpg",
-  "/home/home-gallery-05.jpg",
-  "/home/home-gallery-06.jpg",
-  "/home/home-gallery-07.jpg",
-  "/home/home-gallery-08.jpg",
-  "/home/home-gallery-09.jpg",
-  "/home/home-gallery-10.jpg",
-  "/home/home-gallery-11.jpg",
-  "/home/home-gallery-12.jpg",
-  "/home/home-gallery-13.jpg",
-  "/home/home-gallery-14.jpg",
-  "/home/home-gallery-15.jpg",
-  "/home/home-gallery-16.jpg",
-  "/home/home-gallery-17.jpg",
-  "/home/home-gallery-18.jpg",
-  "/home/home-gallery-19.jpg",
-  "/home/home-gallery-20.jpg",
-  "/home/home-gallery-21.jpg",
-  "/home/home-gallery-22.jpg",
-  "/home/home-gallery-23.jpg",
-  "/home/home-gallery-24.jpg",
-  "/home/home-gallery-25.jpg",
-  "/home/home-gallery-26.jpg",
-  "/home/home-gallery-27.jpg",
-  "/home/home-gallery-28.jpg",
-  "/home/home-gallery-29.jpg",
-  "/home/home-gallery-30.jpg",
-  "/home/home-gallery-31.jpg",
-  "/home/home-gallery-32.jpg",
-  "/home/home-gallery-33.jpg",
-  "/home/home-gallery-34.jpg",
-  "/home/home-gallery-35.jpg",
-  "/home/home-gallery-36.jpg",
-  "/home/home-gallery-37.jpg",
-  "/home/home-gallery-38.jpg",
-  "/home/home-gallery-39.jpg",
-  "/home/home-gallery-40.jpg",
-  "/home/home-gallery-41.jpg",
-  "/home/home-gallery-42.jpg",
-  "/home/home-gallery-43.jpg",
-  "/home/home-gallery-44.jpg",
-  "/home/home-gallery-45.jpg",
-  "/home/home-gallery-46.jpg",
-  "/home/home-gallery-47.jpg",
-  "/home/home-gallery-48.jpg",
 ] as const;
+
+const GALLERY_COUNT = 92;
+
+const gallerySlides = Array.from({ length: GALLERY_COUNT }, (_, index) => {
+  const n = String(index + 1).padStart(2, "0");
+  return `/home/home-gallery-${n}.jpg`;
+});
+
+export const homePortraitSlides = [...pastorSlides, ...gallerySlides] as const;

@@ -1065,19 +1065,19 @@
   }
 
   .home-pastor-portrait__photo--active {
-    opacity: 0.95;
+    opacity: 1;
   }
 
   .home-pastor-portrait__scrim {
     background:
       linear-gradient(
         to right,
-        rgba(27, 20, 9, 0.8) 0%,
-        rgba(27, 20, 9, 0.48) 46%,
-        rgba(107, 42, 15, 0.16) 66%,
-        transparent 84%
+        rgba(27, 20, 9, 0.72) 0%,
+        rgba(27, 20, 9, 0.38) 42%,
+        rgba(107, 42, 15, 0.1) 62%,
+        transparent 82%
       ),
-      linear-gradient(to top, rgba(27, 20, 9, 0.32) 0%, transparent 42%);
+      linear-gradient(to top, rgba(27, 20, 9, 0.22) 0%, transparent 40%);
   }
 
   .home-pastor-portrait--desktop .home-pastor-portrait__photo {
@@ -1085,24 +1085,24 @@
     top: 0;
     bottom: auto;
     height: 100%;
-    max-width: 44%;
-    object-position: 50% 0%;
+    max-width: 48%;
+    object-position: 50% 20%;
   }
 
   .home-pastor-portrait--desktop .home-pastor-portrait__photo--active {
-    opacity: 0.92;
+    opacity: 1;
   }
 
   .home-pastor-portrait--desktop .home-pastor-portrait__scrim {
     background:
       linear-gradient(
         to right,
-        rgba(27, 20, 9, 0.84) 0%,
-        rgba(27, 20, 9, 0.44) 44%,
-        rgba(107, 42, 15, 0.14) 68%,
-        transparent 86%
+        rgba(27, 20, 9, 0.78) 0%,
+        rgba(27, 20, 9, 0.34) 40%,
+        rgba(107, 42, 15, 0.08) 64%,
+        transparent 84%
       ),
-      linear-gradient(to top, rgba(27, 20, 9, 0.3) 0%, transparent 48%);
+      linear-gradient(to top, rgba(27, 20, 9, 0.2) 0%, transparent 46%);
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero {
@@ -1116,12 +1116,24 @@
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero .home-pastor-portrait__photo {
-    right: -4%;
+    right: -6%;
     top: 0;
     bottom: auto;
     height: 100%;
-    max-width: 58%;
-    object-position: 50% 0%;
+    max-width: 62%;
+    object-position: 55% 15%;
+  }
+
+  body[data-shell="mobile"] .mobile-home-welcome-hero .home-pastor-portrait__scrim {
+    background:
+      linear-gradient(
+        to right,
+        rgba(27, 20, 9, 0.78) 0%,
+        rgba(27, 20, 9, 0.42) 38%,
+        rgba(27, 20, 9, 0.12) 58%,
+        transparent 78%
+      ),
+      linear-gradient(to top, rgba(27, 20, 9, 0.35) 0%, transparent 45%);
   }
 
   body[data-shell="mobile"] .mobile-home-welcome-hero h1,
