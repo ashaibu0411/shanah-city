@@ -34,6 +34,66 @@ function Field({
 const inputClassName =
   "w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2";
 
+function PasswordInput({
+  id,
+  value,
+  onChange,
+  autoComplete,
+  placeholder,
+  minLength,
+  required,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  autoComplete?: string;
+  placeholder?: string;
+  minLength?: number;
+  required?: boolean;
+}) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type={visible ? "text" : "password"}
+        autoComplete={autoComplete}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        minLength={minLength}
+        required={required}
+        className={`${inputClassName} pr-11`}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((current) => !current)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-night-500 hover:bg-night-900/5 hover:text-night-800"
+        aria-label={visible ? "Hide password" : "Show password"}
+        aria-pressed={visible}
+        aria-controls={id}
+      >
+        {visible ? (
+          <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"
+            />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
+            />
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+}
+
 export function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -101,15 +161,13 @@ export function SignInForm() {
         </Field>
 
         <Field id="sign-in-password" label="Password">
-          <input
+          <PasswordInput
             id="sign-in-password"
-            type="password"
             autoComplete="current-password"
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={setPassword}
             placeholder="Your password"
             required
-            className={inputClassName}
           />
         </Field>
 
@@ -442,30 +500,26 @@ export function SignUpForm() {
         </Field>
 
         <Field id="sign-up-password" label="Password">
-          <input
+          <PasswordInput
             id="sign-up-password"
-            type="password"
             autoComplete="new-password"
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={setPassword}
             placeholder="At least 6 characters"
             minLength={6}
             required
-            className={inputClassName}
           />
         </Field>
 
         <Field id="sign-up-confirm" label="Confirm password">
-          <input
+          <PasswordInput
             id="sign-up-confirm"
-            type="password"
             autoComplete="new-password"
             value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
+            onChange={setConfirmPassword}
             placeholder="Re-enter password"
             minLength={6}
             required
-            className={inputClassName}
           />
         </Field>
 
