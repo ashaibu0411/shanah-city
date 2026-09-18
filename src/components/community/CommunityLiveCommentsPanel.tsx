@@ -109,6 +109,8 @@ export function CommunityLiveCommentsPanel({
   return (
     <div
       className={`community-live-comments ${compact ? "community-live-comments-compact" : ""} ${className}`}
+      onPointerDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
       onFocusCapture={() => onLiveUiActiveChange?.(true)}
       onBlurCapture={(event) => {
         const next = event.relatedTarget as Node | null;
@@ -117,7 +119,13 @@ export function CommunityLiveCommentsPanel({
         }
       }}
     >
-      <div ref={scrollerRef} className="community-live-comments-scroll" aria-live="polite">
+      <div
+        ref={scrollerRef}
+        className="community-live-comments-scroll"
+        aria-live="polite"
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
+      >
         {comments.length === 0 ? (
           <p className="community-live-comments-empty">
             {loadError || "Be the first to comment on this live."}
@@ -140,6 +148,7 @@ export function CommunityLiveCommentsPanel({
           type="text"
           value={draft}
           onChange={(event) => setDraft(event.target.value.slice(0, 280))}
+          onPointerDown={(event) => event.stopPropagation()}
           placeholder="Comment on live…"
           className="community-live-comments-input"
           maxLength={280}

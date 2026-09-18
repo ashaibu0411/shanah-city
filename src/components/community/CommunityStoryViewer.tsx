@@ -871,14 +871,7 @@ export function CommunityStoryViewer({
             authorName={deck?.authorName ?? slide.authorName}
             authorId={deck?.authorId ?? slide.authorId}
             viewerIsHost={deck?.authorId === currentUserId}
-            paused={playbackPaused}
             onLiveUiActiveChange={setLiveStoryUiActive}
-            onNavigateToCoHost={() => {
-              onClose();
-              window.location.assign(
-                `/community/live/cohost?statusId=${encodeURIComponent(slide.id)}`,
-              );
-            }}
             onLiveEnded={() => {
               setMediaFailed(false);
               goNext();

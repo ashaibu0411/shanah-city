@@ -3829,12 +3829,23 @@ html.dark .community-page [class*="bg-sand-200"] {
 .community-live-comments-input {
   min-width: 0;
   flex: 1;
-  border: none;
+  border: 1px solid rgb(255 255 255 / 0.22);
   border-radius: 9999px;
   padding: 0.4rem 0.75rem;
   font-size: 0.8125rem;
-  background: rgb(255 255 255 / 0.12);
+  background: rgb(0 0 0 / 0.45);
   color: #fff;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  outline: none;
+}
+
+html.dark .community-live-comments-input,
+body[data-shell="mobile"] .community-live-comments-input {
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  background: rgb(0 0 0 / 0.45);
 }
 
 .community-live-comments-input::placeholder {

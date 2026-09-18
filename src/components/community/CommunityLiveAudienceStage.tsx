@@ -131,7 +131,7 @@ export function CommunityLiveJoinActions({
   }
 
   if (state === "approved") {
-    return <p className="community-live-join-msg">Approved — opening co-host…</p>;
+    return <p className="community-live-join-msg">Approved — turning on your camera…</p>;
   }
 
   return (
