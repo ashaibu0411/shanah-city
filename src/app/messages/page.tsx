@@ -19,7 +19,9 @@ export default function MessagesPage() {
           </div>
         }
       >
-        <MessagesHub />
+        <div className="min-w-0 max-w-full overflow-x-hidden">
+          <MessagesHub />
+        </div>
       </Suspense>
     </>
   );

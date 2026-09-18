@@ -417,11 +417,17 @@
     max-width: none;
     padding: 0 !important;
     padding-bottom: 0 !important;
+    overflow-x: hidden;
+  }
+
+  body[data-messages-immersive="true"] {
+    overflow-x: hidden;
   }
 
   body[data-messages-immersive="true"] .messages-hub-root {
     min-height: 100dvh;
     height: 100dvh;
+    max-width: 100%;
   }
 
   body[data-shell="mobile"] .app-shell-layout,

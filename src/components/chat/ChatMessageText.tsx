@@ -43,7 +43,7 @@ export function ChatMessageText({ text, className, linkClassName }: ChatMessageT
           href={hrefForUrl(url)}
           target="_blank"
           rel="noopener noreferrer"
-          className={linkClassName}
+          className={`${linkClassName ?? ""} break-all`}
           onClick={(event) => event.stopPropagation()}
         >
           {url}
@@ -63,7 +63,7 @@ export function ChatMessageText({ text, className, linkClassName }: ChatMessageT
   }, [text, linkClassName]);
 
   return (
-    <p className={className}>
+    <p className={`[overflow-wrap:anywhere] break-words ${className ?? ""}`}>
       {nodes.map((node, index) => (
         <Fragment key={index}>{node}</Fragment>
       ))}

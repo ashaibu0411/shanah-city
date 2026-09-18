@@ -177,10 +177,10 @@ export function ChatMessageBubble({
 
   return (
     <div
-      className={`flex ${mine ? "justify-end" : "justify-start"} ${compact || whatsapp ? "px-3" : ""}`}
+      className={`flex w-full min-w-0 ${mine ? "justify-end" : "justify-start"} ${compact || whatsapp ? "px-3" : ""}`}
     >
       <div
-        className={`${compact || whatsapp ? "max-w-[82%]" : "max-w-[85%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}
+        className={`min-w-0 ${compact || whatsapp ? "max-w-[82%]" : "max-w-[85%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}
       >
         {compact && !mine && senderName && (
           <p
@@ -201,7 +201,7 @@ export function ChatMessageBubble({
         )}
 
         <div
-          className={`relative text-sm ${
+          className={`relative min-w-0 max-w-full text-sm ${
             whatsapp
               ? `${whatsappRadius} px-2 py-1.5 shadow-sm ${
                   mine ? "messages-hub-bubble-out" : "messages-hub-bubble-in"

@@ -401,7 +401,7 @@ export function GroupChatPanel({
 
       {status ? <div className={groupsPremium.chatStatusBanner}>{status}</div> : null}
 
-      <div className="group-chat-wallpaper min-h-0 flex-1 overflow-y-auto py-3">
+      <div className="group-chat-wallpaper min-h-0 flex-1 overflow-x-hidden overflow-y-auto py-3">
         {loading ? (
           <p className="px-4 py-8 text-center text-sm text-night-500">Loading messages…</p>
         ) : messages.length === 0 ? (

@@ -701,7 +701,7 @@ export function MessagesHub() {
 
   return (
     <div
-      className={`messages-hub-root flex overflow-hidden ${
+      className={`messages-hub-root relative flex w-full max-w-full overflow-hidden ${
         immersive
           ? "h-[100dvh]"
           : isMobileApp
@@ -710,7 +710,7 @@ export function MessagesHub() {
       }`}
     >
       <aside
-        className={`messages-hub-inbox flex w-full shrink-0 flex-col border-night-900/8 lg:w-[min(100%,390px)] lg:border-r dark:border-white/10 ${
+        className={`messages-hub-inbox flex min-w-0 shrink-0 flex-col border-night-900/8 max-lg:w-full lg:w-[min(100%,390px)] lg:border-r dark:border-white/10 ${
           showInbox ? "flex" : "hidden lg:flex"
         }`}
       >
@@ -878,8 +878,10 @@ export function MessagesHub() {
       </aside>
 
       <section
-        className={`messages-hub-chat-pane min-w-0 flex-1 flex-col ${
-          showChatPane ? "flex" : "hidden lg:flex"
+        className={`messages-hub-chat-pane min-w-0 flex-1 flex-col max-lg:max-w-full ${
+          showChatPane
+            ? "flex max-lg:absolute max-lg:inset-0 max-lg:z-20 max-lg:w-full max-lg:bg-[var(--color-bg-soft)] dark:max-lg:bg-[var(--color-bg)]"
+            : "hidden lg:flex"
         }`}
       >
         {showNew ? (
@@ -1090,7 +1092,7 @@ export function MessagesHub() {
               </div>
             )}
 
-            <div className="group-chat-wallpaper min-h-0 flex-1 overflow-y-auto py-2">
+            <div className="group-chat-wallpaper min-h-0 flex-1 overflow-x-hidden overflow-y-auto py-2">
               {messages.length === 0 ? (
                 <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-8 text-center">
                   <MemberAvatar name={activeThread.otherName} size="lg" ring />

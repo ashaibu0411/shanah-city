@@ -41,7 +41,7 @@ export const groupsPremium = {
   unreadBadgeMuted:
     "inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-sand-100 px-1.5 text-[11px] font-bold text-night-400 ring-1 ring-night-900/8",
   chatPanel:
-    "group-chat-premium fixed inset-0 z-50 flex min-w-0 flex-col bg-white font-sans dark:bg-[var(--color-bg)] lg:relative lg:inset-auto lg:z-auto lg:min-h-[min(720px,calc(100dvh-10rem))] lg:overflow-hidden lg:rounded-[1.5rem] lg:border lg:border-night-900/8 lg:shadow-[0_8px_32px_rgba(45,36,24,0.06)] dark:lg:border-white/10",
+    "group-chat-premium fixed inset-0 z-50 flex min-w-0 max-w-full flex-col overflow-x-hidden bg-white font-sans dark:bg-[var(--color-bg)] lg:relative lg:inset-auto lg:z-auto lg:min-h-[min(720px,calc(100dvh-10rem))] lg:overflow-hidden lg:rounded-[1.5rem] lg:border lg:border-night-900/8 lg:shadow-[0_8px_32px_rgba(45,36,24,0.06)] dark:lg:border-white/10",
   chatHeader:
     "shrink-0 border-b border-night-900/6 bg-white px-4 pb-3 pt-[max(0.5rem,env(safe-area-inset-top))] dark:border-white/10 dark:bg-[var(--color-bg)]",
   chatDatePill:
