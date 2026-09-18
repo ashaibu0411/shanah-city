@@ -1,3 +1,5 @@
+import type { GroupCategory } from "@/lib/group-types";
+
 export type FeedReadKey =
   | "community"
   | "devotions"
@@ -24,6 +26,10 @@ export type AppNotificationItem = {
   href: string;
   count: number;
   at: string;
+  groupId?: string;
+  groupCategory?: GroupCategory;
+  groupIconUrl?: string;
+  groupUpdatedAt?: string;
 };
 
 export type AppNotificationsSummary = {

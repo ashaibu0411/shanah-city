@@ -56,6 +56,8 @@ export async function POST(request: Request) {
     title: event.title,
     authorId: user!.id,
     eventId: event.id,
+    groupId: event.groupId ?? null,
+    groupName: event.groupName ?? undefined,
   });
 
   return NextResponse.json({

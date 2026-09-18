@@ -79,6 +79,7 @@ export async function createUser(input: {
       pushEnabled: true,
       devotions: true,
       messages: true,
+      groupChat: true,
       announcements: true,
       worship: true,
       kids: true,
@@ -249,6 +250,7 @@ export async function updateNotificationPrefs(
     pushEnabled: prefs.pushEnabled ?? users[index].notificationPrefs?.pushEnabled ?? true,
     devotions: prefs.devotions ?? users[index].notificationPrefs?.devotions ?? true,
     messages: prefs.messages ?? users[index].notificationPrefs?.messages ?? true,
+    groupChat: prefs.groupChat ?? users[index].notificationPrefs?.groupChat ?? true,
     announcements:
       prefs.announcements ?? users[index].notificationPrefs?.announcements ?? true,
     worship: prefs.worship ?? users[index].notificationPrefs?.worship ?? true,

@@ -275,6 +275,7 @@ export async function updateNotificationPrefs(
       pushEnabled: prefs.pushEnabled ?? existing.notificationPrefs?.pushEnabled ?? true,
       notifyDevotions: prefs.devotions ?? existing.notificationPrefs?.devotions ?? true,
       notifyMessages: prefs.messages ?? existing.notificationPrefs?.messages ?? true,
+      notifyGroupChat: prefs.groupChat ?? existing.notificationPrefs?.groupChat ?? true,
       notifyAnnouncements:
         prefs.announcements ?? existing.notificationPrefs?.announcements ?? true,
       notifyWorship: prefs.worship ?? existing.notificationPrefs?.worship ?? true,

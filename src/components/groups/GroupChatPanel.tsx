@@ -50,6 +50,8 @@ type GroupChatPanelProps = {
   groupId: string;
   groupName: string;
   groupCategory: GroupCategory;
+  groupIconUrl?: string;
+  groupUpdatedAt?: string;
   userId: string;
   memberCount: number;
   onBack?: () => void;
@@ -59,6 +61,8 @@ export function GroupChatPanel({
   groupId,
   groupName,
   groupCategory,
+  groupIconUrl,
+  groupUpdatedAt,
   userId,
   memberCount,
   onBack,
@@ -76,7 +80,13 @@ export function GroupChatPanel({
   const [showMenu, setShowMenu] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const artworkUrl = getGroupArtwork(
-    { id: groupId, name: groupName, category: groupCategory },
+    {
+      id: groupId,
+      name: groupName,
+      category: groupCategory,
+      iconUrl: groupIconUrl,
+      updatedAt: groupUpdatedAt,
+    },
     "square",
   );
 
@@ -191,6 +201,7 @@ export function GroupChatPanel({
 
     setDraft("");
     setMessages((current) => [...current, data.message]);
+    notifyNotificationsChanged();
   }
 
   async function sendTyping(isTyping: boolean) {

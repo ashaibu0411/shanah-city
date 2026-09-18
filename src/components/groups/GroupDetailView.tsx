@@ -328,6 +328,8 @@ export function GroupDetailView({
         groupId={detail.id}
         groupName={detail.name}
         groupCategory={detail.category}
+        groupIconUrl={detail.iconUrl}
+        groupUpdatedAt={detail.updatedAt}
         userId={user.id}
         memberCount={detail.members.length}
         onBack={() => setDetailSection("overview")}

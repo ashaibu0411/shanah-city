@@ -235,7 +235,14 @@ function previewGroupMessage(message: GroupChatMessage) {
 
 export async function getUnreadGroupChatSummary(
   userId: string,
-  groups: { id: string; name: string; memberIds: string[] }[],
+  groups: {
+    id: string;
+    name: string;
+    memberIds: string[];
+    category: import("@/lib/group-types").GroupCategory;
+    iconUrl?: string;
+    updatedAt: string;
+  }[],
 ) {
   const memberGroups = groups.filter((group) => group.memberIds.includes(userId));
   if (memberGroups.length === 0) return [];
@@ -267,6 +274,10 @@ export async function getUnreadGroupChatSummary(
       href: `/groups/${encodeURIComponent(group.id)}?chat=1`,
       count: unread.length,
       at: latest.createdAt,
+      groupId: group.id,
+      groupCategory: group.category,
+      groupIconUrl: group.iconUrl,
+      groupUpdatedAt: group.updatedAt,
     });
   }
 

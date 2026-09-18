@@ -52,6 +52,7 @@ export function PushNotificationSettings() {
     pushEnabled: true,
     devotions: true,
     messages: true,
+    groupChat: true,
     announcements: true,
     worship: true,
     kids: true,
@@ -66,6 +67,7 @@ export function PushNotificationSettings() {
         pushEnabled: true,
         devotions: true,
         messages: true,
+        groupChat: true,
         announcements: true,
         worship: true,
         kids: true,
@@ -348,12 +350,23 @@ export function PushNotificationSettings() {
           />
         </label>
         <label className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3 text-sm">
-          <span>New messages</span>
+          <span>Private messages (member to member)</span>
           <input
             type="checkbox"
             checked={prefs.messages}
             onChange={(event) => {
               const next = { ...prefs, messages: event.target.checked };
+              savePreferences(next);
+            }}
+          />
+        </label>
+        <label className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3 text-sm">
+          <span>Group updates (chat, polls, events, rosters)</span>
+          <input
+            type="checkbox"
+            checked={prefs.groupChat}
+            onChange={(event) => {
+              const next = { ...prefs, groupChat: event.target.checked };
               savePreferences(next);
             }}
           />

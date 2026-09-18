@@ -37,6 +37,7 @@ export function resolveNotificationPrefs(
     pushEnabled: prefs?.pushEnabled ?? true,
     devotions: prefs?.devotions ?? true,
     messages: prefs?.messages ?? true,
+    groupChat: prefs?.groupChat ?? true,
     announcements: prefs?.announcements ?? true,
     worship: prefs?.worship ?? true,
     kids: prefs?.kids ?? true,

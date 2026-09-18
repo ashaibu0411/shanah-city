@@ -19,12 +19,19 @@ export type NotificationPrefs = {
   pushEnabled: boolean;
   devotions: boolean;
   messages: boolean;
+  groupChat: boolean;
   announcements: boolean;
   worship: boolean;
   kids: boolean;
 };
 
-export type NotificationTopic = "devotions" | "messages" | "announcements" | "worship" | "kids";
+export type NotificationTopic =
+  | "devotions"
+  | "messages"
+  | "groupChat"
+  | "announcements"
+  | "worship"
+  | "kids";
 
 export type MemberProfile = {
   id: string;

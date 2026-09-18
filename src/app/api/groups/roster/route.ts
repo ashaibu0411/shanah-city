@@ -16,6 +16,7 @@ import {
   saveGroupRosterTemplateRoles,
   saveGroupServiceRoster,
 } from "@/lib/group-roster-server";
+import { notifyGroupRosterPublished } from "@/lib/push-server";
 import {
   cloneRosterSlotsForCopy,
   DEFAULT_ROSTER_SERVICE_TIME,
@@ -189,6 +190,15 @@ export async function POST(request: Request) {
     status,
     actor: { id: user.id, name: user.name },
   });
+
+  if (action === "publish") {
+    await notifyGroupRosterPublished({
+      groupId,
+      groupName: group.name,
+      serviceLabel: rosterServiceDateTimeLabel(serviceDate, serviceTime),
+      actorId: user.id,
+    });
+  }
 
   return NextResponse.json({ roster });
 }

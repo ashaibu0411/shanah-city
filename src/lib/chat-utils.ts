@@ -97,8 +97,9 @@ export function insertAtCursor(value: string, insertion: string, selectionStart:
 
 export function isAllowedReactionEmoji(emoji: string) {
   const trimmed = emoji.trim();
-  if (!trimmed || trimmed.length > 8) return false;
-  return QUICK_CHAT_EMOJIS.includes(trimmed as (typeof QUICK_CHAT_EMOJIS)[number]) || trimmed.length <= 4;
+  if (!trimmed || trimmed.length > 32) return false;
+  if (/^[a-zA-Z0-9\s.,!?;:]+$/.test(trimmed)) return false;
+  return /\p{Extended_Pictographic}/u.test(trimmed);
 }
 
 export function isChatAttachmentRef(value?: string | null) {

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { ChatMessageReaction } from "@/lib/chat-utils";
 import { formatDeletedMessageContent, getChatAttachmentApiUrl } from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
+import { ChatReactionEmojiPicker } from "@/components/chat/ChatReactionEmojiPicker";
 import { MessageReactions } from "@/components/chat/MessageReactions";
 import { senderAccentColor } from "@/lib/chat-ui-utils";
 
@@ -65,10 +66,12 @@ export function ChatMessageBubble({
   onBlock,
 }: ChatMessageBubbleProps) {
   const [showActions, setShowActions] = useState(false);
+  const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState(content);
   const [actionBusy, setActionBusy] = useState(false);
   const longPressTimerRef = useRef<number | null>(null);
+  const suppressClickRef = useRef(false);
 
   const displayContent = formatDeletedMessageContent(content, deletedAt);
   const imageSrc = getChatAttachmentApiUrl(attachmentUrl);
@@ -94,6 +97,11 @@ export function ChatMessageBubble({
     ? "rounded-lg rounded-br-none"
     : "rounded-lg rounded-bl-none";
 
+  function openReactionPicker() {
+    if (deletedAt || editing) return;
+    setReactionPickerOpen(true);
+  }
+
   function openActionsMenu() {
     if (!hasActions) return;
     setShowActions(true);
@@ -107,12 +115,21 @@ export function ChatMessageBubble({
   }
 
   function startLongPress() {
-    if (!compact || !hasActions) return;
+    if ((!compact && !whatsapp) || deletedAt) return;
     clearLongPressTimer();
-    longPressTimerRef.current = window.setTimeout(openActionsMenu, 480);
+    longPressTimerRef.current = window.setTimeout(() => {
+      suppressClickRef.current = true;
+      if (hasActions || !deletedAt) {
+        if (hasActions) {
+          openActionsMenu();
+        } else {
+          openReactionPicker();
+        }
+      }
+    }, 480);
   }
 
-  const actionsMenu = showActions && hasActions && (
+  const actionsMenu = showActions && (hasActions || !deletedAt) && (
     <div
       className={`absolute z-10 mt-1 min-w-[120px] rounded-xl border border-night-900/10 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[var(--color-surface)] ${
         mine ? "right-0" : "left-0"
@@ -172,6 +189,18 @@ export function ChatMessageBubble({
           Block
         </button>
       )}
+      {!deletedAt ? (
+        <button
+          type="button"
+          className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50 dark:text-sand-100 dark:hover:bg-white/5"
+          onClick={() => {
+            setShowActions(false);
+            openReactionPicker();
+          }}
+        >
+          React
+        </button>
+      ) : null}
     </div>
   );
 
@@ -200,6 +229,14 @@ export function ChatMessageBubble({
           </p>
         )}
 
+        <div className="relative min-w-0 max-w-full">
+          <ChatReactionEmojiPicker
+            open={reactionPickerOpen}
+            onClose={() => setReactionPickerOpen(false)}
+            onSelect={onToggleReaction}
+            align={mine ? "end" : "start"}
+          />
+
         <div
           className={`relative min-w-0 max-w-full text-sm ${
             whatsapp
@@ -213,11 +250,24 @@ export function ChatMessageBubble({
               : mine
                 ? "rounded-2xl bg-night-900 px-4 py-3 text-sand-50"
                 : "rounded-2xl bg-sand-100 px-4 py-3 text-night-800"
-          } ${deletedAt ? "italic opacity-70" : ""}`}
+          } ${deletedAt ? "italic opacity-70" : "cursor-pointer"}`}
           onContextMenu={(event) => {
-            if (!compact || !hasActions) return;
+            if ((!compact && !whatsapp) || deletedAt) return;
             event.preventDefault();
-            openActionsMenu();
+            if (hasActions) {
+              openActionsMenu();
+            } else {
+              openReactionPicker();
+            }
+          }}
+          onClick={(event) => {
+            if (suppressClickRef.current) {
+              suppressClickRef.current = false;
+              return;
+            }
+            if (deletedAt || editing) return;
+            if ((event.target as HTMLElement).closest("a, button, textarea, input")) return;
+            openReactionPicker();
           }}
           onTouchStart={startLongPress}
           onTouchEnd={clearLongPressTimer}
@@ -312,6 +362,7 @@ export function ChatMessageBubble({
 
           {compact && actionsMenu}
         </div>
+        </div>
 
         {hasActions && !compact && (
           <div className={`relative ${compact ? "mt-0.5" : "mt-1"}`}>
@@ -334,7 +385,6 @@ export function ChatMessageBubble({
             currentUserId={currentUserId}
             onToggle={onToggleReaction}
             compact
-            hideAddWhenEmpty={compact}
           />
         )}
       </div>

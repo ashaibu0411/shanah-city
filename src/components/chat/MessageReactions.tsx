@@ -1,19 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import {
-  QUICK_CHAT_EMOJIS,
-  summarizeChatReactions,
-  type ChatMessageReaction,
-} from "@/lib/chat-utils";
+import { summarizeChatReactions, type ChatMessageReaction } from "@/lib/chat-utils";
 
 type MessageReactionsProps = {
   reactions?: ChatMessageReaction[];
   currentUserId: string;
   onToggle: (emoji: string) => void;
   compact?: boolean;
-  /** Hide the “+” picker until someone has reacted (cleaner DM-style thread). */
-  hideAddWhenEmpty?: boolean;
 };
 
 export function MessageReactions({
@@ -21,10 +14,9 @@ export function MessageReactions({
   currentUserId,
   onToggle,
   compact = false,
-  hideAddWhenEmpty = false,
 }: MessageReactionsProps) {
-  const [showPicker, setShowPicker] = useState(false);
   const summary = summarizeChatReactions(reactions, currentUserId);
+  if (summary.length === 0) return null;
 
   return (
     <div className={`${compact ? "mt-1" : "mt-2"} flex flex-wrap items-center gap-1`}>
@@ -33,46 +25,20 @@ export function MessageReactions({
           key={entry.emoji}
           type="button"
           title={entry.label}
-          onClick={() => onToggle(entry.emoji)}
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggle(entry.emoji);
+          }}
           className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold transition ${
             entry.reactedByMe
-              ? "bg-violet-200 text-violet-900 ring-1 ring-violet-300"
-              : "bg-white/80 text-night-700 ring-1 ring-night-900/10 hover:bg-sand-100"
+              ? "bg-violet-200 text-violet-900 ring-1 ring-violet-300 dark:bg-violet-500/25 dark:text-violet-100 dark:ring-violet-400/40"
+              : "bg-white/80 text-night-700 ring-1 ring-night-900/10 hover:bg-sand-100 dark:bg-[var(--color-bg-muted)] dark:text-sand-200 dark:ring-white/10"
           }`}
         >
           <span>{entry.emoji}</span>
           <span>{entry.count}</span>
         </button>
       ))}
-
-      {!(hideAddWhenEmpty && summary.length === 0) ? (
-        <button
-          type="button"
-          onClick={() => setShowPicker((current) => !current)}
-          className="rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold text-night-600 ring-1 ring-night-900/10 hover:bg-sand-100"
-          aria-label="Add reaction"
-        >
-          +
-        </button>
-      ) : null}
-
-      {showPicker && (
-        <div className="flex flex-wrap gap-1 rounded-xl bg-white p-1 shadow-sm ring-1 ring-night-900/10">
-          {QUICK_CHAT_EMOJIS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              onClick={() => {
-                onToggle(emoji);
-                setShowPicker(false);
-              }}
-              className="rounded-lg px-1.5 py-0.5 text-base hover:bg-sand-100"
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

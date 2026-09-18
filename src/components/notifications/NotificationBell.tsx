@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { AppNotificationItemType } from "@/lib/notification-types";
+import type { AppNotificationItem, AppNotificationItemType } from "@/lib/notification-types";
+import { getGroupArtwork } from "@/lib/group-artwork";
 import { useNotifications } from "@/lib/use-notifications";
 
 type NotificationBellProps = {
@@ -41,6 +42,37 @@ function notificationIcon(type: AppNotificationItemType) {
     default:
       return "✉";
   }
+}
+
+function NotificationItemIcon({ item }: { item: AppNotificationItem }) {
+  if (item.type === "group_chat" && item.groupId && item.groupCategory) {
+    const src = getGroupArtwork(
+      {
+        id: item.groupId,
+        name: item.title,
+        category: item.groupCategory,
+        iconUrl: item.groupIconUrl,
+        updatedAt: item.groupUpdatedAt,
+      },
+      "square",
+    );
+    return (
+      <img
+        src={src}
+        alt=""
+        className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-black/5"
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm ${notificationTone(item.type)}`}
+      aria-hidden
+    >
+      {notificationIcon(item.type)}
+    </div>
+  );
 }
 
 function notificationTone(type: AppNotificationItemType) {
@@ -156,12 +188,7 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
                       : "border-night-900/5 hover:bg-sand-50"
                   }`}
                 >
-                  <div
-                    className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm ${notificationTone(item.type)}`}
-                    aria-hidden
-                  >
-                    {notificationIcon(item.type)}
-                  </div>
+                  <NotificationItemIcon item={item} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <p className="truncate text-sm font-semibold">{item.title}</p>

@@ -21,6 +21,7 @@ model User {
   pushEnabled         Boolean        @default(true)
   notifyDevotions     Boolean        @default(true)
   notifyMessages      Boolean        @default(true)
+  notifyGroupChat     Boolean        @default(true)
   notifyAnnouncements Boolean        @default(true)
   notifyWorship       Boolean        @default(true)
   notifyKids          Boolean        @default(true)

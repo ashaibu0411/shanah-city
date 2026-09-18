@@ -320,15 +320,22 @@ export async function notifyGroupChatMessage(input: {
   senderName: string;
   preview: string;
 }) {
-  return sendPushToGroupMembers(
-    input.groupId,
+  const { resolveGroupChatNotificationRecipientIds } = await import(
+    "@/lib/group-chat-notifications-server"
+  );
+  const userIds = await resolveGroupChatNotificationRecipientIds(input.groupId, input.senderId);
+  if (userIds.length === 0) {
+    return emptyPushDeliveryResult(isPushConfigured());
+  }
+
+  return sendPushToUsers(
+    userIds,
     {
       title: input.groupName,
       body: `${input.senderName}: ${input.preview}`,
       url: `/groups/${encodeURIComponent(input.groupId)}?chat=1`,
     },
-    "messages",
-    input.senderId,
+    "groupChat",
   );
 }
 
@@ -344,7 +351,16 @@ export async function sendPushToGroupMembers(
     return emptyPushDeliveryResult(isPushConfigured());
   }
 
-  const userIds = group.memberIds.filter((memberId) => memberId !== excludeUserId);
+  let userIds: string[];
+  if (preferenceKey === "groupChat") {
+    const { resolveGroupChatNotificationRecipientIds } = await import(
+      "@/lib/group-chat-notifications-server"
+    );
+    userIds = await resolveGroupChatNotificationRecipientIds(groupId, excludeUserId ?? "");
+  } else {
+    userIds = group.memberIds.filter((memberId) => memberId !== excludeUserId);
+  }
+
   return sendPushToUsers(userIds, payload, preferenceKey);
 }
 
@@ -383,7 +399,7 @@ export async function notifyPollCreated(input: {
     return sendPushToGroupMembers(
       input.targetGroupId,
       payload,
-      "announcements",
+      "groupChat",
       input.authorId,
     );
   }
@@ -418,7 +434,7 @@ export async function notifyCommunityPost(input: {
     return sendPushToGroupMembers(
       input.targetGroupId,
       payload,
-      "announcements",
+      "groupChat",
       input.authorId,
     );
   }
@@ -611,15 +627,37 @@ export async function notifyChurchEvent(input: {
   title: string;
   authorId: string;
   eventId: string;
+  groupId?: string | null;
+  groupName?: string;
 }) {
-  return sendPushToAllMembers(
+  const payload = {
+    title: input.groupId ? input.groupName ?? "Group event" : "Church event",
+    body: input.title,
+    url: `/calendar?event=${encodeURIComponent(input.eventId)}`,
+  };
+
+  if (input.groupId) {
+    return sendPushToGroupMembers(input.groupId, payload, "groupChat", input.authorId);
+  }
+
+  return sendPushToAllMembers(payload, "announcements", input.authorId);
+}
+
+export async function notifyGroupRosterPublished(input: {
+  groupId: string;
+  groupName: string;
+  serviceLabel: string;
+  actorId: string;
+}) {
+  return sendPushToGroupMembers(
+    input.groupId,
     {
-      title: "Church event",
-      body: input.title,
-      url: `/calendar?event=${encodeURIComponent(input.eventId)}`,
+      title: input.groupName,
+      body: `Service roster published for ${input.serviceLabel}.`,
+      url: `/groups/${encodeURIComponent(input.groupId)}?manage=1`,
     },
-    "announcements",
-    input.authorId,
+    "groupChat",
+    input.actorId,
   );
 }
 
@@ -723,7 +761,7 @@ export async function notifyEventRsvpRequest(input: {
     return sendPushToGroupMembers(
       input.targetGroupId,
       payload,
-      "announcements",
+      "groupChat",
       input.authorId,
     );
   }

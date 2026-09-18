@@ -59,6 +59,7 @@ export async function GET() {
       pushEnabled: true,
       devotions: true,
       messages: true,
+      groupChat: true,
       announcements: true,
       worship: true,
       kids: true,
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
         typeof body.pushEnabled === "boolean" ? body.pushEnabled : undefined,
       devotions: typeof body.devotions === "boolean" ? body.devotions : undefined,
       messages: typeof body.messages === "boolean" ? body.messages : undefined,
+      groupChat: typeof body.groupChat === "boolean" ? body.groupChat : undefined,
       announcements:
         typeof body.announcements === "boolean" ? body.announcements : undefined,
       worship: typeof body.worship === "boolean" ? body.worship : undefined,
