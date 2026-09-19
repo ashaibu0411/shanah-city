@@ -5,6 +5,8 @@ import {
   getMessagingBlockReason,
 } from "@/lib/block-server";
 import { normalizeChatReactions, toggleChatReaction, validateChatContent } from "@/lib/chat-utils";
+import { buildChatMessageReply } from "@/lib/chat-reply-utils";
+import { replyFromStoredRecord, replyToDbFields } from "@/lib/chat-reply-server";
 import { prisma } from "@/lib/db";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import type {
@@ -56,9 +58,14 @@ function mapMessage(record: {
   attachmentName: string | null;
   editedAt: Date | null;
   deletedAt: Date | null;
+  replyToMessageId: string | null;
+  replyToSenderId: string | null;
+  replyToSenderName: string | null;
+  replyToExcerpt: string | null;
   createdAt: Date;
   readAt: Date | null;
 }): DirectMessage {
+  const reply = replyFromStoredRecord(record);
   return {
     id: record.id,
     threadId: record.threadId,
@@ -73,6 +80,7 @@ function mapMessage(record: {
     ...(record.attachmentName ? { attachmentName: record.attachmentName } : {}),
     ...(record.editedAt ? { editedAt: record.editedAt.toISOString() } : {}),
     ...(record.deletedAt ? { deletedAt: record.deletedAt.toISOString() } : {}),
+    ...(reply ? { reply } : {}),
     createdAt: record.createdAt.toISOString(),
     ...(record.readAt ? { readAt: record.readAt.toISOString() } : {}),
   };
@@ -80,6 +88,7 @@ function mapMessage(record: {
 
 function previewForMessage(message: DirectMessage) {
   if (message.deletedAt) return "Message deleted";
+  if (message.reply) return `↩ ${message.content.slice(0, 100) || "Reply"}`;
   if (message.attachmentUrl && !message.content.trim()) return "Photo";
   return message.content.slice(0, 120);
 }
@@ -190,6 +199,8 @@ export async function sendDirectMessage(input: {
   attachmentUrl?: string;
   attachmentType?: string;
   attachmentName?: string;
+  replyToMessageId?: string;
+  replyExcerpt?: string;
 }) {
   const content = validateChatContent(input.content, Boolean(input.attachmentUrl));
 
@@ -270,6 +281,28 @@ export async function sendDirectMessage(input: {
     });
   }
 
+  let replyFields = replyToDbFields(undefined);
+  const replyToMessageId = String(input.replyToMessageId ?? "").trim();
+  if (replyToMessageId) {
+    const target = await prisma.message.findFirst({
+      where: { id: replyToMessageId, threadId },
+    });
+    if (!target) {
+      throw new Error("The message you are replying to was not found.");
+    }
+    const reply = buildChatMessageReply({
+      messageId: target.id,
+      senderId: target.senderId,
+      senderName: target.senderName,
+      content: target.content,
+      deletedAt: target.deletedAt?.toISOString() ?? null,
+      attachmentName: target.attachmentName,
+      attachmentUrl: target.attachmentUrl,
+      excerptOverride: input.replyExcerpt,
+    });
+    replyFields = replyToDbFields(reply);
+  }
+
   const messageRecord = await prisma.message.create({
     data: {
       id: `msg-${Date.now()}`,
@@ -280,6 +313,7 @@ export async function sendDirectMessage(input: {
       attachmentUrl: input.attachmentUrl,
       attachmentType: input.attachmentType,
       attachmentName: input.attachmentName,
+      ...replyFields,
       createdAt: now,
     },
   });

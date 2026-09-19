@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import type { GroupChatMessage } from "@/lib/group-types";
 import { normalizeChatReactions, toggleChatReaction, validateChatContent } from "@/lib/chat-utils";
+import { buildChatMessageReply } from "@/lib/chat-reply-utils";
+import { replyFromStoredRecord, replyToDbFields } from "@/lib/chat-reply-server";
 
 const MAX_MESSAGES_PER_GROUP = 500;
 
@@ -21,8 +23,13 @@ function mapMessage(record: {
   attachmentName: string | null;
   editedAt: Date | null;
   deletedAt: Date | null;
+  replyToMessageId: string | null;
+  replyToSenderId: string | null;
+  replyToSenderName: string | null;
+  replyToExcerpt: string | null;
   createdAt: Date;
 }): GroupChatMessage {
+  const reply = replyFromStoredRecord(record);
   return {
     id: record.id,
     groupId: record.groupId,
@@ -36,6 +43,7 @@ function mapMessage(record: {
     ...(record.attachmentName ? { attachmentName: record.attachmentName } : {}),
     ...(record.editedAt ? { editedAt: record.editedAt.toISOString() } : {}),
     ...(record.deletedAt ? { deletedAt: record.deletedAt.toISOString() } : {}),
+    ...(reply ? { reply } : {}),
     createdAt: record.createdAt.toISOString(),
   };
 }
@@ -103,8 +111,32 @@ export async function addGroupChatMessage(input: {
   attachmentUrl?: string;
   attachmentType?: string;
   attachmentName?: string;
+  replyToMessageId?: string;
+  replyExcerpt?: string;
 }) {
   const content = validateChatContent(input.content, Boolean(input.attachmentUrl));
+
+  let replyFields = replyToDbFields(undefined);
+  const replyToMessageId = String(input.replyToMessageId ?? "").trim();
+  if (replyToMessageId) {
+    const target = await prisma.groupChatMessage.findFirst({
+      where: { id: replyToMessageId, groupId: input.groupId },
+    });
+    if (!target) {
+      throw new Error("The message you are replying to was not found.");
+    }
+    const reply = buildChatMessageReply({
+      messageId: target.id,
+      senderId: target.senderId,
+      senderName: target.senderName,
+      content: target.content,
+      deletedAt: target.deletedAt?.toISOString() ?? null,
+      attachmentName: target.attachmentName,
+      attachmentUrl: target.attachmentUrl,
+      excerptOverride: input.replyExcerpt,
+    });
+    replyFields = replyToDbFields(reply);
+  }
 
   const message = await prisma.groupChatMessage.create({
     data: {
@@ -118,6 +150,7 @@ export async function addGroupChatMessage(input: {
       attachmentUrl: input.attachmentUrl,
       attachmentType: input.attachmentType,
       attachmentName: input.attachmentName,
+      ...replyFields,
       createdAt: new Date(),
     },
   });

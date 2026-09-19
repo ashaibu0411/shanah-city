@@ -201,6 +201,8 @@ export async function POST(request: Request) {
       attachmentUrl,
       attachmentType,
       attachmentName,
+      replyToMessageId: String(body.replyToMessageId ?? "").trim() || undefined,
+      replyExcerpt: String(body.replyExcerpt ?? "").trim() || undefined,
     });
 
     await recordActivity(user.id, "message_sent", `Group chat in ${access.detail!.name}`);

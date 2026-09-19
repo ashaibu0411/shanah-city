@@ -7,6 +7,7 @@ import {
   getMessagingBlockReason,
 } from "@/lib/block-server";
 import { normalizeChatReactions, toggleChatReaction, validateChatContent } from "@/lib/chat-utils";
+import { buildChatMessageReply } from "@/lib/chat-reply-utils";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import type {
   DirectMessage,
@@ -52,6 +53,7 @@ function mapMessage(message: DirectMessage): DirectMessage {
 
 function previewForMessage(message: DirectMessage) {
   if (message.deletedAt) return "Message deleted";
+  if (message.reply) return `↩ ${message.content.slice(0, 100) || "Reply"}`;
   if (message.attachmentUrl && !message.content.trim()) return "Photo";
   return message.content.slice(0, 120);
 }
@@ -177,6 +179,8 @@ export async function sendDirectMessage(input: {
   attachmentUrl?: string;
   attachmentType?: string;
   attachmentName?: string;
+  replyToMessageId?: string;
+  replyExcerpt?: string;
 }) {
   const content = validateChatContent(input.content, Boolean(input.attachmentUrl));
 
@@ -226,6 +230,27 @@ export async function sendDirectMessage(input: {
   }
 
   let thread = threads.find((item) => item.id === threadId);
+  let reply: DirectMessage["reply"];
+  const replyToMessageId = String(input.replyToMessageId ?? "").trim();
+  if (replyToMessageId) {
+    const target = messages.find(
+      (entry) => entry.id === replyToMessageId && entry.threadId === threadId,
+    );
+    if (!target) {
+      throw new Error("The message you are replying to was not found.");
+    }
+    reply = buildChatMessageReply({
+      messageId: target.id,
+      senderId: target.senderId,
+      senderName: target.senderName,
+      content: target.content,
+      deletedAt: target.deletedAt ?? null,
+      attachmentName: target.attachmentName ?? null,
+      attachmentUrl: target.attachmentUrl ?? null,
+      excerptOverride: input.replyExcerpt,
+    });
+  }
+
   const message: DirectMessage = {
     id: `msg-${Date.now()}`,
     threadId,
@@ -236,6 +261,7 @@ export async function sendDirectMessage(input: {
     attachmentUrl: input.attachmentUrl,
     attachmentType: input.attachmentType,
     attachmentName: input.attachmentName,
+    ...(reply ? { reply } : {}),
     createdAt: now,
   };
 

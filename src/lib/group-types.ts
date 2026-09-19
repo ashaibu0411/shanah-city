@@ -94,6 +94,7 @@ export type GroupChatMessage = {
   deletedAt?: string;
   createdAt: string;
   seenCount?: number;
+  reply?: import("@/lib/chat-reply-types").ChatMessageReply;
 };
 
 export const groupCategoryLabels: Record<GroupCategory, string> = {

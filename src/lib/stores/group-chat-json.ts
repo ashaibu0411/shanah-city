@@ -6,6 +6,7 @@ import {
   toggleChatReaction,
   validateChatContent,
 } from "@/lib/chat-utils";
+import { buildChatMessageReply } from "@/lib/chat-reply-utils";
 
 const CHAT_FILE = path.join(process.cwd(), "data", "group-chat-messages.json");
 const READ_FILE = path.join(process.cwd(), "data", "group-chat-read-state.json");
@@ -97,10 +98,33 @@ export async function addGroupChatMessage(input: {
   attachmentUrl?: string;
   attachmentType?: string;
   attachmentName?: string;
+  replyToMessageId?: string;
+  replyExcerpt?: string;
 }) {
   const content = validateChatContent(input.content, Boolean(input.attachmentUrl));
 
   const all = await readMessages();
+  let reply: GroupChatMessage["reply"];
+  const replyToMessageId = String(input.replyToMessageId ?? "").trim();
+  if (replyToMessageId) {
+    const target = all.find(
+      (entry) => entry.id === replyToMessageId && entry.groupId === input.groupId,
+    );
+    if (!target) {
+      throw new Error("The message you are replying to was not found.");
+    }
+    reply = buildChatMessageReply({
+      messageId: target.id,
+      senderId: target.senderId,
+      senderName: target.senderName,
+      content: target.content,
+      deletedAt: target.deletedAt ?? null,
+      attachmentName: target.attachmentName ?? null,
+      attachmentUrl: target.attachmentUrl ?? null,
+      excerptOverride: input.replyExcerpt,
+    });
+  }
+
   const message: GroupChatMessage = {
     id: `group-msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     groupId: input.groupId,
@@ -112,6 +136,7 @@ export async function addGroupChatMessage(input: {
     attachmentUrl: input.attachmentUrl,
     attachmentType: input.attachmentType,
     attachmentName: input.attachmentName,
+    ...(reply ? { reply } : {}),
     createdAt: new Date().toISOString(),
   };
 

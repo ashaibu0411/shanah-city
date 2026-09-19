@@ -4,19 +4,28 @@ import { useRef, useState } from "react";
 import type { ChatMessageReaction } from "@/lib/chat-utils";
 import { formatDeletedMessageContent, getChatAttachmentApiUrl } from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
+import { ChatMessageReplyQuote } from "@/components/chat/ChatMessageReplyQuote";
 import { ChatReactionEmojiPicker } from "@/components/chat/ChatReactionEmojiPicker";
 import { MessageReactions } from "@/components/chat/MessageReactions";
+import { buildChatMessageReply } from "@/lib/chat-reply-utils";
+import type { ChatMessageReply } from "@/lib/chat-reply-types";
 import { senderAccentColor } from "@/lib/chat-ui-utils";
 
 type ChatMessageBubbleProps = {
+  messageId: string;
+  messageSenderId: string;
+  messageSenderName: string;
   mine: boolean;
   senderName?: string;
   content: string;
   createdAtLabel: string;
   reactions?: ChatMessageReaction[];
+  reply?: ChatMessageReply;
   currentUserId: string;
   onToggleReaction: (emoji: string) => void;
+  onStartReply?: (reply: ChatMessageReply) => void;
   attachmentUrl?: string;
+  attachmentName?: string;
   editedAt?: string;
   deletedAt?: string;
   readAt?: string;
@@ -38,14 +47,20 @@ type ChatMessageBubbleProps = {
 };
 
 export function ChatMessageBubble({
+  messageId,
+  messageSenderId,
+  messageSenderName,
   mine,
   senderName,
   content,
   createdAtLabel,
   reactions,
+  reply,
   currentUserId,
   onToggleReaction,
+  onStartReply,
   attachmentUrl,
+  attachmentName,
   editedAt,
   deletedAt,
   readAt,
@@ -72,6 +87,8 @@ export function ChatMessageBubble({
   const [actionBusy, setActionBusy] = useState(false);
   const longPressTimerRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [selectionExcerpt, setSelectionExcerpt] = useState<string | null>(null);
 
   const displayContent = formatDeletedMessageContent(content, deletedAt);
   const imageSrc = getChatAttachmentApiUrl(attachmentUrl);
@@ -99,7 +116,43 @@ export function ChatMessageBubble({
 
   function openReactionPicker() {
     if (deletedAt || editing) return;
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) return;
     setReactionPickerOpen(true);
+  }
+
+  function beginReply(excerptOverride?: string) {
+    if (!onStartReply || deletedAt) return;
+    setShowActions(false);
+    setSelectionExcerpt(null);
+    window.getSelection()?.removeAllRanges();
+    onStartReply(
+      buildChatMessageReply({
+        messageId,
+        senderId: messageSenderId,
+        senderName: messageSenderName,
+        content,
+        deletedAt,
+        attachmentName,
+        attachmentUrl,
+        excerptOverride,
+      }),
+    );
+  }
+
+  function captureSelectionExcerpt() {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || !contentRef.current) {
+      setSelectionExcerpt(null);
+      return;
+    }
+    const range = selection.getRangeAt(0);
+    if (!contentRef.current.contains(range.commonAncestorContainer)) {
+      setSelectionExcerpt(null);
+      return;
+    }
+    const text = selection.toString().replace(/\s+/g, " ").trim();
+    setSelectionExcerpt(text.length >= 2 ? text : null);
   }
 
   function openActionsMenu() {
@@ -189,6 +242,15 @@ export function ChatMessageBubble({
           Block
         </button>
       )}
+      {!deletedAt && onStartReply ? (
+        <button
+          type="button"
+          className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50 dark:text-sand-100 dark:hover:bg-white/5"
+          onClick={() => beginReply()}
+        >
+          Reply
+        </button>
+      ) : null}
       {!deletedAt ? (
         <button
           type="button"
@@ -206,7 +268,8 @@ export function ChatMessageBubble({
 
   return (
     <div
-      className={`flex w-full min-w-0 ${mine ? "justify-end" : "justify-start"} ${compact || whatsapp ? "px-3" : ""}`}
+      id={`chat-msg-${messageId}`}
+      className={`flex w-full min-w-0 scroll-mt-24 ${mine ? "justify-end" : "justify-start"} ${compact || whatsapp ? "px-3" : ""}`}
     >
       <div
         className={`min-w-0 ${compact || whatsapp ? "max-w-[82%]" : "max-w-[85%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}
@@ -267,10 +330,16 @@ export function ChatMessageBubble({
             }
             if (deletedAt || editing) return;
             if ((event.target as HTMLElement).closest("a, button, textarea, input")) return;
+            const selection = window.getSelection();
+            if (selection && !selection.isCollapsed) return;
             openReactionPicker();
           }}
+          onMouseUp={captureSelectionExcerpt}
           onTouchStart={startLongPress}
-          onTouchEnd={clearLongPressTimer}
+          onTouchEnd={(event) => {
+            clearLongPressTimer();
+            captureSelectionExcerpt();
+          }}
           onTouchMove={clearLongPressTimer}
         >
           {!mine && senderName && !compact && !whatsapp && (
@@ -307,7 +376,10 @@ export function ChatMessageBubble({
               </div>
             </div>
           ) : (
-            <>
+            <div ref={contentRef}>
+              {reply ? (
+                <ChatMessageReplyQuote reply={reply} mine={mine} compact={compact || whatsapp} />
+              ) : null}
               {imageSrc && !deletedAt && (
                 <a href={imageSrc} target="_blank" rel="noreferrer" className="mb-2 block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -333,7 +405,7 @@ export function ChatMessageBubble({
                   }
                 />
               ) : null}
-            </>
+            </div>
           )}
 
           <div
@@ -361,6 +433,21 @@ export function ChatMessageBubble({
           </div>
 
           {compact && actionsMenu}
+
+          {selectionExcerpt && onStartReply && !deletedAt ? (
+            <div className={`absolute z-10 ${mine ? "right-0 top-0 -translate-y-full pb-1" : "left-0 top-0 -translate-y-full pb-1"}`}>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  beginReply(selectionExcerpt);
+                }}
+                className="rounded-full bg-night-900 px-3 py-1 text-[11px] font-semibold text-white shadow-md dark:bg-[var(--color-surface)] dark:ring-1 dark:ring-white/15"
+              >
+                Quote selection
+              </button>
+            </div>
+          ) : null}
         </div>
         </div>
 

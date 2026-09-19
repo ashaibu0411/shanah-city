@@ -170,6 +170,7 @@ export type DirectMessage = {
   deletedAt?: string;
   createdAt: string;
   readAt?: string;
+  reply?: import("@/lib/chat-reply-types").ChatMessageReply;
 };
 
 export type MemberDirectoryEntry = {

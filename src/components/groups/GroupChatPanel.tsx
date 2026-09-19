@@ -6,6 +6,7 @@ import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
 import { groupsPremium } from "@/components/groups/groups-premium";
 import type { UserBlock } from "@/lib/block-types";
 import type { GroupCategory, GroupChatMessage } from "@/lib/group-types";
+import type { ChatReplyDraft } from "@/lib/chat-reply-types";
 import type { ChatTypingUser } from "@/lib/chat-utils";
 import {
   chatDateSeparatorLabel,
@@ -78,6 +79,7 @@ export function GroupChatPanel({
   const [reportTarget, setReportTarget] = useState<GroupChatMessage | null>(null);
   const [reportReason, setReportReason] = useState("");
   const [showMenu, setShowMenu] = useState(false);
+  const [replyDraft, setReplyDraft] = useState<ChatReplyDraft | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const artworkUrl = getGroupArtwork(
     {
@@ -189,6 +191,8 @@ export function GroupChatPanel({
         attachmentUrl: attachment?.attachmentUrl,
         attachmentType: attachment?.attachmentType,
         attachmentName: attachment?.attachmentName,
+        replyToMessageId: replyDraft?.messageId,
+        replyExcerpt: replyDraft?.excerpt,
       }),
     });
     const data = await response.json();
@@ -200,6 +204,7 @@ export function GroupChatPanel({
     }
 
     setDraft("");
+    setReplyDraft(null);
     setMessages((current) => [...current, data.message]);
     notifyNotificationsChanged();
   }
@@ -446,15 +451,21 @@ export function GroupChatPanel({
                 ) : null}
                 <div className={group.isFirst ? "pt-1" : "pt-0.5"}>
                   <ChatMessageBubble
+                    messageId={message.id}
+                    messageSenderId={message.senderId}
+                    messageSenderName={message.senderName}
                     mine={mine}
                     senderName={!mine && group.isFirst ? message.senderName : undefined}
                     senderAccent={senderAccentColor(message.senderName)}
                     content={message.content}
                     createdAtLabel={formatBubbleTime(message.createdAt)}
                     reactions={message.reactions}
+                    reply={message.reply}
                     currentUserId={userId}
                     onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                    onStartReply={setReplyDraft}
                     attachmentUrl={message.attachmentUrl}
+                    attachmentName={message.attachmentName}
                     editedAt={message.editedAt}
                     deletedAt={message.deletedAt}
                     seenCount={message.seenCount}
@@ -485,11 +496,13 @@ export function GroupChatPanel({
           onChange={setDraft}
           onSend={sendMessage}
           busy={busy}
-          placeholder="Message"
+          placeholder={replyDraft ? "Write a reply…" : "Message"}
           onTyping={sendTyping}
           onPickAttachment={uploadAttachment}
           attachmentBusy={attachmentBusy}
           density="compact"
+          replyDraft={replyDraft}
+          onClearReply={() => setReplyDraft(null)}
         />
       </div>
     </div>

@@ -88,6 +88,10 @@ model Message {
   attachmentName String?
   editedAt       DateTime?
   deletedAt      DateTime?
+  replyToMessageId   String?
+  replyToSenderId    String?
+  replyToSenderName  String?
+  replyToExcerpt     String?
   createdAt      DateTime
   readAt         DateTime?
 }
@@ -733,6 +737,10 @@ model GroupChatMessage {
   attachmentName String?
   editedAt       DateTime?
   deletedAt      DateTime?
+  replyToMessageId   String?
+  replyToSenderId    String?
+  replyToSenderName  String?
+  replyToExcerpt     String?
   createdAt      DateTime
 
   @@index([groupId, createdAt])

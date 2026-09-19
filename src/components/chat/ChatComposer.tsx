@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
+import { ChatReplyComposerBanner } from "@/components/chat/ChatReplyComposerBanner";
 import { insertAtCursor, QUICK_CHAT_EMOJIS } from "@/lib/chat-utils";
+import type { ChatReplyDraft } from "@/lib/chat-reply-types";
 
 type PendingAttachment = {
   attachmentUrl: string;
@@ -24,6 +26,8 @@ type ChatComposerProps = {
   onTyping?: (isTyping: boolean) => void;
   onPickAttachment?: (file: File) => Promise<PendingAttachment | null>;
   attachmentBusy?: boolean;
+  replyDraft?: ChatReplyDraft | null;
+  onClearReply?: () => void;
 };
 
 export function ChatComposer({
@@ -39,6 +43,8 @@ export function ChatComposer({
   onTyping,
   onPickAttachment,
   attachmentBusy = false,
+  replyDraft,
+  onClearReply,
 }: ChatComposerProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
@@ -106,6 +112,9 @@ export function ChatComposer({
   if (whatsapp) {
     return (
       <div className="messages-hub-composer px-2 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+        {replyDraft && onClearReply ? (
+          <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
+        ) : null}
         {pendingAttachment && (
           <div className="mb-2 flex items-center gap-2 rounded-xl border border-night-900/8 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-[var(--color-surface)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -213,6 +222,9 @@ export function ChatComposer({
   if (compact) {
     return (
       <div className="border-t border-night-900/8 bg-white px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        {replyDraft && onClearReply ? (
+          <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
+        ) : null}
         {pendingAttachment && (
           <div className="mb-2 flex items-center gap-2 rounded-2xl bg-sand-50 p-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -317,6 +329,9 @@ export function ChatComposer({
 
   return (
     <div>
+      {replyDraft && onClearReply ? (
+        <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
+      ) : null}
       {pendingAttachment && (
         <div className="mb-2 flex items-center gap-3 rounded-xl border border-night-900/10 bg-sand-50 p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}

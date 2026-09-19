@@ -1620,6 +1620,21 @@
     border: 1px solid var(--color-border);
   }
 
+  .chat-msg-highlight {
+    animation: chat-msg-highlight-pulse 1.8s ease-out;
+  }
+
+  @keyframes chat-msg-highlight-pulse {
+    0%,
+    20% {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 40%, transparent);
+      border-radius: 1rem;
+    }
+    100% {
+      box-shadow: none;
+    }
+  }
+
   .messages-hub-accent-btn {
     background: var(--color-accent);
     color: #fffdfb;

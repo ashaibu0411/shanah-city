@@ -8,6 +8,7 @@ import { useAppShell } from "@/components/app/AppShellContext";
 import { getCampus } from "@/lib/site";
 import type { UserBlock, MessageReport } from "@/lib/block-types";
 import type { DirectMessage, MemberDirectoryEntry } from "@/lib/member-types";
+import type { ChatReplyDraft } from "@/lib/chat-reply-types";
 import { Button } from "@/components/ui";
 import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComposer";
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
@@ -182,6 +183,7 @@ export function MessagesHub() {
   const [typingUsers, setTypingUsers] = useState<ChatTypingUser[]>([]);
   const [status, setStatus] = useState("");
   const [showChatMenu, setShowChatMenu] = useState(false);
+  const [replyDraft, setReplyDraft] = useState<ChatReplyDraft | null>(null);
   const [unreadByThread, setUnreadByThread] = useState<Record<string, number>>({});
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const activeThreadIdRef = useRef<string | null>(null);
@@ -271,6 +273,7 @@ export function MessagesHub() {
   }, []);
 
   async function loadThread(threadId: string, options?: { replace?: boolean }) {
+    setReplyDraft(null);
     setActiveThreadId(threadId);
     setShowNew(false);
     setShowReport(false);
@@ -545,6 +548,8 @@ export function MessagesHub() {
         attachmentUrl: attachment?.attachmentUrl,
         attachmentType: attachment?.attachmentType,
         attachmentName: attachment?.attachmentName,
+        replyToMessageId: replyDraft?.messageId,
+        replyExcerpt: replyDraft?.excerpt,
       }),
     });
     const data = await response.json();
@@ -556,6 +561,7 @@ export function MessagesHub() {
     }
 
     setDraft("");
+    setReplyDraft(null);
     setShowNew(false);
     clearRecipients();
     await loadInbox();
@@ -1125,13 +1131,19 @@ export function MessagesHub() {
                       ) : null}
                       <div className={group.isFirst ? "pt-1" : "pt-0.5"}>
                         <ChatMessageBubble
+                          messageId={message.id}
+                          messageSenderId={message.senderId}
+                          messageSenderName={message.senderName}
                           mine={mine}
                           content={message.content}
                           createdAtLabel={formatBubbleTime(message.createdAt)}
                           reactions={message.reactions}
+                          reply={message.reply}
                           currentUserId={user.id}
                           onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                          onStartReply={setReplyDraft}
                           attachmentUrl={message.attachmentUrl}
+                          attachmentName={message.attachmentName}
                           editedAt={message.editedAt}
                           deletedAt={message.deletedAt}
                           readAt={message.readAt}
@@ -1159,13 +1171,17 @@ export function MessagesHub() {
               }
               busy={busy}
               disabled={isActiveBlocked}
-              placeholder={isActiveBlocked ? "Unblock to message…" : "Message"}
+              placeholder={
+                isActiveBlocked ? "Unblock to message…" : replyDraft ? "Write a reply…" : "Message"
+              }
               onTyping={sendTyping}
               onPickAttachment={(file) =>
                 uploadAttachment(file, { threadId: activeThreadId ?? undefined })
               }
               attachmentBusy={attachmentBusy}
               density="whatsapp"
+              replyDraft={replyDraft}
+              onClearReply={() => setReplyDraft(null)}
             />
           </>
         ) : (
