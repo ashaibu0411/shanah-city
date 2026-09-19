@@ -216,7 +216,7 @@ export function LiveStreamCountdown({
 
   if (variant === "stage") {
     return (
-      <div className="flex h-full min-h-[10.5rem] w-full flex-col items-center justify-center bg-night-950 px-3 py-5 text-center text-white sm:min-h-[12rem] sm:px-4 sm:py-6">
+      <div className="relative z-10 flex h-full min-h-[10.5rem] w-full flex-col items-center justify-center px-3 py-5 text-center text-white sm:min-h-[12rem] sm:px-4 sm:py-6">
         <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-200/90">
           Livestream starts in
         </p>

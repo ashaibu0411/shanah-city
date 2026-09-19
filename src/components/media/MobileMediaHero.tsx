@@ -1,5 +1,6 @@
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
+import { homeMediaPageHeroImage } from "@/lib/home-explore-tile-images";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { MediaTab } from "@/lib/types";
 
@@ -19,7 +20,10 @@ export function MobileMediaHero({
   hideTitle = false,
 }: MobileMediaHeroProps) {
   const isLive = tab === "live";
-  const heroSrc = isLive ? churchImages.mediaLive : churchImages.mediaShorts;
+  const heroSrc = isLive ? homeMediaPageHeroImage : churchImages.mediaShorts;
+  const heroObjectClass = isLive
+    ? "object-cover object-[center_22%]"
+    : "object-cover object-center";
 
   return (
     <MobilePremiumFrame
@@ -33,7 +37,7 @@ export function MobileMediaHero({
             alt={isLive ? "Watch live" : "Shorts and highlights"}
             priority
             sizes="(max-width: 512px) 100vw, 480px"
-            className="mobile-premium-4k__media mobile-media object-cover"
+            className={`mobile-premium-4k__media mobile-media ${heroObjectClass}`}
           />
         </div>
         <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-night-950/88 via-night-950/40 to-teal-900/10" />
