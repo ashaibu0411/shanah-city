@@ -7,8 +7,8 @@ export const homeExploreTileImages = {
   connect: "/home/home-gallery-08.jpg",
   /** Multicultural lineup at a shared moment — fellowship at scale. */
   community: "/home/home-gallery-75.jpg",
-  /** On-stage moment with mic — services, guests, and RSVP-worthy events. */
-  calendar: "/home/home-gallery-71.jpg",
+  /** Transformed Woman event — community gatherings on the calendar. */
+  calendar: "/home/home-gallery-93.jpg",
 } as const;
 
 /** Home + Media “Watch Live” top banner (same photo everywhere). */
@@ -25,7 +25,7 @@ export function homeExploreTileImageClass(id: HomeExploreTileId): string {
     return "mobile-premium-4k__media--give-tile object-contain object-bottom";
   }
   if (id === "calendar") {
-    return "object-cover object-[center_42%]";
+    return "object-cover object-[center_34%]";
   }
   return "object-cover object-center";
 }
