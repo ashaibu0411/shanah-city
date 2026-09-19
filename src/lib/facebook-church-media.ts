@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { site } from "@/lib/site";
-import { homeExploreTileImages } from "@/lib/home-explore-tile-images";
+import { homeExploreTileImages, type HomeExploreTileId } from "@/lib/home-explore-tile-images";
 
 export type ChurchSocialImages = {
   live: string;
@@ -75,7 +75,14 @@ async function loadChurchSocialImages(): Promise<ChurchSocialImages> {
 
 export const getChurchSocialImages = unstable_cache(
   loadChurchSocialImages,
-  ["church-social-images-v3", FACEBOOK_PAGES.city],
+  [
+    "church-social-images-v4",
+    FACEBOOK_PAGES.city,
+    homeExploreTileImages.give,
+    homeExploreTileImages.connect,
+    homeExploreTileImages.community,
+    homeExploreTileImages.calendar,
+  ],
   { revalidate: 1800 },
 );
 
@@ -83,7 +90,10 @@ export function churchSocialImageForAction(
   images: ChurchSocialImages,
   action: "give" | "connect" | "community" | "devotions" | "calendar",
 ) {
-  return images[action === "calendar" ? "calendar" : action];
+  if (action in homeExploreTileImages) {
+    return homeExploreTileImages[action as HomeExploreTileId];
+  }
+  return images[action];
 }
 
 export const churchFacebookPages = site.social.facebook;
