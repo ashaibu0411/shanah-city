@@ -1,8 +1,8 @@
 /** Explore grid tiles — real church photos from the home hero gallery. */
 
 export const homeExploreTileImages = {
-  /** Hands raised in worship — generosity and devotion. */
-  give: "/home/home-gallery-50.jpg",
+  /** Congregation worship with open hands — giving heart and support. */
+  give: "/home/home-gallery-20.jpg",
   /** Diverse friends together — welcoming, plan-a-visit energy. */
   connect: "/home/home-gallery-08.jpg",
   /** Multicultural lineup at a shared moment — fellowship at scale. */
