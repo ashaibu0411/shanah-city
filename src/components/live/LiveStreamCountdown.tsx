@@ -64,6 +64,7 @@ function CountdownUnit({
   large = false,
   xlarge = false,
   hero = false,
+  stage = false,
 }: {
   value: number;
   label: string;
@@ -71,6 +72,7 @@ function CountdownUnit({
   large?: boolean;
   xlarge?: boolean;
   hero?: boolean;
+  stage?: boolean;
 }) {
   const sizeClass = hero
     ? "min-w-0 flex-1 basis-0 px-1 py-3.5 sm:min-w-[4.75rem] sm:flex-none sm:basis-auto sm:px-3"
@@ -93,9 +95,11 @@ function CountdownUnit({
   return (
     <div
       className={`rounded-2xl text-center ring-1 ${sizeClass} ${
-        onDark
-          ? "bg-white/12 text-white ring-white/20"
-          : "bg-sand-50 text-night-900 ring-night-900/10"
+        stage
+          ? "bg-night-950/95 text-white ring-amber-300/45 shadow-lg shadow-night-950/50"
+          : onDark
+            ? "bg-white/12 text-white ring-white/20"
+            : "bg-sand-50 text-night-900 ring-night-900/10"
       }`}
     >
       <p className={`font-display font-bold tabular-nums leading-none ${numberClass}`}>
@@ -217,16 +221,18 @@ export function LiveStreamCountdown({
   if (variant === "stage") {
     return (
       <div className="relative z-10 flex h-full min-h-[10.5rem] w-full flex-col items-center justify-center px-3 py-5 text-center text-white sm:min-h-[12rem] sm:px-4 sm:py-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-200/90">
+        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-100 drop-shadow-sm">
           Livestream starts in
         </p>
-        <div className="mt-4 flex flex-wrap justify-center gap-2 sm:mt-5 sm:gap-2.5">
-          {parts.days > 0 ? (
-            <CountdownUnit onDark large value={parts.days} label="Days" />
-          ) : null}
-          <CountdownUnit onDark large value={parts.hours} label="Hours" />
-          <CountdownUnit onDark large value={parts.minutes} label="Min" />
-          <CountdownUnit onDark large value={parts.seconds} label="Sec" />
+        <div className="mt-4 w-full max-w-md rounded-2xl bg-night-950/55 px-2 py-3 ring-1 ring-white/15 backdrop-blur-sm sm:mt-5 sm:px-3 sm:py-4">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
+            {parts.days > 0 ? (
+              <CountdownUnit stage onDark large value={parts.days} label="Days" />
+            ) : null}
+            <CountdownUnit stage onDark large value={parts.hours} label="Hours" />
+            <CountdownUnit stage onDark large value={parts.minutes} label="Min" />
+            <CountdownUnit stage onDark large value={parts.seconds} label="Sec" />
+          </div>
         </div>
       </div>
     );

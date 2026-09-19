@@ -8,8 +8,6 @@ import { LiveStreamPlayer } from "@/components/live/LiveStreamPlayer";
 import { useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSchedule";
 import { formatLiveStreamStartLabel, liveStreamPlatformLabel } from "@/lib/live-schedule-utils";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
-import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
-import { homeMediaCountdownBackdropImage } from "@/lib/home-explore-tile-images";
 import { liveStream, site } from "@/lib/site";
 import { getStreamPreviewForPlatform, streamPreviews } from "@/lib/streams";
 import type { StreamPreview } from "@/lib/types";
@@ -82,22 +80,13 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
       <div className="overflow-hidden rounded-2xl bg-night-950 shadow-app-lg ring-1 ring-night-900/10">
         <div className={stageFrameClass}>
           {showStageCountdown ? (
-            <>
-              <div className="absolute inset-0">
-                <ChurchFlyerImage
-                  src={homeMediaCountdownBackdropImage}
-                  alt=""
-                  sizes="(max-width: 512px) 100vw, 480px"
-                  className="mobile-media h-full w-full object-cover object-[center_35%]"
-                />
-              </div>
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/88 via-night-950/55 to-night-950/35" />
+            <div className="media-live-countdown-stage relative min-h-[10.5rem] sm:min-h-[12rem]">
               <LiveStreamCountdown
                 schedule={schedule!}
                 variant="stage"
                 onComplete={refresh}
               />
-            </>
+            </div>
           ) : (
             <LiveStreamPlayer preview={stagePreview} compact />
           )}

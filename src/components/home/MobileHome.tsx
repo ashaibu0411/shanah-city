@@ -13,6 +13,7 @@ import { getYouTubeThumbnail } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { churchSocialImageForAction } from "@/lib/facebook-church-media";
+import { homeLiveSpotlightMediaClass } from "@/lib/home-explore-tile-images";
 import { MobilePremiumExploreGrid } from "@/components/app/MobilePremiumTile";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import { HomeStoriesSection } from "@/components/home/HomeStoriesSection";
@@ -209,7 +210,7 @@ export function MobileHome({
                 alt="Watch live"
                 priority
                 sizes="(max-width: 512px) 100vw, 480px"
-                className="mobile-premium-4k__media mobile-media object-cover transition duration-700 group-hover:scale-[1.04]"
+                className={`mobile-premium-4k__media mobile-media transition duration-700 group-hover:scale-[1.04] ${homeLiveSpotlightMediaClass}`}
               />
             )}
           </div>

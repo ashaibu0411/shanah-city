@@ -1,6 +1,6 @@
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
-import { homeMediaPageHeroImage } from "@/lib/home-explore-tile-images";
+import { homeLiveSpotlightImage, homeLiveSpotlightMediaClass } from "@/lib/home-explore-tile-images";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { MediaTab } from "@/lib/types";
 
@@ -20,10 +20,8 @@ export function MobileMediaHero({
   hideTitle = false,
 }: MobileMediaHeroProps) {
   const isLive = tab === "live";
-  const heroSrc = isLive ? homeMediaPageHeroImage : churchImages.mediaShorts;
-  const heroObjectClass = isLive
-    ? "object-cover object-[center_22%]"
-    : "object-cover object-center";
+  const heroSrc = isLive ? homeLiveSpotlightImage : churchImages.mediaShorts;
+  const heroObjectClass = isLive ? homeLiveSpotlightMediaClass : "object-cover object-center";
 
   return (
     <MobilePremiumFrame

@@ -11,14 +11,11 @@ export const homeExploreTileImages = {
   calendar: "/home/home-gallery-15.jpg",
 } as const;
 
-/** Home “Watch Live” hero — stage, speaker, and congregation depth. */
+/** Home + Media “Watch Live” top banner (same photo everywhere). */
 export const homeLiveSpotlightImage = "/home/home-gallery-88.jpg";
 
-/** Media tab top banner — wider stage shot keeps faces in frame. */
-export const homeMediaPageHeroImage = "/home/home-gallery-15.jpg";
-
-/** Media live countdown stage — worship on stage behind the timer. */
-export const homeMediaCountdownBackdropImage = "/home/home-gallery-56.jpg";
+export const homeLiveSpotlightMediaClass =
+  "object-cover object-[center_28%]";
 
 export type HomeExploreTileId = keyof typeof homeExploreTileImages;
 

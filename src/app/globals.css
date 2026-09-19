@@ -1248,6 +1248,23 @@
     backface-visibility: hidden;
   }
 
+  .media-live-countdown-stage {
+    background-color: #1f1810;
+    background-image:
+      radial-gradient(circle at 12% 0%, rgba(212, 168, 83, 0.45), transparent 42%),
+      radial-gradient(circle at 88% 100%, rgba(196, 93, 62, 0.38), transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(88, 81, 219, 0.22), transparent 55%),
+      linear-gradient(145deg, #2a5fad 0%, #4338ca 42%, #312e81 78%, #1f1810 100%);
+  }
+
+  html.dark .media-live-countdown-stage {
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(circle at 12% 0%, rgba(212, 168, 83, 0.35), transparent 42%),
+      radial-gradient(circle at 88% 100%, rgba(212, 118, 90, 0.28), transparent 40%),
+      linear-gradient(145deg, #2563eb 0%, #4338ca 45%, #1f1810 100%);
+  }
+
   body[data-shell="mobile"] .mobile-home-live-flyer {
     transform: translateZ(0);
     backface-visibility: hidden;
