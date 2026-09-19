@@ -5,6 +5,7 @@ import {
   mobilePremiumExploreActions,
   type MobilePremiumActionId,
 } from "@/components/app/mobile-premium";
+import { homeExploreTileImageClass } from "@/lib/home-explore-tile-images";
 
 function PremiumActionIcon({ name }: { name: MobilePremiumActionId }) {
   const shared = {
@@ -88,7 +89,7 @@ export function MobilePremiumTile({
           alt=""
           priority={priority}
           sizes={compact ? "120px" : "(max-width: 512px) 50vw, 240px"}
-          className="mobile-premium-4k__media mobile-media object-cover"
+          className={`mobile-premium-4k__media mobile-media ${homeExploreTileImageClass(action)}`}
         />
       </div>
 

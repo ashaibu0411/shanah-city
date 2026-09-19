@@ -1,8 +1,8 @@
 /** Explore grid tiles — real church photos from the home hero gallery. */
 
 export const homeExploreTileImages = {
-  /** Congregation worship with open hands — giving heart and support. */
-  give: "/home/home-gallery-20.jpg",
+  /** Offering usher with basket — literal give / support ministry. */
+  give: "/home/home-gallery-38.jpg",
   /** Diverse friends together — welcoming, plan-a-visit energy. */
   connect: "/home/home-gallery-08.jpg",
   /** Multicultural lineup at a shared moment — fellowship at scale. */
@@ -21,3 +21,11 @@ export const homeMediaPageHeroImage = "/home/home-gallery-15.jpg";
 export const homeMediaCountdownBackdropImage = "/home/home-gallery-56.jpg";
 
 export type HomeExploreTileId = keyof typeof homeExploreTileImages;
+
+/** Per-tile crop/zoom so key details stay in frame on small Explore cards. */
+export function homeExploreTileImageClass(id: HomeExploreTileId): string {
+  if (id === "give") {
+    return "object-cover object-[50%_72%] scale-[0.84] origin-center";
+  }
+  return "object-cover object-center";
+}
