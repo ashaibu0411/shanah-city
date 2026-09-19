@@ -125,7 +125,7 @@ export function validateChatContent(content: string, hasAttachment: boolean) {
 
 export function messageIsUnsent(deletedAt?: string, content?: string) {
   if (deletedAt) return true;
-  const normalized = content
+  const normalized = (content ?? "")
     .trim()
     .replace(/^\*+|\*+$/g, "")
     .trim()
