@@ -339,8 +339,8 @@ export function ChatMessageBubble({
                 }`
               : compact
               ? mine
-                ? "rounded-[22px] rounded-br-md bg-[#3797F0] px-3.5 py-2 text-white shadow-sm"
-                : "rounded-[22px] rounded-bl-md bg-[#efefef] px-3.5 py-2 text-[#262626] dark:bg-[var(--color-bg-muted)] dark:text-sand-100 dark:ring-1 dark:ring-white/10"
+                ? chatPremium.bubbleOut
+                : chatPremium.bubbleIn
               : mine
                 ? "rounded-2xl bg-night-900 px-4 py-3 text-sand-50"
                 : "rounded-2xl bg-sand-100 px-4 py-3 text-night-800"
