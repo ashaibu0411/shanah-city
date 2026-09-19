@@ -77,13 +77,7 @@ export function MobilePremiumTile({
       aria-label={meta.label}
       className={`mobile-premium-4k group relative block overflow-hidden transition active:scale-[0.985] ${
         action === "give" ? "mobile-premium-4k--give" : ""
-      } ${
-        compact
-          ? "mobile-premium-4k-compact"
-          : action === "give"
-            ? "mobile-premium-4k-flyer mobile-premium-4k-flyer--give"
-            : "mobile-premium-4k-flyer"
-      }`}
+      } ${compact ? "mobile-premium-4k-compact" : "mobile-premium-4k-flyer"}`}
     >
       <div className="mobile-premium-4k__bezel pointer-events-none absolute inset-0 z-30" aria-hidden />
       <div className="mobile-premium-4k__shine pointer-events-none absolute inset-0 z-20" aria-hidden />

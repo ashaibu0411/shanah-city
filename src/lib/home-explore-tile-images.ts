@@ -22,7 +22,7 @@ export type HomeExploreTileId = keyof typeof homeExploreTileImages;
 /** Per-tile crop/zoom so key details stay in frame on small Explore cards. */
 export function homeExploreTileImageClass(id: HomeExploreTileId): string {
   if (id === "give") {
-    return "mobile-premium-4k__media--give-tile object-cover object-bottom";
+    return "mobile-premium-4k__media--give-tile object-contain object-bottom";
   }
   return "object-cover object-center";
 }

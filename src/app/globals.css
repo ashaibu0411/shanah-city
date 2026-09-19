@@ -848,11 +848,6 @@
     aspect-ratio: 4 / 3.45;
   }
 
-  /* Portrait offering photo — extra height so hands + basket stay above the label bar. */
-  body[data-shell="mobile"] .mobile-premium-4k-flyer--give {
-    aspect-ratio: 4 / 5.4;
-  }
-
   body[data-shell="mobile"] .mobile-premium-4k-compact {
     aspect-ratio: 5 / 2.75;
     border-radius: 1.15rem;
@@ -879,8 +874,8 @@
   }
 
   body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__media--give-tile {
-    object-fit: cover;
-    object-position: 50% 100%;
+    object-fit: contain;
+    object-position: center bottom;
   }
 
   body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__glass-bar {
