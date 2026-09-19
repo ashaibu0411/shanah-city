@@ -258,7 +258,7 @@ export async function toggleGroupChatReaction(input: {
 }
 
 function previewGroupMessage(message: GroupChatMessage) {
-  if (message.deletedAt) return "Message deleted";
+  if (message.deletedAt) return "Message unsent";
   if (message.attachmentUrl && !message.content.trim()) return "Photo";
   return message.content.slice(0, 120);
 }

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { ChatMessageReaction } from "@/lib/chat-utils";
-import { formatDeletedMessageContent, getChatAttachmentApiUrl } from "@/lib/chat-utils";
+import { formatDeletedMessageContent, getChatAttachmentApiUrl, deletedMessageNotice } from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
 import { ChatMessageReplyQuote } from "@/components/chat/ChatMessageReplyQuote";
 import { ChatReactionEmojiPicker } from "@/components/chat/ChatReactionEmojiPicker";
@@ -10,6 +10,7 @@ import { MessageReactions } from "@/components/chat/MessageReactions";
 import { buildChatMessageReply } from "@/lib/chat-reply-utils";
 import type { ChatMessageReply } from "@/lib/chat-reply-types";
 import { senderAccentColor } from "@/lib/chat-ui-utils";
+import { chatPremium } from "@/components/chat/chat-premium";
 
 type ChatMessageBubbleProps = {
   messageId: string;
@@ -44,6 +45,8 @@ type ChatMessageBubbleProps = {
   onDelete?: () => Promise<void> | void;
   onReport?: () => void;
   onBlock?: () => Promise<void> | void;
+  canMessagePrivately?: boolean;
+  onMessagePrivately?: () => void;
 };
 
 export function ChatMessageBubble({
@@ -79,6 +82,8 @@ export function ChatMessageBubble({
   onDelete,
   onReport,
   onBlock,
+  canMessagePrivately = false,
+  onMessagePrivately,
 }: ChatMessageBubbleProps) {
   const [showActions, setShowActions] = useState(false);
   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
@@ -183,15 +188,11 @@ export function ChatMessageBubble({
   }
 
   const actionsMenu = showActions && (hasActions || !deletedAt) && (
-    <div
-      className={`absolute z-10 mt-1 min-w-[120px] rounded-xl border border-night-900/10 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[var(--color-surface)] ${
-        mine ? "right-0" : "left-0"
-      }`}
-    >
+    <div className={`${chatPremium.contextMenu} ${mine ? "right-0" : "left-0"}`}>
       {canEdit && onEdit && (
         <button
           type="button"
-          className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50 dark:text-sand-100 dark:hover:bg-white/5"
+          className={chatPremium.contextMenuItem}
           onClick={() => {
             setShowActions(false);
             setEditing(true);
@@ -204,7 +205,7 @@ export function ChatMessageBubble({
       {canDelete && onDelete && (
         <button
           type="button"
-          className="block w-full px-3 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50"
+          className={chatPremium.contextMenuItemDanger}
           onClick={async () => {
             setShowActions(false);
             if (!window.confirm("Delete this message?")) return;
@@ -219,7 +220,7 @@ export function ChatMessageBubble({
       {canReport && onReport && (
         <button
           type="button"
-          className="block w-full px-3 py-2 text-left text-xs font-semibold text-red-700 hover:bg-red-50"
+          className={chatPremium.contextMenuItemDanger}
           onClick={() => {
             setShowActions(false);
             onReport();
@@ -231,7 +232,7 @@ export function ChatMessageBubble({
       {canBlock && onBlock && !isBlocked && (
         <button
           type="button"
-          className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50 dark:text-sand-100 dark:hover:bg-white/5"
+          className={chatPremium.contextMenuItem}
           onClick={async () => {
             setShowActions(false);
             setActionBusy(true);
@@ -243,18 +244,26 @@ export function ChatMessageBubble({
         </button>
       )}
       {!deletedAt && onStartReply ? (
+        <button type="button" className={chatPremium.contextMenuItem} onClick={() => beginReply()}>
+          Reply
+        </button>
+      ) : null}
+      {canMessagePrivately && onMessagePrivately ? (
         <button
           type="button"
-          className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50 dark:text-sand-100 dark:hover:bg-white/5"
-          onClick={() => beginReply()}
+          className={chatPremium.contextMenuItem}
+          onClick={() => {
+            setShowActions(false);
+            onMessagePrivately();
+          }}
         >
-          Reply
+          Message privately
         </button>
       ) : null}
       {!deletedAt ? (
         <button
           type="button"
-          className="block w-full px-3 py-2 text-left text-xs font-semibold text-night-700 hover:bg-sand-50 dark:text-sand-100 dark:hover:bg-white/5"
+          className={chatPremium.contextMenuItem}
           onClick={() => {
             setShowActions(false);
             openReactionPicker();
@@ -265,6 +274,28 @@ export function ChatMessageBubble({
       ) : null}
     </div>
   );
+
+  if (deletedAt) {
+    if (mine) {
+      return (
+        <div
+          id={`chat-msg-${messageId}`}
+          className="pointer-events-none h-0 scroll-mt-24 overflow-hidden"
+          aria-hidden
+        />
+      );
+    }
+
+    const notice = deletedMessageNotice({ mine, senderName });
+    return (
+      <div
+        id={`chat-msg-${messageId}`}
+        className={`flex w-full min-w-0 scroll-mt-24 justify-center ${compact || whatsapp ? "px-3" : ""}`}
+      >
+        <p className={chatPremium.deletedNotice}>{notice}</p>
+      </div>
+    );
+  }
 
   return (
     <div

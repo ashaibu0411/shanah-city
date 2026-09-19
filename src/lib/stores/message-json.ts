@@ -52,7 +52,7 @@ function mapMessage(message: DirectMessage): DirectMessage {
 }
 
 function previewForMessage(message: DirectMessage) {
-  if (message.deletedAt) return "Message deleted";
+  if (message.deletedAt) return "Message unsent";
   if (message.reply) return `↩ ${message.content.slice(0, 100) || "Reply"}`;
   if (message.attachmentUrl && !message.content.trim()) return "Photo";
   return message.content.slice(0, 120);
@@ -371,7 +371,7 @@ export async function deleteDirectMessage(input: {
   const latest = [...messages]
     .filter((entry) => entry.threadId === input.threadId && !entry.deletedAt)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-  thread.lastMessage = latest ? previewForMessage(latest) : "Message deleted";
+  thread.lastMessage = latest ? previewForMessage(latest) : "Message unsent";
 
   await writeJson(MESSAGES_FILE, messages);
   await writeJson(THREADS_FILE, threads);

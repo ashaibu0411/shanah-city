@@ -1,4 +1,5 @@
 import { editorialPremium } from "@/components/app/editorial-premium";
+import { chatPremium } from "@/components/chat/chat-premium";
 
 /** Groups UI — Levites-style layout with Shanah editorial typography (home + app-wide). */
 
@@ -40,18 +41,15 @@ export const groupsPremium = {
     "inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-night-950 px-1.5 text-[11px] font-bold text-white",
   unreadBadgeMuted:
     "inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-sand-100 px-1.5 text-[11px] font-bold text-night-400 ring-1 ring-night-900/8",
-  chatPanel:
-    "group-chat-premium fixed inset-0 z-50 flex min-w-0 max-w-full flex-col overflow-x-hidden bg-white font-sans dark:bg-[var(--color-bg)] lg:relative lg:inset-auto lg:z-auto lg:min-h-[min(720px,calc(100dvh-10rem))] lg:overflow-hidden lg:rounded-[1.5rem] lg:border lg:border-night-900/8 lg:shadow-[0_8px_32px_rgba(45,36,24,0.06)] dark:lg:border-white/10",
-  chatHeader:
-    "shrink-0 border-b border-night-900/6 bg-white px-4 pb-3 pt-[max(0.5rem,env(safe-area-inset-top))] dark:border-white/10 dark:bg-[var(--color-bg)]",
-  chatDatePill:
-    "rounded-full bg-black/5 px-3 py-1 text-[11px] font-semibold tracking-tight text-night-600 dark:bg-white/10 dark:text-sand-300",
-  chatStatusBanner:
-    "shrink-0 bg-white px-4 py-2.5 text-center text-xs font-medium tracking-tight text-night-700 ring-1 ring-inset ring-night-900/8",
-  chatComposerWrap:
-    "shrink-0 border-t border-night-900/6 bg-white pb-[max(0.25rem,env(safe-area-inset-bottom))] dark:border-white/10 dark:bg-[var(--color-bg)]",
-  chatMenu:
-    "absolute right-0 top-full z-20 mt-1 min-w-[180px] overflow-hidden rounded-2xl border border-night-900/8 bg-white py-1 text-night-900 shadow-[0_12px_32px_rgba(45,36,24,0.12)]",
-  chatMenuItem:
-    "block w-full px-4 py-2.5 text-left text-sm font-medium tracking-tight text-night-800 hover:bg-sand-50",
+  chatPanel: chatPremium.panel,
+  chatHeader: chatPremium.groupHeader,
+  chatDatePill: chatPremium.datePill,
+  chatStatusBanner: chatPremium.statusBanner,
+  chatComposerWrap: chatPremium.composerBar,
+  chatMenu: chatPremium.overflowMenu,
+  chatMenuItem: chatPremium.overflowMenuItem,
+  chatHeaderTitle: chatPremium.headerTitle,
+  chatHeaderSubtitle: chatPremium.headerSubtitle,
+  chatHeaderIconButton: chatPremium.headerIconButton,
+  chatHeaderAvatarRing: chatPremium.headerAvatarRing,
 } as const;

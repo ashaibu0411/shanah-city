@@ -332,6 +332,16 @@ export function GroupDetailView({
         groupUpdatedAt={detail.updatedAt}
         userId={user.id}
         memberCount={detail.members.length}
+        participants={detail.members.map((member) => ({
+          id: member.id,
+          name: member.name,
+          isLeader: member.isAdmin || member.isAssistantLeader,
+          subtitle: member.isAdmin
+            ? "Leader"
+            : member.isAssistantLeader
+              ? "Assistant leader"
+              : undefined,
+        }))}
         onBack={() => setDetailSection("overview")}
       />
     );

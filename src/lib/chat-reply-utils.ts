@@ -16,7 +16,7 @@ export function replyExcerptFromMessage(input: {
   attachmentUrl?: string | null;
 }) {
   if (input.deletedAt) {
-    return "Original message deleted";
+    return "Message unsent";
   }
   const trimmed = input.content.trim();
   if (trimmed) return normalizeReplyExcerpt(trimmed);

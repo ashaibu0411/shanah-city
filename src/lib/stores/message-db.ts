@@ -87,7 +87,7 @@ function mapMessage(record: {
 }
 
 function previewForMessage(message: DirectMessage) {
-  if (message.deletedAt) return "Message deleted";
+  if (message.deletedAt) return "Message unsent";
   if (message.reply) return `↩ ${message.content.slice(0, 100) || "Reply"}`;
   if (message.attachmentUrl && !message.content.trim()) return "Photo";
   return message.content.slice(0, 120);
@@ -413,7 +413,7 @@ export async function deleteDirectMessage(input: {
 
   await prisma.messageThread.update({
     where: { id: input.threadId },
-    data: { lastMessage: latest ? previewForMessage(mapMessage(latest)) : "Message deleted" },
+    data: { lastMessage: latest ? previewForMessage(mapMessage(latest)) : "Message unsent" },
   });
 
   return mapMessage(updated);

@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComposer";
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
+import { ChatParticipantsSheet } from "@/components/chat/ChatParticipantsSheet";
 import { groupsPremium } from "@/components/groups/groups-premium";
+import type { ChatParticipantEntry } from "@/lib/chat-participants-utils";
+import { privateMessageHref } from "@/lib/chat-participants-utils";
 import type { UserBlock } from "@/lib/block-types";
 import type { GroupCategory, GroupChatMessage } from "@/lib/group-types";
 import type { ChatReplyDraft } from "@/lib/chat-reply-types";
@@ -16,6 +20,7 @@ import {
   shouldShowDateSeparator,
 } from "@/lib/chat-ui-utils";
 import { getGroupArtwork } from "@/lib/group-artwork";
+import { chatPremium } from "@/components/chat/chat-premium";
 import { notifyNotificationsChanged } from "@/lib/use-notifications";
 
 function typingLabel(users: ChatTypingUser[]) {
@@ -55,6 +60,7 @@ type GroupChatPanelProps = {
   groupUpdatedAt?: string;
   userId: string;
   memberCount: number;
+  participants: ChatParticipantEntry[];
   onBack?: () => void;
 };
 
@@ -66,8 +72,10 @@ export function GroupChatPanel({
   groupUpdatedAt,
   userId,
   memberCount,
+  participants,
   onBack,
 }: GroupChatPanelProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState<GroupChatMessage[]>([]);
   const [typingUsers, setTypingUsers] = useState<ChatTypingUser[]>([]);
   const [blocks, setBlocks] = useState<UserBlock[]>([]);
@@ -79,6 +87,7 @@ export function GroupChatPanel({
   const [reportTarget, setReportTarget] = useState<GroupChatMessage | null>(null);
   const [reportReason, setReportReason] = useState("");
   const [showMenu, setShowMenu] = useState(false);
+  const [showParticipants, setShowParticipants] = useState(false);
   const [replyDraft, setReplyDraft] = useState<ChatReplyDraft | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const artworkUrl = getGroupArtwork(
@@ -337,33 +346,49 @@ export function GroupChatPanel({
             <button
               type="button"
               onClick={onBack}
-              className={`${groupsPremium.headerIconButton} absolute left-0`}
+              className={`${groupsPremium.chatHeaderIconButton} absolute left-0`}
               aria-label="Back to group dashboard"
             >
               <BackIcon />
             </button>
           ) : null}
-          <div className="flex max-w-[68%] min-w-0 items-center gap-2.5">
-            <span className={`${groupsPremium.iconTile} h-9 w-9 rounded-xl`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={artworkUrl} alt="" className={groupsPremium.iconTileImage} />
-            </span>
-            <div className="min-w-0 text-left">
-              <h1 className={`${groupsPremium.headerTitle} text-left`}>{groupName}</h1>
-              <p className={`${groupsPremium.cardMeta} truncate text-xs`}>{subtitle}</p>
-            </div>
-          </div>
+            <button
+              type="button"
+              onClick={() => setShowParticipants(true)}
+              className="flex max-w-[68%] min-w-0 items-center gap-2.5 rounded-xl text-left hover:opacity-90"
+            >
+              <span className={`${groupsPremium.iconTile} ${chatPremium.headerAvatarRing} h-9 w-9 rounded-xl`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={artworkUrl} alt="" className={groupsPremium.iconTileImage} />
+              </span>
+              <div className="min-w-0 text-left">
+                <h1 className={`${groupsPremium.chatHeaderTitle} text-left`}>{groupName}</h1>
+                <p className={`${groupsPremium.chatHeaderSubtitle} text-xs`}>
+                  {subtitle}
+                </p>
+              </div>
+            </button>
           <div className="absolute right-0">
             <button
               type="button"
               onClick={() => setShowMenu((value) => !value)}
-              className={groupsPremium.headerIconButton}
+              className={groupsPremium.chatHeaderIconButton}
               aria-label="Group chat options"
             >
               <MenuIcon />
             </button>
             {showMenu ? (
               <div className={groupsPremium.chatMenu}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    setShowParticipants(true);
+                  }}
+                  className={groupsPremium.chatMenuItem}
+                >
+                  View participants
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -417,12 +442,12 @@ export function GroupChatPanel({
 
       {status ? <div className={groupsPremium.chatStatusBanner}>{status}</div> : null}
 
-      <div className="group-chat-wallpaper min-h-0 flex-1 overflow-x-hidden overflow-y-auto py-3">
+      <div className={chatPremium.wallpaper}>
         {loading ? (
           <p className="px-4 py-8 text-center text-sm text-night-500">Loading messages…</p>
         ) : messages.length === 0 ? (
           <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-6 text-center">
-            <div className={`${groupsPremium.stackCard} max-w-sm px-6 py-8`}>
+            <div className={chatPremium.emptyCard}>
               <span className={`${groupsPremium.iconTile} mx-auto h-16 w-16 rounded-2xl`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={artworkUrl} alt="" className={groupsPremium.iconTileImage} />
@@ -481,6 +506,10 @@ export function GroupChatPanel({
                     onDelete={() => deleteMessage(message.id)}
                     onReport={() => setReportTarget(message)}
                     onBlock={() => blockMember(message)}
+                    canMessagePrivately={!mine && message.senderId !== userId}
+                    onMessagePrivately={() =>
+                      router.push(privateMessageHref(message.senderId, message.senderName))
+                    }
                   />
                 </div>
               </div>
@@ -505,6 +534,14 @@ export function GroupChatPanel({
           onClearReply={() => setReplyDraft(null)}
         />
       </div>
+
+      <ChatParticipantsSheet
+        open={showParticipants}
+        onClose={() => setShowParticipants(false)}
+        title={groupName}
+        participants={participants}
+        currentUserId={userId}
+      />
     </div>
   );
 }

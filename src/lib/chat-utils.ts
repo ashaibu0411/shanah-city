@@ -124,6 +124,13 @@ export function validateChatContent(content: string, hasAttachment: boolean) {
 }
 
 export function formatDeletedMessageContent(content: string, deletedAt?: string) {
-  if (deletedAt) return "Message deleted";
+  if (deletedAt) return "";
   return content;
+}
+
+/** Short copy for deleted rows — full bubble is not shown. */
+export function deletedMessageNotice(input: { mine: boolean; senderName?: string }) {
+  if (input.mine) return null;
+  const first = input.senderName?.trim().split(/\s+/)[0];
+  return first ? `${first} unsent a message` : "Message unsent";
 }
