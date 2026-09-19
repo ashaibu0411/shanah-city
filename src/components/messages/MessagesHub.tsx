@@ -21,6 +21,7 @@ import {
   shouldShowDateSeparator,
 } from "@/lib/chat-ui-utils";
 import { notifyNotificationsChanged } from "@/lib/use-notifications";
+import { chatPremium } from "@/components/chat/chat-premium";
 
 type ThreadSummary = {
   id: string;
@@ -83,32 +84,7 @@ function MemberAvatar({
   );
 }
 
-function BackChevron({
-  label,
-  onClick,
-  light = false,
-}: {
-  label: string;
-  onClick: () => void;
-  light?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-        light ? "text-sand-100 hover:bg-white/10" : "text-night-900 hover:bg-black/5 dark:text-sand-100 dark:hover:bg-white/10"
-      }`}
-      aria-label={label}
-    >
-      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </button>
-  );
-}
-
-function WhatsAppChatHeader({
+function DirectChatHeader({
   title,
   subtitle,
   onBack,
@@ -124,22 +100,36 @@ function WhatsAppChatHeader({
   menu?: ReactNode;
 }) {
   return (
-    <header className="messages-hub-chat-header flex shrink-0 items-center gap-1 px-2 pb-2.5 pt-[max(0.5rem,env(safe-area-inset-top))]">
-      {showBack && onBack ? <BackChevron label="Back to chats" onClick={onBack} light /> : null}
-      <div className="flex min-w-0 flex-1 items-center gap-3 px-1">
-        {avatarName ? (
-          <div className="messages-hub-chat-header-avatar-ring shrink-0">
-            <MemberAvatar name={avatarName} size="sm" />
-          </div>
+    <header className={chatPremium.groupHeader}>
+      <div className="relative flex items-center justify-center py-1">
+        {showBack && onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className={`${chatPremium.headerIconButton} absolute left-0`}
+            aria-label="Back to chats"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 20 20" aria-hidden>
+              <path
+                fill="currentColor"
+                d="M11.78 4.22a.75.75 0 0 1 0 1.06L8.06 9l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+              />
+            </svg>
+          </button>
         ) : null}
-        <div className="min-w-0 flex-1">
-          <p className="messages-hub-chat-header-title truncate leading-tight">{title}</p>
-          {subtitle ? (
-            <p className="messages-hub-chat-header-subtitle truncate">{subtitle}</p>
+        <div className="flex max-w-[72%] min-w-0 items-center gap-2.5 px-1">
+          {avatarName ? (
+            <span className={`${chatPremium.headerAvatarRing} shrink-0`}>
+              <MemberAvatar name={avatarName} size="sm" />
+            </span>
           ) : null}
+          <div className="min-w-0 flex-1 text-left">
+            <p className={chatPremium.headerTitle}>{title}</p>
+            {subtitle ? <p className={chatPremium.headerSubtitle}>{subtitle}</p> : null}
+          </div>
         </div>
+        {menu ? <div className="absolute right-0 top-0">{menu}</div> : null}
       </div>
-      {menu ? <div className="relative shrink-0">{menu}</div> : null}
     </header>
   );
 }
@@ -892,7 +882,7 @@ export function MessagesHub() {
       >
         {showNew ? (
           <>
-            <WhatsAppChatHeader
+            <DirectChatHeader
               title="New chat"
               subtitle="Add one or more members for a group message"
               showBack={isMobileApp}
@@ -977,42 +967,49 @@ export function MessagesHub() {
               </div>
             </div>
 
-            <ChatComposer
-              value={draft}
-              onChange={setDraft}
-              onSend={(attachment) => sendMessage(undefined, attachment)}
-              busy={busy}
-              disabled={newRecipientIds.length === 0}
-              placeholder="Message"
-              sendLabel="Send"
-              allowAttachment={false}
-              density="whatsapp"
-            />
+            <div className={chatPremium.composerBar}>
+              <ChatComposer
+                value={draft}
+                onChange={setDraft}
+                onSend={(attachment) => sendMessage(undefined, attachment)}
+                busy={busy}
+                disabled={newRecipientIds.length === 0}
+                placeholder="Message"
+                sendLabel="Send"
+                allowAttachment={false}
+                density="compact"
+              />
+            </div>
           </>
         ) : activeThread ? (
           <>
-            <WhatsAppChatHeader
+            <DirectChatHeader
               title={activeThread.otherName}
               subtitle={
                 typingLabel(typingUsers) ||
-                (isActiveBlocked ? "Blocked" : "tap here for contact info")
+                (isActiveBlocked ? "Blocked" : "Private message")
               }
               avatarName={activeThread.otherName}
               showBack={isMobileApp}
               onBack={closeChatView}
               menu={
                 activeOtherUserId ? (
-                  <>
+                  <div className="relative">
                     <button
                       type="button"
                       onClick={() => setShowChatMenu((value) => !value)}
-                      className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-sand-100 hover:bg-white/10"
+                      className={chatPremium.headerIconButton}
                       aria-label="Conversation options"
                     >
-                      ⋮
+                      <svg viewBox="0 0 20 20" className="h-5 w-5" aria-hidden>
+                        <path
+                          fill="currentColor"
+                          d="M10 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+                        />
+                      </svg>
                     </button>
                     {showChatMenu && (
-                      <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] overflow-hidden rounded-xl border border-night-900/10 bg-white py-1 text-night-900 shadow-xl dark:border-white/10 dark:bg-[var(--color-surface)] dark:text-sand-100">
+                      <div className={chatPremium.overflowMenu}>
                         {!isActiveBlocked ? (
                           <button
                             type="button"
@@ -1021,7 +1018,7 @@ export function MessagesHub() {
                               blockMember(activeOtherUserId, activeThread.otherName);
                             }}
                             disabled={busy}
-                            className="block w-full px-4 py-2.5 text-left text-sm hover:bg-sand-50 dark:hover:bg-[var(--color-bg-muted)]"
+                            className={chatPremium.overflowMenuItem}
                           >
                             Block
                           </button>
@@ -1033,7 +1030,7 @@ export function MessagesHub() {
                               unblockMember(activeOtherUserId, activeThread.otherName);
                             }}
                             disabled={busy}
-                            className="block w-full px-4 py-2.5 text-left text-sm hover:bg-sand-50 dark:hover:bg-[var(--color-bg-muted)]"
+                            className={chatPremium.overflowMenuItem}
                           >
                             Unblock
                           </button>
@@ -1045,13 +1042,13 @@ export function MessagesHub() {
                             setShowReport(true);
                           }}
                           disabled={busy}
-                          className="block w-full px-4 py-2.5 text-left text-sm text-red-700 hover:bg-red-50"
+                          className={`${chatPremium.overflowMenuItem} text-red-700 dark:text-red-300`}
                         >
                           Report
                         </button>
                       </div>
                     )}
-                  </>
+                  </div>
                 ) : null
               }
             />
@@ -1098,17 +1095,18 @@ export function MessagesHub() {
               </div>
             )}
 
-            <div className="group-chat-wallpaper min-h-0 flex-1 overflow-x-hidden overflow-y-auto py-2">
+            <div className={chatPremium.wallpaper}>
               {messages.length === 0 ? (
-                <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-8 text-center">
-                  <MemberAvatar name={activeThread.otherName} size="lg" ring />
-                  <p className="mt-4 text-lg font-semibold text-night-900 dark:text-sand-100">
-                    {activeThread.otherName}
-                  </p>
-                  <p className="mt-1 text-sm text-night-500 dark:text-sand-400">
-                    Messages and calls are end-to-end visible to members of this church app.
-                    Say hi to start the conversation.
-                  </p>
+                <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-6 text-center">
+                  <div className={chatPremium.emptyCard}>
+                    <MemberAvatar name={activeThread.otherName} size="lg" ring />
+                    <p className="mt-4 font-display text-base font-semibold tracking-tight text-night-950 dark:text-sand-50">
+                      {activeThread.otherName}
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-night-600 dark:text-sand-400">
+                      Send a private message or photo. Say hi to start the conversation.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 messages.map((message, index) => {
@@ -1124,7 +1122,7 @@ export function MessagesHub() {
                     <div key={message.id}>
                       {showDate ? (
                         <div className="my-3 flex justify-center px-4">
-                          <span className="rounded-lg bg-white/90 px-3 py-1 text-[12px] font-medium text-night-600 shadow-sm dark:bg-[var(--color-surface)] dark:text-sand-300">
+                          <span className={chatPremium.datePill}>
                             {chatDateSeparatorLabel(message.createdAt)}
                           </span>
                         </div>
@@ -1149,11 +1147,20 @@ export function MessagesHub() {
                           readAt={message.readAt}
                           showReadReceipt={lastOutgoing && group.isLast}
                           showMeta={group.showMeta}
-                          density="whatsapp"
+                          density="compact"
                           canEdit={message.senderId === user.id}
                           canDelete={message.senderId === user.id}
+                          canReport={!mine && Boolean(activeOtherUserId)}
+                          canBlock={!mine && Boolean(activeOtherUserId) && !isActiveBlocked}
+                          isBlocked={isActiveBlocked}
                           onEdit={(content) => editMessage(message.id, content)}
                           onDelete={() => deleteMessage(message.id)}
+                          onReport={() => setShowReport(true)}
+                          onBlock={() =>
+                            activeOtherUserId
+                              ? blockMember(activeOtherUserId, activeThread.otherName)
+                              : undefined
+                          }
                         />
                       </div>
                     </div>
@@ -1163,26 +1170,28 @@ export function MessagesHub() {
               <div ref={messagesEndRef} />
             </div>
 
-            <ChatComposer
-              value={draft}
-              onChange={setDraft}
-              onSend={(attachment) =>
-                sendMessage({ recipientName: activeThread.otherName }, attachment)
-              }
-              busy={busy}
-              disabled={isActiveBlocked}
-              placeholder={
-                isActiveBlocked ? "Unblock to message…" : replyDraft ? "Write a reply…" : "Message"
-              }
-              onTyping={sendTyping}
-              onPickAttachment={(file) =>
-                uploadAttachment(file, { threadId: activeThreadId ?? undefined })
-              }
-              attachmentBusy={attachmentBusy}
-              density="whatsapp"
-              replyDraft={replyDraft}
-              onClearReply={() => setReplyDraft(null)}
-            />
+            <div className={chatPremium.composerBar}>
+              <ChatComposer
+                value={draft}
+                onChange={setDraft}
+                onSend={(attachment) =>
+                  sendMessage({ recipientName: activeThread.otherName }, attachment)
+                }
+                busy={busy}
+                disabled={isActiveBlocked}
+                placeholder={
+                  isActiveBlocked ? "Unblock to message…" : replyDraft ? "Write a reply…" : "Message"
+                }
+                onTyping={sendTyping}
+                onPickAttachment={(file) =>
+                  uploadAttachment(file, { threadId: activeThreadId ?? undefined })
+                }
+                attachmentBusy={attachmentBusy}
+                density="compact"
+                replyDraft={replyDraft}
+                onClearReply={() => setReplyDraft(null)}
+              />
+            </div>
           </>
         ) : (
           <div className="messages-hub-empty flex flex-1 flex-col items-center justify-center px-8 text-center">

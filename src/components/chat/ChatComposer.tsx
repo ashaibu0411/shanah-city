@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import { ChatReplyComposerBanner } from "@/components/chat/ChatReplyComposerBanner";
+import { chatPremium } from "@/components/chat/chat-premium";
 import { insertAtCursor, QUICK_CHAT_EMOJIS } from "@/lib/chat-utils";
 import type { ChatReplyDraft } from "@/lib/chat-reply-types";
 
@@ -221,12 +222,12 @@ export function ChatComposer({
 
   if (compact) {
     return (
-      <div className="border-t border-night-900/8 bg-white px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <>
         {replyDraft && onClearReply ? (
           <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
         ) : null}
         {pendingAttachment && (
-          <div className="mb-2 flex items-center gap-2 rounded-2xl bg-sand-50 p-2">
+          <div className={`${chatPremium.attachmentPreview} mb-2 flex items-center gap-2`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={pendingAttachment.previewUrl}
@@ -234,14 +235,14 @@ export function ChatComposer({
               className="h-12 w-12 rounded-xl object-cover"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-night-900">
+              <p className="truncate text-xs font-medium text-night-900 dark:text-sand-100">
                 {pendingAttachment.attachmentName}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setPendingAttachment(null)}
-              className="text-xs font-semibold text-night-600"
+              className="text-xs font-semibold text-night-600 dark:text-sand-400"
             >
               ✕
             </button>
@@ -249,13 +250,13 @@ export function ChatComposer({
         )}
 
         {showEmojiPicker && (
-          <div className="mb-2 flex flex-wrap gap-1 rounded-2xl bg-sand-50 p-2">
+          <div className={`${chatPremium.emojiTray} mb-2`}>
             {QUICK_CHAT_EMOJIS.map((emoji) => (
               <button
                 key={emoji}
                 type="button"
                 onClick={() => appendEmoji(emoji)}
-                className="rounded-lg px-1.5 py-0.5 text-lg hover:bg-white"
+                className={chatPremium.emojiTrayBtn}
                 aria-label={`Insert ${emoji}`}
               >
                 {emoji}
@@ -264,7 +265,7 @@ export function ChatComposer({
           </div>
         )}
 
-        <div className="flex min-w-0 w-full items-end gap-2">
+        <div className={chatPremium.composerRow}>
           {allowAttachment && onPickAttachment && (
             <>
               <input
@@ -278,7 +279,7 @@ export function ChatComposer({
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={disabled || attachmentBusy}
-                className="flex h-9 w-9 shrink-0 items-center justify-center text-lg text-night-700 disabled:opacity-40"
+                className={chatPremium.composerIconButton}
                 aria-label="Add photo"
               >
                 {attachmentBusy ? "…" : "📷"}
@@ -289,12 +290,12 @@ export function ChatComposer({
             type="button"
             onClick={() => setShowEmojiPicker((current) => !current)}
             disabled={disabled}
-            className="flex h-9 w-9 shrink-0 items-center justify-center text-lg disabled:opacity-40"
+            className={chatPremium.composerIconButton}
             aria-label="Add emoji"
           >
             😊
           </button>
-          <div className="flex min-w-0 flex-1 items-center rounded-full border border-night-900/10 bg-sand-50 px-4 py-2">
+          <div className={chatPremium.composerField}>
             <input
               ref={inputRef}
               value={value}
@@ -304,7 +305,7 @@ export function ChatComposer({
               }}
               placeholder={placeholder}
               disabled={disabled}
-              className="w-full bg-transparent text-sm text-night-900 outline-none placeholder:text-night-400 disabled:opacity-50"
+              className={chatPremium.composerInput}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
                   event.preventDefault();
@@ -317,13 +318,13 @@ export function ChatComposer({
             type="button"
             onClick={handleSend}
             disabled={busy || disabled || !canSend}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0095f6] text-sm font-bold text-white disabled:bg-night-300"
+            className={chatPremium.sendButton}
             aria-label={sendLabel}
           >
             ↑
           </button>
         </div>
-      </div>
+      </>
     );
   }
 

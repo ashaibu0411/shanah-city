@@ -1,6 +1,7 @@
 "use client";
 
 import type { ChatReplyDraft } from "@/lib/chat-reply-types";
+import { chatPremium } from "@/components/chat/chat-premium";
 
 type ChatReplyComposerBannerProps = {
   reply: ChatReplyDraft;
@@ -9,7 +10,7 @@ type ChatReplyComposerBannerProps = {
 
 export function ChatReplyComposerBanner({ reply, onClear }: ChatReplyComposerBannerProps) {
   return (
-    <div className="mb-2 flex items-start gap-2 rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 dark:border-white/10 dark:bg-[var(--color-bg-muted)]">
+    <div className={`${chatPremium.replyBanner} mb-2 flex items-start gap-2`}>
       <div className="min-w-0 flex-1 border-l-2 border-violet-500 pl-2">
         <p className="text-[11px] font-semibold text-violet-700 dark:text-violet-300">
           Replying to {reply.senderName}

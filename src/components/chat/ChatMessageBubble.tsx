@@ -433,9 +433,9 @@ export function ChatMessageBubble({
               whatsapp
                 ? "justify-end text-[11px] leading-none text-night-500 dark:text-sand-400"
                 : compact
-                ? "text-[10px] text-night-500"
-                : "text-[10px] opacity-60"
-            } ${mine && compact ? "justify-end text-white/75" : ""} ${showMeta ? "" : "hidden"}`}
+                  ? `${chatPremium.bubbleMeta} ${mine ? "justify-end" : ""}`
+                  : "text-[10px] opacity-60"
+            } ${mine && compact ? "text-white/75" : ""} ${showMeta ? "" : "hidden"}`}
           >
             <span>{createdAtLabel}</span>
             {editedAt && !unsent && <span>· edited</span>}
