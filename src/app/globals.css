@@ -861,6 +861,18 @@
       filter 0.35s ease;
   }
 
+  /* Give tile — zoom out so offering basket stays in frame (overrides default 1.04 scale). */
+  body[data-shell="mobile"] .mobile-premium-4k__media--give-tile {
+    object-fit: cover;
+    object-position: 50% 82%;
+    transform: scale(0.68) translateZ(0);
+  }
+
+  body[data-shell="mobile"] .mobile-premium-4k:active .mobile-premium-4k__media--give-tile,
+  body[data-shell="mobile"] .mobile-premium-4k.group:active .mobile-premium-4k__media--give-tile {
+    transform: scale(0.72) translateZ(0);
+  }
+
   body[data-shell="mobile"] .mobile-premium-4k:active .mobile-premium-4k__media,
   body[data-shell="mobile"] .mobile-premium-4k.group:active .mobile-premium-4k__media {
     transform: scale(1.09) translateZ(0);
