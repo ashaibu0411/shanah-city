@@ -76,14 +76,24 @@ export function MobilePremiumTile({
       href={href}
       aria-label={meta.label}
       className={`mobile-premium-4k group relative block overflow-hidden transition active:scale-[0.985] ${
-        compact ? "mobile-premium-4k-compact" : "mobile-premium-4k-flyer"
+        action === "give" ? "mobile-premium-4k--give" : ""
+      } ${
+        compact
+          ? "mobile-premium-4k-compact"
+          : action === "give"
+            ? "mobile-premium-4k-flyer mobile-premium-4k-flyer--give"
+            : "mobile-premium-4k-flyer"
       }`}
     >
       <div className="mobile-premium-4k__bezel pointer-events-none absolute inset-0 z-30" aria-hidden />
       <div className="mobile-premium-4k__shine pointer-events-none absolute inset-0 z-20" aria-hidden />
       <div className="mobile-premium-4k__grain pointer-events-none absolute inset-0 z-20" aria-hidden />
 
-      <div className="absolute inset-0">
+      <div
+        className={`absolute inset-0 ${
+          action === "give" ? "bottom-[3.35rem] bg-night-900/90" : ""
+        }`}
+      >
         <ChurchFlyerImage
           src={imageSrc}
           alt=""
@@ -93,14 +103,18 @@ export function MobilePremiumTile({
         />
       </div>
 
-      <div
-        className={`pointer-events-none absolute inset-0 z-10 bg-gradient-to-t ${meta.overlay}`}
-        aria-hidden
-      />
-      <div
-        className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-1/2 bg-gradient-to-b ${meta.accent}`}
-        aria-hidden
-      />
+      {action === "give" ? null : (
+        <div
+          className={`pointer-events-none absolute inset-0 z-10 bg-gradient-to-t ${meta.overlay}`}
+          aria-hidden
+        />
+      )}
+      {action === "give" ? null : (
+        <div
+          className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-1/2 bg-gradient-to-b ${meta.accent}`}
+          aria-hidden
+        />
+      )}
 
       <div className="mobile-premium-4k__glass-bar relative z-20 flex items-center gap-2.5">
         <span

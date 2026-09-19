@@ -848,12 +848,17 @@
     aspect-ratio: 4 / 3.45;
   }
 
+  /* Portrait offering photo — extra height so hands + basket stay above the label bar. */
+  body[data-shell="mobile"] .mobile-premium-4k-flyer--give {
+    aspect-ratio: 4 / 5.4;
+  }
+
   body[data-shell="mobile"] .mobile-premium-4k-compact {
     aspect-ratio: 5 / 2.75;
     border-radius: 1.15rem;
   }
 
-  body[data-shell="mobile"] .mobile-premium-4k__media {
+  body[data-shell="mobile"] .mobile-premium-4k__media:not(.mobile-premium-4k__media--give-tile) {
     filter: contrast(1.1) saturate(1.16) brightness(1.03);
     transform: scale(1.04) translateZ(0);
     transition:
@@ -861,22 +866,26 @@
       filter 0.35s ease;
   }
 
-  /* Give tile — zoom out so offering basket stays in frame (overrides default 1.04 scale). */
   body[data-shell="mobile"] .mobile-premium-4k__media--give-tile {
-    object-fit: cover;
-    object-position: 50% 82%;
-    transform: scale(0.68) translateZ(0);
+    filter: contrast(1.06) saturate(1.1) brightness(1.04);
+    transform: none !important;
+    transition: filter 0.35s ease;
   }
 
-  body[data-shell="mobile"] .mobile-premium-4k:active .mobile-premium-4k__media--give-tile,
-  body[data-shell="mobile"] .mobile-premium-4k.group:active .mobile-premium-4k__media--give-tile {
-    transform: scale(0.72) translateZ(0);
-  }
-
-  body[data-shell="mobile"] .mobile-premium-4k:active .mobile-premium-4k__media,
-  body[data-shell="mobile"] .mobile-premium-4k.group:active .mobile-premium-4k__media {
+  body[data-shell="mobile"] .mobile-premium-4k:active .mobile-premium-4k__media:not(.mobile-premium-4k__media--give-tile),
+  body[data-shell="mobile"] .mobile-premium-4k.group:active .mobile-premium-4k__media:not(.mobile-premium-4k__media--give-tile) {
     transform: scale(1.09) translateZ(0);
     filter: contrast(1.14) saturate(1.22) brightness(1.05);
+  }
+
+  body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__media--give-tile {
+    object-fit: cover;
+    object-position: 50% 100%;
+  }
+
+  body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__glass-bar {
+    padding: 0.5rem 0.65rem;
+    background: linear-gradient(to top, rgba(27, 20, 9, 0.94), rgba(27, 20, 9, 0.72));
   }
 
   body[data-shell="mobile"] .mobile-premium-4k__shine {
