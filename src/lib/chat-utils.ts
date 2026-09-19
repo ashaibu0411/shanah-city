@@ -123,8 +123,18 @@ export function validateChatContent(content: string, hasAttachment: boolean) {
   return trimmed;
 }
 
+export function messageIsUnsent(deletedAt?: string, content?: string) {
+  if (deletedAt) return true;
+  const normalized = content
+    .trim()
+    .replace(/^\*+|\*+$/g, "")
+    .trim()
+    .toLowerCase();
+  return normalized === "message deleted" || normalized === "message unsent";
+}
+
 export function formatDeletedMessageContent(content: string, deletedAt?: string) {
-  if (deletedAt) return "";
+  if (messageIsUnsent(deletedAt, content)) return "";
   return content;
 }
 

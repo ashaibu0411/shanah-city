@@ -11,4 +11,7 @@ export const homeExploreTileImages = {
   calendar: "/home/home-gallery-15.jpg",
 } as const;
 
+/** Home + Media “Watch Live” hero — stage, speaker, and congregation depth. */
+export const homeLiveSpotlightImage = "/home/home-gallery-88.jpg";
+
 export type HomeExploreTileId = keyof typeof homeExploreTileImages;

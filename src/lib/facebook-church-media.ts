@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { site } from "@/lib/site";
-import { homeExploreTileImages, type HomeExploreTileId } from "@/lib/home-explore-tile-images";
+import { homeExploreTileImages, homeLiveSpotlightImage, type HomeExploreTileId } from "@/lib/home-explore-tile-images";
 
 export type ChurchSocialImages = {
   live: string;
@@ -21,44 +21,24 @@ const FACEBOOK_PAGES = {
 
 /** Wordless photographic tiles — UI supplies all labels. */
 const STATIC_BACKGROUNDS: ChurchSocialImages = {
-  live: "/mobile-flyers/live.png",
+  live: homeLiveSpotlightImage,
   give: homeExploreTileImages.give,
   connect: homeExploreTileImages.connect,
   community: homeExploreTileImages.community,
   calendar: homeExploreTileImages.calendar,
   devotions: "/mobile-flyers/devotions.png",
-  mediaLive: "/mobile-flyers/live.png",
+  mediaLive: homeLiveSpotlightImage,
   mediaShorts: "/mobile-flyers/media-shorts.png",
   source: "fallback",
 };
-
-type FacebookPageCoverResponse = {
-  cover?: { source?: string };
-};
-
-async function fetchFacebookCoverPhoto(page: string, token: string) {
-  const fields = "cover{source}";
-  const url = `https://graph.facebook.com/v21.0/${page}?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(token)}`;
-  const response = await fetch(url, { next: { revalidate: 1800 } });
-  if (!response.ok) return null;
-  const data = (await response.json()) as FacebookPageCoverResponse;
-  return data.cover?.source ?? null;
-}
 
 function liveYouTubeThumbnail() {
   return null;
 }
 
 async function loadChurchSocialImages(): Promise<ChurchSocialImages> {
-  const token = process.env.FACEBOOK_PAGE_ACCESS_TOKEN?.trim();
   const youtubeLive = liveYouTubeThumbnail();
-
-  let coverPhoto: string | null = null;
-  if (token) {
-    coverPhoto = await fetchFacebookCoverPhoto(FACEBOOK_PAGES.city, token);
-  }
-
-  const liveBackground = youtubeLive ?? coverPhoto ?? STATIC_BACKGROUNDS.live;
+  const liveBackground = youtubeLive ?? homeLiveSpotlightImage;
 
   return {
     live: liveBackground,
@@ -69,19 +49,20 @@ async function loadChurchSocialImages(): Promise<ChurchSocialImages> {
     devotions: STATIC_BACKGROUNDS.devotions,
     mediaLive: liveBackground,
     mediaShorts: STATIC_BACKGROUNDS.mediaShorts,
-    source: coverPhoto || youtubeLive ? "mixed" : "fallback",
+    source: youtubeLive ? "mixed" : "fallback",
   };
 }
 
 export const getChurchSocialImages = unstable_cache(
   loadChurchSocialImages,
   [
-    "church-social-images-v4",
+    "church-social-images-v5",
     FACEBOOK_PAGES.city,
     homeExploreTileImages.give,
     homeExploreTileImages.connect,
     homeExploreTileImages.community,
     homeExploreTileImages.calendar,
+    homeLiveSpotlightImage,
   ],
   { revalidate: 1800 },
 );

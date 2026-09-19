@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { ChatMessageReaction } from "@/lib/chat-utils";
-import { formatDeletedMessageContent, getChatAttachmentApiUrl, deletedMessageNotice } from "@/lib/chat-utils";
+import { formatDeletedMessageContent, getChatAttachmentApiUrl, messageIsUnsent } from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
 import { ChatMessageReplyQuote } from "@/components/chat/ChatMessageReplyQuote";
 import { ChatReactionEmojiPicker } from "@/components/chat/ChatReactionEmojiPicker";
@@ -96,9 +96,10 @@ export function ChatMessageBubble({
   const [selectionExcerpt, setSelectionExcerpt] = useState<string | null>(null);
 
   const displayContent = formatDeletedMessageContent(content, deletedAt);
+  const unsent = messageIsUnsent(deletedAt, content);
   const imageSrc = getChatAttachmentApiUrl(attachmentUrl);
   const hasActions =
-    !deletedAt &&
+    !unsent &&
     ((canEdit && onEdit) ||
       (canDelete && onDelete) ||
       (canReport && onReport) ||
@@ -120,14 +121,14 @@ export function ChatMessageBubble({
     : "rounded-lg rounded-bl-none";
 
   function openReactionPicker() {
-    if (deletedAt || editing) return;
+    if (unsent || editing) return;
     const selection = window.getSelection();
     if (selection && !selection.isCollapsed) return;
     setReactionPickerOpen(true);
   }
 
   function beginReply(excerptOverride?: string) {
-    if (!onStartReply || deletedAt) return;
+    if (!onStartReply || unsent) return;
     setShowActions(false);
     setSelectionExcerpt(null);
     window.getSelection()?.removeAllRanges();
@@ -173,11 +174,11 @@ export function ChatMessageBubble({
   }
 
   function startLongPress() {
-    if ((!compact && !whatsapp) || deletedAt) return;
+    if ((!compact && !whatsapp) || unsent) return;
     clearLongPressTimer();
     longPressTimerRef.current = window.setTimeout(() => {
       suppressClickRef.current = true;
-      if (hasActions || !deletedAt) {
+      if (hasActions || !unsent) {
         if (hasActions) {
           openActionsMenu();
         } else {
@@ -187,7 +188,7 @@ export function ChatMessageBubble({
     }, 480);
   }
 
-  const actionsMenu = showActions && (hasActions || !deletedAt) && (
+  const actionsMenu = showActions && (hasActions || !unsent) && (
     <div className={`${chatPremium.contextMenu} ${mine ? "right-0" : "left-0"}`}>
       {canEdit && onEdit && (
         <button
@@ -243,7 +244,7 @@ export function ChatMessageBubble({
           Block
         </button>
       )}
-      {!deletedAt && onStartReply ? (
+      {!unsent && onStartReply ? (
         <button type="button" className={chatPremium.contextMenuItem} onClick={() => beginReply()}>
           Reply
         </button>
@@ -260,7 +261,7 @@ export function ChatMessageBubble({
           Message privately
         </button>
       ) : null}
-      {!deletedAt ? (
+      {!unsent ? (
         <button
           type="button"
           className={chatPremium.contextMenuItem}
@@ -275,25 +276,13 @@ export function ChatMessageBubble({
     </div>
   );
 
-  if (deletedAt) {
-    if (mine) {
-      return (
-        <div
-          id={`chat-msg-${messageId}`}
-          className="pointer-events-none h-0 scroll-mt-24 overflow-hidden"
-          aria-hidden
-        />
-      );
-    }
-
-    const notice = deletedMessageNotice({ mine, senderName });
+  if (unsent) {
     return (
       <div
         id={`chat-msg-${messageId}`}
-        className={`flex w-full min-w-0 scroll-mt-24 justify-center ${compact || whatsapp ? "px-3" : ""}`}
-      >
-        <p className={chatPremium.deletedNotice}>{notice}</p>
-      </div>
+        className="pointer-events-none h-0 scroll-mt-24 overflow-hidden"
+        aria-hidden
+      />
     );
   }
 
@@ -344,9 +333,9 @@ export function ChatMessageBubble({
               : mine
                 ? "rounded-2xl bg-night-900 px-4 py-3 text-sand-50"
                 : "rounded-2xl bg-sand-100 px-4 py-3 text-night-800"
-          } ${deletedAt ? "italic opacity-70" : "cursor-pointer"}`}
+          } ${unsent ? "italic opacity-70" : "cursor-pointer"}`}
           onContextMenu={(event) => {
-            if ((!compact && !whatsapp) || deletedAt) return;
+            if ((!compact && !whatsapp) || unsent) return;
             event.preventDefault();
             if (hasActions) {
               openActionsMenu();
@@ -359,7 +348,7 @@ export function ChatMessageBubble({
               suppressClickRef.current = false;
               return;
             }
-            if (deletedAt || editing) return;
+            if (unsent || editing) return;
             if ((event.target as HTMLElement).closest("a, button, textarea, input")) return;
             const selection = window.getSelection();
             if (selection && !selection.isCollapsed) return;
@@ -411,7 +400,7 @@ export function ChatMessageBubble({
               {reply ? (
                 <ChatMessageReplyQuote reply={reply} mine={mine} compact={compact || whatsapp} />
               ) : null}
-              {imageSrc && !deletedAt && (
+              {imageSrc && !unsent && (
                 <a href={imageSrc} target="_blank" rel="noreferrer" className="mb-2 block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -449,23 +438,23 @@ export function ChatMessageBubble({
             } ${mine && compact ? "justify-end text-white/75" : ""} ${showMeta ? "" : "hidden"}`}
           >
             <span>{createdAtLabel}</span>
-            {editedAt && !deletedAt && <span>· edited</span>}
-            {showReadReceipt && mine && !deletedAt && whatsapp && (
+            {editedAt && !unsent && <span>· edited</span>}
+            {showReadReceipt && mine && !unsent && whatsapp && (
               <span className={readAt ? "text-sky-600 dark:text-sky-300" : "text-night-500 dark:text-sand-400"}>
                 {readAt ? " ✓✓" : " ✓"}
               </span>
             )}
-            {showReadReceipt && mine && !deletedAt && !whatsapp && (
+            {showReadReceipt && mine && !unsent && !whatsapp && (
               <span>{readAt ? "· Seen" : "· Delivered"}</span>
             )}
-            {showSeenCount && mine && !deletedAt && typeof seenCount === "number" && seenCount > 0 && (
+            {showSeenCount && mine && !unsent && typeof seenCount === "number" && seenCount > 0 && (
               <span>· Seen by {seenCount}</span>
             )}
           </div>
 
           {compact && actionsMenu}
 
-          {selectionExcerpt && onStartReply && !deletedAt ? (
+          {selectionExcerpt && onStartReply && !unsent ? (
             <div className={`absolute z-10 ${mine ? "right-0 top-0 -translate-y-full pb-1" : "left-0 top-0 -translate-y-full pb-1"}`}>
               <button
                 type="button"
@@ -497,7 +486,7 @@ export function ChatMessageBubble({
           </div>
         )}
 
-        {!deletedAt && (
+        {!unsent && (
           <MessageReactions
             reactions={reactions}
             currentUserId={currentUserId}
