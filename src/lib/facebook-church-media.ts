@@ -1,11 +1,13 @@
 import { unstable_cache } from "next/cache";
 import { site } from "@/lib/site";
+import { homeExploreTileImages } from "@/lib/home-explore-tile-images";
 
 export type ChurchSocialImages = {
   live: string;
   give: string;
   connect: string;
   community: string;
+  calendar: string;
   devotions: string;
   mediaLive: string;
   mediaShorts: string;
@@ -20,9 +22,10 @@ const FACEBOOK_PAGES = {
 /** Wordless photographic tiles — UI supplies all labels. */
 const STATIC_BACKGROUNDS: ChurchSocialImages = {
   live: "/mobile-flyers/live.png",
-  give: "/mobile-flyers/give.png",
-  connect: "/mobile-flyers/connect.png",
-  community: "/mobile-flyers/community.png",
+  give: homeExploreTileImages.give,
+  connect: homeExploreTileImages.connect,
+  community: homeExploreTileImages.community,
+  calendar: homeExploreTileImages.calendar,
   devotions: "/mobile-flyers/devotions.png",
   mediaLive: "/mobile-flyers/live.png",
   mediaShorts: "/mobile-flyers/media-shorts.png",
@@ -62,6 +65,7 @@ async function loadChurchSocialImages(): Promise<ChurchSocialImages> {
     give: STATIC_BACKGROUNDS.give,
     connect: STATIC_BACKGROUNDS.connect,
     community: STATIC_BACKGROUNDS.community,
+    calendar: STATIC_BACKGROUNDS.calendar,
     devotions: STATIC_BACKGROUNDS.devotions,
     mediaLive: liveBackground,
     mediaShorts: STATIC_BACKGROUNDS.mediaShorts,
@@ -71,7 +75,7 @@ async function loadChurchSocialImages(): Promise<ChurchSocialImages> {
 
 export const getChurchSocialImages = unstable_cache(
   loadChurchSocialImages,
-  ["church-social-images-v2", FACEBOOK_PAGES.city],
+  ["church-social-images-v3", FACEBOOK_PAGES.city],
   { revalidate: 1800 },
 );
 
@@ -79,10 +83,7 @@ export function churchSocialImageForAction(
   images: ChurchSocialImages,
   action: "give" | "connect" | "community" | "devotions" | "calendar",
 ) {
-  if (action === "calendar") {
-    return images.live;
-  }
-  return images[action];
+  return images[action === "calendar" ? "calendar" : action];
 }
 
 export const churchFacebookPages = site.social.facebook;
