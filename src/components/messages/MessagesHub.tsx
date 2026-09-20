@@ -931,7 +931,7 @@ export function MessagesHub() {
       <section
         className={`messages-hub-chat-pane min-w-0 flex-1 flex-col max-lg:max-w-full ${
           showChatPane
-            ? "flex max-lg:absolute max-lg:inset-0 max-lg:z-20 max-lg:w-full max-lg:bg-[var(--color-bg-soft)] dark:max-lg:bg-[var(--color-bg)]"
+            ? "flex max-lg:absolute max-lg:inset-0 max-lg:z-20 max-lg:w-full max-lg:bg-[var(--chat-wallpaper,#e5ddd5)] dark:max-lg:bg-[var(--chat-wallpaper,#0b141a)]"
             : "hidden lg:flex"
         }`}
       >
@@ -1221,7 +1221,7 @@ export function MessagesHub() {
                           readAt={message.readAt}
                           showReadReceipt={lastOutgoing && group.isLast}
                           showMeta={group.showMeta}
-                          density="compact"
+                          density="whatsapp"
                           canEdit={message.senderId === user.id}
                           canDelete={message.senderId === user.id}
                           canReport={!mine && Boolean(activeOtherUserId)}

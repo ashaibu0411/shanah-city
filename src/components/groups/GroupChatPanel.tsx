@@ -556,7 +556,7 @@ export function GroupChatPanel({
                     seenCount={message.seenCount}
                     showSeenCount={mine && group.isLast}
                     showMeta={group.showMeta}
-                    density="compact"
+                    density="whatsapp"
                     canEdit={message.senderId === userId}
                     canDelete={message.senderId === userId}
                     canReport={message.senderId !== userId}
@@ -589,7 +589,7 @@ export function GroupChatPanel({
           onTyping={sendTyping}
           onPickAttachment={uploadAttachment}
           attachmentBusy={attachmentBusy}
-          density="compact"
+          density="whatsapp"
           replyDraft={replyDraft}
           onClearReply={() => setReplyDraft(null)}
         />

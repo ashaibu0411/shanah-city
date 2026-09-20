@@ -16,6 +16,17 @@
     --color-accent-strong: #a84d32;
     --color-accent-soft: #d4765a;
     --color-gold: #d4a853;
+    /* WhatsApp-style chat (DM + group) */
+    --chat-out-gradient: linear-gradient(180deg, #d9fdd3 0%, #cff9c7 100%);
+    --chat-out-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+    --chat-out-text: #111b21;
+    --chat-out-meta: rgba(17, 27, 33, 0.55);
+    --chat-out-accent: #128c7e;
+    --chat-in-bg: #ffffff;
+    --chat-in-text: #111b21;
+    --chat-send-bg: #00a884;
+    --chat-send-text: #ffffff;
+    --chat-wallpaper: #e5ddd5;
   }
 
   html.dark {
@@ -31,6 +42,16 @@
     --color-accent-strong: #e08a6a;
     --color-accent-soft: #c45d3e;
     --color-gold: #e4c17a;
+    --chat-out-gradient: linear-gradient(180deg, #005c4b 0%, #004539 100%);
+    --chat-out-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.35);
+    --chat-out-text: #e9edef;
+    --chat-out-meta: rgba(233, 237, 239, 0.65);
+    --chat-out-accent: #25d366;
+    --chat-in-bg: #202c33;
+    --chat-in-text: #e9edef;
+    --chat-send-bg: #00a884;
+    --chat-send-text: #ffffff;
+    --chat-wallpaper: #0b141a;
   }
 
   html {
@@ -1597,7 +1618,7 @@
   }
 
   .messages-hub-chat-pane {
-    background: var(--color-bg-soft);
+    background: var(--chat-wallpaper);
   }
 
   .messages-hub-empty {
@@ -1629,28 +1650,40 @@
   }
 
   .messages-hub-send {
-    background: var(--color-accent);
-    color: #fffdfb;
+    background: var(--chat-send-bg);
+    color: var(--chat-send-text);
+    box-shadow: 0 1px 3px rgba(11, 20, 26, 0.2);
   }
 
   .messages-hub-send:disabled {
-    background: color-mix(in srgb, var(--color-ink-soft) 45%, var(--color-bg-muted));
+    background: #c7c7cc;
+    color: #ffffff;
+    box-shadow: none;
   }
 
   .messages-hub-bubble-out {
-    background: color-mix(in srgb, var(--color-accent) 18%, #fffdfb);
-    color: var(--color-ink);
+    border-radius: 18px 18px 4px 18px;
+    color: var(--chat-out-text);
+    background: var(--chat-out-gradient);
+    box-shadow: var(--chat-out-shadow);
   }
 
   html.dark .messages-hub-bubble-out {
-    background: color-mix(in srgb, var(--color-accent) 24%, var(--color-bg-muted));
-    color: var(--color-ink);
+    color: var(--chat-out-text);
+    background: var(--chat-out-gradient);
+    box-shadow: var(--chat-out-shadow);
   }
 
   .messages-hub-bubble-in {
-    background: var(--color-surface);
-    color: var(--color-ink);
-    border: 1px solid var(--color-border);
+    color: var(--chat-in-text);
+    background: var(--chat-in-bg);
+    border: 1px solid rgba(11, 20, 26, 0.06);
+    box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.08);
+  }
+
+  html.dark .messages-hub-bubble-in {
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.35);
   }
 
   .chat-msg-highlight {
@@ -1795,6 +1828,7 @@
     border-radius: 22px 22px 6px 22px;
     padding: 0.55rem 0.9rem;
     color: var(--chat-out-text);
+    background: linear-gradient(180deg, #d9fdd3 0%, #cff9c7 100%);
     background: var(--chat-out-gradient);
     box-shadow: var(--chat-out-shadow);
   }
@@ -1821,22 +1855,8 @@
     box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.35);
   }
 
-  .messages-hub-bubble-out {
-    border-radius: 18px 18px 4px 18px;
-    box-shadow: var(--chat-out-shadow);
-    background: var(--chat-out-gradient);
-    color: var(--chat-out-text);
-  }
-
-  html.dark .messages-hub-bubble-out {
-    background: var(--chat-out-gradient);
-    box-shadow: var(--chat-out-shadow);
-    color: var(--chat-out-text);
-  }
-
   .messages-hub-bubble-in {
     border-radius: 18px 18px 18px 4px;
-    box-shadow: 0 1px 2px rgba(45, 36, 24, 0.06);
   }
 
   .chat-premium-bubble-meta {
