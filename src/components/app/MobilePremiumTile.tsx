@@ -83,11 +83,7 @@ export function MobilePremiumTile({
       <div className="mobile-premium-4k__shine pointer-events-none absolute inset-0 z-20" aria-hidden />
       <div className="mobile-premium-4k__grain pointer-events-none absolute inset-0 z-20" aria-hidden />
 
-      <div
-        className={`absolute inset-0 ${
-          action === "give" ? "bottom-[3.35rem] bg-night-900/90" : ""
-        }`}
-      >
+      <div className="absolute inset-0">
         <ChurchFlyerImage
           src={imageSrc}
           alt=""
@@ -110,21 +106,23 @@ export function MobilePremiumTile({
         />
       )}
 
-      <div className="mobile-premium-4k__glass-bar relative z-20 flex items-center gap-2.5">
-        <span
-          className={`mobile-premium-4k__icon inline-flex shrink-0 items-center justify-center rounded-xl ring-1 backdrop-blur-md ${meta.iconTone}`}
-        >
-          <PremiumActionIcon name={action} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-[13px] font-bold leading-tight tracking-tight text-white drop-shadow-sm">
-            {meta.label}
-          </p>
-          <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-white/75">
-            {meta.detail}
-          </p>
+      {action === "give" ? null : (
+        <div className="mobile-premium-4k__glass-bar relative z-20 flex items-center gap-2.5">
+          <span
+            className={`mobile-premium-4k__icon inline-flex shrink-0 items-center justify-center rounded-xl ring-1 backdrop-blur-md ${meta.iconTone}`}
+          >
+            <PremiumActionIcon name={action} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-display text-[13px] font-bold leading-tight tracking-tight text-white drop-shadow-sm">
+              {meta.label}
+            </p>
+            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-white/75">
+              {meta.detail}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </Link>
   );
 }

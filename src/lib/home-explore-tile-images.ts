@@ -1,8 +1,8 @@
 /** Explore grid tiles — real church photos from the home hero gallery. */
 
 export const homeExploreTileImages = {
-  /** Offering usher with basket — literal give / support ministry. */
-  give: "/home/home-gallery-38.jpg",
+  /** Premium give tile — generosity graphic with scripture. */
+  give: "/home/home-gallery-give-tile.jpg",
   /** Diverse friends together — welcoming, plan-a-visit energy. */
   connect: "/home/home-gallery-08.jpg",
   /** Multicultural lineup at a shared moment — fellowship at scale. */
@@ -22,7 +22,7 @@ export type HomeExploreTileId = keyof typeof homeExploreTileImages;
 /** Per-tile crop/zoom so key details stay in frame on small Explore cards. */
 export function homeExploreTileImageClass(id: HomeExploreTileId): string {
   if (id === "give") {
-    return "mobile-premium-4k__media--give-tile object-contain object-bottom";
+    return "mobile-premium-4k__media--give-tile object-cover object-center";
   }
   if (id === "calendar") {
     return "object-cover object-[center_34%]";

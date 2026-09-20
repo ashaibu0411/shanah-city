@@ -895,13 +895,13 @@
   }
 
   body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__media--give-tile {
-    object-fit: contain;
-    object-position: center bottom;
+    object-fit: cover;
+    object-position: center;
   }
 
-  body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__glass-bar {
-    padding: 0.5rem 0.65rem;
-    background: linear-gradient(to top, rgba(27, 20, 9, 0.94), rgba(27, 20, 9, 0.72));
+  body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__shine,
+  body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__grain {
+    opacity: 0.35;
   }
 
   body[data-shell="mobile"] .mobile-premium-4k__shine {
