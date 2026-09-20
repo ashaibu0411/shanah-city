@@ -92,6 +92,18 @@ export function ConnectPageView({ churchImages }: ConnectPageViewProps) {
             </li>
           </ul>
         </div>
+
+        {churchImages ? (
+          <section className="pt-2">
+            <h2 className="mobile-section-title mb-2.5 px-0.5">Quick links</h2>
+            <p className="mb-2.5 px-0.5 text-xs text-night-500 dark:text-sand-400">
+              Explore more of Shanah City — give, community, calendar, and more.
+            </p>
+            <MobilePremiumExploreGrid
+              imageForAction={(action) => churchSocialImageForAction(churchImages, action)}
+            />
+          </section>
+        ) : null}
       </div>
     );
   }
