@@ -4,11 +4,29 @@ type HomeTaglineProps = {
   size?: "mobile" | "desktop";
   /** Light = sand card with navy type; dark = hero on navy (desktop). */
   tone?: "light" | "dark";
+  /** Centered full-bleed cinematic card (mobile home slider). */
+  layout?: "default" | "cinema";
 };
 
-export function HomeTagline({ size = "mobile", tone = "dark" }: HomeTaglineProps) {
+export function HomeTagline({
+  size = "mobile",
+  tone = "dark",
+  layout = "default",
+}: HomeTaglineProps) {
   const isDesktop = size === "desktop";
   const isLight = tone === "light";
+
+  if (layout === "cinema") {
+    return (
+      <div className="home-tagline-cinema">
+        <p className="home-tagline-cinema__eyebrow">{site.heroChurchName}</p>
+        <div className="home-tagline-cinema__rule" aria-hidden />
+        <h1 className="home-tagline-cinema__headline">{site.tagline}</h1>
+        <div className="home-tagline-cinema__rule home-tagline-cinema__rule--short" aria-hidden />
+        <p className="home-tagline-cinema__reference">{site.taglineReference}</p>
+      </div>
+    );
+  }
 
   return (
     <>

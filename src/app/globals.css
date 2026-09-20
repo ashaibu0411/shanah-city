@@ -1052,6 +1052,150 @@
     box-shadow: none;
   }
 
+  body[data-shell="mobile"] .mobile-home-tagline-cinema {
+    border-radius: 2rem 2.35rem 1.75rem 2.75rem;
+    overflow: hidden;
+    box-shadow:
+      0 2px 4px rgba(11, 20, 26, 0.12),
+      0 20px 48px rgba(11, 20, 26, 0.22);
+  }
+
+  html.dark body[data-shell="mobile"] .mobile-home-tagline-cinema {
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.45),
+      0 24px 56px rgba(0, 0, 0, 0.55);
+  }
+
+  body[data-shell="mobile"] .mobile-home-tagline-cinema__stage {
+    isolation: isolate;
+  }
+
+  body[data-shell="mobile"] .mobile-home-tagline-cinema .mobile-home-welcome-chip {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  .home-tagline-cinema {
+    max-width: 20rem;
+    margin-inline: auto;
+  }
+
+  .home-tagline-cinema__eyebrow {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.82);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+  }
+
+  .home-tagline-cinema__rule {
+    margin: 0.65rem auto;
+    height: 1px;
+    width: 2.75rem;
+    background: rgba(255, 255, 255, 0.45);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+  }
+
+  .home-tagline-cinema__rule--short {
+    width: 1.75rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .home-tagline-cinema__headline {
+    font-family: var(--font-home-hero), var(--font-display), ui-serif, Georgia, serif;
+    font-size: clamp(1.35rem, 4.8vw, 1.65rem);
+    font-weight: 600;
+    line-height: 1.18;
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-wrap: balance;
+    text-shadow:
+      0 2px 24px rgba(0, 0, 0, 0.55),
+      0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  .home-tagline-cinema__reference {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-style: italic;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.88);
+    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
+  }
+
+  .home-pastor-portrait--cinema .home-pastor-portrait__photo {
+    inset: 0;
+    right: auto;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    object-position: center 22%;
+    -webkit-mask-image: none;
+    mask-image: none;
+    filter: saturate(1.06) contrast(1.06) brightness(0.96);
+    transform: scale(1);
+    transition: opacity 1.6s ease;
+  }
+
+  .home-pastor-portrait--cinema .home-pastor-portrait__photo--active:not(.home-pastor-portrait__photo--static) {
+    animation: home-cinema-ken-burns 14s ease-out forwards;
+  }
+
+  @keyframes home-cinema-ken-burns {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(1.07);
+    }
+  }
+
+  .home-pastor-portrait--cinema .home-pastor-portrait__scrim {
+    background:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0%, transparent 18%),
+      linear-gradient(
+        to bottom,
+        transparent 28%,
+        rgba(0, 0, 0, 0.38) 48%,
+        rgba(0, 0, 0, 0.52) 62%,
+        rgba(0, 0, 0, 0.28) 78%,
+        transparent 100%
+      ),
+      linear-gradient(to top, rgba(0, 0, 0, 0.42) 0%, transparent 32%);
+  }
+
+  .home-pastor-portrait__dots {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .home-pastor-portrait__dot {
+    display: block;
+    height: 0.35rem;
+    width: 0.35rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    transition:
+      width 0.35s ease,
+      background 0.35s ease;
+  }
+
+  .home-pastor-portrait__dot--active {
+    width: 1.15rem;
+    background: rgba(255, 255, 255, 0.92);
+  }
+
   body[data-shell="mobile"] .mobile-warm-page-header h1 {
     @apply font-home-hero;
   }

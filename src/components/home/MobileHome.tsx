@@ -153,20 +153,17 @@ export function MobileHome({
         <div className="mobile-home-welcome-stories border-b border-night-900/8 bg-[var(--color-bg)] px-3 py-2 dark:border-white/10">
           <HomeStoriesSection />
         </div>
+      </MobilePremiumFrame>
 
-        <div className="mobile-home-welcome mobile-home-welcome-hero relative overflow-hidden text-white">
-          <div className="mobile-home-aurora-bg pointer-events-none absolute inset-0" aria-hidden />
-          <HomePastorPortrait variant="mobile" />
-
-          <div className="relative z-[1] px-4 pb-5 pt-14">
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-amber-300/80 to-teal-400"
-              aria-hidden
-            />
-
-            <HomeTagline size="mobile" tone="dark" />
-
-            <div className="mobile-home-welcome-chip mt-3 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-sand-100">
+      <MobilePremiumFrame
+        variant="cinema"
+        className="mobile-home-tagline-cinema ring-1 ring-night-900/8 dark:ring-white/10"
+      >
+        <div className="mobile-home-tagline-cinema__stage relative min-h-[min(72vw,22rem)] overflow-hidden text-white sm:min-h-[22rem]">
+          <HomePastorPortrait variant="mobile" layout="cinema" />
+          <div className="mobile-home-tagline-cinema__copy relative z-[1] flex min-h-[min(72vw,22rem)] flex-col items-center justify-center px-5 pb-12 pt-8 text-center sm:min-h-[22rem]">
+            <HomeTagline size="mobile" layout="cinema" />
+            <div className="mobile-home-welcome-chip mt-4 inline-flex rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-wide text-white/95">
               Sun {nextService} · {campus.city}
             </div>
           </div>

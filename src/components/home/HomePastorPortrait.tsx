@@ -5,14 +5,17 @@ import { site } from "@/lib/site";
 
 type HomePastorPortraitProps = {
   variant?: "mobile" | "desktop";
+  /** Side-blend (legacy) vs full-bleed cinematic slider. */
+  layout?: "blend" | "cinema";
   className?: string;
 };
 
-const SLIDE_INTERVAL_MS = 4000;
+const SLIDE_INTERVAL_MS = 5500;
 
-/** Blended lead pastor portraits for home tagline heroes — gentle crossfade when multiple slides. */
+/** Lead pastor / home gallery slides — crossfade; cinema layout shows full photos. */
 export function HomePastorPortrait({
   variant = "mobile",
+  layout = "blend",
   className = "",
 }: HomePastorPortraitProps) {
   const slides = useMemo(
@@ -43,9 +46,13 @@ export function HomePastorPortrait({
 
   if (slides.length === 0) return null;
 
+  const cinema = layout === "cinema";
+
   return (
     <div
-      className={`home-pastor-portrait home-pastor-portrait--${variant} pointer-events-none absolute inset-0 overflow-hidden ${className}`}
+      className={`home-pastor-portrait home-pastor-portrait--${variant} ${
+        cinema ? "home-pastor-portrait--cinema" : ""
+      } pointer-events-none absolute inset-0 overflow-hidden ${className}`}
       aria-hidden
     >
       {slides.map((src, index) => (
@@ -57,10 +64,25 @@ export function HomePastorPortrait({
           decoding="async"
           className={`home-pastor-portrait__photo ${
             index === activeIndex ? "home-pastor-portrait__photo--active" : ""
-          }`}
+          } ${reduceMotion ? "home-pastor-portrait__photo--static" : ""}`}
         />
       ))}
       <div className="home-pastor-portrait__scrim absolute inset-0" />
+      {cinema && slides.length > 1 ? (
+        <div
+          className="home-pastor-portrait__dots pointer-events-none absolute inset-x-0 bottom-3 z-[2] flex justify-center gap-1.5"
+          aria-hidden
+        >
+          {slides.map((src, index) => (
+            <span
+              key={src}
+              className={`home-pastor-portrait__dot ${
+                index === activeIndex ? "home-pastor-portrait__dot--active" : ""
+              }`}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
