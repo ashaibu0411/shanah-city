@@ -5,8 +5,8 @@ export const homeExploreTileImages = {
   give: "/home/home-gallery-give-tile.jpg",
   /** Premium connect tile — plan a visit graphic. */
   connect: "/home/home-gallery-connect-tile.jpg",
-  /** Multicultural lineup at a shared moment — fellowship at scale. */
-  community: "/home/home-gallery-75.jpg",
+  /** Premium community tile — see what's new graphic. */
+  community: "/home/home-gallery-community-tile.jpg",
   /** Transformed Woman event — community gatherings on the calendar. */
   calendar: "/home/home-gallery-93.jpg",
 } as const;
@@ -21,7 +21,7 @@ export type HomeExploreTileId = keyof typeof homeExploreTileImages;
 
 /** Per-tile crop/zoom so key details stay in frame on small Explore cards. */
 export function homeExploreTileImageClass(id: HomeExploreTileId): string {
-  if (id === "give" || id === "connect") {
+  if (id === "give" || id === "connect" || id === "community") {
     return "mobile-premium-4k__media--graphic-tile object-cover object-center";
   }
   if (id === "calendar") {
