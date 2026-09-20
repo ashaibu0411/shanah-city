@@ -32,7 +32,7 @@ export default async function AdminReportsPage() {
         title="Reports"
         description={
           isAdmin
-            ? "Shift Your Morning and Evening join clicks, plus monthly leader accountability."
+            ? "Shift Your Morning and Evening join clicks, FrontLiners arrivals, and monthly leader accountability."
             : "Review monthly leader accountability submissions and pastoral follow-up."
         }
       />

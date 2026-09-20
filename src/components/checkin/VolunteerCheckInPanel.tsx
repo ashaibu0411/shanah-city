@@ -6,6 +6,7 @@ import { site } from "@/lib/site";
 import type { VolunteerCheckIn } from "@/lib/member-types";
 import { formatDenverTime, isDenverSunday } from "@/lib/denver-time";
 import {
+  isVolunteerArrivalLiveBoardVisible,
   todaysVolunteerArrivals,
   VOLUNTEER_MINISTRIES,
 } from "@/lib/volunteer-checkin";
@@ -30,6 +31,9 @@ export function VolunteerCheckInPanel() {
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState<{ distanceMeters?: number } | null>(null);
   const [checkins, setCheckins] = useState<VolunteerCheckIn[]>([]);
+  const [liveBoardVisible, setLiveBoardVisible] = useState(() =>
+    isVolunteerArrivalLiveBoardVisible(),
+  );
   const nameBoxRef = useRef<HTMLDivElement>(null);
   const sunday = isDenverSunday();
   const todaysArrivals = useMemo(
@@ -52,6 +56,9 @@ export function VolunteerCheckInPanel() {
     const data = await response.json();
     setCheckins(data.checkins ?? []);
     setMembers(data.members ?? []);
+    if (typeof data.liveBoardVisible === "boolean") {
+      setLiveBoardVisible(data.liveBoardVisible);
+    }
   }
 
   useEffect(() => {
@@ -63,6 +70,13 @@ export function VolunteerCheckInPanel() {
 
   useEffect(() => {
     loadRecent();
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setLiveBoardVisible(isVolunteerArrivalLiveBoardVisible());
+    }, 60_000);
+    return () => window.clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -253,31 +267,41 @@ export function VolunteerCheckInPanel() {
         </Button>
       </Card>
 
-      <Card>
-        <h3 className="font-semibold text-night-900">Today&apos;s arrivals</h3>
-        <p className="mt-1 text-sm text-night-500">
-          Arrival times only. FrontLiners do not check out.
+      {liveBoardVisible ? (
+        <Card>
+          <h3 className="font-semibold text-night-900">Today&apos;s arrivals</h3>
+          <p className="mt-1 text-sm text-night-500">
+            Arrival times only. FrontLiners do not check out. This list is visible until 2:00 PM
+            Mountain time, then moves to Admin reports.
+          </p>
+          {todaysArrivals.length === 0 ? (
+            <p className="mt-3 text-sm text-night-500">
+              No FrontLiners have reported yet today.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2 text-sm text-night-600">
+              {todaysArrivals.map((entry) => (
+                <li
+                  key={entry.id}
+                  className="flex justify-between gap-3 rounded-lg bg-sand-50 px-3 py-2"
+                >
+                  <span>
+                    {entry.name} · {entry.ministry}
+                  </span>
+                  <span className="font-medium text-night-800">
+                    {formatDenverTime(entry.checkedInAt)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      ) : (
+        <p className="text-sm text-night-500">
+          Today&apos;s arrival list closed at 2:00 PM Mountain. Admins can review FrontLiners
+          check-ins under Admin → Reports.
         </p>
-        {todaysArrivals.length === 0 ? (
-          <p className="mt-3 text-sm text-night-500">No FrontLiners have reported yet today.</p>
-        ) : (
-          <ul className="mt-3 space-y-2 text-sm text-night-600">
-            {todaysArrivals.map((entry) => (
-              <li
-                key={entry.id}
-                className="flex justify-between gap-3 rounded-lg bg-sand-50 px-3 py-2"
-              >
-                <span>
-                  {entry.name} · {entry.ministry}
-                </span>
-                <span className="font-medium text-night-800">
-                  {formatDenverTime(entry.checkedInAt)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+      )}
     </div>
   );
 }

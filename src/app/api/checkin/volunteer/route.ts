@@ -8,8 +8,11 @@ import {
   rateLimitResponse,
 } from "@/lib/rate-limit-server";
 import { site } from "@/lib/site";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
 import {
+  filterVolunteerCheckInsForPublicSession,
   findTodaysVolunteerArrival,
+  isVolunteerArrivalLiveBoardVisible,
   volunteerArrivalId,
   VOLUNTEER_MINISTRIES,
 } from "@/lib/volunteer-checkin";
@@ -32,8 +35,20 @@ export async function GET() {
     return NextResponse.json({ error: "Sign in to view volunteer check-ins." }, { status: 401 });
   }
 
-  const [checkins, members] = await Promise.all([getVolunteerCheckIns(), volunteerDirectory()]);
-  return NextResponse.json({ checkins, members, ministries: VOLUNTEER_MINISTRIES });
+  const [allCheckins, members, isAdmin] = await Promise.all([
+    getVolunteerCheckIns(),
+    volunteerDirectory(),
+    canManageAsAdmin(user),
+  ]);
+  const checkins = isAdmin
+    ? allCheckins
+    : filterVolunteerCheckInsForPublicSession(allCheckins, user);
+  return NextResponse.json({
+    checkins,
+    members,
+    ministries: VOLUNTEER_MINISTRIES,
+    liveBoardVisible: isVolunteerArrivalLiveBoardVisible(),
+  });
 }
 
 export async function POST(request: Request) {

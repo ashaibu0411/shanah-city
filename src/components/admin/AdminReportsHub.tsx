@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdminMinistryReportsPanel } from "@/components/admin/AdminMinistryReportsPanel";
+import { AdminVolunteerArrivalsReport } from "@/components/admin/AdminVolunteerArrivalsReport";
 import { MeetingClickReport } from "@/components/meetings/MeetingClickReport";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
@@ -33,13 +34,23 @@ const LEADER_REPORT_SECTION = {
   description: "Monthly ministry accountability submissions and pastoral follow-up.",
 } as const;
 
+const FRONTLINERS_ARRIVAL_SECTION = {
+  id: "frontliners",
+  label: "FrontLiners check-in",
+  description: "Who reported arrival at church (kept after the 2pm live list closes).",
+} as const;
+
 type ClickReportSectionId = (typeof CLICK_REPORT_SECTIONS)[number]["id"];
-type ReportSectionId = ClickReportSectionId | typeof LEADER_REPORT_SECTION.id;
+type ReportSectionId =
+  | ClickReportSectionId
+  | typeof LEADER_REPORT_SECTION.id
+  | typeof FRONTLINERS_ARRIVAL_SECTION.id;
 
 function isReportSection(value: string | null): value is ReportSectionId {
   return (
     CLICK_REPORT_SECTIONS.some((section) => section.id === value) ||
-    value === LEADER_REPORT_SECTION.id
+    value === LEADER_REPORT_SECTION.id ||
+    value === FRONTLINERS_ARRIVAL_SECTION.id
   );
 }
 
@@ -56,9 +67,11 @@ export function AdminReportsHub() {
     const items: Array<
       | (typeof CLICK_REPORT_SECTIONS)[number]
       | typeof LEADER_REPORT_SECTION
+      | typeof FRONTLINERS_ARRIVAL_SECTION
     > = [];
     if (canViewClickReports) {
       items.push(...CLICK_REPORT_SECTIONS);
+      items.push(FRONTLINERS_ARRIVAL_SECTION);
     }
     if (canViewLeaderReports) {
       items.push(LEADER_REPORT_SECTION);
@@ -127,6 +140,8 @@ export function AdminReportsHub() {
 
       {activeSection === "leaders" ? (
         <AdminMinistryReportsPanel embedded />
+      ) : activeSection === "frontliners" ? (
+        <AdminVolunteerArrivalsReport />
       ) : activeSection === "morning" ? (
         <MeetingClickReport
           meetings={meetings}
