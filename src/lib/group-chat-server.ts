@@ -40,3 +40,13 @@ export const toggleGroupChatReaction = (
 
 export const deleteGroupChatMessagesForGroup = (groupId: string) =>
   store().deleteGroupChatMessagesForGroup(groupId);
+
+export const getGroupChatDisappearingSeconds = (groupId: string) =>
+  store().getGroupChatDisappearingSeconds(groupId);
+
+export const setGroupChatDisappearingSeconds = (
+  input: Parameters<typeof groupChatJson.setGroupChatDisappearingSeconds>[0],
+) => store().setGroupChatDisappearingSeconds(input);
+
+export const clearGroupChatMessages = (groupId: string) =>
+  store().clearGroupChatMessages(groupId);

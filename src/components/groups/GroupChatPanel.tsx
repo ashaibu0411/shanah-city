@@ -21,6 +21,11 @@ import {
 } from "@/lib/chat-ui-utils";
 import { getGroupArtwork } from "@/lib/group-artwork";
 import { chatPremium } from "@/components/chat/chat-premium";
+import { ChatPrivacySheet } from "@/components/chat/ChatPrivacySheet";
+import {
+  disappearingBannerText,
+  type ChatDisappearingSeconds,
+} from "@/lib/chat-disappearing";
 import { notifyNotificationsChanged } from "@/lib/use-notifications";
 
 function typingLabel(users: ChatTypingUser[]) {
@@ -88,6 +93,9 @@ export function GroupChatPanel({
   const [reportReason, setReportReason] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
+  const [showPrivacySheet, setShowPrivacySheet] = useState(false);
+  const [privacyBusy, setPrivacyBusy] = useState(false);
+  const [disappearingSeconds, setDisappearingSeconds] = useState(0);
   const [replyDraft, setReplyDraft] = useState<ChatReplyDraft | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const artworkUrl = getGroupArtwork(
@@ -123,6 +131,7 @@ export function GroupChatPanel({
     }
 
     setTypingUsers(data.typingUsers ?? []);
+    setDisappearingSeconds(data.disappearingSeconds ?? 0);
     setMessages((current) => {
       if (options?.after && current.length > 0) {
         const seen = new Set(current.map((message) => message.id));
@@ -272,6 +281,41 @@ export function GroupChatPanel({
     );
   }
 
+  async function applyDisappearing(seconds: ChatDisappearingSeconds) {
+    setPrivacyBusy(true);
+    setStatus("");
+    const response = await fetch("/api/groups/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "setDisappearing", groupId, disappearingSeconds: seconds }),
+    });
+    const data = await response.json();
+    setPrivacyBusy(false);
+    if (!response.ok) {
+      setStatus(data.error ?? "Could not update timer.");
+      return;
+    }
+    setDisappearingSeconds(data.disappearingSeconds ?? seconds);
+  }
+
+  async function clearGroupChatHistory() {
+    setPrivacyBusy(true);
+    setStatus("");
+    const response = await fetch("/api/groups/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "clearChat", groupId }),
+    });
+    const data = await response.json();
+    setPrivacyBusy(false);
+    if (!response.ok) {
+      setStatus(data.error ?? "Could not clear chat.");
+      return;
+    }
+    setMessages([]);
+    setReplyDraft(null);
+  }
+
   async function blockMember(target: GroupChatMessage) {
     if (
       !window.confirm(
@@ -383,6 +427,16 @@ export function GroupChatPanel({
                   type="button"
                   onClick={() => {
                     setShowMenu(false);
+                    setShowPrivacySheet(true);
+                  }}
+                  className={groupsPremium.chatMenuItem}
+                >
+                  Chat settings
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
                     setShowParticipants(true);
                   }}
                   className={groupsPremium.chatMenuItem}
@@ -441,6 +495,12 @@ export function GroupChatPanel({
       ) : null}
 
       {status ? <div className={groupsPremium.chatStatusBanner}>{status}</div> : null}
+
+      {disappearingBannerText(disappearingSeconds) ? (
+        <div className="shrink-0 border-b border-emerald-100 bg-emerald-50/90 px-4 py-2 text-center text-xs font-medium text-emerald-900 dark:border-emerald-900/30 dark:bg-emerald-950/40 dark:text-emerald-100">
+          {disappearingBannerText(disappearingSeconds)}
+        </div>
+      ) : null}
 
       <div className={chatPremium.wallpaper}>
         {loading ? (
@@ -541,6 +601,16 @@ export function GroupChatPanel({
         title={groupName}
         participants={participants}
         currentUserId={userId}
+      />
+
+      <ChatPrivacySheet
+        open={showPrivacySheet}
+        onClose={() => setShowPrivacySheet(false)}
+        title={groupName}
+        disappearingSeconds={disappearingSeconds}
+        onSetDisappearing={applyDisappearing}
+        onClearChat={clearGroupChatHistory}
+        busy={privacyBusy}
       />
     </div>
   );

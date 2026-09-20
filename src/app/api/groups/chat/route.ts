@@ -5,13 +5,17 @@ import { getChatTypingUsers, setChatTyping } from "@/lib/chat-server";
 import { getBlockedUserIds } from "@/lib/block-server";
 import {
   canAccessGroupChat,
+  clearGroupChatMessages,
   deleteGroupChatMessage,
   editGroupChatMessage,
+  getGroupChatDisappearingSeconds,
   listGroupChatMessages,
   markGroupChatRead,
   sendGroupChatMessage,
+  setGroupChatDisappearingSeconds,
   toggleGroupChatReaction,
 } from "@/lib/group-chat-server";
+import { normalizeDisappearingSeconds } from "@/lib/chat-disappearing";
 import { isAllowedReactionEmoji } from "@/lib/chat-utils";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyGroupChatMessage } from "@/lib/push-server";
@@ -56,10 +60,12 @@ export async function GET(request: Request) {
     channelId: groupId,
     excludeUserId: user.id,
   });
+  const disappearingSeconds = await getGroupChatDisappearingSeconds(groupId);
 
   return NextResponse.json({
     messages: messages.filter((message) => !blockedIds.has(message.senderId)),
     typingUsers,
+    disappearingSeconds,
     group: { id: groupId, name: access.detail!.name },
   });
 }
@@ -180,6 +186,17 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+  }
+
+  if (action === "setDisappearing") {
+    const disappearingSeconds = normalizeDisappearingSeconds(body.disappearingSeconds);
+    await setGroupChatDisappearingSeconds({ groupId, disappearingSeconds });
+    return NextResponse.json({ disappearingSeconds });
+  }
+
+  if (action === "clearChat") {
+    await clearGroupChatMessages(groupId);
+    return NextResponse.json({ ok: true, cleared: true });
   }
 
   const content = String(body.content ?? "").trim();

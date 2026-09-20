@@ -93,6 +93,7 @@ export type GroupChatMessage = {
   editedAt?: string;
   deletedAt?: string;
   createdAt: string;
+  expiresAt?: string;
   seenCount?: number;
   reply?: import("@/lib/chat-reply-types").ChatMessageReply;
 };

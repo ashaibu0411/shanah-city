@@ -7,6 +7,7 @@ import {
 } from "@/lib/auth-server";
 import { getChatTypingUsers, setChatTyping } from "@/lib/chat-server";
 import {
+  clearDirectThreadMessages,
   deleteDirectMessage,
   editDirectMessage,
   getMemberDirectory,
@@ -16,8 +17,10 @@ import {
   getThreadsForUser,
   markThreadRead,
   sendDirectMessage,
+  setDirectThreadDisappearing,
   toggleDirectMessageReaction,
 } from "@/lib/message-server";
+import { normalizeDisappearingSeconds } from "@/lib/chat-disappearing";
 import { isUserBlocked } from "@/lib/block-server";
 import { isAllowedReactionEmoji } from "@/lib/chat-utils";
 import { getPublicDisplayName } from "@/lib/member-display-name";
@@ -179,6 +182,35 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+  }
+
+  if (action === "setDisappearing") {
+    const threadId = String(body.threadId ?? "").trim();
+    if (!threadId) {
+      return NextResponse.json({ error: "threadId is required." }, { status: 400 });
+    }
+    const disappearingSeconds = normalizeDisappearingSeconds(body.disappearingSeconds);
+    const thread = await setDirectThreadDisappearing({
+      threadId,
+      userId: user.id,
+      disappearingSeconds,
+    });
+    if (!thread) {
+      return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
+    }
+    return NextResponse.json({ thread, disappearingSeconds: thread.disappearingSeconds ?? 0 });
+  }
+
+  if (action === "clearChat") {
+    const threadId = String(body.threadId ?? "").trim();
+    if (!threadId) {
+      return NextResponse.json({ error: "threadId is required." }, { status: 400 });
+    }
+    const result = await clearDirectThreadMessages({ threadId, userId: user.id });
+    if (!result) {
+      return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
+    }
+    return NextResponse.json(result);
   }
 
   const content = String(body.content ?? "").trim();

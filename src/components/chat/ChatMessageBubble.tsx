@@ -416,9 +416,9 @@ export function ChatMessageBubble({
                   className="whitespace-pre-wrap break-words"
                   linkClassName={
                     mine && compact
-                      ? "font-semibold text-white underline decoration-white/60 underline-offset-2"
+                      ? "font-semibold text-[#027eb5] underline decoration-[#027eb5]/35 underline-offset-2 dark:text-[#53bdeb] dark:decoration-[#53bdeb]/40"
                       : compact
-                        ? "font-semibold text-[#00376B] underline decoration-[#00376B]/35 underline-offset-2 dark:text-sky-300 dark:decoration-sky-300/40"
+                        ? "font-semibold text-[#027eb5] underline decoration-[#027eb5]/35 underline-offset-2 dark:text-[#53bdeb] dark:decoration-[#53bdeb]/40"
                         : mine
                           ? "font-semibold text-sand-50 underline decoration-sand-50/50 underline-offset-2"
                           : "font-semibold text-night-900 underline decoration-night-900/30 underline-offset-2"
@@ -435,7 +435,7 @@ export function ChatMessageBubble({
                 : compact
                   ? `${chatPremium.bubbleMeta} ${mine ? "justify-end" : ""}`
                   : "text-[10px] opacity-60"
-            } ${mine && compact ? "text-white/75" : ""} ${showMeta ? "" : "hidden"}`}
+            } ${showMeta ? "" : "hidden"}`}
           >
             <span>{createdAtLabel}</span>
             {editedAt && !unsent && <span>· edited</span>}

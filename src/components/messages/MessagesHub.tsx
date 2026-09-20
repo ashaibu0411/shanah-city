@@ -22,6 +22,11 @@ import {
 } from "@/lib/chat-ui-utils";
 import { notifyNotificationsChanged } from "@/lib/use-notifications";
 import { chatPremium } from "@/components/chat/chat-premium";
+import { ChatPrivacySheet } from "@/components/chat/ChatPrivacySheet";
+import {
+  disappearingBannerText,
+  type ChatDisappearingSeconds,
+} from "@/lib/chat-disappearing";
 
 type ThreadSummary = {
   id: string;
@@ -173,6 +178,9 @@ export function MessagesHub() {
   const [typingUsers, setTypingUsers] = useState<ChatTypingUser[]>([]);
   const [status, setStatus] = useState("");
   const [showChatMenu, setShowChatMenu] = useState(false);
+  const [showPrivacySheet, setShowPrivacySheet] = useState(false);
+  const [privacyBusy, setPrivacyBusy] = useState(false);
+  const [disappearingSeconds, setDisappearingSeconds] = useState(0);
   const [replyDraft, setReplyDraft] = useState<ChatReplyDraft | null>(null);
   const [unreadByThread, setUnreadByThread] = useState<Record<string, number>>({});
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -280,6 +288,7 @@ export function MessagesHub() {
     if (response.ok) {
       setMessages(data.messages ?? []);
       setTypingUsers(data.typingUsers ?? []);
+      setDisappearingSeconds(data.thread?.disappearingSeconds ?? 0);
       notifyNotificationsChanged();
     } else {
       setStatus(data.error ?? "Could not load conversation.");
@@ -301,6 +310,7 @@ export function MessagesHub() {
       if (response.ok) {
         setMessages(data.messages ?? []);
         setTypingUsers(data.typingUsers ?? []);
+        setDisappearingSeconds(data.thread?.disappearingSeconds ?? 0);
         notifyNotificationsChanged();
       }
     })();
@@ -370,6 +380,7 @@ export function MessagesHub() {
       if (response.ok) {
         setMessages(data.messages ?? []);
         setTypingUsers(data.typingUsers ?? []);
+        setDisappearingSeconds(data.thread?.disappearingSeconds ?? 0);
       }
     }, 5000);
     return () => window.clearInterval(timer);
@@ -640,11 +651,54 @@ export function MessagesHub() {
     return `${users[0].userName} is typing…`;
   }
 
+  async function applyDisappearing(seconds: ChatDisappearingSeconds) {
+    if (!activeThreadId) return;
+    setPrivacyBusy(true);
+    setStatus("");
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "setDisappearing",
+        threadId: activeThreadId,
+        disappearingSeconds: seconds,
+      }),
+    });
+    const data = await response.json();
+    setPrivacyBusy(false);
+    if (!response.ok) {
+      setStatus(data.error ?? "Could not update timer.");
+      return;
+    }
+    setDisappearingSeconds(data.disappearingSeconds ?? seconds);
+  }
+
+  async function clearActiveChat() {
+    if (!activeThreadId) return;
+    setPrivacyBusy(true);
+    setStatus("");
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "clearChat", threadId: activeThreadId }),
+    });
+    const data = await response.json();
+    setPrivacyBusy(false);
+    if (!response.ok) {
+      setStatus(data.error ?? "Could not clear chat.");
+      return;
+    }
+    setMessages([]);
+    setDisappearingSeconds(data.thread?.disappearingSeconds ?? disappearingSeconds);
+    await loadInbox();
+  }
+
   function closeChatView() {
     setActiveThreadId(null);
     setShowNew(false);
     setShowReport(false);
     setShowChatMenu(false);
+    setShowPrivacySheet(false);
     setMessages([]);
     clearRecipients();
     router.push("/messages");
@@ -654,6 +708,7 @@ export function MessagesHub() {
     setShowNew(true);
     setActiveThreadId(null);
     setShowChatMenu(false);
+    setShowPrivacySheet(false);
     setMessages([]);
     clearRecipients();
     router.push("/messages?new=1");
@@ -993,24 +1048,35 @@ export function MessagesHub() {
               showBack={isMobileApp}
               onBack={closeChatView}
               menu={
-                activeOtherUserId ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowChatMenu((value) => !value)}
-                      className={chatPremium.headerIconButton}
-                      aria-label="Conversation options"
-                    >
-                      <svg viewBox="0 0 20 20" className="h-5 w-5" aria-hidden>
-                        <path
-                          fill="currentColor"
-                          d="M10 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
-                        />
-                      </svg>
-                    </button>
-                    {showChatMenu && (
-                      <div className={chatPremium.overflowMenu}>
-                        {!isActiveBlocked ? (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowChatMenu((value) => !value)}
+                    className={chatPremium.headerIconButton}
+                    aria-label="Conversation options"
+                  >
+                    <svg viewBox="0 0 20 20" className="h-5 w-5" aria-hidden>
+                      <path
+                        fill="currentColor"
+                        d="M10 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+                      />
+                    </svg>
+                  </button>
+                  {showChatMenu && (
+                    <div className={chatPremium.overflowMenu}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowChatMenu(false);
+                          setShowPrivacySheet(true);
+                        }}
+                        disabled={busy || privacyBusy}
+                        className={chatPremium.overflowMenuItem}
+                      >
+                        Chat settings
+                      </button>
+                      {activeOtherUserId ? (
+                        !isActiveBlocked ? (
                           <button
                             type="button"
                             onClick={() => {
@@ -1034,7 +1100,9 @@ export function MessagesHub() {
                           >
                             Unblock
                           </button>
-                        )}
+                        )
+                      ) : null}
+                      {activeOtherUserId ? (
                         <button
                           type="button"
                           onClick={() => {
@@ -1046,10 +1114,10 @@ export function MessagesHub() {
                         >
                           Report
                         </button>
-                      </div>
-                    )}
-                  </div>
-                ) : null
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               }
             />
 
@@ -1094,6 +1162,12 @@ export function MessagesHub() {
                 You blocked this member. Unblock them to send messages again.
               </div>
             )}
+
+            {disappearingBannerText(disappearingSeconds) ? (
+              <div className="border-b border-emerald-100 bg-emerald-50/90 px-4 py-2 text-center text-xs font-medium text-emerald-900 dark:border-emerald-900/30 dark:bg-emerald-950/40 dark:text-emerald-100">
+                {disappearingBannerText(disappearingSeconds)}
+              </div>
+            ) : null}
 
             <div className={chatPremium.wallpaper}>
               {messages.length === 0 ? (
@@ -1226,6 +1300,16 @@ export function MessagesHub() {
           </div>
         )}
       </section>
+
+      <ChatPrivacySheet
+        open={showPrivacySheet && Boolean(activeThread)}
+        onClose={() => setShowPrivacySheet(false)}
+        title={activeThread?.otherName ?? "Conversation"}
+        disappearingSeconds={disappearingSeconds}
+        onSetDisappearing={applyDisappearing}
+        onClearChat={clearActiveChat}
+        busy={privacyBusy}
+      />
     </div>
   );
 }

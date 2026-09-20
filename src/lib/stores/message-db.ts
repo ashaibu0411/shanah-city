@@ -22,6 +22,11 @@ import {
   normalizeThreadParticipantIds,
   threadKey,
 } from "@/lib/message-thread-utils";
+import {
+  isMessageExpired,
+  messageExpiresAt,
+  normalizeDisappearingSeconds,
+} from "@/lib/chat-disappearing";
 
 function mapThread(record: {
   id: string;
@@ -33,6 +38,7 @@ function mapThread(record: {
   lastMessage: string;
   lastMessageAt: Date;
   createdAt: Date;
+  disappearingSeconds?: number;
 }): MessageThread {
   const participantIds = normalizeThreadParticipantIds(record);
   return {
@@ -40,6 +46,7 @@ function mapThread(record: {
     participantIds,
     participantNames: record.participantNames as Record<string, string>,
     isGroup: record.isGroup ?? participantIds.length > 2,
+    disappearingSeconds: normalizeDisappearingSeconds(record.disappearingSeconds ?? 0),
     lastMessage: record.lastMessage,
     lastMessageAt: record.lastMessageAt.toISOString(),
     createdAt: record.createdAt.toISOString(),
@@ -64,6 +71,7 @@ function mapMessage(record: {
   replyToExcerpt: string | null;
   createdAt: Date;
   readAt: Date | null;
+  expiresAt?: Date | null;
 }): DirectMessage {
   const reply = replyFromStoredRecord(record);
   return {
@@ -83,6 +91,7 @@ function mapMessage(record: {
     ...(reply ? { reply } : {}),
     createdAt: record.createdAt.toISOString(),
     ...(record.readAt ? { readAt: record.readAt.toISOString() } : {}),
+    ...(record.expiresAt ? { expiresAt: record.expiresAt.toISOString() } : {}),
   };
 }
 
@@ -145,6 +154,10 @@ export async function getThreadsForUser(userId: string) {
 }
 
 export async function getMessagesForThread(threadId: string, userId: string) {
+  await prisma.message.deleteMany({
+    where: { threadId, expiresAt: { lte: new Date() } },
+  });
+
   const record = await prisma.messageThread.findUnique({
     where: { id: threadId },
   });
@@ -161,7 +174,10 @@ export async function getMessagesForThread(threadId: string, userId: string) {
   await markThreadRead(threadId, userId);
 
   const messageRecords = await prisma.message.findMany({
-    where: { threadId },
+    where: {
+      threadId,
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    },
     orderBy: { createdAt: "asc" },
   });
 
@@ -303,6 +319,10 @@ export async function sendDirectMessage(input: {
     replyFields = replyToDbFields(reply);
   }
 
+  const threadRow = await prisma.messageThread.findUnique({ where: { id: threadId } });
+  const disappearingSeconds = normalizeDisappearingSeconds(threadRow?.disappearingSeconds ?? 0);
+  const expiresAtIso = messageExpiresAt(now.toISOString(), disappearingSeconds);
+
   const messageRecord = await prisma.message.create({
     data: {
       id: `msg-${Date.now()}`,
@@ -315,6 +335,7 @@ export async function sendDirectMessage(input: {
       attachmentName: input.attachmentName,
       ...replyFields,
       createdAt: now,
+      expiresAt: expiresAtIso ? new Date(expiresAtIso) : null,
     },
   });
 
@@ -456,6 +477,42 @@ export function getOtherParticipant(thread: MessageThread, userId: string) {
 
 export function getOtherParticipantId(thread: MessageThread, userId: string) {
   return getPrimaryOtherParticipantId(thread, userId);
+}
+
+export async function setDirectThreadDisappearing(input: {
+  threadId: string;
+  userId: string;
+  disappearingSeconds: number;
+}) {
+  const thread = await prisma.messageThread.findUnique({ where: { id: input.threadId } });
+  if (!thread) return null;
+  const participantIds = normalizeThreadParticipantIds(thread);
+  if (!participantIds.includes(input.userId)) return null;
+
+  const updated = await prisma.messageThread.update({
+    where: { id: input.threadId },
+    data: {
+      disappearingSeconds: normalizeDisappearingSeconds(input.disappearingSeconds),
+    },
+  });
+  return mapThread(updated);
+}
+
+export async function clearDirectThreadMessages(input: {
+  threadId: string;
+  userId: string;
+}) {
+  const thread = await prisma.messageThread.findUnique({ where: { id: input.threadId } });
+  if (!thread) return null;
+  const participantIds = normalizeThreadParticipantIds(thread);
+  if (!participantIds.includes(input.userId)) return null;
+
+  const result = await prisma.message.deleteMany({ where: { threadId: input.threadId } });
+  const updated = await prisma.messageThread.update({
+    where: { id: input.threadId },
+    data: { lastMessage: "", lastMessageAt: thread.createdAt },
+  });
+  return { thread: mapThread(updated), cleared: result.count };
 }
 
 export async function getUnreadDirectMessageSummary(userId: string) {

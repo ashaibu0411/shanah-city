@@ -63,16 +63,17 @@ model ActivityLog {
 }
 
 model MessageThread {
-  id               String    @id
-  participantAId   String
-  participantBId   String
-  participantNames Json
-  participantIds   Json?
-  isGroup          Boolean   @default(false)
-  lastMessage      String
-  lastMessageAt    DateTime
-  createdAt        DateTime
-  messages         Message[]
+  id                  String    @id
+  participantAId      String
+  participantBId      String
+  participantNames    Json
+  participantIds      Json?
+  isGroup             Boolean   @default(false)
+  disappearingSeconds Int       @default(0)
+  lastMessage         String
+  lastMessageAt       DateTime
+  createdAt           DateTime
+  messages            Message[]
 }
 
 model Message {
@@ -93,6 +94,7 @@ model Message {
   replyToSenderName  String?
   replyToExcerpt     String?
   createdAt      DateTime
+  expiresAt      DateTime?
   readAt         DateTime?
 }
 
@@ -742,8 +744,14 @@ model GroupChatMessage {
   replyToSenderName  String?
   replyToExcerpt     String?
   createdAt      DateTime
+  expiresAt      DateTime?
 
   @@index([groupId, createdAt])
+}
+
+model GroupChatSettings {
+  groupId             String @id
+  disappearingSeconds Int    @default(0)
 }
 
 model GroupChatReadState {

@@ -3,6 +3,10 @@ import type { GroupChatMessage } from "@/lib/group-types";
 import { normalizeChatReactions, toggleChatReaction, validateChatContent } from "@/lib/chat-utils";
 import { buildChatMessageReply } from "@/lib/chat-reply-utils";
 import { replyFromStoredRecord, replyToDbFields } from "@/lib/chat-reply-server";
+import {
+  messageExpiresAt,
+  normalizeDisappearingSeconds,
+} from "@/lib/chat-disappearing";
 
 const MAX_MESSAGES_PER_GROUP = 500;
 
@@ -28,6 +32,7 @@ function mapMessage(record: {
   replyToSenderName: string | null;
   replyToExcerpt: string | null;
   createdAt: Date;
+  expiresAt?: Date | null;
 }): GroupChatMessage {
   const reply = replyFromStoredRecord(record);
   return {
@@ -45,6 +50,7 @@ function mapMessage(record: {
     ...(record.deletedAt ? { deletedAt: record.deletedAt.toISOString() } : {}),
     ...(reply ? { reply } : {}),
     createdAt: record.createdAt.toISOString(),
+    ...(record.expiresAt ? { expiresAt: record.expiresAt.toISOString() } : {}),
   };
 }
 
@@ -62,14 +68,44 @@ async function computeSeenCount(
   }).length;
 }
 
+export async function getGroupChatDisappearingSeconds(groupId: string) {
+  const row = await prisma.groupChatSettings.findUnique({ where: { groupId } });
+  return normalizeDisappearingSeconds(row?.disappearingSeconds ?? 0);
+}
+
+export async function setGroupChatDisappearingSeconds(input: {
+  groupId: string;
+  disappearingSeconds: number;
+}) {
+  const seconds = normalizeDisappearingSeconds(input.disappearingSeconds);
+  await prisma.groupChatSettings.upsert({
+    where: { groupId: input.groupId },
+    create: { groupId: input.groupId, disappearingSeconds: seconds },
+    update: { disappearingSeconds: seconds },
+  });
+  return seconds;
+}
+
+export async function clearGroupChatMessages(groupId: string) {
+  await prisma.groupChatMessage.deleteMany({ where: { groupId } });
+}
+
 export async function listGroupChatMessages(
   groupId: string,
   options?: { after?: string; viewerId?: string; memberIds?: string[] },
 ) {
+  await prisma.groupChatMessage.deleteMany({
+    where: { groupId, expiresAt: { lte: new Date() } },
+  });
+
   const where: {
     groupId: string;
     createdAt?: { gt: Date };
-  } = { groupId };
+    OR?: Array<{ expiresAt: null } | { expiresAt: { gt: Date } }>;
+  } = {
+    groupId,
+    OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+  };
 
   if (options?.after) {
     const afterDate = new Date(options.after);
@@ -138,6 +174,10 @@ export async function addGroupChatMessage(input: {
     replyFields = replyToDbFields(reply);
   }
 
+  const createdAt = new Date();
+  const disappearingSeconds = await getGroupChatDisappearingSeconds(input.groupId);
+  const expiresAtIso = messageExpiresAt(createdAt.toISOString(), disappearingSeconds);
+
   const message = await prisma.groupChatMessage.create({
     data: {
       id: `group-msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -151,7 +191,8 @@ export async function addGroupChatMessage(input: {
       attachmentType: input.attachmentType,
       attachmentName: input.attachmentName,
       ...replyFields,
-      createdAt: new Date(),
+      createdAt,
+      expiresAt: expiresAtIso ? new Date(expiresAtIso) : null,
     },
   });
 

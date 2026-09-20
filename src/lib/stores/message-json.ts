@@ -21,6 +21,11 @@ import {
   getThreadDisplayName,
   threadKey,
 } from "@/lib/message-thread-utils";
+import {
+  isMessageExpired,
+  messageExpiresAt,
+  normalizeDisappearingSeconds,
+} from "@/lib/chat-disappearing";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const THREADS_FILE = path.join(DATA_DIR, "message-threads.json");
@@ -56,6 +61,45 @@ function previewForMessage(message: DirectMessage) {
   if (message.reply) return `↩ ${message.content.slice(0, 100) || "Reply"}`;
   if (message.attachmentUrl && !message.content.trim()) return "Photo";
   return message.content.slice(0, 120);
+}
+
+function syncThreadPreview(
+  threads: MessageThread[],
+  messages: DirectMessage[],
+  threadId: string,
+) {
+  const thread = threads.find((item) => item.id === threadId);
+  if (!thread) return;
+  const latest = [...messages]
+    .filter((entry) => entry.threadId === threadId && !isMessageExpired(entry.expiresAt))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+  if (latest) {
+    thread.lastMessage = previewForMessage(mapMessage(latest));
+    thread.lastMessageAt = latest.createdAt;
+  } else {
+    thread.lastMessage = "";
+    thread.lastMessageAt = thread.createdAt;
+  }
+}
+
+async function purgeExpiredDirectMessages() {
+  const [threads, messages] = await Promise.all([
+    readJson<MessageThread[]>(THREADS_FILE, []),
+    readJson<DirectMessage[]>(MESSAGES_FILE, []),
+  ]);
+  const kept = messages.filter((message) => !isMessageExpired(message.expiresAt));
+  if (kept.length === messages.length) return;
+
+  const affected = new Set(
+    messages.filter((m) => isMessageExpired(m.expiresAt)).map((m) => m.threadId),
+  );
+  for (const threadId of affected) {
+    syncThreadPreview(threads, kept, threadId);
+  }
+  await Promise.all([
+    writeJson(MESSAGES_FILE, kept),
+    writeJson(THREADS_FILE, threads),
+  ]);
 }
 
 export async function getMemberDirectory(currentUserId: string) {
@@ -107,6 +151,8 @@ export async function getThreadsForUser(userId: string) {
 }
 
 export async function getMessagesForThread(threadId: string, userId: string) {
+  await purgeExpiredDirectMessages();
+
   const threads = await readJson<MessageThread[]>(THREADS_FILE, []);
   const thread = threads.find((item) => item.id === threadId);
   if (!thread || !thread.participantIds.includes(userId)) {
@@ -263,6 +309,10 @@ export async function sendDirectMessage(input: {
     attachmentName: input.attachmentName,
     ...(reply ? { reply } : {}),
     createdAt: now,
+    expiresAt: messageExpiresAt(
+      now,
+      normalizeDisappearingSeconds(thread?.disappearingSeconds ?? 0),
+    ),
   };
 
   const participantNames: Record<string, string> = {
@@ -281,6 +331,7 @@ export async function sendDirectMessage(input: {
       participantIds: allParticipantIds,
       participantNames,
       isGroup,
+      disappearingSeconds: 0,
       lastMessage: previewForMessage(message),
       lastMessageAt: now,
       createdAt: now,
@@ -452,4 +503,37 @@ export async function getUnreadDirectMessageSummary(userId: string) {
   }
 
   return items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+}
+
+export async function setDirectThreadDisappearing(input: {
+  threadId: string;
+  userId: string;
+  disappearingSeconds: number;
+}) {
+  const threads = await readJson<MessageThread[]>(THREADS_FILE, []);
+  const thread = threads.find((item) => item.id === input.threadId);
+  if (!thread || !thread.participantIds.includes(input.userId)) {
+    return null;
+  }
+  thread.disappearingSeconds = normalizeDisappearingSeconds(input.disappearingSeconds);
+  await writeJson(THREADS_FILE, threads);
+  return thread;
+}
+
+export async function clearDirectThreadMessages(input: {
+  threadId: string;
+  userId: string;
+}) {
+  const threads = await readJson<MessageThread[]>(THREADS_FILE, []);
+  const thread = threads.find((item) => item.id === input.threadId);
+  if (!thread || !thread.participantIds.includes(input.userId)) {
+    return null;
+  }
+
+  const messages = await readJson<DirectMessage[]>(MESSAGES_FILE, []);
+  const kept = messages.filter((message) => message.threadId !== input.threadId);
+  thread.lastMessage = "";
+  thread.lastMessageAt = thread.createdAt;
+  await Promise.all([writeJson(MESSAGES_FILE, kept), writeJson(THREADS_FILE, threads)]);
+  return { thread, cleared: messages.length - kept.length };
 }

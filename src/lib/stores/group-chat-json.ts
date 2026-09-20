@@ -7,9 +7,15 @@ import {
   validateChatContent,
 } from "@/lib/chat-utils";
 import { buildChatMessageReply } from "@/lib/chat-reply-utils";
+import {
+  isMessageExpired,
+  messageExpiresAt,
+  normalizeDisappearingSeconds,
+} from "@/lib/chat-disappearing";
 
 const CHAT_FILE = path.join(process.cwd(), "data", "group-chat-messages.json");
 const READ_FILE = path.join(process.cwd(), "data", "group-chat-read-state.json");
+const SETTINGS_FILE = path.join(process.cwd(), "data", "group-chat-settings.json");
 const MAX_MESSAGES_PER_GROUP = 500;
 
 type ReadState = {
@@ -17,6 +23,53 @@ type ReadState = {
   userId: string;
   lastReadAt: string;
 };
+
+type GroupChatSettingsRecord = {
+  groupId: string;
+  disappearingSeconds: number;
+};
+
+async function readSettings() {
+  return readJson<GroupChatSettingsRecord[]>(SETTINGS_FILE, []);
+}
+
+export async function getGroupChatDisappearingSeconds(groupId: string) {
+  const settings = await readSettings();
+  const row = settings.find((item) => item.groupId === groupId);
+  return normalizeDisappearingSeconds(row?.disappearingSeconds ?? 0);
+}
+
+export async function setGroupChatDisappearingSeconds(input: {
+  groupId: string;
+  disappearingSeconds: number;
+}) {
+  const settings = await readSettings();
+  const seconds = normalizeDisappearingSeconds(input.disappearingSeconds);
+  const index = settings.findIndex((item) => item.groupId === input.groupId);
+  if (index === -1) {
+    settings.push({ groupId: input.groupId, disappearingSeconds: seconds });
+  } else {
+    settings[index] = { ...settings[index], disappearingSeconds: seconds };
+  }
+  await writeJson(SETTINGS_FILE, settings);
+  return seconds;
+}
+
+async function purgeExpiredGroupMessages() {
+  const all = await readMessages();
+  const kept = all.filter((message) => !isMessageExpired(message.expiresAt));
+  if (kept.length !== all.length) {
+    await writeJson(CHAT_FILE, kept);
+  }
+}
+
+export async function clearGroupChatMessages(groupId: string) {
+  const all = await readMessages();
+  await writeJson(
+    CHAT_FILE,
+    all.filter((message) => message.groupId !== groupId),
+  );
+}
 
 async function readJson<T>(file: string, fallback: T): Promise<T> {
   try {
@@ -65,6 +118,7 @@ export async function listGroupChatMessages(
   groupId: string,
   options?: { after?: string; viewerId?: string; memberIds?: string[] },
 ) {
+  await purgeExpiredGroupMessages();
   const all = await readMessages();
   let messages = all
     .filter((message) => message.groupId === groupId)
@@ -125,6 +179,9 @@ export async function addGroupChatMessage(input: {
     });
   }
 
+  const disappearingSeconds = await getGroupChatDisappearingSeconds(input.groupId);
+  const createdAt = new Date().toISOString();
+
   const message: GroupChatMessage = {
     id: `group-msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     groupId: input.groupId,
@@ -137,7 +194,8 @@ export async function addGroupChatMessage(input: {
     attachmentType: input.attachmentType,
     attachmentName: input.attachmentName,
     ...(reply ? { reply } : {}),
-    createdAt: new Date().toISOString(),
+    createdAt,
+    expiresAt: messageExpiresAt(createdAt, disappearingSeconds),
   };
 
   const otherMessages = all.filter((entry) => entry.groupId !== input.groupId);

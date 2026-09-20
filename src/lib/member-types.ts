@@ -149,6 +149,8 @@ export type MessageThread = {
   participantIds: string[];
   participantNames: Record<string, string>;
   isGroup?: boolean;
+  /** 0 = off. New messages expire after this many seconds. */
+  disappearingSeconds?: number;
   lastMessage: string;
   lastMessageAt: string;
   createdAt: string;
@@ -170,6 +172,8 @@ export type DirectMessage = {
   deletedAt?: string;
   createdAt: string;
   readAt?: string;
+  /** When set, message is removed after this time (disappearing messages). */
+  expiresAt?: string;
   reply?: import("@/lib/chat-reply-types").ChatMessageReply;
 };
 
