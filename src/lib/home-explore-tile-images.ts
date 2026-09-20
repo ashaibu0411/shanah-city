@@ -7,8 +7,8 @@ export const homeExploreTileImages = {
   connect: "/home/home-gallery-connect-tile.jpg",
   /** Premium community tile — see what's new graphic. */
   community: "/home/home-gallery-community-tile.jpg",
-  /** Transformed Woman event — community gatherings on the calendar. */
-  calendar: "/home/home-gallery-93.jpg",
+  /** Premium calendar tile — events and RSVP graphic. */
+  calendar: "/home/home-gallery-calendar-tile.jpg",
 } as const;
 
 /** Home + Media “Watch Live” top banner (same photo everywhere). */
@@ -21,11 +21,5 @@ export type HomeExploreTileId = keyof typeof homeExploreTileImages;
 
 /** Per-tile crop/zoom so key details stay in frame on small Explore cards. */
 export function homeExploreTileImageClass(id: HomeExploreTileId): string {
-  if (id === "give" || id === "connect" || id === "community") {
-    return "mobile-premium-4k__media--graphic-tile object-cover object-center";
-  }
-  if (id === "calendar") {
-    return "object-cover object-[center_34%]";
-  }
-  return "object-cover object-center";
+  return "mobile-premium-4k__media--graphic-tile object-cover object-center";
 }

@@ -7,7 +7,12 @@ import {
 } from "@/components/app/mobile-premium";
 import { homeExploreTileImageClass } from "@/lib/home-explore-tile-images";
 
-const graphicExploreTiles = new Set<MobilePremiumActionId>(["give", "connect", "community"]);
+const graphicExploreTiles = new Set<MobilePremiumActionId>([
+  "give",
+  "connect",
+  "community",
+  "calendar",
+]);
 
 function isGraphicExploreTile(action: MobilePremiumActionId) {
   return graphicExploreTiles.has(action);

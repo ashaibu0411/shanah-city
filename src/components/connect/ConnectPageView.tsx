@@ -18,15 +18,6 @@ export function ConnectPageView({ churchImages }: ConnectPageViewProps) {
   if (isMobileApp) {
     return (
       <div className="space-y-4">
-        {churchImages ? (
-          <section>
-            <h2 className="mobile-section-title mb-2.5 px-0.5">Quick links</h2>
-            <MobilePremiumExploreGrid
-              imageForAction={(action) => churchSocialImageForAction(churchImages, action)}
-            />
-          </section>
-        ) : null}
-
         <div className="mobile-card mobile-premium-surface p-4">
           <h3 className="font-display text-lg font-bold tracking-tight text-night-900">
             Service times
