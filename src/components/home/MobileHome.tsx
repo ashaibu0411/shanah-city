@@ -42,9 +42,9 @@ const todayShortcuts = [
     className: "from-sand-100 to-clay-100/90 text-night-900 ring-night-900/10 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
   },
   {
-    label: "Calendar",
-    href: "/calendar",
-    detail: "Worship & events",
+    label: "Groups",
+    href: "/groups",
+    detail: "Teams & group chat",
     className: "from-clay-50 to-sand-100 text-night-900 ring-clay-300/40 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
   },
   {
