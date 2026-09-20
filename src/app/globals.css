@@ -1674,16 +1674,16 @@
   .chat-premium-panel,
   .messages-hub-root {
     --chat-out-gradient: linear-gradient(
-      152deg,
-      #4a8fd8 0%,
-      #2a5fad 32%,
-      #1e4a87 58%,
-      #2d3568 100%
+      135deg,
+      #833ab4 0%,
+      #c13584 38%,
+      #e1306c 68%,
+      #f77737 100%
     );
     --chat-out-shadow:
-      0 2px 12px rgba(22, 52, 110, 0.38),
-      inset 0 1px 0 rgba(255, 255, 255, 0.16);
-    --chat-out-accent: #2459b3;
+      0 2px 12px rgba(193, 53, 132, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    --chat-out-accent: #c13584;
   }
 
   html.dark .chat-premium-wallpaper,
@@ -1691,16 +1691,16 @@
   html.dark .chat-premium-panel,
   html.dark .messages-hub-root {
     --chat-out-gradient: linear-gradient(
-      152deg,
-      #5b9aea 0%,
-      #2563eb 38%,
-      #4338ca 72%,
-      #312e81 100%
+      135deg,
+      #9333ea 0%,
+      #db2777 42%,
+      #f43f5e 72%,
+      #fb923c 100%
     );
     --chat-out-shadow:
-      0 2px 14px rgba(37, 99, 235, 0.32),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    --chat-out-accent: #60a5fa;
+      0 2px 14px rgba(219, 39, 119, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    --chat-out-accent: #f472b6;
   }
 
   .chat-premium-wallpaper,
