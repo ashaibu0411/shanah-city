@@ -7,6 +7,12 @@ import {
 } from "@/components/app/mobile-premium";
 import { homeExploreTileImageClass } from "@/lib/home-explore-tile-images";
 
+const graphicExploreTiles = new Set<MobilePremiumActionId>(["give", "connect"]);
+
+function isGraphicExploreTile(action: MobilePremiumActionId) {
+  return graphicExploreTiles.has(action);
+}
+
 function PremiumActionIcon({ name }: { name: MobilePremiumActionId }) {
   const shared = {
     viewBox: "0 0 24 24",
@@ -76,7 +82,7 @@ export function MobilePremiumTile({
       href={href}
       aria-label={meta.label}
       className={`mobile-premium-4k group relative block overflow-hidden transition active:scale-[0.985] ${
-        action === "give" ? "mobile-premium-4k--give" : ""
+        isGraphicExploreTile(action) ? "mobile-premium-4k--graphic-tile" : ""
       } ${compact ? "mobile-premium-4k-compact" : "mobile-premium-4k-flyer"}`}
     >
       <div className="mobile-premium-4k__bezel pointer-events-none absolute inset-0 z-30" aria-hidden />
@@ -93,20 +99,20 @@ export function MobilePremiumTile({
         />
       </div>
 
-      {action === "give" ? null : (
+      {isGraphicExploreTile(action) ? null : (
         <div
           className={`pointer-events-none absolute inset-0 z-10 bg-gradient-to-t ${meta.overlay}`}
           aria-hidden
         />
       )}
-      {action === "give" ? null : (
+      {isGraphicExploreTile(action) ? null : (
         <div
           className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-1/2 bg-gradient-to-b ${meta.accent}`}
           aria-hidden
         />
       )}
 
-      {action === "give" ? null : (
+      {isGraphicExploreTile(action) ? null : (
         <div className="mobile-premium-4k__glass-bar relative z-20 flex items-center gap-2.5">
           <span
             className={`mobile-premium-4k__icon inline-flex shrink-0 items-center justify-center rounded-xl ring-1 backdrop-blur-md ${meta.iconTone}`}

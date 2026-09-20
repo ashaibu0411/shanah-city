@@ -3,8 +3,8 @@
 export const homeExploreTileImages = {
   /** Premium give tile — generosity graphic with scripture. */
   give: "/home/home-gallery-give-tile.jpg",
-  /** Diverse friends together — welcoming, plan-a-visit energy. */
-  connect: "/home/home-gallery-08.jpg",
+  /** Premium connect tile — plan a visit graphic. */
+  connect: "/home/home-gallery-connect-tile.jpg",
   /** Multicultural lineup at a shared moment — fellowship at scale. */
   community: "/home/home-gallery-75.jpg",
   /** Transformed Woman event — community gatherings on the calendar. */
@@ -21,8 +21,8 @@ export type HomeExploreTileId = keyof typeof homeExploreTileImages;
 
 /** Per-tile crop/zoom so key details stay in frame on small Explore cards. */
 export function homeExploreTileImageClass(id: HomeExploreTileId): string {
-  if (id === "give") {
-    return "mobile-premium-4k__media--give-tile object-cover object-center";
+  if (id === "give" || id === "connect") {
+    return "mobile-premium-4k__media--graphic-tile object-cover object-center";
   }
   if (id === "calendar") {
     return "object-cover object-[center_34%]";

@@ -874,7 +874,7 @@
     border-radius: 1.15rem;
   }
 
-  body[data-shell="mobile"] .mobile-premium-4k__media:not(.mobile-premium-4k__media--give-tile) {
+  body[data-shell="mobile"] .mobile-premium-4k__media:not(.mobile-premium-4k__media--graphic-tile) {
     filter: contrast(1.1) saturate(1.16) brightness(1.03);
     transform: scale(1.04) translateZ(0);
     transition:
@@ -882,25 +882,25 @@
       filter 0.35s ease;
   }
 
-  body[data-shell="mobile"] .mobile-premium-4k__media--give-tile {
+  body[data-shell="mobile"] .mobile-premium-4k__media--graphic-tile {
     filter: contrast(1.06) saturate(1.1) brightness(1.04);
     transform: none !important;
     transition: filter 0.35s ease;
   }
 
-  body[data-shell="mobile"] .mobile-premium-4k:active .mobile-premium-4k__media:not(.mobile-premium-4k__media--give-tile),
-  body[data-shell="mobile"] .mobile-premium-4k.group:active .mobile-premium-4k__media:not(.mobile-premium-4k__media--give-tile) {
+  body[data-shell="mobile"] .mobile-premium-4k:active .mobile-premium-4k__media:not(.mobile-premium-4k__media--graphic-tile),
+  body[data-shell="mobile"] .mobile-premium-4k.group:active .mobile-premium-4k__media:not(.mobile-premium-4k__media--graphic-tile) {
     transform: scale(1.09) translateZ(0);
     filter: contrast(1.14) saturate(1.22) brightness(1.05);
   }
 
-  body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__media--give-tile {
+  body[data-shell="mobile"] .mobile-premium-4k--graphic-tile .mobile-premium-4k__media--graphic-tile {
     object-fit: cover;
     object-position: center;
   }
 
-  body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__shine,
-  body[data-shell="mobile"] .mobile-premium-4k--give .mobile-premium-4k__grain {
+  body[data-shell="mobile"] .mobile-premium-4k--graphic-tile .mobile-premium-4k__shine,
+  body[data-shell="mobile"] .mobile-premium-4k--graphic-tile .mobile-premium-4k__grain {
     opacity: 0.35;
   }
 
