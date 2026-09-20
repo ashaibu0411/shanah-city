@@ -1,6 +1,7 @@
 import { useDatabase } from "@/lib/use-database";
-import { getGroupDetail } from "@/lib/group-server";
+import { listGroupsForUser } from "@/lib/group-server";
 import { memberHasFullGroupAccess } from "@/lib/ministry-readiness-server";
+import type { GroupChatInboxEntry } from "@/lib/group-types";
 import * as groupChatDb from "@/lib/stores/group-chat-db";
 import * as groupChatJson from "@/lib/stores/group-chat-json";
 
@@ -50,3 +51,22 @@ export const setGroupChatDisappearingSeconds = (
 
 export const clearGroupChatMessages = (groupId: string) =>
   store().clearGroupChatMessages(groupId);
+
+export async function getGroupChatInboxForUser(userId: string): Promise<GroupChatInboxEntry[]> {
+  const groups = await listGroupsForUser(userId, { mine: true });
+  const eligible = [];
+  for (const group of groups) {
+    if (!group.isMember) continue;
+    const access = await memberHasFullGroupAccess(userId, group.id);
+    if (!access.allowed) continue;
+    eligible.push({
+      id: group.id,
+      name: group.name,
+      memberIds: group.memberIds,
+      category: group.category,
+      iconUrl: group.iconUrl,
+      updatedAt: group.updatedAt,
+    });
+  }
+  return store().getGroupChatInboxForUser(userId, eligible);
+}

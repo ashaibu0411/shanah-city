@@ -25,6 +25,7 @@ import { isUserBlocked } from "@/lib/block-server";
 import { isAllowedReactionEmoji } from "@/lib/chat-utils";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyNewMessage } from "@/lib/push-server";
+import { getGroupChatInboxForUser } from "@/lib/group-chat-server";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -53,6 +54,7 @@ export async function GET(request: Request) {
 
   const threads = await getThreadsForUser(user.id);
   const members = await getMemberDirectory(user.id);
+  const groupChats = await getGroupChatInboxForUser(user.id);
 
   return NextResponse.json({
     threads: threads.map((thread) => ({
@@ -60,6 +62,7 @@ export async function GET(request: Request) {
       otherName: getOtherParticipant(thread, user.id),
       otherUserId: getOtherParticipantId(thread, user.id),
     })),
+    groupChats,
     members,
     user,
   });

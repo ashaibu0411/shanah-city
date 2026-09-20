@@ -354,7 +354,7 @@ export async function getUnreadGroupChatSummary(
       type: "group_chat" as const,
       title: group.name,
       body: `${latest.senderName}: ${previewGroupMessage(latest)}`,
-      href: `/groups/${encodeURIComponent(group.id)}?chat=1`,
+      href: `/messages?group=${encodeURIComponent(group.id)}`,
       count: unread.length,
       at: latest.createdAt,
       groupId: group.id,
@@ -365,4 +365,61 @@ export async function getUnreadGroupChatSummary(
   }
 
   return items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+}
+
+function inboxPreviewForMessage(message: GroupChatMessage, viewerId: string) {
+  const body = previewGroupMessage(message);
+  if (message.senderId === viewerId) return `You: ${body}`;
+  return `${message.senderName}: ${body}`;
+}
+
+export async function getGroupChatInboxForUser(
+  userId: string,
+  groups: {
+    id: string;
+    name: string;
+    memberIds: string[];
+    category: import("@/lib/group-types").GroupCategory;
+    iconUrl?: string;
+    updatedAt: string;
+  }[],
+) {
+  const memberGroups = groups.filter((group) => group.memberIds.includes(userId));
+  if (memberGroups.length === 0) return [];
+
+  const [messages, states] = await Promise.all([readMessages(), readReadStates()]);
+  const lastReadByGroup = new Map(
+    states.filter((state) => state.userId === userId).map((state) => [state.groupId, state.lastReadAt]),
+  );
+
+  const entries: import("@/lib/group-types").GroupChatInboxEntry[] = [];
+
+  for (const group of memberGroups) {
+    const groupMessages = messages
+      .filter((message) => message.groupId === group.id)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    if (groupMessages.length === 0) continue;
+
+    const latest = mapExtras(groupMessages[0]);
+    const lastReadMs = Date.parse(lastReadByGroup.get(group.id) ?? "0");
+    const unreadCount = groupMessages.filter((message) => {
+      if (message.senderId === userId) return false;
+      return Date.parse(message.createdAt) > lastReadMs;
+    }).length;
+
+    entries.push({
+      groupId: group.id,
+      name: group.name,
+      category: group.category,
+      iconUrl: group.iconUrl,
+      updatedAt: group.updatedAt,
+      lastMessage: inboxPreviewForMessage(latest, userId),
+      lastMessageAt: latest.createdAt,
+      unreadCount,
+    });
+  }
+
+  return entries.sort(
+    (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime(),
+  );
 }

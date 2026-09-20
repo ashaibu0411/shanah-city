@@ -27,6 +27,10 @@ import {
   disappearingBannerText,
   type ChatDisappearingSeconds,
 } from "@/lib/chat-disappearing";
+import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
+import type { GroupCategory, GroupChatInboxEntry, GroupDetail } from "@/lib/group-types";
+import { getGroupArtwork } from "@/lib/group-artwork";
+import { groupsPremium } from "@/components/groups/groups-premium";
 
 type ThreadSummary = {
   id: string;
@@ -35,6 +39,14 @@ type ThreadSummary = {
   lastMessage: string;
   lastMessageAt: string;
 };
+
+type InboxRow =
+  | { kind: "direct"; sortAt: string; thread: ThreadSummary }
+  | { kind: "group"; sortAt: string; chat: GroupChatInboxEntry };
+
+function groupInboxKey(groupId: string) {
+  return `group:${groupId}`;
+}
 
 function initials(name: string) {
   return chatInitials(name);
@@ -60,6 +72,31 @@ function formatDetailTime(iso: string) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function GroupInboxAvatar({
+  name,
+  groupId,
+  category,
+  iconUrl,
+  updatedAt,
+}: {
+  name: string;
+  groupId: string;
+  category: GroupCategory;
+  iconUrl?: string;
+  updatedAt?: string;
+}) {
+  const artworkUrl = getGroupArtwork(
+    { id: groupId, name, category, iconUrl, updatedAt },
+    "square",
+  );
+  return (
+    <span className={`${groupsPremium.iconTile} h-12 w-12 shrink-0 rounded-full`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={artworkUrl} alt="" className={groupsPremium.iconTileImage} />
+    </span>
+  );
 }
 
 function MemberAvatar({
@@ -139,13 +176,20 @@ function DirectChatHeader({
   );
 }
 
-function parseUnreadByThread(items: Array<{ type?: string; href?: string; count?: number }>) {
+function parseUnreadByThread(
+  items: Array<{ type?: string; href?: string; count?: number; groupId?: string }>,
+) {
   const map: Record<string, number> = {};
   for (const item of items) {
-    if (item.type !== "direct_message" || !item.href) continue;
-    const match = item.href.match(/thread=([^&]+)/);
-    if (match?.[1]) {
-      map[decodeURIComponent(match[1])] = item.count ?? 1;
+    if (item.type === "direct_message" && item.href) {
+      const match = item.href.match(/thread=([^&]+)/);
+      if (match?.[1]) {
+        map[decodeURIComponent(match[1])] = item.count ?? 1;
+      }
+      continue;
+    }
+    if (item.type === "group_chat" && item.groupId) {
+      map[groupInboxKey(item.groupId)] = item.count ?? 1;
     }
   }
   return map;
@@ -157,9 +201,14 @@ export function MessagesHub() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const threadFromUrl = searchParams.get("thread");
+  const groupFromUrl = searchParams.get("group");
   const memberFromUrl = searchParams.get("member");
   const memberNameFromUrl = searchParams.get("name");
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
+  const [groupChats, setGroupChats] = useState<GroupChatInboxEntry[]>([]);
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  const [groupChatDetail, setGroupChatDetail] = useState<GroupDetail | null>(null);
+  const [groupChatLoading, setGroupChatLoading] = useState(false);
   const [members, setMembers] = useState<MemberDirectoryEntry[]>([]);
   const [blocks, setBlocks] = useState<UserBlock[]>([]);
   const [reports, setReports] = useState<MessageReport[]>([]);
@@ -185,6 +234,7 @@ export function MessagesHub() {
   const [unreadByThread, setUnreadByThread] = useState<Record<string, number>>({});
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const activeThreadIdRef = useRef<string | null>(null);
+  const activeGroupIdRef = useRef<string | null>(null);
 
   const isStaff = permissions.canManageAdmin;
 
@@ -264,6 +314,7 @@ export function MessagesHub() {
       return;
     }
     setThreads(data.threads ?? []);
+    setGroupChats(data.groupChats ?? []);
     setMembers(data.members ?? []);
     setStatus("");
     notifyNotificationsChanged();
@@ -273,6 +324,8 @@ export function MessagesHub() {
   async function loadThread(threadId: string, options?: { replace?: boolean }) {
     setReplyDraft(null);
     setActiveThreadId(threadId);
+    setActiveGroupId(null);
+    setGroupChatDetail(null);
     setShowNew(false);
     setShowReport(false);
     setShowChatMenu(false);
@@ -296,14 +349,58 @@ export function MessagesHub() {
     }
   }
 
+  async function loadGroupChat(groupId: string, options?: { replace?: boolean }) {
+    setReplyDraft(null);
+    setActiveGroupId(groupId);
+    setActiveThreadId(null);
+    setMessages([]);
+    setShowNew(false);
+    setShowReport(false);
+    setShowChatMenu(false);
+    setGroupChatLoading(true);
+    setGroupChatDetail(null);
+
+    const params = new URLSearchParams();
+    params.set("group", groupId);
+    if (options?.replace) {
+      router.replace(`/messages?${params.toString()}`);
+    } else {
+      router.push(`/messages?${params.toString()}`);
+    }
+
+    const response = await fetch(`/api/groups?id=${encodeURIComponent(groupId)}`);
+    const data = await response.json();
+    setGroupChatLoading(false);
+
+    if (!response.ok) {
+      setStatus(data.error ?? "Could not open group chat.");
+      setActiveGroupId(null);
+      router.push("/messages");
+      return;
+    }
+
+    setGroupChatDetail(data.group ?? null);
+    notifyNotificationsChanged();
+    void loadInbox();
+  }
+
   useEffect(() => {
     activeThreadIdRef.current = activeThreadId;
   }, [activeThreadId]);
+
+  useEffect(() => {
+    activeGroupIdRef.current = activeGroupId;
+  }, [activeGroupId]);
 
   useOnAppRefresh(() => {
     void (async () => {
       await loadInbox();
       const threadId = activeThreadIdRef.current;
+      const groupId = activeGroupIdRef.current;
+      if (groupId) {
+        void loadGroupChat(groupId, { replace: true });
+        return;
+      }
       if (!threadId) return;
       const response = await fetch(`/api/messages?threadId=${encodeURIComponent(threadId)}`);
       const data = await response.json();
@@ -321,6 +418,10 @@ export function MessagesHub() {
       Promise.all([loadInbox(), loadBlocks()]).then(() => {
         if (threadFromUrl) {
           loadThread(threadFromUrl);
+          return;
+        }
+        if (groupFromUrl) {
+          loadGroupChat(groupFromUrl);
           return;
         }
         if (memberFromUrl && memberFromUrl !== user.id) {
@@ -341,10 +442,10 @@ export function MessagesHub() {
         }
       });
     }
-  }, [user, threadFromUrl, memberFromUrl, memberNameFromUrl, searchParams]);
+  }, [user, threadFromUrl, groupFromUrl, memberFromUrl, memberNameFromUrl, searchParams]);
 
-  const showInbox = !activeThreadId && !showNew;
-  const showChatPane = Boolean(activeThread || showNew);
+  const showInbox = !activeThreadId && !activeGroupId && !showNew;
+  const showChatPane = Boolean(activeThread || activeGroupId || showNew);
   const immersive = isMobileApp && showChatPane;
 
   useEffect(() => {
@@ -360,15 +461,35 @@ export function MessagesHub() {
     };
   }, [immersive, setMessagesImmersive]);
 
-  const filteredThreads = useMemo(() => {
+  const filteredInbox = useMemo(() => {
+    const rows: InboxRow[] = [
+      ...threads.map((thread) => ({
+        kind: "direct" as const,
+        sortAt: thread.lastMessageAt,
+        thread,
+      })),
+      ...groupChats.map((chat) => ({
+        kind: "group" as const,
+        sortAt: chat.lastMessageAt,
+        chat,
+      })),
+    ].sort((a, b) => new Date(b.sortAt).getTime() - new Date(a.sortAt).getTime());
+
     const query = inboxSearch.trim().toLowerCase();
-    if (!query) return threads;
-    return threads.filter(
-      (thread) =>
-        thread.otherName.toLowerCase().includes(query) ||
-        thread.lastMessage.toLowerCase().includes(query),
-    );
-  }, [inboxSearch, threads]);
+    if (!query) return rows;
+    return rows.filter((row) => {
+      if (row.kind === "direct") {
+        return (
+          row.thread.otherName.toLowerCase().includes(query) ||
+          row.thread.lastMessage.toLowerCase().includes(query)
+        );
+      }
+      return (
+        row.chat.name.toLowerCase().includes(query) ||
+        row.chat.lastMessage.toLowerCase().includes(query)
+      );
+    });
+  }, [inboxSearch, threads, groupChats]);
 
   useEffect(() => {
     if (!activeThreadId || showNew) return;
@@ -695,6 +816,8 @@ export function MessagesHub() {
 
   function closeChatView() {
     setActiveThreadId(null);
+    setActiveGroupId(null);
+    setGroupChatDetail(null);
     setShowNew(false);
     setShowReport(false);
     setShowChatMenu(false);
@@ -702,11 +825,14 @@ export function MessagesHub() {
     setMessages([]);
     clearRecipients();
     router.push("/messages");
+    void loadInbox();
   }
 
   function openNewMessage() {
     setShowNew(true);
     setActiveThreadId(null);
+    setActiveGroupId(null);
+    setGroupChatDetail(null);
     setShowChatMenu(false);
     setShowPrivacySheet(false);
     setMessages([]);
@@ -857,11 +983,11 @@ export function MessagesHub() {
         )}
 
         <div className="flex-1 overflow-y-auto">
-          {filteredThreads.length === 0 ? (
+          {filteredInbox.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-              <p className="text-sm font-medium text-night-900">No messages yet</p>
-              <p className="mt-1 text-xs text-night-500">
-                Tap the pencil to start a conversation.
+              <p className="text-sm font-medium text-night-900 dark:text-sand-100">No chats yet</p>
+              <p className="mt-1 text-xs text-night-500 dark:text-sand-400">
+                Direct messages and group chats you participate in appear here.
               </p>
               <button
                 type="button"
@@ -872,19 +998,81 @@ export function MessagesHub() {
               </button>
             </div>
           ) : (
-            filteredThreads.map((thread) => {
-              const active = activeThreadId === thread.id;
-              const unread = unreadByThread[thread.id] ?? 0;
+            filteredInbox.map((row) => {
+              if (row.kind === "direct") {
+                const thread = row.thread;
+                const active = activeThreadId === thread.id;
+                const unread = unreadByThread[thread.id] ?? 0;
+                return (
+                  <button
+                    key={`direct-${thread.id}`}
+                    type="button"
+                    onClick={() => loadThread(thread.id)}
+                    className={`messages-hub-thread flex w-full items-center gap-3 border-b px-4 py-3 text-left ${
+                      active ? "is-active" : ""
+                    }`}
+                  >
+                    <MemberAvatar name={thread.otherName} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p
+                          className={`truncate text-[17px] text-night-900 dark:text-sand-100 ${
+                            unread > 0 ? "font-semibold" : "font-medium"
+                          }`}
+                        >
+                          {thread.otherName}
+                        </p>
+                        <span
+                          className={`shrink-0 text-xs ${
+                            unread > 0
+                              ? "font-semibold text-amber-600 dark:text-amber-300"
+                              : "text-night-500 dark:text-sand-400"
+                          }`}
+                        >
+                          {formatInboxTime(thread.lastMessageAt)}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-2">
+                        <p
+                          className={`min-w-0 flex-1 truncate text-sm ${
+                            unread > 0
+                              ? "font-medium text-night-800 dark:text-sand-100"
+                              : "font-normal text-night-500 dark:text-sand-400"
+                          }`}
+                        >
+                          {thread.lastMessage}
+                        </p>
+                        {unread > 0 ? (
+                          <span className="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[11px] font-semibold text-night-950">
+                            {unread > 9 ? "9+" : unread}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  </button>
+                );
+              }
+
+              const chat = row.chat;
+              const active = activeGroupId === chat.groupId;
+              const unread =
+                unreadByThread[groupInboxKey(chat.groupId)] ?? chat.unreadCount ?? 0;
               return (
                 <button
-                  key={thread.id}
+                  key={`group-${chat.groupId}`}
                   type="button"
-                  onClick={() => loadThread(thread.id)}
+                  onClick={() => loadGroupChat(chat.groupId)}
                   className={`messages-hub-thread flex w-full items-center gap-3 border-b px-4 py-3 text-left ${
                     active ? "is-active" : ""
                   }`}
                 >
-                  <MemberAvatar name={thread.otherName} size="sm" />
+                  <GroupInboxAvatar
+                    name={chat.name}
+                    groupId={chat.groupId}
+                    category={chat.category}
+                    iconUrl={chat.iconUrl}
+                    updatedAt={chat.updatedAt}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p
@@ -892,7 +1080,7 @@ export function MessagesHub() {
                           unread > 0 ? "font-semibold" : "font-medium"
                         }`}
                       >
-                        {thread.otherName}
+                        {chat.name}
                       </p>
                       <span
                         className={`shrink-0 text-xs ${
@@ -901,7 +1089,7 @@ export function MessagesHub() {
                             : "text-night-500 dark:text-sand-400"
                         }`}
                       >
-                        {formatInboxTime(thread.lastMessageAt)}
+                        {formatInboxTime(chat.lastMessageAt)}
                       </span>
                     </div>
                     <div className="mt-0.5 flex items-center gap-2">
@@ -912,7 +1100,7 @@ export function MessagesHub() {
                             : "font-normal text-night-500 dark:text-sand-400"
                         }`}
                       >
-                        {thread.lastMessage}
+                        {chat.lastMessage}
                       </p>
                       {unread > 0 ? (
                         <span className="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[11px] font-semibold text-night-950">
@@ -1032,10 +1220,39 @@ export function MessagesHub() {
                 placeholder="Message"
                 sendLabel="Send"
                 allowAttachment={false}
-                density="compact"
+                density="whatsapp"
               />
             </div>
           </>
+        ) : activeGroupId && user ? (
+          groupChatLoading || !groupChatDetail ? (
+            <div className="flex flex-1 items-center justify-center px-6">
+              <p className="text-sm text-night-500 dark:text-sand-400">Loading group chat…</p>
+            </div>
+          ) : (
+            <div className="flex min-h-0 flex-1 flex-col">
+              <GroupChatPanel
+                groupId={groupChatDetail.id}
+                groupName={groupChatDetail.name}
+                groupCategory={groupChatDetail.category}
+                groupIconUrl={groupChatDetail.iconUrl}
+                groupUpdatedAt={groupChatDetail.updatedAt}
+                userId={user.id}
+                memberCount={groupChatDetail.members.length}
+                participants={groupChatDetail.members.map((member) => ({
+                  id: member.id,
+                  name: member.name,
+                  isLeader: member.isAdmin || member.isAssistantLeader,
+                  subtitle: member.isAdmin
+                    ? "Leader"
+                    : member.isAssistantLeader
+                      ? "Assistant leader"
+                      : undefined,
+                }))}
+                onBack={closeChatView}
+              />
+            </div>
+          )
         ) : activeThread ? (
           <>
             <DirectChatHeader
@@ -1261,7 +1478,7 @@ export function MessagesHub() {
                   uploadAttachment(file, { threadId: activeThreadId ?? undefined })
                 }
                 attachmentBusy={attachmentBusy}
-                density="compact"
+                density="whatsapp"
                 replyDraft={replyDraft}
                 onClearReply={() => setReplyDraft(null)}
               />

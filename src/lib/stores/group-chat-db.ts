@@ -342,7 +342,7 @@ export async function getUnreadGroupChatSummary(
       type: "group_chat" as const,
       title: group.name,
       body: `${latest.senderName}: ${previewGroupMessage(latest)}`,
-      href: `/groups/${encodeURIComponent(group.id)}?chat=1`,
+      href: `/messages?group=${encodeURIComponent(group.id)}`,
       count: unreadMessages.length,
       at: latest.createdAt,
       groupId: group.id,
@@ -353,4 +353,71 @@ export async function getUnreadGroupChatSummary(
   }
 
   return items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+}
+
+function inboxPreviewForMessage(
+  message: ReturnType<typeof mapMessage>,
+  viewerId: string,
+) {
+  const body = previewGroupMessage(message);
+  if (message.senderId === viewerId) return `You: ${body}`;
+  return `${message.senderName}: ${body}`;
+}
+
+export async function getGroupChatInboxForUser(
+  userId: string,
+  groups: {
+    id: string;
+    name: string;
+    memberIds: string[];
+    category: import("@/lib/group-types").GroupCategory;
+    iconUrl?: string;
+    updatedAt: string;
+  }[],
+) {
+  const memberGroups = groups.filter((group) => group.memberIds.includes(userId));
+  if (memberGroups.length === 0) return [];
+
+  const states = await prisma.groupChatReadState.findMany({ where: { userId } });
+  const lastReadByGroup = new Map(states.map((state) => [state.groupId, state.lastReadAt]));
+
+  const entries: import("@/lib/group-types").GroupChatInboxEntry[] = [];
+  const now = new Date();
+
+  for (const group of memberGroups) {
+    const latestRecord = await prisma.groupChatMessage.findFirst({
+      where: {
+        groupId: group.id,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!latestRecord) continue;
+
+    const latest = mapMessage(latestRecord);
+    const lastRead = lastReadByGroup.get(group.id) ?? new Date(0);
+    const unreadCount = await prisma.groupChatMessage.count({
+      where: {
+        groupId: group.id,
+        senderId: { not: userId },
+        createdAt: { gt: lastRead },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      },
+    });
+
+    entries.push({
+      groupId: group.id,
+      name: group.name,
+      category: group.category,
+      iconUrl: group.iconUrl ?? undefined,
+      updatedAt: group.updatedAt,
+      lastMessage: inboxPreviewForMessage(latest, userId),
+      lastMessageAt: latest.createdAt,
+      unreadCount,
+    });
+  }
+
+  return entries.sort(
+    (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime(),
+  );
 }

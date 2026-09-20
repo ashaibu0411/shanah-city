@@ -98,6 +98,18 @@ export type GroupChatMessage = {
   reply?: import("@/lib/chat-reply-types").ChatMessageReply;
 };
 
+/** Unified messages inbox row for a group the member has chatted in. */
+export type GroupChatInboxEntry = {
+  groupId: string;
+  name: string;
+  category: GroupCategory;
+  iconUrl?: string;
+  updatedAt: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  unreadCount: number;
+};
+
 export const groupCategoryLabels: Record<GroupCategory, string> = {
   ministry: "Ministry",
   choir: "Choir & Worship",
