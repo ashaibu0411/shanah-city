@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
+import { applyUrgentAlertFlyerArtwork } from "@/lib/urgent-alert-flyer";
 
 const FILE = path.join(process.cwd(), "data", "urgent-alerts.json");
 
@@ -58,17 +59,23 @@ export async function saveUrgentAlert(
   }
 
   const existingIndex = alerts.findIndex((alert) => alert.id === id);
+  const artwork = applyUrgentAlertFlyerArtwork({
+    imageUrl: input.imageUrl,
+    artworkSquareUrl: input.artworkSquareUrl,
+    artworkWideUrl: input.artworkWideUrl,
+    artworkBannerUrl: input.artworkBannerUrl,
+  });
   const record: UrgentAlert = {
     id,
     title: input.title.trim(),
     message: input.message.trim(),
     href: input.href?.trim() || undefined,
     ctaLabel: input.ctaLabel?.trim() || undefined,
-    imageUrl: input.imageUrl?.trim() || undefined,
+    imageUrl: artwork.imageUrl?.trim() || undefined,
     videoUrl: input.videoUrl?.trim() || undefined,
-    artworkSquareUrl: input.artworkSquareUrl?.trim() || undefined,
-    artworkWideUrl: input.artworkWideUrl?.trim() || undefined,
-    artworkBannerUrl: input.artworkBannerUrl?.trim() || undefined,
+    artworkSquareUrl: artwork.artworkSquareUrl?.trim() || undefined,
+    artworkWideUrl: artwork.artworkWideUrl?.trim() || undefined,
+    artworkBannerUrl: artwork.artworkBannerUrl?.trim() || undefined,
     active: input.active,
     startsAt: input.startsAt,
     expiresAt: input.expiresAt,

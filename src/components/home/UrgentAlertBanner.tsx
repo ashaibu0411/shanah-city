@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AlertPublicShare } from "@/components/share/AlertPublicShare";
+import { UrgentAlertFlyerImage } from "@/components/urgent-alert/UrgentAlertFlyerImage";
 import { urgentAlertScheduleLabel } from "@/lib/urgent-alert-utils";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
@@ -38,7 +39,11 @@ export function UrgentAlertBanner({
         aria-hidden
       />
       <div
-        className={`relative ${hasMedia ? "grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,280px)] md:items-start" : "flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-6"}`}
+        className={`relative flex flex-col gap-4 ${
+          hasMedia || href
+            ? ""
+            : "md:flex-row md:items-start md:justify-between md:gap-6"
+        }`}
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -79,11 +84,11 @@ export function UrgentAlertBanner({
         {hasMedia ? (
           <div className="space-y-3">
             {alert.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <UrgentAlertFlyerImage
                 src={alert.imageUrl}
                 alt=""
-                className="w-full rounded-2xl border border-white/20 object-cover shadow-lg md:max-h-52"
+                context="home"
+                className="border border-white/20"
               />
             ) : null}
             {alert.videoUrl ? (
@@ -92,7 +97,7 @@ export function UrgentAlertBanner({
                 controls
                 playsInline
                 preload="metadata"
-                className="w-full rounded-2xl border border-white/20 bg-black/30 shadow-lg md:max-h-52"
+                className="w-full max-h-[min(75vh,680px)] rounded-2xl border border-white/20 bg-black/30 object-contain shadow-lg"
               />
             ) : null}
           </div>

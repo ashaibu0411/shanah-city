@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ContentArtworkPanel } from "@/components/share/ContentArtworkPanel";
+import { UrgentAlertFlyerImage } from "@/components/urgent-alert/UrgentAlertFlyerImage";
 import { ShareActions } from "@/components/share/ShareActions";
 import { Button, Card } from "@/components/ui";
 import type { ArtworkFields } from "@/lib/content-artwork";
+import { applyUrgentAlertFlyerArtwork } from "@/lib/urgent-alert-flyer";
 import { urgentAlertShareUrl, urgentAlertViewUrl } from "@/lib/share-urls";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
@@ -81,10 +82,13 @@ export function AdminUrgentAlertPanel() {
 
     if (kind === "image") {
       setImageUrl(data.url);
+      setArtwork((current) =>
+        applyUrgentAlertFlyerArtwork({ ...current, imageUrl: data.url }),
+      );
     } else {
       setVideoUrl(data.url);
     }
-    setStatus(`${kind === "image" ? "Image" : "Video"} uploaded. Publish to show it on the home page.`);
+    setStatus(`${kind === "image" ? "Flyer" : "Video"} uploaded. Publish to show it on the home page.`);
   }
 
   async function publishAlert() {
@@ -95,6 +99,10 @@ export function AdminUrgentAlertPanel() {
 
     setBusy(true);
     setStatus(null);
+    const flyerFields = applyUrgentAlertFlyerArtwork({
+      imageUrl: imageUrl || undefined,
+      ...artwork,
+    });
     const response = await fetch("/api/admin/urgent-alert", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -105,8 +113,11 @@ export function AdminUrgentAlertPanel() {
         message,
         href,
         ctaLabel,
-        imageUrl: imageUrl || undefined,
+        imageUrl: flyerFields.imageUrl,
         videoUrl: videoUrl || undefined,
+        artworkSquareUrl: flyerFields.artworkSquareUrl,
+        artworkWideUrl: flyerFields.artworkWideUrl,
+        artworkBannerUrl: flyerFields.artworkBannerUrl,
         active: true,
         startsAt: startsAt ? new Date(startsAt).toISOString() : undefined,
         expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
@@ -207,28 +218,34 @@ export function AdminUrgentAlertPanel() {
           </label>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-night-900/10 bg-sand-50 p-4">
-              <p className="text-sm font-semibold text-night-800">Alert image (optional)</p>
-              <p className="mt-1 text-xs text-night-500">JPG, PNG, WEBP, or GIF · up to 8 MB</p>
+            <div className="rounded-2xl border border-night-900/10 bg-sand-50 p-4 md:col-span-2">
+              <p className="text-sm font-semibold text-night-800">Event flyer (optional)</p>
+              <p className="mt-1 text-xs text-night-500">
+                Upload one JPG, PNG, WEBP, or GIF (up to 8 MB). Portrait church flyers, square
+                graphics, and wide banners all fit automatically — no need for three separate sizes.
+              </p>
               {imageUrl ? (
                 <div className="mt-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <UrgentAlertFlyerImage
                     src={imageUrl}
-                    alt="Alert preview"
-                    className="max-h-40 w-full rounded-xl object-cover"
+                    alt="Flyer preview"
+                    context="admin-preview"
+                    className="border border-night-900/10 bg-white ring-night-900/10"
                   />
                   <button
                     type="button"
-                    onClick={() => setImageUrl("")}
+                    onClick={() => {
+                      setImageUrl("");
+                      setArtwork({});
+                    }}
                     className="mt-2 text-xs font-semibold text-red-700"
                   >
-                    Remove image
+                    Remove flyer
                   </button>
                 </div>
               ) : (
-                <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-night-900/15 bg-white px-4 py-6 text-center text-sm text-night-600 hover:bg-sand-50">
-                  <span>{uploadingImage ? "Uploading..." : "Choose image"}</span>
+                <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-night-900/15 bg-white px-4 py-8 text-center text-sm text-night-600 hover:bg-sand-50">
+                  <span>{uploadingImage ? "Uploading..." : "Choose flyer image"}</span>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/gif"
@@ -351,16 +368,6 @@ export function AdminUrgentAlertPanel() {
 
           {active?.id ? (
             <div className="space-y-4">
-              <ContentArtworkPanel
-                contentKind="urgent-alert"
-                contentId={active.id}
-                artwork={artwork}
-                onChange={(next) => {
-                  setArtwork(next);
-                  setActive((current) => (current ? { ...current, ...next } : current));
-                }}
-                disabled={busy}
-              />
               <div className="rounded-2xl border border-night-900/10 bg-white p-4">
                 <ShareActions
                   shareUrl={urgentAlertShareUrl(active.id)}
@@ -380,9 +387,14 @@ export function AdminUrgentAlertPanel() {
                 />
               </div>
             </div>
+          ) : imageUrl ? (
+            <p className="text-xs text-night-500">
+              Publish to go live. Your flyer will also be used for share links and notifications
+              automatically.
+            </p>
           ) : (
             <p className="text-xs text-night-500">
-              Publish the alert first to upload Subsplash-style artwork and share links.
+              Add a flyer above if you want the full graphic on the home banner (optional).
             </p>
           )}
         </div>

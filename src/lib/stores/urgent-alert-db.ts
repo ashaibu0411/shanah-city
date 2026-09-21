@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
+import { applyUrgentAlertFlyerArtwork } from "@/lib/urgent-alert-flyer";
 
 function mapAlert(record: {
   id: string;
@@ -90,6 +91,13 @@ export async function saveUrgentAlert(
     });
   }
 
+  const artwork = applyUrgentAlertFlyerArtwork({
+    imageUrl: input.imageUrl,
+    artworkSquareUrl: input.artworkSquareUrl,
+    artworkWideUrl: input.artworkWideUrl,
+    artworkBannerUrl: input.artworkBannerUrl,
+  });
+
   const record = await prisma.urgentAlert.upsert({
     where: { id },
     create: {
@@ -98,11 +106,11 @@ export async function saveUrgentAlert(
       message: input.message.trim(),
       href: input.href?.trim() || null,
       ctaLabel: input.ctaLabel?.trim() || null,
-      imageUrl: input.imageUrl?.trim() || null,
+      imageUrl: artwork.imageUrl?.trim() || null,
       videoUrl: input.videoUrl?.trim() || null,
-      artworkSquareUrl: input.artworkSquareUrl?.trim() || null,
-      artworkWideUrl: input.artworkWideUrl?.trim() || null,
-      artworkBannerUrl: input.artworkBannerUrl?.trim() || null,
+      artworkSquareUrl: artwork.artworkSquareUrl?.trim() || null,
+      artworkWideUrl: artwork.artworkWideUrl?.trim() || null,
+      artworkBannerUrl: artwork.artworkBannerUrl?.trim() || null,
       active: input.active,
       startsAt: input.startsAt ? new Date(input.startsAt) : null,
       expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
@@ -116,11 +124,11 @@ export async function saveUrgentAlert(
       message: input.message.trim(),
       href: input.href?.trim() || null,
       ctaLabel: input.ctaLabel?.trim() || null,
-      imageUrl: input.imageUrl?.trim() || null,
+      imageUrl: artwork.imageUrl?.trim() || null,
       videoUrl: input.videoUrl?.trim() || null,
-      artworkSquareUrl: input.artworkSquareUrl?.trim() || null,
-      artworkWideUrl: input.artworkWideUrl?.trim() || null,
-      artworkBannerUrl: input.artworkBannerUrl?.trim() || null,
+      artworkSquareUrl: artwork.artworkSquareUrl?.trim() || null,
+      artworkWideUrl: artwork.artworkWideUrl?.trim() || null,
+      artworkBannerUrl: artwork.artworkBannerUrl?.trim() || null,
       active: input.active,
       startsAt: input.startsAt ? new Date(input.startsAt) : null,
       expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
