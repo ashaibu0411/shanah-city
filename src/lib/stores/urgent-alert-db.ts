@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 import { applyUrgentAlertFlyerArtwork } from "@/lib/urgent-alert-flyer";
+import { isUrgentAlertVisibleOnHome } from "@/lib/urgent-alert-utils";
 
 function mapAlert(record: {
   id: string;
@@ -43,10 +44,15 @@ function mapAlert(record: {
 }
 
 function isCurrentlyVisible(alert: UrgentAlert, now = new Date()) {
-  if (!alert.active) return false;
-  if (alert.startsAt && new Date(alert.startsAt) > now) return false;
-  if (alert.expiresAt && new Date(alert.expiresAt) <= now) return false;
-  return true;
+  return isUrgentAlertVisibleOnHome(alert, now);
+}
+
+export async function getFlaggedUrgentAlert() {
+  const record = await prisma.urgentAlert.findFirst({
+    where: { active: true },
+    orderBy: { updatedAt: "desc" },
+  });
+  return record ? mapAlert(record) : null;
 }
 
 export async function listUrgentAlerts() {

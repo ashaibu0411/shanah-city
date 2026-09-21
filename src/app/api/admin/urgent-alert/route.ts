@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
@@ -6,9 +7,15 @@ import { sendPushToAllMembers } from "@/lib/push-server";
 import {
   clearActiveUrgentAlert,
   getActiveUrgentAlert,
+  getFlaggedUrgentAlert,
   listUrgentAlerts,
   saveUrgentAlert,
 } from "@/lib/urgent-alert-server";
+
+function revalidateUrgentAlertPages() {
+  revalidatePath("/");
+  revalidatePath("/admin/alerts");
+}
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -19,8 +26,12 @@ export async function GET() {
     return NextResponse.json({ error: "Admin access required." }, { status: 403 });
   }
 
-  const [alerts, active] = await Promise.all([listUrgentAlerts(), getActiveUrgentAlert()]);
-  return NextResponse.json({ alerts, active });
+  const [alerts, visible, flagged] = await Promise.all([
+    listUrgentAlerts(),
+    getActiveUrgentAlert(),
+    getFlaggedUrgentAlert(),
+  ]);
+  return NextResponse.json({ alerts, active: visible, visible, flagged });
 }
 
 export async function POST(request: Request) {
@@ -37,8 +48,9 @@ export async function POST(request: Request) {
 
   if (action === "clear") {
     await clearActiveUrgentAlert();
+    revalidateUrgentAlertPages();
     const active = await getActiveUrgentAlert();
-    return NextResponse.json({ ok: true, active });
+    return NextResponse.json({ ok: true, active, flagged: null });
   }
 
   const title = String(body.title ?? "").trim();
@@ -88,5 +100,7 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ alert, notify });
+  revalidateUrgentAlertPages();
+
+  return NextResponse.json({ alert, notify, visible: await getActiveUrgentAlert() });
 }

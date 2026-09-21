@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
+import { isUrgentAlertVisibleOnHome } from "@/lib/urgent-alert-utils";
 import { applyUrgentAlertFlyerArtwork } from "@/lib/urgent-alert-flyer";
 
 const FILE = path.join(process.cwd(), "data", "urgent-alerts.json");
@@ -20,10 +21,12 @@ async function writeAlerts(alerts: UrgentAlert[]) {
 }
 
 function isCurrentlyVisible(alert: UrgentAlert, now = new Date()) {
-  if (!alert.active) return false;
-  if (alert.startsAt && new Date(alert.startsAt) > now) return false;
-  if (alert.expiresAt && new Date(alert.expiresAt) <= now) return false;
-  return true;
+  return isUrgentAlertVisibleOnHome(alert, now);
+}
+
+export async function getFlaggedUrgentAlert() {
+  const alerts = await readAlerts();
+  return alerts.find((alert) => alert.active) ?? null;
 }
 
 export async function listUrgentAlerts() {

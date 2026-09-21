@@ -1,5 +1,50 @@
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
+export function isUrgentAlertVisibleOnHome(
+  alert: Pick<UrgentAlert, "active" | "startsAt" | "expiresAt">,
+  now = new Date(),
+) {
+  if (!alert.active) return false;
+  if (alert.startsAt && new Date(alert.startsAt) > now) return false;
+  if (alert.expiresAt && new Date(alert.expiresAt) <= now) return false;
+  return true;
+}
+
+export type UrgentAlertHomeStatus = "inactive" | "scheduled" | "live" | "expired";
+
+export function urgentAlertHomeStatus(
+  alert: Pick<UrgentAlert, "active" | "startsAt" | "expiresAt"> | null,
+  now = new Date(),
+): UrgentAlertHomeStatus {
+  if (!alert?.active) return "inactive";
+  if (alert.expiresAt && new Date(alert.expiresAt) <= now) return "expired";
+  if (alert.startsAt && new Date(alert.startsAt) > now) return "scheduled";
+  return "live";
+}
+
+export function urgentAlertAdminHomeMessage(
+  alert: Pick<UrgentAlert, "active" | "startsAt" | "expiresAt"> | null,
+  now = new Date(),
+) {
+  const status = urgentAlertHomeStatus(alert, now);
+  if (status === "inactive") {
+    return "Nothing is flagged active. Publish to turn on the home banner.";
+  }
+  if (status === "expired") {
+    const end = formatUrgentAlertDateTime(alert?.expiresAt);
+    return end
+      ? `This alert expired ${end} and is hidden from home. Extend the end date and update.`
+      : "This alert is expired and hidden from home.";
+  }
+  if (status === "scheduled") {
+    const start = formatUrgentAlertDateTime(alert?.startsAt);
+    return start
+      ? `Scheduled — the home banner starts ${start}. Leave start blank (or set a past time) to show immediately.`
+      : "Scheduled for a future start time — not on home yet.";
+  }
+  return "Live on the home page now.";
+}
+
 export function formatUrgentAlertDateTime(iso?: string) {
   if (!iso) return null;
   const date = new Date(iso);

@@ -6,6 +6,10 @@ import { ShareActions } from "@/components/share/ShareActions";
 import { Button, Card } from "@/components/ui";
 import type { ArtworkFields } from "@/lib/content-artwork";
 import { applyUrgentAlertFlyerArtwork } from "@/lib/urgent-alert-flyer";
+import {
+  urgentAlertAdminHomeMessage,
+  urgentAlertHomeStatus,
+} from "@/lib/urgent-alert-utils";
 import { urgentAlertShareUrl, urgentAlertViewUrl } from "@/lib/share-urls";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
@@ -20,6 +24,7 @@ function toLocalInputValue(iso?: string) {
 
 export function AdminUrgentAlertPanel() {
   const [active, setActive] = useState<UrgentAlert | null>(null);
+  const [alertId, setAlertId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [href, setHref] = useState("");
@@ -34,28 +39,50 @@ export function AdminUrgentAlertPanel() {
   const [sendPush, setSendPush] = useState(true);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [statusTone, setStatusTone] = useState<"success" | "error" | "info">("info");
+
+  function applyAlertToForm(alert: UrgentAlert | null) {
+    setActive(alert);
+    setAlertId(alert?.id ?? null);
+    if (!alert) {
+      setTitle("");
+      setMessage("");
+      setHref("");
+      setCtaLabel("Learn more");
+      setStartsAt("");
+      setExpiresAt("");
+      setImageUrl("");
+      setVideoUrl("");
+      setArtwork({});
+      setSendPush(true);
+      return;
+    }
+    setTitle(alert.title);
+    setMessage(alert.message);
+    setHref(alert.href ?? "");
+    setCtaLabel(alert.ctaLabel ?? "Learn more");
+    setStartsAt(toLocalInputValue(alert.startsAt));
+    setExpiresAt(toLocalInputValue(alert.expiresAt));
+    setImageUrl(alert.imageUrl ?? "");
+    setVideoUrl(alert.videoUrl ?? "");
+    setArtwork({
+      artworkSquareUrl: alert.artworkSquareUrl,
+      artworkWideUrl: alert.artworkWideUrl,
+      artworkBannerUrl: alert.artworkBannerUrl,
+    });
+    setSendPush(false);
+  }
 
   useEffect(() => {
     fetch("/api/admin/urgent-alert")
       .then((response) => response.json())
       .then((data) => {
-        const current = data.active ?? data.alerts?.find((alert: UrgentAlert) => alert.active) ?? null;
-        setActive(current);
-        if (current) {
-          setTitle(current.title);
-          setMessage(current.message);
-          setHref(current.href ?? "");
-          setCtaLabel(current.ctaLabel ?? "Learn more");
-          setStartsAt(toLocalInputValue(current.startsAt));
-          setExpiresAt(toLocalInputValue(current.expiresAt));
-          setImageUrl(current.imageUrl ?? "");
-          setVideoUrl(current.videoUrl ?? "");
-          setArtwork({
-            artworkSquareUrl: current.artworkSquareUrl,
-            artworkWideUrl: current.artworkWideUrl,
-            artworkBannerUrl: current.artworkBannerUrl,
-          });
-        }
+        const current =
+          data.flagged ??
+          data.active ??
+          data.alerts?.find((alert: UrgentAlert) => alert.active) ??
+          null;
+        applyAlertToForm(current);
       })
       .catch(() => undefined);
   }, []);
@@ -64,6 +91,7 @@ export function AdminUrgentAlertPanel() {
     const setUploading = kind === "image" ? setUploadingImage : setUploadingVideo;
     setUploading(true);
     setStatus(null);
+    setStatusTone("info");
     const formData = new FormData();
     formData.append("file", file);
     formData.append("kind", kind);
@@ -76,6 +104,7 @@ export function AdminUrgentAlertPanel() {
     setUploading(false);
 
     if (!response.ok) {
+      setStatusTone("error");
       setStatus(data.error ?? `Could not upload ${kind}.`);
       return;
     }
@@ -88,17 +117,21 @@ export function AdminUrgentAlertPanel() {
     } else {
       setVideoUrl(data.url);
     }
-    setStatus(`${kind === "image" ? "Flyer" : "Video"} uploaded. Publish to show it on the home page.`);
+    setStatusTone("success");
+    setStatus(`${kind === "image" ? "Flyer" : "Video"} uploaded. Tap Update live alert to save on the home page.`);
   }
 
   async function publishAlert() {
     if (startsAt && expiresAt && new Date(expiresAt) <= new Date(startsAt)) {
+      setStatusTone("error");
       setStatus("End date & time must be after the start date & time.");
       return;
     }
 
     setBusy(true);
     setStatus(null);
+    setStatusTone("info");
+    const saveId = alertId ?? active?.id;
     const flyerFields = applyUrgentAlertFlyerArtwork({
       imageUrl: imageUrl || undefined,
       ...artwork,
@@ -108,7 +141,7 @@ export function AdminUrgentAlertPanel() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "save",
-        id: active?.id,
+        id: saveId,
         title,
         message,
         href,
@@ -128,23 +161,27 @@ export function AdminUrgentAlertPanel() {
     setBusy(false);
 
     if (!response.ok) {
+      setStatusTone("error");
       setStatus(data.error ?? "Could not publish urgent alert.");
       return;
     }
 
-    setActive(data.alert ?? null);
-    if (data.alert) {
-      setArtwork({
-        artworkSquareUrl: data.alert.artworkSquareUrl,
-        artworkWideUrl: data.alert.artworkWideUrl,
-        artworkBannerUrl: data.alert.artworkBannerUrl,
-      });
-    }
+    applyAlertToForm(data.alert ?? null);
+    const homeStatus = urgentAlertHomeStatus(data.alert ?? null);
     const pushNote =
       data.notify?.sent > 0
         ? ` Push sent to ${data.notify.sent} device${data.notify.sent === 1 ? "" : "s"}.`
         : "";
-    setStatus(`Urgent alert is live on the home page.${pushNote}`);
+    if (homeStatus === "live") {
+      setStatusTone("success");
+      setStatus(`Saved. The alert is on the home page now.${pushNote}`);
+    } else if (homeStatus === "scheduled") {
+      setStatusTone("info");
+      setStatus(`Saved.${pushNote} ${urgentAlertAdminHomeMessage(data.alert)}`);
+    } else {
+      setStatusTone("success");
+      setStatus(`Saved.${pushNote}`);
+    }
   }
 
   async function clearAlert() {
@@ -159,20 +196,18 @@ export function AdminUrgentAlertPanel() {
     setBusy(false);
     if (!response.ok) {
       const data = await response.json();
+      setStatusTone("error");
       setStatus(data.error ?? "Could not clear alert.");
       return;
     }
-    setActive(null);
-    setTitle("");
-    setMessage("");
-    setHref("");
-    setStartsAt("");
-    setExpiresAt("");
-    setImageUrl("");
-    setVideoUrl("");
-    setArtwork({});
+    applyAlertToForm(null);
+    setStatusTone("success");
     setStatus("Urgent alert removed.");
   }
+
+  const homeStatus = urgentAlertHomeStatus(active);
+  const homeMessage = urgentAlertAdminHomeMessage(active);
+  const startsAtIsFuture = Boolean(startsAt && new Date(startsAt) > new Date());
 
   return (
     <div>
@@ -185,9 +220,24 @@ export function AdminUrgentAlertPanel() {
         </p>
 
         {active ? (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
-            <p className="font-semibold">Live now: {active.title}</p>
-            <p className="mt-1 text-red-800/90">{active.message}</p>
+          <div
+            className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
+              homeStatus === "live"
+                ? "border-red-200 bg-red-50 text-red-900"
+                : homeStatus === "scheduled"
+                  ? "border-amber-200 bg-amber-50 text-amber-950"
+                  : "border-night-200 bg-sand-50 text-night-800"
+            }`}
+          >
+            <p className="font-semibold">
+              {homeStatus === "live"
+                ? "Live on home"
+                : homeStatus === "scheduled"
+                  ? "Scheduled (not on home yet)"
+                  : "Saved alert"}
+              : {active.title}
+            </p>
+            <p className="mt-1 opacity-90">{homeMessage}</p>
           </div>
         ) : (
           <p className="mt-4 rounded-2xl bg-sand-50 px-4 py-3 text-sm text-night-600">
@@ -339,6 +389,15 @@ export function AdminUrgentAlertPanel() {
                 <span className="mt-1 block text-xs text-night-500">
                   Leave blank to show immediately after publishing.
                 </span>
+                {startsAtIsFuture ? (
+                  <button
+                    type="button"
+                    className="mt-2 text-xs font-semibold text-amber-900 underline"
+                    onClick={() => setStartsAt("")}
+                  >
+                    Clear start — show on home immediately after update
+                  </button>
+                ) : null}
               </label>
               <label className="block">
                 <span className="text-sm font-semibold text-night-800">
@@ -363,8 +422,25 @@ export function AdminUrgentAlertPanel() {
               checked={sendPush}
               onChange={(event) => setSendPush(event.target.checked)}
             />
-            <span>Also send a push notification to members with alerts enabled</span>
+            <span>
+              Also send a push notification when you update (uncheck to save without notifying
+              again)
+            </span>
           </label>
+
+          {status ? (
+            <p
+              className={`rounded-xl px-3 py-2.5 text-sm ${
+                statusTone === "error"
+                  ? "bg-red-50 text-red-800"
+                  : statusTone === "success"
+                    ? "bg-emerald-50 text-emerald-900"
+                    : "bg-sand-100 text-night-700"
+              }`}
+            >
+              {status}
+            </p>
+          ) : null}
 
           {active?.id ? (
             <div className="space-y-4">
@@ -418,10 +494,6 @@ export function AdminUrgentAlertPanel() {
             </Button>
           ) : null}
         </div>
-
-        {status ? (
-          <p className="mt-4 rounded-xl bg-sand-100 px-3 py-2 text-sm text-night-700">{status}</p>
-        ) : null}
       </Card>
     </div>
   );
