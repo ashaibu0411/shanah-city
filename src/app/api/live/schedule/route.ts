@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
-import { canPublishMediaClips } from "@/lib/group-permissions-server";
+import { canManageLiveStream } from "@/lib/gallery-access-server";
 import type { LiveStreamPlatform } from "@/lib/live-schedule-types";
 import {
   clearLiveStreamSchedule,
@@ -28,7 +28,7 @@ export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
-  const canManage = await canPublishMediaClips(user);
+  const canManage = await canManageLiveStream(user);
   const [publicSchedule, schedules] = await Promise.all([
     getPublicLiveStreamSchedule(),
     getUpcomingLiveStreamSchedules(),
@@ -52,9 +52,9 @@ export async function POST(request: Request) {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
 
-  if (!user || !(await canPublishMediaClips(user))) {
+  if (!user || !(await canManageLiveStream(user))) {
     return NextResponse.json(
-      { error: "Only media team members or Admin Group can schedule livestreams." },
+      { error: "Only Media Team members can schedule livestreams." },
       { status: 403 },
     );
   }

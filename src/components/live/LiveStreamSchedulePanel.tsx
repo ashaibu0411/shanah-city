@@ -39,7 +39,7 @@ export function LiveStreamSchedulePanel({ compact = false }: { compact?: boolean
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const canManage = !loading && user && permissions.canUploadGallery;
+  const canManage = !loading && user && permissions.canManageLiveStream;
 
   const upcomingSchedules = useMemo(
     () => filterUpcomingLiveStreamSchedules(schedules),

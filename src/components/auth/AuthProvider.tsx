@@ -13,6 +13,7 @@ import type { ActivityItem, PublicMember } from "@/lib/auth-types";
 
 type AuthPermissions = {
   canUploadGallery: boolean;
+  canManageLiveStream: boolean;
   canWriteDevotions: boolean;
   canManageAdmin: boolean;
   canAccessFinance: boolean;
@@ -43,6 +44,7 @@ type AuthContextValue = {
 
 const defaultPermissions: AuthPermissions = {
   canUploadGallery: false,
+  canManageLiveStream: false,
   canWriteDevotions: false,
   canManageAdmin: false,
   canAccessFinance: false,

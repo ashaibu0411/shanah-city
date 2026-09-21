@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
-import { canPublishMediaClips } from "@/lib/group-permissions-server";
+import { canManageLiveStream } from "@/lib/gallery-access-server";
 import { notifyLiveStreamNow } from "@/lib/push-server";
 
 export async function POST(request: Request) {
@@ -9,9 +9,9 @@ export async function POST(request: Request) {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
 
-  if (!user || !(await canPublishMediaClips(user))) {
+  if (!user || !(await canManageLiveStream(user))) {
     return NextResponse.json(
-      { error: "Only media team members or Admin Group can send live notifications." },
+      { error: "Only Media Team members can send live notifications." },
       { status: 403 },
     );
   }

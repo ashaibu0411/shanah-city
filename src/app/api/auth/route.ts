@@ -51,6 +51,7 @@ export async function GET() {
         user: null,
         permissions: {
           canUploadGallery: false,
+          canManageLiveStream: false,
           canWriteDevotions: false,
           canManageAdmin: false,
           canAccessFinance: false,

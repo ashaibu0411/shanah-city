@@ -14,6 +14,7 @@ import type { PublicMember } from "@/lib/auth-types";
 
 const defaultPermissions = {
   canUploadGallery: false,
+  canManageLiveStream: false,
   canWriteDevotions: false,
   canManageAdmin: false,
   canAccessFinance: false,

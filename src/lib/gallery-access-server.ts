@@ -37,6 +37,14 @@ export async function canManageGallery(user: Pick<PublicMember, "id" | "role"> |
   return canUploadGallery(user);
 }
 
+/** Livestream schedule + go-live push — Media Team group only (not Admin Group). */
+export async function canManageLiveStream(user: Pick<PublicMember, "id"> | null) {
+  if (!user) {
+    return false;
+  }
+  return userIsInMediaGroup(user.id);
+}
+
 export async function canViewGalleryDownloadLog(
   user: Pick<PublicMember, "id" | "role"> | null,
 ) {
@@ -46,5 +54,9 @@ export async function canViewGalleryDownloadLog(
 export async function getGalleryUploadPermissions(
   user: Pick<PublicMember, "id" | "role"> | null,
 ) {
-  return { canUploadGallery: await canUploadGallery(user) };
+  const [upload, livestream] = await Promise.all([
+    canUploadGallery(user),
+    canManageLiveStream(user),
+  ]);
+  return { canUploadGallery: upload, canManageLiveStream: livestream };
 }

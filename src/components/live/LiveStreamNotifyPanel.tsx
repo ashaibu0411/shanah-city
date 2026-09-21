@@ -25,7 +25,7 @@ export function LiveStreamNotifyPanel({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const canManage = !loading && user && permissions.canUploadGallery;
+  const canManage = !loading && user && permissions.canManageLiveStream;
 
   if (!canManage) {
     return (
