@@ -17,6 +17,16 @@ export function isUrgentAlertVisibleOnHome(
   return true;
 }
 
+/** Detail page and share links — active and not expired (scheduled OK). */
+export function isUrgentAlertPubliclyViewable(
+  alert: Pick<UrgentAlert, "active" | "expiresAt">,
+  now = new Date(),
+) {
+  if (!alert.active) return false;
+  if (alert.expiresAt && new Date(alert.expiresAt) <= now) return false;
+  return true;
+}
+
 export type UrgentAlertHomeStatus = "inactive" | "scheduled" | "live" | "expired";
 
 export function urgentAlertHomeStatus(

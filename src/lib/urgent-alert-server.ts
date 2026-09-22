@@ -1,4 +1,5 @@
 import { useDatabase } from "@/lib/use-database";
+import { isUrgentAlertPubliclyViewable } from "@/lib/urgent-alert-utils";
 import * as urgentAlertDb from "@/lib/stores/urgent-alert-db";
 import * as urgentAlertJson from "@/lib/stores/urgent-alert-json";
 
@@ -14,3 +15,11 @@ export const saveUrgentAlert = (
   input: Parameters<typeof urgentAlertJson.saveUrgentAlert>[0],
 ) => store().saveUrgentAlert(input);
 export const clearActiveUrgentAlert = () => store().clearActiveUrgentAlert();
+
+export async function getPublicUrgentAlertById(id: string) {
+  const alert = await getUrgentAlertById(id);
+  if (!alert || !isUrgentAlertPubliclyViewable(alert)) {
+    return null;
+  }
+  return alert;
+}

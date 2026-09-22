@@ -25,7 +25,7 @@ export function eventViewUrl(eventId: string) {
 
 export function urgentAlertShareUrl(alertId?: string) {
   if (alertId) {
-    return `${getAppBaseUrl()}/?alert=${encodeURIComponent(alertId)}`;
+    return `${getAppBaseUrl()}/alerts/${encodeURIComponent(alertId)}`;
   }
   return `${getAppBaseUrl()}/`;
 }

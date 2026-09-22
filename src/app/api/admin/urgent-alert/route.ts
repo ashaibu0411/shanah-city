@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { sendPushToAllMembers } from "@/lib/push-server";
+import { urgentAlertViewUrl } from "@/lib/share-urls";
 import {
   clearActiveUrgentAlert,
   getFlaggedUrgentAlert,
@@ -16,6 +17,7 @@ import {
 function revalidateUrgentAlertPages() {
   revalidatePath("/");
   revalidatePath("/admin/alerts");
+  revalidatePath("/alerts", "layout");
 }
 
 export async function GET() {
@@ -120,7 +122,7 @@ export async function POST(request: Request) {
       {
         title: `URGENT: ${title}`,
         body: message.slice(0, 160),
-        url: alert.href || "/",
+        url: alert.href || urgentAlertViewUrl(alert.id),
       },
       "announcements",
       user.id,

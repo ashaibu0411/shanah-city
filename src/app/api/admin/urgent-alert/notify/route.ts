@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getUrgentAlertById } from "@/lib/urgent-alert-server";
+import { urgentAlertViewUrl } from "@/lib/share-urls";
 import { sendPushToAllMembers } from "@/lib/push-server";
 
 export async function POST(request: Request) {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     {
       title: `URGENT: ${alert.title}`,
       body: alert.message.slice(0, 160),
-      url: alert.href || `/?alert=${encodeURIComponent(alert.id)}`,
+      url: alert.href || urgentAlertViewUrl(alert.id),
     },
     "announcements",
     user.id,

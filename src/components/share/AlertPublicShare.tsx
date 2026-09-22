@@ -22,7 +22,7 @@ export function AlertPublicShare({
 
   const shareUrl = useMemo(() => {
     if (typeof window !== "undefined") {
-      return `${window.location.origin}/?alert=${encodeURIComponent(alertId)}`;
+      return `${window.location.origin}/alerts/${encodeURIComponent(alertId)}`;
     }
     return urgentAlertShareUrl(alertId);
   }, [alertId]);

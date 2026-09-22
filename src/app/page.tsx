@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { HomeView } from "@/components/home/HomeView";
 import { getTodayDevotion } from "@/lib/devotion-server";
 import { getChurchSocialImages } from "@/lib/facebook-church-media";
@@ -8,7 +9,16 @@ import { getChannelSermons } from "@/lib/youtube-sermons-server";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
+type HomePageProps = {
+  searchParams: Promise<{ alert?: string }>;
+};
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const { alert } = await searchParams;
+  if (alert?.trim()) {
+    redirect(`/alerts/${encodeURIComponent(alert.trim())}`);
+  }
+
   const [posts, todayDevotion, urgentAlerts, churchImages, sermonVideos] = await Promise.all([
     getCommunityPostsForViewer(null),
     getTodayDevotion(),
