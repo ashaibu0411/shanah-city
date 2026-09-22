@@ -6,6 +6,8 @@ const store = () => (useDatabase() ? urgentAlertDb : urgentAlertJson);
 
 export const listUrgentAlerts = () => store().listUrgentAlerts();
 export const getActiveUrgentAlert = () => store().getActiveUrgentAlert();
+export const listVisibleUrgentAlerts = () => store().listVisibleUrgentAlerts();
+export const listUrgentAlertsForHomeCarousel = () => store().listUrgentAlertsForHomeCarousel();
 export const getFlaggedUrgentAlert = () => store().getFlaggedUrgentAlert();
 export const getUrgentAlertById = (id: string) => store().getUrgentAlertById(id);
 export const saveUrgentAlert = (

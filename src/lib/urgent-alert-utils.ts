@@ -1,5 +1,12 @@
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
+/** Max announcement slides on the home carousel at once. */
+export const URGENT_ALERT_HOME_CAROUSEL_MAX = 5;
+
+export function limitUrgentAlertsForHomeCarousel<T extends UrgentAlert>(alerts: T[]) {
+  return alerts.slice(0, URGENT_ALERT_HOME_CAROUSEL_MAX);
+}
+
 export function isUrgentAlertVisibleOnHome(
   alert: Pick<UrgentAlert, "active" | "startsAt" | "expiresAt">,
   now = new Date(),

@@ -9,7 +9,7 @@ import { LiveBanner } from "@/components/home/LiveBanner";
 import { MobileHome } from "@/components/home/MobileHome";
 import { QuickActions } from "@/components/home/QuickActions";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
-import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
+import { UrgentAlertCarousel } from "@/components/home/UrgentAlertCarousel";
 import {
   AnniversaryHomeBanner,
   DevotionBrowseNudge,
@@ -32,7 +32,7 @@ import type { SermonVideo } from "@/lib/youtube-sermons-server";
 type HomeViewProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
-  urgentAlert: UrgentAlert | null;
+  urgentAlerts: UrgentAlert[];
   churchImages: ChurchSocialImages;
   latestSermon?: SermonVideo | null;
 };
@@ -40,28 +40,28 @@ type HomeViewProps = {
 export function HomeView({
   posts,
   todayDevotion,
-  urgentAlert,
+  urgentAlerts,
   churchImages,
   latestSermon = null,
 }: HomeViewProps) {
   const { isMobileApp } = useAppShell();
-  const highlightAlert = useUrgentAlertHighlight(urgentAlert);
+  const highlightAlertId = useUrgentAlertHighlight(urgentAlerts);
 
   if (isMobileApp) {
     return (
       <MobileHome
         posts={posts}
         todayDevotion={todayDevotion}
-        urgentAlert={urgentAlert}
+        urgentAlerts={urgentAlerts}
         churchImages={churchImages}
-        highlightAlert={highlightAlert}
+        highlightAlertId={highlightAlertId}
       />
     );
   }
 
   return (
     <>
-      <UrgentAlertBanner alert={urgentAlert} highlighted={highlightAlert} />
+      <UrgentAlertCarousel alerts={urgentAlerts} highlightAlertId={highlightAlertId} />
       <HomeHero />
       <LiveBanner liveFlyerImage={churchImages.live} />
       <PendingRsvpHomeBanner />

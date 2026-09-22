@@ -3,16 +3,16 @@ import { HomeView } from "@/components/home/HomeView";
 import { getTodayDevotion } from "@/lib/devotion-server";
 import { getChurchSocialImages } from "@/lib/facebook-church-media";
 import { getCommunityPostsForViewer } from "@/lib/member-server";
-import { getActiveUrgentAlert } from "@/lib/urgent-alert-server";
+import { listUrgentAlertsForHomeCarousel } from "@/lib/urgent-alert-server";
 import { getChannelSermons } from "@/lib/youtube-sermons-server";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [posts, todayDevotion, urgentAlert, churchImages, sermonVideos] = await Promise.all([
+  const [posts, todayDevotion, urgentAlerts, churchImages, sermonVideos] = await Promise.all([
     getCommunityPostsForViewer(null),
     getTodayDevotion(),
-    getActiveUrgentAlert(),
+    listUrgentAlertsForHomeCarousel(),
     getChurchSocialImages(),
     getChannelSermons(),
   ]);
@@ -22,7 +22,7 @@ export default async function HomePage() {
       <HomeView
         posts={posts}
         todayDevotion={todayDevotion}
-        urgentAlert={urgentAlert}
+        urgentAlerts={urgentAlerts}
         churchImages={churchImages}
         latestSermon={sermonVideos[0] ?? null}
       />

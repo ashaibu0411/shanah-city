@@ -9,6 +9,7 @@ import { applyUrgentAlertFlyerArtwork } from "@/lib/urgent-alert-flyer";
 import {
   urgentAlertAdminHomeMessage,
   urgentAlertHomeStatus,
+  URGENT_ALERT_HOME_CAROUSEL_MAX,
 } from "@/lib/urgent-alert-utils";
 import { urgentAlertShareUrl, urgentAlertViewUrl } from "@/lib/share-urls";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
@@ -40,6 +41,7 @@ export function AdminUrgentAlertPanel() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [statusTone, setStatusTone] = useState<"success" | "error" | "info">("info");
+  const [allAlerts, setAllAlerts] = useState<UrgentAlert[]>([]);
 
   function applyAlertToForm(alert: UrgentAlert | null) {
     setActive(alert);
@@ -77,9 +79,9 @@ export function AdminUrgentAlertPanel() {
     fetch("/api/admin/urgent-alert")
       .then((response) => response.json())
       .then((data) => {
+        setAllAlerts(data.alerts ?? []);
         const current =
           data.flagged ??
-          data.active ??
           data.alerts?.find((alert: UrgentAlert) => alert.active) ??
           null;
         applyAlertToForm(current);
@@ -167,6 +169,14 @@ export function AdminUrgentAlertPanel() {
     }
 
     applyAlertToForm(data.alert ?? null);
+    setAllAlerts((previous) => {
+      const next = data.alert
+        ? [data.alert, ...previous.filter((entry) => entry.id !== data.alert.id)]
+        : previous;
+      return next.sort(
+        (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+      );
+    });
     const homeStatus = urgentAlertHomeStatus(data.alert ?? null);
     const pushNote =
       data.notify?.sent > 0
@@ -184,8 +194,35 @@ export function AdminUrgentAlertPanel() {
     }
   }
 
-  async function clearAlert() {
-    if (!window.confirm("Remove the urgent alert from the home page?")) return;
+  async function deactivateCurrent() {
+    const id = alertId ?? active?.id;
+    if (!id) return;
+    if (!window.confirm("Turn off this announcement on the home carousel?")) return;
+    setBusy(true);
+    setStatus(null);
+    setStatusTone("info");
+    const response = await fetch("/api/admin/urgent-alert", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "deactivate", id }),
+    });
+    const data = await response.json();
+    setBusy(false);
+    if (!response.ok) {
+      setStatusTone("error");
+      setStatus(data.error ?? "Could not turn off this announcement.");
+      return;
+    }
+    setAllAlerts((previous) =>
+      previous.map((entry) => (entry.id === id ? { ...entry, active: false } : entry)),
+    );
+    applyAlertToForm(null);
+    setStatusTone("success");
+    setStatus("Announcement removed from the home carousel.");
+  }
+
+  async function clearAllAlerts() {
+    if (!window.confirm("Remove every announcement from the home carousel?")) return;
     setBusy(true);
     setStatus(null);
     const response = await fetch("/api/admin/urgent-alert", {
@@ -201,9 +238,28 @@ export function AdminUrgentAlertPanel() {
       return;
     }
     applyAlertToForm(null);
+    setAllAlerts((previous) => previous.map((entry) => ({ ...entry, active: false })));
     setStatusTone("success");
-    setStatus("Urgent alert removed.");
+    setStatus("All announcements removed from the home carousel.");
   }
+
+  function startNewAnnouncement() {
+    applyAlertToForm(null);
+    setStatus(null);
+    setStatusTone("info");
+  }
+
+  const flaggedAlerts = allAlerts.filter((entry) => entry.active);
+  const liveOnHomeCount = flaggedAlerts.filter(
+    (entry) => urgentAlertHomeStatus(entry) === "live",
+  ).length;
+  const liveVisibleAll = flaggedAlerts.filter(
+    (entry) => urgentAlertHomeStatus(entry) === "live",
+  );
+  const carouselOverflow =
+    liveVisibleAll.length > URGENT_ALERT_HOME_CAROUSEL_MAX
+      ? liveVisibleAll.length - URGENT_ALERT_HOME_CAROUSEL_MAX
+      : 0;
 
   const homeStatus = urgentAlertHomeStatus(active);
   const homeMessage = urgentAlertAdminHomeMessage(active);
@@ -214,10 +270,63 @@ export function AdminUrgentAlertPanel() {
       <Card>
         <h2 className="font-display text-xl font-semibold text-night-900">Urgent home alert</h2>
         <p className="mt-2 text-sm text-night-600">
-          Use this only for red-hot, must-not-miss updates — weather cancellations, emergency
-          schedule changes, or critical church-wide instructions. One alert shows at the top of the
-          home page for everyone.
+          Publish announcements for the home carousel (up to {URGENT_ALERT_HOME_CAROUSEL_MAX} show at
+          once). They auto-rotate; members tap any slide for full details, flyers, and links.
         </p>
+
+        {flaggedAlerts.length > 0 ? (
+          <div className="mt-4 rounded-2xl border border-night-900/10 bg-sand-50 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-night-900">
+                Carousel (
+                {Math.min(liveOnHomeCount, URGENT_ALERT_HOME_CAROUSEL_MAX)} on home now
+                {liveOnHomeCount > URGENT_ALERT_HOME_CAROUSEL_MAX
+                  ? ` · ${liveOnHomeCount} live`
+                  : ""}
+                · {flaggedAlerts.length} total active)
+              </p>
+              <button
+                type="button"
+                onClick={startNewAnnouncement}
+                className="text-xs font-semibold text-night-800 underline"
+              >
+                New announcement
+              </button>
+            </div>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {flaggedAlerts.map((entry) => {
+                const status = urgentAlertHomeStatus(entry);
+                const editing = (alertId ?? active?.id) === entry.id;
+                return (
+                  <li key={entry.id}>
+                    <button
+                      type="button"
+                      onClick={() => applyAlertToForm(entry)}
+                      className={`rounded-full px-3 py-1.5 text-left text-xs font-semibold transition ${
+                        editing
+                          ? "bg-night-900 text-white"
+                          : "bg-white text-night-800 ring-1 ring-night-900/10 hover:bg-sand-100"
+                      }`}
+                    >
+                      {entry.title}
+                      <span className="ml-1.5 font-normal opacity-80">
+                        {status === "live" ? "· live" : status === "scheduled" ? "· scheduled" : ""}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            {carouselOverflow > 0 ? (
+              <p className="mt-3 text-xs text-amber-900">
+                {carouselOverflow} more live announcement
+                {carouselOverflow === 1 ? "" : "s"} won&apos;t appear on home until you turn one off
+                or it expires. Home shows the {URGENT_ALERT_HOME_CAROUSEL_MAX} most recently
+                updated.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         {active ? (
           <div
@@ -240,9 +349,16 @@ export function AdminUrgentAlertPanel() {
             <p className="mt-1 opacity-90">{homeMessage}</p>
           </div>
         ) : (
-          <p className="mt-4 rounded-2xl bg-sand-50 px-4 py-3 text-sm text-night-600">
-            No urgent alert is active.
-          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-sand-50 px-4 py-3 text-sm text-night-600">
+            <span>No announcement selected.</span>
+            <button
+              type="button"
+              onClick={startNewAnnouncement}
+              className="text-xs font-semibold text-night-900 underline"
+            >
+              Create announcement
+            </button>
+          </div>
         )}
 
         <div className="mt-5 space-y-4">
@@ -486,12 +602,19 @@ export function AdminUrgentAlertPanel() {
               !message.trim()
             }
           >
-            {busy ? "Publishing..." : active ? "Update live alert" : "Publish urgent alert"}
+            {busy ? "Publishing..." : alertId || active ? "Update announcement" : "Publish announcement"}
           </Button>
-          {active ? (
-            <Button variant="secondary" onClick={clearAlert} disabled={busy}>
-              Remove alert
-            </Button>
+          {alertId || active ? (
+            <>
+              <Button variant="secondary" onClick={deactivateCurrent} disabled={busy}>
+                Turn off this one
+              </Button>
+              {flaggedAlerts.length > 0 ? (
+                <Button variant="secondary" onClick={clearAllAlerts} disabled={busy}>
+                  Turn off all
+                </Button>
+              ) : null}
+            </>
           ) : null}
         </div>
       </Card>

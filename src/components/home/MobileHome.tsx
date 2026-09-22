@@ -29,7 +29,7 @@ import {
   FollowUpHomeBanner,
   TrainingHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
-import { UrgentAlertBanner } from "@/components/home/UrgentAlertBanner";
+import { UrgentAlertCarousel } from "@/components/home/UrgentAlertCarousel";
 import type { Devotion } from "@/lib/types";
 import type { CommunityPost } from "@/lib/member-types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
@@ -72,16 +72,16 @@ function homeGreeting(name?: string | null) {
 type MobileHomeProps = {
   posts: CommunityPost[];
   todayDevotion: Devotion | null;
-  urgentAlert: UrgentAlert | null;
+  urgentAlerts: UrgentAlert[];
   churchImages: ChurchSocialImages;
-  highlightAlert?: boolean;
+  highlightAlertId?: string | null;
 };
 
 export function MobileHome({
   todayDevotion,
-  urgentAlert,
+  urgentAlerts,
   churchImages,
-  highlightAlert = false,
+  highlightAlertId = null,
 }: MobileHomeProps) {
   const { campus } = useApp();
   const { user } = useAuth();
@@ -132,7 +132,11 @@ export function MobileHome({
 
   return (
     <div className="mobile-home animate-fade-in space-y-4">
-      <UrgentAlertBanner alert={urgentAlert} variant="mobile" highlighted={highlightAlert} />
+      <UrgentAlertCarousel
+        alerts={urgentAlerts}
+        variant="mobile"
+        highlightAlertId={highlightAlertId}
+      />
       <PendingRsvpHomeBanner />
       <AnniversaryHomeBanner />
       <PrayerHomeBanner variant="mobile" />

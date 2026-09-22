@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getActiveUrgentAlert } from "@/lib/urgent-alert-server";
+import { listUrgentAlertsForHomeCarousel } from "@/lib/urgent-alert-server";
 
 export async function GET() {
-  const alert = await getActiveUrgentAlert();
-  return NextResponse.json({ alert });
+  const alerts = await listUrgentAlertsForHomeCarousel();
+  const alert = alerts[0] ?? null;
+  return NextResponse.json({ alert, alerts });
 }

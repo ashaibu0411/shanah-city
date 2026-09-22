@@ -1,7 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
-import { isUrgentAlertVisibleOnHome } from "@/lib/urgent-alert-utils";
+import {
+  isUrgentAlertVisibleOnHome,
+  limitUrgentAlertsForHomeCarousel,
+} from "@/lib/urgent-alert-utils";
 import { applyUrgentAlertFlyerArtwork } from "@/lib/urgent-alert-flyer";
 
 const FILE = path.join(process.cwd(), "data", "urgent-alerts.json");
@@ -37,8 +40,18 @@ export async function listUrgentAlerts() {
 }
 
 export async function getActiveUrgentAlert() {
+  const visible = await listVisibleUrgentAlerts();
+  return visible[0] ?? null;
+}
+
+export async function listVisibleUrgentAlerts(now = new Date()) {
   const alerts = await listUrgentAlerts();
-  return alerts.find((alert) => isCurrentlyVisible(alert)) ?? null;
+  return alerts.filter((alert) => isCurrentlyVisible(alert, now));
+}
+
+export async function listUrgentAlertsForHomeCarousel(now = new Date()) {
+  const visible = await listVisibleUrgentAlerts(now);
+  return limitUrgentAlertsForHomeCarousel(visible);
 }
 
 export async function getUrgentAlertById(id: string) {
@@ -52,14 +65,6 @@ export async function saveUrgentAlert(
   const alerts = await readAlerts();
   const now = new Date().toISOString();
   const id = input.id ?? `urgent-${Date.now()}`;
-
-  if (input.active) {
-    for (let index = 0; index < alerts.length; index += 1) {
-      if (alerts[index].id !== id && alerts[index].active) {
-        alerts[index] = { ...alerts[index], active: false, updatedAt: now };
-      }
-    }
-  }
 
   const existingIndex = alerts.findIndex((alert) => alert.id === id);
   const artwork = applyUrgentAlertFlyerArtwork({

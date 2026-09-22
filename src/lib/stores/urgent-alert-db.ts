@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 import { applyUrgentAlertFlyerArtwork } from "@/lib/urgent-alert-flyer";
-import { isUrgentAlertVisibleOnHome } from "@/lib/urgent-alert-utils";
+import { isUrgentAlertVisibleOnHome, limitUrgentAlertsForHomeCarousel } from "@/lib/urgent-alert-utils";
 
 function mapAlert(record: {
   id: string;
@@ -63,20 +63,23 @@ export async function listUrgentAlerts() {
 }
 
 export async function getActiveUrgentAlert() {
-  const now = new Date();
+  const visible = await listVisibleUrgentAlerts();
+  return visible[0] ?? null;
+}
+
+export async function listVisibleUrgentAlerts(now = new Date()) {
   const records = await prisma.urgentAlert.findMany({
     where: { active: true },
     orderBy: { updatedAt: "desc" },
   });
+  return records
+    .map(mapAlert)
+    .filter((alert) => isCurrentlyVisible(alert, now));
+}
 
-  for (const record of records) {
-    const alert = mapAlert(record);
-    if (isCurrentlyVisible(alert, now)) {
-      return alert;
-    }
-  }
-
-  return null;
+export async function listUrgentAlertsForHomeCarousel(now = new Date()) {
+  const visible = await listVisibleUrgentAlerts(now);
+  return limitUrgentAlertsForHomeCarousel(visible);
 }
 
 export async function getUrgentAlertById(id: string) {
@@ -89,13 +92,6 @@ export async function saveUrgentAlert(
 ) {
   const now = new Date();
   const id = input.id ?? `urgent-${Date.now()}`;
-
-  if (input.active) {
-    await prisma.urgentAlert.updateMany({
-      where: { active: true, NOT: { id } },
-      data: { active: false, updatedAt: now },
-    });
-  }
 
   const artwork = applyUrgentAlertFlyerArtwork({
     imageUrl: input.imageUrl,

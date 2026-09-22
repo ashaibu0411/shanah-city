@@ -6,9 +6,10 @@ import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { sendPushToAllMembers } from "@/lib/push-server";
 import {
   clearActiveUrgentAlert,
-  getActiveUrgentAlert,
   getFlaggedUrgentAlert,
+  getUrgentAlertById,
   listUrgentAlerts,
+  listVisibleUrgentAlerts,
   saveUrgentAlert,
 } from "@/lib/urgent-alert-server";
 
@@ -28,10 +29,10 @@ export async function GET() {
 
   const [alerts, visible, flagged] = await Promise.all([
     listUrgentAlerts(),
-    getActiveUrgentAlert(),
+    listVisibleUrgentAlerts(),
     getFlaggedUrgentAlert(),
   ]);
-  return NextResponse.json({ alerts, active: visible, visible, flagged });
+  return NextResponse.json({ alerts, active: visible[0] ?? null, visible, flagged });
 }
 
 export async function POST(request: Request) {
@@ -49,8 +50,34 @@ export async function POST(request: Request) {
   if (action === "clear") {
     await clearActiveUrgentAlert();
     revalidateUrgentAlertPages();
-    const active = await getActiveUrgentAlert();
-    return NextResponse.json({ ok: true, active, flagged: null });
+    return NextResponse.json({
+      ok: true,
+      active: null,
+      flagged: null,
+      visible: [],
+    });
+  }
+
+  if (action === "deactivate") {
+    const id = String(body.id ?? "").trim();
+    if (!id) {
+      return NextResponse.json({ error: "Alert id is required." }, { status: 400 });
+    }
+    const existing = await getUrgentAlertById(id);
+    if (!existing) {
+      return NextResponse.json({ error: "Alert not found." }, { status: 404 });
+    }
+    const alert = await saveUrgentAlert({
+      ...existing,
+      active: false,
+      createdBy: existing.createdBy,
+      createdByName: existing.createdByName,
+    });
+    revalidateUrgentAlertPages();
+    return NextResponse.json({
+      alert,
+      visible: await listVisibleUrgentAlerts(),
+    });
   }
 
   const title = String(body.title ?? "").trim();
@@ -102,5 +129,9 @@ export async function POST(request: Request) {
 
   revalidateUrgentAlertPages();
 
-  return NextResponse.json({ alert, notify, visible: await getActiveUrgentAlert() });
+  return NextResponse.json({
+    alert,
+    notify,
+    visible: await listVisibleUrgentAlerts(),
+  });
 }
