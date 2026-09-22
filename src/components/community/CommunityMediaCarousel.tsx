@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { UrgentAlertFlyerImage } from "@/components/urgent-alert/UrgentAlertFlyerImage";
 import type { CommunityPostMediaItem } from "@/lib/member-types";
 import { inferCommunityVideoContentType } from "@/lib/community-media-shared";
 
@@ -63,7 +64,11 @@ function CarouselSlide({
       src={mediaUrl}
       alt=""
       decoding="async"
-      className={`h-full w-full ${imageFit === "contain" ? "object-contain" : "object-cover"}`}
+      className={
+        imageFit === "contain"
+          ? "community-media-flyer-img"
+          : "h-full w-full object-cover"
+      }
     />
   );
 }
@@ -73,12 +78,15 @@ type CommunityMediaCarouselProps = {
   compact?: boolean;
   /** Show full graphics without cropping (urgent flyers, announcements). */
   imageFit?: "cover" | "contain";
+  /** Use urgent-alert flyer sizing (portrait vs landscape). */
+  flyerLayout?: boolean;
 };
 
 export function CommunityMediaCarousel({
   items,
   compact,
   imageFit = "cover",
+  flyerLayout = false,
 }: CommunityMediaCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -105,12 +113,31 @@ export function CommunityMediaCarousel({
   if (items.length === 0) return null;
 
   const contain = imageFit === "contain";
-  const carouselShellClass = contain ? "community-media-carousel community-media-carousel-contain" : "community-media-carousel";
+  const carouselShellClass = contain
+    ? "community-media-carousel community-media-carousel-contain"
+    : "community-media-carousel";
   const singleFrameClass = contain
-    ? "flex min-h-[12rem] max-h-[min(85vh,720px)] w-full items-center justify-center md:max-h-[min(88vh,960px)]"
+    ? "community-media-flyer-frame"
     : compact
       ? "aspect-square max-h-56"
       : "max-h-[32rem] aspect-[4/5] sm:aspect-auto sm:max-h-[32rem]";
+
+  if (items.length === 1 && flyerLayout && items[0].type === "image") {
+    return (
+      <div
+        className={`border-y border-night-900/10 bg-black ${compact ? "" : "community-media-carousel community-media-carousel-contain"}`}
+      >
+        <div className="community-media-flyer-frame">
+          <UrgentAlertFlyerImage
+            src={resolveMediaUrl(items[0].url)}
+            alt=""
+            context="home"
+            className="ring-0"
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 1) {
     return (

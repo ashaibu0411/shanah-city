@@ -4167,6 +4167,25 @@ html.dark .community-story-viewer-reply-input {
   align-items: stretch;
 }
 
+.community-media-flyer-frame {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  padding: 0.25rem 0;
+}
+
+.community-media-flyer-img,
+.community-media-flyer-frame .community-media-flyer-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(90vh, 920px);
+  object-fit: contain;
+  object-position: center;
+}
+
 .community-composer-modal {
   position: fixed;
   inset: 0;

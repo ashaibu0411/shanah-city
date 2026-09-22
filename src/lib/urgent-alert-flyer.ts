@@ -34,12 +34,12 @@ export function urgentAlertFlyerImageClassName(
   if (portrait === true) {
     return context === "admin-preview"
       ? `${base} max-h-[min(70vh,520px)]`
-      : `${base} max-h-[min(75vh,680px)]`;
+      : `${base} max-h-[min(80vh,760px)] lg:max-h-[min(85vh,900px)]`;
   }
   if (portrait === false) {
     return context === "admin-preview"
       ? `${base} max-h-64 md:max-h-72`
-      : `${base} max-h-64 md:max-h-[min(70vh,520px)]`;
+      : `${base} max-h-64 md:max-h-[min(75vh,560px)] lg:max-h-[min(82vh,720px)]`;
   }
-  return `${base} max-h-96 md:max-h-[28rem]`;
+  return `${base} max-h-96 md:max-h-[min(75vh,640px)] lg:max-h-[min(85vh,900px)]`;
 }

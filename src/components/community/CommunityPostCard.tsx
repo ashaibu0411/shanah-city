@@ -716,6 +716,7 @@ export function CommunityPostCard({
           <CommunityMediaCarousel
             items={communityPostMediaItems(post)}
             imageFit={isUrgentNews || post.type === "announcement" ? "contain" : "cover"}
+            flyerLayout={isUrgentNews || post.type === "announcement"}
           />
         </div>
       ) : null}
