@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AlertPublicShare } from "@/components/share/AlertPublicShare";
 import { UrgentAlertFlyerImage } from "@/components/urgent-alert/UrgentAlertFlyerImage";
-import { urgentAlertScheduleLabel } from "@/lib/urgent-alert-utils";
+import { urgentAlertPublicShareBlurb, urgentAlertScheduleLabel } from "@/lib/urgent-alert-utils";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 type UrgentAlertDetailViewProps = {
@@ -24,6 +24,14 @@ export function UrgentAlertDetailView({ alert }: UrgentAlertDetailViewProps) {
       >
         ← Back to home
       </Link>
+
+      <div className="rounded-xl border border-night-900/10 bg-sand-50 px-4 py-3 text-sm text-night-700 dark:border-white/10 dark:bg-night-900/40 dark:text-sand-200">
+        {urgentAlertPublicShareBlurb()} Use{" "}
+        <Link href="#urgent-alert-share" className="font-semibold text-night-900 underline dark:text-sand-50">
+          Share with people not on the app
+        </Link>{" "}
+        below to text or WhatsApp this page to friends and family.
+      </div>
 
       <div className="overflow-hidden rounded-2xl border-2 border-red-500/80 bg-gradient-to-br from-red-700 via-red-600 to-orange-600 p-5 text-white shadow-xl shadow-red-900/25 sm:p-8">
         <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-red-100">
@@ -69,7 +77,13 @@ export function UrgentAlertDetailView({ alert }: UrgentAlertDetailViewProps) {
         ) : null}
 
         <div className="mt-6 border-t border-white/20 pt-5">
-          <AlertPublicShare alertId={alert.id} title={alert.title} message={alert.message} onDark />
+          <AlertPublicShare
+            alertId={alert.id}
+            title={alert.title}
+            message={alert.message}
+            onDark
+            sectionId="urgent-alert-share"
+          />
         </div>
       </div>
     </article>

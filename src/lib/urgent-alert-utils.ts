@@ -93,3 +93,11 @@ export function urgentAlertShareMessage(alert: Pick<UrgentAlert, "title" | "mess
 export function whatsAppShareUrl(text: string) {
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
+
+export function smsShareUrl(text: string) {
+  return `sms:?&body=${encodeURIComponent(text)}`;
+}
+
+export function urgentAlertPublicShareBlurb() {
+  return "Open in any browser — no Shanah City app or sign-in required.";
+}
