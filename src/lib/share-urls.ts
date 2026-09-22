@@ -23,11 +23,15 @@ export function eventViewUrl(eventId: string) {
   return eventShareUrl(eventId);
 }
 
+export function communityPostShareUrl(postId: string) {
+  return `${getAppBaseUrl()}/community#post-${encodeURIComponent(postId)}`;
+}
+
 export function urgentAlertShareUrl(alertId?: string) {
   if (alertId) {
-    return `${getAppBaseUrl()}/alerts/${encodeURIComponent(alertId)}`;
+    return communityPostShareUrl(`urgent-news-${alertId}`);
   }
-  return `${getAppBaseUrl()}/`;
+  return `${getAppBaseUrl()}/community`;
 }
 
 export function urgentAlertViewUrl(alertId?: string) {

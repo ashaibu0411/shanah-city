@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { UrgentAlertDetailView } from "@/components/urgent-alert/UrgentAlertDetailView";
-import { PageHeader } from "@/components/ui";
 import { getPublicUrgentAlertById } from "@/lib/urgent-alert-server";
-import { urgentAlertPublicShareBlurb } from "@/lib/urgent-alert-utils";
+import {
+  syncUrgentAlertToCommunityNews,
+} from "@/lib/urgent-alert-community-sync";
+import { urgentAlertCommunityPostHref } from "@/lib/urgent-alert-utils";
 import { urgentAlertShareUrl } from "@/lib/share-urls";
 import { site } from "@/lib/site";
 
@@ -48,19 +49,10 @@ export async function generateMetadata({ params }: UrgentAlertDetailPageProps): 
 export default async function UrgentAlertDetailPage({ params }: UrgentAlertDetailPageProps) {
   const { id } = await params;
   const alert = await getPublicUrgentAlertById(id);
-
   if (!alert) {
-    notFound();
+    redirect("/community");
   }
 
-  return (
-    <>
-      <PageHeader
-        eyebrow="Shanah City"
-        title="Urgent alert"
-        description="Important update for our church family."
-      />
-      <UrgentAlertDetailView alert={alert} />
-    </>
-  );
+  await syncUrgentAlertToCommunityNews(alert);
+  redirect(urgentAlertCommunityPostHref(alert.id));
 }

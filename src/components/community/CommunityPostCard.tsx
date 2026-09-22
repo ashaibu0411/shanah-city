@@ -21,6 +21,7 @@ import {
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { CommunityMediaCarousel } from "@/components/community/CommunityMediaCarousel";
 import { canManageCommunityPostClient } from "@/lib/community-post-access";
+import { isUrgentAlertCommunityPostId } from "@/lib/urgent-alert-utils";
 import { canManageCommunityComment } from "@/lib/community-comment-access";
 import { communityPostHasMedia, communityPostMediaItems } from "@/lib/community-post-media";
 
@@ -288,6 +289,7 @@ export function CommunityPostCard({
   const [editType, setEditType] = useState<CommunityPost["type"]>(post.type);
   const [editError, setEditError] = useState("");
   const campus = getCampus(post.campusId);
+  const isUrgentNews = isUrgentAlertCommunityPostId(post.id);
 
   const canManage = Boolean(
     post.canManage || canManageCommunityPostClient(user, post, permissions.canManageAdmin),
@@ -606,7 +608,10 @@ export function CommunityPostCard({
     : null;
 
   return (
-    <article id={`post-${post.id}`} className="community-post-card">
+    <article
+      id={`post-${post.id}`}
+      className={`community-post-card scroll-mt-24 ${isUrgentNews ? "community-post-card-urgent" : ""}`}
+    >
       <header className="community-post-header">
         <CommunityAvatar name={post.author} authorId={post.authorId} size="md" />
         <div className="community-post-header-main min-w-0 flex-1">
@@ -627,7 +632,9 @@ export function CommunityPostCard({
             ) : null}
           </div>
           <p className="community-post-meta" title={`${timeLabel} · ${audienceLabel}`}>
-            <span className="community-post-meta-type">{postTypeLabel(post.type)}</span>
+            <span className="community-post-meta-type">
+              {isUrgentNews ? "Urgent alert · News" : postTypeLabel(post.type)}
+            </span>
             <span className="community-post-meta-dot" aria-hidden>
               ·
             </span>

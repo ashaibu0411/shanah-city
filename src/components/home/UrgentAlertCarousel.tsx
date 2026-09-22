@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { UrgentAlertFlyerImage } from "@/components/urgent-alert/UrgentAlertFlyerImage";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
+import { urgentAlertCommunityPostHref } from "@/lib/urgent-alert-utils";
 
 const AUTO_ADVANCE_MS = 9000;
 
@@ -55,7 +56,7 @@ export function UrgentAlertCarousel({
   const alert = alerts[index];
   const highlighted = Boolean(highlightAlertId && alert.id === highlightAlertId);
   const hasFlyer = Boolean(alert.imageUrl);
-  const detailHref = `/alerts/${encodeURIComponent(alert.id)}`;
+  const detailHref = urgentAlertCommunityPostHref(alert.id);
 
   return (
     <section
@@ -123,7 +124,7 @@ export function UrgentAlertCarousel({
                   {alert.message}
                 </p>
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-white underline decoration-white/40 underline-offset-2">
-                  View full details
+                  Read on Community
                 </span>
               </div>
               {hasFlyer && alert.imageUrl ? (
@@ -137,7 +138,7 @@ export function UrgentAlertCarousel({
             </div>
           </Link>
           <Link
-            href={`${detailHref}#urgent-alert-share`}
+            href={detailHref}
             className="mt-3 inline-flex text-sm font-semibold text-red-50 underline decoration-white/35 underline-offset-2 hover:text-white"
           >
             Share with others — no app needed

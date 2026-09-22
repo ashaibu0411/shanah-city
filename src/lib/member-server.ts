@@ -46,6 +46,9 @@ export const updateCommunityPost = (
   >,
 ) => store().updateCommunityPost(postId, update);
 export const deleteCommunityPost = (postId: string) => store().deleteCommunityPost(postId);
+export const upsertUrgentAlertCommunityPost = (
+  input: Parameters<typeof memberJson.upsertUrgentAlertCommunityPost>[0],
+) => store().upsertUrgentAlertCommunityPost(input);
 export const getVolunteerCheckIns = () => store().getVolunteerCheckIns();
 export const addVolunteerCheckIn = (
   entry: Parameters<typeof memberJson.addVolunteerCheckIn>[0],

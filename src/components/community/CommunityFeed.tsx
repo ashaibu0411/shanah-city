@@ -9,13 +9,20 @@ import {
   filterCommunityPosts,
   type CommunityFeedFilter,
 } from "@/lib/community-ui-utils";
+import { isUrgentAlertCommunityPostId } from "@/lib/urgent-alert-utils";
 import { CommunityComposer } from "@/components/community/CommunityComposer";
 import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { SectionTitle } from "@/components/ui";
 
 export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] }) {
   const [posts, setPosts] = useState(initialPosts);
-  const [filter, setFilter] = useState<CommunityFeedFilter>("all");
+  const [filter, setFilter] = useState<CommunityFeedFilter>(() => {
+    if (typeof window === "undefined") return "all";
+    const hash = window.location.hash;
+    if (!hash.startsWith("#post-")) return "all";
+    const postId = decodeURIComponent(hash.slice("#post-".length));
+    return isUrgentAlertCommunityPostId(postId) ? "announcement" : "all";
+  });
 
   useEffect(() => {
     setPosts(initialPosts);
@@ -54,6 +61,30 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
   function prependPost(post: CommunityPost) {
     setPosts((current) => [{ ...post, canManage: post.canManage ?? true }, ...current]);
   }
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash.startsWith("#post-")) return;
+
+    const scrollToPost = () => {
+      const target = document.querySelector(hash);
+      if (!target) return false;
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      target.classList.add("community-post-card-highlight");
+      window.setTimeout(() => target.classList.remove("community-post-card-highlight"), 3200);
+      return true;
+    };
+
+    if (scrollToPost()) return;
+
+    const retry = window.setInterval(() => {
+      if (scrollToPost()) {
+        window.clearInterval(retry);
+      }
+    }, 120);
+
+    return () => window.clearInterval(retry);
+  }, [filteredPosts.length]);
 
   return (
     <div className="community-feed community-feed-solid min-w-0 max-w-full">

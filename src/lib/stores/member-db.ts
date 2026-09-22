@@ -371,6 +371,66 @@ export async function updateCommunityPost(
   return mapCommunityPost(updated);
 }
 
+export async function upsertUrgentAlertCommunityPost(input: {
+  postId: string;
+  author: string;
+  authorId: string;
+  content: string;
+  imageUrl?: string;
+  videoUrl?: string;
+}) {
+  const mediaItems: CommunityPostMediaItem[] = [];
+  if (input.imageUrl?.trim()) {
+    mediaItems.push({ url: input.imageUrl.trim(), type: "image" });
+  } else if (input.videoUrl?.trim()) {
+    mediaItems.push({ url: input.videoUrl.trim(), type: "video" });
+  }
+  const storedMedia = normalizeStoredCommunityPostMedia(mediaItems);
+  const now = new Date();
+
+  const existing = await prisma.communityPost.findUnique({ where: { id: input.postId } });
+  if (existing) {
+    const updated = await prisma.communityPost.update({
+      where: { id: input.postId },
+      data: {
+        author: input.author,
+        authorId: input.authorId,
+        content: input.content,
+        type: "announcement",
+        mediaUrl: storedMedia.mediaUrl,
+        mediaType: storedMedia.mediaType,
+        mediaItems: storedMedia.mediaItems ?? Prisma.JsonNull,
+        timeAgo: "Just now",
+        createdAt: now,
+        targetGroupId: null,
+        targetGroupName: null,
+      },
+      include: postInclude,
+    });
+    return mapCommunityPost(updated);
+  }
+
+  const created = await prisma.communityPost.create({
+    data: {
+      id: input.postId,
+      author: input.author,
+      authorId: input.authorId,
+      campusId: "colorado",
+      content: input.content,
+      mediaUrl: storedMedia.mediaUrl,
+      mediaType: storedMedia.mediaType,
+      mediaItems: storedMedia.mediaItems ?? Prisma.JsonNull,
+      timeAgo: "Just now",
+      type: "announcement",
+      reactions: 0,
+      createdAt: now,
+    },
+    include: postInclude,
+  });
+
+  return mapCommunityPost(created);
+}
+
 export async function deleteCommunityPost(postId: string) {
   try {
     await prisma.communityPost.delete({ where: { id: postId } });

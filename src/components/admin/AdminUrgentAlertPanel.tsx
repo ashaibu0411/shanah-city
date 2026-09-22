@@ -271,7 +271,7 @@ export function AdminUrgentAlertPanel() {
         <h2 className="font-display text-xl font-semibold text-night-900">Urgent home alert</h2>
         <p className="mt-2 text-sm text-night-600">
           Publish announcements for the home carousel (up to {URGENT_ALERT_HOME_CAROUSEL_MAX} show at
-          once). They auto-rotate; members tap any slide for full details, flyers, and links.
+          once). Each update also posts to Community → News; members tap a slide to read and share there.
         </p>
 
         {flaggedAlerts.length > 0 ? (

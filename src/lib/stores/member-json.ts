@@ -119,6 +119,53 @@ export async function updateCommunityPost(
   return posts[index];
 }
 
+export async function upsertUrgentAlertCommunityPost(input: {
+  postId: string;
+  author: string;
+  authorId: string;
+  content: string;
+  imageUrl?: string;
+  videoUrl?: string;
+}) {
+  const posts = await getCommunityPosts();
+  const index = posts.findIndex((post) => post.id === input.postId);
+  const now = new Date().toISOString();
+  const mediaUrl = input.imageUrl?.trim() || input.videoUrl?.trim() || undefined;
+  const mediaType = input.imageUrl?.trim() ? ("image" as const) : input.videoUrl?.trim() ? ("video" as const) : undefined;
+  const mediaItems =
+    input.imageUrl?.trim()
+      ? [{ url: input.imageUrl.trim(), type: "image" as const }]
+      : input.videoUrl?.trim()
+        ? [{ url: input.videoUrl.trim(), type: "video" as const }]
+        : undefined;
+
+  const nextPost: CommunityPost = {
+    id: input.postId,
+    author: input.author,
+    authorId: input.authorId,
+    campusId: "colorado",
+    content: input.content,
+    mediaUrl,
+    mediaType,
+    mediaItems,
+    timeAgo: "Just now",
+    type: "announcement",
+    reactions: index === -1 ? 0 : posts[index].reactions,
+    comments: index === -1 ? [] : posts[index].comments ?? [],
+    createdAt: now,
+  };
+
+  if (index === -1) {
+    posts.unshift(nextPost);
+  } else {
+    posts.splice(index, 1);
+    posts.unshift(nextPost);
+  }
+
+  await saveCommunityPosts(posts);
+  return nextPost;
+}
+
 export async function deleteCommunityPost(postId: string) {
   const posts = await getCommunityPosts();
   const next = posts.filter((post) => post.id !== postId);

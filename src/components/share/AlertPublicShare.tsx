@@ -9,6 +9,7 @@ import {
   whatsAppShareUrl,
 } from "@/lib/urgent-alert-utils";
 import { urgentAlertShareUrl } from "@/lib/share-urls";
+import { communityPostIdForUrgentAlert } from "@/lib/urgent-alert-utils";
 
 type AlertPublicShareProps = {
   alertId: string;
@@ -26,6 +27,7 @@ export function AlertPublicShare({
   onDark = false,
   sectionId = "urgent-alert-share",
 }: AlertPublicShareProps) {
+  const postId = communityPostIdForUrgentAlert(alertId);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedMessage, setCopiedMessage] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
@@ -34,10 +36,10 @@ export function AlertPublicShare({
 
   const shareUrl = useMemo(() => {
     if (typeof window !== "undefined") {
-      return `${window.location.origin}/alerts/${encodeURIComponent(alertId)}`;
+      return `${window.location.origin}/community#post-${encodeURIComponent(postId)}`;
     }
     return urgentAlertShareUrl(alertId);
-  }, [alertId]);
+  }, [alertId, postId]);
 
   const shareText = useMemo(
     () => urgentAlertShareMessage({ title, message }, shareUrl),

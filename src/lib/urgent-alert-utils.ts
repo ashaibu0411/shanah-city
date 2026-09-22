@@ -99,5 +99,21 @@ export function smsShareUrl(text: string) {
 }
 
 export function urgentAlertPublicShareBlurb() {
-  return "Open in any browser — no Shanah City app or sign-in required.";
+  return "Opens on the Community page in any browser — no app or sign-in required.";
+}
+
+export function communityPostIdForUrgentAlert(alertId: string) {
+  return `urgent-news-${alertId}`;
+}
+
+export function urgentAlertCommunityPostHref(alertId: string) {
+  return `/community#post-${communityPostIdForUrgentAlert(alertId)}`;
+}
+
+export function isUrgentAlertCommunityPostId(postId: string) {
+  return postId.startsWith("urgent-news-");
+}
+
+export function urgentAlertCommunityPostContent(alert: { title: string; message: string }) {
+  return `URGENT: ${alert.title.trim()}\n\n${alert.message.trim()}`;
 }

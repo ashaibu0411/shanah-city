@@ -5,6 +5,7 @@ import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { sendPushToAllMembers } from "@/lib/push-server";
 import { urgentAlertViewUrl } from "@/lib/share-urls";
+import { syncUrgentAlertToCommunityNews } from "@/lib/urgent-alert-community-sync";
 import {
   clearActiveUrgentAlert,
   getFlaggedUrgentAlert,
@@ -16,6 +17,7 @@ import {
 
 function revalidateUrgentAlertPages() {
   revalidatePath("/");
+  revalidatePath("/community");
   revalidatePath("/admin/alerts");
   revalidatePath("/alerts", "layout");
 }
@@ -75,6 +77,7 @@ export async function POST(request: Request) {
       createdBy: existing.createdBy,
       createdByName: existing.createdByName,
     });
+    await syncUrgentAlertToCommunityNews(alert);
     revalidateUrgentAlertPages();
     return NextResponse.json({
       alert,
@@ -115,6 +118,8 @@ export async function POST(request: Request) {
     createdBy: user.id,
     createdByName: user.name,
   });
+
+  await syncUrgentAlertToCommunityNews(alert);
 
   let notify: { sent: number; skipped: number; configured: boolean } | null = null;
   if (active && body.sendPush) {

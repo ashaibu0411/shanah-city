@@ -2872,6 +2872,27 @@ body[data-shell="mobile"] .mobile-home-welcome-stories .community-home-stories-h
     0 8px 24px rgba(45, 36, 24, 0.05);
 }
 
+.community-post-card-urgent {
+  border-color: rgba(220, 38, 38, 0.45);
+  box-shadow:
+    0 1px 2px rgba(127, 29, 29, 0.08),
+    0 8px 28px rgba(220, 38, 38, 0.12);
+}
+
+.community-post-card-highlight {
+  animation: community-post-highlight 3s ease-out;
+}
+
+@keyframes community-post-highlight {
+  0%,
+  15% {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.35);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
 .community-post-header {
   grid-column: 1 / -1;
   display: flex;
