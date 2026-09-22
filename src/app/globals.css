@@ -4144,27 +4144,43 @@ html.dark .community-story-viewer-reply-input {
   min-width: 0;
   max-width: 100%;
   scroll-snap-align: start;
-  aspect-ratio: 4 / 5;
-  max-height: 32rem;
+  aspect-ratio: auto;
+  max-height: min(85vh, 720px);
   background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .community-feed-solid .community-media-carousel .community-media-carousel-slide {
-  aspect-ratio: 1 / 1;
-  max-height: none;
+  aspect-ratio: auto;
+  max-height: min(85vh, 720px);
   min-height: 0;
+  height: auto;
 }
 
 .community-media-carousel-contain .community-media-carousel-slide,
 .community-feed-solid .community-media-carousel-contain .community-media-carousel-slide {
   aspect-ratio: auto;
   max-height: min(88vh, 960px);
-  min-height: 12rem;
+  min-height: 0;
   height: auto;
 }
 
 .community-media-carousel-contain .community-media-carousel-track {
   align-items: stretch;
+}
+
+.community-media-photo-frame {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  background: var(--color-bg-soft, #f5f0e8);
+}
+
+html.dark .community-media-photo-frame {
+  background: #0f0f0f;
 }
 
 .community-media-flyer-frame {

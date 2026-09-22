@@ -133,7 +133,7 @@ export function CommunityMediaCarousel({
     ? "community-media-carousel community-media-carousel-contain"
     : "community-media-carousel";
   const singleFrameClass = contain
-    ? "community-media-flyer-frame"
+    ? "community-media-photo-frame"
     : compact
       ? "aspect-square max-h-56"
       : "max-h-[32rem] aspect-[4/5] sm:aspect-auto sm:max-h-[32rem]";
