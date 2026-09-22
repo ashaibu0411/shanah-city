@@ -1,6 +1,5 @@
 "use client";
 
-import { CommunityPreview } from "@/components/community/CommunityFeed";
 import { DevotionPreview } from "@/components/devotions/DevotionCard";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { CampusStrip } from "@/components/home/CampusStrip";
@@ -23,14 +22,12 @@ import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { SermonCard } from "@/components/sermons/SermonCard";
 import { SectionTitle } from "@/components/ui";
 import type { Devotion } from "@/lib/types";
-import type { CommunityPost } from "@/lib/member-types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
 
 type HomeViewProps = {
-  posts: CommunityPost[];
   todayDevotion: Devotion | null;
   urgentAlerts: UrgentAlert[];
   churchImages: ChurchSocialImages;
@@ -38,7 +35,6 @@ type HomeViewProps = {
 };
 
 export function HomeView({
-  posts,
   todayDevotion,
   urgentAlerts,
   churchImages,
@@ -50,7 +46,6 @@ export function HomeView({
   if (isMobileApp) {
     return (
       <MobileHome
-        posts={posts}
         todayDevotion={todayDevotion}
         urgentAlerts={urgentAlerts}
         churchImages={churchImages}
@@ -83,8 +78,6 @@ export function HomeView({
         <SectionTitle title="Latest sermon" href="/sermons" />
         <SermonCard compact video={latestSermon} />
       </section>
-
-      <CommunityPreview initialPosts={posts} />
     </>
   );
 }

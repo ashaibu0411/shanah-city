@@ -31,7 +31,6 @@ import {
 } from "@/components/home/DailyEngagementBanners";
 import { UrgentAlertCarousel } from "@/components/home/UrgentAlertCarousel";
 import type { Devotion } from "@/lib/types";
-import type { CommunityPost } from "@/lib/member-types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 const todayShortcuts = [
@@ -70,7 +69,6 @@ function homeGreeting(name?: string | null) {
 }
 
 type MobileHomeProps = {
-  posts: CommunityPost[];
   todayDevotion: Devotion | null;
   urgentAlerts: UrgentAlert[];
   churchImages: ChurchSocialImages;
