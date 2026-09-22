@@ -14,8 +14,11 @@ export const homeExploreTileImages = {
 /** Home + Media “Watch Live” top banner (same photo everywhere). */
 export const homeLiveSpotlightImage = "/home/home-gallery-88.jpg";
 
+/** Keeps faces in frame on wide live banners (mobile + desktop). */
 export const homeLiveSpotlightMediaClass =
   "object-cover object-[center_28%]";
+
+export const homeLiveBannerMediaClass = homeLiveSpotlightMediaClass;
 
 export type HomeExploreTileId = keyof typeof homeExploreTileImages;
 

@@ -5,6 +5,7 @@ import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { LiveStreamCountdown } from "@/components/live/LiveStreamCountdown";
 import { useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSchedule";
 import { LiveStreamPublicShare } from "@/components/live/LiveStreamPublicShare";
+import { homeLiveBannerMediaClass } from "@/lib/home-explore-tile-images";
 import { liveStream, site } from "@/lib/site";
 import { streamPreviews } from "@/lib/streams";
 import { Badge, ExternalLink } from "@/components/ui";
@@ -68,16 +69,17 @@ export function LiveBanner({ liveFlyerImage }: LiveBannerProps) {
         href="/live"
         className="group mb-6 block overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-night-900/10 transition hover:scale-[1.005]"
       >
-        <div className="relative min-h-[16rem] sm:min-h-[14rem]">
+        <div className="relative min-h-[16rem] sm:aspect-[16/10] sm:min-h-0 lg:aspect-[16/9]">
           {liveFlyerImage ? (
             <>
               <ChurchFlyerImage
                 src={liveFlyerImage}
                 alt=""
                 sizes="(max-width: 768px) 100vw, 960px"
-                className="object-cover transition duration-700 group-hover:scale-[1.03]"
+                className={`${homeLiveBannerMediaClass} transition duration-700 group-hover:scale-[1.03]`}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-night-950/94 via-night-950/82 to-night-900/60" />
+              <div className="absolute inset-0 bg-gradient-to-r from-night-950/94 via-night-950/78 to-night-900/45" />
+              <div className="absolute inset-0 bg-gradient-to-t from-night-950/55 via-transparent to-transparent" />
             </>
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-night-950 via-night-900 to-teal-950" />
@@ -86,7 +88,7 @@ export function LiveBanner({ liveFlyerImage }: LiveBannerProps) {
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(45,212,191,0.12),transparent_45%)]"
             aria-hidden
           />
-          <div className="relative flex min-h-[16rem] flex-col justify-center px-6 py-8 sm:min-h-[14rem] sm:px-10 sm:py-10">
+          <div className="relative flex min-h-[16rem] flex-col justify-center px-6 py-8 sm:min-h-0 sm:px-10 sm:py-10">
             <LiveStreamCountdown
               schedule={schedule}
               variant="desktop-flyer"
@@ -100,16 +102,17 @@ export function LiveBanner({ liveFlyerImage }: LiveBannerProps) {
 
   return (
     <div className="group mb-6 overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-night-900/10">
-      <div className="relative min-h-[14rem]">
+      <div className="relative min-h-[14rem] sm:aspect-[16/10] sm:min-h-0 lg:aspect-[16/9]">
         {liveFlyerImage ? (
           <>
             <ChurchFlyerImage
               src={liveFlyerImage}
               alt=""
               sizes="(max-width: 768px) 100vw, 960px"
-              className="object-cover transition duration-700 group-hover:scale-[1.02]"
+              className={`${homeLiveBannerMediaClass} transition duration-700 group-hover:scale-[1.02]`}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-night-950/94 via-night-950/85 to-night-900/70" />
+            <div className="absolute inset-0 bg-gradient-to-r from-night-950/94 via-night-950/82 to-night-900/55" />
+            <div className="absolute inset-0 bg-gradient-to-t from-night-950/50 via-transparent to-transparent" />
           </>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-night-950 via-night-900 to-night-800" />
