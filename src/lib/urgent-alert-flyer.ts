@@ -27,10 +27,12 @@ export function applyUrgentAlertFlyerArtwork<T extends FlyerArtworkFields>(field
 
 export function urgentAlertFlyerImageClassName(
   portrait: boolean | null,
-  context: "home" | "admin-preview",
+  context: "home" | "admin-preview" | "community",
 ) {
   const base =
-    "w-full rounded-2xl object-contain shadow-lg ring-1 ring-white/15 bg-white/95 dark:bg-night-950/40";
+    context === "community"
+      ? "w-full object-contain bg-transparent shadow-none ring-0 rounded-none"
+      : "w-full rounded-2xl object-contain shadow-lg ring-1 ring-white/15 bg-white/95 dark:bg-night-950/40";
   if (portrait === true) {
     return context === "admin-preview"
       ? `${base} max-h-[min(70vh,520px)]`

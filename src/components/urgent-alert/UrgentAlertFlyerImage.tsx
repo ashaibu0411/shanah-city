@@ -9,7 +9,7 @@ import {
 type UrgentAlertFlyerImageProps = {
   src: string;
   alt?: string;
-  context?: "home" | "admin-preview";
+  context?: "home" | "admin-preview" | "community";
   className?: string;
 };
 

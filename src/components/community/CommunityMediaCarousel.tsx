@@ -20,6 +20,22 @@ function resolveMediaUrl(url: string) {
   return url;
 }
 
+function CommunityFlyerFrame({ src, alt = "" }: { src: string; alt?: string }) {
+  return (
+    <div className="community-media-flyer-frame">
+      <div
+        className="community-media-flyer-backdrop"
+        style={{ backgroundImage: `url("${src.replace(/"/g, "%22")}")` }}
+        aria-hidden
+      />
+      <div className="community-media-flyer-scrim" aria-hidden />
+      <div className="community-media-flyer-foreground">
+        <UrgentAlertFlyerImage src={src} alt={alt} context="community" />
+      </div>
+    </div>
+  );
+}
+
 function CarouselSlide({
   item,
   active,
@@ -127,14 +143,7 @@ export function CommunityMediaCarousel({
       <div
         className={`border-y border-night-900/10 bg-black ${compact ? "" : "community-media-carousel community-media-carousel-contain"}`}
       >
-        <div className="community-media-flyer-frame">
-          <UrgentAlertFlyerImage
-            src={resolveMediaUrl(items[0].url)}
-            alt=""
-            context="home"
-            className="ring-0"
-          />
-        </div>
+        <CommunityFlyerFrame src={resolveMediaUrl(items[0].url)} />
       </div>
     );
   }

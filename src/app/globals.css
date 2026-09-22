@@ -4168,12 +4168,40 @@ html.dark .community-story-viewer-reply-input {
 }
 
 .community-media-flyer-frame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  background: #050505;
+}
+
+.community-media-flyer-backdrop {
+  position: absolute;
+  inset: -18%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(32px) saturate(1.15);
+  opacity: 0.65;
+  transform: scale(1.08);
+}
+
+.community-media-flyer-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 5, 5, 0.55) 0%,
+    rgba(5, 5, 5, 0.82) 45%,
+    rgba(5, 5, 5, 0.92) 100%
+  );
+}
+
+.community-media-flyer-foreground {
+  position: relative;
+  z-index: 1;
   display: flex;
   width: 100%;
   justify-content: center;
-  align-items: center;
-  background: #000;
-  padding: 0.25rem 0;
+  padding: 0.35rem 0 0.5rem;
 }
 
 .community-media-flyer-img,
