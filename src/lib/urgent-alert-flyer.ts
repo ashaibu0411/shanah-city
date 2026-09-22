@@ -37,7 +37,9 @@ export function urgentAlertFlyerImageClassName(
       : `${base} max-h-[min(75vh,680px)]`;
   }
   if (portrait === false) {
-    return `${base} max-h-64 md:max-h-72`;
+    return context === "admin-preview"
+      ? `${base} max-h-64 md:max-h-72`
+      : `${base} max-h-64 md:max-h-[min(70vh,520px)]`;
   }
   return `${base} max-h-96 md:max-h-[28rem]`;
 }

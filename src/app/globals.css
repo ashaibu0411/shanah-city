@@ -4155,6 +4155,18 @@ html.dark .community-story-viewer-reply-input {
   min-height: 0;
 }
 
+.community-media-carousel-contain .community-media-carousel-slide,
+.community-feed-solid .community-media-carousel-contain .community-media-carousel-slide {
+  aspect-ratio: auto;
+  max-height: min(88vh, 960px);
+  min-height: 12rem;
+  height: auto;
+}
+
+.community-media-carousel-contain .community-media-carousel-track {
+  align-items: stretch;
+}
+
 .community-composer-modal {
   position: fixed;
   inset: 0;

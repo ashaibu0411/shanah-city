@@ -10,8 +10,8 @@ export function isCommunityCommentAuthor(
   user: CommentAuthorUser,
   comment: Pick<Comment, "author" | "authorId">,
 ) {
-  if (comment.authorId && comment.authorId === user.id) {
-    return true;
+  if (comment.authorId) {
+    return comment.authorId === user.id;
   }
   if (comment.author) {
     return userMatchesStoredAuthorName(user, comment.author);

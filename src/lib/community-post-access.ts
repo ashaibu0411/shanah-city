@@ -1,14 +1,19 @@
 import type { CommunityPost } from "@/lib/member-types";
 import { userMatchesStoredAuthorName } from "@/lib/member-display-name";
+import { isUrgentAlertCommunityPostId } from "@/lib/urgent-alert-utils";
+
+function isChurchNewsPost(post: Pick<CommunityPost, "id" | "type">) {
+  return post.type === "announcement" || isUrgentAlertCommunityPostId(post.id);
+}
 
 export function isCommunityPostAuthor(
   user: Pick<{ id: string; name: string; displayName?: string | null }, "id" | "name" | "displayName">,
   post: Pick<CommunityPost, "author" | "authorId">,
 ) {
-  if (post.authorId && post.authorId === user.id) {
-    return true;
+  if (post.authorId) {
+    return post.authorId === user.id;
   }
-  if (post.author && user.name) {
+  if (post.author) {
     return userMatchesStoredAuthorName(user, post.author);
   }
   return false;
@@ -27,10 +32,13 @@ export function attachCanManageToPosts(
 
 export function canManageCommunityPostClient(
   user: Pick<{ id: string; name: string; displayName?: string | null }, "id" | "name" | "displayName"> | null | undefined,
-  post: Pick<CommunityPost, "author" | "authorId">,
+  post: Pick<CommunityPost, "author" | "authorId" | "id" | "type">,
   isAdmin = false,
 ) {
   if (!user) return false;
+  if (isChurchNewsPost(post)) {
+    return isAdmin;
+  }
   if (isAdmin) return true;
   return isCommunityPostAuthor(user, post);
 }

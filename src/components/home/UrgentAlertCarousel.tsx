@@ -111,7 +111,7 @@ export function UrgentAlertCarousel({
 
         <div className="mt-3" id={`urgent-alert-${alert.id}`}>
           <Link href={detailHref} className="block w-full text-left transition hover:opacity-95">
-            <div className={`grid gap-3 ${hasFlyer ? "sm:grid-cols-[minmax(0,1fr)_120px]" : ""}`}>
+            <div className="flex flex-col gap-4">
               <div className="min-w-0">
                 <h2
                   className={`font-display font-bold leading-tight ${isMobile ? "text-lg" : "text-xl md:text-2xl"}`}
@@ -119,7 +119,7 @@ export function UrgentAlertCarousel({
                   {alert.title}
                 </h2>
                 <p
-                  className={`mt-2 line-clamp-3 text-red-50/95 ${isMobile ? "text-sm" : "text-base"}`}
+                  className={`mt-2 text-red-50/95 ${isMobile ? "line-clamp-3 text-sm" : "text-base leading-relaxed"}`}
                 >
                   {alert.message}
                 </p>
@@ -132,7 +132,7 @@ export function UrgentAlertCarousel({
                   src={alert.imageUrl}
                   alt=""
                   context="home"
-                  className="max-h-28 border border-white/20 sm:max-h-32"
+                  className="border border-white/20"
                 />
               ) : null}
             </div>

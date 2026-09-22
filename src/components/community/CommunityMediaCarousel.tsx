@@ -22,9 +22,11 @@ function resolveMediaUrl(url: string) {
 function CarouselSlide({
   item,
   active,
+  imageFit = "cover",
 }: {
   item: CommunityPostMediaItem;
   active: boolean;
+  imageFit?: "cover" | "contain";
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaUrl = resolveMediaUrl(item.url);
@@ -57,16 +59,27 @@ function CarouselSlide({
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={mediaUrl} alt="" decoding="async" className="h-full w-full object-cover" />
+    <img
+      src={mediaUrl}
+      alt=""
+      decoding="async"
+      className={`h-full w-full ${imageFit === "contain" ? "object-contain" : "object-cover"}`}
+    />
   );
 }
 
 type CommunityMediaCarouselProps = {
   items: CommunityPostMediaItem[];
   compact?: boolean;
+  /** Show full graphics without cropping (urgent flyers, announcements). */
+  imageFit?: "cover" | "contain";
 };
 
-export function CommunityMediaCarousel({ items, compact }: CommunityMediaCarouselProps) {
+export function CommunityMediaCarousel({
+  items,
+  compact,
+  imageFit = "cover",
+}: CommunityMediaCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -91,18 +104,26 @@ export function CommunityMediaCarousel({ items, compact }: CommunityMediaCarouse
 
   if (items.length === 0) return null;
 
+  const contain = imageFit === "contain";
+  const carouselShellClass = contain ? "community-media-carousel community-media-carousel-contain" : "community-media-carousel";
+  const singleFrameClass = contain
+    ? "flex min-h-[12rem] max-h-[min(85vh,720px)] w-full items-center justify-center md:max-h-[min(88vh,960px)]"
+    : compact
+      ? "aspect-square max-h-56"
+      : "max-h-[32rem] aspect-[4/5] sm:aspect-auto sm:max-h-[32rem]";
+
   if (items.length === 1) {
     return (
-      <div className={`border-y border-night-900/10 bg-black ${compact ? "" : "community-media-carousel"}`}>
-        <div className={compact ? "aspect-square max-h-56" : "max-h-[32rem] aspect-[4/5] sm:aspect-auto sm:max-h-[32rem]"}>
-          <CarouselSlide item={items[0]} active />
+      <div className={`border-y border-night-900/10 bg-black ${compact ? "" : carouselShellClass}`}>
+        <div className={singleFrameClass}>
+          <CarouselSlide item={items[0]} active imageFit={imageFit} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`relative border-y border-night-900/10 bg-black ${compact ? "" : "community-media-carousel"}`}>
+    <div className={`relative border-y border-night-900/10 bg-black ${compact ? "" : carouselShellClass}`}>
       <div
         ref={scrollerRef}
         className="community-media-carousel-track"
@@ -110,7 +131,7 @@ export function CommunityMediaCarousel({ items, compact }: CommunityMediaCarouse
       >
         {items.map((item, index) => (
           <div key={`${item.url}-${index}`} className="community-media-carousel-slide">
-            <CarouselSlide item={item} active={index === activeIndex} />
+            <CarouselSlide item={item} active={index === activeIndex} imageFit={imageFit} />
           </div>
         ))}
       </div>

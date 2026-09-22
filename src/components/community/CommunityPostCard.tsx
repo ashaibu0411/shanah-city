@@ -713,7 +713,10 @@ export function CommunityPostCard({
 
       {!editing && communityPostMediaItems(post).length > 0 ? (
         <div className="community-post-media">
-          <CommunityMediaCarousel items={communityPostMediaItems(post)} />
+          <CommunityMediaCarousel
+            items={communityPostMediaItems(post)}
+            imageFit={isUrgentNews || post.type === "announcement" ? "contain" : "cover"}
+          />
         </div>
       ) : null}
 
