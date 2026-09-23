@@ -7,6 +7,7 @@ import {
   getYouTubeClipThumbnail,
   isUploadedMediaClip,
   mediaClipPlatformLabel,
+  parseYouTubeVideoId,
 } from "@/lib/media-clips-utils";
 import { ExternalLink } from "@/components/ui";
 
@@ -24,7 +25,8 @@ type MediaClipsGridProps = {
 
 function clipThumbnail(clip: MediaClip) {
   if (clip.thumbnail) return clip.thumbnail;
-  if (clip.videoId) return getYouTubeClipThumbnail(clip.videoId);
+  const videoId = clip.videoId ?? (clip.platform === "youtube" ? parseYouTubeVideoId(clip.url) : null);
+  if (videoId) return getYouTubeClipThumbnail(videoId);
   return "/streams/youtube-shanah-city.svg";
 }
 
@@ -44,9 +46,10 @@ function ClipPlayer({ clip, autoPlay }: { clip: MediaClip; autoPlay: boolean }) 
   }
 
   if (clip.videoId) {
+    const resolvedId = clip.videoId;
     const src = autoPlay
-      ? `${getYouTubeClipEmbedUrl(clip.videoId)}&autoplay=1`
-      : getYouTubeClipEmbedUrl(clip.videoId);
+      ? `${getYouTubeClipEmbedUrl(resolvedId)}&autoplay=1`
+      : getYouTubeClipEmbedUrl(resolvedId);
     return (
       <iframe
         src={src}
@@ -57,6 +60,25 @@ function ClipPlayer({ clip, autoPlay }: { clip: MediaClip; autoPlay: boolean }) 
         loading="lazy"
       />
     );
+  }
+
+  if (clip.platform === "youtube") {
+    const parsedId = parseYouTubeVideoId(clip.url);
+    if (parsedId) {
+      const src = autoPlay
+        ? `${getYouTubeClipEmbedUrl(parsedId)}&autoplay=1`
+        : getYouTubeClipEmbedUrl(parsedId);
+      return (
+        <iframe
+          src={src}
+          title={clip.title}
+          className="h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+          allowFullScreen
+          loading="lazy"
+        />
+      );
+    }
   }
 
   return (

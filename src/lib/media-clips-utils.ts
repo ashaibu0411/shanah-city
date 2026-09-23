@@ -51,3 +51,37 @@ export function parseYouTubeVideoId(input: string) {
 
   return null;
 }
+
+const YOUTUBE_URL_PATTERN =
+  /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:shorts\/|watch\?(?:.*&)?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/gi;
+
+/** Unique video IDs found in message text or captions (order preserved). */
+export function extractYouTubeVideoIdsFromText(text: string): string[] {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  const regex = new RegExp(YOUTUBE_URL_PATTERN.source, YOUTUBE_URL_PATTERN.flags);
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    const id = match[1];
+    if (!seen.has(id)) {
+      seen.add(id);
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+export function normalizeYouTubeMediaClip(clip: {
+  platform: string;
+  url: string;
+  videoId?: string;
+  thumbnail?: string;
+}): { videoId?: string; thumbnail?: string } {
+  if (clip.platform !== "youtube") return { videoId: clip.videoId, thumbnail: clip.thumbnail };
+  const videoId = clip.videoId ?? parseYouTubeVideoId(clip.url) ?? undefined;
+  if (!videoId) return { videoId: clip.videoId, thumbnail: clip.thumbnail };
+  return {
+    videoId,
+    thumbnail: clip.thumbnail ?? getYouTubeClipThumbnail(videoId),
+  };
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import type { ChatMessageReaction } from "@/lib/chat-utils";
 import { formatDeletedMessageContent, getChatAttachmentApiUrl, messageIsUnsent } from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
@@ -11,6 +11,8 @@ import { buildChatMessageReply } from "@/lib/chat-reply-utils";
 import type { ChatMessageReply } from "@/lib/chat-reply-types";
 import { senderAccentColor } from "@/lib/chat-ui-utils";
 import { chatPremium } from "@/components/chat/chat-premium";
+import { ChatYouTubeEmbed } from "@/components/chat/ChatYouTubeEmbed";
+import { extractYouTubeVideoIdsFromText } from "@/lib/media-clips-utils";
 
 type ChatMessageBubbleProps = {
   messageId: string;
@@ -98,6 +100,10 @@ export function ChatMessageBubble({
   const displayContent = formatDeletedMessageContent(content, deletedAt);
   const unsent = messageIsUnsent(deletedAt, content);
   const imageSrc = getChatAttachmentApiUrl(attachmentUrl);
+  const youtubeVideoIds = useMemo(
+    () => (unsent ? [] : extractYouTubeVideoIdsFromText(displayContent)),
+    [displayContent, unsent],
+  );
   const hasActions =
     !unsent &&
     ((canEdit && onEdit) ||
@@ -323,7 +329,7 @@ export function ChatMessageBubble({
             hub
               ? `${hubRadius} px-3 py-2 ${
                   mine ? "messages-hub-bubble-out" : "messages-hub-bubble-in"
-                } ${imageSrc && !unsent ? "!bg-transparent !p-0 !shadow-none" : ""}`
+                } ${(imageSrc || youtubeVideoIds.length > 0) && !unsent ? "!bg-transparent !p-0 !shadow-none" : ""}`
               : compact
               ? mine
                 ? chatPremium.bubbleOut
@@ -423,6 +429,9 @@ export function ChatMessageBubble({
                   }
                 />
               ) : null}
+              {youtubeVideoIds.map((videoId) => (
+                <ChatYouTubeEmbed key={videoId} videoId={videoId} vertical={hub} />
+              ))}
             </div>
           )}
 

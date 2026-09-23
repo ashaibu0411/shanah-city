@@ -1,22 +1,63 @@
 import type { MediaClip } from "@/lib/types";
 import { liveVideoConfig } from "@/lib/live-config";
+import {
+  normalizeYouTubeMediaClip,
+} from "@/lib/media-clips-utils";
 import { site } from "@/lib/site";
 import { useDatabase } from "@/lib/use-database";
 import * as mediaClipsDb from "@/lib/stores/media-clips-db";
 import * as mediaClipsJson from "@/lib/stores/media-clips-json";
+import { getChannelSermons } from "@/lib/youtube-sermons-server";
 
 const store = () => (useDatabase() ? mediaClipsDb : mediaClipsJson);
 
 export const getMediaClips = () => store().getMediaClips();
 export const addMediaClip = (clip: MediaClip) => store().addMediaClip(clip);
 
+function withNormalizedYouTube(clip: MediaClip): MediaClip {
+  const normalized = normalizeYouTubeMediaClip(clip);
+  if (!normalized.videoId || normalized.videoId === clip.videoId) {
+    return clip.thumbnail === normalized.thumbnail
+      ? clip
+      : { ...clip, thumbnail: normalized.thumbnail ?? clip.thumbnail };
+  }
+  return {
+    ...clip,
+    videoId: normalized.videoId,
+    thumbnail: normalized.thumbnail ?? clip.thumbnail,
+  };
+}
+
+async function clipsFromYouTubeChannel(limit = 12): Promise<MediaClip[]> {
+  try {
+    const videos = await getChannelSermons();
+    return videos.slice(0, limit).map((video) =>
+      withNormalizedYouTube(
+        mediaClipsJson.buildYouTubeClip({
+          videoId: video.id,
+          title: video.title,
+        }),
+      ),
+    );
+  } catch {
+    return [];
+  }
+}
+
 export async function listMediaClips() {
   const stored = await getMediaClips();
   const fromEnv = mediaClipsJson.clipsFromEnv();
+  const fromChannel = await clipsFromYouTubeChannel();
 
   const byId = new Map<string, MediaClip>();
-  for (const clip of [...stored, ...fromEnv]) {
-    byId.set(clip.id, clip);
+  for (const clip of fromChannel) {
+    byId.set(clip.id, withNormalizedYouTube(clip));
+  }
+  for (const clip of fromEnv) {
+    byId.set(clip.id, withNormalizedYouTube(clip));
+  }
+  for (const clip of stored) {
+    byId.set(clip.id, withNormalizedYouTube(clip));
   }
 
   return [...byId.values()].sort((a, b) => {
