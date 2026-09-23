@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MobileTabPills } from "@/components/app/MobileTabPills";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
 import { MediaClipsGrid } from "@/components/media/MediaClipsGrid";
@@ -19,10 +19,24 @@ type MobileMediaHubProps = {
     platform: string;
   }>;
   churchImages: ChurchSocialImages;
+  initialTab?: MediaTab;
+  initialClipId?: string | null;
+  initialAutoPlay?: boolean;
 };
 
-export function MobileMediaHub({ clips, browseLinks, churchImages }: MobileMediaHubProps) {
-  const [tab, setTab] = useState<MediaTab>("live");
+export function MobileMediaHub({
+  clips,
+  browseLinks,
+  churchImages,
+  initialTab = "live",
+  initialClipId = null,
+  initialAutoPlay = false,
+}: MobileMediaHubProps) {
+  const [tab, setTab] = useState<MediaTab>(initialTab);
+
+  useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
   const anyLive =
     liveStream.isLive ||
     liveStream.youtube.isLive ||
@@ -52,7 +66,14 @@ export function MobileMediaHub({ clips, browseLinks, churchImages }: MobileMedia
       ) : (
         <>
           <MediaClipUploadPanel compact />
-          <MediaClipsGrid clips={clips} browseLinks={browseLinks} compact layout="mobile" />
+          <MediaClipsGrid
+            clips={clips}
+            browseLinks={browseLinks}
+            compact
+            layout="mobile"
+            initialClipId={initialClipId}
+            initialAutoPlay={initialAutoPlay}
+          />
         </>
       )}
     </div>

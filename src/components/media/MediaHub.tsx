@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
 import { MediaClipsGrid } from "@/components/media/MediaClipsGrid";
 import { MediaLiveStage } from "@/components/media/MediaLiveStage";
 import { MobileMediaHub } from "@/components/media/MobileMediaHub";
+import { mediaDeepLinkFromSearch } from "@/lib/media-clips-utils";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { MediaClip, MediaTab } from "@/lib/types";
 
@@ -59,11 +61,27 @@ function MediaTabs({
 
 export function MediaHub({ clips, browseLinks, churchImages }: MediaHubProps) {
   const { isMobileApp } = useAppShell();
-  const [tab, setTab] = useState<MediaTab>("live");
+  const searchParams = useSearchParams();
+  const deepLink = useMemo(
+    () => mediaDeepLinkFromSearch(clips, searchParams),
+    [clips, searchParams],
+  );
+  const [tab, setTab] = useState<MediaTab>(deepLink.tab);
+
+  useEffect(() => {
+    setTab(deepLink.tab);
+  }, [deepLink.tab]);
 
   if (isMobileApp) {
     return (
-      <MobileMediaHub clips={clips} browseLinks={browseLinks} churchImages={churchImages} />
+      <MobileMediaHub
+        clips={clips}
+        browseLinks={browseLinks}
+        churchImages={churchImages}
+        initialTab={deepLink.tab}
+        initialClipId={deepLink.clipId}
+        initialAutoPlay={deepLink.autoPlay}
+      />
     );
   }
 
@@ -88,7 +106,12 @@ export function MediaHub({ clips, browseLinks, churchImages }: MediaHubProps) {
       ) : (
         <section>
           <MediaClipUploadPanel />
-          <MediaClipsGrid clips={clips} browseLinks={browseLinks} />
+          <MediaClipsGrid
+            clips={clips}
+            browseLinks={browseLinks}
+            initialClipId={deepLink.clipId}
+            initialAutoPlay={deepLink.autoPlay}
+          />
         </section>
       )}
     </div>

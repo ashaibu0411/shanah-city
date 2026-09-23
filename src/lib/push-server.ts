@@ -16,6 +16,7 @@ import {
   shouldDropNativeToken,
 } from "@/lib/native-push-server";
 import { withPushBranding } from "@/lib/push-branding";
+import { mediaClipPageHref } from "@/lib/media-clips-utils";
 import { SCHEDULE_SLOT_META, type ScheduleSlotType } from "@/lib/prayer-schedule-types";
 import {
   emptyPushDeliveryResult,
@@ -466,12 +467,13 @@ export async function notifyCommunityStory(input: {
 export async function notifyNewMediaClip(input: {
   authorId?: string;
   title: string;
+  clipId: string;
 }) {
   return sendPushToAllMembers(
     {
       title: "New short video",
       body: input.title,
-      url: "/live",
+      url: mediaClipPageHref(input.clipId),
     },
     "announcements",
     input.authorId,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { MediaClip } from "@/lib/types";
 import {
   getYouTubeClipEmbedUrl,
@@ -21,6 +21,8 @@ type MediaClipsGridProps = {
   }>;
   compact?: boolean;
   layout?: "default" | "mobile";
+  initialClipId?: string | null;
+  initialAutoPlay?: boolean;
 };
 
 function clipThumbnail(clip: MediaClip) {
@@ -94,10 +96,31 @@ function ClipPlayer({ clip, autoPlay }: { clip: MediaClip; autoPlay: boolean }) 
   );
 }
 
-export function MediaClipsGrid({ clips, browseLinks, compact, layout = "default" }: MediaClipsGridProps) {
+export function MediaClipsGrid({
+  clips,
+  browseLinks,
+  compact,
+  layout = "default",
+  initialClipId = null,
+  initialAutoPlay = false,
+}: MediaClipsGridProps) {
   const isMobile = layout === "mobile";
-  const [activeId, setActiveId] = useState<string | null>(clips[0]?.id ?? null);
-  const [started, setStarted] = useState(false);
+  const defaultActiveId = useMemo(() => {
+    if (initialClipId && clips.some((clip) => clip.id === initialClipId)) {
+      return initialClipId;
+    }
+    return clips[0]?.id ?? null;
+  }, [clips, initialClipId]);
+
+  const [activeId, setActiveId] = useState<string | null>(defaultActiveId);
+  const [started, setStarted] = useState(initialAutoPlay && Boolean(defaultActiveId));
+
+  useEffect(() => {
+    setActiveId(defaultActiveId);
+    if (initialAutoPlay && defaultActiveId) {
+      setStarted(true);
+    }
+  }, [defaultActiveId, initialAutoPlay]);
 
   const activeClip = useMemo(
     () => clips.find((clip) => clip.id === activeId) ?? null,

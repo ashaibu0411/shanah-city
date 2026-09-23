@@ -5,6 +5,7 @@ import { userIsInKidsMinistryGroup } from "@/lib/kids-access-server";
 import { listKidsIncidents, listKidsLessons } from "@/lib/kids-server";
 import { getMeetings } from "@/lib/meeting-server";
 import { listMediaClips } from "@/lib/media-clips-server";
+import { mediaClipPageHref } from "@/lib/media-clips-utils";
 import { getCommunityPostsForViewer } from "@/lib/member-server";
 import type { AppNotificationItem, FeedReadKey } from "@/lib/notification-types";
 import { listWorshipPlans } from "@/lib/worship-server";
@@ -131,7 +132,7 @@ async function getMediaItems(since: Date) {
       type: "media",
       title: "New short video",
       body: clip.title,
-      href: "/live",
+      href: mediaClipPageHref(clip.id),
       count: 1,
       at: clip.publishedAt!,
     });

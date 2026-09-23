@@ -43,6 +43,7 @@ async function finishPublish(clip: MediaClip, authorId: string) {
   await notifyNewMediaClip({
     authorId,
     title: clip.title,
+    clipId: clip.id,
   });
   revalidatePath("/live");
   return NextResponse.json({ clip }, { status: 201 });

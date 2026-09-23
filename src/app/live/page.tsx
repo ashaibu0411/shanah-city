@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { MediaHub } from "@/components/media/MediaHub";
 import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { getChurchSocialImages } from "@/lib/facebook-church-media";
@@ -15,7 +16,9 @@ export default async function LivePage() {
   return (
     <>
       <MarkFeedRead feed="media" />
-      <MediaHub clips={clips} browseLinks={browseLinks} churchImages={churchImages} />
+      <Suspense fallback={<p className="px-4 py-8 text-sm text-night-500">Loading media…</p>}>
+        <MediaHub clips={clips} browseLinks={browseLinks} churchImages={churchImages} />
+      </Suspense>
     </>
   );
 }

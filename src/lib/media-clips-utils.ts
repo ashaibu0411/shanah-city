@@ -85,3 +85,49 @@ export function normalizeYouTubeMediaClip(clip: {
     thumbnail: clip.thumbnail ?? getYouTubeClipThumbnail(videoId),
   };
 }
+
+/** In-app link to a specific short on /live (Shorts tab). */
+export function mediaClipPageHref(clipId: string) {
+  return `/live?tab=clips&clip=${encodeURIComponent(clipId)}`;
+}
+
+export function resolveMediaClipIdFromSearch(
+  clips: Array<{ id: string; videoId?: string }>,
+  params: { clip?: string | null; video?: string | null },
+): string | null {
+  const clipParam = params.clip?.trim();
+  if (clipParam) {
+    if (clips.some((clip) => clip.id === clipParam)) return clipParam;
+    const parsed = parseYouTubeVideoId(clipParam);
+    if (parsed) {
+      const match = clips.find((clip) => clip.id === `youtube-${parsed}` || clip.videoId === parsed);
+      if (match) return match.id;
+    }
+  }
+
+  const videoParam = params.video?.trim();
+  if (videoParam) {
+    const match = clips.find(
+      (clip) => clip.videoId === videoParam || clip.id === `youtube-${videoParam}`,
+    );
+    if (match) return match.id;
+  }
+
+  return null;
+}
+
+export function mediaDeepLinkFromSearch(
+  clips: Array<{ id: string; videoId?: string }>,
+  searchParams: Pick<URLSearchParams, "get">,
+) {
+  const tab = searchParams.get("tab");
+  const clipId = resolveMediaClipIdFromSearch(clips, {
+    clip: searchParams.get("clip"),
+    video: searchParams.get("video"),
+  });
+  return {
+    tab: tab === "clips" || clipId ? ("clips" as const) : ("live" as const),
+    clipId,
+    autoPlay: Boolean(clipId),
+  };
+}
