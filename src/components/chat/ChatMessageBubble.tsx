@@ -39,7 +39,7 @@ type ChatMessageBubbleProps = {
   canReport?: boolean;
   canBlock?: boolean;
   isBlocked?: boolean;
-  density?: "default" | "compact" | "whatsapp";
+  density?: "default" | "compact" | "whatsapp" | "instagram";
   senderAccent?: string;
   onEdit?: (content: string) => Promise<void> | void;
   onDelete?: () => Promise<void> | void;
@@ -114,11 +114,9 @@ export function ChatMessageBubble({
   }
 
   const compact = density === "compact";
-  const whatsapp = density === "whatsapp";
+  const hub = density === "whatsapp" || density === "instagram";
 
-  const whatsappRadius = mine
-    ? "rounded-lg rounded-br-none"
-    : "rounded-lg rounded-bl-none";
+  const hubRadius = mine ? "rounded-[22px] rounded-br-md" : "rounded-[22px] rounded-bl-md";
 
   function openReactionPicker() {
     if (unsent || editing) return;
@@ -174,7 +172,7 @@ export function ChatMessageBubble({
   }
 
   function startLongPress() {
-    if ((!compact && !whatsapp) || unsent) return;
+    if ((!compact && !hub) || unsent) return;
     clearLongPressTimer();
     longPressTimerRef.current = window.setTimeout(() => {
       suppressClickRef.current = true;
@@ -289,10 +287,10 @@ export function ChatMessageBubble({
   return (
     <div
       id={`chat-msg-${messageId}`}
-      className={`flex w-full min-w-0 scroll-mt-24 ${mine ? "justify-end" : "justify-start"} ${compact || whatsapp ? "px-3" : ""}`}
+      className={`flex w-full min-w-0 scroll-mt-24 ${mine ? "justify-end" : "justify-start"} ${compact || hub ? "px-3" : ""}`}
     >
       <div
-        className={`min-w-0 ${compact || whatsapp ? "max-w-[82%]" : "max-w-[85%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}
+        className={`min-w-0 ${compact || hub ? "max-w-[82%]" : "max-w-[85%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}
       >
         {compact && !mine && senderName && (
           <p
@@ -303,7 +301,7 @@ export function ChatMessageBubble({
           </p>
         )}
 
-        {whatsapp && !mine && senderName && (
+        {hub && !mine && senderName && (
           <p
             className="mb-0.5 px-1 text-[12.5px] font-semibold"
             style={{ color: senderAccent ?? "#1f7aec" }}
@@ -322,10 +320,10 @@ export function ChatMessageBubble({
 
         <div
           className={`relative min-w-0 max-w-full text-sm ${
-            whatsapp
-              ? `${whatsappRadius} px-2 py-1.5 shadow-sm ${
+            hub
+              ? `${hubRadius} px-3 py-2 ${
                   mine ? "messages-hub-bubble-out" : "messages-hub-bubble-in"
-                }`
+                } ${imageSrc && !unsent ? "!bg-transparent !p-0 !shadow-none" : ""}`
               : compact
               ? mine
                 ? chatPremium.bubbleOut
@@ -335,7 +333,7 @@ export function ChatMessageBubble({
                 : "rounded-2xl bg-sand-100 px-4 py-3 text-night-800"
           } ${unsent ? "italic opacity-70" : "cursor-pointer"}`}
           onContextMenu={(event) => {
-            if ((!compact && !whatsapp) || unsent) return;
+            if ((!compact && !hub) || unsent) return;
             event.preventDefault();
             if (hasActions) {
               openActionsMenu();
@@ -362,7 +360,7 @@ export function ChatMessageBubble({
           }}
           onTouchMove={clearLongPressTimer}
         >
-          {!mine && senderName && !compact && !whatsapp && (
+          {!mine && senderName && !compact && !hub && (
             <p className="mb-1 text-xs font-semibold opacity-70">{senderName}</p>
           )}
 
@@ -398,16 +396,12 @@ export function ChatMessageBubble({
           ) : (
             <div ref={contentRef}>
               {reply ? (
-                <ChatMessageReplyQuote reply={reply} mine={mine} compact={compact || whatsapp} />
+                <ChatMessageReplyQuote reply={reply} mine={mine} compact={compact || hub} />
               ) : null}
               {imageSrc && !unsent && (
-                <a href={imageSrc} target="_blank" rel="noreferrer" className="mb-2 block">
+                <a href={imageSrc} target="_blank" rel="noreferrer" className="messages-hub-attachment mb-0 block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={imageSrc}
-                    alt="Shared image"
-                    className="max-h-64 rounded-xl object-cover"
-                  />
+                  <img src={imageSrc} alt="Shared image" />
                 </a>
               )}
               {displayContent ? (
@@ -415,7 +409,11 @@ export function ChatMessageBubble({
                   text={displayContent}
                   className="whitespace-pre-wrap break-words"
                   linkClassName={
-                    mine && compact
+                    hub
+                      ? mine
+                        ? "font-semibold text-white underline decoration-white/45 underline-offset-2"
+                        : "font-semibold text-[#0095f6] underline decoration-[#0095f6]/35 underline-offset-2"
+                      : mine && compact
                       ? "font-semibold text-[#027eb5] underline decoration-[#027eb5]/35 underline-offset-2 dark:text-[#53bdeb] dark:decoration-[#53bdeb]/40"
                       : compact
                         ? "font-semibold text-[#027eb5] underline decoration-[#027eb5]/35 underline-offset-2 dark:text-[#53bdeb] dark:decoration-[#53bdeb]/40"
@@ -430,21 +428,18 @@ export function ChatMessageBubble({
 
           <div
             className={`mt-1 flex flex-wrap items-center gap-1.5 ${
-              whatsapp
-                ? "justify-end text-[11px] leading-none text-night-500 dark:text-sand-400"
+              hub
+                ? `justify-end text-[11px] leading-none ${
+                    mine ? "text-white/75" : "text-night-500 dark:text-sand-400"
+                  }`
                 : compact
                   ? `${chatPremium.bubbleMeta} ${mine ? "justify-end" : ""}`
                   : "text-[10px] opacity-60"
-            } ${showMeta ? "" : "hidden"}`}
+            } ${showMeta ? "" : "hidden"} ${imageSrc && hub ? "!text-night-500 dark:!text-sand-400" : ""}`}
           >
             <span>{createdAtLabel}</span>
             {editedAt && !unsent && <span>· edited</span>}
-            {showReadReceipt && mine && !unsent && whatsapp && (
-              <span className={readAt ? "text-sky-600 dark:text-sky-300" : "text-night-500 dark:text-sand-400"}>
-                {readAt ? " ✓✓" : " ✓"}
-              </span>
-            )}
-            {showReadReceipt && mine && !unsent && !whatsapp && (
+            {showReadReceipt && mine && !unsent && !hub && (
               <span>{readAt ? "· Seen" : "· Delivered"}</span>
             )}
             {showSeenCount && mine && !unsent && typeof seenCount === "number" && seenCount > 0 && (

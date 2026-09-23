@@ -23,7 +23,8 @@ type ChatComposerProps = {
   placeholder?: string;
   sendLabel?: string;
   allowAttachment?: boolean;
-  density?: "default" | "compact" | "whatsapp";
+  density?: "default" | "compact" | "whatsapp" | "instagram";
+  vanishMode?: boolean;
   onTyping?: (isTyping: boolean) => void;
   onPickAttachment?: (file: File) => Promise<PendingAttachment | null>;
   attachmentBusy?: boolean;
@@ -46,6 +47,7 @@ export function ChatComposer({
   attachmentBusy = false,
   replyDraft,
   onClearReply,
+  vanishMode = false,
 }: ChatComposerProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
@@ -102,7 +104,7 @@ export function ChatComposer({
 
   const canSend = Boolean(value.trim() || pendingAttachment);
   const compact = density === "compact";
-  const whatsapp = density === "whatsapp";
+  const hub = density === "whatsapp" || density === "instagram";
 
   function handleSend() {
     onSend(pendingAttachment ?? undefined);
@@ -110,9 +112,9 @@ export function ChatComposer({
     onTyping?.(false);
   }
 
-  if (whatsapp) {
+  if (hub) {
     return (
-      <div className="messages-hub-composer px-2 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+      <div className="messages-hub-composer px-3 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
         {replyDraft && onClearReply ? (
           <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
         ) : null}
@@ -155,7 +157,7 @@ export function ChatComposer({
           </div>
         )}
 
-        <div className="flex min-w-0 items-end gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           {allowAttachment && onPickAttachment && (
             <>
               <input
@@ -169,24 +171,17 @@ export function ChatComposer({
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={disabled || attachmentBusy}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl text-night-600 disabled:opacity-40 dark:text-sand-300"
-                aria-label="Add photo"
+                className="messages-hub-camera-btn"
+                aria-label="Camera"
               >
-                {attachmentBusy ? "…" : "📎"}
+                <HubCameraIcon />
               </button>
             </>
           )}
 
-          <div className="messages-hub-composer-field flex min-w-0 flex-1 items-center gap-1 rounded-3xl px-3 py-1.5">
-            <button
-              type="button"
-              onClick={() => setShowEmojiPicker((current) => !current)}
-              disabled={disabled}
-              className="shrink-0 text-xl disabled:opacity-40"
-              aria-label="Add emoji"
-            >
-              ☺
-            </button>
+          <div
+            className={`messages-hub-composer-field flex min-w-0 flex-1 items-center gap-0.5 rounded-full px-3 py-1 ${vanishMode ? "is-vanish" : ""}`}
+          >
             <input
               ref={inputRef}
               value={value}
@@ -196,7 +191,7 @@ export function ChatComposer({
               }}
               placeholder={placeholder}
               disabled={disabled}
-              className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] text-[var(--color-ink)] caret-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-soft)] disabled:opacity-50"
+              className="min-w-0 flex-1 bg-transparent py-2 text-[15px] text-[var(--color-ink)] caret-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-soft)] disabled:opacity-50"
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
                   event.preventDefault();
@@ -204,17 +199,49 @@ export function ChatComposer({
                 }
               }}
             />
+            <button
+              type="button"
+              onClick={() => {
+                if (canSend && !busy && !disabled) {
+                  handleSend();
+                }
+              }}
+              disabled={disabled}
+              className="messages-hub-composer-icon disabled:opacity-40"
+              aria-label={canSend ? sendLabel : "Voice message"}
+            >
+              <HubMicIcon />
+            </button>
+            {allowAttachment && onPickAttachment ? (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={disabled || attachmentBusy}
+                className="messages-hub-composer-icon disabled:opacity-40"
+                aria-label="Add photo"
+              >
+                <HubGalleryIcon />
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker((current) => !current)}
+              disabled={disabled}
+              className="messages-hub-composer-icon disabled:opacity-40"
+              aria-label="Stickers"
+            >
+              <HubStickerIcon />
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker((current) => !current)}
+              disabled={disabled}
+              className="messages-hub-composer-icon disabled:opacity-40"
+              aria-label="More"
+            >
+              <HubPlusIcon />
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={busy || disabled || !canSend}
-            className="messages-hub-send flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-bold disabled:opacity-60"
-            aria-label={sendLabel}
-          >
-            {busy ? "…" : "➤"}
-          </button>
         </div>
       </div>
     );
@@ -440,3 +467,59 @@ export function ChatComposer({
 }
 
 export type { PendingAttachment };
+
+function HubCameraIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M9.5 7.5h5l1.5 2.5H19a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h2.5L9.5 7.5Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="13" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+    </svg>
+  );
+}
+
+function HubMicIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 14.5a3 3 0 0 0 3-3V7a3 3 0 1 0-6 0v4.5a3 3 0 0 0 3 3Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <path d="M6 11.5v1a6 6 0 0 0 12 0v-1" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path d="M12 18.5v2.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function HubGalleryIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.75" />
+      <path d="m8 14 2.5-2.5L14 15l2-2 4 4" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+      <circle cx="9" cy="9" r="1.25" fill="currentColor" />
+    </svg>
+  );
+}
+
+function HubStickerIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M9 10h.01M15 10h.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M9.5 14.5c.75 1.25 2 2 2.5 2s1.75-.75 2.5-2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function HubPlusIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 6v12M6 12h12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}

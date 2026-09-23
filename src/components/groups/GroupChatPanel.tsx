@@ -13,7 +13,7 @@ import type { GroupCategory, GroupChatMessage } from "@/lib/group-types";
 import type { ChatReplyDraft } from "@/lib/chat-reply-types";
 import type { ChatTypingUser } from "@/lib/chat-utils";
 import {
-  chatDateSeparatorLabel,
+  chatDateSeparatorLabelInstagram,
   formatBubbleTime,
   messageGroupMeta,
   senderAccentColor,
@@ -497,9 +497,9 @@ export function GroupChatPanel({
       {status ? <div className={groupsPremium.chatStatusBanner}>{status}</div> : null}
 
       {disappearingBannerText(disappearingSeconds) ? (
-        <div className="shrink-0 border-b border-emerald-100 bg-emerald-50/90 px-4 py-2 text-center text-xs font-medium text-emerald-900 dark:border-emerald-900/30 dark:bg-emerald-950/40 dark:text-emerald-100">
+        <p className="messages-hub-system-notice shrink-0 border-b border-black/5 px-4 py-3 dark:border-white/10">
           {disappearingBannerText(disappearingSeconds)}
-        </div>
+        </p>
       ) : null}
 
       <div className={chatPremium.wallpaper}>
@@ -528,9 +528,9 @@ export function GroupChatPanel({
             return (
               <div key={message.id}>
                 {showDate ? (
-                  <div className="my-3 flex justify-center px-4">
-                    <span className={groupsPremium.chatDatePill}>
-                      {chatDateSeparatorLabel(message.createdAt)}
+                  <div className="my-4 flex justify-center px-4">
+                    <span className="messages-hub-date-stamp">
+                      {chatDateSeparatorLabelInstagram(message.createdAt)}
                     </span>
                   </div>
                 ) : null}
@@ -556,7 +556,7 @@ export function GroupChatPanel({
                     seenCount={message.seenCount}
                     showSeenCount={mine && group.isLast}
                     showMeta={group.showMeta}
-                    density="whatsapp"
+                    density="instagram"
                     canEdit={message.senderId === userId}
                     canDelete={message.senderId === userId}
                     canReport={message.senderId !== userId}
@@ -585,11 +585,18 @@ export function GroupChatPanel({
           onChange={setDraft}
           onSend={sendMessage}
           busy={busy}
-          placeholder={replyDraft ? "Write a reply…" : "Message"}
+          placeholder={
+            replyDraft
+              ? "Write a reply…"
+              : disappearingSeconds > 0
+                ? "Disappearing message…"
+                : "Message"
+          }
           onTyping={sendTyping}
           onPickAttachment={uploadAttachment}
           attachmentBusy={attachmentBusy}
-          density="whatsapp"
+          density="instagram"
+          vanishMode={disappearingSeconds > 0}
           replyDraft={replyDraft}
           onClearReply={() => setReplyDraft(null)}
         />

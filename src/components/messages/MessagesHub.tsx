@@ -14,8 +14,9 @@ import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComp
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
 import type { ChatTypingUser } from "@/lib/chat-utils";
 import {
-  chatDateSeparatorLabel,
+  chatDateSeparatorLabelInstagram,
   chatInitials,
+  chatSeenReceiptLabel,
   formatBubbleTime,
   messageGroupMeta,
   shouldShowDateSeparator,
@@ -490,6 +491,17 @@ export function MessagesHub() {
       );
     });
   }, [inboxSearch, threads, groupChats]);
+
+  const dmSeenReceipt = useMemo(() => {
+    if (!user) return null;
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const message = messages[i];
+      if (message.senderId === user.id && message.readAt) {
+        return chatSeenReceiptLabel(message.readAt);
+      }
+    }
+    return null;
+  }, [messages, user]);
 
   useEffect(() => {
     if (!activeThreadId || showNew) return;
@@ -1220,7 +1232,7 @@ export function MessagesHub() {
                 placeholder="Message"
                 sendLabel="Send"
                 allowAttachment={false}
-                density="whatsapp"
+                density="instagram"
               />
             </div>
           </>
@@ -1381,9 +1393,9 @@ export function MessagesHub() {
             )}
 
             {disappearingBannerText(disappearingSeconds) ? (
-              <div className="border-b border-emerald-100 bg-emerald-50/90 px-4 py-2 text-center text-xs font-medium text-emerald-900 dark:border-emerald-900/30 dark:bg-emerald-950/40 dark:text-emerald-100">
+              <p className="messages-hub-system-notice shrink-0 border-b border-black/5 px-4 py-3 dark:border-white/10">
                 {disappearingBannerText(disappearingSeconds)}
-              </div>
+              </p>
             ) : null}
 
             <div className={chatPremium.wallpaper}>
@@ -1412,9 +1424,9 @@ export function MessagesHub() {
                   return (
                     <div key={message.id}>
                       {showDate ? (
-                        <div className="my-3 flex justify-center px-4">
-                          <span className={chatPremium.datePill}>
-                            {chatDateSeparatorLabel(message.createdAt)}
+                        <div className="my-4 flex justify-center px-4">
+                          <span className="messages-hub-date-stamp">
+                            {chatDateSeparatorLabelInstagram(message.createdAt)}
                           </span>
                         </div>
                       ) : null}
@@ -1438,7 +1450,7 @@ export function MessagesHub() {
                           readAt={message.readAt}
                           showReadReceipt={lastOutgoing && group.isLast}
                           showMeta={group.showMeta}
-                          density="whatsapp"
+                          density="instagram"
                           canEdit={message.senderId === user.id}
                           canDelete={message.senderId === user.id}
                           canReport={!mine && Boolean(activeOtherUserId)}
@@ -1458,6 +1470,9 @@ export function MessagesHub() {
                   );
                 })
               )}
+              {dmSeenReceipt ? (
+                <p className="messages-hub-seen-receipt">{dmSeenReceipt}</p>
+              ) : null}
               <div ref={messagesEndRef} />
             </div>
 
@@ -1471,14 +1486,21 @@ export function MessagesHub() {
                 busy={busy}
                 disabled={isActiveBlocked}
                 placeholder={
-                  isActiveBlocked ? "Unblock to message…" : replyDraft ? "Write a reply…" : "Message"
+                  isActiveBlocked
+                    ? "Unblock to message…"
+                    : replyDraft
+                      ? "Write a reply…"
+                      : disappearingSeconds > 0
+                        ? "Disappearing message…"
+                        : "Message"
                 }
                 onTyping={sendTyping}
                 onPickAttachment={(file) =>
                   uploadAttachment(file, { threadId: activeThreadId ?? undefined })
                 }
                 attachmentBusy={attachmentBusy}
-                density="whatsapp"
+                density="instagram"
+                vanishMode={disappearingSeconds > 0}
                 replyDraft={replyDraft}
                 onClearReply={() => setReplyDraft(null)}
               />

@@ -53,6 +53,32 @@ export function chatDateSeparatorLabel(iso: string) {
   });
 }
 
+/** Instagram DM-style centered date stamp, e.g. "SEP 5 AT 5:05 PM". */
+export function chatDateSeparatorLabelInstagram(iso: string) {
+  const date = new Date(iso);
+  const month = date
+    .toLocaleDateString(undefined, { month: "short" })
+    .replace(/\./g, "")
+    .toUpperCase();
+  const day = date.getDate();
+  const time = date
+    .toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+    .toUpperCase()
+    .replace(/\s/g, " ");
+  return `${month} ${day} AT ${time}`;
+}
+
+export function chatSeenReceiptLabel(readAtIso: string) {
+  const date = new Date(readAtIso);
+  if (!Number.isFinite(date.getTime())) return "Seen";
+  const today = startOfDay(new Date());
+  const target = startOfDay(date);
+  const diffDays = Math.round((today - target) / 86_400_000);
+  if (diffDays === 0) return "Seen today";
+  if (diffDays === 1) return "Seen yesterday";
+  return `Seen ${date.toLocaleDateString(undefined, { weekday: "long" })}`;
+}
+
 export function shouldShowDateSeparator(previousIso: string | undefined, currentIso: string) {
   if (!previousIso) return true;
   return startOfDay(new Date(previousIso)) !== startOfDay(new Date(currentIso));
