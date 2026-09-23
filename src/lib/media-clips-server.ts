@@ -7,7 +7,7 @@ import { site } from "@/lib/site";
 import { useDatabase } from "@/lib/use-database";
 import * as mediaClipsDb from "@/lib/stores/media-clips-db";
 import * as mediaClipsJson from "@/lib/stores/media-clips-json";
-import { getChannelSermons } from "@/lib/youtube-sermons-server";
+import { getChannelYouTubeShorts } from "@/lib/youtube-shorts-server";
 
 const store = () => (useDatabase() ? mediaClipsDb : mediaClipsJson);
 
@@ -28,14 +28,14 @@ function withNormalizedYouTube(clip: MediaClip): MediaClip {
   };
 }
 
-async function clipsFromYouTubeChannel(limit = 12): Promise<MediaClip[]> {
+async function clipsFromYouTubeShorts(limit = 12): Promise<MediaClip[]> {
   try {
-    const videos = await getChannelSermons();
-    return videos.slice(0, limit).map((video) =>
+    const shorts = await getChannelYouTubeShorts(limit);
+    return shorts.map((short) =>
       withNormalizedYouTube(
         mediaClipsJson.buildYouTubeClip({
-          videoId: video.id,
-          title: video.title,
+          videoId: short.videoId,
+          title: short.title,
         }),
       ),
     );
@@ -47,7 +47,7 @@ async function clipsFromYouTubeChannel(limit = 12): Promise<MediaClip[]> {
 export async function listMediaClips() {
   const stored = await getMediaClips();
   const fromEnv = mediaClipsJson.clipsFromEnv();
-  const fromChannel = await clipsFromYouTubeChannel();
+  const fromChannel = await clipsFromYouTubeShorts();
 
   const byId = new Map<string, MediaClip>();
   for (const clip of fromChannel) {
