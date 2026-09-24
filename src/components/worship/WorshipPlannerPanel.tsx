@@ -523,17 +523,17 @@ export function WorshipPlannerPanel({
     return <p className="text-sm text-night-500">Loading worship planner…</p>;
   }
 
-  if (hidden) {
+  if (tab === "rehearsals") {
     return (
       <>
         <PlannerTabBar />
-        <Card>
-          <h2 className="font-display text-xl font-semibold text-night-900">Plan not published yet</h2>
-          <p className="mt-2 text-sm text-night-600">
-            Your worship leader has not published this service plan yet. Check back closer to
-            rehearsal or Sunday.
-          </p>
-        </Card>
+        <ServicePicker />
+        <WorshipRehearsalRecordings
+          serviceDate={serviceDate}
+          serviceTime={serviceTime}
+          canManage={canManage}
+          userId={user?.id}
+        />
       </>
     );
   }
@@ -575,17 +575,18 @@ export function WorshipPlannerPanel({
     );
   }
 
-  if (tab === "rehearsals") {
+  if (hidden) {
     return (
       <>
         <PlannerTabBar />
-        <ServicePicker />
-        <WorshipRehearsalRecordings
-          serviceDate={serviceDate}
-          serviceTime={serviceTime}
-          canManage={canManage}
-          userId={user?.id}
-        />
+        <Card>
+          <h2 className="font-display text-xl font-semibold text-night-900">Plan not published yet</h2>
+          <p className="mt-2 text-sm text-night-600">
+            Your worship leader has not published this service plan yet. You can still use{" "}
+            <strong>Rehearsals</strong> to record and listen back, or check <strong>Team schedule</strong>.
+            Once the plan is published, open <strong>My part</strong> for your lines and practice uploads.
+          </p>
+        </Card>
       </>
     );
   }

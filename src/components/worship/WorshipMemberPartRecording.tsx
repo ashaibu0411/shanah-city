@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import { getSongPracticeStem, worshipPartLabel, type WorshipSong } from "@/lib/worship-types";
 
@@ -22,8 +22,22 @@ export function WorshipMemberPartRecording({
   onUpdated,
 }: WorshipMemberPartRecordingProps) {
   const [uploading, setUploading] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [hasCapture, setHasCapture] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      mediaRecorderRef.current?.stop();
+    };
+  }, []);
 
   const stem = getSongPracticeStem(song, partRole);
   const isOwnPending = stem?.status === "pending" && stem.uploadedBy === userId;
@@ -62,6 +76,66 @@ export function WorshipMemberPartRecording({
     );
   }
 
+  async function startRecording() {
+    setError(null);
+    setMessage(null);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("Recording is not supported in this browser.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      chunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setHasCapture(chunksRef.current.length > 0);
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start(1000);
+      setRecording(true);
+      setElapsed(0);
+      timerRef.current = window.setInterval(() => {
+        setElapsed((current) => current + 1);
+      }, 1000);
+    } catch {
+      setError("Microphone access was denied. Allow the mic to record your part.");
+    }
+  }
+
+  function stopRecording() {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state === "inactive") return;
+    recorder.stop();
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setRecording(false);
+  }
+
+  async function uploadCapturedRecording() {
+    const chunks = chunksRef.current;
+    if (chunks.length === 0) {
+      setError("Record something first, then upload.");
+      return;
+    }
+    const blob = new Blob(chunks, { type: chunks[0]?.type || "audio/webm" });
+    const file = new File([blob], `part-${partRole}-${Date.now()}.webm`, { type: blob.type });
+    chunksRef.current = [];
+    setHasCapture(false);
+    setElapsed(0);
+    await uploadRecording(file);
+  }
+
   return (
     <div className="mt-4 rounded-xl border border-night-900/5 bg-white p-4">
       <p className="text-sm font-semibold text-night-900">
@@ -89,6 +163,31 @@ export function WorshipMemberPartRecording({
 
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
       {message && <p className="mt-2 text-xs text-emerald-700">{message}</p>}
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {!recording ? (
+          <Button type="button" onClick={startRecording} disabled={uploading}>
+            Record
+          </Button>
+        ) : (
+          <>
+            <Button type="button" variant="secondary" onClick={stopRecording}>
+              Stop
+            </Button>
+            <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-semibold text-red-800">
+              {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
+            </span>
+          </>
+        )}
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={uploadCapturedRecording}
+          disabled={recording || uploading || !hasCapture}
+        >
+          Upload recording
+        </Button>
+      </div>
 
       <label className="mt-3 inline-block cursor-pointer rounded-full bg-violet-100 px-4 py-2 text-xs font-semibold text-violet-900 hover:bg-violet-200">
         {uploading ? "Uploading…" : stem ? "Replace recording" : "Upload recording"}
