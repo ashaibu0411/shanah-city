@@ -60,8 +60,8 @@ export function buildUploadedClip(input: {
 export function buildYouTubeClip(input: {
   videoId: string;
   title: string;
+  publishedAt?: string;
 }): MediaClip {
-  const now = new Date().toISOString();
   return {
     id: `youtube-${input.videoId}`,
     title: input.title.trim(),
@@ -69,7 +69,7 @@ export function buildYouTubeClip(input: {
     videoId: input.videoId,
     url: getYouTubeClipWatchUrl(input.videoId),
     thumbnail: getYouTubeClipThumbnail(input.videoId),
-    publishedAt: now,
+    publishedAt: input.publishedAt,
   };
 }
 

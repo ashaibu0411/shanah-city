@@ -36,6 +36,7 @@ async function clipsFromYouTubeShorts(limit = 12): Promise<MediaClip[]> {
         mediaClipsJson.buildYouTubeClip({
           videoId: short.videoId,
           title: short.title,
+          publishedAt: short.publishedAt,
         }),
       ),
     );
@@ -68,7 +69,10 @@ export async function listMediaClips() {
 }
 
 export async function publishYouTubeClip(input: { title: string; videoId: string }) {
-  const clip = mediaClipsJson.buildYouTubeClip(input);
+  const clip = mediaClipsJson.buildYouTubeClip({
+    ...input,
+    publishedAt: new Date().toISOString(),
+  });
   return addMediaClip(clip);
 }
 

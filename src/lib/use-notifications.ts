@@ -79,6 +79,12 @@ export function useNotifications() {
     items: summary.items,
     directMessages: summary.directMessages,
     groupChat: summary.groupChat,
+    community: summary.community,
+    devotions: summary.devotions,
+    media: summary.media,
+    worship: summary.worship,
+    meetings: summary.meetings,
+    kids: summary.kids,
     fetching,
     refresh,
   };

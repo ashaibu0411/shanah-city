@@ -1,6 +1,9 @@
 package org.shanahcity.app;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -13,6 +16,7 @@ public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    ensureDefaultNotificationChannel();
 
     WebView webView = getBridge().getWebView();
     if (webView != null) {
@@ -57,6 +61,25 @@ public class MainActivity extends BridgeActivity {
     // Keep JS/TTS running so devotion audio can continue in another app.
     webView.onResume();
     webView.resumeTimers();
+  }
+
+  private void ensureDefaultNotificationChannel() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+      return;
+    }
+
+    NotificationChannel channel = new NotificationChannel(
+      "default",
+      "Shana City",
+      NotificationManager.IMPORTANCE_HIGH
+    );
+    channel.setDescription("Church alerts, messages, and updates");
+    channel.enableVibration(true);
+
+    NotificationManager manager = getSystemService(NotificationManager.class);
+    if (manager != null) {
+      manager.createNotificationChannel(channel);
+    }
   }
 
   private class ShanahBridge {

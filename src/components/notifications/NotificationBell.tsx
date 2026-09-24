@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { AppNotificationItem, AppNotificationItemType } from "@/lib/notification-types";
 import { getGroupArtwork } from "@/lib/group-artwork";
+import { clearAllFeedNotifications, markNotificationFeedsRead } from "@/lib/notification-client";
+import { feedKeyForNotificationType } from "@/lib/notification-feed-utils";
 import { useNotifications } from "@/lib/use-notifications";
 
 type NotificationBellProps = {
@@ -97,8 +99,19 @@ function notificationTone(type: AppNotificationItemType) {
 }
 
 export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
-  const { total, items } = useNotifications();
+  const {
+    total,
+    items,
+    refresh,
+    community,
+    devotions,
+    media,
+    worship,
+    meetings,
+    kids,
+  } = useNotifications();
   const [open, setOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const isLight = variant === "light";
 
@@ -126,6 +139,27 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
   }, [open]);
 
   const badgeLabel = total > 99 ? "99+" : String(total);
+
+  async function handleItemClick(item: AppNotificationItem) {
+    const feed = feedKeyForNotificationType(item.type);
+    if (feed) {
+      void markNotificationFeedsRead([feed]);
+    }
+    setOpen(false);
+  }
+
+  async function handleClearAll() {
+    setClearing(true);
+    try {
+      await clearAllFeedNotifications();
+      await refresh();
+    } finally {
+      setClearing(false);
+    }
+  }
+
+  const feedBadgeTotal =
+    community + devotions + media + worship + meetings + kids;
 
   return (
     <div ref={rootRef} className="relative">
@@ -159,16 +193,32 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
           }`}
         >
           <div
-            className={`border-b px-4 py-3 ${
+            className={`flex items-start justify-between gap-2 border-b px-4 py-3 ${
               isLight ? "border-white/10" : "border-night-900/8"
             }`}
           >
-            <p className="text-sm font-semibold">Notifications</p>
-            <p className={`mt-0.5 text-xs ${isLight ? "text-white/60" : "text-night-500"}`}>
-              {total > 0
-                ? `${total} update${total === 1 ? "" : "s"} to review`
-                : "You're all caught up"}
-            </p>
+            <div>
+              <p className="text-sm font-semibold">Notifications</p>
+              <p className={`mt-0.5 text-xs ${isLight ? "text-white/60" : "text-night-500"}`}>
+                {total > 0
+                  ? `${total} update${total === 1 ? "" : "s"} to review`
+                  : "You're all caught up"}
+              </p>
+            </div>
+            {feedBadgeTotal > 0 && (
+              <button
+                type="button"
+                disabled={clearing}
+                onClick={() => void handleClearAll()}
+                className={`shrink-0 rounded-lg px-2 py-1 text-[11px] font-semibold transition disabled:opacity-50 ${
+                  isLight
+                    ? "text-sky-300 hover:bg-white/10"
+                    : "text-sky-700 hover:bg-sand-100"
+                }`}
+              >
+                {clearing ? "Clearing…" : "Clear all"}
+              </button>
+            )}
           </div>
 
           <div className="max-h-80 overflow-y-auto">
@@ -181,7 +231,7 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
                 <Link
                   key={item.id}
                   href={item.href}
-                  onClick={() => setOpen(false)}
+                  onClick={() => void handleItemClick(item)}
                   className={`flex gap-3 border-b px-4 py-3 transition last:border-b-0 ${
                     isLight
                       ? "border-white/5 hover:bg-white/5"
@@ -210,10 +260,10 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
             )}
           </div>
 
-          {total > 0 && (
+          {total > 0 && feedBadgeTotal === 0 && (
             <div className={`border-t px-4 py-2.5 ${isLight ? "border-white/10" : "border-night-900/8"}`}>
               <p className={`text-[11px] ${isLight ? "text-white/50" : "text-night-400"}`}>
-                Open a section to clear its badge.
+                Open a message thread to clear chat badges.
               </p>
             </div>
           )}

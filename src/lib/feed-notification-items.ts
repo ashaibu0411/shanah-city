@@ -126,6 +126,7 @@ async function getMediaItems(since: Date) {
   const items: AppNotificationItem[] = [];
 
   for (const clip of clips) {
+    if (!clip.publishedAt) continue;
     if (!isAfter(clip.publishedAt, since)) continue;
     items.push({
       id: `media-${clip.id}`,

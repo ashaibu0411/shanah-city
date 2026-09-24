@@ -28,6 +28,13 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
+
+  if (body.action === "clearAllFeeds") {
+    await markFeedsRead(user.id, FEED_READ_KEYS);
+    const summary = await getAppNotifications(user.id);
+    return NextResponse.json(summary);
+  }
+
   if (body.action !== "markFeedRead") {
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });
   }
