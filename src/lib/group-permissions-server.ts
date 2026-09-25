@@ -2,7 +2,7 @@ import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
 import { getGalleryUploadPermissions } from "@/lib/gallery-access-server";
-import { isGroupAdmin, isGroupMember } from "@/lib/group-admin-utils";
+import { isGroupAdmin, isGroupLeaderOrAssistant, isGroupMember } from "@/lib/group-admin-utils";
 import { getGroups } from "@/lib/group-server";
 
 export type UnavailabilityCalendarGroup = "choir" | "pastors";
@@ -34,7 +34,7 @@ export async function canReviewUnavailabilityForGroup(
   if (!user) return false;
   if (await canManageAsAdmin(user)) return true;
   const calendarGroup = await getCalendarGroup(group);
-  return calendarGroup ? isGroupAdmin(calendarGroup, user.id) : false;
+  return calendarGroup ? isGroupLeaderOrAssistant(calendarGroup, user.id) : false;
 }
 
 export async function canManageGroupEvents(user: PublicMember | null, groupId: string) {
@@ -42,7 +42,7 @@ export async function canManageGroupEvents(user: PublicMember | null, groupId: s
   if (await canManageAsAdmin(user)) return true;
   const groups = await getGroups();
   const group = groups.find((entry) => entry.id === groupId);
-  return group ? isGroupAdmin(group, user.id) : false;
+  return group ? isGroupLeaderOrAssistant(group, user.id) : false;
 }
 
 export async function canManageChurchEvents(user: PublicMember | null) {

@@ -16,6 +16,10 @@ import { useMyEventRsvps } from "@/components/calendar/useMyEventRsvps";
 import { EventShareTools } from "@/components/share/EventShareTools";
 import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
 import { isOutlookSyncedEventId } from "@/lib/calendar-utils";
+import {
+  choirSyncedEventHint,
+  isChoirSyncedCalendarEventId,
+} from "@/lib/choir-calendar-utils";
 import type { ArtworkFields } from "@/lib/content-artwork";
 import type { UnavailabilityRequest } from "@/lib/member-types";
 import type { ChurchEvent } from "@/lib/types";
@@ -72,6 +76,10 @@ function EventDetailCard({
       {isOutlookSyncedEventId(event.id) ? (
         <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-violet-700">
           Synced from Outlook
+        </p>
+      ) : isChoirSyncedCalendarEventId(event.id) ? (
+        <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-sky-800">
+          {choirSyncedEventHint(event.id)}
         </p>
       ) : canManage ? (
         <Button variant="secondary" className="mt-3" onClick={() => onRemove(event.id)}>
@@ -257,9 +265,10 @@ function GroupEventsSection({
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
   const [title, setTitle] = useState("");
+  const [eventDay, setEventDay] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState("Shanah City");
   const [startsOn, setStartsOn] = useState("");
   const [endsOn, setEndsOn] = useState("");
   const [recurringWeekday, setRecurringWeekday] = useState("");
@@ -311,17 +320,26 @@ function GroupEventsSection({
   }
 
   async function addEvent() {
+    const day = eventDay.trim();
+    const dateLabel = day
+      ? new Date(`${day}T12:00:00`).toLocaleDateString(undefined, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+        })
+      : date.trim();
+
     const response = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title,
-        date,
+        date: dateLabel,
         time,
-        location,
+        location: location.trim() || "Shanah City",
         groupId,
-        startsOn: startsOn || undefined,
-        endsOn: endsOn || undefined,
+        startsOn: day || startsOn || undefined,
+        endsOn: day || endsOn || undefined,
         recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
         ...eventRsvpFormToPayload(rsvpForm),
         rsvpGroupId: rsvpForm.rsvpAudience === "group" ? groupId : null,
@@ -332,9 +350,10 @@ function GroupEventsSection({
     if (response.ok) {
       setMessage("Event added.");
       setTitle("");
+      setEventDay("");
       setDate("");
       setTime("");
-      setLocation("");
+      setLocation("Shanah City");
       setStartsOn("");
       setEndsOn("");
       setRecurringWeekday("");
@@ -380,7 +399,8 @@ function GroupEventsSection({
             Manage {groupLabel} events
           </h3>
           <p className="mt-1 text-sm text-night-600">
-            Group leaders can add events visible to all {groupLabel} members.
+            Group leaders and assistants can add events visible to all {groupLabel} members.
+            Published worship rotations, rehearsals, and approved time away appear here automatically.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <input
@@ -389,16 +409,19 @@ function GroupEventsSection({
               placeholder="Title"
               className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
-            <input
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              placeholder="Date label"
-              className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
-            />
+            <label className="text-sm text-night-700">
+              <span className="font-semibold">Event date</span>
+              <input
+                type="date"
+                value={eventDay}
+                onChange={(event) => setEventDay(event.target.value)}
+                className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+              />
+            </label>
             <input
               value={time}
               onChange={(event) => setTime(event.target.value)}
-              placeholder="Time"
+              placeholder="Time (e.g. 7:00 PM)"
               className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
             <input
@@ -497,6 +520,9 @@ function UnavailabilitySection({
       />
       <Card>
         <h3 className="font-display text-lg font-semibold text-night-900">{availabilityLabel}</h3>
+        <p className="mt-1 text-sm text-night-600">
+          Approved requests also appear on the calendar above.
+        </p>
         <ul className="mt-4 space-y-3">
           {approved.length === 0 ? (
             <li className="text-sm text-night-500">No approved absences yet.</li>

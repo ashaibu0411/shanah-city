@@ -8,6 +8,7 @@ import {
 import { getGroups } from "@/lib/group-server";
 import { isGroupMember } from "@/lib/group-admin-utils";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
+import { isChoirSyncedCalendarEventId } from "@/lib/choir-calendar-utils";
 import {
   createEvent,
   deleteEvent,
@@ -275,6 +276,16 @@ export async function DELETE(request: Request) {
 
   const denied = await assertCanManageEvent(user, existing.groupId ?? null);
   if (denied) return denied;
+
+  if (isChoirSyncedCalendarEventId(id)) {
+    return NextResponse.json(
+      {
+        error:
+          "This event is synced from worship schedule or approved time away. Update or unpublish the source instead.",
+      },
+      { status: 400 },
+    );
+  }
 
   const removed = await deleteEvent(id);
   if (!removed) {

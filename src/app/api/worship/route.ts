@@ -23,6 +23,10 @@ import {
   saveWorshipPlan,
   updateWorshipMemberStatus,
 } from "@/lib/worship-server";
+import {
+  removeChoirCalendarForWorshipPlan,
+  syncChoirCalendarForWorshipPlan,
+} from "@/lib/choir-calendar-sync-server";
 import { publishWorshipPlanNotifications } from "@/lib/worship-notify-server";
 import { trackLibrarySongUsage } from "@/lib/worship-library-usage-server";
 import {
@@ -247,9 +251,13 @@ export async function POST(request: Request) {
     }
 
     if (action === "delete") {
+      const existing = await getWorshipPlan(serviceDate, serviceTime);
       const removed = await deleteWorshipPlan(serviceDate, serviceTime);
       if (!removed) {
         return NextResponse.json({ error: "Service plan not found." }, { status: 404 });
+      }
+      if (existing) {
+        await removeChoirCalendarForWorshipPlan(existing);
       }
       return NextResponse.json({ ok: true });
     }
@@ -348,7 +356,7 @@ export async function POST(request: Request) {
     }
 
     let planStatus: "draft" | "published" = "draft";
-    if (action === "publish") {
+    if (action === "publish" || action === "sync_choir_calendar") {
       planStatus = "published";
     } else if (action === "unpublish") {
       planStatus = "draft";
@@ -390,7 +398,9 @@ export async function POST(request: Request) {
       await trackLibrarySongUsage(plan.songs);
     }
 
-    return NextResponse.json({ plan });
+    const calendarSynced = await syncChoirCalendarForWorshipPlan(plan);
+
+    return NextResponse.json({ plan, calendarSynced });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Could not update worship plan." },

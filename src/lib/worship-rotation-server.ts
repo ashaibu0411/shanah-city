@@ -7,6 +7,9 @@ import {
   saveWorshipPlan,
 } from "@/lib/worship-server";
 import {
+  syncChoirCalendarForWorshipPlan,
+} from "@/lib/choir-calendar-sync-server";
+import {
   listServiceDatesInRange,
   normalizeTeam,
   serviceTypeForTime,
@@ -77,6 +80,12 @@ export async function generateWorshipSchedule(input: {
     });
 
     created.push(plan);
+  }
+
+  for (const plan of created) {
+    if (plan.status === "published") {
+      await syncChoirCalendarForWorshipPlan(plan);
+    }
   }
 
   await rotationStore().saveWorshipRotationConfig({
@@ -165,6 +174,13 @@ export async function approveWorshipRotationSchedule(actor: { id: string; name: 
     publishedCount += 1;
   }
 
+  const publishedPlans = await listWorshipPlans({ since, until, serviceTime: config.serviceTime });
+  for (const plan of publishedPlans) {
+    if (plan.status === "published") {
+      await syncChoirCalendarForWorshipPlan(plan);
+    }
+  }
+
   const now = new Date();
   await saveWorshipRotationConfig({
     pool: config.pool,
@@ -185,4 +201,48 @@ export async function approveWorshipRotationSchedule(actor: { id: string; name: 
     config: await getWorshipRotationConfig(),
     assignments: await listUpcomingLeaderAssignments(),
   };
+}
+
+export async function saveManualLeaderAssignment(input: {
+  serviceDate: string;
+  serviceTime: string;
+  leaderUserId: string;
+  leaderName: string;
+  publish?: boolean;
+  actor: { id: string; name: string };
+}) {
+  const serviceDate = input.serviceDate.trim();
+  const serviceTime = input.serviceTime.trim();
+  const leaderUserId = input.leaderUserId.trim();
+  const leaderName = input.leaderName.trim();
+
+  if (!serviceDate || !serviceTime || !leaderUserId || !leaderName) {
+    throw new Error("Service date, time, and worship leader are required.");
+  }
+
+  const existing = await getWorshipPlan(serviceDate, serviceTime);
+  const leader = { userId: leaderUserId, name: leaderName };
+  const team = buildLeaderTeam(leader, existing?.team);
+  const status = input.publish ? "published" : "draft";
+
+  const plan = await saveWorshipPlan({
+    serviceDate,
+    serviceTime,
+    serviceType: serviceTypeForTime(serviceTime),
+    title: existing?.title ?? undefined,
+    songs: existing?.songs ?? [],
+    team,
+    rehearsalNotes: existing?.rehearsalNotes ?? undefined,
+    rehearsalDate: existing?.rehearsalDate ?? suggestedRehearsalDate(serviceDate),
+    rehearsalTime: existing?.rehearsalTime ?? "19:00",
+    calendarEventId: existing?.calendarEventId ?? undefined,
+    uploadDutyUserId: leaderUserId,
+    uploadDutyUserName: leaderName,
+    memberSuggestions: existing?.memberSuggestions,
+    status,
+    actor: input.actor,
+  });
+
+  await syncChoirCalendarForWorshipPlan(plan);
+  return plan;
 }

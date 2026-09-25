@@ -10,6 +10,7 @@ import {
   generateWorshipSchedule,
   getWorshipRotationConfig,
   listUpcomingLeaderAssignments,
+  saveManualLeaderAssignment,
   saveWorshipRotationConfig,
 } from "@/lib/worship-rotation-server";
 import { approveAndNotifyWorshipRotationSchedule } from "@/lib/worship-notify-server";
@@ -94,6 +95,12 @@ export async function GET(request: Request) {
     listUpcomingLeaderAssignments(),
   ]);
 
+  let roster: { id: string; name: string }[] = [];
+  if (auth.canManage) {
+    const group = await getGroupDetail(getConfiguredWorshipGroupId(), auth.user!.id);
+    roster = (group?.members ?? []).map((member) => ({ id: member.id, name: member.name }));
+  }
+
   const visibleAssignments =
     auth.canManage || config.status === "published"
       ? assignments
@@ -111,6 +118,7 @@ export async function GET(request: Request) {
         },
     assignments: visibleAssignments,
     canManage: auth.canManage,
+    roster,
   });
 }
 
@@ -152,6 +160,21 @@ export async function POST(request: Request) {
         assignments: result.assignments,
         notify: result.notify,
       });
+    }
+
+    if (action === "manual_assignment") {
+      const leaderUserId = String(body.leaderUserId ?? "").trim();
+      const leaderName = String(body.leaderName ?? "").trim();
+      const plan = await saveManualLeaderAssignment({
+        serviceDate: String(body.serviceDate ?? ""),
+        serviceTime: String(body.serviceTime ?? "10:00"),
+        leaderUserId,
+        leaderName,
+        publish: body.publish !== false,
+        actor: { id: auth.user!.id, name: auth.user!.name },
+      });
+
+      return NextResponse.json({ ok: true, plan });
     }
 
     const config = await saveWorshipRotationConfig({

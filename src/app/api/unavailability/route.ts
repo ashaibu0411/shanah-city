@@ -6,6 +6,7 @@ import {
   canViewUnavailabilityForGroup,
   type UnavailabilityCalendarGroup,
 } from "@/lib/group-permissions-server";
+import { syncChoirCalendarForUnavailability } from "@/lib/choir-calendar-sync-server";
 import {
   addUnavailabilityRequest,
   getUnavailabilityRequests,
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
 
     if (!(await canReviewUnavailabilityForGroup(user, target.group))) {
       return NextResponse.json(
-        { error: "Only group admins can approve these requests." },
+        { error: "Only group leaders and assistants can approve these requests." },
         { status: 403 },
       );
     }
@@ -103,6 +104,8 @@ export async function POST(request: Request) {
     if (!updated) {
       return NextResponse.json({ error: "Request not found." }, { status: 404 });
     }
+
+    await syncChoirCalendarForUnavailability(updated);
 
     return NextResponse.json({ request: updated });
   }
