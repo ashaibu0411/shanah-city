@@ -1,3 +1,5 @@
+import type { GroupServiceScheduleConfig } from "@/lib/group-service-schedule-config";
+import { programLabel, roleLabel } from "@/lib/group-service-schedule-config";
 import { worshipTimeLabel } from "@/lib/worship-types";
 
 export type ChoirServiceProgram = "glory-encounter" | "sunday-service" | "special-program";
@@ -8,23 +10,30 @@ export type ChoirAssignmentRole =
   | "praise-worship"
   | "ministration-song";
 
-export type ChoirScheduleAssignment = {
-  role: ChoirAssignmentRole;
+export type GroupScheduleAssignment = {
+  role: string;
   personName: string;
 };
 
-export type ChoirServiceScheduleEntry = {
+/** @deprecated Use GroupScheduleAssignment */
+export type ChoirScheduleAssignment = GroupScheduleAssignment;
+
+export type GroupServiceScheduleEntry = {
   id: string;
+  groupId: string;
   serviceDate: string;
   serviceTime: string;
-  program: ChoirServiceProgram;
-  assignments: ChoirScheduleAssignment[];
+  program: string;
+  assignments: GroupScheduleAssignment[];
   notes?: string;
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
   createdByName?: string;
 };
+
+/** @deprecated Use GroupServiceScheduleEntry */
+export type ChoirServiceScheduleEntry = GroupServiceScheduleEntry;
 
 export const CHOIR_SERVICE_PROGRAMS: { value: ChoirServiceProgram; label: string }[] = [
   { value: "glory-encounter", label: "Glory Encounter" },
@@ -39,28 +48,37 @@ export const CHOIR_ASSIGNMENT_ROLES: { value: ChoirAssignmentRole; label: string
   { value: "ministration-song", label: "Ministration song" },
 ];
 
-export function choirServiceProgramLabel(program: ChoirServiceProgram) {
-  return CHOIR_SERVICE_PROGRAMS.find((item) => item.value === program)?.label ?? program;
+export function groupScheduleCalendarEventId(groupId: string, entryId: string) {
+  return `group-schedule-${groupId}-${entryId}`;
 }
 
-export function choirAssignmentRoleLabel(role: ChoirAssignmentRole) {
-  return CHOIR_ASSIGNMENT_ROLES.find((item) => item.value === role)?.label ?? role;
+export function legacyChoirScheduleCalendarEventId(entryId: string) {
+  return `choir-schedule-${entryId}`;
 }
 
-export function normalizeChoirScheduleEntry(
-  entry: Partial<ChoirServiceScheduleEntry> & {
+/** @deprecated Use groupScheduleCalendarEventId */
+export function choirScheduleCalendarEventId(entryId: string) {
+  return legacyChoirScheduleCalendarEventId(entryId);
+}
+
+export function normalizeGroupScheduleEntry(
+  entry: Partial<GroupServiceScheduleEntry> & {
     leadRole?: "worship" | "praise" | "both";
     worshipLeaderName?: string;
     praiseLeaderName?: string;
     ministration?: boolean;
     ministrationBy?: string;
   },
-): ChoirServiceScheduleEntry {
+  defaultGroupId = "group-choir",
+): GroupServiceScheduleEntry {
   if (entry.assignments && entry.assignments.length > 0) {
-    return entry as ChoirServiceScheduleEntry;
+    return {
+      ...(entry as GroupServiceScheduleEntry),
+      groupId: entry.groupId ?? defaultGroupId,
+    };
   }
 
-  const assignments: ChoirScheduleAssignment[] = [];
+  const assignments: GroupScheduleAssignment[] = [];
   const legacyRole = entry.leadRole;
   if (legacyRole === "worship" || legacyRole === "both") {
     if (entry.worshipLeaderName?.trim()) {
@@ -81,6 +99,7 @@ export function normalizeChoirScheduleEntry(
 
   return {
     id: entry.id!,
+    groupId: entry.groupId ?? defaultGroupId,
     serviceDate: entry.serviceDate!,
     serviceTime: entry.serviceTime!,
     program: entry.program!,
@@ -93,33 +112,57 @@ export function normalizeChoirScheduleEntry(
   };
 }
 
-export function formatChoirSchedulePreview(entry: ChoirServiceScheduleEntry) {
+/** @deprecated Use normalizeGroupScheduleEntry */
+export const normalizeChoirScheduleEntry = normalizeGroupScheduleEntry;
+
+export function formatGroupSchedulePreview(
+  entry: GroupServiceScheduleEntry,
+  config: Pick<GroupServiceScheduleConfig, "programs" | "roles">,
+) {
   const time = worshipTimeLabel(entry.serviceTime) || entry.serviceTime;
-  const lines: string[] = [`${choirServiceProgramLabel(entry.program)} · ${time}`];
+  const lines: string[] = [`${programLabel(config, entry.program)} · ${time}`];
 
   for (const assignment of entry.assignments) {
     if (!assignment.personName.trim()) continue;
-    lines.push(`${assignment.personName.trim()} — ${choirAssignmentRoleLabel(assignment.role)}`);
+    lines.push(
+      `${assignment.personName.trim()} — ${roleLabel(config, assignment.role)}`,
+    );
   }
 
   return lines.join("\n");
 }
 
-/** Month grid: names and roles (program is in the event title). */
-export function formatChoirScheduleCalendarPreview(entry: ChoirServiceScheduleEntry) {
+export function formatGroupScheduleCalendarPreview(
+  entry: GroupServiceScheduleEntry,
+  config: Pick<GroupServiceScheduleConfig, "programs" | "roles">,
+) {
   const time = worshipTimeLabel(entry.serviceTime) || entry.serviceTime;
   const lines: string[] = [time];
 
   for (const assignment of entry.assignments) {
     if (!assignment.personName.trim()) continue;
-    lines.push(`${assignment.personName.trim()} — ${choirAssignmentRoleLabel(assignment.role)}`);
+    lines.push(
+      `${assignment.personName.trim()} — ${roleLabel(config, assignment.role)}`,
+    );
   }
 
   return lines.join("\n");
 }
 
-export function choirScheduleCalendarEventId(entryId: string) {
-  return `choir-schedule-${entryId}`;
+/** @deprecated Use formatGroupSchedulePreview with config */
+export function formatChoirSchedulePreview(entry: GroupServiceScheduleEntry) {
+  const time = worshipTimeLabel(entry.serviceTime) || entry.serviceTime;
+  const lines: string[] = [
+    `${CHOIR_SERVICE_PROGRAMS.find((p) => p.value === entry.program)?.label ?? entry.program} · ${time}`,
+  ];
+  for (const assignment of entry.assignments) {
+    if (!assignment.personName.trim()) continue;
+    const role =
+      CHOIR_ASSIGNMENT_ROLES.find((item) => item.value === assignment.role)?.label ??
+      assignment.role;
+    lines.push(`${assignment.personName.trim()} — ${role}`);
+  }
+  return lines.join("\n");
 }
 
 export function parseChoirAssignmentRole(value: unknown): ChoirAssignmentRole | null {
@@ -130,6 +173,21 @@ export function parseChoirAssignmentRole(value: unknown): ChoirAssignmentRole | 
     value === "ministration-song"
   ) {
     return value;
+  }
+  return null;
+}
+
+export function isGroupScheduleCalendarEventId(eventId: string) {
+  return eventId.startsWith("group-schedule-") || eventId.startsWith("choir-schedule-");
+}
+
+export function groupScheduleEntryIdFromEventId(eventId: string, groupId: string) {
+  const prefix = `group-schedule-${groupId}-`;
+  if (eventId.startsWith(prefix)) {
+    return eventId.slice(prefix.length);
+  }
+  if (eventId.startsWith("choir-schedule-") && groupId === "group-choir") {
+    return eventId.slice("choir-schedule-".length);
   }
   return null;
 }

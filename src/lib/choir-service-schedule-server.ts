@@ -1,13 +1,16 @@
-import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
 import { getGroups } from "@/lib/group-server";
 import { upsertEvent, deleteEvent } from "@/lib/event-server";
 import {
-  choirScheduleCalendarEventId,
-  formatChoirScheduleCalendarPreview,
-  choirServiceProgramLabel,
-  type ChoirScheduleAssignment,
-  type ChoirServiceScheduleEntry,
+  formatGroupScheduleCalendarPreview,
+  groupScheduleCalendarEventId,
+  legacyChoirScheduleCalendarEventId,
+  type GroupScheduleAssignment,
+  type GroupServiceScheduleEntry,
 } from "@/lib/choir-service-schedule-types";
+import {
+  getGroupServiceScheduleConfig,
+  programLabel,
+} from "@/lib/group-service-schedule-config";
 import { worshipTimeLabel } from "@/lib/worship-types";
 import { useDatabase } from "@/lib/use-database";
 import * as scheduleDb from "@/lib/stores/choir-service-schedule-db";
@@ -15,34 +18,50 @@ import * as scheduleJson from "@/lib/stores/choir-service-schedule-json";
 
 const store = () => (useDatabase() ? scheduleDb : scheduleJson);
 
-export const listChoirServiceSchedules = () => store().listChoirServiceSchedules();
-export const saveChoirServiceSchedule = (
-  input: Parameters<typeof scheduleJson.saveChoirServiceSchedule>[0],
-) => store().saveChoirServiceSchedule(input);
-export const deleteChoirServiceSchedule = (id: string) => store().deleteChoirServiceSchedule(id);
+export const listGroupServiceSchedules = (groupId: string) =>
+  store().listGroupServiceSchedules(groupId);
 
-async function choirGroupMeta() {
-  const groupId = getConfiguredWorshipGroupId();
+/** @deprecated Use listGroupServiceSchedules */
+export const listChoirServiceSchedules = () =>
+  listGroupServiceSchedules("group-choir");
+
+export const saveGroupServiceSchedule = (
+  input: Parameters<typeof scheduleJson.saveGroupServiceSchedule>[0],
+) => store().saveGroupServiceSchedule(input);
+
+export const deleteGroupServiceSchedule = (id: string, groupId: string) =>
+  store().deleteGroupServiceSchedule(id, groupId);
+
+async function groupMeta(groupId: string) {
   const groups = await getGroups();
   const group = groups.find((entry) => entry.id === groupId);
   return {
     groupId,
-    groupName: group?.name ?? "Shanah Worship (Choir)",
+    groupName: group?.name ?? "Ministry group",
   };
 }
 
-export async function syncChoirServiceScheduleToCalendar(entry: ChoirServiceScheduleEntry) {
-  const { groupId, groupName } = await choirGroupMeta();
-  const preview = formatChoirScheduleCalendarPreview(entry);
+export async function syncGroupServiceScheduleToCalendar(entry: GroupServiceScheduleEntry) {
+  const config = getGroupServiceScheduleConfig(entry.groupId);
+  if (!config) {
+    throw new Error("This group does not use service schedules.");
+  }
+
+  const { groupId, groupName } = await groupMeta(entry.groupId);
+  const preview = formatGroupScheduleCalendarPreview(entry, config);
   const dayLabel = new Date(`${entry.serviceDate}T12:00:00`).toLocaleDateString(undefined, {
     weekday: "short",
     month: "short",
     day: "numeric",
   });
 
+  const eventId = groupScheduleCalendarEventId(groupId, entry.id);
+
+  await deleteEvent(legacyChoirScheduleCalendarEventId(entry.id)).catch(() => undefined);
+
   await upsertEvent({
-    id: choirScheduleCalendarEventId(entry.id),
-    title: choirServiceProgramLabel(entry.program),
+    id: eventId,
+    title: programLabel(config, entry.program),
     date: dayLabel,
     time: worshipTimeLabel(entry.serviceTime) || entry.serviceTime,
     location: "Shanah City",
@@ -58,15 +77,20 @@ export async function syncChoirServiceScheduleToCalendar(entry: ChoirServiceSche
   return preview;
 }
 
-export async function removeChoirServiceScheduleFromCalendar(entryId: string) {
-  await deleteEvent(choirScheduleCalendarEventId(entryId));
+export async function removeGroupServiceScheduleFromCalendar(
+  groupId: string,
+  entryId: string,
+) {
+  await deleteEvent(groupScheduleCalendarEventId(groupId, entryId));
+  if (groupId === "group-choir") {
+    await deleteEvent(legacyChoirScheduleCalendarEventId(entryId)).catch(() => undefined);
+  }
 }
 
-export function validateChoirServiceScheduleInput(input: {
+export function validateGroupServiceScheduleInput(input: {
   serviceDate: string;
   serviceTime: string;
-  program: ChoirServiceScheduleEntry["program"];
-  assignments: ChoirScheduleAssignment[];
+  assignments: GroupScheduleAssignment[];
 }) {
   if (!input.serviceDate.trim() || !input.serviceTime.trim()) {
     throw new Error("Service date and time are required.");
@@ -78,11 +102,11 @@ export function validateChoirServiceScheduleInput(input: {
   }
 }
 
-export async function persistChoirServiceSchedule(
-  input: Parameters<typeof saveChoirServiceSchedule>[0],
+export async function persistGroupServiceSchedule(
+  input: Parameters<typeof saveGroupServiceSchedule>[0],
 ) {
-  validateChoirServiceScheduleInput(input);
-  const entry = await saveChoirServiceSchedule({
+  validateGroupServiceScheduleInput(input);
+  const entry = await saveGroupServiceSchedule({
     ...input,
     assignments: input.assignments
       .filter((item) => item.personName.trim())
@@ -91,19 +115,30 @@ export async function persistChoirServiceSchedule(
         personName: item.personName.trim(),
       })),
   });
-  await syncChoirServiceScheduleToCalendar(entry);
+  await syncGroupServiceScheduleToCalendar(entry);
   return entry;
 }
 
-export async function removeChoirServiceScheduleEntry(id: string) {
-  const removed = await deleteChoirServiceSchedule(id);
+/** @deprecated Use persistGroupServiceSchedule */
+export const persistChoirServiceSchedule = persistGroupServiceSchedule;
+
+export async function removeGroupServiceScheduleEntry(id: string, groupId: string) {
+  const removed = await deleteGroupServiceSchedule(id, groupId);
   if (removed) {
-    await removeChoirServiceScheduleFromCalendar(id);
+    await removeGroupServiceScheduleFromCalendar(groupId, id);
   }
   return removed;
+}
+
+/** @deprecated Use removeGroupServiceScheduleEntry */
+export async function removeChoirServiceScheduleEntry(id: string) {
+  return removeGroupServiceScheduleEntry(id, "group-choir");
 }
 
 export function isChoirScheduleReadOnlyError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return /EROFS|read-only file system|read-only/i.test(message);
 }
+
+/** @deprecated Use syncGroupServiceScheduleToCalendar */
+export const syncChoirServiceScheduleToCalendar = syncGroupServiceScheduleToCalendar;

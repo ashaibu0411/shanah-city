@@ -1107,6 +1107,7 @@ model PastoralRoleSlot {
 
 model ChoirServiceSchedule {
   id            String   @id
+  groupId       String   @default("group-choir")
   serviceDate   String
   serviceTime   String
   program       String
@@ -1118,4 +1119,5 @@ model ChoirServiceSchedule {
   updatedAt     DateTime
 
   @@index([serviceDate])
+  @@index([groupId, serviceDate])
 }

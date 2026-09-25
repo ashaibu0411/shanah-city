@@ -1,9 +1,9 @@
 import { promises as fs } from "fs";
 import path from "path";
 import {
-  normalizeChoirScheduleEntry,
-  type ChoirScheduleAssignment,
-  type ChoirServiceScheduleEntry,
+  normalizeGroupScheduleEntry,
+  type GroupScheduleAssignment,
+  type GroupServiceScheduleEntry,
 } from "@/lib/choir-service-schedule-types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -23,10 +23,11 @@ async function writeJson<T>(file: string, data: T) {
   await fs.writeFile(file, JSON.stringify(data, null, 2));
 }
 
-export async function listChoirServiceSchedules() {
-  const entries = await readJson<ChoirServiceScheduleEntry[]>(SCHEDULE_FILE, []);
+export async function listGroupServiceSchedules(groupId: string) {
+  const entries = await readJson<GroupServiceScheduleEntry[]>(SCHEDULE_FILE, []);
   return entries
-    .map((entry) => normalizeChoirScheduleEntry(entry))
+    .map((entry) => normalizeGroupScheduleEntry(entry, entry.groupId ?? groupId))
+    .filter((entry) => entry.groupId === groupId)
     .sort(
       (a, b) =>
         a.serviceDate.localeCompare(b.serviceDate) ||
@@ -34,33 +35,43 @@ export async function listChoirServiceSchedules() {
     );
 }
 
-export async function saveChoirServiceSchedule(input: {
+/** @deprecated Use listGroupServiceSchedules */
+export async function listChoirServiceSchedules() {
+  return listGroupServiceSchedules("group-choir");
+}
+
+export async function saveGroupServiceSchedule(input: {
   id?: string;
+  groupId: string;
   serviceDate: string;
   serviceTime: string;
-  program: ChoirServiceScheduleEntry["program"];
-  assignments: ChoirScheduleAssignment[];
+  program: string;
+  assignments: GroupScheduleAssignment[];
   notes?: string;
   actor: { id: string; name: string };
 }) {
-  const entries = await readJson<ChoirServiceScheduleEntry[]>(SCHEDULE_FILE, []);
+  const entries = await readJson<GroupServiceScheduleEntry[]>(SCHEDULE_FILE, []);
   const now = new Date().toISOString();
-  const id = input.id?.trim() || `css-${Date.now()}`;
+  const id = input.id?.trim() || `gss-${Date.now()}`;
 
-  const entry = normalizeChoirScheduleEntry({
-    id,
-    serviceDate: input.serviceDate.trim(),
-    serviceTime: input.serviceTime.trim(),
-    program: input.program,
-    assignments: input.assignments,
-    notes: input.notes?.trim() || undefined,
-    createdAt: entries.find((item) => item.id === id)?.createdAt ?? now,
-    updatedAt: now,
-    createdBy: input.actor.id,
-    createdByName: input.actor.name,
-  });
+  const entry = normalizeGroupScheduleEntry(
+    {
+      id,
+      groupId: input.groupId,
+      serviceDate: input.serviceDate.trim(),
+      serviceTime: input.serviceTime.trim(),
+      program: input.program,
+      assignments: input.assignments,
+      notes: input.notes?.trim() || undefined,
+      createdAt: entries.find((item) => item.id === id)?.createdAt ?? now,
+      updatedAt: now,
+      createdBy: input.actor.id,
+      createdByName: input.actor.name,
+    },
+    input.groupId,
+  );
 
-  const index = entries.findIndex((item) => item.id === id);
+  const index = entries.findIndex((item) => item.id === id && item.groupId === input.groupId);
   if (index >= 0) {
     entries[index] = entry;
   } else {
@@ -71,10 +82,18 @@ export async function saveChoirServiceSchedule(input: {
   return entry;
 }
 
-export async function deleteChoirServiceSchedule(id: string) {
-  const entries = await readJson<ChoirServiceScheduleEntry[]>(SCHEDULE_FILE, []);
-  const next = entries.filter((item) => item.id !== id);
+/** @deprecated Use saveGroupServiceSchedule */
+export const saveChoirServiceSchedule = saveGroupServiceSchedule;
+
+export async function deleteGroupServiceSchedule(id: string, groupId: string) {
+  const entries = await readJson<GroupServiceScheduleEntry[]>(SCHEDULE_FILE, []);
+  const next = entries.filter((item) => !(item.id === id && item.groupId === groupId));
   if (next.length === entries.length) return false;
   await writeJson(SCHEDULE_FILE, next);
   return true;
+}
+
+/** @deprecated Use deleteGroupServiceSchedule */
+export async function deleteChoirServiceSchedule(id: string) {
+  return deleteGroupServiceSchedule(id, "group-choir");
 }

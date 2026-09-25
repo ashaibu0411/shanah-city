@@ -3,60 +3,80 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui";
 import {
-  CHOIR_ASSIGNMENT_ROLES,
-  CHOIR_SERVICE_PROGRAMS,
-  choirServiceProgramLabel,
-  formatChoirSchedulePreview,
-  type ChoirAssignmentRole,
-  type ChoirScheduleAssignment,
-  type ChoirServiceProgram,
-  type ChoirServiceScheduleEntry,
+  formatGroupSchedulePreview,
+  type GroupScheduleAssignment,
+  type GroupServiceScheduleEntry,
 } from "@/lib/choir-service-schedule-types";
+import type {
+  GroupScheduleProgramOption,
+  GroupScheduleRoleOption,
+} from "@/lib/group-service-schedule-config";
+import { programLabel } from "@/lib/group-service-schedule-config";
 import { WORSHIP_SERVICE_TIMES } from "@/lib/worship-types";
 
 type RosterMember = { id: string; name: string };
+type AssignmentRow = { role: string; personName: string };
 
-type AssignmentRow = { role: ChoirAssignmentRole; personName: string };
-
-const emptyAssignment = (): AssignmentRow => ({
-  role: "worship",
-  personName: "",
-});
-
-const emptyForm = {
-  serviceDate: "",
-  serviceTime: "10:00",
-  program: "sunday-service" as ChoirServiceProgram,
-  assignments: [emptyAssignment()] as AssignmentRow[],
+type ScheduleConfig = {
+  programs: GroupScheduleProgramOption[];
+  roles: GroupScheduleRoleOption[];
 };
 
-export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => void }) {
-  const [entries, setEntries] = useState<ChoirServiceScheduleEntry[]>([]);
+function defaultForm(config: ScheduleConfig) {
+  return {
+    serviceDate: "",
+    serviceTime: "10:00",
+    program: config.programs[0]?.value ?? "sunday-service",
+    assignments: [{ role: config.roles[0]?.value ?? "lead", personName: "" }] as AssignmentRow[],
+  };
+}
+
+export function GroupServiceSchedulePanel({
+  groupId,
+  groupLabel,
+  onChanged,
+}: {
+  groupId: string;
+  groupLabel: string;
+  onChanged?: () => void;
+}) {
+  const [config, setConfig] = useState<ScheduleConfig>({ programs: [], roles: [] });
+  const [entries, setEntries] = useState<GroupServiceScheduleEntry[]>([]);
   const [roster, setRoster] = useState<RosterMember[]>([]);
   const [canManage, setCanManage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => defaultForm({ programs: [], roles: [] }));
   const [message, setMessage] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
-    const response = await fetch("/api/choir/service-schedule");
+    const response = await fetch(
+      `/api/groups/service-schedule?groupId=${encodeURIComponent(groupId)}`,
+    );
     const data = await response.json();
     setLoading(false);
     if (!response.ok) {
       setMessage(data.error ?? "Could not load schedule.");
       return;
     }
+    const nextConfig: ScheduleConfig = {
+      programs: data.config?.programs ?? [],
+      roles: data.config?.roles ?? [],
+    };
+    setConfig(nextConfig);
     setEntries(data.entries ?? []);
     setRoster(data.roster ?? []);
     setCanManage(Boolean(data.canManage));
+    if (!editId) {
+      setForm(defaultForm(nextConfig));
+    }
   }
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [groupId]);
 
   const upcoming = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -65,10 +85,10 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
 
   function resetForm() {
     setEditId(null);
-    setForm({ ...emptyForm, assignments: [emptyAssignment()] });
+    setForm(defaultForm(config));
   }
 
-  function startEdit(entry: ChoirServiceScheduleEntry) {
+  function startEdit(entry: GroupServiceScheduleEntry) {
     setEditId(entry.id);
     setForm({
       serviceDate: entry.serviceDate,
@@ -80,7 +100,7 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
               role: item.role,
               personName: item.personName,
             }))
-          : [emptyAssignment()],
+          : [{ role: config.roles[0]?.value ?? "lead", personName: "" }],
     });
   }
 
@@ -96,7 +116,10 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
   function addAssignmentRow() {
     setForm((current) => ({
       ...current,
-      assignments: [...current.assignments, emptyAssignment()],
+      assignments: [
+        ...current.assignments,
+        { role: config.roles[0]?.value ?? "lead", personName: "" },
+      ],
     }));
   }
 
@@ -105,7 +128,10 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
       const next = current.assignments.filter((_, i) => i !== index);
       return {
         ...current,
-        assignments: next.length > 0 ? next : [emptyAssignment()],
+        assignments:
+          next.length > 0
+            ? next
+            : [{ role: config.roles[0]?.value ?? "lead", personName: "" }],
       };
     });
   }
@@ -117,7 +143,7 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
   }
 
   async function saveEntry() {
-    const assignments: ChoirScheduleAssignment[] = form.assignments
+    const assignments: GroupScheduleAssignment[] = form.assignments
       .filter((row) => row.personName.trim())
       .map((row) => ({
         role: row.role,
@@ -131,11 +157,12 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
 
     setSaving(true);
     setMessage(null);
-    const response = await fetch("/api/choir/service-schedule", {
+    const response = await fetch("/api/groups/service-schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "save",
+        groupId,
         id: editId ?? undefined,
         serviceDate: form.serviceDate,
         serviceTime: form.serviceTime,
@@ -149,7 +176,7 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
       setMessage(data.error ?? "Could not save.");
       return;
     }
-    setMessage(editId ? "Schedule updated on the calendar." : "Added to the choir calendar.");
+    setMessage(editId ? "Schedule updated on the calendar." : "Added to the group calendar.");
     resetForm();
     await load();
     onChanged?.();
@@ -157,10 +184,10 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
 
   async function removeEntry(id: string) {
     if (!window.confirm("Remove this service from the schedule and calendar?")) return;
-    const response = await fetch("/api/choir/service-schedule", {
+    const response = await fetch("/api/groups/service-schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", id }),
+      body: JSON.stringify({ action: "delete", groupId, id }),
     });
     if (response.ok) {
       await load();
@@ -179,15 +206,18 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
     );
   }
 
+  if (config.programs.length === 0 || config.roles.length === 0) {
+    return null;
+  }
+
   return (
     <div className="mb-6 space-y-6">
       {canManage ? (
         <Card>
           <h3 className="font-display text-lg font-semibold text-night-900">Service schedule</h3>
           <p className="mt-1 text-sm text-night-600">
-            Choir leaders, assistants, and church admins can add services and assign who is on
-            worship, praise, praise &amp; worship, or ministration song. The calendar shows each
-            person&apos;s name and role.
+            {groupLabel} leaders, assistants, and church admins can assign who is serving each
+            date. Entries appear on the calendar below with names and roles.
           </p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -218,15 +248,10 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
               <span className="font-semibold">Kind of service</span>
               <select
                 value={form.program}
-                onChange={(event) =>
-                  setForm((c) => ({
-                    ...c,
-                    program: event.target.value as ChoirServiceProgram,
-                  }))
-                }
+                onChange={(event) => setForm((c) => ({ ...c, program: event.target.value }))}
                 className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
               >
-                {CHOIR_SERVICE_PROGRAMS.map((item) => (
+                {config.programs.map((item) => (
                   <option key={item.value} value={item.value}>
                     {item.label}
                   </option>
@@ -246,14 +271,10 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
                   <span className="font-semibold">Role</span>
                   <select
                     value={row.role}
-                    onChange={(event) =>
-                      updateAssignment(index, {
-                        role: event.target.value as ChoirAssignmentRole,
-                      })
-                    }
+                    onChange={(event) => updateAssignment(index, { role: event.target.value })}
                     className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
                   >
-                    {CHOIR_ASSIGNMENT_ROLES.map((item) => (
+                    {config.roles.map((item) => (
                       <option key={item.value} value={item.value}>
                         {item.label}
                       </option>
@@ -320,8 +341,8 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
       ) : (
         <Card className="mb-6">
           <p className="text-sm text-night-600">
-            Upcoming choir service assignments. Only choir leaders, assistants, and church admins
-            can change the schedule.
+            Upcoming {groupLabel} assignments. Only leaders, assistants, and church admins can
+            change the schedule.
           </p>
         </Card>
       )}
@@ -343,10 +364,10 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
                     month: "short",
                     day: "numeric",
                   })}{" "}
-                  · {choirServiceProgramLabel(entry.program)}
+                  · {programLabel(config, entry.program)}
                 </p>
                 <pre className="mt-2 whitespace-pre-wrap font-sans text-night-700">
-                  {formatChoirSchedulePreview(entry)}
+                  {formatGroupSchedulePreview(entry, config)}
                 </pre>
                 {canManage ? (
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -376,5 +397,20 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
         <p className="rounded-xl bg-sand-100 px-4 py-3 text-sm text-night-700">{message}</p>
       ) : null}
     </div>
+  );
+}
+
+/** @deprecated Use GroupServiceSchedulePanel */
+export function ChoirServiceSchedulePanel({
+  onChanged,
+}: {
+  onChanged?: () => void;
+}) {
+  return (
+    <GroupServiceSchedulePanel
+      groupId="group-choir"
+      groupLabel="Shanah Worship (Choir)"
+      onChanged={onChanged}
+    />
   );
 }

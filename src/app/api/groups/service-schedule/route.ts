@@ -1,15 +1,13 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
-import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
 import {
   readGroupServiceSchedule,
   writeGroupServiceSchedule,
 } from "@/lib/group-service-schedule-handlers";
 
-/** Worship choir schedule (legacy URL). */
-export async function GET() {
-  const groupId = getConfiguredWorshipGroupId();
+export async function GET(request: Request) {
+  const groupId = new URL(request.url).searchParams.get("groupId")?.trim() ?? "";
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -21,8 +19,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const groupId = getConfiguredWorshipGroupId();
   const body = await request.json();
+  const groupId = String(body.groupId ?? "").trim();
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
