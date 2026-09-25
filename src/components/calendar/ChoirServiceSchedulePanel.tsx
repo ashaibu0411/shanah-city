@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui";
 import {
-  CHOIR_LEAD_ROLES,
+  CHOIR_ASSIGNMENT_ROLES,
   CHOIR_SERVICE_PROGRAMS,
   choirServiceProgramLabel,
   formatChoirSchedulePreview,
-  type ChoirLeadRole,
+  type ChoirAssignmentRole,
+  type ChoirScheduleAssignment,
   type ChoirServiceProgram,
   type ChoirServiceScheduleEntry,
 } from "@/lib/choir-service-schedule-types";
@@ -15,15 +16,18 @@ import { WORSHIP_SERVICE_TIMES } from "@/lib/worship-types";
 
 type RosterMember = { id: string; name: string };
 
+type AssignmentRow = { role: ChoirAssignmentRole; personName: string };
+
+const emptyAssignment = (): AssignmentRow => ({
+  role: "worship",
+  personName: "",
+});
+
 const emptyForm = {
   serviceDate: "",
   serviceTime: "10:00",
   program: "sunday-service" as ChoirServiceProgram,
-  leadRole: "worship" as ChoirLeadRole,
-  worshipLeaderName: "",
-  praiseLeaderName: "",
-  ministration: false,
-  ministrationBy: "",
+  assignments: [emptyAssignment()] as AssignmentRow[],
 };
 
 export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => void }) {
@@ -61,7 +65,7 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
 
   function resetForm() {
     setEditId(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, assignments: [emptyAssignment()] });
   }
 
   function startEdit(entry: ChoirServiceScheduleEntry) {
@@ -70,15 +74,61 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
       serviceDate: entry.serviceDate,
       serviceTime: entry.serviceTime,
       program: entry.program,
-      leadRole: entry.leadRole,
-      worshipLeaderName: entry.worshipLeaderName ?? "",
-      praiseLeaderName: entry.praiseLeaderName ?? "",
-      ministration: entry.ministration,
-      ministrationBy: entry.ministrationBy ?? "",
+      assignments:
+        entry.assignments.length > 0
+          ? entry.assignments.map((item) => ({
+              role: item.role,
+              personName: item.personName,
+            }))
+          : [emptyAssignment()],
     });
   }
 
+  function updateAssignment(index: number, patch: Partial<AssignmentRow>) {
+    setForm((current) => ({
+      ...current,
+      assignments: current.assignments.map((row, i) =>
+        i === index ? { ...row, ...patch } : row,
+      ),
+    }));
+  }
+
+  function addAssignmentRow() {
+    setForm((current) => ({
+      ...current,
+      assignments: [...current.assignments, emptyAssignment()],
+    }));
+  }
+
+  function removeAssignmentRow(index: number) {
+    setForm((current) => {
+      const next = current.assignments.filter((_, i) => i !== index);
+      return {
+        ...current,
+        assignments: next.length > 0 ? next : [emptyAssignment()],
+      };
+    });
+  }
+
+  function pickRosterName(index: number, memberId: string) {
+    const member = roster.find((item) => item.id === memberId);
+    if (!member) return;
+    updateAssignment(index, { personName: member.name });
+  }
+
   async function saveEntry() {
+    const assignments: ChoirScheduleAssignment[] = form.assignments
+      .filter((row) => row.personName.trim())
+      .map((row) => ({
+        role: row.role,
+        personName: row.personName.trim(),
+      }));
+
+    if (!form.serviceDate || assignments.length === 0) {
+      setMessage("Pick a date and add at least one person with a role.");
+      return;
+    }
+
     setSaving(true);
     setMessage(null);
     const response = await fetch("/api/choir/service-schedule", {
@@ -87,7 +137,10 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
       body: JSON.stringify({
         action: "save",
         id: editId ?? undefined,
-        ...form,
+        serviceDate: form.serviceDate,
+        serviceTime: form.serviceTime,
+        program: form.program,
+        assignments,
       }),
     });
     const data = await response.json();
@@ -118,15 +171,6 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
     setMessage(data.error ?? "Could not remove.");
   }
 
-  function pickRosterName(
-    field: "worshipLeaderName" | "praiseLeaderName" | "ministrationBy",
-    memberId: string,
-  ) {
-    const member = roster.find((item) => item.id === memberId);
-    if (!member) return;
-    setForm((current) => ({ ...current, [field]: member.name }));
-  }
-
   if (loading) {
     return (
       <Card className="mb-6">
@@ -141,8 +185,9 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
         <Card>
           <h3 className="font-display text-lg font-semibold text-night-900">Service schedule</h3>
           <p className="mt-1 text-sm text-night-600">
-            Add who is leading worship, praise, or both for each service. Entries appear on the
-            calendar below with names.
+            Choir leaders, assistants, and church admins can add services and assign who is on
+            worship, praise, praise &amp; worship, or ministration song. The calendar shows each
+            person&apos;s name and role.
           </p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -169,7 +214,7 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
                 ))}
               </select>
             </label>
-            <label className="text-sm text-night-700">
+            <label className="text-sm text-night-700 md:col-span-2">
               <span className="font-semibold">Kind of service</span>
               <select
                 value={form.program}
@@ -188,116 +233,77 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
                 ))}
               </select>
             </label>
-            <label className="text-sm text-night-700">
-              <span className="font-semibold">Leading</span>
-              <select
-                value={form.leadRole}
-                onChange={(event) =>
-                  setForm((c) => ({
-                    ...c,
-                    leadRole: event.target.value as ChoirLeadRole,
-                  }))
-                }
-                className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+          </div>
+
+          <div className="mt-4 space-y-3">
+            <p className="text-sm font-semibold text-night-800">People on this service</p>
+            {form.assignments.map((row, index) => (
+              <div
+                key={`assignment-${index}`}
+                className="flex flex-col gap-2 rounded-xl border border-night-900/8 bg-sand-50/60 p-3 sm:flex-row sm:items-end"
               >
-                {CHOIR_LEAD_ROLES.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {(form.leadRole === "worship" || form.leadRole === "both") && (
-              <label className="text-sm text-night-700 md:col-span-2">
-                <span className="font-semibold">Worship leader name</span>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  <input
-                    value={form.worshipLeaderName}
+                <label className="flex-1 text-sm text-night-700">
+                  <span className="font-semibold">Role</span>
+                  <select
+                    value={row.role}
                     onChange={(event) =>
-                      setForm((c) => ({ ...c, worshipLeaderName: event.target.value }))
+                      updateAssignment(index, {
+                        role: event.target.value as ChoirAssignmentRole,
+                      })
                     }
-                    placeholder="e.g. Sarah Johnson"
-                    className="min-w-[12rem] flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
-                  />
-                  {roster.length > 0 ? (
-                    <select
-                      defaultValue=""
-                      onChange={(event) => {
-                        pickRosterName("worshipLeaderName", event.target.value);
-                        event.currentTarget.value = "";
-                      }}
-                      className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
-                    >
-                      <option value="">Pick from roster…</option>
-                      {roster.map((member) => (
-                        <option key={member.id} value={member.id}>
-                          {member.name}
-                        </option>
-                      ))}
-                    </select>
-                  ) : null}
-                </div>
-              </label>
-            )}
-
-            {(form.leadRole === "praise" || form.leadRole === "both") && (
-              <label className="text-sm text-night-700 md:col-span-2">
-                <span className="font-semibold">Praise leader name</span>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  <input
-                    value={form.praiseLeaderName}
-                    onChange={(event) =>
-                      setForm((c) => ({ ...c, praiseLeaderName: event.target.value }))
-                    }
-                    placeholder="e.g. Michael Okon"
-                    className="min-w-[12rem] flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
-                  />
-                  {roster.length > 0 ? (
-                    <select
-                      defaultValue=""
-                      onChange={(event) => {
-                        pickRosterName("praiseLeaderName", event.target.value);
-                        event.currentTarget.value = "";
-                      }}
-                      className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
-                    >
-                      <option value="">Pick from roster…</option>
-                      {roster.map((member) => (
-                        <option key={member.id} value={member.id}>
-                          {member.name}
-                        </option>
-                      ))}
-                    </select>
-                  ) : null}
-                </div>
-              </label>
-            )}
-
-            <label className="flex items-center gap-2 text-sm text-night-800 md:col-span-2">
-              <input
-                type="checkbox"
-                checked={form.ministration}
-                onChange={(event) =>
-                  setForm((c) => ({ ...c, ministration: event.target.checked }))
-                }
-              />
-              Ministration on this service
-            </label>
-
-            {form.ministration ? (
-              <label className="text-sm text-night-700 md:col-span-2">
-                <span className="font-semibold">Ministering</span>
-                <input
-                  value={form.ministrationBy}
-                  onChange={(event) =>
-                    setForm((c) => ({ ...c, ministrationBy: event.target.value }))
-                  }
-                  placeholder="e.g. Pastor James"
-                  className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
-                />
-              </label>
-            ) : null}
+                    className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                  >
+                    {CHOIR_ASSIGNMENT_ROLES.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex-[2] text-sm text-night-700">
+                  <span className="font-semibold">Name</span>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    <input
+                      value={row.personName}
+                      onChange={(event) =>
+                        updateAssignment(index, { personName: event.target.value })
+                      }
+                      placeholder="Person's name"
+                      className="min-w-[10rem] flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                    />
+                    {roster.length > 0 ? (
+                      <select
+                        defaultValue=""
+                        onChange={(event) => {
+                          pickRosterName(index, event.target.value);
+                          event.currentTarget.value = "";
+                        }}
+                        className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+                      >
+                        <option value="">Roster…</option>
+                        {roster.map((member) => (
+                          <option key={member.id} value={member.id}>
+                            {member.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
+                  </div>
+                </label>
+                {form.assignments.length > 1 ? (
+                  <button
+                    type="button"
+                    className="text-sm font-semibold text-red-700 hover:underline sm:pb-2.5"
+                    onClick={() => removeAssignmentRow(index)}
+                  >
+                    Remove
+                  </button>
+                ) : null}
+              </div>
+            ))}
+            <Button type="button" variant="secondary" onClick={addAssignmentRow}>
+              Add another person
+            </Button>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -314,8 +320,8 @@ export function ChoirServiceSchedulePanel({ onChanged }: { onChanged?: () => voi
       ) : (
         <Card className="mb-6">
           <p className="text-sm text-night-600">
-            Upcoming leaders and ministers for choir services. Leaders and assistants can update the
-            schedule in this tab.
+            Upcoming choir service assignments. Only choir leaders, assistants, and church admins
+            can change the schedule.
           </p>
         </Card>
       )}

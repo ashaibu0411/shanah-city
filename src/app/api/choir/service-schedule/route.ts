@@ -5,11 +5,16 @@ import { canManageGroupEvents } from "@/lib/group-permissions-server";
 import { getConfiguredWorshipGroupId, userIsInWorshipGroup } from "@/lib/worship-access-server";
 import { getGroupDetail } from "@/lib/group-server";
 import {
+  isChoirScheduleReadOnlyError,
   listChoirServiceSchedules,
   persistChoirServiceSchedule,
   removeChoirServiceScheduleEntry,
 } from "@/lib/choir-service-schedule-server";
-import type { ChoirLeadRole, ChoirServiceProgram } from "@/lib/choir-service-schedule-types";
+import {
+  parseChoirAssignmentRole,
+  type ChoirScheduleAssignment,
+  type ChoirServiceProgram,
+} from "@/lib/choir-service-schedule-types";
 
 function parseProgram(value: unknown): ChoirServiceProgram | null {
   if (value === "glory-encounter" || value === "sunday-service" || value === "special-program") {
@@ -18,11 +23,17 @@ function parseProgram(value: unknown): ChoirServiceProgram | null {
   return null;
 }
 
-function parseLeadRole(value: unknown): ChoirLeadRole | null {
-  if (value === "worship" || value === "praise" || value === "both") {
-    return value;
+function parseAssignments(value: unknown): ChoirScheduleAssignment[] | null {
+  if (!Array.isArray(value)) return null;
+  const assignments: ChoirScheduleAssignment[] = [];
+  for (const row of value) {
+    const item = row as { role?: unknown; personName?: unknown };
+    const role = parseChoirAssignmentRole(item.role);
+    const personName = String(item.personName ?? "").trim();
+    if (!role || !personName) continue;
+    assignments.push({ role, personName });
   }
-  return null;
+  return assignments.length > 0 ? assignments : null;
 }
 
 export async function GET() {
@@ -62,7 +73,10 @@ export async function POST(request: Request) {
   const groupId = getConfiguredWorshipGroupId();
   if (!(await canManageGroupEvents(user, groupId))) {
     return NextResponse.json(
-      { error: "Only choir leaders and assistants can edit the schedule." },
+      {
+        error:
+          "Only choir leaders, assistants, and church admins can add or change the schedule.",
+      },
       { status: 403 },
     );
   }
@@ -75,17 +89,24 @@ export async function POST(request: Request) {
     if (!id) {
       return NextResponse.json({ error: "Schedule id is required." }, { status: 400 });
     }
-    const removed = await removeChoirServiceScheduleEntry(id);
-    if (!removed) {
-      return NextResponse.json({ error: "Schedule entry not found." }, { status: 404 });
+    try {
+      const removed = await removeChoirServiceScheduleEntry(id);
+      if (!removed) {
+        return NextResponse.json({ error: "Schedule entry not found." }, { status: 404 });
+      }
+      return NextResponse.json({ ok: true });
+    } catch (error) {
+      return NextResponse.json({ error: formatSaveError(error) }, { status: 500 });
     }
-    return NextResponse.json({ ok: true });
   }
 
   const program = parseProgram(body.program);
-  const leadRole = parseLeadRole(body.leadRole);
-  if (!program || !leadRole) {
-    return NextResponse.json({ error: "Choose a valid service type and lead role." }, { status: 400 });
+  const assignments = parseAssignments(body.assignments);
+  if (!program || !assignments) {
+    return NextResponse.json(
+      { error: "Choose a service type and add at least one person with a role." },
+      { status: 400 },
+    );
   }
 
   try {
@@ -94,20 +115,20 @@ export async function POST(request: Request) {
       serviceDate: String(body.serviceDate ?? ""),
       serviceTime: String(body.serviceTime ?? "10:00"),
       program,
-      leadRole,
-      worshipLeaderName: body.worshipLeaderName ? String(body.worshipLeaderName) : undefined,
-      praiseLeaderName: body.praiseLeaderName ? String(body.praiseLeaderName) : undefined,
-      ministration: Boolean(body.ministration),
-      ministrationBy: body.ministrationBy ? String(body.ministrationBy) : undefined,
+      assignments,
       notes: body.notes ? String(body.notes) : undefined,
       actor: { id: user.id, name: user.name },
     });
 
     return NextResponse.json({ entry });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not save schedule." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: formatSaveError(error) }, { status: 400 });
   }
+}
+
+function formatSaveError(error: unknown) {
+  if (isChoirScheduleReadOnlyError(error)) {
+    return "Schedule could not be saved on the server. Run the latest database migration (ChoirServiceSchedule) on production.";
+  }
+  return error instanceof Error ? error.message : "Could not save schedule.";
 }

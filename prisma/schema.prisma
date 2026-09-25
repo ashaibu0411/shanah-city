@@ -1104,3 +1104,18 @@ model PastoralRoleSlot {
   updatedBy     String?
   updatedByName String?
 }
+
+model ChoirServiceSchedule {
+  id            String   @id
+  serviceDate   String
+  serviceTime   String
+  program       String
+  assignments   Json     @default("[]")
+  notes         String?
+  createdBy     String?
+  createdByName String?
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  @@index([serviceDate])
+}

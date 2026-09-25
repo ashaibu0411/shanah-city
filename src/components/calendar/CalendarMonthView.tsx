@@ -52,7 +52,12 @@ function EventText({
 }) {
   const time = itemTime(item);
   const previewLines = item.calendarPreview?.trim().split("\n").filter(Boolean) ?? [];
-  const bodyLines = previewLines.length > 0 ? previewLines : [item.title];
+  const bodyLines =
+    previewLines.length > 0
+      ? compact
+        ? [item.title, ...previewLines.slice(1)]
+        : previewLines
+      : [item.title];
 
   return (
     <div
@@ -68,12 +73,8 @@ function EventText({
       {bodyLines.map((line, index) => (
         <p
           key={`${item.id}-${index}`}
-          className={`leading-snug ${
-            index === 0 && previewLines.length > 0
-              ? `font-semibold ${compact ? "text-[10px]" : "text-xs"}`
-              : compact
-                ? "line-clamp-2 text-[10px]"
-                : "text-[11px]"
+          className={`leading-snug break-words ${
+            compact ? "line-clamp-4 text-[10px]" : "text-[11px]"
           } ${inverted ? "text-sand-50" : index === 0 ? "text-night-900" : "text-night-700"}`}
         >
           {line}
@@ -243,7 +244,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                   key={cell.isoDate}
                   type="button"
                   onClick={() => setSelectedDate(cell.isoDate!)}
-                  className={`min-h-[4.5rem] rounded-lg p-1 text-left ring-1 ring-night-900/5 ${
+                  className={`min-h-[5.5rem] rounded-lg p-1 text-left ring-1 ring-night-900/5 ${
                     isSelected
                       ? "bg-night-900 text-white ring-night-900"
                       : isToday

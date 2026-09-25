@@ -1,6 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
-import type { ChoirServiceScheduleEntry } from "@/lib/choir-service-schedule-types";
+import {
+  normalizeChoirScheduleEntry,
+  type ChoirScheduleAssignment,
+  type ChoirServiceScheduleEntry,
+} from "@/lib/choir-service-schedule-types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const SCHEDULE_FILE = path.join(DATA_DIR, "choir-service-schedule.json");
@@ -21,11 +25,13 @@ async function writeJson<T>(file: string, data: T) {
 
 export async function listChoirServiceSchedules() {
   const entries = await readJson<ChoirServiceScheduleEntry[]>(SCHEDULE_FILE, []);
-  return [...entries].sort(
-    (a, b) =>
-      a.serviceDate.localeCompare(b.serviceDate) ||
-      a.serviceTime.localeCompare(b.serviceTime),
-  );
+  return entries
+    .map((entry) => normalizeChoirScheduleEntry(entry))
+    .sort(
+      (a, b) =>
+        a.serviceDate.localeCompare(b.serviceDate) ||
+        a.serviceTime.localeCompare(b.serviceTime),
+    );
 }
 
 export async function saveChoirServiceSchedule(input: {
@@ -33,11 +39,7 @@ export async function saveChoirServiceSchedule(input: {
   serviceDate: string;
   serviceTime: string;
   program: ChoirServiceScheduleEntry["program"];
-  leadRole: ChoirServiceScheduleEntry["leadRole"];
-  worshipLeaderName?: string;
-  praiseLeaderName?: string;
-  ministration: boolean;
-  ministrationBy?: string;
+  assignments: ChoirScheduleAssignment[];
   notes?: string;
   actor: { id: string; name: string };
 }) {
@@ -45,26 +47,22 @@ export async function saveChoirServiceSchedule(input: {
   const now = new Date().toISOString();
   const id = input.id?.trim() || `css-${Date.now()}`;
 
-  const entry: ChoirServiceScheduleEntry = {
+  const entry = normalizeChoirScheduleEntry({
     id,
     serviceDate: input.serviceDate.trim(),
     serviceTime: input.serviceTime.trim(),
     program: input.program,
-    leadRole: input.leadRole,
-    worshipLeaderName: input.worshipLeaderName?.trim() || undefined,
-    praiseLeaderName: input.praiseLeaderName?.trim() || undefined,
-    ministration: input.ministration,
-    ministrationBy: input.ministrationBy?.trim() || undefined,
+    assignments: input.assignments,
     notes: input.notes?.trim() || undefined,
     createdAt: entries.find((item) => item.id === id)?.createdAt ?? now,
     updatedAt: now,
     createdBy: input.actor.id,
     createdByName: input.actor.name,
-  };
+  });
 
   const index = entries.findIndex((item) => item.id === id);
   if (index >= 0) {
-    entries[index] = { ...entries[index], ...entry, createdAt: entries[index].createdAt };
+    entries[index] = entry;
   } else {
     entries.push(entry);
   }

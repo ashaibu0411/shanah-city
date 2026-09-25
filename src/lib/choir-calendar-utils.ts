@@ -36,5 +36,8 @@ export function calendarPreviewFromEvent(event: {
   if (event.id.startsWith("choir-schedule-") && event.rsvpInstructions?.trim()) {
     return event.rsvpInstructions.trim();
   }
+  if (event.id.startsWith("choir-schedule-")) {
+    return event.title;
+  }
   return event.title;
 }
