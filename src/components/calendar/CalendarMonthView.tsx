@@ -80,11 +80,13 @@ function EventText({
   inverted = false,
   compact = false,
   grid = false,
+  expanded = false,
 }: {
   item: CalendarPlannable;
   inverted?: boolean;
   compact?: boolean;
   grid?: boolean;
+  expanded?: boolean;
 }) {
   const time = itemTime(item);
   const previewLines = item.calendarPreview?.trim().split("\n").filter(Boolean) ?? [];
@@ -105,20 +107,26 @@ function EventText({
 
   const bodyLines =
     previewLines.length > 0
-      ? compact
+      ? expanded
         ? peopleLines.length > 0
           ? [item.title, ...peopleLines]
           : previewLines
-        : previewLines
+        : compact
+          ? peopleLines.length > 0
+            ? [item.title, ...peopleLines]
+            : previewLines
+          : previewLines
       : [item.title];
+
+  const textSize = expanded ? "text-[9px]" : compact ? "text-[10px]" : "text-[11px]";
 
   return (
     <div
-      className={`rounded-md px-1.5 py-1 ${
+      className={`rounded-md px-1 py-0.5 ${
         inverted ? "bg-white/12 text-sand-50" : "bg-violet-50 text-night-900"
-      }`}
+      } ${expanded ? "max-lg:landscape:px-0.5" : "px-1.5 py-1"}`}
     >
-      {time && previewLines.length === 0 ? (
+      {time && previewLines.length === 0 && !expanded ? (
         <p className={`font-semibold leading-tight ${compact ? "text-[10px]" : "text-xs"}`}>
           {time}
         </p>
@@ -126,11 +134,13 @@ function EventText({
       {bodyLines.map((line, index) => (
         <p
           key={`${item.id}-${index}`}
-          className={`leading-snug ${
-            compact ? "text-[10px]" : "text-[11px]"
-          } ${compact ? "line-clamp-2 break-normal" : "whitespace-pre-wrap break-words"} ${
-            inverted ? "text-sand-50" : index === 0 ? "text-night-900" : "text-night-700"
-          }`}
+          className={`leading-snug ${textSize} ${
+            expanded
+              ? "whitespace-pre-wrap break-words"
+              : compact
+                ? "line-clamp-2 break-normal"
+                : "whitespace-pre-wrap break-words"
+          } ${inverted ? "text-sand-50" : index === 0 ? "text-night-900" : "text-night-700"}`}
         >
           {line}
         </p>
@@ -370,15 +380,22 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     const maxVisible = weekColumn ? 6 : 4;
 
     return (
-      <button
+      <div
         key={isoDate}
-        type="button"
+        role="button"
+        tabIndex={0}
         onClick={() => setSelectedDate(isoDate)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setSelectedDate(isoDate);
+          }
+        }}
         className={`flex ${
           weekColumn ? "min-h-[14rem]" : "h-[10rem]"
-        } max-lg:landscape:h-auto max-lg:landscape:min-h-[5rem] max-lg:landscape:max-h-[9.5rem] flex-col overflow-hidden rounded-xl border p-1.5 text-left transition sm:p-2 ${
+        } max-lg:landscape:h-auto max-lg:landscape:min-h-[7rem] max-lg:landscape:max-h-none flex-col overflow-hidden rounded-xl border p-1.5 text-left transition sm:p-2 ${
           isSelected
-            ? "border-night-900 bg-night-900 text-sand-50"
+            ? "border-night-900 bg-night-900 text-sand-50 max-lg:landscape:ring-1 max-lg:landscape:ring-night-900"
             : "border-night-900/10 bg-white hover:bg-sand-50"
         }`}
       >
@@ -407,16 +424,16 @@ export function CalendarMonthView<T extends CalendarPlannable>({
             ) : null}
           </div>
         </div>
-        <div className="mt-0.5 min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain lg:hidden max-lg:landscape:flex max-lg:portrait:hidden">
+        <div className="mt-0.5 min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain lg:hidden max-lg:landscape:block max-lg:portrait:hidden">
           {dayItems.length === 0 ? (
             <p className={`text-[10px] ${isSelected ? "text-sand-300" : "text-night-400"}`}>—</p>
           ) : (
             dayItems.map((item) => (
-              <EventText key={item.id} item={item} inverted={isSelected} compact />
+              <EventText key={item.id} item={item} inverted={isSelected} expanded />
             ))
           )}
         </div>
-      </button>
+      </div>
     );
   }
 
@@ -445,7 +462,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           </div>
         </div>
 
-        <div className="mt-4 hidden max-lg:portrait:hidden lg:block">
+        <div className="mt-4 hidden lg:block max-lg:landscape:block">
           <div className={viewMode === "month" ? "lg:min-w-[64rem] lg:overflow-x-auto" : ""}>
             <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-semibold uppercase tracking-wide text-night-500">
               {WEEKDAY_HEADERS.map((label) => (
@@ -455,13 +472,13 @@ export function CalendarMonthView<T extends CalendarPlannable>({
               ))}
             </div>
             {viewMode === "month" ? (
-              <div className="grid grid-cols-7 gap-1.5">
+              <div className="grid grid-cols-7 gap-1.5 max-lg:landscape:gap-1 max-lg:landscape:items-start">
                 {cells.map((cell, index) => {
                   if (cell.day == null || !cell.isoDate) {
                     return (
                       <div
                         key={`empty-${index}`}
-                        className="h-[10rem] max-lg:landscape:min-h-[5rem] max-lg:landscape:max-h-[9.5rem] max-lg:landscape:h-auto rounded-xl bg-sand-50/40"
+                        className="h-[10rem] max-lg:landscape:h-auto max-lg:landscape:min-h-[7rem] rounded-xl bg-sand-50/40"
                       />
                     );
                   }
@@ -488,7 +505,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           </div>
         </div>
 
-        <div className="mt-4 max-lg:portrait:block max-lg:landscape:hidden lg:hidden">
+        <div className="mt-4 block max-lg:landscape:hidden lg:hidden">
           <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-wide text-night-500">
             {WEEKDAY_HEADERS.map((label) => (
               <div key={label} className="py-1">
@@ -634,7 +651,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
       </Card>
 
       {selectedDate ? (
-        <Card className="hidden max-lg:landscape:block lg:block">
+        <Card className="hidden lg:block">
           <h3 className="font-display text-lg font-semibold text-night-900">
             {formatSelectedDay(selectedDate)}
           </h3>
