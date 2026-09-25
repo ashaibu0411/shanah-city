@@ -4,8 +4,13 @@ import { useMemo, useState } from "react";
 import {
   formatMonthLabel,
   formatSelectedDay,
+  formatWeekLabel,
+  getIsoWeekDays,
   groupItemsByDate,
+  groupItemsByWeek,
   shiftMonth,
+  shiftWeek,
+  startOfWeekSunday,
   type CalendarPlannable,
 } from "@/lib/calendar-utils";
 import { getZonedDateParts } from "@/lib/denver-time";
@@ -19,6 +24,16 @@ type CalendarMonthViewProps<T extends CalendarPlannable> = {
 };
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+type CalendarViewMode = "month" | "week";
+
+function formatAgendaDayHeading(isoDate: string) {
+  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 function denverMonthCursor(reference = new Date()) {
   const denver = getZonedDateParts(reference);
@@ -124,6 +139,69 @@ function EventText({
   );
 }
 
+function ViewModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: CalendarViewMode;
+  onChange: (mode: CalendarViewMode) => void;
+}) {
+  return (
+    <div
+      className="inline-flex rounded-xl bg-sand-100 p-1 ring-1 ring-night-900/5"
+      role="tablist"
+      aria-label="Calendar view"
+    >
+      {(
+        [
+          { id: "month" as const, label: "Month" },
+          { id: "week" as const, label: "Week" },
+        ] as const
+      ).map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          role="tab"
+          aria-selected={mode === option.id}
+          onClick={() => onChange(option.id)}
+          className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+            mode === option.id
+              ? "bg-white text-night-900 shadow-sm"
+              : "text-night-600 hover:text-night-900"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SelectedDayPanel<T extends CalendarPlannable>({
+  selectedDate,
+  selectedItems,
+  emptyDayLabel,
+  renderItem,
+}: {
+  selectedDate: string;
+  selectedItems: T[];
+  emptyDayLabel: string;
+  renderItem: (item: T) => React.ReactNode;
+}) {
+  return (
+    <div className="mt-4 rounded-xl border border-night-900/10 bg-sand-50/80 p-4">
+      <h4 className="font-display text-base font-semibold text-night-900">
+        {formatSelectedDay(selectedDate)}
+      </h4>
+      {selectedItems.length === 0 ? (
+        <p className="mt-2 text-sm text-night-500">{emptyDayLabel}</p>
+      ) : (
+        <div className="mt-3 space-y-3">{selectedItems.map((item) => renderItem(item))}</div>
+      )}
+    </div>
+  );
+}
+
 function MobileMonthDayCell({
   day,
   isoDate,
@@ -172,7 +250,9 @@ function MobileMonthDayCell({
             />
           ))}
           {count > 3 ? (
-            <span className={`text-[9px] font-semibold ${isSelected ? "text-sand-200" : "text-violet-700"}`}>
+            <span
+              className={`text-[9px] font-semibold ${isSelected ? "text-sand-200" : "text-violet-700"}`}
+            >
               +{count - 3}
             </span>
           ) : null}
@@ -194,12 +274,21 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     year: denverToday.year,
     month: denverToday.month,
   });
+  const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
+  const [weekStart, setWeekStart] = useState(() => startOfWeekSunday(todayKey));
   const [selectedDate, setSelectedDate] = useState<string | null>(todayKey);
 
   const itemsByDate = useMemo(
     () => groupItemsByDate(items, monthCursor.year, monthCursor.month),
     [items, monthCursor.month, monthCursor.year],
   );
+
+  const itemsByWeek = useMemo(
+    () => groupItemsByWeek(items, weekStart),
+    [items, weekStart],
+  );
+
+  const weekDays = useMemo(() => getIsoWeekDays(weekStart), [weekStart]);
 
   const firstWeekday = new Date(monthCursor.year, monthCursor.month, 1).getDay();
   const daysInMonth = new Date(monthCursor.year, monthCursor.month + 1, 0).getDate();
@@ -214,7 +303,14 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     cells.push({ day, isoDate });
   }
 
-  const selectedItems = selectedDate ? (itemsByDate.get(selectedDate) ?? []) : [];
+  const selectedItems = useMemo(() => {
+    if (!selectedDate) return [] as T[];
+    if (viewMode === "week") {
+      return (itemsByWeek.get(selectedDate) ?? []) as T[];
+    }
+    return (itemsByDate.get(selectedDate) ?? []) as T[];
+  }, [itemsByDate, itemsByWeek, selectedDate, viewMode]);
+
   const agendaDays = cells
     .filter((cell): cell is { day: number; isoDate: string } => Boolean(cell.isoDate && cell.day))
     .map((cell) => ({
@@ -228,41 +324,117 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     ? agendaDays.filter((day) => day.isoDate >= todayKey)
     : agendaDays;
 
+  function goToToday() {
+    const now = denverMonthCursor();
+    setMonthCursor({ year: now.year, month: now.month });
+    setWeekStart(startOfWeekSunday(now.dateKey));
+    setSelectedDate(now.dateKey);
+  }
+
+  function goPrevious() {
+    if (viewMode === "month") {
+      setMonthCursor((current) => shiftMonth(current.year, current.month, -1));
+      return;
+    }
+    setWeekStart((current) => shiftWeek(current, -1));
+  }
+
+  function goNext() {
+    if (viewMode === "month") {
+      setMonthCursor((current) => shiftMonth(current.year, current.month, 1));
+      return;
+    }
+    setWeekStart((current) => shiftWeek(current, 1));
+  }
+
+  function changeViewMode(mode: CalendarViewMode) {
+    if (mode === viewMode) return;
+    const anchor = selectedDate ?? todayKey;
+    if (mode === "week") {
+      setWeekStart(startOfWeekSunday(anchor));
+    } else {
+      const [year, month] = anchor.split("-").map(Number);
+      setMonthCursor({ year, month: month - 1 });
+    }
+    setViewMode(mode);
+  }
+
+  function renderDesktopDayColumn(
+    isoDate: string,
+    dayNumber: number,
+    dayItems: CalendarPlannable[],
+    weekColumn = false,
+  ) {
+    const isSelected = selectedDate === isoDate;
+    const isToday = isoDate === todayKey;
+
+    return (
+      <button
+        key={isoDate}
+        type="button"
+        onClick={() => setSelectedDate(isoDate)}
+        className={`flex ${
+          weekColumn ? "min-h-[14rem]" : "h-[10rem]"
+        } flex-col overflow-hidden rounded-xl border p-2 text-left transition ${
+          isSelected
+            ? "border-night-900 bg-night-900 text-sand-50"
+            : "border-night-900/10 bg-white hover:bg-sand-50"
+        }`}
+      >
+        <span
+          className={`shrink-0 text-sm font-semibold ${
+            isToday && !isSelected ? "text-amber-700" : ""
+          }`}
+        >
+          {dayNumber}
+        </span>
+        <div className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden">
+          {dayItems.slice(0, weekColumn ? 6 : 4).map((item) =>
+            weekColumn ? (
+              <EventText key={item.id} item={item} inverted={isSelected} compact />
+            ) : (
+              <EventText key={item.id} item={item} inverted={isSelected} grid />
+            ),
+          )}
+          {dayItems.length > (weekColumn ? 6 : 4) ? (
+            <p
+              className={`text-[11px] font-semibold ${isSelected ? "text-sand-200" : "text-night-500"}`}
+            >
+              +{dayItems.length - (weekColumn ? 6 : 4)} more
+            </p>
+          ) : null}
+        </div>
+      </button>
+    );
+  }
+
   return (
     <div className="mb-6 space-y-4">
       <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="font-display text-lg font-semibold text-night-900">
-            {formatMonthLabel(monthCursor.year, monthCursor.month)}
-          </h3>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setMonthCursor((current) => shiftMonth(current.year, current.month, -1))}
-            >
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <ViewModeToggle mode={viewMode} onChange={changeViewMode} />
+            <h3 className="font-display text-lg font-semibold text-night-900">
+              {viewMode === "month"
+                ? formatMonthLabel(monthCursor.year, monthCursor.month)
+                : formatWeekLabel(weekStart)}
+            </h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={goPrevious}>
               Previous
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                const now = denverMonthCursor();
-                setMonthCursor({ year: now.year, month: now.month });
-                setSelectedDate(now.dateKey);
-              }}
-            >
+            <Button variant="secondary" onClick={goToToday}>
               Today
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => setMonthCursor((current) => shiftMonth(current.year, current.month, 1))}
-            >
+            <Button variant="secondary" onClick={goNext}>
               Next
             </Button>
           </div>
         </div>
 
-        <div className="mt-4 hidden overflow-x-auto lg:block">
-          <div className="min-w-[64rem]">
+        <div className="mt-4 hidden lg:block">
+          <div className={viewMode === "month" ? "min-w-[64rem] overflow-x-auto" : ""}>
             <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-semibold uppercase tracking-wide text-night-500">
               {WEEKDAY_HEADERS.map((label) => (
                 <div key={label} className="py-2">
@@ -270,53 +442,34 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1.5">
-              {cells.map((cell, index) => {
-                if (cell.day == null || !cell.isoDate) {
-                  return <div key={`empty-${index}`} className="h-[10rem] rounded-xl bg-sand-50/40" />;
-                }
-
-                const dayItems = itemsByDate.get(cell.isoDate) ?? [];
-                const isSelected = selectedDate === cell.isoDate;
-                const isToday = cell.isoDate === todayKey;
-
-                return (
-                  <button
-                    key={cell.isoDate}
-                    type="button"
-                    onClick={() => setSelectedDate(cell.isoDate!)}
-                    className={`flex h-[10rem] flex-col overflow-hidden rounded-xl border p-2 text-left transition ${
-                      isSelected
-                        ? "border-night-900 bg-night-900 text-sand-50"
-                        : "border-night-900/10 bg-white hover:bg-sand-50"
-                    }`}
-                  >
-                    <span
-                      className={`shrink-0 text-sm font-semibold ${
-                        isToday && !isSelected ? "text-amber-700" : ""
-                      }`}
-                    >
-                      {cell.day}
-                    </span>
-                    <div className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden">
-                      {dayItems.slice(0, 4).map((item) => (
-                        <EventText
-                          key={item.id}
-                          item={item}
-                          inverted={isSelected}
-                          grid
-                        />
-                      ))}
-                      {dayItems.length > 4 && (
-                        <p className={`text-[11px] font-semibold ${isSelected ? "text-sand-200" : "text-night-500"}`}>
-                          +{dayItems.length - 4} more
-                        </p>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+            {viewMode === "month" ? (
+              <div className="grid grid-cols-7 gap-1.5">
+                {cells.map((cell, index) => {
+                  if (cell.day == null || !cell.isoDate) {
+                    return (
+                      <div key={`empty-${index}`} className="h-[10rem] rounded-xl bg-sand-50/40" />
+                    );
+                  }
+                  return renderDesktopDayColumn(
+                    cell.isoDate,
+                    cell.day,
+                    itemsByDate.get(cell.isoDate) ?? [],
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="grid grid-cols-7 gap-1.5">
+                {weekDays.map((isoDate) => {
+                  const dayNumber = Number(isoDate.split("-")[2]);
+                  return renderDesktopDayColumn(
+                    isoDate,
+                    dayNumber,
+                    itemsByWeek.get(isoDate) ?? [],
+                    true,
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -329,58 +482,74 @@ export function CalendarMonthView<T extends CalendarPlannable>({
             ))}
           </div>
           <div className="grid grid-cols-7 gap-1">
-            {cells.map((cell, index) => {
-              if (cell.day == null || !cell.isoDate) {
-                return <div key={`empty-${index}`} className="h-11 rounded-lg bg-sand-50/40" />;
-              }
-              const count = itemsByDate.get(cell.isoDate)?.length ?? 0;
-              const isSelected = selectedDate === cell.isoDate;
-              const isToday = cell.isoDate === todayKey;
-              return (
-                <MobileMonthDayCell
-                  key={cell.isoDate}
-                  day={cell.day}
-                  isoDate={cell.isoDate}
-                  count={count}
-                  isSelected={isSelected}
-                  isToday={isToday}
-                  onSelect={() => setSelectedDate(cell.isoDate!)}
-                />
-              );
-            })}
+            {viewMode === "month"
+              ? cells.map((cell, index) => {
+                  if (cell.day == null || !cell.isoDate) {
+                    return (
+                      <div key={`empty-${index}`} className="h-11 rounded-lg bg-sand-50/40" />
+                    );
+                  }
+                  const count = itemsByDate.get(cell.isoDate)?.length ?? 0;
+                  const isSelected = selectedDate === cell.isoDate;
+                  const isToday = cell.isoDate === todayKey;
+                  return (
+                    <MobileMonthDayCell
+                      key={cell.isoDate}
+                      day={cell.day}
+                      isoDate={cell.isoDate}
+                      count={count}
+                      isSelected={isSelected}
+                      isToday={isToday}
+                      onSelect={() => setSelectedDate(cell.isoDate!)}
+                    />
+                  );
+                })
+              : weekDays.map((isoDate) => {
+                  const dayNumber = Number(isoDate.split("-")[2]);
+                  const count = itemsByWeek.get(isoDate)?.length ?? 0;
+                  const isSelected = selectedDate === isoDate;
+                  const isToday = isoDate === todayKey;
+                  return (
+                    <MobileMonthDayCell
+                      key={isoDate}
+                      day={dayNumber}
+                      isoDate={isoDate}
+                      count={count}
+                      isSelected={isSelected}
+                      isToday={isToday}
+                      onSelect={() => setSelectedDate(isoDate)}
+                    />
+                  );
+                })}
           </div>
 
           {selectedDate ? (
-            <div className="mt-4 rounded-xl border border-night-900/10 bg-sand-50/80 p-4">
-              <h4 className="font-display text-base font-semibold text-night-900">
-                {formatSelectedDay(selectedDate)}
-              </h4>
-              {selectedItems.length === 0 ? (
-                <p className="mt-2 text-sm text-night-500">{emptyDayLabel}</p>
-              ) : (
-                <div className="mt-3 space-y-3">
-                  {selectedItems.map((item) => renderItem(item as T))}
-                </div>
-              )}
-            </div>
+            <SelectedDayPanel
+              selectedDate={selectedDate}
+              selectedItems={selectedItems}
+              emptyDayLabel={emptyDayLabel}
+              renderItem={renderItem}
+            />
           ) : null}
 
-          <div className="mt-5 space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
-              Upcoming this month
-            </p>
-            {upcomingAgendaDays.length === 0 ? (
-              <p className="text-sm text-night-500">
-                {viewingCurrentMonth ? "No upcoming events this month." : emptyMonthLabel}
+          {viewMode === "week" ? (
+            <div className="mt-5 space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+                This week
               </p>
-            ) : (
-              upcomingAgendaDays.map((day) => {
-                const isSelected = selectedDate === day.isoDate;
+              {weekDays.map((isoDate) => {
+                const dayItems = itemsByWeek.get(isoDate) ?? [];
+                const isSelected = selectedDate === isoDate;
                 return (
-                  <section key={day.isoDate}>
+                  <section
+                    key={isoDate}
+                    className={`rounded-xl border px-3 py-3 ${
+                      isSelected ? "border-teal-200 bg-teal-50/40" : "border-night-900/8 bg-white"
+                    }`}
+                  >
                     <button
                       type="button"
-                      onClick={() => setSelectedDate(day.isoDate)}
+                      onClick={() => setSelectedDate(isoDate)}
                       className="mb-2 text-left"
                     >
                       <h4
@@ -388,21 +557,64 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                           isSelected ? "text-teal-800" : "text-night-900"
                         }`}
                       >
-                        {formatSelectedDay(day.isoDate)}
+                        {formatAgendaDayHeading(isoDate)}
                       </h4>
                     </button>
-                    {isSelected ? null : (
+                    {isSelected ? (
+                      <p className="text-xs text-night-500">Details shown above.</p>
+                    ) : dayItems.length === 0 ? (
+                      <p className="text-sm text-night-500">No events</p>
+                    ) : (
                       <div className="space-y-2">
-                        {day.dayItems.map((item) => (
+                        {dayItems.map((item) => (
                           <EventText key={item.id} item={item} compact />
                         ))}
                       </div>
                     )}
                   </section>
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          ) : (
+            <div className="mt-5 space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+                Upcoming this month
+              </p>
+              {upcomingAgendaDays.length === 0 ? (
+                <p className="text-sm text-night-500">
+                  {viewingCurrentMonth ? "No upcoming events this month." : emptyMonthLabel}
+                </p>
+              ) : (
+                upcomingAgendaDays.map((day) => {
+                  const isSelected = selectedDate === day.isoDate;
+                  return (
+                    <section key={day.isoDate}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDate(day.isoDate)}
+                        className="mb-2 text-left"
+                      >
+                        <h4
+                          className={`font-display text-base font-semibold ${
+                            isSelected ? "text-teal-800" : "text-night-900"
+                          }`}
+                        >
+                          {formatSelectedDay(day.isoDate)}
+                        </h4>
+                      </button>
+                      {isSelected ? null : (
+                        <div className="space-y-2">
+                          {day.dayItems.map((item) => (
+                            <EventText key={item.id} item={item} compact />
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
       </Card>
 

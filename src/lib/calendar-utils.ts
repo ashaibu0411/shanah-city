@@ -189,3 +189,63 @@ export function shiftMonth(year: number, month: number, delta: number) {
   const next = new Date(year, month + delta, 1);
   return { year: next.getFullYear(), month: next.getMonth() };
 }
+
+export function parseIsoDateKey(isoDate: string) {
+  return parseIsoDate(isoDate);
+}
+
+export function toIsoDateKey(year: number, month: number, day: number) {
+  return toIsoDate(year, month, day);
+}
+
+/** Week rows start on Sunday to match the month grid. */
+export function startOfWeekSunday(isoDate: string) {
+  const date = parseIsoDate(isoDate);
+  date.setDate(date.getDate() - date.getDay());
+  return toIsoDate(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function getIsoWeekDays(weekStartIso: string) {
+  const start = parseIsoDate(weekStartIso);
+  return Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(start);
+    day.setDate(start.getDate() + index);
+    return toIsoDate(day.getFullYear(), day.getMonth(), day.getDate());
+  });
+}
+
+export function shiftWeek(weekStartIso: string, deltaWeeks: number) {
+  const start = parseIsoDate(weekStartIso);
+  start.setDate(start.getDate() + deltaWeeks * 7);
+  return toIsoDate(start.getFullYear(), start.getMonth(), start.getDate());
+}
+
+export function formatWeekLabel(weekStartIso: string) {
+  const days = getIsoWeekDays(weekStartIso);
+  const start = new Date(`${days[0]}T12:00:00`);
+  const end = new Date(`${days[6]}T12:00:00`);
+  const sameMonth =
+    start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+
+  if (sameMonth) {
+    return `${start.toLocaleDateString(undefined, { month: "long", year: "numeric" })} · ${start.getDate()}–${end.getDate()}`;
+  }
+
+  const startPart = start.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const endPart = end.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  return `${startPart} – ${endPart}`;
+}
+
+export function groupItemsByWeek<T extends CalendarPlannable>(items: T[], weekStartIso: string) {
+  const map = new Map<string, T[]>();
+  for (const isoDate of getIsoWeekDays(weekStartIso)) {
+    const [year, month] = isoDate.split("-").map(Number);
+    const monthMap = groupItemsByDate(items, year, month - 1);
+    map.set(isoDate, monthMap.get(isoDate) ?? []);
+  }
+  return map;
+}
