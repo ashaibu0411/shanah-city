@@ -41,21 +41,59 @@ function itemTime(item: CalendarPlannable) {
   return item.time?.trim() || item.schedule?.trim() || "";
 }
 
+function previewPeopleLines(item: CalendarPlannable) {
+  const previewLines = item.calendarPreview?.trim().split("\n").filter(Boolean) ?? [];
+  if (previewLines.length <= 1) return previewLines;
+  return previewLines.slice(1);
+}
+
+/** One line for month grid cells — avoids breaking the 7-column layout on small screens. */
+function calendarGridSummary(item: CalendarPlannable) {
+  const people = previewPeopleLines(item);
+  if (people.length === 1) return people[0];
+  if (people.length > 1) {
+    const first = people[0];
+    const short = first.length > 18 ? `${first.slice(0, 16)}…` : first;
+    return `${short} +${people.length - 1}`;
+  }
+  const title = item.title.trim();
+  return title.length > 22 ? `${title.slice(0, 20)}…` : title;
+}
+
 function EventText({
   item,
   inverted = false,
   compact = false,
+  grid = false,
 }: {
   item: CalendarPlannable;
   inverted?: boolean;
   compact?: boolean;
+  grid?: boolean;
 }) {
   const time = itemTime(item);
   const previewLines = item.calendarPreview?.trim().split("\n").filter(Boolean) ?? [];
+  const peopleLines = previewPeopleLines(item);
+
+  if (grid) {
+    return (
+      <p
+        className={`truncate text-[10px] leading-tight ${
+          inverted ? "text-sand-100" : "text-night-800"
+        }`}
+        title={calendarGridSummary(item)}
+      >
+        {calendarGridSummary(item)}
+      </p>
+    );
+  }
+
   const bodyLines =
     previewLines.length > 0
       ? compact
-        ? [item.title, ...previewLines.slice(1)]
+        ? peopleLines.length > 0
+          ? [item.title, ...peopleLines]
+          : previewLines
         : previewLines
       : [item.title];
 
@@ -73,14 +111,74 @@ function EventText({
       {bodyLines.map((line, index) => (
         <p
           key={`${item.id}-${index}`}
-          className={`leading-snug break-words ${
-            compact ? "line-clamp-4 text-[10px]" : "text-[11px]"
-          } ${inverted ? "text-sand-50" : index === 0 ? "text-night-900" : "text-night-700"}`}
+          className={`leading-snug ${
+            compact ? "text-[10px]" : "text-[11px]"
+          } ${compact ? "line-clamp-2 break-normal" : "whitespace-pre-wrap break-words"} ${
+            inverted ? "text-sand-50" : index === 0 ? "text-night-900" : "text-night-700"
+          }`}
         >
           {line}
         </p>
       ))}
     </div>
+  );
+}
+
+function MobileMonthDayCell({
+  day,
+  isoDate,
+  count,
+  isSelected,
+  isToday,
+  onSelect,
+}: {
+  day: number;
+  isoDate: string;
+  count: number;
+  isSelected: boolean;
+  isToday: boolean;
+  onSelect: () => void;
+}) {
+  const dotCount = Math.min(count, 3);
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-label={
+        count > 0
+          ? `${day}, ${count} event${count === 1 ? "" : "s"}`
+          : `${day}, no events`
+      }
+      className={`flex h-11 w-full flex-col items-center justify-center rounded-lg ring-1 ring-night-900/5 ${
+        isSelected
+          ? "bg-night-900 text-white ring-night-900"
+          : isToday
+            ? "bg-amber-50 text-amber-950 ring-amber-200"
+            : count > 0
+              ? "bg-violet-50/90 text-night-900"
+              : "bg-white text-night-700"
+      }`}
+    >
+      <span className="text-sm font-semibold leading-none">{day}</span>
+      {count > 0 ? (
+        <div className="mt-1 flex items-center gap-0.5">
+          {Array.from({ length: dotCount }).map((_, index) => (
+            <span
+              key={`dot-${isoDate}-${index}`}
+              className={`h-1.5 w-1.5 rounded-full ${
+                isSelected ? "bg-sand-200" : "bg-violet-500"
+              }`}
+            />
+          ))}
+          {count > 3 ? (
+            <span className={`text-[9px] font-semibold ${isSelected ? "text-sand-200" : "text-violet-700"}`}>
+              +{count - 3}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+    </button>
   );
 }
 
@@ -129,7 +227,6 @@ export function CalendarMonthView<T extends CalendarPlannable>({
   const upcomingAgendaDays = viewingCurrentMonth
     ? agendaDays.filter((day) => day.isoDate >= todayKey)
     : agendaDays;
-  const selectedInMobileAgenda = upcomingAgendaDays.some((day) => day.isoDate === selectedDate);
 
   return (
     <div className="mb-6 space-y-4">
@@ -176,7 +273,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
             <div className="grid grid-cols-7 gap-1.5">
               {cells.map((cell, index) => {
                 if (cell.day == null || !cell.isoDate) {
-                  return <div key={`empty-${index}`} className="min-h-[10rem] rounded-xl bg-sand-50/40" />;
+                  return <div key={`empty-${index}`} className="h-[10rem] rounded-xl bg-sand-50/40" />;
                 }
 
                 const dayItems = itemsByDate.get(cell.isoDate) ?? [];
@@ -188,26 +285,26 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                     key={cell.isoDate}
                     type="button"
                     onClick={() => setSelectedDate(cell.isoDate!)}
-                    className={`min-h-[10rem] rounded-xl border p-2 text-left transition ${
+                    className={`flex h-[10rem] flex-col overflow-hidden rounded-xl border p-2 text-left transition ${
                       isSelected
                         ? "border-night-900 bg-night-900 text-sand-50"
                         : "border-night-900/10 bg-white hover:bg-sand-50"
                     }`}
                   >
                     <span
-                      className={`text-sm font-semibold ${
+                      className={`shrink-0 text-sm font-semibold ${
                         isToday && !isSelected ? "text-amber-700" : ""
                       }`}
                     >
                       {cell.day}
                     </span>
-                    <div className="mt-1.5 space-y-1">
+                    <div className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden">
                       {dayItems.slice(0, 4).map((item) => (
                         <EventText
                           key={item.id}
                           item={item}
                           inverted={isSelected}
-                          compact
+                          grid
                         />
                       ))}
                       {dayItems.length > 4 && (
@@ -234,40 +331,44 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           <div className="grid grid-cols-7 gap-1">
             {cells.map((cell, index) => {
               if (cell.day == null || !cell.isoDate) {
-                return <div key={`empty-${index}`} className="h-10 rounded-lg bg-sand-50/40" />;
+                return <div key={`empty-${index}`} className="h-11 rounded-lg bg-sand-50/40" />;
               }
               const count = itemsByDate.get(cell.isoDate)?.length ?? 0;
               const isSelected = selectedDate === cell.isoDate;
               const isToday = cell.isoDate === todayKey;
               return (
-                <button
+                <MobileMonthDayCell
                   key={cell.isoDate}
-                  type="button"
-                  onClick={() => setSelectedDate(cell.isoDate!)}
-                  className={`min-h-[5.5rem] rounded-lg p-1 text-left ring-1 ring-night-900/5 ${
-                    isSelected
-                      ? "bg-night-900 text-white ring-night-900"
-                      : isToday
-                        ? "bg-amber-50 text-amber-950"
-                        : count > 0
-                          ? "bg-violet-50/90 text-night-900"
-                          : "bg-white text-night-700"
-                  }`}
-                >
-                  <span className="text-sm font-semibold">{cell.day}</span>
-                  {count > 0 ? (
-                    <div className="mt-0.5 space-y-0.5">
-                      {(itemsByDate.get(cell.isoDate) ?? []).slice(0, 2).map((item) => (
-                        <EventText key={item.id} item={item} inverted={isSelected} compact />
-                      ))}
-                    </div>
-                  ) : null}
-                </button>
+                  day={cell.day}
+                  isoDate={cell.isoDate}
+                  count={count}
+                  isSelected={isSelected}
+                  isToday={isToday}
+                  onSelect={() => setSelectedDate(cell.isoDate!)}
+                />
               );
             })}
           </div>
 
+          {selectedDate ? (
+            <div className="mt-4 rounded-xl border border-night-900/10 bg-sand-50/80 p-4">
+              <h4 className="font-display text-base font-semibold text-night-900">
+                {formatSelectedDay(selectedDate)}
+              </h4>
+              {selectedItems.length === 0 ? (
+                <p className="mt-2 text-sm text-night-500">{emptyDayLabel}</p>
+              ) : (
+                <div className="mt-3 space-y-3">
+                  {selectedItems.map((item) => renderItem(item as T))}
+                </div>
+              )}
+            </div>
+          ) : null}
+
           <div className="mt-5 space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+              Upcoming this month
+            </p>
             {upcomingAgendaDays.length === 0 ? (
               <p className="text-sm text-night-500">
                 {viewingCurrentMonth ? "No upcoming events this month." : emptyMonthLabel}
@@ -290,14 +391,10 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                         {formatSelectedDay(day.isoDate)}
                       </h4>
                     </button>
-                    {isSelected ? (
-                      <div className="space-y-3">
-                        {day.dayItems.map((item) => renderItem(item as T))}
-                      </div>
-                    ) : (
+                    {isSelected ? null : (
                       <div className="space-y-2">
                         {day.dayItems.map((item) => (
-                          <EventText key={item.id} item={item} />
+                          <EventText key={item.id} item={item} compact />
                         ))}
                       </div>
                     )}
@@ -308,19 +405,6 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           </div>
         </div>
       </Card>
-
-      {selectedDate && !selectedInMobileAgenda ? (
-        <Card className="lg:hidden">
-          <h3 className="font-display text-lg font-semibold text-night-900">
-            {formatSelectedDay(selectedDate)}
-          </h3>
-          {selectedItems.length === 0 ? (
-            <p className="mt-3 text-sm text-night-500">{emptyDayLabel}</p>
-          ) : (
-            <div className="mt-4 grid gap-3">{selectedItems.map((item) => renderItem(item))}</div>
-          )}
-        </Card>
-      ) : null}
 
       {selectedDate ? (
         <Card className="hidden lg:block">
