@@ -51,24 +51,34 @@ function EventText({
   compact?: boolean;
 }) {
   const time = itemTime(item);
+  const previewLines = item.calendarPreview?.trim().split("\n").filter(Boolean) ?? [];
+  const bodyLines = previewLines.length > 0 ? previewLines : [item.title];
+
   return (
     <div
       className={`rounded-md px-1.5 py-1 ${
         inverted ? "bg-white/12 text-sand-50" : "bg-violet-50 text-night-900"
       }`}
     >
-      {time ? (
+      {time && previewLines.length === 0 ? (
         <p className={`font-semibold leading-tight ${compact ? "text-[10px]" : "text-xs"}`}>
           {time}
         </p>
       ) : null}
-      <p
-        className={`leading-snug ${compact ? "line-clamp-3 text-[11px]" : "text-sm"} ${
-          inverted ? "text-sand-50" : "text-night-800"
-        }`}
-      >
-        {item.title}
-      </p>
+      {bodyLines.map((line, index) => (
+        <p
+          key={`${item.id}-${index}`}
+          className={`leading-snug ${
+            index === 0 && previewLines.length > 0
+              ? `font-semibold ${compact ? "text-[10px]" : "text-xs"}`
+              : compact
+                ? "line-clamp-2 text-[10px]"
+                : "text-[11px]"
+          } ${inverted ? "text-sand-50" : index === 0 ? "text-night-900" : "text-night-700"}`}
+        >
+          {line}
+        </p>
+      ))}
     </div>
   );
 }
@@ -233,19 +243,23 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                   key={cell.isoDate}
                   type="button"
                   onClick={() => setSelectedDate(cell.isoDate!)}
-                  className={`h-10 rounded-lg text-sm font-semibold ${
+                  className={`min-h-[4.5rem] rounded-lg p-1 text-left ring-1 ring-night-900/5 ${
                     isSelected
-                      ? "bg-night-900 text-white"
+                      ? "bg-night-900 text-white ring-night-900"
                       : isToday
-                        ? "bg-amber-100 text-amber-900"
+                        ? "bg-amber-50 text-amber-950"
                         : count > 0
-                          ? "bg-violet-50 text-night-900"
-                          : "bg-white text-night-700 ring-1 ring-night-900/5"
+                          ? "bg-violet-50/90 text-night-900"
+                          : "bg-white text-night-700"
                   }`}
                 >
-                  {cell.day}
+                  <span className="text-sm font-semibold">{cell.day}</span>
                   {count > 0 ? (
-                    <span className="mx-auto mt-0.5 block h-1 w-1 rounded-full bg-current opacity-70" />
+                    <div className="mt-0.5 space-y-0.5">
+                      {(itemsByDate.get(cell.isoDate) ?? []).slice(0, 2).map((item) => (
+                        <EventText key={item.id} item={item} inverted={isSelected} compact />
+                      ))}
+                    </div>
                   ) : null}
                 </button>
               );

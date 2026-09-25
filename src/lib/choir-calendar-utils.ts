@@ -1,7 +1,10 @@
+export { choirScheduleCalendarEventId } from "@/lib/choir-service-schedule-types";
+
 export const CHOIR_SYNCED_EVENT_PREFIXES = [
+  "choir-schedule-",
+  "choir-unavail-",
   "choir-leader-",
   "choir-rehearsal-",
-  "choir-unavail-",
 ] as const;
 
 export function isChoirSyncedCalendarEventId(id: string) {
@@ -9,26 +12,29 @@ export function isChoirSyncedCalendarEventId(id: string) {
 }
 
 export function choirSyncedEventHint(id: string) {
-  if (id.startsWith("choir-leader-")) {
-    return "Synced from published worship leader schedule";
-  }
-  if (id.startsWith("choir-rehearsal-")) {
-    return "Synced from worship rehearsal plan";
+  if (id.startsWith("choir-schedule-")) {
+    return "Service schedule — edit in Service schedule above";
   }
   if (id.startsWith("choir-unavail-")) {
     return "Synced from approved time away";
   }
+  if (id.startsWith("choir-leader-") || id.startsWith("choir-rehearsal-")) {
+    return "Legacy entry — remove and use Service schedule";
+  }
   return "Synced automatically";
-}
-
-export function worshipLeaderCalendarEventId(serviceDate: string, serviceTime: string) {
-  return `choir-leader-${serviceDate}-${serviceTime.replace(":", "")}`;
-}
-
-export function worshipRehearsalCalendarEventId(serviceDate: string, serviceTime: string) {
-  return `choir-rehearsal-${serviceDate}-${serviceTime.replace(":", "")}`;
 }
 
 export function unavailabilityCalendarEventId(requestId: string) {
   return `choir-unavail-${requestId}`;
+}
+
+export function calendarPreviewFromEvent(event: {
+  id: string;
+  title: string;
+  rsvpInstructions?: string | null;
+}) {
+  if (event.id.startsWith("choir-schedule-") && event.rsvpInstructions?.trim()) {
+    return event.rsvpInstructions.trim();
+  }
+  return event.title;
 }

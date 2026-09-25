@@ -95,7 +95,6 @@ export function WorshipPlannerPanel({
   const [copying, setCopying] = useState(false);
   const [copyTargetTime, setCopyTargetTime] = useState("11:30");
   const [message, setMessage] = useState<string | null>(null);
-  const [syncingCalendar, setSyncingCalendar] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [expandedSongId, setExpandedSongId] = useState<string | null>(null);
 
@@ -229,54 +228,6 @@ export function WorshipPlannerPanel({
     }
 
     setMessage(data.error ?? "Could not save worship plan.");
-  }
-
-  async function syncToChoirCalendar() {
-    const worshipLeader = team.find((member) => member.role === "worship-leader");
-    if (!worshipLeader) {
-      setMessage("Assign a worship leader on the team roster before syncing to the calendar.");
-      return;
-    }
-
-    setSyncingCalendar(true);
-    setMessage(null);
-    const response = await fetch("/api/worship", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "sync_choir_calendar",
-        serviceDate,
-        serviceTime,
-        title,
-        songs,
-        team,
-        rehearsalNotes,
-        rehearsalDate,
-        rehearsalTime,
-        uploadDutyUserId: uploadDutyUserId || undefined,
-        uploadDutyUserName: team.find((member) => member.userId === uploadDutyUserId)?.name,
-        memberSuggestions,
-      }),
-    });
-    const data = await response.json();
-    setSyncingCalendar(false);
-
-    if (response.ok) {
-      const parts = [];
-      if (data.calendarSynced?.leader) parts.push("worship leader");
-      if (data.calendarSynced?.rehearsal) parts.push("rehearsal");
-      setMessage(
-        parts.length > 0
-          ? `Choir calendar updated (${parts.join(" and ")}).`
-          : "Plan published; open Groups → Events to review the calendar.",
-      );
-      loadPlan();
-      loadUpcoming();
-      loadCalendarEvents();
-      return;
-    }
-
-    setMessage(data.error ?? "Could not sync to choir calendar.");
   }
 
   async function copyFromLastSunday() {
@@ -1014,7 +965,7 @@ export function WorshipPlannerPanel({
             </h3>
             <p className="mt-1 text-sm text-night-600">
               Team members get a push reminder about 24 hours before rehearsal (if push is enabled).
-              Use the button below to publish this service on the choir calendar (leader + rehearsal).
+              Add who is leading on the choir calendar under Groups → Events → Service schedule.
             </p>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <label className="text-sm text-night-700">
@@ -1035,15 +986,6 @@ export function WorshipPlannerPanel({
                   className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
                 />
               </label>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => void syncToChoirCalendar()}
-                disabled={syncingCalendar}
-              >
-                {syncingCalendar ? "Syncing…" : "Publish & sync to choir calendar"}
-              </Button>
             </div>
           </Card>
 

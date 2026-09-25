@@ -39,11 +39,6 @@ export function WorshipSchedulePanel({
   const [generating, setGenerating] = useState(false);
   const [approving, setApproving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [roster, setRoster] = useState<{ id: string; name: string }[]>([]);
-  const [manualDate, setManualDate] = useState("");
-  const [manualTime, setManualTime] = useState("10:00");
-  const [manualLeaderId, setManualLeaderId] = useState("");
-  const [manualSaving, setManualSaving] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -64,7 +59,6 @@ export function WorshipSchedulePanel({
     setWeeksAhead(data.config.weeksAhead ?? 8);
     setUploadDutyLeadDays(data.config.uploadDutyLeadDays ?? 4);
     setSkipDatesText((data.config.skipDates ?? []).join("\n"));
-    setRoster(data.roster ?? []);
   }
 
   useEffect(() => {
@@ -183,43 +177,6 @@ export function WorshipSchedulePanel({
     setMessage(data.error ?? "Could not approve schedule.");
   }
 
-  async function saveManualAssignment() {
-    const leader = roster.find((member) => member.id === manualLeaderId);
-    if (!manualDate || !manualLeaderId || !leader) {
-      setMessage("Pick a service date and worship leader.");
-      return;
-    }
-
-    setManualSaving(true);
-    setMessage(null);
-    const response = await fetch("/api/worship/schedule", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "manual_assignment",
-        serviceDate: manualDate,
-        serviceTime: manualTime,
-        leaderUserId: leader.id,
-        leaderName: leader.name,
-        publish: true,
-      }),
-    });
-    const data = await response.json();
-    setManualSaving(false);
-
-    if (response.ok) {
-      setMessage(
-        `Added ${leader.name} for ${serviceDateTimeLabel(manualDate, manualTime)} to the choir calendar.`,
-      );
-      setManualDate("");
-      setManualLeaderId("");
-      load();
-      return;
-    }
-
-    setMessage(data.error ?? "Could not save manual assignment.");
-  }
-
   if (loading) {
     return <p className="text-sm text-night-500">Loading schedule settings…</p>;
   }
@@ -227,58 +184,14 @@ export function WorshipSchedulePanel({
   return (
     <div className="space-y-6">
       {!readOnly && (
-      <Card>
-        <h3 className="font-display text-lg font-semibold text-night-900">
-          Manual leader schedule
-        </h3>
-        <p className="mt-2 text-sm text-night-600">
-          Enter worship leaders one service at a time. Each entry publishes to the choir calendar
-          right away — no need to use the rotation generator below.
-        </p>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <label className="text-sm text-night-700">
-            <span className="font-semibold">Service date</span>
-            <input
-              type="date"
-              value={manualDate}
-              onChange={(event) => setManualDate(event.target.value)}
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
-            />
-          </label>
-          <label className="text-sm text-night-700">
-            <span className="font-semibold">Service time</span>
-            <select
-              value={manualTime}
-              onChange={(event) => setManualTime(event.target.value)}
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
-            >
-              {WORSHIP_SERVICE_TIMES.map((slot) => (
-                <option key={slot.value} value={slot.value}>
-                  {slot.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm text-night-700">
-            <span className="font-semibold">Worship leader</span>
-            <select
-              value={manualLeaderId}
-              onChange={(event) => setManualLeaderId(event.target.value)}
-              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
-            >
-              <option value="">Choose leader…</option>
-              {roster.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <Button className="mt-4" onClick={saveManualAssignment} disabled={manualSaving}>
-          {manualSaving ? "Saving…" : "Add to choir calendar"}
-        </Button>
-      </Card>
+        <Card className="border-dashed border-violet-200 bg-violet-50/40">
+          <p className="text-sm text-night-700">
+            To put leaders on the <strong>choir calendar</strong> with names (worship, praise,
+            ministration), use{" "}
+            <strong>Groups → Shanah Worship → Events → Service schedule</strong>. Use this tab for
+            auto-rotation and worship plan drafts only.
+          </p>
+        </Card>
       )}
 
       {!readOnly && (
@@ -380,7 +293,7 @@ export function WorshipSchedulePanel({
             Overwrite & regenerate
           </Button>
           <Button onClick={approveSchedule} disabled={approving || assignments.length === 0}>
-            {approving ? "Sending…" : "Approve, notify & sync calendar"}
+            {approving ? "Sending…" : "Approve & notify choir"}
           </Button>
         </div>
       </Card>

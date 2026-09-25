@@ -7,9 +7,6 @@ import {
   saveWorshipPlan,
 } from "@/lib/worship-server";
 import {
-  syncChoirCalendarForWorshipPlan,
-} from "@/lib/choir-calendar-sync-server";
-import {
   listServiceDatesInRange,
   normalizeTeam,
   serviceTypeForTime,
@@ -80,12 +77,6 @@ export async function generateWorshipSchedule(input: {
     });
 
     created.push(plan);
-  }
-
-  for (const plan of created) {
-    if (plan.status === "published") {
-      await syncChoirCalendarForWorshipPlan(plan);
-    }
   }
 
   await rotationStore().saveWorshipRotationConfig({
@@ -174,13 +165,6 @@ export async function approveWorshipRotationSchedule(actor: { id: string; name: 
     publishedCount += 1;
   }
 
-  const publishedPlans = await listWorshipPlans({ since, until, serviceTime: config.serviceTime });
-  for (const plan of publishedPlans) {
-    if (plan.status === "published") {
-      await syncChoirCalendarForWorshipPlan(plan);
-    }
-  }
-
   const now = new Date();
   await saveWorshipRotationConfig({
     pool: config.pool,
@@ -243,6 +227,5 @@ export async function saveManualLeaderAssignment(input: {
     actor: input.actor,
   });
 
-  await syncChoirCalendarForWorshipPlan(plan);
   return plan;
 }

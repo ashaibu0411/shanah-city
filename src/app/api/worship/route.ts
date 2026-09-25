@@ -398,7 +398,7 @@ export async function POST(request: Request) {
       await trackLibrarySongUsage(plan.songs);
     }
 
-    const calendarSynced = await syncChoirCalendarForWorshipPlan(plan);
+    const calendarSynced = plan.status === "published" ? await syncChoirCalendarForWorshipPlan() : null;
 
     return NextResponse.json({ plan, calendarSynced });
   } catch (error) {

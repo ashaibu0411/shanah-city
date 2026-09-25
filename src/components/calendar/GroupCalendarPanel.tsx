@@ -10,17 +10,16 @@ import {
   eventRsvpFormToPayload,
   EventRsvpCreateFields,
 } from "@/components/calendar/EventRsvpCreateFields";
-import { EventRsvpPanel } from "@/components/calendar/EventRsvpPanel";
 import { EventRsvpBadge } from "@/components/calendar/EventRsvpBadge";
 import { useMyEventRsvps } from "@/components/calendar/useMyEventRsvps";
-import { EventShareTools } from "@/components/share/EventShareTools";
+import { ChoirServiceSchedulePanel } from "@/components/calendar/ChoirServiceSchedulePanel";
 import { CALENDAR_GROUP_TABS } from "@/lib/church-groups";
 import { isOutlookSyncedEventId } from "@/lib/calendar-utils";
 import {
+  calendarPreviewFromEvent,
   choirSyncedEventHint,
   isChoirSyncedCalendarEventId,
 } from "@/lib/choir-calendar-utils";
-import type { ArtworkFields } from "@/lib/content-artwork";
 import type { UnavailabilityRequest } from "@/lib/member-types";
 import type { ChurchEvent } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
@@ -37,21 +36,20 @@ function EventDetailCard({
   event,
   canManage,
   onRemove,
-  onArtworkChange,
-  onEventUpdated,
-  onRsvpChanged,
   needsRsvp = false,
   highlighted = false,
+  simpleView = false,
 }: {
   event: ChurchEvent;
   canManage: boolean;
   onRemove: (id: string) => void;
-  onArtworkChange?: (id: string, artwork: ArtworkFields) => void;
-  onEventUpdated?: (event: ChurchEvent) => void;
-  onRsvpChanged?: () => void;
   needsRsvp?: boolean;
   highlighted?: boolean;
+  simpleView?: boolean;
 }) {
+  const synced = isChoirSyncedCalendarEventId(event.id);
+  const preview = calendarPreviewFromEvent(event);
+
   return (
     <div
       id={`event-${event.id}`}
@@ -59,25 +57,30 @@ function EventDetailCard({
         highlighted ? "ring-2 ring-gold-500" : "ring-night-900/5"
       }`}
     >
-      <p className="text-sm font-medium text-sand-600">{event.date}</p>
-      <h3 className="mt-1 font-display text-lg font-semibold text-night-900">{event.title}</h3>
-      <p className="mt-2 text-sm text-night-600">
-        {event.time} · {event.location}
-      </p>
+      {!simpleView || !event.id.startsWith("choir-schedule-") ? (
+        <>
+          <p className="text-sm font-medium text-sand-600">{event.date}</p>
+          <h3 className="mt-1 font-display text-lg font-semibold text-night-900">{event.title}</h3>
+        </>
+      ) : null}
+      {event.id.startsWith("choir-schedule-") ? (
+        <pre className="mt-1 whitespace-pre-wrap font-sans text-sm text-night-800">{preview}</pre>
+      ) : (
+        <p className="mt-2 text-sm text-night-600">
+          {event.time}
+          {event.location ? ` · ${event.location}` : ""}
+        </p>
+      )}
       {needsRsvp ? (
         <div className="mt-2">
           <EventRsvpBadge />
         </div>
-      ) : event.rsvpEnabled ? (
-        <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-teal-800">
-          RSVP requested
-        </p>
       ) : null}
       {isOutlookSyncedEventId(event.id) ? (
         <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-violet-700">
           Synced from Outlook
         </p>
-      ) : isChoirSyncedCalendarEventId(event.id) ? (
+      ) : synced ? (
         <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-sky-800">
           {choirSyncedEventHint(event.id)}
         </p>
@@ -86,18 +89,6 @@ function EventDetailCard({
           Remove
         </Button>
       ) : null}
-      {canManage && onArtworkChange ? (
-        <EventShareTools
-          event={event}
-          onArtworkChange={(artwork) => onArtworkChange(event.id, artwork)}
-        />
-      ) : null}
-      <EventRsvpPanel
-        event={event}
-        canManage={canManage}
-        onEventUpdated={onEventUpdated}
-        onRsvpChanged={onRsvpChanged}
-      />
     </div>
   );
 }
@@ -252,13 +243,16 @@ function GroupEventsSection({
   groupId,
   groupLabel,
   signInNextUrl,
+  reloadKey = 0,
 }: {
   groupId: string;
   groupLabel: string;
   signInNextUrl: string;
+  reloadKey?: number;
 }) {
+  const isChoirGroup = groupId === CALENDAR_GROUP_TABS.choir;
   const { user } = useAuth();
-  const { pendingEventIds, refresh: refreshRsvps } = useMyEventRsvps(Boolean(user));
+  const { pendingEventIds } = useMyEventRsvps(Boolean(user) && !isChoirGroup);
   const searchParams = useSearchParams();
   const highlightEventId = searchParams.get("event");
   const [events, setEvents] = useState<ChurchEvent[]>([]);
@@ -296,7 +290,16 @@ function GroupEventsSection({
     } else {
       setLoading(false);
     }
-  }, [user, groupId]);
+  }, [user, groupId, reloadKey]);
+
+  const calendarItems = useMemo(
+    () =>
+      events.map((event) => ({
+        ...event,
+        calendarPreview: calendarPreviewFromEvent(event),
+      })),
+    [events],
+  );
 
   useEffect(() => {
     if (!highlightEventId || events.length === 0) return;
@@ -306,18 +309,6 @@ function GroupEventsSection({
       element.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   }, [highlightEventId, events]);
-
-  function updateEventArtwork(id: string, artwork: ArtworkFields) {
-    setEvents((current) =>
-      current.map((event) => (event.id === id ? { ...event, ...artwork } : event)),
-    );
-  }
-
-  function updateEventInList(updated: ChurchEvent) {
-    setEvents((current) =>
-      current.map((entry) => (entry.id === updated.id ? { ...entry, ...updated } : entry)),
-    );
-  }
 
   async function addEvent() {
     const day = eventDay.trim();
@@ -393,7 +384,7 @@ function GroupEventsSection({
 
   return (
     <>
-      {canManage && (
+      {canManage && !isChoirGroup && (
         <Card className="mb-6">
           <h3 className="font-display text-lg font-semibold text-night-900">
             Manage {groupLabel} events
@@ -452,18 +443,16 @@ function GroupEventsSection({
       )}
 
       <CalendarMonthView
-        items={events}
+        items={calendarItems}
         emptyDayLabel={`No ${groupLabel.toLowerCase()} events on this day.`}
         renderItem={(event) => (
           <EventDetailCard
             event={event}
-            canManage={canManage}
+            canManage={canManage && !isChoirSyncedCalendarEventId(event.id)}
             onRemove={removeEvent}
-            onArtworkChange={canManage ? updateEventArtwork : undefined}
-            onEventUpdated={updateEventInList}
-            onRsvpChanged={refreshRsvps}
-            needsRsvp={pendingEventIds.has(event.id)}
+            needsRsvp={!isChoirGroup && pendingEventIds.has(event.id)}
             highlighted={Boolean(highlightEventId && event.id === highlightEventId)}
+            simpleView={isChoirGroup}
           />
         )}
       />
@@ -554,9 +543,12 @@ export function GroupCalendarPanel({
   showWorshipPlanner?: boolean;
   unavailabilityGroup?: "choir" | "pastors" | null;
 }) {
+  const [scheduleReload, setScheduleReload] = useState(0);
+  const isChoirGroup = groupId === CALENDAR_GROUP_TABS.choir;
+
   return (
     <div className="mt-4">
-      {showWorshipPlanner && groupId === CALENDAR_GROUP_TABS.choir ? (
+      {showWorshipPlanner && isChoirGroup ? (
         <Card className="mb-6 bg-violet-50 ring-violet-100">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -572,10 +564,15 @@ export function GroupCalendarPanel({
         </Card>
       ) : null}
 
+      {isChoirGroup ? (
+        <ChoirServiceSchedulePanel onChanged={() => setScheduleReload((n) => n + 1)} />
+      ) : null}
+
       <GroupEventsSection
         groupId={groupId}
         groupLabel={groupLabel}
         signInNextUrl={signInNextUrl}
+        reloadKey={scheduleReload}
       />
 
       {unavailabilityGroup ? (

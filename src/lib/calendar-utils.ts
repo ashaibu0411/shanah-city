@@ -8,6 +8,7 @@ export type CalendarPlannable = {
   date?: string;
   time?: string;
   schedule?: string;
+  calendarPreview?: string;
   startsOn?: string | null;
   endsOn?: string | null;
   recurringWeekday?: number | null;
