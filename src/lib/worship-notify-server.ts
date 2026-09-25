@@ -1,5 +1,9 @@
 import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
 import {
+  notifyChoirWorshipPlanPublished,
+  notifyChoirWorshipRotationPublished,
+} from "@/lib/choir-notify-server";
+import {
   combinePlanDateTime,
   serviceDateTimeLabel,
   type WorshipServicePlan,
@@ -11,9 +15,9 @@ import {
 } from "@/lib/worship-server";
 import { getWorshipRotationConfig } from "@/lib/worship-rotation-server";
 import {
-  notifyWorshipPlanPublished,
   notifyWorshipRehearsalReminder,
   notifyWorshipUploadDutyReminder,
+  notifyWorshipRotationLeaderAssignments,
 } from "@/lib/push-server";
 
 export async function processWorshipRehearsalReminders(reference = new Date()) {
@@ -71,23 +75,20 @@ export async function processWorshipUploadDutyReminders(reference = new Date()) 
   return { checked: plans.length, uploadDutyRemindersSent: sent };
 }
 
-export async function publishWorshipPlanNotifications(plan: WorshipServicePlan) {
-  return notifyWorshipPlanPublished({
-    teamUserIds: plan.team.map((member) => member.userId),
-    title: plan.title || serviceDateTimeLabel(plan.serviceDate, plan.serviceTime),
-    serviceDate: plan.serviceDate,
-    serviceTime: plan.serviceTime,
-  });
+export async function publishWorshipPlanNotifications(
+  plan: WorshipServicePlan,
+  actor: { id: string; name: string },
+) {
+  return notifyChoirWorshipPlanPublished(plan, actor);
 }
 
 export async function publishWorshipRotationScheduleNotifications(input: {
-  assignments: Awaited<ReturnType<typeof import("@/lib/worship-rotation-server").listUpcomingLeaderAssignments>>;
+  assignments: Awaited<
+    ReturnType<typeof import("@/lib/worship-rotation-server").listUpcomingLeaderAssignments>
+  >;
+  actor: { id: string; name: string };
 }) {
-  const { getConfiguredWorshipGroupId } = await import("@/lib/worship-access-server");
-  const {
-    notifyWorshipRotationLeaderAssignments,
-    notifyWorshipRotationSchedulePublished,
-  } = await import("@/lib/push-server");
+  const { notifyWorshipRotationLeaderAssignments } = await import("@/lib/push-server");
 
   const published = input.assignments.filter((entry) => entry.status === "published" && entry.leader);
   if (published.length === 0) {
@@ -102,9 +103,12 @@ export async function publishWorshipRotationScheduleNotifications(input: {
     )
     .join("; ");
 
-  const groupResult = await notifyWorshipRotationSchedulePublished({
-    groupId: getConfiguredWorshipGroupId(),
-    body: scheduleSummary,
+  const groupResult = await notifyChoirWorshipRotationPublished({
+    body:
+      scheduleSummary.length > 0
+        ? scheduleSummary
+        : "Worship leader rotation is ready in the app.",
+    actor: input.actor,
   });
 
   const grouped = new Map<string, { userId: string; dates: string[] }>();
@@ -129,7 +133,7 @@ export async function publishWorshipRotationScheduleNotifications(input: {
     if (result.sent > 0) leaderSent += 1;
   }
 
-  return { groupSent: groupResult.sent, leaderSent };
+  return { groupSent: groupResult.push?.sent ?? 0, leaderSent };
 }
 
 export async function approveAndNotifyWorshipRotationSchedule(actor: {
@@ -140,6 +144,7 @@ export async function approveAndNotifyWorshipRotationSchedule(actor: {
   const result = await approveWorshipRotationSchedule(actor);
   const notify = await publishWorshipRotationScheduleNotifications({
     assignments: result.assignments,
+    actor,
   });
   return { ...result, notify };
 }

@@ -15,6 +15,11 @@ import { worshipTimeLabel } from "@/lib/worship-types";
 import { useDatabase } from "@/lib/use-database";
 import * as scheduleDb from "@/lib/stores/choir-service-schedule-db";
 import * as scheduleJson from "@/lib/stores/choir-service-schedule-json";
+import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
+import {
+  notifyChoirServiceScheduleRemoved,
+  notifyChoirServiceScheduleSaved,
+} from "@/lib/choir-notify-server";
 
 const store = () => (useDatabase() ? scheduleDb : scheduleJson);
 
@@ -106,6 +111,10 @@ export async function persistGroupServiceSchedule(
   input: Parameters<typeof saveGroupServiceSchedule>[0],
 ) {
   validateGroupServiceScheduleInput(input);
+  const prior =
+    input.id?.trim() &&
+    (await listGroupServiceSchedules(input.groupId)).find((entry) => entry.id === input.id?.trim());
+
   const entry = await saveGroupServiceSchedule({
     ...input,
     assignments: input.assignments
@@ -116,23 +125,49 @@ export async function persistGroupServiceSchedule(
       })),
   });
   await syncGroupServiceScheduleToCalendar(entry);
+
+  if (input.groupId === getConfiguredWorshipGroupId()) {
+    await notifyChoirServiceScheduleSaved({
+      entry,
+      actor: input.actor,
+      isUpdate: Boolean(prior),
+    }).catch(() => undefined);
+  }
+
   return entry;
 }
 
 /** @deprecated Use persistGroupServiceSchedule */
 export const persistChoirServiceSchedule = persistGroupServiceSchedule;
 
-export async function removeGroupServiceScheduleEntry(id: string, groupId: string) {
+export async function removeGroupServiceScheduleEntry(
+  id: string,
+  groupId: string,
+  actor?: { id: string; name: string },
+) {
+  const existing = (await listGroupServiceSchedules(groupId)).find((entry) => entry.id === id);
   const removed = await deleteGroupServiceSchedule(id, groupId);
   if (removed) {
     await removeGroupServiceScheduleFromCalendar(groupId, id);
+    if (existing && actor && groupId === getConfiguredWorshipGroupId()) {
+      await notifyChoirServiceScheduleRemoved({
+        groupId,
+        serviceDate: existing.serviceDate,
+        serviceTime: existing.serviceTime,
+        program: existing.program,
+        actor,
+      }).catch(() => undefined);
+    }
   }
   return removed;
 }
 
 /** @deprecated Use removeGroupServiceScheduleEntry */
-export async function removeChoirServiceScheduleEntry(id: string) {
-  return removeGroupServiceScheduleEntry(id, "group-choir");
+export async function removeChoirServiceScheduleEntry(
+  id: string,
+  actor?: { id: string; name: string },
+) {
+  return removeGroupServiceScheduleEntry(id, "group-choir", actor);
 }
 
 export function isChoirScheduleReadOnlyError(error: unknown) {

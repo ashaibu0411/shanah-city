@@ -393,9 +393,17 @@ export async function POST(request: Request) {
       actor: { id: auth.user!.id, name: auth.user!.name },
     });
 
-    if (action === "publish") {
-      await publishWorshipPlanNotifications(plan);
-      await trackLibrarySongUsage(plan.songs);
+    if (
+      (action === "publish" || action === "sync_choir_calendar") &&
+      plan.status === "published"
+    ) {
+      await publishWorshipPlanNotifications(plan, {
+        id: auth.user!.id,
+        name: auth.user!.name,
+      });
+      if (action === "publish") {
+        await trackLibrarySongUsage(plan.songs);
+      }
     }
 
     const calendarSynced = plan.status === "published" ? await syncChoirCalendarForWorshipPlan() : null;

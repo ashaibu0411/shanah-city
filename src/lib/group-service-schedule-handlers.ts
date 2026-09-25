@@ -108,7 +108,10 @@ export async function writeGroupServiceSchedule(
       return { error: "Schedule id is required.", status: 400 as const };
     }
     try {
-      const removed = await removeGroupServiceScheduleEntry(id, groupId);
+      const removed = await removeGroupServiceScheduleEntry(id, groupId, {
+        id: user.id,
+        name: user.name,
+      });
       if (!removed) {
         return { error: "Schedule entry not found.", status: 404 as const };
       }

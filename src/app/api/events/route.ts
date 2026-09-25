@@ -8,7 +8,9 @@ import {
 import { getGroups } from "@/lib/group-server";
 import { isGroupMember } from "@/lib/group-admin-utils";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
-import { isChoirSyncedCalendarEventId } from "@/lib/choir-calendar-utils";
+import { isGroupSyncedCalendarEventId } from "@/lib/choir-calendar-utils";
+import { notifyChoirManualCalendarEvent } from "@/lib/choir-notify-server";
+import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
 import {
   createEvent,
   deleteEvent,
@@ -204,6 +206,18 @@ export async function POST(request: Request) {
   const rsvpFields = await normalizeRsvpFields(body, input.groupId ?? null);
   const event = await createEvent({ ...input, ...rsvpFields });
   const notifyResult = await maybeNotifyRsvpAudience(event, undefined, user!, body);
+
+  if (
+    event.groupId === getConfiguredWorshipGroupId() &&
+    !isGroupSyncedCalendarEventId(event.id)
+  ) {
+    await notifyChoirManualCalendarEvent({
+      event,
+      actor: { id: user!.id, name: user!.name },
+      isUpdate: false,
+    }).catch(() => undefined);
+  }
+
   return NextResponse.json({ event, notify: notifyResult }, { status: 201 });
 }
 
@@ -258,6 +272,18 @@ export async function PATCH(request: Request) {
   }
 
   const notifyResult = await maybeNotifyRsvpAudience(event, existing, user!, body);
+
+  if (
+    event.groupId === getConfiguredWorshipGroupId() &&
+    !isGroupSyncedCalendarEventId(event.id)
+  ) {
+    await notifyChoirManualCalendarEvent({
+      event,
+      actor: { id: user!.id, name: user!.name },
+      isUpdate: true,
+    }).catch(() => undefined);
+  }
+
   return NextResponse.json({ event, notify: notifyResult });
 }
 
@@ -277,7 +303,7 @@ export async function DELETE(request: Request) {
   const denied = await assertCanManageEvent(user, existing.groupId ?? null);
   if (denied) return denied;
 
-  if (isChoirSyncedCalendarEventId(id)) {
+  if (isGroupSyncedCalendarEventId(id)) {
     return NextResponse.json(
       {
         error:

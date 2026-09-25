@@ -7,6 +7,7 @@ import {
   type UnavailabilityCalendarGroup,
 } from "@/lib/group-permissions-server";
 import { syncChoirCalendarForUnavailability } from "@/lib/choir-calendar-sync-server";
+import { notifyChoirUnavailabilityApproved } from "@/lib/choir-notify-server";
 import {
   addUnavailabilityRequest,
   getUnavailabilityRequests,
@@ -106,6 +107,16 @@ export async function POST(request: Request) {
     }
 
     await syncChoirCalendarForUnavailability(updated);
+
+    if (updated.group === "choir" && updated.status === "approved") {
+      await notifyChoirUnavailabilityApproved({
+        personName: updated.personName,
+        startDate: updated.startDate,
+        endDate: updated.endDate,
+        reason: updated.reason,
+        actor: { id: user.id, name: user.name },
+      }).catch(() => undefined);
+    }
 
     return NextResponse.json({ request: updated });
   }

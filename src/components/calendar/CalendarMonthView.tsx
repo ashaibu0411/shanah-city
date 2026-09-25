@@ -367,6 +367,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
   ) {
     const isSelected = selectedDate === isoDate;
     const isToday = isoDate === todayKey;
+    const maxVisible = weekColumn ? 6 : 4;
 
     return (
       <button
@@ -375,7 +376,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
         onClick={() => setSelectedDate(isoDate)}
         className={`flex ${
           weekColumn ? "min-h-[14rem]" : "h-[10rem]"
-        } flex-col overflow-hidden rounded-xl border p-2 text-left transition ${
+        } max-lg:landscape:h-auto max-lg:landscape:min-h-[5rem] max-lg:landscape:max-h-[9.5rem] flex-col overflow-hidden rounded-xl border p-1.5 text-left transition sm:p-2 ${
           isSelected
             ? "border-night-900 bg-night-900 text-sand-50"
             : "border-night-900/10 bg-white hover:bg-sand-50"
@@ -388,21 +389,32 @@ export function CalendarMonthView<T extends CalendarPlannable>({
         >
           {dayNumber}
         </span>
-        <div className="mt-1.5 min-h-0 flex-1 space-y-1 overflow-hidden">
-          {dayItems.slice(0, weekColumn ? 6 : 4).map((item) =>
-            weekColumn ? (
+        <div className="mt-1 hidden min-h-0 flex-1 flex-col overflow-hidden lg:flex">
+          <div className="min-h-0 flex-1 space-y-1 overflow-hidden">
+            {dayItems.slice(0, maxVisible).map((item) =>
+              weekColumn ? (
+                <EventText key={item.id} item={item} inverted={isSelected} compact />
+              ) : (
+                <EventText key={item.id} item={item} inverted={isSelected} grid />
+              ),
+            )}
+            {dayItems.length > maxVisible ? (
+              <p
+                className={`text-[11px] font-semibold ${isSelected ? "text-sand-200" : "text-night-500"}`}
+              >
+                +{dayItems.length - maxVisible} more
+              </p>
+            ) : null}
+          </div>
+        </div>
+        <div className="mt-0.5 min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain lg:hidden max-lg:landscape:flex max-lg:portrait:hidden">
+          {dayItems.length === 0 ? (
+            <p className={`text-[10px] ${isSelected ? "text-sand-300" : "text-night-400"}`}>—</p>
+          ) : (
+            dayItems.map((item) => (
               <EventText key={item.id} item={item} inverted={isSelected} compact />
-            ) : (
-              <EventText key={item.id} item={item} inverted={isSelected} grid />
-            ),
+            ))
           )}
-          {dayItems.length > (weekColumn ? 6 : 4) ? (
-            <p
-              className={`text-[11px] font-semibold ${isSelected ? "text-sand-200" : "text-night-500"}`}
-            >
-              +{dayItems.length - (weekColumn ? 6 : 4)} more
-            </p>
-          ) : null}
         </div>
       </button>
     );
@@ -433,8 +445,8 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           </div>
         </div>
 
-        <div className="mt-4 hidden lg:block">
-          <div className={viewMode === "month" ? "min-w-[64rem] overflow-x-auto" : ""}>
+        <div className="mt-4 hidden max-lg:portrait:hidden lg:block">
+          <div className={viewMode === "month" ? "lg:min-w-[64rem] lg:overflow-x-auto" : ""}>
             <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-semibold uppercase tracking-wide text-night-500">
               {WEEKDAY_HEADERS.map((label) => (
                 <div key={label} className="py-2">
@@ -447,7 +459,10 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                 {cells.map((cell, index) => {
                   if (cell.day == null || !cell.isoDate) {
                     return (
-                      <div key={`empty-${index}`} className="h-[10rem] rounded-xl bg-sand-50/40" />
+                      <div
+                        key={`empty-${index}`}
+                        className="h-[10rem] max-lg:landscape:min-h-[5rem] max-lg:landscape:max-h-[9.5rem] max-lg:landscape:h-auto rounded-xl bg-sand-50/40"
+                      />
                     );
                   }
                   return renderDesktopDayColumn(
@@ -473,7 +488,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           </div>
         </div>
 
-        <div className="mt-4 lg:hidden">
+        <div className="mt-4 max-lg:portrait:block max-lg:landscape:hidden lg:hidden">
           <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-wide text-night-500">
             {WEEKDAY_HEADERS.map((label) => (
               <div key={label} className="py-1">
@@ -619,7 +634,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
       </Card>
 
       {selectedDate ? (
-        <Card className="hidden lg:block">
+        <Card className="hidden max-lg:landscape:block lg:block">
           <h3 className="font-display text-lg font-semibold text-night-900">
             {formatSelectedDay(selectedDate)}
           </h3>
