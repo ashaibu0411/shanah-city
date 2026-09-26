@@ -1,6 +1,7 @@
 "use client";
 
 import { WorshipYouTubeReference } from "@/components/worship/WorshipYouTubeReference";
+import { WorshipAudioPlayer } from "@/components/worship/WorshipAudioPlayer";
 import {
   visiblePracticeStemsForUser,
   worshipPracticeStemLabel,
@@ -52,9 +53,11 @@ export function WorshipSongBreakdownListen({
               <p className="text-xs font-semibold text-night-800">
                 {worshipPracticeStemLabel(stem.role)}
               </p>
-              <audio controls preload="metadata" className="mt-1.5 w-full" src={stem.audioUrl}>
-                Your browser does not support audio playback.
-              </audio>
+              <WorshipAudioPlayer
+                className="mt-1.5 w-full"
+                src={stem.audioUrl}
+                fileName={stem.fileName}
+              />
             </div>
           ))}
         </div>

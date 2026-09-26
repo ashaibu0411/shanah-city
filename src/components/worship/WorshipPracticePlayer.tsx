@@ -7,6 +7,7 @@ import {
   worshipPracticeStemLabel,
   type WorshipSong,
 } from "@/lib/worship-types";
+import { WorshipAudioPlayer } from "@/components/worship/WorshipAudioPlayer";
 
 type WorshipPracticePlayerProps = {
   song: WorshipSong;
@@ -86,15 +87,11 @@ export function WorshipPracticePlayer({
         })}
       </div>
 
-      <audio
-        key={activeTrack.audioUrl}
-        controls
-        preload="metadata"
+      <WorshipAudioPlayer
         className="mt-3 w-full"
         src={activeTrack.audioUrl}
-      >
-        Your browser does not support audio playback.
-      </audio>
+        fileName={activeTrack.fileName}
+      />
       <p className="mt-1 text-xs text-night-500">{activeTrack.fileName}</p>
     </div>
   );

@@ -1,6 +1,7 @@
 import { put } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
+import { inferWorshipAudioContentType } from "@/lib/worship-audio-shared";
 import { useBlobStorage } from "@/lib/use-blob";
 
 const AUDIO_TYPES = new Set([
@@ -43,9 +44,10 @@ export async function saveWorshipAudioFile(file: File, folder = "rehearsals") {
       .replace(/[^a-z0-9.-]/g, "-")
       .replace(/-+/g, "-");
     const pathname = `worship/${safeFolder}/${Date.now()}-${safeName}`;
+    const contentType = inferWorshipAudioContentType(file.name, file.type);
     const blob = await put(pathname, buffer, {
       access: "public",
-      contentType: file.type || "audio/webm",
+      contentType,
     });
     return { url: blob.url, fileName: file.name };
   }

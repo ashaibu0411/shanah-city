@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
+import { WorshipAudioPlayer } from "@/components/worship/WorshipAudioPlayer";
 import { getSongPracticeStem, worshipPartLabel, type WorshipSong } from "@/lib/worship-types";
+import {
+  extensionForRecorderMime,
+  pickMediaRecorderMimeType,
+} from "@/lib/worship-audio-shared";
 
 type WorshipMemberPartRecordingProps = {
   serviceDate: string;
@@ -29,6 +34,7 @@ export function WorshipMemberPartRecording({
   const [message, setMessage] = useState<string | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mimeTypeRef = useRef("");
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
 
@@ -87,10 +93,11 @@ export function WorshipMemberPartRecording({
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : "audio/webm";
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const mimeType = pickMediaRecorderMimeType();
+      mimeTypeRef.current = mimeType;
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunksRef.current.push(event.data);
@@ -128,8 +135,11 @@ export function WorshipMemberPartRecording({
       setError("Record something first, then upload.");
       return;
     }
-    const blob = new Blob(chunks, { type: chunks[0]?.type || "audio/webm" });
-    const file = new File([blob], `part-${partRole}-${Date.now()}.webm`, { type: blob.type });
+    const mimeType =
+      mimeTypeRef.current || chunks[0]?.type || pickMediaRecorderMimeType() || "audio/webm";
+    const blob = new Blob(chunks, { type: mimeType });
+    const ext = extensionForRecorderMime(mimeType);
+    const file = new File([blob], `part-${partRole}-${Date.now()}${ext}`, { type: mimeType });
     chunksRef.current = [];
     setHasCapture(false);
     setElapsed(0);
@@ -154,9 +164,11 @@ export function WorshipMemberPartRecording({
             {isOwnApproved && " · Approved"}
           </p>
           {(stem.status === "approved" || stem.uploadedBy === userId) && (
-            <audio controls preload="metadata" className="mt-2 w-full" src={stem.audioUrl}>
-              Your browser does not support audio playback.
-            </audio>
+            <WorshipAudioPlayer
+              className="mt-2 w-full"
+              src={stem.audioUrl}
+              fileName={stem.fileName}
+            />
           )}
         </div>
       )}

@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, Card } from "@/components/ui";
+import { WorshipAudioPlayer } from "@/components/worship/WorshipAudioPlayer";
 import type { WorshipRehearsalRecording } from "@/lib/worship-types";
+import {
+  extensionForRecorderMime,
+  pickMediaRecorderMimeType,
+} from "@/lib/worship-audio-shared";
 
 type WorshipRehearsalRecordingsProps = {
   serviceDate: string;
@@ -35,6 +40,7 @@ export function WorshipRehearsalRecordings({
   const [error, setError] = useState<string | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mimeTypeRef = useRef("");
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
 
@@ -76,10 +82,11 @@ export function WorshipRehearsalRecordings({
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : "audio/webm";
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const mimeType = pickMediaRecorderMimeType();
+      mimeTypeRef.current = mimeType;
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunksRef.current.push(event.data);
@@ -122,8 +129,11 @@ export function WorshipRehearsalRecordings({
     setError(null);
     setMessage(null);
 
-    const blob = new Blob(chunks, { type: chunks[0]?.type || "audio/webm" });
-    const file = new File([blob], `rehearsal-${Date.now()}.webm`, { type: blob.type });
+    const mimeType =
+      mimeTypeRef.current || chunks[0]?.type || pickMediaRecorderMimeType() || "audio/webm";
+    const blob = new Blob(chunks, { type: mimeType });
+    const ext = extensionForRecorderMime(mimeType);
+    const file = new File([blob], `rehearsal-${Date.now()}${ext}`, { type: mimeType });
     const formData = new FormData();
     formData.append("file", file);
     formData.append("serviceDate", serviceDate);
@@ -247,9 +257,11 @@ export function WorshipRehearsalRecordings({
                       </Button>
                     )}
                   </div>
-                  <audio controls preload="metadata" className="mt-3 w-full" src={entry.audioUrl}>
-                    Your browser does not support audio playback.
-                  </audio>
+                  <WorshipAudioPlayer
+                    className="mt-3 w-full"
+                    src={entry.audioUrl}
+                    fileName={entry.fileName}
+                  />
                 </li>
               );
             })}
