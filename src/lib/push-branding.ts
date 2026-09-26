@@ -21,7 +21,7 @@ export function getPushBadgeUrl(origin = getPublicAppOrigin()) {
   return `${origin}${PUSH_BADGE_PATH}`;
 }
 
-export function withPushBranding<T extends { title: string; body: string; url: string }>(
+export function withPushBranding<T extends { title: string; body: string; url: string; appBadgeCount?: number }>(
   payload: T,
   origin = getPublicAppOrigin(),
 ) {

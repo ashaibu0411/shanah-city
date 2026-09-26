@@ -26,6 +26,7 @@ import {
   resolveNotificationPrefs,
   type PushDeliveryResult,
 } from "@/lib/push-delivery-utils";
+import { getAppNotifications } from "@/lib/notification-server";
 
 export type { PushDeliveryResult } from "@/lib/push-delivery-utils";
 export { shouldMarkScheduledPushComplete } from "@/lib/push-delivery-utils";
@@ -85,10 +86,12 @@ export async function sendTestPushToUser(
   userId: string,
   prefs?: Partial<NotificationPrefs> | null,
 ) {
+  const summary = await getAppNotifications(userId);
   const payload = withPushBranding({
     title: "Shanah City test alert",
     body: "Push notifications are working on this device.",
     url: "/profile",
+    appBadgeCount: summary.total,
   });
   const scheduleEligibility = getScheduledPushEligibility(resolveNotificationPrefs(prefs));
   const webConfigured = configureWebPush();
@@ -142,7 +145,13 @@ export async function sendTestPushToUser(
 
   for (const record of nativeTokens) {
     try {
-      await sendNativePush(record, payload);
+      await sendNativePush(record, {
+        title: payload.title,
+        body: payload.body,
+        url: payload.url,
+        icon: payload.icon,
+        badgeCount: summary.total,
+      });
       sent += 1;
       nativeSent += 1;
     } catch (error) {
@@ -171,7 +180,6 @@ async function dispatchPushToUsers(
   payload: { title: string; body: string; url: string },
   passesPreference: (prefs: NotificationPrefs) => boolean,
 ): Promise<PushDeliveryResult> {
-  const brandedPayload = withPushBranding(payload);
   const webConfigured = configureWebPush();
   const nativeConfigured = isNativePushConfigured();
   if (!webConfigured && !nativeConfigured) {
@@ -183,9 +191,27 @@ async function dispatchPushToUsers(
   const nativeTokens = nativeConfigured ? await store().getNativePushTokens() : [];
   const result = emptyPushDeliveryResult(true);
 
+  const uniqueUserIds = [...new Set(userIds)];
+  const badgeCounts = new Map<string, number>();
+  await Promise.all(
+    uniqueUserIds.map(async (userId) => {
+      try {
+        const summary = await getAppNotifications(userId);
+        badgeCounts.set(userId, summary.total);
+      } catch {
+        badgeCounts.set(userId, 0);
+      }
+    }),
+  );
+
   for (const userId of userIds) {
     const user = users.find((item) => item.id === userId);
     const prefs = resolveNotificationPrefs(user?.notificationPrefs);
+    const badgeCount = Math.max(badgeCounts.get(userId) ?? 0, 1);
+    const brandedPayload = withPushBranding({
+      ...payload,
+      appBadgeCount: badgeCount,
+    });
 
     if (!passesPreference(prefs)) {
       result.skippedPrefUsers += 1;
@@ -228,7 +254,13 @@ async function dispatchPushToUsers(
 
     for (const record of userTokens) {
       try {
-        await sendNativePush(record, brandedPayload);
+        await sendNativePush(record, {
+          title: brandedPayload.title,
+          body: brandedPayload.body,
+          url: brandedPayload.url,
+          icon: brandedPayload.icon,
+          badgeCount,
+        });
         result.sent += 1;
         result.nativeSent += 1;
         userDelivered = true;

@@ -10,6 +10,8 @@ export type NativePushPayload = {
   body: string;
   url: string;
   icon?: string;
+  /** Home-screen icon badge (iOS / supported Android launchers). */
+  badgeCount?: number;
 };
 
 function parseServiceAccount() {
@@ -119,8 +121,10 @@ function sendApns(
         body: payload.body,
       },
       sound: "default",
+      ...(payload.badgeCount != null ? { badge: payload.badgeCount } : {}),
     },
     url: payload.url,
+    appBadgeCount: payload.badgeCount != null ? String(payload.badgeCount) : undefined,
   });
 
   return new Promise<void>((resolve, reject) => {
@@ -213,6 +217,9 @@ export async function sendNativePush(
         url: payload.url,
         title: payload.title,
         body: payload.body,
+        ...(payload.badgeCount != null
+          ? { appBadgeCount: String(payload.badgeCount) }
+          : {}),
       },
       android: {
         priority: "high",
@@ -220,6 +227,9 @@ export async function sendNativePush(
           channelId: "default",
           icon: "ic_stat_shanah",
           imageUrl: payload.icon ?? getPushIconUrl(),
+          ...(payload.badgeCount != null && payload.badgeCount > 0
+            ? { notificationCount: payload.badgeCount }
+            : {}),
         },
       },
       apns: {
@@ -230,6 +240,7 @@ export async function sendNativePush(
               body: payload.body,
             },
             sound: "default",
+            ...(payload.badgeCount != null ? { badge: payload.badgeCount } : {}),
           },
           url: payload.url,
         },

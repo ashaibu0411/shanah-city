@@ -24,12 +24,33 @@ self.addEventListener("push", (event) => {
       : `${origin}${payload.badge || "/push-badge-96.png"}`;
 
   event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
-      icon,
-      badge,
-      data: { url: payload.url },
-    }),
+    (async () => {
+      const appBadgeCount =
+        typeof payload.appBadgeCount === "number"
+          ? payload.appBadgeCount
+          : typeof payload.appBadgeCount === "string"
+            ? Number(payload.appBadgeCount)
+            : NaN;
+
+      if (self.navigator && "setAppBadge" in self.navigator && Number.isFinite(appBadgeCount)) {
+        try {
+          if (appBadgeCount > 0) {
+            await self.navigator.setAppBadge(appBadgeCount);
+          } else if ("clearAppBadge" in self.navigator) {
+            await self.navigator.clearAppBadge();
+          }
+        } catch {
+          // Ignore badging errors in the service worker.
+        }
+      }
+
+      await self.registration.showNotification(payload.title, {
+        body: payload.body,
+        icon,
+        badge,
+        data: { url: payload.url },
+      });
+    })(),
   );
 });
 

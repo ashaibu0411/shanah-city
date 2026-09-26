@@ -2,6 +2,7 @@
 
 import { Capacitor } from "@capacitor/core";
 import { getPushBadgeUrl, getPushIconUrl } from "@/lib/push-branding";
+import { syncAppIconBadgeCount } from "@/lib/app-icon-badge";
 
 const TOKEN_KEY = "shanah-native-push-token";
 const PLATFORM_KEY = "shanah-native-push-platform";
@@ -294,7 +295,13 @@ export async function startNativePushListeners() {
   });
 
   await PushNotifications.addListener("pushNotificationReceived", (notification) => {
-    const data = notification.data as { url?: string } | undefined;
+    const data = notification.data as { url?: string; appBadgeCount?: string } | undefined;
+    const parsedBadge = data?.appBadgeCount ? Number(data.appBadgeCount) : NaN;
+    if (Number.isFinite(parsedBadge)) {
+      void syncAppIconBadgeCount(parsedBadge);
+    } else {
+      window.dispatchEvent(new Event("shanah-notifications-changed"));
+    }
     showForegroundNotification({
       title: notification.title,
       body: notification.body,

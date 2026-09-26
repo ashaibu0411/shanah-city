@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { syncAppIconBadgeCount } from "@/lib/app-icon-badge";
 import type { AppNotificationsSummary } from "@/lib/notification-types";
 
 const EMPTY: AppNotificationsSummary = {
@@ -30,6 +31,7 @@ export function useNotifications() {
   const refresh = useCallback(async () => {
     if (!user) {
       setSummary(EMPTY);
+      void syncAppIconBadgeCount(0);
       return;
     }
 
@@ -42,6 +44,7 @@ export function useNotifications() {
       }
       const data = (await response.json()) as AppNotificationsSummary;
       setSummary(data);
+      void syncAppIconBadgeCount(data.total);
     } catch {
       setSummary(EMPTY);
     } finally {
@@ -64,12 +67,14 @@ export function useNotifications() {
     const interval = window.setInterval(onRefresh, 30_000);
     window.addEventListener("focus", onRefresh);
     window.addEventListener("shanah-notifications-changed", onRefresh);
+    window.addEventListener("shanah-push-synced", onRefresh);
     document.addEventListener("visibilitychange", onRefresh);
 
     return () => {
       window.clearInterval(interval);
       window.removeEventListener("focus", onRefresh);
       window.removeEventListener("shanah-notifications-changed", onRefresh);
+      window.removeEventListener("shanah-push-synced", onRefresh);
       document.removeEventListener("visibilitychange", onRefresh);
     };
   }, [user, refresh]);
