@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import type { ActivityItem, PublicMember } from "@/lib/auth-types";
+import { syncAppIconBadgeCount } from "@/lib/app-icon-badge";
 
 type AuthPermissions = {
   canUploadGallery: boolean;
@@ -111,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setActivity([]);
     setPermissions(defaultPermissions);
+    void syncAppIconBadgeCount(0);
   }, []);
 
   const value = useMemo(

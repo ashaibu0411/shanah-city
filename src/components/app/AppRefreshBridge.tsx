@@ -6,7 +6,10 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { dispatchAppRefresh, registerAppRefreshRunner } from "@/lib/app-refresh";
 import { isNativeAppPlatform } from "@/lib/native-app";
-import { notifyNotificationsChanged } from "@/lib/use-notifications";
+import {
+  notifyNotificationsChanged,
+  refreshAppNotificationBadge,
+} from "@/lib/use-notifications";
 
 export function AppRefreshBridge() {
   const router = useRouter();
@@ -15,6 +18,7 @@ export function AppRefreshBridge() {
 
   const runRefresh = useCallback(async () => {
     await refreshAuth();
+    await refreshAppNotificationBadge();
     dispatchAppRefresh();
     router.refresh();
     notifyNotificationsChanged();

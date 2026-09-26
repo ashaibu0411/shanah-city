@@ -17,6 +17,7 @@ import { MobileNav } from "@/components/app/MobileNav";
 
 import { AppMain } from "@/components/app/AppMain";
 import { AppRefreshBridge } from "@/components/app/AppRefreshBridge";
+import { AppNotificationBadgeSync } from "@/components/app/AppNotificationBadgeSync";
 import { NativeAppBoot } from "@/components/app/NativeAppBoot";
 import { DevotionMiniPlayer } from "@/components/devotions/DevotionMiniPlayer";
 import { DevotionPlayerProvider } from "@/components/devotions/DevotionPlayerProvider";
@@ -40,6 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <NativeAppBoot />
           <AppRefreshBridge />
+          <AppNotificationBadgeSync />
 
           <div className="min-h-screen bg-[var(--color-bg)]">
 

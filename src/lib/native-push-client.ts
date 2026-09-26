@@ -310,7 +310,14 @@ export async function startNativePushListeners() {
   });
 
   await PushNotifications.addListener("pushNotificationActionPerformed", (event) => {
-    const data = event.notification.data as { url?: string } | undefined;
+    const data = event.notification.data as { url?: string; appBadgeCount?: string } | undefined;
+    const parsedBadge = data?.appBadgeCount ? Number(data.appBadgeCount) : NaN;
+    if (Number.isFinite(parsedBadge)) {
+      void syncAppIconBadgeCount(parsedBadge);
+    }
+    void import("@/lib/use-notifications").then(({ refreshAppNotificationBadge }) => {
+      void refreshAppNotificationBadge();
+    });
     openPushUrl(data?.url);
   });
 }

@@ -11,6 +11,23 @@ export async function syncAppIconBadgeCount(count: number) {
   if (typeof window === "undefined") return;
 
   const badge = clampBadgeCount(count);
+  const isNative = Capacitor.isNativePlatform();
+
+  if (isNative) {
+    try {
+      const { Badge } = await import("@capawesome/capacitor-badge");
+      const supported = await Badge.isSupported();
+      if (supported.isSupported) {
+        if (badge > 0) {
+          await Badge.set({ count: badge });
+        } else {
+          await Badge.clear();
+        }
+      }
+    } catch {
+      // Native badge plugin missing on older builds.
+    }
+  }
 
   if ("setAppBadge" in navigator) {
     try {
@@ -24,20 +41,5 @@ export async function syncAppIconBadgeCount(count: number) {
     } catch {
       // Badging API unavailable or denied.
     }
-  }
-
-  if (!Capacitor.isNativePlatform()) return;
-
-  try {
-    const { Badge } = await import("@capawesome/capacitor-badge");
-    const supported = await Badge.isSupported();
-    if (!supported.isSupported) return;
-    if (badge > 0) {
-      await Badge.set({ count: badge });
-    } else {
-      await Badge.clear();
-    }
-  } catch {
-    // Native badge plugin missing on older builds.
   }
 }

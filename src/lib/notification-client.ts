@@ -1,6 +1,7 @@
 "use client";
 
 import { FEED_READ_KEYS, type FeedReadKey } from "@/lib/notification-types";
+import { syncAppIconBadgeCount } from "@/lib/app-icon-badge";
 import { notifyNotificationsChanged } from "@/lib/use-notifications";
 
 export async function markNotificationFeedsRead(feeds: FeedReadKey[]) {
@@ -14,6 +15,10 @@ export async function markNotificationFeedsRead(feeds: FeedReadKey[]) {
       body: JSON.stringify({ action: "markFeedRead", feeds }),
     });
     if (response.ok) {
+      const data = (await response.json()) as { total?: number };
+      if (typeof data.total === "number") {
+        await syncAppIconBadgeCount(data.total);
+      }
       notifyNotificationsChanged();
     }
     return response.ok;
