@@ -12,6 +12,13 @@ export const COMMUNITY_POST_REACTION_KINDS = COMMUNITY_STORY_REACTION_KINDS.filt
 
 export type CommunityPostReactionKind = (typeof COMMUNITY_POST_REACTION_KINDS)[number];
 
+export type PostReactionInsight = {
+  userId: string;
+  name: string;
+  kind: CommunityPostReactionKind;
+  createdAt: string;
+};
+
 export type CommunityPostReactionCounts = Record<CommunityPostReactionKind, number>;
 
 export function emptyPostReactionCounts(): CommunityPostReactionCounts {

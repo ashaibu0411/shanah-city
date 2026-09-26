@@ -19,6 +19,7 @@ import {
   type CommunityPostReactionKind,
 } from "@/lib/community-post-reactions";
 import { CommunityCommentsSheet } from "@/components/community/CommunityCommentsSheet";
+import { CommunityPostReactionsSheet } from "@/components/community/CommunityPostReactionsSheet";
 import {
   IgCommentIcon,
   IgHeartIcon,
@@ -356,6 +357,7 @@ export function CommunityPostCard({
   const [commentReactionBusy, setCommentReactionBusy] = useState(false);
   const [commentManageBusy, setCommentManageBusy] = useState(false);
   const [commentsSheetOpen, setCommentsSheetOpen] = useState(false);
+  const [reactionsSheetOpen, setReactionsSheetOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reactionBusy, setReactionBusy] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
@@ -421,6 +423,15 @@ export function CommunityPostCard({
       : post.reactions > 0
         ? [reactionEmoji(post.type)]
         : [];
+
+  function openReactionsSheet() {
+    if (reactionTotal <= 0) return;
+    setReactionsSheetOpen(true);
+  }
+
+  function closeReactionsSheet() {
+    setReactionsSheetOpen(false);
+  }
 
   function openCommentsSheet(focusComposer = false) {
     setCommentsSheetOpen(true);
@@ -849,7 +860,12 @@ export function CommunityPostCard({
           </div>
 
           {reactionTotal > 0 ? (
-            <div className="community-post-ig-likes">
+            <button
+              type="button"
+              onClick={openReactionsSheet}
+              className="community-post-ig-likes text-left"
+              aria-label={`See who reacted, ${reactionTotal} reactions`}
+            >
               {reactionSummaryEmojis.length > 0 ? (
                 <span className="mr-1 inline-flex -space-x-1">
                   {reactionSummaryEmojis.map((emoji, index) => (
@@ -862,7 +878,7 @@ export function CommunityPostCard({
               <span className="text-sm font-semibold text-night-900 dark:text-sand-100">
                 {reactionTotal.toLocaleString()} {reactionTotal === 1 ? "reaction" : "reactions"}
               </span>
-            </div>
+            </button>
           ) : null}
 
           <div className="community-post-caption">
@@ -905,7 +921,12 @@ export function CommunityPostCard({
             <div className="community-post-stats flex items-center justify-between text-xs text-night-600">
               <div className="inline-flex items-center gap-1.5">
                 {reactionTotal > 0 ? (
-                  <>
+                  <button
+                    type="button"
+                    onClick={openReactionsSheet}
+                    className="inline-flex items-center gap-1.5 hover:underline"
+                    aria-label={`See who reacted, ${reactionTotal}`}
+                  >
                     <span className="inline-flex items-center -space-x-1">
                       {reactionSummaryEmojis.map((emoji, index) => (
                         <span
@@ -917,7 +938,7 @@ export function CommunityPostCard({
                       ))}
                     </span>
                     <span>{reactionTotal}</span>
-                  </>
+                  </button>
                 ) : null}
               </div>
             </div>
@@ -925,6 +946,11 @@ export function CommunityPostCard({
         </>
       ) : null}
 
+      <CommunityPostReactionsSheet
+        open={reactionsSheetOpen}
+        postId={post.id}
+        onClose={closeReactionsSheet}
+      />
       <CommunityCommentsSheet
         open={commentsSheetOpen && !compact}
         onClose={closeCommentsSheet}

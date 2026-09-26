@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { CommunityPost } from "@/lib/member-types";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { useDatabase } from "@/lib/use-database";
 import {
   COMMUNITY_POST_REACTION_KINDS,
@@ -7,7 +8,52 @@ import {
   isPostReactionKind,
   type CommunityPostReactionCounts,
   type CommunityPostReactionKind,
+  type PostReactionInsight,
 } from "@/lib/community-post-reactions";
+
+export type { PostReactionInsight };
+
+export async function getPostReactionInsights(postId: string): Promise<PostReactionInsight[]> {
+  if (!useDatabase()) {
+    return [];
+  }
+
+  const post = await prisma.communityPost.findUnique({ where: { id: postId } });
+  if (!post) {
+    throw new Error("Post not found.");
+  }
+
+  const reactionRows = await prisma.communityPostReaction.findMany({
+    where: { postId },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (reactionRows.length === 0) {
+    return [];
+  }
+
+  const userIds = [...new Set(reactionRows.map((row) => row.userId))];
+  const users = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, name: true, displayName: true },
+  });
+  const nameById = new Map(
+    users.map((user) => [user.id, getPublicDisplayName(user)] as const),
+  );
+
+  const reactions: PostReactionInsight[] = [];
+  for (const row of reactionRows) {
+    if (!isPostReactionKind(row.kind)) continue;
+    reactions.push({
+      userId: row.userId,
+      name: nameById.get(row.userId) ?? "Member",
+      kind: row.kind,
+      createdAt: row.createdAt.toISOString(),
+    });
+  }
+
+  return reactions;
+}
 
 export async function attachReactionsToPosts(
   posts: CommunityPost[],
