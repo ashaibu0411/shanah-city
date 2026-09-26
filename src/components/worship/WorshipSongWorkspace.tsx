@@ -199,12 +199,8 @@ export function WorshipSongWorkspace({
             </div>
           </div>
 
-          {song.youtubeVideoId && (
-            <WorshipYouTubeReference
-              videoId={song.youtubeVideoId}
-              title={song.title}
-              compact={readOnly}
-            />
+          {!readOnly && song.youtubeVideoId && (
+            <WorshipYouTubeReference videoId={song.youtubeVideoId} title={song.title} />
           )}
 
           <WorshipPracticeStemEditor

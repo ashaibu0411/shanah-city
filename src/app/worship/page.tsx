@@ -9,7 +9,7 @@ import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 export default async function WorshipPlannerPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string; time?: string }>;
+  searchParams: Promise<{ date?: string; time?: string; song?: string }>;
 }) {
   const params = await searchParams;
   const cookieStore = await cookies();
@@ -34,7 +34,11 @@ export default async function WorshipPlannerPage({
         accentWord="planner"
       />
       <MarkFeedRead feed="worship" />
-      <WorshipPlannerPanel initialDate={params.date} initialTime={params.time} />
+      <WorshipPlannerPanel
+        initialDate={params.date}
+        initialTime={params.time}
+        initialSongId={params.song}
+      />
     </>
   );
 }

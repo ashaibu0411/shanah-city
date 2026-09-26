@@ -11,6 +11,7 @@ import { WorshipRehearsalRecordings } from "@/components/worship/WorshipRehearsa
 import { WorshipSchedulePanel } from "@/components/worship/WorshipSchedulePanel";
 import { WorshipMemberSuggestions } from "@/components/worship/WorshipMemberSuggestions";
 import { WorshipSongWorkspace } from "@/components/worship/WorshipSongWorkspace";
+import { WorshipSongBreakdownListen } from "@/components/worship/WorshipSongBreakdownListen";
 import {
   buildTeamReadiness,
   emptyWorshipSong,
@@ -68,9 +69,11 @@ function ProgressDots({ prepared, total }: { prepared: number; total: number }) 
 export function WorshipPlannerPanel({
   initialDate,
   initialTime,
+  initialSongId,
 }: {
   initialDate?: string;
   initialTime?: string;
+  initialSongId?: string;
 } = {}) {
   const { user, permissions } = useAuth();
   const canManage = permissions.canManageWorshipPlan;
@@ -100,6 +103,15 @@ export function WorshipPlannerPanel({
 
   const readiness = useMemo(() => buildTeamReadiness({ team, songs }), [team, songs]);
   const myMember = team.find((member) => member.userId === user?.id);
+  const songLeaderOptions = useMemo(() => {
+    const byId = new Map(roster.map((member) => [member.id, member]));
+    for (const song of songs) {
+      if (song.leaderUserId && song.leaderName && !byId.has(song.leaderUserId)) {
+        byId.set(song.leaderUserId, { id: song.leaderUserId, name: song.leaderName });
+      }
+    }
+    return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [roster, songs]);
 
   async function loadPlan() {
     setLoading(true);
@@ -187,6 +199,19 @@ export function WorshipPlannerPanel({
       setCopyTargetTime(otherSlot.value);
     }
   }, [serviceTime]);
+
+  useEffect(() => {
+    if (loading || !initialSongId || songs.length === 0) return;
+    const match = songs.find((song) => song.id === initialSongId);
+    if (!match) return;
+    setTab("plan");
+    setExpandedSongId(match.id);
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`worship-song-${match.id}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [initialSongId, songs, loading]);
 
   async function savePlan(action: "save" | "publish" | "unpublish" | "delete") {
     setMessage(null);
@@ -804,7 +829,8 @@ export function WorshipPlannerPanel({
               return (
                 <div
                   key={song.id}
-                  className="rounded-xl border border-night-900/5 p-4"
+                  id={`worship-song-${song.id}`}
+                  className="scroll-mt-24 rounded-xl border border-night-900/5 p-4"
                 >
                   <div className="grid gap-3 md:grid-cols-[1fr_100px_100px_auto] md:items-end">
                     {showEditor ? (
@@ -870,7 +896,9 @@ export function WorshipPlannerPanel({
                         <select
                           value={song.leaderUserId ?? ""}
                           onChange={(event) => {
-                            const leader = team.find((member) => member.userId === event.target.value);
+                            const leader = songLeaderOptions.find(
+                              (member) => member.id === event.target.value,
+                            );
                             updateSong(index, {
                               leaderUserId: event.target.value || undefined,
                               leaderName: leader?.name,
@@ -879,8 +907,8 @@ export function WorshipPlannerPanel({
                           className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm md:col-span-2"
                         >
                           <option value="">Song leader (optional)</option>
-                          {team.map((member) => (
-                            <option key={member.userId} value={member.userId}>
+                          {songLeaderOptions.map((member) => (
+                            <option key={member.id} value={member.id}>
                               {member.name}
                             </option>
                           ))}
@@ -926,6 +954,14 @@ export function WorshipPlannerPanel({
                       </>
                     )}
                   </div>
+
+                  {(status === "published" || !showEditor) && (
+                    <WorshipSongBreakdownListen
+                      song={song}
+                      userId={user?.id}
+                      isManager={canManage}
+                    />
+                  )}
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                     <ProgressDots prepared={teamPreparedCount} total={team.length || songs.length} />

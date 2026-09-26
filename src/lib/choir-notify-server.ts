@@ -12,6 +12,11 @@ import {
 import { notifyGroupChatMessage, sendPushToUsersWithAnyPreference } from "@/lib/push-server";
 import { resolveGroupChatNotificationRecipientIds } from "@/lib/group-chat-notifications-server";
 import { serviceDateTimeLabel, type WorshipServicePlan } from "@/lib/worship-types";
+import {
+  formatWorshipPlanSetlistForChat,
+  formatWorshipPlanSetlistForPush,
+  worshipPlannerPath,
+} from "@/lib/worship-plan-links";
 import type { ChurchEvent } from "@/lib/types";
 
 function choirGroupId() {
@@ -180,14 +185,12 @@ export async function notifyChoirWorshipPlanPublished(
   plan: WorshipServicePlan,
   actor: { id: string; name: string },
 ) {
-  const title = plan.title || serviceDateTimeLabel(plan.serviceDate, plan.serviceTime);
-
   return broadcastChoirUpdate({
     actor,
     pushTitle: "Worship plan published",
-    pushBody: title,
-    chatBody: `🎵 Worship plan published: ${title}\nOpen the planner for setlist and team details.`,
-    pushUrl: `/worship?date=${encodeURIComponent(plan.serviceDate)}&time=${encodeURIComponent(plan.serviceTime)}`,
+    pushBody: formatWorshipPlanSetlistForPush(plan),
+    chatBody: formatWorshipPlanSetlistForChat(plan),
+    pushUrl: worshipPlannerPath(plan),
   });
 }
 
