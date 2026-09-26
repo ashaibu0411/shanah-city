@@ -36,6 +36,7 @@ import {
   type WorshipTeamMember,
   type WorshipMemberSuggestion,
 } from "@/lib/worship-types";
+import { formatSegmentRangeLabel } from "@/lib/worship-youtube-timestamp-utils";
 import type { ChurchEvent } from "@/lib/types";
 
 type RosterMember = {
@@ -423,6 +424,15 @@ export function WorshipPlannerPanel({
     setSongs((current) =>
       current.map((song, songIndex) => (songIndex === index ? { ...song, ...patch } : song)),
     );
+  }
+
+  function applyMedleySegments(
+    updates: Record<string, { youtubeStartSeconds?: number; youtubeEndSeconds?: number }>,
+  ) {
+    setSongs((current) =>
+      current.map((item) => (updates[item.id] ? { ...item, ...updates[item.id] } : item)),
+    );
+    setMessage("Updated start/stop times for songs on this video.");
   }
 
   function removeSong(index: number) {
@@ -1000,6 +1010,19 @@ export function WorshipPlannerPanel({
                           {song.notes && (
                             <p className="mt-1 text-xs text-night-500">{song.notes}</p>
                           )}
+                          {song.youtubeVideoId &&
+                            formatSegmentRangeLabel(
+                              song.youtubeStartSeconds,
+                              song.youtubeEndSeconds,
+                            ) && (
+                              <p className="mt-1 text-xs font-semibold text-violet-800">
+                                Video segment:{" "}
+                                {formatSegmentRangeLabel(
+                                  song.youtubeStartSeconds,
+                                  song.youtubeEndSeconds,
+                                )}
+                              </p>
+                            )}
                           {song.chartUrl && (
                             <a
                               href={song.chartUrl}
@@ -1052,6 +1075,8 @@ export function WorshipPlannerPanel({
                     readOnly={!showEditor}
                     canReviewMemberUploads={canManage}
                     onReviewStem={(partRole, decision) => reviewStem(song.id, partRole, decision)}
+                    setlistSongs={songs}
+                    onApplyMedleySegments={showEditor ? applyMedleySegments : undefined}
                   />
                 </div>
               );

@@ -1,4 +1,4 @@
-import { getYouTubeVideoWatchUrl } from "@/lib/media-clips-utils";
+import { getYouTubeWatchUrlWithSegment, formatSegmentRangeLabel } from "@/lib/worship-youtube-timestamp-utils";
 import { getAppBaseUrl } from "@/lib/share-urls";
 import {
   normalizePracticeStems,
@@ -31,7 +31,11 @@ export function worshipPlannerUrl(
 
 export function worshipSongListenUrl(song: WorshipSong, plan: WorshipServicePlan) {
   if (song.youtubeVideoId) {
-    return getYouTubeVideoWatchUrl(song.youtubeVideoId);
+    return getYouTubeWatchUrlWithSegment(
+      song.youtubeVideoId,
+      song.youtubeStartSeconds,
+      song.youtubeEndSeconds,
+    );
   }
 
   const referenceStem = normalizePracticeStems(song.practiceStems).find(
@@ -75,9 +79,11 @@ export function formatWorshipPlanSetlistForChat(plan: WorshipServicePlan) {
   const lines = songs.map((song, index) => {
     const title = song.title.trim() || "Untitled";
     const key = song.key?.trim() ? ` · Key ${song.key.trim()}` : "";
+    const segment = formatSegmentRangeLabel(song.youtubeStartSeconds, song.youtubeEndSeconds);
+    const segmentNote = segment ? ` · Video ${segment}` : "";
     const listen = worshipSongListenUrl(song, plan);
     const inPlanner = worshipPlannerUrl(plan, song.id);
-    return `${index + 1}. ${title}${key}\n   Listen: ${listen}\n   In planner: ${inPlanner}`;
+    return `${index + 1}. ${title}${key}${segmentNote}\n   Listen: ${listen}\n   In planner: ${inPlanner}`;
   });
 
   return `🎵 Worship plan published: ${headline}\n\nSetlist:\n${lines.join("\n\n")}\n\nFull planner: ${plannerUrl}`;

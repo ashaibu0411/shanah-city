@@ -92,6 +92,9 @@ export type WorshipSong = {
   practiceStems?: WorshipPracticeStem[];
   youtubeVideoId?: string;
   youtubeUrl?: string;
+  /** Start/end markers when one YouTube video covers multiple songs (medley). Seconds from start. */
+  youtubeStartSeconds?: number;
+  youtubeEndSeconds?: number;
   chartUrl?: string;
   chartFileName?: string;
   leaderUserId?: string;
@@ -391,6 +394,14 @@ export function normalizeSongs(songs: WorshipSong[] | undefined) {
         practiceStems: normalizePracticeStems(song.practiceStems),
         youtubeVideoId: song.youtubeVideoId?.trim() || undefined,
         youtubeUrl: song.youtubeUrl?.trim() || undefined,
+        youtubeStartSeconds:
+          song.youtubeStartSeconds != null && song.youtubeStartSeconds >= 0
+            ? Math.floor(song.youtubeStartSeconds)
+            : undefined,
+        youtubeEndSeconds:
+          song.youtubeEndSeconds != null && song.youtubeEndSeconds >= 0
+            ? Math.floor(song.youtubeEndSeconds)
+            : undefined,
         chartUrl: song.chartUrl?.trim() || undefined,
         chartFileName: song.chartFileName?.trim() || undefined,
         leaderUserId: song.leaderUserId,

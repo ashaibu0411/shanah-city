@@ -35,7 +35,12 @@ export function WorshipSongBreakdownListen({
     <div className="mt-3 space-y-3 border-t border-night-900/5 pt-3">
       <p className="text-xs font-semibold uppercase tracking-wide text-night-500">Listen &amp; practice</p>
       {hasYouTube && song.youtubeVideoId && (
-        <WorshipYouTubeReference videoId={song.youtubeVideoId} title={song.title} />
+        <WorshipYouTubeReference
+          videoId={song.youtubeVideoId}
+          title={song.title}
+          startSeconds={song.youtubeStartSeconds}
+          endSeconds={song.youtubeEndSeconds}
+        />
       )}
       {stems.length > 0 && (
         <div className="space-y-2">

@@ -8,7 +8,8 @@ import {
   type WorshipSongPart,
 } from "@/lib/worship-types";
 import { WorshipPracticeStemEditor } from "@/components/worship/WorshipPracticeStemEditor";
-import { WorshipYouTubeReference } from "@/components/worship/WorshipYouTubeReference";
+import { WorshipYouTubeSegmentPicker } from "@/components/worship/WorshipYouTubeSegmentPicker";
+import { formatSegmentRangeLabel } from "@/lib/worship-youtube-timestamp-utils";
 
 type WorshipSongWorkspaceProps = {
   song: WorshipSong;
@@ -18,6 +19,10 @@ type WorshipSongWorkspaceProps = {
   readOnly?: boolean;
   canReviewMemberUploads?: boolean;
   onReviewStem?: (partRole: string, decision: "approve" | "remove") => void;
+  setlistSongs?: WorshipSong[];
+  onApplyMedleySegments?: (
+    updates: Record<string, { youtubeStartSeconds?: number; youtubeEndSeconds?: number }>,
+  ) => void;
 };
 
 function updatePartNotes(parts: WorshipSongPart[] | undefined, role: string, notes: string) {
@@ -37,6 +42,8 @@ export function WorshipSongWorkspace({
   readOnly = false,
   canReviewMemberUploads = false,
   onReviewStem,
+  setlistSongs = [],
+  onApplyMedleySegments,
 }: WorshipSongWorkspaceProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -199,9 +206,31 @@ export function WorshipSongWorkspace({
             </div>
           </div>
 
-          {!readOnly && song.youtubeVideoId && (
-            <WorshipYouTubeReference videoId={song.youtubeVideoId} title={song.title} />
+          {song.youtubeVideoId && !readOnly && (
+            <WorshipYouTubeSegmentPicker
+              videoId={song.youtubeVideoId}
+              title={song.title}
+              songId={song.id}
+              setlistSongs={setlistSongs}
+              startSeconds={song.youtubeStartSeconds}
+              endSeconds={song.youtubeEndSeconds}
+              readOnly={readOnly}
+              onChange={(patch) => onChange(patch)}
+              onApplyMedleySegments={onApplyMedleySegments}
+            />
           )}
+
+          {readOnly &&
+            song.youtubeVideoId &&
+            formatSegmentRangeLabel(song.youtubeStartSeconds, song.youtubeEndSeconds) && (
+              <p className="text-sm text-night-700">
+                Video segment:{" "}
+                <span className="font-semibold">
+                  {formatSegmentRangeLabel(song.youtubeStartSeconds, song.youtubeEndSeconds)}
+                </span>
+                . Use Listen &amp; practice above to play this section.
+              </p>
+            )}
 
           <WorshipPracticeStemEditor
             song={song}
