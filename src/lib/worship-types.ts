@@ -197,6 +197,7 @@ export type WorshipLibrarySong = {
   chartUrl?: string | null;
   chartFileName?: string | null;
   notes?: string | null;
+  lyrics?: string | null;
   tags?: string[];
   useCount: number;
   createdBy: string;
@@ -349,7 +350,7 @@ export function songFromLibrary(entry: WorshipLibrarySong): WorshipSong {
     originalKey: entry.defaultKey,
     bpm: entry.bpm ?? undefined,
     notes: entry.notes ?? undefined,
-    lyrics: undefined,
+    lyrics: entry.lyrics?.trim() || undefined,
     parts: defaultSongParts(),
     youtubeVideoId: entry.youtubeVideoId ?? undefined,
     youtubeUrl: entry.youtubeUrl ?? undefined,

@@ -82,6 +82,8 @@ async function broadcastChoirUpdate(input: {
   pushBody: string;
   chatBody: string;
   pushUrl?: string;
+  /** When true, the person who triggered the update still receives a push (e.g. worship plan publish). */
+  includeActorInPush?: boolean;
 }) {
   const chatMessage = `${input.chatBody.trim()}\n\n💬 This update is in Shanah Worship group chat so nothing is missed.`;
 
@@ -95,7 +97,7 @@ async function broadcastChoirUpdate(input: {
     title: input.pushTitle,
     body: input.pushBody,
     url: input.pushUrl ?? choirChatUrl(),
-    excludeUserId: input.actor.id,
+    excludeUserId: input.includeActorInPush ? undefined : input.actor.id,
   });
 
   return { push, chat };
@@ -191,6 +193,7 @@ export async function notifyChoirWorshipPlanPublished(
     pushBody: formatWorshipPlanSetlistForPush(plan),
     chatBody: formatWorshipPlanSetlistForChat(plan),
     pushUrl: worshipPlannerPath(plan),
+    includeActorInPush: true,
   });
 }
 

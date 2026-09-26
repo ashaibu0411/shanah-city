@@ -8,6 +8,7 @@ import {
   saveWorshipLibrarySong,
 } from "@/lib/worship-song-library-server";
 import { fetchYouTubeOEmbed, lookupYouTubeVideo, resolveYouTubeVideo } from "@/lib/worship-youtube-utils";
+import { fetchSongLyrics } from "@/lib/worship-lyrics-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 
 async function requireWorshipLeader() {
@@ -59,6 +60,16 @@ export async function POST(request: Request) {
 
     const existing = await getWorshipLibrarySongByYouTubeVideoId(lookup.videoId);
     return NextResponse.json({ lookup, existing });
+  }
+
+  if (action === "fetch_lyrics") {
+    const title = String(body.title ?? "").trim();
+    const artist = body.artist ? String(body.artist).trim() : undefined;
+    if (!title) {
+      return NextResponse.json({ error: "Song title is required." }, { status: 400 });
+    }
+    const lyrics = await fetchSongLyrics({ title, artist });
+    return NextResponse.json({ lyrics });
   }
 
   if (action === "delete") {

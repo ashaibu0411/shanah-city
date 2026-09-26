@@ -397,12 +397,12 @@ export async function POST(request: Request) {
       (action === "publish" || action === "sync_choir_calendar") &&
       plan.status === "published"
     ) {
-      await publishWorshipPlanNotifications(plan, {
-        id: auth.user!.id,
-        name: auth.user!.name,
+      const actor = { id: auth.user!.id, name: auth.user!.name };
+      void publishWorshipPlanNotifications(plan, actor).catch((error) => {
+        console.error("worship plan notifications failed", error);
       });
       if (action === "publish") {
-        await trackLibrarySongUsage(plan.songs);
+        void trackLibrarySongUsage(plan.songs).catch(() => {});
       }
     }
 

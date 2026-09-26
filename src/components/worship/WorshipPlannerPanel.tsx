@@ -12,6 +12,7 @@ import { WorshipSchedulePanel } from "@/components/worship/WorshipSchedulePanel"
 import { WorshipMemberSuggestions } from "@/components/worship/WorshipMemberSuggestions";
 import { WorshipSongWorkspace } from "@/components/worship/WorshipSongWorkspace";
 import { WorshipSongBreakdownListen } from "@/components/worship/WorshipSongBreakdownListen";
+import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBreakdownLyrics";
 import {
   buildTeamReadiness,
   emptyWorshipSong,
@@ -100,6 +101,10 @@ export function WorshipPlannerPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [hidden, setHidden] = useState(false);
   const [expandedSongId, setExpandedSongId] = useState<string | null>(null);
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [saveAction, setSaveAction] = useState<"save" | "publish" | "unpublish" | "delete" | null>(
+    null,
+  );
 
   const readiness = useMemo(() => buildTeamReadiness({ team, songs }), [team, songs]);
   const myMember = team.find((member) => member.userId === user?.id);
@@ -112,6 +117,35 @@ export function WorshipPlannerPanel({
     }
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [roster, songs]);
+
+  function applyLoadedPlan(next: WorshipServicePlan | null) {
+    if (next) {
+      setPlan(next);
+      setSongs(next.songs);
+      setTeam(next.team);
+      setTitle(next.title ?? "");
+      setRehearsalNotes(next.rehearsalNotes ?? "");
+      setRehearsalDate(next.rehearsalDate ?? "");
+      setRehearsalTime(next.rehearsalTime ?? "19:00");
+      setCalendarEventId(next.calendarEventId ?? "");
+      setUploadDutyUserId(next.uploadDutyUserId ?? "");
+      setMemberSuggestions(next.memberSuggestions ?? []);
+      setStatus(next.status);
+      return;
+    }
+
+    setPlan(null);
+    setSongs([]);
+    setTeam([]);
+    setTitle("");
+    setRehearsalNotes("");
+    setRehearsalDate(suggestedRehearsalDate(serviceDate));
+    setRehearsalTime("19:00");
+    setCalendarEventId("");
+    setUploadDutyUserId("");
+    setMemberSuggestions([]);
+    setStatus("draft");
+  }
 
   async function loadPlan() {
     setLoading(true);
@@ -127,31 +161,7 @@ export function WorshipPlannerPanel({
     }
 
     setHidden(Boolean(data.hidden));
-    if (data.plan) {
-      setPlan(data.plan);
-      setSongs(data.plan.songs);
-      setTeam(data.plan.team);
-      setTitle(data.plan.title ?? "");
-      setRehearsalNotes(data.plan.rehearsalNotes ?? "");
-      setRehearsalDate(data.plan.rehearsalDate ?? "");
-      setRehearsalTime(data.plan.rehearsalTime ?? "19:00");
-      setCalendarEventId(data.plan.calendarEventId ?? "");
-      setUploadDutyUserId(data.plan.uploadDutyUserId ?? "");
-      setMemberSuggestions(data.plan.memberSuggestions ?? []);
-      setStatus(data.plan.status);
-    } else {
-      setPlan(null);
-      setSongs([]);
-      setTeam([]);
-      setTitle("");
-      setRehearsalNotes("");
-      setRehearsalDate(suggestedRehearsalDate(serviceDate));
-      setRehearsalTime("19:00");
-      setCalendarEventId("");
-      setUploadDutyUserId("");
-      setMemberSuggestions([]);
-      setStatus("draft");
-    }
+    applyLoadedPlan(data.plan ?? null);
     setMessage(null);
   }
 
@@ -214,45 +224,68 @@ export function WorshipPlannerPanel({
   }, [initialSongId, songs, loading]);
 
   async function savePlan(action: "save" | "publish" | "unpublish" | "delete") {
-    setMessage(null);
-    const response = await fetch("/api/worship", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action,
-        serviceDate,
-        serviceTime,
-        title,
-        songs,
-        team,
-        rehearsalNotes,
-        rehearsalDate,
-        rehearsalTime,
-        calendarEventId: calendarEventId || undefined,
-        uploadDutyUserId: uploadDutyUserId || undefined,
-        uploadDutyUserName: team.find((member) => member.userId === uploadDutyUserId)?.name,
-        memberSuggestions,
-        status,
-      }),
-    });
-    const data = await response.json();
+    if (savingPlan) return;
 
-    if (response.ok) {
-      if (action === "delete") {
-        setMessage("Service plan deleted.");
-      } else if (action === "publish") {
-        setMessage("Plan published for the worship team.");
-      } else if (action === "unpublish") {
-        setMessage("Plan moved back to draft.");
-      } else {
-        setMessage("Plan saved.");
-      }
-      loadPlan();
-      loadUpcoming();
-      return;
+    setSavingPlan(true);
+    setSaveAction(action);
+    setMessage(null);
+
+    const previousStatus = status;
+    if (action === "publish") {
+      setStatus("published");
+    } else if (action === "unpublish") {
+      setStatus("draft");
     }
 
-    setMessage(data.error ?? "Could not save worship plan.");
+    try {
+      const response = await fetch("/api/worship", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          serviceDate,
+          serviceTime,
+          title,
+          songs,
+          team,
+          rehearsalNotes,
+          rehearsalDate,
+          rehearsalTime,
+          calendarEventId: calendarEventId || undefined,
+          uploadDutyUserId: uploadDutyUserId || undefined,
+          uploadDutyUserName: team.find((member) => member.userId === uploadDutyUserId)?.name,
+          memberSuggestions,
+          status: action === "publish" ? "published" : action === "unpublish" ? "draft" : status,
+        }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        if (action === "delete") {
+          applyLoadedPlan(null);
+          setMessage("Service plan deleted.");
+        } else if (data.plan) {
+          applyLoadedPlan(data.plan);
+          if (action === "publish") {
+            setMessage("Plan published for the worship team. Notifications are on the way.");
+          } else if (action === "unpublish") {
+            setMessage("Plan moved back to draft.");
+          } else {
+            setMessage("Plan saved.");
+          }
+        } else {
+          await loadPlan();
+        }
+        loadUpcoming();
+        return;
+      }
+
+      setStatus(previousStatus);
+      setMessage(data.error ?? "Could not save worship plan.");
+    } finally {
+      setSavingPlan(false);
+      setSaveAction(null);
+    }
   }
 
   async function copyFromLastSunday() {
@@ -505,10 +538,40 @@ export function WorshipPlannerPanel({
     );
   }
 
-  function addSongFromLibrary(entry: WorshipLibrarySong) {
-    setSongs((current) => [...current, songFromLibrary(entry)]);
+  async function addSongFromLibrary(entry: WorshipLibrarySong) {
+    const song = songFromLibrary(entry);
+    setSongs((current) => [...current, song]);
     setTab("plan");
     setMessage(`${entry.title} added to this service plan.`);
+
+    if (song.lyrics?.trim()) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/worship/songs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "fetch_lyrics",
+          title: entry.title,
+          artist: entry.artist ?? undefined,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok && typeof data.lyrics === "string" && data.lyrics.trim()) {
+        setSongs((current) =>
+          current.map((item) =>
+            item.id === song.id ? { ...item, lyrics: data.lyrics.trim() } : item,
+          ),
+        );
+        setMessage(
+          `${entry.title} added with lyrics. Save or publish the plan so singers can open them.`,
+        );
+      }
+    } catch {
+      // Lyrics lookup is best-effort.
+    }
   }
 
   function removeTeamMember(userId: string) {
@@ -963,6 +1026,10 @@ export function WorshipPlannerPanel({
                     />
                   )}
 
+                  {(status === "published" || !showEditor) && (
+                    <WorshipSongBreakdownLyrics title={song.title} lyrics={song.lyrics} />
+                  )}
+
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                     <ProgressDots prepared={teamPreparedCount} total={team.length || songs.length} />
                     {myMember && plan && (
@@ -1165,18 +1232,36 @@ export function WorshipPlannerPanel({
             </label>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button onClick={() => savePlan("save")}>Save draft</Button>
-              <Button variant="secondary" onClick={() => savePlan("publish")}>
-                Publish for team
+              <Button disabled={savingPlan} onClick={() => savePlan("save")}>
+                {savingPlan && saveAction === "save" ? "Saving…" : "Save draft"}
+              </Button>
+              <Button
+                disabled={savingPlan}
+                variant="secondary"
+                onClick={() => savePlan("publish")}
+              >
+                {savingPlan && saveAction === "publish"
+                  ? "Publishing…"
+                  : status === "published"
+                    ? "Update & notify team"
+                    : "Publish for team"}
               </Button>
               {plan && status === "published" && (
-                <Button variant="secondary" onClick={() => savePlan("unpublish")}>
-                  Unpublish
+                <Button
+                  disabled={savingPlan}
+                  variant="secondary"
+                  onClick={() => savePlan("unpublish")}
+                >
+                  {savingPlan && saveAction === "unpublish" ? "Unpublishing…" : "Unpublish"}
                 </Button>
               )}
               {plan && (
-                <Button variant="secondary" onClick={() => savePlan("delete")}>
-                  Delete plan
+                <Button
+                  disabled={savingPlan}
+                  variant="secondary"
+                  onClick={() => savePlan("delete")}
+                >
+                  {savingPlan && saveAction === "delete" ? "Deleting…" : "Delete plan"}
                 </Button>
               )}
             </div>
