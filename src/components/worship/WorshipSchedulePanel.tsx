@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { RotationPoolEditor } from "@/components/admin/RotationPoolEditor";
 import { Button, Card } from "@/components/ui";
+import { WorshipServicePlanPickerButton } from "@/components/worship/WorshipServicePlanPickerButton";
+import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 import {
   WORSHIP_SERVICE_TIMES,
   serviceDateTimeLabel,
@@ -26,6 +29,7 @@ export function WorshipSchedulePanel({
   onOpenService?: (serviceDate: string, serviceTime: string) => void;
   readOnly?: boolean;
 }) {
+  const router = useRouter();
   const [config, setConfig] = useState<WorshipScheduleRotationConfig | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [pool, setPool] = useState<WorshipRotationPoolMember[]>([]);
@@ -181,6 +185,16 @@ export function WorshipSchedulePanel({
     return <p className="text-sm text-night-500">Loading schedule settings…</p>;
   }
 
+  function openAssignment(entry: Assignment) {
+    if (readOnly && entry.status === "published") {
+      router.push(worshipMemberServicePath(entry));
+      return;
+    }
+    onOpenService?.(entry.serviceDate, entry.serviceTime);
+  }
+
+  const scheduleIsPublished = config?.status === "published";
+
   return (
     <div className="space-y-6">
       {!readOnly && (
@@ -303,7 +317,7 @@ export function WorshipSchedulePanel({
         <Card>
           <h3 className="font-display text-lg font-semibold text-night-900">Leader rotation</h3>
           <p className="mt-2 text-sm text-night-600">
-            Upcoming worship leaders for the published choir schedule.
+            Tap a service below to open the published setlist and practice materials.
           </p>
         </Card>
       )}
@@ -311,32 +325,53 @@ export function WorshipSchedulePanel({
       {assignments.length > 0 && (
         <Card>
           <h3 className="font-display text-lg font-semibold text-night-900">Upcoming assignments</h3>
-          <ul className="mt-4 space-y-2 text-sm">
-            {assignments.map((entry) => (
-              <li
-                key={`${entry.serviceDate}-${entry.serviceTime}`}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-night-900/5 px-4 py-3"
-              >
-                <div>
-                  <p className="font-semibold text-night-900">
-                    {serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)}
-                  </p>
-                  <p className="text-xs text-night-500">
-                    Leader: {entry.leader?.name ?? "Not set"}
-                    {entry.uploadDutyUserName ? ` · Upload duty: ${entry.uploadDutyUserName}` : ""}
-                  </p>
-                </div>
-                {onOpenService && (
-                  <button
-                    type="button"
-                    onClick={() => onOpenService(entry.serviceDate, entry.serviceTime)}
-                    className="text-sm font-semibold text-violet-700 hover:underline"
-                  >
-                    Open plan
-                  </button>
-                )}
-              </li>
-            ))}
+          {readOnly && scheduleIsPublished ? (
+            <p className="mt-1 text-sm text-night-600">
+              Each row opens that Sunday&apos;s worship plan when it is published.
+            </p>
+          ) : null}
+          <ul className="mt-4 space-y-2.5">
+            {assignments.map((entry) => {
+              const label = serviceDateTimeLabel(entry.serviceDate, entry.serviceTime);
+              const description = [
+                entry.leader?.name ? `Leader: ${entry.leader.name}` : "Leader not set",
+                entry.uploadDutyUserName ? `Upload duty: ${entry.uploadDutyUserName}` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ");
+              const published = entry.status === "published";
+              const canOpen = Boolean(onOpenService) || (readOnly && published);
+
+              if (canOpen) {
+                return (
+                  <li key={`${entry.serviceDate}-${entry.serviceTime}`}>
+                    <WorshipServicePlanPickerButton
+                      label={label}
+                      description={description}
+                      published={published}
+                      actionLabel={
+                        readOnly && published
+                          ? "Open setlist"
+                          : readOnly
+                            ? "View service"
+                            : "Open plan"
+                      }
+                      onClick={() => openAssignment(entry)}
+                    />
+                  </li>
+                );
+              }
+
+              return (
+                <li
+                  key={`${entry.serviceDate}-${entry.serviceTime}`}
+                  className="rounded-xl border border-night-900/8 bg-sand-50/80 px-4 py-3 text-sm dark:border-white/10 dark:bg-[var(--color-bg-soft)]"
+                >
+                  <p className="font-semibold text-night-900 dark:text-sand-100">{label}</p>
+                  <p className="mt-1 text-xs text-night-500 dark:text-sand-400">{description}</p>
+                </li>
+              );
+            })}
           </ul>
         </Card>
       )}

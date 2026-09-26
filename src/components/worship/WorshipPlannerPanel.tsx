@@ -2,12 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { premiumTabPill } from "@/components/app/mobile-premium";
 import { Button, Card } from "@/components/ui";
 import { WorshipSongLibraryPanel } from "@/components/worship/WorshipSongLibraryPanel";
 import { WorshipMyPartPanel } from "@/components/worship/WorshipMyPartPanel";
 import { WorshipRehearsalNotesReader } from "@/components/worship/WorshipRehearsalNotesReader";
+import { WorshipServicePlanPickerButton } from "@/components/worship/WorshipServicePlanPickerButton";
+import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 import { WorshipRehearsalRecordings } from "@/components/worship/WorshipRehearsalRecordings";
 import { WorshipSchedulePanel } from "@/components/worship/WorshipSchedulePanel";
 import { WorshipChoirServicePanel } from "@/components/worship/WorshipChoirServicePanel";
@@ -82,6 +85,7 @@ export function WorshipPlannerPanel({
   initialTab?: string;
 } = {}) {
   const { user, permissions } = useAuth();
+  const router = useRouter();
   const canManage = permissions.canManageWorshipPlan;
   const resolvedInitialTab =
     initialTab === "library" ||
@@ -637,21 +641,27 @@ export function WorshipPlannerPanel({
     setTeam((current) => current.filter((member) => member.userId !== userId));
   }
 
+  function selectServiceDateTime(date: string, time: string) {
+    setServiceDate(date);
+    setServiceTime(time);
+    setTab("plan");
+  }
+
+  function openUpcomingPlan(entry: WorshipServicePlan) {
+    if (!canManage && entry.status === "published") {
+      router.push(worshipMemberServicePath(entry));
+      return;
+    }
+    selectServiceDateTime(entry.serviceDate, entry.serviceTime);
+  }
+
   if (tab === "schedule") {
     return (
       <>
         <PlannerTabBar />
         <WorshipSchedulePanel
           readOnly={!canManage}
-          onOpenService={
-            canManage
-              ? (date, time) => {
-                  setServiceDate(date);
-                  setServiceTime(time);
-                  setTab("plan");
-                }
-              : undefined
-          }
+          onOpenService={selectServiceDateTime}
         />
       </>
     );
@@ -738,25 +748,19 @@ export function WorshipPlannerPanel({
           <Card className="mb-6 mt-4">
             <h3 className="font-display text-lg font-semibold text-night-900">Published services</h3>
             <p className="mt-1 text-sm text-night-600">
-              Open a service that already has a published plan.
+              Tap a published service to open the setlist and practice materials.
             </p>
-            <ul className="mt-4 space-y-2 text-sm">
+            <ul className="mt-4 space-y-2.5">
               {upcomingPlans
                 .filter((entry) => entry.status === "published")
                 .slice(0, 8)
                 .map((entry) => (
                   <li key={entry.id}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setServiceDate(entry.serviceDate);
-                        setServiceTime(entry.serviceTime);
-                        setTab("plan");
-                      }}
-                      className="font-medium text-violet-800 hover:underline"
-                    >
-                      {serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)}
-                    </button>
+                    <WorshipServicePlanPickerButton
+                      label={serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)}
+                      published
+                      onClick={() => openUpcomingPlan(entry)}
+                    />
                   </li>
                 ))}
             </ul>
@@ -1408,21 +1412,21 @@ export function WorshipPlannerPanel({
       {upcomingPlans.length > 0 && (
         <Card className="mb-6">
           <h3 className="font-display text-lg font-semibold text-night-900">Upcoming services</h3>
-          <ul className="mt-4 space-y-2 text-sm">
+          <p className="mt-1 text-sm text-night-600">
+            Tap a row to open that service{canManage ? " in the planner" : ""}.
+          </p>
+          <ul className="mt-4 space-y-2.5">
             {upcomingPlans.slice(0, 8).map((entry) => (
               <li key={entry.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setServiceDate(entry.serviceDate);
-                    setServiceTime(entry.serviceTime);
-                    setTab("plan");
-                  }}
-                  className="font-medium text-night-900 hover:underline"
-                >
-                  {serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)}
-                </button>
-                <span className="ml-2 capitalize text-night-500">{entry.status}</span>
+                <WorshipServicePlanPickerButton
+                  label={serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)}
+                  description={entry.status === "draft" ? "Draft — not visible to the team yet" : undefined}
+                  published={entry.status === "published"}
+                  actionLabel={
+                    entry.status === "published" && !canManage ? "Open setlist" : "Open"
+                  }
+                  onClick={() => openUpcomingPlan(entry)}
+                />
               </li>
             ))}
           </ul>
