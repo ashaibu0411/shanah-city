@@ -726,6 +726,22 @@ model WorshipSongLibrary {
   @@index([title])
 }
 
+model WorshipRehearsalRecording {
+  id              String   @id
+  serviceDate     String
+  serviceTime     String
+  title           String
+  audioUrl        String
+  fileName        String
+  durationSeconds Int?
+  recordedBy      String
+  recordedByName  String
+  createdAt       DateTime
+
+  @@index([serviceDate, serviceTime])
+  @@index([recordedBy])
+}
+
 model GroupChatMessage {
   id             String   @id
   groupId        String
