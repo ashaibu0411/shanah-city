@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { premiumTabPill } from "@/components/app/mobile-premium";
@@ -101,6 +101,8 @@ export function WorshipPlannerPanel({
   const [copyTargetTime, setCopyTargetTime] = useState("11:30");
   const [message, setMessage] = useState<string | null>(null);
   const [hidden, setHidden] = useState(false);
+  const [hiddenReason, setHiddenReason] = useState<"draft" | null>(null);
+  const autoPickedServiceRef = useRef(false);
   const [expandedSongId, setExpandedSongId] = useState<string | null>(null);
   const [savingPlan, setSavingPlan] = useState(false);
   const [saveAction, setSaveAction] = useState<"save" | "publish" | "unpublish" | "delete" | null>(
@@ -162,6 +164,7 @@ export function WorshipPlannerPanel({
     }
 
     setHidden(Boolean(data.hidden));
+    setHiddenReason(data.hiddenReason === "draft" ? "draft" : data.hidden ? "draft" : null);
     applyLoadedPlan(data.plan ?? null);
     setMessage(null);
   }
@@ -223,6 +226,39 @@ export function WorshipPlannerPanel({
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }, [initialSongId, songs, loading]);
+
+  useEffect(() => {
+    if (canManage || loading || autoPickedServiceRef.current) return;
+    if (initialDate || initialTime) return;
+
+    const published = upcomingPlans.filter((entry) => entry.status === "published");
+    if (published.length === 0) return;
+
+    const hasPublishedForSelection = published.some(
+      (entry) => entry.serviceDate === serviceDate && entry.serviceTime === serviceTime,
+    );
+    if (hasPublishedForSelection && !hidden) {
+      autoPickedServiceRef.current = true;
+      return;
+    }
+
+    const onSameDate = published.filter((entry) => entry.serviceDate === serviceDate);
+    const pick = onSameDate[0] ?? published[0];
+    if (pick.serviceDate !== serviceDate || pick.serviceTime !== serviceTime) {
+      autoPickedServiceRef.current = true;
+      setServiceDate(pick.serviceDate);
+      setServiceTime(pick.serviceTime);
+    }
+  }, [
+    canManage,
+    loading,
+    hidden,
+    upcomingPlans,
+    serviceDate,
+    serviceTime,
+    initialDate,
+    initialTime,
+  ]);
 
   async function savePlan(action: "save" | "publish" | "unpublish" | "delete") {
     if (savingPlan) return;
@@ -673,7 +709,7 @@ export function WorshipPlannerPanel({
     );
   }
 
-  if (hidden) {
+  if (hidden && hiddenReason === "draft") {
     return (
       <>
         <PlannerTabBar />
@@ -685,11 +721,39 @@ export function WorshipPlannerPanel({
             Once the plan is published, open <strong>My part</strong> for your lines and practice uploads.
           </p>
         </Card>
+        {upcomingPlans.length > 0 && (
+          <Card className="mb-6 mt-4">
+            <h3 className="font-display text-lg font-semibold text-night-900">Published services</h3>
+            <p className="mt-1 text-sm text-night-600">
+              Open a service that already has a published plan.
+            </p>
+            <ul className="mt-4 space-y-2 text-sm">
+              {upcomingPlans
+                .filter((entry) => entry.status === "published")
+                .slice(0, 8)
+                .map((entry) => (
+                  <li key={entry.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setServiceDate(entry.serviceDate);
+                        setServiceTime(entry.serviceTime);
+                        setTab("plan");
+                      }}
+                      className="font-medium text-violet-800 hover:underline"
+                    >
+                      {serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)}
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </Card>
+        )}
       </>
     );
   }
 
-  const showEditor = canManage || !plan;
+  const showEditor = canManage;
 
   return (
     <>
@@ -1303,6 +1367,16 @@ export function WorshipPlannerPanel({
         </Card>
       )}
 
+      {!showEditor && !plan && !hidden && (
+        <Card className="mb-6">
+          <h3 className="font-display text-lg font-semibold text-night-900">No plan for this service</h3>
+          <p className="mt-2 text-sm text-night-600">
+            There is no worship plan for {serviceDateTimeLabel(serviceDate, serviceTime)} yet. Try
+            another service time below, or ask your worship leader to publish the plan.
+          </p>
+        </Card>
+      )}
+
       {upcomingPlans.length > 0 && (
         <Card className="mb-6">
           <h3 className="font-display text-lg font-semibold text-night-900">Upcoming services</h3>
@@ -1314,6 +1388,7 @@ export function WorshipPlannerPanel({
                   onClick={() => {
                     setServiceDate(entry.serviceDate);
                     setServiceTime(entry.serviceTime);
+                    setTab("plan");
                   }}
                   className="font-medium text-night-900 hover:underline"
                 >

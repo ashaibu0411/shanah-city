@@ -8,6 +8,7 @@ import { listMediaClips } from "@/lib/media-clips-server";
 import { mediaClipPageHref } from "@/lib/media-clips-utils";
 import { getCommunityPostsForViewer } from "@/lib/member-server";
 import type { AppNotificationItem, FeedReadKey } from "@/lib/notification-types";
+import { userIsInWorshipGroup } from "@/lib/worship-access-server";
 import { listWorshipPlans } from "@/lib/worship-server";
 import { isDevotionPubliclyVisible } from "@/lib/devotion-utils";
 
@@ -144,12 +145,14 @@ async function getMediaItems(since: Date) {
 }
 
 async function getWorshipItems(userId: string, since: Date) {
+  if (!(await userIsInWorshipGroup(userId))) {
+    return [];
+  }
+
   const plans = await listWorshipPlans({ status: "published" });
   const items: AppNotificationItem[] = [];
 
   for (const plan of plans) {
-    const onTeam = plan.team.some((member) => member.userId === userId);
-    if (!onTeam) continue;
     const at = plan.publishedAt ?? plan.updatedAt;
     if (!isAfter(at, since)) continue;
 

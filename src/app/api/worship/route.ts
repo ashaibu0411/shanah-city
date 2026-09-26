@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   canAccessWorshipPlanner,
   canManageWorshipPlan,
+  canViewWorshipServicePlan,
   getConfiguredWorshipGroupId,
 } from "@/lib/worship-access-server";
 import {
@@ -11,6 +12,7 @@ import {
   clonePlanContent,
   serviceDateTimeLabel,
   suggestedRehearsalDate,
+  type WorshipServicePlan,
   type WorshipServiceTime,
   type WorshipSong,
   type WorshipTeamMember,
@@ -72,10 +74,8 @@ function parseTeam(body: Record<string, unknown>): WorshipTeamMember[] {
   return body.team as WorshipTeamMember[];
 }
 
-function canViewPlan(userId: string, canManage: boolean, plan: { status: string; team: WorshipTeamMember[] }) {
-  if (canManage) return true;
-  if (plan.status !== "published") return false;
-  return plan.team.some((member) => member.userId === userId);
+function canViewPlan(canManage: boolean, plan: Pick<WorshipServicePlan, "status">) {
+  return canViewWorshipServicePlan(canManage, plan);
 }
 
 export async function GET(request: Request) {
@@ -128,15 +128,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ plan: null, canManage });
     }
 
-    if (!canViewPlan(auth.user!.id, canManage, plan)) {
-      return NextResponse.json({ plan: null, canManage, hidden: true });
+    if (!canViewPlan(canManage, plan)) {
+      return NextResponse.json({ plan: null, canManage, hidden: true, hiddenReason: "draft" });
     }
 
     return NextResponse.json({ plan, canManage });
   }
 
   const plans = await listWorshipPlans({ since, until });
-  const visiblePlans = plans.filter((plan) => canViewPlan(auth.user!.id, canManage, plan));
+  const visiblePlans = plans.filter((plan) => canViewPlan(canManage, plan));
 
   return NextResponse.json({ plans: visiblePlans, canManage });
 }
@@ -176,7 +176,7 @@ export async function POST(request: Request) {
           notes: String(body.notes ?? ""),
         });
 
-        if (!plan || !canViewPlan(auth.user!.id, canManage, plan)) {
+        if (!plan || !canViewPlan(canManage, plan)) {
           return NextResponse.json({ error: "Plan not available." }, { status: 403 });
         }
 
@@ -239,7 +239,7 @@ export async function POST(request: Request) {
         );
       }
 
-      if (!canViewPlan(auth.user!.id, canManage, plan)) {
+      if (!canViewPlan(canManage, plan)) {
         return NextResponse.json({ error: "Plan not available." }, { status: 403 });
       }
 

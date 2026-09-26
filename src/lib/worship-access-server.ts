@@ -4,6 +4,7 @@ import { canManageGroupEvents } from "@/lib/group-permissions-server";
 import { getGroupDetail, getGroups } from "@/lib/group-server";
 import { isUserInGroup } from "@/lib/media-group";
 import { WORSHIP_GROUP_ID } from "@/lib/worship-types";
+import type { WorshipServicePlan } from "@/lib/worship-types";
 
 export { WORSHIP_GROUP_ID };
 
@@ -54,4 +55,13 @@ export async function getWorshipPermissions(user: PublicMember | null) {
     canAccessWorshipPlanner: canAccess,
     canManageWorshipPlan: canManage,
   };
+}
+
+/** Published plans are visible to any choir member with planner access (not only the service roster). */
+export function canViewWorshipServicePlan(
+  canManage: boolean,
+  plan: Pick<WorshipServicePlan, "status">,
+) {
+  if (canManage) return true;
+  return plan.status === "published";
 }

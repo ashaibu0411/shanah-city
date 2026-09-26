@@ -5,6 +5,7 @@ import { WorshipRunSheetView } from "@/components/worship/WorshipRunSheetView";
 import {
   canAccessWorshipPlanner,
   canManageWorshipPlan,
+  canViewWorshipServicePlan,
 } from "@/lib/worship-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getWorshipPlan } from "@/lib/worship-server";
@@ -12,16 +13,6 @@ import { getWorshipPlan } from "@/lib/worship-server";
 export const metadata: Metadata = {
   title: "Run sheet",
 };
-
-function canViewPlan(
-  userId: string,
-  canManage: boolean,
-  plan: { status: string; team: Array<{ userId: string }> },
-) {
-  if (canManage) return true;
-  if (plan.status !== "published") return false;
-  return plan.team.some((member) => member.userId === userId);
-}
 
 export default async function WorshipRunSheetPage({
   searchParams,
@@ -55,7 +46,7 @@ export default async function WorshipRunSheetPage({
     redirect(`/worship?date=${encodeURIComponent(serviceDate)}&time=${encodeURIComponent(serviceTime)}`);
   }
 
-  if (!canViewPlan(user.id, canManage, plan)) {
+  if (!canViewWorshipServicePlan(canManage, plan)) {
     redirect("/worship");
   }
 
