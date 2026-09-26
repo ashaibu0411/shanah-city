@@ -6,12 +6,21 @@ const WORSHIP_PATH =
 const WORSHIP_HTTP =
   /\bhttps?:\/\/[^\s<>\[\]{}|\\^`"]*(?:\/worship(?:\/[^\s<>\[\]{}|\\^`"]*)?(?:\?[^\s<>\[\]{}|\\^`"]*)?)/i;
 
+const WORSHIP_LINK_AFTER_LABEL =
+  /(?:Full planner|Open the planner|Open service setlist|Open setlist(?: & practice)?)\s*(?:\([^)]*\))?\s*:?\s*(\/(?:worship)[^\s<]+|https?:\/\/[^\s<]+)/i;
+
 export function trimChatLinkTrailingPunctuation(value: string) {
   let trimmed = value;
   while (/[.,;:!?)}\]'"\u201d]$/.test(trimmed)) {
     trimmed = trimmed.slice(0, -1);
   }
   return trimmed;
+}
+
+export function isValidAppNavigationHref(href: string): boolean {
+  if (!href.startsWith("/")) return false;
+  if (/[()]/.test(href)) return false;
+  return /^\/(?:worship|groups)(?:\/|$|\?)/.test(href);
 }
 
 export function appPathFromAbsoluteUrl(url: string): string | null {
@@ -29,15 +38,23 @@ export function appPathFromAbsoluteUrl(url: string): string | null {
 /** Prefer member setlist for old planner deep links in chat history. */
 export function normalizeWorshipChatHref(pathOrUrl: string): string {
   const trimmed = trimChatLinkTrailingPunctuation(pathOrUrl.trim());
+  if (!trimmed) {
+    return "/worship";
+  }
+
   const path = trimmed.startsWith("http")
     ? appPathFromAbsoluteUrl(trimmed) ?? trimmed
     : trimmed;
 
   if (!path.startsWith("/worship")) {
-    return path;
+    return isValidAppNavigationHref(path) ? path : "/worship";
   }
 
   if (path.startsWith("/worship/service")) {
+    return path;
+  }
+
+  if (path.startsWith("/worship/run-sheet")) {
     return path;
   }
 
@@ -58,7 +75,29 @@ export function normalizeWorshipChatHref(pathOrUrl: string): string {
     }
   }
 
-  return path;
+  return isValidAppNavigationHref(path) ? path : "/worship";
+}
+
+export function extractWorshipHrefFromChatBody(body: string): string | null {
+  const httpMatch = body.match(WORSHIP_HTTP);
+  if (httpMatch?.[0]) {
+    const href = normalizeWorshipChatHref(trimChatLinkTrailingPunctuation(httpMatch[0]));
+    if (isValidAppNavigationHref(href)) return href;
+  }
+
+  const pathMatch = body.match(WORSHIP_PATH);
+  if (pathMatch?.[1]) {
+    const href = normalizeWorshipChatHref(pathMatch[1]);
+    if (isValidAppNavigationHref(href)) return href;
+  }
+
+  const labeled = body.match(WORSHIP_LINK_AFTER_LABEL);
+  if (labeled?.[1]) {
+    const href = normalizeWorshipChatHref(labeled[1]);
+    if (isValidAppNavigationHref(href)) return href;
+  }
+
+  return null;
 }
 
 export type WorshipChatAction = {
@@ -70,42 +109,23 @@ export function worshipChatActionForMessage(text: string): WorshipChatAction | n
   const body = text.trim();
   if (!body) return null;
 
+  const extracted = extractWorshipHrefFromChatBody(body);
+  if (extracted) {
+    return {
+      href: extracted,
+      label: extracted.includes("tab=schedule") ? "Open worship schedule" : "Open setlist",
+    };
+  }
+
   if (/Worship leader schedule published/i.test(body) || /📋 Worship leader schedule/i.test(body)) {
     return { href: "/worship?tab=schedule", label: "Open worship schedule" };
   }
 
-  const labeledPath = body.match(
-    /(?:Full planner|Open the planner|Open setlist(?: & practice)?|In planner|Open service setlist)\s*:?\s*(\S+)/i,
-  );
-  if (labeledPath?.[1]) {
-    const raw = trimChatLinkTrailingPunctuation(labeledPath[1]);
-    const href = normalizeWorshipChatHref(raw);
-    return { href, label: href.includes("tab=schedule") ? "Open worship schedule" : "Open setlist" };
-  }
-
-  const pathMatch = body.match(WORSHIP_PATH);
-  if (pathMatch?.[1]) {
-    const href = normalizeWorshipChatHref(pathMatch[1]);
-    return {
-      href,
-      label: href.includes("tab=schedule") ? "Open worship schedule" : "Open setlist",
-    };
-  }
-
-  const httpMatch = body.match(WORSHIP_HTTP);
-  if (httpMatch?.[0]) {
-    const href = normalizeWorshipChatHref(trimChatLinkTrailingPunctuation(httpMatch[0]));
-    return {
-      href,
-      label: href.includes("tab=schedule") ? "Open worship schedule" : "Open setlist",
-    };
-  }
-
-  if (/🎵 Worship plan|Worship plan published/i.test(body)) {
+  if (/📅 New schedule|✏️ Schedule updated/i.test(body)) {
     return { href: "/worship?tab=schedule", label: "Open worship schedule" };
   }
 
-  if (/📅 New schedule|✏️ Schedule updated/i.test(body)) {
+  if (/🎵 Worship plan|Worship plan published/i.test(body)) {
     return { href: "/worship?tab=schedule", label: "Open worship schedule" };
   }
 

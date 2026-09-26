@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Fragment, useMemo, type ReactNode } from "react";
 import {
   appPathFromAbsoluteUrl,
+  isValidAppNavigationHref,
   normalizeWorshipChatHref,
   trimChatLinkTrailingPunctuation,
 } from "@/lib/worship-chat-links";
@@ -90,6 +91,12 @@ export function ChatMessageText({ text, className, linkClassName }: ChatMessageT
       }
 
       const linkClass = `${linkClassName ?? ""} break-all`;
+      if (!match.external && !isValidAppNavigationHref(match.href)) {
+        parts.push(match.label);
+        lastIndex = match.index + match.length;
+        continue;
+      }
+
       if (match.external) {
         parts.push(
           <a

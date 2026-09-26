@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { WorshipChatAction } from "@/lib/worship-chat-links";
+import { isValidAppNavigationHref, type WorshipChatAction } from "@/lib/worship-chat-links";
 
 export function ChatWorshipActionButton({
   action,
@@ -12,6 +12,10 @@ export function ChatWorshipActionButton({
   mine?: boolean;
   hub?: boolean;
 }) {
+  if (!isValidAppNavigationHref(action.href)) {
+    return null;
+  }
+
   return (
     <Link
       href={action.href}
