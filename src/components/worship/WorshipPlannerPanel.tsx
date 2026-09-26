@@ -9,6 +9,7 @@ import { WorshipSongLibraryPanel } from "@/components/worship/WorshipSongLibrary
 import { WorshipMyPartPanel } from "@/components/worship/WorshipMyPartPanel";
 import { WorshipRehearsalRecordings } from "@/components/worship/WorshipRehearsalRecordings";
 import { WorshipSchedulePanel } from "@/components/worship/WorshipSchedulePanel";
+import { WorshipChoirServicePanel } from "@/components/worship/WorshipChoirServicePanel";
 import { WorshipMemberSuggestions } from "@/components/worship/WorshipMemberSuggestions";
 import { WorshipSongWorkspace } from "@/components/worship/WorshipSongWorkspace";
 import { WorshipSongBreakdownListen } from "@/components/worship/WorshipSongBreakdownListen";
@@ -72,14 +73,25 @@ export function WorshipPlannerPanel({
   initialDate,
   initialTime,
   initialSongId,
+  initialTab,
 }: {
   initialDate?: string;
   initialTime?: string;
   initialSongId?: string;
+  initialTab?: string;
 } = {}) {
   const { user, permissions } = useAuth();
   const canManage = permissions.canManageWorshipPlan;
-  const [tab, setTab] = useState<"plan" | "library" | "my-part" | "rehearsals" | "schedule">("plan");
+  const resolvedInitialTab =
+    initialTab === "library" ||
+    initialTab === "my-part" ||
+    initialTab === "rehearsals" ||
+    initialTab === "schedule"
+      ? initialTab
+      : "plan";
+  const [tab, setTab] = useState<"plan" | "library" | "my-part" | "rehearsals" | "schedule">(
+    resolvedInitialTab,
+  );
   const [serviceDate, setServiceDate] = useState(initialDate || nextServiceSundayIso());
   const [serviceTime, setServiceTime] = useState<string>(initialTime || "10:00");
   const [plan, setPlan] = useState<WorshipServicePlan | null>(null);
@@ -754,6 +766,21 @@ export function WorshipPlannerPanel({
   }
 
   const showEditor = canManage;
+
+  if (!canManage && tab === "plan") {
+    return (
+      <>
+        <PlannerTabBar />
+        <WorshipChoirServicePanel
+          initialDate={serviceDate}
+          initialTime={serviceTime}
+          initialSongId={initialSongId}
+          serverPlan={plan}
+          canManage={false}
+        />
+      </>
+    );
+  }
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { getYouTubeWatchUrlWithSegment, formatSegmentRangeLabel } from "@/lib/worship-youtube-timestamp-utils";
+import { getYouTubeWatchUrlWithSegment } from "@/lib/worship-youtube-timestamp-utils";
 import { getAppBaseUrl } from "@/lib/share-urls";
 import {
   normalizePracticeStems,
@@ -20,6 +20,28 @@ export function worshipPlannerPath(
     params.set("song", songId);
   }
   return `/worship?${params.toString()}`;
+}
+
+/** Choir-friendly setlist page (listen, lyrics, essentials — not the full planner). */
+export function worshipMemberServicePath(
+  plan: Pick<WorshipServicePlan, "serviceDate" | "serviceTime">,
+  songId?: string,
+) {
+  const params = new URLSearchParams({
+    date: plan.serviceDate,
+    time: String(plan.serviceTime),
+  });
+  if (songId) {
+    params.set("song", songId);
+  }
+  return `/worship/service?${params.toString()}`;
+}
+
+export function worshipMemberServiceUrl(
+  plan: Pick<WorshipServicePlan, "serviceDate" | "serviceTime">,
+  songId?: string,
+) {
+  return `${getAppBaseUrl()}${worshipMemberServicePath(plan, songId)}`;
 }
 
 export function worshipPlannerUrl(
@@ -70,21 +92,18 @@ export function formatWorshipPlanSetlistForPush(plan: WorshipServicePlan) {
 export function formatWorshipPlanSetlistForChat(plan: WorshipServicePlan) {
   const songs = normalizeSongs(plan.songs);
   const headline = plan.title?.trim() || serviceDateTimeLabel(plan.serviceDate, plan.serviceTime);
-  const plannerUrl = worshipPlannerUrl(plan);
+  const setlistUrl = worshipMemberServiceUrl(plan);
 
   if (songs.length === 0) {
-    return `🎵 Worship plan published: ${headline}\nOpen the planner: ${plannerUrl}`;
+    return `🎵 Worship plan published: ${headline}\n\nOpen setlist & practice:\n${setlistUrl}`;
   }
 
-  const lines = songs.map((song, index) => {
+  const lines = songs.slice(0, 8).map((song, index) => {
     const title = song.title.trim() || "Untitled";
-    const key = song.key?.trim() ? ` · Key ${song.key.trim()}` : "";
-    const segment = formatSegmentRangeLabel(song.youtubeStartSeconds, song.youtubeEndSeconds);
-    const segmentNote = segment ? ` · Video ${segment}` : "";
-    const listen = worshipSongListenUrl(song, plan);
-    const inPlanner = worshipPlannerUrl(plan, song.id);
-    return `${index + 1}. ${title}${key}${segmentNote}\n   Listen: ${listen}\n   In planner: ${inPlanner}`;
+    const key = song.key?.trim() ? ` · ${song.key.trim()}` : "";
+    return `${index + 1}. ${title}${key}`;
   });
+  const more = songs.length > 8 ? `\n… +${songs.length - 8} more on the setlist page` : "";
 
-  return `🎵 Worship plan published: ${headline}\n\nSetlist:\n${lines.join("\n\n")}\n\nFull planner: ${plannerUrl}`;
+  return `🎵 Worship plan: ${headline}\n\nOpen setlist & practice (tap link):\n${setlistUrl}\n\n${lines.join("\n")}${more}`;
 }

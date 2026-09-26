@@ -15,7 +15,8 @@ import { serviceDateTimeLabel, type WorshipServicePlan } from "@/lib/worship-typ
 import {
   formatWorshipPlanSetlistForChat,
   formatWorshipPlanSetlistForPush,
-  worshipPlannerPath,
+  worshipMemberServicePath,
+  worshipMemberServiceUrl,
 } from "@/lib/worship-plan-links";
 import type { ChurchEvent } from "@/lib/types";
 
@@ -149,13 +150,20 @@ export async function notifyChoirServiceScheduleSaved(input: {
   const program = programLabel(config, input.entry.program);
   const when = serviceDateTimeLabel(input.entry.serviceDate, input.entry.serviceTime);
   const preview = formatGroupScheduleCalendarPreview(input.entry, config);
+  const setlistUrl = worshipMemberServiceUrl({
+    serviceDate: input.entry.serviceDate,
+    serviceTime: input.entry.serviceTime,
+  });
 
   return broadcastChoirUpdate({
     actor: input.actor,
     pushTitle: input.isUpdate ? "Choir schedule updated" : "New choir schedule",
     pushBody: `${program} · ${when}`,
-    chatBody: `${input.isUpdate ? "✏️ Schedule updated" : "📅 New schedule"} — ${program} · ${when}\n${preview}`,
-    pushUrl: choirCalendarUrl(),
+    chatBody: `${input.isUpdate ? "✏️ Schedule updated" : "📅 New schedule"} — ${program} · ${when}\n${preview}\n\nOpen service setlist:\n${setlistUrl}`,
+    pushUrl: worshipMemberServicePath({
+      serviceDate: input.entry.serviceDate,
+      serviceTime: input.entry.serviceTime,
+    }),
   });
 }
 
@@ -192,7 +200,7 @@ export async function notifyChoirWorshipPlanPublished(
     pushTitle: "Worship plan published",
     pushBody: formatWorshipPlanSetlistForPush(plan),
     chatBody: formatWorshipPlanSetlistForChat(plan),
-    pushUrl: worshipPlannerPath(plan),
+    pushUrl: worshipMemberServicePath(plan),
     includeActorInPush: true,
   });
 }

@@ -10,6 +10,7 @@ import { getCommunityPostsForViewer } from "@/lib/member-server";
 import type { AppNotificationItem, FeedReadKey } from "@/lib/notification-types";
 import { userIsInWorshipGroup } from "@/lib/worship-access-server";
 import { listWorshipPlans } from "@/lib/worship-server";
+import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 import { isDevotionPubliclyVisible } from "@/lib/devotion-utils";
 
 const MAX_ITEMS_PER_FEED = 8;
@@ -161,7 +162,10 @@ async function getWorshipItems(userId: string, since: Date) {
       type: "worship",
       title: "Worship plan published",
       body: plan.title?.trim() || `${plan.serviceDate} service`,
-      href: `/worship?date=${encodeURIComponent(plan.serviceDate)}&time=${encodeURIComponent(String(plan.serviceTime))}`,
+      href: worshipMemberServicePath({
+        serviceDate: plan.serviceDate,
+        serviceTime: String(plan.serviceTime),
+      }),
       count: 1,
       at: at!,
     });

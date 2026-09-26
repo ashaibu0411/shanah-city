@@ -3,13 +3,13 @@ import { cookies } from "next/headers";
 import { WorshipPlannerPanel } from "@/components/worship/WorshipPlannerPanel";
 import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import { PageHeader } from "@/components/ui";
-import { canAccessWorshipPlanner } from "@/lib/worship-access-server";
+import { canAccessWorshipPlanner, canManageWorshipPlan } from "@/lib/worship-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 
 export default async function WorshipPlannerPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string; time?: string; song?: string }>;
+  searchParams: Promise<{ date?: string; time?: string; song?: string; tab?: string }>;
 }) {
   const params = await searchParams;
   const cookieStore = await cookies();
@@ -22,6 +22,19 @@ export default async function WorshipPlannerPage({
 
   if (!(await canAccessWorshipPlanner(user))) {
     redirect("/groups");
+  }
+
+  const canManage = await canManageWorshipPlan(user);
+
+  if (!canManage && params.date?.trim() && !params.tab) {
+    const serviceParams = new URLSearchParams({
+      date: params.date.trim(),
+      time: params.time?.trim() || "10:00",
+    });
+    if (params.song?.trim()) {
+      serviceParams.set("song", params.song.trim());
+    }
+    redirect(`/worship/service?${serviceParams.toString()}`);
   }
 
   return (
@@ -38,6 +51,7 @@ export default async function WorshipPlannerPage({
         initialDate={params.date}
         initialTime={params.time}
         initialSongId={params.song}
+        initialTab={params.tab}
       />
     </>
   );

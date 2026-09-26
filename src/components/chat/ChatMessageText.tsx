@@ -5,6 +5,8 @@ import { Fragment, useMemo, type ReactNode } from "react";
 const URL_PATTERN =
   /\b(?:https?:\/\/|www\.)[^\s<>\[\]{}|\\^`"]+/gi;
 
+const APP_PATH_PATTERN = /(?:^|\s)(\/(?:worship|groups)(?:\/[^\s<>\[\]{}|\\^`"]*)?)/gi;
+
 function trimTrailingUrlPunctuation(url: string) {
   let trimmed = url;
   while (/[.,;:!?)}\]'"\u201d]$/.test(trimmed)) {

@@ -27,6 +27,7 @@ import {
   type PushDeliveryResult,
 } from "@/lib/push-delivery-utils";
 import { getAppNotifications } from "@/lib/notification-server";
+import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 
 export type { PushDeliveryResult } from "@/lib/push-delivery-utils";
 export { shouldMarkScheduledPushComplete } from "@/lib/push-delivery-utils";
@@ -523,7 +524,10 @@ export async function notifyWorshipPlanPublished(input: {
     {
       title: "New worship plan published",
       body: input.title,
-      url: `/worship?date=${encodeURIComponent(input.serviceDate)}&time=${encodeURIComponent(input.serviceTime)}`,
+      url: worshipMemberServicePath({
+        serviceDate: input.serviceDate,
+        serviceTime: input.serviceTime,
+      }),
     },
     "worship",
   );
@@ -546,7 +550,10 @@ export async function notifyWorshipRehearsalReminder(plan: {
     {
       title: "Worship rehearsal reminder",
       body,
-      url: `/worship?date=${encodeURIComponent(plan.serviceDate)}&time=${encodeURIComponent(plan.serviceTime)}`,
+      url: worshipMemberServicePath({
+        serviceDate: plan.serviceDate,
+        serviceTime: plan.serviceTime,
+      }),
     },
     "worship",
   );
