@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui";
 import { WorshipSongBreakdownListen } from "@/components/worship/WorshipSongBreakdownListen";
 import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBreakdownLyrics";
+import { WorshipRehearsalNotesReader } from "@/components/worship/WorshipRehearsalNotesReader";
 import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 import { formatSegmentRangeLabel } from "@/lib/worship-youtube-timestamp-utils";
 import {
@@ -69,6 +70,7 @@ export function WorshipChoirServiceView({
   const headline =
     title.trim() || plan?.title?.trim() || serviceDateTimeLabel(serviceDate, serviceTime);
   const hubPath = `/worship?date=${encodeURIComponent(serviceDate)}&time=${encodeURIComponent(serviceTime)}`;
+  const serviceLabel = serviceDateTimeLabel(serviceDate, serviceTime);
 
   if (!plan || status !== "published") {
     return (
@@ -162,6 +164,10 @@ export function WorshipChoirServiceView({
           </Button>
         </Card>
       )}
+
+      {rehearsalNotes.trim() ? (
+        <WorshipRehearsalNotesReader notes={rehearsalNotes} serviceLabel={serviceLabel} />
+      ) : null}
 
       {songs.length === 0 ? (
         <Card className="p-5">
@@ -271,30 +277,16 @@ export function WorshipChoirServiceView({
           aria-expanded={detailsOpen}
         >
           <span className="text-sm font-semibold text-night-900 dark:text-sand-100">
-            Team &amp; rehearsal notes
+            Team readiness
           </span>
           <span className={`text-night-400 transition ${detailsOpen ? "rotate-180" : ""}`}>▾</span>
         </button>
         {detailsOpen && (
-          <div className="space-y-4 border-t border-night-900/8 px-4 pb-4 pt-3 dark:border-white/10">
-            {rehearsalNotes.trim() && (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
-                  Rehearsal notes
-                </p>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-night-700 dark:text-sand-200">
-                  {rehearsalNotes}
-                </p>
-              </div>
-            )}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
-                Team readiness
-              </p>
-              <p className="mt-1 text-sm font-semibold text-night-900 dark:text-sand-100">
-                {readiness.readyCount} of {readiness.totalCount || team.length} ready
-              </p>
-              <ul className="mt-3 space-y-2">
+          <div className="space-y-3 border-t border-night-900/8 px-4 pb-4 pt-3 dark:border-white/10">
+            <p className="text-sm font-semibold text-night-900 dark:text-sand-100">
+              {readiness.readyCount} of {readiness.totalCount || team.length} ready
+            </p>
+            <ul className="space-y-2">
                 {readiness.members.map((member) => (
                   <li
                     key={member.userId}
@@ -310,7 +302,6 @@ export function WorshipChoirServiceView({
                   </li>
                 ))}
               </ul>
-            </div>
           </div>
         )}
       </Card>

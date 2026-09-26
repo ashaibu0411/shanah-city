@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { RichTextContent } from "@/components/ui/RichTextContent";
 import {
   rehearsalDateTimeLabel,
   serviceDateTimeLabel,
@@ -119,9 +120,9 @@ export function WorshipRunSheetView({ plan, autoPrint = false }: WorshipRunSheet
             <h2 className="text-xs font-semibold uppercase tracking-wide text-night-500">
               Rehearsal notes
             </h2>
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-night-700">
-              {plan.rehearsalNotes}
-            </p>
+            <div className="mt-3 text-sm leading-relaxed text-night-700">
+              <RichTextContent text={plan.rehearsalNotes} />
+            </div>
           </section>
         )}
 

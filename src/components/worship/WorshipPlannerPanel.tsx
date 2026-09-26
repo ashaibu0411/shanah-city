@@ -7,6 +7,7 @@ import { premiumTabPill } from "@/components/app/mobile-premium";
 import { Button, Card } from "@/components/ui";
 import { WorshipSongLibraryPanel } from "@/components/worship/WorshipSongLibraryPanel";
 import { WorshipMyPartPanel } from "@/components/worship/WorshipMyPartPanel";
+import { WorshipRehearsalNotesReader } from "@/components/worship/WorshipRehearsalNotesReader";
 import { WorshipRehearsalRecordings } from "@/components/worship/WorshipRehearsalRecordings";
 import { WorshipSchedulePanel } from "@/components/worship/WorshipSchedulePanel";
 import { WorshipChoirServicePanel } from "@/components/worship/WorshipChoirServicePanel";
@@ -1341,9 +1342,9 @@ export function WorshipPlannerPanel({
               <textarea
                 value={rehearsalNotes}
                 onChange={(event) => setRehearsalNotes(event.target.value)}
-                rows={3}
+                rows={10}
                 placeholder="Run order, transitions, who leads which song…"
-                className="mt-2 w-full rounded-xl border border-night-900/10 bg-sand-50 p-3 text-sm outline-none ring-night-900/5 focus:ring-2"
+                className="mt-2 min-h-[14rem] w-full resize-y rounded-xl border border-night-900/10 bg-sand-50 p-3 text-sm leading-relaxed outline-none ring-night-900/5 focus:ring-2"
               />
             </label>
 
@@ -1386,12 +1387,12 @@ export function WorshipPlannerPanel({
       )}
 
       {!showEditor && plan?.rehearsalNotes && (
-        <Card className="mb-6">
-          <h3 className="font-display text-lg font-semibold text-night-900">Rehearsal notes</h3>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-night-700">
-            {plan.rehearsalNotes}
-          </p>
-        </Card>
+        <div className="mb-6">
+          <WorshipRehearsalNotesReader
+            notes={plan.rehearsalNotes}
+            serviceLabel={serviceDateTimeLabel(serviceDate, serviceTime)}
+          />
+        </div>
       )}
 
       {!showEditor && !plan && !hidden && (
