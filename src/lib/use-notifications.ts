@@ -33,6 +33,7 @@ export async function refreshAppNotificationBadge(): Promise<AppNotificationsSum
       const response = await fetch("/api/notifications", {
         credentials: "include",
         cache: "no-store",
+        headers: { "X-Sync-App-Badge": "1" },
       });
 
       if (response.status === 401) {

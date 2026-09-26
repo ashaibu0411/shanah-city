@@ -3,9 +3,10 @@ import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { markFeedsRead } from "@/lib/feed-read-server";
 import { getAppNotifications } from "@/lib/notification-server";
+import { syncNativeAppBadgeForUser } from "@/lib/native-push-server";
 import { FEED_READ_KEYS, type FeedReadKey } from "@/lib/notification-types";
 
-export async function GET() {
+export async function GET(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -15,6 +16,9 @@ export async function GET() {
   }
 
   const summary = await getAppNotifications(user.id);
+  if (request.headers.get("x-sync-app-badge") === "1") {
+    void syncNativeAppBadgeForUser(user.id, summary.total);
+  }
   return NextResponse.json(summary);
 }
 
@@ -32,6 +36,7 @@ export async function POST(request: Request) {
   if (body.action === "clearAllFeeds") {
     await markFeedsRead(user.id, FEED_READ_KEYS);
     const summary = await getAppNotifications(user.id);
+    void syncNativeAppBadgeForUser(user.id, summary.total);
     return NextResponse.json(summary);
   }
 
@@ -50,5 +55,6 @@ export async function POST(request: Request) {
 
   await markFeedsRead(user.id, validFeeds);
   const summary = await getAppNotifications(user.id);
+  void syncNativeAppBadgeForUser(user.id, summary.total);
   return NextResponse.json(summary);
 }

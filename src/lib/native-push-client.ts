@@ -295,11 +295,11 @@ export async function startNativePushListeners() {
   });
 
   await PushNotifications.addListener("pushNotificationReceived", (notification) => {
-    const data = notification.data as { url?: string; appBadgeCount?: string } | undefined;
+    const data = notification.data as { url?: string; appBadgeCount?: string; badgeSync?: string } | undefined;
     const parsedBadge = data?.appBadgeCount ? Number(data.appBadgeCount) : NaN;
     if (Number.isFinite(parsedBadge)) {
       void syncAppIconBadgeCount(parsedBadge);
-    } else {
+    } else if (data?.badgeSync !== "1") {
       window.dispatchEvent(new Event("shanah-notifications-changed"));
     }
     showForegroundNotification({

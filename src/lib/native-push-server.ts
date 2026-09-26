@@ -3,7 +3,17 @@ import { connect } from "node:http2";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
 import type { StoredNativePushToken } from "@/lib/stores/push-json";
+import * as pushDb from "@/lib/stores/push-db";
+import * as pushJson from "@/lib/stores/push-json";
+import { useDatabase } from "@/lib/use-database";
 import { getPushIconUrl } from "@/lib/push-branding";
+
+const pushTokenStore = () => (useDatabase() ? pushDb : pushJson);
+
+function clampBadgeCount(count: number) {
+  if (!Number.isFinite(count) || count < 0) return 0;
+  return Math.min(99, Math.floor(count));
+}
 
 export type NativePushPayload = {
   title: string;
@@ -195,6 +205,120 @@ async function sendApnsWithFallback(token: string, payload: NativePushPayload) {
     }
     await sendApns(token, payload, !preferredProduction);
   }
+}
+
+/** Silent APNs update so the iOS home-screen badge matches server unread counts. */
+function sendApnsBadge(token: string, badgeCount: number, production = process.env.APNS_PRODUCTION !== "false") {
+  const bundleId = process.env.APNS_BUNDLE_ID?.trim() || "org.shanahcity.app";
+  const host = production ? "api.push.apple.com" : "api.sandbox.push.apple.com";
+  const jwt = apnsJwt();
+  const badge = clampBadgeCount(badgeCount);
+  const body = JSON.stringify({
+    aps: {
+      badge,
+      "content-available": 1,
+    },
+  });
+
+  return new Promise<void>((resolve, reject) => {
+    const client = connect(`https://${host}`);
+    const fail = (error: unknown) => {
+      try {
+        client.close();
+      } catch {
+        // Already closed.
+      }
+      reject(error);
+    };
+    client.on("error", fail);
+    const request = client.request({
+      ":method": "POST",
+      ":path": `/3/device/${token}`,
+      authorization: `bearer ${jwt}`,
+      "apns-topic": bundleId,
+      "apns-push-type": "background",
+      "apns-priority": "5",
+      "content-type": "application/json",
+    });
+    let response = "";
+    let status = 0;
+    request.on("response", (headers) => {
+      status = Number(headers[":status"] ?? 0);
+    });
+    request.setEncoding("utf8");
+    request.on("data", (chunk) => {
+      response += chunk;
+    });
+    request.on("end", () => {
+      client.close();
+      if (status >= 200 && status < 300) {
+        resolve();
+        return;
+      }
+      const error = new Error(response || `APNs badge status ${status}`) as Error & {
+        status: number;
+      };
+      error.status = status;
+      reject(error);
+    });
+    request.end(body);
+  });
+}
+
+async function sendApnsBadgeWithFallback(token: string, badgeCount: number) {
+  const preferredProduction = process.env.APNS_PRODUCTION !== "false";
+  try {
+    await sendApnsBadge(token, badgeCount, preferredProduction);
+  } catch (error) {
+    if (!isApnsEnvironmentMismatch(error)) {
+      throw error;
+    }
+    await sendApnsBadge(token, badgeCount, !preferredProduction);
+  }
+}
+
+async function sendAndroidBadgeUpdate(token: string, badgeCount: number) {
+  const messaging = firebaseMessaging();
+  if (!messaging) return;
+
+  const badge = clampBadgeCount(badgeCount);
+  await messaging.send({
+    token,
+    data: {
+      appBadgeCount: String(badge),
+      badgeSync: "1",
+    },
+    android: {
+      priority: "normal",
+    },
+  });
+}
+
+/** Push the correct launcher badge to native devices (fixes stale iOS APNs badges). */
+export async function syncNativeAppBadgeForUser(userId: string, badgeCount: number) {
+  if (!isNativePushConfigured()) return;
+
+  const tokens = (await pushTokenStore().getNativePushTokens()).filter((item) => item.userId === userId);
+  if (tokens.length === 0) return;
+
+  await Promise.all(
+    tokens.map(async (record) => {
+      try {
+        if (record.platform === "ios") {
+          if (!isIosNativePushConfigured()) return;
+          await sendApnsBadgeWithFallback(record.token, badgeCount);
+          return;
+        }
+        if (record.platform === "android" && isAndroidNativePushConfigured()) {
+          await sendAndroidBadgeUpdate(record.token, badgeCount);
+        }
+      } catch (error) {
+        if (shouldDropNativeToken(error)) {
+          await pushTokenStore().removeNativePushToken(userId, record.token);
+        }
+      }
+    }),
+  );
 }
 
 export async function sendNativePush(
