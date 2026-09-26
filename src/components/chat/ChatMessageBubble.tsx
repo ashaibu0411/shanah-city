@@ -4,6 +4,8 @@ import { useRef, useState, useMemo } from "react";
 import type { ChatMessageReaction } from "@/lib/chat-utils";
 import { formatDeletedMessageContent, getChatAttachmentApiUrl, messageIsUnsent } from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
+import { ChatWorshipActionButton } from "@/components/chat/ChatWorshipActionButton";
+import { worshipChatActionForMessage } from "@/lib/worship-chat-links";
 import { ChatMessageReplyQuote } from "@/components/chat/ChatMessageReplyQuote";
 import { ChatReactionEmojiPicker } from "@/components/chat/ChatReactionEmojiPicker";
 import { MessageReactions } from "@/components/chat/MessageReactions";
@@ -99,6 +101,10 @@ export function ChatMessageBubble({
 
   const displayContent = formatDeletedMessageContent(content, deletedAt);
   const unsent = messageIsUnsent(deletedAt, content);
+  const worshipChatAction = useMemo(
+    () => (unsent || !displayContent ? null : worshipChatActionForMessage(displayContent)),
+    [displayContent, unsent],
+  );
   const imageSrc = getChatAttachmentApiUrl(attachmentUrl);
   const youtubeVideoIds = useMemo(
     () => (unsent ? [] : extractYouTubeVideoIdsFromText(displayContent)),
@@ -428,6 +434,9 @@ export function ChatMessageBubble({
                           : "font-semibold text-night-900 underline decoration-night-900/30 underline-offset-2"
                   }
                 />
+              ) : null}
+              {worshipChatAction && !editing ? (
+                <ChatWorshipActionButton action={worshipChatAction} mine={mine} hub={hub} />
               ) : null}
               {youtubeVideoIds.map((videoId) => (
                 <ChatYouTubeEmbed key={videoId} videoId={videoId} vertical={hub} />

@@ -18,6 +18,7 @@ import {
   worshipMemberServicePath,
   worshipMemberServiceUrl,
 } from "@/lib/worship-plan-links";
+import { getAppBaseUrl } from "@/lib/share-urls";
 import type { ChurchEvent } from "@/lib/types";
 
 function choirGroupId() {
@@ -213,7 +214,7 @@ export async function notifyChoirWorshipRotationPublished(input: {
     actor: input.actor,
     pushTitle: "Worship leader schedule published",
     pushBody: input.body,
-    chatBody: `📋 Worship leader schedule published\n${input.body}`,
+    chatBody: `📋 Worship leader schedule published\n${input.body}\n\nOpen worship schedule:\n${getAppBaseUrl()}/worship?tab=schedule`,
     pushUrl: "/worship?tab=schedule",
   });
 }
