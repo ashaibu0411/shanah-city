@@ -58,6 +58,8 @@ export function shouldMarkScheduledPushComplete(result: PushDeliveryResult) {
   if (!result.configured) return false;
   if (result.failedUsers > 0) return false;
   if (result.deliveredUsers > 0) return true;
+  // Members opted in but have no registered device yet — keep retrying (e.g. Android token sync).
+  if (result.skippedNoDeviceUsers > 0) return false;
   return result.eligibleUsers === 0;
 }
 

@@ -182,13 +182,14 @@ export function devotionMatchesDenverDate(devotion: Devotion, dateKey: string) {
 
 export function pickTodayDevotionForNotify(devotions: Devotion[], now = new Date()) {
   const todayKey = getZonedDateParts(now).dateKey;
-  const candidates = devotions
+  const forToday = devotions
     .filter(
       (devotion) =>
         devotion.published !== false && devotionMatchesDenverDate(devotion, todayKey),
     )
     .sort(sortDevotionsForDisplay);
-  return candidates[0] ?? null;
+  const churchWide = forToday.filter((devotion) => !devotionHasTag(devotion, DEVOTION_TAG_COUPLES));
+  return churchWide[0] ?? forToday[0] ?? null;
 }
 
 export function pickTodayDevotion(devotions: Devotion[], now = new Date()) {

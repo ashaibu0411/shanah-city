@@ -162,6 +162,8 @@ export async function processScheduledDevotionNotifications(reference = new Date
       iosConfigured: isIosNativePushConfigured(),
       registeredNativeDevices: nativeTokens.length,
       registeredWebDevices: webSubs.length,
+      registeredAndroidDevices: nativeTokens.filter((t) => t.platform === "android").length,
+      registeredIosDevices: nativeTokens.filter((t) => t.platform === "ios").length,
     },
     delivery: attempts.reduce(
       (summary, entry) => ({

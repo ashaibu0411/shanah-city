@@ -319,14 +319,14 @@ export async function notifyNewDevotion(input: {
     ? `/devotions/${encodeURIComponent(input.devotionId)}`
     : "/devotions";
 
-  return sendPushToUsers(
+  return sendPushToUsersWithAnyPreference(
     userIds,
     {
       title: "New devotion ready",
       body: input.title,
       url,
     },
-    "devotions",
+    ["devotions", "announcements", "worship"],
   );
 }
 

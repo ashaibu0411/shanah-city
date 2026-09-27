@@ -2,15 +2,19 @@
   "crons": [
     {
       "path": "/api/cron/publish-devotions",
-      "schedule": "30 13 * * *"
+      "schedule": "25,35,45,55 13 * * *"
     },
     {
       "path": "/api/cron/publish-devotions",
-      "schedule": "30 14 * * *"
+      "schedule": "5,15,25,35,45,55 14 * * *"
+    },
+    {
+      "path": "/api/cron/publish-devotions",
+      "schedule": "5,15 15 * * *"
     },
     {
       "path": "/api/cron/morning-prayer",
-      "schedule": "57 14 * * *"
+      "schedule": "52,57,2,7,12,17 13,14,15 * * 1-5"
     },
     {
       "path": "/api/cron/evening-prayer",
