@@ -297,10 +297,21 @@ export function WorshipChoirServiceView({
         {detailsOpen && (
           <div className="space-y-3 border-t border-night-900/8 px-4 pb-4 pt-3 dark:border-white/10">
             <p className="text-sm font-semibold text-night-900 dark:text-sand-100">
-              {readiness.readyCount} of {readiness.totalCount || team.length} ready
+              {readiness.readyCount} of {readiness.totalCount} ready
             </p>
+            {readiness.totalCount === 0 ? (
+              <p className="text-xs leading-relaxed text-night-500 dark:text-sand-400">
+                Your worship leader adds the service team in the planner. When you&apos;re on the roster,
+                mark each song prepared, then mark yourself ready.
+              </p>
+            ) : null}
             <ul className="space-y-2">
-                {readiness.members.map((member) => (
+                {readiness.members.length === 0 ? (
+                  <li className="text-xs text-night-500 dark:text-sand-400">
+                    No team roster for this service yet.
+                  </li>
+                ) : (
+                  readiness.members.map((member) => (
                   <li
                     key={member.userId}
                     className="flex items-center justify-between rounded-xl bg-sand-50 px-3 py-2 text-sm dark:bg-[var(--color-bg-soft)]"
@@ -313,7 +324,8 @@ export function WorshipChoirServiceView({
                       {member.ready ? " · Ready" : ""}
                     </span>
                   </li>
-                ))}
+                  ))
+                )}
               </ul>
           </div>
         )}

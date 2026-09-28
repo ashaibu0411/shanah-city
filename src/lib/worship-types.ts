@@ -557,6 +557,43 @@ export function buildTeamReadiness(plan: Pick<WorshipServicePlan, "team" | "song
   };
 }
 
+/** Map choir calendar service-schedule roles onto worship plan team roles. */
+export function worshipRoleFromScheduleAssignment(role: string): WorshipRole {
+  const normalized = role.trim().toLowerCase();
+  if (normalized === "worship" || normalized === "praise-worship") {
+    return "worship-leader";
+  }
+  return "singer";
+}
+
+/** Match schedule names to choir roster accounts for worship plan team import. */
+export function teamMembersFromScheduleAssignments(
+  assignments: Array<{ role: string; personName: string }>,
+  roster: Array<{ id: string; name: string }>,
+): WorshipTeamMember[] {
+  const rosterByName = new Map(
+    roster.map((member) => [member.name.trim().toLowerCase(), member] as const),
+  );
+  const seen = new Set<string>();
+  const team: WorshipTeamMember[] = [];
+
+  for (const assignment of assignments) {
+    const name = assignment.personName.trim();
+    if (!name) continue;
+    const rosterMember = rosterByName.get(name.toLowerCase());
+    if (!rosterMember || seen.has(rosterMember.id)) continue;
+    seen.add(rosterMember.id);
+    team.push({
+      userId: rosterMember.id,
+      name: rosterMember.name,
+      role: worshipRoleFromScheduleAssignment(assignment.role),
+      ready: false,
+    });
+  }
+
+  return normalizeTeam(team);
+}
+
 export function nextServiceSundayIso(reference = new Date()) {
   const date = new Date(reference);
   const day = date.getDay();

@@ -54,6 +54,7 @@ export function WorshipSongLibraryPanel({ onAddToPlan, onBackToPlan }: WorshipSo
   const [uploading, setUploading] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [listeningSongId, setListeningSongId] = useState<string | null>(null);
 
   async function loadSongs(search = query) {
     setLoading(true);
@@ -333,6 +334,18 @@ export function WorshipSongLibraryPanel({ onAddToPlan, onBackToPlan }: WorshipSo
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2 sm:shrink-0 sm:justify-end">
+                      {song.youtubeVideoId ? (
+                        <Button
+                          variant="secondary"
+                          onClick={() =>
+                            setListeningSongId((current) =>
+                              current === song.id ? null : song.id,
+                            )
+                          }
+                        >
+                          {listeningSongId === song.id ? "Hide" : "Listen"}
+                        </Button>
+                      ) : null}
                       {onAddToPlan ? (
                         <Button onClick={() => onAddToPlan(song)}>Add to plan</Button>
                       ) : null}
@@ -344,6 +357,14 @@ export function WorshipSongLibraryPanel({ onAddToPlan, onBackToPlan }: WorshipSo
                       </Button>
                     </div>
                   </div>
+                  {listeningSongId === song.id && song.youtubeVideoId ? (
+                    <div className="mt-2 rounded-[1.1rem] border border-night-900/8 bg-sand-50/80 p-3 dark:border-white/10 dark:bg-[var(--color-bg-soft)]">
+                      <WorshipYouTubeReference
+                        videoId={song.youtubeVideoId}
+                        title={song.title}
+                      />
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>

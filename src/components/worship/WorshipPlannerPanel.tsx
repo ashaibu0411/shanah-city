@@ -29,9 +29,11 @@ import {
   serviceDateTimeLabel,
   songFromLibrary,
   suggestedRehearsalDate,
+  teamMembersFromScheduleAssignments,
   worshipRoleLabel,
   worshipPartLabel,
   worshipSegmentLabel,
+  WORSHIP_GROUP_ID,
   WORSHIP_PART_ROLES,
   WORSHIP_ROLES,
   WORSHIP_SERVICE_TIMES,
@@ -132,6 +134,7 @@ export function WorshipPlannerPanel({
   const [saveAction, setSaveAction] = useState<"save" | "publish" | "unpublish" | "delete" | null>(
     null,
   );
+  const [importingTeam, setImportingTeam] = useState(false);
 
   const readiness = useMemo(() => buildTeamReadiness({ team, songs }), [team, songs]);
   const setlistGroups = useMemo(() => buildSetlistDisplayGroups(songs), [songs]);
@@ -553,6 +556,61 @@ export function WorshipPlannerPanel({
     ]);
   }
 
+  async function importTeamFromServiceSchedule() {
+    setImportingTeam(true);
+    setMessage(null);
+    const response = await fetch(
+      `/api/groups/service-schedule?groupId=${encodeURIComponent(WORSHIP_GROUP_ID)}`,
+    );
+    const data = await response.json();
+    setImportingTeam(false);
+
+    if (!response.ok) {
+      setMessage(data.error ?? "Could not load service schedule.");
+      return;
+    }
+
+    const entries = (data.entries ?? []) as Array<{
+      serviceDate: string;
+      serviceTime: string;
+      assignments: Array<{ role: string; personName: string }>;
+    }>;
+    const match = entries.find(
+      (entry) => entry.serviceDate === serviceDate && entry.serviceTime === serviceTime,
+    );
+
+    if (!match) {
+      setMessage(
+        "No choir service schedule for this date and time. Add leaders under Groups → Choir → Service schedule.",
+      );
+      return;
+    }
+
+    const imported = teamMembersFromScheduleAssignments(match.assignments, roster);
+    if (imported.length === 0) {
+      setMessage(
+        "Schedule names did not match choir roster accounts. Match spelling to member profiles, or add people manually below.",
+      );
+      return;
+    }
+
+    setTeam((current) => {
+      const seen = new Set(current.map((entry) => entry.userId));
+      const merged = [...current];
+      for (const member of imported) {
+        if (!seen.has(member.userId)) {
+          merged.push(member);
+          seen.add(member.userId);
+        }
+      }
+      return merged;
+    });
+
+    setMessage(
+      `Imported ${imported.length} team member${imported.length === 1 ? "" : "s"} from the service schedule. Save the plan when you are done.`,
+    );
+  }
+
   async function reviewStem(songId: string, partRole: string, decision: "approve" | "remove") {
     const response = await fetch("/api/worship", {
       method: "POST",
@@ -935,15 +993,15 @@ export function WorshipPlannerPanel({
             </p>
           )}
 
-          {plan && (
-            <div className="rounded-2xl bg-sand-50 p-4">
+          {canManage && (
+            <div className="rounded-2xl bg-sand-50 p-4 dark:bg-[var(--color-bg-soft)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-night-500 dark:text-sand-400">
                     Team readiness
                   </p>
-                  <p className="font-display text-2xl font-semibold text-night-900">
-                    {readiness.readyCount} of {readiness.totalCount || "0"} ready
+                  <p className="font-display text-2xl font-semibold text-night-900 dark:text-sand-100">
+                    {readiness.readyCount} of {readiness.totalCount} ready
                   </p>
                 </div>
                 {myMember && (
@@ -955,6 +1013,21 @@ export function WorshipPlannerPanel({
                   </Button>
                 )}
               </div>
+              {readiness.totalCount === 0 ? (
+                <p className="mt-3 text-sm leading-relaxed text-night-600 dark:text-sand-300">
+                  Readiness tracks people on this service&apos;s{" "}
+                  <strong className="font-semibold text-night-800 dark:text-sand-100">team roster</strong>
+                  . Add members below or import from the choir{" "}
+                  <strong className="font-semibold text-night-800 dark:text-sand-100">service schedule</strong>
+                  . Each person marks songs prepared on the setlist, then taps{" "}
+                  <strong className="font-semibold text-night-800 dark:text-sand-100">Mark myself ready</strong>.
+                </p>
+              ) : (
+                <p className="mt-2 text-xs text-night-500 dark:text-sand-400">
+                  {readiness.readyCount} marked ready · song prep dots show how many setlist songs each
+                  person checked off.
+                </p>
+              )}
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-night-900/10">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-all"
@@ -966,6 +1039,27 @@ export function WorshipPlannerPanel({
                   }}
                 />
               </div>
+              {readiness.totalCount === 0 && canManage ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    disabled={importingTeam}
+                    onClick={() => importTeamFromServiceSchedule()}
+                  >
+                    {importingTeam ? "Importing…" : "Import from service schedule"}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      document
+                        .getElementById("worship-team-roster")
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }
+                  >
+                    Add team manually
+                  </Button>
+                </div>
+              ) : null}
             </div>
           )}
         </div>
@@ -1321,13 +1415,22 @@ export function WorshipPlannerPanel({
             </div>
           </Card>
 
+          <div id="worship-team-roster">
           <Card className="mb-6">
             <h3 className="font-display text-lg font-semibold text-night-900">Team roster</h3>
             <p className="mt-1 text-sm text-night-600">
-              Pull members from Shanah Worship (Choir) and assign roles for this service.
+              Assign who is serving this service. Team readiness counts only people listed here—not
+              every choir member.
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                disabled={importingTeam}
+                onClick={() => importTeamFromServiceSchedule()}
+              >
+                {importingTeam ? "Importing…" : "Import from service schedule"}
+              </Button>
               <select
                 id="roster-add"
                 defaultValue=""
@@ -1435,6 +1538,7 @@ export function WorshipPlannerPanel({
               </span>
             </label>
           </Card>
+          </div>
 
           <WorshipMemberSuggestions
             serviceDate={serviceDate}
