@@ -29,7 +29,7 @@ import {
   FollowUpHomeBanner,
   TrainingHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
-import { UrgentAlertCarousel } from "@/components/home/UrgentAlertCarousel";
+import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
 import type { Devotion } from "@/lib/types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
@@ -130,11 +130,6 @@ export function MobileHome({
 
   return (
     <div className="mobile-home animate-fade-in space-y-4">
-      <UrgentAlertCarousel
-        alerts={urgentAlerts}
-        variant="mobile"
-        highlightAlertId={highlightAlertId}
-      />
       <PendingRsvpHomeBanner />
       <AnniversaryHomeBanner />
       <PrayerHomeBanner variant="mobile" />
@@ -151,6 +146,14 @@ export function MobileHome({
             Welcome to {site.name}
           </p>
         </div>
+
+        {urgentAlerts.length > 0 ? (
+          <UrgentNewsHomeStrip
+            alerts={urgentAlerts}
+            variant="mobile"
+            highlightAlertId={highlightAlertId}
+          />
+        ) : null}
 
         <div className="mobile-home-welcome-stories border-b border-night-900/8 bg-[var(--color-bg)] px-3 py-2 dark:border-white/10">
           <HomeStoriesSection />

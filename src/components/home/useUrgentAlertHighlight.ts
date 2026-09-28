@@ -15,8 +15,8 @@ export function useUrgentAlertHighlight(alerts: UrgentAlert[]) {
   useEffect(() => {
     if (!highlightAlertId || scrolledRef.current) return;
     const element =
-      document.getElementById(`urgent-alert-${highlightAlertId}`) ??
-      document.getElementById("urgent-alerts-carousel");
+      document.getElementById(`urgent-news-home-${highlightAlertId}`) ??
+      document.getElementById("urgent-news-home-strip");
     if (!element) return;
     scrolledRef.current = true;
     window.setTimeout(() => {

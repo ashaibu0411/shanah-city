@@ -27,6 +27,7 @@ import {
 } from "@/components/community/CommunityPostIcons";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { CommunityMediaCarousel } from "@/components/community/CommunityMediaCarousel";
+import { CommunityPostShareSheet } from "@/components/community/CommunityPostShareSheet";
 import { canManageCommunityPostClient } from "@/lib/community-post-access";
 import { isUrgentAlertCommunityPostId } from "@/lib/urgent-alert-utils";
 import { canManageCommunityComment } from "@/lib/community-comment-access";
@@ -361,6 +362,7 @@ export function CommunityPostCard({
   const [loading, setLoading] = useState(false);
   const [reactionBusy, setReactionBusy] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
+  const [shareSheetOpen, setShareSheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 16 });
   const [mounted, setMounted] = useState(false);
@@ -578,22 +580,21 @@ export function CommunityPostCard({
     }
   }
 
+  function openShareSheet() {
+    setShareSheetOpen(true);
+  }
+
+  function closeShareSheet() {
+    setShareSheetOpen(false);
+  }
+
+  function showShareNotice(message: string) {
+    setShareMessage(message);
+    window.setTimeout(() => setShareMessage(""), 2800);
+  }
+
   async function sharePost() {
-    const text = `${post.author}: ${post.content}`.slice(0, 240);
-    const url = `${window.location.origin}/community#post-${post.id}`;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "Shanah City Community", text, url });
-        return;
-      }
-      await navigator.clipboard.writeText(`${text}\n${url}`);
-      setShareMessage("Link copied");
-    } catch {
-      setShareMessage("Could not share");
-    }
-
-    window.setTimeout(() => setShareMessage(""), 2000);
+    openShareSheet();
   }
 
   async function saveEdit() {
@@ -817,6 +818,17 @@ export function CommunityPostCard({
             imageFit="contain"
             flyerLayout={isUrgentNews || post.type === "announcement"}
           />
+          {!editing && mediaItems.some((item) => item.type === "image") ? (
+            <div className="flex flex-wrap gap-2 border-t border-night-900/8 px-3 py-2 dark:border-white/10">
+              <button
+                type="button"
+                onClick={openShareSheet}
+                className="text-xs font-semibold text-night-700 underline decoration-night-900/20 underline-offset-2 dark:text-sand-200"
+              >
+                Share or save photo
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -946,6 +958,20 @@ export function CommunityPostCard({
         </>
       ) : null}
 
+      <CommunityPostShareSheet
+        open={shareSheetOpen}
+        onClose={closeShareSheet}
+        post={post}
+        onNotice={showShareNotice}
+      />
+      {shareMessage ? (
+        <p
+          className="pointer-events-none fixed bottom-24 left-1/2 z-[140] max-w-[min(92vw,22rem)] -translate-x-1/2 rounded-full bg-night-900 px-4 py-2 text-center text-xs font-semibold text-white shadow-lg dark:bg-sand-100 dark:text-night-900"
+          role="status"
+        >
+          {shareMessage}
+        </p>
+      ) : null}
       <CommunityPostReactionsSheet
         open={reactionsSheetOpen}
         postId={post.id}

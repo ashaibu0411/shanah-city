@@ -8,7 +8,7 @@ import { LiveBanner } from "@/components/home/LiveBanner";
 import { MobileHome } from "@/components/home/MobileHome";
 import { QuickActions } from "@/components/home/QuickActions";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
-import { UrgentAlertCarousel } from "@/components/home/UrgentAlertCarousel";
+import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
 import {
   AnniversaryHomeBanner,
   DevotionBrowseNudge,
@@ -56,7 +56,7 @@ export function HomeView({
 
   return (
     <>
-      <UrgentAlertCarousel alerts={urgentAlerts} highlightAlertId={highlightAlertId} />
+      <UrgentNewsHomeStrip alerts={urgentAlerts} highlightAlertId={highlightAlertId} variant="desktop" />
       <HomeHero />
       <LiveBanner liveFlyerImage={churchImages.live} />
       <PendingRsvpHomeBanner />
