@@ -4,6 +4,11 @@ import { memberHasFullGroupAccess } from "@/lib/ministry-readiness-server";
 import type { GroupChatInboxEntry } from "@/lib/group-types";
 import * as groupChatDb from "@/lib/stores/group-chat-db";
 import * as groupChatJson from "@/lib/stores/group-chat-json";
+import {
+  applyDisplayNamesToGroupChatMessage,
+  buildPublicDisplayNameMap,
+  collectGroupChatMessageUserIds,
+} from "@/lib/member-display-name-server";
 
 const store = () => (useDatabase() ? groupChatDb : groupChatJson);
 
@@ -15,10 +20,14 @@ export async function canAccessGroupChat(groupId: string, userId: string) {
   return { allowed: true as const, detail: access.group };
 }
 
-export const listGroupChatMessages = (
+export async function listGroupChatMessages(
   groupId: string,
   options?: Parameters<typeof groupChatJson.listGroupChatMessages>[1],
-) => store().listGroupChatMessages(groupId, options);
+) {
+  const messages = await store().listGroupChatMessages(groupId, options);
+  const nameById = await buildPublicDisplayNameMap(collectGroupChatMessageUserIds(messages));
+  return messages.map((message) => applyDisplayNamesToGroupChatMessage(message, nameById));
+}
 
 export const sendGroupChatMessage = (
   input: Parameters<typeof groupChatJson.addGroupChatMessage>[0],

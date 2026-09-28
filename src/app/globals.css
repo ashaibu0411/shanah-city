@@ -4148,6 +4148,15 @@ html.dark .community-story-viewer-reply-input {
   background: rgba(0, 0, 0, 0.55);
 }
 
+.community-post-reactions-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, 0.55);
+}
+
 .community-story-insights-sheet {
   width: 100%;
   max-height: min(72vh, 28rem);

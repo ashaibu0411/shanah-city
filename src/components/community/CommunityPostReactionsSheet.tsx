@@ -69,17 +69,16 @@ export function CommunityPostReactionsSheet({
   if (!open || !mounted) return null;
 
   return createPortal(
-    <>
-      <button
-        type="button"
-        className="community-story-insights-backdrop"
-        aria-label="Close reactions"
-        onClick={onClose}
-      />
+    <div
+      className="community-post-reactions-overlay"
+      role="presentation"
+      onClick={onClose}
+    >
       <div
         className="community-story-insights-sheet"
         role="dialog"
         aria-labelledby="post-reactions-title"
+        onClick={(event) => event.stopPropagation()}
       >
         <div className="community-story-insights-header">
           <h2 id="post-reactions-title" className="community-story-insights-title">
@@ -127,7 +126,7 @@ export function CommunityPostReactionsSheet({
           </div>
         )}
       </div>
-    </>,
+    </div>,
     document.body,
   );
 }

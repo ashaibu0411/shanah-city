@@ -4,14 +4,16 @@ import {
   deleteExpiredCommunityStatuses,
   getActiveCommunityStatuses,
 } from "@/lib/community-status-server";
+import { resolveDisplayNamesForCommunityStatuses } from "@/lib/member-display-name-server";
 import { notifyCommunityStory } from "@/lib/push-server";
 
 export async function loadCommunityStatusesForViewer(viewerId?: string) {
   await deleteExpiredCommunityStatuses();
   const statuses = await getActiveCommunityStatuses();
   const enriched = await attachReactionsToStatuses(statuses, viewerId);
+  const withDisplayNames = await resolveDisplayNamesForCommunityStatuses(enriched);
   const priorityAuthorIds = viewerId ? await getStoryCircleUserIds(viewerId) : [];
-  return { statuses: enriched, priorityAuthorIds };
+  return { statuses: withDisplayNames, priorityAuthorIds };
 }
 
 export async function notifyStoryPosted(input: {

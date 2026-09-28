@@ -845,10 +845,17 @@ export function CommunityPostCard({
                 aria-pressed={heartActive}
               >
                 <IgHeartIcon filled={heartActive} />
-                {reactionTotal > 0 ? (
-                  <span className="text-sm font-semibold tabular-nums">{reactionTotal}</span>
-                ) : null}
               </button>
+              {reactionTotal > 0 ? (
+                <button
+                  type="button"
+                  onClick={openReactionsSheet}
+                  className="inline-flex items-center p-1 text-sm font-semibold tabular-nums text-night-900 dark:text-sand-100"
+                  aria-label={`See who reacted, ${reactionTotal} reactions`}
+                >
+                  {reactionTotal}
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={() => openCommentsSheet(true)}

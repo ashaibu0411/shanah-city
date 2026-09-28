@@ -5,6 +5,7 @@ import { nestComments } from "@/lib/community-comments";
 import {
   attachReactionsToPosts,
 } from "@/lib/community-post-reaction-server";
+import { resolveDisplayNamesForCommunityPosts } from "@/lib/member-display-name-server";
 import {
   emptyPostReactionCounts,
   isPostReactionKind,
@@ -54,8 +55,10 @@ export async function enrichCommunityPostsForViewer(
 ): Promise<CommunityPost[]> {
   const withPostReactions = await attachReactionsToPosts(posts, viewerId);
 
+  let enriched: CommunityPost[];
+
   if (!useDatabase()) {
-    return withPostReactions.map((post) => ({
+    enriched = withPostReactions.map((post) => ({
       ...post,
       comments: nestComments(
         (post.comments ?? []).map((comment) => ({
@@ -65,27 +68,29 @@ export async function enrichCommunityPostsForViewer(
         })),
       ),
     }));
+  } else {
+    const allFlat = withPostReactions.flatMap((post) => post.comments ?? []);
+    const commentIds = allFlat.map((comment) => comment.id);
+    const { countsByComment, viewerByComment } = await loadCommentReactionMaps(
+      commentIds,
+      viewerId,
+    );
+
+    enriched = withPostReactions.map((post) => {
+      const flat = post.comments ?? [];
+      const withCommentReactions = flat.map((comment) => ({
+        ...comment,
+        reactionCounts: countsByComment.get(comment.id) ?? emptyPostReactionCounts(),
+        viewerReactions: viewerByComment.get(comment.id) ?? [],
+      }));
+      return {
+        ...post,
+        comments: nestComments(withCommentReactions),
+      };
+    });
   }
 
-  const allFlat = withPostReactions.flatMap((post) => post.comments ?? []);
-  const commentIds = allFlat.map((comment) => comment.id);
-  const { countsByComment, viewerByComment } = await loadCommentReactionMaps(
-    commentIds,
-    viewerId,
-  );
-
-  return withPostReactions.map((post) => {
-    const flat = post.comments ?? [];
-    const withCommentReactions = flat.map((comment) => ({
-      ...comment,
-      reactionCounts: countsByComment.get(comment.id) ?? emptyPostReactionCounts(),
-      viewerReactions: viewerByComment.get(comment.id) ?? [],
-    }));
-    return {
-      ...post,
-      comments: nestComments(withCommentReactions),
-    };
-  });
+  return resolveDisplayNamesForCommunityPosts(enriched);
 }
 
 export async function toggleCommunityCommentReaction(input: {
