@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { editorialPremium } from "@/components/app/editorial-premium";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import { RichTextContent } from "@/components/ui/RichTextContent";
 
@@ -68,9 +69,7 @@ export function WorshipRehearsalNotesReader({
                   Close
                 </button>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-clay-700 dark:text-clay-400">
-                    Rehearsal notes
-                  </p>
+                  <p className={editorialPremium.sectionLabel}>Rehearsal notes</p>
                   <h2
                     id="worship-rehearsal-notes-title"
                     className="mt-1 font-display text-lg font-semibold leading-snug text-night-900 dark:text-sand-100"
@@ -82,7 +81,9 @@ export function WorshipRehearsalNotesReader({
             </MobilePremiumFrame>
 
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-              <article className="mx-auto max-w-prose text-sm leading-relaxed text-night-700 dark:text-sand-200">
+              <article
+                className={`${editorialPremium.leadCard} mx-auto max-w-prose text-sm leading-relaxed`}
+              >
                 <RichTextContent text={trimmed} />
               </article>
             </div>
@@ -93,25 +94,29 @@ export function WorshipRehearsalNotesReader({
 
   return (
     <>
-      <div className="overflow-hidden rounded-2xl border border-night-900/8 bg-white shadow-sm ring-1 ring-night-900/5 dark:border-white/10 dark:bg-[var(--color-surface)]">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-night-900/6 bg-sand-50/80 px-4 py-3 dark:border-white/10 dark:bg-[var(--color-bg-soft)]">
-          <h2 className="font-display text-base font-semibold text-night-900 dark:text-sand-100">
-            Rehearsal notes
-          </h2>
+      <MobilePremiumFrame
+        variant="surface"
+        className="overflow-hidden rounded-[1.35rem] border border-night-900/8 shadow-[0_1px_2px_rgba(45,36,24,0.04),0_12px_32px_rgba(45,36,24,0.06)] ring-1 ring-night-900/5 dark:border-white/10 dark:ring-white/10"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-night-900/6 bg-gradient-to-br from-violet-50/90 via-sand-50 to-white px-4 py-3.5 dark:border-white/10 dark:from-violet-950/35 dark:via-[var(--color-bg-soft)] dark:to-[var(--color-surface)]">
+          <div>
+            <p className={editorialPremium.sectionLabel}>Rehearsal notes</p>
+            <h2 className={`${editorialPremium.sectionTitle} mt-0.5`}>For this service</h2>
+          </div>
           <button
             type="button"
             onClick={() => setReaderOpen(true)}
-            className="rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
+            className="rounded-full bg-night-900 px-4 py-2 text-xs font-bold uppercase tracking-wide text-sand-50 shadow-sm transition hover:bg-night-950 active:scale-[0.98] dark:bg-violet-600 dark:hover:bg-violet-700"
           >
             Read full screen
           </button>
         </div>
         <div className="px-4 py-4">
-          <div className="text-sm leading-relaxed text-night-700 dark:text-sand-200">
+          <div className={`${editorialPremium.leadCard} text-sm leading-relaxed`}>
             <RichTextContent text={trimmed} />
           </div>
         </div>
-      </div>
+      </MobilePremiumFrame>
       {reader}
     </>
   );

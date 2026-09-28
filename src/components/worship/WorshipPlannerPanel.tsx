@@ -8,7 +8,7 @@ import { premiumTabPill } from "@/components/app/mobile-premium";
 import { Button, Card } from "@/components/ui";
 import { WorshipSongLibraryPanel } from "@/components/worship/WorshipSongLibraryPanel";
 import { WorshipMyPartPanel } from "@/components/worship/WorshipMyPartPanel";
-import { WorshipRehearsalNotesReader } from "@/components/worship/WorshipRehearsalNotesReader";
+import { WorshipRehearsalNotesEditor } from "@/components/worship/WorshipRehearsalNotesEditor";
 import { WorshipServicePlanPickerButton } from "@/components/worship/WorshipServicePlanPickerButton";
 import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 import { WorshipRehearsalRecordings } from "@/components/worship/WorshipRehearsalRecordings";
@@ -21,6 +21,7 @@ import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBrea
 import {
   buildTeamReadiness,
   emptyWorshipSong,
+  isBlankWorshipSong,
   nextServiceSundayIso,
   rehearsalDateTimeLabel,
   serviceDateTimeLabel,
@@ -469,8 +470,32 @@ export function WorshipPlannerPanel({
     }
   }
 
-  function addSong() {
-    setSongs((current) => [...current, emptyWorshipSong()]);
+  function insertSongIntoSetlist(song: WorshipSong, insertAt?: number) {
+    setSongs((current) => {
+      if (current.length === 0) {
+        return [{ ...song, order: 1 }];
+      }
+
+      const blankIndex = current.findIndex(isBlankWorshipSong);
+      if (blankIndex >= 0 && insertAt === undefined) {
+        return current.map((item, index) =>
+          index === blankIndex ? { ...song, order: index + 1 } : item,
+        );
+      }
+
+      const index = insertAt ?? current.length;
+      const next = [...current];
+      next.splice(Math.min(Math.max(index, 0), next.length), 0, song);
+      return next.map((item, orderIndex) => ({ ...item, order: orderIndex + 1 }));
+    });
+  }
+
+  function addSong(insertAt?: number) {
+    insertSongIntoSetlist(emptyWorshipSong(), insertAt);
+  }
+
+  function addSongBelow(index: number) {
+    insertSongIntoSetlist(emptyWorshipSong(), index + 1);
   }
 
   function updateSong(index: number, patch: Partial<WorshipSong>) {
@@ -603,7 +628,7 @@ export function WorshipPlannerPanel({
 
   async function addSongFromLibrary(entry: WorshipLibrarySong) {
     const song = songFromLibrary(entry);
-    setSongs((current) => [...current, song]);
+    insertSongIntoSetlist(song);
     setTab("plan");
     setMessage(`${entry.title} added to this service plan.`);
 
@@ -969,27 +994,45 @@ export function WorshipPlannerPanel({
         </Card>
       )}
 
+      {showEditor && (
+        <WorshipRehearsalNotesEditor
+          value={rehearsalNotes}
+          onChange={setRehearsalNotes}
+          serviceLabel={serviceDateTimeLabel(serviceDate, serviceTime)}
+        />
+      )}
+
       <Card className="mb-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-display text-lg font-semibold text-night-900">Song breakdown</h3>
           {showEditor && (
-            <Button variant="secondary" onClick={() => setTab("library")}>
-              Add from library
-            </Button>
-          )}
-          {showEditor && (
-            <Button variant="secondary" onClick={addSong}>
-              Add song
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" onClick={() => setTab("library")}>
+                Add from library
+              </Button>
+              <Button variant="secondary" onClick={() => addSong()}>
+                Add song
+              </Button>
+            </div>
           )}
         </div>
 
         {songs.length === 0 ? (
-          <p className="mt-4 text-sm text-night-500">
-            {showEditor
-              ? "Add songs for this service setlist."
-              : "No songs listed for this service yet."}
-          </p>
+          <div className="mt-4 rounded-2xl border border-dashed border-violet-200 bg-violet-50/40 px-4 py-6 text-center dark:border-violet-900/40 dark:bg-violet-950/20">
+            <p className="text-sm text-night-600 dark:text-sand-300">
+              {showEditor
+                ? "Start the setlist — your first song goes here, not at the bottom."
+                : "No songs listed for this service yet."}
+            </p>
+            {showEditor ? (
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <Button onClick={() => addSong(0)}>Add first song</Button>
+                <Button variant="secondary" onClick={() => setTab("library")}>
+                  Add from library
+                </Button>
+              </div>
+            ) : null}
+          </div>
         ) : (
           <div className="mt-4 space-y-3">
             {songs.map((song, index) => {
@@ -1045,6 +1088,9 @@ export function WorshipPlannerPanel({
                           </Button>
                           <Button variant="secondary" onClick={() => removeSong(index)}>
                             Remove
+                          </Button>
+                          <Button variant="secondary" onClick={() => addSongBelow(index)}>
+                            Add below
                           </Button>
                         </div>
                         <select
@@ -1341,16 +1387,10 @@ export function WorshipPlannerPanel({
           />
 
           <Card className="mb-6">
-            <label className="block text-sm font-semibold text-night-700">
-              Rehearsal notes
-              <textarea
-                value={rehearsalNotes}
-                onChange={(event) => setRehearsalNotes(event.target.value)}
-                rows={10}
-                placeholder="Run order, transitions, who leads which song…"
-                className="mt-2 min-h-[14rem] w-full resize-y rounded-xl border border-night-900/10 bg-sand-50 p-3 text-sm leading-relaxed outline-none ring-night-900/5 focus:ring-2"
-              />
-            </label>
+            <h3 className="font-display text-lg font-semibold text-night-900">Save plan</h3>
+            <p className="mt-1 text-sm text-night-600">
+              Save rehearsal notes, setlist, and team before publishing for the choir.
+            </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
               <Button disabled={savingPlan} onClick={() => savePlan("save")}>
@@ -1388,15 +1428,6 @@ export function WorshipPlannerPanel({
             </div>
           </Card>
         </>
-      )}
-
-      {!showEditor && plan?.rehearsalNotes && (
-        <div className="mb-6">
-          <WorshipRehearsalNotesReader
-            notes={plan.rehearsalNotes}
-            serviceLabel={serviceDateTimeLabel(serviceDate, serviceTime)}
-          />
-        </div>
       )}
 
       {!showEditor && !plan && !hidden && (

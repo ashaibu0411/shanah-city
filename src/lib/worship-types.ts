@@ -377,6 +377,16 @@ export function emptyWorshipSong(title = ""): WorshipSong {
   };
 }
 
+export function isBlankWorshipSong(song: WorshipSong) {
+  return (
+    !song.title.trim() &&
+    !song.librarySongId &&
+    !song.youtubeVideoId &&
+    !song.lyrics?.trim() &&
+    !song.chartUrl
+  );
+}
+
 export function normalizeSongs(songs: WorshipSong[] | undefined) {
   return (songs ?? [])
     .map((song, index) => {
