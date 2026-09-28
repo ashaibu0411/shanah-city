@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { canManageWorshipPlan } from "@/lib/worship-access-server";
+import { canUseWorshipSongLibrary } from "@/lib/worship-access-server";
 import { saveWorshipChartFile } from "@/lib/worship-chart-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 
@@ -13,8 +13,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
 
-  if (!(await canManageWorshipPlan(user))) {
-    return NextResponse.json({ error: "Worship leader access required." }, { status: 403 });
+  if (!(await canUseWorshipSongLibrary(user))) {
+    return NextResponse.json({ error: "Choir membership is required to upload charts." }, { status: 403 });
   }
 
   const formData = await request.formData();

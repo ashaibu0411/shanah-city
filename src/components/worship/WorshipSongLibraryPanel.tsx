@@ -11,6 +11,8 @@ import type { WorshipLibrarySong } from "@/lib/worship-types";
 type WorshipSongLibraryPanelProps = {
   onAddToPlan?: (song: WorshipLibrarySong) => void;
   onBackToPlan?: () => void;
+  /** Worship leaders only — choir members can add and edit but not remove library rows. */
+  canDeleteFromLibrary?: boolean;
 };
 
 function LibraryField({
@@ -35,7 +37,11 @@ function LibraryField({
 const fieldClass =
   "w-full rounded-[1.05rem] border border-night-900/10 bg-white/90 px-3.5 py-2.5 text-sm text-night-900 outline-none ring-night-900/5 transition focus:border-violet-300 focus:ring-2 focus:ring-violet-200/80 dark:border-white/10 dark:bg-[var(--color-bg-muted)] dark:text-sand-100 dark:focus:border-violet-700 dark:focus:ring-violet-900/40";
 
-export function WorshipSongLibraryPanel({ onAddToPlan, onBackToPlan }: WorshipSongLibraryPanelProps) {
+export function WorshipSongLibraryPanel({
+  onAddToPlan,
+  onBackToPlan,
+  canDeleteFromLibrary = true,
+}: WorshipSongLibraryPanelProps) {
   const [songs, setSongs] = useState<WorshipLibrarySong[]>([]);
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<WorshipLibrarySong | null>(null);
@@ -352,9 +358,11 @@ export function WorshipSongLibraryPanel({ onAddToPlan, onBackToPlan }: WorshipSo
                       <Button variant="secondary" onClick={() => startEdit(song)}>
                         Edit
                       </Button>
-                      <Button variant="secondary" onClick={() => deleteSong(song.id)}>
-                        Remove
-                      </Button>
+                      {canDeleteFromLibrary ? (
+                        <Button variant="secondary" onClick={() => deleteSong(song.id)}>
+                          Remove
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
                   {listeningSongId === song.id && song.youtubeVideoId ? (

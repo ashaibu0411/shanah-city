@@ -43,6 +43,11 @@ export async function canAccessWorshipPlanner(user: Pick<PublicMember, "id"> | n
   return userIsInWorshipGroup(user.id);
 }
 
+/** Browse and add songs to the shared worship library (any choir / worship group member). */
+export async function canUseWorshipSongLibrary(user: Pick<PublicMember, "id"> | null) {
+  return canAccessWorshipPlanner(user);
+}
+
 /** Worship group leader, assistant leader, or general church admin — not regular choir members. */
 export async function canManageWorshipPlan(user: PublicMember | null) {
   if (!user) return false;

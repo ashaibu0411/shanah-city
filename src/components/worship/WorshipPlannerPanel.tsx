@@ -93,15 +93,14 @@ export function WorshipPlannerPanel({
   const { user, permissions } = useAuth();
   const router = useRouter();
   const canManage = permissions.canManageWorshipPlan;
+  const canUseLibrary = permissions.canAccessWorshipPlanner;
   const resolvedInitialTab =
-    initialTab === "library" && !canManage
-      ? "plan"
-      : initialTab === "library" ||
-          initialTab === "my-part" ||
-          initialTab === "rehearsals" ||
-          initialTab === "schedule"
-        ? initialTab
-        : "plan";
+    initialTab === "library" ||
+    initialTab === "my-part" ||
+    initialTab === "rehearsals" ||
+    initialTab === "schedule"
+      ? initialTab
+      : "plan";
   const [tab, setTab] = useState<"plan" | "library" | "my-part" | "rehearsals" | "schedule">(
     resolvedInitialTab,
   );
@@ -148,12 +147,6 @@ export function WorshipPlannerPanel({
     }
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [roster, songs]);
-
-  useEffect(() => {
-    if (!canManage && tab === "library") {
-      setTab("plan");
-    }
-  }, [canManage, tab]);
 
   function applyLoadedPlan(next: WorshipServicePlan | null) {
     if (next) {
@@ -640,14 +633,16 @@ export function WorshipPlannerPanel({
       { id: "my-part", label: "My part" },
       { id: "rehearsals", label: "Rehearsals" },
     ];
+    if (canUseLibrary) {
+      items.push({ id: "library", label: "Song library" });
+    }
     if (canManage) {
       items.push({ id: "schedule", label: "Schedule" });
-      items.push({ id: "library", label: "Song library" });
     } else {
       items.push({ id: "schedule", label: "Team schedule" });
     }
     return items;
-  }, [canManage]);
+  }, [canManage, canUseLibrary]);
 
   function ServicePicker() {
     return (
@@ -766,13 +761,14 @@ export function WorshipPlannerPanel({
     );
   }
 
-  if (tab === "library" && canManage) {
+  if (tab === "library" && canUseLibrary) {
     return (
       <>
         <PlannerTabBar />
         <WorshipSongLibraryPanel
-          onAddToPlan={addSongFromLibrary}
-          onBackToPlan={() => setTab("plan")}
+          onAddToPlan={canManage ? addSongFromLibrary : undefined}
+          onBackToPlan={() => setTab(canManage ? "plan" : "my-part")}
+          canDeleteFromLibrary={canManage}
         />
       </>
     );
@@ -874,7 +870,7 @@ export function WorshipPlannerPanel({
 
   const showEditor = canManage;
 
-  if (!canManage && (tab === "plan" || tab === "library")) {
+  if (!canManage && tab === "plan") {
     return (
       <>
         <PlannerTabBar />

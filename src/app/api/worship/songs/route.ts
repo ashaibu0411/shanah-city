@@ -1,6 +1,9 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { canManageWorshipPlan } from "@/lib/worship-access-server";
+import {
+  canManageWorshipPlan,
+  canUseWorshipSongLibrary,
+} from "@/lib/worship-access-server";
 import {
   deleteWorshipLibrarySong,
   getWorshipLibrarySongByYouTubeVideoId,
@@ -11,7 +14,7 @@ import { fetchYouTubeOEmbed, lookupYouTubeVideo, resolveYouTubeVideo } from "@/l
 import { fetchSongLyrics } from "@/lib/worship-lyrics-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 
-async function requireWorshipLeader() {
+async function requireLibraryAccess() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
@@ -20,20 +23,32 @@ async function requireWorshipLeader() {
     return { error: NextResponse.json({ error: "Sign in required." }, { status: 401 }) };
   }
 
-  if (!(await canManageWorshipPlan(user))) {
-    return { error: NextResponse.json({ error: "Worship leader access required." }, { status: 403 }) };
+  if (!(await canUseWorshipSongLibrary(user))) {
+    return {
+      error: NextResponse.json(
+        { error: "Choir membership is required to use the song library." },
+        { status: 403 },
+      ),
+    };
   }
 
   return { user };
 }
 
-export async function GET(request: Request) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-  const user = await getUserFromSession(token);
-  if (!user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+async function requireWorshipLeader() {
+  const auth = await requireLibraryAccess();
+  if (auth.error) return auth;
+
+  if (!(await canManageWorshipPlan(auth.user!))) {
+    return { error: NextResponse.json({ error: "Worship leader access required." }, { status: 403 }) };
   }
+
+  return auth;
+}
+
+export async function GET(request: Request) {
+  const auth = await requireLibraryAccess();
+  if (auth.error) return auth.error;
 
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q") ?? undefined;
@@ -42,7 +57,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireWorshipLeader();
+  const auth = await requireLibraryAccess();
   if (auth.error) return auth.error;
 
   const body = await request.json();
@@ -73,6 +88,9 @@ export async function POST(request: Request) {
   }
 
   if (action === "delete") {
+    const leader = await requireWorshipLeader();
+    if (leader.error) return leader.error;
+
     const id = String(body.id ?? "");
     const removed = await deleteWorshipLibrarySong(id);
     if (!removed) {
