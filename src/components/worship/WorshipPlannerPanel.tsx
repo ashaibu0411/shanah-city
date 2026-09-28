@@ -21,8 +21,8 @@ import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBrea
 import {
   buildTeamReadiness,
   emptyWorshipSong,
-  isBlankWorshipSong,
   nextServiceSundayIso,
+  resolveLibraryInsertIndex,
   rehearsalDateTimeLabel,
   serviceDateTimeLabel,
   songFromLibrary,
@@ -124,6 +124,7 @@ export function WorshipPlannerPanel({
   const [hiddenReason, setHiddenReason] = useState<"draft" | null>(null);
   const autoPickedServiceRef = useRef(false);
   const [expandedSongId, setExpandedSongId] = useState<string | null>(null);
+  const [activeSongIndex, setActiveSongIndex] = useState<number | null>(null);
   const [savingPlan, setSavingPlan] = useState(false);
   const [saveAction, setSaveAction] = useState<"save" | "publish" | "unpublish" | "delete" | null>(
     null,
@@ -478,32 +479,35 @@ export function WorshipPlannerPanel({
     }
   }
 
-  function insertSongIntoSetlist(song: WorshipSong, insertAt?: number) {
+  function insertLibrarySong(song: WorshipSong) {
+    setSongs((current) => {
+      const index = resolveLibraryInsertIndex(current, { preferredIndex: activeSongIndex });
+      const next = [...current];
+      if (index >= next.length) {
+        next.push({ ...song, order: next.length + 1 });
+      } else {
+        next[index] = { ...song, order: index + 1 };
+      }
+      return next.map((item, orderIndex) => ({ ...item, order: orderIndex + 1 }));
+    });
+    setExpandedSongId(song.id);
+    setActiveSongIndex(null);
+  }
+
+  function addSong(insertAt?: number) {
     setSongs((current) => {
       if (current.length === 0) {
-        return [{ ...song, order: 1 }];
+        return [{ ...emptyWorshipSong(), order: 1 }];
       }
-
-      const blankIndex = current.findIndex(isBlankWorshipSong);
-      if (blankIndex >= 0 && insertAt === undefined) {
-        return current.map((item, index) =>
-          index === blankIndex ? { ...song, order: index + 1 } : item,
-        );
-      }
-
       const index = insertAt ?? current.length;
       const next = [...current];
-      next.splice(Math.min(Math.max(index, 0), next.length), 0, song);
+      next.splice(Math.min(index, next.length), 0, emptyWorshipSong());
       return next.map((item, orderIndex) => ({ ...item, order: orderIndex + 1 }));
     });
   }
 
-  function addSong(insertAt?: number) {
-    insertSongIntoSetlist(emptyWorshipSong(), insertAt);
-  }
-
   function addSongBelow(index: number) {
-    insertSongIntoSetlist(emptyWorshipSong(), index + 1);
+    addSong(index + 1);
   }
 
   function updateSong(index: number, patch: Partial<WorshipSong>) {
@@ -636,7 +640,7 @@ export function WorshipPlannerPanel({
 
   async function addSongFromLibrary(entry: WorshipLibrarySong) {
     const song = songFromLibrary(entry);
-    insertSongIntoSetlist(song);
+    insertLibrarySong(song);
     setTab("plan");
     setMessage(`${entry.title} added to this service plan.`);
 
@@ -1051,6 +1055,7 @@ export function WorshipPlannerPanel({
                   key={song.id}
                   id={`worship-song-${song.id}`}
                   className="scroll-mt-24 rounded-xl border border-night-900/5 p-4"
+                  onFocusCapture={() => setActiveSongIndex(index)}
                 >
                   <div className="grid gap-3 md:grid-cols-[1fr_100px_100px_auto] md:items-end">
                     {showEditor ? (

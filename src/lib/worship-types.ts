@@ -378,13 +378,49 @@ export function emptyWorshipSong(title = ""): WorshipSong {
 }
 
 export function isBlankWorshipSong(song: WorshipSong) {
+  const title = song.title?.trim() ?? "";
   return (
-    !song.title.trim() &&
+    !title &&
     !song.librarySongId &&
     !song.youtubeVideoId &&
+    !song.youtubeUrl?.trim() &&
     !song.lyrics?.trim() &&
-    !song.chartUrl
+    !song.chartUrl &&
+    !song.notes?.trim()
   );
+}
+
+/** Where a library pick should land — first blank row, focused row, or top draft slot. */
+export function resolveLibraryInsertIndex(
+  songs: WorshipSong[],
+  options?: { preferredIndex?: number | null },
+) {
+  if (songs.length === 0) return 0;
+
+  const preferred = options?.preferredIndex;
+  if (
+    preferred != null &&
+    preferred >= 0 &&
+    preferred < songs.length &&
+    isBlankWorshipSong(songs[preferred])
+  ) {
+    return preferred;
+  }
+
+  const blankIndex = songs.findIndex(isBlankWorshipSong);
+  if (blankIndex >= 0) return blankIndex;
+
+  const first = songs[0];
+  if (
+    !first.librarySongId &&
+    !first.youtubeVideoId &&
+    !first.chartUrl?.trim() &&
+    !first.lyrics?.trim()
+  ) {
+    return 0;
+  }
+
+  return songs.length;
 }
 
 export function normalizeSongs(songs: WorshipSong[] | undefined) {
