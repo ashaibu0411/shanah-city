@@ -1196,13 +1196,12 @@ export function WorshipPlannerPanel({
                     )}
                   </div>
 
-                  {(status === "published" || !showEditor) && (
-                    <WorshipSongBreakdownListen
-                      song={song}
-                      userId={user?.id}
-                      isManager={canManage}
-                    />
-                  )}
+                  <WorshipSongBreakdownListen
+                    song={song}
+                    userId={user?.id}
+                    isManager={canManage}
+                    planStatus={status}
+                  />
 
                   {(status === "published" || !showEditor) && (
                     <WorshipSongBreakdownLyrics title={song.title} lyrics={song.lyrics} />

@@ -1,4 +1,5 @@
 import { useDatabase } from "@/lib/use-database";
+import { enrichPlanSongsFromLibrary } from "@/lib/worship-plan-library-sync-server";
 import * as worshipDb from "@/lib/stores/worship-db";
 import * as worshipJson from "@/lib/stores/worship-json";
 
@@ -6,10 +7,15 @@ const store = () => (useDatabase() ? worshipDb : worshipJson);
 
 export const listWorshipPlans = (options?: Parameters<typeof worshipJson.listWorshipPlans>[0]) =>
   store().listWorshipPlans(options);
-export const getWorshipPlan = (serviceDate: string, serviceTime: string) =>
-  store().getWorshipPlan(serviceDate, serviceTime);
-export const saveWorshipPlan = (input: Parameters<typeof worshipJson.saveWorshipPlan>[0]) =>
-  store().saveWorshipPlan(input);
+export const getWorshipPlan = async (serviceDate: string, serviceTime: string) => {
+  const plan = await store().getWorshipPlan(serviceDate, serviceTime);
+  if (!plan) return null;
+  return { ...plan, songs: await enrichPlanSongsFromLibrary(plan.songs) };
+};
+export const saveWorshipPlan = async (input: Parameters<typeof worshipJson.saveWorshipPlan>[0]) => {
+  const songs = await enrichPlanSongsFromLibrary(input.songs ?? []);
+  return store().saveWorshipPlan({ ...input, songs });
+};
 export const updateWorshipMemberStatus = (
   input: Parameters<typeof worshipJson.updateWorshipMemberStatus>[0],
 ) => store().updateWorshipMemberStatus(input);

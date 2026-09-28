@@ -241,6 +241,7 @@ export function WorshipChoirServiceView({
                       song={song}
                       userId={userId}
                       isManager={canManage}
+                      planStatus={status}
                     />
                     <WorshipSongBreakdownLyrics title={song.title} lyrics={song.lyrics} />
                     {myMember && (

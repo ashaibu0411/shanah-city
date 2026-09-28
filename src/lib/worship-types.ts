@@ -345,22 +345,39 @@ export function createSongId() {
 }
 
 export function songFromLibrary(entry: WorshipLibrarySong): WorshipSong {
+  return mergePlanSongWithLibrary(
+    {
+      id: createSongId(),
+      title: entry.title,
+      key: entry.defaultKey,
+      originalKey: entry.defaultKey,
+      parts: defaultSongParts(),
+      segment: "worship",
+      preparedBy: [],
+    },
+    entry,
+  );
+}
+
+export function mergePlanSongWithLibrary(
+  song: WorshipSong,
+  entry: WorshipLibrarySong | null | undefined,
+): WorshipSong {
+  if (!entry) return song;
+
   return {
-    id: createSongId(),
+    ...song,
     librarySongId: entry.id,
-    title: entry.title,
-    key: entry.defaultKey,
-    originalKey: entry.defaultKey,
-    bpm: entry.bpm ?? undefined,
-    notes: entry.notes ?? undefined,
-    lyrics: entry.lyrics?.trim() || undefined,
-    parts: defaultSongParts(),
-    youtubeVideoId: entry.youtubeVideoId ?? undefined,
-    youtubeUrl: entry.youtubeUrl ?? undefined,
-    chartUrl: entry.chartUrl ?? undefined,
-    chartFileName: entry.chartFileName ?? undefined,
-    segment: "worship",
-    preparedBy: [],
+    title: song.title?.trim() ? song.title : entry.title,
+    key: song.key?.trim() ? song.key : entry.defaultKey,
+    originalKey: song.originalKey?.trim() ? song.originalKey : entry.defaultKey,
+    bpm: song.bpm ?? entry.bpm ?? undefined,
+    notes: song.notes?.trim() ? song.notes : entry.notes ?? undefined,
+    lyrics: song.lyrics?.trim() ? song.lyrics : entry.lyrics?.trim() || undefined,
+    youtubeVideoId: entry.youtubeVideoId?.trim() || song.youtubeVideoId,
+    youtubeUrl: entry.youtubeUrl?.trim() || song.youtubeUrl,
+    chartUrl: entry.chartUrl?.trim() || song.chartUrl,
+    chartFileName: entry.chartFileName?.trim() || song.chartFileName,
   };
 }
 

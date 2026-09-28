@@ -5,6 +5,7 @@ import { WorshipAudioPlayer } from "@/components/worship/WorshipAudioPlayer";
 import {
   visiblePracticeStemsForUser,
   worshipPracticeStemLabel,
+  type WorshipServicePlan,
   type WorshipSong,
 } from "@/lib/worship-types";
 
@@ -12,22 +13,36 @@ type WorshipSongBreakdownListenProps = {
   song: WorshipSong;
   userId?: string;
   isManager?: boolean;
+  planStatus?: WorshipServicePlan["status"];
 };
 
 export function WorshipSongBreakdownListen({
   song,
   userId,
   isManager = false,
+  planStatus = "draft",
 }: WorshipSongBreakdownListenProps) {
   const stems = visiblePracticeStemsForUser(song.practiceStems, userId, isManager).filter(
     (stem) => stem.status === "approved",
   );
-  const hasYouTube = Boolean(song.youtubeVideoId);
+  const hasYouTube = Boolean(song.youtubeVideoId?.trim());
 
   if (!hasYouTube && stems.length === 0) {
+    if (isManager) {
+      return (
+        <p className="mt-3 text-xs leading-relaxed text-night-500">
+          {song.librarySongId
+            ? "No reference video on this row yet. Open Song library → Edit this song → add a YouTube link, then save this plan."
+            : "No reference video yet. Add the song from Song library (with YouTube) or paste a link in the song workspace, then save the plan."}
+        </p>
+      );
+    }
+
     return (
       <p className="mt-3 text-xs text-night-500">
-        No reference video or practice track yet — check back after the plan is updated.
+        {planStatus === "published"
+          ? "No reference video or practice track yet — your worship leader can add one in the song library."
+          : "No reference video or practice track yet — check back after the plan is published."}
       </p>
     );
   }
