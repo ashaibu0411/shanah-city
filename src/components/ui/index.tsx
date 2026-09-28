@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MobilePageHero } from "@/components/app/MobilePageHero";
+import { PageBackLink } from "@/components/app/PageBackLink";
 import { editorialPremium, formatEditorialSectionLabel } from "@/components/app/editorial-premium";
 import { openExternalUrl } from "@/lib/native-app";
 import { site } from "@/lib/site";
@@ -155,6 +156,8 @@ export function PageHeader({
   sectionIndex,
   accentWord,
   variant = "default",
+  backHref,
+  backLabel,
 }: {
   eyebrow?: string;
   title: string;
@@ -162,19 +165,29 @@ export function PageHeader({
   sectionIndex?: number;
   accentWord?: string;
   variant?: "default" | "flat";
+  backHref?: string;
+  backLabel?: string;
 }) {
   const { isMobileApp } = useAppShell();
 
+  const backLink =
+    backHref && backLabel ? (
+      <PageBackLink href={backHref} label={backLabel} className="mb-3" />
+    ) : null;
+
   if (isMobileApp) {
     return (
-      <MobilePageHero
-        eyebrow={eyebrow}
-        title={title}
-        description={description}
-        sectionIndex={sectionIndex}
-        accentWord={accentWord}
-        variant={variant}
-      />
+      <>
+        {backLink}
+        <MobilePageHero
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
+          sectionIndex={sectionIndex}
+          accentWord={accentWord}
+          variant={variant}
+        />
+      </>
     );
   }
 
@@ -200,6 +213,7 @@ export function PageHeader({
 
   return (
     <div className={`${headerClass} ${headerMargin}`}>
+      {backLink}
       {eyebrowText ? (
         <p className={editorialPremium.pageEyebrow}>{eyebrowText}</p>
       ) : null}
