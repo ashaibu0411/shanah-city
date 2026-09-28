@@ -23,6 +23,8 @@ import {
 import { normalizeDisappearingSeconds } from "@/lib/chat-disappearing";
 import { isUserBlocked } from "@/lib/block-server";
 import { isAllowedReactionEmoji } from "@/lib/chat-utils";
+import { formatMentionsForDisplay } from "@/lib/mentions";
+import { notifyMemberMentions } from "@/lib/mention-notify-server";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyNewMessage } from "@/lib/push-server";
 import { getGroupChatInboxForUser } from "@/lib/group-chat-server";
@@ -288,12 +290,22 @@ export async function POST(request: Request) {
     let lastNotify;
     for (const targetId of notifyTargets) {
       if (await isUserBlocked(targetId, user.id)) continue;
-      const preview = content || attachmentName || "Photo";
+      const preview = formatMentionsForDisplay(content || attachmentName || "Photo");
       lastNotify = await notifyNewMessage({
         recipientId: targetId,
         senderName: getPublicDisplayName(user),
         preview: preview.slice(0, 120),
         threadId: result.thread.id,
+      });
+    }
+    if (content) {
+      void notifyMemberMentions({
+        authorId: user.id,
+        authorName: getPublicDisplayName(user),
+        content,
+        url: `/messages?thread=${encodeURIComponent(result.thread.id)}`,
+        contextLabel: "Message",
+        preferenceKey: "messages",
       });
     }
     if (lastNotify) {

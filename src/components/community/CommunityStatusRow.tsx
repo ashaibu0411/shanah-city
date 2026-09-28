@@ -29,6 +29,8 @@ import {
   markStoriesSeen,
 } from "@/lib/community-story-utils";
 import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
+import { MentionTextarea } from "@/components/mentions/MentionField";
+import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete";
 
 type CommunityStatusRowProps = {
   variant?: "feed" | "home";
@@ -38,6 +40,7 @@ type ComposeMode = "media" | "text" | "service" | "link";
 
 export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps) {
   const { user } = useAuth();
+  const { members: mentionMembers } = useMentionMembers();
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [statuses, setStatuses] = useState<CommunityStatus[]>([]);
@@ -554,19 +557,21 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                     autoFocus
                   />
                 ) : null}
-                <textarea
+                <MentionTextarea
                   value={captionDraft}
-                  onChange={(event) => setCaptionDraft(event.target.value.slice(0, 200))}
+                  onChange={(value) => setCaptionDraft(value.slice(0, 200))}
+                  members={mentionMembers}
+                  allowAll
                   rows={composeMode === "text" ? 4 : composeMode === "link" ? 2 : 3}
                   maxLength={200}
                   placeholder={
                     composeMode === "service"
                       ? nextService.inviteHeadline
                       : composeMode === "text"
-                        ? "Need prayer, on my way, grabbing food after…"
+                        ? "Need prayer, on my way… (@ to tag)"
                         : composeMode === "link"
-                          ? "Optional note (e.g. Come see our Friday worship reel)"
-                          : "What's on your heart?"
+                          ? "Optional note (@ to tag)"
+                          : "What's on your heart? (@ to tag)"
                   }
                   className={`community-story-caption-input w-full resize-none rounded-xl border border-night-900/12 bg-white px-3 py-2.5 text-[15px] text-night-900 placeholder:text-night-400 focus:border-clay-500 focus:outline-none focus:ring-2 focus:ring-clay-500/20 dark:border-white/15 dark:bg-night-900 dark:text-sand-100 ${composeMode === "link" ? "mt-2" : "mt-3"}`}
                   autoFocus={composeMode !== "link"}

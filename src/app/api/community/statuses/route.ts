@@ -13,6 +13,7 @@ import { addCommunityStatus } from "@/lib/community-status-server";
 import { defaultServiceInviteCaption } from "@/lib/community-worship-service";
 import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
 import type { CommunityStatusStoryKind } from "@/lib/member-types";
+import { notifyMemberMentions } from "@/lib/mention-notify-server";
 
 function parseStoryKind(value: unknown): CommunityStatusStoryKind {
   return value === "service_invite" ? "service_invite" : "default";
@@ -135,6 +136,17 @@ export async function POST(request: Request) {
       authorName: getPublicDisplayName(user),
       caption: caption || undefined,
     });
+
+    if (caption) {
+      void notifyMemberMentions({
+        authorId: user.id,
+        authorName: getPublicDisplayName(user),
+        content: caption,
+        url: "/community",
+        contextLabel: "Story",
+        preferenceKey: "announcements",
+      });
+    }
 
     return NextResponse.json({ status: withReactions }, { status: 201 });
   } catch (error) {

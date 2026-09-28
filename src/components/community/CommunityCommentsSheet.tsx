@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 import type { Comment, CommunityPost } from "@/lib/member-types";
 import { IgShareIcon } from "@/components/community/CommunityPostIcons";
 import { CommunityAvatar } from "@/components/community/CommunityAvatar";
+import { MentionInput } from "@/components/mentions/MentionField";
+import type { MentionMember } from "@/lib/mentions";
 import {
   postReactionButtons,
   type CommunityPostReactionKind,
@@ -26,6 +28,7 @@ type CommunityCommentsSheetProps = {
   onTogglePostReaction: (kind: CommunityPostReactionKind) => void;
   reactionBusy: boolean;
   renderComment: (comment: Comment) => ReactNode;
+  mentionMembers?: MentionMember[];
 };
 
 export function CommunityCommentsSheet({
@@ -43,6 +46,7 @@ export function CommunityCommentsSheet({
   onTogglePostReaction,
   reactionBusy,
   renderComment,
+  mentionMembers = [],
 }: CommunityCommentsSheetProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const reactionButtons = postReactionButtons();
@@ -127,17 +131,23 @@ export function CommunityCommentsSheet({
           <div className="flex items-center gap-2">
             <CommunityAvatar name="You" size="sm" />
             <div className="relative min-w-0 flex-1">
-              <input
+              <MentionInput
                 ref={inputRef}
                 value={commentDraft}
-                onChange={(event) => onCommentDraftChange(event.target.value)}
+                onChange={onCommentDraftChange}
+                members={mentionMembers}
+                allowAll
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();
                     onSubmitComment();
                   }
                 }}
-                placeholder={replyingTo ? `Reply to ${replyingTo.author}…` : `Add a comment for ${post.author}…`}
+                placeholder={
+                  replyingTo
+                    ? `Reply to ${replyingTo.author}… (@ to tag)`
+                    : `Add a comment for ${post.author}… (@ to tag)`
+                }
                 className="community-comments-sheet-input"
               />
               {commentDraft.trim() ? (

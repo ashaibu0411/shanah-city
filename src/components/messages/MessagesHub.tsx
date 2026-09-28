@@ -237,6 +237,11 @@ export function MessagesHub() {
   const activeThreadIdRef = useRef<string | null>(null);
   const activeGroupIdRef = useRef<string | null>(null);
 
+  const chatMentionMembers = useMemo(
+    () => members.map((member) => ({ id: member.id, name: member.name })),
+    [members],
+  );
+
   const isStaff = permissions.canManageAdmin;
 
   const activeThread = useMemo(
@@ -1233,6 +1238,8 @@ export function MessagesHub() {
                 sendLabel="Send"
                 allowAttachment={false}
                 density="instagram"
+                mentionMembers={chatMentionMembers}
+                mentionAllowAll={newRecipientIds.length > 1}
               />
             </div>
           </>
@@ -1503,6 +1510,7 @@ export function MessagesHub() {
                 vanishMode={disappearingSeconds > 0}
                 replyDraft={replyDraft}
                 onClearReply={() => setReplyDraft(null)}
+                mentionMembers={chatMentionMembers}
               />
             </div>
           </>

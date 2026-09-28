@@ -31,6 +31,8 @@ import { CommunityPostShareSheet } from "@/components/community/CommunityPostSha
 import { canManageCommunityPostClient } from "@/lib/community-post-access";
 import { isUrgentAlertCommunityPostId } from "@/lib/urgent-alert-utils";
 import { canManageCommunityComment } from "@/lib/community-comment-access";
+import { MentionText } from "@/components/mentions/MentionText";
+import type { MentionMember } from "@/lib/mentions";
 import { communityPostHasMedia, communityPostMediaItems } from "@/lib/community-post-media";
 
 function CommentIcon() {
@@ -64,6 +66,7 @@ type CommunityPostCardProps = {
   onUpdate: (post: CommunityPost) => void;
   onDelete?: (postId: string) => void;
   compact?: boolean;
+  mentionMembers?: MentionMember[];
 };
 
 type PostCommentRowProps = {
@@ -148,7 +151,7 @@ function PostCommentRow({
           <div className="min-w-0 flex-1">
             <p className="text-sm leading-snug text-night-900 dark:text-sand-100">
               <span className="font-semibold">{comment.author}</span>{" "}
-              <span className="font-normal">{comment.content}</span>
+              <MentionText text={comment.content} className="font-normal inline" />
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-night-500">
               <span>{formatCommunityTimeAgo(comment.createdAt)}</span>
@@ -248,7 +251,7 @@ function PostCommentRow({
                   {comment.author}
                 </p>
                 <p className="community-post-content mt-0.5 text-[15px] leading-snug text-night-900 dark:text-sand-100">
-                  {comment.content}
+                  <MentionText text={comment.content} />
                 </p>
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
@@ -350,6 +353,7 @@ export function CommunityPostCard({
   onUpdate,
   onDelete,
   compact = false,
+  mentionMembers = [],
 }: CommunityPostCardProps) {
   const { user, permissions } = useAuth();
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -903,7 +907,9 @@ export function CommunityPostCard({
           <div className="community-post-caption">
             <p className="community-post-content text-sm text-night-900 dark:text-sand-100">
               <span className="font-semibold">{post.author}</span>{" "}
-              <span className="whitespace-pre-wrap font-normal">{post.content}</span>
+              <span className="whitespace-pre-wrap font-normal">
+                <MentionText text={post.content} />
+              </span>
             </p>
           </div>
 
@@ -933,7 +939,7 @@ export function CommunityPostCard({
         <>
           <div className={`community-post-body ${compact ? "community-post-body-compact" : ""}`}>
             <p className="community-post-content whitespace-pre-wrap text-night-900 dark:text-sand-100">
-              {post.content}
+              <MentionText text={post.content} />
             </p>
           </div>
           {(reactionTotal > 0 || commentCount > 0) && (
@@ -998,6 +1004,7 @@ export function CommunityPostCard({
         sharePost={sharePost}
         onTogglePostReaction={(kind) => void toggleReaction(kind)}
         reactionBusy={reactionBusy}
+        mentionMembers={mentionMembers}
         renderComment={(comment) => (
           <PostCommentRow comment={comment} layout="instagram" {...commentRowSharedProps} />
         )}

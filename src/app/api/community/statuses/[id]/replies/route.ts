@@ -6,6 +6,7 @@ import { getPublicDisplayName } from "@/lib/member-display-name";
 import { addStoryReply } from "@/lib/community-status-insights-server";
 import { sendDirectMessage } from "@/lib/message-server";
 import { notifyNewMessage } from "@/lib/push-server";
+import { notifyMemberMentions } from "@/lib/mention-notify-server";
 import { prisma } from "@/lib/db";
 
 type RouteContext = {
@@ -66,6 +67,15 @@ export async function POST(request: Request, context: RouteContext) {
         }
       }
     }
+
+    void notifyMemberMentions({
+      authorId: user.id,
+      authorName: getPublicDisplayName(user),
+      content,
+      url: "/community",
+      contextLabel: "Story reply",
+      preferenceKey: "messages",
+    });
 
     return NextResponse.json({ reply }, { status: 201 });
   } catch (error) {

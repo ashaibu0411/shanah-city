@@ -34,6 +34,7 @@ import {
   updateCommunityPost,
 } from "@/lib/member-server";
 import { notifyCommunityPost } from "@/lib/push-server";
+import { notifyMemberMentions } from "@/lib/mention-notify-server";
 
 function parseMemberPostType(value: unknown): CommunityPost["type"] | null {
   if (value === "prayer" || value === "praise" || value === "general") return value;
@@ -141,6 +142,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Comment not found." }, { status: 404 });
     }
     const post = await finalizeCommunityPostForViewer(comment, user);
+    if (user && body.content) {
+      void notifyMemberMentions({
+        authorId: user.id,
+        authorName,
+        content: String(body.content ?? "").trim(),
+        url: `/community#post-${String(body.postId ?? "")}`,
+        contextLabel: "Community comment",
+        preferenceKey: "announcements",
+      });
+    }
     return NextResponse.json({ post });
   }
 
@@ -384,6 +395,17 @@ export async function POST(request: Request) {
     targetGroupId,
     targetGroupName,
   });
+
+  if (content) {
+    void notifyMemberMentions({
+      authorId: user.id,
+      authorName,
+      content,
+      url: `/community#post-${post.id}`,
+      contextLabel: "Community post",
+      preferenceKey: "announcements",
+    });
+  }
 
   return NextResponse.json({ post }, { status: 201 });
 }

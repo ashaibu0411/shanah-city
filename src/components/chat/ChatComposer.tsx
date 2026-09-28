@@ -4,8 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import { ChatReplyComposerBanner } from "@/components/chat/ChatReplyComposerBanner";
 import { chatPremium } from "@/components/chat/chat-premium";
+import { MentionPicker } from "@/components/mentions/MentionPicker";
+import { useMentionAutocomplete } from "@/components/mentions/useMentionAutocomplete";
 import { insertAtCursor, QUICK_CHAT_EMOJIS } from "@/lib/chat-utils";
 import type { ChatReplyDraft } from "@/lib/chat-reply-types";
+import type { MentionMember } from "@/lib/mentions";
 
 type PendingAttachment = {
   attachmentUrl: string;
@@ -30,6 +33,8 @@ type ChatComposerProps = {
   attachmentBusy?: boolean;
   replyDraft?: ChatReplyDraft | null;
   onClearReply?: () => void;
+  mentionMembers?: MentionMember[];
+  mentionAllowAll?: boolean;
 };
 
 export function ChatComposer({
@@ -48,12 +53,65 @@ export function ChatComposer({
   replyDraft,
   onClearReply,
   vanishMode = false,
+  mentionMembers = [],
+  mentionAllowAll = false,
 }: ChatComposerProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
+  const mentionCursorRef = useRef(0);
+
+  const mentionEnabled = mentionMembers.length > 0 || mentionAllowAll;
+  const {
+    mentionOpen,
+    mentionMembers: mentionMatches,
+    mentionHighlightIndex,
+    setMentionHighlightIndex,
+    onMentionKeyDown,
+    onMentionSelect,
+    onMentionSelectAll,
+    trackMentionCursor,
+  } = useMentionAutocomplete({
+    value,
+    onChange,
+    members: mentionMembers,
+    allowAll: mentionAllowAll,
+    enabled: mentionEnabled,
+    getCursor: () => mentionCursorRef.current,
+    setCursor: (index) => {
+      mentionCursorRef.current = index;
+      const input = inputRef.current;
+      if (input) {
+        input.focus();
+        input.setSelectionRange(index, index);
+      }
+    },
+  });
+
+  function syncMentionCursor() {
+    const input = inputRef.current;
+    if (!input) return;
+    mentionCursorRef.current = input.selectionStart ?? value.length;
+    trackMentionCursor(mentionCursorRef.current);
+  }
+
+  function mentionPicker(className = "") {
+    if (!mentionOpen) return null;
+    return (
+      <MentionPicker
+        open
+        members={mentionMatches}
+        highlightIndex={mentionHighlightIndex}
+        onHighlight={setMentionHighlightIndex}
+        onSelect={onMentionSelect}
+        onSelectAll={onMentionSelectAll}
+        allowAll={mentionAllowAll}
+        className={className}
+      />
+    );
+  }
 
   useEffect(() => {
     return () => {
@@ -179,7 +237,9 @@ export function ChatComposer({
             </>
           )}
 
-          <div
+          <div className="relative min-w-0 flex-1">
+            {mentionPicker("absolute bottom-full left-0 mb-1 w-[min(100vw-2rem,18rem)]")}
+            <div
             className={`messages-hub-composer-field flex min-w-0 flex-1 items-center gap-0.5 rounded-full px-3 py-1 ${vanishMode ? "is-vanish" : ""}`}
           >
             <input
@@ -188,11 +248,15 @@ export function ChatComposer({
               onChange={(event) => {
                 onChange(event.target.value);
                 notifyTyping(event.target.value);
+                syncMentionCursor();
               }}
+              onClick={syncMentionCursor}
+              onKeyUp={syncMentionCursor}
               placeholder={placeholder}
               disabled={disabled}
               className="min-w-0 flex-1 bg-transparent py-2 text-[15px] text-[var(--color-ink)] caret-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-soft)] disabled:opacity-50"
               onKeyDown={(event) => {
+                if (onMentionKeyDown(event)) return;
                 if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
                   event.preventDefault();
                   handleSend();
@@ -241,6 +305,7 @@ export function ChatComposer({
             >
               <HubPlusIcon />
             </button>
+          </div>
           </div>
         </div>
       </div>
@@ -322,18 +387,23 @@ export function ChatComposer({
           >
             😊
           </button>
-          <div className={chatPremium.composerField}>
+          <div className={`${chatPremium.composerField} relative`}>
+            {mentionPicker("absolute bottom-full left-0 mb-1 w-full min-w-[14rem]")}
             <input
               ref={inputRef}
               value={value}
               onChange={(event) => {
                 onChange(event.target.value);
                 notifyTyping(event.target.value);
+                syncMentionCursor();
               }}
+              onClick={syncMentionCursor}
+              onKeyUp={syncMentionCursor}
               placeholder={placeholder}
               disabled={disabled}
               className={chatPremium.composerInput}
               onKeyDown={(event) => {
+                if (onMentionKeyDown(event)) return;
                 if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
                   event.preventDefault();
                   handleSend();
@@ -431,17 +501,23 @@ export function ChatComposer({
             </button>
           </>
         )}
+        <div className="relative min-w-0 flex-1">
+          {mentionPicker("absolute bottom-full left-0 mb-1 w-full min-w-[14rem]")}
         <input
           ref={inputRef}
           value={value}
           onChange={(event) => {
             onChange(event.target.value);
             notifyTyping(event.target.value);
+            syncMentionCursor();
           }}
+          onClick={syncMentionCursor}
+          onKeyUp={syncMentionCursor}
           placeholder={placeholder}
           disabled={disabled}
           className="min-w-0 flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:opacity-50"
           onKeyDown={(event) => {
+            if (onMentionKeyDown(event)) return;
             if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
               event.preventDefault();
               onSend(pendingAttachment ?? undefined);
@@ -450,6 +526,7 @@ export function ChatComposer({
             }
           }}
         />
+        </div>
         <Button
           onClick={() => {
             onSend(pendingAttachment ?? undefined);

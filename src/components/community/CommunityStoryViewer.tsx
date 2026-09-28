@@ -24,6 +24,9 @@ import {
 import { storyReplyPresetsForKind } from "@/lib/community-story-reply-presets";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
 import { CommunityLivePlayer } from "@/components/community/CommunityLivePlayer";
+import { MentionInput } from "@/components/mentions/MentionField";
+import { MentionText } from "@/components/mentions/MentionText";
+import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete";
 
 type StoryInsightsPayload = {
   reactions: {
@@ -236,6 +239,7 @@ export function CommunityStoryViewer({
   const [replyNotice, setReplyNotice] = useState("");
   const [replyError, setReplyError] = useState("");
   const [replyFocused, setReplyFocused] = useState(false);
+  const { members: mentionMembers } = useMentionMembers();
   const [reactionBusy, setReactionBusy] = useState(false);
   const [reactionError, setReactionError] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -856,7 +860,9 @@ export function CommunityStoryViewer({
                 ) : null}
               </>
             ) : null}
-            <p className="community-story-text-slide-body">{slide.caption ?? ""}</p>
+            <p className="community-story-text-slide-body">
+              <MentionText text={slide.caption ?? ""} />
+            </p>
           </div>
         ) : slide.mediaType === "link" ? (
           <StorySlideLink
@@ -948,7 +954,9 @@ export function CommunityStoryViewer({
       </div>
 
       {slide.caption && slide.mediaType !== "text" ? (
-        <p className="community-story-viewer-caption">{slide.caption}</p>
+        <p className="community-story-viewer-caption">
+          <MentionText text={slide.caption ?? ""} />
+        </p>
       ) : null}
 
       {!isOwnStory && slide && slide.mediaType !== "live" ? (
@@ -998,10 +1006,12 @@ export function CommunityStoryViewer({
           </div>
           <form className="community-story-viewer-reply" onSubmit={(event) => void sendStoryReply(event)}>
             <div className="community-story-viewer-reply-field">
-              <input
+              <MentionInput
                 type="text"
                 value={replyDraft}
-                onChange={(event) => setReplyDraft(event.target.value)}
+                onChange={setReplyDraft}
+                members={mentionMembers}
+                allowAll
                 onFocus={() => {
                   setReplyFocused(true);
                   pausePlayback();
@@ -1010,7 +1020,7 @@ export function CommunityStoryViewer({
                   setReplyFocused(false);
                   if (!replyDraft.trim()) resumePlayback();
                 }}
-                placeholder="Send message"
+                placeholder="Send message (@ to tag)"
                 maxLength={500}
                 className="community-story-viewer-reply-input"
                 disabled={replyBusy}

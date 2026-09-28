@@ -18,6 +18,7 @@ import {
 } from "@/lib/community-ui-utils";
 import type { SignupGroupOption } from "@/lib/group-types";
 import { openCommunityGalleryPicker } from "@/lib/native-media-picker";
+import { MentionTextarea } from "@/components/mentions/MentionField";
 
 type ComposerMode = "share" | "announcement";
 
@@ -31,6 +32,7 @@ type PendingMedia = {
 
 type CommunityComposerProps = {
   onLocalPost: (post: import("@/lib/member-types").CommunityPost) => void;
+  mentionMembers?: import("@/lib/mentions").MentionMember[];
 };
 
 function PhotoIcon() {
@@ -53,7 +55,7 @@ function UpdateIcon() {
   return <span className="text-lg leading-none">💬</span>;
 }
 
-export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
+export function CommunityComposer({ onLocalPost, mentionMembers = [] }: CommunityComposerProps) {
   const { campus } = useApp();
   const { user, permissions } = useAuth();
   const canAnnounce = permissions.canManageAdmin;
@@ -305,10 +307,12 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
 
             {mode === "share" ? (
               <>
-                <textarea
+                <MentionTextarea
                   value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder={`What's on your mind, ${composerFirstName}?`}
+                  onChange={setDraft}
+                  members={mentionMembers}
+                  allowAll
+                  placeholder={`What's on your mind, ${composerFirstName}? Type @ to tag someone`}
                   rows={5}
                   autoFocus
                   className="mt-3 w-full resize-none border-0 bg-transparent text-[24px] leading-snug text-night-900 outline-none placeholder:text-night-600"
@@ -332,10 +336,12 @@ export function CommunityComposer({ onLocalPost }: CommunityComposerProps) {
                     </option>
                   ))}
                 </select>
-                <textarea
+                <MentionTextarea
                   value={announcementDraft}
-                  onChange={(event) => setAnnouncementDraft(event.target.value)}
-                  placeholder="Service update, event reminder, campus news..."
+                  onChange={setAnnouncementDraft}
+                  members={mentionMembers}
+                  allowAll
+                  placeholder="Service update, event reminder, campus news… Type @ to tag"
                   rows={5}
                   autoFocus
                   className="mt-3 w-full resize-none rounded-lg border border-night-900/12 bg-sand-100 px-3 py-2.5 text-[15px] text-night-900 outline-none focus:border-clay-500"

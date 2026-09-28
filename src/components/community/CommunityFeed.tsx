@@ -10,12 +10,14 @@ import {
   type CommunityFeedFilter,
 } from "@/lib/community-ui-utils";
 import { isUrgentAlertCommunityPostId } from "@/lib/urgent-alert-utils";
+import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete";
 import { CommunityComposer } from "@/components/community/CommunityComposer";
 import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { SectionTitle } from "@/components/ui";
 
 export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] }) {
   const [posts, setPosts] = useState(initialPosts);
+  const { members: mentionMembers } = useMentionMembers();
   const [filter, setFilter] = useState<CommunityFeedFilter>(() => {
     if (typeof window === "undefined") return "all";
     const hash = window.location.hash;
@@ -89,7 +91,7 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
   return (
     <div className="community-feed community-feed-solid min-w-0 max-w-full">
       <div className="community-feed-header">
-        <CommunityComposer onLocalPost={prependPost} />
+        <CommunityComposer onLocalPost={prependPost} mentionMembers={mentionMembers} />
 
         <div className="community-feed-tabs" role="tablist" aria-label="Feed filters">
           {COMMUNITY_FEED_FILTERS.map((entry) => (
@@ -124,6 +126,7 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
               post={post}
               onUpdate={updatePost}
               onDelete={removePost}
+              mentionMembers={mentionMembers}
             />
           ))
         )}

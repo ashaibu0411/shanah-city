@@ -17,8 +17,10 @@ import {
 } from "@/lib/group-chat-server";
 import { normalizeDisappearingSeconds } from "@/lib/chat-disappearing";
 import { isAllowedReactionEmoji } from "@/lib/chat-utils";
+import { formatMentionsForDisplay } from "@/lib/mentions";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyGroupChatMessage } from "@/lib/push-server";
+import { notifyMemberMentions } from "@/lib/mention-notify-server";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -224,7 +226,7 @@ export async function POST(request: Request) {
 
     await recordActivity(user.id, "message_sent", `Group chat in ${access.detail!.name}`);
 
-    const preview = content || attachmentName || "Photo";
+    const preview = formatMentionsForDisplay(content || attachmentName || "Photo");
     await notifyGroupChatMessage({
       groupId,
       groupName: access.detail!.name,
@@ -232,6 +234,18 @@ export async function POST(request: Request) {
       senderName: getPublicDisplayName(user),
       preview: preview.slice(0, 120),
     });
+
+    if (content) {
+      void notifyMemberMentions({
+        authorId: user.id,
+        authorName: getPublicDisplayName(user),
+        content,
+        url: `/groups/${encodeURIComponent(groupId)}?chat=1`,
+        contextLabel: `Message in ${access.detail!.name}`,
+        groupId,
+        preferenceKey: "groupChat",
+      });
+    }
 
     return NextResponse.json({ message }, { status: 201 });
   } catch (error) {

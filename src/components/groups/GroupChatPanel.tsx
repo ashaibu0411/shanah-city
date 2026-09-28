@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChatComposer, type PendingAttachment } from "@/components/chat/ChatComposer";
 import { ChatMessageBubble } from "@/components/chat/ChatMessageBubble";
@@ -98,6 +98,13 @@ export function GroupChatPanel({
   const [disappearingSeconds, setDisappearingSeconds] = useState(0);
   const [replyDraft, setReplyDraft] = useState<ChatReplyDraft | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const mentionMembers = useMemo(
+    () =>
+      participants
+        .filter((participant) => participant.id !== userId)
+        .map((participant) => ({ id: participant.id, name: participant.name })),
+    [participants, userId],
+  );
   const artworkUrl = getGroupArtwork(
     {
       id: groupId,
@@ -599,6 +606,8 @@ export function GroupChatPanel({
           vanishMode={disappearingSeconds > 0}
           replyDraft={replyDraft}
           onClearReply={() => setReplyDraft(null)}
+          mentionMembers={mentionMembers}
+          mentionAllowAll
         />
       </div>
 
