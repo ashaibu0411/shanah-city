@@ -16,10 +16,12 @@ import { WorshipSchedulePanel } from "@/components/worship/WorshipSchedulePanel"
 import { WorshipChoirServicePanel } from "@/components/worship/WorshipChoirServicePanel";
 import { WorshipMemberSuggestions } from "@/components/worship/WorshipMemberSuggestions";
 import { WorshipSongWorkspace } from "@/components/worship/WorshipSongWorkspace";
+import { WorshipSetlistGroupHeader } from "@/components/worship/WorshipSetlistGroupHeader";
 import { WorshipSongBreakdownListen } from "@/components/worship/WorshipSongBreakdownListen";
 import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBreakdownLyrics";
 import {
   buildTeamReadiness,
+  buildSetlistDisplayGroups,
   emptyWorshipSong,
   nextServiceSundayIso,
   resolveLibraryInsertIndex,
@@ -33,6 +35,7 @@ import {
   WORSHIP_PART_ROLES,
   WORSHIP_ROLES,
   WORSHIP_SERVICE_TIMES,
+  WORSHIP_SET_NUMBERS,
   WORSHIP_SONG_SEGMENTS,
   type WorshipLibrarySong,
   type WorshipPartRole,
@@ -131,6 +134,7 @@ export function WorshipPlannerPanel({
   );
 
   const readiness = useMemo(() => buildTeamReadiness({ team, songs }), [team, songs]);
+  const setlistGroups = useMemo(() => buildSetlistDisplayGroups(songs), [songs]);
   const myMember = team.find((member) => member.userId === user?.id);
   const songLeaderOptions = useMemo(() => {
     const byId = new Map(roster.map((member) => [member.id, member]));
@@ -1016,7 +1020,16 @@ export function WorshipPlannerPanel({
 
       <Card className="mb-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="font-display text-lg font-semibold text-night-900">Song breakdown</h3>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display text-lg font-semibold text-night-900">Song breakdown</h3>
+            {showEditor ? (
+              <p className="mt-1 text-xs text-night-500">
+                Group worship songs into <span className="font-semibold">Set 1</span>,{" "}
+                <span className="font-semibold">Set 2</span>, etc. Other segments get their own
+                labeled blocks.
+              </p>
+            ) : null}
+          </div>
           {showEditor && (
             <div className="flex flex-wrap gap-2">
               <Button variant="secondary" onClick={() => setTab("library")}>
@@ -1046,17 +1059,28 @@ export function WorshipPlannerPanel({
             ) : null}
           </div>
         ) : (
-          <div className="mt-4 space-y-3">
-            {songs.map((song, index) => {
+          <div className="mt-4 space-y-2">
+            {setlistGroups.map((group) => (
+              <div key={group.key} className="space-y-3">
+                <WorshipSetlistGroupHeader
+                  title={group.title}
+                  subtitle={group.subtitle}
+                  songCount={group.songs.length}
+                />
+                {group.songs.map(({ song, index, positionInSet }) => {
               const prepared = user ? song.preparedBy.includes(user.id) : false;
               const teamPreparedCount = song.preparedBy.length;
+              const segment = song.segment ?? "worship";
               return (
                 <div
                   key={song.id}
                   id={`worship-song-${song.id}`}
-                  className="scroll-mt-24 rounded-xl border border-night-900/5 p-4"
+                  className="scroll-mt-24 rounded-xl border border-night-900/5 bg-white/50 p-4 ring-1 ring-violet-100/80 dark:bg-[var(--color-surface)]/80 dark:ring-violet-900/20"
                   onFocusCapture={() => setActiveSongIndex(index)}
                 >
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-violet-800 dark:text-violet-300">
+                    {group.title} · Song {positionInSet}
+                  </p>
                   <div className="grid gap-3 md:grid-cols-[1fr_100px_100px_auto] md:items-end">
                     {showEditor ? (
                       <>
@@ -1107,20 +1131,40 @@ export function WorshipPlannerPanel({
                           </Button>
                         </div>
                         <select
-                          value={song.segment ?? "worship"}
-                          onChange={(event) =>
+                          value={segment}
+                          onChange={(event) => {
+                            const nextSegment = event.target.value as WorshipSong["segment"];
                             updateSong(index, {
-                              segment: event.target.value as WorshipSong["segment"],
-                            })
-                          }
+                              segment: nextSegment,
+                              setNumber: nextSegment === "worship" ? song.setNumber ?? 1 : undefined,
+                            });
+                          }}
                           className="rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm md:col-span-2"
                         >
-                          {WORSHIP_SONG_SEGMENTS.map((segment) => (
-                            <option key={segment.value} value={segment.value}>
-                              {segment.label}
+                          {WORSHIP_SONG_SEGMENTS.map((segmentOption) => (
+                            <option key={segmentOption.value} value={segmentOption.value}>
+                              {segmentOption.label}
                             </option>
                           ))}
                         </select>
+                        {segment === "worship" ? (
+                          <select
+                            value={song.setNumber ?? 1}
+                            onChange={(event) =>
+                              updateSong(index, { setNumber: Number(event.target.value) })
+                            }
+                            aria-label="Worship set number"
+                            className="rounded-xl border border-violet-200 bg-violet-50/80 px-3 py-2.5 text-sm font-semibold text-violet-900 md:col-span-2"
+                          >
+                            {WORSHIP_SET_NUMBERS.map((setNum) => (
+                              <option key={setNum} value={setNum}>
+                                Set {setNum}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="hidden md:col-span-2 md:block" aria-hidden />
+                        )}
                         <select
                           value={song.leaderUserId ?? ""}
                           onChange={(event) => {
@@ -1156,10 +1200,11 @@ export function WorshipPlannerPanel({
                       <>
                         <div>
                           <p className="font-semibold text-night-900">
-                            {index + 1}. {song.title}
+                            {positionInSet}. {song.title}
                           </p>
                           <p className="mt-1 text-xs text-night-500">
-                            {worshipSegmentLabel(song.segment ?? "worship")}
+                            {group.title}
+                            {song.key?.trim() ? ` · Key ${song.key.trim()}` : ""}
                             {song.leaderName ? ` · Led by ${song.leaderName}` : ""}
                           </p>
                           {song.notes && (
@@ -1234,7 +1279,9 @@ export function WorshipPlannerPanel({
                   />
                 </div>
               );
-            })}
+                })}
+              </div>
+            ))}
           </div>
         )}
       </Card>

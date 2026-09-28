@@ -24,6 +24,8 @@ export const WORSHIP_SONG_SEGMENTS = [
   { value: "closing", label: "Closing" },
 ] as const;
 
+export const WORSHIP_SET_NUMBERS = [1, 2, 3, 4, 5, 6] as const;
+
 export const WORSHIP_ROLES = [
   { value: "worship-leader", label: "Worship leader" },
   { value: "singer", label: "Singer" },
@@ -100,6 +102,8 @@ export type WorshipSong = {
   leaderUserId?: string;
   leaderName?: string;
   segment?: WorshipSongSegment;
+  /** Worship block label (Set 1, Set 2, …) when segment is worship. */
+  setNumber?: number;
   order?: number;
   preparedBy: string[];
 };
@@ -335,6 +339,47 @@ export function worshipSegmentLabel(segment: string) {
   return WORSHIP_SONG_SEGMENTS.find((entry) => entry.value === segment)?.label ?? segment;
 }
 
+export function clampWorshipSetNumber(value: number | null | undefined) {
+  const n = Math.floor(Number(value ?? 1));
+  if (!Number.isFinite(n)) return 1;
+  return Math.min(WORSHIP_SET_NUMBERS[WORSHIP_SET_NUMBERS.length - 1], Math.max(1, n));
+}
+
+export type SetlistDisplayGroup = {
+  key: string;
+  title: string;
+  subtitle?: string;
+  songs: { song: WorshipSong; index: number; positionInSet: number }[];
+};
+
+/** Group consecutive songs for Set 1 / Set 2 headers and segment blocks. */
+export function buildSetlistDisplayGroups(songs: WorshipSong[]): SetlistDisplayGroup[] {
+  const groups: SetlistDisplayGroup[] = [];
+
+  for (let index = 0; index < songs.length; index += 1) {
+    const song = songs[index];
+    const segment = song.segment ?? "worship";
+    const setNumber = clampWorshipSetNumber(song.setNumber);
+    const key = segment === "worship" ? `worship-${setNumber}` : segment;
+    const title = segment === "worship" ? `Set ${setNumber}` : worshipSegmentLabel(segment);
+    const subtitle = segment === "worship" ? "Worship" : "Segment";
+
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) {
+      last.songs.push({ song, index, positionInSet: last.songs.length + 1 });
+    } else {
+      groups.push({
+        key: `${key}-${groups.length}`,
+        title,
+        subtitle,
+        songs: [{ song, index, positionInSet: 1 }],
+      });
+    }
+  }
+
+  return groups;
+}
+
 export function serviceTypeForTime(time: string): WorshipServiceType {
   const slot = WORSHIP_SERVICE_SCHEDULE.find((entry) => entry.value === time);
   return (slot?.serviceType as WorshipServiceType) ?? "special";
@@ -353,6 +398,7 @@ export function songFromLibrary(entry: WorshipLibrarySong): WorshipSong {
       originalKey: entry.defaultKey,
       parts: defaultSongParts(),
       segment: "worship",
+      setNumber: 1,
       preparedBy: [],
     },
     entry,
@@ -390,6 +436,7 @@ export function emptyWorshipSong(title = ""): WorshipSong {
     lyrics: "",
     parts: defaultSongParts(),
     segment: "worship",
+    setNumber: 1,
     preparedBy: [],
   };
 }
@@ -470,6 +517,10 @@ export function normalizeSongs(songs: WorshipSong[] | undefined) {
         leaderUserId: song.leaderUserId,
         leaderName: song.leaderName?.trim() || undefined,
         segment: song.segment || "worship",
+        setNumber:
+          (song.segment || "worship") === "worship"
+            ? clampWorshipSetNumber(song.setNumber)
+            : undefined,
         order: song.order ?? index + 1,
         preparedBy: Array.isArray(song.preparedBy) ? [...new Set(song.preparedBy)] : [],
       };

@@ -4,10 +4,10 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { RichTextContent } from "@/components/ui/RichTextContent";
 import {
+  buildSetlistDisplayGroups,
   rehearsalDateTimeLabel,
   serviceDateTimeLabel,
   worshipRoleLabel,
-  worshipSegmentLabel,
   type WorshipServicePlan,
 } from "@/lib/worship-types";
 
@@ -58,41 +58,48 @@ export function WorshipRunSheetView({ plan, autoPrint = false }: WorshipRunSheet
         </header>
 
         {plan.songs.length > 0 ? (
-          <section className="mt-6">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-night-500">Setlist</h2>
-            <table className="mt-3 w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-night-900/10 text-left text-xs uppercase tracking-wide text-night-500">
-                  <th className="py-2 pr-3">#</th>
-                  <th className="py-2 pr-3">Song</th>
-                  <th className="py-2 pr-3">Segment</th>
-                  <th className="py-2 pr-3">Key</th>
-                  <th className="py-2 pr-3">BPM</th>
-                  <th className="py-2">Leader</th>
-                </tr>
-              </thead>
-              <tbody>
-                {plan.songs.map((song, index) => (
-                  <tr key={song.id} className="border-b border-night-900/5">
-                    <td className="py-2.5 pr-3 font-semibold text-night-900">{index + 1}</td>
-                    <td className="py-2.5 pr-3 font-semibold text-night-900">
-                      {song.title}
-                      {song.notes ? (
-                        <span className="mt-0.5 block text-xs font-normal text-night-500">
-                          {song.notes}
-                        </span>
-                      ) : null}
-                    </td>
-                    <td className="py-2.5 pr-3 text-night-700">
-                      {worshipSegmentLabel(song.segment ?? "worship")}
-                    </td>
-                    <td className="py-2.5 pr-3 font-semibold text-night-900">{song.key}</td>
-                    <td className="py-2.5 pr-3 text-night-700">{song.bpm ?? "—"}</td>
-                    <td className="py-2.5 text-night-700">{song.leaderName ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <section className="mt-6 space-y-6">
+            {buildSetlistDisplayGroups(plan.songs).map((group) => (
+              <div key={group.key}>
+                <h2 className="text-sm font-display font-semibold text-night-900">
+                  {group.title}
+                  {group.subtitle ? (
+                    <span className="ml-2 text-xs font-normal uppercase tracking-wide text-night-500">
+                      {group.subtitle}
+                    </span>
+                  ) : null}
+                </h2>
+                <table className="mt-2 w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-night-900/10 text-left text-xs uppercase tracking-wide text-night-500">
+                      <th className="py-2 pr-3">#</th>
+                      <th className="py-2 pr-3">Song</th>
+                      <th className="py-2 pr-3">Key</th>
+                      <th className="py-2 pr-3">BPM</th>
+                      <th className="py-2">Leader</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.songs.map(({ song, positionInSet }) => (
+                      <tr key={song.id} className="border-b border-night-900/5">
+                        <td className="py-2.5 pr-3 font-semibold text-night-900">{positionInSet}</td>
+                        <td className="py-2.5 pr-3 font-semibold text-night-900">
+                          {song.title}
+                          {song.notes ? (
+                            <span className="mt-0.5 block text-xs font-normal text-night-500">
+                              {song.notes}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="py-2.5 pr-3 font-semibold text-night-900">{song.key}</td>
+                        <td className="py-2.5 pr-3 text-night-700">{song.bpm ?? "—"}</td>
+                        <td className="py-2.5 text-night-700">{song.leaderName ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
           </section>
         ) : (
           <p className="mt-6 text-sm text-night-500">No songs on this plan yet.</p>

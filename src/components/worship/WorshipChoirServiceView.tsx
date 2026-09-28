@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui";
+import { WorshipSetlistGroupHeader } from "@/components/worship/WorshipSetlistGroupHeader";
 import { WorshipSongBreakdownListen } from "@/components/worship/WorshipSongBreakdownListen";
 import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBreakdownLyrics";
 import { WorshipRehearsalNotesReader } from "@/components/worship/WorshipRehearsalNotesReader";
@@ -10,9 +11,9 @@ import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 import { formatSegmentRangeLabel } from "@/lib/worship-youtube-timestamp-utils";
 import {
   buildTeamReadiness,
+  buildSetlistDisplayGroups,
   rehearsalDateTimeLabel,
   serviceDateTimeLabel,
-  worshipSegmentLabel,
   type WorshipServicePlan,
   type WorshipSong,
   type WorshipTeamMember,
@@ -67,6 +68,7 @@ export function WorshipChoirServiceView({
   }, [initialSongId]);
 
   const readiness = useMemo(() => buildTeamReadiness({ team, songs }), [team, songs]);
+  const setlistGroups = useMemo(() => buildSetlistDisplayGroups(songs), [songs]);
   const headline =
     title.trim() || plan?.title?.trim() || serviceDateTimeLabel(serviceDate, serviceTime);
   const hubPath = `/worship?date=${encodeURIComponent(serviceDate)}&time=${encodeURIComponent(serviceTime)}`;
@@ -174,11 +176,18 @@ export function WorshipChoirServiceView({
           <p className="text-sm text-night-600">No songs on this setlist yet.</p>
         </Card>
       ) : (
-        <ul className="space-y-2">
-          {songs.map((song, index) => {
+        <div className="space-y-2">
+          {setlistGroups.map((group) => (
+            <div key={group.key} className="space-y-2">
+              <WorshipSetlistGroupHeader
+                title={group.title}
+                subtitle={group.subtitle}
+                songCount={group.songs.length}
+              />
+              <ul className="space-y-2">
+                {group.songs.map(({ song, positionInSet }) => {
             const open = expandedSongId === song.id;
             const prepared = userId ? song.preparedBy.includes(userId) : false;
-            const segmentLabel = worshipSegmentLabel(song.segment ?? "worship");
             const videoSegment = formatSegmentRangeLabel(
               song.youtubeStartSeconds,
               song.youtubeEndSeconds,
@@ -197,12 +206,12 @@ export function WorshipChoirServiceView({
                   aria-expanded={open}
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-800 dark:bg-violet-500/20 dark:text-violet-100">
-                    {index + 1}
+                    {positionInSet}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-night-900 dark:text-sand-100">{song.title}</p>
                     <p className="mt-0.5 text-xs text-night-500 dark:text-sand-400">
-                      {segmentLabel}
+                      {group.title}
                       {song.key?.trim() ? ` · Key ${song.key.trim()}` : ""}
                       {song.leaderName ? ` · ${song.leaderName}` : ""}
                     </p>
@@ -266,8 +275,11 @@ export function WorshipChoirServiceView({
                 )}
               </li>
             );
-          })}
-        </ul>
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
       )}
 
       <Card className="overflow-hidden p-0">
