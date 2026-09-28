@@ -712,7 +712,10 @@ export function WorshipPlannerPanel({
     return (
       <>
         <PlannerTabBar />
-        <WorshipSongLibraryPanel onAddToPlan={addSongFromLibrary} />
+        <WorshipSongLibraryPanel
+          onAddToPlan={addSongFromLibrary}
+          onBackToPlan={() => setTab("plan")}
+        />
       </>
     );
   }
