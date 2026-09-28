@@ -89,12 +89,14 @@ export function WorshipPlannerPanel({
   const router = useRouter();
   const canManage = permissions.canManageWorshipPlan;
   const resolvedInitialTab =
-    initialTab === "library" ||
-    initialTab === "my-part" ||
-    initialTab === "rehearsals" ||
-    initialTab === "schedule"
-      ? initialTab
-      : "plan";
+    initialTab === "library" && !canManage
+      ? "plan"
+      : initialTab === "library" ||
+          initialTab === "my-part" ||
+          initialTab === "rehearsals" ||
+          initialTab === "schedule"
+        ? initialTab
+        : "plan";
   const [tab, setTab] = useState<"plan" | "library" | "my-part" | "rehearsals" | "schedule">(
     resolvedInitialTab,
   );
@@ -138,6 +140,12 @@ export function WorshipPlannerPanel({
     }
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [roster, songs]);
+
+  useEffect(() => {
+    if (!canManage && tab === "library") {
+      setTab("plan");
+    }
+  }, [canManage, tab]);
 
   function applyLoadedPlan(next: WorshipServicePlan | null) {
     if (next) {
@@ -797,7 +805,7 @@ export function WorshipPlannerPanel({
 
   const showEditor = canManage;
 
-  if (!canManage && tab === "plan") {
+  if (!canManage && (tab === "plan" || tab === "library")) {
     return (
       <>
         <PlannerTabBar />

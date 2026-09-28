@@ -9,8 +9,7 @@ import {
   getGroupServiceScheduleConfig,
   programLabel,
 } from "@/lib/group-service-schedule-config";
-import { notifyGroupChatMessage, sendPushToUsersWithAnyPreference } from "@/lib/push-server";
-import { resolveGroupChatNotificationRecipientIds } from "@/lib/group-chat-notifications-server";
+import { sendPushToUsersWithPushEnabled } from "@/lib/push-server";
 import { serviceDateTimeLabel, type WorshipServicePlan } from "@/lib/worship-types";
 import {
   formatWorshipPlanSetlistForChat,
@@ -47,12 +46,7 @@ async function eligibleChoirMemberIds(excludeUserId?: string) {
   const groups = await getGroups();
   const group = groups.find((entry) => entry.id === groupId);
   if (!group) return [];
-  const fromChat = await resolveGroupChatNotificationRecipientIds(groupId, excludeUserId ?? "");
-  const memberSet = new Set(group.memberIds.filter((id) => id !== excludeUserId));
-  for (const id of fromChat) {
-    memberSet.add(id);
-  }
-  return [...memberSet];
+  return group.memberIds.filter((id) => id !== excludeUserId);
 }
 
 export async function pushNotifyChoirMembers(input: {
@@ -67,14 +61,13 @@ export async function pushNotifyChoirMembers(input: {
     return { sent: 0, failed: 0, configured: true };
   }
 
-  return sendPushToUsersWithAnyPreference(
+  return sendPushToUsersWithPushEnabled(
     userIds,
     {
       title: input.title,
       body: input.body,
       url: input.url,
     },
-    ["worship", "groupChat"],
   );
 }
 
@@ -121,14 +114,6 @@ export async function postChoirGroupChatAnnouncement(input: {
     senderId: input.senderId,
     senderName: input.senderName,
     content: text,
-  });
-
-  await notifyGroupChatMessage({
-    groupId,
-    groupName,
-    senderId: input.senderId,
-    senderName: input.senderName,
-    preview: text.slice(0, 120),
   });
 
   return message;

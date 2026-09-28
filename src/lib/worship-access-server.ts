@@ -43,8 +43,10 @@ export async function canAccessWorshipPlanner(user: Pick<PublicMember, "id"> | n
   return userIsInWorshipGroup(user.id);
 }
 
+/** Worship group leader, assistant leader, or general church admin — not regular choir members. */
 export async function canManageWorshipPlan(user: PublicMember | null) {
   if (!user) return false;
+  if (await canManageAsAdmin(user)) return true;
   return canManageGroupEvents(user, getConfiguredWorshipGroupId());
 }
 

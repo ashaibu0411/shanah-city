@@ -76,3 +76,8 @@ export function preferenceMatchesAnyTopic(
 ) {
   return prefs.pushEnabled && preferenceKeys.some((key) => prefs[key]);
 }
+
+/** Choir operational alerts — deliver whenever push is on, regardless of topic toggles. */
+export function preferenceMatchesPushEnabled(prefs: NotificationPrefs) {
+  return prefs.pushEnabled;
+}

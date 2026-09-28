@@ -11,6 +11,9 @@ type WorshipRehearsalNotesReaderProps = {
   serviceLabel?: string;
 };
 
+export const worshipRehearsalNotesBodyClass =
+  "worship-rehearsal-notes-body text-[1.0625rem] font-medium leading-[1.65] text-night-900 dark:text-sand-100 sm:text-[1.125rem]";
+
 export function WorshipRehearsalNotesReader({
   notes,
   serviceLabel,
@@ -51,14 +54,14 @@ export function WorshipRehearsalNotesReader({
     readerOpen && mounted
       ? createPortal(
           <div
-            className="fixed inset-0 z-[220] flex flex-col bg-[var(--color-bg)]"
+            className="fixed inset-0 z-[220] flex flex-col overflow-y-auto overscroll-y-contain bg-[var(--color-bg)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="worship-rehearsal-notes-title"
           >
             <MobilePremiumFrame
               variant="surface"
-              className="shrink-0 border-b border-night-900/8 dark:border-white/10"
+              className="sticky top-0 z-10 border-b border-night-900/8 dark:border-white/10"
             >
               <div className="flex items-start gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
                 <button
@@ -72,7 +75,7 @@ export function WorshipRehearsalNotesReader({
                   <p className={editorialPremium.sectionLabel}>Rehearsal notes</p>
                   <h2
                     id="worship-rehearsal-notes-title"
-                    className="mt-1 font-display text-lg font-semibold leading-snug text-night-900 dark:text-sand-100"
+                    className="mt-1 font-display text-xl font-semibold leading-snug text-night-900 dark:text-sand-100"
                   >
                     {serviceLabel ?? "For this service"}
                   </h2>
@@ -80,13 +83,11 @@ export function WorshipRehearsalNotesReader({
               </div>
             </MobilePremiumFrame>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-              <article
-                className={`${editorialPremium.leadCard} mx-auto max-w-prose text-sm leading-relaxed`}
-              >
-                <RichTextContent text={trimmed} />
-              </article>
-            </div>
+            <article
+              className={`${worshipRehearsalNotesBodyClass} worship-rehearsal-notes-body--fullscreen mx-auto w-full max-w-prose px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]`}
+            >
+              <RichTextContent text={trimmed} />
+            </article>
           </div>,
           document.body,
         )
@@ -96,7 +97,7 @@ export function WorshipRehearsalNotesReader({
     <>
       <MobilePremiumFrame
         variant="surface"
-        className="overflow-hidden rounded-[1.35rem] border border-night-900/8 shadow-[0_1px_2px_rgba(45,36,24,0.04),0_12px_32px_rgba(45,36,24,0.06)] ring-1 ring-night-900/5 dark:border-white/10 dark:ring-white/10"
+        className="overflow-visible rounded-[1.35rem] border border-night-900/8 shadow-[0_1px_2px_rgba(45,36,24,0.04),0_12px_32px_rgba(45,36,24,0.06)] ring-1 ring-night-900/5 dark:border-white/10 dark:ring-white/10"
       >
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-night-900/6 bg-gradient-to-br from-violet-50/90 via-sand-50 to-white px-4 py-3.5 dark:border-white/10 dark:from-violet-950/35 dark:via-[var(--color-bg-soft)] dark:to-[var(--color-surface)]">
           <div>
@@ -108,11 +109,11 @@ export function WorshipRehearsalNotesReader({
             onClick={() => setReaderOpen(true)}
             className="rounded-full bg-night-900 px-4 py-2 text-xs font-bold uppercase tracking-wide text-sand-50 shadow-sm transition hover:bg-night-950 active:scale-[0.98] dark:bg-violet-600 dark:hover:bg-violet-700"
           >
-            Read full screen
+            Focus view
           </button>
         </div>
         <div className="px-4 py-4">
-          <div className={`${editorialPremium.leadCard} text-sm leading-relaxed`}>
+          <div className={worshipRehearsalNotesBodyClass}>
             <RichTextContent text={trimmed} />
           </div>
         </div>

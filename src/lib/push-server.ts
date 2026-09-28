@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import { getUsers } from "@/lib/auth-server";
 import type { NotificationPrefs, NotificationTopic } from "@/lib/auth-types";
+import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
 import { getGroups } from "@/lib/group-server";
 import {
   rehearsalDateTimeLabel,
@@ -22,6 +23,7 @@ import {
   emptyPushDeliveryResult,
   getScheduledPushEligibility,
   preferenceMatchesAnyTopic,
+  preferenceMatchesPushEnabled,
   preferenceMatchesTopic,
   resolveNotificationPrefs,
   type PushDeliveryResult,
@@ -308,6 +310,13 @@ export async function sendPushToUsersWithAnyPreference(
   );
 }
 
+export async function sendPushToUsersWithPushEnabled(
+  userIds: string[],
+  payload: { title: string; body: string; url: string },
+) {
+  return dispatchPushToUsers(userIds, payload, (prefs) => preferenceMatchesPushEnabled(prefs));
+}
+
 export async function notifyNewDevotion(input: {
   title: string;
   devotionId?: string;
@@ -362,15 +371,17 @@ export async function notifyGroupChatMessage(input: {
     return emptyPushDeliveryResult(isPushConfigured());
   }
 
-  return sendPushToUsers(
-    userIds,
-    {
-      title: input.groupName,
-      body: `${input.senderName}: ${input.preview}`,
-      url: `/groups/${encodeURIComponent(input.groupId)}?chat=1`,
-    },
-    "groupChat",
-  );
+  const payload = {
+    title: input.groupName,
+    body: `${input.senderName}: ${input.preview}`,
+    url: `/groups/${encodeURIComponent(input.groupId)}?chat=1`,
+  };
+
+  if (input.groupId === getConfiguredWorshipGroupId()) {
+    return sendPushToUsersWithPushEnabled(userIds, payload);
+  }
+
+  return sendPushToUsers(userIds, payload, "groupChat");
 }
 
 export async function sendPushToGroupMembers(

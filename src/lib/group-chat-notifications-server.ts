@@ -1,6 +1,7 @@
 import { getBlockedUserIds } from "@/lib/block-server";
 import { getGroupDetail, getGroups } from "@/lib/group-server";
 import { isMemberTrainingRequired } from "@/lib/ministry-readiness-server";
+import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
 
 /** Members who should receive group activity alerts (chat, polls, rosters, etc.). */
 export async function resolveGroupChatNotificationRecipientIds(
@@ -19,6 +20,7 @@ export async function resolveGroupChatNotificationRecipientIds(
 
   const groupDetail = await getGroupDetail(groupId);
   const eligible: string[] = [];
+  const skipTrainingGate = groupId === getConfiguredWorshipGroupId();
 
   await Promise.all(
     candidateIds.map(async (userId) => {
@@ -29,7 +31,7 @@ export async function resolveGroupChatNotificationRecipientIds(
       if (blocked.includes(senderId)) {
         return;
       }
-      if (groupDetail) {
+      if (!skipTrainingGate && groupDetail) {
         const trainingPending = await isMemberTrainingRequired(userId, groupDetail);
         if (trainingPending) {
           return;

@@ -397,6 +397,29 @@
     border-color: rgba(45, 36, 24, 0.08);
   }
 
+  .worship-rehearsal-notes-body {
+    overflow: visible;
+    max-height: none;
+  }
+
+  .worship-rehearsal-notes-body strong {
+    font-weight: 800;
+    color: var(--color-ink, #2d2418);
+  }
+
+  .worship-rehearsal-notes-body--fullscreen {
+    font-size: 1.125rem;
+    line-height: 1.7;
+  }
+
+  .worship-rehearsal-notes-body--fullscreen strong {
+    font-size: 1.15em;
+  }
+
+  html.dark .worship-rehearsal-notes-body strong {
+    color: var(--color-ink, #f5f0e8);
+  }
+
   .groups-premium-page {
     background: var(--color-bg);
   }

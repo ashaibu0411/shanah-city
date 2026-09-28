@@ -2,9 +2,11 @@ import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
 import {
   notifyChoirWorshipPlanPublished,
   notifyChoirWorshipRotationPublished,
+  pushNotifyChoirMembers,
 } from "@/lib/choir-notify-server";
 import {
   combinePlanDateTime,
+  rehearsalDateTimeLabel,
   serviceDateTimeLabel,
   type WorshipServicePlan,
 } from "@/lib/worship-types";
@@ -15,10 +17,10 @@ import {
 } from "@/lib/worship-server";
 import { getWorshipRotationConfig } from "@/lib/worship-rotation-server";
 import {
-  notifyWorshipRehearsalReminder,
   notifyWorshipUploadDutyReminder,
   notifyWorshipRotationLeaderAssignments,
 } from "@/lib/push-server";
+import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 
 export async function processWorshipRehearsalReminders(reference = new Date()) {
   const plans = await listWorshipPlans({ status: "published" });
@@ -31,7 +33,15 @@ export async function processWorshipRehearsalReminders(reference = new Date()) {
 
   let sent = 0;
   for (const plan of due) {
-    const result = await notifyWorshipRehearsalReminder(plan);
+    const body = plan.rehearsalDate
+      ? `Rehearsal ${rehearsalDateTimeLabel(plan.rehearsalDate, plan.rehearsalTime)} for ${serviceDateTimeLabel(plan.serviceDate, plan.serviceTime)}`
+      : serviceDateTimeLabel(plan.serviceDate, plan.serviceTime);
+
+    const result = await pushNotifyChoirMembers({
+      title: "Worship rehearsal reminder",
+      body,
+      url: worshipMemberServicePath(plan),
+    });
     if (result.sent > 0) {
       await markRehearsalReminderSent(plan.serviceDate, plan.serviceTime);
       sent += 1;
