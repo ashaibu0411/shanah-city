@@ -1,10 +1,15 @@
+import { getUserByEmail, getUserById } from "@/lib/auth-server";
 import { getGroups } from "@/lib/group-server";
-import { isGroupMember } from "@/lib/group-admin-utils";
+import {
+  getAssistantAdminIds,
+  isGroupLeaderOrAssistant,
+  isGroupMember,
+} from "@/lib/group-admin-utils";
 import { ADMIN_GROUP_ID } from "@/lib/church-groups";
 import { getPastoralReviewerUserIds as getPastoralRoleReviewerUserIds } from "@/lib/pastoral-roles-server";
 import { getZonedDateParts } from "@/lib/denver-time";
+import { sendDirectMessage } from "@/lib/message-server";
 import {
-  getMinistryReport,
   summarizeMinistryReports,
 } from "@/lib/ministry-report-server";
 import {
@@ -12,9 +17,36 @@ import {
   isReportableMinistryGroup,
   previousReportMonth,
 } from "@/lib/ministry-report-types";
-import { sendPushToUsers } from "@/lib/push-server";
+import { notifyNewMessage, sendPushToUsers } from "@/lib/push-server";
 
 const PASTORAL_GROUP_IDS = [ADMIN_GROUP_ID] as const;
+const CHURCH_SENDER_NAME = "Shanah City";
+
+function appBaseUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://shanah-city.vercel.app";
+}
+
+function leaderFirstName(name: string) {
+  return name.trim().split(/\s+/)[0] || name.trim() || "Leader";
+}
+
+async function resolveChurchNotifier() {
+  const bootstrapEmail = process.env.ADMIN_BOOTSTRAP_EMAIL?.trim().toLowerCase();
+  if (bootstrapEmail) {
+    const user = await getUserByEmail(bootstrapEmail);
+    if (user) return { id: user.id, name: CHURCH_SENDER_NAME };
+  }
+
+  const groups = await getGroups();
+  const adminGroup = groups.find((group) => group.id === ADMIN_GROUP_ID);
+  const adminId = adminGroup?.memberIds[0];
+  if (adminId) {
+    const user = await getUserById(adminId);
+    if (user) return { id: user.id, name: CHURCH_SENDER_NAME };
+  }
+
+  return null;
+}
 
 async function getPastoralReviewerUserIds() {
   const groups = await getGroups();
@@ -31,28 +63,59 @@ async function getPastoralReviewerUserIds() {
   return [...userIds];
 }
 
-async function getLeaderIdsMissingReport(reportMonth: string) {
+type LeaderReminderTarget = {
+  userId: string;
+  groups: Array<{ id: string; name: string }>;
+};
+
+async function getReportableMinistryLeaderTargets(): Promise<LeaderReminderTarget[]> {
   const groups = await getGroups();
-  const leaderIds = new Set<string>();
+  const byUser = new Map<string, Map<string, { id: string; name: string }>>();
 
   for (const group of groups) {
     if (!isReportableMinistryGroup(group)) continue;
-    const report = await getMinistryReport(reportMonth, group.id);
-    const isComplete =
-      report &&
-      (report.status === "submitted" ||
-        report.status === "reviewed" ||
-        report.status === "returned");
-    if (isComplete) continue;
 
-    for (const adminId of group.adminIds) {
-      if (isGroupMember(group, adminId)) {
-        leaderIds.add(adminId);
+    const candidateIds = new Set([...group.adminIds, ...getAssistantAdminIds(group)]);
+    for (const userId of candidateIds) {
+      if (!isGroupLeaderOrAssistant(group, userId) || !isGroupMember(group, userId)) continue;
+      let userGroups = byUser.get(userId);
+      if (!userGroups) {
+        userGroups = new Map();
+        byUser.set(userId, userGroups);
       }
+      userGroups.set(group.id, { id: group.id, name: group.name });
     }
   }
 
-  return [...leaderIds];
+  return [...byUser.entries()].map(([userId, groupMap]) => ({
+    userId,
+    groups: [...groupMap.values()].sort((left, right) => left.name.localeCompare(right.name)),
+  }));
+}
+
+function buildLeaderReminderMessage(input: {
+  recipientName: string;
+  reportMonth: string;
+  groups: Array<{ id: string; name: string }>;
+}) {
+  const monthLabel = formatReportMonth(input.reportMonth);
+  const firstName = leaderFirstName(input.recipientName);
+  const base = appBaseUrl();
+
+  let message = `Hi ${firstName},\n\nThis is your monthly reminder to submit your ${monthLabel} ministry report. Please submit by the 5th.\n\n`;
+
+  if (input.groups.length === 1) {
+    const group = input.groups[0];
+    message += `Team: ${group.name}\nOpen: ${base}/groups/${encodeURIComponent(group.id)}?report=1`;
+  } else {
+    message += "Your teams:\n";
+    for (const group of input.groups) {
+      message += `• ${group.name} — ${base}/groups/${encodeURIComponent(group.id)}?report=1\n`;
+    }
+  }
+
+  message += `\nIn the app, open your team and use the Monthly report tab, then click Submit report (not Save draft).\n\n— Shanah City`;
+  return message;
 }
 
 export async function notifyPastoralReviewersOfSubmission(input: {
@@ -76,48 +139,89 @@ export async function notifyPastoralReviewersOfSubmission(input: {
   );
 }
 
+/** On the 1st (Denver), DM each reportable-ministry leader to submit the prior month's report by the 5th. */
 export async function processLeaderReportReminders(reference = new Date()) {
   const denver = getZonedDateParts(reference);
   const day = Number(denver.day);
-  const lastDay = new Date(Number(denver.year), Number(denver.month), 0).getDate();
-  const isReminderDay = day >= 25 || day === lastDay;
 
-  if (!isReminderDay) {
+  if (day !== 1) {
     return {
       sent: 0,
       skipped: true,
-      reason: "not_reminder_day",
+      reason: "not_first_of_month",
       denverDate: denver.dateKey,
     };
   }
 
   const reportMonth = previousReportMonth(reference);
-  const leaderIds = await getLeaderIdsMissingReport(reportMonth);
-  if (leaderIds.length === 0) {
+  const targets = await getReportableMinistryLeaderTargets();
+  if (targets.length === 0) {
     return {
       sent: 0,
       skipped: true,
-      reason: "all_reports_in",
+      reason: "no_leaders",
       reportMonth,
       denverDate: denver.dateKey,
     };
   }
 
-  const monthLabel = formatReportMonth(reportMonth);
-  const result = await sendPushToUsers(
-    leaderIds,
-    {
-      title: "Monthly leader report",
-      body: `Your ${monthLabel} ministry report is still due. Tap to submit from your group.`,
-      url: "/groups",
-    },
-    "announcements",
-  );
+  const sender = await resolveChurchNotifier();
+  if (!sender) {
+    return {
+      sent: 0,
+      skipped: true,
+      reason: "no_notifier",
+      reportMonth,
+      leaders: targets.length,
+      denverDate: denver.dateKey,
+    };
+  }
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const target of targets) {
+    const recipient = await getUserById(target.userId);
+    if (!recipient) {
+      failed += 1;
+      continue;
+    }
+
+    const content = buildLeaderReminderMessage({
+      recipientName: recipient.name,
+      reportMonth,
+      groups: target.groups,
+    });
+
+    try {
+      const result = await sendDirectMessage({
+        senderId: sender.id,
+        senderName: sender.name,
+        recipientId: recipient.id,
+        recipientName: recipient.name,
+        content,
+      });
+
+      await notifyNewMessage({
+        recipientId: recipient.id,
+        senderName: sender.name,
+        preview: content,
+        threadId: result.thread.id,
+      });
+
+      sent += 1;
+    } catch (error) {
+      console.error("Ministry report leader reminder failed:", error);
+      failed += 1;
+    }
+  }
 
   return {
-    ...result,
+    sent,
+    failed,
+    skipped: false,
     reportMonth,
-    leaders: leaderIds.length,
+    leaders: targets.length,
     denverDate: denver.dateKey,
   };
 }

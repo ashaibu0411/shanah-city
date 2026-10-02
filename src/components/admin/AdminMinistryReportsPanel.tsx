@@ -160,8 +160,7 @@ export function AdminMinistryReportsPanel({ embedded = false }: { embedded?: boo
         <Card className="p-6">
           <p className="text-sm text-night-700">
             Leader reports appear here after they click <strong>Submit report</strong> (not Save draft).
-            Match the same report month the leader chose (usually the prior month, e.g. July for an
-            August submission).
+            Match the report month the leader chose (usually the prior calendar month; due by the 5th).
           </p>
         </Card>
       ) : null}

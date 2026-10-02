@@ -87,8 +87,13 @@ export const MINISTRY_REPORT_EXCLUDED_GROUP_IDS = new Set([
 
 const REPORTABLE_CATEGORY: GroupCategory[] = ["ministry", "choir", "youth", "small-group", "other"];
 
-/** Groups that use FrontLiners scheduling but not monthly leader reports. */
-export const MINISTRY_REPORT_SKIPPED_GROUP_IDS = new Set(["group-frontliners"]);
+/** Groups that skip monthly leader reports (scheduling-only or not ready yet). */
+export const MINISTRY_REPORT_SKIPPED_GROUP_IDS = new Set([
+  "group-frontliners",
+  "group-men-legacy",
+  "group-finance",
+  "group-prayer",
+]);
 
 const TEAM_SHEPHERDING_QUESTIONS: MinistryReportQuestion[] = [
   {
