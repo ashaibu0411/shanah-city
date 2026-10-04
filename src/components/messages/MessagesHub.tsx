@@ -1451,6 +1451,7 @@ export function MessagesHub() {
                           onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
                           onStartReply={setReplyDraft}
                           attachmentUrl={message.attachmentUrl}
+                          attachmentType={message.attachmentType}
                           attachmentName={message.attachmentName}
                           editedAt={message.editedAt}
                           deletedAt={message.deletedAt}

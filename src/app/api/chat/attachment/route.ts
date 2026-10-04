@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     const threadId = String(formData.get("threadId") ?? "").trim() || undefined;
 
     if (!(file instanceof File) || file.size === 0) {
-      return NextResponse.json({ error: "Choose an image to upload." }, { status: 400 });
+      return NextResponse.json({ error: "Choose an image or voice note to upload." }, { status: 400 });
     }
 
     if (groupId) {

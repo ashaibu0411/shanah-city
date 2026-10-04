@@ -112,6 +112,22 @@ export function getChatAttachmentApiUrl(attachmentRef?: string | null) {
   return `/api/chat/attachment?id=${encodeURIComponent(id)}`;
 }
 
+export function isChatAudioAttachment(attachmentType?: string, attachmentName?: string) {
+  const type = attachmentType?.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (type.startsWith("audio/") || type === "video/webm") return true;
+  const name = attachmentName?.toLowerCase() ?? "";
+  return /\.(webm|m4a|mp3|ogg|aac|wav)$/.test(name);
+}
+
+export function isChatImageAttachment(attachmentType?: string, attachmentName?: string) {
+  if (isChatAudioAttachment(attachmentType, attachmentName)) return false;
+  const type = attachmentType?.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (type.startsWith("image/")) return true;
+  const name = attachmentName?.toLowerCase() ?? "";
+  if (/\.(jpe?g|png|gif|webp)$/.test(name)) return true;
+  return !attachmentType;
+}
+
 export function validateChatContent(content: string, hasAttachment: boolean) {
   const trimmed = content.trim();
   if (!trimmed && !hasAttachment) {

@@ -1856,6 +1856,16 @@
     background: rgba(255, 255, 255, 0.08);
   }
 
+  .messages-hub-composer-icon-recording {
+    color: #dc2626;
+    background: rgb(220 38 38 / 0.12);
+  }
+
+  html.dark .messages-hub-composer-icon-recording {
+    color: #fca5a5;
+    background: rgb(248 113 113 / 0.18);
+  }
+
   .messages-hub-camera-btn {
     display: flex;
     height: 2.75rem;
@@ -1871,6 +1881,10 @@
 
   .messages-hub-camera-btn:disabled {
     opacity: 0.45;
+  }
+
+  .messages-hub-send-btn {
+    flex-shrink: 0;
   }
 
   .messages-hub-send {
@@ -3884,6 +3898,10 @@ html.dark .community-comment-reaction-btn-active {
   backdrop-filter: blur(8px);
 }
 
+.community-story-viewer-reply-field:has(.community-story-viewer-reply-heart) .community-story-viewer-reply-input {
+  padding-right: 5.25rem;
+}
+
 body[data-shell="mobile"] .community-story-viewer-reply-input,
 html.dark .community-story-viewer-reply-input {
   color: #fff;
@@ -3905,7 +3923,6 @@ html.dark .community-story-viewer-reply-input {
 .community-story-viewer-reply-send-icon,
 .community-story-viewer-reply-heart {
   position: absolute;
-  right: 0.45rem;
   top: 50%;
   transform: translateY(-50%);
   display: inline-flex;
@@ -3917,6 +3934,22 @@ html.dark .community-story-viewer-reply-input {
   border-radius: 9999px;
   background: transparent;
   color: rgba(255, 255, 255, 0.92);
+}
+
+.community-story-viewer-reply-send-icon {
+  right: 0.45rem;
+}
+
+.community-story-viewer-reply-send-icon-idle {
+  opacity: 0.45;
+}
+
+.community-story-viewer-reply-send-icon-idle:disabled {
+  cursor: default;
+}
+
+.community-story-viewer-reply-heart {
+  right: 2.85rem;
 }
 
 .community-story-viewer-reply-send-icon:active,

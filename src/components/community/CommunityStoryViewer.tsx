@@ -1032,18 +1032,17 @@ export function CommunityStoryViewer({
                 disabled={replyBusy}
                 autoComplete="off"
               />
-              {replyDraft.trim() ? (
-                <button
-                  type="submit"
-                  disabled={replyBusy}
-                  className="community-story-viewer-reply-send-icon"
-                  aria-label="Send message"
-                >
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-                    <path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
-                  </svg>
-                </button>
-              ) : (
+              <button
+                type="submit"
+                disabled={replyBusy || !replyDraft.trim()}
+                className={`community-story-viewer-reply-send-icon ${replyDraft.trim() ? "" : "community-story-viewer-reply-send-icon-idle"}`}
+                aria-label="Send message"
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                  <path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+              </button>
+              {!replyDraft.trim() ? (
                 <button
                   type="button"
                   disabled={reactionBusy}
@@ -1063,7 +1062,7 @@ export function CommunityStoryViewer({
                     />
                   </svg>
                 </button>
-              )}
+              ) : null}
             </div>
           </form>
         </div>

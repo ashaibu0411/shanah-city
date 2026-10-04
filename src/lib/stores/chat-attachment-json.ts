@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { isAllowedImage } from "@/lib/gallery-server";
+import { isAllowedChatAttachment, chatAttachmentExtension, guessChatAttachmentContentType } from "@/lib/chat-attachment-media";
 
 const ATTACHMENT_DIR = path.join(process.cwd(), "data", "chat-attachments");
 const INDEX_FILE = path.join(process.cwd(), "data", "chat-attachments-index.json");
@@ -30,30 +30,11 @@ async function writeIndex(records: ChatAttachmentRecord[]) {
 }
 
 function extensionForFile(file: File) {
-  switch (file.type) {
-    case "image/png":
-      return ".png";
-    case "image/webp":
-      return ".webp";
-    case "image/gif":
-      return ".gif";
-    default:
-      return ".jpg";
-  }
+  return chatAttachmentExtension(file);
 }
 
 function guessContentType(filepath: string) {
-  const ext = path.extname(filepath).toLowerCase();
-  switch (ext) {
-    case ".png":
-      return "image/png";
-    case ".webp":
-      return "image/webp";
-    case ".gif":
-      return "image/gif";
-    default:
-      return "image/jpeg";
-  }
+  return guessChatAttachmentContentType(filepath);
 }
 
 export async function saveChatAttachment(input: {
@@ -62,8 +43,8 @@ export async function saveChatAttachment(input: {
   groupId?: string;
   threadId?: string;
 }) {
-  if (!isAllowedImage(input.file)) {
-    throw new Error("Use JPG, PNG, WEBP, or GIF under 10 MB.");
+  if (!isAllowedChatAttachment(input.file)) {
+    throw new Error("Use JPG, PNG, WEBP, GIF, or a voice note (MP3, M4A, WEBM) under 15 MB.");
   }
 
   const id = `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

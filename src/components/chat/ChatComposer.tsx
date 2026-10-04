@@ -6,7 +6,9 @@ import { ChatReplyComposerBanner } from "@/components/chat/ChatReplyComposerBann
 import { chatPremium } from "@/components/chat/chat-premium";
 import { MentionPicker } from "@/components/mentions/MentionPicker";
 import { useMentionAutocomplete } from "@/components/mentions/useMentionAutocomplete";
-import { insertAtCursor, QUICK_CHAT_EMOJIS } from "@/lib/chat-utils";
+import { insertAtCursor, isChatAudioAttachment, QUICK_CHAT_EMOJIS } from "@/lib/chat-utils";
+import { formatRecordingElapsed, useAudioRecorder } from "@/lib/use-audio-recorder";
+import { useSpeechDictation } from "@/lib/use-speech-dictation";
 import type { ChatReplyDraft } from "@/lib/chat-reply-types";
 import type { MentionMember } from "@/lib/mentions";
 
@@ -62,6 +64,13 @@ export function ChatComposer({
   const fileRef = useRef<HTMLInputElement | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
   const mentionCursorRef = useRef(0);
+  const skipMicClickRef = useRef(false);
+  const pointerDownAtRef = useRef(0);
+  const voice = useAudioRecorder();
+  const dictation = useSpeechDictation();
+  const [voiceBusy, setVoiceBusy] = useState(false);
+
+  const canUseVoice = Boolean(onPickAttachment) && !disabled && !busy && !attachmentBusy;
 
   const mentionEnabled = mentionMembers.length > 0 || mentionAllowAll;
   const {
@@ -170,33 +179,127 @@ export function ChatComposer({
     onTyping?.(false);
   }
 
+  async function uploadAndSendVoice() {
+    if (!onPickAttachment) return;
+    const file = voice.buildFile("voice-message");
+    voice.clearCapture();
+    if (!file) return;
+    setVoiceBusy(true);
+    try {
+      const attachment = await onPickAttachment(file);
+      if (attachment) {
+        onSend(attachment);
+        onTyping?.(false);
+      }
+    } finally {
+      setVoiceBusy(false);
+    }
+  }
+
+  function handleMicPointerDown() {
+    if (!canUseVoice || voiceBusy || dictation.listening) return;
+    skipMicClickRef.current = false;
+    pointerDownAtRef.current = Date.now();
+    void voice.start();
+  }
+
+  async function handleMicPointerUp() {
+    if (!canUseVoice) return;
+    const heldMs = Date.now() - pointerDownAtRef.current;
+    if (!voice.recording) return;
+    voice.stop();
+    await new Promise((resolve) => window.setTimeout(resolve, 150));
+    if (heldMs >= 400) {
+      skipMicClickRef.current = true;
+      await uploadAndSendVoice();
+    } else {
+      voice.clearCapture();
+    }
+  }
+
+  function handleMicClick() {
+    if (skipMicClickRef.current) {
+      skipMicClickRef.current = false;
+      return;
+    }
+    if (!canUseVoice || voice.recording || voiceBusy) return;
+    if (dictation.listening) {
+      dictation.stop();
+      return;
+    }
+    dictation.setError(null);
+    dictation.start((text, isFinal) => {
+      if (!isFinal) return;
+      const next = value.trim() ? `${value.trim()} ${text}` : text;
+      onChange(next);
+      notifyTyping(next);
+    });
+  }
+
+  function renderPendingAttachmentPreview(className: string) {
+    if (!pendingAttachment) return null;
+    const isAudio = isChatAudioAttachment(
+      pendingAttachment.attachmentType,
+      pendingAttachment.attachmentName,
+    );
+    return (
+      <div className={className}>
+        {isAudio ? (
+          <audio controls preload="metadata" src={pendingAttachment.previewUrl} className="min-w-0 flex-1" />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={pendingAttachment.previewUrl}
+            alt={pendingAttachment.attachmentName}
+            className="h-14 w-14 rounded-lg object-cover"
+          />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-night-900 dark:text-sand-100">
+            {isAudio ? "Voice message" : pendingAttachment.attachmentName}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setPendingAttachment(null)}
+          className="text-sm font-semibold text-night-500 dark:text-sand-400"
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  function renderVoiceStatusBanner() {
+    const message =
+      voice.error ??
+      dictation.error ??
+      (voiceBusy
+        ? "Sending voice message…"
+        : voice.recording
+          ? `Recording ${formatRecordingElapsed(voice.elapsed)} · release to send`
+          : dictation.listening
+            ? "Listening… tap mic to stop · speech fills the text box"
+            : null);
+    if (!message) return null;
+    return (
+      <p className="mb-2 text-center text-xs font-semibold text-clay-700 dark:text-clay-300">
+        {message}
+      </p>
+    );
+  }
+
+  const micActive = voice.recording || dictation.listening;
+
   if (hub) {
     return (
       <div className="messages-hub-composer px-3 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
         {replyDraft && onClearReply ? (
           <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
         ) : null}
-        {pendingAttachment && (
-          <div className="mb-2 flex items-center gap-2 rounded-xl border border-night-900/8 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-[var(--color-surface)]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={pendingAttachment.previewUrl}
-              alt={pendingAttachment.attachmentName}
-              className="h-14 w-14 rounded-lg object-cover"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-night-900 dark:text-sand-100">
-                {pendingAttachment.attachmentName}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPendingAttachment(null)}
-              className="text-sm font-semibold text-night-500 dark:text-sand-400"
-            >
-              ✕
-            </button>
-          </div>
+        {renderVoiceStatusBanner()}
+        {renderPendingAttachmentPreview(
+          "mb-2 flex items-center gap-2 rounded-xl border border-night-900/8 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-[var(--color-surface)]",
         )}
 
         {showEmojiPicker && (
@@ -265,14 +368,19 @@ export function ChatComposer({
             />
             <button
               type="button"
-              onClick={() => {
-                if (canSend && !busy && !disabled) {
-                  handleSend();
-                }
-              }}
-              disabled={disabled}
-              className="messages-hub-composer-icon disabled:opacity-40"
-              aria-label={canSend ? sendLabel : "Voice message"}
+              onPointerDown={handleMicPointerDown}
+              onPointerUp={() => void handleMicPointerUp()}
+              onPointerLeave={() => void handleMicPointerUp()}
+              onClick={handleMicClick}
+              disabled={!canUseVoice || voiceBusy}
+              className={`messages-hub-composer-icon disabled:opacity-40 ${micActive ? "messages-hub-composer-icon-recording" : ""}`}
+              aria-label={
+                dictation.listening
+                  ? "Stop speech to text"
+                  : voice.recording
+                    ? "Release to send voice message"
+                    : "Hold for voice message, tap for speech to text"
+              }
             >
               <HubMicIcon />
             </button>
@@ -307,6 +415,16 @@ export function ChatComposer({
             </button>
           </div>
           </div>
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={busy || disabled || !canSend}
+            className={`${chatPremium.sendButton} messages-hub-send-btn`}
+            aria-label={sendLabel}
+          >
+            <span className="sr-only">{busy ? "Sending…" : sendLabel}</span>
+            <HubSendIcon />
+          </button>
         </div>
       </div>
     );
@@ -318,28 +436,8 @@ export function ChatComposer({
         {replyDraft && onClearReply ? (
           <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
         ) : null}
-        {pendingAttachment && (
-          <div className={`${chatPremium.attachmentPreview} mb-2 flex items-center gap-2`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={pendingAttachment.previewUrl}
-              alt={pendingAttachment.attachmentName}
-              className="h-12 w-12 rounded-xl object-cover"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-night-900 dark:text-sand-100">
-                {pendingAttachment.attachmentName}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPendingAttachment(null)}
-              className="text-xs font-semibold text-night-600 dark:text-sand-400"
-            >
-              ✕
-            </button>
-          </div>
-        )}
+        {renderVoiceStatusBanner()}
+        {renderPendingAttachmentPreview(`${chatPremium.attachmentPreview} mb-2 flex items-center gap-2`)}
 
         {showEmojiPicker && (
           <div className={`${chatPremium.emojiTray} mb-2`}>
@@ -387,6 +485,18 @@ export function ChatComposer({
           >
             😊
           </button>
+          <button
+            type="button"
+            onPointerDown={handleMicPointerDown}
+            onPointerUp={() => void handleMicPointerUp()}
+            onPointerLeave={() => void handleMicPointerUp()}
+            onClick={handleMicClick}
+            disabled={!canUseVoice || voiceBusy}
+            className={`${chatPremium.composerIconButton} ${micActive ? "messages-hub-composer-icon-recording" : ""}`}
+            aria-label="Hold for voice, tap for speech to text"
+          >
+            🎙
+          </button>
           <div className={`${chatPremium.composerField} relative`}>
             {mentionPicker("absolute bottom-full left-0 mb-1 w-full min-w-[14rem]")}
             <input
@@ -418,7 +528,7 @@ export function ChatComposer({
             className={chatPremium.sendButton}
             aria-label={sendLabel}
           >
-            ↑
+            {busy ? "…" : sendLabel}
           </button>
         </div>
       </>
@@ -430,28 +540,9 @@ export function ChatComposer({
       {replyDraft && onClearReply ? (
         <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
       ) : null}
-      {pendingAttachment && (
-        <div className="mb-2 flex items-center gap-3 rounded-xl border border-night-900/10 bg-sand-50 p-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={pendingAttachment.previewUrl}
-            alt={pendingAttachment.attachmentName}
-            className="h-16 w-16 rounded-lg object-cover"
-          />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-night-900">
-              {pendingAttachment.attachmentName}
-            </p>
-            <p className="text-xs text-night-500">Ready to send</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setPendingAttachment(null)}
-            className="rounded-full px-2 py-1 text-xs font-semibold text-night-600"
-          >
-            Remove
-          </button>
-        </div>
+      {renderVoiceStatusBanner()}
+      {renderPendingAttachmentPreview(
+        "mb-2 flex items-center gap-3 rounded-xl border border-night-900/10 bg-sand-50 p-2",
       )}
 
       {showEmojiPicker && (
@@ -489,6 +580,18 @@ export function ChatComposer({
               className="hidden"
               onChange={(event) => handleAttachmentPick(event.target.files?.[0] ?? null)}
             />
+            <button
+              type="button"
+              onPointerDown={handleMicPointerDown}
+              onPointerUp={() => void handleMicPointerUp()}
+              onPointerLeave={() => void handleMicPointerUp()}
+              onClick={handleMicClick}
+              disabled={!canUseVoice || voiceBusy}
+              className={`shrink-0 rounded-xl border border-night-900/10 bg-white px-2.5 py-2.5 text-sm font-semibold text-night-700 disabled:opacity-50 ${micActive ? "messages-hub-composer-icon-recording" : ""}`}
+              aria-label="Hold for voice, tap for speech to text"
+            >
+              🎙
+            </button>
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
@@ -544,6 +647,17 @@ export function ChatComposer({
 }
 
 export type { PendingAttachment };
+
+function HubSendIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M3.4 20.4 20.8 12 3.4 3.6l2.8 7.2 7.2 1-7.2 1-2.8 7.2Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 
 function HubCameraIcon() {
   return (

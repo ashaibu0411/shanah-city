@@ -2,7 +2,7 @@
 
 import { useRef, useState, useMemo } from "react";
 import type { ChatMessageReaction } from "@/lib/chat-utils";
-import { formatDeletedMessageContent, getChatAttachmentApiUrl, messageIsUnsent } from "@/lib/chat-utils";
+import { formatDeletedMessageContent, getChatAttachmentApiUrl, isChatAudioAttachment, isChatImageAttachment, messageIsUnsent } from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
 import { ChatWorshipActionButton } from "@/components/chat/ChatWorshipActionButton";
 import { worshipChatActionForMessage } from "@/lib/worship-chat-links";
@@ -30,6 +30,7 @@ type ChatMessageBubbleProps = {
   onToggleReaction: (emoji: string) => void;
   onStartReply?: (reply: ChatMessageReply) => void;
   attachmentUrl?: string;
+  attachmentType?: string;
   attachmentName?: string;
   editedAt?: string;
   deletedAt?: string;
@@ -67,6 +68,7 @@ export function ChatMessageBubble({
   onToggleReaction,
   onStartReply,
   attachmentUrl,
+  attachmentType,
   attachmentName,
   editedAt,
   deletedAt,
@@ -105,7 +107,16 @@ export function ChatMessageBubble({
     () => (unsent || !displayContent ? null : worshipChatActionForMessage(displayContent)),
     [displayContent, unsent],
   );
-  const imageSrc = getChatAttachmentApiUrl(attachmentUrl);
+  const imageSrc =
+    getChatAttachmentApiUrl(attachmentUrl) &&
+    isChatImageAttachment(attachmentType, attachmentName)
+      ? getChatAttachmentApiUrl(attachmentUrl)
+      : null;
+  const audioSrc =
+    getChatAttachmentApiUrl(attachmentUrl) &&
+    isChatAudioAttachment(attachmentType, attachmentName)
+      ? getChatAttachmentApiUrl(attachmentUrl)
+      : null;
   const youtubeVideoIds = useMemo(
     () => (unsent ? [] : extractYouTubeVideoIdsFromText(displayContent)),
     [displayContent, unsent],
@@ -335,7 +346,7 @@ export function ChatMessageBubble({
             hub
               ? `${hubRadius} px-3 py-2 ${
                   mine ? "messages-hub-bubble-out" : "messages-hub-bubble-in"
-                } ${(imageSrc || youtubeVideoIds.length > 0) && !unsent ? "!bg-transparent !p-0 !shadow-none" : ""}`
+                } ${(imageSrc || audioSrc || youtubeVideoIds.length > 0) && !unsent ? "!bg-transparent !p-0 !shadow-none" : ""}`
               : compact
               ? mine
                 ? chatPremium.bubbleOut
@@ -410,6 +421,13 @@ export function ChatMessageBubble({
               {reply ? (
                 <ChatMessageReplyQuote reply={reply} mine={mine} compact={compact || hub} />
               ) : null}
+              {audioSrc && !unsent && (
+                <div className={`messages-hub-voice-attachment ${hub ? "" : "mb-2"}`}>
+                  <audio controls preload="metadata" src={audioSrc} className="w-full max-w-xs">
+                    Voice message
+                  </audio>
+                </div>
+              )}
               {imageSrc && !unsent && (
                 <a href={imageSrc} target="_blank" rel="noreferrer" className="messages-hub-attachment mb-0 block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}

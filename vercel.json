@@ -35,6 +35,10 @@
     {
       "path": "/api/cron/ministry-reports",
       "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/cron/frontliners-checkin",
+      "schedule": "25,30,35,40,45 14,15 * * 0"
     }
   ]
 }
