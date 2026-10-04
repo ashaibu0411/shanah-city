@@ -4443,6 +4443,15 @@ html.dark .community-story-viewer-reply-input {
   cursor: pointer;
 }
 
+.community-story-link-sound-hint {
+  flex-shrink: 0;
+  margin: 0.35rem 1rem 0;
+  text-align: center;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.72);
+}
+
 .community-story-link-iframe-tiktok,
 .community-story-link-iframe-facebook {
   max-width: 100%;

@@ -9,6 +9,7 @@ import {
 } from "@livekit/components-react";
 import { ConnectionState, Track } from "livekit-client";
 import { CommunityLiveMediaControls } from "@/components/community/CommunityLiveMediaControls";
+import { liveStoryCameraCaptureOptions } from "@/lib/community-live-camera";
 
 type CommunityLivePublisherStageProps = {
   showRemoteCoHosts?: boolean;
@@ -42,10 +43,7 @@ export function CommunityLivePublisherStage({
     async function enableMedia() {
       try {
         await localParticipant.setMicrophoneEnabled(true);
-        await localParticipant.setCameraEnabled(true, {
-          facingMode: "user",
-          resolution: { width: 720, height: 1280, frameRate: 24 },
-        });
+        await localParticipant.setCameraEnabled(true, liveStoryCameraCaptureOptions("user"));
       } catch {
         // surfaced via lastCameraError
       }

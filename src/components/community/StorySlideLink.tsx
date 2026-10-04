@@ -16,9 +16,24 @@ type StoryLinkPreview = import("@/lib/community-story-link-preview-server").Stor
 type StorySlideLinkProps = {
   slide: CommunityStatus;
   paused: boolean;
+  soundOn: boolean;
   onProgress: (percent: number) => void;
   onAdvance: () => void;
 };
+
+function youtubeStoryEmbedSrc(
+  embedUrl: string,
+  input: { paused: boolean; soundOn: boolean },
+) {
+  const params = new URLSearchParams();
+  if (!input.paused) {
+    params.set("autoplay", "1");
+    params.set("mute", input.soundOn ? "0" : "1");
+  }
+  const extra = params.toString();
+  if (!extra) return embedUrl;
+  return embedUrl.includes("?") ? `${embedUrl}&${extra}` : `${embedUrl}?${extra}`;
+}
 
 function isInAppEmbedKind(kind: StoryLinkPreview["kind"]) {
   return (
@@ -41,7 +56,7 @@ function StoryLinkOpenButton({ url, label }: { url: string; label: string }) {
   );
 }
 
-export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySlideLinkProps) {
+export function StorySlideLink({ slide, paused, soundOn, onProgress, onAdvance }: StorySlideLinkProps) {
   const linkMeta = parseStoryLinkFromStatus(slide.mediaType, slide.mediaUrl);
   const linkUrl = useMemo(() => (linkMeta?.url ?? "").trim(), [linkMeta?.url]);
   const [preview, setPreview] = useState<StoryLinkPreview | null>(null);
@@ -160,15 +175,20 @@ export function StorySlideLink({ slide, paused, onProgress, onAdvance }: StorySl
   }
 
   if (preview.kind === "youtube") {
+    const embedSrc = youtubeStoryEmbedSrc(preview.embedUrl, { paused, soundOn });
     return (
       <div className="community-story-link-slide community-story-link-slide-embed">
         <iframe
+          key={`${slide.id}-${soundOn ? "sound" : "muted"}-${paused ? "paused" : "play"}`}
           title={preview.title ?? "YouTube video"}
-          src={`${preview.embedUrl}${paused ? "" : "&autoplay=1&mute=1"}`}
+          src={embedSrc}
           className="community-story-link-iframe"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         />
+        {!soundOn ? (
+          <p className="community-story-link-sound-hint">Tap the speaker icon above for sound</p>
+        ) : null}
         <StoryLinkOpenButton url={preview.url} label={openLabel} />
       </div>
     );

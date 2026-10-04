@@ -7,6 +7,7 @@ import {
   VideoTrack,
 } from "@livekit/components-react";
 import { ConnectionState, Track } from "livekit-client";
+import { liveStoryCameraCaptureOptions } from "@/lib/community-live-camera";
 
 export function CommunityLiveHostStage() {
   const connectionState = useConnectionState();
@@ -26,10 +27,7 @@ export function CommunityLiveHostStage() {
     async function enableMedia() {
       try {
         await localParticipant.setMicrophoneEnabled(true);
-        await localParticipant.setCameraEnabled(true, {
-          facingMode: "user",
-          resolution: { width: 720, height: 1280, frameRate: 24 },
-        });
+        await localParticipant.setCameraEnabled(true, liveStoryCameraCaptureOptions("user"));
       } catch {
         // lastCameraError / lastMicrophoneError surface in UI.
       }

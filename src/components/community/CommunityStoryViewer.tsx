@@ -21,6 +21,7 @@ import {
   STORY_IMAGE_MS,
   type StoryDeck,
 } from "@/lib/community-story-utils";
+import { parseStoryLinkFromStatus } from "@/lib/community-story-link-shared";
 import { storyReplyPresetsForKind } from "@/lib/community-story-reply-presets";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
 import { CommunityLivePlayer } from "@/components/community/CommunityLivePlayer";
@@ -295,6 +296,10 @@ export function CommunityStoryViewer({
     () => totalStoryReactionCount(slide?.reactions),
     [slide?.reactions],
   );
+  const showStorySoundToggle =
+    slide?.mediaType === "video" ||
+    (slide?.mediaType === "link" &&
+      parseStoryLinkFromStatus(slide.mediaType, slide.mediaUrl)?.platform === "youtube");
 
   useEffect(() => {
     setMounted(true);
@@ -778,7 +783,7 @@ export function CommunityStoryViewer({
             </button>
           </>
         ) : null}
-        {slide.mediaType === "video" ? (
+        {showStorySoundToggle ? (
           <button
             type="button"
             onClick={() => setSoundOn((current) => !current)}
@@ -868,6 +873,7 @@ export function CommunityStoryViewer({
           <StorySlideLink
             slide={slide}
             paused={playbackPaused}
+            soundOn={soundOn}
             onProgress={setProgress}
             onAdvance={goNext}
           />
