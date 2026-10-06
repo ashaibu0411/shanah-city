@@ -115,6 +115,19 @@ export function normalizeGroupScheduleEntry(
 /** @deprecated Use normalizeGroupScheduleEntry */
 export const normalizeChoirScheduleEntry = normalizeGroupScheduleEntry;
 
+export function scheduleAttireNotesLabel(groupId: string) {
+  return groupId === "group-choir" ? "Uniform / attire" : "Team notes";
+}
+
+function appendScheduleNotesLine(
+  lines: string[],
+  entry: GroupServiceScheduleEntry,
+) {
+  const text = entry.notes?.trim();
+  if (!text) return;
+  lines.push(`${scheduleAttireNotesLabel(entry.groupId)}: ${text}`);
+}
+
 export function formatGroupSchedulePreview(
   entry: GroupServiceScheduleEntry,
   config: Pick<GroupServiceScheduleConfig, "programs" | "roles">,
@@ -128,6 +141,8 @@ export function formatGroupSchedulePreview(
       `${assignment.personName.trim()} — ${roleLabel(config, assignment.role)}`,
     );
   }
+
+  appendScheduleNotesLine(lines, entry);
 
   return lines.join("\n");
 }
@@ -145,6 +160,8 @@ export function formatGroupScheduleCalendarPreview(
       `${assignment.personName.trim()} — ${roleLabel(config, assignment.role)}`,
     );
   }
+
+  appendScheduleNotesLine(lines, entry);
 
   return lines.join("\n");
 }

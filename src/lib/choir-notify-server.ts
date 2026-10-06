@@ -136,6 +136,10 @@ export async function notifyChoirServiceScheduleSaved(input: {
   const program = programLabel(config, input.entry.program);
   const when = serviceDateTimeLabel(input.entry.serviceDate, input.entry.serviceTime);
   const preview = formatGroupScheduleCalendarPreview(input.entry, config);
+  const attire = input.entry.notes?.trim();
+  const pushDetail = attire
+    ? `${program} · ${when} · ${attire.length > 72 ? `${attire.slice(0, 69)}…` : attire}`
+    : `${program} · ${when}`;
   const setlistUrl = worshipMemberServiceUrl({
     serviceDate: input.entry.serviceDate,
     serviceTime: input.entry.serviceTime,
@@ -144,12 +148,9 @@ export async function notifyChoirServiceScheduleSaved(input: {
   return broadcastChoirUpdate({
     actor: input.actor,
     pushTitle: input.isUpdate ? "Choir schedule updated" : "New choir schedule",
-    pushBody: `${program} · ${when}`,
+    pushBody: pushDetail,
     chatBody: `${input.isUpdate ? "✏️ Schedule updated" : "📅 New schedule"} — ${program} · ${when}\n${preview}\n\nOpen service setlist:\n${setlistUrl}`,
-    pushUrl: worshipMemberServicePath({
-      serviceDate: input.entry.serviceDate,
-      serviceTime: input.entry.serviceTime,
-    }),
+    pushUrl: "/worship?tab=team-calendar",
   });
 }
 

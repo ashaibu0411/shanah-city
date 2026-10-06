@@ -15,6 +15,8 @@ export type GroupServiceScheduleConfig = {
 
 const CHOIR_GROUP_ID = "group-choir";
 
+export const CHOIR_SCHEDULE_ATTIRE_NOTES_LABEL = "Uniform / attire";
+
 const CHOIR_CONFIG: GroupServiceScheduleConfig = {
   programs: [
     { value: "glory-encounter", label: "Glory Encounter" },

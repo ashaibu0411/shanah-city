@@ -202,9 +202,9 @@ export function WorshipSchedulePanel({
       {!readOnly && (
         <Card className="border-dashed border-violet-200 bg-violet-50/40">
           <p className="text-sm text-night-700">
-            To put leaders on the <strong>choir calendar</strong> with names (worship, praise,
-            ministration), use{" "}
-            <strong>Groups → Shanah Worship → Events → Service schedule</strong>. Use this tab for
+            To put leaders on the <strong>team calendar</strong> with names (worship, praise,
+            ministration) and <strong>uniform / attire</strong>, use the{" "}
+            <strong>Team calendar</strong> tab in worship (or Groups → Events). Use this tab for
             auto-rotation and worship plan drafts only.
           </p>
         </Card>

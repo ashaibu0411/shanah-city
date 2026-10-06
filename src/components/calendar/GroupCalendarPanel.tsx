@@ -245,7 +245,7 @@ function GroupAdminApproval({
   );
 }
 
-function GroupEventsSection({
+export function GroupEventsSection({
   groupId,
   groupLabel,
   signInNextUrl,
@@ -474,7 +474,7 @@ function GroupEventsSection({
   );
 }
 
-function UnavailabilitySection({
+export function UnavailabilitySection({
   group,
   signInNextUrl,
 }: {

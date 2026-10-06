@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui";
 import {
   formatGroupSchedulePreview,
+  scheduleAttireNotesLabel,
   type GroupScheduleAssignment,
   type GroupServiceScheduleEntry,
 } from "@/lib/choir-service-schedule-types";
@@ -27,6 +28,7 @@ function defaultForm(config: ScheduleConfig) {
     serviceDate: "",
     serviceTime: "10:00",
     program: config.programs[0]?.value ?? "sunday-service",
+    notes: "",
     assignments: [{ role: config.roles[0]?.value ?? "lead", personName: "" }] as AssignmentRow[],
   };
 }
@@ -94,6 +96,7 @@ export function GroupServiceSchedulePanel({
       serviceDate: entry.serviceDate,
       serviceTime: entry.serviceTime,
       program: entry.program,
+      notes: entry.notes ?? "",
       assignments:
         entry.assignments.length > 0
           ? entry.assignments.map((item) => ({
@@ -168,6 +171,7 @@ export function GroupServiceSchedulePanel({
         serviceTime: form.serviceTime,
         program: form.program,
         assignments,
+        notes: form.notes.trim() || undefined,
       }),
     });
     const data = await response.json();
@@ -326,6 +330,20 @@ export function GroupServiceSchedulePanel({
               Add another person
             </Button>
           </div>
+
+          <label className="mt-4 block text-sm text-night-700">
+            <span className="font-semibold">{scheduleAttireNotesLabel(groupId)}</span>
+            <textarea
+              value={form.notes}
+              onChange={(event) => setForm((c) => ({ ...c, notes: event.target.value }))}
+              rows={2}
+              placeholder="e.g. All black, choir robe, gold sash…"
+              className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
+            />
+            <span className="mt-1 block text-xs text-night-500">
+              Shown on the team calendar and included when the choir is notified.
+            </span>
+          </label>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <Button onClick={() => void saveEntry()} disabled={saving}>

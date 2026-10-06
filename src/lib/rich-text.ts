@@ -6,6 +6,25 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
+const LINK_CLASS =
+  "font-semibold text-violet-700 underline underline-offset-2 break-all hover:text-violet-900 dark:text-violet-300 dark:hover:text-violet-200";
+
+/** Turn http(s) URLs in already-escaped text into safe anchor tags. */
+function linkifyEscapedHtml(escaped: string) {
+  return escaped.replace(/https?:\/\/[^\s<]+/gi, (raw) => {
+    let url = raw;
+    let suffix = "";
+    while (url.length > 0 && /[.,;:!?)}\]'"]$/.test(url)) {
+      suffix = url.slice(-1) + suffix;
+      url = url.slice(0, -1);
+    }
+    if (!url) {
+      return raw;
+    }
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${LINK_CLASS}">${url}</a>${suffix}`;
+  });
+}
+
 function getLineBounds(value: string, index: number) {
   const lineStart = value.lastIndexOf("\n", Math.max(0, index - 1)) + 1;
   const lineEndIndex = value.indexOf("\n", index);
@@ -32,10 +51,11 @@ export function richTextToHtml(text: string) {
 
   const withHeaderBold = escaped.replace(/\*\*([^\n*]+)\*\*/g, "<strong>$1</strong>");
 
-  return withHeaderBold
+  const withEmphasis = withHeaderBold
     .replace(/(?<!\*)\*(?!\*)([^*\n]+?)\*(?!\*)/g, "<em>$1</em>")
-    .replace(/_([^_\n]+?)_/g, "<em>$1</em>")
-    .replace(/\n/g, "<br />");
+    .replace(/_([^_\n]+?)_/g, "<em>$1</em>");
+
+  return linkifyEscapedHtml(withEmphasis).replace(/\n/g, "<br />");
 }
 
 export function wrapRichTextSelection(

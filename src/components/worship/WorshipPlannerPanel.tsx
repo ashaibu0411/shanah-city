@@ -13,6 +13,7 @@ import { WorshipServicePlanPickerButton } from "@/components/worship/WorshipServ
 import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 import { WorshipRehearsalRecordings } from "@/components/worship/WorshipRehearsalRecordings";
 import { WorshipSchedulePanel } from "@/components/worship/WorshipSchedulePanel";
+import { WorshipTeamCalendarPanel } from "@/components/worship/WorshipTeamCalendarPanel";
 import { WorshipChoirServicePanel } from "@/components/worship/WorshipChoirServicePanel";
 import { WorshipMemberSuggestions } from "@/components/worship/WorshipMemberSuggestions";
 import { WorshipSongWorkspace } from "@/components/worship/WorshipSongWorkspace";
@@ -99,12 +100,13 @@ export function WorshipPlannerPanel({
     initialTab === "library" ||
     initialTab === "my-part" ||
     initialTab === "rehearsals" ||
+    initialTab === "team-calendar" ||
     initialTab === "schedule"
       ? initialTab
       : "plan";
-  const [tab, setTab] = useState<"plan" | "library" | "my-part" | "rehearsals" | "schedule">(
-    resolvedInitialTab,
-  );
+  const [tab, setTab] = useState<
+    "plan" | "library" | "my-part" | "rehearsals" | "team-calendar" | "schedule"
+  >(resolvedInitialTab);
   const [serviceDate, setServiceDate] = useState(initialDate || nextServiceSundayIso());
   const maxServiceDate = useMemo(() => worshipPlanningUntilIso(), []);
   const [serviceTime, setServiceTime] = useState<string>(initialTime || "10:00");
@@ -635,6 +637,7 @@ export function WorshipPlannerPanel({
   const plannerTabs = useMemo(() => {
     const items: Array<{ id: typeof tab; label: string }> = [
       { id: "plan", label: "Service plan" },
+      { id: "team-calendar", label: "Team calendar" },
       { id: "my-part", label: "My part" },
       { id: "rehearsals", label: "Rehearsals" },
     ];
@@ -642,9 +645,9 @@ export function WorshipPlannerPanel({
       items.push({ id: "library", label: "Song library" });
     }
     if (canManage) {
-      items.push({ id: "schedule", label: "Schedule" });
+      items.push({ id: "schedule", label: "Leader rotation" });
     } else {
-      items.push({ id: "schedule", label: "Team schedule" });
+      items.push({ id: "schedule", label: "Leader rotation" });
     }
     return items;
   }, [canManage, canUseLibrary]);
@@ -755,6 +758,15 @@ export function WorshipPlannerPanel({
     selectServiceDateTime(entry.serviceDate, entry.serviceTime);
   }
 
+  if (tab === "team-calendar") {
+    return (
+      <>
+        <PlannerTabBar />
+        <WorshipTeamCalendarPanel canManageSchedule={canManage} />
+      </>
+    );
+  }
+
   if (tab === "schedule") {
     return (
       <>
@@ -844,7 +856,8 @@ export function WorshipPlannerPanel({
           <h2 className="font-display text-xl font-semibold text-night-900">Plan not published yet</h2>
           <p className="mt-2 text-sm text-night-600">
             Your worship leader has not published this service plan yet. You can still use{" "}
-            <strong>Rehearsals</strong> to record and listen back, or check <strong>Team schedule</strong>.
+            <strong>Rehearsals</strong> to record and listen back, or check the{" "}
+            <strong>Team calendar</strong>.
             Once the plan is published, open <strong>My part</strong> for your lines and practice uploads.
           </p>
         </Card>
@@ -1637,11 +1650,11 @@ export function WorshipPlannerPanel({
         <Link href="/groups" className="font-semibold text-night-800 underline">
           Shanah Worship (Choir)
         </Link>{" "}
-        under Groups. Leaders and assistants manage the choir calendar under{" "}
-        <Link href="/groups/group-choir?calendar=1" className="font-semibold text-night-800 underline">
-          Groups → Events
+        under Groups. Leaders manage who is serving and uniforms on the{" "}
+        <Link href="/worship?tab=team-calendar" className="font-semibold text-night-800 underline">
+          Team calendar
         </Link>{" "}
-        or the Schedule tab here.
+        tab (also under Groups → Events).
       </p>
 
       {message && (
