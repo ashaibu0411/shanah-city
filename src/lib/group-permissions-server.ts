@@ -7,6 +7,10 @@ import { getGroups } from "@/lib/group-server";
 
 export type UnavailabilityCalendarGroup = "choir" | "pastors";
 
+function configuredWorshipGroupId() {
+  return process.env.WORSHIP_GROUP_ID?.trim() || CALENDAR_GROUP_TABS.choir;
+}
+
 export function unavailabilityGroupToGroupId(group: UnavailabilityCalendarGroup) {
   return CALENDAR_GROUP_TABS[group];
 }
