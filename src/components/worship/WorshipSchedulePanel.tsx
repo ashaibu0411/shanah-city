@@ -7,6 +7,8 @@ import { Button, Card } from "@/components/ui";
 import { WorshipServicePlanPickerButton } from "@/components/worship/WorshipServicePlanPickerButton";
 import { worshipMemberServicePath } from "@/lib/worship-plan-links";
 import {
+  WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT,
+  WORSHIP_SCHEDULE_WEEKS_AHEAD_MAX,
   WORSHIP_SERVICE_TIMES,
   serviceDateTimeLabel,
   type WorshipRotationPoolMember,
@@ -35,7 +37,7 @@ export function WorshipSchedulePanel({
   const [pool, setPool] = useState<WorshipRotationPoolMember[]>([]);
   const [serviceTime, setServiceTime] = useState("10:00");
   const [serviceKind, setServiceKind] = useState<"sunday" | "friday">("sunday");
-  const [weeksAhead, setWeeksAhead] = useState(8);
+  const [weeksAhead, setWeeksAhead] = useState(WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT);
   const [uploadDutyLeadDays, setUploadDutyLeadDays] = useState(4);
   const [skipDatesText, setSkipDatesText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export function WorshipSchedulePanel({
     setPool(data.config.pool ?? []);
     setServiceTime(data.config.serviceTime ?? "10:00");
     setServiceKind(data.config.serviceKind ?? "sunday");
-    setWeeksAhead(data.config.weeksAhead ?? 8);
+    setWeeksAhead(data.config.weeksAhead ?? WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT);
     setUploadDutyLeadDays(data.config.uploadDutyLeadDays ?? 4);
     setSkipDatesText((data.config.skipDates ?? []).join("\n"));
   }
@@ -260,11 +262,17 @@ export function WorshipSchedulePanel({
             <input
               type="number"
               min={1}
-              max={52}
+              max={WORSHIP_SCHEDULE_WEEKS_AHEAD_MAX}
               value={weeksAhead}
-              onChange={(event) => setWeeksAhead(Number(event.target.value) || 8)}
+              onChange={(event) =>
+                setWeeksAhead(Number(event.target.value) || WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT)
+              }
               className="mt-1 block w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm"
             />
+            <span className="mt-1 block text-xs text-night-500">
+              Default {WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT} weeks (~6 months) so you can generate
+              and publish a full month or more at once.
+            </span>
           </label>
           <label className="text-sm text-night-700">
             <span className="font-semibold">Upload reminder (days before service)</span>

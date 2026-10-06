@@ -682,6 +682,25 @@ export function normalizeMemberSuggestions(
     }));
 }
 
+/** Default rotation window (~6 months of weekly services). */
+export const WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT = 26;
+export const WORSHIP_SCHEDULE_WEEKS_AHEAD_MAX = 52;
+
+export function clampWorshipScheduleWeeksAhead(weeks: number): number {
+  const n = Number.isFinite(weeks) ? Math.round(weeks) : WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT;
+  return Math.min(WORSHIP_SCHEDULE_WEEKS_AHEAD_MAX, Math.max(1, n));
+}
+
+/** ISO date through which planners can schedule (inclusive), from a reference day. */
+export function worshipPlanningUntilIso(
+  reference = new Date(),
+  weeksAhead = WORSHIP_SCHEDULE_WEEKS_AHEAD_MAX,
+): string {
+  const d = new Date(reference);
+  d.setDate(d.getDate() + clampWorshipScheduleWeeksAhead(weeksAhead) * 7);
+  return d.toISOString().slice(0, 10);
+}
+
 /** List service dates (Sundays or Fridays) from start through weeksAhead. */
 export function listServiceDatesInRange(
   startDate: string,
@@ -718,7 +737,7 @@ export function defaultRotationConfig(): WorshipScheduleRotationConfig {
     serviceKind: "sunday",
     rotationIndex: 0,
     skipDates: [],
-    weeksAhead: 8,
+    weeksAhead: WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT,
     uploadDutyLeadDays: 4,
     status: "draft",
     createdAt: now,

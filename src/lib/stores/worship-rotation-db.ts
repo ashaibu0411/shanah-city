@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
 import {
+  WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT,
+  clampWorshipScheduleWeeksAhead,
   defaultRotationConfig,
   type WorshipRotationPoolMember,
   type WorshipScheduleRotationConfig,
@@ -59,11 +61,18 @@ function mapRotation(record: {
   };
 }
 
+function withPlanningHorizon(config: WorshipScheduleRotationConfig): WorshipScheduleRotationConfig {
+  if (config.weeksAhead === 8) {
+    return { ...config, weeksAhead: WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT };
+  }
+  return config;
+}
+
 export async function getWorshipRotationConfig() {
   const record = await prisma.worshipScheduleRotation.findUnique({
     where: { id: ROTATION_ID },
   });
-  return record ? mapRotation(record) : defaultRotationConfig();
+  return withPlanningHorizon(record ? mapRotation(record) : defaultRotationConfig());
 }
 
 export async function saveWorshipRotationConfig(input: {
@@ -90,7 +99,10 @@ export async function saveWorshipRotationConfig(input: {
     serviceKind: input.serviceKind,
     rotationIndex: input.rotationIndex ?? existing?.rotationIndex ?? 0,
     skipDates: input.skipDates ?? parseSkipDates(existing?.skipDates),
-    weeksAhead: input.weeksAhead ?? existing?.weeksAhead ?? 8,
+    weeksAhead:
+      input.weeksAhead !== undefined
+        ? clampWorshipScheduleWeeksAhead(input.weeksAhead)
+        : existing?.weeksAhead ?? WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT,
     uploadDutyLeadDays: input.uploadDutyLeadDays ?? existing?.uploadDutyLeadDays ?? 4,
     status: input.status ?? existing?.status ?? "draft",
     publishedAt:

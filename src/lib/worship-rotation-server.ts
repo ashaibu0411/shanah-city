@@ -7,6 +7,7 @@ import {
   saveWorshipPlan,
 } from "@/lib/worship-server";
 import {
+  clampWorshipScheduleWeeksAhead,
   listServiceDatesInRange,
   normalizeTeam,
   serviceTypeForTime,
@@ -36,7 +37,7 @@ export async function generateWorshipSchedule(input: {
   }
 
   const startDate = input.startDate?.trim() || new Date().toISOString().slice(0, 10);
-  const weeksAhead = input.weeksAhead ?? config.weeksAhead;
+  const weeksAhead = clampWorshipScheduleWeeksAhead(input.weeksAhead ?? config.weeksAhead);
   const serviceDates = listServiceDatesInRange(startDate, weeksAhead, config.serviceKind).filter(
     (date) => !config.skipDates.includes(date),
   );
@@ -118,7 +119,9 @@ export async function listUpcomingLeaderAssignments(config?: WorshipScheduleRota
   const rotation = config ?? (await getWorshipRotationConfig());
   const since = new Date().toISOString().slice(0, 10);
   const untilDate = new Date();
-  untilDate.setDate(untilDate.getDate() + rotation.weeksAhead * 7);
+  untilDate.setDate(
+    untilDate.getDate() + clampWorshipScheduleWeeksAhead(rotation.weeksAhead) * 7,
+  );
   const until = untilDate.toISOString().slice(0, 10);
 
   const plans = await listWorshipPlans({ since, until, serviceTime: rotation.serviceTime });
@@ -138,7 +141,9 @@ export async function approveWorshipRotationSchedule(actor: { id: string; name: 
   const config = await getWorshipRotationConfig();
   const since = new Date().toISOString().slice(0, 10);
   const untilDate = new Date();
-  untilDate.setDate(untilDate.getDate() + config.weeksAhead * 7);
+  untilDate.setDate(
+    untilDate.getDate() + clampWorshipScheduleWeeksAhead(config.weeksAhead) * 7,
+  );
   const until = untilDate.toISOString().slice(0, 10);
   const plans = await listWorshipPlans({ since, until, serviceTime: config.serviceTime });
 

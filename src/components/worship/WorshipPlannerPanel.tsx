@@ -24,6 +24,7 @@ import {
   buildSetlistDisplayGroups,
   emptyWorshipSong,
   nextServiceSundayIso,
+  worshipPlanningUntilIso,
   resolveLibraryInsertIndex,
   rehearsalDateTimeLabel,
   serviceDateTimeLabel,
@@ -105,6 +106,7 @@ export function WorshipPlannerPanel({
     resolvedInitialTab,
   );
   const [serviceDate, setServiceDate] = useState(initialDate || nextServiceSundayIso());
+  const maxServiceDate = useMemo(() => worshipPlanningUntilIso(), []);
   const [serviceTime, setServiceTime] = useState<string>(initialTime || "10:00");
   const [plan, setPlan] = useState<WorshipServicePlan | null>(null);
   const [songs, setSongs] = useState<WorshipSong[]>([]);
@@ -198,7 +200,10 @@ export function WorshipPlannerPanel({
 
   async function loadUpcoming() {
     const since = new Date().toISOString().slice(0, 10);
-    const response = await fetch(`/api/worship?since=${since}`);
+    const until = worshipPlanningUntilIso();
+    const response = await fetch(
+      `/api/worship?since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}`,
+    );
     const data = await response.json();
     if (response.ok) {
       setUpcomingPlans(data.plans ?? []);
@@ -653,6 +658,7 @@ export function WorshipPlannerPanel({
             <input
               type="date"
               value={serviceDate}
+              max={maxServiceDate}
               onChange={(event) => setServiceDate(event.target.value)}
               className="mt-1 block rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
@@ -851,7 +857,6 @@ export function WorshipPlannerPanel({
             <ul className="mt-4 space-y-2.5">
               {upcomingPlans
                 .filter((entry) => entry.status === "published")
-                .slice(0, 8)
                 .map((entry) => (
                   <li key={entry.id}>
                     <WorshipServicePlanPickerButton
@@ -907,6 +912,7 @@ export function WorshipPlannerPanel({
               <input
                 type="date"
                 value={serviceDate}
+                max={maxServiceDate}
                 onChange={(event) => setServiceDate(event.target.value)}
                 className="mt-1 block rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
               />
@@ -1609,7 +1615,7 @@ export function WorshipPlannerPanel({
             Tap a row to open that service{canManage ? " in the planner" : ""}.
           </p>
           <ul className="mt-4 space-y-2.5">
-            {upcomingPlans.slice(0, 8).map((entry) => (
+            {upcomingPlans.map((entry) => (
               <li key={entry.id}>
                 <WorshipServicePlanPickerButton
                   label={serviceDateTimeLabel(entry.serviceDate, entry.serviceTime)}

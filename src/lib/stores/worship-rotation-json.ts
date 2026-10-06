@@ -1,6 +1,8 @@
 import { promises as fs } from "fs";
 import path from "path";
 import {
+  WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT,
+  clampWorshipScheduleWeeksAhead,
   defaultRotationConfig,
   type WorshipRotationPoolMember,
   type WorshipScheduleRotationConfig,
@@ -23,9 +25,16 @@ async function writeJson<T>(file: string, data: T) {
   await fs.writeFile(file, JSON.stringify(data, null, 2));
 }
 
+function withPlanningHorizon(config: WorshipScheduleRotationConfig): WorshipScheduleRotationConfig {
+  if (config.weeksAhead === 8) {
+    return { ...config, weeksAhead: WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT };
+  }
+  return config;
+}
+
 export async function getWorshipRotationConfig() {
   const config = await readJson<WorshipScheduleRotationConfig | null>(ROTATION_FILE, null);
-  return config ?? defaultRotationConfig();
+  return withPlanningHorizon(config ?? defaultRotationConfig());
 }
 
 export async function saveWorshipRotationConfig(input: {
@@ -51,7 +60,10 @@ export async function saveWorshipRotationConfig(input: {
     serviceKind: input.serviceKind,
     rotationIndex: input.rotationIndex ?? existing.rotationIndex,
     skipDates: input.skipDates ?? existing.skipDates,
-    weeksAhead: input.weeksAhead ?? existing.weeksAhead,
+    weeksAhead:
+      input.weeksAhead !== undefined
+        ? clampWorshipScheduleWeeksAhead(input.weeksAhead)
+        : existing.weeksAhead,
     uploadDutyLeadDays: input.uploadDutyLeadDays ?? existing.uploadDutyLeadDays,
     status: input.status ?? existing.status,
     publishedAt:
