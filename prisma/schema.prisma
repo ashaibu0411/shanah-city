@@ -1069,6 +1069,27 @@ model CouplePrayerPost {
   @@index([coupleLinkId, createdAt])
 }
 
+model GroupMinistryHubAnnouncement {
+  groupId       String   @id
+  title         String
+  body          String
+  updatedBy     String?
+  updatedByName String?
+  updatedAt     DateTime @updatedAt
+}
+
+model GroupMinistryPrayerPost {
+  id           String   @id
+  groupId      String
+  authorId     String
+  authorName   String
+  content      String
+  type         String   @default("prayer")
+  createdAt    DateTime @default(now())
+
+  @@index([groupId, createdAt])
+}
+
 model CoupleMentorRequest {
   id             String    @id
   coupleLinkId   String

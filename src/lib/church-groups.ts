@@ -18,6 +18,7 @@ export const PASTORS_GROUP_ID = "group-pastors";
 export const LEADERS_GROUP_ID = "group-leaders";
 export const SHANAH_POWER_COUPLES_GROUP_ID = "group-shanah-power-couples";
 export const FOLLOW_UP_GROUP_ID = "group-follow-up";
+export const YOUNG_ADULTS_GROUP_ID = "group-young-adults";
 
 export const CALENDAR_GROUP_TABS = {
   choir: "group-choir",

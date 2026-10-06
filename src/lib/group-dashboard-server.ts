@@ -36,6 +36,7 @@ import type {
   GroupsThisSundaySummary,
 } from "@/lib/group-dashboard-types";
 import { listUsherSchedules } from "@/lib/usher-schedule-server";
+import { YOUNG_ADULTS_GROUP_ID } from "@/lib/church-groups";
 import { canManageWorshipPlan, isWorshipGroup } from "@/lib/worship-access-server";
 import { listWorshipPlans } from "@/lib/worship-server";
 import {
@@ -124,6 +125,10 @@ function baseQuickActions(
 
   if (options.showCalendar) {
     actions.push({ id: "calendar", label: "View events", action: "calendar" });
+  }
+  if (group.id === YOUNG_ADULTS_GROUP_ID) {
+    actions.push({ id: "prayer", label: "Prayer wall", action: "prayer" });
+    actions.push({ id: "community", label: "Community", href: "/community" });
   }
   if (options.showWorship) {
     actions.push({ id: "worship", label: "Worship planner", href: "/worship" });

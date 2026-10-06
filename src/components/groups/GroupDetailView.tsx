@@ -27,6 +27,9 @@ import {
   SHANAH_POWER_COUPLES_GROUP_ID,
   unavailabilityCalendarGroupForId,
 } from "@/lib/church-groups";
+import { groupHasMinistryHub } from "@/lib/group-ministry-hub-types";
+import { YoungAdultsHubDashboard } from "@/components/groups/YoungAdultsHubDashboard";
+import { GroupMinistryPrayerPanel } from "@/components/groups/GroupMinistryPrayerPanel";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
 import type { GroupDetail } from "@/lib/group-types";
 import type { GroupDashboardQuickAction } from "@/lib/group-dashboard-types";
@@ -173,6 +176,7 @@ export function GroupDetailView({
     (detail.isAdmin || detail.isAssistantLeader) &&
     isReportableMinistryGroup({ id: detail.id, name: detail.name, category: detail.category });
   const isPowerCouplesGroup = detail.id === SHANAH_POWER_COUPLES_GROUP_ID;
+  const isYoungAdultsHubGroup = groupHasMinistryHub(detail.id);
   const isFollowUpGroup = detail.id === FOLLOW_UP_GROUP_ID;
   const showGuestQueueTab =
     isFollowUpGroup && hasMemberAccess && permissions.canAccessFollowUp;
@@ -216,6 +220,9 @@ export function GroupDetailView({
     if (showLeaderReport) tabs.push({ id: "report", label: "Report" });
     if (showGuestQueueTab) tabs.push({ id: "guests", label: "Guests" });
     if (showEmbeddedCalendar) tabs.push({ id: "calendar", label: "Events" });
+    if (isYoungAdultsHubGroup && hasMemberAccess) {
+      tabs.push({ id: "prayer", label: "Prayer" });
+    }
     if (isPowerCouplesGroup && hasMemberAccess) {
       tabs.push(
         { id: "resources", label: "Resources" },
@@ -234,6 +241,7 @@ export function GroupDetailView({
     showLeaderReport,
     showGuestQueueTab,
     isPowerCouplesGroup,
+    isYoungAdultsHubGroup,
     hasMemberAccess,
     detail.trainingPending,
     showInfoTab,
@@ -281,6 +289,10 @@ export function GroupDetailView({
     }
     if (action.action === "roster") {
       openManageSection("roster");
+      return;
+    }
+    if (action.action === "prayer") {
+      setDetailSection("prayer");
     }
   }
 
@@ -464,6 +476,8 @@ export function GroupDetailView({
             groupId={detail.id}
             isLeader={detail.isAdmin || detail.isAssistantLeader || siteAdminGroupOverride}
           />
+        ) : detailSection === "prayer" && isYoungAdultsHubGroup && hasMemberAccess && user ? (
+          <GroupMinistryPrayerPanel groupId={detail.id} groupLabel={detail.name} />
         ) : detailSection === "prayer" && isPowerCouplesGroup && hasMemberAccess && user ? (
           <CouplePrayerPanel />
         ) : detailSection === "mentors" && isPowerCouplesGroup && hasMemberAccess && user ? (
@@ -487,14 +501,25 @@ export function GroupDetailView({
             <GuestQueuePanel variant="follow-up" compactHeader />
           </div>
         ) : detailSection === "overview" && hasMemberAccess && user ? (
-          <GroupDashboardPanel
-            groupId={detail.id}
-            groupName={detail.name}
-            memberCount={detail.members.length}
-            leaderNames={leaderNames}
-            onQuickAction={handleDashboardQuickAction}
-            onSetupRoster={() => openManageSection("roster")}
-          />
+          isYoungAdultsHubGroup ? (
+            <YoungAdultsHubDashboard
+              groupId={detail.id}
+              groupName={detail.name}
+              memberCount={detail.members.length}
+              leaderNames={leaderNames}
+              onQuickAction={handleDashboardQuickAction}
+              onSetupRoster={() => openManageSection("roster")}
+            />
+          ) : (
+            <GroupDashboardPanel
+              groupId={detail.id}
+              groupName={detail.name}
+              memberCount={detail.members.length}
+              leaderNames={leaderNames}
+              onQuickAction={handleDashboardQuickAction}
+              onSetupRoster={() => openManageSection("roster")}
+            />
+          )
         ) : detailSection === "info" && showInfoTab && user ? (
           <GroupInfoPanel
             detail={detail}

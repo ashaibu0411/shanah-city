@@ -24,7 +24,7 @@ export type GroupDashboardQuickAction = {
   id: string;
   label: string;
   href?: string;
-  action?: "chat" | "calendar" | "report" | "invite" | "roster" | "guests";
+  action?: "chat" | "calendar" | "report" | "invite" | "roster" | "guests" | "prayer";
 };
 
 export type GroupDashboardData = {
