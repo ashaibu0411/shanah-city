@@ -1,6 +1,6 @@
 import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
-import { canManageGroupEvents } from "@/lib/group-permissions-server";
+import { isGroupLeaderOrAssistant } from "@/lib/group-admin-utils";
 import { getGroupDetail, getGroups } from "@/lib/group-server";
 import { isUserInGroup } from "@/lib/media-group";
 import { WORSHIP_GROUP_ID } from "@/lib/worship-types";
@@ -48,11 +48,17 @@ export async function canUseWorshipSongLibrary(user: Pick<PublicMember, "id"> | 
   return canAccessWorshipPlanner(user);
 }
 
-/** Worship group leader, assistant leader, or general church admin — not regular choir members. */
+/** Worship group leader or assistant only — church admins who joined as members use the member view. */
+export async function isWorshipGroupLeaderOrAssistant(userId: string) {
+  const groupId = getConfiguredWorshipGroupId();
+  const groups = await getGroups();
+  const group = groups.find((entry) => entry.id === groupId);
+  return group ? isGroupLeaderOrAssistant(group, userId) : false;
+}
+
 export async function canManageWorshipPlan(user: PublicMember | null) {
   if (!user) return false;
-  if (await canManageAsAdmin(user)) return true;
-  return canManageGroupEvents(user, getConfiguredWorshipGroupId());
+  return isWorshipGroupLeaderOrAssistant(user.id);
 }
 
 export async function getWorshipPermissions(user: PublicMember | null) {

@@ -185,12 +185,13 @@ export function GroupDetailView({
   );
   const leaderNames = groupLeaders.map((leader) => leader.name);
 
+  const siteAdminGroupOverride = permissions.canManageAdmin && !detail.isMember;
   const canManageMembers =
     Boolean(user) &&
-    (detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin);
+    (detail.isAdmin || detail.isAssistantLeader || siteAdminGroupOverride);
   const canManageLeadership =
-    Boolean(user) && (detail.isAdmin || permissions.canManageAdmin);
-  const isSiteAdminManaging = permissions.canManageAdmin && !detail.isMember;
+    Boolean(user) && (detail.isAdmin || siteAdminGroupOverride);
+  const isSiteAdminManaging = siteAdminGroupOverride;
   const showManageTab =
     (canManageMembers || isSiteAdminManaging) && !detail.trainingPending;
   const showInfoTab = hasMemberAccess;
@@ -461,7 +462,7 @@ export function GroupDetailView({
         ) : detailSection === "resources" && isPowerCouplesGroup && hasMemberAccess && user ? (
           <GroupResourcesPanel
             groupId={detail.id}
-            isLeader={detail.isAdmin || detail.isAssistantLeader || permissions.canManageAdmin}
+            isLeader={detail.isAdmin || detail.isAssistantLeader || siteAdminGroupOverride}
           />
         ) : detailSection === "prayer" && isPowerCouplesGroup && hasMemberAccess && user ? (
           <CouplePrayerPanel />

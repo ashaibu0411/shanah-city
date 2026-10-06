@@ -39,10 +39,14 @@ export async function canReviewUnavailabilityForGroup(
 
 export async function canManageGroupEvents(user: PublicMember | null, groupId: string) {
   if (!user) return false;
-  if (await canManageAsAdmin(user)) return true;
   const groups = await getGroups();
   const group = groups.find((entry) => entry.id === groupId);
-  return group ? isGroupLeaderOrAssistant(group, user.id) : false;
+  if (!group) return false;
+  if (groupId === configuredWorshipGroupId()) {
+    return isGroupLeaderOrAssistant(group, user.id);
+  }
+  if (await canManageAsAdmin(user)) return true;
+  return isGroupLeaderOrAssistant(group, user.id);
 }
 
 export async function canManageChurchEvents(user: PublicMember | null) {
