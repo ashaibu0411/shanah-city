@@ -1156,6 +1156,7 @@
   }
 
   .home-pastor-portrait--cinema .home-pastor-portrait__photo {
+    position: absolute !important;
     inset: 0;
     right: auto;
     left: 0;
@@ -1166,13 +1167,8 @@
     object-position: center 22%;
     -webkit-mask-image: none;
     mask-image: none;
-    filter: saturate(1.06) contrast(1.06) brightness(0.96);
-    transform: scale(1);
+    opacity: 1;
     transition: opacity 1.6s ease;
-  }
-
-  .home-pastor-portrait--cinema .home-pastor-portrait__photo--active:not(.home-pastor-portrait__photo--static) {
-    animation: home-cinema-ken-burns 14s ease-out forwards;
   }
 
   @keyframes home-cinema-ken-burns {
@@ -1217,6 +1213,249 @@
   .home-pastor-portrait__dot--active {
     width: 1.15rem;
     background: rgba(255, 255, 255, 0.92);
+  }
+
+  .home-pastor-portrait__dot {
+    cursor: pointer;
+    border: none;
+    padding: 0;
+  }
+
+  .home-cinema-slider__stage {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .home-cinema-slider__layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.85s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity;
+  }
+
+  .home-cinema-slider__layer--active {
+    opacity: 1;
+    z-index: 1;
+  }
+
+  .home-cinema-slider__photo {
+    object-fit: cover;
+    filter: contrast(1.12) saturate(1.14) brightness(1.02);
+    transform: scale(1.02) translateZ(0);
+  }
+
+  .home-cinema-slider__layer[data-tone="warm"] .home-cinema-slider__photo {
+    filter: contrast(1.1) saturate(1.18) brightness(1.03) sepia(0.08);
+  }
+
+  .home-cinema-slider__layer[data-tone="golden"] .home-cinema-slider__photo {
+    filter: contrast(1.12) saturate(1.22) brightness(1.05) sepia(0.12);
+  }
+
+  .home-cinema-slider__layer[data-tone="cool"] .home-cinema-slider__photo {
+    filter: contrast(1.14) saturate(1.08) brightness(1.02) hue-rotate(-6deg);
+  }
+
+  .home-cinema-slider__layer[data-tone="vivid"] .home-cinema-slider__photo {
+    filter: contrast(1.16) saturate(1.28) brightness(1.04);
+  }
+
+  .home-cinema-slider__layer[data-tone="deep"] .home-cinema-slider__photo {
+    filter: contrast(1.18) saturate(1.1) brightness(0.94);
+  }
+
+  .home-cinema-slider__layer--active .home-cinema-slider__photo:not(.home-pastor-portrait__photo--static) {
+    animation-duration: 16s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: forwards;
+  }
+
+  .home-cinema-slider__photo--zoom-in.home-pastor-portrait__photo--active:not(.home-pastor-portrait__photo--static) {
+    animation-name: home-cinema-ken-burns;
+  }
+
+  .home-cinema-slider__photo--zoom-out.home-pastor-portrait__photo--active:not(.home-pastor-portrait__photo--static) {
+    animation-name: home-cinema-ken-burns-out;
+  }
+
+  .home-cinema-slider__photo--pan-left.home-pastor-portrait__photo--active:not(.home-pastor-portrait__photo--static) {
+    animation-name: home-cinema-pan-left;
+  }
+
+  .home-cinema-slider__photo--pan-right.home-pastor-portrait__photo--active:not(.home-pastor-portrait__photo--static) {
+    animation-name: home-cinema-pan-right;
+  }
+
+  .home-cinema-slider__photo--drift-up.home-pastor-portrait__photo--active:not(.home-pastor-portrait__photo--static) {
+    animation-name: home-cinema-drift-up;
+  }
+
+  .home-cinema-slider__photo--drift-down.home-pastor-portrait__photo--active:not(.home-pastor-portrait__photo--static) {
+    animation-name: home-cinema-drift-down;
+  }
+
+  @keyframes home-cinema-ken-burns-out {
+    from {
+      transform: scale(1.1) translateZ(0);
+    }
+    to {
+      transform: scale(1.02) translateZ(0);
+    }
+  }
+
+  @keyframes home-cinema-pan-left {
+    from {
+      transform: scale(1.08) translate3d(2%, 0, 0);
+    }
+    to {
+      transform: scale(1.12) translate3d(-2%, -1%, 0);
+    }
+  }
+
+  @keyframes home-cinema-pan-right {
+    from {
+      transform: scale(1.08) translate3d(-2%, 0, 0);
+    }
+    to {
+      transform: scale(1.12) translate3d(2%, -1%, 0);
+    }
+  }
+
+  @keyframes home-cinema-drift-up {
+    from {
+      transform: scale(1.06) translate3d(0, 2%, 0);
+    }
+    to {
+      transform: scale(1.1) translate3d(0, -2%, 0);
+    }
+  }
+
+  @keyframes home-cinema-drift-down {
+    from {
+      transform: scale(1.06) translate3d(0, -1%, 0);
+    }
+    to {
+      transform: scale(1.1) translate3d(0, 2%, 0);
+    }
+  }
+
+  .home-cinema-slider__letterbox {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    height: 0.45rem;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent);
+    pointer-events: none;
+  }
+
+  .home-cinema-slider__letterbox--top {
+    top: 0;
+  }
+
+  .home-cinema-slider__letterbox--bottom {
+    bottom: 0;
+    transform: rotate(180deg);
+  }
+
+  .home-cinema-slider__vignette {
+    background: radial-gradient(
+      ellipse 85% 75% at 50% 45%,
+      transparent 42%,
+      rgba(0, 0, 0, 0.42) 100%
+    );
+  }
+
+  .home-cinema-slider__chrome {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 55%, transparent);
+  }
+
+  .home-cinema-slider__label {
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.65);
+  }
+
+  .home-cinema-slider__progress {
+    height: 2px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  .home-cinema-slider__progress-bar {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.55), #fff);
+    animation-name: home-cinema-progress;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+
+  .home-cinema-slider__progress-bar--paused {
+    animation-play-state: paused;
+  }
+
+  @keyframes home-cinema-progress {
+    from {
+      width: 0%;
+    }
+    to {
+      width: 100%;
+    }
+  }
+
+  .home-pastor-portrait--desktop.home-pastor-portrait--cinema .home-cinema-slider__photo {
+    inset: 0;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .home-pastor-portrait--desktop.home-pastor-portrait--cinema .home-pastor-portrait__scrim {
+    background:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, transparent 22%),
+      linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.82) 0%,
+        rgba(0, 0, 0, 0.52) 34%,
+        rgba(0, 0, 0, 0.18) 58%,
+        transparent 78%
+      ),
+      linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 42%);
+  }
+
+  .home-hero-cinema__panel {
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .home-cinema-slider-stage {
+    aspect-ratio: 16 / 10;
+    max-height: 32rem;
+  }
+
+  @media (min-width: 640px) {
+    .home-cinema-slider-stage {
+      aspect-ratio: 2.35 / 1;
+    }
+  }
+
+  body[data-shell="mobile"] .mobile-home-tagline-cinema__stage.home-cinema-slider-stage {
+    min-height: unset;
+    max-height: none;
+    width: 100%;
+  }
+
+  body[data-shell="mobile"] .mobile-premium-frame--cinema .mobile-premium-4k__shine,
+  body[data-shell="mobile"] .mobile-premium-frame--cinema .mobile-premium-4k__grain,
+  .home-cinema-slider .mobile-premium-4k__shine,
+  .home-cinema-slider .mobile-premium-4k__grain {
+    opacity: 0.9;
   }
 
   body[data-shell="mobile"] .mobile-warm-page-header h1 {

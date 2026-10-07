@@ -9,8 +9,8 @@ const physicalCampuses = campuses.filter((campus) => campus.id !== "online");
 
 export function HomeHero() {
   return (
-    <section className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-night-950 via-night-900 to-night-800 text-white shadow-xl ring-1 ring-night-900/10">
-      <HomePastorPortrait variant="desktop" />
+    <section className="home-hero-cinema relative mb-8 min-h-[30rem] overflow-hidden rounded-3xl bg-night-950 text-white shadow-xl ring-1 ring-night-900/10 md:min-h-[34rem] lg:min-h-[38rem]">
+      <HomePastorPortrait variant="desktop" layout="cinema" />
       <div
         className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-sand-400/10 blur-3xl"
         aria-hidden
@@ -21,7 +21,7 @@ export function HomeHero() {
       />
 
       <div className="relative z-[1] grid gap-8 p-6 md:grid-cols-[1.2fr_1fr] md:p-8 lg:p-10">
-        <div>
+        <div className="home-hero-cinema__panel rounded-2xl border border-white/10 bg-night-950/45 p-5 backdrop-blur-md md:p-6">
           <div className="flex items-center gap-4">
             <BrandLogo size="lg" variant="dark" priority />
           </div>
