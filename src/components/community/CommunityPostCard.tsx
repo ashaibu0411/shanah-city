@@ -717,10 +717,25 @@ export function CommunityPostCard({
     onDelete: (commentId: string) => void deleteComment(commentId),
   };
 
+  const textFirstFeedLayout = useInstagramLayout && !hasMedia && !editing;
+
+  const captionBlock = (
+    <div
+      className={`community-post-caption ${textFirstFeedLayout ? "community-post-caption--lead" : ""}`}
+    >
+      <p className="community-post-content text-sm text-night-900 dark:text-sand-100">
+        <span className="font-semibold">{post.author}</span>{" "}
+        <span className="whitespace-pre-wrap font-normal">
+          <MentionText text={post.content} />
+        </span>
+      </p>
+    </div>
+  );
+
   return (
     <article
       id={`post-${post.id}`}
-      className={`community-post-card scroll-mt-24 ${isUrgentNews ? "community-post-card-urgent" : ""}`}
+      className={`community-post-card scroll-mt-24 ${isUrgentNews ? "community-post-card-urgent" : ""} ${textFirstFeedLayout ? "community-post-card--text-first" : ""}`}
     >
       <header className="community-post-header">
         <CommunityAvatar name={post.author} authorId={post.authorId} size="md" />
@@ -838,6 +853,7 @@ export function CommunityPostCard({
 
       {useInstagramLayout && !editing ? (
         <>
+          {textFirstFeedLayout ? captionBlock : null}
           <div className="community-post-ig-actions">
             <div className="flex flex-wrap items-center gap-3">
               <button
@@ -904,14 +920,7 @@ export function CommunityPostCard({
             </button>
           ) : null}
 
-          <div className="community-post-caption">
-            <p className="community-post-content text-sm text-night-900 dark:text-sand-100">
-              <span className="font-semibold">{post.author}</span>{" "}
-              <span className="whitespace-pre-wrap font-normal">
-                <MentionText text={post.content} />
-              </span>
-            </p>
-          </div>
+          {!textFirstFeedLayout ? captionBlock : null}
 
           {commentCount > 0 ? (
             <button
