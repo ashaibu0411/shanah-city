@@ -507,6 +507,7 @@ export function GroupDetailView({
               groupName={detail.name}
               memberCount={detail.members.length}
               leaderNames={leaderNames}
+              members={detail.members.map((member) => ({ id: member.id, name: member.name }))}
               onQuickAction={handleDashboardQuickAction}
               onSetupRoster={() => openManageSection("roster")}
             />

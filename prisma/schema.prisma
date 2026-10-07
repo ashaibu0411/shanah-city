@@ -1090,6 +1090,65 @@ model GroupMinistryPrayerPost {
   @@index([groupId, createdAt])
 }
 
+model GroupMinistryBibleStudy {
+  groupId              String   @id
+  leaderUserId         String?
+  leaderName           String
+  topic                String
+  bibleBook            String
+  meetingWeekday       Int      @default(1)
+  meetingTime          String?
+  reminder1Hour        Int      @default(9)
+  reminder1Minute      Int      @default(0)
+  reminder2Hour        Int      @default(17)
+  reminder2Minute      Int      @default(0)
+  lastReminder1DateKey String?
+  lastReminder2DateKey String?
+  updatedAt            DateTime @updatedAt
+}
+
+model GroupMinistryBiblePlan {
+  id        String   @id
+  groupId   String
+  title     String
+  daysJson  String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([groupId, active])
+}
+
+model GroupMinistryBiblePlanProgress {
+  planId         String
+  userId         String
+  completedJson  String   @default("[]")
+  updatedAt      DateTime @updatedAt
+
+  @@id([planId, userId])
+}
+
+model GroupMinistryFaithChallenge {
+  id        String   @id
+  groupId   String
+  title     String
+  body      String
+  weekStart String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([groupId, active])
+}
+
+model GroupMinistryFaithChallengeCheckIn {
+  id          String   @id
+  challengeId String
+  userId      String
+  createdAt   DateTime @default(now())
+
+  @@unique([challengeId, userId])
+  @@index([challengeId])
+}
+
 model CoupleMentorRequest {
   id             String    @id
   coupleLinkId   String

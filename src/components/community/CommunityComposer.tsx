@@ -33,6 +33,8 @@ type PendingMedia = {
 type CommunityComposerProps = {
   onLocalPost: (post: import("@/lib/member-types").CommunityPost) => void;
   mentionMembers?: import("@/lib/mentions").MentionMember[];
+  defaultTargetGroupId?: string;
+  defaultTargetGroupName?: string;
 };
 
 function PhotoIcon() {
@@ -55,7 +57,12 @@ function UpdateIcon() {
   return <span className="text-lg leading-none">💬</span>;
 }
 
-export function CommunityComposer({ onLocalPost, mentionMembers = [] }: CommunityComposerProps) {
+export function CommunityComposer({
+  onLocalPost,
+  mentionMembers = [],
+  defaultTargetGroupId = "",
+  defaultTargetGroupName = "",
+}: CommunityComposerProps) {
   const { campus } = useApp();
   const { user, permissions } = useAuth();
   const canAnnounce = permissions.canManageAdmin;
@@ -76,6 +83,12 @@ export function CommunityComposer({ onLocalPost, mentionMembers = [] }: Communit
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (defaultTargetGroupId) {
+      setTargetGroupId(defaultTargetGroupId);
+    }
+  }, [defaultTargetGroupId]);
 
   useEffect(() => {
     if (!canAnnounce || !open) return;
@@ -187,6 +200,8 @@ export function CommunityComposer({ onLocalPost, mentionMembers = [] }: Communit
         campusId: campus.id,
         content: draft.trim(),
         type: postType,
+        targetGroupId: defaultTargetGroupId || undefined,
+        targetGroupName: defaultTargetGroupName || undefined,
         mediaItems: uploadedMedia.map((item) => ({
           url: item.mediaUrl,
           type: item.mediaType,

@@ -8,17 +8,24 @@ import { GroupDashboardPanel } from "@/components/groups/GroupDashboardPanel";
 import { groupsPremium } from "@/components/groups/groups-premium";
 import { GroupPremiumSectionLabel, GroupPremiumStackCard } from "@/components/groups/GroupPremiumUI";
 import type { GroupDashboardQuickAction } from "@/lib/group-dashboard-types";
+import { ministryHubCommunityUrl } from "@/lib/group-ministry-community-shared";
 import type {
   GroupPinnedAnnouncement,
+  MinistryHubBiblePlan,
+  MinistryHubBibleStudy,
   MinistryHubDevotionPreview,
+  MinistryHubEngagementSnapshot,
   MinistryHubEventPreview,
+  MinistryHubFaithChallenge,
 } from "@/lib/group-ministry-hub-types";
+import { YoungAdultsHubProgramSections } from "@/components/groups/YoungAdultsHubProgramSections";
 
 type YoungAdultsHubDashboardProps = {
   groupId: string;
   groupName: string;
   memberCount: number;
   leaderNames: string[];
+  members: { id: string; name: string }[];
   onQuickAction?: (action: GroupDashboardQuickAction) => void;
   onSetupRoster?: () => void;
 };
@@ -28,6 +35,7 @@ export function YoungAdultsHubDashboard({
   groupName,
   memberCount,
   leaderNames,
+  members,
   onQuickAction,
   onSetupRoster,
 }: YoungAdultsHubDashboardProps) {
@@ -36,6 +44,13 @@ export function YoungAdultsHubDashboard({
   const [nextEvent, setNextEvent] = useState<MinistryHubEventPreview | null>(null);
   const [devotion, setDevotion] = useState<MinistryHubDevotionPreview | null>(null);
   const [canManageAnnouncement, setCanManageAnnouncement] = useState(false);
+  const [canManageHub, setCanManageHub] = useState(false);
+  const [bibleStudy, setBibleStudy] = useState<MinistryHubBibleStudy | null>(null);
+  const [biblePlan, setBiblePlan] = useState<MinistryHubBiblePlan | null>(null);
+  const [planProgress, setPlanProgress] = useState<number[]>([]);
+  const [faithChallenge, setFaithChallenge] = useState<MinistryHubFaithChallenge | null>(null);
+  const [challengeCheckedIn, setChallengeCheckedIn] = useState(false);
+  const [engagement, setEngagement] = useState<MinistryHubEngagementSnapshot | undefined>();
   const [editingAnnouncement, setEditingAnnouncement] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -57,6 +72,13 @@ export function YoungAdultsHubDashboard({
     setNextEvent(data.nextEvent ?? null);
     setDevotion(data.devotion ?? null);
     setCanManageAnnouncement(Boolean(data.canManageAnnouncement));
+    setCanManageHub(Boolean(data.canManage));
+    setBibleStudy(data.bibleStudy ?? null);
+    setBiblePlan(data.biblePlan ?? null);
+    setPlanProgress(Array.isArray(data.planProgress) ? data.planProgress : []);
+    setFaithChallenge(data.faithChallenge ?? null);
+    setChallengeCheckedIn(Boolean(data.challengeCheckedIn));
+    setEngagement(data.engagement);
     if (!editingAnnouncement) {
       setTitle(data.announcement?.title ?? "");
       setBody(data.announcement?.body ?? "");
@@ -77,7 +99,7 @@ export function YoungAdultsHubDashboard({
         groupId,
         action: "announcement",
         title,
-        body,
+        body: body,
       }),
     });
     const data = await response.json();
@@ -101,7 +123,7 @@ export function YoungAdultsHubDashboard({
       label: "Prayer",
       action: () => onQuickAction?.({ id: "prayer", label: "Prayer", action: "prayer" }),
     },
-    { label: "Community", href: "/community" },
+    { label: "Community", href: ministryHubCommunityUrl(groupId) },
   ];
 
   return (
@@ -255,6 +277,19 @@ export function YoungAdultsHubDashboard({
               </Link>
             </div>
           ) : null}
+
+          <YoungAdultsHubProgramSections
+            groupId={groupId}
+            canManage={canManageHub}
+            members={members}
+            bibleStudy={bibleStudy}
+            biblePlan={biblePlan}
+            planProgress={planProgress}
+            faithChallenge={faithChallenge}
+            challengeCheckedIn={challengeCheckedIn}
+            engagement={engagement}
+            onReload={loadHub}
+          />
         </>
       )}
 

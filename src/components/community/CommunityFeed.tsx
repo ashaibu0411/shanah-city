@@ -43,7 +43,10 @@ export function CommunityFeed({
   }, [initialPosts]);
 
   useOnAppRefresh(() => {
-    void fetch("/api/community", { cache: "no-store" })
+    const query = groupId
+      ? `?groupId=${encodeURIComponent(groupId)}&types=prayer,praise,general,announcement`
+      : "";
+    void fetch(`/api/community${query}`, { cache: "no-store" })
       .then(async (response) => {
         const data = await readJsonResponse<{ posts?: CommunityPost[] }>(response);
         if (response.ok && data.posts) {
@@ -112,7 +115,12 @@ export function CommunityFeed({
         </p>
       ) : null}
       <div className="community-feed-header">
-        <CommunityComposer onLocalPost={prependPost} mentionMembers={mentionMembers} />
+        <CommunityComposer
+          onLocalPost={prependPost}
+          mentionMembers={mentionMembers}
+          defaultTargetGroupId={groupId}
+          defaultTargetGroupName={groupFilterLabel}
+        />
 
         <div className="community-feed-tabs" role="tablist" aria-label="Feed filters">
           {COMMUNITY_FEED_FILTERS.map((entry) => (

@@ -39,6 +39,10 @@
     {
       "path": "/api/cron/frontliners-checkin",
       "schedule": "25,30,35,40,45 14,15 * * 0"
+    },
+    {
+      "path": "/api/cron/young-adults-bible-study",
+      "schedule": "52,57,2,7,12,17 15,16,22,23 * * 1"
     }
   ]
 }
