@@ -1164,7 +1164,7 @@
     height: 100%;
     max-width: none;
     object-fit: cover;
-    object-position: center 22%;
+    object-position: var(--slide-focus, 50% 12%);
     -webkit-mask-image: none;
     mask-image: none;
     opacity: 1;
@@ -1176,7 +1176,7 @@
       transform: scale(1);
     }
     to {
-      transform: scale(1.07);
+      transform: scale(1.035);
     }
   }
 
@@ -1241,8 +1241,9 @@
 
   .home-cinema-slider__photo {
     object-fit: cover;
+    object-position: var(--slide-focus, 50% 12%);
     filter: contrast(1.12) saturate(1.14) brightness(1.02);
-    transform: scale(1.02) translateZ(0);
+    transform: scale(1) translateZ(0);
   }
 
   .home-cinema-slider__layer[data-tone="warm"] .home-cinema-slider__photo {
@@ -1266,9 +1267,10 @@
   }
 
   .home-cinema-slider__layer--active .home-cinema-slider__photo:not(.home-pastor-portrait__photo--static) {
-    animation-duration: 16s;
+    animation-duration: 18s;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     animation-fill-mode: forwards;
+    transform-origin: 50% 18%;
   }
 
   .home-cinema-slider__photo--zoom-in.home-pastor-portrait__photo--active:not(.home-pastor-portrait__photo--static) {
@@ -1297,46 +1299,46 @@
 
   @keyframes home-cinema-ken-burns-out {
     from {
-      transform: scale(1.1) translateZ(0);
+      transform: scale(1.04) translateZ(0);
     }
     to {
-      transform: scale(1.02) translateZ(0);
+      transform: scale(1) translateZ(0);
     }
   }
 
   @keyframes home-cinema-pan-left {
     from {
-      transform: scale(1.08) translate3d(2%, 0, 0);
+      transform: scale(1.02) translate3d(1%, 0.5%, 0);
     }
     to {
-      transform: scale(1.12) translate3d(-2%, -1%, 0);
+      transform: scale(1.04) translate3d(-1%, 0.5%, 0);
     }
   }
 
   @keyframes home-cinema-pan-right {
     from {
-      transform: scale(1.08) translate3d(-2%, 0, 0);
+      transform: scale(1.02) translate3d(-1%, 0.5%, 0);
     }
     to {
-      transform: scale(1.12) translate3d(2%, -1%, 0);
+      transform: scale(1.04) translate3d(1%, 0.5%, 0);
     }
   }
 
   @keyframes home-cinema-drift-up {
     from {
-      transform: scale(1.06) translate3d(0, 2%, 0);
+      transform: scale(1.02) translate3d(0, 1%, 0);
     }
     to {
-      transform: scale(1.1) translate3d(0, -2%, 0);
+      transform: scale(1.035) translate3d(0, 0.5%, 0);
     }
   }
 
   @keyframes home-cinema-drift-down {
     from {
-      transform: scale(1.06) translate3d(0, -1%, 0);
+      transform: scale(1.02) translate3d(0, 0, 0);
     }
     to {
-      transform: scale(1.1) translate3d(0, 2%, 0);
+      transform: scale(1.035) translate3d(0, 1%, 0);
     }
   }
 

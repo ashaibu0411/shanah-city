@@ -17,27 +17,28 @@ export type HomePortraitSlide = {
   motion: HomePortraitSlideMotion;
 };
 
+/** Upper-biased focus keeps faces in frame inside wide cinema crops (Y% from top). */
 const pastorSlides: HomePortraitSlide[] = [
   {
     src: "/home/pastor-portrait.jpg",
     label: "Leadership",
-    focus: "50% 18%",
+    focus: "50% 8%",
     tone: "warm",
     motion: "zoom-in",
   },
   {
     src: "/home/pastor-portrait-casual.jpg",
     label: "Pastoral care",
-    focus: "48% 22%",
+    focus: "48% 10%",
     tone: "golden",
     motion: "pan-right",
   },
   {
     src: "/home/pastor-portrait-ministry.jpg",
     label: "Ministry",
-    focus: "52% 20%",
+    focus: "52% 9%",
     tone: "vivid",
-    motion: "drift-up",
+    motion: "drift-down",
   },
 ];
 
@@ -70,14 +71,14 @@ const galleryLabels = [
 ] as const;
 
 const galleryFocuses = [
-  "50% 28%",
-  "42% 32%",
-  "58% 24%",
-  "50% 38%",
-  "46% 22%",
-  "54% 30%",
-  "48% 26%",
-  "52% 34%",
+  "50% 12%",
+  "48% 14%",
+  "52% 11%",
+  "50% 15%",
+  "46% 13%",
+  "54% 12%",
+  "50% 10%",
+  "52% 14%",
 ] as const;
 
 const galleryTones: HomePortraitSlideTone[] = ["warm", "golden", "cool", "vivid", "deep"];
@@ -85,9 +86,9 @@ const galleryMotions: HomePortraitSlideMotion[] = [
   "zoom-in",
   "pan-left",
   "pan-right",
-  "drift-up",
   "zoom-out",
   "drift-down",
+  "zoom-in",
 ];
 
 /** Spread picks across the full gallery so every service season feels represented. */

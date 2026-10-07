@@ -23,7 +23,7 @@ function fallbackSlides(): HomePortraitSlide[] {
     {
       src,
       label: "Shanah City",
-      focus: "50% 22%",
+      focus: "50% 10%",
       tone: "warm",
       motion: "zoom-in",
     },
@@ -102,6 +102,7 @@ export function HomePastorPortrait({
                 isActive ? "home-cinema-slider__layer--active" : ""
               }`}
               data-tone={slide.tone}
+              style={{ ["--slide-focus" as string]: slide.focus }}
             >
               <Image
                 src={slide.src}
@@ -117,7 +118,6 @@ export function HomePastorPortrait({
                 className={`home-cinema-slider__photo home-pastor-portrait__photo ${
                   isActive ? "home-pastor-portrait__photo--active" : ""
                 } ${reduceMotion ? "home-pastor-portrait__photo--static" : ""} home-cinema-slider__photo--${slide.motion}`}
-                style={{ objectPosition: slide.focus }}
               />
             </div>
           );
