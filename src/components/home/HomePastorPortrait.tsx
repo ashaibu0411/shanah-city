@@ -15,7 +15,7 @@ type HomePastorPortraitProps = {
   className?: string;
 };
 
-const SLIDE_INTERVAL_MS = 6500;
+const SLIDE_INTERVAL_MS = 7000;
 
 function fallbackSlides(): HomePortraitSlide[] {
   const src = site.pastorPortrait || "/home/pastor-portrait.jpg";
@@ -23,14 +23,14 @@ function fallbackSlides(): HomePortraitSlide[] {
     {
       src,
       label: "Shanah City",
-      focus: "50% 10%",
+      focus: "50% 50%",
       tone: "warm",
       motion: "zoom-in",
     },
   ];
 }
 
-/** Lead pastor / home gallery — premium 4K cinema crossfade with diverse curated deck. */
+/** Home gallery cinema — full photos with ambient backdrop, minimal chrome. */
 export function HomePastorPortrait({
   variant = "mobile",
   layout = "blend",
@@ -80,17 +80,25 @@ export function HomePastorPortrait({
     return [prev, activeIndex, next];
   }, [activeIndex, slides.length]);
 
+  const imageSizes =
+    variant === "desktop"
+      ? "(max-width: 1024px) 100vw, 1600px"
+      : "(max-width: 768px) 100vw, 520px";
+
   return (
     <div
       className={`home-pastor-portrait home-pastor-portrait--${variant} ${
-        cinema ? "home-pastor-portrait--cinema home-cinema-slider" : ""
+        cinema ? "home-pastor-portrait--cinema home-cinema-slider home-cinema-slider--full-frame" : ""
       } pointer-events-none absolute inset-0 overflow-hidden ${className}`}
-      aria-hidden
+      aria-hidden={cinema ? undefined : true}
+      role={cinema ? "region" : undefined}
+      aria-label={cinema ? "Church photo gallery" : undefined}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
       onTouchEnd={() => setPaused(false)}
     >
+      <div className="home-cinema-slider__frame absolute inset-0" aria-hidden />
       <div className="home-cinema-slider__stage absolute inset-0">
         {slides.map((slide, index) => {
           if (cinema && !renderIndices.includes(index)) return null;
@@ -102,81 +110,98 @@ export function HomePastorPortrait({
                 isActive ? "home-cinema-slider__layer--active" : ""
               }`}
               data-tone={slide.tone}
-              style={{ ["--slide-focus" as string]: slide.focus }}
             >
-              <Image
-                src={slide.src}
-                alt=""
-                fill
-                priority={index === 0}
-                quality={92}
-                sizes={
-                  variant === "desktop"
-                    ? "(max-width: 1024px) 100vw, 1600px"
-                    : "(max-width: 768px) 100vw, 520px"
-                }
-                className={`home-cinema-slider__photo home-pastor-portrait__photo ${
-                  isActive ? "home-pastor-portrait__photo--active" : ""
-                } ${reduceMotion ? "home-pastor-portrait__photo--static" : ""} home-cinema-slider__photo--${slide.motion}`}
-              />
+              {cinema ? (
+                <>
+                  <Image
+                    src={slide.src}
+                    alt=""
+                    fill
+                    priority={index === 0}
+                    quality={75}
+                    sizes={imageSizes}
+                    className="home-cinema-slider__backdrop"
+                    aria-hidden
+                  />
+                  <Image
+                    src={slide.src}
+                    alt=""
+                    fill
+                    priority={index === 0}
+                    quality={92}
+                    sizes={imageSizes}
+                    className={`home-cinema-slider__photo home-cinema-slider__photo--foreground home-pastor-portrait__photo ${
+                      isActive ? "home-pastor-portrait__photo--active" : ""
+                    }`}
+                  />
+                </>
+              ) : (
+                <Image
+                  src={slide.src}
+                  alt=""
+                  fill
+                  priority={index === 0}
+                  quality={92}
+                  sizes={imageSizes}
+                  className={`home-cinema-slider__photo home-pastor-portrait__photo ${
+                    isActive ? "home-pastor-portrait__photo--active" : ""
+                  } ${reduceMotion ? "home-pastor-portrait__photo--static" : ""}`}
+                  style={{ objectPosition: slide.focus }}
+                />
+              )}
             </div>
           );
         })}
       </div>
 
       <div className="home-pastor-portrait__scrim absolute inset-0" />
+
       {cinema ? (
         <>
-          <div className="home-cinema-slider__letterbox home-cinema-slider__letterbox--top" aria-hidden />
-          <div className="home-cinema-slider__letterbox home-cinema-slider__letterbox--bottom" aria-hidden />
           <div className="mobile-premium-4k__shine pointer-events-none absolute inset-0 z-[2]" aria-hidden />
-          <div className="mobile-premium-4k__grain pointer-events-none absolute inset-0 z-[2]" aria-hidden />
-          <div className="home-cinema-slider__vignette pointer-events-none absolute inset-0 z-[2]" aria-hidden />
+          <div className="mobile-premium-4k__grain pointer-events-none absolute inset-0 z-[2] opacity-60" aria-hidden />
         </>
       ) : null}
 
       {cinema && slides.length > 1 ? (
-        <div
-          className="home-cinema-slider__chrome pointer-events-auto absolute inset-x-0 bottom-0 z-[3] px-4 pb-3 pt-8"
-          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
-        >
-          <div className="flex items-end justify-between gap-3">
-            <p className="home-cinema-slider__label truncate text-[11px] font-semibold uppercase tracking-[0.22em] text-white/90">
-              {activeSlide.label}
-            </p>
-            <p className="shrink-0 text-[10px] font-medium tabular-nums text-white/65">
-              {activeIndex + 1}/{slides.length}
-            </p>
-          </div>
+        <>
+          <button
+            type="button"
+            aria-label="Previous photo"
+            className="home-cinema-slider__nav home-cinema-slider__nav--prev pointer-events-auto"
+            onClick={() => goTo(activeIndex - 1)}
+          />
+          <button
+            type="button"
+            aria-label="Next photo"
+            className="home-cinema-slider__nav home-cinema-slider__nav--next pointer-events-auto"
+            onClick={() => goTo(activeIndex + 1)}
+          />
+
           <div
-            className="home-cinema-slider__progress mt-2"
-            key={`progress-${activeIndex}-${paused ? "p" : "r"}`}
+            className="home-cinema-slider__chrome pointer-events-none absolute inset-x-0 bottom-0 z-[3]"
+            style={{ paddingBottom: "max(0.65rem, env(safe-area-inset-bottom))" }}
           >
-            <div
-              className={`home-cinema-slider__progress-bar ${
-                reduceMotion || paused ? "home-cinema-slider__progress-bar--paused" : ""
-              }`}
-              style={{ animationDuration: `${SLIDE_INTERVAL_MS}ms` }}
-            />
+            <div className="home-cinema-slider__chrome-inner px-4 pb-3 pt-10">
+              {activeSlide.label ? (
+                <p className="home-cinema-slider__pill mx-auto mb-3 w-fit max-w-[90%] truncate">
+                  {activeSlide.label}
+                </p>
+              ) : null}
+              <div
+                className="home-cinema-slider__progress"
+                key={`progress-${activeIndex}-${paused ? "p" : "r"}`}
+              >
+                <div
+                  className={`home-cinema-slider__progress-bar ${
+                    reduceMotion || paused ? "home-cinema-slider__progress-bar--paused" : ""
+                  }`}
+                  style={{ animationDuration: `${SLIDE_INTERVAL_MS}ms` }}
+                />
+              </div>
+            </div>
           </div>
-          <div
-            className="home-pastor-portrait__dots mt-2.5 flex justify-center gap-1.5"
-            aria-hidden
-          >
-            {slides.map((slide, index) => (
-              <button
-                key={slide.src}
-                type="button"
-                tabIndex={-1}
-                aria-label={`Show slide ${index + 1}`}
-                className={`home-pastor-portrait__dot pointer-events-auto ${
-                  index === activeIndex ? "home-pastor-portrait__dot--active" : ""
-                }`}
-                onClick={() => goTo(index)}
-              />
-            ))}
-          </div>
-        </div>
+        </>
       ) : null}
     </div>
   );

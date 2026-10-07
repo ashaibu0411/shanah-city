@@ -164,9 +164,11 @@ export function MobileHome({
         variant="cinema"
         className="mobile-home-tagline-cinema ring-1 ring-night-900/8 dark:ring-white/10"
       >
-        <div className="mobile-home-tagline-cinema__stage home-cinema-slider-stage relative min-h-[min(88vw,26rem)] overflow-hidden text-white sm:min-h-[26rem] md:min-h-[28rem]">
-          <HomePastorPortrait variant="mobile" layout="cinema" />
-          <div className="mobile-home-tagline-cinema__copy relative z-[1] flex min-h-[min(88vw,26rem)] flex-col items-center justify-center px-5 pb-16 pt-8 text-center sm:min-h-[26rem] md:min-h-[28rem]">
+        <div className="home-cinema-showcase">
+          <div className="mobile-home-tagline-cinema__stage home-cinema-slider-stage relative overflow-hidden text-white">
+            <HomePastorPortrait variant="mobile" layout="cinema" />
+          </div>
+          <div className="mobile-home-tagline-cinema__copy home-cinema-showcase__copy relative px-5 py-5 text-center">
             <HomeTagline size="mobile" layout="cinema" />
             <div className="mobile-home-welcome-chip mt-4 inline-flex rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-wide text-white/95">
               Sun {nextService} · {campus.city}

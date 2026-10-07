@@ -1194,6 +1194,139 @@
       linear-gradient(to top, rgba(0, 0, 0, 0.42) 0%, transparent 32%);
   }
 
+  .home-cinema-slider--full-frame .home-pastor-portrait__scrim {
+    background:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, transparent 12%),
+      linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 28%);
+    pointer-events: none;
+  }
+
+  .home-cinema-slider__frame {
+    z-index: 4;
+    pointer-events: none;
+    border-radius: inherit;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .home-cinema-slider__backdrop {
+    object-fit: cover;
+    object-position: center;
+    transform: scale(1.2);
+    filter: blur(28px) saturate(1.35) brightness(0.45);
+  }
+
+  .home-cinema-slider--full-frame .home-cinema-slider__photo--foreground {
+    object-fit: contain !important;
+    object-position: center center !important;
+    padding: 0.5rem 0.65rem 2.75rem;
+    filter: contrast(1.06) saturate(1.12) brightness(1.03);
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .home-cinema-slider--full-frame .home-cinema-slider__layer--active .home-cinema-slider__photo--foreground {
+    animation: home-cinema-photo-settle 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes home-cinema-photo-settle {
+    from {
+      opacity: 0.85;
+      transform: scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .home-cinema-slider__nav {
+    position: absolute;
+    top: 50%;
+    z-index: 5;
+    height: 2.25rem;
+    width: 2.25rem;
+    translate: 0 -50%;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: transparent;
+    font-size: 0;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .home-cinema-slider__nav::after {
+    content: "";
+    display: block;
+    height: 0.55rem;
+    width: 0.55rem;
+    margin: auto;
+    border-top: 2px solid rgba(255, 255, 255, 0.92);
+    border-right: 2px solid rgba(255, 255, 255, 0.92);
+  }
+
+  .home-cinema-slider__nav--prev {
+    left: 0.65rem;
+  }
+
+  .home-cinema-slider__nav--prev::after {
+    transform: rotate(-135deg) translate(1px, -1px);
+  }
+
+  .home-cinema-slider__nav--next {
+    right: 0.65rem;
+  }
+
+  .home-cinema-slider__nav--next::after {
+    transform: rotate(45deg) translate(-1px, 1px);
+  }
+
+  .home-cinema-slider__nav:hover {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+
+  .home-cinema-slider__pill {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(0, 0, 0, 0.42);
+    padding: 0.35rem 0.85rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
+  }
+
+  .home-cinema-slider__chrome {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, transparent 100%);
+  }
+
+  .home-cinema-showcase {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .home-cinema-showcase__copy {
+    background:
+      radial-gradient(ellipse 120% 80% at 50% 0%, rgba(45, 36, 24, 0.2), transparent 55%),
+      linear-gradient(180deg, #1b1409 0%, #0f172a 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  html.dark .home-cinema-showcase__copy {
+    background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+  }
+
   .home-pastor-portrait__dots {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -1430,6 +1563,13 @@
       linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 42%);
   }
 
+  .home-pastor-portrait--desktop.home-pastor-portrait--cinema.home-cinema-slider--full-frame
+    .home-pastor-portrait__scrim {
+    background:
+      linear-gradient(to right, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.35) 38%, transparent 62%),
+      linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, transparent 40%);
+  }
+
   .home-hero-cinema__panel {
     box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.35),
@@ -1437,20 +1577,29 @@
   }
 
   .home-cinema-slider-stage {
-    aspect-ratio: 16 / 10;
-    max-height: 32rem;
+    aspect-ratio: 4 / 3;
+    min-height: min(72vw, 20rem);
+    max-height: 28rem;
+    width: 100%;
   }
 
   @media (min-width: 640px) {
     .home-cinema-slider-stage {
-      aspect-ratio: 2.35 / 1;
+      aspect-ratio: 16 / 10;
+      min-height: 22rem;
+      max-height: 32rem;
     }
   }
 
   body[data-shell="mobile"] .mobile-home-tagline-cinema__stage.home-cinema-slider-stage {
-    min-height: unset;
-    max-height: none;
+    min-height: min(72vw, 20rem);
+    max-height: 28rem;
     width: 100%;
+  }
+
+  .home-pastor-portrait--desktop.home-pastor-portrait--cinema.home-cinema-slider--full-frame
+    .home-cinema-slider__photo--foreground {
+    padding: 1rem 2rem 3rem;
   }
 
   body[data-shell="mobile"] .mobile-premium-frame--cinema .mobile-premium-4k__shine,
