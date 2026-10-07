@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
-  createMinistryHubPrayerPost,
   getMinistryHubForUser,
   saveMinistryHubAnnouncement,
 } from "@/lib/group-ministry-hub-server";
@@ -38,28 +37,17 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const groupId = String(body.groupId ?? "").trim();
-  const action = String(body.action ?? "prayer");
-
   if (!groupHasMinistryHub(groupId)) {
     return NextResponse.json({ error: "Hub not available for this group." }, { status: 404 });
   }
 
   try {
-    if (action === "announcement") {
-      const result = await saveMinistryHubAnnouncement(user, {
-        groupId,
-        title: String(body.title ?? ""),
-        body: String(body.body ?? ""),
-      });
-      return NextResponse.json(result);
-    }
-
-    const result = await createMinistryHubPrayerPost(user, {
+    const result = await saveMinistryHubAnnouncement(user, {
       groupId,
-      content: String(body.content ?? ""),
-      type: body.type === "praise" ? "praise" : "prayer",
+      title: String(body.title ?? ""),
+      body: String(body.body ?? ""),
     });
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Could not save." },

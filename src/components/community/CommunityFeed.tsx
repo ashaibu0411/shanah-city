@@ -15,16 +15,28 @@ import { CommunityComposer } from "@/components/community/CommunityComposer";
 import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { SectionTitle } from "@/components/ui";
 
-export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] }) {
+export function CommunityFeed({
+  initialPosts,
+  initialFilter,
+  initialGroupId,
+  groupFilterLabel,
+}: {
+  initialPosts: CommunityPost[];
+  initialFilter?: CommunityFeedFilter;
+  initialGroupId?: string;
+  groupFilterLabel?: string;
+}) {
   const [posts, setPosts] = useState(initialPosts);
   const { members: mentionMembers } = useMentionMembers();
   const [filter, setFilter] = useState<CommunityFeedFilter>(() => {
+    if (initialFilter) return initialFilter;
     if (typeof window === "undefined") return "all";
     const hash = window.location.hash;
     if (!hash.startsWith("#post-")) return "all";
     const postId = decodeURIComponent(hash.slice("#post-".length));
     return isUrgentAlertCommunityPostId(postId) ? "announcement" : "all";
   });
+  const groupId = initialGroupId?.trim() || "";
 
   useEffect(() => {
     setPosts(initialPosts);
@@ -41,10 +53,13 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
       .catch(() => undefined);
   });
 
-  const filteredPosts = useMemo(
-    () => filterCommunityPosts(posts, filter),
-    [posts, filter],
-  );
+  const filteredPosts = useMemo(() => {
+    let list = filterCommunityPosts(posts, filter);
+    if (groupId) {
+      list = list.filter((post) => post.targetGroupId === groupId);
+    }
+    return list;
+  }, [posts, filter, groupId]);
 
   function updatePost(updated: CommunityPost) {
     setPosts((current) =>
@@ -90,6 +105,12 @@ export function CommunityFeed({ initialPosts }: { initialPosts: CommunityPost[] 
 
   return (
     <div className="community-feed community-feed-solid min-w-0 max-w-full">
+      {groupFilterLabel && groupId ? (
+        <p className="mb-4 rounded-2xl border border-violet-200/80 bg-violet-50/70 px-4 py-3 text-sm text-night-800">
+          Showing <strong>{groupFilterLabel}</strong> prayer &amp; praise on Community. Only members
+          of this group can see these posts.
+        </p>
+      ) : null}
       <div className="community-feed-header">
         <CommunityComposer onLocalPost={prependPost} mentionMembers={mentionMembers} />
 

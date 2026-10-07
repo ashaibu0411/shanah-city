@@ -113,7 +113,7 @@ export function YoungAdultsHubDashboard({
           </p>
           <h2 className="mt-1 font-display text-xl font-semibold text-night-900">{groupName}</h2>
           <p className="mt-1 text-sm text-night-600">
-            Stay connected between gatherings — announcements, prayer, events, and daily devotion.
+            Stay connected between gatherings — announcements, Community prayer, events, and devotion.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 border-t border-night-900/6 bg-white/60 p-3 sm:grid-cols-4">

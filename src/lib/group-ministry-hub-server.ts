@@ -84,9 +84,8 @@ export async function getMinistryHubForUser(user: PublicMember | null, groupId: 
 
   await assertMember(user, groupId);
 
-  const [announcement, prayerPosts, nextEvent, devotionPreviewData] = await Promise.all([
+  const [announcement, nextEvent, devotionPreviewData] = await Promise.all([
     hubStore().getGroupPinnedAnnouncement(groupId),
-    hubStore().listGroupMinistryPrayerPosts(groupId),
     nextEventPreview(groupId),
     devotionPreview(),
   ]);
@@ -95,10 +94,8 @@ export async function getMinistryHubForUser(user: PublicMember | null, groupId: 
 
   return {
     announcement,
-    prayerPosts,
     nextEvent,
     devotion: devotionPreviewData,
-    canPostPrayer: true,
     canManageAnnouncement,
   };
 }
@@ -126,27 +123,4 @@ export async function saveMinistryHubAnnouncement(
 
   const hub = await getMinistryHubForUser(user, input.groupId);
   return { ...hub, announcement };
-}
-
-export async function createMinistryHubPrayerPost(
-  user: PublicMember,
-  input: { groupId: string; content: string; type?: "prayer" | "praise" },
-) {
-  await assertHubGroup(input.groupId);
-  await assertMember(user, input.groupId);
-
-  const content = input.content.trim();
-  if (!content) {
-    throw new Error("Write a prayer or praise before posting.");
-  }
-
-  await hubStore().createGroupMinistryPrayerPost({
-    groupId: input.groupId,
-    authorId: user.id,
-    authorName: user.name,
-    content,
-    type: input.type === "praise" ? "praise" : "prayer",
-  });
-
-  return getMinistryHubForUser(user, input.groupId);
 }

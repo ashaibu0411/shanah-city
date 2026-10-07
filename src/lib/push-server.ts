@@ -469,17 +469,21 @@ export async function notifyCommunityPost(input: {
       : "Church announcement",
   };
 
+  const groupPrayerUrl = input.targetGroupId
+    ? `/groups/${encodeURIComponent(input.targetGroupId)}?prayer=1`
+    : "/community";
+
   const payload = {
     title: titles[input.type],
     body: `${input.authorName}: ${input.content.slice(0, 120)}`,
-    url: "/community",
+    url: input.targetGroupId ? groupPrayerUrl : "/community",
   };
 
-  if (input.type === "announcement" && input.targetGroupId) {
+  if (input.targetGroupId && (input.type === "announcement" || input.type === "prayer" || input.type === "praise")) {
     return sendPushToGroupMembers(
       input.targetGroupId,
       payload,
-      "groupChat",
+      input.type === "announcement" ? "groupChat" : "announcements",
       input.authorId,
     );
   }

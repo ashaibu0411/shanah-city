@@ -33,6 +33,8 @@ import {
   updateCommentOnPost,
   updateCommunityPost,
 } from "@/lib/member-server";
+import { resolveMinistryHubCommunityTarget } from "@/lib/group-ministry-community-server";
+import { listCommunityPostsForApi } from "@/lib/community-posts-api-server";
 import { notifyCommunityPost } from "@/lib/push-server";
 import { notifyMemberMentions } from "@/lib/mention-notify-server";
 
@@ -81,8 +83,13 @@ async function resolveEditedPostFields(
     } else if (body.type === "announcement") {
       return { error: "Only Admin Group members can post church news." as const };
     }
-    targetGroupId = undefined;
-    targetGroupName = undefined;
+    if (post.targetGroupId) {
+      targetGroupId = post.targetGroupId;
+      targetGroupName = post.targetGroupName;
+    } else {
+      targetGroupId = undefined;
+      targetGroupName = undefined;
+    }
   }
 
   return {
@@ -100,16 +107,16 @@ async function finalizeCommunityPostForViewer(
   return attachCanManageToPostComments([withPostAccess], user, isAdmin)[0];
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
-  const posts = await getCommunityPostsForViewer(user?.id);
-  const isAdmin = user ? await canManageAsAdmin(user) : false;
-  const withReactions = await enrichCommunityPostsForViewer(posts, user?.id);
-  const withPostAccess = attachCanManageToPosts(withReactions, user, isAdmin);
-  const withCommentAccess = attachCanManageToPostComments(withPostAccess, user, isAdmin);
-  return NextResponse.json({ posts: withCommentAccess });
+  const { searchParams } = new URL(request.url);
+  const posts = await listCommunityPostsForApi(user, {
+    groupId: searchParams.get("groupId") ?? searchParams.get("group") ?? undefined,
+    types: searchParams.get("types") ?? undefined,
+  });
+  return NextResponse.json({ posts });
 }
 
 export async function POST(request: Request) {
@@ -364,6 +371,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Target group not found." }, { status: 404 });
     }
     targetGroupName = group.name;
+  } else if (postType !== "announcement" && targetGroupId) {
+    try {
+      const target = await resolveMinistryHubCommunityTarget(user, targetGroupId);
+      targetGroupId = target.targetGroupId;
+      targetGroupName = target.targetGroupName;
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Invalid group target." },
+        { status: 400 },
+      );
+    }
   } else if (postType !== "announcement") {
     targetGroupId = undefined;
     targetGroupName = undefined;
