@@ -1,16 +1,7 @@
-import { ADMIN_GROUP_ID, SENIOR_PASTOR_GROUP_ID, ASSOCIATE_PASTOR_GROUP_ID, TEAM_ZNCF_GROUP_ID } from "@/lib/church-groups";
-import { FRONTLINERS_GROUP_ID } from "@/lib/frontliners-types";
 import { isMediaGroup } from "@/lib/media-group";
+import { KIDS_GROUP_ID } from "@/lib/kids-types";
 import { WORSHIP_SERVICE_TIMES, worshipTimeLabel } from "@/lib/worship-types";
 import type { GroupCategory } from "@/lib/group-types";
-
-/** Client-safe worship group check — do not import worship-access-server here (pulls pg). */
-function isWorshipGroupClient(group: { id: string; name: string }) {
-  const configuredId = process.env.WORSHIP_GROUP_ID?.trim() || "group-choir";
-  if (group.id === configuredId) return true;
-  const name = group.name.trim().toLowerCase();
-  return name.includes("worship") || name.includes("choir");
-}
 
 export type GroupRosterSlot = {
   roleLabel: string;
@@ -34,32 +25,22 @@ export type GroupServiceRoster = {
   updatedAt: string;
 };
 
-export const GROUP_ROSTER_EXCLUDED_IDS = new Set([
-  ADMIN_GROUP_ID,
-  SENIOR_PASTOR_GROUP_ID,
-  ASSOCIATE_PASTOR_GROUP_ID,
-  TEAM_ZNCF_GROUP_ID,
-  "group-pastors",
-  "group-leaders",
-  "group-team-lead",
-  "group-finance",
-  FRONTLINERS_GROUP_ID,
+export const DEFAULT_ROSTER_SERVICE_TIME = "10:00";
+
+/** Sunday service roster — only teams that assign roles per service (not fellowship groups). */
+export const GROUP_SERVICE_ROSTER_IDS = new Set<string>([
+  KIDS_GROUP_ID,
+  "group-ushering",
   "group-choir",
 ]);
-
-export const DEFAULT_ROSTER_SERVICE_TIME = "10:00";
 
 export function groupUsesServiceRoster(group: {
   id: string;
   name: string;
   category: GroupCategory;
 }) {
-  if (GROUP_ROSTER_EXCLUDED_IDS.has(group.id)) return false;
-  if (isWorshipGroupClient(group)) return false;
-  if (group.id === FRONTLINERS_GROUP_ID) return false;
   if (isMediaGroup(group)) return true;
-  if (group.id === "group-ushering") return true;
-  return ["ministry", "youth", "small-group", "other", "choir"].includes(group.category);
+  return GROUP_SERVICE_ROSTER_IDS.has(group.id);
 }
 
 export function defaultRosterRolesForGroup(group: {
