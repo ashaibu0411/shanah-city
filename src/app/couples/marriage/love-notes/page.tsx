@@ -1,10 +1,5 @@
-import { CouplesFeatureShell } from "@/components/couples/CouplesFeatureShell";
+import { CouplesLoveNotes } from "@/components/couples/CouplesLoveNotes";
 
 export default function CouplesLoveNotesPage() {
-  return (
-    <CouplesFeatureShell
-      title="Love notes"
-      description="Send private appreciation, scripture, and encouragement — with searchable history and discreet notifications."
-    />
-  );
+  return <CouplesLoveNotes />;
 }
