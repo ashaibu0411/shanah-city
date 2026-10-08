@@ -15,6 +15,7 @@ import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
 import { GroupCalendarPanel } from "@/components/calendar/GroupCalendarPanel";
 import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
+import { CouplesHubEntryCard } from "@/components/couples/CouplesHubEntryCard";
 import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel";
 import { CoupleMentorPanel } from "@/components/groups/CoupleMentorPanel";
 import { CouplePrayerPanel } from "@/components/groups/CouplePrayerPanel";
@@ -501,7 +502,19 @@ export function GroupDetailView({
             <GuestQueuePanel variant="follow-up" compactHeader />
           </div>
         ) : detailSection === "overview" && hasMemberAccess && user ? (
-          isYoungAdultsHubGroup ? (
+          isPowerCouplesGroup ? (
+            <>
+              <CouplesHubEntryCard />
+              <GroupDashboardPanel
+                groupId={detail.id}
+                groupName={detail.name}
+                memberCount={detail.members.length}
+                leaderNames={leaderNames}
+                onQuickAction={handleDashboardQuickAction}
+                onSetupRoster={() => openManageSection("roster")}
+              />
+            </>
+          ) : isYoungAdultsHubGroup ? (
             <YoungAdultsHubDashboard
               groupId={detail.id}
               groupName={detail.name}

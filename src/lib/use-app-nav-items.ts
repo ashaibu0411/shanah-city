@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   adminNavItem,
+  couplesNavItem,
   frontlinersNavItem,
   kidsMinistryNavItem,
   site,
@@ -14,10 +15,23 @@ import {
 import { canAccessAdminPortal } from "@/lib/admin-portal-links";
 
 export function useAppNavItems(): AppNavItem[] {
-  const { permissions } = useAuth();
+  const { permissions, user } = useAuth();
 
   return useMemo(() => {
     let items: AppNavItem[] = [...site.nav];
+
+    if (user) {
+      const groupsIndex = items.findIndex((item) => item.href === "/groups");
+      if (groupsIndex === -1) {
+        items = [...items, couplesNavItem];
+      } else {
+        items = [
+          ...items.slice(0, groupsIndex + 1),
+          couplesNavItem,
+          ...items.slice(groupsIndex + 1),
+        ];
+      }
+    }
 
     if (permissions.canWriteDevotions) {
       const profileIndex = items.findIndex((item) => item.href === "/profile");
@@ -88,6 +102,7 @@ export function useAppNavItems(): AppNavItem[] {
 
     return items;
   }, [
+    user,
     permissions.canWriteDevotions,
     permissions.canAccessWorshipPlanner,
     permissions.canAccessFrontLiners,

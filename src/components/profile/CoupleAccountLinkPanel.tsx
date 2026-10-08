@@ -49,13 +49,16 @@ export function CoupleAccountLinkPanel() {
   }
 
   return (
-    <div className="mt-6 rounded-2xl border border-rose-200/80 bg-rose-50/50 p-4">
+    <div
+      id="spouse-account"
+      className="mt-6 scroll-mt-24 rounded-2xl border border-rose-200/80 bg-rose-50/50 p-4"
+    >
       <h3 className="text-sm font-semibold uppercase tracking-wide text-night-500">
         Spouse account
       </h3>
       <p className="mt-2 text-sm text-night-700">
-        Link your Shanah City account to your spouse for couple RSVPs and the private Power Couples
-        prayer wall.
+        Link your Shanah City account to your spouse for the Couples Hub, couple RSVPs, and the
+        Power Couples group prayer wall.
       </p>
 
       {link?.status === "active" ? (

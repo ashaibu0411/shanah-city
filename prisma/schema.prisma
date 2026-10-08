@@ -1217,3 +1217,153 @@ model ChoirServiceSchedule {
   @@index([serviceDate])
   @@index([groupId, serviceDate])
 }
+
+// —— Couples Hub (private marriage workspace; scoped by coupleLinkId) ——
+
+model CoupleCalendarEvent {
+  id           String    @id
+  coupleLinkId String
+  createdBy    String
+  title        String
+  notes        String?
+  category     String    @default("general")
+  startAt      DateTime
+  endAt        DateTime?
+  allDay       Boolean   @default(false)
+  timezone     String    @default("America/Denver")
+  recurrence   String?
+  reminderMin  Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([coupleLinkId, startAt])
+}
+
+model CoupleLoveNote {
+  id           String    @id
+  coupleLinkId String
+  fromUserId   String
+  noteType     String    @default("appreciation")
+  body         String
+  scriptureRef String?
+  readAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([coupleLinkId, createdAt])
+}
+
+model CoupleCheckInWeek {
+  id           String   @id
+  coupleLinkId String
+  weekStart    String
+  createdAt    DateTime @default(now())
+
+  @@unique([coupleLinkId, weekStart])
+}
+
+model CoupleCheckInAnswer {
+  id          String   @id
+  weekId      String
+  userId      String
+  dimension   String
+  reflection  String?
+  shareWithSpouse Boolean @default(false)
+  createdAt   DateTime @default(now())
+
+  @@unique([weekId, userId, dimension])
+}
+
+model CouplePrayerJournalEntry {
+  id           String    @id
+  coupleLinkId String
+  createdBy    String
+  title        String
+  body         String
+  status       String    @default("praying")
+  answeredAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([coupleLinkId, status])
+}
+
+model CoupleMarriageGoal {
+  id             String   @id
+  coupleLinkId   String
+  category       String
+  title          String
+  description    String?
+  targetDate     String?
+  progress       Int      @default(0)
+  milestonesJson String   @default("[]")
+  createdBy      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([coupleLinkId])
+}
+
+model CoupleDateNightPlan {
+  id            String    @id
+  coupleLinkId  String
+  title         String
+  budget        String?
+  locationType  String?
+  scheduledAt   DateTime?
+  isSurprise    Boolean   @default(false)
+  invitedUserId String?
+  status        String    @default("idea")
+  completedAt   DateTime?
+  createdBy     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([coupleLinkId])
+}
+
+model CoupleMarriageDevotional {
+  id            String   @id
+  publishDate   String
+  title         String
+  scripture     String
+  teaching      String
+  discussion    String
+  assignment    String
+  prayer        String
+  declaration   String
+  published     Boolean  @default(false)
+  createdBy     String
+  createdByName String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([publishDate, published])
+}
+
+model CoupleDevotionalRead {
+  coupleLinkId String
+  devotionalId String
+  readByUserId String
+  readAt       DateTime @default(now())
+
+  @@id([coupleLinkId, devotionalId, readByUserId])
+}
+
+model CoupleGameState {
+  id           String   @id
+  coupleLinkId String
+  gameType     String
+  stateJson    String   @default("{}")
+  updatedAt    DateTime @updatedAt
+
+  @@unique([coupleLinkId, gameType])
+}
+
+model CoupleHubAnnouncement {
+  groupId       String   @id
+  title         String
+  body          String
+  updatedBy     String?
+  updatedByName String?
+  updatedAt     DateTime @updatedAt
+}

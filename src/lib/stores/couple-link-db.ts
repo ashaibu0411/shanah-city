@@ -78,6 +78,8 @@ export async function updateCoupleLinkStatus(
 }
 
 export async function deleteCoupleLink(id: string) {
+  const { purgeCoupleWorkspaceData } = await import("@/lib/stores/couple-workspace-purge-db");
+  await purgeCoupleWorkspaceData(id);
   await prisma.coupleLink.delete({ where: { id } });
 }
 

@@ -27,6 +27,7 @@ const ROOT_PATHS = new Set([
   "/sermons",
   "/photos",
   "/guest",
+  "/couples",
 ]);
 
 export function resolvePageBackLink(
@@ -65,6 +66,19 @@ export function resolvePageBackLink(
 
   if (path.startsWith("/groups/")) {
     return { href: "/groups", label: "Back to groups" };
+  }
+
+  if (path.startsWith("/couples/")) {
+    if (path === "/couples/marriage") {
+      return { href: "/couples", label: "Back to Couples Hub" };
+    }
+    if (path.startsWith("/couples/marriage/")) {
+      return { href: "/couples/marriage", label: "Back to our marriage" };
+    }
+    if (path === "/couples/community") {
+      return { href: "/couples", label: "Back to Couples Hub" };
+    }
+    return { href: "/couples", label: "Back to Couples Hub" };
   }
 
   if (path.startsWith("/admin")) {

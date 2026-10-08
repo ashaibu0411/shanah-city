@@ -174,6 +174,12 @@ export const kidsMinistryNavItem = {
   icon: "✿",
 } as const;
 
+export const couplesNavItem = {
+  label: "Couples Hub",
+  href: "/couples",
+  icon: "♥",
+} as const;
+
 export const adminNavItem = {
   label: "Admin",
   href: "/admin",
