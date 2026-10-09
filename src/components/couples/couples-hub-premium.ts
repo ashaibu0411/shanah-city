@@ -106,7 +106,7 @@ export const couplesHubPremium = {
     "max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[var(--couples-surface)] p-5 shadow-xl",
 };
 
-/** Replace `public/couples/couples-hub-hero.jpg` to update the Couples Hub landing photo. */
-export const COUPLES_HUB_HERO_IMAGE = "/couples/couples-hub-hero.jpg";
+/** Couples Hub landing hero (stage couple photo — not the Prophetic Encounter flyer). */
+export const COUPLES_HUB_HERO_IMAGE = "/couples/couples-hub-home.jpg";
 export const COUPLES_DEVOTIONAL_HERO = "/home/home-gallery-06.jpg";
 export const COUPLES_DATE_NIGHT_HERO = "/home/home-gallery-15.jpg";

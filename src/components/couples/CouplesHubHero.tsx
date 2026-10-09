@@ -33,7 +33,7 @@ export function CouplesHubHero({
           alt=""
           fill
           priority
-          className={`${couplesHubPremium.heroImage} ${flush ? "object-[center_35%]" : "object-[center_25%]"}`}
+          className={`${couplesHubPremium.heroImage} ${flush ? "object-[center_40%]" : "object-[center_30%]"}`}
           sizes="(max-width: 512px) 100vw, 512px"
         />
         <div className={couplesHubPremium.heroOverlay} aria-hidden />
