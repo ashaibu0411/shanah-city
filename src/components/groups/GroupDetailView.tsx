@@ -17,6 +17,7 @@ import { GroupCalendarPanel } from "@/components/calendar/GroupCalendarPanel";
 import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
 import { CouplesHubGroupDashboard } from "@/components/couples/CouplesHubGroupDashboard";
 import { CouplesHubGroupHeader } from "@/components/couples/CouplesHubGroupHeader";
+import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
 import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel";
 import { CoupleMentorPanel } from "@/components/groups/CoupleMentorPanel";
@@ -211,7 +212,9 @@ export function GroupDetailView({
       return tabs;
     }
 
-    if (hasMemberAccess) {
+    if (isPowerCouplesGroup && user) {
+      tabs.push({ id: "overview", label: "Home" });
+    } else if (hasMemberAccess) {
       tabs.push({ id: "overview", label: "Dashboard" });
     }
     if (showInfoTab) {
@@ -249,7 +252,26 @@ export function GroupDetailView({
     detail.trainingPending,
     showInfoTab,
     showManageTab,
+    user,
   ]);
+
+  const powerCouplesNavTabs = useMemo(() => {
+    if (!isPowerCouplesGroup) return [];
+    const allowed = new Set<DetailSection>([
+      "overview",
+      "resources",
+      "prayer",
+      "mentors",
+      "growth",
+      "manage",
+    ]);
+    return detailTabs
+      .filter((tab) => allowed.has(tab.id))
+      .map((tab) => ({
+        id: tab.id,
+        label: tab.id === "overview" ? "Couples Hub" : tab.label,
+      }));
+  }, [detailTabs, isPowerCouplesGroup]);
 
   useEffect(() => {
     if (detailTabs.length === 0) return;
@@ -420,6 +442,8 @@ export function GroupDetailView({
           onInfoClick={showInfoTab ? openInfoSection : undefined}
           showManage={showManageTab}
           onManageClick={() => setDetailSection("manage")}
+          onHubClick={() => setDetailSection("overview")}
+          hubIsActive={detailSection === "overview"}
         />
       ) : (
         <GroupBandHeader
@@ -431,6 +455,21 @@ export function GroupDetailView({
           joinSlot={joinSlot}
         />
       )}
+
+      {user && detailTabs.length > 0 && isPowerCouplesGroup && detailSection !== "chat" ? (
+        <div className="px-2 pb-2">
+          <CouplesHubTabRow
+            tabs={powerCouplesNavTabs}
+            active={defaultSectionForTabs}
+            onChange={(id) => {
+              setDetailSection(id as DetailSection);
+              if (id !== "manage") {
+                setManageScrollTarget(null);
+              }
+            }}
+          />
+        </div>
+      ) : null}
 
       {user && detailTabs.length > 0 && !isPowerCouplesGroup ? (
         <GroupBandTabs
@@ -462,10 +501,10 @@ export function GroupDetailView({
         {isPowerCouplesGroup && !powerCouplesHubHome && user ? (
           <button
             type="button"
-            className={couplesHubPremium.backLink}
+            className={`${couplesHubPremium.sheetPrimaryCta} mb-4 !py-3`}
             onClick={() => setDetailSection("overview")}
           >
-            <span aria-hidden>←</span> Couples Hub
+            ← Back to Couples Hub home
           </button>
         ) : null}
         {detail.trainingPending && user && !showReadinessFlow ? (

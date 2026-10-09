@@ -4,6 +4,7 @@ import { GroupDetailView } from "@/components/groups/GroupDetailView";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getGroupDetail } from "@/lib/group-server";
 import { enrichGroupDetailWithReadiness } from "@/lib/ministry-readiness-server";
+import { SHANAH_POWER_COUPLES_GROUP_ID } from "@/lib/church-groups";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,11 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
     notFound();
   }
 
+  const isPowerCouples = group.id === SHANAH_POWER_COUPLES_GROUP_ID;
+  const rosterDeepLink = Boolean(rosterDate?.trim() || rosterTime?.trim());
+  const openManage = manage === "1" || rosterDeepLink;
+  const powerCouplesOpenManage = isPowerCouples && openManage && rosterDeepLink;
+
   return (
     <GroupDetailView
       initialGroup={group}
@@ -81,9 +87,9 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
                           ? "info"
                           : polls === "1"
                             ? "polls"
-                            : manage === "1" || rosterDate?.trim() || rosterTime?.trim()
-                            ? "manage"
-                            : "overview"
+                            : openManage && (!isPowerCouples || powerCouplesOpenManage)
+                              ? "manage"
+                              : "overview"
       }
     />
   );

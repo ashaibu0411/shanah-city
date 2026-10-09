@@ -7,12 +7,16 @@ export function CouplesHubGroupHeader({
   onChatClick,
   onInfoClick,
   onManageClick,
+  onHubClick,
+  hubIsActive,
   showChat,
   showManage,
 }: {
   onChatClick?: () => void;
   onInfoClick?: () => void;
   onManageClick?: () => void;
+  onHubClick?: () => void;
+  hubIsActive?: boolean;
   showChat?: boolean;
   showManage?: boolean;
 }) {
@@ -22,9 +26,21 @@ export function CouplesHubGroupHeader({
         <Link href="/groups" className={couplesHubPremium.backLink}>
           <span aria-hidden>←</span> Groups
         </Link>
-        <p className="font-display text-sm font-semibold tracking-tight text-[var(--couples-text)]">
-          Couples Hub
-        </p>
+        {onHubClick ? (
+          <button
+            type="button"
+            onClick={onHubClick}
+            className={`font-display text-sm font-semibold tracking-tight ${
+              hubIsActive ? "text-white" : "text-rose-200 underline-offset-2 hover:underline"
+            }`}
+          >
+            Couples Hub
+          </button>
+        ) : (
+          <p className="font-display text-sm font-semibold tracking-tight text-[var(--couples-text)]">
+            Couples Hub
+          </p>
+        )}
         <div className="flex items-center gap-2">
           {showManage && onManageClick ? (
             <button
