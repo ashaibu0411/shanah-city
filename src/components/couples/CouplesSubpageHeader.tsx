@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
+import { powerCouplesGroupHubPath } from "@/lib/couples-hub-paths";
 
 export function CouplesSubpageHeader({
   title,
   subtitle,
-  backHref = "/couples/marriage",
-  backLabel = "Our marriage",
+  backHref = powerCouplesGroupHubPath(),
+  backLabel = "Couples Hub",
 }: {
   title: string;
   subtitle?: string;

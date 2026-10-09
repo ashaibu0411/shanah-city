@@ -12,10 +12,13 @@ export function CouplesHubTileGrid({
   tiles,
   locked,
   variant = "default",
+  onActivateTile,
 }: {
   tiles: CouplesHubTile[];
   locked?: boolean;
   variant?: "default" | "marriage";
+  /** When set, tiles render as buttons and skip navigation (group hub community tiles). */
+  onActivateTile?: (tile: CouplesHubTile) => void;
 }) {
   const marriage = variant === "marriage";
 
@@ -46,6 +49,19 @@ export function CouplesHubTileGrid({
             <div key={tile.id} className={className} aria-disabled="true">
               {inner}
             </div>
+          );
+        }
+
+        if (onActivateTile) {
+          return (
+            <button
+              key={tile.id}
+              type="button"
+              className={className}
+              onClick={() => onActivateTile(tile)}
+            >
+              {inner}
+            </button>
           );
         }
 

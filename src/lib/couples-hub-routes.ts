@@ -1,4 +1,5 @@
 import type { CouplesHubCommunityTileId, CouplesHubMarriageTileId } from "@/lib/couples-hub-types";
+import { powerCouplesGroupHubPath, powerCouplesGroupSectionPath } from "@/lib/couples-hub-paths";
 
 export type CouplesHubTileTone =
   | "calendar"
@@ -108,28 +109,28 @@ export const couplesCommunityTiles: CouplesHubTile[] = [
     id: "events",
     title: "Couples events",
     subtitle: "Gatherings & church calendar",
-    href: `/groups/group-shanah-power-couples?calendar=1`,
+    href: powerCouplesGroupSectionPath("calendar"),
     emoji: "📣",
   },
   {
     id: "prayer",
     title: "Prayer community",
     subtitle: "Group prayer wall (leaders may support)",
-    href: `/groups/group-shanah-power-couples?prayer=1`,
+    href: powerCouplesGroupSectionPath("prayer"),
     emoji: "🕊️",
   },
   {
     id: "resources",
     title: "Resource library",
     subtitle: "Books, videos & worksheets",
-    href: `/groups/group-shanah-power-couples?resources=1`,
+    href: powerCouplesGroupSectionPath("resources"),
     emoji: "📚",
   },
   {
     id: "challenges",
     title: "Marriage challenges",
     subtitle: "Growth track & mentor matching",
-    href: `/groups/group-shanah-power-couples?growth=1`,
+    href: powerCouplesGroupSectionPath("growth"),
     emoji: "✨",
   },
   {
@@ -143,7 +144,7 @@ export const couplesCommunityTiles: CouplesHubTile[] = [
     id: "announcements",
     title: "Announcements",
     subtitle: "Power Couples group updates",
-    href: `/groups/group-shanah-power-couples`,
+    href: powerCouplesGroupHubPath(),
     emoji: "📌",
   },
 ];

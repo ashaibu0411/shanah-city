@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
+import { powerCouplesGroupHubPath } from "@/lib/couples-hub-paths";
 import type { CouplesHubOverview } from "@/lib/couples-hub-types";
 import { useEffect, useState } from "react";
 

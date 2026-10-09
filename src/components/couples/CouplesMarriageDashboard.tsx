@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CouplesHubTileGrid } from "@/components/couples/CouplesHubTileGrid";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
+import { powerCouplesGroupHubPath } from "@/lib/couples-hub-paths";
 import { couplesMarriageTiles } from "@/lib/couples-hub-routes";
 import type { CouplesHubOverview } from "@/lib/couples-hub-types";
 
@@ -31,7 +32,7 @@ export function CouplesMarriageDashboard() {
   return (
     <div className={couplesHubPremium.page}>
       <div className={couplesHubPremium.inset}>
-        <Link href="/couples" className={couplesHubPremium.backLink}>
+        <Link href={powerCouplesGroupHubPath()} className={couplesHubPremium.backLink}>
           <span aria-hidden>←</span> Couples Hub
         </Link>
         <h1 className={`${couplesHubPremium.screenTitle} mt-3`}>Our marriage</h1>

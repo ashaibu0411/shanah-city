@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
+import { powerCouplesGroupHubPath } from "@/lib/couples-hub-paths";
 import { CouplesSubpageHeader } from "@/components/couples/CouplesSubpageHeader";
 import { Button } from "@/components/ui";
 import {
@@ -447,7 +448,7 @@ export function CouplesMarriageCalendar() {
           </div>
         ) : null}
 
-        <Link href="/couples" className={`${couplesHubPremium.secondaryCta} mt-10`}>
+        <Link href={powerCouplesGroupHubPath()} className={`${couplesHubPremium.secondaryCta} mt-10`}>
           Back to Couples Hub
         </Link>
       </div>

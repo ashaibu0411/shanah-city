@@ -20,6 +20,7 @@ type GroupDetailPageProps = {
     info?: string;
     manage?: string;
     guests?: string;
+    polls?: string;
     training?: string;
     rosterDate?: string;
     rosterTime?: string;
@@ -39,6 +40,7 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
     info,
     manage,
     guests,
+    polls,
     training,
     rosterDate,
     rosterTime,
@@ -77,7 +79,9 @@ export default async function GroupDetailPage({ params, searchParams }: GroupDet
                         ? "growth"
                         : info === "1"
                           ? "info"
-                          : manage === "1" || rosterDate?.trim() || rosterTime?.trim()
+                          : polls === "1"
+                            ? "polls"
+                            : manage === "1" || rosterDate?.trim() || rosterTime?.trim()
                             ? "manage"
                             : "overview"
       }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
+import { powerCouplesGroupHubPath } from "@/lib/couples-hub-paths";
 
 export function CouplesHubEntryCard() {
   return (
@@ -11,7 +12,7 @@ export function CouplesHubEntryCard() {
       <p className="mt-2 text-sm text-night-700 dark:text-sand-300">
         Calendar, love notes, check-ins, and games — plus Power Couples events and resources.
       </p>
-      <Link href="/couples" className={`${couplesHubPremium.primaryCta} mt-4`}>
+      <Link href={powerCouplesGroupHubPath()} className={`${couplesHubPremium.primaryCta} mt-4`}>
         Open Couples Hub
       </Link>
     </div>

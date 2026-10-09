@@ -1,5 +1,6 @@
-import { CouplesHubLanding } from "@/components/couples/CouplesHubLanding";
+import { redirect } from "next/navigation";
+import { powerCouplesGroupHubPath } from "@/lib/couples-hub-paths";
 
 export default function CouplesHubPage() {
-  return <CouplesHubLanding />;
+  redirect(powerCouplesGroupHubPath());
 }

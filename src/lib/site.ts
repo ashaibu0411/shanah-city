@@ -176,7 +176,7 @@ export const kidsMinistryNavItem = {
 
 export const couplesNavItem = {
   label: "Couples Hub",
-  href: "/couples",
+  href: "/groups/group-shanah-power-couples",
   icon: "♥",
 } as const;
 

@@ -15,7 +15,7 @@ import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
 import { GroupCalendarPanel } from "@/components/calendar/GroupCalendarPanel";
 import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
-import { CouplesHubEntryCard } from "@/components/couples/CouplesHubEntryCard";
+import { CouplesHubGroupDashboard } from "@/components/couples/CouplesHubGroupDashboard";
 import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel";
 import { CoupleMentorPanel } from "@/components/groups/CoupleMentorPanel";
 import { CouplePrayerPanel } from "@/components/groups/CouplePrayerPanel";
@@ -503,17 +503,20 @@ export function GroupDetailView({
           </div>
         ) : detailSection === "overview" && hasMemberAccess && user ? (
           isPowerCouplesGroup ? (
-            <>
-              <CouplesHubEntryCard />
-              <GroupDashboardPanel
-                groupId={detail.id}
-                groupName={detail.name}
-                memberCount={detail.members.length}
-                leaderNames={leaderNames}
-                onQuickAction={handleDashboardQuickAction}
-                onSetupRoster={() => openManageSection("roster")}
-              />
-            </>
+            <CouplesHubGroupDashboard
+              onQuickAction={handleDashboardQuickAction}
+              onCommunityNavigate={(target) => {
+                if (target === "devotions") {
+                  router.push("/devotions");
+                  return;
+                }
+                if (target === "community-feed") {
+                  router.push(`/community?group=${encodeURIComponent(SHANAH_POWER_COUPLES_GROUP_ID)}`);
+                  return;
+                }
+                setDetailSection(target);
+              }}
+            />
           ) : isYoungAdultsHubGroup ? (
             <YoungAdultsHubDashboard
               groupId={detail.id}
