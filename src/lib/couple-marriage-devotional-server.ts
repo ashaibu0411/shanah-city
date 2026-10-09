@@ -6,11 +6,41 @@ import {
 } from "@/lib/couple-workspace-access-server";
 import { getCouplesHubOverview } from "@/lib/couples-hub-server";
 import type { CoupleMarriageDevotionalView } from "@/lib/couple-marriage-devotional-types";
+import { getDevotionById, getDevotions } from "@/lib/devotion-server";
+import { isDevotionPubliclyVisible, pickTodayDevotion } from "@/lib/devotion-utils";
+import type { Devotion } from "@/lib/types";
 import { useDatabase } from "@/lib/use-database";
 import * as coupleMarriageDevotionalDb from "@/lib/stores/couple-marriage-devotional-db";
 import * as coupleMarriageDevotionalJson from "@/lib/stores/couple-marriage-devotional-json";
 
-const store = () => (useDatabase() ? coupleMarriageDevotionalDb : coupleMarriageDevotionalJson);
+const readStore = () => (useDatabase() ? coupleMarriageDevotionalDb : coupleMarriageDevotionalJson);
+
+function mapChurchDevotionToView(
+  devotion: Devotion,
+  myReads: Set<string>,
+  partnerReads: Set<string>,
+): CoupleMarriageDevotionalView {
+  const scripture = [devotion.reference?.trim(), devotion.verse?.trim()].filter(Boolean).join("\n");
+  const now = new Date().toISOString();
+  return {
+    id: devotion.id,
+    publishDate: devotion.date,
+    title: devotion.title,
+    scripture,
+    teaching: devotion.content ?? "",
+    discussion: "",
+    assignment: "",
+    prayer: devotion.prayer ?? "",
+    declaration: "",
+    published: isDevotionPubliclyVisible(devotion),
+    createdBy: devotion.authorId ?? "",
+    createdByName: devotion.authorName ?? "",
+    createdAt: devotion.createdAt ?? now,
+    updatedAt: devotion.updatedAt ?? now,
+    readByMe: myReads.has(devotion.id),
+    readBySpouse: partnerReads.has(devotion.id),
+  };
+}
 
 async function assertCanManage(user: PublicMember) {
   const overview = await getCouplesHubOverview(user);
@@ -18,32 +48,6 @@ async function assertCanManage(user: PublicMember) {
     throw new Error("Marriage ministry leaders only.");
   }
   return overview;
-}
-
-function devotionalFields(body: Record<string, unknown>) {
-  const title = String(body.title ?? "").trim();
-  const publishDate = String(body.publishDate ?? "").trim();
-  const scripture = String(body.scripture ?? "").trim();
-  const teaching = String(body.teaching ?? "").trim();
-  const discussion = String(body.discussion ?? "").trim();
-  const assignment = String(body.assignment ?? "").trim();
-  const prayer = String(body.prayer ?? "").trim();
-  const declaration = String(body.declaration ?? "").trim();
-
-  if (!title || !publishDate) throw new Error("Title and publish date are required.");
-  if (!scripture || !teaching) throw new Error("Scripture and teaching are required.");
-
-  return {
-    publishDate,
-    title,
-    scripture,
-    teaching,
-    discussion,
-    assignment,
-    prayer,
-    declaration,
-    published: Boolean(body.published),
-  };
 }
 
 export async function getCoupleMarriageDevotionalsForUser(user: PublicMember) {
@@ -56,22 +60,30 @@ export async function getCoupleMarriageDevotionalsForUser(user: PublicMember) {
     throw new Error("Link your spouse account to open your private marriage space.");
   }
 
-  const devotionals = await store().listMarriageDevotionals({ publishedOnly: !overview.canManageMarriageMinistry });
-  const reads = link ? await store().listDevotionalReads(link.id) : [];
+  const churchDevotions = await getDevotions({
+    includeUnpublished: overview.canManageMarriageMinistry,
+  });
+  const visibleDevotions = overview.canManageMarriageMinistry
+    ? churchDevotions
+    : churchDevotions.filter((devotion) => isDevotionPubliclyVisible(devotion));
+
+  const reads = link ? await readStore().listDevotionalReads(link.id) : [];
   const partnerReads = new Set(
     reads.filter((r) => r.readByUserId !== user.id).map((r) => r.devotionalId),
   );
   const myReads = new Set(reads.filter((r) => r.readByUserId === user.id).map((r) => r.devotionalId));
 
-  const items: CoupleMarriageDevotionalView[] = devotionals.map((devotional) => ({
-    ...devotional,
-    readByMe: myReads.has(devotional.id),
-    readBySpouse: partnerReads.has(devotional.id),
-  }));
+  const items: CoupleMarriageDevotionalView[] = visibleDevotions.map((devotion) =>
+    mapChurchDevotionToView(devotion, myReads, partnerReads),
+  );
+
+  const today = pickTodayDevotion(visibleDevotions);
 
   return {
     coupleLinkId: link?.id ?? null,
     devotionals: items,
+    todayDevotionalId: today?.id ?? items[0]?.id ?? null,
+    usesChurchDevotions: true,
     canManageMarriageMinistry: overview.canManageMarriageMinistry,
   };
 }
@@ -81,12 +93,13 @@ export async function markCoupleMarriageDevotionalReadForUser(
   devotionalId: string,
 ) {
   const link = await assertActiveCoupleWorkspace(user);
-  const devotional = await store().getMarriageDevotional(devotionalId);
-  if (!devotional || !devotional.published) {
-    const overview = await getCouplesHubOverview(user);
-    if (!devotional || (!devotional.published && !overview.canManageMarriageMinistry)) {
-      throw new Error("Devotional not found.");
-    }
+  const devotion = await getDevotionById(devotionalId);
+  const overview = await getCouplesHubOverview(user);
+  if (!devotion) {
+    throw new Error("Devotional not found.");
+  }
+  if (!isDevotionPubliclyVisible(devotion) && !overview.canManageMarriageMinistry) {
+    throw new Error("Devotional not found.");
   }
 
   if (useDatabase()) {
@@ -109,30 +122,17 @@ export async function markCoupleMarriageDevotionalReadForUser(
 
 export async function publishCoupleMarriageDevotionalForUser(
   user: PublicMember,
-  body: Record<string, unknown>,
+  _body?: Record<string, unknown>,
 ) {
   await assertCanManage(user);
-  const fields = devotionalFields(body);
-
-  const record = await store().createMarriageDevotional({
-    ...fields,
-    createdBy: user.id,
-    createdByName: user.name,
-  });
-
-  return { devotional: record };
+  throw new Error("Couples devotionals use the main Devotions library. Publish from Admin → Devotions.");
 }
 
 export async function updateCoupleMarriageDevotionalForUser(
   user: PublicMember,
-  devotionalId: string,
-  body: Record<string, unknown>,
+  _devotionalId: string,
+  _body: Record<string, unknown>,
 ) {
   await assertCanManage(user);
-  const existing = await store().getMarriageDevotional(devotionalId);
-  if (!existing) throw new Error("Devotional not found.");
-
-  const fields = devotionalFields({ ...existing, ...body });
-  const record = await store().updateMarriageDevotional(devotionalId, fields);
-  return { devotional: record };
+  throw new Error("Couples devotionals use the main Devotions library. Edit from Admin → Devotions.");
 }
