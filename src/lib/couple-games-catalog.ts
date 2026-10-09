@@ -54,6 +54,18 @@ export const KNOW_SPOUSE_QUESTIONS = [
   "What song, show, or hobby have they been into recently?",
   "When do they feel most connected to you?",
   "What is one thing you appreciate about them today?",
+  "What is their love language in action this month — words, time, gifts, acts, or touch?",
+  "What is one goal they are working toward that you can cheer on?",
+  "When did they last feel truly heard by you?",
+  "What is their ideal way to rest after a hard day?",
+  "What is a small surprise that would delight them this week?",
+  "Who is someone they are praying for right now?",
+  "What is a tradition from their childhood they still cherish?",
+  "What is one thing they are proud of that you can celebrate out loud?",
+  "What date idea have they mentioned (even jokingly) lately?",
+  "What is one habit of yours that helps them feel safe?",
+  "What is one habit of yours that you could adjust to love them better?",
+  "What does “feeling pursued” look like for them — not just on date night?",
 ];
 
 export const BIBLE_TRIVIA = [
@@ -77,6 +89,41 @@ export const BIBLE_TRIVIA = [
     answer: "Envious, boastful, rude, self-seeking, easily angered, or keeping a record of wrongs.",
     reference: "1 Corinthians 13:4–5",
   },
+  {
+    question: "What does Proverbs 31:10–11 celebrate about a wife of noble character?",
+    answer: "Her worth is far above jewels; her husband has full confidence in her.",
+    reference: "Proverbs 31:10–11",
+  },
+  {
+    question: "In Genesis 2:24, what happens when a man leaves his father and mother?",
+    answer: "He holds fast to his wife, and they become one flesh.",
+    reference: "Genesis 2:24",
+  },
+  {
+    question: "What counsel does Colossians 3:13 give married people about forgiveness?",
+    answer: "Bear with one another and forgive each other; as the Lord forgave you.",
+    reference: "Colossians 3:13",
+  },
+  {
+    question: "According to Hebrews 13:4, what should marriage be held in?",
+    answer: "Honor by all.",
+    reference: "Hebrews 13:4",
+  },
+  {
+    question: "In Mark 10:9, what did Jesus say about what God has joined?",
+    answer: "What God has joined together, let no one separate.",
+    reference: "Mark 10:9",
+  },
+  {
+    question: "What does Romans 12:10 say about honoring one another?",
+    answer: "Outdo one another in showing honor.",
+    reference: "Romans 12:10",
+  },
+  {
+    question: "Malachi 2:14–15 calls marriage a what?",
+    answer: "A covenant — faithfulness and godly offspring are part of God’s design.",
+    reference: "Malachi 2:14–15",
+  },
 ];
 
 export const CONVERSATION_PROMPTS = [
@@ -88,6 +135,16 @@ export const CONVERSATION_PROMPTS = [
   "When did you last feel proud of us as a team?",
   "What is one small habit that would make our mornings or evenings smoother?",
   "What dream should we write down and plan for together?",
+  "What is one boundary that would protect our peace this season?",
+  "When did you feel closest to God together recently?",
+  "What is one apology we still need to make to each other?",
+  "What would make our home feel more like a refuge this week?",
+  "What is one way we can serve someone else as a team?",
+  "What fear are you carrying that I can pray over tonight?",
+  "What is one thing we should stop doing that drains us?",
+  "What is one thing we should start doing that would refresh us?",
+  "How can we protect our Sabbath or rest day as a couple?",
+  "What does forgiveness look like for the last disagreement we had?",
 ];
 
 export const THIS_OR_THAT = [
@@ -97,6 +154,13 @@ export const THIS_OR_THAT = [
   { a: "Try a new restaurant", b: "Cook something new at home" },
   { a: "Share highs and lows daily", b: "Weekly longer check-in" },
   { a: "Morning prayer together", b: "Evening prayer together" },
+  { a: "Stay in for the night", b: "Dress up and go out" },
+  { a: "Text love notes", b: "Leave handwritten notes" },
+  { a: "Adventure day", b: "Cozy home day" },
+  { a: "Plan the date together", b: "Surprise each other" },
+  { a: "Talk it out right away", b: "Pause and pray first" },
+  { a: "Beach vacation", b: "Mountain getaway" },
+  { a: "Learn something new together", b: "Revisit a favorite place" },
 ];
 
 export const WEEKLY_CHALLENGES = [
@@ -105,8 +169,23 @@ export const WEEKLY_CHALLENGES = [
   "Pray out loud for each other’s biggest stress this week.",
   "Recall your first date and share one detail the other might have forgotten.",
   "Do one chore your spouse usually handles — without being asked.",
+  "Share three specific things you admire about your spouse — no repeats from last time.",
+  "Put phones in another room for one meal and ask each other one deep question.",
+  "Read one short Bible passage together and each share one takeaway.",
+  "Plan a $0 date in the next 7 days and put it on the calendar now.",
+  "Send your spouse a voice memo telling them why you’re grateful for them.",
+  "Ask: “What can I carry for you this week?” — then follow through on one thing.",
 ];
 
 export function pickRandom<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)]!;
+}
+
+export function shuffleDeck<T>(items: readonly T[]): T[] {
+  const deck = [...items];
+  for (let i = deck.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
 }

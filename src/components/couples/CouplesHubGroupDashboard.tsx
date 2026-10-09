@@ -123,6 +123,7 @@ export function CouplesHubGroupDashboard({
   return (
     <div className={`${couplesHubPremium.inset} !px-0 !pt-0`}>
       <CouplesHubHero
+        flush
         title="Couples Hub"
         tagline="Grow in faith. Love intentionally. Build together."
         showHeart

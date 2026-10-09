@@ -427,7 +427,7 @@ export function GroupDetailView({
     <div
       className={
         isPowerCouplesGroup
-          ? `${couplesHubPremium.page} min-h-full overflow-hidden ${
+          ? `${couplesHubPremium.page} min-h-full overflow-x-hidden ${
               isMobileApp ? "-mx-4 -mt-4" : ""
             }`
           : `${groupsPremium.page} overflow-hidden ${

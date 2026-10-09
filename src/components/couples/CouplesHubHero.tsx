@@ -21,13 +21,19 @@ export function CouplesHubHero({
 }) {
   return (
     <div className={flush ? "relative overflow-hidden" : couplesHubPremium.heroWrap}>
-      <div className="relative aspect-[4/5] w-full max-h-[22rem] sm:aspect-[16/10] sm:max-h-none">
+      <div
+        className={
+          flush
+            ? "relative aspect-[4/5] w-full min-h-[17.5rem] max-h-[28rem] sm:aspect-[3/4] sm:max-h-[32rem]"
+            : "relative aspect-[4/5] w-full max-h-[22rem] sm:aspect-[16/10] sm:max-h-none"
+        }
+      >
         <Image
           src={imageSrc}
           alt=""
           fill
           priority
-          className={`${couplesHubPremium.heroImage} object-[center_25%]`}
+          className={`${couplesHubPremium.heroImage} ${flush ? "object-[center_35%]" : "object-[center_25%]"}`}
           sizes="(max-width: 512px) 100vw, 512px"
         />
         <div className={couplesHubPremium.heroOverlay} aria-hidden />
