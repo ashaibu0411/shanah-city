@@ -15,7 +15,10 @@ import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
 import { GroupCalendarPanel } from "@/components/calendar/GroupCalendarPanel";
 import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
-import { CouplesHubGroupDashboard } from "@/components/couples/CouplesHubGroupDashboard";
+import {
+  CouplesHubGroupDashboard,
+  type CouplesHubDashboardView,
+} from "@/components/couples/CouplesHubGroupDashboard";
 import { CouplesHubGroupHeader } from "@/components/couples/CouplesHubGroupHeader";
 import { CouplesHubHomeHeader } from "@/components/couples/CouplesHubHomeHeader";
 import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
@@ -83,11 +86,18 @@ export function GroupDetailView({
   const [statusIsError, setStatusIsError] = useState(false);
   const [readinessPack, setReadinessPack] = useState<MinistryReadinessPublicPack | null>(null);
   const [showReadinessFlow, setShowReadinessFlow] = useState(false);
+  const [couplesHubView, setCouplesHubView] = useState<CouplesHubDashboardView>("landing");
   const hasMemberAccess = detail.isMember && !detail.trainingPending;
 
   useEffect(() => {
     setDetail(initialGroup);
   }, [initialGroup]);
+
+  useEffect(() => {
+    if (detailSection !== "overview") {
+      setCouplesHubView("landing");
+    }
+  }, [detailSection]);
 
   useEffect(() => {
     setDetailSection(initialSection);
@@ -423,6 +433,8 @@ export function GroupDetailView({
     "overview";
 
   const powerCouplesHubHome = isPowerCouplesGroup && detailSection === "overview";
+  const showPowerCouplesHomeHeader =
+    powerCouplesHubHome && couplesHubView === "landing";
 
   return (
     <div
@@ -437,9 +449,9 @@ export function GroupDetailView({
       }
     >
       {isPowerCouplesGroup ? (
-        powerCouplesHubHome ? (
+        showPowerCouplesHomeHeader ? (
           <CouplesHubHomeHeader />
-        ) : (
+        ) : powerCouplesHubHome ? null : (
           <CouplesHubGroupHeader
             showChat={Boolean(hasMemberAccess && user)}
             onChatClick={() => setDetailSection("chat")}
@@ -461,7 +473,11 @@ export function GroupDetailView({
         />
       )}
 
-      {user && detailTabs.length > 0 && isPowerCouplesGroup && detailSection !== "chat" && !powerCouplesHubHome ? (
+      {user &&
+      detailTabs.length > 0 &&
+      isPowerCouplesGroup &&
+      detailSection !== "chat" &&
+      !powerCouplesHubHome ? (
         <div className="px-2 pb-2">
           <CouplesHubTabRow
             tabs={powerCouplesNavTabs}
@@ -583,6 +599,7 @@ export function GroupDetailView({
             <CouplesHubGroupDashboard
               joinSlot={!hasMemberAccess ? joinSlot : undefined}
               onQuickAction={hasMemberAccess ? handleDashboardQuickAction : undefined}
+              onHubViewChange={setCouplesHubView}
               onCommunityNavigate={(target) => {
                 if (target === "devotions") {
                   router.push("/devotions");

@@ -24,6 +24,8 @@ async function toView(link: CoupleLinkRecord, viewerId: string): Promise<CoupleL
     partnerId: partner.id,
     partnerName: partner.name,
     partnerEmail: partner.email,
+    partnerAvatarUrl: partner.avatarUrl ?? null,
+    partnerUpdatedAt: partner.updatedAt ?? null,
     requestedBy: link.requestedBy,
     isIncomingInvite: link.status === "pending" && link.requestedBy !== viewerId,
     acceptedAt: link.acceptedAt,

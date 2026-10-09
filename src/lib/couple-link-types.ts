@@ -17,6 +17,8 @@ export type CoupleLinkView = {
   partnerId: string;
   partnerName: string;
   partnerEmail: string;
+  partnerAvatarUrl?: string | null;
+  partnerUpdatedAt?: string | null;
   requestedBy: string;
   isIncomingInvite: boolean;
   acceptedAt?: string;

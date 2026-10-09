@@ -447,6 +447,47 @@ export function CouplesModal({
   );
 }
 
+/* Marriage dashboard feature card */
+export function CouplesMarriageFeatureCard({
+  title,
+  href,
+  background,
+  icon,
+  disabled,
+}: {
+  title: string;
+  href: string;
+  background: string;
+  icon: React.ReactNode;
+  disabled?: boolean;
+}) {
+  const className =
+    "couples-marriage-feature-card flex min-h-[8.125rem] flex-col items-center justify-center gap-2.5 rounded-[1.25rem] p-4 text-center transition active:scale-[0.98] motion-reduce:transition-none";
+  const style = { backgroundColor: background };
+  const inner = (
+    <>
+      <span className="flex h-10 w-10 items-center justify-center" aria-hidden>{icon}</span>
+      <span
+        className={`${couplesDisplayFont} text-[0.9375rem] font-semibold leading-snug text-[var(--couples-text)]`}
+      >
+        {title}
+      </span>
+    </>
+  );
+  if (disabled) {
+    return (
+      <div className={`${className} pointer-events-none opacity-45`} style={style} aria-disabled="true">
+        {inner}
+      </div>
+    );
+  }
+  return (
+    <Link href={href} className={className} style={style}>
+      {inner}
+    </Link>
+  );
+}
+
 /* Home shortcut chip (horizontal carousel) */
 export function CouplesShortcutTile({
   title,

@@ -15,17 +15,14 @@ import {
   CouplesHomeGroupIcon,
   CouplesHomeLockHeartIcon,
 } from "@/components/couples/CouplesHubHomeIcons";
+import { CouplesMarriageDashboard } from "@/components/couples/CouplesMarriageDashboard";
 import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { CouplesHubTileGrid } from "@/components/couples/CouplesHubTileGrid";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
 import { couplesCommunityFeedPath } from "@/lib/couples-community-paths";
 import { communityTileTarget } from "@/lib/couples-hub-paths";
-import {
-  couplesCommunityTiles,
-  couplesMarriageTiles,
-  type CouplesHubTile,
-} from "@/lib/couples-hub-routes";
+import { couplesCommunityTiles, couplesMarriageTiles, type CouplesHubTile } from "@/lib/couples-hub-routes";
 import type {
   CouplesHubCommunityTileId,
   CouplesHubMarriageTileId,
@@ -38,7 +35,8 @@ import { SHANAH_POWER_COUPLES_GROUP_ID } from "@/lib/church-groups";
 import type { ChurchEvent } from "@/lib/types";
 
 type CommunityTab = "discussions" | "events" | "resources";
-type HubView = "landing" | "modules" | "community";
+export type CouplesHubDashboardView = "landing" | "modules" | "community";
+type HubView = CouplesHubDashboardView;
 
 const TAB_TILE_IDS: Record<CommunityTab, CouplesHubCommunityTileId[]> = {
   discussions: ["discussions", "prayer", "announcements"],
@@ -78,15 +76,23 @@ export function CouplesHubGroupDashboard({
   joinSlot,
   onQuickAction,
   onCommunityNavigate,
+  onHubViewChange,
 }: {
   joinSlot?: React.ReactNode;
   onQuickAction?: (action: GroupDashboardQuickAction) => void;
   onCommunityNavigate: (target: PowerCouplesCommunitySection) => void;
+  onHubViewChange?: (view: CouplesHubDashboardView) => void;
 }) {
   const [overview, setOverview] = useState<CouplesHubOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [communityTab, setCommunityTab] = useState<CommunityTab>("discussions");
-  const [hubView, setHubView] = useState<HubView>("landing");
+  const [hubView, setHubViewState] = useState<HubView>("landing");
+
+  function setHubView(view: HubView) {
+    setHubViewState(view);
+    onHubViewChange?.(view);
+  }
+
   const [nextEvent, setNextEvent] = useState<ChurchEvent | null>(null);
   const [eventsLoading, setEventsLoading] = useState(true);
 
@@ -148,12 +154,13 @@ export function CouplesHubGroupDashboard({
     onCommunityNavigate(target);
   }
 
+  if (hubView === "modules") {
+    return <CouplesMarriageDashboard embedded onBack={() => setHubView("landing")} />;
+  }
+
   if (hubView !== "landing") {
-    const subTitle = hubView === "modules" ? "Our Marriage" : "Couples Community";
-    const subDescription =
-      hubView === "modules"
-        ? "Everything private between you and your spouse."
-        : "Discussions, events, and resources with other couples.";
+    const subTitle = "Couples Community";
+    const subDescription = "Discussions, events, and resources with other couples.";
 
     return (
       <div className="couples-hub-subpage pb-28">
@@ -169,18 +176,7 @@ export function CouplesHubGroupDashboard({
           <CouplesSectionHeading title={subTitle} description={subDescription} />
         </div>
 
-        {hubView === "modules" ? (
-          <section className="mt-2 px-[var(--couples-page-padding)]">
-            {loading ? (
-              <CouplesLoadingSkeleton rows={4} />
-            ) : locked ? (
-              <CouplesLinkGate tone="sheet" pendingIncoming={overview?.pendingIncomingInvite} />
-            ) : (
-              <CouplesHubTileGrid tiles={couplesMarriageTiles} variant="marriage" />
-            )}
-          </section>
-        ) : (
-          <section className="mt-1 pb-8">
+        <section className="mt-1 pb-8">
             <div className="px-[var(--couples-page-padding)]">
               <CouplesHubTabRow
                 variant="sheet"
@@ -214,8 +210,7 @@ export function CouplesHubGroupDashboard({
                 </CouplesSecondaryButton>
               </div>
             ) : null}
-          </section>
-        )}
+        </section>
       </div>
     );
   }

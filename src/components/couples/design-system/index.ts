@@ -5,6 +5,7 @@ export {
   CouplesFeatureCard,
   CouplesHeroCard,
   CouplesListItem,
+  CouplesMarriageFeatureCard,
   CouplesLoadingSkeleton,
   CouplesModal,
   CouplesPageHeader,
