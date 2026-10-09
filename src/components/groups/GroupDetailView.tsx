@@ -584,7 +584,19 @@ export function GroupDetailView({
                   return;
                 }
                 if (target === "community-feed") {
-                  router.push(`/community?group=${encodeURIComponent(SHANAH_POWER_COUPLES_GROUP_ID)}`);
+                  router.push("/couples/community/discussions");
+                  return;
+                }
+                if (target === "community-discussions") {
+                  router.push("/couples/community/discussions");
+                  return;
+                }
+                if (target === "community-prayer") {
+                  router.push("/couples/community/prayer");
+                  return;
+                }
+                if (target === "community-announcements") {
+                  router.push("/couples/community/announcements");
                   return;
                 }
                 setDetailSection(target);

@@ -1,4 +1,5 @@
 import type { CouplesHubCommunityTileId, CouplesHubMarriageTileId } from "@/lib/couples-hub-types";
+import { couplesCommunityFeedPath } from "@/lib/couples-community-paths";
 import { powerCouplesGroupHubPath, powerCouplesGroupSectionPath } from "@/lib/couples-hub-paths";
 
 export type CouplesHubTileTone =
@@ -102,7 +103,7 @@ export const couplesCommunityTiles: CouplesHubTile[] = [
     id: "discussions",
     title: "Discussions",
     subtitle: "Community feed & marriage conversations",
-    href: "/community?group=group-shanah-power-couples",
+    href: couplesCommunityFeedPath("discussions"),
     emoji: "💬",
   },
   {
@@ -116,7 +117,7 @@ export const couplesCommunityTiles: CouplesHubTile[] = [
     id: "prayer",
     title: "Prayer community",
     subtitle: "Group prayer wall (leaders may support)",
-    href: powerCouplesGroupSectionPath("prayer"),
+    href: couplesCommunityFeedPath("prayer"),
     emoji: "🕊️",
   },
   {
@@ -144,7 +145,7 @@ export const couplesCommunityTiles: CouplesHubTile[] = [
     id: "announcements",
     title: "Announcements",
     subtitle: "Power Couples group updates",
-    href: powerCouplesGroupHubPath(),
+    href: couplesCommunityFeedPath("announcements"),
     emoji: "📌",
   },
 ];

@@ -20,15 +20,25 @@ export function CommunityFeed({
   initialFilter,
   initialGroupId,
   groupFilterLabel,
+  hideFilterTabs = false,
+  lockedFilter,
+  excludePostTypes,
+  includePostTypes,
 }: {
   initialPosts: CommunityPost[];
   initialFilter?: CommunityFeedFilter;
   initialGroupId?: string;
   groupFilterLabel?: string;
+  hideFilterTabs?: boolean;
+  /** When set, feed tabs are hidden and this filter is always applied. */
+  lockedFilter?: CommunityFeedFilter;
+  excludePostTypes?: CommunityPost["type"][];
+  includePostTypes?: CommunityPost["type"][];
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const { members: mentionMembers } = useMentionMembers();
   const [filter, setFilter] = useState<CommunityFeedFilter>(() => {
+    if (lockedFilter) return lockedFilter;
     if (initialFilter) return initialFilter;
     if (typeof window === "undefined") return "all";
     const hash = window.location.hash;
@@ -56,13 +66,23 @@ export function CommunityFeed({
       .catch(() => undefined);
   });
 
+  const activeFilter = lockedFilter ?? filter;
+
   const filteredPosts = useMemo(() => {
-    let list = filterCommunityPosts(posts, filter);
+    let list = filterCommunityPosts(posts, activeFilter);
     if (groupId) {
       list = list.filter((post) => post.targetGroupId === groupId);
     }
+    if (excludePostTypes?.length) {
+      const excluded = new Set(excludePostTypes);
+      list = list.filter((post) => !excluded.has(post.type));
+    }
+    if (includePostTypes?.length) {
+      const included = new Set(includePostTypes);
+      list = list.filter((post) => included.has(post.type));
+    }
     return list;
-  }, [posts, filter, groupId]);
+  }, [posts, activeFilter, groupId, excludePostTypes, includePostTypes]);
 
   function updatePost(updated: CommunityPost) {
     setPosts((current) =>
@@ -108,7 +128,7 @@ export function CommunityFeed({
 
   return (
     <div className="community-feed community-feed-solid min-w-0 max-w-full">
-      {groupFilterLabel && groupId ? (
+      {groupFilterLabel && groupId && !hideFilterTabs ? (
         <p className="mb-4 rounded-2xl border border-violet-200/80 bg-violet-50/70 px-4 py-3 text-sm text-night-800">
           Showing <strong>{groupFilterLabel}</strong> prayer &amp; praise on Community. Only members
           of this group can see these posts.
@@ -122,20 +142,22 @@ export function CommunityFeed({
           defaultTargetGroupName={groupFilterLabel}
         />
 
-        <div className="community-feed-tabs" role="tablist" aria-label="Feed filters">
-          {COMMUNITY_FEED_FILTERS.map((entry) => (
-            <button
-              key={entry.id}
-              type="button"
-              role="tab"
-              aria-selected={filter === entry.id}
-              onClick={() => setFilter(entry.id)}
-              className={`community-feed-tab ${filter === entry.id ? "community-feed-tab-active" : ""}`}
-            >
-              {entry.label}
-            </button>
-          ))}
-        </div>
+        {!hideFilterTabs ? (
+          <div className="community-feed-tabs" role="tablist" aria-label="Feed filters">
+            {COMMUNITY_FEED_FILTERS.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                role="tab"
+                aria-selected={activeFilter === entry.id}
+                onClick={() => setFilter(entry.id)}
+                className={`community-feed-tab ${activeFilter === entry.id ? "community-feed-tab-active" : ""}`}
+              >
+                {entry.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="community-feed-posts">
@@ -143,9 +165,9 @@ export function CommunityFeed({
           <div className="community-feed-card community-feed-empty">
             <p className="text-[15px] font-semibold text-night-900 font-display">No posts yet</p>
             <p className="mt-1 text-sm text-night-600">
-              {filter === "all"
+              {activeFilter === "all"
                 ? "Be the first to share a prayer, praise, or update with the community."
-                : `No ${entryLabel(filter)} posts yet.`}
+                : `No ${entryLabel(activeFilter)} posts yet.`}
             </p>
           </div>
         ) : (

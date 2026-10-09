@@ -23,6 +23,9 @@ export type PowerCouplesCommunitySection =
   | "chat"
   | "info"
   | "community-feed"
+  | "community-discussions"
+  | "community-prayer"
+  | "community-announcements"
   | "devotions";
 
 export function communityTileTarget(
@@ -30,11 +33,11 @@ export function communityTileTarget(
 ): PowerCouplesCommunitySection | "overview" {
   switch (tileId) {
     case "discussions":
-      return "community-feed";
+      return "community-discussions";
     case "events":
       return "calendar";
     case "prayer":
-      return "prayer";
+      return "community-prayer";
     case "resources":
       return "resources";
     case "challenges":
@@ -42,7 +45,7 @@ export function communityTileTarget(
     case "devotionals":
       return "devotions";
     case "announcements":
-      return "info";
+      return "community-announcements";
     default:
       return "overview";
   }

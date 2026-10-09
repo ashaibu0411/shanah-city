@@ -5822,6 +5822,27 @@ html.native-app-boot .native-boot-splash img {
 }
 
 /* Couples Hub — mockup-aligned dark shell + pastel module tiles */
+.couples-community-feed .community-feed-solid {
+  --community-feed-bg: transparent;
+  background: transparent;
+}
+
+.couples-community-feed .community-feed-solid .community-feed-header {
+  margin-inline: 0;
+  border-radius: 1.25rem;
+}
+
+.couples-community-feed .community-feed-solid .community-feed-posts {
+  padding-inline: 0;
+}
+
+.couples-community-feed .community-feed-solid .community-post-card,
+.couples-community-feed .community-feed-solid .community-feed-card {
+  border-radius: 1.25rem;
+  border-color: rgb(231 229 228 / 0.9);
+  box-shadow: 0 1px 3px rgb(28 25 23 / 0.06);
+}
+
 .couples-hub-page {
   --couples-bg: #121212;
   --couples-surface: #1c1c1c;

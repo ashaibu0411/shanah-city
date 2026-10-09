@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { CouplesCommunityFeedEmbedded } from "@/components/couples/CouplesCommunityFeedEmbedded";
 import { CouplesHubHero } from "@/components/couples/CouplesHubHero";
 import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { CouplesHubTileGrid } from "@/components/couples/CouplesHubTileGrid";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
+import { couplesCommunityFeedPath } from "@/lib/couples-community-paths";
 import { communityTileTarget } from "@/lib/couples-hub-paths";
 import {
   couplesCommunityTiles,
@@ -95,7 +97,8 @@ export function CouplesHubGroupDashboard({
             </div>
           </section>
         ) : (
-          <section className="mt-6 px-4 pb-8">
+          <section className="mt-2 pb-8">
+            <div className="px-4">
             <CouplesHubTabRow
               tabs={[
                 { id: "discussions", label: "Discussions" },
@@ -105,15 +108,24 @@ export function CouplesHubGroupDashboard({
               active={communityTab}
               onChange={setCommunityTab}
             />
-            <div className="mt-4">
-              <CouplesHubTileGrid tiles={communityTiles} onActivateTile={activateCommunityTile} />
             </div>
-            <Link
-              href="/community?group=group-shanah-power-couples"
-              className={`${couplesHubPremium.primaryCta} mt-5`}
-            >
-              Open community feed
-            </Link>
+            {communityTab === "discussions" ? (
+              <CouplesCommunityFeedEmbedded mode="discussions" onBack={() => setHubView("landing")} />
+            ) : (
+              <div className="mt-4 px-4">
+                <CouplesHubTileGrid tiles={communityTiles} onActivateTile={activateCommunityTile} />
+              </div>
+            )}
+            {communityTab === "discussions" ? (
+              <div className="mt-4 flex flex-col gap-2 px-4">
+                <Link href={couplesCommunityFeedPath("prayer")} className={couplesHubPremium.secondaryCta}>
+                  Prayer community
+                </Link>
+                <Link href={couplesCommunityFeedPath("announcements")} className={couplesHubPremium.secondaryCta}>
+                  Announcements
+                </Link>
+              </div>
+            ) : null}
           </section>
         )}
       </div>
