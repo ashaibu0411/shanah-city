@@ -106,7 +106,7 @@ export const couplesHubPremium = {
     "max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[var(--couples-surface)] p-5 shadow-xl",
 };
 
-/** Couples Hub landing — stage couple (`public/couples/couples-hub-home.jpg`), not the Prophetic flyer. */
-export const COUPLES_HUB_HERO_IMAGE = "/couples/couples-hub-home.jpg?v=stage-couple";
+/** Couples Hub landing hero (praying couple); cropFlyerBranding hides flyer text in the UI. */
+export const COUPLES_HUB_HERO_IMAGE = "/couples/couples-hub-hero.jpg";
 export const COUPLES_DEVOTIONAL_HERO = "/home/home-gallery-06.jpg";
 export const COUPLES_DATE_NIGHT_HERO = "/home/home-gallery-15.jpg";

@@ -124,6 +124,7 @@ export function CouplesHubGroupDashboard({
     <div className={`${couplesHubPremium.inset} !px-0 !pt-0`}>
       <CouplesHubHero
         flush
+        cropFlyerBranding
         title="Couples Hub"
         tagline="Grow in faith. Love intentionally. Build together."
         showHeart

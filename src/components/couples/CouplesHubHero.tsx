@@ -9,6 +9,8 @@ export function CouplesHubHero({
   children,
   flush = false,
   showHeart = false,
+  /** Crop event-flyer artwork so only the photo shows (no title/date at bottom). */
+  cropFlyerBranding = false,
 }: {
   imageSrc?: string;
   eyebrow?: string;
@@ -18,13 +20,18 @@ export function CouplesHubHero({
   /** Edge-to-edge hero above overlapping cream sheet */
   flush?: boolean;
   showHeart?: boolean;
+  cropFlyerBranding?: boolean;
 }) {
+  const cropFlyer = flush && cropFlyerBranding;
+
   return (
     <div className={flush ? "relative overflow-hidden" : couplesHubPremium.heroWrap}>
       <div
         className={
           flush
-            ? "relative aspect-[4/5] w-full min-h-[17.5rem] max-h-[28rem] sm:aspect-[3/4] sm:max-h-[32rem]"
+            ? cropFlyer
+              ? "relative aspect-[4/5] w-full min-h-[17.5rem] max-h-[28rem] sm:aspect-[4/5] sm:max-h-[30rem]"
+              : "relative aspect-[4/5] w-full min-h-[17.5rem] max-h-[28rem] sm:aspect-[3/4] sm:max-h-[32rem]"
             : "relative aspect-[4/5] w-full max-h-[22rem] sm:aspect-[16/10] sm:max-h-none"
         }
       >
@@ -33,10 +40,19 @@ export function CouplesHubHero({
           alt=""
           fill
           priority
-          className={`${couplesHubPremium.heroImage} ${flush ? "object-[center_40%]" : "object-[center_30%]"}`}
+          className={`${couplesHubPremium.heroImage} ${
+            cropFlyer
+              ? "scale-[1.42] object-cover object-[50%_14%]"
+              : flush
+                ? "object-[center_35%]"
+                : "object-[center_25%]"
+          }`}
           sizes="(max-width: 512px) 100vw, 512px"
         />
-        <div className={couplesHubPremium.heroOverlay} aria-hidden />
+        <div
+          className={`${couplesHubPremium.heroOverlay} ${cropFlyer ? "from-[#0e0e14]/95 via-[#0e0e14]/40 to-transparent" : ""}`}
+          aria-hidden
+        />
         <div className={couplesHubPremium.heroContent}>
           {eyebrow ? <p className={couplesHubPremium.heroEyebrow}>{eyebrow}</p> : null}
           <h2 className={`${couplesHubPremium.heroTitle} flex items-center gap-2`}>
