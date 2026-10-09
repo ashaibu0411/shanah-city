@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { CouplesHubScreen } from "@/components/couples/CouplesHubScreen";
 import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
-import { CouplesSubpageHeader } from "@/components/couples/CouplesSubpageHeader";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
+import { GOAL_CATEGORY_META } from "@/lib/couples-hub-ui";
 import { Button } from "@/components/ui";
 import {
   MARRIAGE_GOAL_CATEGORIES,
@@ -133,59 +134,54 @@ export function CouplesMarriageGoals() {
   }
 
   return (
-    <div className={couplesHubPremium.page}>
-      <div className={couplesHubPremium.inset}>
-        <CouplesSubpageHeader
-          title="Our goals"
-          subtitle="Spiritual, financial, family, and enrichment milestones you build together."
-        />
-
+    <CouplesHubScreen title="Our goals">
         {locked ? (
-          <div className="mt-6">
-            <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
-          </div>
+          <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
         ) : (
           <>
-            <div className="mt-4 space-y-3">
-              <CouplesHubTabRow
-                tabs={[
-                  { id: "active", label: "Active" },
-                  { id: "completed", label: "Completed" },
-                ]}
-                active={listTab}
-                onChange={setListTab}
-              />
-              <Button onClick={() => setComposerOpen(true)} disabled={busy} className="w-full">
-                + Add a new goal
-              </Button>
-            </div>
+            <CouplesHubTabRow
+              variant="sheet"
+              tabs={[
+                { id: "active", label: "Active" },
+                { id: "completed", label: "Completed" },
+              ]}
+              active={listTab}
+              onChange={setListTab}
+            />
 
             {error ? (
-              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+              <p className={couplesHubPremium.sheetStatusError}>{error}</p>
             ) : loading ? (
-              <p className="mt-8 text-center text-sm text-night-500">Loading…</p>
+              <p className="mt-8 text-center text-sm text-[var(--couples-sheet-muted)]">Loading…</p>
             ) : visibleGoals.length === 0 ? (
-              <p className="mt-8 rounded-xl border border-dashed border-night-900/15 px-4 py-8 text-center text-sm text-night-600">
+              <p className={`${couplesHubPremium.sheetStatusInfo} mt-8`}>
                 Set your first goal as a couple.
               </p>
             ) : (
-              <ul className="mt-4 space-y-3">
-                {visibleGoals.map((goal) => (
-                  <li key={goal.id} className={couplesHubPremium.card}>
-                    <div className="flex items-start justify-between gap-2">
+              <ul className="mt-5 space-y-4">
+                {visibleGoals.map((goal) => {
+                  const meta = GOAL_CATEGORY_META[goal.category];
+                  return (
+                  <li key={goal.id} className={couplesHubPremium.sheetCard}>
+                    <div className="flex items-start gap-3">
+                      <span className={`${couplesHubPremium.iconCircle} ${meta.circle}`} aria-hidden>
+                        {meta.emoji}
+                      </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold uppercase text-night-500">
+                        <p className="font-semibold text-stone-900">{goal.title}</p>
+                        <p className="text-xs text-[var(--couples-sheet-muted)]">
                           {categoryLabel(goal.category)}
                           {goal.targetDate ? ` · Target ${goal.targetDate}` : ""}
                         </p>
-                        <p className="mt-1 font-semibold text-night-950 dark:text-sand-100">{goal.title}</p>
-                        <div className={`${couplesHubPremium.progressTrack} mt-3`}>
+                        <div className={`${couplesHubPremium.sheetProgressTrack} mt-3`}>
                           <div
-                            className={couplesHubPremium.progressFill}
+                            className={couplesHubPremium.sheetProgressFill}
                             style={{ width: `${Math.min(100, goal.progress)}%` }}
                           />
                         </div>
-                        <p className="mt-1 text-xs text-night-500">{goal.progress}% complete</p>
+                        <p className="mt-1 text-right text-xs font-semibold text-[var(--couples-sheet-muted)]">
+                          {goal.progress}%
+                        </p>
                         {goal.milestones.length > 0 ? (
                           <ul className="mt-3 space-y-2">
                             {goal.milestones.map((milestone) => (
@@ -198,7 +194,9 @@ export function CouplesMarriageGoals() {
                                 />
                                 <span
                                   className={
-                                    milestone.done ? "text-night-500 line-through" : "text-night-800"
+                                    milestone.done
+                                      ? "text-[var(--couples-sheet-muted)] line-through"
+                                      : "text-stone-800"
                                   }
                                 >
                                   {milestone.title}
@@ -211,38 +209,48 @@ export function CouplesMarriageGoals() {
                     </div>
                     <button
                       type="button"
-                      className="mt-3 text-xs font-semibold text-night-600 underline-offset-2 hover:underline"
+                      className="mt-3 text-xs font-semibold text-red-600 underline-offset-2 hover:underline"
                       onClick={() => void removeGoal(goal.id)}
                     >
                       Delete
                     </button>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
 
+            <button
+              type="button"
+              className={`${couplesHubPremium.sheetPrimaryCta} mt-6`}
+              onClick={() => setComposerOpen(true)}
+              disabled={busy}
+            >
+              + Add a new goal
+            </button>
+
             {status ? (
-              <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{status}</p>
+              <p className={couplesHubPremium.sheetStatusOk}>{status}</p>
             ) : null}
           </>
         )}
 
         {composerOpen && !locked ? (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-night-950/40 p-4 sm:items-center">
-            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[var(--couples-surface)] p-5 shadow-xl">
-              <h2 className="font-display text-lg font-semibold">New shared goal</h2>
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
+            <div className={couplesHubPremium.sheetModal}>
+              <h2 className="font-display text-lg font-semibold text-stone-900">New shared goal</h2>
               <label className="mt-4 block text-sm">
-                <span className="font-semibold">Title</span>
+                <span className="font-semibold text-[var(--couples-sheet-muted)]">Title</span>
                 <input
-                  className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                  className={`mt-1 ${couplesHubPremium.sheetInput}`}
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                 />
               </label>
               <label className="mt-3 block text-sm">
-                <span className="font-semibold">Category</span>
+                <span className="font-semibold text-[var(--couples-sheet-muted)]">Category</span>
                 <select
-                  className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                  className={`mt-1 ${couplesHubPremium.sheetInput}`}
                   value={category}
                   onChange={(event) => setCategory(event.target.value as MarriageGoalCategory)}
                 >
@@ -252,19 +260,19 @@ export function CouplesMarriageGoals() {
                 </select>
               </label>
               <label className="mt-3 block text-sm">
-                <span className="font-semibold">Target date (optional)</span>
+                <span className="font-semibold text-[var(--couples-sheet-muted)]">Target date (optional)</span>
                 <input
                   type="date"
-                  className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                  className={`mt-1 ${couplesHubPremium.sheetInput}`}
                   value={targetDate}
                   onChange={(event) => setTargetDate(event.target.value)}
                 />
               </label>
               <label className="mt-3 block text-sm">
-                <span className="font-semibold">Milestones (one per line)</span>
+                <span className="font-semibold text-[var(--couples-sheet-muted)]">Milestones (one per line)</span>
                 <textarea
                   rows={4}
-                  className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                  className={`mt-1 ${couplesHubPremium.sheetInput}`}
                   value={milestoneText}
                   onChange={(event) => setMilestoneText(event.target.value)}
                   placeholder="Complete budget review&#10;Schedule date night"
@@ -282,7 +290,6 @@ export function CouplesMarriageGoals() {
           </div>
         ) : null}
 
-      </div>
-    </div>
+    </CouplesHubScreen>
   );
 }

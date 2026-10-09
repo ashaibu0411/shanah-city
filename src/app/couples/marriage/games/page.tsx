@@ -1,10 +1,5 @@
-import { CouplesFeatureShell } from "@/components/couples/CouplesFeatureShell";
+import { CouplesMarriageGames } from "@/components/couples/CouplesMarriageGames";
 
 export default function CouplesGamesPage() {
-  return (
-    <CouplesFeatureShell
-      title="Couples games"
-      description="Conversation cards, trivia, and weekly challenges designed for phones — fun prompts, not relationship scores."
-    />
-  );
+  return <CouplesMarriageGames />;
 }

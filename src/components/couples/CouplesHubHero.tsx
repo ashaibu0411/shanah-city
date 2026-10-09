@@ -7,15 +7,18 @@ export function CouplesHubHero({
   title,
   tagline,
   children,
+  flush = false,
 }: {
   imageSrc?: string;
   eyebrow?: string;
   title: string;
   tagline?: string;
   children?: React.ReactNode;
+  /** Edge-to-edge hero above overlapping cream sheet */
+  flush?: boolean;
 }) {
   return (
-    <div className={couplesHubPremium.heroWrap}>
+    <div className={flush ? "relative overflow-hidden" : couplesHubPremium.heroWrap}>
       <div className="relative aspect-[4/3] w-full sm:aspect-[16/10]">
         <Image
           src={imageSrc}

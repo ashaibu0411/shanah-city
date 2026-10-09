@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CouplesHubHero } from "@/components/couples/CouplesHubHero";
+import { CouplesHubScreen } from "@/components/couples/CouplesHubScreen";
 import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
-import { CouplesSubpageHeader } from "@/components/couples/CouplesSubpageHeader";
 import { couplesHubPremium, COUPLES_DEVOTIONAL_HERO } from "@/components/couples/couples-hub-premium";
 import { Button } from "@/components/ui";
 import type { CoupleMarriageDevotionalView } from "@/lib/couple-marriage-devotional-types";
@@ -31,14 +31,19 @@ export function CouplesMarriageDevotionals() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const [viewTab, setViewTab] = useState<"daily" | "progress">("daily");
+  const [viewTab, setViewTab] = useState<"daily" | "plans" | "progress">("daily");
+  const [readingOpen, setReadingOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
 
   const listForTab =
-    viewTab === "progress" ? devotionals.filter((d) => d.readByMe || d.readBySpouse) : devotionals;
+    viewTab === "progress"
+      ? devotionals.filter((d) => d.readByMe || d.readBySpouse)
+      : devotionals;
   const selected =
-    listForTab.find((d) => d.id === selectedId) ?? listForTab[0] ?? devotionals[0] ?? null;
+    devotionals.find((d) => d.id === selectedId) ?? devotionals[0] ?? null;
+
+  const scripturePreview = selected?.scripture?.trim().split("\n").filter(Boolean)[0] ?? "";
 
   const loadHub = useCallback(() => {
     return fetch("/api/couples/hub")
@@ -114,82 +119,85 @@ export function CouplesMarriageDevotionals() {
   const showGate = !hub?.hasActiveLink && !canManage;
 
   return (
-    <div className={couplesHubPremium.page}>
-      <div className={couplesHubPremium.inset}>
-        <CouplesSubpageHeader
-          title="Devotionals"
-          subtitle="Grow together in God's Word — read, discuss, and mark progress."
-        />
-
+    <CouplesHubScreen
+      title="Devotionals"
+      hero={
         <CouplesHubHero
+          flush
           imageSrc={COUPLES_DEVOTIONAL_HERO}
           title="Grow together in God's Word"
-          tagline="Daily marriage devotionals with scripture, discussion, and prayer."
+          tagline="Daily devotionals for a stronger marriage."
         />
-
+      }
+    >
         {showGate ? (
-          <div className="mt-6">
-            <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
-          </div>
+          <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
         ) : (
           <>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <CouplesHubTabRow
-                tabs={[
-                  { id: "daily", label: "Daily" },
-                  { id: "progress", label: "My progress" },
-                ]}
-                active={viewTab}
-                onChange={setViewTab}
-              />
-              {canManage ? (
-                <Button onClick={() => setEditorOpen(true)} disabled={busy}>
-                  Publish
-                </Button>
-              ) : null}
-            </div>
+            <CouplesHubTabRow
+              variant="sheet"
+              tabs={[
+                { id: "daily", label: "Daily" },
+                { id: "plans", label: "Plans" },
+                { id: "progress", label: "My progress" },
+              ]}
+              active={viewTab}
+              onChange={(id) => {
+                setViewTab(id);
+                setReadingOpen(false);
+              }}
+            />
+            {canManage ? (
+              <Button className="mt-3 w-full" onClick={() => setEditorOpen(true)} disabled={busy}>
+                Publish devotional
+              </Button>
+            ) : null}
 
             {error ? (
-              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+              <p className={couplesHubPremium.sheetStatusError}>{error}</p>
             ) : loading ? (
-              <p className="mt-8 text-center text-sm text-night-500">Loading…</p>
+              <p className="mt-8 text-center text-sm text-[var(--couples-sheet-muted)]">Loading…</p>
             ) : devotionals.length === 0 ? (
-              <p className="mt-8 rounded-xl border border-dashed border-night-900/15 px-4 py-8 text-center text-sm text-night-600">
+              <p className={`${couplesHubPremium.sheetStatusInfo} mt-8`}>
                 {canManage ? "No devotionals yet. Publish the first one." : "Check back soon for new content."}
               </p>
-            ) : (
-              <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-                <ul className="space-y-2">
-                  {listForTab.map((entry) => (
-                    <li key={entry.id}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedId(entry.id)}
-                        className={`w-full rounded-xl px-3 py-2.5 text-left text-sm ${
-                          selected?.id === entry.id
-                            ? "bg-night-900 text-white dark:bg-sand-100 dark:text-night-950"
-                            : "bg-white ring-1 ring-night-900/10 dark:bg-[var(--color-surface)]"
-                        }`}
-                      >
-                        <p className="font-semibold">{entry.title}</p>
-                        <p className="text-xs opacity-80">{entry.publishDate}</p>
-                        {hub?.hasActiveLink ? (
-                          <p className="mt-1 text-xs">
-                            {entry.readByMe ? "You read" : "Not read"}
-                            {entry.readBySpouse ? " · Spouse read" : ""}
-                          </p>
-                        ) : null}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-
-                {selected ? (
-                  <article className={`${couplesHubPremium.card} p-5`}>
-                    <p className="text-xs font-bold uppercase text-night-500">{selected.publishDate}</p>
-                    <h2 className="mt-1 font-display text-xl font-semibold text-night-950 dark:text-sand-100">
-                      {selected.title}
-                    </h2>
+            ) : viewTab === "daily" && selected ? (
+              <article className="mt-5">
+                {!readingOpen ? (
+                  <>
+                    <p className="text-sm font-medium text-stone-700">Today&apos;s devotional</p>
+                    <p className="text-xs text-[var(--couples-sheet-muted)]">{selected.publishDate}</p>
+                    <h2 className="mt-3 font-display text-2xl font-semibold text-stone-900">{selected.title}</h2>
+                    {scripturePreview ? (
+                      <p className="mt-2 text-sm text-[var(--couples-sheet-muted)]">{scripturePreview}</p>
+                    ) : null}
+                    {selected.scripture ? (
+                      <p className="mt-3 text-sm italic leading-relaxed text-stone-800">
+                        {selected.scripture.split("\n").slice(1).join(" ").trim() ||
+                          selected.scripture.split("\n")[0]}
+                      </p>
+                    ) : null}
+                    <button
+                      type="button"
+                      className={`${couplesHubPremium.sheetPrimaryCta} mt-6`}
+                      onClick={() => setReadingOpen(true)}
+                    >
+                      Read today&apos;s devotional
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="mb-4 text-sm font-semibold text-stone-600"
+                      onClick={() => setReadingOpen(false)}
+                    >
+                      ← Back to preview
+                    </button>
+                    <p className="text-xs font-bold uppercase text-[var(--couples-sheet-muted)]">
+                      {selected.publishDate}
+                    </p>
+                    <h2 className="mt-1 font-display text-xl font-semibold text-stone-900">{selected.title}</h2>
                     <Section title="Scripture" body={selected.scripture} />
                     <Section title="Teaching" body={selected.teaching} />
                     <Section title="Discussion" body={selected.discussion} />
@@ -197,31 +205,60 @@ export function CouplesMarriageDevotionals() {
                     <Section title="Prayer" body={selected.prayer} />
                     <Section title="Declaration" body={selected.declaration} />
                     {hub?.hasActiveLink && !selected.readByMe ? (
-                      <Button className="mt-4" disabled={busy} onClick={() => void markRead(selected.id)}>
+                      <Button className="mt-4 w-full" disabled={busy} onClick={() => void markRead(selected.id)}>
                         Mark as read
                       </Button>
                     ) : null}
-                  </article>
-                ) : null}
-              </div>
+                  </>
+                )}
+              </article>
+            ) : (
+              <ul className="mt-5 space-y-2">
+                {listForTab.map((entry) => (
+                  <li key={entry.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedId(entry.id);
+                        setViewTab("daily");
+                        setReadingOpen(true);
+                      }}
+                      className={couplesHubPremium.sheetListRow}
+                    >
+                      <span className={`${couplesHubPremium.iconCircle} couples-tile-tone-devotionals`}>📖</span>
+                      <span className="min-w-0 flex-1 text-left">
+                        <p className="font-semibold text-stone-900">{entry.title}</p>
+                        <p className="text-xs text-[var(--couples-sheet-muted)]">{entry.publishDate}</p>
+                        {hub?.hasActiveLink ? (
+                          <p className="mt-0.5 text-xs text-[var(--couples-sheet-muted)]">
+                            {entry.readByMe ? "You read" : "Not read"}
+                            {entry.readBySpouse ? " · Spouse read" : ""}
+                          </p>
+                        ) : null}
+                      </span>
+                      <span className="text-stone-400" aria-hidden>›</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
 
             {status ? (
-              <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{status}</p>
+              <p className={couplesHubPremium.sheetStatusOk}>{status}</p>
             ) : null}
           </>
         )}
 
         {editorOpen && canManage ? (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-night-950/40 p-4 sm:items-center">
-            <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-5 shadow-xl dark:bg-[var(--color-surface)]">
-              <h2 className="font-display text-lg font-semibold">Publish devotional</h2>
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
+            <div className={`${couplesHubPremium.sheetModal} max-w-lg`}>
+              <h2 className="font-display text-lg font-semibold text-stone-900">Publish devotional</h2>
               {(["publishDate", "title", "scripture"] as const).map((field) => (
                 <label key={field} className="mt-3 block text-sm capitalize">
                   <span className="font-semibold">{field === "publishDate" ? "Publish date" : field}</span>
                   <input
                     type={field === "publishDate" ? "date" : "text"}
-                    className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
                     value={form[field]}
                     onChange={(event) => setForm((prev) => ({ ...prev, [field]: event.target.value }))}
                   />
@@ -229,10 +266,10 @@ export function CouplesMarriageDevotionals() {
               ))}
               {(["teaching", "discussion", "assignment", "prayer", "declaration"] as const).map((field) => (
                 <label key={field} className="mt-3 block text-sm capitalize">
-                  <span className="font-semibold">{field}</span>
+                  <span className="font-semibold text-[var(--couples-text-muted)]">{field}</span>
                   <textarea
                     rows={3}
-                    className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
                     value={form[field]}
                     onChange={(event) => setForm((prev) => ({ ...prev, [field]: event.target.value }))}
                   />
@@ -258,8 +295,7 @@ export function CouplesMarriageDevotionals() {
           </div>
         ) : null}
 
-      </div>
-    </div>
+    </CouplesHubScreen>
   );
 }
 
@@ -267,8 +303,8 @@ function Section({ title, body }: { title: string; body: string }) {
   if (!body?.trim()) return null;
   return (
     <div className="mt-4">
-      <h3 className="text-xs font-bold uppercase tracking-wide text-night-500">{title}</h3>
-      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-night-800 dark:text-sand-200">
+      <h3 className="text-xs font-bold uppercase tracking-wide text-[var(--couples-sheet-muted)]">{title}</h3>
+      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-stone-800">
         {body}
       </p>
     </div>

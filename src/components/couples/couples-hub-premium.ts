@@ -1,9 +1,51 @@
 import { editorialPremium } from "@/components/app/editorial-premium";
 
-/** Shanah Couples Hub — dark, card-forward layout aligned with product mockups. */
+/** Shanah Couples Hub — dark shell + cream content sheets (product mockups). */
 export const couplesHubPremium = {
   page: "couples-hub-page min-w-0 font-sans text-[var(--couples-text)]",
   inset: "mx-auto w-full max-w-lg px-4 pb-28 pt-2",
+  titleBar:
+    "sticky top-0 z-20 flex items-center gap-2 bg-[var(--couples-bg)] px-3 py-3",
+  titleBarBack:
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-2xl font-light text-white transition hover:bg-white/10",
+  titleBarHeading:
+    "min-w-0 flex-1 truncate text-center font-display text-lg font-semibold text-white",
+  titleBarSpacer: "h-10 w-10 shrink-0",
+  contentSheet:
+    "couples-hub-sheet relative z-10 mx-auto w-full max-w-lg rounded-t-[2rem] bg-[var(--couples-sheet-bg)] px-4 pb-28 pt-5 text-[var(--couples-sheet-text)] shadow-[0_-8px_40px_rgba(0,0,0,0.35)]",
+  contentSheetOverlap: "-mt-8",
+  sheetSubtitle: "mb-4 text-sm leading-relaxed text-[var(--couples-sheet-muted)]",
+  sheetCard: "rounded-2xl border border-stone-200/80 bg-white p-4 shadow-sm",
+  sheetListRow:
+    "flex w-full items-center gap-3 rounded-2xl border border-stone-200/60 bg-white p-4 text-left shadow-sm transition hover:border-stone-300",
+  sheetInput:
+    "w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-[var(--couples-sheet-text)] placeholder:text-stone-400",
+  sheetProgressTrack: "h-2 overflow-hidden rounded-full bg-stone-200",
+  sheetProgressFill: "h-full rounded-full bg-emerald-600",
+  sheetPrimaryCta:
+    "inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#5a3d2e] to-[#8b5a2b] px-4 py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 active:scale-[0.99]",
+  sheetTabTrack: "flex gap-1 rounded-full bg-[var(--couples-sheet-tab-track)] p-1",
+  sheetTabPill: "flex-1 rounded-full px-3 py-2 text-center text-xs font-semibold capitalize transition",
+  sheetTabActive: "bg-white text-stone-900 shadow-sm",
+  sheetTabIdle: "text-stone-600",
+  sheetTabUnderlineTrack: "flex border-b border-stone-200",
+  sheetTabUnderline:
+    "flex-1 pb-3 text-center text-sm font-semibold transition",
+  sheetTabUnderlineActive: "border-b-2 border-stone-900 text-stone-900",
+  sheetTabUnderlineIdle: "text-stone-500",
+  sheetStatusOk: "mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900",
+  sheetStatusError: "mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800",
+  sheetStatusInfo:
+    "rounded-xl border border-dashed border-stone-300 bg-stone-50 px-4 py-8 text-center text-sm text-stone-600",
+  sheetModal:
+    "max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-xl",
+  sheetFab:
+    "fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-stone-900 text-2xl text-white shadow-xl",
+  menuPanel:
+    "rounded-[1.75rem] bg-white p-4 shadow-lg ring-1 ring-stone-200/80",
+  iconCircle: "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl",
+  gamesHeroBanner:
+    "rounded-[1.35rem] bg-gradient-to-b from-violet-400 to-violet-800 p-6 text-center text-white shadow-lg",
   screenTitle: "font-display text-2xl font-semibold tracking-tight text-[var(--couples-text)]",
   screenSubtitle: "mt-1 text-sm leading-relaxed text-[var(--couples-text-muted)]",
   backLink:
@@ -26,7 +68,8 @@ export const couplesHubPremium = {
     "couples-hub-tile flex min-h-[7rem] flex-col justify-between rounded-[1.25rem] border border-white/10 bg-[var(--couples-surface)] p-4 text-left transition active:scale-[0.98] hover:border-white/15",
   tileEmoji: "text-3xl leading-none",
   tileTitle: "font-display text-[0.9rem] font-semibold leading-snug tracking-tight text-[var(--couples-text)]",
-  tileTitleMarriage: "font-display text-[0.82rem] font-semibold leading-snug text-[var(--couples-text)]",
+  tileTitleMarriage:
+    "font-display text-[0.82rem] font-semibold leading-snug text-stone-900",
   tileSubtitle: "mt-1 text-xs leading-relaxed text-[var(--couples-text-muted)]",
   gateCard:
     "rounded-[1.25rem] border border-dashed border-rose-400/30 bg-[var(--couples-surface)] p-5 text-sm leading-relaxed text-[var(--couples-text-muted)]",
@@ -50,6 +93,13 @@ export const couplesHubPremium = {
   progressFill: "h-full rounded-full bg-gradient-to-r from-rose-400 to-amber-400",
   fab:
     "fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#0e0e14] text-2xl text-white shadow-xl ring-2 ring-white/15",
+  listRow:
+    "flex w-full items-center gap-3 rounded-[1.25rem] border border-white/10 bg-[var(--couples-surface)] p-4 text-left transition hover:border-white/18",
+  statusOk: "mt-4 rounded-xl bg-emerald-500/15 px-3 py-2 text-sm text-emerald-200",
+  statusError: "mt-4 rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-200",
+  statusInfo: "rounded-xl border border-white/10 bg-[var(--couples-surface)] px-3 py-2.5 text-sm text-[var(--couples-text-muted)]",
+  modalPanel:
+    "max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[var(--couples-surface)] p-5 shadow-xl",
 };
 
 export const COUPLES_HUB_HERO_IMAGE = "/home/home-gallery-12.jpg";

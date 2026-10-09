@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { CouplesHubScreen } from "@/components/couples/CouplesHubScreen";
 import { CouplesHubTileGrid } from "@/components/couples/CouplesHubTileGrid";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
@@ -30,36 +30,28 @@ export function CouplesMarriageDashboard() {
   const locked = !overview?.hasActiveLink;
 
   return (
-    <div className={couplesHubPremium.page}>
-      <div className={couplesHubPremium.inset}>
-        <Link href={powerCouplesGroupHubPath()} className={couplesHubPremium.backLink}>
-          <span aria-hidden>←</span> Couples Hub
-        </Link>
-        <h1 className={`${couplesHubPremium.screenTitle} mt-3`}>Our marriage</h1>
-        <p className={couplesHubPremium.screenSubtitle}>
-          Shared only with your linked spouse — not visible to church staff or the community feed.
+    <CouplesHubScreen title="Couples Hub" backHref={powerCouplesGroupHubPath()} backLabel="Back">
+      <p className={couplesHubPremium.sheetSubtitle}>
+        Shared only with your linked spouse — not visible to church staff or the community feed.
+      </p>
+
+      {overview?.hasActiveLink && overview.partnerName ? (
+        <p className="mb-4 rounded-2xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-800">
+          With <strong>{overview.partnerName}</strong>
         </p>
+      ) : null}
 
-        {overview?.hasActiveLink && overview.partnerName ? (
-          <p className="mt-4 rounded-2xl border border-white/10 bg-[var(--couples-surface)] px-3 py-2 text-sm font-medium">
-            With <strong className="text-rose-200">{overview.partnerName}</strong>
-          </p>
-        ) : null}
-
-        {loading ? (
-          <p className="mt-8 text-center text-sm text-[var(--couples-text-muted)]">Loading…</p>
-        ) : error ? (
-          <p className="mt-8 rounded-xl bg-red-950/50 px-3 py-2 text-sm text-red-200">{error}</p>
-        ) : locked ? (
-          <div className="mt-6">
-            <CouplesLinkGate pendingIncoming={overview?.pendingIncomingInvite} />
-          </div>
-        ) : (
-          <div className="mt-6">
-            <CouplesHubTileGrid tiles={couplesMarriageTiles} variant="marriage" />
-          </div>
-        )}
-      </div>
-    </div>
+      {loading ? (
+        <p className="mt-8 text-center text-sm text-[var(--couples-sheet-muted)]">Loading…</p>
+      ) : error ? (
+        <p className={couplesHubPremium.sheetStatusError}>{error}</p>
+      ) : locked ? (
+        <CouplesLinkGate pendingIncoming={overview?.pendingIncomingInvite} />
+      ) : (
+        <div className={couplesHubPremium.menuPanel}>
+          <CouplesHubTileGrid tiles={couplesMarriageTiles} variant="marriage" />
+        </div>
+      )}
+    </CouplesHubScreen>
   );
 }

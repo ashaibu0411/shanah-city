@@ -18,6 +18,7 @@ import type { GroupDashboardQuickAction } from "@/lib/group-dashboard-types";
 import type { PowerCouplesCommunitySection } from "@/lib/couples-hub-paths";
 
 type CommunityTab = "discussions" | "events" | "resources";
+type HubView = "landing" | "modules" | "community";
 
 const TAB_TILE_IDS: Record<CommunityTab, CouplesHubCommunityTileId[]> = {
   discussions: ["discussions", "prayer", "announcements"],
@@ -26,15 +27,18 @@ const TAB_TILE_IDS: Record<CommunityTab, CouplesHubCommunityTileId[]> = {
 };
 
 export function CouplesHubGroupDashboard({
+  joinSlot,
   onQuickAction,
   onCommunityNavigate,
 }: {
+  joinSlot?: React.ReactNode;
   onQuickAction?: (action: GroupDashboardQuickAction) => void;
   onCommunityNavigate: (target: PowerCouplesCommunitySection) => void;
 }) {
   const [overview, setOverview] = useState<CouplesHubOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [communityTab, setCommunityTab] = useState<CommunityTab>("discussions");
+  const [hubView, setHubView] = useState<HubView>("landing");
 
   useEffect(() => {
     void fetch("/api/couples/hub")
@@ -61,100 +65,37 @@ export function CouplesHubGroupDashboard({
     onCommunityNavigate(target);
   }
 
-  return (
-    <div className="couples-hub-page overflow-hidden rounded-[1.35rem] ring-1 ring-white/10">
-      <div className="px-1 pb-2 pt-0">
-        <CouplesHubHero
-          eyebrow="Shanah City Church"
-          title="Couples Hub"
-          tagline="Grow in faith. Love intentionally. Build together."
-        >
-          {overview?.hasActiveLink && overview.partnerName ? (
-            <p className="mt-4 inline-block rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
-              Linked with {overview.partnerName}
-            </p>
-          ) : null}
-        </CouplesHubHero>
-
-        <div className="mt-3 flex flex-wrap gap-2 px-3">
-          <button
-            type="button"
-            className={`${couplesHubPremium.marriageCta} !w-auto flex-1 min-w-[9rem] !py-2.5 !text-xs`}
-            onClick={() => {
-              document.getElementById("couples-hub-marriage")?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            <span aria-hidden>🔒</span> Our marriage
+  if (hubView !== "landing") {
+    return (
+      <div className={`${couplesHubPremium.inset} !px-0 !pt-2`}>
+        <div className="px-4">
+          <button type="button" className={couplesHubPremium.backLink} onClick={() => setHubView("landing")}>
+            <span aria-hidden>←</span> Couples Hub
           </button>
-          <button
-            type="button"
-            className={`${couplesHubPremium.communityCta} !w-auto flex-1 min-w-[9rem] !py-2.5 !text-xs`}
-            onClick={() => {
-              document.getElementById("couples-hub-community")?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            <span aria-hidden>👥</span> Community
-          </button>
-          {onQuickAction ? (
-            <>
-              <button
-                type="button"
-                className={`${couplesHubPremium.secondaryCta} !w-auto !px-4 !py-2.5 !text-xs`}
-                onClick={() =>
-                  onQuickAction({ id: "hub-chat", label: "Group chat", action: "chat" })
-                }
-              >
-                Group chat
-              </button>
-              <button
-                type="button"
-                className={`${couplesHubPremium.secondaryCta} !w-auto !px-4 !py-2.5 !text-xs`}
-                onClick={() => onCommunityNavigate("calendar")}
-              >
-                Events
-              </button>
-            </>
-          ) : null}
+          <h2 className={`${couplesHubPremium.screenTitle} mt-3`}>
+            {hubView === "modules" ? "Our marriage" : "Couples community"}
+          </h2>
+          <p className={couplesHubPremium.screenSubtitle}>
+            {hubView === "modules"
+              ? "Everything private between you and your spouse."
+              : "Discussions, events, and resources with other couples."}
+          </p>
         </div>
 
-        <section id="couples-hub-marriage" className="mt-6 px-3">
-          <p className={couplesHubPremium.sectionEyebrow}>Our marriage</p>
-          <h3 className="mt-1 font-display text-lg font-semibold text-[var(--couples-text)]">
-            Private space
-          </h3>
-          <p className="mt-1 text-xs text-[var(--couples-text-muted)]">
-            Only you and your linked spouse — not visible to leaders or the community feed.
-          </p>
-          {loading ? (
-            <p className="mt-4 text-center text-sm text-[var(--couples-text-muted)]">Loading…</p>
-          ) : locked ? (
-            <div className="mt-4">
-              <CouplesLinkGate pendingIncoming={overview?.pendingIncomingInvite} />
-            </div>
-          ) : (
-            <div className="mt-4">
+        {hubView === "modules" ? (
+          <section className="mt-4 px-4 pb-8">
+            <div className={couplesHubPremium.menuPanel}>
+            {loading ? (
+              <p className="text-center text-sm text-[var(--couples-sheet-muted)]">Loading…</p>
+            ) : locked ? (
+              <CouplesLinkGate tone="sheet" pendingIncoming={overview?.pendingIncomingInvite} />
+            ) : (
               <CouplesHubTileGrid tiles={couplesMarriageTiles} variant="marriage" />
+            )}
             </div>
-          )}
-          <Link
-            href="/couples/marriage"
-            className="mt-3 inline-block text-xs font-semibold text-rose-300 underline-offset-2 hover:underline"
-          >
-            Open full marriage dashboard
-          </Link>
-        </section>
-
-        <section id="couples-hub-community" className="mt-8 px-3 pb-4">
-          <p className={couplesHubPremium.sectionEyebrow}>Together</p>
-          <h3 className="mt-1 font-display text-lg font-semibold text-[var(--couples-text)]">
-            Couples community
-          </h3>
-          {!overview?.isPowerCouplesMember ? (
-            <p className="mt-2 text-xs text-[var(--couples-text-muted)]">
-              You are viewing this hub from the group — join to unlock all community tools.
-            </p>
-          ) : null}
-          <div className="mt-4">
+          </section>
+        ) : (
+          <section className="mt-6 px-4 pb-8">
             <CouplesHubTabRow
               tabs={[
                 { id: "discussions", label: "Discussions" },
@@ -164,25 +105,103 @@ export function CouplesHubGroupDashboard({
               active={communityTab}
               onChange={setCommunityTab}
             />
-          </div>
-          <div className="mt-4">
-            <CouplesHubTileGrid
-              tiles={communityTiles}
-              onActivateTile={activateCommunityTile}
-            />
-          </div>
-        </section>
-
-        {overview?.canManageMarriageMinistry ? (
-          <section className={`${couplesHubPremium.card} mx-3 mb-3`}>
-            <p className={couplesHubPremium.sectionEyebrow}>Ministry leaders</p>
-            <p className="mt-2 text-xs text-[var(--couples-text-muted)]">
-              Publish marriage devotionals from Manage or the marriage devotionals module. Private
-              spouse data is never visible here.
-            </p>
+            <div className="mt-4">
+              <CouplesHubTileGrid tiles={communityTiles} onActivateTile={activateCommunityTile} />
+            </div>
+            <Link
+              href="/community?group=group-shanah-power-couples"
+              className={`${couplesHubPremium.primaryCta} mt-5`}
+            >
+              Open community feed
+            </Link>
           </section>
-        ) : null}
+        )}
       </div>
+    );
+  }
+
+  return (
+    <div className={`${couplesHubPremium.inset} !px-0 !pt-0`}>
+      <CouplesHubHero
+        eyebrow="Shanah City Church"
+        title="Couples Hub"
+        tagline="Grow in faith. Love intentionally. Build together."
+      >
+        {overview?.hasActiveLink && overview.partnerName ? (
+          <p className="mt-4 inline-block rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+            Linked with {overview.partnerName}
+          </p>
+        ) : null}
+      </CouplesHubHero>
+
+      {joinSlot ? <div className="mt-4 px-4">{joinSlot}</div> : null}
+
+      <div className="mt-4 flex flex-col gap-2 px-4">
+        <button type="button" className={couplesHubPremium.marriageCta} onClick={() => setHubView("modules")}>
+          <span className="flex items-center justify-center gap-2">
+            <span aria-hidden>🔒</span>
+            <span>
+              Our marriage
+              <span className="mt-0.5 block text-xs font-normal text-white/80">Your private space</span>
+            </span>
+          </span>
+        </button>
+        <button type="button" className={couplesHubPremium.communityCta} onClick={() => setHubView("community")}>
+          <span className="flex items-center justify-center gap-2">
+            <span aria-hidden>👥</span>
+            <span>
+              Couples community
+              <span className="mt-0.5 block text-xs font-normal text-white/80">
+                Events, discussions, resources
+              </span>
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <section className="mt-8 px-4">
+        <p className={couplesHubPremium.sectionEyebrow}>Quick access</p>
+        <h3 className="mt-1 font-display text-lg font-semibold">Your marriage modules</h3>
+        {loading ? (
+          <p className="mt-4 text-center text-sm text-[var(--couples-text-muted)]">Loading…</p>
+        ) : locked ? (
+          <div className="mt-4">
+            <CouplesLinkGate tone="dark" pendingIncoming={overview?.pendingIncomingInvite} />
+          </div>
+        ) : (
+          <div className={`${couplesHubPremium.menuPanel} mt-4`}>
+            <CouplesHubTileGrid tiles={couplesMarriageTiles} variant="marriage" />
+          </div>
+        )}
+      </section>
+
+      {onQuickAction ? (
+        <div className="flex flex-wrap gap-2 px-4 py-6">
+          <button
+            type="button"
+            className={`${couplesHubPremium.secondaryCta} !w-auto flex-1 !py-2.5 !text-xs`}
+            onClick={() => onQuickAction({ id: "hub-chat", label: "Group chat", action: "chat" })}
+          >
+            Group chat
+          </button>
+          <button
+            type="button"
+            className={`${couplesHubPremium.secondaryCta} !w-auto flex-1 !py-2.5 !text-xs`}
+            onClick={() => onCommunityNavigate("calendar")}
+          >
+            Couples events
+          </button>
+        </div>
+      ) : null}
+
+      {overview?.canManageMarriageMinistry ? (
+        <section className={`${couplesHubPremium.card} mx-4 mb-4`}>
+          <p className={couplesHubPremium.sectionEyebrow}>Ministry leaders</p>
+          <p className="mt-2 text-xs text-[var(--couples-text-muted)]">
+            Publish marriage devotionals from the devotionals module or Manage.
+          </p>
+        </section>
+      ) : null}
     </div>
   );
 }

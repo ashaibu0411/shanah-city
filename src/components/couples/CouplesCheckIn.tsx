@@ -1,14 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { CouplesHubScreen } from "@/components/couples/CouplesHubScreen";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
-import { CouplesSubpageHeader } from "@/components/couples/CouplesSubpageHeader";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
 import { Button } from "@/components/ui";
 import {
   CHECK_IN_DIMENSIONS,
   type CheckInDimensionId,
 } from "@/lib/couple-check-in-types";
+import {
+  CHECK_IN_EMOJI,
+  CHECK_IN_ICON_BG,
+  CHECK_IN_SUBTITLES,
+} from "@/lib/couples-hub-ui";
 import type { CouplesHubOverview } from "@/lib/couples-hub-types";
 
 type AnswerDraft = { reflection: string; shareWithSpouse: boolean };
@@ -27,6 +32,7 @@ export function CouplesCheckIn() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<CheckInDimensionId | null>("communication");
 
   const locked = !hub?.hasActiveLink;
 
@@ -108,59 +114,78 @@ export function CouplesCheckIn() {
   }
 
   return (
-    <div className={couplesHubPremium.page}>
-      <div className={couplesHubPremium.inset}>
-        <CouplesSubpageHeader
-          title="Marriage check-in"
-          subtitle={`Weekly reflection — private until you share with ${hub?.partnerName ?? "your spouse"}.`}
-        />
-
+    <CouplesHubScreen title="Marriage check-in">
         {locked ? (
-          <div className="mt-6">
-            <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
-          </div>
+          <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
         ) : loading ? (
-          <p className="mt-8 text-center text-sm text-night-500">Loading…</p>
+          <p className="mt-8 text-center text-sm text-[var(--couples-sheet-muted)]">Loading…</p>
         ) : error ? (
-          <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          <p className={couplesHubPremium.sheetStatusError}>{error}</p>
         ) : (
           <>
-            <div className={`${couplesHubPremium.card} mt-2`}>
-              <div className="flex items-center justify-between text-sm font-semibold">
-                <span>Weekly check-in</span>
-                <span className="text-[var(--couples-text-muted)]">
-                  {completedCount} of {CHECK_IN_DIMENSIONS.length} completed
-                </span>
+            <div className="mb-6">
+              <h2 className="font-display text-lg font-semibold text-stone-900">Weekly check-in</h2>
+              <p className="mt-1 text-sm text-[var(--couples-sheet-muted)]">
+                Take time to reflect, communicate, and grow together.
+              </p>
+              <div className="mt-4 flex gap-1">
+                {CHECK_IN_DIMENSIONS.map((dim) => {
+                  const done = Boolean(
+                    (drafts[dim.id]?.reflection ?? myAnswers[dim.id]?.reflection ?? "").trim(),
+                  );
+                  const filled = done;
+                  return (
+                    <div
+                      key={dim.id}
+                      className={`h-2 flex-1 rounded-full ${filled ? "bg-emerald-600" : "bg-stone-200"}`}
+                    />
+                  );
+                })}
               </div>
-              <div className={`${couplesHubPremium.progressTrack} mt-3`}>
-                <div
-                  className={couplesHubPremium.progressFill}
-                  style={{
-                    width: `${(completedCount / CHECK_IN_DIMENSIONS.length) * 100}%`,
-                  }}
-                />
-              </div>
+              <p className="mt-2 text-right text-xs font-semibold text-[var(--couples-sheet-muted)]">
+                {completedCount} of {CHECK_IN_DIMENSIONS.length} completed
+              </p>
               {weekStart ? (
-                <p className="mt-2 text-xs text-[var(--couples-text-muted)]">Week of {weekStart}</p>
+                <p className="text-xs text-[var(--couples-sheet-muted)]">Week of {weekStart}</p>
               ) : null}
             </div>
 
-            <ul className="mt-4 space-y-3">
+            <ul className="divide-y divide-stone-200 rounded-2xl border border-stone-200/80 bg-white">
               {CHECK_IN_DIMENSIONS.map((dim) => {
                 const draft = drafts[dim.id] ?? { reflection: "", shareWithSpouse: false };
                 const shared = spouseShared[dim.id];
+                const isOpen = expanded === dim.id;
+                const done = Boolean((draft.reflection ?? myAnswers[dim.id]?.reflection ?? "").trim());
                 return (
-                  <li
-                    key={dim.id}
-                    className={couplesHubPremium.card}
-                  >
-                    <p className="text-sm font-semibold">{dim.label}</p>
-                    <p className="mt-1 text-sm text-[var(--couples-text-muted)]">{dim.prompt}</p>
-                    <label className="mt-3 block text-sm">
-                      <span className="font-medium text-[var(--couples-text-muted)]">Your reflection</span>
+                  <li key={dim.id}>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 px-4 py-4 text-left"
+                      onClick={() => setExpanded(isOpen ? null : dim.id)}
+                    >
+                      <span
+                        className={`${couplesHubPremium.iconCircle} ${CHECK_IN_ICON_BG[dim.id]}`}
+                        aria-hidden
+                      >
+                        {CHECK_IN_EMOJI[dim.id]}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <p className="font-semibold text-stone-900">{dim.label}</p>
+                        <p className="text-xs text-[var(--couples-sheet-muted)]">
+                          {CHECK_IN_SUBTITLES[dim.id]}
+                        </p>
+                      </span>
+                      <span className="text-stone-400" aria-hidden>
+                        {done ? "✓" : "›"}
+                      </span>
+                    </button>
+                    {isOpen ? (
+                    <div className="border-t border-stone-100 bg-stone-50 px-4 py-4">
+                    <label className="block text-sm">
+                      <span className="font-medium text-[var(--couples-sheet-muted)]">Your reflection</span>
                       <textarea
                         rows={3}
-                        className={`mt-1 ${couplesHubPremium.input}`}
+                        className={`mt-1 ${couplesHubPremium.sheetInput}`}
                         value={draft.reflection}
                         onChange={(event) =>
                           setDrafts((prev) => ({
@@ -171,7 +196,7 @@ export function CouplesCheckIn() {
                         placeholder="A few honest sentences…"
                       />
                     </label>
-                    <label className="mt-2 flex items-center gap-2 text-sm text-[var(--couples-text-muted)]">
+                    <label className="mt-2 flex items-center gap-2 text-sm text-[var(--couples-sheet-muted)]">
                       <input
                         type="checkbox"
                         checked={draft.shareWithSpouse}
@@ -192,19 +217,21 @@ export function CouplesCheckIn() {
                       Save
                     </Button>
                     {shared?.reflection ? (
-                      <div className="mt-4 rounded-xl bg-sand-50 px-3 py-2.5 text-sm dark:bg-night-900/40">
-                        <p className="text-xs font-bold uppercase text-night-500">Spouse shared</p>
-                        <p className="mt-1 whitespace-pre-wrap text-night-800 dark:text-sand-200">
+                      <div className={`${couplesHubPremium.sheetCard} mt-4`}>
+                        <p className="text-xs font-bold uppercase text-[var(--couples-sheet-muted)]">Spouse shared</p>
+                        <p className="mt-1 whitespace-pre-wrap text-stone-800">
                           {shared.reflection}
                         </p>
-                        <p className="mt-2 text-xs text-clay-800 dark:text-clay-200">
+                        <p className="mt-2 text-xs text-amber-800">
                           Conversation starter: {dim.conversationStarter}
                         </p>
                       </div>
                     ) : myAnswers[dim.id]?.shareWithSpouse === false && spouseShared[dim.id] === undefined ? (
-                      <p className="mt-2 text-xs text-night-500">
+                      <p className="mt-2 text-xs text-[var(--couples-sheet-muted)]">
                         When you both share, use this prompt: {dim.conversationStarter}
                       </p>
+                    ) : null}
+                    </div>
                     ) : null}
                   </li>
                 );
@@ -212,12 +239,11 @@ export function CouplesCheckIn() {
             </ul>
 
             {status ? (
-              <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{status}</p>
+              <p className={couplesHubPremium.sheetStatusOk}>{status}</p>
             ) : null}
           </>
         )}
 
-      </div>
-    </div>
+    </CouplesHubScreen>
   );
 }

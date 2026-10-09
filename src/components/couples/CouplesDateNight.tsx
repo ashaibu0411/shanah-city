@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CouplesHubHero } from "@/components/couples/CouplesHubHero";
+import { CouplesHubScreen } from "@/components/couples/CouplesHubScreen";
 import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
-import { CouplesSubpageHeader } from "@/components/couples/CouplesSubpageHeader";
 import { couplesHubPremium, COUPLES_DATE_NIGHT_HERO } from "@/components/couples/couples-hub-premium";
 import { Button } from "@/components/ui";
 import {
@@ -227,18 +227,17 @@ export function CouplesDateNight() {
   }
 
   return (
-    <div className={couplesHubPremium.page}>
-      <div className={couplesHubPremium.inset}>
-        <CouplesSubpageHeader
-          title="Date night"
-          subtitle="Create memories. Keep the spark alive — private to your marriage."
-        />
-
+    <CouplesHubScreen
+      title="Date night"
+      hero={
         <CouplesHubHero
+          flush
           imageSrc={COUPLES_DATE_NIGHT_HERO}
           title="Make time for us"
-          tagline="Ideas, plans, and surprise invites for intentional time together."
+          tagline="Create memories. Keep the spark alive."
         />
+      }
+    >
 
         {locked ? (
           <div className="mt-6">
@@ -248,13 +247,13 @@ export function CouplesDateNight() {
           <>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <CouplesHubTabRow
+                variant="sheet"
                 tabs={[
                   { id: "ideas", label: "Ideas" },
                   { id: "dates", label: "My dates" },
                   { id: "challenge", label: "Challenges" },
-                  { id: "history", label: "History" },
                 ]}
-                active={tab}
+                active={tab === "history" ? "dates" : tab}
                 onChange={setTab}
               />
               <Button className="!py-2" onClick={() => openSchedule()} disabled={busy}>
@@ -263,14 +262,14 @@ export function CouplesDateNight() {
             </div>
 
             {error ? (
-              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+              <p className={couplesHubPremium.statusError}>{error}</p>
             ) : loading ? (
-              <p className="mt-8 text-center text-sm text-night-500">Loading…</p>
+              <p className="mt-8 text-center text-sm text-[var(--couples-text-muted)]">Loading…</p>
             ) : tab === "ideas" ? (
               <div className="mt-4 space-y-4">
                 <div className="flex flex-wrap gap-2">
                   <select
-                    className="rounded-xl border border-night-900/10 px-3 py-2 text-sm"
+                    className={couplesHubPremium.input}
                     value={budgetFilter}
                     onChange={(event) =>
                       setBudgetFilter(event.target.value as DateNightBudget | "all")
@@ -282,7 +281,7 @@ export function CouplesDateNight() {
                     ))}
                   </select>
                   <select
-                    className="rounded-xl border border-night-900/10 px-3 py-2 text-sm"
+                    className={couplesHubPremium.input}
                     value={locationFilter}
                     onChange={(event) =>
                       setLocationFilter(event.target.value as DateNightLocation | "all")
@@ -296,32 +295,37 @@ export function CouplesDateNight() {
                 </div>
                 <ul className="space-y-3">
                   {filteredCatalog.map((item) => (
-                    <li
-                      key={item.id}
-                      className="rounded-[1.25rem] border border-night-900/8 bg-white p-4 dark:border-white/10 dark:bg-[var(--color-surface)]"
-                    >
-                      <p className="font-display font-semibold text-night-950 dark:text-sand-100">
-                        {item.title}
-                      </p>
-                      <p className="mt-1 text-sm text-night-600 dark:text-sand-400">{item.description}</p>
-                      <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-night-500">
-                        {budgetLabel(item.budget)} · {locationLabel(item.locationType)}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-3">
-                        <button
-                          type="button"
-                          className="text-xs font-semibold text-night-900 underline-offset-2 hover:underline"
-                          onClick={() => openSchedule(item)}
-                        >
-                          Schedule
-                        </button>
-                        <button
-                          type="button"
-                          className="text-xs font-semibold text-rose-800 underline-offset-2 hover:underline"
-                          onClick={() => void saveFavorite(item)}
-                        >
-                          Save favorite
-                        </button>
+                    <li key={item.id} className={couplesHubPremium.card}>
+                      <div className="flex items-start gap-3">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl" aria-hidden>
+                          💕
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-display font-semibold text-[var(--couples-text)]">
+                            {item.title}
+                          </p>
+                          <p className="mt-1 text-sm text-[var(--couples-text-muted)]">{item.description}</p>
+                          <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-[var(--couples-text-muted)]">
+                            {budgetLabel(item.budget)} · {locationLabel(item.locationType)}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-3">
+                            <button
+                              type="button"
+                              className="text-xs font-semibold text-[var(--couples-text)] underline-offset-2 hover:underline"
+                              onClick={() => openSchedule(item)}
+                            >
+                              Schedule
+                            </button>
+                            <button
+                              type="button"
+                              className="text-xs font-semibold text-rose-300 underline-offset-2 hover:underline"
+                              onClick={() => void saveFavorite(item)}
+                            >
+                              Save favorite
+                            </button>
+                          </div>
+                        </div>
+                        <span className="text-[var(--couples-text-muted)]" aria-hidden>›</span>
                       </div>
                     </li>
                   ))}
@@ -436,7 +440,6 @@ export function CouplesDateNight() {
         <Link href="/couples/marriage" className={`${couplesHubPremium.secondaryCta} mt-10`}>
           Back to marriage dashboard
         </Link>
-      </div>
-    </div>
+    </CouplesHubScreen>
   );
 }

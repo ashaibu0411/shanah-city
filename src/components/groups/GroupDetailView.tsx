@@ -16,6 +16,8 @@ import { GroupPollsPanel } from "@/components/groups/GroupPollsPanel";
 import { GroupCalendarPanel } from "@/components/calendar/GroupCalendarPanel";
 import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
 import { CouplesHubGroupDashboard } from "@/components/couples/CouplesHubGroupDashboard";
+import { CouplesHubGroupHeader } from "@/components/couples/CouplesHubGroupHeader";
+import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
 import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel";
 import { CoupleMentorPanel } from "@/components/groups/CoupleMentorPanel";
 import { CouplePrayerPanel } from "@/components/groups/CouplePrayerPanel";
@@ -397,22 +399,40 @@ export function GroupDetailView({
     detailTabs[0]?.id ??
     "overview";
 
+  const powerCouplesHubHome = isPowerCouplesGroup && detailSection === "overview";
+
   return (
     <div
-      className={`${groupsPremium.page} overflow-hidden ${
-        isMobileApp ? "-mx-4 -mt-4" : "rounded-[1.5rem] border border-night-900/8 shadow-[0_8px_32px_rgba(15,23,42,0.06)]"
-      }`}
+      className={
+        isPowerCouplesGroup
+          ? `${couplesHubPremium.page} min-h-full overflow-hidden ${
+              isMobileApp ? "-mx-4 -mt-4" : ""
+            }`
+          : `${groupsPremium.page} overflow-hidden ${
+              isMobileApp ? "-mx-4 -mt-4" : "rounded-[1.5rem] border border-night-900/8 shadow-[0_8px_32px_rgba(15,23,42,0.06)]"
+            }`
+      }
     >
-      <GroupBandHeader
-        group={detail}
-        showChatAction={Boolean(hasMemberAccess && user)}
-        onMembersClick={showInfoTab ? openInfoSection : () => openManageSection("members")}
-        onInviteClick={canManageMembers ? () => openManageSection("invite") : undefined}
-        onChatClick={() => setDetailSection("chat")}
-        joinSlot={joinSlot}
-      />
+      {isPowerCouplesGroup ? (
+        <CouplesHubGroupHeader
+          showChat={Boolean(hasMemberAccess && user)}
+          onChatClick={() => setDetailSection("chat")}
+          onInfoClick={showInfoTab ? openInfoSection : undefined}
+          showManage={showManageTab}
+          onManageClick={() => setDetailSection("manage")}
+        />
+      ) : (
+        <GroupBandHeader
+          group={detail}
+          showChatAction={Boolean(hasMemberAccess && user)}
+          onMembersClick={showInfoTab ? openInfoSection : () => openManageSection("members")}
+          onInviteClick={canManageMembers ? () => openManageSection("invite") : undefined}
+          onChatClick={() => setDetailSection("chat")}
+          joinSlot={joinSlot}
+        />
+      )}
 
-      {user && detailTabs.length > 0 ? (
+      {user && detailTabs.length > 0 && !isPowerCouplesGroup ? (
         <GroupBandTabs
           tabs={detailTabs}
           activeId={defaultSectionForTabs}
@@ -425,7 +445,7 @@ export function GroupDetailView({
         />
       ) : null}
 
-      {!detail.isMember && user && !isSiteAdminManaging ? (
+      {!isPowerCouplesGroup && !detail.isMember && user && !isSiteAdminManaging ? (
         <div className={groupsPremium.pageInset}>
           <GroupPremiumStackCard>
             <GroupPremiumSectionLabel>About</GroupPremiumSectionLabel>
@@ -434,7 +454,20 @@ export function GroupDetailView({
         </div>
       ) : null}
 
-      <div className={`${groupsPremium.pageInset} space-y-4`}>
+      <div
+        className={`${
+          isPowerCouplesGroup ? (powerCouplesHubHome ? "" : couplesHubPremium.inset) : groupsPremium.pageInset
+        } space-y-4`}
+      >
+        {isPowerCouplesGroup && !powerCouplesHubHome && user ? (
+          <button
+            type="button"
+            className={couplesHubPremium.backLink}
+            onClick={() => setDetailSection("overview")}
+          >
+            <span aria-hidden>←</span> Couples Hub
+          </button>
+        ) : null}
         {detail.trainingPending && user && !showReadinessFlow ? (
           <GroupPremiumStackCard>
             <GroupPremiumSectionLabel>Before you serve</GroupPremiumSectionLabel>
@@ -501,10 +534,11 @@ export function GroupDetailView({
             </Card>
             <GuestQueuePanel variant="follow-up" compactHeader />
           </div>
-        ) : detailSection === "overview" && hasMemberAccess && user ? (
+        ) : detailSection === "overview" && user ? (
           isPowerCouplesGroup ? (
             <CouplesHubGroupDashboard
-              onQuickAction={handleDashboardQuickAction}
+              joinSlot={!hasMemberAccess ? joinSlot : undefined}
+              onQuickAction={hasMemberAccess ? handleDashboardQuickAction : undefined}
               onCommunityNavigate={(target) => {
                 if (target === "devotions") {
                   router.push("/devotions");
@@ -517,7 +551,7 @@ export function GroupDetailView({
                 setDetailSection(target);
               }}
             />
-          ) : isYoungAdultsHubGroup ? (
+          ) : hasMemberAccess && isYoungAdultsHubGroup ? (
             <YoungAdultsHubDashboard
               groupId={detail.id}
               groupName={detail.name}
@@ -527,7 +561,7 @@ export function GroupDetailView({
               onQuickAction={handleDashboardQuickAction}
               onSetupRoster={() => openManageSection("roster")}
             />
-          ) : (
+          ) : hasMemberAccess ? (
             <GroupDashboardPanel
               groupId={detail.id}
               groupName={detail.name}
@@ -536,7 +570,7 @@ export function GroupDetailView({
               onQuickAction={handleDashboardQuickAction}
               onSetupRoster={() => openManageSection("roster")}
             />
-          )
+          ) : null
         ) : detailSection === "info" && showInfoTab && user ? (
           <GroupInfoPanel
             detail={detail}

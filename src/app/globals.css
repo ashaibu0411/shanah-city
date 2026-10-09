@@ -5823,13 +5823,29 @@ html.native-app-boot .native-boot-splash img {
 
 /* Couples Hub — mockup-aligned dark shell + pastel module tiles */
 .couples-hub-page {
-  --couples-bg: #0e0e14;
-  --couples-surface: #1a1a24;
+  --couples-bg: #121212;
+  --couples-surface: #1c1c1c;
   --couples-text: #f5f0e8;
   --couples-text-muted: #a8a29e;
+  --couples-sheet-bg: #fdf7f0;
+  --couples-sheet-tab-track: #ebe4d8;
+  --couples-sheet-text: #1c1917;
+  --couples-sheet-muted: #78716c;
   background: var(--couples-bg);
   color: var(--couples-text);
   min-height: 100%;
+}
+
+.couples-hub-sheet .couples-tile-tone-calendar,
+.couples-hub-sheet .couples-tile-tone-date-night,
+.couples-hub-sheet .couples-tile-tone-love-notes,
+.couples-hub-sheet .couples-tile-tone-check-in,
+.couples-hub-sheet .couples-tile-tone-prayer,
+.couples-hub-sheet .couples-tile-tone-goals,
+.couples-hub-sheet .couples-tile-tone-devotionals,
+.couples-hub-sheet .couples-tile-tone-games,
+.couples-hub-sheet .couples-tile-tone-community {
+  color: var(--couples-sheet-text);
 }
 
 .couples-tile-tone-calendar {
@@ -5867,6 +5883,14 @@ html.native-app-boot .native-boot-splash img {
 .couples-tile-tone-community {
   background: linear-gradient(160deg, rgba(167, 139, 250, 0.35), rgba(91, 33, 182, 0.12));
   border: 1px solid rgba(167, 139, 250, 0.25);
+}
+
+.couples-hub-sheet .couples-hub-calendar > div > [class*="Card"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 @media print {

@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
+import { CouplesHubScreen } from "@/components/couples/CouplesHubScreen";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
 import { powerCouplesGroupHubPath } from "@/lib/couples-hub-paths";
-import { CouplesSubpageHeader } from "@/components/couples/CouplesSubpageHeader";
 import { Button } from "@/components/ui";
 import {
   COUPLE_CALENDAR_CATEGORIES,
@@ -53,15 +53,15 @@ const REMINDER_OPTIONS = [
 function categoryChipClass(category: string) {
   switch (category) {
     case "date-night":
-      return "bg-rose-100 text-rose-900";
+      return "bg-rose-500/25 text-rose-100";
     case "anniversary":
-      return "bg-amber-100 text-amber-950";
+      return "bg-amber-500/25 text-amber-100";
     case "family":
-      return "bg-sky-100 text-sky-950";
+      return "bg-sky-500/25 text-sky-100";
     case "church":
-      return "bg-violet-100 text-violet-950";
+      return "bg-violet-500/25 text-violet-100";
     default:
-      return "bg-sand-100 text-night-800";
+      return "bg-white/10 text-[var(--couples-text-muted)]";
   }
 }
 
@@ -210,12 +210,17 @@ export function CouplesMarriageCalendar() {
   }
 
   return (
-    <div className={couplesHubPremium.page}>
-      <div className={couplesHubPremium.inset}>
-        <CouplesSubpageHeader
-          title="Our calendar"
-          subtitle="Shared with your spouse only — month, week, and agenda. Times use Mountain Time."
-        />
+    <CouplesHubScreen
+      title="Our calendar"
+      fab={
+        locked
+          ? undefined
+          : { label: "Add calendar event", onClick: () => openCreate() }
+      }
+    >
+        <p className={couplesHubPremium.sheetSubtitle}>
+          Shared with your spouse only. Times use Mountain Time.
+        </p>
 
         {locked ? (
           <div className="mt-6">
@@ -223,29 +228,18 @@ export function CouplesMarriageCalendar() {
           </div>
         ) : (
           <>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button onClick={() => openCreate()} disabled={busy}>
-                Add event
-              </Button>
-              <Link href="/couples/marriage" className={couplesHubPremium.secondaryCta}>
-                Marriage dashboard
-              </Link>
-            </div>
-
             {error ? (
-              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+              <p className={couplesHubPremium.sheetStatusError}>{error}</p>
             ) : loading ? (
-              <p className="mt-8 text-center text-sm text-night-500">Loading calendar…</p>
+              <p className="mt-8 text-center text-sm text-[var(--couples-sheet-muted)]">Loading calendar…</p>
             ) : (
-              <div className="mt-4">
+              <div className="couples-hub-calendar mt-2">
                 <CalendarMonthView
                   items={calendarItems}
-                  emptyDayLabel="Nothing planned — tap Add event or pick another day."
+                  emptyDayLabel="Nothing planned — tap + or pick another day."
                   emptyMonthLabel="No shared events this month yet."
                   renderItem={(item) => (
-                    <div
-                      className="rounded-xl border border-night-900/8 bg-white p-3 dark:border-white/10 dark:bg-[var(--color-surface)]"
-                    >
+                    <div className={couplesHubPremium.sheetListRow}>
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
                           <span
@@ -254,20 +248,20 @@ export function CouplesMarriageCalendar() {
                             {COUPLE_CALENDAR_CATEGORIES.find((entry) => entry.id === item.category)
                               ?.label ?? item.category}
                           </span>
-                          <p className="mt-1 font-display text-base font-semibold text-night-950 dark:text-sand-100">
+                          <p className="mt-1 font-display text-base font-semibold text-stone-900">
                             {item.title}
                           </p>
-                          <p className="text-sm text-night-600 dark:text-sand-400">
+                          <p className="text-sm text-[var(--couples-sheet-muted)]">
                             {item.allDay ? "All day" : item.time || item.schedule}
                             {item.recurrence && item.recurrence !== "none"
                               ? ` · Repeats ${item.recurrence}`
                               : ""}
                           </p>
                           {item.notes ? (
-                            <p className="mt-2 text-sm text-night-700 dark:text-sand-300">{item.notes}</p>
+                            <p className="mt-2 text-sm text-[var(--couples-text-muted)]">{item.notes}</p>
                           ) : null}
                           {item.isVirtualAnniversary ? (
-                            <p className="mt-1 text-xs text-night-500">
+                            <p className="mt-1 text-xs text-[var(--couples-text-muted)]">
                               From your profile anniversary — edit the date on Profile.
                             </p>
                           ) : null}
@@ -276,15 +270,15 @@ export function CouplesMarriageCalendar() {
                           <div className="flex shrink-0 gap-2">
                             <button
                               type="button"
-                              className="text-xs font-semibold text-night-700 underline-offset-2 hover:underline"
+                              className="text-xs font-semibold text-[var(--couples-text)] underline-offset-2 hover:underline"
                               onClick={() => openEdit(item)}
                             >
                               Edit
                             </button>
                             <button
                               type="button"
-                              className="text-xs font-semibold text-red-700 underline-offset-2 hover:underline"
-                              onClick={() => deleteEvent(item)}
+                              className="text-xs font-semibold text-red-300 underline-offset-2 hover:underline"
+                              onClick={() => void deleteEvent(item)}
                             >
                               Delete
                             </button>
@@ -298,40 +292,40 @@ export function CouplesMarriageCalendar() {
             )}
 
             {status ? (
-              <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{status}</p>
+              <p className={couplesHubPremium.sheetStatusOk}>{status}</p>
             ) : null}
           </>
         )}
 
         {formOpen && !locked ? (
           <div
-            className="fixed inset-0 z-50 flex items-end justify-center bg-night-950/40 p-4 sm:items-center"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center"
             role="dialog"
             aria-modal="true"
             aria-labelledby="couple-event-form-title"
           >
-            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-xl dark:bg-[var(--color-surface)]">
+            <div className={couplesHubPremium.sheetModal}>
               <h2
                 id="couple-event-form-title"
-                className="font-display text-lg font-semibold text-night-950 dark:text-sand-100"
+                className="font-display text-lg font-semibold text-stone-900"
               >
                 {form.eventId ? "Edit event" : "New event"}
               </h2>
 
               <div className="mt-4 space-y-3">
                 <label className="block text-sm">
-                  <span className="font-semibold text-night-700">Title</span>
+                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Title</span>
                   <input
-                    className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
                     value={form.title}
                     onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
                   />
                 </label>
 
                 <label className="block text-sm">
-                  <span className="font-semibold text-night-700">Category</span>
+                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Category</span>
                   <select
-                    className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
                     value={form.category}
                     onChange={(event) =>
                       setForm((current) => ({ ...current, category: event.target.value }))
@@ -343,7 +337,7 @@ export function CouplesMarriageCalendar() {
                   </select>
                 </label>
 
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-sm text-[var(--couples-text-muted)]">
                   <input
                     type="checkbox"
                     checked={form.allDay}
@@ -351,14 +345,14 @@ export function CouplesMarriageCalendar() {
                       setForm((current) => ({ ...current, allDay: event.target.checked }))
                     }
                   />
-                  <span className="font-semibold text-night-700">All day</span>
+                  <span className="font-semibold">All day</span>
                 </label>
 
                 <label className="block text-sm">
-                  <span className="font-semibold text-night-700">Date</span>
+                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Date</span>
                   <input
                     type="date"
-                    className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
                     value={form.dateKey}
                     onChange={(event) =>
                       setForm((current) => ({ ...current, dateKey: event.target.value }))
@@ -368,10 +362,10 @@ export function CouplesMarriageCalendar() {
 
                 {!form.allDay ? (
                   <label className="block text-sm">
-                    <span className="font-semibold text-night-700">Start time</span>
+                    <span className="font-semibold text-[var(--couples-sheet-muted)]">Start time</span>
                     <input
                       type="time"
-                      className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                      className={`mt-1 ${couplesHubPremium.sheetInput}`}
                       value={form.time}
                       onChange={(event) =>
                         setForm((current) => ({ ...current, time: event.target.value }))
@@ -381,9 +375,9 @@ export function CouplesMarriageCalendar() {
                 ) : null}
 
                 <label className="block text-sm">
-                  <span className="font-semibold text-night-700">Repeat</span>
+                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Repeat</span>
                   <select
-                    className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
                     value={form.recurrence}
                     onChange={(event) =>
                       setForm((current) => ({
@@ -399,9 +393,9 @@ export function CouplesMarriageCalendar() {
                 </label>
 
                 <label className="block text-sm">
-                  <span className="font-semibold text-night-700">Reminder</span>
+                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Reminder</span>
                   <select
-                    className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
                     value={form.reminderMin}
                     onChange={(event) =>
                       setForm((current) => ({ ...current, reminderMin: event.target.value }))
@@ -416,9 +410,9 @@ export function CouplesMarriageCalendar() {
                 </label>
 
                 <label className="block text-sm">
-                  <span className="font-semibold text-night-700">Notes</span>
+                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Notes</span>
                   <textarea
-                    className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
                     rows={3}
                     value={form.notes}
                     onChange={(event) =>
@@ -448,10 +442,9 @@ export function CouplesMarriageCalendar() {
           </div>
         ) : null}
 
-        <Link href={powerCouplesGroupHubPath()} className={`${couplesHubPremium.secondaryCta} mt-10`}>
+        <Link href={powerCouplesGroupHubPath()} className={`${couplesHubPremium.sheetPrimaryCta} mt-10 !bg-stone-200 !text-stone-900`}>
           Back to Couples Hub
         </Link>
-      </div>
-    </div>
+    </CouplesHubScreen>
   );
 }
