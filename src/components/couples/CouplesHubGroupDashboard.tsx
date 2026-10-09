@@ -7,6 +7,7 @@ import {
   CouplesFeatureCard,
   CouplesHeroCard,
   CouplesLoadingSkeleton,
+  CouplesSecondaryButton,
   CouplesSectionHeading,
   CouplesShortcutTile,
 } from "@/components/couples/design-system";
@@ -148,62 +149,69 @@ export function CouplesHubGroupDashboard({
   }
 
   if (hubView !== "landing") {
+    const subTitle = hubView === "modules" ? "Our Marriage" : "Couples Community";
+    const subDescription =
+      hubView === "modules"
+        ? "Everything private between you and your spouse."
+        : "Discussions, events, and resources with other couples.";
+
     return (
-      <div className={`${couplesHubPremium.inset} !px-0 !pt-2`}>
-        <div className="px-4">
-          <button type="button" className={couplesHubPremium.backLink} onClick={() => setHubView("landing")}>
-            <span aria-hidden>←</span> Couples Hub
+      <div className="couples-hub-subpage pb-28">
+        <div className="px-[var(--couples-page-padding)] pt-1">
+          <button
+            type="button"
+            className="inline-flex min-h-[2.75rem] items-center gap-1.5 text-sm font-semibold text-[var(--couples-gold)] transition active:opacity-80"
+            onClick={() => setHubView("landing")}
+          >
+            <span className="text-lg font-light" aria-hidden>‹</span>
+            Power Couples home
           </button>
-          <h2 className={`${couplesHubPremium.screenTitle} mt-3`}>
-            {hubView === "modules" ? "Our marriage" : "Couples community"}
-          </h2>
-          <p className={couplesHubPremium.screenSubtitle}>
-            {hubView === "modules"
-              ? "Everything private between you and your spouse."
-              : "Discussions, events, and resources with other couples."}
-          </p>
+          <CouplesSectionHeading title={subTitle} description={subDescription} />
         </div>
 
         {hubView === "modules" ? (
-          <section className="mt-4 px-4 pb-8">
-            <div className={couplesHubPremium.menuPanel}>
+          <section className="mt-2 px-[var(--couples-page-padding)]">
             {loading ? (
-              <p className="text-center text-sm text-[var(--couples-sheet-muted)]">Loading…</p>
+              <CouplesLoadingSkeleton rows={4} />
             ) : locked ? (
               <CouplesLinkGate tone="sheet" pendingIncoming={overview?.pendingIncomingInvite} />
             ) : (
               <CouplesHubTileGrid tiles={couplesMarriageTiles} variant="marriage" />
             )}
-            </div>
           </section>
         ) : (
-          <section className="mt-2 pb-8">
-            <div className="px-4">
-            <CouplesHubTabRow
-              tabs={[
-                { id: "discussions", label: "Discussions" },
-                { id: "events", label: "Events" },
-                { id: "resources", label: "Resources" },
-              ]}
-              active={communityTab}
-              onChange={setCommunityTab}
-            />
+          <section className="mt-1 pb-8">
+            <div className="px-[var(--couples-page-padding)]">
+              <CouplesHubTabRow
+                variant="sheet"
+                tabs={[
+                  { id: "discussions", label: "Discussions" },
+                  { id: "events", label: "Events" },
+                  { id: "resources", label: "Resources" },
+                ]}
+                active={communityTab}
+                onChange={setCommunityTab}
+              />
             </div>
             {communityTab === "discussions" ? (
               <CouplesCommunityFeedEmbedded mode="discussions" onBack={() => setHubView("landing")} />
             ) : (
-              <div className="mt-4 px-4">
-                <CouplesHubTileGrid tiles={communityTiles} onActivateTile={activateCommunityTile} />
+              <div className="mt-4 px-[var(--couples-page-padding)]">
+                <CouplesHubTileGrid
+                  tiles={communityTiles}
+                  variant="community-light"
+                  onActivateTile={activateCommunityTile}
+                />
               </div>
             )}
             {communityTab === "discussions" ? (
-              <div className="mt-4 flex flex-col gap-2 px-4">
-                <Link href={couplesCommunityFeedPath("prayer")} className={couplesHubPremium.secondaryCta}>
+              <div className="mt-4 flex flex-col gap-2 px-[var(--couples-page-padding)]">
+                <CouplesSecondaryButton href={couplesCommunityFeedPath("prayer")}>
                   Prayer community
-                </Link>
-                <Link href={couplesCommunityFeedPath("announcements")} className={couplesHubPremium.secondaryCta}>
+                </CouplesSecondaryButton>
+                <CouplesSecondaryButton href={couplesCommunityFeedPath("announcements")}>
                   Announcements
-                </Link>
+                </CouplesSecondaryButton>
               </div>
             ) : null}
           </section>

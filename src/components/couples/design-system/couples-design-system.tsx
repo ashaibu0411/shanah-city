@@ -11,22 +11,26 @@ export const couplesUiFont = "font-[family-name:var(--font-couples-ui)]";
 export function CouplesPageHeader({
   title,
   backHref,
+  onBack,
   backLabel = "Back",
   rightSlot,
 }: {
   title: string;
   backHref?: string;
+  onBack?: () => void;
   backLabel?: string;
   rightSlot?: React.ReactNode;
 }) {
+  const backClass =
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl font-light transition hover:bg-white/10 active:scale-95";
   return (
     <header className="couples-page-header sticky top-0 z-20 flex min-h-[3.25rem] items-center gap-2 bg-[var(--couples-midnight)] px-[var(--couples-page-padding)] py-3 text-white safe-top">
-      {backHref ? (
-        <Link
-          href={backHref}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl font-light transition hover:bg-white/10 active:scale-95"
-          aria-label={backLabel}
-        >
+      {onBack ? (
+        <button type="button" className={backClass} onClick={onBack} aria-label={backLabel}>
+          ‹
+        </button>
+      ) : backHref ? (
+        <Link href={backHref} className={backClass} aria-label={backLabel}>
           ‹
         </Link>
       ) : (

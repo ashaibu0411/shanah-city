@@ -65,11 +65,15 @@ export const couplesHubPremium = {
     "couples-hub-tile couples-hub-tile-marriage flex min-h-[7.25rem] flex-col items-center justify-center gap-2 rounded-[1.35rem] p-4 text-center transition active:scale-[0.98]",
   tile:
     "couples-hub-tile flex min-h-[7rem] flex-col justify-between rounded-[1.25rem] border border-white/10 bg-[var(--couples-surface)] p-4 text-left transition active:scale-[0.98] hover:border-white/15",
+  tileCommunityLight:
+    "couples-hub-tile flex min-h-[7rem] flex-col justify-between rounded-[1.25rem] border border-[var(--couples-border)] bg-[var(--couples-surface)] p-4 text-left shadow-[var(--couples-shadow-card)] transition active:scale-[0.98]",
   tileEmoji: "text-3xl leading-none",
   tileTitle: "font-display text-[0.9rem] font-semibold leading-snug tracking-tight text-[var(--couples-text)]",
   tileTitleMarriage:
     "font-display text-[0.82rem] font-semibold leading-snug text-stone-900",
   tileSubtitle: "mt-1 text-xs leading-relaxed text-[var(--couples-text-muted)]",
+  tileTitleLight: "font-[family-name:var(--font-couples-display)] text-[0.9rem] font-semibold leading-snug text-[var(--couples-text)]",
+  tileSubtitleLight: "mt-1 text-xs leading-relaxed text-[var(--couples-muted)]",
   gateCard:
     "rounded-[1.25rem] border border-dashed border-rose-400/30 bg-[var(--couples-surface)] p-5 text-sm leading-relaxed text-[var(--couples-text-muted)]",
   marriageCta:

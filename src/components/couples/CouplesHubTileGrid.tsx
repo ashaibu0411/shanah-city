@@ -16,17 +16,22 @@ export function CouplesHubTileGrid({
 }: {
   tiles: CouplesHubTile[];
   locked?: boolean;
-  variant?: "default" | "marriage";
+  variant?: "default" | "marriage" | "community-light";
   /** When set, tiles render as buttons and skip navigation (group hub community tiles). */
   onActivateTile?: (tile: CouplesHubTile) => void;
 }) {
   const marriage = variant === "marriage";
+  const communityLight = variant === "community-light";
 
   return (
     <div className={couplesHubPremium.tileGrid}>
       {tiles.map((tile) => {
         const disabled = locked && tile.requiresLink;
-        const baseClass = marriage ? couplesHubPremium.tileMarriage : couplesHubPremium.tile;
+        const baseClass = marriage
+          ? couplesHubPremium.tileMarriage
+          : communityLight
+            ? couplesHubPremium.tileCommunityLight
+            : couplesHubPremium.tile;
         const className = `${baseClass} ${toneClass(tile.tone)} ${disabled ? "pointer-events-none opacity-50" : ""}`;
 
         const inner = marriage ? (
@@ -38,8 +43,12 @@ export function CouplesHubTileGrid({
           <>
             <span className={couplesHubPremium.tileEmoji} aria-hidden>{tile.emoji}</span>
             <div>
-              <p className={couplesHubPremium.tileTitle}>{tile.title}</p>
-              <p className={couplesHubPremium.tileSubtitle}>{tile.subtitle}</p>
+              <p className={communityLight ? couplesHubPremium.tileTitleLight : couplesHubPremium.tileTitle}>
+                {tile.title}
+              </p>
+              <p className={communityLight ? couplesHubPremium.tileSubtitleLight : couplesHubPremium.tileSubtitle}>
+                {tile.subtitle}
+              </p>
             </div>
           </>
         );
