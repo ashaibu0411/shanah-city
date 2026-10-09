@@ -1,23 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
-import { CouplesHubScreen } from "@/components/couples/CouplesHubScreen";
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
+import {
+  CouplesLoadingSkeleton,
+  CouplesPageHeader,
+  CouplesPrimaryButton,
+  CouplesSecondaryButton,
+} from "@/components/couples/design-system";
+import { CouplesSharedCalendar } from "@/components/couples/CouplesSharedCalendar";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
-import { powerCouplesGroupHubPath } from "@/lib/couples-hub-paths";
-import { Button } from "@/components/ui";
 import {
   COUPLE_CALENDAR_CATEGORIES,
   type CoupleCalendarPlannable,
 } from "@/lib/couple-calendar-types";
+import {
+  mergeCalendarNotes,
+  splitCalendarNotes,
+  type CouplesCalendarViewMode,
+} from "@/lib/couples-calendar-ui";
 import { getZonedDateParts } from "@/lib/denver-time";
 import type { CouplesHubOverview } from "@/lib/couples-hub-types";
 
 type FormState = {
   eventId: string | null;
   title: string;
+  location: string;
   notes: string;
   category: string;
   dateKey: string;
@@ -32,6 +42,7 @@ type FormState = {
 const EMPTY_FORM: FormState = {
   eventId: null,
   title: "",
+  location: "",
   notes: "",
   category: "general",
   dateKey: getZonedDateParts().dateKey,
@@ -50,22 +61,8 @@ const REMINDER_OPTIONS = [
   { value: "1440", label: "1 day before" },
 ];
 
-function categoryChipClass(category: string) {
-  switch (category) {
-    case "date-night":
-      return "bg-rose-500/25 text-rose-100";
-    case "anniversary":
-      return "bg-amber-500/25 text-amber-100";
-    case "family":
-      return "bg-sky-500/25 text-sky-100";
-    case "church":
-      return "bg-violet-500/25 text-violet-100";
-    default:
-      return "bg-white/10 text-[var(--couples-text-muted)]";
-  }
-}
-
 export function CouplesMarriageCalendar() {
+  const { user, loading: authLoading } = useAuth();
   const [hub, setHub] = useState<CouplesHubOverview | null>(null);
   const [items, setItems] = useState<CoupleCalendarPlannable[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +71,8 @@ export function CouplesMarriageCalendar() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<CoupleCalendarPlannable | null>(null);
+  const [viewMode, setViewMode] = useState<CouplesCalendarViewMode>("month");
+  const [selectedDate, setSelectedDate] = useState(getZonedDateParts().dateKey);
 
   const loadHub = useCallback(() => {
     return fetch("/api/couples/hub")
@@ -110,13 +108,10 @@ export function CouplesMarriageCalendar() {
 
   const locked = !hub?.hasActiveLink;
 
-  const calendarItems = useMemo(() => items, [items]);
-
   function openCreate(prefillDate?: string) {
-    setSelectedItem(null);
     setForm({
       ...EMPTY_FORM,
-      dateKey: prefillDate ?? getZonedDateParts().dateKey,
+      dateKey: prefillDate ?? selectedDate,
     });
     setFormOpen(true);
     setStatus(null);
@@ -128,18 +123,24 @@ export function CouplesMarriageCalendar() {
       return;
     }
     const parts = getZonedDateParts(new Date(item.startAt), item.timezone);
-    setSelectedItem(item);
+    const { location, body } = splitCalendarNotes(item.notes);
+    let endDateKey = "";
+    let endTime = "";
+    if (item.endAt) {
+      const endParts = getZonedDateParts(new Date(item.endAt), item.timezone);
+      endDateKey = endParts.dateKey;
+      endTime = `${String(endParts.hour).padStart(2, "0")}:${String(endParts.minute).padStart(2, "0")}`;
+    }
     setForm({
       eventId: item.id,
       title: item.title,
-      notes: item.notes ?? "",
+      location,
+      notes: body,
       category: item.category,
       dateKey: parts.dateKey,
       time: item.allDay ? "19:00" : `${String(parts.hour).padStart(2, "0")}:${String(parts.minute).padStart(2, "0")}`,
-      endDateKey: item.endAt
-        ? getZonedDateParts(new Date(item.endAt), item.timezone).dateKey
-        : "",
-      endTime: "",
+      endDateKey,
+      endTime,
       allDay: item.allDay,
       recurrence: item.recurrence ?? "none",
       reminderMin: item.reminderMin != null ? String(item.reminderMin) : "",
@@ -151,15 +152,18 @@ export function CouplesMarriageCalendar() {
   async function saveEvent() {
     setBusy(true);
     setStatus(null);
+    const notes = mergeCalendarNotes(form.location, form.notes);
+    const endDateKey =
+      form.endTime && !form.endDateKey ? form.dateKey : form.endDateKey || undefined;
     const body = {
       action: form.eventId ? "update" : "create",
       eventId: form.eventId,
       title: form.title,
-      notes: form.notes,
+      notes,
       category: form.category,
       dateKey: form.dateKey,
       time: form.time,
-      endDateKey: form.endDateKey || undefined,
+      endDateKey,
       endTime: form.endTime || undefined,
       allDay: form.allDay,
       recurrence: form.recurrence,
@@ -182,12 +186,13 @@ export function CouplesMarriageCalendar() {
 
     setItems(Array.isArray(data.items) ? data.items : []);
     setFormOpen(false);
-    setSelectedItem(null);
     setStatus(form.eventId ? "Event updated." : "Event added.");
   }
 
-  async function deleteEvent(item: CoupleCalendarPlannable) {
-    if (item.isVirtualAnniversary) return;
+  async function deleteCurrentEvent() {
+    if (!form.eventId) return;
+    const item = items.find((entry) => entry.id === form.eventId);
+    if (!item || item.isVirtualAnniversary) return;
     if (!window.confirm(`Delete “${item.title}”?`)) return;
 
     setBusy(true);
@@ -205,246 +210,217 @@ export function CouplesMarriageCalendar() {
     }
 
     setItems(Array.isArray(data.items) ? data.items : []);
-    setSelectedItem(null);
+    setFormOpen(false);
     setStatus("Event deleted.");
   }
 
   return (
-    <CouplesHubScreen
-      title="Our calendar"
-      fab={
-        locked
-          ? undefined
-          : { label: "Add calendar event", onClick: () => openCreate() }
-      }
-    >
-        <p className={couplesHubPremium.sheetSubtitle}>
-          Shared with your spouse only. Times use Mountain Time.
-        </p>
+    <div className={`${couplesHubPremium.page} couples-hub-typography min-h-full`}>
+      <div className="mx-auto w-full max-w-lg">
+        <CouplesPageHeader
+          title="Our Calendar"
+          backHref="/couples/marriage"
+          backLabel="Back to Our Marriage"
+          rightSlot={
+            <MemberAvatarLink user={user} loading={authLoading} size="sm" className="!h-10 !w-10 ring-white/20" />
+          }
+        />
 
-        {locked ? (
-          <div className="mt-6">
-            <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
-          </div>
-        ) : (
-          <>
-            {error ? (
-              <p className={couplesHubPremium.sheetStatusError}>{error}</p>
-            ) : loading ? (
-              <p className="mt-8 text-center text-sm text-[var(--couples-sheet-muted)]">Loading calendar…</p>
-            ) : (
-              <div className="couples-hub-calendar mt-2">
-                <CalendarMonthView
-                  items={calendarItems}
-                  emptyDayLabel="Nothing planned — tap + or pick another day."
-                  emptyMonthLabel="No shared events this month yet."
-                  renderItem={(item) => (
-                    <div className={couplesHubPremium.sheetListRow}>
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${categoryChipClass(item.category)}`}
-                          >
-                            {COUPLE_CALENDAR_CATEGORIES.find((entry) => entry.id === item.category)
-                              ?.label ?? item.category}
-                          </span>
-                          <p className="mt-1 font-display text-base font-semibold text-stone-900">
-                            {item.title}
-                          </p>
-                          <p className="text-sm text-[var(--couples-sheet-muted)]">
-                            {item.allDay ? "All day" : item.time || item.schedule}
-                            {item.recurrence && item.recurrence !== "none"
-                              ? ` · Repeats ${item.recurrence}`
-                              : ""}
-                          </p>
-                          {item.notes ? (
-                            <p className="mt-2 text-sm text-[var(--couples-text-muted)]">{item.notes}</p>
-                          ) : null}
-                          {item.isVirtualAnniversary ? (
-                            <p className="mt-1 text-xs text-[var(--couples-text-muted)]">
-                              From your profile anniversary — edit the date on Profile.
-                            </p>
-                          ) : null}
-                        </div>
-                        {!item.isVirtualAnniversary ? (
-                          <div className="flex shrink-0 gap-2">
-                            <button
-                              type="button"
-                              className="text-xs font-semibold text-[var(--couples-text)] underline-offset-2 hover:underline"
-                              onClick={() => openEdit(item)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              className="text-xs font-semibold text-red-300 underline-offset-2 hover:underline"
-                              onClick={() => void deleteEvent(item)}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  )}
-                />
-              </div>
-            )}
+        <div className="px-[var(--couples-page-padding)] pb-32 pt-4">
+          <p className="text-sm text-[var(--couples-muted)]">
+            Shared with your spouse only · Mountain Time
+          </p>
 
-            {status ? (
-              <p className={couplesHubPremium.sheetStatusOk}>{status}</p>
-            ) : null}
-          </>
-        )}
-
-        {formOpen && !locked ? (
-          <div
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="couple-event-form-title"
-          >
-            <div className={couplesHubPremium.sheetModal}>
-              <h2
-                id="couple-event-form-title"
-                className="font-display text-lg font-semibold text-stone-900"
+          {locked ? (
+            <div className="mt-6">
+              <CouplesLinkGate tone="sheet" pendingIncoming={hub?.pendingIncomingInvite} />
+            </div>
+          ) : error ? (
+            <div className="mt-6 rounded-[1.25rem] bg-red-50 px-4 py-3 text-sm text-red-800">
+              {error}
+              <button
+                type="button"
+                className="mt-2 block font-semibold text-red-900 underline"
+                onClick={() => void loadCalendar()}
               >
-                {form.eventId ? "Edit event" : "New event"}
-              </h2>
+                Try again
+              </button>
+            </div>
+          ) : loading ? (
+            <div className="mt-8">
+              <CouplesLoadingSkeleton rows={5} />
+            </div>
+          ) : (
+            <div className="mt-4">
+              <CouplesSharedCalendar
+                items={items}
+                selectedDate={selectedDate}
+                onSelectedDateChange={setSelectedDate}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                onEventSelect={openEdit}
+              />
+            </div>
+          )}
 
-              <div className="mt-4 space-y-3">
-                <label className="block text-sm">
-                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Title</span>
-                  <input
-                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
-                    value={form.title}
-                    onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                  />
-                </label>
+          {status ? (
+            <p className="mt-4 rounded-xl bg-[var(--couples-sage)] px-3 py-2 text-sm text-[var(--couples-text)]">
+              {status}
+            </p>
+          ) : null}
+        </div>
+      </div>
 
-                <label className="block text-sm">
-                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Category</span>
-                  <select
-                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
-                    value={form.category}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, category: event.target.value }))
-                    }
-                  >
-                    {COUPLE_CALENDAR_CATEGORIES.map((entry) => (
-                      <option key={entry.id} value={entry.id}>{entry.label}</option>
-                    ))}
-                  </select>
-                </label>
+      {!locked && !loading ? (
+        <button
+          type="button"
+          aria-label="Add calendar event"
+          className="fixed bottom-24 right-[max(1rem,env(safe-area-inset-right))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--couples-midnight)] text-3xl font-light text-white shadow-lg transition active:scale-95 motion-reduce:transition-none"
+          onClick={() => openCreate(selectedDate)}
+        >
+          +
+        </button>
+      ) : null}
 
-                <label className="flex items-center gap-2 text-sm text-[var(--couples-text-muted)]">
-                  <input
-                    type="checkbox"
-                    checked={form.allDay}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, allDay: event.target.checked }))
-                    }
-                  />
-                  <span className="font-semibold">All day</span>
-                </label>
+      {formOpen && !locked ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--couples-midnight)]/45 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="couple-event-form-title"
+        >
+          <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-[1.375rem] bg-[var(--couples-surface)] p-5 shadow-xl safe-bottom">
+            <h2
+              id="couple-event-form-title"
+              className="font-[family-name:var(--font-couples-display)] text-xl font-semibold text-[var(--couples-text)]"
+            >
+              {form.eventId ? "Edit event" : "New event"}
+            </h2>
 
-                <label className="block text-sm">
-                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Date</span>
-                  <input
-                    type="date"
-                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
-                    value={form.dateKey}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, dateKey: event.target.value }))
-                    }
-                  />
-                </label>
+            <div className="mt-4 space-y-3">
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Event title</span>
+                <input
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] bg-white px-3 py-2.5 text-sm"
+                  value={form.title}
+                  onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                />
+              </label>
 
-                {!form.allDay ? (
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Date</span>
+                <input
+                  type="date"
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] bg-white px-3 py-2.5 text-sm"
+                  value={form.dateKey}
+                  onChange={(event) => setForm((current) => ({ ...current, dateKey: event.target.value }))}
+                />
+              </label>
+
+              <label className="flex items-center gap-2 text-sm text-[var(--couples-text)]">
+                <input
+                  type="checkbox"
+                  checked={form.allDay}
+                  onChange={(event) => setForm((current) => ({ ...current, allDay: event.target.checked }))}
+                />
+                <span className="font-semibold">All day</span>
+              </label>
+
+              {!form.allDay ? (
+                <>
                   <label className="block text-sm">
-                    <span className="font-semibold text-[var(--couples-sheet-muted)]">Start time</span>
+                    <span className="font-semibold text-[var(--couples-muted)]">Start time</span>
                     <input
                       type="time"
-                      className={`mt-1 ${couplesHubPremium.sheetInput}`}
+                      className="mt-1 w-full rounded-xl border border-[var(--couples-border)] bg-white px-3 py-2.5 text-sm"
                       value={form.time}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, time: event.target.value }))
-                      }
+                      onChange={(event) => setForm((current) => ({ ...current, time: event.target.value }))}
                     />
                   </label>
-                ) : null}
+                  <label className="block text-sm">
+                    <span className="font-semibold text-[var(--couples-muted)]">End time (optional)</span>
+                    <input
+                      type="time"
+                      className="mt-1 w-full rounded-xl border border-[var(--couples-border)] bg-white px-3 py-2.5 text-sm"
+                      value={form.endTime}
+                      onChange={(event) => setForm((current) => ({ ...current, endTime: event.target.value }))}
+                    />
+                  </label>
+                </>
+              ) : null}
 
-                <label className="block text-sm">
-                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Repeat</span>
-                  <select
-                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
-                    value={form.recurrence}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        recurrence: event.target.value as FormState["recurrence"],
-                      }))
-                    }
-                  >
-                    <option value="none">Does not repeat</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="daily">Daily</option>
-                  </select>
-                </label>
-
-                <label className="block text-sm">
-                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Reminder</span>
-                  <select
-                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
-                    value={form.reminderMin}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, reminderMin: event.target.value }))
-                    }
-                  >
-                    {REMINDER_OPTIONS.map((option) => (
-                      <option key={option.value || "none"} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="block text-sm">
-                  <span className="font-semibold text-[var(--couples-sheet-muted)]">Notes</span>
-                  <textarea
-                    className={`mt-1 ${couplesHubPremium.sheetInput}`}
-                    rows={3}
-                    value={form.notes}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, notes: event.target.value }))
-                    }
-                  />
-                </label>
-              </div>
-
-              <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                <Button className="flex-1" disabled={busy} onClick={() => void saveEvent()}>
-                  {busy ? "Saving…" : "Save"}
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="flex-1"
-                  disabled={busy}
-                  onClick={() => {
-                    setFormOpen(false);
-                    setSelectedItem(null);
-                  }}
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Category</span>
+                <select
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] bg-white px-3 py-2.5 text-sm"
+                  value={form.category}
+                  onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
                 >
-                  Cancel
-                </Button>
-              </div>
+                  {COUPLE_CALENDAR_CATEGORIES.map((entry) => (
+                    <option key={entry.id} value={entry.id}>{entry.label}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Location</span>
+                <input
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] bg-white px-3 py-2.5 text-sm"
+                  value={form.location}
+                  placeholder="Optional"
+                  onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))}
+                />
+              </label>
+
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Reminder</span>
+                <select
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] bg-white px-3 py-2.5 text-sm"
+                  value={form.reminderMin}
+                  onChange={(event) => setForm((current) => ({ ...current, reminderMin: event.target.value }))}
+                >
+                  {REMINDER_OPTIONS.map((option) => (
+                    <option key={option.value || "none"} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Notes</span>
+                <textarea
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] bg-white px-3 py-2.5 text-sm"
+                  rows={3}
+                  value={form.notes}
+                  onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+                />
+              </label>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-2">
+              <CouplesPrimaryButton disabled={busy} onClick={() => void saveEvent()}>
+                {busy ? "Saving…" : "Save"}
+              </CouplesPrimaryButton>
+              <CouplesSecondaryButton
+                onClick={() => {
+                  setFormOpen(false);
+                }}
+              >
+                Cancel
+              </CouplesSecondaryButton>
+              {form.eventId ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  className="py-2 text-sm font-semibold text-red-700"
+                  onClick={() => void deleteCurrentEvent()}
+                >
+                  Delete event
+                </button>
+              ) : null}
             </div>
           </div>
-        ) : null}
-
-        <Link href={powerCouplesGroupHubPath()} className={`${couplesHubPremium.sheetPrimaryCta} mt-10 !bg-stone-200 !text-stone-900`}>
-          Back to Couples Hub
-        </Link>
-    </CouplesHubScreen>
+        </div>
+      ) : null}
+    </div>
   );
 }

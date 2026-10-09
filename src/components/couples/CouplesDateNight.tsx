@@ -1,13 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { CouplesHubHero } from "@/components/couples/CouplesHubHero";
-import { CouplesHubScreen } from "@/components/couples/CouplesHubScreen";
-import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
+import {
+  CouplesLoadingSkeleton,
+  CouplesPageHeader,
+  CouplesPrimaryButton,
+  CouplesSecondaryButton,
+} from "@/components/couples/design-system";
 import { couplesHubPremium, COUPLES_DATE_NIGHT_HERO } from "@/components/couples/couples-hub-premium";
-import { Button } from "@/components/ui";
 import {
   DATE_NIGHT_BUDGETS,
   DATE_NIGHT_LOCATIONS,
@@ -16,9 +20,17 @@ import {
   type DateNightIdeaCatalogItem,
   type DateNightLocation,
 } from "@/lib/couple-date-night-types";
+import {
+  catalogForCategory,
+  DATE_NIGHT_CURATED_CHALLENGES,
+  DATE_NIGHT_IDEA_CATEGORIES,
+  locationTypeForCategory,
+  pickRandomCatalogItem,
+  readChallengeProgress,
+  type DateNightTab,
+  writeChallengeProgress,
+} from "@/lib/couple-date-night-ui";
 import type { CouplesHubOverview } from "@/lib/couples-hub-types";
-
-type TabId = "ideas" | "dates" | "history" | "challenge";
 
 function formatScheduled(iso?: string) {
   if (!iso) return "Not scheduled";
@@ -39,37 +51,77 @@ function locationLabel(id?: string) {
   return DATE_NIGHT_LOCATIONS.find((entry) => entry.id === id)?.label ?? "";
 }
 
+function DateNightTabSelector({
+  active,
+  onChange,
+}: {
+  active: DateNightTab;
+  onChange: (tab: DateNightTab) => void;
+}) {
+  const tabs: { id: DateNightTab; label: string }[] = [
+    { id: "ideas", label: "Ideas" },
+    { id: "dates", label: "My Dates" },
+    { id: "challenge", label: "Challenges" },
+  ];
+  return (
+    <div
+      className="flex rounded-full bg-[var(--couples-midnight)] p-1"
+      role="tablist"
+      aria-label="Date night sections"
+    >
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          role="tab"
+          aria-selected={active === tab.id}
+          onClick={() => onChange(tab.id)}
+          className={`flex-1 rounded-full px-2 py-2.5 text-center text-[0.8125rem] font-semibold transition motion-reduce:transition-none ${
+            active === tab.id
+              ? "bg-[var(--couples-surface)] text-[var(--couples-text)] shadow-sm"
+              : "text-white/65"
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function CouplesDateNight() {
+  const { user, loading: authLoading } = useAuth();
   const [hub, setHub] = useState<CouplesHubOverview | null>(null);
+  const [coupleLinkId, setCoupleLinkId] = useState("");
   const [catalog, setCatalog] = useState<DateNightIdeaCatalogItem[]>([]);
   const [weeklyChallenge, setWeeklyChallenge] = useState("");
   const [upcoming, setUpcoming] = useState<CoupleDateNightPlanView[]>([]);
-  const [favorites, setFavorites] = useState<CoupleDateNightPlanView[]>([]);
   const [history, setHistory] = useState<CoupleDateNightPlanView[]>([]);
-  const [tab, setTab] = useState<TabId>("ideas");
-  const [budgetFilter, setBudgetFilter] = useState<DateNightBudget | "all">("all");
-  const [locationFilter, setLocationFilter] = useState<DateNightLocation | "all">("all");
+  const [tab, setTab] = useState<DateNightTab>("ideas");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [challengeProgress, setChallengeProgress] = useState<Record<string, number>>({});
+
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduleTitle, setScheduleTitle] = useState("");
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("19:00");
+  const [scheduleBudget, setScheduleBudget] = useState<DateNightBudget | "">("");
+  const [scheduleLocationType, setScheduleLocationType] = useState<DateNightLocation | "">("");
+  const [scheduleLocationNote, setScheduleLocationNote] = useState("");
   const [scheduleSurprise, setScheduleSurprise] = useState(false);
   const [addToCalendar, setAddToCalendar] = useState(true);
   const [catalogId, setCatalogId] = useState<string | undefined>();
 
   const locked = !hub?.hasActiveLink;
 
-  const filteredCatalog = useMemo(() => {
-    return catalog.filter((item) => {
-      if (budgetFilter !== "all" && item.budget !== budgetFilter) return false;
-      if (locationFilter !== "all" && item.locationType !== locationFilter) return false;
-      return true;
-    });
-  }, [catalog, budgetFilter, locationFilter]);
+  const categoryIdeas = useMemo(() => {
+    if (!selectedCategory) return [];
+    return catalogForCategory(selectedCategory, catalog);
+  }, [catalog, selectedCategory]);
 
   const loadHubMeta = useCallback(() => {
     return fetch("/api/couples/hub")
@@ -84,8 +136,12 @@ export function CouplesDateNight() {
     setCatalog(Array.isArray(data.catalog) ? data.catalog : []);
     setWeeklyChallenge(String(data.weeklyChallenge ?? ""));
     setUpcoming(Array.isArray(data.upcoming) ? data.upcoming : []);
-    setFavorites(Array.isArray(data.favorites) ? data.favorites : []);
     setHistory(Array.isArray(data.history) ? data.history : []);
+    const linkId = String(data.coupleLinkId ?? "");
+    if (linkId) {
+      setCoupleLinkId(linkId);
+      setChallengeProgress(readChallengeProgress(linkId));
+    }
   }, []);
 
   const loadPlanner = useCallback(() => {
@@ -111,14 +167,27 @@ export function CouplesDateNight() {
     if (!locked) void loadPlanner();
   }, [loadPlanner, locked]);
 
-  function openSchedule(item?: DateNightIdeaCatalogItem) {
+  function openSchedule(item?: DateNightIdeaCatalogItem, categoryId?: string) {
     setCatalogId(item?.id);
     setScheduleTitle(item?.title ?? "");
+    setScheduleBudget(item?.budget ?? "");
+    setScheduleLocationType(item?.locationType ?? locationTypeForCategory(categoryId ?? "") ?? "");
     setScheduleDate("");
     setScheduleTime("19:00");
+    setScheduleLocationNote("");
     setScheduleSurprise(false);
     setAddToCalendar(true);
     setScheduleOpen(true);
+  }
+
+  function onCategoryTap(categoryId: string) {
+    if (categoryId === "surprise") {
+      const pick = pickRandomCatalogItem(catalog);
+      if (pick) openSchedule(pick, categoryId);
+      else setStatus("Add more ideas to your catalog first.");
+      return;
+    }
+    setSelectedCategory(categoryId);
   }
 
   async function postAction(body: Record<string, unknown>) {
@@ -140,38 +209,31 @@ export function CouplesDateNight() {
   }
 
   async function saveSchedule() {
+    const title =
+      scheduleLocationNote.trim() && !scheduleTitle.includes(scheduleLocationNote)
+        ? `${scheduleTitle} · ${scheduleLocationNote.trim()}`
+        : scheduleTitle;
     const ok = await postAction({
       action: "create",
       catalogId,
-      title: scheduleTitle,
+      title,
       dateKey: scheduleDate,
       time: scheduleTime,
+      budget: scheduleBudget || undefined,
+      locationType: scheduleLocationType || undefined,
       isSurprise: scheduleSurprise,
       addToCalendar: addToCalendar && !scheduleSurprise,
     });
     if (ok) {
       setScheduleOpen(false);
       setTab("dates");
-      setStatus(scheduleSurprise ? "Surprise invite sent." : "Date scheduled.");
+      setStatus(scheduleSurprise ? "Invite sent to your spouse." : "Date saved.");
     }
-  }
-
-  async function saveFavorite(item: DateNightIdeaCatalogItem) {
-    const ok = await postAction({
-      action: "create",
-      catalogId: item.id,
-      title: item.title,
-      asFavorite: true,
-    });
-    if (ok) setStatus("Saved to favorites.");
   }
 
   async function completePlan(plan: CoupleDateNightPlanView) {
     const ok = await postAction({ action: "update", planId: plan.id, status: "completed" });
-    if (ok) {
-      setTab("history");
-      setStatus("Marked complete — nice work.");
-    }
+    if (ok) setStatus("Marked complete — beautiful work together.");
   }
 
   async function acceptSurprise(plan: CoupleDateNightPlanView) {
@@ -184,262 +246,385 @@ export function CouplesDateNight() {
     await postAction({ action: "delete", planId: plan.id });
   }
 
+  function bumpChallenge(challengeId: string, goal: number) {
+    if (!coupleLinkId) return;
+    const current = challengeProgress[challengeId] ?? 0;
+    const next = Math.min(goal, current + 1);
+    const updated = { ...challengeProgress, [challengeId]: next };
+    setChallengeProgress(updated);
+    writeChallengeProgress(coupleLinkId, updated);
+  }
+
   function PlanCard({ plan }: { plan: CoupleDateNightPlanView }) {
+    const completed = plan.status === "completed";
     return (
-      <li className="rounded-[1.25rem] border border-night-900/8 bg-white p-4 dark:border-white/10 dark:bg-[var(--color-surface)]">
-        <p className="font-display text-base font-semibold text-night-950 dark:text-sand-100">
-          {plan.displayTitle}
-        </p>
-        <p className="mt-1 text-sm text-night-600 dark:text-sand-400">
-          {formatScheduled(plan.scheduledAt)}
-          {plan.budget ? ` · ${budgetLabel(plan.budget)}` : ""}
-          {plan.locationType ? ` · ${locationLabel(plan.locationType)}` : ""}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {plan.canAcceptSurprise ? (
-            <Button
-              className="!py-2 !text-xs"
-              disabled={busy}
-              onClick={() => void acceptSurprise(plan)}
-            >
-              Open surprise
-            </Button>
-          ) : null}
-          {plan.status === "planned" ? (
-            <button
-              type="button"
-              className="text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline"
-              onClick={() => void completePlan(plan)}
-            >
-              Mark done
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className="text-xs font-semibold text-night-600 underline-offset-2 hover:underline"
-            onClick={() => void removePlan(plan)}
+      <li className="rounded-[1.25rem] bg-[var(--couples-surface)] px-4 py-3.5">
+        <div className="flex items-start gap-3">
+          <span
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg ${
+              completed ? "bg-[var(--couples-sage)]" : "bg-[var(--couples-blush)]"
+            }`}
+            aria-hidden
           >
-            Remove
-          </button>
+            {completed ? "♥" : "📅"}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-[family-name:var(--font-couples-display)] text-base font-semibold text-[var(--couples-text)]">
+              {plan.displayTitle}
+            </p>
+            <p className="mt-0.5 text-sm text-[var(--couples-muted)]">
+              {formatScheduled(plan.scheduledAt)}
+              {plan.budget ? ` · ${budgetLabel(plan.budget)}` : ""}
+              {plan.locationType ? ` · ${locationLabel(plan.locationType)}` : ""}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-3">
+              {plan.canAcceptSurprise ? (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-[var(--couples-gold)]"
+                  disabled={busy}
+                  onClick={() => void acceptSurprise(plan)}
+                >
+                  Open surprise
+                </button>
+              ) : null}
+              {plan.status === "planned" || plan.status === "surprise_pending" ? (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-[var(--couples-mocha)]"
+                  onClick={() => void completePlan(plan)}
+                >
+                  Mark done
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="text-xs font-semibold text-[var(--couples-muted)]"
+                onClick={() => void removePlan(plan)}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+          <span className="text-[var(--couples-muted)]" aria-hidden>›</span>
         </div>
       </li>
     );
   }
 
   return (
-    <CouplesHubScreen
-      title="Date night"
-      hero={
-        <CouplesHubHero
-          flush
-          imageSrc={COUPLES_DATE_NIGHT_HERO}
-          title="Make time for us"
-          tagline="Create memories. Keep the spark alive."
+    <div className={`${couplesHubPremium.page} couples-hub-typography min-h-full`}>
+      <div className="mx-auto w-full max-w-lg">
+        <CouplesPageHeader
+          title="Date Night"
+          backHref="/couples/marriage"
+          backLabel="Back to Our Marriage"
+          rightSlot={
+            <MemberAvatarLink user={user} loading={authLoading} size="sm" className="!h-10 !w-10 ring-white/20" />
+          }
         />
-      }
-    >
 
-        {locked ? (
-          <div className="mt-6">
-            <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
-          </div>
-        ) : (
-          <>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <CouplesHubTabRow
-                variant="sheet"
-                tabs={[
-                  { id: "ideas", label: "Ideas" },
-                  { id: "dates", label: "My dates" },
-                  { id: "challenge", label: "Challenges" },
-                ]}
-                active={tab === "history" ? "dates" : tab}
-                onChange={setTab}
-              />
-              <Button className="!py-2" onClick={() => openSchedule()} disabled={busy}>
-                Plan a date
-              </Button>
+        <div className="px-[var(--couples-page-padding)] pb-28 pt-3">
+          <div className="relative h-[13.75rem] w-full overflow-hidden rounded-[1.375rem]">
+            <Image
+              src={COUPLES_DATE_NIGHT_HERO}
+              alt=""
+              fill
+              priority
+              className="object-cover object-center"
+              sizes="(max-width: 512px) 100vw, 512px"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-[var(--couples-midnight)]/88 via-[var(--couples-mocha)]/25 to-transparent"
+              aria-hidden
+            />
+            <div className="absolute inset-x-0 bottom-0 p-5">
+              <h2
+                className="font-[family-name:var(--font-couples-display)] text-[1.75rem] font-semibold leading-tight text-white"
+              >
+                Make Time For Us
+              </h2>
+              <p className="mt-1.5 text-[0.9375rem] text-white/90">
+                Create memories. Keep the spark alive.
+              </p>
             </div>
+          </div>
 
-            {error ? (
-              <p className={couplesHubPremium.statusError}>{error}</p>
-            ) : loading ? (
-              <p className="mt-8 text-center text-sm text-[var(--couples-text-muted)]">Loading…</p>
-            ) : tab === "ideas" ? (
-              <div className="mt-4 space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <select
-                    className={couplesHubPremium.input}
-                    value={budgetFilter}
-                    onChange={(event) =>
-                      setBudgetFilter(event.target.value as DateNightBudget | "all")
-                    }
-                  >
-                    <option value="all">All budgets</option>
-                    {DATE_NIGHT_BUDGETS.map((entry) => (
-                      <option key={entry.id} value={entry.id}>{entry.label}</option>
-                    ))}
-                  </select>
-                  <select
-                    className={couplesHubPremium.input}
-                    value={locationFilter}
-                    onChange={(event) =>
-                      setLocationFilter(event.target.value as DateNightLocation | "all")
-                    }
-                  >
-                    <option value="all">All settings</option>
-                    {DATE_NIGHT_LOCATIONS.map((entry) => (
-                      <option key={entry.id} value={entry.id}>{entry.label}</option>
-                    ))}
-                  </select>
+          {locked ? (
+            <div className="mt-6">
+              <CouplesLinkGate tone="sheet" pendingIncoming={hub?.pendingIncomingInvite} />
+            </div>
+          ) : (
+            <>
+              <div className="mt-5">
+                <DateNightTabSelector active={tab} onChange={setTab} />
+              </div>
+
+              {error ? (
+                <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
+              ) : loading ? (
+                <div className="mt-6">
+                  <CouplesLoadingSkeleton rows={4} />
                 </div>
-                <ul className="space-y-3">
-                  {filteredCatalog.map((item) => (
-                    <li key={item.id} className={couplesHubPremium.card}>
-                      <div className="flex items-start gap-3">
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl" aria-hidden>
-                          💕
+              ) : tab === "ideas" ? (
+                <div className="mt-5">
+                  <div
+                    className="couples-hub-landing-scroll -mx-[var(--couples-page-padding)] flex gap-3 overflow-x-auto px-[var(--couples-page-padding)] pb-1"
+                  >
+                    {DATE_NIGHT_IDEA_CATEGORIES.map((category) => (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => onCategoryTap(category.id)}
+                        className={`flex min-h-[7.5rem] w-[11.5rem] shrink-0 flex-col justify-between rounded-[1.25rem] p-4 text-left transition active:scale-[0.98] ${
+                          selectedCategory === category.id ? "ring-2 ring-[var(--couples-gold)]" : ""
+                        }`}
+                        style={{ backgroundColor: category.iconBg }}
+                      >
+                        <span
+                          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-xl"
+                          aria-hidden
+                        >
+                          {category.emoji}
                         </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-display font-semibold text-[var(--couples-text)]">
-                            {item.title}
-                          </p>
-                          <p className="mt-1 text-sm text-[var(--couples-text-muted)]">{item.description}</p>
-                          <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-[var(--couples-text-muted)]">
-                            {budgetLabel(item.budget)} · {locationLabel(item.locationType)}
-                          </p>
-                          <div className="mt-3 flex flex-wrap gap-3">
-                            <button
-                              type="button"
-                              className="text-xs font-semibold text-[var(--couples-text)] underline-offset-2 hover:underline"
-                              onClick={() => openSchedule(item)}
-                            >
-                              Schedule
-                            </button>
-                            <button
-                              type="button"
-                              className="text-xs font-semibold text-rose-300 underline-offset-2 hover:underline"
-                              onClick={() => void saveFavorite(item)}
-                            >
-                              Save favorite
-                            </button>
-                          </div>
-                        </div>
-                        <span className="text-[var(--couples-text-muted)]" aria-hidden>›</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                {favorites.length > 0 ? (
-                  <div>
-                    <h3 className="text-sm font-semibold text-night-800">Your favorites</h3>
-                    <ul className="mt-2 space-y-2">
-                      {favorites.map((plan) => (
-                        <PlanCard key={plan.id} plan={plan} />
-                      ))}
-                    </ul>
+                        <span>
+                          <span className="block font-[family-name:var(--font-couples-display)] text-[0.9375rem] font-semibold leading-snug text-[var(--couples-text)]">
+                            {category.title}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-[var(--couples-muted)]">
+                            {category.subtitle}
+                          </span>
+                        </span>
+                        <span className="self-end text-[var(--couples-mocha)]" aria-hidden>›</span>
+                      </button>
+                    ))}
                   </div>
-                ) : null}
-              </div>
-            ) : tab === "dates" ? (
-              <ul className="mt-4 space-y-3">
-                {upcoming.length === 0 ? (
-                  <p className="text-sm text-night-600">No upcoming dates — pick an idea to schedule one.</p>
-                ) : (
-                  upcoming.map((plan) => <PlanCard key={plan.id} plan={plan} />)
-                )}
-              </ul>
-            ) : tab === "history" ? (
-              <ul className="mt-4 space-y-3">
-                {history.length === 0 ? (
-                  <p className="text-sm text-night-600">Completed dates will show here.</p>
-                ) : (
-                  history.map((plan) => <PlanCard key={plan.id} plan={plan} />)
-                )}
-              </ul>
-            ) : (
-              <div className="mt-4 rounded-[1.25rem] border border-amber-200/80 bg-amber-50/80 p-5 dark:border-amber-900/40 dark:bg-amber-950/30">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-900 dark:text-amber-200">
-                  This week
-                </p>
-                <p className="mt-3 font-display text-lg font-semibold text-night-950 dark:text-sand-100">
-                  {weeklyChallenge}
-                </p>
-                <p className="mt-3 text-sm text-night-700 dark:text-sand-300">
-                  When you finish, mark your date complete under My dates to build your history together.
-                </p>
-              </div>
-            )}
 
-            {status ? (
-              <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{status}</p>
-            ) : null}
-          </>
-        )}
+                  {selectedCategory && selectedCategory !== "surprise" ? (
+                    <div className="mt-5 space-y-2">
+                      <p className="text-sm font-semibold text-[var(--couples-muted)]">Ideas for you</p>
+                      {categoryIdeas.length === 0 ? (
+                        <p className="text-sm text-[var(--couples-muted)]">No matches yet — plan a custom date.</p>
+                      ) : (
+                        categoryIdeas.map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => openSchedule(item, selectedCategory)}
+                            className="flex w-full items-center gap-3 rounded-[1.125rem] bg-[var(--couples-surface)] px-4 py-3.5 text-left transition active:scale-[0.99]"
+                          >
+                            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--couples-blush)] text-lg">
+                              💕
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-[0.9375rem] font-semibold text-[var(--couples-text)]">
+                                {item.title}
+                              </span>
+                              <span className="mt-0.5 block line-clamp-2 text-xs text-[var(--couples-muted)]">
+                                {item.description}
+                              </span>
+                            </span>
+                            <span className="text-[var(--couples-muted)]" aria-hidden>›</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              ) : tab === "dates" ? (
+                <div className="mt-5 space-y-6">
+                  <CouplesPrimaryButton onClick={() => openSchedule()}>Plan a Date</CouplesPrimaryButton>
 
-        {scheduleOpen && !locked ? (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-night-950/40 p-4 sm:items-center">
-            <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl dark:bg-[var(--color-surface)]">
-              <h2 className="font-display text-lg font-semibold">Plan a date</h2>
-              <label className="mt-4 block text-sm">
-                <span className="font-semibold">Title</span>
+                  <section>
+                    <h3 className="font-[family-name:var(--font-couples-display)] text-lg font-semibold text-[var(--couples-text)]">
+                      Scheduled
+                    </h3>
+                    <ul className="mt-3 space-y-2">
+                      {upcoming.length === 0 ? (
+                        <p className="text-sm text-[var(--couples-muted)]">No upcoming dates — tap Plan a Date.</p>
+                      ) : (
+                        upcoming.map((plan) => <PlanCard key={plan.id} plan={plan} />)
+                      )}
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h3 className="font-[family-name:var(--font-couples-display)] text-lg font-semibold text-[var(--couples-text)]">
+                      Completed
+                    </h3>
+                    <ul className="mt-3 space-y-2">
+                      {history.length === 0 ? (
+                        <p className="text-sm text-[var(--couples-muted)]">Your story together will show here.</p>
+                      ) : (
+                        history.map((plan) => <PlanCard key={plan.id} plan={plan} />)
+                      )}
+                    </ul>
+                  </section>
+                </div>
+              ) : (
+                <div className="mt-5 space-y-4">
+                  <div className="rounded-[1.25rem] bg-gradient-to-br from-[#EAD9BF] to-[#F9E8E1] p-5">
+                    <p className="text-[0.625rem] font-bold uppercase tracking-[0.22em] text-[var(--couples-mocha)]">
+                      This week
+                    </p>
+                    <p className="mt-2 font-[family-name:var(--font-couples-display)] text-lg font-semibold text-[var(--couples-text)]">
+                      {weeklyChallenge}
+                    </p>
+                  </div>
+
+                  {DATE_NIGHT_CURATED_CHALLENGES.map((challenge) => {
+                    const progress = challengeProgress[challenge.id] ?? 0;
+                    const pct = Math.round((progress / challenge.goal) * 100);
+                    return (
+                      <div
+                        key={challenge.id}
+                        className="rounded-[1.25rem] bg-[var(--couples-surface)] px-4 py-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-[family-name:var(--font-couples-display)] text-base font-semibold text-[var(--couples-text)]">
+                              {challenge.title}
+                            </p>
+                            <p className="mt-1 text-sm text-[var(--couples-muted)]">{challenge.description}</p>
+                          </div>
+                          <span className="text-xs font-semibold text-[var(--couples-gold)]">{pct}%</span>
+                        </div>
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--couples-border)]">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-[var(--couples-mocha)] to-[var(--couples-gold)] transition-all"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="mt-3 text-sm font-semibold text-[var(--couples-mocha)]"
+                          onClick={() => bumpChallenge(challenge.id, challenge.goal)}
+                          disabled={progress >= challenge.goal}
+                        >
+                          {progress >= challenge.goal ? "Completed" : "Log progress"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {status ? (
+                <p className="mt-4 rounded-xl bg-[var(--couples-sage)] px-3 py-2 text-sm text-[var(--couples-text)]">
+                  {status}
+                </p>
+              ) : null}
+            </>
+          )}
+        </div>
+      </div>
+
+      {scheduleOpen && !locked ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--couples-midnight)]/45 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-[1.375rem] bg-[var(--couples-surface)] p-5 shadow-xl safe-bottom">
+            <h2 className="font-[family-name:var(--font-couples-display)] text-xl font-semibold text-[var(--couples-text)]">
+              Plan your date
+            </h2>
+
+            <div className="mt-4 space-y-3">
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Date title</span>
                 <input
-                  className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] px-3 py-2.5 text-sm"
                   value={scheduleTitle}
                   onChange={(event) => setScheduleTitle(event.target.value)}
                 />
               </label>
-              <label className="mt-3 block text-sm">
-                <span className="font-semibold">Date</span>
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Date</span>
                 <input
                   type="date"
-                  className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] px-3 py-2.5 text-sm"
                   value={scheduleDate}
                   onChange={(event) => setScheduleDate(event.target.value)}
                 />
               </label>
-              <label className="mt-3 block text-sm">
-                <span className="font-semibold">Time</span>
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Time</span>
                 <input
                   type="time"
-                  className="mt-1 w-full rounded-xl border border-night-900/10 px-3 py-2.5 text-sm"
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] px-3 py-2.5 text-sm"
                   value={scheduleTime}
                   onChange={(event) => setScheduleTime(event.target.value)}
                 />
               </label>
-              <label className="mt-3 flex items-center gap-2 text-sm">
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Activity type</span>
+                <select
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] px-3 py-2.5 text-sm"
+                  value={scheduleLocationType}
+                  onChange={(event) =>
+                    setScheduleLocationType(event.target.value as DateNightLocation | "")
+                  }
+                >
+                  <option value="">Choose…</option>
+                  {DATE_NIGHT_LOCATIONS.map((entry) => (
+                    <option key={entry.id} value={entry.id}>{entry.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Budget (optional)</span>
+                <select
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] px-3 py-2.5 text-sm"
+                  value={scheduleBudget}
+                  onChange={(event) => setScheduleBudget(event.target.value as DateNightBudget | "")}
+                >
+                  <option value="">No preference</option>
+                  {DATE_NIGHT_BUDGETS.map((entry) => (
+                    <option key={entry.id} value={entry.id}>{entry.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm">
+                <span className="font-semibold text-[var(--couples-muted)]">Location (optional)</span>
+                <input
+                  className="mt-1 w-full rounded-xl border border-[var(--couples-border)] px-3 py-2.5 text-sm"
+                  placeholder="Restaurant, park, or address"
+                  value={scheduleLocationNote}
+                  onChange={(event) => setScheduleLocationNote(event.target.value)}
+                />
+              </label>
+              <label className="flex items-start gap-2 text-sm text-[var(--couples-text)]">
                 <input
                   type="checkbox"
+                  className="mt-1"
                   checked={scheduleSurprise}
                   onChange={(event) => setScheduleSurprise(event.target.checked)}
                 />
-                <span>Send as surprise (hides details until spouse opens it)</span>
+                <span>Invite spouse as a surprise (details hidden until they open it)</span>
               </label>
               {!scheduleSurprise ? (
-                <label className="mt-2 flex items-center gap-2 text-sm">
+                <label className="flex items-start gap-2 text-sm text-[var(--couples-text)]">
                   <input
                     type="checkbox"
+                    className="mt-1"
                     checked={addToCalendar}
                     onChange={(event) => setAddToCalendar(event.target.checked)}
                   />
-                  <span>Also add to our marriage calendar</span>
+                  <span>Save to our shared marriage calendar</span>
                 </label>
               ) : null}
-              <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                <Button className="flex-1" disabled={busy || !scheduleDate} onClick={() => void saveSchedule()}>
-                  {busy ? "Saving…" : "Save"}
-                </Button>
-                <Button variant="secondary" className="flex-1" onClick={() => setScheduleOpen(false)}>
-                  Cancel
-                </Button>
-              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-2">
+              <CouplesPrimaryButton disabled={busy || !scheduleDate || !scheduleTitle.trim()} onClick={() => void saveSchedule()}>
+                {busy ? "Saving…" : "Save"}
+              </CouplesPrimaryButton>
+              <CouplesSecondaryButton onClick={() => setScheduleOpen(false)}>Cancel</CouplesSecondaryButton>
             </div>
           </div>
-        ) : null}
-
-        <Link href="/couples/marriage" className={`${couplesHubPremium.secondaryCta} mt-10`}>
-          Back to marriage dashboard
-        </Link>
-    </CouplesHubScreen>
+        </div>
+      ) : null}
+    </div>
   );
 }

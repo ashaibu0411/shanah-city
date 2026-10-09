@@ -5936,6 +5936,32 @@ html.native-app-boot .native-boot-splash img {
   display: none;
 }
 
+@keyframes couples-love-note-heart {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+.love-notes-send-heart {
+  animation: couples-love-note-heart 1.1s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .love-notes-send-heart {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 .couples-btn-primary {
   background: linear-gradient(135deg, var(--couples-mocha), var(--couples-gold));
   box-shadow: var(--couples-shadow-card);
