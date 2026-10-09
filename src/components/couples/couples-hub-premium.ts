@@ -74,9 +74,13 @@ export const couplesHubPremium = {
   gateCard:
     "rounded-[1.25rem] border border-dashed border-rose-400/30 bg-[var(--couples-surface)] p-5 text-sm leading-relaxed text-[var(--couples-text-muted)]",
   marriageCta:
-    "inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#5a3d2e] to-[#8b5a2b] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:brightness-110 active:scale-[0.99]",
+    "flex w-full items-center gap-4 rounded-2xl bg-gradient-to-r from-[#5a3d2e] to-[#8b5a2b] px-4 py-4 text-left text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:brightness-110 active:scale-[0.99]",
+  marriageCtaIcon:
+    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-black/25 text-xl",
   communityCta:
-    "inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#5c2328] to-[#7a2f38] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:brightness-110 active:scale-[0.99]",
+    "flex w-full items-center gap-4 rounded-2xl bg-gradient-to-r from-[#5c2328] to-[#7a2f38] px-4 py-4 text-left text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:brightness-110 active:scale-[0.99]",
+  communityCtaIcon:
+    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-black/25 text-xl",
   primaryCta:
     "inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#5a3d2e] to-[#8b5a2b] px-4 py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 active:scale-[0.99]",
   secondaryCta:
@@ -102,6 +106,7 @@ export const couplesHubPremium = {
     "max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[var(--couples-surface)] p-5 shadow-xl",
 };
 
-export const COUPLES_HUB_HERO_IMAGE = "/home/home-gallery-12.jpg";
+/** Replace `public/couples/couples-hub-hero.jpg` to update the Couples Hub landing photo. */
+export const COUPLES_HUB_HERO_IMAGE = "/couples/couples-hub-hero.jpg";
 export const COUPLES_DEVOTIONAL_HERO = "/home/home-gallery-06.jpg";
 export const COUPLES_DATE_NIGHT_HERO = "/home/home-gallery-15.jpg";
