@@ -21,7 +21,7 @@ export function CouplesHubGroupHeader({
   showManage?: boolean;
 }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-[var(--couples-bg)]/95 px-4 py-3 backdrop-blur-md">
+    <header className="couples-hub-group-header sticky top-0 z-30 border-b border-white/10 bg-[var(--couples-midnight)]/95 px-[var(--couples-page-padding)] py-3 backdrop-blur-md safe-top">
       <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
         <Link href="/groups" className={couplesHubPremium.backLink}>
           <span aria-hidden>←</span> Groups

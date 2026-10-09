@@ -2,14 +2,14 @@ import { editorialPremium } from "@/components/app/editorial-premium";
 
 /** Shanah Couples Hub — dark shell + cream content sheets (product mockups). */
 export const couplesHubPremium = {
-  page: "couples-hub-page min-w-0 font-sans text-[var(--couples-text)]",
-  inset: "mx-auto w-full max-w-lg px-4 pb-28 pt-2",
+  page: "couples-hub-page min-w-0 text-[var(--couples-text)]",
+  inset: "mx-auto w-full max-w-lg px-[var(--couples-page-padding,1.125rem)] pb-28 pt-2",
   titleBar:
-    "sticky top-0 z-20 flex items-center gap-2 bg-[var(--couples-bg)] px-3 py-3",
+    "sticky top-0 z-20 flex items-center gap-2 bg-[var(--couples-midnight)] px-[var(--couples-page-padding,1.125rem)] py-3 safe-top",
   titleBarBack:
     "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-2xl font-light text-white transition hover:bg-white/10",
   titleBarHeading:
-    "min-w-0 flex-1 truncate text-center font-display text-lg font-semibold text-white",
+    "min-w-0 flex-1 truncate text-center font-[family-name:var(--font-couples-display)] text-lg font-semibold text-white",
   titleBarSpacer: "h-10 w-10 shrink-0",
   contentSheet:
     "couples-hub-sheet relative z-10 mx-auto w-full max-w-lg rounded-t-[2rem] bg-[var(--couples-sheet-bg)] px-4 pb-28 pt-5 text-[var(--couples-sheet-text)] shadow-[0_-8px_40px_rgba(0,0,0,0.35)]",
@@ -22,8 +22,7 @@ export const couplesHubPremium = {
     "w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-[var(--couples-sheet-text)] placeholder:text-stone-400",
   sheetProgressTrack: "h-2 overflow-hidden rounded-full bg-stone-200",
   sheetProgressFill: "h-full rounded-full bg-emerald-600",
-  sheetPrimaryCta:
-    "inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#5a3d2e] to-[#8b5a2b] px-4 py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 active:scale-[0.99]",
+  sheetPrimaryCta: "couples-btn-primary inline-flex w-full items-center justify-center px-4 py-3.5 text-sm font-semibold",
   sheetTabTrack: "flex gap-1 rounded-full bg-[var(--couples-sheet-tab-track)] p-1",
   sheetTabPill: "flex-1 rounded-full px-3 py-2 text-center text-xs font-semibold capitalize transition",
   sheetTabActive: "bg-white text-stone-900 shadow-sm",

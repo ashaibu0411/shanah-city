@@ -17,6 +17,7 @@ import { GroupCalendarPanel } from "@/components/calendar/GroupCalendarPanel";
 import { LeaderReportForm } from "@/components/ministry-reports/LeaderReportForm";
 import { CouplesHubGroupDashboard } from "@/components/couples/CouplesHubGroupDashboard";
 import { CouplesHubGroupHeader } from "@/components/couples/CouplesHubGroupHeader";
+import { CouplesHubHomeHeader } from "@/components/couples/CouplesHubHomeHeader";
 import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
 import { CoupleEnrichmentPanel } from "@/components/groups/CoupleEnrichmentPanel";
@@ -427,7 +428,7 @@ export function GroupDetailView({
     <div
       className={
         isPowerCouplesGroup
-          ? `${couplesHubPremium.page} min-h-full overflow-x-hidden ${
+          ? `${couplesHubPremium.page} couples-hub-typography min-h-full overflow-x-hidden ${
               isMobileApp ? "-mx-4 -mt-4" : ""
             }`
           : `${groupsPremium.page} overflow-hidden ${
@@ -436,15 +437,19 @@ export function GroupDetailView({
       }
     >
       {isPowerCouplesGroup ? (
-        <CouplesHubGroupHeader
-          showChat={Boolean(hasMemberAccess && user)}
-          onChatClick={() => setDetailSection("chat")}
-          onInfoClick={showInfoTab ? openInfoSection : undefined}
-          showManage={showManageTab}
-          onManageClick={() => setDetailSection("manage")}
-          onHubClick={() => setDetailSection("overview")}
-          hubIsActive={detailSection === "overview"}
-        />
+        powerCouplesHubHome ? (
+          <CouplesHubHomeHeader />
+        ) : (
+          <CouplesHubGroupHeader
+            showChat={Boolean(hasMemberAccess && user)}
+            onChatClick={() => setDetailSection("chat")}
+            onInfoClick={showInfoTab ? openInfoSection : undefined}
+            showManage={showManageTab}
+            onManageClick={() => setDetailSection("manage")}
+            onHubClick={() => setDetailSection("overview")}
+            hubIsActive={detailSection === "overview"}
+          />
+        )
       ) : (
         <GroupBandHeader
           group={detail}
@@ -456,7 +461,7 @@ export function GroupDetailView({
         />
       )}
 
-      {user && detailTabs.length > 0 && isPowerCouplesGroup && detailSection !== "chat" ? (
+      {user && detailTabs.length > 0 && isPowerCouplesGroup && detailSection !== "chat" && !powerCouplesHubHome ? (
         <div className="px-2 pb-2">
           <CouplesHubTabRow
             tabs={powerCouplesNavTabs}

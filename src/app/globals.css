@@ -5843,18 +5843,136 @@ html.native-app-boot .native-boot-splash img {
   box-shadow: 0 1px 3px rgb(28 25 23 / 0.06);
 }
 
+/* Power Couples premium design system */
+.couples-hub-typography {
+  font-family: var(--font-couples-ui), var(--font-sans), system-ui, sans-serif;
+}
+
 .couples-hub-page {
-  --couples-bg: #121212;
-  --couples-surface: #1c1c1c;
-  --couples-text: #f5f0e8;
-  --couples-text-muted: #a8a29e;
-  --couples-sheet-bg: #fdf7f0;
-  --couples-sheet-tab-track: #ebe4d8;
-  --couples-sheet-text: #1c1917;
-  --couples-sheet-muted: #78716c;
-  background: var(--couples-bg);
+  --couples-background: #faf7f2;
+  --couples-surface: #ffffff;
+  --couples-midnight: #17191c;
+  --couples-gold: #b78b54;
+  --couples-gold-light: #ead9bf;
+  --couples-blush: #f2dadd;
+  --couples-mocha: #744b3a;
+  --couples-text: #252525;
+  --couples-muted: #766d65;
+  --couples-border: #eae4dc;
+  --couples-sage: #e3ede5;
+  --couples-blue: #e7edf5;
+  --couples-lavender: #ede6f5;
+  --couples-page-padding: 1.125rem;
+  --couples-radius-card: 1.25rem;
+  --couples-radius-button: 1rem;
+  --couples-radius-hero: 1.5rem;
+  --couples-radius-hero-home: 1.375rem;
+  --couples-shadow-card: 0 4px 24px rgba(23, 25, 28, 0.06);
+  --couples-shadow-hero: 0 12px 40px rgba(23, 25, 28, 0.12);
+
+  /* Legacy aliases (sub-pages + sheets) */
+  --couples-bg: var(--couples-midnight);
+  --couples-header-text: #ffffff;
+  --couples-text-muted: var(--couples-muted);
+  --couples-sheet-bg: var(--couples-surface);
+  --couples-sheet-tab-track: var(--couples-gold-light);
+  --couples-sheet-text: var(--couples-text);
+  --couples-sheet-muted: var(--couples-muted);
+
+  background: var(--couples-background);
   color: var(--couples-text);
   min-height: 100%;
+}
+
+.couples-hub-page .couples-page-header,
+.couples-hub-page .couples-hub-group-header {
+  color: var(--couples-header-text);
+}
+
+.couples-feature-card--marriage {
+  background: linear-gradient(135deg, var(--couples-mocha) 0%, var(--couples-gold) 100%);
+}
+
+.couples-feature-card--community {
+  background: linear-gradient(125deg, #5c2a32 0%, #7a3d48 45%, #9a5560 100%);
+}
+
+.couples-hero-banner__gradient {
+  background: linear-gradient(
+    to top,
+    rgba(23, 25, 28, 0.88) 0%,
+    rgba(23, 25, 28, 0.45) 42%,
+    rgba(23, 25, 28, 0.08) 72%,
+    transparent 100%
+  );
+}
+
+.couples-shortcut-tile--sage {
+  background: var(--couples-sage);
+}
+.couples-shortcut-tile--blush {
+  background: var(--couples-blush);
+}
+.couples-shortcut-tile--blue {
+  background: var(--couples-blue);
+}
+.couples-shortcut-tile--lavender {
+  background: var(--couples-lavender);
+}
+.couples-shortcut-tile--gold {
+  background: var(--couples-gold-light);
+}
+
+.couples-hub-home-header__bell button,
+.couples-hub-home-header__bell a {
+  color: white;
+}
+
+.couples-hub-landing-scroll {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.couples-hub-landing-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.couples-btn-primary {
+  background: linear-gradient(135deg, var(--couples-mocha), var(--couples-gold));
+  box-shadow: var(--couples-shadow-card);
+}
+
+.couples-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.couples-btn-secondary {
+  border-color: var(--couples-border);
+  background: var(--couples-surface);
+  color: var(--couples-text);
+}
+
+.couples-btn-secondary:hover {
+  background: var(--couples-background);
+}
+
+.couples-hub-landing {
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
+.safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .couples-hub-page .couples-feature-card,
+  .couples-hub-page .couples-btn-primary,
+  .couples-hub-page .couples-btn-secondary {
+    transition: none;
+  }
 }
 
 .couples-hub-sheet .couples-tile-tone-calendar,

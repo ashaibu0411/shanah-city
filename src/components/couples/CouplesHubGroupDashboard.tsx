@@ -3,7 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CouplesCommunityFeedEmbedded } from "@/components/couples/CouplesCommunityFeedEmbedded";
-import { CouplesHubHero } from "@/components/couples/CouplesHubHero";
+import {
+  CouplesFeatureCard,
+  CouplesHeroCard,
+  CouplesLoadingSkeleton,
+  CouplesSectionHeading,
+  CouplesShortcutTile,
+} from "@/components/couples/design-system";
+import {
+  CouplesHomeGroupIcon,
+  CouplesHomeLockHeartIcon,
+} from "@/components/couples/CouplesHubHomeIcons";
 import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { CouplesHubTileGrid } from "@/components/couples/CouplesHubTileGrid";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
@@ -15,9 +25,16 @@ import {
   couplesMarriageTiles,
   type CouplesHubTile,
 } from "@/lib/couples-hub-routes";
-import type { CouplesHubCommunityTileId, CouplesHubOverview } from "@/lib/couples-hub-types";
+import type {
+  CouplesHubCommunityTileId,
+  CouplesHubMarriageTileId,
+  CouplesHubOverview,
+} from "@/lib/couples-hub-types";
 import type { GroupDashboardQuickAction } from "@/lib/group-dashboard-types";
 import type { PowerCouplesCommunitySection } from "@/lib/couples-hub-paths";
+import { powerCouplesGroupSectionPath } from "@/lib/couples-hub-paths";
+import { SHANAH_POWER_COUPLES_GROUP_ID } from "@/lib/church-groups";
+import type { ChurchEvent } from "@/lib/types";
 
 type CommunityTab = "discussions" | "events" | "resources";
 type HubView = "landing" | "modules" | "community";
@@ -27,6 +44,34 @@ const TAB_TILE_IDS: Record<CommunityTab, CouplesHubCommunityTileId[]> = {
   events: ["events", "challenges"],
   resources: ["resources", "devotionals"],
 };
+
+const HOME_MARRIAGE_SHORTCUTS: {
+  id: CouplesHubMarriageTileId;
+  title: string;
+  emoji: string;
+  tone: "sage" | "blush" | "blue" | "lavender";
+}[] = [
+  { id: "calendar", title: "Our Calendar", emoji: "📅", tone: "blue" },
+  { id: "date-night", title: "Date Night", emoji: "💕", tone: "blush" },
+  { id: "love-notes", title: "Love Notes", emoji: "💌", tone: "lavender" },
+  { id: "devotionals", title: "Devotionals", emoji: "📖", tone: "sage" },
+];
+
+function parseEventDay(event: ChurchEvent): Date | null {
+  const raw = event.startsOn?.trim() || event.date?.trim();
+  if (!raw) return null;
+  const parsed = new Date(`${raw}T12:00:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatEventPreview(event: ChurchEvent) {
+  const day = parseEventDay(event);
+  const dateLabel = day
+    ? day.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
+    : event.date || "Date TBA";
+  const meta = [dateLabel, event.time].filter(Boolean).join(" · ");
+  return { meta, location: event.location?.trim() };
+}
 
 export function CouplesHubGroupDashboard({
   joinSlot,
@@ -41,6 +86,8 @@ export function CouplesHubGroupDashboard({
   const [loading, setLoading] = useState(true);
   const [communityTab, setCommunityTab] = useState<CommunityTab>("discussions");
   const [hubView, setHubView] = useState<HubView>("landing");
+  const [nextEvent, setNextEvent] = useState<ChurchEvent | null>(null);
+  const [eventsLoading, setEventsLoading] = useState(true);
 
   useEffect(() => {
     void fetch("/api/couples/hub")
@@ -52,7 +99,40 @@ export function CouplesHubGroupDashboard({
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    void fetch(`/api/events?groupId=${encodeURIComponent(SHANAH_POWER_COUPLES_GROUP_ID)}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) return;
+        const events = (data.events ?? []) as ChurchEvent[];
+        const upcoming = events
+          .filter((event) => event.published !== false)
+          .map((event) => ({ event, day: parseEventDay(event) }))
+          .filter((entry) => entry.day && entry.day >= today)
+          .sort((a, b) => a.day!.getTime() - b.day!.getTime());
+        setNextEvent(upcoming[0]?.event ?? null);
+      })
+      .catch(() => undefined)
+      .finally(() => setEventsLoading(false));
+  }, []);
+
   const locked = !overview?.hasActiveLink;
+
+  const marriageShortcutTiles = useMemo(() => {
+    const byId = new Map(couplesMarriageTiles.map((tile) => [tile.id, tile]));
+    return HOME_MARRIAGE_SHORTCUTS.map((shortcut) => {
+      const tile = byId.get(shortcut.id);
+      return tile ? { ...shortcut, href: tile.href } : null;
+    }).filter(Boolean) as Array<{
+      id: CouplesHubMarriageTileId;
+      title: string;
+      emoji: string;
+      tone: "sage" | "blush" | "blue" | "lavender";
+      href: string;
+    }>;
+  }, []);
 
   const communityTiles = useMemo(() => {
     const ids = new Set(TAB_TILE_IDS[communityTab]);
@@ -132,55 +212,138 @@ export function CouplesHubGroupDashboard({
     );
   }
 
+  const eventPreview = nextEvent ? formatEventPreview(nextEvent) : null;
+
   return (
-    <div className={`${couplesHubPremium.inset} !px-0 !pt-0`}>
-      <CouplesHubHero
-        flush
+    <div className="couples-hub-landing pb-28">
+      <CouplesHeroCard
+        layout="banner"
         cropFlyerBranding
-        title="Couples Hub"
+        title="Power Couples"
         tagline="Grow in faith. Love intentionally. Build together."
         showHeart
       >
         {overview?.hasActiveLink && overview.partnerName ? (
-          <p className="mt-4 inline-block rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+          <p className="mt-3 inline-block rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
             Linked with {overview.partnerName}
           </p>
         ) : null}
-      </CouplesHubHero>
+      </CouplesHeroCard>
 
-      {joinSlot ? <div className="mt-4 px-4">{joinSlot}</div> : null}
+      {joinSlot ? <div className="mt-4 px-[var(--couples-page-padding)]">{joinSlot}</div> : null}
 
       {!loading && locked ? (
-        <div className="mt-4 px-4">
-          <CouplesLinkGate tone="dark" pendingIncoming={overview?.pendingIncomingInvite} />
+        <div className="mt-4 px-[var(--couples-page-padding)]">
+          <CouplesLinkGate tone="sheet" pendingIncoming={overview?.pendingIncomingInvite} />
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-col gap-3 px-4 pb-8">
-        <button type="button" className={couplesHubPremium.marriageCta} onClick={() => setHubView("modules")}>
-          <span className={couplesHubPremium.marriageCtaIcon} aria-hidden>🔒</span>
-          <span>
-            Our marriage
-            <span className="mt-0.5 block text-xs font-normal text-white/80">Your private space</span>
-          </span>
-        </button>
-        <button type="button" className={couplesHubPremium.communityCta} onClick={() => setHubView("community")}>
-          <span className={couplesHubPremium.communityCtaIcon} aria-hidden>👥</span>
-          <span>
-            Couples community
-            <span className="mt-0.5 block text-xs font-normal text-white/80">
-              Events, discussions, resources
-            </span>
-          </span>
-        </button>
+      <div className="mt-4 flex flex-col gap-3 px-[var(--couples-page-padding)]">
+        <CouplesFeatureCard
+          variant="marriage"
+          icon={<CouplesHomeLockHeartIcon />}
+          title="Our Marriage"
+          subtitle="Your private space to grow together"
+          onClick={() => setHubView("modules")}
+        />
+        <CouplesFeatureCard
+          variant="community"
+          icon={<CouplesHomeGroupIcon />}
+          title="Couples Community"
+          subtitle="Connect, encourage & grow together"
+          onClick={() => setHubView("community")}
+        />
       </div>
 
+      <section className="mt-8 px-[var(--couples-page-padding)]">
+        <h2 className="font-[family-name:var(--font-couples-display)] text-[1.25rem] font-semibold text-[var(--couples-text)]">
+          For Your Marriage
+        </h2>
+        <div
+          className="couples-hub-landing-scroll -mx-[var(--couples-page-padding)] mt-4 flex gap-3 overflow-x-auto px-[var(--couples-page-padding)] pb-1"
+          role="list"
+        >
+          {marriageShortcutTiles.map((shortcut) => (
+            <CouplesShortcutTile
+              key={shortcut.id}
+              title={shortcut.title}
+              icon={shortcut.emoji}
+              href={shortcut.href}
+              tone={shortcut.tone}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-8 px-[var(--couples-page-padding)]">
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="font-[family-name:var(--font-couples-display)] text-[1.25rem] font-semibold text-[var(--couples-text)]">
+            Upcoming Couples Events
+          </h2>
+          <button
+            type="button"
+            className="shrink-0 pb-0.5 text-[0.8125rem] font-semibold text-[var(--couples-gold)] transition hover:text-[var(--couples-mocha)]"
+            onClick={() => onCommunityNavigate("calendar")}
+          >
+            View all
+          </button>
+        </div>
+        <div className="mt-3">
+          {eventsLoading ? (
+            <CouplesLoadingSkeleton rows={1} />
+          ) : nextEvent && eventPreview ? (
+            <Link
+              href={powerCouplesGroupSectionPath("calendar")}
+              className="flex gap-3 rounded-[var(--couples-radius-card)] bg-[var(--couples-surface)] p-4 transition active:scale-[0.99] motion-reduce:transition-none"
+            >
+              <span
+                className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-[var(--couples-gold-light)] text-center"
+                aria-hidden
+              >
+                <span className="text-[0.625rem] font-bold uppercase tracking-wide text-[var(--couples-mocha)]">
+                  {parseEventDay(nextEvent)?.toLocaleDateString(undefined, { month: "short" })}
+                </span>
+                <span className="text-lg font-semibold leading-none text-[var(--couples-mocha)]">
+                  {parseEventDay(nextEvent)?.getDate()}
+                </span>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[0.9375rem] font-semibold text-[var(--couples-text)]">
+                  {nextEvent.title}
+                </span>
+                <span className="mt-0.5 block text-[0.8125rem] text-[var(--couples-muted)]">
+                  {eventPreview.meta}
+                </span>
+                {eventPreview.location ? (
+                  <span className="mt-0.5 block truncate text-xs text-[var(--couples-muted)]">
+                    {eventPreview.location}
+                  </span>
+                ) : null}
+              </span>
+              <span className="self-center text-[var(--couples-muted)]" aria-hidden>›</span>
+            </Link>
+          ) : (
+            <div className="rounded-[var(--couples-radius-card)] bg-[var(--couples-surface)] px-4 py-6 text-center text-sm text-[var(--couples-muted)]">
+              No upcoming events on the calendar yet.
+              <button
+                type="button"
+                className="mt-2 block w-full text-sm font-semibold text-[var(--couples-gold)]"
+                onClick={() => onCommunityNavigate("calendar")}
+              >
+                Open group calendar
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
       {overview?.canManageMarriageMinistry ? (
-        <section className={`${couplesHubPremium.card} mx-4 mb-4`}>
-          <p className={couplesHubPremium.sectionEyebrow}>Ministry leaders</p>
-          <p className="mt-2 text-xs text-[var(--couples-text-muted)]">
-            Publish marriage devotionals from the devotionals module or Manage.
-          </p>
+        <section className="mx-[var(--couples-page-padding)] mt-8 mb-4 rounded-[var(--couples-radius-card)] bg-[var(--couples-surface)] p-4">
+          <CouplesSectionHeading
+            eyebrow="Ministry leaders"
+            title="Marriage ministry tools"
+            description="Publish marriage devotionals from the devotionals module or Manage."
+          />
         </section>
       ) : null}
     </div>

@@ -28,7 +28,7 @@ export function CouplesHubScreen({
   sheetClassName?: string;
 }) {
   return (
-    <div className={couplesHubPremium.page}>
+    <div className={`${couplesHubPremium.page} couples-hub-typography`}>
       <div className="mx-auto w-full max-w-lg">
         <CouplesHubTitleBar title={title} backHref={backHref} backLabel={backLabel} />
         {headerExtra ? <div className="px-4 pb-3">{headerExtra}</div> : null}

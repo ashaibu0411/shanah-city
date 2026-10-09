@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Fraunces } from "next/font/google";
+import { DM_Sans, Fraunces, Inter, Playfair_Display } from "next/font/google";
 import { AppShell } from "@/components/app/AppShell";
 import { APP_THEME_STORAGE_KEY } from "@/lib/theme";
 import { brandLogos, site } from "@/lib/site";
@@ -20,6 +20,19 @@ const display = Fraunces({
 const homeHero = Fraunces({
   subsets: ["latin"],
   variable: "--font-home-hero",
+});
+
+/** Power Couples hub (scoped via `.couples-hub-typography` / `.couples-hub-page`) */
+const couplesUi = Inter({
+  subsets: ["latin"],
+  variable: "--font-couples-ui",
+  display: "swap",
+});
+
+const couplesDisplay = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-couples-display",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -67,7 +80,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${sans.variable} ${display.variable} ${homeHero.variable} font-sans`}>
+      <body
+        className={`${sans.variable} ${display.variable} ${homeHero.variable} ${couplesUi.variable} ${couplesDisplay.variable} font-sans`}
+      >
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){function m(){document.documentElement.classList.add("native-app-boot")}function n(){try{var c=window.Capacitor;return!!(c&&(c.isNativePlatform?c.isNativePlatform():c.isNative))}catch(e){return!1}}if(n())m();else document.addEventListener("DOMContentLoaded",function(){if(n())m()})})();`,
