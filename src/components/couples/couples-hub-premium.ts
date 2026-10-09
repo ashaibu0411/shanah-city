@@ -1,24 +1,57 @@
 import { editorialPremium } from "@/components/app/editorial-premium";
 
+/** Shanah Couples Hub — dark, card-forward layout aligned with product mockups. */
 export const couplesHubPremium = {
-  page:
-    "couples-hub-page min-w-0 bg-gradient-to-b from-rose-50/80 via-sand-50 to-sand-50 font-sans dark:from-[var(--color-bg)] dark:via-[var(--color-bg)] dark:to-[var(--color-bg)]",
+  page: "couples-hub-page min-w-0 font-sans text-[var(--couples-text)]",
   inset: "mx-auto w-full max-w-lg px-4 pb-28 pt-2",
-  heroCard:
-    "relative overflow-hidden rounded-[1.5rem] border border-rose-200/60 bg-gradient-to-br from-rose-100/90 via-white to-amber-50/80 p-6 shadow-[0_12px_40px_rgba(120,53,45,0.08)] dark:border-rose-900/30 dark:from-rose-950/40 dark:via-[var(--color-surface)] dark:to-[var(--color-bg-soft)]",
+  screenTitle: "font-display text-2xl font-semibold tracking-tight text-[var(--couples-text)]",
+  screenSubtitle: "mt-1 text-sm leading-relaxed text-[var(--couples-text-muted)]",
+  backLink:
+    "inline-flex items-center gap-1 text-sm font-semibold text-[var(--couples-text-muted)] transition hover:text-[var(--couples-text)]",
+  heroWrap:
+    "relative -mx-4 mb-6 overflow-hidden rounded-b-[1.75rem] sm:mx-0 sm:rounded-[1.75rem]",
+  heroImage: "object-cover",
+  heroOverlay:
+    "absolute inset-0 bg-gradient-to-t from-[#0e0e14] via-[#0e0e14]/55 to-[#0e0e14]/15",
+  heroContent: "absolute inset-x-0 bottom-0 p-5 pb-6",
+  heroTitle: "font-display text-3xl font-semibold tracking-tight text-white",
+  heroTagline: "mt-2 text-sm leading-relaxed text-white/85",
+  heroEyebrow: "text-[10px] font-bold uppercase tracking-[0.28em] text-rose-200/90",
   sectionTitle: editorialPremium.sectionTitle,
-  sectionEyebrow:
-    "text-[10px] font-bold uppercase tracking-[0.28em] text-rose-800/80 dark:text-rose-200/80",
-  tileGrid: "grid grid-cols-2 gap-3 sm:gap-3.5",
+  sectionEyebrow: "text-[10px] font-bold uppercase tracking-[0.28em] text-rose-300/80",
+  tileGrid: "grid grid-cols-2 gap-3",
+  tileMarriage:
+    "couples-hub-tile couples-hub-tile-marriage flex min-h-[7.25rem] flex-col items-center justify-center gap-2 rounded-[1.35rem] p-4 text-center transition active:scale-[0.98]",
   tile:
-    "couples-hub-tile flex min-h-[7.5rem] flex-col justify-between rounded-[1.25rem] border border-night-900/8 bg-white/95 p-4 text-left shadow-[0_1px_2px_rgba(45,36,24,0.04),0_10px_28px_rgba(45,36,24,0.06)] transition active:scale-[0.98] hover:shadow-[0_14px_36px_rgba(45,36,24,0.09)] dark:border-white/10 dark:bg-[var(--color-surface)]",
-  tileEmoji: "text-2xl leading-none",
-  tileTitle: "font-display text-[0.95rem] font-semibold leading-snug tracking-tight text-night-950 dark:text-sand-100",
-  tileSubtitle: "mt-1 text-xs leading-relaxed text-night-600 dark:text-sand-400",
+    "couples-hub-tile flex min-h-[7rem] flex-col justify-between rounded-[1.25rem] border border-white/10 bg-[var(--couples-surface)] p-4 text-left transition active:scale-[0.98] hover:border-white/15",
+  tileEmoji: "text-3xl leading-none",
+  tileTitle: "font-display text-[0.9rem] font-semibold leading-snug tracking-tight text-[var(--couples-text)]",
+  tileTitleMarriage: "font-display text-[0.82rem] font-semibold leading-snug text-[var(--couples-text)]",
+  tileSubtitle: "mt-1 text-xs leading-relaxed text-[var(--couples-text-muted)]",
   gateCard:
-    "rounded-[1.25rem] border border-dashed border-rose-300/80 bg-white/70 p-5 text-sm leading-relaxed text-night-700 dark:border-rose-800/50 dark:bg-[var(--color-surface)] dark:text-sand-200",
+    "rounded-[1.25rem] border border-dashed border-rose-400/30 bg-[var(--couples-surface)] p-5 text-sm leading-relaxed text-[var(--couples-text-muted)]",
+  marriageCta:
+    "inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#5a3d2e] to-[#8b5a2b] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:brightness-110 active:scale-[0.99]",
+  communityCta:
+    "inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#5c2328] to-[#7a2f38] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/30 transition hover:brightness-110 active:scale-[0.99]",
   primaryCta:
-    "inline-flex w-full items-center justify-center rounded-2xl bg-night-900 px-4 py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-night-800 active:scale-[0.99] dark:bg-sand-100 dark:text-night-950",
+    "inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#5a3d2e] to-[#8b5a2b] px-4 py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 active:scale-[0.99]",
   secondaryCta:
-    "inline-flex w-full items-center justify-center rounded-2xl bg-white px-4 py-3.5 text-sm font-semibold text-night-900 ring-1 ring-night-900/10 transition hover:bg-sand-50 active:scale-[0.99] dark:bg-[var(--color-surface)] dark:text-sand-100 dark:ring-white/10",
+    "inline-flex w-full items-center justify-center rounded-2xl border border-white/12 bg-[var(--couples-surface)] px-4 py-3.5 text-sm font-semibold text-[var(--couples-text)] transition hover:border-white/20 active:scale-[0.99]",
+  tabPill:
+    "rounded-full px-3.5 py-1.5 text-xs font-semibold capitalize transition",
+  tabPillActive: "bg-white text-[#0e0e14]",
+  tabPillIdle: "bg-[var(--couples-surface)] text-[var(--couples-text-muted)] ring-1 ring-white/10",
+  card:
+    "rounded-[1.25rem] border border-white/10 bg-[var(--couples-surface)] p-4",
+  input:
+    "w-full rounded-xl border border-white/12 bg-[#14141c] px-3 py-2.5 text-sm text-[var(--couples-text)] placeholder:text-[var(--couples-text-muted)]",
+  progressTrack: "h-2 overflow-hidden rounded-full bg-white/10",
+  progressFill: "h-full rounded-full bg-gradient-to-r from-rose-400 to-amber-400",
+  fab:
+    "fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#0e0e14] text-2xl text-white shadow-xl ring-2 ring-white/15",
 };
+
+export const COUPLES_HUB_HERO_IMAGE = "/home/home-gallery-12.jpg";
+export const COUPLES_DEVOTIONAL_HERO = "/home/home-gallery-06.jpg";
+export const COUPLES_DATE_NIGHT_HERO = "/home/home-gallery-15.jpg";

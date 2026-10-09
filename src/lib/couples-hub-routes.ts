@@ -1,11 +1,23 @@
 import type { CouplesHubCommunityTileId, CouplesHubMarriageTileId } from "@/lib/couples-hub-types";
 
+export type CouplesHubTileTone =
+  | "calendar"
+  | "date-night"
+  | "love-notes"
+  | "check-in"
+  | "prayer"
+  | "goals"
+  | "devotionals"
+  | "games"
+  | "community";
+
 export type CouplesHubTile = {
   id: CouplesHubMarriageTileId | CouplesHubCommunityTileId;
   title: string;
   subtitle: string;
   href: string;
   emoji: string;
+  tone?: CouplesHubTileTone;
   requiresLink?: boolean;
 };
 
@@ -16,6 +28,7 @@ export const couplesMarriageTiles: CouplesHubTile[] = [
     subtitle: "Shared dates, anniversaries & appointments",
     href: "/couples/marriage/calendar",
     emoji: "📅",
+    tone: "calendar",
     requiresLink: true,
   },
   {
@@ -24,6 +37,7 @@ export const couplesMarriageTiles: CouplesHubTile[] = [
     subtitle: "Ideas, plans & surprise invites",
     href: "/couples/marriage/date-night",
     emoji: "💕",
+    tone: "date-night",
     requiresLink: true,
   },
   {
@@ -32,6 +46,7 @@ export const couplesMarriageTiles: CouplesHubTile[] = [
     subtitle: "Private encouragement for each other",
     href: "/couples/marriage/love-notes",
     emoji: "💌",
+    tone: "love-notes",
     requiresLink: true,
   },
   {
@@ -40,6 +55,7 @@ export const couplesMarriageTiles: CouplesHubTile[] = [
     subtitle: "Weekly reflection & conversation prompts",
     href: "/couples/marriage/check-in",
     emoji: "🤝",
+    tone: "check-in",
     requiresLink: true,
   },
   {
@@ -48,6 +64,7 @@ export const couplesMarriageTiles: CouplesHubTile[] = [
     subtitle: "Requests & answered prayers — just you two",
     href: "/couples/marriage/prayer",
     emoji: "🙏",
+    tone: "prayer",
     requiresLink: true,
   },
   {
@@ -56,6 +73,7 @@ export const couplesMarriageTiles: CouplesHubTile[] = [
     subtitle: "Spiritual, family & marriage milestones",
     href: "/couples/marriage/goals",
     emoji: "🎯",
+    tone: "goals",
     requiresLink: true,
   },
   {
@@ -64,6 +82,7 @@ export const couplesMarriageTiles: CouplesHubTile[] = [
     subtitle: "Daily marriage reading & discussion",
     href: "/couples/marriage/devotionals",
     emoji: "📖",
+    tone: "devotionals",
     requiresLink: true,
   },
   {
@@ -72,6 +91,7 @@ export const couplesMarriageTiles: CouplesHubTile[] = [
     subtitle: "Fun prompts to grow closer",
     href: "/couples/marriage/games",
     emoji: "🎲",
+    tone: "games",
     requiresLink: true,
   },
 ];

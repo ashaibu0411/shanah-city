@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { CouplesHubHero } from "@/components/couples/CouplesHubHero";
+import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
-import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
-import { Button, PageHeader } from "@/components/ui";
+import { CouplesSubpageHeader } from "@/components/couples/CouplesSubpageHeader";
+import { couplesHubPremium, COUPLES_DATE_NIGHT_HERO } from "@/components/couples/couples-hub-premium";
+import { Button } from "@/components/ui";
 import {
   DATE_NIGHT_BUDGETS,
   DATE_NIGHT_LOCATIONS,
@@ -226,10 +229,16 @@ export function CouplesDateNight() {
   return (
     <div className={couplesHubPremium.page}>
       <div className={couplesHubPremium.inset}>
-        <PageHeader variant="flat" eyebrow="Our marriage" title="Date night" />
-        <p className="mt-1 text-sm text-night-600 dark:text-sand-400">
-          Ideas, favorites, scheduled dates, and surprise invites — private to your marriage.
-        </p>
+        <CouplesSubpageHeader
+          title="Date night"
+          subtitle="Create memories. Keep the spark alive — private to your marriage."
+        />
+
+        <CouplesHubHero
+          imageSrc={COUPLES_DATE_NIGHT_HERO}
+          title="Make time for us"
+          tagline="Ideas, plans, and surprise invites for intentional time together."
+        />
 
         {locked ? (
           <div className="mt-6">
@@ -237,29 +246,18 @@ export function CouplesDateNight() {
           </div>
         ) : (
           <>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {(
-                [
-                  ["ideas", "Ideas"],
-                  ["dates", "My dates"],
-                  ["history", "History"],
-                  ["challenge", "Challenge"],
-                ] as [TabId, string][]
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setTab(id)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                    tab === id
-                      ? "bg-night-900 text-white dark:bg-sand-100 dark:text-night-950"
-                      : "bg-white text-night-700 ring-1 ring-night-900/10 dark:bg-[var(--color-surface)]"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-              <Button className="!ml-auto !py-2" onClick={() => openSchedule()} disabled={busy}>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <CouplesHubTabRow
+                tabs={[
+                  { id: "ideas", label: "Ideas" },
+                  { id: "dates", label: "My dates" },
+                  { id: "challenge", label: "Challenges" },
+                  { id: "history", label: "History" },
+                ]}
+                active={tab}
+                onChange={setTab}
+              />
+              <Button className="!py-2" onClick={() => openSchedule()} disabled={busy}>
                 Plan a date
               </Button>
             </div>

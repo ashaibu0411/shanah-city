@@ -5,7 +5,8 @@ import Link from "next/link";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
-import { Button, PageHeader } from "@/components/ui";
+import { CouplesSubpageHeader } from "@/components/couples/CouplesSubpageHeader";
+import { Button } from "@/components/ui";
 import {
   COUPLE_CALENDAR_CATEGORIES,
   type CoupleCalendarPlannable,
@@ -210,10 +211,10 @@ export function CouplesMarriageCalendar() {
   return (
     <div className={couplesHubPremium.page}>
       <div className={couplesHubPremium.inset}>
-        <PageHeader variant="flat" eyebrow="Our marriage" title="Our calendar" />
-        <p className="mt-1 text-sm text-night-600 dark:text-sand-400">
-          Shared with your spouse only — month, week, and agenda views. Times use Mountain Time.
-        </p>
+        <CouplesSubpageHeader
+          title="Our calendar"
+          subtitle="Shared with your spouse only — month, week, and agenda. Times use Mountain Time."
+        />
 
         {locked ? (
           <div className="mt-6">

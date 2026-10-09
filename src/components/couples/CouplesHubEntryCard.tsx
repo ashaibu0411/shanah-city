@@ -3,7 +3,7 @@ import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
 
 export function CouplesHubEntryCard() {
   return (
-    <div className={`${couplesHubPremium.heroCard} mb-4 !p-4`}>
+    <div className={`${couplesHubPremium.card} mb-4`}>
       <p className={couplesHubPremium.sectionEyebrow}>Couples Hub</p>
       <p className="mt-1 font-display text-lg font-semibold text-night-950 dark:text-sand-100">
         Private marriage tools + community

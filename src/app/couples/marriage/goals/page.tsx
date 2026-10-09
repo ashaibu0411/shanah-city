@@ -1,10 +1,5 @@
-import { CouplesFeatureShell } from "@/components/couples/CouplesFeatureShell";
+import { CouplesMarriageGoals } from "@/components/couples/CouplesMarriageGoals";
 
-export default function CouplesGoalsPage() {
-  return (
-    <CouplesFeatureShell
-      title="Our goals"
-      description="Set shared goals with milestones across spiritual, family, financial, and communication categories."
-    />
-  );
+export default function CouplesMarriageGoalsPage() {
+  return <CouplesMarriageGoals />;
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { PageHeader } from "@/components/ui";
 import { CouplesHubTileGrid } from "@/components/couples/CouplesHubTileGrid";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
@@ -32,34 +31,33 @@ export function CouplesMarriageDashboard() {
   return (
     <div className={couplesHubPremium.page}>
       <div className={couplesHubPremium.inset}>
-        <PageHeader variant="flat" eyebrow="Private" title="Our marriage" />
-        <p className="mt-1 text-sm text-night-600 dark:text-sand-400">
+        <Link href="/couples" className={couplesHubPremium.backLink}>
+          <span aria-hidden>←</span> Couples Hub
+        </Link>
+        <h1 className={`${couplesHubPremium.screenTitle} mt-3`}>Our marriage</h1>
+        <p className={couplesHubPremium.screenSubtitle}>
           Shared only with your linked spouse — not visible to church staff or the community feed.
         </p>
 
         {overview?.hasActiveLink && overview.partnerName ? (
-          <p className="mt-4 text-sm font-medium text-night-800 dark:text-sand-200">
-            With <strong>{overview.partnerName}</strong>
+          <p className="mt-4 rounded-2xl border border-white/10 bg-[var(--couples-surface)] px-3 py-2 text-sm font-medium">
+            With <strong className="text-rose-200">{overview.partnerName}</strong>
           </p>
         ) : null}
 
         {loading ? (
-          <p className="mt-8 text-center text-sm text-night-500">Loading…</p>
+          <p className="mt-8 text-center text-sm text-[var(--couples-text-muted)]">Loading…</p>
         ) : error ? (
-          <p className="mt-8 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          <p className="mt-8 rounded-xl bg-red-950/50 px-3 py-2 text-sm text-red-200">{error}</p>
         ) : locked ? (
           <div className="mt-6">
             <CouplesLinkGate pendingIncoming={overview?.pendingIncomingInvite} />
           </div>
         ) : (
           <div className="mt-6">
-            <CouplesHubTileGrid tiles={couplesMarriageTiles} />
+            <CouplesHubTileGrid tiles={couplesMarriageTiles} variant="marriage" />
           </div>
         )}
-
-        <Link href="/couples" className={`${couplesHubPremium.secondaryCta} mt-10`}>
-          Back to Couples Hub
-        </Link>
       </div>
     </div>
   );

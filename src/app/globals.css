@@ -5821,6 +5821,54 @@ html.native-app-boot .native-boot-splash img {
   height: auto;
 }
 
+/* Couples Hub — mockup-aligned dark shell + pastel module tiles */
+.couples-hub-page {
+  --couples-bg: #0e0e14;
+  --couples-surface: #1a1a24;
+  --couples-text: #f5f0e8;
+  --couples-text-muted: #a8a29e;
+  background: var(--couples-bg);
+  color: var(--couples-text);
+  min-height: 100%;
+}
+
+.couples-tile-tone-calendar {
+  background: linear-gradient(160deg, rgba(125, 211, 252, 0.45), rgba(14, 165, 233, 0.12));
+  border: 1px solid rgba(125, 211, 252, 0.28);
+}
+.couples-tile-tone-date-night {
+  background: linear-gradient(160deg, rgba(251, 146, 120, 0.5), rgba(234, 88, 12, 0.12));
+  border: 1px solid rgba(251, 146, 120, 0.3);
+}
+.couples-tile-tone-love-notes {
+  background: linear-gradient(160deg, rgba(244, 114, 182, 0.45), rgba(219, 39, 119, 0.12));
+  border: 1px solid rgba(244, 114, 182, 0.28);
+}
+.couples-tile-tone-check-in {
+  background: linear-gradient(160deg, rgba(96, 165, 250, 0.42), rgba(37, 99, 235, 0.12));
+  border: 1px solid rgba(96, 165, 250, 0.28);
+}
+.couples-tile-tone-prayer {
+  background: linear-gradient(160deg, rgba(251, 191, 36, 0.42), rgba(180, 83, 9, 0.12));
+  border: 1px solid rgba(251, 191, 36, 0.28);
+}
+.couples-tile-tone-goals {
+  background: linear-gradient(160deg, rgba(250, 204, 21, 0.42), rgba(161, 98, 7, 0.12));
+  border: 1px solid rgba(250, 204, 21, 0.28);
+}
+.couples-tile-tone-devotionals {
+  background: linear-gradient(160deg, rgba(110, 231, 183, 0.4), rgba(5, 150, 105, 0.12));
+  border: 1px solid rgba(110, 231, 183, 0.28);
+}
+.couples-tile-tone-games {
+  background: linear-gradient(160deg, rgba(192, 132, 252, 0.42), rgba(124, 58, 237, 0.12));
+  border: 1px solid rgba(192, 132, 252, 0.28);
+}
+.couples-tile-tone-community {
+  background: linear-gradient(160deg, rgba(167, 139, 250, 0.35), rgba(91, 33, 182, 0.12));
+  border: 1px solid rgba(167, 139, 250, 0.25);
+}
+
 @media print {
   .print-hidden {
     display: none !important;

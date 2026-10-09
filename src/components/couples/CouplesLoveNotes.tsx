@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { CouplesHubTabRow } from "@/components/couples/CouplesHubTabRow";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
+import { CouplesSubpageHeader } from "@/components/couples/CouplesSubpageHeader";
 import { couplesHubPremium } from "@/components/couples/couples-hub-premium";
-import { Button, PageHeader } from "@/components/ui";
+import { Button } from "@/components/ui";
 import {
   COUPLE_LOVE_NOTE_TYPES,
   type CoupleLoveNoteType,
@@ -153,11 +155,10 @@ export function CouplesLoveNotes() {
   return (
     <div className={couplesHubPremium.page}>
       <div className={couplesHubPremium.inset}>
-        <PageHeader variant="flat" eyebrow="Our marriage" title="Love notes" />
-        <p className="mt-1 text-sm text-night-600 dark:text-sand-400">
-          Private between you and {hub?.partnerName ?? "your spouse"}. Push alerts never include the
-          message text.
-        </p>
+        <CouplesSubpageHeader
+          title="Love notes"
+          subtitle={`Private between you and ${hub?.partnerName ?? "your spouse"}. Push alerts never include the message text.`}
+        />
 
         {locked ? (
           <div className="mt-6">
@@ -176,21 +177,16 @@ export function CouplesLoveNotes() {
               ) : null}
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {(["all", "received", "sent"] as InboxFilter[]).map((entry) => (
-                <button
-                  key={entry}
-                  type="button"
-                  onClick={() => setFilter(entry)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold capitalize ${
-                    filter === entry
-                      ? "bg-night-900 text-white dark:bg-sand-100 dark:text-night-950"
-                      : "bg-white text-night-700 ring-1 ring-night-900/10 dark:bg-[var(--color-surface)] dark:text-sand-200"
-                  }`}
-                >
-                  {entry}
-                </button>
-              ))}
+            <div className="mt-4">
+              <CouplesHubTabRow
+                tabs={[
+                  { id: "all", label: "Notes" },
+                  { id: "received", label: "Shared with me" },
+                  { id: "sent", label: "Sent" },
+                ]}
+                active={filter}
+                onChange={setFilter}
+              />
             </div>
 
             <label className="mt-4 block">
@@ -200,7 +196,7 @@ export function CouplesLoveNotes() {
                 placeholder="Search notes…"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                className="w-full rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm dark:bg-[var(--color-surface)]"
+                className={couplesHubPremium.input}
               />
             </label>
 
@@ -214,15 +210,20 @@ export function CouplesLoveNotes() {
               </p>
             ) : (
               <ul className="mt-4 space-y-3">
-                {notes.map((note) => {
+                {notes.map((note, index) => {
                   const meta = noteTypeMeta(note.noteType);
+                  const noteTones = [
+                    "couples-tile-tone-love-notes",
+                    "couples-tile-tone-date-night",
+                    "couples-tile-tone-check-in",
+                    "couples-tile-tone-devotionals",
+                  ];
+                  const tone = noteTones[index % noteTones.length];
                   return (
                     <li
                       key={note.id}
-                      className={`rounded-[1.25rem] border p-4 ${
-                        note.isUnread
-                          ? "border-rose-200 bg-rose-50/60 dark:border-rose-900/40 dark:bg-rose-950/20"
-                          : "border-night-900/8 bg-white dark:border-white/10 dark:bg-[var(--color-surface)]"
+                      className={`rounded-[1.25rem] border p-4 ${tone} ${
+                        note.isUnread ? "ring-2 ring-rose-300/50" : ""
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -344,9 +345,6 @@ export function CouplesLoveNotes() {
           </div>
         ) : null}
 
-        <Link href="/couples/marriage" className={`${couplesHubPremium.secondaryCta} mt-10`}>
-          Back to marriage dashboard
-        </Link>
       </div>
     </div>
   );
