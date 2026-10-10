@@ -45,6 +45,7 @@ export type CoupleCheckInAnswerRecord = {
   userId: string;
   dimension: CheckInDimensionId;
   reflection?: string;
+  rating?: number;
   shareWithSpouse: boolean;
   createdAt: string;
 };

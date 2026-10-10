@@ -22,11 +22,15 @@ function parseDimension(value: unknown): CheckInDimensionId {
 
 function answersForUser(answers: CoupleCheckInAnswerRecord[], userId: string) {
   const map: Partial<
-    Record<CheckInDimensionId, { reflection?: string; shareWithSpouse: boolean }>
+    Record<
+      CheckInDimensionId,
+      { reflection?: string; rating?: number; shareWithSpouse: boolean }
+    >
   > = {};
   for (const answer of answers.filter((a) => a.userId === userId)) {
     map[answer.dimension] = {
       reflection: answer.reflection,
+      rating: answer.rating,
       shareWithSpouse: answer.shareWithSpouse,
     };
   }
@@ -73,6 +77,17 @@ export async function saveCoupleCheckInAnswerForUser(
   const dimension = parseDimension(body.dimension);
   const reflection = String(body.reflection ?? "").trim();
   const shareWithSpouse = Boolean(body.shareWithSpouse);
+  const rawRating = body.rating;
+  let rating: number | null | undefined = undefined;
+  if (rawRating === null) {
+    rating = null;
+  } else if (rawRating !== undefined && rawRating !== "") {
+    const n = Number(rawRating);
+    if (!Number.isInteger(n) || n < 1 || n > 5) {
+      throw new Error("Choose a rating from 1 to 5, or leave it blank.");
+    }
+    rating = n;
+  }
 
   if (reflection.length > 2000) {
     throw new Error("Keep your reflection under 2,000 characters.");
@@ -84,6 +99,7 @@ export async function saveCoupleCheckInAnswerForUser(
     userId: user.id,
     dimension,
     reflection: reflection || undefined,
+    rating: rating === undefined ? undefined : rating,
     shareWithSpouse,
   });
 

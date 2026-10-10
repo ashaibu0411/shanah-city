@@ -1267,6 +1267,7 @@ model CoupleCheckInAnswer {
   userId      String
   dimension   String
   reflection  String?
+  rating      Int?
   shareWithSpouse Boolean @default(false)
   createdAt   DateTime @default(now())
 

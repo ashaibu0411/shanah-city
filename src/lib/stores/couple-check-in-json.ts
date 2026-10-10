@@ -57,6 +57,7 @@ export async function upsertCheckInAnswer(input: {
   userId: string;
   dimension: CheckInDimensionId;
   reflection?: string;
+  rating?: number | null;
   shareWithSpouse: boolean;
 }) {
   const answers = await readAnswers();
@@ -69,6 +70,7 @@ export async function upsertCheckInAnswer(input: {
     userId: input.userId,
     dimension: input.dimension,
     reflection: input.reflection?.trim() || undefined,
+    rating: input.rating === null ? undefined : input.rating,
     shareWithSpouse: input.shareWithSpouse,
     createdAt: index >= 0 ? answers[index].createdAt : new Date().toISOString(),
   };

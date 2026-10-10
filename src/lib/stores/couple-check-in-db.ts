@@ -16,6 +16,7 @@ function mapAnswer(row: {
   userId: string;
   dimension: string;
   reflection: string | null;
+  rating: number | null;
   shareWithSpouse: boolean;
   createdAt: Date;
 }) {
@@ -25,6 +26,7 @@ function mapAnswer(row: {
     userId: row.userId,
     dimension: row.dimension as CheckInDimensionId,
     reflection: row.reflection ?? undefined,
+    rating: row.rating ?? undefined,
     shareWithSpouse: row.shareWithSpouse,
     createdAt: row.createdAt.toISOString(),
   } satisfies CoupleCheckInAnswerRecord;
@@ -56,6 +58,7 @@ export async function upsertCheckInAnswer(input: {
   userId: string;
   dimension: CheckInDimensionId;
   reflection?: string;
+  rating?: number | null;
   shareWithSpouse: boolean;
 }) {
   const existing = await prisma.coupleCheckInAnswer.findUnique({
@@ -73,6 +76,7 @@ export async function upsertCheckInAnswer(input: {
       where: { id: existing.id },
       data: {
         reflection: input.reflection?.trim() || null,
+        rating: input.rating === undefined ? existing.rating : input.rating,
         shareWithSpouse: input.shareWithSpouse,
       },
     });
@@ -86,6 +90,7 @@ export async function upsertCheckInAnswer(input: {
       userId: input.userId,
       dimension: input.dimension,
       reflection: input.reflection?.trim() || null,
+      rating: input.rating ?? null,
       shareWithSpouse: input.shareWithSpouse,
     },
   });
