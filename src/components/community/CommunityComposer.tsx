@@ -16,6 +16,7 @@ import {
   COMMUNITY_SHARE_POST_TYPES,
   type CommunityMemberPostType,
 } from "@/lib/community-ui-utils";
+import { COUPLES_DISCUSSION_CATEGORIES } from "@/lib/couple-community-ui";
 import type { SignupGroupOption } from "@/lib/group-types";
 import { openCommunityGalleryPicker } from "@/lib/native-media-picker";
 import { MentionTextarea } from "@/components/mentions/MentionField";
@@ -35,6 +36,10 @@ type CommunityComposerProps = {
   mentionMembers?: import("@/lib/mentions").MentionMember[];
   defaultTargetGroupId?: string;
   defaultTargetGroupName?: string;
+  hideInlineBar?: boolean;
+  composeOpen?: boolean;
+  onComposeOpenChange?: (open: boolean) => void;
+  composerPreset?: "default" | "couples";
 };
 
 function PhotoIcon() {
@@ -62,6 +67,10 @@ export function CommunityComposer({
   mentionMembers = [],
   defaultTargetGroupId = "",
   defaultTargetGroupName = "",
+  hideInlineBar = false,
+  composeOpen,
+  onComposeOpenChange,
+  composerPreset = "default",
 }: CommunityComposerProps) {
   const { campus } = useApp();
   const { user, permissions } = useAuth();
@@ -69,6 +78,17 @@ export function CommunityComposer({
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [open, setOpen] = useState(false);
+  const [couplesCategoryId, setCouplesCategoryId] = useState(
+    COUPLES_DISCUSSION_CATEGORIES[0].id,
+  );
+  const couplesCategory =
+    COUPLES_DISCUSSION_CATEGORIES.find((entry) => entry.id === couplesCategoryId) ??
+    COUPLES_DISCUSSION_CATEGORIES[0];
+  const isOpen = composeOpen ?? open;
+  const setComposerOpen = (next: boolean) => {
+    setOpen(next);
+    onComposeOpenChange?.(next);
+  };
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<ComposerMode>("share");
   const [postType, setPostType] = useState<CommunityMemberPostType>("prayer");
@@ -91,21 +111,27 @@ export function CommunityComposer({
   }, [defaultTargetGroupId]);
 
   useEffect(() => {
-    if (!canAnnounce || !open) return;
+    if (!canAnnounce || !isOpen) return;
     fetch("/api/groups/signup-options")
       .then((response) => response.json())
       .then((data) => setTargetGroups(data.groups ?? []))
       .catch(() => setTargetGroups([]));
-  }, [canAnnounce, open]);
+  }, [canAnnounce, isOpen]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!isOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previous;
     };
-  }, [open]);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || composerPreset !== "couples") return;
+    setMode("share");
+    setPostType(couplesCategory.postType);
+  }, [isOpen, composerPreset, couplesCategory.postType]);
 
   const mediaBusy = pendingMedia.some((item) => item.uploading);
   const uploadedMedia = pendingMedia.filter((item) => item.mediaUrl);
@@ -118,9 +144,17 @@ export function CommunityComposer({
   }
 
   function closeComposer() {
-    setOpen(false);
+    setComposerOpen(false);
     setError("");
     clearPendingMedia();
+  }
+
+  function openComposer() {
+    if (composerPreset === "couples") {
+      setMode("share");
+      setPostType(couplesCategory.postType);
+    }
+    setComposerOpen(true);
   }
 
   function removePendingMedia(id: string) {
@@ -250,13 +284,20 @@ export function CommunityComposer({
   const composerName = user ? getPublicDisplayName(user) : "friend";
   const composerFirstName = user ? getPublicDisplayFirstName(user) : "friend";
 
-  const modal = open && mounted ? (
+  const modal = isOpen && mounted ? (
     createPortal(
-      <div className="community-composer-modal" role="dialog" aria-modal="true" aria-label="Create post">
+      <div
+        className={`community-composer-modal ${composerPreset === "couples" ? "community-composer-modal--couples" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={composerPreset === "couples" ? "Start a discussion" : "Create post"}
+      >
         <button type="button" className="community-composer-backdrop" onClick={closeComposer} aria-label="Close" />
         <div className="community-composer-dialog">
           <div className="flex items-center justify-between border-b border-night-900/10 px-4 py-3">
-            <h2 className="flex-1 text-center font-display text-[17px] font-bold text-night-900">Create post</h2>
+            <h2 className="flex-1 text-center font-display text-[17px] font-bold text-night-900">
+              {composerPreset === "couples" ? "Start a discussion" : "Create post"}
+            </h2>
             <button
               type="button"
               onClick={closeComposer}
@@ -267,7 +308,37 @@ export function CommunityComposer({
             </button>
           </div>
 
-          {canAnnounce ? (
+          {composerPreset === "couples" ? (
+            <div className="border-b border-night-900/10 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-night-500">Category</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {COUPLES_DISCUSSION_CATEGORIES.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => {
+                      setCouplesCategoryId(option.id);
+                      setPostType(option.postType);
+                    }}
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                      couplesCategoryId === option.id
+                        ? "bg-[var(--couples-midnight,#17191c)] text-white"
+                        : "bg-sand-100 text-night-700"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              {defaultTargetGroupName ? (
+                <p className="mt-2 text-xs text-night-600">
+                  Posting to <span className="font-semibold">{defaultTargetGroupName}</span>
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {canAnnounce && composerPreset !== "couples" ? (
             <div className="flex gap-2 border-b border-night-900/10 px-4 py-2">
               <button
                 type="button"
@@ -297,7 +368,7 @@ export function CommunityComposer({
               <CommunityAvatar name={composerName} authorId={user?.id} size="md" />
               <div>
                 <p className="text-[15px] font-semibold text-night-900">{composerName}</p>
-                {mode === "share" ? (
+                {mode === "share" && composerPreset !== "couples" ? (
                   <div className="mt-1 flex flex-wrap gap-1">
                     {COMMUNITY_SHARE_POST_TYPES.map((option) => (
                       <button
@@ -314,9 +385,9 @@ export function CommunityComposer({
                       </button>
                     ))}
                   </div>
-                ) : (
+                ) : mode !== "share" ? (
                   <p className="text-xs text-night-600">Admin announcement</p>
-                )}
+                ) : null}
               </div>
             </div>
 
@@ -327,7 +398,11 @@ export function CommunityComposer({
                   onChange={setDraft}
                   members={mentionMembers}
                   allowAll
-                  placeholder={`What's on your mind, ${composerFirstName}? Type @ to tag someone`}
+                  placeholder={
+                    composerPreset === "couples"
+                      ? couplesCategory.placeholder
+                      : `What's on your mind, ${composerFirstName}? Type @ to tag someone`
+                  }
                   rows={5}
                   autoFocus
                   className="mt-3 w-full resize-none border-0 bg-transparent text-[24px] leading-snug text-night-900 outline-none placeholder:text-night-600"
@@ -402,7 +477,13 @@ export function CommunityComposer({
               }
               className="w-full rounded-lg bg-clay-500 px-4 py-2.5 text-[15px] font-semibold text-sand-50 disabled:cursor-not-allowed disabled:bg-sand-200 disabled:text-night-400"
             >
-              {submitting ? "Posting…" : mediaBusy ? "Uploading…" : "Post"}
+              {submitting
+                ? "Posting…"
+                : mediaBusy
+                  ? "Uploading…"
+                  : composerPreset === "couples"
+                    ? "Publish"
+                    : "Post"}
             </button>
           </div>
         </div>
@@ -422,6 +503,9 @@ export function CommunityComposer({
   );
 
   if (!user) {
+    if (hideInlineBar) {
+      return null;
+    }
     return (
       <div className="community-feed-card community-composer-bar">
         <button
@@ -438,10 +522,19 @@ export function CommunityComposer({
     );
   }
 
+  if (hideInlineBar) {
+    return (
+      <>
+        {modal}
+        {fileInput}
+      </>
+    );
+  }
+
   return (
     <>
       <div className="community-feed-card community-composer-bar">
-        <button type="button" onClick={() => setOpen(true)} className="community-composer-trigger">
+        <button type="button" onClick={openComposer} className="community-composer-trigger">
           <CommunityAvatar name={composerName} authorId={user.id} size="md" />
           <span className="community-composer-placeholder">
             What&apos;s on your mind, {composerFirstName}?
@@ -454,7 +547,7 @@ export function CommunityComposer({
             onClick={() => {
               setMode("share");
               setPostType("prayer");
-              setOpen(true);
+              openComposer();
             }}
             className="community-composer-action"
           >
@@ -466,7 +559,7 @@ export function CommunityComposer({
             onClick={() => {
               setMode("share");
               setPostType("praise");
-              setOpen(true);
+              openComposer();
             }}
             className="community-composer-action"
           >
@@ -478,7 +571,7 @@ export function CommunityComposer({
             onClick={() => {
               setMode("share");
               setPostType("general");
-              setOpen(true);
+              openComposer();
             }}
             className="community-composer-action"
           >
@@ -490,7 +583,7 @@ export function CommunityComposer({
             onClick={() => {
               setMode("share");
               setPostType("general");
-              setOpen(true);
+              openComposer();
             }}
             className="community-composer-action"
           >

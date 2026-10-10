@@ -69,14 +69,14 @@ export function resolvePageBackLink(
   }
 
   if (path.startsWith("/couples/")) {
-    if (path === "/couples/marriage") {
-      return { href: "/couples", label: "Back to Couples Hub" };
+    if (path === "/couples/marriage" || path.startsWith("/couples/marriage/")) {
+      return null;
     }
-    if (path.startsWith("/couples/marriage/")) {
-      return { href: "/couples/marriage", label: "Back to our marriage" };
+    if (path === "/couples/community" || path.startsWith("/couples/community/")) {
+      return null;
     }
-    if (path === "/couples/community") {
-      return { href: "/couples", label: "Back to Couples Hub" };
+    if (path.startsWith("/groups/group-shanah-power-couples")) {
+      return null;
     }
     return { href: "/couples", label: "Back to Couples Hub" };
   }

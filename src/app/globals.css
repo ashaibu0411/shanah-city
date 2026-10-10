@@ -5843,6 +5843,76 @@ html.native-app-boot .native-boot-splash img {
   box-shadow: 0 1px 3px rgb(28 25 23 / 0.06);
 }
 
+.couples-community-premium .couples-community-feed .community-feed-solid {
+  background: transparent;
+}
+
+.couples-community-premium .couples-community-feed .community-feed-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding-inline: 0;
+}
+
+.couples-community-premium .community-post-card--couples {
+  border-radius: 1.125rem;
+  border: 1px solid var(--couples-border, #eae4dc);
+  background: #fff;
+  box-shadow: var(--couples-shadow-card, 0 4px 24px rgba(23, 25, 28, 0.06));
+}
+
+.couples-community-premium .community-feed-solid .community-feed-empty {
+  border-radius: 1.125rem;
+  background: #fff;
+}
+
+.couples-community-page .couples-community-sheet {
+  margin-top: -0.5rem;
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
+  background: var(--couples-background, #faf7f2);
+  box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.18);
+}
+
+.couples-community-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--couples-border, #eae4dc);
+}
+
+.couples-community-tabs__item {
+  flex: 1;
+  padding: 0.75rem 0.5rem 0.875rem;
+  text-align: center;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--couples-muted, #766d65);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.couples-community-tabs__item--active {
+  font-weight: 700;
+  color: var(--couples-text, #252525);
+  border-bottom-color: var(--couples-text, #252525);
+}
+
+.couples-community-post-card {
+  border-radius: 1.125rem;
+  background: #fff;
+  padding: 1rem 1rem 0.875rem;
+  box-shadow: 0 2px 12px rgba(23, 25, 28, 0.06);
+  border: 1px solid rgb(234 228 220 / 0.95);
+}
+
+.couples-community-premium .couples-community-feed .community-feed-solid .community-feed-header {
+  display: none;
+}
+
+.couples-community-premium .couples-community-feed .community-feed-solid .community-feed-posts {
+  gap: 0.875rem;
+}
+
 /* Power Couples premium design system */
 .couples-hub-typography {
   font-family: var(--font-couples-ui), var(--font-sans), system-ui, sans-serif;

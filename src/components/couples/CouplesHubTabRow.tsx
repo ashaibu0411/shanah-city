@@ -9,9 +9,28 @@ export function CouplesHubTabRow<T extends string>({
   tabs: { id: T; label: string }[];
   active: T;
   onChange: (id: T) => void;
-  /** dark = pills on hub shell; sheet = cream-sheet segmented control; underline = love-notes style */
-  variant?: "dark" | "sheet" | "underline";
+  /** dark = pills on hub shell; sheet = cream-sheet segmented control; underline = love-notes style; community = mockup feed tabs */
+  variant?: "dark" | "sheet" | "underline" | "community";
 }) {
+  if (variant === "community") {
+    return (
+      <div className="couples-community-tabs" role="tablist">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={active === tab.id}
+            onClick={() => onChange(tab.id)}
+            className={`couples-community-tabs__item ${active === tab.id ? "couples-community-tabs__item--active" : ""}`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   if (variant === "sheet") {
     return (
       <div className={couplesHubPremium.sheetTabTrack}>

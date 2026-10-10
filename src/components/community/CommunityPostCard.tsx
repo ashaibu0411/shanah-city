@@ -34,6 +34,7 @@ import { canManageCommunityComment } from "@/lib/community-comment-access";
 import { MentionText } from "@/components/mentions/MentionText";
 import type { MentionMember } from "@/lib/mentions";
 import { communityPostHasMedia, communityPostMediaItems } from "@/lib/community-post-media";
+import { couplesCommunityTopicForPost } from "@/lib/couple-community-ui";
 
 function CommentIcon() {
   return (
@@ -61,12 +62,37 @@ function GlobeIcon() {
   );
 }
 
+function CouplesSparkleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 text-[var(--couples-muted)]">
+      <path
+        fill="currentColor"
+        d="M12 2l1.2 4.2L17.5 7.5 13.2 8.7 12 13l-1.2-4.3L6.5 7.5l4.3-1.3L12 2Zm7 9 0.8 2.8L22.5 15l-2.7 0.8L19 18.5l-0.8-2.7L15.5 15l2.7-0.8L19 11Zm-14 0 0.8 2.8L8.5 15l-2.7 0.8L5 18.5l-0.8-2.7L1.5 15l2.7-0.8L5 11Z"
+      />
+    </svg>
+  );
+}
+
+function BookmarkIcon({ filled }: { filled?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-[18px] w-[18px] fill-none stroke-current" strokeWidth={1.8}>
+      <path
+        d="M6 4.5h12v16l-4.5-3-4.5 3v-16Z"
+        className={filled ? "fill-current" : undefined}
+      />
+    </svg>
+  );
+}
+
 type CommunityPostCardProps = {
   post: CommunityPost;
   onUpdate: (post: CommunityPost) => void;
   onDelete?: (postId: string) => void;
   compact?: boolean;
   mentionMembers?: MentionMember[];
+  variant?: "default" | "couples";
+  bookmarked?: boolean;
+  onToggleBookmark?: () => void;
 };
 
 type PostCommentRowProps = {
@@ -354,6 +380,9 @@ export function CommunityPostCard({
   onDelete,
   compact = false,
   mentionMembers = [],
+  variant = "default",
+  bookmarked = false,
+  onToggleBookmark,
 }: CommunityPostCardProps) {
   const { user, permissions } = useAuth();
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -732,16 +761,137 @@ export function CommunityPostCard({
     </div>
   );
 
+  if (variant === "couples" && !compact && !editing) {
+    const topic = couplesCommunityTopicForPost(post.id);
+    return (
+      <>
+        <article id={`post-${post.id}`} className="couples-community-post-card scroll-mt-24">
+          <div className="flex items-start gap-3">
+            <CommunityAvatar name={post.author} authorId={post.authorId} size="md" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-[0.9375rem] text-[var(--couples-text)]">
+                    {topic}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--couples-muted)]">
+                    {post.author} · {timeLabel}
+                  </p>
+                </div>
+                {canManage ? (
+                  <button
+                    ref={menuButtonRef}
+                    type="button"
+                    aria-label="Post options"
+                    aria-haspopup="menu"
+                    aria-expanded={menuOpen}
+                    className="shrink-0 rounded-full p-1"
+                    onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}
+                  >
+                    <CouplesSparkleIcon />
+                  </button>
+                ) : (
+                  <span className="shrink-0 p-1" aria-hidden>
+                    <CouplesSparkleIcon />
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-3 text-[0.9375rem] leading-relaxed text-[var(--couples-text)]">
+            <MentionText text={post.content} />
+          </p>
+
+          {hasMedia ? (
+            <div className="mt-3 overflow-hidden rounded-xl">
+              <CommunityMediaCarousel items={mediaItems} />
+            </div>
+          ) : null}
+
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                disabled={reactionBusy}
+                onClick={() => void toggleReaction("heart")}
+                className={`inline-flex items-center gap-1.5 text-sm font-semibold ${heartActive ? "text-red-600" : "text-[var(--couples-text)]"}`}
+                aria-label="Like"
+                aria-pressed={heartActive}
+              >
+                <IgHeartIcon filled={heartActive} />
+                {reactionTotal > 0 ? <span className="tabular-nums">{reactionTotal}</span> : null}
+              </button>
+              <button
+                type="button"
+                onClick={() => openCommentsSheet(true)}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--couples-text)]"
+                aria-label="Comment"
+              >
+                <IgCommentIcon />
+                {commentCount > 0 ? <span className="tabular-nums">{commentCount}</span> : null}
+              </button>
+            </div>
+            {onToggleBookmark ? (
+              <button
+                type="button"
+                onClick={onToggleBookmark}
+                className={`p-1 ${bookmarked ? "text-[var(--couples-gold)]" : "text-[var(--couples-muted)]"}`}
+                aria-label={bookmarked ? "Remove bookmark" : "Bookmark"}
+                aria-pressed={bookmarked}
+              >
+                <BookmarkIcon filled={bookmarked} />
+              </button>
+            ) : null}
+          </div>
+        </article>
+
+        <CommunityPostReactionsSheet
+          open={reactionsSheetOpen && !compact}
+          postId={post.id}
+          onClose={closeReactionsSheet}
+        />
+        <CommunityCommentsSheet
+          open={commentsSheetOpen && !compact}
+          onClose={closeCommentsSheet}
+          post={post}
+          comments={comments}
+          commentDraft={commentDraft}
+          onCommentDraftChange={setCommentDraft}
+          onSubmitComment={() => void submitComment()}
+          submitting={loading}
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
+          sharePost={sharePost}
+          onTogglePostReaction={(kind) => void toggleReaction(kind)}
+          reactionBusy={reactionBusy}
+          mentionMembers={mentionMembers}
+          renderComment={(comment) => (
+            <PostCommentRow comment={comment} layout="instagram" {...commentRowSharedProps} />
+          )}
+        />
+        {menu}
+      </>
+    );
+  }
+
   return (
     <article
       id={`post-${post.id}`}
-      className={`community-post-card scroll-mt-24 ${isUrgentNews ? "community-post-card-urgent" : ""} ${textFirstFeedLayout ? "community-post-card--text-first" : ""}`}
+      className={`community-post-card scroll-mt-24 ${isUrgentNews ? "community-post-card-urgent" : ""} ${textFirstFeedLayout ? "community-post-card--text-first" : ""} ${variant === "couples" ? "community-post-card--couples" : ""}`}
     >
       <header className="community-post-header">
         <CommunityAvatar name={post.author} authorId={post.authorId} size="md" />
         <div className="community-post-header-main min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <p className="community-post-author min-w-0 flex-1 truncate">{post.author}</p>
+            <div className="min-w-0 flex-1">
+              <p className="community-post-author truncate">{post.author}</p>
+              {variant === "couples" && post.type === "announcement" ? (
+                <span className="mt-0.5 inline-flex rounded-full bg-[var(--couples-gold-light,#ead9bf)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--couples-mocha,#744b3a)]">
+                  Leader
+                </span>
+              ) : null}
+            </div>
             {canManage && !compact && !editing ? (
               <button
                 ref={menuButtonRef}
@@ -887,14 +1037,26 @@ export function CommunityPostCard({
                   <span className="text-sm font-semibold tabular-nums">{commentCount}</span>
                 ) : null}
               </button>
-              <button
-                type="button"
-                onClick={sharePost}
-                className="p-1 text-night-900 dark:text-sand-100"
-                aria-label="Share"
-              >
-                <IgShareIcon />
-              </button>
+              {variant === "couples" && onToggleBookmark ? (
+                <button
+                  type="button"
+                  onClick={onToggleBookmark}
+                  className={`p-1 ${bookmarked ? "text-[var(--couples-gold,#b78b54)]" : "text-night-900 dark:text-sand-100"}`}
+                  aria-label={bookmarked ? "Remove bookmark" : "Bookmark"}
+                  aria-pressed={bookmarked}
+                >
+                  <BookmarkIcon filled={bookmarked} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={sharePost}
+                  className="p-1 text-night-900 dark:text-sand-100"
+                  aria-label="Share"
+                >
+                  <IgShareIcon />
+                </button>
+              )}
             </div>
           </div>
 

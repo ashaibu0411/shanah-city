@@ -21,19 +21,27 @@ export function CommunityFeed({
   initialGroupId,
   groupFilterLabel,
   hideFilterTabs = false,
+  hideComposer = false,
   lockedFilter,
   excludePostTypes,
   includePostTypes,
+  postCardVariant = "default",
+  bookmarkedIds,
+  onToggleBookmark,
 }: {
   initialPosts: CommunityPost[];
   initialFilter?: CommunityFeedFilter;
   initialGroupId?: string;
   groupFilterLabel?: string;
   hideFilterTabs?: boolean;
+  hideComposer?: boolean;
   /** When set, feed tabs are hidden and this filter is always applied. */
   lockedFilter?: CommunityFeedFilter;
   excludePostTypes?: CommunityPost["type"][];
   includePostTypes?: CommunityPost["type"][];
+  postCardVariant?: "default" | "couples";
+  bookmarkedIds?: Set<string>;
+  onToggleBookmark?: (postId: string) => void;
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const { members: mentionMembers } = useMentionMembers();
@@ -135,12 +143,14 @@ export function CommunityFeed({
         </p>
       ) : null}
       <div className="community-feed-header">
-        <CommunityComposer
-          onLocalPost={prependPost}
-          mentionMembers={mentionMembers}
-          defaultTargetGroupId={groupId}
-          defaultTargetGroupName={groupFilterLabel}
-        />
+        {!hideComposer ? (
+          <CommunityComposer
+            onLocalPost={prependPost}
+            mentionMembers={mentionMembers}
+            defaultTargetGroupId={groupId}
+            defaultTargetGroupName={groupFilterLabel}
+          />
+        ) : null}
 
         {!hideFilterTabs ? (
           <div className="community-feed-tabs" role="tablist" aria-label="Feed filters">
@@ -178,6 +188,11 @@ export function CommunityFeed({
               onUpdate={updatePost}
               onDelete={removePost}
               mentionMembers={mentionMembers}
+              variant={postCardVariant}
+              bookmarked={bookmarkedIds?.has(post.id)}
+              onToggleBookmark={
+                onToggleBookmark ? () => onToggleBookmark(post.id) : undefined
+              }
             />
           ))
         )}
