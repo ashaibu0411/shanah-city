@@ -1,4 +1,7 @@
+import { SHANAH_POWER_COUPLES_GROUP_ID } from "@/lib/church-groups";
 import { WORSHIP_GROUP_ID } from "@/lib/worship-types";
+
+const POWER_COUPLES_GROUP_PATH = `/groups/${SHANAH_POWER_COUPLES_GROUP_ID}`;
 
 export type PageBackLink = {
   href: string;
@@ -62,6 +65,10 @@ export function resolvePageBackLink(
 
   if (path.startsWith("/worship/")) {
     return { href: choirGroupPath, label: "Back to choir" };
+  }
+
+  if (path === POWER_COUPLES_GROUP_PATH || path.startsWith(`${POWER_COUPLES_GROUP_PATH}/`)) {
+    return null;
   }
 
   if (path.startsWith("/groups/")) {

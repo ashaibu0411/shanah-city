@@ -9,6 +9,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberAvatarLink } from "@/components/auth/MemberAvatarLink";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { liveStream, site } from "@/lib/site";
+import { couplesUsesDedicatedMobileChrome } from "@/lib/couples-hub-paths";
 import { mobileHeaderShowsPageTitle } from "@/lib/mobile-page-chrome";
 import { Badge } from "@/components/ui";
 
@@ -50,7 +51,7 @@ export function MobileAppHeader() {
   const { messagesImmersive } = useAppShell();
   const { user, loading } = useAuth();
   const { isDark } = useTheme();
-  if (messagesImmersive) return null;
+  if (messagesImmersive || couplesUsesDedicatedMobileChrome(pathname)) return null;
   const title = pageTitles[pathname] ?? site.name;
   const isHome = pathname === "/";
   const showPageTitle = mobileHeaderShowsPageTitle(pathname);

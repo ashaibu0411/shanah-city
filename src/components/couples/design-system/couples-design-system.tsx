@@ -99,7 +99,9 @@ export function CouplesHeroCard({
                 ) : null}
               </h2>
               {tagline ? (
-                <p className="mt-1.5 max-w-[18rem] text-[0.9375rem] leading-relaxed text-white/92">
+                <p
+                  className="couples-hero-banner__tagline mt-1.5 max-w-[20rem] text-[0.9375rem] font-medium leading-relaxed text-white"
+                >
                   {tagline}
                 </p>
               ) : null}

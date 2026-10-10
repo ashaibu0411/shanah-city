@@ -40,13 +40,13 @@ export function CouplesGameOverlay({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex flex-col bg-[var(--couples-ivory)]"
+      className="couples-hub-page couples-hub-typography couples-game-overlay-portal fixed inset-0 z-[9999] flex flex-col bg-[var(--couples-background)] text-[var(--couples-text)]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="couple-game-overlay-title"
     >
       <header
-        className="flex shrink-0 items-start justify-between gap-3 border-b border-[var(--couples-border)] bg-[var(--couples-midnight)] px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-white"
+        className="couples-page-header flex shrink-0 items-start justify-between gap-3 border-b border-[var(--couples-border)] bg-[var(--couples-midnight)] px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-[var(--couples-header-text)]"
       >
         <div className="min-w-0 flex-1">
           <h2

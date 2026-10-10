@@ -3,6 +3,14 @@ import type { CouplesHubCommunityTileId } from "@/lib/couples-hub-types";
 
 const GROUP_PATH = `/groups/${SHANAH_POWER_COUPLES_GROUP_ID}`;
 
+/** Power Couples routes render their own midnight header (avatar + notifications). */
+export function couplesUsesDedicatedMobileChrome(pathname: string): boolean {
+  if (!pathname) return false;
+  if (pathname === GROUP_PATH || pathname.startsWith(`${GROUP_PATH}/`)) return true;
+  if (pathname === "/couples" || pathname.startsWith("/couples/")) return true;
+  return false;
+}
+
 /** Canonical entry for the Couples Hub experience (Power Couples group home). */
 export function powerCouplesGroupHubPath() {
   return GROUP_PATH;

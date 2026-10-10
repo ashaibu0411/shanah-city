@@ -5948,6 +5948,7 @@ html.native-app-boot .native-boot-splash img {
   --couples-radius-hero-home: 1.375rem;
   --couples-shadow-card: 0 4px 24px rgba(23, 25, 28, 0.06);
   --couples-shadow-hero: 0 12px 40px rgba(23, 25, 28, 0.12);
+  --couples-ivory: var(--couples-background);
 
   /* Legacy aliases (sub-pages + sheets) */
   --couples-bg: var(--couples-midnight);
@@ -5964,8 +5965,29 @@ html.native-app-boot .native-boot-splash img {
 }
 
 .couples-hub-page .couples-page-header,
-.couples-hub-page .couples-hub-group-header {
+.couples-hub-page .couples-hub-group-header,
+.couples-hub-page .couples-hub-home-header {
   color: var(--couples-header-text);
+}
+
+html.dark .couples-hub-page {
+  --couples-background: #14161c;
+  --couples-surface: #1e222b;
+  --couples-midnight: #0a0b0f;
+  --couples-gold: #c9a06a;
+  --couples-gold-light: #3a3228;
+  --couples-blush: #2a2228;
+  --couples-mocha: #d4a88a;
+  --couples-text: #f4f1ea;
+  --couples-muted: #a89f94;
+  --couples-border: #2f3540;
+  --couples-sage: #1f2a24;
+  --couples-blue: #1a2433;
+  --couples-lavender: #262033;
+  --couples-header-text: #ffffff;
+  --couples-shadow-card: 0 4px 24px rgba(0, 0, 0, 0.38);
+  --couples-shadow-hero: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --couples-ivory: var(--couples-background);
 }
 
 .couples-feature-card--marriage {
@@ -5979,11 +6001,18 @@ html.native-app-boot .native-boot-splash img {
 .couples-hero-banner__gradient {
   background: linear-gradient(
     to top,
-    rgba(23, 25, 28, 0.88) 0%,
-    rgba(23, 25, 28, 0.45) 42%,
-    rgba(23, 25, 28, 0.08) 72%,
+    rgba(23, 25, 28, 0.96) 0%,
+    rgba(23, 25, 28, 0.78) 36%,
+    rgba(23, 25, 28, 0.35) 62%,
+    rgba(23, 25, 28, 0.08) 82%,
     transparent 100%
   );
+}
+
+.couples-hero-banner__tagline {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 4px 16px rgba(0, 0, 0, 0.45);
 }
 
 .couples-shortcut-tile--sage {
