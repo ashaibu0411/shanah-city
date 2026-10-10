@@ -111,5 +111,5 @@ export const couplesHubPremium = {
 
 /** Couples Hub landing hero (praying couple); cropFlyerBranding hides flyer text in the UI. */
 export const COUPLES_HUB_HERO_IMAGE = "/couples/couples-hub-hero.jpg";
-export const COUPLES_DEVOTIONAL_HERO = "/home/home-gallery-06.jpg";
+export const COUPLES_DEVOTIONAL_HERO = "/devotions/daily-word-portrait.jpg";
 export const COUPLES_DATE_NIGHT_HERO = "/home/home-gallery-15.jpg";
