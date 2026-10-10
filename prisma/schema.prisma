@@ -1275,15 +1275,21 @@ model CoupleCheckInAnswer {
 }
 
 model CouplePrayerJournalEntry {
-  id           String    @id
-  coupleLinkId String
-  createdBy    String
-  title        String
-  body         String
-  status       String    @default("praying")
-  answeredAt   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                    String    @id
+  coupleLinkId          String
+  createdBy             String
+  title                 String
+  body                  String
+  category              String    @default("our-marriage")
+  scriptureRef          String?
+  privacy               String    @default("couple")
+  status                String    @default("praying")
+  answeredAt            DateTime?
+  testimony             String?
+  thanksgivingScripture String?
+  answeredPhotoKey      String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([coupleLinkId, status])
 }

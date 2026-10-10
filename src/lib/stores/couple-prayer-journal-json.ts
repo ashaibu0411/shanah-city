@@ -1,12 +1,22 @@
 import { promises as fs } from "fs";
 import path from "path";
-import type { CouplePrayerJournalEntryRecord, CouplePrayerJournalStatus } from "@/lib/couple-prayer-journal-types";
+import type {
+  CouplePrayerJournalCategoryId,
+  CouplePrayerJournalEntryRecord,
+  CouplePrayerJournalPrivacy,
+  CouplePrayerJournalStatus,
+} from "@/lib/couple-prayer-journal-types";
 
 const FILE = path.join(process.cwd(), "data", "couple-prayer-journal.json");
 
 async function readAll() {
   try {
-    return JSON.parse(await fs.readFile(FILE, "utf-8")) as CouplePrayerJournalEntryRecord[];
+    const raw = JSON.parse(await fs.readFile(FILE, "utf-8")) as CouplePrayerJournalEntryRecord[];
+    return raw.map((entry) => ({
+      ...entry,
+      category: (entry.category ?? "our-marriage") as CouplePrayerJournalCategoryId,
+      privacy: (entry.privacy ?? "couple") as CouplePrayerJournalPrivacy,
+    }));
   } catch {
     return [];
   }
@@ -32,6 +42,9 @@ export async function createPrayerJournalEntry(input: {
   createdBy: string;
   title: string;
   body: string;
+  category: CouplePrayerJournalCategoryId;
+  scriptureRef?: string;
+  privacy: CouplePrayerJournalPrivacy;
 }) {
   const entries = await readAll();
   const now = new Date().toISOString();
@@ -41,6 +54,9 @@ export async function createPrayerJournalEntry(input: {
     createdBy: input.createdBy,
     title: input.title.trim(),
     body: input.body.trim(),
+    category: input.category,
+    scriptureRef: input.scriptureRef,
+    privacy: input.privacy,
     status: "praying",
     createdAt: now,
     updatedAt: now,
@@ -52,22 +68,50 @@ export async function createPrayerJournalEntry(input: {
 
 export async function updatePrayerJournalEntry(
   id: string,
-  input: { title?: string; body?: string; status?: CouplePrayerJournalStatus },
+  input: {
+    title?: string;
+    body?: string;
+    category?: CouplePrayerJournalCategoryId;
+    scriptureRef?: string;
+    privacy?: CouplePrayerJournalPrivacy;
+    status?: CouplePrayerJournalStatus;
+    answeredAt?: Date | null;
+    testimony?: string;
+    thanksgivingScripture?: string;
+    answeredPhotoKey?: string;
+  },
 ) {
   const entries = await readAll();
   const index = entries.findIndex((e) => e.id === id);
   if (index === -1) throw new Error("Entry not found.");
   const current = entries[index];
+  const answeredAtIso =
+    input.answeredAt === undefined
+      ? input.status === "answered"
+        ? new Date().toISOString()
+        : input.status === "praying"
+          ? undefined
+          : current.answeredAt
+      : input.answeredAt === null
+        ? undefined
+        : input.answeredAt.toISOString();
+
   entries[index] = {
     ...current,
     ...(input.title !== undefined ? { title: input.title.trim() } : {}),
     ...(input.body !== undefined ? { body: input.body.trim() } : {}),
-    ...(input.status !== undefined
-      ? {
-          status: input.status,
-          answeredAt: input.status === "answered" ? new Date().toISOString() : undefined,
-        }
+    ...(input.category !== undefined ? { category: input.category } : {}),
+    ...(input.scriptureRef !== undefined ? { scriptureRef: input.scriptureRef } : {}),
+    ...(input.privacy !== undefined ? { privacy: input.privacy } : {}),
+    ...(input.status !== undefined ? { status: input.status } : {}),
+    ...(answeredAtIso !== undefined || input.status !== undefined || input.answeredAt !== undefined
+      ? { answeredAt: answeredAtIso }
       : {}),
+    ...(input.testimony !== undefined ? { testimony: input.testimony } : {}),
+    ...(input.thanksgivingScripture !== undefined
+      ? { thanksgivingScripture: input.thanksgivingScripture }
+      : {}),
+    ...(input.answeredPhotoKey !== undefined ? { answeredPhotoKey: input.answeredPhotoKey } : {}),
     updatedAt: new Date().toISOString(),
   };
   await writeAll(entries);
