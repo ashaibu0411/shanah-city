@@ -474,6 +474,15 @@
     max-width: 100%;
   }
 
+  body[data-couples-game-overlay="true"] .app-mobile-header,
+  body[data-couples-game-overlay="true"] .mobile-app-header,
+  body[data-couples-game-overlay="true"] .app-mobile-bottom-nav,
+  body[data-couples-game-overlay="true"] .mobile-bottom-nav,
+  body[data-couples-game-overlay="true"] .app-desktop-topbar {
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
   body[data-shell="mobile"] .app-shell-layout,
   body[data-shell="mobile"] .app-main,
   body[data-shell="mobile"] .app-mobile-inner {

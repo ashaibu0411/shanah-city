@@ -305,46 +305,50 @@ export function CouplesMarriageGames() {
     weeklyDeck.length,
   ]);
 
+  const gameOpen = Boolean(activeGame && activeMeta && !locked);
+
   return (
     <div className={`${couplesHubPremium.page} couples-hub-typography min-h-full`}>
-      <div className="mx-auto w-full max-w-lg">
-        <header
-          className="sticky top-0 z-30 flex min-h-[3.25rem] items-center gap-2 bg-[var(--couples-midnight)] px-[var(--couples-page-padding)] py-3 text-white safe-top"
-        >
-          <Link
-            href="/couples/marriage"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl font-light transition hover:bg-white/10 active:scale-95"
-            aria-label="Back to Our Marriage"
+      {!gameOpen ? (
+        <div className="mx-auto w-full max-w-lg">
+          <header
+            className="sticky top-0 z-30 flex min-h-[3.25rem] items-center gap-2 bg-[var(--couples-midnight)] px-[var(--couples-page-padding)] py-3 text-white safe-top"
           >
-            ‹
-          </Link>
-          <h1
-            className="min-w-0 flex-1 truncate text-center font-[family-name:var(--font-couples-display)] text-[1.05rem] font-semibold tracking-tight"
-          >
-            Couples Games
-          </h1>
-          <span className="h-11 w-11 shrink-0" aria-hidden />
-        </header>
+            <Link
+              href="/couples/marriage"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl font-light transition hover:bg-white/10 active:scale-95"
+              aria-label="Back to Our Marriage"
+            >
+              ‹
+            </Link>
+            <h1
+              className="min-w-0 flex-1 truncate text-center font-[family-name:var(--font-couples-display)] text-[1.05rem] font-semibold tracking-tight"
+            >
+              Couples Games
+            </h1>
+            <span className="h-11 w-11 shrink-0" aria-hidden />
+          </header>
 
-        <CouplesGamesHero />
+          <CouplesGamesHero />
 
-        <main className="px-[var(--couples-page-padding)] pb-10 pt-5">
-          {locked ? (
-            <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
-          ) : loading ? (
-            <CouplesLoadingSkeleton rows={5} />
-          ) : (
-            <ul className="space-y-3">
-              {COUPLES_GAME_LIST.map((game) => (
-                <CouplesGameListCard key={game.id} item={game} onClick={() => openGame(game.id)} />
-              ))}
-            </ul>
-          )}
-        </main>
-      </div>
+          <main className="px-[var(--couples-page-padding)] pb-10 pt-5">
+            {locked ? (
+              <CouplesLinkGate pendingIncoming={hub?.pendingIncomingInvite} />
+            ) : loading ? (
+              <CouplesLoadingSkeleton rows={5} />
+            ) : (
+              <ul className="space-y-3">
+                {COUPLES_GAME_LIST.map((game) => (
+                  <CouplesGameListCard key={game.id} item={game} onClick={() => openGame(game.id)} />
+                ))}
+              </ul>
+            )}
+          </main>
+        </div>
+      ) : null}
 
       <CouplesGameOverlay
-        open={Boolean(activeGame && activeMeta && !locked)}
+        open={gameOpen}
         title={activeMeta?.title ?? "Game"}
         subtitle={activeMeta?.subtitle}
         progress={overlayProgress}
