@@ -11,7 +11,7 @@ import { privateMessageHref } from "@/lib/chat-participants-utils";
 import type { UserBlock } from "@/lib/block-types";
 import type { GroupCategory, GroupChatMessage } from "@/lib/group-types";
 import type { ChatReplyDraft } from "@/lib/chat-reply-types";
-import type { ChatTypingUser } from "@/lib/chat-utils";
+import { mergeChatMessagesById, type ChatTypingUser } from "@/lib/chat-utils";
 import {
   chatDateSeparatorLabelInstagram,
   formatBubbleTime,
@@ -98,6 +98,8 @@ export function GroupChatPanel({
   const [disappearingSeconds, setDisappearingSeconds] = useState(0);
   const [replyDraft, setReplyDraft] = useState<ChatReplyDraft | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const messagesRef = useRef<GroupChatMessage[]>([]);
+  const sendingRef = useRef(false);
   const mentionMembers = useMemo(
     () =>
       participants
@@ -140,22 +142,11 @@ export function GroupChatPanel({
     setTypingUsers(data.typingUsers ?? []);
     setDisappearingSeconds(data.disappearingSeconds ?? 0);
     setMessages((current) => {
+      const incoming = (data.messages ?? []) as GroupChatMessage[];
       if (options?.after && current.length > 0) {
-        const seen = new Set(current.map((message) => message.id));
-        const appended = (data.messages ?? []).filter(
-          (message: GroupChatMessage) => !seen.has(message.id),
-        );
-        if (appended.length === 0) {
-          return current.map((message) => {
-            const fresh = (data.messages ?? []).find(
-              (entry: GroupChatMessage) => entry.id === message.id,
-            );
-            return fresh ?? message;
-          });
-        }
-        return [...current, ...appended];
+        return mergeChatMessagesById(current, incoming);
       }
-      return data.messages ?? [];
+      return incoming;
     });
     setStatus("");
     notifyNotificationsChanged();
@@ -167,16 +158,21 @@ export function GroupChatPanel({
   }, [groupId]);
 
   useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typingUsers]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      const last = messages[messages.length - 1];
-      loadMessages({ after: last?.createdAt, quiet: true });
+      const list = messagesRef.current;
+      const last = list[list.length - 1];
+      void loadMessages({ after: last?.createdAt, quiet: true });
     }, 5000);
     return () => window.clearInterval(timer);
-  }, [groupId, messages]);
+  }, [groupId]);
 
   async function uploadAttachment(file: File): Promise<PendingAttachment | null> {
     setAttachmentBusy(true);
@@ -204,34 +200,40 @@ export function GroupChatPanel({
   }
 
   async function sendMessage(attachment?: PendingAttachment) {
+    if (sendingRef.current || busy) return;
     if (!draft.trim() && !attachment) return;
+    sendingRef.current = true;
     setBusy(true);
     setStatus("");
-    const response = await fetch("/api/groups/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        groupId,
-        content: draft.trim(),
-        attachmentUrl: attachment?.attachmentUrl,
-        attachmentType: attachment?.attachmentType,
-        attachmentName: attachment?.attachmentName,
-        replyToMessageId: replyDraft?.messageId,
-        replyExcerpt: replyDraft?.excerpt,
-      }),
-    });
-    const data = await response.json();
-    setBusy(false);
+    try {
+      const response = await fetch("/api/groups/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          groupId,
+          content: draft.trim(),
+          attachmentUrl: attachment?.attachmentUrl,
+          attachmentType: attachment?.attachmentType,
+          attachmentName: attachment?.attachmentName,
+          replyToMessageId: replyDraft?.messageId,
+          replyExcerpt: replyDraft?.excerpt,
+        }),
+      });
+      const data = await response.json();
 
-    if (!response.ok) {
-      setStatus(data.error ?? "Could not send message.");
-      return;
+      if (!response.ok) {
+        setStatus(data.error ?? "Could not send message.");
+        return;
+      }
+
+      setDraft("");
+      setReplyDraft(null);
+      setMessages((current) => mergeChatMessagesById(current, [data.message]));
+      notifyNotificationsChanged();
+    } finally {
+      sendingRef.current = false;
+      setBusy(false);
     }
-
-    setDraft("");
-    setReplyDraft(null);
-    setMessages((current) => [...current, data.message]);
-    notifyNotificationsChanged();
   }
 
   async function sendTyping(isTyping: boolean) {
@@ -564,7 +566,7 @@ export function GroupChatPanel({
                     seenCount={message.seenCount}
                     showSeenCount={mine && group.isLast}
                     showMeta={group.showMeta}
-                    density="instagram"
+                    density="whatsapp"
                     canEdit={message.senderId === userId}
                     canDelete={message.senderId === userId}
                     canReport={message.senderId !== userId}
@@ -604,7 +606,7 @@ export function GroupChatPanel({
           onTyping={sendTyping}
           onPickAttachment={uploadAttachment}
           attachmentBusy={attachmentBusy}
-          density="instagram"
+          density="whatsapp"
           vanishMode={disappearingSeconds > 0}
           replyDraft={replyDraft}
           onClearReply={() => setReplyDraft(null)}

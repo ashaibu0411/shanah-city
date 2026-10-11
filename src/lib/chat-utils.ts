@@ -40,6 +40,20 @@ export function normalizeChatReactions(reactions: ChatMessageReaction[] | undefi
   return (reactions ?? []).filter((reaction) => reaction.emoji && reaction.userId);
 }
 
+/** Merge chat rows by id (incoming wins), ordered by createdAt. */
+export function mergeChatMessagesById<T extends { id: string; createdAt: string }>(
+  current: T[],
+  incoming: T[],
+): T[] {
+  if (incoming.length === 0) return current;
+  const byId = new Map<string, T>();
+  for (const message of current) byId.set(message.id, message);
+  for (const message of incoming) byId.set(message.id, message);
+  return Array.from(byId.values()).sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+}
+
 export function toggleChatReaction(
   reactions: ChatMessageReaction[] | undefined,
   emoji: string,

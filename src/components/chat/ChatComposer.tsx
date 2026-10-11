@@ -176,6 +176,8 @@ export function ChatComposer({
   const hideHubFieldIcons = value.trim().length > 0;
 
   function handleSend() {
+    if (busy || disabled || attachmentBusy || voiceBusy) return;
+    if (!value.trim() && !pendingAttachment) return;
     onSend(pendingAttachment ?? undefined);
     setPendingAttachment(null);
     onTyping?.(false);
