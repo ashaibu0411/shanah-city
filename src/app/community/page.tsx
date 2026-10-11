@@ -69,6 +69,7 @@ export default async function CommunityPage({
         <MarkFeedRead feed="community" />
         <PollsSection
           initialPolls={polls.filter((poll) => !poll.targetGroupId)}
+          churchWideOnly
           compact
           hideWhenEmpty
         />

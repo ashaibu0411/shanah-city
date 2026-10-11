@@ -18,7 +18,11 @@ export async function GET(request: Request) {
   const user = await getUserFromSession(token);
   const { searchParams } = new URL(request.url);
   const groupId = searchParams.get("groupId")?.trim() || undefined;
-  const polls = await getPollsForViewer(user, groupId);
+  const churchWideOnly = searchParams.get("churchWide") === "1";
+  let polls = await getPollsForViewer(user, groupId);
+  if (churchWideOnly) {
+    polls = polls.filter((poll) => !poll.targetGroupId);
+  }
   return NextResponse.json({ polls });
 }
 

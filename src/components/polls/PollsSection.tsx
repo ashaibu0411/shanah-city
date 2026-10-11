@@ -17,6 +17,8 @@ type PollsSectionProps = {
   showComposer?: boolean;
   /** Hide the entire section when there are no polls (no empty-state message). */
   hideWhenEmpty?: boolean;
+  /** Community feed: only polls with no targetGroupId (not ministry/group polls). */
+  churchWideOnly?: boolean;
 };
 
 export function PollsSection({
@@ -27,6 +29,7 @@ export function PollsSection({
   compact = false,
   showComposer,
   hideWhenEmpty = false,
+  churchWideOnly = false,
 }: PollsSectionProps) {
   const { user, permissions } = useAuth();
   const [polls, setPolls] = useState<PollView[]>(initialPolls);
@@ -38,22 +41,32 @@ export function PollsSection({
     return permissions.canManageAdmin;
   }, [showComposer, groupId, permissions.canManageAdmin]);
 
+  function filterForScope(list: PollView[]) {
+    if (groupId) return list;
+    if (churchWideOnly) return list.filter((poll) => !poll.targetGroupId);
+    return list;
+  }
+
   async function refresh() {
     setLoading(true);
-    const query = groupId ? `?groupId=${encodeURIComponent(groupId)}` : "";
+    const params = new URLSearchParams();
+    if (groupId) params.set("groupId", groupId);
+    else if (churchWideOnly) params.set("churchWide", "1");
+    const query = params.toString() ? `?${params.toString()}` : "";
     const response = await fetch(`/api/polls${query}`);
     const data = await response.json();
     setLoading(false);
     if (response.ok) {
-      setPolls(data.polls ?? []);
+      setPolls(filterForScope(data.polls ?? []));
     }
   }
 
   useEffect(() => {
+    setPolls(filterForScope(initialPolls));
     if (!initialPolls.length) {
       void refresh();
     }
-  }, [groupId]);
+  }, [groupId, churchWideOnly]);
 
   useOnAppRefresh(() => {
     void refresh();
