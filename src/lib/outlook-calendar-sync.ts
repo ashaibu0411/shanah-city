@@ -1,7 +1,7 @@
 import { site } from "@/lib/site";
 import type { ChurchEvent } from "@/lib/types";
 import { deleteEvent, getEvents, upsertEvent } from "@/lib/event-server";
-import { isOutlookSyncedEventId } from "@/lib/calendar-utils";
+import { isOutlookSyncedEventId, isPrivateChurchCalendarEvent } from "@/lib/calendar-utils";
 import {
   outlookEventId,
   parseIcsEvents,
@@ -108,6 +108,10 @@ function churchEventFromOutlook(
 
 function toChurchEvents(parsed: ParsedIcsEvent) {
   if (parsed.cancelled || !parsed.summary.trim()) return [] as ChurchEvent[];
+  if (parsed.visibilityClass === "PRIVATE" || parsed.visibilityClass === "CONFIDENTIAL") {
+    return [];
+  }
+  if (isPrivateChurchCalendarEvent({ title: parsed.summary })) return [];
   // Outlook publishes both the series master and each occurrence. Keep the master.
   if (parsed.recurrenceId) return [];
 

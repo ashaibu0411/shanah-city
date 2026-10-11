@@ -1,4 +1,4 @@
-import { getDatesInMonth } from "@/lib/calendar-utils";
+import { getDatesInMonth, isPrivateChurchCalendarEvent } from "@/lib/calendar-utils";
 import { getZonedDateParts } from "@/lib/denver-time";
 import type { ChurchEvent } from "@/lib/types";
 
@@ -52,6 +52,7 @@ export function pickUpcomingHomeEventRows(events: ChurchEvent[], limit = 3): Hom
 
   for (const event of events) {
     if (event.published === false) continue;
+    if (isPrivateChurchCalendarEvent(event)) continue;
     const occurrenceDate = nextOccurrenceDate(event, todayKey);
     if (occurrenceDate) {
       rows.push({ event, occurrenceDate });

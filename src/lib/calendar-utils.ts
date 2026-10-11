@@ -1,5 +1,18 @@
+import type { ChurchEvent } from "@/lib/types";
+
 export function isOutlookSyncedEventId(id: string) {
   return id.startsWith("outlook-");
+}
+
+/** Outlook / ICS private holds — hide from public home upcoming list (and sync). */
+export function isPrivateChurchCalendarEvent(event: Pick<ChurchEvent, "title">) {
+  const title = event.title.trim().toLowerCase();
+  if (!title) return true;
+  if (title === "busy") return true;
+  if (title === "private") return true;
+  if (title === "private appointment") return true;
+  if (title.startsWith("private appointment")) return true;
+  return false;
 }
 
 export type CalendarPlannable = {

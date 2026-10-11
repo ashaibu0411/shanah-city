@@ -18,6 +18,8 @@ export type ParsedIcsEvent = {
   start: ParsedIcsDate;
   end: ParsedIcsDate | null;
   rrule: string | null;
+  /** ICS CLASS — PRIVATE / CONFIDENTIAL events should not publish to the church app. */
+  visibilityClass: "PUBLIC" | "PRIVATE" | "CONFIDENTIAL" | null;
 };
 
 const WEEKDAY_CODES = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"] as const;
@@ -175,6 +177,12 @@ export function parseIcsEvents(raw: string): ParsedIcsEvent[] {
     if (!uid || !summary || !startField) continue;
 
     const endField = fields.get("DTEND");
+    const classRaw = (fields.get("CLASS")?.value ?? "").toUpperCase();
+    const visibilityClass =
+      classRaw === "PRIVATE" || classRaw === "CONFIDENTIAL" || classRaw === "PUBLIC"
+        ? (classRaw as ParsedIcsEvent["visibilityClass"])
+        : null;
+
     events.push({
       uid,
       summary,
@@ -185,6 +193,7 @@ export function parseIcsEvents(raw: string): ParsedIcsEvent[] {
       start: parseIcsDateTime(startField.value, startField.params),
       end: endField ? parseIcsDateTime(endField.value, endField.params) : null,
       rrule: fields.get("RRULE")?.value ?? null,
+      visibilityClass,
     });
   }
 

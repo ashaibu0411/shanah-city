@@ -18,7 +18,7 @@ import { getYouTubeThumbnail } from "@/lib/streams";
 import { pickTodayDevotion } from "@/lib/devotion-utils";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { churchSocialImageForAction } from "@/lib/facebook-church-media";
-import { homeLiveSpotlightMediaClass } from "@/lib/home-explore-tile-images";
+import { homeLiveSpotlightMediaClass, homeMobileHeroImage } from "@/lib/home-explore-tile-images";
 import { MobilePremiumExploreGrid } from "@/components/app/MobilePremiumTile";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
 import { LiveStreamCountdownInline, useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSchedule";
@@ -109,10 +109,7 @@ export function MobileHome({
   const nextService =
     site.serviceTimes[1]?.time.split(" – ")[0] ?? site.serviceTimes[0].time.split(" – ")[0];
 
-  const heroImage =
-    churchSocialImageForAction(churchImages, "connect") ||
-    churchSocialImageForAction(churchImages, "community") ||
-    churchImages.live;
+  const heroImage = homeMobileHeroImage;
 
   return (
     <div className="mobile-home mobile-home--refreshed animate-fade-in space-y-4 pb-2">

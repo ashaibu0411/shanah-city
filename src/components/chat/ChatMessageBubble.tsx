@@ -6,7 +6,10 @@ import { formatDeletedMessageContent, getChatAttachmentApiUrl, isChatAudioAttach
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
 import { ChatWorshipActionButton } from "@/components/chat/ChatWorshipActionButton";
 import { ChatPollEmbed } from "@/components/polls/ChatPollEmbed";
+import { ChatStoryEmbed } from "@/components/chat/ChatStoryEmbed";
 import { extractPollIdFromChatContent, stripPollMarkerFromChatContent } from "@/lib/poll-chat-links";
+import { backgroundCapableAudioEventHandlers } from "@/lib/native-background-playback";
+import { extractStoryIdFromChatContent, stripStoryMarkerFromChatContent } from "@/lib/story-dm-links";
 import { worshipChatActionForMessage } from "@/lib/worship-chat-links";
 import { ChatMessageReplyQuote } from "@/components/chat/ChatMessageReplyQuote";
 import { ChatReactionEmojiPicker } from "@/components/chat/ChatReactionEmojiPicker";
@@ -112,15 +115,23 @@ export function ChatMessageBubble({
     () => (unsent || !displayContent ? null : extractPollIdFromChatContent(displayContent)),
     [displayContent, unsent],
   );
+  const embeddedStoryId = useMemo(
+    () => (unsent || !displayContent ? null : extractStoryIdFromChatContent(displayContent)),
+    [displayContent, unsent],
+  );
   const visibleText = useMemo(() => {
     if (!displayContent) return displayContent;
-    if (!embeddedPollId) return displayContent;
-    return stripPollMarkerFromChatContent(displayContent);
-  }, [displayContent, embeddedPollId]);
+    let text = displayContent;
+    if (embeddedPollId) text = stripPollMarkerFromChatContent(text);
+    if (embeddedStoryId) text = stripStoryMarkerFromChatContent(text);
+    return text.trim();
+  }, [displayContent, embeddedPollId, embeddedStoryId]);
   const worshipChatAction = useMemo(
     () =>
-      unsent || !visibleText || embeddedPollId ? null : worshipChatActionForMessage(visibleText),
-    [visibleText, unsent, embeddedPollId],
+      unsent || !visibleText || embeddedPollId || embeddedStoryId
+        ? null
+        : worshipChatActionForMessage(visibleText),
+    [visibleText, unsent, embeddedPollId, embeddedStoryId],
   );
   const imageSrc =
     getChatAttachmentApiUrl(attachmentUrl) &&
@@ -136,6 +147,8 @@ export function ChatMessageBubble({
     () => (unsent ? [] : extractYouTubeVideoIdsFromText(visibleText ?? "")),
     [visibleText, unsent],
   );
+  const backgroundAudioHandlers = useMemo(() => backgroundCapableAudioEventHandlers(), []);
+
   const hasActions =
     !unsent &&
     ((canEdit && onEdit) ||
@@ -438,7 +451,13 @@ export function ChatMessageBubble({
               ) : null}
               {audioSrc && !unsent && (
                 <div className={`messages-hub-voice-attachment ${hub ? "" : "mb-2"}`}>
-                  <audio controls preload="metadata" src={audioSrc} className="w-full max-w-xs">
+                  <audio
+                    controls
+                    preload="metadata"
+                    src={audioSrc}
+                    className="w-full max-w-xs"
+                    {...backgroundAudioHandlers}
+                  >
                     Voice message
                   </audio>
                 </div>
@@ -467,6 +486,9 @@ export function ChatMessageBubble({
                           : "font-semibold text-night-900 underline decoration-night-900/30 underline-offset-2"
                   }
                 />
+              ) : null}
+              {embeddedStoryId && !editing ? (
+                <ChatStoryEmbed statusId={embeddedStoryId} mine={mine} />
               ) : null}
               {embeddedPollId && groupId && !editing ? (
                 <ChatPollEmbed pollId={embeddedPollId} groupId={groupId} mine={mine} />

@@ -20,6 +20,7 @@ import { AppRefreshBridge } from "@/components/app/AppRefreshBridge";
 import { AppNotificationBadgeSync } from "@/components/app/AppNotificationBadgeSync";
 import { NativeAppBoot } from "@/components/app/NativeAppBoot";
 import { DevotionMiniPlayer } from "@/components/devotions/DevotionMiniPlayer";
+import { BackgroundPlaybackProvider } from "@/components/app/BackgroundPlaybackProvider";
 import { DevotionPlayerProvider } from "@/components/devotions/DevotionPlayerProvider";
 import { TopBar } from "@/components/app/TopBar";
 
@@ -38,6 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <AppShellProvider>
           <DevotionPlayerProvider>
+          <BackgroundPlaybackProvider>
 
           <NativeAppBoot />
           <AppRefreshBridge />
@@ -72,6 +74,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           </div>
 
+          </BackgroundPlaybackProvider>
           </DevotionPlayerProvider>
         </AppShellProvider>
 

@@ -78,9 +78,11 @@ export async function toggleCommunityStatusReaction(input: {
     },
   });
 
+  let added = false;
   if (existing) {
     await prisma.communityStatusReaction.delete({ where: { id: existing.id } });
   } else {
+    added = true;
     await prisma.communityStatusReaction.create({
       data: {
         id: `sr-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -106,5 +108,5 @@ export async function toggleCommunityStatusReaction(input: {
     }
   }
 
-  return { reactions, viewerReactions };
+  return { reactions, viewerReactions, added };
 }

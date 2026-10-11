@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { backgroundCapableAudioEventHandlers } from "@/lib/native-background-playback";
 import {
   inferWorshipAudioContentType,
   resolveWorshipAudioUrl,
@@ -19,6 +20,8 @@ export function WorshipAudioPlayer({ src, fileName, className }: WorshipAudioPla
 
   if (!resolvedSrc) return null;
 
+  const backgroundHandlers = backgroundCapableAudioEventHandlers();
+
   return (
     <div>
       <audio
@@ -29,6 +32,7 @@ export function WorshipAudioPlayer({ src, fileName, className }: WorshipAudioPla
         className={className}
         onError={() => setFailed(true)}
         onLoadedData={() => setFailed(false)}
+        {...backgroundHandlers}
       >
         <source src={resolvedSrc} type={contentType} />
         <source src={resolvedSrc} />

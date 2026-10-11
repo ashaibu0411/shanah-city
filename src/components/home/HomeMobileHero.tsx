@@ -2,6 +2,7 @@
 
 import { BrandLogo } from "@/components/app/BrandLogo";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
+import { homeMobileHeroMediaClass } from "@/lib/home-explore-tile-images";
 import { site } from "@/lib/site";
 
 type HomeMobileHeroProps = {
@@ -25,7 +26,7 @@ export function HomeMobileHero({
           alt=""
           priority
           sizes="100vw"
-          className="mobile-home-hero__media h-full w-full object-cover"
+          className={`mobile-home-hero__media h-full w-full ${homeMobileHeroMediaClass}`}
         />
         <div
           className="absolute inset-0 bg-gradient-to-b from-night-950/55 via-night-950/45 to-night-950/88"

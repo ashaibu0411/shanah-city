@@ -11,6 +11,11 @@ export const homeExploreTileImages = {
   calendar: "/home/home-gallery-calendar-tile.jpg",
 } as const;
 
+/** Mobile home hero — Shanah City church building (not the Connect graphic tile). */
+export const homeMobileHeroImage = "/home/home-mobile-hero.jpg";
+
+export const homeMobileHeroMediaClass = "object-cover object-[center_42%]";
+
 /** Home + Media “Watch Live” top banner (same photo everywhere). */
 export const homeLiveSpotlightImage = "/home/home-gallery-88.jpg";
 

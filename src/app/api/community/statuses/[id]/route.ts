@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { getPublicDisplayName } from "@/lib/member-display-name";
+import { notifyStoryReactionInDirectMessage } from "@/lib/story-dm-server";
 import {
   isStoryReactionKind,
 } from "@/lib/community-story-reactions";
@@ -71,6 +73,14 @@ export async function PATCH(request: Request, context: RouteContext) {
       userId: user.id,
       kind,
     });
+    if (result.added) {
+      void notifyStoryReactionInDirectMessage({
+        statusId,
+        senderId: user.id,
+        senderName: getPublicDisplayName(user),
+        kind,
+      });
+    }
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not react.";
