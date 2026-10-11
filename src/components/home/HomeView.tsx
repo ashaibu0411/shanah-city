@@ -25,6 +25,7 @@ import type { Devotion } from "@/lib/types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
+import type { ChurchEvent } from "@/lib/types";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
 
 type HomeViewProps = {
@@ -32,6 +33,7 @@ type HomeViewProps = {
   urgentAlerts: UrgentAlert[];
   churchImages: ChurchSocialImages;
   latestSermon?: SermonVideo | null;
+  upcomingEvents?: ChurchEvent[];
 };
 
 export function HomeView({
@@ -39,6 +41,7 @@ export function HomeView({
   urgentAlerts,
   churchImages,
   latestSermon = null,
+  upcomingEvents = [],
 }: HomeViewProps) {
   const { isMobileApp } = useAppShell();
   const highlightAlertId = useUrgentAlertHighlight(urgentAlerts);
@@ -50,6 +53,8 @@ export function HomeView({
         urgentAlerts={urgentAlerts}
         churchImages={churchImages}
         highlightAlertId={highlightAlertId}
+        latestSermon={latestSermon}
+        upcomingEvents={upcomingEvents}
       />
     );
   }

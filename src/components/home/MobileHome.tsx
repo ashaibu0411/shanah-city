@@ -7,6 +7,11 @@ import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { DevotionPromoCard } from "@/components/devotions/DevotionPromoCard";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
+import { HomeLatestSermonMobile } from "@/components/home/HomeLatestSermonMobile";
+import { HomeMobileHero } from "@/components/home/HomeMobileHero";
+import { HomeQuickLauncher } from "@/components/home/HomeQuickLauncher";
+import { HomeStoriesSection } from "@/components/home/HomeStoriesSection";
+import { HomeUpcomingEventsMobile } from "@/components/home/HomeUpcomingEventsMobile";
 import { liveStream, site } from "@/lib/site";
 import { getPublicDisplayFirstName } from "@/lib/member-display-name";
 import { getYouTubeThumbnail } from "@/lib/streams";
@@ -16,9 +21,6 @@ import { churchSocialImageForAction } from "@/lib/facebook-church-media";
 import { homeLiveSpotlightMediaClass } from "@/lib/home-explore-tile-images";
 import { MobilePremiumExploreGrid } from "@/components/app/MobilePremiumTile";
 import { MobilePremiumFrame } from "@/components/app/MobilePremiumFrame";
-import { HomeStoriesSection } from "@/components/home/HomeStoriesSection";
-import { HomeTagline } from "@/components/home/HomeTagline";
-import { HomePastorPortrait } from "@/components/home/HomePastorPortrait";
 import { LiveStreamCountdownInline, useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSchedule";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
@@ -31,34 +33,9 @@ import {
 } from "@/components/home/DailyEngagementBanners";
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
 import type { Devotion } from "@/lib/types";
+import type { ChurchEvent } from "@/lib/types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
-
-const todayShortcuts = [
-  {
-    label: "Check in",
-    href: "/check-in",
-    detail: "FrontLiners & kids",
-    className: "from-sand-100 to-clay-100/90 text-night-900 ring-night-900/10 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
-  },
-  {
-    label: "Groups",
-    href: "/groups",
-    detail: "Teams & group chat",
-    className: "from-clay-50 to-sand-100 text-night-900 ring-clay-300/40 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
-  },
-  {
-    label: "Meetings",
-    href: "/meetings",
-    detail: "Ministry Zoom links",
-    className: "from-sand-100 to-sand-200/90 text-night-900 ring-night-900/10 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
-  },
-  {
-    label: "Messages",
-    href: "/messages",
-    detail: "Chat & updates",
-    className: "from-clay-50 to-sand-100 text-night-900 ring-night-900/10 dark:from-night-800 dark:to-night-900 dark:text-sand-100 dark:ring-white/10",
-  },
-] as const;
+import type { SermonVideo } from "@/lib/youtube-sermons-server";
 
 function homeGreeting(name?: string | null) {
   const hour = new Date().getHours();
@@ -73,6 +50,8 @@ type MobileHomeProps = {
   urgentAlerts: UrgentAlert[];
   churchImages: ChurchSocialImages;
   highlightAlertId?: string | null;
+  latestSermon: SermonVideo | null;
+  upcomingEvents: ChurchEvent[];
 };
 
 export function MobileHome({
@@ -80,6 +59,8 @@ export function MobileHome({
   urgentAlerts,
   churchImages,
   highlightAlertId = null,
+  latestSermon,
+  upcomingEvents,
 }: MobileHomeProps) {
   const { campus } = useApp();
   const { user } = useAuth();
@@ -128,74 +109,45 @@ export function MobileHome({
   const nextService =
     site.serviceTimes[1]?.time.split(" – ")[0] ?? site.serviceTimes[0].time.split(" – ")[0];
 
+  const heroImage =
+    churchSocialImageForAction(churchImages, "connect") ||
+    churchSocialImageForAction(churchImages, "community") ||
+    churchImages.live;
+
   return (
-    <div className="mobile-home animate-fade-in space-y-4">
+    <div className="mobile-home mobile-home--refreshed animate-fade-in space-y-4 pb-2">
       <PendingRsvpHomeBanner />
       <AnniversaryHomeBanner />
       <PrayerHomeBanner variant="mobile" />
 
+      <HomeMobileHero
+        greeting={homeGreeting(user ? getPublicDisplayFirstName(user) : null)}
+        heroImageSrc={heroImage}
+        campusLabel={campus.city}
+        nextServiceLabel={nextService}
+      />
+
+      {urgentAlerts.length > 0 ? (
+        <UrgentNewsHomeStrip
+          alerts={urgentAlerts}
+          variant="mobile"
+          highlightAlertId={highlightAlertId}
+        />
+      ) : null}
+
+      <HomeQuickLauncher />
+
       <MobilePremiumFrame
         variant="surface"
-        className="mobile-home-welcome-stack ring-1 ring-night-900/8 dark:ring-white/10"
+        className="ring-1 ring-night-900/8 dark:ring-white/10"
       >
-        <div className="mobile-home-welcome-intro border-b border-night-900/8 bg-gradient-to-r from-sand-50 via-white to-sand-50 px-4 py-3.5 dark:border-white/10">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-night-500 dark:text-sand-400">
-            {homeGreeting(user ? getPublicDisplayFirstName(user) : null)}
-          </p>
-          <p className="mt-1 font-display text-[0.95rem] font-semibold uppercase tracking-[0.14em] text-night-900 dark:text-sand-100">
-            Welcome to {site.name}
-          </p>
-        </div>
-
-        {urgentAlerts.length > 0 ? (
-          <UrgentNewsHomeStrip
-            alerts={urgentAlerts}
-            variant="mobile"
-            highlightAlertId={highlightAlertId}
-          />
-        ) : null}
-
-        <div className="mobile-home-welcome-stories border-b border-night-900/8 bg-[var(--color-bg)] px-3 py-2 dark:border-white/10">
+        <div className="border-b border-night-900/8 px-3 py-2 dark:border-white/10">
           <HomeStoriesSection />
         </div>
       </MobilePremiumFrame>
 
-      <MobilePremiumFrame
-        variant="cinema"
-        className="mobile-home-tagline-cinema ring-1 ring-night-900/8 dark:ring-white/10"
-      >
-        <div className="home-cinema-showcase">
-          <div className="mobile-home-tagline-cinema__stage home-cinema-slider-stage relative overflow-hidden text-white">
-            <HomePastorPortrait variant="mobile" layout="cinema" />
-          </div>
-          <div className="mobile-home-tagline-cinema__copy home-cinema-showcase__copy relative px-5 py-5 text-center">
-            <HomeTagline size="mobile" layout="cinema" />
-            <div className="mobile-home-welcome-chip mt-4 inline-flex rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-wide text-white/95">
-              Sun {nextService} · {campus.city}
-            </div>
-          </div>
-        </div>
-      </MobilePremiumFrame>
-
-      <LeaderReportHomeBanner />
-      <TrainingHomeBanner />
-      <FollowUpHomeBanner />
-
-      <section>
-        <h2 className="mobile-section-title mb-2.5 px-0.5">Today</h2>
-        <div className="grid grid-cols-2 gap-2">
-          {todayShortcuts.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`mobile-today-tile block bg-gradient-to-br p-3 ring-1 transition active:scale-[0.98] ${item.className}`}
-            >
-              <p className="text-sm font-bold leading-tight">{item.label}</p>
-              <p className="mt-1 text-[11px] leading-snug opacity-75">{item.detail}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <HomeLatestSermonMobile video={latestSermon} />
+      <HomeUpcomingEventsMobile events={upcomingEvents} />
 
       <MobilePremiumFrame variant="cinema" className="mobile-home-live-flyer group block min-h-[15.5rem] transition active:scale-[0.99] sm:aspect-[16/10] sm:min-h-0">
         <Link href="/live" className="relative block h-full min-h-[15.5rem] sm:min-h-0">
@@ -267,6 +219,10 @@ export function MobileHome({
 
       <DevotionBrowseNudge />
 
+      <LeaderReportHomeBanner />
+      <TrainingHomeBanner />
+      <FollowUpHomeBanner />
+
       <section>
         <h2 className="mobile-section-title mb-2.5 px-0.5">Explore</h2>
         <MobilePremiumExploreGrid
@@ -276,7 +232,7 @@ export function MobileHome({
 
       <Link
         href="/guest"
-        className="mobile-card mobile-premium-surface flex items-center justify-between border border-night-900/8 bg-white px-3.5 py-2.5 text-sm font-semibold text-night-900 transition active:scale-[0.99]"
+        className="mobile-card mobile-premium-surface flex items-center justify-between border border-night-900/8 bg-white px-3.5 py-2.5 text-sm font-semibold text-night-900 transition active:scale-[0.99] dark:border-white/10 dark:bg-[var(--color-surface)] dark:text-sand-100"
       >
         First time here?
         <span className="rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white shadow-sm shadow-emerald-900/20">

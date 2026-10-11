@@ -4,6 +4,8 @@ import { HomeView } from "@/components/home/HomeView";
 import { getTodayDevotion } from "@/lib/devotion-server";
 import { getChurchSocialImages } from "@/lib/facebook-church-media";
 import { listUrgentAlertsForHomeCarousel } from "@/lib/urgent-alert-server";
+import { getEvents } from "@/lib/event-server";
+import { pickUpcomingPublishedEvents } from "@/lib/home-upcoming-events";
 import { getChannelSermons } from "@/lib/youtube-sermons-server";
 
 export const dynamic = "force-dynamic";
@@ -18,12 +20,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect(`/alerts/${encodeURIComponent(alert.trim())}`);
   }
 
-  const [todayDevotion, urgentAlerts, churchImages, sermonVideos] = await Promise.all([
+  const [todayDevotion, urgentAlerts, churchImages, sermonVideos, churchEvents] = await Promise.all([
     getTodayDevotion(),
     listUrgentAlertsForHomeCarousel(),
     getChurchSocialImages(),
     getChannelSermons(),
+    getEvents({ groupId: null }),
   ]);
+  const upcomingEvents = pickUpcomingPublishedEvents(churchEvents, 3);
 
   return (
     <Suspense fallback={<p className="text-sm text-night-600">Loading…</p>}>
@@ -32,6 +36,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         urgentAlerts={urgentAlerts}
         churchImages={churchImages}
         latestSermon={sermonVideos[0] ?? null}
+        upcomingEvents={upcomingEvents}
       />
     </Suspense>
   );
