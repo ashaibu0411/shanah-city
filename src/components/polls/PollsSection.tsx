@@ -47,8 +47,20 @@ export function PollsSection({
     return list;
   }
 
+  async function syncPollsToGroupChat() {
+    if (!groupId || !showComposer) return;
+    await fetch("/api/polls", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "ensureChatAnnouncements", groupId }),
+    }).catch(() => undefined);
+  }
+
   async function refresh() {
     setLoading(true);
+    if (groupId && showComposer) {
+      await syncPollsToGroupChat();
+    }
     const params = new URLSearchParams();
     if (groupId) params.set("groupId", groupId);
     else if (churchWideOnly) params.set("churchWide", "1");
@@ -67,6 +79,11 @@ export function PollsSection({
       void refresh();
     }
   }, [groupId, churchWideOnly]);
+
+  useEffect(() => {
+    if (!groupId || !showComposer) return;
+    void syncPollsToGroupChat();
+  }, [groupId, showComposer]);
 
   useOnAppRefresh(() => {
     void refresh();

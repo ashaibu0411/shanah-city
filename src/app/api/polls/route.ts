@@ -5,6 +5,7 @@ import { getGroups } from "@/lib/group-server";
 import {
   closePoll,
   createPollForUser,
+  ensureGroupPollsAnnouncedInChat,
   getPollsForViewer,
   voteOnPoll,
 } from "@/lib/poll-server";
@@ -52,6 +53,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Poll not found." }, { status: 404 });
       }
       return NextResponse.json({ poll });
+    }
+
+    if (action === "ensureChatAnnouncements") {
+      const groupId = String(body.groupId ?? "").trim();
+      if (!groupId) {
+        return NextResponse.json({ error: "Group not found." }, { status: 400 });
+      }
+      const result = await ensureGroupPollsAnnouncedInChat(user, groupId);
+      return NextResponse.json(result);
     }
 
     let targetGroupId = body.targetGroupId ? String(body.targetGroupId).trim() : undefined;

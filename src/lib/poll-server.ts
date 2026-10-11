@@ -8,6 +8,10 @@ import {
   canCreateGroupPoll,
   canManagePoll,
 } from "@/lib/poll-access-server";
+import {
+  announcePollInGroupChat,
+  groupChatHasPollAnnouncement,
+} from "@/lib/poll-chat-server";
 import type {
   CreatePollInput,
   PollRecord,
@@ -153,6 +157,41 @@ export async function voteOnPoll(
 
   const updated = await getPollsForViewer(viewer);
   return updated.find((entry) => entry.id === pollId) ?? null;
+}
+
+/** Posts open group polls into group chat when missing (e.g. polls created before chat announce). */
+export async function ensureGroupPollsAnnouncedInChat(viewer: PublicMember, groupId: string) {
+  const trimmedGroupId = groupId.trim();
+  if (!trimmedGroupId) {
+    throw new Error("Group not found.");
+  }
+  if (!(await canCreateGroupPoll(viewer, trimmedGroupId))) {
+    throw new Error("Only group leaders can share polls in group chat.");
+  }
+
+  const polls = await getPollsForViewer(viewer, trimmedGroupId);
+  const announced: string[] = [];
+  const skipped: string[] = [];
+
+  for (const poll of polls) {
+    if (poll.isClosed) continue;
+    if (await groupChatHasPollAnnouncement(trimmedGroupId, poll.id)) {
+      skipped.push(poll.id);
+      continue;
+    }
+    const groupName = poll.targetGroupName?.trim() || "Group";
+    await announcePollInGroupChat({
+      groupId: trimmedGroupId,
+      groupName,
+      pollId: poll.id,
+      question: poll.question,
+      authorId: poll.createdBy,
+      authorName: poll.creatorName,
+    });
+    announced.push(poll.id);
+  }
+
+  return { announced, skipped };
 }
 
 export async function closePoll(viewer: PublicMember, pollId: string) {

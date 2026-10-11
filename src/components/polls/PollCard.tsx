@@ -70,6 +70,25 @@ export function PollCard({ poll, onUpdate, compact = false, variant = "default" 
     onUpdate(data.poll);
   }
 
+  async function shareInGroupChat() {
+    if (!poll.targetGroupId) return;
+    setBusy(true);
+    setError("");
+    const response = await fetch("/api/polls", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "ensureChatAnnouncements",
+        groupId: poll.targetGroupId,
+      }),
+    });
+    const data = await response.json();
+    setBusy(false);
+    if (!response.ok) {
+      setError(data.error ?? "Could not share in group chat.");
+    }
+  }
+
   async function closePoll() {
     if (!window.confirm("Close this poll? Members will no longer be able to vote.")) return;
     setBusy(true);
@@ -235,7 +254,17 @@ export function PollCard({ poll, onUpdate, compact = false, variant = "default" 
       ) : null}
 
       {poll.canManage && !poll.isClosed && !isChat ? (
-        <div className="mt-3 border-t border-night-900/5 pt-3 dark:border-white/10">
+        <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-night-900/5 pt-3 dark:border-white/10">
+          {poll.targetGroupId ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={shareInGroupChat}
+              className="text-xs font-semibold text-teal-800 underline dark:text-teal-300"
+            >
+              Share in group chat
+            </button>
+          ) : null}
           <button
             type="button"
             disabled={busy}
