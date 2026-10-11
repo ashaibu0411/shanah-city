@@ -5,7 +5,7 @@ import { getTodayDevotion } from "@/lib/devotion-server";
 import { getChurchSocialImages } from "@/lib/facebook-church-media";
 import { listUrgentAlertsForHomeCarousel } from "@/lib/urgent-alert-server";
 import { getEvents } from "@/lib/event-server";
-import { pickUpcomingPublishedEvents } from "@/lib/home-upcoming-events";
+import { pickUpcomingHomeEventRows } from "@/lib/home-upcoming-events";
 import { getChannelSermons } from "@/lib/youtube-sermons-server";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     getChannelSermons(),
     getEvents({ groupId: null }),
   ]);
-  const upcomingEvents = pickUpcomingPublishedEvents(churchEvents, 3);
+  const upcomingEventRows = pickUpcomingHomeEventRows(churchEvents, 3);
 
   return (
     <Suspense fallback={<p className="text-sm text-night-600">Loading…</p>}>
@@ -36,7 +36,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         urgentAlerts={urgentAlerts}
         churchImages={churchImages}
         latestSermon={sermonVideos[0] ?? null}
-        upcomingEvents={upcomingEvents}
+        upcomingEventRows={upcomingEventRows}
       />
     </Suspense>
   );

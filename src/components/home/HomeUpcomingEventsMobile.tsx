@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import type { ChurchEvent } from "@/lib/types";
+import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
 import { formatHomeEventMeta } from "@/lib/home-upcoming-events";
 
-export function HomeUpcomingEventsMobile({ events }: { events: ChurchEvent[] }) {
-  if (events.length === 0) return null;
+export function HomeUpcomingEventsMobile({ rows }: { rows: HomeUpcomingEventRow[] }) {
+  if (rows.length === 0) return null;
 
   return (
     <section>
@@ -17,13 +17,13 @@ export function HomeUpcomingEventsMobile({ events }: { events: ChurchEvent[] }) 
       </div>
 
       <ul className="space-y-2">
-        {events.map((event) => {
-          const { day, meta } = formatHomeEventMeta(event);
+        {rows.map(({ event, occurrenceDate }) => {
+          const { day, meta } = formatHomeEventMeta(event, occurrenceDate);
           const month = day?.toLocaleDateString(undefined, { month: "short" }).toUpperCase();
           const dayNum = day?.getDate();
 
           return (
-            <li key={event.id}>
+            <li key={`${event.id}-${occurrenceDate}`}>
               <Link
                 href="/calendar"
                 className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-night-900/8 transition active:scale-[0.99] dark:bg-[var(--color-surface)] dark:ring-white/10"
@@ -43,7 +43,9 @@ export function HomeUpcomingEventsMobile({ events }: { events: ChurchEvent[] }) 
                   <p className="truncate font-semibold text-night-900 dark:text-sand-100">{event.title}</p>
                   <p className="mt-0.5 text-sm text-night-600 dark:text-sand-400">{meta}</p>
                   {event.location?.trim() ? (
-                    <p className="mt-0.5 truncate text-xs text-night-500 dark:text-sand-500">{event.location}</p>
+                    <p className="mt-0.5 truncate text-xs text-night-500 dark:text-sand-500">
+                      {event.location}
+                    </p>
                   ) : null}
                 </div>
                 <span className="shrink-0 text-lg text-night-400" aria-hidden>›</span>

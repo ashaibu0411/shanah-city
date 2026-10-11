@@ -33,7 +33,7 @@ import {
 } from "@/components/home/DailyEngagementBanners";
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
 import type { Devotion } from "@/lib/types";
-import type { ChurchEvent } from "@/lib/types";
+import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
 
@@ -51,7 +51,7 @@ type MobileHomeProps = {
   churchImages: ChurchSocialImages;
   highlightAlertId?: string | null;
   latestSermon: SermonVideo | null;
-  upcomingEvents: ChurchEvent[];
+  upcomingEventRows: HomeUpcomingEventRow[];
 };
 
 export function MobileHome({
@@ -60,7 +60,7 @@ export function MobileHome({
   churchImages,
   highlightAlertId = null,
   latestSermon,
-  upcomingEvents,
+  upcomingEventRows,
 }: MobileHomeProps) {
   const { campus } = useApp();
   const { user } = useAuth();
@@ -147,7 +147,7 @@ export function MobileHome({
       </MobilePremiumFrame>
 
       <HomeLatestSermonMobile video={latestSermon} />
-      <HomeUpcomingEventsMobile events={upcomingEvents} />
+      <HomeUpcomingEventsMobile rows={upcomingEventRows} />
 
       <MobilePremiumFrame variant="cinema" className="mobile-home-live-flyer group block min-h-[15.5rem] transition active:scale-[0.99] sm:aspect-[16/10] sm:min-h-0">
         <Link href="/live" className="relative block h-full min-h-[15.5rem] sm:min-h-0">

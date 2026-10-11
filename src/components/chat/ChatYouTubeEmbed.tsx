@@ -6,14 +6,22 @@ type ChatYouTubeEmbedProps = {
   videoId: string;
   title?: string;
   vertical?: boolean;
+  className?: string;
 };
 
-export function ChatYouTubeEmbed({ videoId, title, vertical = true }: ChatYouTubeEmbedProps) {
+export function ChatYouTubeEmbed({
+  videoId,
+  title,
+  vertical = true,
+  className = "",
+}: ChatYouTubeEmbedProps) {
   const watchUrl = getYouTubeVideoWatchUrl(videoId);
   const embedUrl = `${getYouTubeClipEmbedUrl(videoId)}&rel=0`;
 
   return (
-    <div className="mt-2 w-full max-w-[min(240px,72vw)] overflow-hidden rounded-2xl border border-black/8 bg-black dark:border-white/10">
+    <div
+      className={`mt-2 w-full max-w-[min(240px,72vw)] overflow-hidden rounded-2xl border border-black/8 bg-black dark:border-white/10 ${className}`}
+    >
       <div className={vertical ? "aspect-[9/16] w-full" : "aspect-video w-full"}>
         <iframe
           src={embedUrl}
