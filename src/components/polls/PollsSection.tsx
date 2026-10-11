@@ -87,9 +87,9 @@ export function PollsSection({
       ) : null}
 
       {polls.length === 0 && !loading ? (
-        <p className="rounded-2xl bg-sand-50 px-4 py-5 text-sm text-night-600">
+        <p className="rounded-2xl bg-sand-50 px-4 py-5 text-sm text-night-600 dark:bg-night-900/40 dark:text-sand-300">
           {groupId
-            ? "No group polls yet. Leaders can start one when a decision needs input."
+            ? "No group polls yet. Leaders can create one — members will see it in Polls and group chat."
             : "No church polls right now. Admins can create one when the church needs to decide together."}
         </p>
       ) : (

@@ -5,6 +5,8 @@ import type { ChatMessageReaction } from "@/lib/chat-utils";
 import { formatDeletedMessageContent, getChatAttachmentApiUrl, isChatAudioAttachment, isChatImageAttachment, messageIsUnsent } from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
 import { ChatWorshipActionButton } from "@/components/chat/ChatWorshipActionButton";
+import { ChatPollEmbed } from "@/components/polls/ChatPollEmbed";
+import { extractPollIdFromChatContent, stripPollMarkerFromChatContent } from "@/lib/poll-chat-links";
 import { worshipChatActionForMessage } from "@/lib/worship-chat-links";
 import { ChatMessageReplyQuote } from "@/components/chat/ChatMessageReplyQuote";
 import { ChatReactionEmojiPicker } from "@/components/chat/ChatReactionEmojiPicker";
@@ -52,6 +54,8 @@ type ChatMessageBubbleProps = {
   onBlock?: () => Promise<void> | void;
   canMessagePrivately?: boolean;
   onMessagePrivately?: () => void;
+  /** When set, embedded poll cards in group chat can load vote state. */
+  groupId?: string;
 };
 
 export function ChatMessageBubble({
@@ -90,6 +94,7 @@ export function ChatMessageBubble({
   onBlock,
   canMessagePrivately = false,
   onMessagePrivately,
+  groupId,
 }: ChatMessageBubbleProps) {
   const [showActions, setShowActions] = useState(false);
   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
@@ -103,9 +108,19 @@ export function ChatMessageBubble({
 
   const displayContent = formatDeletedMessageContent(content, deletedAt);
   const unsent = messageIsUnsent(deletedAt, content);
-  const worshipChatAction = useMemo(
-    () => (unsent || !displayContent ? null : worshipChatActionForMessage(displayContent)),
+  const embeddedPollId = useMemo(
+    () => (unsent || !displayContent ? null : extractPollIdFromChatContent(displayContent)),
     [displayContent, unsent],
+  );
+  const visibleText = useMemo(() => {
+    if (!displayContent) return displayContent;
+    if (!embeddedPollId) return displayContent;
+    return stripPollMarkerFromChatContent(displayContent);
+  }, [displayContent, embeddedPollId]);
+  const worshipChatAction = useMemo(
+    () =>
+      unsent || !visibleText || embeddedPollId ? null : worshipChatActionForMessage(visibleText),
+    [visibleText, unsent, embeddedPollId],
   );
   const imageSrc =
     getChatAttachmentApiUrl(attachmentUrl) &&
@@ -118,8 +133,8 @@ export function ChatMessageBubble({
       ? getChatAttachmentApiUrl(attachmentUrl)
       : null;
   const youtubeVideoIds = useMemo(
-    () => (unsent ? [] : extractYouTubeVideoIdsFromText(displayContent)),
-    [displayContent, unsent],
+    () => (unsent ? [] : extractYouTubeVideoIdsFromText(visibleText ?? "")),
+    [visibleText, unsent],
   );
   const hasActions =
     !unsent &&
@@ -434,9 +449,9 @@ export function ChatMessageBubble({
                   <img src={imageSrc} alt="Shared image" />
                 </a>
               )}
-              {displayContent ? (
+              {visibleText ? (
                 <ChatMessageText
-                  text={displayContent}
+                  text={visibleText}
                   className="whitespace-pre-wrap break-words"
                   linkClassName={
                     hub
@@ -452,6 +467,9 @@ export function ChatMessageBubble({
                           : "font-semibold text-night-900 underline decoration-night-900/30 underline-offset-2"
                   }
                 />
+              ) : null}
+              {embeddedPollId && groupId && !editing ? (
+                <ChatPollEmbed pollId={embeddedPollId} groupId={groupId} mine={mine} />
               ) : null}
               {worshipChatAction && !editing ? (
                 <ChatWorshipActionButton action={worshipChatAction} mine={mine} hub={hub} />

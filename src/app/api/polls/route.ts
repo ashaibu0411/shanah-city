@@ -9,6 +9,7 @@ import {
   voteOnPoll,
 } from "@/lib/poll-server";
 import { getPublicDisplayName } from "@/lib/member-display-name";
+import { announcePollInGroupChat } from "@/lib/poll-chat-server";
 import { notifyPollCreated } from "@/lib/push-server";
 
 export async function GET(request: Request) {
@@ -72,13 +73,24 @@ export async function POST(request: Request) {
       campusId: body.campusId ? String(body.campusId) : undefined,
     });
 
-    await notifyPollCreated({
-      authorId: user.id,
-      authorName: getPublicDisplayName(user),
-      question: poll.question,
-      targetGroupId: poll.targetGroupId,
-      targetGroupName: poll.targetGroupName,
-    });
+    if (poll.targetGroupId && targetGroupName) {
+      await announcePollInGroupChat({
+        groupId: poll.targetGroupId,
+        groupName: targetGroupName,
+        pollId: poll.id,
+        question: poll.question,
+        authorId: user.id,
+        authorName: getPublicDisplayName(user),
+      });
+    } else {
+      await notifyPollCreated({
+        authorId: user.id,
+        authorName: getPublicDisplayName(user),
+        question: poll.question,
+        targetGroupId: poll.targetGroupId,
+        targetGroupName: poll.targetGroupName,
+      });
+    }
 
     const polls = await getPollsForViewer(user, targetGroupId);
     const view = polls.find((entry) => entry.id === poll.id) ?? poll;

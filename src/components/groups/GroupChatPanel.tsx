@@ -575,6 +575,7 @@ export function GroupChatPanel({
                     onReport={() => setReportTarget(message)}
                     onBlock={() => blockMember(message)}
                     canMessagePrivately={!mine && message.senderId !== userId}
+                    groupId={groupId}
                     onMessagePrivately={() =>
                       router.push(privateMessageHref(message.senderId, message.senderName))
                     }

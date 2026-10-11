@@ -436,7 +436,7 @@ export async function notifyPollCreated(input: {
     title,
     body: `${input.authorName}: ${input.question.slice(0, 120)}`,
     url: input.targetGroupId
-      ? `/groups/${encodeURIComponent(input.targetGroupId)}`
+      ? `/groups/${encodeURIComponent(input.targetGroupId)}?chat=1`
       : "/community",
   };
 
