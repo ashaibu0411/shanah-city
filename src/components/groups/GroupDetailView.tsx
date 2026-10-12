@@ -43,6 +43,8 @@ import type { GroupDetail } from "@/lib/group-types";
 import type { GroupDashboardQuickAction } from "@/lib/group-dashboard-types";
 import type { MinistryReadinessPublicPack } from "@/lib/ministry-readiness-types";
 import { MinistryReadinessFlow } from "@/components/groups/MinistryReadinessFlow";
+import { ChoirGroupDashboard } from "@/components/groups/choir/ChoirGroupDashboard";
+import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
 
 type DetailSection =
   | "overview"
@@ -193,6 +195,9 @@ export function GroupDetailView({
   const isPowerCouplesGroup = detail.id === SHANAH_POWER_COUPLES_GROUP_ID;
   const isYoungAdultsHubGroup = groupHasMinistryHub(detail.id);
   const isFollowUpGroup = detail.id === FOLLOW_UP_GROUP_ID;
+  const isChoirGroup = detail.id === SHANAH_WORSHIP_GROUP_ID;
+  const showChoirHome =
+    isChoirGroup && hasMemberAccess && detailSection === "overview" && !detail.trainingPending;
   const showGuestQueueTab =
     isFollowUpGroup && hasMemberAccess && permissions.canAccessFollowUp;
   const groupLeaders = useMemo(
@@ -444,6 +449,8 @@ export function GroupDetailView({
               isMobileApp ? "-mx-4 -mt-4" : ""
             }`
           : `${groupsPremium.page} overflow-hidden ${
+              showChoirHome ? "bg-[#FAF7F1] dark:bg-[var(--color-bg)]" : ""
+            } ${
               isMobileApp ? "-mx-4 -mt-4" : "rounded-[1.5rem] border border-night-900/8 shadow-[0_8px_32px_rgba(15,23,42,0.06)]"
             }`
       }
@@ -633,6 +640,22 @@ export function GroupDetailView({
               members={detail.members.map((member) => ({ id: member.id, name: member.name }))}
               onQuickAction={handleDashboardQuickAction}
               onSetupRoster={() => openManageSection("roster")}
+            />
+          ) : hasMemberAccess && isChoirGroup ? (
+            <ChoirGroupDashboard
+              groupId={detail.id}
+              isLeader={detail.isAdmin || detail.isAssistantLeader}
+              onOpenChat={() => setDetailSection("chat")}
+              onOpenCalendar={() => setDetailSection("calendar")}
+              onOpenInfo={() => setDetailSection("info")}
+              onOpenManage={() => openManageSection("members")}
+              onOpenWorshipAcademy={() => {
+                if (detail.trainingPending || readinessPack?.requiredForSelfJoin) {
+                  setShowReadinessFlow(true);
+                  return;
+                }
+                window.open("/training/choir-worship-leader.html", "_blank", "noopener,noreferrer");
+              }}
             />
           ) : hasMemberAccess ? (
             <GroupDashboardPanel

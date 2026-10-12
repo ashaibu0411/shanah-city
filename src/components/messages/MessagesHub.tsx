@@ -501,9 +501,11 @@ export function MessagesHub() {
     if (!user) return null;
     for (let i = messages.length - 1; i >= 0; i -= 1) {
       const message = messages[i];
-      if (message.senderId === user.id && message.readAt) {
+      if (message.senderId !== user.id) continue;
+      if (message.readAt) {
         return chatSeenReceiptLabel(message.readAt);
       }
+      return null;
     }
     return null;
   }, [messages, user]);
