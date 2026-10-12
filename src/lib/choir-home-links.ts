@@ -4,6 +4,7 @@ import { choirConnectHref } from "@/lib/choir-connect-links";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
 import { choirResourcesHref } from "@/lib/choir-resource-links";
 import { choirWorshipEventsHref } from "@/lib/choir-events-links";
+import { choirLeaderStudioHref } from "@/lib/choir-leader-studio-links";
 import { choirSongSuggestionsHref } from "@/lib/choir-song-suggestion-links";
 
 export type ChoirHomeQuickActionLinks = {
@@ -80,8 +81,7 @@ export function choirExploreNavItems(
       id: "leader-studio",
       title: "Worship Leader Studio",
       description: "Leadership planning and management.",
-      href: null,
-      comingSoon: true,
+      href: choirLeaderStudioHref(groupId),
       leadersOnly: true,
       iconLabel: "★",
     },

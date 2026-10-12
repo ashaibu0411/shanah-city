@@ -3104,3 +3104,414 @@
   font-size: 12px;
   color: rgba(255, 255, 255, 0.9);
 }
+
+/* Worship Leader Studio (Page 13) — mobile-first */
+.choir-leader-studio-page {
+  padding: 16px;
+  padding-bottom: 40px;
+}
+
+.choir-leader-studio-page .choir-wls-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.choir-leader-studio-page .choir-wls-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 6px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+
+.choir-leader-studio-page .choir-wls-tab {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  min-height: 44px;
+  border-radius: 9999px;
+  border: none;
+  background: #fff;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 1px 0 var(--choir-border);
+}
+
+.choir-leader-studio-page .choir-wls-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-leader-studio-page .choir-wls-hero {
+  position: relative;
+  min-height: 190px;
+  max-height: 210px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #181322;
+}
+
+.choir-leader-studio-page .choir-wls-hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  background: linear-gradient(180deg, transparent 10%, rgba(24, 19, 34, 0.92) 72%);
+}
+
+.choir-leader-studio-page .choir-wls-hero-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--choir-gold);
+}
+
+.choir-leader-studio-page .choir-wls-hero-title {
+  margin-top: 4px;
+  font-family: var(--font-display, serif);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.choir-leader-studio-page .choir-wls-hero-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.choir-leader-studio-page .choir-wls-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.choir-leader-studio-page .choir-wls-quick-card {
+  min-height: 96px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: #fff;
+  padding: 12px;
+  box-shadow: 0 2px 10px rgba(37, 32, 42, 0.06);
+}
+
+.choir-leader-studio-page .choir-wls-quick-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--choir-surface-soft);
+  color: var(--choir-gold-dark);
+}
+
+.choir-leader-studio-page .choir-wls-quick-title {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-leader-studio-page .choir-wls-quick-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--choir-muted);
+}
+
+.choir-leader-studio-page .choir-wls-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.choir-leader-studio-page .choir-wls-section-title {
+  font-family: var(--font-display, serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+.choir-leader-studio-page .choir-wls-see-all {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--choir-gold-dark);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.choir-leader-studio-page .choir-wls-card {
+  border-radius: 18px;
+  border: 1px solid var(--choir-border);
+  background: #fff;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(37, 32, 42, 0.06);
+}
+
+.choir-leader-studio-page .choir-wls-upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choir-leader-studio-page .choir-wls-upcoming-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 16px;
+  gap: 10px;
+  align-items: center;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: #fff;
+  padding: 12px;
+  min-height: 88px;
+}
+
+.choir-leader-studio-page .choir-wls-date-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.choir-leader-studio-page .choir-wls-date-month {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--choir-gold-dark);
+}
+
+.choir-leader-studio-page .choir-wls-date-day {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-leader-studio-page .choir-wls-date-weekday {
+  font-size: 10px;
+  color: var(--choir-muted);
+}
+
+.choir-leader-studio-page .choir-wls-upcoming-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-leader-studio-page .choir-wls-upcoming-meta {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--choir-muted);
+}
+
+.choir-leader-studio-page .choir-wls-status {
+  display: inline-flex;
+  margin-top: 6px;
+  border-radius: 9999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.choir-leader-studio-page .choir-wls-status-confirmed {
+  background: rgba(52, 133, 103, 0.12);
+  color: #348567;
+}
+
+.choir-leader-studio-page .choir-wls-status-pending {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+.choir-leader-studio-page .choir-wls-status-needs {
+  background: rgba(234, 88, 12, 0.12);
+  color: #ea580c;
+}
+
+.choir-leader-studio-page .choir-wls-chevron {
+  font-size: 22px;
+  color: var(--choir-muted);
+  line-height: 1;
+}
+
+.choir-leader-studio-page .choir-wls-pending-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.choir-leader-studio-page .choir-wls-pending-row {
+  display: grid;
+  grid-template-columns: 1fr auto 16px;
+  gap: 8px;
+  align-items: center;
+  min-height: 48px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--choir-body);
+  border-top: 1px solid var(--choir-border);
+  padding: 10px 0;
+}
+
+.choir-leader-studio-page .choir-wls-pending-list li:first-child .choir-wls-pending-row {
+  border-top: none;
+  padding-top: 0;
+}
+
+.choir-leader-studio-page .choir-wls-pending-count {
+  min-width: 28px;
+  border-radius: 9999px;
+  background: var(--choir-surface-soft);
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--choir-heading);
+}
+
+.choir-leader-studio-page .choir-wls-avail-row-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--choir-body);
+}
+
+.choir-leader-studio-page .choir-wls-avail-track {
+  margin-top: 6px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--choir-surface-soft);
+  overflow: hidden;
+}
+
+.choir-leader-studio-page .choir-wls-avail-fill {
+  height: 100%;
+  border-radius: 9999px;
+}
+
+.choir-leader-studio-page .choir-wls-avail-available {
+  background: #348567;
+}
+
+.choir-leader-studio-page .choir-wls-avail-maybe {
+  background: var(--choir-gold);
+}
+
+.choir-leader-studio-page .choir-wls-avail-unavailable {
+  background: #9b6b6b;
+}
+
+.choir-leader-studio-page .choir-wls-avail-pending {
+  background: #cbd5e1;
+}
+
+.choir-leader-studio-page .choir-wls-activity-list {
+  padding: 0;
+  overflow: hidden;
+}
+
+.choir-leader-studio-page .choir-wls-activity-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 16px;
+  gap: 10px;
+  align-items: center;
+  min-height: 56px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--choir-border);
+}
+
+.choir-leader-studio-page .choir-wls-activity-list li:first-child .choir-wls-activity-row {
+  border-top: none;
+}
+
+.choir-leader-studio-page .choir-wls-activity-icon {
+  font-size: 16px;
+}
+
+.choir-leader-studio-page .choir-wls-activity-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.choir-leader-studio-page .choir-wls-activity-text {
+  font-size: 14px;
+  color: var(--choir-body);
+}
+
+.choir-leader-studio-page .choir-wls-activity-when {
+  font-size: 12px;
+  color: var(--choir-muted);
+}
+
+.choir-leader-studio-page .choir-wls-mgmt-card {
+  display: grid;
+  grid-template-columns: 40px 1fr 16px;
+  gap: 12px;
+  align-items: center;
+  min-height: 88px;
+  border-radius: 18px;
+  border: 1px solid var(--choir-border);
+  background: #fff;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(37, 32, 42, 0.06);
+}
+
+.choir-leader-studio-page .choir-wls-mgmt-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--choir-surface-soft);
+  color: var(--choir-gold-dark);
+}
+
+.choir-leader-studio-page .choir-wls-mgmt-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.choir-leader-studio-page .choir-wls-mgmt-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-leader-studio-page .choir-wls-mgmt-sub {
+  font-size: 13px;
+  color: var(--choir-muted);
+}
+
+.choir-leader-studio-page .choir-wls-reports-cta {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 600px) {
+  .choir-leader-studio-page .choir-wls-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .choir-leader-studio-page .choir-wls-quick-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
