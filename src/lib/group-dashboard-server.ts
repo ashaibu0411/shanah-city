@@ -9,7 +9,7 @@ import {
 import { FOLLOW_UP_GROUP_ID } from "@/lib/follow-up-types";
 import { canManageFrontLiners } from "@/lib/frontliners-access-server";
 import { listGuestSubmissions } from "@/lib/guest-submission-server";
-import { getGroupDetail, listGroupsForUser } from "@/lib/group-server";
+import { getGroupDetail } from "@/lib/group-server";
 import { isMemberTrainingRequired } from "@/lib/ministry-readiness-server";
 import { isMediaGroup } from "@/lib/media-group";
 import { isReportableMinistryGroup } from "@/lib/ministry-report-types";
@@ -31,9 +31,6 @@ import type {
   GroupDashboardQuickAction,
   GroupDashboardRoleRow,
   GroupScheduleKind,
-  GroupsThisSundayAssignment,
-  GroupsThisSundayService,
-  GroupsThisSundaySummary,
 } from "@/lib/group-dashboard-types";
 import { listUsherSchedules } from "@/lib/usher-schedule-server";
 import { YOUNG_ADULTS_GROUP_ID } from "@/lib/church-groups";
@@ -444,44 +441,4 @@ export async function buildGroupDashboard(
 
   const generic = await buildGenericDashboard(group);
   return { scheduleKind, quickActions, usesServiceRoster, canManageRoster, ...generic };
-}
-
-export async function buildGroupsThisSunday(user: PublicMember): Promise<GroupsThisSundaySummary> {
-  const groups = (await listGroupsForUser(user.id, { mine: true })).filter((group) => group.isMember);
-  const assignments: GroupsThisSundayAssignment[] = [];
-  const teamServices: GroupsThisSundayService[] = [];
-
-  for (const group of groups) {
-    const dashboard = await buildGroupDashboard(user, group.id);
-    if (!dashboard) continue;
-
-    for (const assignment of dashboard.myAssignments) {
-      assignments.push({
-        groupId: group.id,
-        groupName: group.name,
-        leftLabel: assignment.leftLabel,
-        rightLabel: assignment.rightLabel,
-        href: assignment.href ?? `/groups/${group.id}`,
-      });
-    }
-
-    if (
-      dashboard.myAssignments.length === 0 &&
-      dashboard.nextService &&
-      (dashboard.nextService.roles.length > 0 || dashboard.nextService.subtitle)
-    ) {
-      teamServices.push({
-        groupId: group.id,
-        groupName: group.name,
-        title: dashboard.nextService.title,
-        subtitle: dashboard.nextService.subtitle,
-        href: dashboard.nextService.href ?? `/groups/${group.id}`,
-      });
-    }
-  }
-
-  return {
-    assignments: assignments.slice(0, 8),
-    teamServices: teamServices.slice(0, 4),
-  };
 }

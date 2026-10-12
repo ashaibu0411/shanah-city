@@ -6,7 +6,6 @@ import { useAppShell } from "@/components/app/AppShellContext";
 import { MobileTabPills } from "@/components/app/MobileTabPills";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { GroupsFeed } from "@/components/groups/GroupsFeed";
-import { GroupsThisSundayCard } from "@/components/groups/GroupsThisSundayCard";
 import { campuses } from "@/lib/site";
 import type { GroupCategory, GroupSummary } from "@/lib/group-types";
 import { groupCategoryLabels } from "@/lib/group-types";
@@ -285,7 +284,6 @@ export function GroupsHub() {
         </p>
       ) : (
         <>
-          {user ? <GroupsThisSundayCard /> : null}
           <GroupsFeed groups={filteredGroups} />
         </>
       )}
