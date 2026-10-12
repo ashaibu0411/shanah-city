@@ -663,13 +663,6 @@ export function GroupDetailView({
               onOpenCalendar={() => setDetailSection("calendar")}
               onOpenInfo={() => setDetailSection("info")}
               onOpenManage={() => openManageSection("members")}
-              onOpenWorshipAcademy={() => {
-                if (detail.trainingPending || readinessPack?.requiredForSelfJoin) {
-                  setShowReadinessFlow(true);
-                  return;
-                }
-                window.open("/training/choir-worship-leader.html", "_blank", "noopener,noreferrer");
-              }}
             />
           ) : hasMemberAccess ? (
             <GroupDashboardPanel

@@ -13,7 +13,7 @@ type ChoirQuickActionsProps = {
   myScheduleHref: string;
   rehearsalRoomHref: string | null;
   worshipTeamHref: string;
-  onWorshipAcademy: () => void;
+  worshipAcademyHref: string;
   onTeamConnect: () => void;
 };
 
@@ -22,7 +22,7 @@ export function ChoirQuickActions({
   myScheduleHref,
   rehearsalRoomHref,
   worshipTeamHref,
-  onWorshipAcademy,
+  worshipAcademyHref,
   onTeamConnect,
 }: ChoirQuickActionsProps) {
   const tiles = [
@@ -60,7 +60,7 @@ export function ChoirQuickActions({
       title: "Worship academy",
       subtitle: "Grow your gift",
       icon: <ChoirIconBook />,
-      onClick: onWorshipAcademy,
+      href: worshipAcademyHref,
     },
     {
       key: "connect",

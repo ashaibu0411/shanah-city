@@ -25,7 +25,6 @@ type ChoirGroupDashboardProps = {
   onOpenCalendar: () => void;
   onOpenInfo: () => void;
   onOpenManage: () => void;
-  onOpenWorshipAcademy: () => void;
 };
 
 export function ChoirGroupDashboard({
@@ -38,7 +37,6 @@ export function ChoirGroupDashboard({
   onOpenCalendar,
   onOpenInfo,
   onOpenManage,
-  onOpenWorshipAcademy,
 }: ChoirGroupDashboardProps) {
   const [home, setHome] = useState<ChoirHomeDashboard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,6 +91,7 @@ export function ChoirGroupDashboard({
   const calendarHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`;
   const myScheduleHref = `${calendarHref}?tab=my`;
   const worshipTeamHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/team`;
+  const worshipAcademyHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/academy`;
 
   if (loading) {
     return (
@@ -134,7 +133,7 @@ export function ChoirGroupDashboard({
         myScheduleHref={myScheduleHref}
         rehearsalRoomHref={home.rehearsalRoomHref}
         worshipTeamHref={worshipTeamHref}
-        onWorshipAcademy={onOpenWorshipAcademy}
+        worshipAcademyHref={worshipAcademyHref}
         onTeamConnect={onOpenChat}
       />
 

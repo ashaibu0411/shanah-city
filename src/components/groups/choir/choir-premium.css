@@ -1473,3 +1473,229 @@
   background: var(--choir-surface);
   padding: 10px 12px;
 }
+
+/* Worship Academy (Page 6) */
+.choir-academy-page .choir-academy-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+}
+
+.choir-academy-page .choir-academy-tab {
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--choir-surface-soft);
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.choir-academy-page .choir-academy-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-academy-page .choir-academy-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  border-radius: 16px;
+  background: var(--choir-surface-soft);
+  padding: 10px 8px;
+}
+
+.choir-academy-page .choir-academy-stat {
+  text-align: center;
+  min-width: 0;
+}
+
+.choir-academy-page .choir-academy-stat-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.choir-academy-page .choir-academy-stat-value {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-academy-page .choir-academy-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  line-height: 1.2;
+}
+
+.choir-academy-page .choir-academy-continue-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 10px;
+  box-shadow: 0 8px 24px rgba(37, 32, 42, 0.06);
+}
+
+.choir-academy-page .choir-academy-continue-thumb-wrap {
+  flex: 0 0 auto;
+}
+
+.choir-academy-page .choir-academy-continue-thumb {
+  height: 56px;
+  width: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.choir-academy-page .choir-academy-course-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--choir-gold-dark);
+}
+
+.choir-academy-page .choir-academy-continue-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  line-height: 1.2;
+}
+
+.choir-academy-page .choir-academy-continue-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--choir-muted);
+}
+
+.choir-academy-page .choir-academy-progress-track {
+  margin-top: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--choir-surface-soft);
+  overflow: hidden;
+}
+
+.choir-academy-page .choir-academy-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--choir-gold);
+}
+
+.choir-academy-page .choir-academy-continue-btn {
+  flex: 0 0 auto;
+  min-height: 44px;
+  border-radius: 9999px;
+  background: var(--choir-gold);
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.choir-academy-page .choir-academy-path-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.choir-academy-page .choir-academy-path-card {
+  position: relative;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 12px 28px 12px 12px;
+  min-height: 112px;
+  box-shadow: 0 6px 18px rgba(37, 32, 42, 0.05);
+}
+
+.choir-academy-page .choir-academy-path-icon {
+  display: inline-flex;
+  height: 36px;
+  width: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--choir-gold-soft);
+  font-size: 16px;
+}
+
+.choir-academy-page .choir-academy-path-title {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  line-height: 1.2;
+}
+
+.choir-academy-page .choir-academy-path-desc {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--choir-muted);
+}
+
+.choir-academy-page .choir-academy-path-count {
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--choir-gold-dark);
+}
+
+.choir-academy-page .choir-academy-path-chevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--choir-muted);
+  font-size: 18px;
+}
+
+.choir-academy-page .choir-academy-footer-note {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--choir-muted);
+}
+
+.choir-academy-page .choir-academy-lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 10px 12px;
+}
+
+.choir-academy-page .choir-academy-lesson-row.is-locked {
+  opacity: 0.55;
+}
+
+.choir-academy-page .choir-academy-lesson-num {
+  flex: 0 0 auto;
+  height: 32px;
+  width: 32px;
+  border-radius: 9999px;
+  background: var(--choir-surface-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
