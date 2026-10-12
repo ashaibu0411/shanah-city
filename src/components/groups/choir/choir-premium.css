@@ -3515,3 +3515,79 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* My Schedule (390px-first personal assignments) */
+.choir-my-schedule-page .choir-my-schedule-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.choir-my-schedule-page .choir-my-schedule-metric {
+  border-radius: 14px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.choir-my-schedule-page .choir-my-schedule-metric-value {
+  font-family: var(--font-display, inherit);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  line-height: 1.1;
+}
+
+.choir-my-schedule-page .choir-my-schedule-metric-label {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--choir-muted);
+}
+
+.choir-my-schedule-page .choir-my-schedule-segments {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--choir-surface-soft);
+}
+
+.choir-my-schedule-page .choir-my-schedule-segments button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  background: transparent;
+}
+
+.choir-my-schedule-page .choir-my-schedule-segments button.is-active {
+  background: var(--choir-surface);
+  color: var(--choir-heading);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.choir-my-schedule-page .choir-my-schedule-assignment {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 14px 12px;
+}
+
+.choir-my-schedule-page textarea.choir-input {
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  padding: 10px 12px;
+  font-size: 14px;
+  background: var(--choir-surface);
+  color: var(--choir-body);
+}

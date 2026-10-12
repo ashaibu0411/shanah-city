@@ -8,7 +8,7 @@ import { ChoirSetlistHeader } from "@/components/groups/choir/setlist/ChoirSetli
 import { AvailabilityTabs } from "@/components/groups/choir/availability/AvailabilityTabs";
 import { OpportunityCard } from "@/components/groups/choir/availability/OpportunityCard";
 import { CHOIR_HERO_IMAGE_PATH, SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
-import { choirAvailabilityHref } from "@/lib/choir-availability-links";
+import { choirAvailabilityHref, choirMyScheduleHref } from "@/lib/choir-availability-links";
 import type {
   ChoirAvailabilityAssignmentPreview,
   ChoirAvailabilityHomePayload,
@@ -313,7 +313,7 @@ export function ChoirAvailabilityCenterPage({
               <p className="choir-song-quick-title">Mark Availability</p>
               <p className="choir-song-quick-sub">Let us know your dates</p>
             </button>
-            <Link href={choirAvailabilityHref(groupId, "my-schedule")} className="choir-song-quick-card">
+            <Link href={choirMyScheduleHref(groupId)} className="choir-song-quick-card">
               <span className="choir-song-quick-icon"><ChoirIconCalendar /></span>
               <p className="choir-song-quick-title">View Schedule</p>
               <p className="choir-song-quick-sub">See your assignments</p>
@@ -427,7 +427,7 @@ export function ChoirAvailabilityCenterPage({
           <section>
             <div className="choir-song-section-head">
               <h2 className="choir-song-section-title">My Assignments</h2>
-              <Link href={choirAvailabilityHref(groupId, "my-schedule")} className="choir-song-see-all">
+              <Link href={choirMyScheduleHref(groupId)} className="choir-song-see-all">
                 See All
               </Link>
             </div>
@@ -438,7 +438,7 @@ export function ChoirAvailabilityCenterPage({
                 {payload.assignmentPreview.map((assignment) => (
                   <Link
                     key={assignment.id}
-                    href={choirAvailabilityHref(groupId, "my-schedule")}
+                    href={choirMyScheduleHref(groupId)}
                     className="choir-avail-assignment-card"
                   >
                     <div>

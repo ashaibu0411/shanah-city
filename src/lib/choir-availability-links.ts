@@ -8,6 +8,11 @@ export function choirAvailabilityHref(groupId: string, tab?: ChoirAvailabilityTa
 }
 
 export function choirMyScheduleHref(groupId: string) {
+  return `/groups/${encodeURIComponent(groupId)}/my-schedule`;
+}
+
+/** Deep link into Availability Center My Schedule tab (legacy). */
+export function choirMyScheduleAvailabilityTabHref(groupId: string) {
   return choirAvailabilityHref(groupId, "my-schedule");
 }
 

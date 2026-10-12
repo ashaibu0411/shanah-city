@@ -385,7 +385,7 @@ export function ChoirTeamPage({ groupId }: ChoirTeamPageProps) {
               )}
             </ul>
           </div>
-          <Link href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/availability?tab=my-schedule`} className="choir-setlist-manage-link block text-center">
+          <Link href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/my-schedule`} className="choir-setlist-manage-link block text-center">
             View my worship schedule →
           </Link>
         </div>

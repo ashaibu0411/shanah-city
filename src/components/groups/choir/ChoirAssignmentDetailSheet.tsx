@@ -10,6 +10,7 @@ type ChoirAssignmentDetailSheetProps = {
   onClose: () => void;
   onConfirm: (ready: boolean) => void;
   onRequestChange?: () => void;
+  confirmBusy?: boolean;
 };
 
 export function ChoirAssignmentDetailSheet({
@@ -17,6 +18,7 @@ export function ChoirAssignmentDetailSheet({
   onClose,
   onConfirm,
   onRequestChange,
+  confirmBusy = false,
 }: ChoirAssignmentDetailSheetProps) {
   const setlistHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/setlists?date=${encodeURIComponent(assignment.serviceDate)}&time=${encodeURIComponent(assignment.serviceTime)}`;
   const rehearsalHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/rehearsal?date=${encodeURIComponent(assignment.serviceDate)}&time=${encodeURIComponent(assignment.serviceTime)}`;
@@ -59,12 +61,12 @@ export function ChoirAssignmentDetailSheet({
           </Link>
           {assignment.status !== "past" ? (
             assignment.status === "confirmed" ? (
-              <button type="button" className="choir-btn-secondary" onClick={() => onConfirm(false)}>
+              <button type="button" className="choir-btn-secondary" disabled={confirmBusy} onClick={() => onConfirm(false)}>
                 Mark not confirmed
               </button>
             ) : (
-              <button type="button" className="choir-btn-primary" onClick={() => onConfirm(true)}>
-                Confirm assignment
+              <button type="button" className="choir-btn-primary" disabled={confirmBusy} onClick={() => onConfirm(true)}>
+                {confirmBusy ? "Saving…" : "Confirm assignment"}
               </button>
             )
           ) : null}

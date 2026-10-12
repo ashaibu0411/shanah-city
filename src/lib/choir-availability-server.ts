@@ -222,7 +222,7 @@ export async function buildChoirAvailabilityHomePayload(
     teamAvailabilityHref: canManage ? choirAvailabilityTeamHref(groupId) : null,
     opportunities: upcomingSlice,
     assignmentPreview,
-    scheduleTabHref: `/groups/${groupId}/availability?tab=my-schedule`,
+    scheduleTabHref: `/groups/${groupId}/my-schedule`,
     teamPageHref: `/groups/${groupId}/team`,
     summary: summarize(opportunities),
   };
@@ -344,12 +344,41 @@ export async function buildChoirMySchedulePayload(
   user: PublicMember,
   groupId: string,
 ): Promise<ChoirMySchedulePayload | null> {
-  const [schedule, opportunities] = await Promise.all([
+  const [schedule, calendar, changeRequestRows] = await Promise.all([
     getChoirAvailabilitySchedulePayload(user, groupId),
-    listChoirAvailabilityOpportunities(user, groupId, "upcoming"),
+    buildChoirCalendarPagePayload(user, groupId),
+    listChoirScheduleChangeRequestsJson(groupId, user.id),
   ]);
   if (!schedule) return null;
-  const opportunityRows = opportunities ?? [];
+
+  const assignments = [...schedule.upcoming].sort((a, b) => a.startsAtMs - b.startsAtMs);
+  const pastAssignments = [...schedule.recent].sort((a, b) => b.startsAtMs - a.startsAtMs);
+
+  const summary = {
+    upcomingCount: assignments.length,
+    confirmedCount: assignments.filter((row) => row.status === "confirmed").length,
+    awaitingConfirmationCount: assignments.filter((row) => row.status === "assigned").length,
+  };
+
+  const eventTitleById = new Map(
+    (calendar?.events ?? []).map((event) => [event.id, event.title] as const),
+  );
+  const titleForPlanKey = (planKey: string | null | undefined) => {
+    if (!planKey) return "Worship service";
+    const fromCalendar = eventTitleById.get(`worship-service-${planKey}`);
+    if (fromCalendar) return fromCalendar;
+    const match = assignments.find((row) => row.planKey === planKey);
+    return match?.title ?? "Worship service";
+  };
+
+  const changeRequests = changeRequestRows.slice(0, 20).map((row) => ({
+    id: row.id,
+    status: row.status,
+    reason: row.reason,
+    createdAt: row.createdAt,
+    requestType: row.requestType,
+    eventTitle: eventTitleById.get(row.eventId) ?? titleForPlanKey(row.planKey),
+  }));
 
   const nowMs = Date.now();
   const since = isoDaysAgo(30);
@@ -382,14 +411,14 @@ export async function buildChoirMySchedulePayload(
     });
   }
 
-  const availabilitySubmitted = opportunityRows.filter((row) => row.availabilityStatus !== "not_responded");
-  const availabilityAwaiting = opportunityRows.filter((row) => row.availabilityStatus === "not_responded");
-
   return {
-    assignments: schedule.upcoming,
+    groupId,
+    groupChatHref: calendar?.groupChatHref ?? `/groups/${groupId}?chat=1`,
+    summary,
+    assignments,
+    pastAssignments,
     rehearsals,
-    availabilitySubmitted,
-    availabilityAwaiting,
+    changeRequests,
   };
 }
 
@@ -590,8 +619,8 @@ export async function handleChoirAvailabilityAction(user: PublicMember, body: Re
     const event = calendar?.events.find((entry) => entry.id === eventId);
     if (!event) throw new Error("Event not found.");
 
-    const team = await buildChoirTeamPagePayload(user, groupId);
-    const assignment = team?.upcoming.find(
+    const memberAssignments = await listChoirMemberAssignments(user, groupId);
+    const assignment = memberAssignments?.upcoming.find(
       (row) => row.planKey && event.worshipPlanKey && row.planKey === event.worshipPlanKey,
     );
 

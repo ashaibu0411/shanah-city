@@ -106,7 +106,7 @@ export function ChoirWorshipCalendarPage({
 
   useEffect(() => {
     if (searchParams.get("tab") === "my") {
-      router.replace(`/groups/${encodeURIComponent(groupId)}/availability?tab=my-schedule`);
+      router.replace(`/groups/${encodeURIComponent(groupId)}/my-schedule`);
       return;
     }
     setTab(parseTab(searchParams.get("tab"), searchParams.get("filter")));

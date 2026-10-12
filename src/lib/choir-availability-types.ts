@@ -24,11 +24,32 @@ export type ChoirMyScheduleRehearsalView = {
   startsAtMs: number;
 };
 
+export type ChoirMyScheduleSummary = {
+  upcomingCount: number;
+  confirmedCount: number;
+  awaitingConfirmationCount: number;
+};
+
+export type ChoirMyScheduleChangeRequestView = {
+  id: string;
+  status: ChoirScheduleChangeRequest["status"];
+  reason: string;
+  createdAt: string;
+  eventTitle: string;
+  requestType: ChoirScheduleChangeRequestType;
+};
+
 export type ChoirMySchedulePayload = {
+  groupId: string;
+  groupChatHref: string;
+  summary: ChoirMyScheduleSummary;
   assignments: ChoirAvailabilityAssignmentPreview[];
+  pastAssignments: ChoirTeamAssignmentView[];
   rehearsals: ChoirMyScheduleRehearsalView[];
-  availabilitySubmitted: ChoirAvailabilityOpportunityView[];
-  availabilityAwaiting: ChoirAvailabilityOpportunityView[];
+  changeRequests: ChoirMyScheduleChangeRequestView[];
+  /** @deprecated Use availability center for responses; kept for API compatibility */
+  availabilitySubmitted?: ChoirAvailabilityOpportunityView[];
+  availabilityAwaiting?: ChoirAvailabilityOpportunityView[];
 };
 
 export type ChoirAvailabilityConflictKind =
