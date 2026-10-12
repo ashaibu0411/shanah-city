@@ -2715,6 +2715,46 @@
   color: var(--choir-heading);
 }
 
+.choir-availability-page .choir-avail-page-intro {
+  padding: 0 2px;
+}
+
+.choir-availability-page .choir-avail-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.choir-availability-page .choir-avail-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.choir-availability-page .choir-avail-quick-grid .choir-song-quick-card {
+  min-height: 88px;
+}
+
+.choir-availability-page .choir-calendar-cell.is-selected {
+  outline: 2px solid var(--choir-gold);
+  outline-offset: -2px;
+}
+
+.choir-availability-page .choir-avail-day-count {
+  display: block;
+  font-size: 8px;
+  font-weight: 800;
+  color: var(--choir-muted);
+  line-height: 1;
+}
+
+.choir-availability-page .choir-avail-day-event-btn {
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface-soft);
+  padding: 10px;
+}
+
 /* Choir home — Explore Shanah Worship */
 .choir-group-home .choir-explore-section {
   margin-top: 4px;

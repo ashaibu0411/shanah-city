@@ -43,7 +43,7 @@ export default async function GroupAvailabilityPage({ params, searchParams }: Av
       }
     } catch (error) {
       console.error("[groups/availability]", error);
-      const message = error instanceof Error ? error.message : "Could not load availability.";
+      const message = error instanceof Error ? error.message : "Unable to load your availability.";
       if (isMyScheduleTab) {
         initialMyScheduleError = message;
       } else {

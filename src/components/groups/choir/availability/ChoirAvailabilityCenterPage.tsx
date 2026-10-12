@@ -1,13 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChoirSetlistHeader } from "@/components/groups/choir/setlist/ChoirSetlistHeader";
 import { AvailabilityTabs } from "@/components/groups/choir/availability/AvailabilityTabs";
 import { OpportunityCard } from "@/components/groups/choir/availability/OpportunityCard";
-import { CHOIR_HERO_IMAGE_PATH, SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
+import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
+import { ChoirAvailabilityAssignmentsPreview } from "@/components/groups/choir/availability/ChoirAvailabilityAssignmentsPreview";
 import { choirAvailabilityHref, choirMyScheduleHref } from "@/lib/choir-availability-links";
 import type {
   ChoirAvailabilityAssignmentPreview,
@@ -16,10 +16,7 @@ import type {
   ChoirAvailabilityTabId,
   ChoirMySchedulePayload,
 } from "@/lib/choir-availability-types";
-import {
-  ChoirIconCalendar,
-  ChoirIconUsers,
-} from "@/components/groups/choir/choir-icons";
+import { ChoirIconCalendar } from "@/components/groups/choir/choir-icons";
 import { ChoirMyScheduleTab } from "@/components/groups/choir/availability/ChoirMyScheduleTab";
 import { getZonedDateParts } from "@/lib/denver-time";
 import "../choir-premium.css";
@@ -92,6 +89,9 @@ export function ChoirAvailabilityCenterPage({
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [message, setMessage] = useState<string | null>(null);
+  const [calendarDayKey, setCalendarDayKey] = useState<string | null>(null);
+  const [bulkMonthScope, setBulkMonthScope] = useState<string | null>(null);
+  const [bulkRows, setBulkRows] = useState<ChoirAvailabilityOpportunityView[]>([]);
 
   const loadHome = useCallback(() => {
     setLoading(true);
@@ -101,7 +101,7 @@ export function ChoirAvailabilityCenterPage({
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok || !data.payload) {
-          setError(data.error ?? "Could not load availability.");
+          setError(data.error ?? "Unable to load your availability.");
           setPayload(null);
         } else {
           setPayload(data.payload);
@@ -110,7 +110,7 @@ export function ChoirAvailabilityCenterPage({
         setLoading(false);
       })
       .catch(() => {
-        setError("Could not load availability.");
+        setError("Unable to load your availability.");
         setLoading(false);
       });
   }, [groupId]);
@@ -118,6 +118,7 @@ export function ChoirAvailabilityCenterPage({
   const loadCalendar = useCallback(() => {
     fetch(
       `/api/groups/choir-availability?groupId=${encodeURIComponent(groupId)}&view=calendar&year=${monthCursor.year}&month=${monthCursor.month}`,
+      { credentials: "include" },
     )
       .then((response) => response.json())
       .then((data) => {
@@ -158,6 +159,18 @@ export function ChoirAvailabilityCenterPage({
       .catch(() => setListRows([]));
   }, [groupId, tab, filterCategory, filterStatus, loadCalendar]);
 
+  const loadBulkOpportunities = useCallback(() => {
+    fetch(
+      `/api/groups/choir-availability?groupId=${encodeURIComponent(groupId)}&view=opportunities&tab=upcoming`,
+      { credentials: "include" },
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.opportunities) setBulkRows(data.opportunities);
+      })
+      .catch(() => setBulkRows(payload?.opportunities ?? []));
+  }, [groupId, payload?.opportunities]);
+
   useEffect(() => {
     if (tab === "my-schedule") return;
     if (initialHomePayload) return;
@@ -168,6 +181,16 @@ export function ChoirAvailabilityCenterPage({
   useEffect(() => {
     loadTabData();
   }, [loadTabData]);
+
+  useEffect(() => {
+    if (tab !== "home") return;
+    loadBulkOpportunities();
+  }, [tab, loadBulkOpportunities]);
+
+  useEffect(() => {
+    const month = String(monthCursor.month + 1).padStart(2, "0");
+    setBulkMonthScope(`${monthCursor.year}-${month}`);
+  }, [monthCursor.year, monthCursor.month]);
 
   async function saveResponse(eventId: string, response: string, note?: string) {
     setEditorBusy(true);
@@ -199,7 +222,19 @@ export function ChoirAvailabilityCenterPage({
     setEditorBusy(true);
     const updates = Object.entries(bulkDraft)
       .filter(([, response]) => response)
+      .filter(([eventId, response]) => {
+        const row = bulkEvents.find((entry) => entry.event.id === eventId);
+        if (!row) return false;
+        const current =
+          row.availabilityStatus === "not_responded" ? "" : row.availabilityStatus;
+        return response !== current;
+      })
       .map(([eventId, response]) => ({ eventId, response }));
+    if (updates.length === 0) {
+      setEditorBusy(false);
+      setMessage("No changes to save.");
+      return;
+    }
     const res = await fetch("/api/groups/choir-availability", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -216,8 +251,11 @@ export function ChoirAvailabilityCenterPage({
       return;
     }
     setMessage(data.partial ? "Some responses could not be saved." : "All changes saved.");
+    if (data.partial !== true) setBulkDraft({});
     setBulkOpen(false);
     loadHome();
+    loadBulkOpportunities();
+    loadCalendar();
     loadTabData();
   }
 
@@ -240,21 +278,14 @@ export function ChoirAvailabilityCenterPage({
     loadHome();
   }
 
-  const [bulkRows, setBulkRows] = useState<ChoirAvailabilityOpportunityView[]>([]);
+  const bulkEventsAll = bulkRows.length > 0 ? bulkRows : payload?.opportunities ?? [];
+  const bulkEvents = bulkMonthScope
+    ? bulkEventsAll.filter((row) => row.event.dateKey.startsWith(bulkMonthScope))
+    : bulkEventsAll;
 
-  useEffect(() => {
-    if (!bulkOpen) return;
-    fetch(
-      `/api/groups/choir-availability?groupId=${encodeURIComponent(groupId)}&view=opportunities&tab=upcoming`,
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.opportunities) setBulkRows(data.opportunities);
-      })
-      .catch(() => setBulkRows(payload?.opportunities ?? []));
-  }, [bulkOpen, groupId, payload?.opportunities]);
-
-  const bulkEvents = bulkRows.length > 0 ? bulkRows : payload?.opportunities ?? [];
+  const calendarDayEvents = calendarDayKey
+    ? calendarDays.find((day) => day.dateKey === calendarDayKey)?.events ?? []
+    : [];
 
   const groupChatHref = payload?.groupChatHref ?? `/groups/${encodeURIComponent(groupId)}?chat=1`;
 
@@ -289,71 +320,142 @@ export function ChoirAvailabilityCenterPage({
 
       {tab === "home" && payload ? (
         <>
-          <section className="choir-song-hero choir-avail-hero">
-            <Image
-              src={CHOIR_HERO_IMAGE_PATH}
-              alt=""
-              fill
-              className="choir-song-hero-img object-cover"
-              sizes="(max-width: 430px) 100vw, 400px"
-              priority
-            />
-            <div className="choir-song-hero-overlay">
-              <p className="choir-song-hero-kicker">AVAILABILITY CENTER</p>
-              <h1 className="choir-song-hero-title">Be Ready to Serve.</h1>
-              <p className="choir-song-hero-sub">
-                Let us know when you&apos;re available so we can plan and serve together.
-              </p>
-            </div>
+          <header className="choir-avail-page-intro">
+            <p className="choir-song-hero-kicker">Availability Center</p>
+            <h1 className="font-display text-2xl font-bold text-[var(--choir-heading)]">Share when you can serve</h1>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--choir-body)]">
+              Your responses help worship leadership plan. Availability is not an assignment — updating here does not
+              add or remove you from the service roster.
+            </p>
+          </header>
+
+          <section className="choir-card choir-avail-summary-card p-4" aria-labelledby="choir-avail-summary">
+            <h2 id="choir-avail-summary" className="text-sm font-bold text-[var(--choir-heading)]">
+              Availability summary
+            </h2>
+            <dl className="choir-avail-summary-grid mt-3">
+              <div>
+                <dt className="text-[10px] font-bold uppercase text-[var(--choir-muted)]">Awaiting</dt>
+                <dd className="text-lg font-bold text-[var(--choir-heading)]">{payload.summary.awaiting}</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-bold uppercase text-[var(--choir-muted)]">Available</dt>
+                <dd className="text-lg font-bold text-[#348567]">{payload.summary.available}</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-bold uppercase text-[var(--choir-muted)]">Unavailable</dt>
+                <dd className="text-lg font-bold text-[var(--choir-muted)]">{payload.summary.unavailable}</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-bold uppercase text-[var(--choir-muted)]">Maybe</dt>
+                <dd className="text-lg font-bold text-[#9a5b12]">{payload.summary.maybe}</dd>
+              </div>
+            </dl>
+            {payload.opportunities.length > 0 &&
+            payload.summary.available + payload.summary.unavailable + payload.summary.maybe === 0 ? (
+              <p className="mt-3 text-sm text-[var(--choir-muted)]">You haven&apos;t submitted your availability yet.</p>
+            ) : null}
           </section>
 
-          <div className="choir-song-quick-grid">
+          <div className="choir-avail-quick-grid">
             <button type="button" className="choir-song-quick-card" onClick={() => setBulkOpen(true)}>
-              <span className="choir-song-quick-icon"><ChoirIconCalendar /></span>
-              <p className="choir-song-quick-title">Mark Availability</p>
-              <p className="choir-song-quick-sub">Let us know your dates</p>
+              <span className="choir-song-quick-icon">
+                <ChoirIconCalendar />
+              </span>
+              <p className="choir-song-quick-title">Mark availability</p>
+              <p className="choir-song-quick-sub">All upcoming dates</p>
             </button>
             <Link href={choirMyScheduleHref(groupId)} className="choir-song-quick-card">
-              <span className="choir-song-quick-icon"><ChoirIconCalendar /></span>
-              <p className="choir-song-quick-title">View Schedule</p>
-              <p className="choir-song-quick-sub">See your assignments</p>
+              <span className="choir-song-quick-icon">
+                <ChoirIconCalendar />
+              </span>
+              <p className="choir-song-quick-title">My Schedule</p>
+              <p className="choir-song-quick-sub">Assignments & changes</p>
             </Link>
-            <Link href={payload.teamPageHref} className="choir-song-quick-card">
-              <span className="choir-song-quick-icon"><ChoirIconUsers /></span>
-              <p className="choir-song-quick-title">Request Change</p>
-              <p className="choir-song-quick-sub">Need a swap?</p>
-            </Link>
-            <button type="button" className="choir-song-quick-card" onClick={() => setPrefsOpen(true)}>
-              <span className="choir-song-quick-icon">🕐</span>
-              <p className="choir-song-quick-title">Set Preferences</p>
-              <p className="choir-song-quick-sub">Service times & roles</p>
-            </button>
           </div>
 
-          <section>
+          <section aria-labelledby="choir-avail-upcoming">
             <div className="choir-song-section-head">
-              <h2 className="choir-song-section-title">Upcoming Opportunities</h2>
+              <h2 id="choir-avail-upcoming" className="choir-song-section-title">
+                Upcoming dates requiring responses
+              </h2>
               <Link href={choirAvailabilityHref(groupId, "upcoming")} className="choir-song-see-all">
-                See All
+                See all
               </Link>
             </div>
             {payload.opportunities.length === 0 ? (
-              <p className="text-sm text-[var(--choir-muted)]">No upcoming events to respond to yet.</p>
+              <p className="text-sm text-[var(--choir-muted)]">
+                No upcoming worship opportunities are currently scheduled.
+              </p>
             ) : (
               <div className="space-y-2">
-                {payload.opportunities.map((row) => (
-                  <OpportunityCard key={row.event.id} row={row} onSelect={() => setSelectedRow(row)} />
+                {payload.opportunities.slice(0, 5).map((row) => (
+                  <OpportunityCard
+                    key={row.event.id}
+                    row={row}
+                    onSelect={() => {
+                      setEditorNote(row.memberNote ?? "");
+                      setSelectedRow(row);
+                    }}
+                  />
                 ))}
               </div>
             )}
           </section>
 
-          <section>
+          <section className="choir-card p-4" aria-labelledby="choir-avail-monthly">
             <div className="choir-song-section-head">
-              <h2 className="choir-song-section-title">My Availability</h2>
-              <Link href={choirAvailabilityHref(groupId, "upcoming")} className="choir-song-see-all">
-                View Full Calendar
-              </Link>
+              <h2 id="choir-avail-monthly" className="choir-song-section-title">
+                Update monthly availability
+              </h2>
+            </div>
+            <p className="text-xs text-[var(--choir-muted)]">{monthLabel} — only changed responses are saved.</p>
+            <div className="mt-3 max-h-[40vh] space-y-3 overflow-y-auto">
+              {bulkEvents.length === 0 ? (
+                <p className="text-sm text-[var(--choir-muted)]">No eligible events this month.</p>
+              ) : (
+                bulkEvents.map((row) => (
+                  <div
+                    key={row.event.id}
+                    className="rounded-xl border border-[var(--choir-border)] bg-[var(--choir-surface-soft)] p-3"
+                  >
+                    <p className="text-sm font-semibold text-[var(--choir-heading)]">{row.event.title}</p>
+                    <p className="text-xs text-[var(--choir-muted)]">
+                      {row.event.dateKey} · {row.event.timeLabel} · {row.event.location}
+                    </p>
+                    <select
+                      className="choir-setlist-search mt-2 w-full"
+                      disabled={!row.canEdit && row.deadlinePassed}
+                      value={
+                        bulkDraft[row.event.id] ??
+                        (row.availabilityStatus === "not_responded" ? "" : row.availabilityStatus)
+                      }
+                      onChange={(e) => setBulkDraft({ ...bulkDraft, [row.event.id]: e.target.value })}
+                    >
+                      <option value="">No change</option>
+                      <option value="available">Available</option>
+                      <option value="unavailable">Unavailable</option>
+                      <option value="maybe">Maybe</option>
+                    </select>
+                  </div>
+                ))
+              )}
+            </div>
+            <button
+              type="button"
+              className="choir-btn-primary mt-4 w-full"
+              disabled={editorBusy || bulkEvents.length === 0}
+              onClick={saveBulk}
+            >
+              Save all
+            </button>
+          </section>
+
+          <section aria-labelledby="choir-avail-calendar">
+            <div className="choir-song-section-head">
+              <h2 id="choir-avail-calendar" className="choir-song-section-title">
+                My availability calendar
+              </h2>
             </div>
             <div className="choir-calendar-month-card">
               <div className="choir-calendar-month-header">
@@ -364,9 +466,7 @@ export function ChoirAvailabilityCenterPage({
                   onClick={() =>
                     setMonthCursor((current) => {
                       const month = current.month - 1;
-                      return month < 0
-                        ? { year: current.year - 1, month: 11 }
-                        : { year: current.year, month };
+                      return month < 0 ? { year: current.year - 1, month: 11 } : { year: current.year, month };
                     })
                   }
                 >
@@ -380,9 +480,7 @@ export function ChoirAvailabilityCenterPage({
                   onClick={() =>
                     setMonthCursor((current) => {
                       const month = current.month + 1;
-                      return month > 11
-                        ? { year: current.year + 1, month: 0 }
-                        : { year: current.year, month };
+                      return month > 11 ? { year: current.year + 1, month: 0 } : { year: current.year, month };
                     })
                   }
                 >
@@ -391,7 +489,9 @@ export function ChoirAvailabilityCenterPage({
               </div>
               <div className="choir-calendar-weekdays">
                 {WEEKDAYS.map((day, index) => (
-                  <span key={`${day}-${index}`} className="choir-calendar-weekday">{day}</span>
+                  <span key={`${day}-${index}`} className="choir-calendar-weekday">
+                    {day}
+                  </span>
                 ))}
               </div>
               <div className="choir-calendar-grid">
@@ -400,14 +500,24 @@ export function ChoirAvailabilityCenterPage({
                     <button
                       key={day.dateKey}
                       type="button"
-                      className={`choir-calendar-cell ${day.isToday ? "is-today" : ""}`}
-                      onClick={() => {
-                        if (day.events[0]) setSelectedRow(day.events[0]);
-                      }}
+                      className={`choir-calendar-cell ${day.isToday ? "is-today" : ""} ${
+                        calendarDayKey === day.dateKey ? "is-selected" : ""
+                      }`}
+                      aria-label={
+                        day.events.length > 0
+                          ? `${day.dateKey}, ${day.events.length} event${day.events.length === 1 ? "" : "s"}`
+                          : day.dateKey
+                      }
+                      onClick={() => setCalendarDayKey(day.dateKey === calendarDayKey ? null : day.dateKey)}
                     >
                       <span className="choir-calendar-cell-num">{Number(day.dateKey.slice(-2))}</span>
                       {day.events.length > 0 ? (
-                        <span className={`choir-avail-dot ${statusDotClass(day.dominantStatus)}`} />
+                        <>
+                          <span className={`choir-avail-dot ${statusDotClass(day.dominantStatus)}`} aria-hidden />
+                          {day.events.length > 1 ? (
+                            <span className="choir-avail-day-count">{day.events.length}</span>
+                          ) : null}
+                        </>
                       ) : null}
                     </button>
                   ) : (
@@ -416,55 +526,76 @@ export function ChoirAvailabilityCenterPage({
                 )}
               </div>
               <div className="choir-avail-legend">
-                <span><i className="choir-avail-dot choir-avail-dot-available" /> Available</span>
-                <span><i className="choir-avail-dot choir-avail-dot-unavailable" /> Unavailable</span>
-                <span><i className="choir-avail-dot choir-avail-dot-maybe" /> Maybe</span>
-                <span><i className="choir-avail-dot choir-avail-dot-pending" /> Not responded</span>
+                <span>
+                  <i className="choir-avail-dot choir-avail-dot-available" aria-hidden /> Available
+                </span>
+                <span>
+                  <i className="choir-avail-dot choir-avail-dot-unavailable" aria-hidden /> Unavailable
+                </span>
+                <span>
+                  <i className="choir-avail-dot choir-avail-dot-maybe" aria-hidden /> Maybe
+                </span>
+                <span>
+                  <i className="choir-avail-dot choir-avail-dot-pending" aria-hidden /> Not responded
+                </span>
               </div>
+              {calendarDayKey && calendarDayEvents.length > 0 ? (
+                <div className="choir-avail-day-events mt-3 border-t border-[var(--choir-border)] pt-3">
+                  <p className="text-xs font-bold text-[var(--choir-heading)]">{calendarDayKey}</p>
+                  <ul className="mt-2 space-y-2">
+                    {calendarDayEvents.map((row) => (
+                      <li key={row.event.id}>
+                        <button
+                          type="button"
+                          className="choir-avail-day-event-btn w-full text-left"
+                          onClick={() => {
+                            setEditorNote(row.memberNote ?? "");
+                            setSelectedRow(row);
+                          }}
+                        >
+                          <span className="font-semibold text-[var(--choir-heading)]">{row.event.title}</span>
+                          <span className="block text-xs text-[var(--choir-muted)]">
+                            {row.event.timeLabel} · {row.availabilityLabel}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </div>
           </section>
 
-          <section>
-            <div className="choir-song-section-head">
-              <h2 className="choir-song-section-title">My Assignments</h2>
-              <Link href={choirMyScheduleHref(groupId)} className="choir-song-see-all">
-                See All
-              </Link>
-            </div>
-            {payload.assignmentPreview.length === 0 ? (
-              <p className="text-sm text-[var(--choir-muted)]">No upcoming assignments.</p>
-            ) : (
-              <div className="space-y-2">
-                {payload.assignmentPreview.map((assignment) => (
-                  <Link
-                    key={assignment.id}
-                    href={choirMyScheduleHref(groupId)}
-                    className="choir-avail-assignment-card"
-                  >
-                    <div>
-                      <p className="font-semibold text-[var(--choir-heading)]">{assignment.title}</p>
-                      <p className="text-xs text-[var(--choir-muted)]">{assignment.dateTimeLabel}</p>
-                      <p className="text-xs text-[var(--choir-body)]">{assignment.roleLabel}</p>
-                    </div>
-                    <span className="choir-avail-status-badge choir-avail-status-available">
-                      {assignment.status === "confirmed" ? "Confirmed" : "Awaiting confirmation"}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </section>
+          <ChoirAvailabilityAssignmentsPreview groupId={groupId} fallback={payload.assignmentPreview} />
 
-          <section className="choir-song-bottom-cta">
-            <span className="choir-song-cta-bulb" aria-hidden>📅</span>
-            <div className="choir-song-cta-copy">
-              <p className="choir-song-cta-title">Update Your Availability</p>
-              <p className="choir-song-cta-sub">Keep your availability up to date so we can plan effectively.</p>
-            </div>
-            <button type="button" className="choir-song-cta-btn" onClick={() => setBulkOpen(true)}>
-              Update Availability
+          <section className="choir-card p-4" aria-labelledby="choir-avail-prefs">
+            <h2 id="choir-avail-prefs" className="choir-song-section-title">
+              Preferences
+            </h2>
+            <p className="mt-1 text-sm text-[var(--choir-muted)]">
+              Set general serving preferences. These do not replace event-specific responses.
+            </p>
+            <button type="button" className="choir-btn-primary mt-3 w-full" onClick={() => setPrefsOpen(true)}>
+              Edit preferences
             </button>
           </section>
+
+          {payload.canManage && payload.teamAvailabilityHref ? (
+            <section className="choir-card p-4" aria-labelledby="choir-avail-leadership">
+              <h2 id="choir-avail-leadership" className="choir-song-section-title">
+                Leadership tools
+              </h2>
+              <p className="mt-1 text-sm text-[var(--choir-muted)]">
+                Review team availability, nonresponders, and open the scheduling planner.
+              </p>
+              <Link
+                href={payload.teamAvailabilityHref}
+                className="choir-btn-primary mt-3 inline-flex w-full justify-center"
+              >
+                Team availability
+              </Link>
+            </section>
+          ) : null}
         </>
       ) : null}
 
@@ -491,12 +622,6 @@ export function ChoirAvailabilityCenterPage({
 
       {tab === "guidelines" ? (
         <GuidelinesTab markdown={guidelinesMarkdown ?? ""} />
-      ) : null}
-
-      {payload?.canManage && payload.teamAvailabilityHref ? (
-        <Link href={payload.teamAvailabilityHref} className="choir-setlist-manage-link block text-center">
-          Team availability →
-        </Link>
       ) : null}
 
       {message ? <p className="text-sm text-[var(--choir-body)]">{message}</p> : null}
@@ -581,13 +706,27 @@ function ResponseEditor({
             {row.deadlinePassed ? " (deadline passed)" : ""}
           </p>
         ) : null}
+        {row.conflicts.length > 0 ? (
+          <ul className="mt-2 space-y-1 text-xs text-red-700">
+            {row.conflicts.includes("unavailable_assigned") ? (
+              <li>You are assigned but marked unavailable — consider a schedule change request.</li>
+            ) : null}
+            {row.conflicts.includes("maybe_assigned") ? (
+              <li>You are assigned but marked maybe — leadership may follow up.</li>
+            ) : null}
+            {row.conflicts.includes("overlap") ? <li>Overlapping assignments detected.</li> : null}
+            {row.conflicts.includes("change_pending") ? (
+              <li>Schedule change request pending review.</li>
+            ) : null}
+          </ul>
+        ) : null}
         <div className="mt-4 grid grid-cols-3 gap-2">
           {(["available", "unavailable", "maybe"] as const).map((response) => (
             <button
               key={response}
               type="button"
               className="choir-avail-response-btn"
-              disabled={busy || row.deadlinePassed}
+              disabled={busy || (row.deadlinePassed && !row.canEdit)}
               onClick={() => onSave(response)}
             >
               {response === "available" ? "Available" : response === "unavailable" ? "Unavailable" : "Maybe"}
@@ -626,7 +765,9 @@ function BulkEditor({
         <h2 className="font-display text-xl font-bold text-[var(--choir-heading)]">Mark availability</h2>
         <div className="mt-3 max-h-[50vh] space-y-3 overflow-y-auto">
           {rows.length === 0 ? (
-            <p className="text-sm text-[var(--choir-muted)]">No upcoming events.</p>
+            <p className="text-sm text-[var(--choir-muted)]">
+              No upcoming worship opportunities are currently scheduled.
+            </p>
           ) : (
             rows.map((row) => (
               <div key={row.event.id} className="choir-card p-3">
@@ -773,7 +914,11 @@ function OpportunitiesTab({
         </select>
       </div>
       {rows.length === 0 ? (
-        <p className="text-sm text-[var(--choir-muted)]">No events in this view.</p>
+        <p className="text-sm text-[var(--choir-muted)]">
+          {tab === "upcoming"
+            ? "No upcoming worship opportunities are currently scheduled."
+            : "No past events in this view."}
+        </p>
       ) : (
         rows.map((row) => <OpportunityCard key={row.event.id} row={row} onSelect={() => onSelect(row)} />)
       )}
