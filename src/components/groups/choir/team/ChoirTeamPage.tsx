@@ -77,6 +77,10 @@ export function ChoirTeamPage({ groupId }: ChoirTeamPageProps) {
   }, [load]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     setTab(parseTab(searchParams.get("tab")));
   }, [searchParams]);
 
@@ -145,7 +149,7 @@ export function ChoirTeamPage({ groupId }: ChoirTeamPageProps) {
 
   if (loading) {
     return (
-      <div className="choir-group-home choir-team-page px-4 py-3">
+      <div className="choir-group-home choir-team-page choir-calendar-page px-4 py-3">
         <p className="text-sm text-[var(--choir-muted)]">Loading worship team…</p>
       </div>
     );
@@ -153,7 +157,7 @@ export function ChoirTeamPage({ groupId }: ChoirTeamPageProps) {
 
   if (error || !payload) {
     return (
-      <div className="choir-group-home choir-team-page px-4 py-3">
+      <div className="choir-group-home choir-team-page choir-calendar-page px-4 py-3">
         <p className="text-sm text-red-700">{error ?? "Unavailable."}</p>
         <button type="button" className="choir-setlist-manage-link mt-3" onClick={load}>
           Retry
@@ -166,7 +170,7 @@ export function ChoirTeamPage({ groupId }: ChoirTeamPageProps) {
   const recentPreview = payload.recent.slice(0, 3);
 
   return (
-    <div className="choir-group-home choir-team-page choir-page-shell space-y-[18px] pb-10">
+    <div className="choir-group-home choir-team-page choir-calendar-page choir-page-shell space-y-[18px] pb-10">
       <ChoirSetlistHeader groupId={groupId} chatHref={payload.groupChatHref} />
 
       <div>
