@@ -23,11 +23,6 @@ function assignmentDateBlock(serviceDate: string) {
   };
 }
 
-function timeFromLabel(dateTimeLabel: string) {
-  const parts = dateTimeLabel.split("•");
-  return parts.length > 1 ? parts[parts.length - 1].trim() : dateTimeLabel;
-}
-
 export function ChoirNextAssignmentCard({
   assignment,
   upcomingPreview,
@@ -35,7 +30,7 @@ export function ChoirNextAssignmentCard({
   const card = assignment ?? upcomingPreview;
 
   return (
-    <section className="choir-card choir-assignment-card p-4" aria-labelledby="choir-next-assignment">
+    <section className="choir-card choir-assignment-card" aria-labelledby="choir-next-assignment">
       {!card ? (
         <>
           <p className="choir-assignment-kicker">Next worship assignment</p>
@@ -47,75 +42,73 @@ export function ChoirNextAssignmentCard({
           </p>
         </>
       ) : (
-        <div className="flex gap-3">
+        <div className="choir-assignment-layout">
           <div className="choir-assignment-date-block" aria-hidden>
             <span className="choir-assignment-date-weekday">{assignmentDateBlock(card.serviceDate).weekday}</span>
             <span className="choir-assignment-date-day">{assignmentDateBlock(card.serviceDate).day}</span>
             <span className="choir-assignment-date-month">{assignmentDateBlock(card.serviceDate).month}</span>
           </div>
 
-          <div className="min-w-0 flex-1">
-            <p id="choir-next-assignment" className="choir-assignment-kicker">Next worship assignment</p>
-            <h2 className="choir-assignment-title mt-1">{card.title}</h2>
+          <div className="choir-assignment-main min-w-0 flex-1">
+            <p id="choir-next-assignment" className="choir-assignment-kicker">
+              Next worship assignment
+            </p>
+            <h2 className="choir-assignment-title">{card.title}</h2>
 
-            <div className="mt-3 space-y-2">
-              <p className="choir-meta-row text-[15px]">
+            <ul className="choir-assignment-meta mt-3 space-y-2">
+              <li className="choir-meta-row">
                 <span className="choir-meta-icon">
                   <ChoirIconCalendarSmall />
                 </span>
-                <span className="font-semibold text-[var(--choir-heading)]">{timeFromLabel(card.dateTimeLabel)}</span>
-              </p>
-              <p className="choir-meta-row text-[15px]">
+                <span className="choir-assignment-meta-strong">{card.dateTimeLabel}</span>
+              </li>
+              <li className="choir-meta-row">
                 <span className="choir-meta-icon">
                   <ChoirIconPin />
                 </span>
-                <span className="font-medium">{card.location}</span>
-              </p>
+                <span>{card.location}</span>
+              </li>
               {card.songCount > 0 ? (
-                <p className="choir-meta-row text-[15px]">
+                <li className="choir-meta-row">
                   <span className="choir-meta-icon">
                     <ChoirIconStar />
                   </span>
-                  <span className="font-medium">
+                  <span>
                     {card.songCount} song{card.songCount === 1 ? "" : "s"} assigned
                   </span>
-                </p>
+                </li>
               ) : null}
-            </div>
+            </ul>
 
             {!assignment && upcomingPreview ? (
-              <p className="mt-3 text-xs leading-relaxed text-[var(--choir-muted)]">
+              <p className="choir-assignment-roster-note">
                 You are not on this service roster. This is the next published service for the team.
               </p>
             ) : null}
 
-            <div className="choir-assignment-footer mt-4">
+            <div className="choir-assignment-footer">
               <div className="choir-assignment-roles">
                 {assignment?.roleLabel ? (
-                  <div>
-                    <p className="choir-role-cell-label flex items-center gap-1">
+                  <div className="choir-assignment-role-cell">
+                    <p className="choir-role-cell-label">
                       <ChoirIconMic />
                       Your role
                     </p>
-                    <p className="choir-role-cell-value text-[15px]">{assignment.roleLabel}</p>
+                    <p className="choir-role-cell-value">{assignment.roleLabel}</p>
                   </div>
                 ) : null}
-                <div>
-                  <p className="choir-role-cell-label flex items-center gap-1">
+                <div className="choir-assignment-role-cell">
+                  <p className="choir-role-cell-label">
                     <ChoirIconUsers />
                     Team
                   </p>
-                  <p className="choir-role-cell-value text-[15px]">Worship choir</p>
+                  <p className="choir-role-cell-value">Worship choir</p>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <div className="choir-assignment-actions">
                 {assignment ? (
-                  <Link
-                    href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/team`}
-                    className="choir-assignment-cta"
-                  >
+                  <Link href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/team`} className="choir-assignment-link">
                     My assignments
-                    <span aria-hidden>→</span>
                   </Link>
                 ) : null}
                 <Link

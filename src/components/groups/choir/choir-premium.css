@@ -221,16 +221,10 @@
   color: var(--choir-gold-dark);
 }
 
-.choir-group-home .choir-role-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--choir-border);
-}
-
 .choir-group-home .choir-role-cell-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -238,9 +232,13 @@
   color: var(--choir-muted);
 }
 
+.choir-group-home .choir-role-cell-label svg {
+  color: var(--choir-gold-dark);
+}
+
 .choir-group-home .choir-role-cell-value {
   margin-top: 4px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--choir-heading);
 }
@@ -286,6 +284,16 @@
   line-height: 1.2;
 }
 
+.choir-group-home .choir-assignment-card {
+  padding: 16px 14px;
+}
+
+.choir-group-home .choir-assignment-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
 .choir-group-home .choir-assignment-kicker {
   font-size: 10px;
   font-weight: 700;
@@ -295,24 +303,44 @@
 }
 
 .choir-group-home .choir-assignment-title {
+  margin-top: 4px;
   font-family: var(--font-display, ui-serif, Georgia, serif);
-  font-size: 1.5rem;
+  font-size: clamp(1.35rem, 5vw, 1.55rem);
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.12;
   color: var(--choir-heading);
+}
+
+.choir-group-home .choir-assignment-meta {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.choir-group-home .choir-assignment-meta-strong {
+  font-weight: 600;
+  color: var(--choir-heading);
+}
+
+.choir-group-home .choir-assignment-roster-note {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--choir-muted);
 }
 
 .choir-group-home .choir-assignment-date-block {
   display: flex;
-  width: 58px;
+  width: 62px;
+  min-height: 86px;
   flex-shrink: 0;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  border: 1px solid var(--choir-border);
-  background: var(--choir-surface-soft);
-  padding: 8px 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 146, 63, 0.18);
+  background: #f2ece1;
+  padding: 10px 6px;
   text-align: center;
 }
 
@@ -338,10 +366,10 @@
 
 .choir-group-home .choir-assignment-footer {
   display: flex;
-  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
+  margin-top: 14px;
   border-top: 1px solid var(--choir-border);
   padding-top: 12px;
 }
@@ -349,12 +377,29 @@
 .choir-group-home .choir-assignment-roles {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 16px;
+  gap: 14px 18px;
+  min-width: 0;
+}
+
+.choir-group-home .choir-assignment-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.choir-group-home .choir-assignment-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--choir-gold-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .choir-group-home .choir-assignment-cta {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 40px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -366,6 +411,7 @@
   font-weight: 700;
   color: #fff;
   white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(166, 118, 42, 0.22);
 }
 
 .choir-group-home .choir-rehearsal-thumb-wrap {
