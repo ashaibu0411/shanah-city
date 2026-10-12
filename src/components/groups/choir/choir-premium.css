@@ -40,20 +40,69 @@
 
 .choir-section-tab {
   flex-shrink: 0;
-  min-height: 36px;
+  min-height: 40px;
   border-radius: 9999px;
   border: 1px solid var(--choir-border);
   background: var(--choir-surface);
-  padding: 0 14px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--choir-body);
 }
 
 .choir-section-tab-active {
-  border-color: var(--choir-heading);
-  background: var(--choir-heading);
-  color: #faf7f1;
+  border-color: var(--choir-gold);
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  font-weight: 700;
+}
+
+.choir-group-home .choir-brand-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--choir-heading);
+}
+
+.choir-group-home .choir-brand-subtitle {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--choir-muted);
+}
+
+.choir-group-home.choir-page-shell {
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.choir-group-home .choir-page-bleed {
+  margin-left: -1rem;
+  margin-right: -1rem;
+  width: auto;
+  border-radius: 18px;
+}
+
+.choir-group-home .choir-section-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+.choir-group-home .choir-home-split-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 380px) {
+  .choir-group-home .choir-home-split-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
 }
 
 .choir-group-home {
@@ -90,9 +139,9 @@
 
 .choir-group-home .choir-hero {
   position: relative;
-  min-height: 188px;
-  max-height: 220px;
-  aspect-ratio: 16 / 10;
+  min-height: 228px;
+  max-height: none;
+  aspect-ratio: auto;
   border-radius: 18px;
   overflow: hidden;
   background: var(--choir-hero-dark);
@@ -125,11 +174,21 @@
   color: #faf7f1;
 }
 
+.choir-group-home .choir-hero-church {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--choir-gold);
+}
+
 .choir-group-home .choir-hero-title {
   font-family: var(--font-display, ui-serif, Georgia, serif);
-  font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  margin-top: 8px;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -231,10 +290,118 @@
 }
 
 .choir-group-home .choir-tile-title {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--choir-heading);
   line-height: 1.2;
+}
+
+.choir-group-home .choir-assignment-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--choir-gold-dark);
+}
+
+.choir-group-home .choir-assignment-title {
+  font-family: var(--font-display, ui-serif, Georgia, serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--choir-heading);
+}
+
+.choir-group-home .choir-assignment-date-block {
+  display: flex;
+  width: 58px;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface-soft);
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.choir-group-home .choir-assignment-date-weekday {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--choir-muted);
+}
+
+.choir-group-home .choir-assignment-date-day {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--choir-heading);
+}
+
+.choir-group-home .choir-assignment-date-month {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-gold-dark);
+}
+
+.choir-group-home .choir-assignment-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--choir-border);
+  padding-top: 12px;
+}
+
+.choir-group-home .choir-assignment-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+}
+
+.choir-group-home .choir-assignment-cta {
+  display: inline-flex;
+  min-height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--choir-gold) 0%, #c9923f 55%, var(--choir-gold-dark) 100%);
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.choir-group-home .choir-rehearsal-thumb-wrap {
+  height: 108px;
+  overflow: hidden;
+}
+
+.choir-group-home .choir-rehearsal-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.choir-group-home .choir-prep-progress {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--choir-border);
+}
+
+.choir-group-home .choir-prep-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--choir-gold) 0%, var(--choir-gold-dark) 100%);
 }
 
 .choir-group-home .choir-tile-sub {
@@ -269,4 +436,320 @@
   z-index: 1;
   padding: 18px 16px;
   color: #fff;
+}
+
+/* Setlist & song library (Page 2) */
+.choir-setlist-page .choir-setlist-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px 0 2px;
+}
+
+.choir-setlist-page .choir-setlist-tab {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--choir-body);
+}
+
+.choir-setlist-page .choir-setlist-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-setlist-page .choir-setlist-hero {
+  position: relative;
+  min-height: 210px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--choir-hero-dark);
+}
+
+.choir-setlist-page .choir-setlist-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(24, 19, 34, 0.25) 0%,
+    rgba(24, 19, 34, 0.65) 50%,
+    rgba(24, 19, 34, 0.9) 100%
+  );
+}
+
+.choir-setlist-page .choir-setlist-hero-copy {
+  position: relative;
+  z-index: 1;
+  padding: 20px 16px 18px;
+  color: #faf7f1;
+}
+
+.choir-setlist-page .choir-setlist-published-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 9999px;
+  background: rgba(52, 133, 103, 0.95);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.choir-setlist-page .choir-setlist-hero-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--choir-gold);
+}
+
+.choir-setlist-page .choir-setlist-hero-title {
+  margin-top: 6px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.choir-setlist-page .choir-setlist-hero-datetime {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.choir-setlist-page .choir-setlist-hero-meta {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(250, 247, 241, 0.88);
+}
+
+.choir-setlist-page .choir-setlist-hero-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(250, 247, 241, 0.92);
+}
+
+.choir-setlist-page .choir-setlist-service-select {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 0 12px;
+  font-size: 14px;
+  color: var(--choir-heading);
+}
+
+.choir-setlist-page .choir-setlist-manage-link {
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--choir-gold-dark);
+}
+
+.choir-setlist-page .choir-setlist-song-row {
+  border-radius: 14px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  box-shadow: 0 4px 14px rgba(37, 32, 42, 0.05);
+}
+
+.choir-setlist-page .choir-setlist-song-main {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  text-align: left;
+}
+
+.choir-setlist-page .choir-setlist-row-menu {
+  margin: 8px 10px 0 0;
+  min-height: 40px;
+  min-width: 36px;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--choir-muted);
+}
+
+.choir-setlist-page .choir-setlist-song-num {
+  display: flex;
+  height: 32px;
+  width: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--choir-gold-soft);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--choir-gold-dark);
+}
+
+.choir-setlist-page .choir-setlist-thumb-img {
+  height: 52px;
+  width: 52px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.choir-setlist-page .choir-setlist-thumb-placeholder {
+  display: flex;
+  height: 52px;
+  width: 52px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--choir-gold-soft);
+  color: var(--choir-gold-dark);
+}
+
+.choir-setlist-page .choir-setlist-song-title {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--choir-heading);
+}
+
+.choir-setlist-page .choir-setlist-song-meta {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--choir-muted);
+}
+
+.choir-setlist-page .choir-setlist-resource-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 12px;
+}
+
+.choir-setlist-page .choir-setlist-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 9999px;
+  border: none;
+  background: #ebe4f8;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4a5a9c;
+}
+
+.choir-setlist-page .choir-setlist-chip-static {
+  border-radius: 9999px;
+  background: #ebe4f8;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a5a9c;
+}
+
+.choir-setlist-page .choir-setlist-notes-card {
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 16px;
+}
+
+.choir-setlist-page .choir-setlist-notes-list {
+  margin-left: 1.1rem;
+  list-style: disc;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--choir-body);
+}
+
+.choir-setlist-page .choir-setlist-notes-list li {
+  margin-top: 6px;
+}
+
+.choir-setlist-page .choir-setlist-notes-icon {
+  flex-shrink: 0;
+}
+
+.choir-setlist-page .choir-setlist-search {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.choir-setlist-page .choir-setlist-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.choir-setlist-page .choir-setlist-filter {
+  min-height: 34px;
+  border-radius: 9999px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--choir-body);
+}
+
+.choir-setlist-page .choir-setlist-filter-active {
+  border-color: var(--choir-gold);
+  background: var(--choir-gold-soft);
+  color: var(--choir-heading);
+}
+
+.choir-setlist-page .choir-setlist-fav-btn {
+  display: inline-flex;
+  height: 40px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: var(--choir-muted);
+}
+
+.choir-setlist-page .choir-setlist-fav-btn.is-active {
+  color: #c45c5c;
+}
+
+.choir-setlist-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(24, 19, 34, 0.45);
+  padding: 16px;
+}
+
+.choir-setlist-sheet {
+  max-height: min(88vh, 640px);
+  width: 100%;
+  max-width: 480px;
+  overflow-y: auto;
+  border-radius: 18px 18px 0 0;
+  background: var(--choir-surface);
+  padding: 20px 16px 28px;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
 }

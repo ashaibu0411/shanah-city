@@ -89,10 +89,7 @@ export function ChoirGroupDashboard({
     }
   }
 
-  const setlistsHref =
-    home?.assignment?.worshipHref ??
-    home?.upcomingServicePreview?.worshipHref ??
-    "/worship";
+  const setlistsHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/setlists`;
 
   if (loading) {
     return (
@@ -111,9 +108,8 @@ export function ChoirGroupDashboard({
   }
 
   return (
-    <div className="choir-group-home -mx-1 space-y-[18px] px-1 pb-2">
+    <div className="choir-group-home choir-page-shell space-y-[18px] pb-2">
       <ChoirGroupHeader onChatClick={onOpenChat} />
-      <ChoirHero />
 
       {sectionTabs.length > 0 ? (
         <ChoirSectionTabs
@@ -122,6 +118,8 @@ export function ChoirGroupDashboard({
           onChange={onSectionChange}
         />
       ) : null}
+
+      <ChoirHero />
 
       <ChoirNextAssignmentCard
         assignment={home.assignment}
@@ -147,22 +145,24 @@ export function ChoirGroupDashboard({
         </button>
       ) : null}
 
-      <ChoirUpcomingRehearsal
-        rehearsal={home.rehearsal}
-        onSeeAll={onOpenCalendar}
-        canManageSchedule={home.canManageSchedule}
-        onManageSchedule={onOpenCalendar}
-      />
+      <div className="choir-home-split-grid">
+        <ChoirUpcomingRehearsal
+          rehearsal={home.rehearsal}
+          onSeeAll={onOpenCalendar}
+          canManageSchedule={home.canManageSchedule}
+          onManageSchedule={onOpenCalendar}
+        />
+        <ChoirAnnouncements items={home.announcements} onOpenChat={onOpenChat} />
+      </div>
 
-      <ChoirAnnouncements items={home.announcements} onOpenChat={onOpenChat} />
-
-      <ChoirPreparationChecklist
-        planKey={home.preparationPlanKey}
-        checked={checked}
-        onChange={updatePreparation}
-      />
-
-      <ChoirWordForTeam />
+      <div className="choir-home-split-grid">
+        <ChoirPreparationChecklist
+          planKey={home.preparationPlanKey}
+          checked={checked}
+          onChange={updatePreparation}
+        />
+        <ChoirWordForTeam />
+      </div>
     </div>
   );
 }

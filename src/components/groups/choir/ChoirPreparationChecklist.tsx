@@ -27,12 +27,15 @@ export function ChoirPreparationChecklist({
   return (
     <section className="choir-card p-4" aria-labelledby="choir-prep-heading">
       <p className="choir-section-label">This week&apos;s preparation</p>
-      <h2 id="choir-prep-heading" className="mt-1 text-base font-semibold text-[var(--choir-heading)]">
-        Prepare your heart and your gift
+      <h2 id="choir-prep-heading" className="mt-1 text-base font-bold text-[var(--choir-heading)]">
+        This week&apos;s preparation
       </h2>
-      <p className="mt-1 text-xs text-[var(--choir-muted)]">
+      <p className="mt-1 text-xs font-semibold text-[var(--choir-muted)]">
         {done} of {total} completed
       </p>
+      <div className="choir-prep-progress mt-3" aria-hidden>
+        <span className="choir-prep-progress-fill" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+      </div>
 
       <ul className="mt-3 space-y-2">
         {CHOIR_PREPARATION_ITEMS.map((item) => {

@@ -21,7 +21,7 @@ export function ChoirAnnouncements({ items, onOpenChat }: ChoirAnnouncementsProp
   return (
     <section aria-labelledby="choir-announcements-heading">
       <div className="mb-2.5 flex items-center justify-between gap-2">
-        <h2 id="choir-announcements-heading" className="text-base font-semibold text-[var(--choir-heading)]">
+        <h2 id="choir-announcements-heading" className="choir-section-heading">
           Ministry announcements
         </h2>
         <button

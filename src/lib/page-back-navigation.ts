@@ -72,6 +72,10 @@ export function resolvePageBackLink(
   }
 
   if (path.startsWith("/groups/")) {
+    if (path === `${choirGroupPath}/setlists` || path === `${choirGroupPath}/rehearsal`) {
+      return { href: choirGroupPath, label: "Back to worship home" };
+    }
+
     if (path === choirGroupPath) {
       const deepSection = ["chat", "calendar", "info", "manage", "polls", "report", "training", "guests"];
       const onSubSection = deepSection.some((key) => searchParams?.get(key) === "1");
