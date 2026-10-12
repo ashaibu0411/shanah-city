@@ -44,7 +44,7 @@ export function ChoirPreparationChecklist({
             return (
               <li key={item.id}>
                 <Link
-                  href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar?tab=my`}
+                  href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/availability`}
                   className="flex min-h-[44px] items-center gap-3 rounded-xl bg-[var(--choir-surface-soft)] px-3 py-2 text-sm text-[var(--choir-body)]"
                 >
                   <span className="text-[var(--choir-gold-dark)]">→</span>

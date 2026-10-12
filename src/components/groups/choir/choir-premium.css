@@ -2558,3 +2558,122 @@
   font-size: 12px;
   background: var(--choir-surface-soft);
 }
+
+/* Availability Center (Page 11) */
+.choir-availability-page .choir-availability-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+}
+
+.choir-availability-page .choir-availability-tab {
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--choir-surface-soft);
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.choir-availability-page .choir-availability-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-availability-page .choir-avail-status-badge {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  padding: 4px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.choir-availability-page .choir-avail-status-available {
+  background: #d8efe4;
+  color: #348567;
+}
+
+.choir-availability-page .choir-avail-status-unavailable {
+  background: #ececec;
+  color: #5c5c5c;
+}
+
+.choir-availability-page .choir-avail-status-maybe {
+  background: #f5e5c4;
+  color: #9a5b12;
+}
+
+.choir-availability-page .choir-avail-status-pending {
+  background: #dbe8f5;
+  color: #2f5f8f;
+}
+
+.choir-availability-page .choir-avail-dot {
+  display: inline-block;
+  height: 6px;
+  width: 6px;
+  border-radius: 9999px;
+  margin-top: 2px;
+}
+
+.choir-availability-page .choir-avail-dot-available {
+  background: #348567;
+}
+
+.choir-availability-page .choir-avail-dot-unavailable {
+  background: #8a8a8a;
+}
+
+.choir-availability-page .choir-avail-dot-maybe {
+  background: #d6a64c;
+}
+
+.choir-availability-page .choir-avail-dot-pending {
+  background: #5b8fc7;
+}
+
+.choir-availability-page .choir-avail-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 10px;
+  color: var(--choir-muted);
+}
+
+.choir-availability-page .choir-avail-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.choir-availability-page .choir-avail-assignment-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 12px;
+}
+
+.choir-availability-page .choir-avail-response-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface-soft);
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-heading);
+}

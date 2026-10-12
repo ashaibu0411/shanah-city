@@ -47,6 +47,12 @@ export function choirOnboardingLinks(groupId: string = SHANAH_WORSHIP_GROUP_ID):
       href: `/groups/${g}/calendar`,
     },
     {
+      id: "availability",
+      title: "Availability center",
+      description: "Share when you can serve on upcoming dates.",
+      href: `/groups/${g}/availability`,
+    },
+    {
       id: "connect",
       title: "Team Connect",
       description: "Chat, announcements, and polls.",

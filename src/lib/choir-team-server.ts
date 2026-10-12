@@ -205,6 +205,6 @@ export async function buildChoirTeamPagePayload(
     groupChatHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}?chat=1`,
     manageRosterHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}?manage=1&section=members`,
     managePlannerHref: "/worship",
-    availabilityHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}?calendar=1`,
+    availabilityHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}/availability`,
   };
 }
