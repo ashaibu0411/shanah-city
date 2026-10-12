@@ -10,7 +10,7 @@ import {
 } from "@/lib/choir-group-constants";
 import type { ChoirCalendarEvent, ChoirCalendarPagePayload } from "@/lib/choir-calendar-types";
 import { isGroupScheduleDetailEvent } from "@/lib/choir-calendar-utils";
-import { getEvents } from "@/lib/stores/event-json";
+import { getEvents } from "@/lib/event-server";
 import { site } from "@/lib/site";
 import { listWorshipPlans } from "@/lib/worship-server";
 import {

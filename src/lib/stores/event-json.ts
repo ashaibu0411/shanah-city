@@ -1,10 +1,8 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { readJsonFromData, writeJsonToData } from "@/lib/json-file-store";
 import { upcomingEvents } from "@/lib/site";
 import type { ChurchEvent } from "@/lib/types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const EVENTS_FILE = path.join(DATA_DIR, "events.json");
+const EVENTS_FILENAME = "events.json";
 
 function defaultEvents(): ChurchEvent[] {
   return upcomingEvents.map((event, index) => ({
@@ -14,28 +12,11 @@ function defaultEvents(): ChurchEvent[] {
   }));
 }
 
-async function readJson<T>(file: string, fallback: T): Promise<T> {
-  try {
-    const raw = await fs.readFile(file, "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-async function writeJson<T>(file: string, data: T) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(file, JSON.stringify(data, null, 2));
-}
-
 async function readEvents() {
-  const events = await readJson<ChurchEvent[]>(EVENTS_FILE, []);
-  if (events.length === 0) {
-    const seeded = defaultEvents();
-    await writeJson(EVENTS_FILE, seeded);
-    return seeded;
-  }
-  return events;
+  const events = await readJsonFromData<ChurchEvent[]>(EVENTS_FILENAME, []);
+  if (events.length > 0) return events;
+  // Never seed by writing on serverless (bundle `data/` is read-only). Use in-memory defaults.
+  return defaultEvents();
 }
 
 function sortEvents(events: ChurchEvent[]) {
@@ -78,7 +59,7 @@ export async function createEvent(
     sortOrder: input.sortOrder ?? events.length,
   };
   events.push(event);
-  await writeJson(EVENTS_FILE, events);
+  await writeJsonToData(EVENTS_FILENAME, events);
   return event;
 }
 
@@ -88,7 +69,7 @@ export async function updateEvent(id: string, update: Partial<Omit<ChurchEvent, 
   if (index === -1) return null;
 
   events[index] = { ...events[index], ...update };
-  await writeJson(EVENTS_FILE, events);
+  await writeJsonToData(EVENTS_FILENAME, events);
   return events[index];
 }
 
@@ -96,7 +77,7 @@ export async function deleteEvent(id: string) {
   const events = await readEvents();
   const next = events.filter((event) => event.id !== id);
   if (next.length === events.length) return false;
-  await writeJson(EVENTS_FILE, next);
+  await writeJsonToData(EVENTS_FILENAME, next);
   return true;
 }
 
@@ -124,6 +105,6 @@ export async function upsertEvent(event: ChurchEvent) {
       rsvpLastNotifiedAt: event.rsvpLastNotifiedAt ?? events[index].rsvpLastNotifiedAt,
     };
   }
-  await writeJson(EVENTS_FILE, events);
+  await writeJsonToData(EVENTS_FILENAME, events);
   return events.find((item) => item.id === event.id)!;
 }

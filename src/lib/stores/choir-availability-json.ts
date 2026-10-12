@@ -1,6 +1,5 @@
 import { randomUUID } from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
+import { readJsonFromData, writeJsonToData } from "@/lib/json-file-store";
 import type {
   ChoirAvailabilityPreferences,
   ChoirAvailabilityStore,
@@ -8,7 +7,7 @@ import type {
   ChoirScheduleChangeRequest,
 } from "@/lib/choir-availability-types";
 
-const FILE = path.join(process.cwd(), "data", "choir-availability.json");
+const STORE_FILENAME = "choir-availability.json";
 
 const EMPTY: ChoirAvailabilityStore = {
   responses: [],
@@ -19,26 +18,23 @@ const EMPTY: ChoirAvailabilityStore = {
 };
 
 async function readStore(): Promise<ChoirAvailabilityStore> {
-  try {
-    const raw = await fs.readFile(FILE, "utf-8");
-    const parsed = JSON.parse(raw) as Partial<ChoirAvailabilityStore>;
-    return {
-      responses: Array.isArray(parsed.responses) ? parsed.responses : [],
-      preferences: Array.isArray(parsed.preferences) ? parsed.preferences : [],
-      changeRequests: Array.isArray(parsed.changeRequests) ? parsed.changeRequests : [],
-      eventDeadlines:
-        parsed.eventDeadlines && typeof parsed.eventDeadlines === "object" ? parsed.eventDeadlines : {},
-      guidelinesMarkdown:
-        typeof parsed.guidelinesMarkdown === "string" ? parsed.guidelinesMarkdown : null,
-    };
-  } catch {
+  const parsed = await readJsonFromData<Partial<ChoirAvailabilityStore>>(STORE_FILENAME, {});
+  if (!parsed || typeof parsed !== "object" || Object.keys(parsed).length === 0) {
     return { ...EMPTY };
   }
+  return {
+    responses: Array.isArray(parsed.responses) ? parsed.responses : [],
+    preferences: Array.isArray(parsed.preferences) ? parsed.preferences : [],
+    changeRequests: Array.isArray(parsed.changeRequests) ? parsed.changeRequests : [],
+    eventDeadlines:
+      parsed.eventDeadlines && typeof parsed.eventDeadlines === "object" ? parsed.eventDeadlines : {},
+    guidelinesMarkdown:
+      typeof parsed.guidelinesMarkdown === "string" ? parsed.guidelinesMarkdown : null,
+  };
 }
 
 async function writeStore(store: ChoirAvailabilityStore) {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(store, null, 2));
+  await writeJsonToData(STORE_FILENAME, store);
 }
 
 export async function getChoirAvailabilityResponseJson(
