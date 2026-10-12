@@ -58,10 +58,13 @@
 }
 
 .choir-group-home .choir-brand-title {
-  font-size: 1.375rem;
+  font-size: clamp(0.95rem, 4.5vw, 1.25rem);
   font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--choir-heading);
 }
 
@@ -728,6 +731,30 @@
   justify-content: center;
   background: rgba(24, 19, 34, 0.45);
   padding: 16px;
+}
+
+.choir-announcements-page .choir-setlist-search {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 0 14px;
+  font-size: 14px;
+  color: var(--choir-heading);
+}
+
+.choir-announcements-page .choir-announcement-textarea {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--choir-heading);
+  resize: vertical;
 }
 
 .choir-setlist-sheet {

@@ -72,7 +72,11 @@ export function resolvePageBackLink(
   }
 
   if (path.startsWith("/groups/")) {
-    if (path === `${choirGroupPath}/setlists` || path === `${choirGroupPath}/rehearsal`) {
+    if (
+      path === `${choirGroupPath}/setlists` ||
+      path === `${choirGroupPath}/rehearsal` ||
+      path === `${choirGroupPath}/announcements`
+    ) {
       return { href: choirGroupPath, label: "Back to worship home" };
     }
 

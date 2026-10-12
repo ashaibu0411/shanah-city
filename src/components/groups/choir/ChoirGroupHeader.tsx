@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ChoirBrandTitle } from "@/components/groups/choir/ChoirBrandTitle";
 
 type ChoirGroupHeaderProps = {
@@ -37,14 +36,9 @@ export function ChoirGroupHeader({ onChatClick }: ChoirGroupHeaderProps) {
         <BackIcon />
       </Link>
       <ChoirBrandTitle />
-      <div className="flex shrink-0 items-center gap-1.5">
-        <div className="choir-header-icon-btn !border-0 !bg-transparent">
-          <NotificationBell variant="light" />
-        </div>
-        <button type="button" onClick={onChatClick} className="choir-header-icon-btn" aria-label="Team menu">
-          <MenuIcon />
-        </button>
-      </div>
+      <button type="button" onClick={onChatClick} className="choir-header-icon-btn" aria-label="Team menu">
+        <MenuIcon />
+      </button>
     </header>
   );
 }

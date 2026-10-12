@@ -24,10 +24,12 @@ export type ChoirRehearsalView = {
 
 export type ChoirAnnouncementView = {
   id: string;
+  title: string;
   authorName: string;
   excerpt: string;
   createdAt: string;
-  chatHref: string;
+  detailHref: string;
+  isSample?: boolean;
 };
 
 export type ChoirHomeDashboard = {

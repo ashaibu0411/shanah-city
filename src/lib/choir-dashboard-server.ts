@@ -7,7 +7,7 @@ import {
   getGroupServiceScheduleConfig,
   programLabel,
 } from "@/lib/group-service-schedule-config";
-import { listGroupChatMessages } from "@/lib/group-chat-server";
+import { listChoirAnnouncementFeed } from "@/lib/choir-announcements-server";
 import { canManageGroupEvents } from "@/lib/group-permissions-server";
 import {
   SHANAH_WORSHIP_GROUP_ID,
@@ -32,8 +32,6 @@ import {
   type WorshipServicePlan,
   type WorshipTeamMember,
 } from "@/lib/worship-types";
-import { stripPollMarkerFromChatContent } from "@/lib/poll-chat-links";
-import { stripStoryMarkerFromChatContent } from "@/lib/story-dm-links";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -80,30 +78,6 @@ function planToAssignmentView(
     worshipHref: worshipHref(plan),
     isPersonal,
   };
-}
-
-function pickAnnouncements(messages: Awaited<ReturnType<typeof listGroupChatMessages>>) {
-  const rows: ChoirAnnouncementView[] = [];
-  for (let i = messages.length - 1; i >= 0 && rows.length < 3; i -= 1) {
-    const message = messages[i];
-    if (message.deletedAt) continue;
-    let text = message.content?.trim() ?? "";
-    text = stripPollMarkerFromChatContent(text);
-    text = stripStoryMarkerFromChatContent(text).trim();
-    if (!text && message.attachmentUrl) {
-      text = message.attachmentName?.trim() || "Shared an attachment";
-    }
-    if (!text) continue;
-    if (text.startsWith("🗑️") || text.startsWith("[[poll:")) continue;
-    rows.push({
-      id: message.id,
-      authorName: message.senderName,
-      excerpt: text.length > 160 ? `${text.slice(0, 157)}…` : text,
-      createdAt: message.createdAt,
-      chatHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}?chat=1`,
-    });
-  }
-  return rows;
 }
 
 function pickRehearsalFromPlans(
@@ -219,12 +193,16 @@ export async function buildChoirHomeDashboard(
     rehearsal = await pickRehearsalFromSchedule(groupId, now);
   }
 
-  const memberIds = group?.members.map((member) => member.id) ?? [];
-  const chatMessages = await listGroupChatMessages(groupId, {
-    viewerId: user.id,
-    memberIds,
-  });
-  const announcements = pickAnnouncements(chatMessages);
+  const feed = await listChoirAnnouncementFeed(groupId, 3);
+  const announcements: ChoirAnnouncementView[] = feed.map((item) => ({
+    id: item.id,
+    title: item.title,
+    authorName: item.authorName,
+    excerpt: item.excerpt,
+    createdAt: item.createdAt,
+    detailHref: item.detailHref,
+    isSample: item.isSample,
+  }));
 
   const preparationPlanKey =
     assignment?.planKey ?? upcomingServicePreview?.planKey ?? null;

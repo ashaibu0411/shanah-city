@@ -152,7 +152,7 @@ export function ChoirGroupDashboard({
         onManageSchedule={onOpenCalendar}
       />
 
-      <ChoirAnnouncements items={home.announcements} onOpenChat={onOpenChat} />
+      <ChoirAnnouncements items={home.announcements} />
 
       <ChoirPreparationChecklist
         planKey={home.preparationPlanKey}
