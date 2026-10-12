@@ -24,6 +24,7 @@ import { normalizeDisappearingSeconds } from "@/lib/chat-disappearing";
 import { isUserBlocked } from "@/lib/block-server";
 import { isAllowedReactionEmoji } from "@/lib/chat-utils";
 import { formatMentionsForDisplay } from "@/lib/mentions";
+import { normalizeOutgoingChatMedia } from "@/lib/chat-image-url-server";
 import { notifyMemberMentions } from "@/lib/mention-notify-server";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyNewMessage } from "@/lib/push-server";
@@ -264,6 +265,15 @@ export async function POST(request: Request) {
   }
 
   try {
+    const media = await normalizeOutgoingChatMedia({
+      ownerId: user.id,
+      content,
+      attachmentUrl,
+      attachmentType,
+      attachmentName,
+      threadId,
+    });
+
     const result = await sendDirectMessage({
       senderId: user.id,
       senderName: getPublicDisplayName(user),
@@ -271,11 +281,11 @@ export async function POST(request: Request) {
       recipientName,
       recipientIds: recipientIds.length > 0 ? recipientIds : undefined,
       recipientNames,
-      content,
+      content: media.content,
       threadId,
-      attachmentUrl,
-      attachmentType,
-      attachmentName,
+      attachmentUrl: media.attachmentUrl,
+      attachmentType: media.attachmentType,
+      attachmentName: media.attachmentName,
       replyToMessageId: String(body.replyToMessageId ?? "").trim() || undefined,
       replyExcerpt: String(body.replyExcerpt ?? "").trim() || undefined,
     });
@@ -290,7 +300,9 @@ export async function POST(request: Request) {
     let lastNotify;
     for (const targetId of notifyTargets) {
       if (await isUserBlocked(targetId, user.id)) continue;
-      const preview = formatMentionsForDisplay(content || attachmentName || "Photo");
+      const preview = formatMentionsForDisplay(
+        media.content || media.attachmentName || "Photo",
+      );
       lastNotify = await notifyNewMessage({
         recipientId: targetId,
         senderName: getPublicDisplayName(user),
@@ -298,11 +310,11 @@ export async function POST(request: Request) {
         threadId: result.thread.id,
       });
     }
-    if (content) {
+    if (media.content) {
       void notifyMemberMentions({
         authorId: user.id,
         authorName: getPublicDisplayName(user),
-        content,
+        content: media.content,
         url: `/messages?thread=${encodeURIComponent(result.thread.id)}`,
         contextLabel: "Message",
         preferenceKey: "messages",

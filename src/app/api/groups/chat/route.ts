@@ -21,6 +21,7 @@ import { formatMentionsForDisplay } from "@/lib/mentions";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { notifyGroupChatMessage } from "@/lib/push-server";
 import { notifyMemberMentions } from "@/lib/mention-notify-server";
+import { normalizeOutgoingChatMedia } from "@/lib/chat-image-url-server";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -211,22 +212,33 @@ export async function POST(request: Request) {
   }
 
   try {
+    const media = await normalizeOutgoingChatMedia({
+      ownerId: user.id,
+      content,
+      attachmentUrl,
+      attachmentType,
+      attachmentName,
+      groupId,
+    });
+
     const message = await sendGroupChatMessage({
       groupId,
       groupName: access.detail!.name,
       senderId: user.id,
       senderName: getPublicDisplayName(user),
-      content,
-      attachmentUrl,
-      attachmentType,
-      attachmentName,
+      content: media.content,
+      attachmentUrl: media.attachmentUrl,
+      attachmentType: media.attachmentType,
+      attachmentName: media.attachmentName,
       replyToMessageId: String(body.replyToMessageId ?? "").trim() || undefined,
       replyExcerpt: String(body.replyExcerpt ?? "").trim() || undefined,
     });
 
     await recordActivity(user.id, "message_sent", `Group chat in ${access.detail!.name}`);
 
-    const preview = formatMentionsForDisplay(content || attachmentName || "Photo");
+    const preview = formatMentionsForDisplay(
+      media.content || media.attachmentName || "Photo",
+    );
     await notifyGroupChatMessage({
       groupId,
       groupName: access.detail!.name,
@@ -235,11 +247,11 @@ export async function POST(request: Request) {
       preview: preview.slice(0, 120),
     });
 
-    if (content) {
+    if (media.content) {
       void notifyMemberMentions({
         authorId: user.id,
         authorName: getPublicDisplayName(user),
-        content,
+        content: media.content,
         url: `/groups/${encodeURIComponent(groupId)}?chat=1`,
         contextLabel: `Message in ${access.detail!.name}`,
         groupId,

@@ -116,6 +116,23 @@ export function isAllowedReactionEmoji(emoji: string) {
   return /\p{Extended_Pictographic}/u.test(trimmed);
 }
 
+const DIRECT_CHAT_IMAGE_PATH = /\.(gif|jpe?g|png|webp)$/i;
+
+/** Message is a single https image/GIF link (e.g. from a GIF keyboard). */
+export function parseDirectChatImageUrl(text: string): string | null {
+  const trimmed = text.trim();
+  if (!trimmed || /\s/.test(trimmed)) return null;
+  if (!/^https?:\/\//i.test(trimmed)) return null;
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    if (!DIRECT_CHAT_IMAGE_PATH.test(decodeURIComponent(url.pathname))) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
 export function isChatAttachmentRef(value?: string | null) {
   return Boolean(value?.startsWith("chat:"));
 }

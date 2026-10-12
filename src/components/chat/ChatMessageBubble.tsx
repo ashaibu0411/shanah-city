@@ -2,7 +2,14 @@
 
 import { useRef, useState, useMemo } from "react";
 import type { ChatMessageReaction } from "@/lib/chat-utils";
-import { formatDeletedMessageContent, getChatAttachmentApiUrl, isChatAudioAttachment, isChatImageAttachment, messageIsUnsent } from "@/lib/chat-utils";
+import {
+  formatDeletedMessageContent,
+  getChatAttachmentApiUrl,
+  isChatAudioAttachment,
+  isChatImageAttachment,
+  messageIsUnsent,
+  parseDirectChatImageUrl,
+} from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
 import { ChatWorshipActionButton } from "@/components/chat/ChatWorshipActionButton";
 import { ChatPollEmbed } from "@/components/polls/ChatPollEmbed";
@@ -138,6 +145,12 @@ export function ChatMessageBubble({
     isChatImageAttachment(attachmentType, attachmentName)
       ? getChatAttachmentApiUrl(attachmentUrl)
       : null;
+  const directImageUrl = useMemo(() => {
+    if (unsent || imageSrc || !visibleText) return null;
+    return parseDirectChatImageUrl(visibleText);
+  }, [unsent, imageSrc, visibleText]);
+  const inlineImageSrc = imageSrc ?? directImageUrl;
+  const bubbleText = directImageUrl ? "" : visibleText;
   const audioSrc =
     getChatAttachmentApiUrl(attachmentUrl) &&
     isChatAudioAttachment(attachmentType, attachmentName)
@@ -462,15 +475,20 @@ export function ChatMessageBubble({
                   </audio>
                 </div>
               )}
-              {imageSrc && !unsent && (
-                <a href={imageSrc} target="_blank" rel="noreferrer" className="messages-hub-attachment mb-0 block">
+              {inlineImageSrc && !unsent && (
+                <a
+                  href={inlineImageSrc}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="messages-hub-attachment mb-0 block"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageSrc} alt="Shared image" />
+                  <img src={inlineImageSrc} alt="Shared image" />
                 </a>
               )}
-              {visibleText ? (
+              {bubbleText ? (
                 <ChatMessageText
-                  text={visibleText}
+                  text={bubbleText}
                   className="whitespace-pre-wrap break-words"
                   linkClassName={
                     hub
@@ -511,7 +529,7 @@ export function ChatMessageBubble({
                 : compact
                   ? `${chatPremium.bubbleMeta} ${mine ? "justify-end" : ""}`
                   : "text-[10px] opacity-60"
-            } ${showMeta ? "" : "hidden"} ${imageSrc && hub ? "!text-night-500 dark:!text-sand-400" : ""}`}
+            } ${showMeta ? "" : "hidden"} ${inlineImageSrc && hub ? "!text-night-500 dark:!text-sand-400" : ""}`}
           >
             <span>{createdAtLabel}</span>
             {editedAt && !unsent && <span>· edited</span>}

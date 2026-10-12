@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
-import { isAllowedChatAttachment, chatAttachmentExtension } from "@/lib/chat-attachment-media";
+import { chatAttachmentExtension, isAllowedChatAttachment } from "@/lib/chat-attachment-media";
 import * as chatAttachmentJson from "@/lib/stores/chat-attachment-json";
 
 const ATTACHMENT_DIR = path.join(process.cwd(), "data", "chat-attachments");
@@ -44,6 +44,51 @@ export async function saveChatAttachment(input: {
     attachmentUrl: `chat:${id}`,
     attachmentType: input.file.type,
     attachmentName: input.file.name,
+  };
+}
+
+export async function saveChatAttachmentBytes(input: {
+  ownerId: string;
+  buffer: Buffer;
+  contentType: string;
+  attachmentName: string;
+  groupId?: string;
+  threadId?: string;
+}) {
+  const type = input.contentType.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (!type.startsWith("image/")) {
+    throw new Error("Use JPG, PNG, WEBP, or GIF under 15 MB.");
+  }
+  if (input.buffer.length <= 0 || input.buffer.length > 15 * 1024 * 1024) {
+    throw new Error("Use JPG, PNG, WEBP, or GIF under 15 MB.");
+  }
+
+  const id = `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const ext = chatAttachmentExtension({
+    type: input.contentType,
+    name: input.attachmentName,
+  });
+  const filename = `${id}${ext}`;
+
+  await fs.mkdir(ATTACHMENT_DIR, { recursive: true });
+  await fs.writeFile(path.join(ATTACHMENT_DIR, filename), input.buffer);
+
+  await prisma.chatAttachmentMeta.create({
+    data: {
+      id,
+      ownerId: input.ownerId,
+      groupId: input.groupId,
+      threadId: input.threadId,
+      contentType: input.contentType,
+      filename,
+      createdAt: new Date(),
+    },
+  });
+
+  return {
+    attachmentUrl: `chat:${id}`,
+    attachmentType: input.contentType,
+    attachmentName: input.attachmentName,
   };
 }
 

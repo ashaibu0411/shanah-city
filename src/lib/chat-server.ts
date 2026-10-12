@@ -11,6 +11,10 @@ export const saveChatAttachment = (
   input: Parameters<typeof chatAttachmentJson.saveChatAttachment>[0],
 ) => attachmentStore().saveChatAttachment(input);
 
+export const saveChatAttachmentBytes = (
+  input: Parameters<typeof chatAttachmentJson.saveChatAttachmentBytes>[0],
+) => attachmentStore().saveChatAttachmentBytes(input);
+
 export const getChatAttachmentRecord = (id: string) =>
   attachmentStore().getChatAttachmentRecord(id);
 

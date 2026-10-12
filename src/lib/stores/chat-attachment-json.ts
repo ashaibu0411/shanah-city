@@ -29,12 +29,47 @@ async function writeIndex(records: ChatAttachmentRecord[]) {
   await fs.writeFile(INDEX_FILE, JSON.stringify(records, null, 2));
 }
 
-function extensionForFile(file: File) {
-  return chatAttachmentExtension(file);
-}
-
 function guessContentType(filepath: string) {
   return guessChatAttachmentContentType(filepath);
+}
+
+async function persistChatAttachmentRecord(input: {
+  ownerId: string;
+  buffer: Buffer;
+  contentType: string;
+  attachmentName: string;
+  groupId?: string;
+  threadId?: string;
+}) {
+  const id = `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const ext = chatAttachmentExtension({
+    type: input.contentType,
+    name: input.attachmentName,
+  });
+  const filename = `${id}${ext}`;
+
+  await fs.mkdir(ATTACHMENT_DIR, { recursive: true });
+  await fs.writeFile(path.join(ATTACHMENT_DIR, filename), input.buffer);
+
+  const record: ChatAttachmentRecord = {
+    id,
+    ownerId: input.ownerId,
+    groupId: input.groupId,
+    threadId: input.threadId,
+    contentType: input.contentType,
+    filename,
+    createdAt: new Date().toISOString(),
+  };
+
+  const index = await readIndex();
+  index.unshift(record);
+  await writeIndex(index.slice(0, 2000));
+
+  return {
+    attachmentUrl: `chat:${id}`,
+    attachmentType: input.contentType,
+    attachmentName: input.attachmentName,
+  };
 }
 
 export async function saveChatAttachment(input: {
@@ -47,33 +82,34 @@ export async function saveChatAttachment(input: {
     throw new Error("Use JPG, PNG, WEBP, GIF, or a voice note (MP3, M4A, WEBM) under 15 MB.");
   }
 
-  const id = `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const ext = extensionForFile(input.file);
-  const filename = `${id}${ext}`;
-
-  await fs.mkdir(ATTACHMENT_DIR, { recursive: true });
   const buffer = Buffer.from(await input.file.arrayBuffer());
-  await fs.writeFile(path.join(ATTACHMENT_DIR, filename), buffer);
-
-  const record: ChatAttachmentRecord = {
-    id,
+  return persistChatAttachmentRecord({
     ownerId: input.ownerId,
+    buffer,
+    contentType: input.file.type,
+    attachmentName: input.file.name,
     groupId: input.groupId,
     threadId: input.threadId,
-    contentType: input.file.type,
-    filename,
-    createdAt: new Date().toISOString(),
-  };
+  });
+}
 
-  const index = await readIndex();
-  index.unshift(record);
-  await writeIndex(index.slice(0, 2000));
+export async function saveChatAttachmentBytes(input: {
+  ownerId: string;
+  buffer: Buffer;
+  contentType: string;
+  attachmentName: string;
+  groupId?: string;
+  threadId?: string;
+}) {
+  const type = input.contentType.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (!type.startsWith("image/")) {
+    throw new Error("Use JPG, PNG, WEBP, or GIF under 15 MB.");
+  }
+  if (input.buffer.length <= 0 || input.buffer.length > 15 * 1024 * 1024) {
+    throw new Error("Use JPG, PNG, WEBP, or GIF under 15 MB.");
+  }
 
-  return {
-    attachmentUrl: `chat:${id}`,
-    attachmentType: input.file.type,
-    attachmentName: input.file.name,
-  };
+  return persistChatAttachmentRecord(input);
 }
 
 export async function getChatAttachmentRecord(id: string) {
