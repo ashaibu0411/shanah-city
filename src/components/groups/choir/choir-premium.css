@@ -757,6 +757,260 @@
   resize: vertical;
 }
 
+.choir-group-home .choir-btn-secondary {
+  display: flex;
+  min-height: 48px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface-soft);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+/* Rehearsal room (Page 3) */
+.choir-rehearsal-page .choir-rehearsal-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.choir-rehearsal-page .choir-rehearsal-tab {
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--choir-body);
+  white-space: nowrap;
+}
+
+.choir-rehearsal-page .choir-rehearsal-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-rehearsal-page .choir-rehearsal-hero {
+  position: relative;
+  min-height: 168px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--choir-hero-dark);
+}
+
+.choir-rehearsal-page .choir-rehearsal-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(24, 19, 34, 0.2) 0%,
+    rgba(24, 19, 34, 0.75) 55%,
+    rgba(24, 19, 34, 0.92) 100%
+  );
+}
+
+.choir-rehearsal-page .choir-rehearsal-hero-copy {
+  position: relative;
+  z-index: 1;
+  padding: 18px 16px 16px;
+  color: #faf7f1;
+}
+
+.choir-rehearsal-page .choir-rehearsal-hero-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--choir-gold);
+}
+
+.choir-rehearsal-page .choir-rehearsal-hero-title {
+  margin-top: 6px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.choir-rehearsal-page .choir-rehearsal-hero-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(250, 247, 241, 0.9);
+}
+
+.choir-rehearsal-page .choir-rehearsal-service-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(37, 32, 42, 0.06);
+}
+
+.choir-rehearsal-page .choir-rehearsal-change-service {
+  flex-shrink: 0;
+  min-height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: var(--choir-gold-soft);
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--choir-gold-dark);
+}
+
+.choir-rehearsal-page .choir-rehearsal-service-picker {
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  overflow: hidden;
+}
+
+.choir-rehearsal-page .choir-rehearsal-service-option {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--choir-heading);
+  border-bottom: 1px solid var(--choir-border);
+}
+
+.choir-rehearsal-page .choir-rehearsal-service-option:last-child {
+  border-bottom: none;
+}
+
+.choir-rehearsal-page .choir-rehearsal-progress-card {
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 14px 16px;
+}
+
+.choir-rehearsal-page .choir-rehearsal-progress-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--choir-surface-soft);
+  overflow: hidden;
+}
+
+.choir-rehearsal-page .choir-rehearsal-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--choir-gold) 0%, var(--choir-gold-dark) 100%);
+}
+
+.choir-rehearsal-page .choir-rehearsal-now-playing {
+  border-radius: 18px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(37, 32, 42, 0.07);
+}
+
+.choir-rehearsal-page .choir-rehearsal-quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.choir-rehearsal-page .choir-rehearsal-quick-action {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface-soft);
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+.choir-rehearsal-page .choir-rehearsal-quick-action:disabled {
+  opacity: 0.45;
+}
+
+.choir-rehearsal-page .choir-rehearsal-resource-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: var(--choir-gold);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+.choir-rehearsal-page .choir-rehearsal-song-row {
+  display: flex;
+  align-items: flex-start;
+  border-radius: 14px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  box-shadow: 0 4px 14px rgba(37, 32, 42, 0.05);
+}
+
+.choir-rehearsal-page .choir-rehearsal-song-row.is-active {
+  border-color: var(--choir-gold);
+  box-shadow: 0 4px 16px rgba(214, 166, 76, 0.2);
+}
+
+.choir-rehearsal-page .choir-rehearsal-song-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  text-align: left;
+}
+
+.choir-rehearsal-page .choir-rehearsal-song-num {
+  display: flex;
+  height: 32px;
+  width: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--choir-surface-soft);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--choir-muted);
+}
+
+.choir-rehearsal-page .choir-rehearsal-song-num.is-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+}
+
+.choir-rehearsal-page .choir-rehearsal-notes-link-card {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 12px 14px;
+  text-align: left;
+}
+
 .choir-setlist-sheet {
   max-height: min(88vh, 640px);
   width: 100%;

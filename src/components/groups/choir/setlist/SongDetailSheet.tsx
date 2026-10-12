@@ -105,13 +105,9 @@ export function SongDetailSheet({
         </div>
         <WorshipSongBreakdownLyrics title={song.title} lyrics={song.lyrics} />
 
-        <p className="mt-4 text-xs text-[var(--choir-muted)]">
-          Rehearsal room:{" "}
-          <Link href={rehearsalHref} className="font-semibold text-[var(--choir-gold-dark)] underline">
-            Open practice view
-          </Link>
-          <span className="block mt-1">(Full rehearsal room coming soon — opens service practice meanwhile.)</span>
-        </p>
+        <Link href={rehearsalHref} className="choir-btn-primary mt-4 inline-flex w-full justify-center">
+          Open rehearsal room
+        </Link>
 
         {canManage ? (
           <Link

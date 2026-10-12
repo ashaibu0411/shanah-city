@@ -210,8 +210,17 @@ export async function buildChoirHomeDashboard(
     ? await getChoirPreparation(user.id, preparationPlanKey)
     : [];
 
-  const rehearsalRoomHref =
-    assignment?.worshipHref ?? upcomingServicePreview?.worshipHref ?? (canManage ? "/worship" : null);
+  const rehearsalRoomHref = (() => {
+    const target = assignment ?? upcomingServicePreview;
+    if (target) {
+      const params = new URLSearchParams({
+        date: target.serviceDate,
+        time: String(target.serviceTime),
+      });
+      return `/groups/${SHANAH_WORSHIP_GROUP_ID}/rehearsal?${params.toString()}`;
+    }
+    return `/groups/${SHANAH_WORSHIP_GROUP_ID}/rehearsal`;
+  })();
 
   return {
     assignment,
