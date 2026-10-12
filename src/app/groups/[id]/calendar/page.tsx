@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { ChoirWorshipCalendarPage } from "@/components/groups/choir/calendar/ChoirWorshipCalendarPage";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { buildChoirCalendarPagePayload } from "@/lib/choir-calendar-server";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
 import { getGroupDetail } from "@/lib/group-server";
 import { isMemberTrainingRequired } from "@/lib/ministry-readiness-server";
@@ -35,10 +36,26 @@ export default async function GroupWorshipCalendarPage({ params }: CalendarPageP
     redirect(`/groups/${id}?training=required`);
   }
 
+  let initialPayload = null;
+  let initialError: string | null = null;
+  try {
+    initialPayload = await buildChoirCalendarPagePayload(user, id);
+    if (!initialPayload) {
+      initialError = "Access denied.";
+    }
+  } catch (error) {
+    console.error("[groups/calendar]", error);
+    initialError = error instanceof Error ? error.message : "Could not load calendar.";
+  }
+
   return (
     <div className="min-h-full bg-[#FAF7F1] px-4 pb-6 pt-2 dark:bg-[var(--color-bg)]">
       <Suspense fallback={<div className="py-6 text-sm text-night-500">Loading calendar…</div>}>
-        <ChoirWorshipCalendarPage groupId={id} />
+        <ChoirWorshipCalendarPage
+          groupId={id}
+          initialPayload={initialPayload}
+          initialError={initialError}
+        />
       </Suspense>
     </div>
   );

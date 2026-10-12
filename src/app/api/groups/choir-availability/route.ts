@@ -29,9 +29,17 @@ export async function GET(request: Request) {
   const view = searchParams.get("view")?.trim() ?? "home";
 
   if (view === "home") {
-    const payload = await buildChoirAvailabilityHomePayload(user, groupId);
-    if (!payload) return NextResponse.json({ error: "Access denied." }, { status: 403 });
-    return NextResponse.json({ payload });
+    try {
+      const payload = await buildChoirAvailabilityHomePayload(user, groupId);
+      if (!payload) return NextResponse.json({ error: "Access denied." }, { status: 403 });
+      return NextResponse.json({ payload });
+    } catch (error) {
+      console.error("[choir-availability:home]", error);
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Could not load availability." },
+        { status: 500 },
+      );
+    }
   }
 
   if (view === "opportunities") {
@@ -53,9 +61,17 @@ export async function GET(request: Request) {
   }
 
   if (view === "my_schedule") {
-    const mySchedule = await buildChoirMySchedulePayload(user, groupId);
-    if (!mySchedule) return NextResponse.json({ error: "Access denied." }, { status: 403 });
-    return NextResponse.json({ mySchedule });
+    try {
+      const mySchedule = await buildChoirMySchedulePayload(user, groupId);
+      if (!mySchedule) return NextResponse.json({ error: "Access denied." }, { status: 403 });
+      return NextResponse.json({ mySchedule });
+    } catch (error) {
+      console.error("[choir-availability:my_schedule]", error);
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Could not load your schedule." },
+        { status: 500 },
+      );
+    }
   }
 
   if (view === "calendar") {

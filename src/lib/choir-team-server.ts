@@ -107,6 +107,69 @@ async function memberViewFromGroup(
   };
 }
 
+export type ChoirMemberAssignmentsPayload = {
+  upcoming: ChoirTeamAssignmentView[];
+  recent: ChoirTeamAssignmentView[];
+};
+
+async function assertChoirTeamAccess(user: PublicMember, groupId: string) {
+  if (groupId !== SHANAH_WORSHIP_GROUP_ID) {
+    return null;
+  }
+
+  const group = await getGroupDetail(groupId, user.id);
+  const isSiteAdmin = await canManageAsAdmin(user);
+  if (!group?.isMember && !isSiteAdmin) {
+    return null;
+  }
+
+  if (group?.isMember && (await isMemberTrainingRequired(user.id, group))) {
+    return null;
+  }
+
+  return group;
+}
+
+function memberAssignmentsFromPlans(user: PublicMember, plans: WorshipServicePlan[]): ChoirMemberAssignmentsPayload {
+  const nowMs = Date.now();
+  const myAssignments = plans
+    .map((plan) => {
+      const mine = plan.team.find((member) => member.userId === user.id);
+      if (!mine) return null;
+      return toAssignment(plan, mine, nowMs);
+    })
+    .filter((entry): entry is ChoirTeamAssignmentView => entry !== null);
+
+  const upcoming = myAssignments.filter((entry) => entry.startsAtMs >= nowMs - 3_600_000);
+  const recent = myAssignments
+    .filter((entry) => entry.startsAtMs < nowMs - 3_600_000)
+    .sort((a, b) => b.startsAtMs - a.startsAtMs)
+    .slice(0, 5);
+
+  return { upcoming, recent };
+}
+
+/** Personal assignments only — avoids loading the full roster (used by availability & schedule). */
+export async function listChoirMemberAssignments(
+  user: PublicMember,
+  groupId: string,
+): Promise<ChoirMemberAssignmentsPayload | null> {
+  if (!(await assertChoirTeamAccess(user, groupId))) {
+    return null;
+  }
+
+  const since = isoDaysAgo(120);
+  const plans = (await listWorshipPlans({ since }))
+    .filter((plan) => plan.status === "published")
+    .sort(
+      (a, b) =>
+        combinePlanDateTime(a.serviceDate, a.serviceTime).getTime() -
+        combinePlanDateTime(b.serviceDate, b.serviceTime).getTime(),
+    );
+
+  return memberAssignmentsFromPlans(user, plans);
+}
+
 function buildSectionGroups(
   members: ChoirTeamMemberView[],
   kind: "vocal" | "instrument",
@@ -128,17 +191,8 @@ export async function buildChoirTeamPagePayload(
   user: PublicMember,
   groupId: string,
 ): Promise<ChoirTeamPagePayload | null> {
-  if (groupId !== SHANAH_WORSHIP_GROUP_ID) {
-    return null;
-  }
-
-  const group = await getGroupDetail(groupId, user.id);
-  const isSiteAdmin = await canManageAsAdmin(user);
-  if (!group?.isMember && !isSiteAdmin) {
-    return null;
-  }
-
-  if (group?.isMember && (await isMemberTrainingRequired(user.id, group))) {
+  const group = await assertChoirTeamAccess(user, groupId);
+  if (!group) {
     return null;
   }
 
@@ -154,20 +208,7 @@ export async function buildChoirTeamPagePayload(
         combinePlanDateTime(b.serviceDate, b.serviceTime).getTime(),
     );
 
-  const nowMs = Date.now();
-  const myAssignments = plans
-    .map((plan) => {
-      const mine = plan.team.find((member) => member.userId === user.id);
-      if (!mine) return null;
-      return toAssignment(plan, mine, nowMs);
-    })
-    .filter((entry): entry is ChoirTeamAssignmentView => entry !== null);
-
-  const upcoming = myAssignments.filter((entry) => entry.startsAtMs >= nowMs - 3_600_000);
-  const recent = myAssignments
-    .filter((entry) => entry.startsAtMs < nowMs - 3_600_000)
-    .sort((a, b) => b.startsAtMs - a.startsAtMs)
-    .slice(0, 5);
+  const assignments = memberAssignmentsFromPlans(user, plans);
 
   const roleByUserId = new Map<string, string>();
   for (const plan of [...plans].reverse()) {
@@ -193,8 +234,8 @@ export async function buildChoirTeamPagePayload(
   const instrumentSections = buildSectionGroups(teamMembers, "instrument");
 
   return {
-    upcoming,
-    recent,
+    upcoming: assignments.upcoming,
+    recent: assignments.recent,
     teamPreview: teamMembers.slice(0, 8),
     teamMembers,
     leadership,

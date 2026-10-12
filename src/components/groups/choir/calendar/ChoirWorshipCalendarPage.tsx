@@ -49,18 +49,24 @@ function statusLabel(event: ChoirCalendarEvent) {
 
 type ChoirWorshipCalendarPageProps = {
   groupId: string;
+  initialPayload?: ChoirCalendarPagePayload | null;
+  initialError?: string | null;
 };
 
-export function ChoirWorshipCalendarPage({ groupId }: ChoirWorshipCalendarPageProps) {
+export function ChoirWorshipCalendarPage({
+  groupId,
+  initialPayload = null,
+  initialError = null,
+}: ChoirWorshipCalendarPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [tab, setTab] = useState<ChoirCalendarTabId>(() =>
     parseTab(searchParams.get("tab"), searchParams.get("filter")),
   );
-  const [payload, setPayload] = useState<ChoirCalendarPagePayload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [payload, setPayload] = useState<ChoirCalendarPagePayload | null>(initialPayload);
+  const [loading, setLoading] = useState(!initialPayload && !initialError);
+  const [error, setError] = useState<string | null>(initialError);
 
   const denverToday = getZonedDateParts();
   const [monthCursor, setMonthCursor] = useState(() => ({
@@ -75,10 +81,10 @@ export function ChoirWorshipCalendarPage({ groupId }: ChoirWorshipCalendarPagePr
 
   const load = useCallback(() => {
     setLoading(true);
-    fetch(`/api/groups/choir-calendar?groupId=${encodeURIComponent(groupId)}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.payload) {
+    fetch(`/api/groups/choir-calendar?groupId=${encodeURIComponent(groupId)}`, { credentials: "include" })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data.payload) {
           setError(data.error ?? "Could not load calendar.");
           setPayload(null);
         } else {
@@ -94,8 +100,9 @@ export function ChoirWorshipCalendarPage({ groupId }: ChoirWorshipCalendarPagePr
   }, [groupId]);
 
   useEffect(() => {
+    if (initialPayload || initialError) return;
     load();
-  }, [load]);
+  }, [load, initialPayload, initialError]);
 
   useEffect(() => {
     if (searchParams.get("tab") === "my") {

@@ -14,26 +14,35 @@ import type {
 
 type ChoirMyScheduleTabProps = {
   groupId: string;
+  initialData?: ChoirMySchedulePayload | null;
+  initialError?: string | null;
 };
 
-export function ChoirMyScheduleTab({ groupId }: ChoirMyScheduleTabProps) {
-  const [data, setData] = useState<ChoirMySchedulePayload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function ChoirMyScheduleTab({
+  groupId,
+  initialData = null,
+  initialError = null,
+}: ChoirMyScheduleTabProps) {
+  const [data, setData] = useState<ChoirMySchedulePayload | null>(initialData);
+  const [loading, setLoading] = useState(!initialData && !initialError);
+  const [error, setError] = useState<string | null>(initialError);
   const [selectedAssignment, setSelectedAssignment] = useState<ChoirAvailabilityAssignmentPreview | null>(null);
   const [selectedAvailability, setSelectedAvailability] = useState<ChoirAvailabilityOpportunityView | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetch(`/api/groups/choir-availability?groupId=${encodeURIComponent(groupId)}&view=my_schedule`)
+    fetch(`/api/groups/choir-availability?groupId=${encodeURIComponent(groupId)}&view=my_schedule`, {
+      credentials: "include",
+    })
       .then(async (response) => {
         const body = await response.json();
-        if (!response.ok) {
+        if (!response.ok || !body.mySchedule) {
           setError(body.error ?? "Could not load your schedule.");
           setData(null);
         } else {
           setData(body.mySchedule);
+          setError(null);
         }
         setLoading(false);
       })
@@ -44,8 +53,9 @@ export function ChoirMyScheduleTab({ groupId }: ChoirMyScheduleTabProps) {
   }, [groupId]);
 
   useEffect(() => {
+    if (initialData || initialError) return;
     load();
-  }, [load]);
+  }, [load, initialData, initialError]);
 
   async function confirmAssignment(assignment: ChoirAvailabilityAssignmentPreview, ready: boolean) {
     const response = await fetch("/api/worship", {

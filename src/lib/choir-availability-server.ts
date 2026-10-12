@@ -18,7 +18,7 @@ import type {
 } from "@/lib/choir-availability-types";
 import { DEFAULT_AVAILABILITY_GUIDELINES as DEFAULT_GUIDELINES } from "@/lib/choir-availability-types";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
-import { buildChoirTeamPagePayload } from "@/lib/choir-team-server";
+import { buildChoirTeamPagePayload, listChoirMemberAssignments } from "@/lib/choir-team-server";
 import type { ChoirTeamAssignmentView } from "@/lib/choir-team-types";
 import { getGroupDetail } from "@/lib/group-server";
 import { canManageGroupEvents } from "@/lib/group-permissions-server";
@@ -194,9 +194,11 @@ export async function buildChoirAvailabilityHomePayload(
   user: PublicMember,
   groupId: string,
 ): Promise<ChoirAvailabilityHomePayload | null> {
-  const calendar = await buildChoirCalendarPagePayload(user, groupId);
-  const team = await buildChoirTeamPagePayload(user, groupId);
-  if (!calendar || !team) return null;
+  const [calendar, assignments] = await Promise.all([
+    buildChoirCalendarPagePayload(user, groupId),
+    listChoirMemberAssignments(user, groupId),
+  ]);
+  if (!calendar || !assignments) return null;
 
   const canManage = await canManageChoirAvailability(user, groupId);
   const future = eligibleFutureEvents(calendar.events);
@@ -208,7 +210,7 @@ export async function buildChoirAvailabilityHomePayload(
     changeRequests.filter((row) => row.status === "pending").map((row) => row.planKey).filter(Boolean),
   );
 
-  const assignmentPreview = team.upcoming.slice(0, 3).map((assignment) => ({
+  const assignmentPreview = assignments.upcoming.slice(0, 3).map((assignment) => ({
     ...assignment,
     changeRequestPending: pendingPlanKeys.has(assignment.planKey),
   }));
@@ -317,18 +319,18 @@ export async function buildChoirAvailabilityCalendarMonth(
 }
 
 export async function getChoirAvailabilitySchedulePayload(user: PublicMember, groupId: string) {
-  const team = await buildChoirTeamPagePayload(user, groupId);
-  if (!team) return null;
+  const assignments = await listChoirMemberAssignments(user, groupId);
+  if (!assignments) return null;
   const changeRequests = await listChoirScheduleChangeRequestsJson(groupId, user.id);
   const pendingPlanKeys = new Set(
     changeRequests.filter((row) => row.status === "pending").map((row) => row.planKey).filter(Boolean),
   );
   return {
-    upcoming: team.upcoming.map((assignment) => ({
+    upcoming: assignments.upcoming.map((assignment) => ({
       ...assignment,
       changeRequestPending: pendingPlanKeys.has(assignment.planKey),
     })),
-    recent: team.recent,
+    recent: assignments.recent,
   };
 }
 
@@ -342,9 +344,12 @@ export async function buildChoirMySchedulePayload(
   user: PublicMember,
   groupId: string,
 ): Promise<ChoirMySchedulePayload | null> {
-  const schedule = await getChoirAvailabilitySchedulePayload(user, groupId);
-  const opportunities = await listChoirAvailabilityOpportunities(user, groupId, "upcoming");
-  if (!schedule || !opportunities) return null;
+  const [schedule, opportunities] = await Promise.all([
+    getChoirAvailabilitySchedulePayload(user, groupId),
+    listChoirAvailabilityOpportunities(user, groupId, "upcoming"),
+  ]);
+  if (!schedule) return null;
+  const opportunityRows = opportunities ?? [];
 
   const nowMs = Date.now();
   const since = isoDaysAgo(30);
@@ -377,8 +382,8 @@ export async function buildChoirMySchedulePayload(
     });
   }
 
-  const availabilitySubmitted = opportunities.filter((row) => row.availabilityStatus !== "not_responded");
-  const availabilityAwaiting = opportunities.filter((row) => row.availabilityStatus === "not_responded");
+  const availabilitySubmitted = opportunityRows.filter((row) => row.availabilityStatus !== "not_responded");
+  const availabilityAwaiting = opportunityRows.filter((row) => row.availabilityStatus === "not_responded");
 
   return {
     assignments: schedule.upcoming,

@@ -14,6 +14,7 @@ import type {
   ChoirAvailabilityHomePayload,
   ChoirAvailabilityOpportunityView,
   ChoirAvailabilityTabId,
+  ChoirMySchedulePayload,
 } from "@/lib/choir-availability-types";
 import {
   ChoirIconCalendar,
@@ -40,15 +41,30 @@ function statusDotClass(status: string) {
   return "choir-avail-dot-pending";
 }
 
-export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
+type ChoirAvailabilityCenterPageProps = {
+  groupId: string;
+  initialHomePayload?: ChoirAvailabilityHomePayload | null;
+  initialHomeError?: string | null;
+  initialMySchedule?: ChoirMySchedulePayload | null;
+  initialMyScheduleError?: string | null;
+};
+
+export function ChoirAvailabilityCenterPage({
+  groupId,
+  initialHomePayload = null,
+  initialHomeError = null,
+  initialMySchedule = null,
+  initialMyScheduleError = null,
+}: ChoirAvailabilityCenterPageProps) {
   const searchParams = useSearchParams();
   const tab = parseTab(searchParams.get("tab"));
+  const homeRequired = tab === "home" || tab === "upcoming" || tab === "past" || tab === "guidelines";
 
-  const [payload, setPayload] = useState<ChoirAvailabilityHomePayload | null>(null);
+  const [payload, setPayload] = useState<ChoirAvailabilityHomePayload | null>(initialHomePayload);
   const [listRows, setListRows] = useState<ChoirAvailabilityOpportunityView[]>([]);
   const [guidelinesMarkdown, setGuidelinesMarkdown] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!initialHomePayload && !initialHomeError && homeRequired);
+  const [error, setError] = useState<string | null>(initialHomeError);
 
   const denverToday = getZonedDateParts();
   const [monthCursor, setMonthCursor] = useState(() => ({
@@ -79,10 +95,12 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
 
   const loadHome = useCallback(() => {
     setLoading(true);
-    fetch(`/api/groups/choir-availability?groupId=${encodeURIComponent(groupId)}&view=home`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.payload) {
+    fetch(`/api/groups/choir-availability?groupId=${encodeURIComponent(groupId)}&view=home`, {
+      credentials: "include",
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data.payload) {
           setError(data.error ?? "Could not load availability.");
           setPayload(null);
         } else {
@@ -141,9 +159,11 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
   }, [groupId, tab, filterCategory, filterStatus, loadCalendar]);
 
   useEffect(() => {
+    if (tab === "my-schedule") return;
+    if (initialHomePayload) return;
     loadHome();
     window.scrollTo(0, 0);
-  }, [loadHome]);
+  }, [loadHome, initialHomePayload, tab]);
 
   useEffect(() => {
     loadTabData();
@@ -236,7 +256,9 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
 
   const bulkEvents = bulkRows.length > 0 ? bulkRows : payload?.opportunities ?? [];
 
-  if (loading && !payload) {
+  const groupChatHref = payload?.groupChatHref ?? `/groups/${encodeURIComponent(groupId)}?chat=1`;
+
+  if (homeRequired && loading && !payload) {
     return (
       <div className="choir-group-home choir-availability-page px-4 py-3">
         <p className="text-sm text-[var(--choir-muted)]">Loading availability center…</p>
@@ -244,10 +266,13 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
     );
   }
 
-  if (error || !payload) {
+  if (homeRequired && (error || !payload)) {
     return (
       <div className="choir-group-home choir-availability-page px-4 py-3">
         <p className="text-sm text-red-700">{error ?? "Unavailable."}</p>
+        <button type="button" className="choir-setlist-manage-link mt-3" onClick={loadHome}>
+          Retry
+        </button>
       </div>
     );
   }
@@ -259,10 +284,10 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
 
   return (
     <div className="choir-group-home choir-availability-page choir-calendar-page choir-page-shell space-y-[18px] pb-10">
-      <ChoirSetlistHeader groupId={groupId} chatHref={payload.groupChatHref} />
+      <ChoirSetlistHeader groupId={groupId} chatHref={groupChatHref} />
       <AvailabilityTabs groupId={groupId} active={tab} />
 
-      {tab === "home" ? (
+      {tab === "home" && payload ? (
         <>
           <section className="choir-song-hero choir-avail-hero">
             <Image
@@ -443,7 +468,13 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
         </>
       ) : null}
 
-      {tab === "my-schedule" ? <ChoirMyScheduleTab groupId={groupId} /> : null}
+      {tab === "my-schedule" ? (
+        <ChoirMyScheduleTab
+          groupId={groupId}
+          initialData={initialMySchedule}
+          initialError={initialMyScheduleError}
+        />
+      ) : null}
 
       {(tab === "upcoming" || tab === "past") && (
         <OpportunitiesTab
@@ -454,7 +485,7 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
           onFilterCategory={setFilterCategory}
           onFilterStatus={setFilterStatus}
           onSelect={setSelectedRow}
-          summary={payload.summary}
+          summary={payload?.summary ?? { awaiting: 0, available: 0, unavailable: 0, maybe: 0 }}
         />
       )}
 
@@ -462,7 +493,7 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
         <GuidelinesTab markdown={guidelinesMarkdown ?? ""} />
       ) : null}
 
-      {payload.canManage && payload.teamAvailabilityHref ? (
+      {payload?.canManage && payload.teamAvailabilityHref ? (
         <Link href={payload.teamAvailabilityHref} className="choir-setlist-manage-link block text-center">
           Team availability →
         </Link>

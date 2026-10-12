@@ -16,10 +16,18 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const groupId = searchParams.get("groupId")?.trim() ?? SHANAH_WORSHIP_GROUP_ID;
 
-  const payload = await buildChoirCalendarPagePayload(user, groupId);
-  if (!payload) {
-    return NextResponse.json({ error: "Access denied." }, { status: 403 });
-  }
+  try {
+    const payload = await buildChoirCalendarPagePayload(user, groupId);
+    if (!payload) {
+      return NextResponse.json({ error: "Access denied." }, { status: 403 });
+    }
 
-  return NextResponse.json({ payload });
+    return NextResponse.json({ payload });
+  } catch (error) {
+    console.error("[choir-calendar]", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not load calendar." },
+      { status: 500 },
+    );
+  }
 }

@@ -18,12 +18,20 @@ export async function GET(request: Request) {
   }
 
   const groupId = new URL(request.url).searchParams.get("groupId")?.trim() ?? SHANAH_WORSHIP_GROUP_ID;
-  const home = await buildChoirHomeDashboard(user, groupId);
-  if (!home) {
-    return NextResponse.json({ error: "Access denied." }, { status: 403 });
-  }
+  try {
+    const home = await buildChoirHomeDashboard(user, groupId);
+    if (!home) {
+      return NextResponse.json({ error: "Access denied." }, { status: 403 });
+    }
 
-  return NextResponse.json({ home });
+    return NextResponse.json({ home });
+  } catch (error) {
+    console.error("[choir-home]", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not load choir home." },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(request: Request) {
