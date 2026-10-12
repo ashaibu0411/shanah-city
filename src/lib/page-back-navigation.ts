@@ -80,7 +80,8 @@ export function resolvePageBackLink(
       path === `${choirGroupPath}/announcements` ||
       path.startsWith(`${choirGroupPath}/academy`) ||
       path.startsWith(`${choirGroupPath}/connect`) ||
-      path.startsWith(`${choirGroupPath}/resources`)
+      path.startsWith(`${choirGroupPath}/resources`) ||
+      path.startsWith(`${choirGroupPath}/song-suggestions`)
     ) {
       return { href: choirGroupPath, label: "Back to worship home" };
     }

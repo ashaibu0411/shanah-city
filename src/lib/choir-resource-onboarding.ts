@@ -35,6 +35,12 @@ export function choirOnboardingLinks(groupId: string = SHANAH_WORSHIP_GROUP_ID):
       href: `/groups/${g}/setlists`,
     },
     {
+      id: "song-suggestions",
+      title: "Song suggestions",
+      description: "Recommend songs for worship leadership to consider.",
+      href: `/groups/${g}/song-suggestions`,
+    },
+    {
       id: "calendar",
       title: "Worship calendar",
       description: "Services, rehearsals, and your schedule.",
@@ -68,5 +74,10 @@ export function choirBuiltinHelpfulLinks(groupId: string = SHANAH_WORSHIP_GROUP_
     { title: "Bible study resources", description: "Church devotions", href: "/devotions" },
     { title: "Rehearsal room", description: "Practice tracks and charts", href: `/groups/${g}/rehearsal` },
     { title: "Team Connect", description: "Official announcements", href: `/groups/${g}/connect?tab=announcements` },
+    {
+      title: "Song suggestions",
+      description: "Recommend worship songs for leadership review",
+      href: `/groups/${g}/song-suggestions`,
+    },
   ];
 }

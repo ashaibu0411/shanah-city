@@ -2105,3 +2105,456 @@
   color: var(--choir-heading);
   white-space: nowrap;
 }
+
+/* Song Suggestions (Page 10) */
+.choir-song-suggestions-page .choir-song-suggestion-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+}
+
+.choir-song-suggestions-page .choir-song-suggestion-tab {
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--choir-surface-soft);
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.choir-song-suggestions-page .choir-song-suggestion-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-song-suggestions-page .choir-song-hero {
+  position: relative;
+  min-height: 200px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #181322;
+}
+
+.choir-song-suggestions-page .choir-song-hero-img {
+  opacity: 0.55;
+}
+
+.choir-song-suggestions-page .choir-song-hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px;
+  background: linear-gradient(180deg, transparent 10%, rgba(24, 19, 34, 0.92) 72%);
+}
+
+.choir-song-suggestions-page .choir-song-hero-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--choir-gold);
+}
+
+.choir-song-suggestions-page .choir-song-hero-title {
+  margin-top: 6px;
+  font-family: var(--font-display, serif);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.choir-song-suggestions-page .choir-song-hero-sub {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.choir-song-suggestions-page .choir-song-quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.choir-song-suggestions-page .choir-song-quick-card {
+  position: relative;
+  min-height: 108px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 12px 22px 12px 12px;
+  text-align: left;
+  box-shadow: 0 6px 18px rgba(37, 32, 42, 0.05);
+}
+
+.choir-song-suggestions-page .choir-song-quick-icon {
+  display: inline-flex;
+  height: 36px;
+  width: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--choir-gold-soft);
+  color: var(--choir-gold-dark);
+}
+
+.choir-song-suggestions-page .choir-song-quick-title {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  line-height: 1.2;
+}
+
+.choir-song-suggestions-page .choir-song-quick-sub {
+  font-size: 11px;
+  color: var(--choir-muted);
+}
+
+.choir-song-suggestions-page .choir-song-quick-chevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--choir-muted);
+}
+
+.choir-song-suggestions-page .choir-song-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.choir-song-suggestions-page .choir-song-section-title {
+  font-family: var(--font-display, serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+.choir-song-suggestions-page .choir-song-see-all {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--choir-gold-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.choir-song-suggestions-page .choir-song-recent-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.choir-song-suggestions-page .choir-song-recent-card {
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  overflow: hidden;
+}
+
+.choir-song-suggestions-page .choir-song-recent-link {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  align-items: stretch;
+}
+
+.choir-song-suggestions-page .choir-song-recent-thumb-wrap {
+  position: relative;
+  flex: 0 0 96px;
+  height: 72px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.choir-song-suggestions-page .choir-song-recent-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.choir-song-suggestions-page .choir-song-recent-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 14px;
+}
+
+.choir-song-suggestions-page .choir-song-recent-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.choir-song-suggestions-page .choir-song-recent-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  line-height: 1.2;
+}
+
+.choir-song-suggestions-page .choir-song-recent-artist {
+  font-size: 11px;
+  color: var(--choir-muted);
+}
+
+.choir-song-suggestions-page .choir-song-recent-excerpt {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--choir-body);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.choir-song-suggestions-page .choir-song-recent-byline {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--choir-muted);
+}
+
+.choir-song-suggestions-page .choir-song-recent-stats {
+  margin-top: 6px;
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--choir-muted);
+}
+
+.choir-song-suggestions-page .choir-song-recent-chevron {
+  align-self: center;
+  font-size: 22px;
+  color: var(--choir-muted);
+}
+
+.choir-song-suggestions-page .choir-song-status-badge {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.choir-song-suggestions-page .choir-song-status-review {
+  background: #fce8d4;
+  color: #9a5b12;
+}
+
+.choir-song-suggestions-page .choir-song-status-approved {
+  background: #d8efe4;
+  color: #348567;
+}
+
+.choir-song-suggestions-page .choir-song-status-declined {
+  background: #f3e8e8;
+  color: #8b4545;
+}
+
+.choir-song-suggestions-page .choir-song-status-neutral {
+  background: var(--choir-surface-soft);
+  color: var(--choir-muted);
+}
+
+.choir-song-suggestions-page .choir-song-trending-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.choir-song-suggestions-page .choir-song-trending-card {
+  flex: 0 0 auto;
+  width: 140px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 8px;
+}
+
+.choir-song-suggestions-page .choir-song-trending-thumb-wrap {
+  border-radius: 12px;
+  overflow: hidden;
+  height: 88px;
+}
+
+.choir-song-suggestions-page .choir-song-trending-thumb {
+  width: 100%;
+  height: 88px;
+  object-fit: cover;
+}
+
+.choir-song-suggestions-page .choir-song-trending-title {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  line-height: 1.2;
+}
+
+.choir-song-suggestions-page .choir-song-trending-artist {
+  font-size: 10px;
+  color: var(--choir-muted);
+}
+
+.choir-song-suggestions-page .choir-song-trending-meta {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  font-size: 10px;
+}
+
+.choir-song-suggestions-page .choir-song-support-chip,
+.choir-song-suggestions-page .choir-song-support-inline {
+  border-radius: 9999px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface-soft);
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.choir-song-suggestions-page .choir-song-support-chip-on,
+.choir-song-suggestions-page .choir-song-support-inline-on {
+  border-color: var(--choir-gold);
+  background: var(--choir-gold-soft);
+  color: var(--choir-gold-dark);
+}
+
+.choir-song-suggestions-page .choir-song-comment-chip {
+  font-size: 10px;
+  color: var(--choir-muted);
+}
+
+.choir-song-suggestions-page .choir-song-play-btn {
+  display: inline-flex;
+  height: 28px;
+  width: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--choir-gold);
+  font-size: 10px;
+}
+
+.choir-song-suggestions-page .choir-song-bottom-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border-radius: 18px;
+  background: #f5efe5;
+  padding: 14px;
+}
+
+.choir-song-suggestions-page .choir-song-cta-bulb {
+  display: inline-flex;
+  height: 44px;
+  width: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--choir-gold-soft);
+  font-size: 20px;
+}
+
+.choir-song-suggestions-page .choir-song-cta-copy {
+  flex: 1;
+  min-width: 180px;
+}
+
+.choir-song-suggestions-page .choir-song-cta-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-song-suggestions-page .choir-song-cta-sub {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--choir-body);
+  line-height: 1.4;
+}
+
+.choir-song-suggestions-page .choir-song-cta-btn {
+  min-height: 44px;
+  border-radius: 9999px;
+  border: none;
+  background: #aa751d;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.choir-song-suggestions-page .choir-song-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  height: 52px;
+  width: 52px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--choir-gold);
+  box-shadow: 0 8px 24px rgba(170, 117, 29, 0.45);
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--choir-heading);
+}
+
+.choir-song-suggestions-page .choir-song-form-sheet {
+  max-height: min(92vh, 720px);
+  overflow-y: auto;
+}
+
+.choir-song-suggestions-page .choir-song-detail-img {
+  width: 100%;
+  height: 160px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.choir-song-suggestions-page .choir-song-review-btn {
+  min-height: 40px;
+  border-radius: 9999px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+.choir-song-suggestions-page .choir-song-library-hit {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border-radius: 12px;
+  border: 1px solid var(--choir-border);
+  padding: 10px;
+  font-size: 12px;
+  background: var(--choir-surface-soft);
+}
