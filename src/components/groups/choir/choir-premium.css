@@ -92,19 +92,6 @@
   color: var(--choir-heading);
 }
 
-.choir-group-home .choir-home-split-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-}
-
-@media (min-width: 380px) {
-  .choir-group-home .choir-home-split-grid {
-    grid-template-columns: 1fr 1fr;
-    align-items: start;
-  }
-}
-
 .choir-group-home {
   --choir-page: #faf7f1;
   --choir-surface: #ffffff;

@@ -145,24 +145,22 @@ export function ChoirGroupDashboard({
         </button>
       ) : null}
 
-      <div className="choir-home-split-grid">
-        <ChoirUpcomingRehearsal
-          rehearsal={home.rehearsal}
-          onSeeAll={onOpenCalendar}
-          canManageSchedule={home.canManageSchedule}
-          onManageSchedule={onOpenCalendar}
-        />
-        <ChoirAnnouncements items={home.announcements} onOpenChat={onOpenChat} />
-      </div>
+      <ChoirUpcomingRehearsal
+        rehearsal={home.rehearsal}
+        onSeeAll={onOpenCalendar}
+        canManageSchedule={home.canManageSchedule}
+        onManageSchedule={onOpenCalendar}
+      />
 
-      <div className="choir-home-split-grid">
-        <ChoirPreparationChecklist
-          planKey={home.preparationPlanKey}
-          checked={checked}
-          onChange={updatePreparation}
-        />
-        <ChoirWordForTeam />
-      </div>
+      <ChoirAnnouncements items={home.announcements} onOpenChat={onOpenChat} />
+
+      <ChoirPreparationChecklist
+        planKey={home.preparationPlanKey}
+        checked={checked}
+        onChange={updatePreparation}
+      />
+
+      <ChoirWordForTeam />
     </div>
   );
 }
