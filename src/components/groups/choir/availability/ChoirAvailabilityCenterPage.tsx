@@ -23,7 +23,8 @@ import type {
 } from "@/lib/choir-availability-types";
 import { ChoirIconCalendar } from "@/components/groups/choir/choir-icons";
 import { ChoirMyScheduleTab } from "@/components/groups/choir/availability/ChoirMyScheduleTab";
-import { getZonedDateParts } from "@/lib/denver-time";
+import { formatDenverTime, getZonedDateParts } from "@/lib/denver-time";
+import { formatAmericanDate } from "@/lib/unavailability-dates";
 import "../choir-premium.css";
 
 function parseTab(value: string | null): ChoirAvailabilityTabId {
@@ -96,6 +97,7 @@ export function ChoirAvailabilityCenterPage({
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [message, setMessage] = useState<string | null>(null);
+  const [editorError, setEditorError] = useState<string | null>(null);
   const [calendarDayKey, setCalendarDayKey] = useState<string | null>(null);
   const [bulkMonthScope, setBulkMonthScope] = useState<string | null>(null);
   const [bulkRows, setBulkRows] = useState<ChoirAvailabilityOpportunityView[]>([]);
@@ -202,9 +204,11 @@ export function ChoirAvailabilityCenterPage({
   async function saveResponse(eventId: string, response: string, note?: string) {
     setEditorBusy(true);
     setMessage(null);
+    setEditorError(null);
     const res = await fetch("/api/groups/choir-availability", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         action: "save_response",
         groupId: SHANAH_WORSHIP_GROUP_ID,
@@ -216,11 +220,14 @@ export function ChoirAvailabilityCenterPage({
     const data = await res.json();
     setEditorBusy(false);
     if (!res.ok) {
-      setMessage(data.error ?? "Could not save.");
+      const err = data.error ?? "Could not save.";
+      setEditorError(err);
+      setMessage(err);
       return;
     }
     setMessage("Availability saved.");
     setSelectedRow(null);
+    setEditorError(null);
     loadHome();
     loadTabData();
   }
@@ -653,8 +660,12 @@ export function ChoirAvailabilityCenterPage({
           row={selectedRow}
           note={editorNote}
           busy={editorBusy}
+          saveError={editorError}
           onNote={setEditorNote}
-          onClose={() => setSelectedRow(null)}
+          onClose={() => {
+            setSelectedRow(null);
+            setEditorError(null);
+          }}
           onSave={(response) => saveResponse(selectedRow.event.id, response)}
         />
       ) : null}
@@ -700,10 +711,18 @@ export function ChoirAvailabilityCenterPage({
   );
 }
 
+function formatResponseDeadline(iso: string) {
+  const date = new Date(iso);
+  const datePart = formatAmericanDate(getZonedDateParts(date).dateKey);
+  const timePart = formatDenverTime(date);
+  return `${datePart} at ${timePart} MT`;
+}
+
 function ResponseEditor({
   row,
   note,
   busy,
+  saveError,
   onNote,
   onClose,
   onSave,
@@ -711,22 +730,33 @@ function ResponseEditor({
   row: ChoirAvailabilityOpportunityView;
   note: string;
   busy: boolean;
+  saveError: string | null;
   onNote: (value: string) => void;
   onClose: () => void;
   onSave: (response: string) => void;
 }) {
+  const locked = row.deadlinePassed && !row.canEdit;
+
   return (
     <div className="choir-setlist-sheet-backdrop" role="presentation" onClick={onClose}>
       <div className="choir-setlist-sheet" role="dialog" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-display text-xl font-bold text-[var(--choir-heading)]">{row.event.title}</h2>
         <p className="text-sm text-[var(--choir-muted)]">
-          {row.event.dateKey} · {row.event.timeLabel} · {row.event.location}
+          {formatAmericanDate(row.event.dateKey)} · {row.event.timeLabel} · {row.event.location}
         </p>
         {row.responseDeadline ? (
           <p className="mt-1 text-xs text-[var(--choir-muted)]">
-            Respond by {new Date(row.responseDeadline).toLocaleString()}
+            Respond by {formatResponseDeadline(row.responseDeadline)}
             {row.deadlinePassed ? " (deadline passed)" : ""}
           </p>
+        ) : null}
+        {locked ? (
+          <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800">
+            Responses are closed for this event. Contact worship leadership if you still need to update your status.
+          </p>
+        ) : null}
+        {saveError ? (
+          <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800">{saveError}</p>
         ) : null}
         {row.conflicts.length > 0 ? (
           <ul className="mt-2 space-y-1 text-xs text-red-700">
@@ -748,7 +778,7 @@ function ResponseEditor({
               key={response}
               type="button"
               className="choir-avail-response-btn"
-              disabled={busy || (row.deadlinePassed && !row.canEdit)}
+              disabled={busy || locked}
               onClick={() => onSave(response)}
             >
               {response === "available" ? "Available" : response === "unavailable" ? "Unavailable" : "Maybe"}
@@ -759,6 +789,7 @@ function ResponseEditor({
           className="choir-announcement-textarea mt-3 w-full min-h-[72px]"
           placeholder="Optional note for leadership"
           value={note}
+          disabled={locked}
           onChange={(e) => onNote(e.target.value)}
         />
       </div>

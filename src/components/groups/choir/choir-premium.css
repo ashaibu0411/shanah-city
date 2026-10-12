@@ -2724,6 +2724,11 @@
   color: var(--choir-heading);
 }
 
+.choir-availability-page .choir-avail-response-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .choir-availability-page .choir-avail-page-intro {
   padding: 0 2px;
 }

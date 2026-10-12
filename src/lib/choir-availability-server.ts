@@ -61,8 +61,9 @@ function availabilityLabel(status: ChoirAvailabilityDisplayStatus) {
   }
 }
 
+/** Members may respond until the event begins (Mountain Time), unless leadership sets an earlier deadline. */
 function defaultDeadlineMs(event: ChoirCalendarEvent) {
-  return event.startsAtMs - 24 * 3_600_000;
+  return event.startsAtMs;
 }
 
 async function assertChoirAvailabilityAccess(user: PublicMember, groupId: string) {
@@ -532,7 +533,9 @@ export async function handleChoirAvailabilityAction(user: PublicMember, body: Re
       deadlines[eventId] ?? new Date(defaultDeadlineMs(event)).toISOString(),
     ).getTime();
     if (Date.now() > deadlineMs) {
-      throw new Error("The availability deadline has passed. Contact worship leadership.");
+      throw new Error(
+        "The response window has closed (this event has started or leadership set an earlier deadline). Contact worship leadership if you need help.",
+      );
     }
 
     const now = new Date().toISOString();
