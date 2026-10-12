@@ -9,10 +9,12 @@ import type {
   ChoirAnnouncementsPagePayload,
   ChoirMinistryAnnouncement,
 } from "@/lib/choir-announcements-types";
+import type { ChoirAnnouncementCategory } from "@/lib/choir-announcements-types";
 import {
   createChoirAnnouncementJson,
   deleteChoirAnnouncementJson,
   listChoirAnnouncementsJson,
+  updateChoirAnnouncementJson,
 } from "@/lib/stores/choir-announcements-json";
 
 function excerpt(text: string, max = 160) {
@@ -43,6 +45,18 @@ function sampleAnnouncements(groupId: string): ChoirMinistryAnnouncement[] {
   ];
 }
 
+function normalizeCategory(value?: string): ChoirAnnouncementCategory {
+  if (
+    value === "urgent" ||
+    value === "rehearsal" ||
+    value === "service" ||
+    value === "training"
+  ) {
+    return value;
+  }
+  return "general";
+}
+
 function toFeedItem(groupId: string, row: ChoirMinistryAnnouncement, isSample = false): ChoirAnnouncementFeedItem {
   const body = row.body.trim();
   const title = row.title.trim() || "Team update";
@@ -54,6 +68,9 @@ function toFeedItem(groupId: string, row: ChoirMinistryAnnouncement, isSample = 
     body: body || title,
     createdAt: row.createdAt,
     detailHref: announcementsPageHref(groupId, row.id),
+    category: normalizeCategory(row.category),
+    pinned: Boolean(row.pinned),
+    imagePath: row.imagePath?.trim() || undefined,
     isSample,
   };
 }
@@ -89,6 +106,13 @@ export async function listChoirAnnouncementFeed(
   return limit ? items.slice(0, limit) : items;
 }
 
+/** Published choir announcements from storage only (no sample placeholders). */
+export async function listStoredChoirAnnouncementFeed(groupId: string, limit?: number) {
+  const stored = await listChoirAnnouncementsJson(groupId);
+  const items = stored.map((row) => toFeedItem(groupId, row));
+  return limit ? items.slice(0, limit) : items;
+}
+
 export async function buildChoirAnnouncementsPagePayload(
   user: PublicMember,
   groupId: string,
@@ -109,7 +133,7 @@ export async function buildChoirAnnouncementsPagePayload(
 export async function createChoirAnnouncement(
   user: PublicMember,
   groupId: string,
-  input: { title: string; body: string },
+  input: { title: string; body: string; category?: ChoirAnnouncementCategory; pinned?: boolean; imagePath?: string },
 ) {
   if (!(await canManageChoirAnnouncements(user, groupId))) {
     return { error: "Leader access required." as const };
@@ -127,9 +151,31 @@ export async function createChoirAnnouncement(
     body,
     authorId: user.id,
     authorName: user.name,
+    category: input.category ? normalizeCategory(input.category) : "general",
+    pinned: Boolean(input.pinned),
+    imagePath: input.imagePath?.trim() || undefined,
   });
 
   return { announcement: toFeedItem(groupId, record) };
+}
+
+export async function setChoirAnnouncementPinned(
+  user: PublicMember,
+  groupId: string,
+  id: string,
+  pinned: boolean,
+) {
+  if (!(await canManageChoirAnnouncements(user, groupId))) {
+    return { error: "Leader access required." as const };
+  }
+  if (id.startsWith("sample-")) {
+    return { error: "Cannot pin sample content." as const };
+  }
+  const updated = await updateChoirAnnouncementJson(groupId, id, { pinned });
+  if (!updated) {
+    return { error: "Announcement not found." as const };
+  }
+  return { announcement: toFeedItem(groupId, updated) };
 }
 
 export async function deleteChoirAnnouncement(user: PublicMember, groupId: string, id: string) {

@@ -2,10 +2,12 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
+import type { ChoirAnnouncementCategory } from "@/lib/choir-announcements-types";
 import {
   buildChoirAnnouncementsPagePayload,
   createChoirAnnouncement,
   deleteChoirAnnouncement,
+  setChoirAnnouncementPinned,
 } from "@/lib/choir-announcements-server";
 
 export async function GET(request: Request) {
@@ -53,9 +55,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  if (action === "pin") {
+    const id = String(body.id ?? "").trim();
+    const pinned = Boolean(body.pinned);
+    const result = await setChoirAnnouncementPinned(user, groupId, id, pinned);
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    return NextResponse.json({ announcement: result.announcement });
+  }
+
   const result = await createChoirAnnouncement(user, groupId, {
     title: String(body.title ?? ""),
     body: String(body.body ?? ""),
+    category: String(body.category ?? "general") as ChoirAnnouncementCategory,
+    pinned: Boolean(body.pinned),
+    imagePath: String(body.imagePath ?? ""),
   });
   if (result.error) {
     return NextResponse.json({ error: result.error }, { status: 400 });

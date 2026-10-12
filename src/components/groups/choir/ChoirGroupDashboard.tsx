@@ -92,6 +92,7 @@ export function ChoirGroupDashboard({
   const myScheduleHref = `${calendarHref}?tab=my`;
   const worshipTeamHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/team`;
   const worshipAcademyHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/academy`;
+  const teamConnectHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/connect`;
 
   if (loading) {
     return (
@@ -134,7 +135,7 @@ export function ChoirGroupDashboard({
         rehearsalRoomHref={home.rehearsalRoomHref}
         worshipTeamHref={worshipTeamHref}
         worshipAcademyHref={worshipAcademyHref}
-        onTeamConnect={onOpenChat}
+        teamConnectHref={teamConnectHref}
       />
 
       {isLeader ? (

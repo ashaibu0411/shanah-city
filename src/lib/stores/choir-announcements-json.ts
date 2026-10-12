@@ -48,3 +48,16 @@ export async function deleteChoirAnnouncementJson(groupId: string, id: string) {
   await writeAll(rows);
   return true;
 }
+
+export async function updateChoirAnnouncementJson(
+  groupId: string,
+  id: string,
+  patch: Partial<Pick<ChoirMinistryAnnouncement, "pinned" | "category" | "title" | "body" | "imagePath">>,
+) {
+  const rows = await readAll();
+  const index = rows.findIndex((row) => row.groupId === groupId && row.id === id);
+  if (index < 0) return null;
+  rows[index] = { ...rows[index], ...patch };
+  await writeAll(rows);
+  return rows[index];
+}
