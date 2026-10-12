@@ -31,6 +31,7 @@ const LEGEND: { category: ChoirCalendarEventCategory; label: string }[] = [
   { category: "service", label: "Service" },
   { category: "rehearsal", label: "Rehearsal" },
   { category: "event", label: "Event" },
+  { category: "time-away", label: "Time away" },
   { category: "other", label: "Other" },
 ];
 
@@ -658,7 +659,9 @@ function EventDetailSheet({
               ? "Rehearsal"
               : event.category === "event"
                 ? "Special event"
-                : "Ministry activity"}
+                : event.category === "time-away"
+                  ? "Member time away"
+                  : "Ministry activity"}
         </p>
         {event.teamLabel ? (
           <p className="text-sm">

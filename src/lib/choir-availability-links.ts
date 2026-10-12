@@ -19,3 +19,8 @@ export function choirMyScheduleAvailabilityTabHref(groupId: string) {
 export function choirAvailabilityTeamHref(groupId: string) {
   return `/groups/${encodeURIComponent(groupId)}/availability/team`;
 }
+
+/** Availability Center — vacation / sick / multi-day time away section */
+export function choirAvailabilityTimeAwayHref(groupId: string) {
+  return choirAvailabilityHref(groupId, "time-away");
+}

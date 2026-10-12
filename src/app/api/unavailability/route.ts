@@ -18,6 +18,10 @@ import {
   getClientIp,
   rateLimitResponse,
 } from "@/lib/rate-limit-server";
+import {
+  personNamesMatch,
+  validateUnavailabilityRange,
+} from "@/lib/unavailability-dates";
 
 function parseCalendarGroup(value: unknown): UnavailabilityCalendarGroup | null {
   if (value === "choir" || value === "pastors") {
@@ -56,7 +60,9 @@ export async function GET(request: Request) {
   const canReview = await canReviewUnavailabilityForGroup(user, group);
   const visibleRequests = canReview
     ? requests
-    : requests.filter((item) => item.status === "approved");
+    : requests.filter(
+        (item) => item.status === "approved" || personNamesMatch(item.personName, user.name),
+      );
 
   return NextResponse.json({ requests: visibleRequests, canReview });
 }
@@ -130,13 +136,18 @@ export async function POST(request: Request) {
   }
 
   const group = parseCalendarGroup(body.group);
-  const personName = String(body.personName ?? user.name).trim();
-  const startDate = String(body.startDate ?? "");
-  const endDate = String(body.endDate ?? "");
+  const personName = user.name.trim();
+  const startDate = String(body.startDate ?? "").trim();
+  const endDate = String(body.endDate ?? "").trim();
   const reason = String(body.reason ?? "").trim();
 
-  if (!personName || !startDate || !endDate || !reason) {
-    return NextResponse.json({ error: "All fields are required." }, { status: 400 });
+  const rangeError = validateUnavailabilityRange(startDate, endDate);
+  if (rangeError) {
+    return NextResponse.json({ error: rangeError }, { status: 400 });
+  }
+
+  if (!personName || !reason) {
+    return NextResponse.json({ error: "Reason is required." }, { status: 400 });
   }
 
   if (!group) {

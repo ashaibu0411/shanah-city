@@ -157,31 +157,61 @@ function RequestForm({
     <Card className="mb-6">
       <h3 className="font-display text-lg font-semibold text-night-900">Request time away</h3>
       <p className="mt-1 text-sm text-night-600">
-        Submit vacation or unavailable dates. Once approved, everyone in this group can see it.
+        U.S. calendar dates (Mountain Time). Once approved, time away appears on the worship calendar and
+        Availability Center.
+        {group === "choir" ? (
+          <>
+            {" "}
+            Prefer the mobile form?{" "}
+            <a href="/groups/group-choir/availability?tab=time-away" className="font-semibold underline">
+              Open Time Away tab
+            </a>
+            .
+          </>
+        ) : null}
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <label className="sr-only" htmlFor="unavail-name">
+          Your name
+        </label>
         <input
+          id="unavail-name"
           value={personName}
           onChange={(event) => setPersonName(event.target.value)}
           placeholder="Your name"
           className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
         />
+        <label className="sr-only" htmlFor="unavail-start">
+          First day away
+        </label>
         <input
+          id="unavail-start"
           type="date"
           value={startDate}
           onChange={(event) => setStartDate(event.target.value)}
+          aria-label="First day away"
           className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
         />
+        <label className="sr-only" htmlFor="unavail-end">
+          Last day away
+        </label>
         <input
+          id="unavail-end"
           type="date"
           value={endDate}
+          min={startDate || undefined}
           onChange={(event) => setEndDate(event.target.value)}
+          aria-label="Last day away"
           className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
         />
+        <label className="sr-only" htmlFor="unavail-reason">
+          Reason
+        </label>
         <input
+          id="unavail-reason"
           value={reason}
           onChange={(event) => setReason(event.target.value)}
-          placeholder="Reason (vacation, travel, etc.)"
+          placeholder="Reason (vacation, sick leave, travel, etc.)"
           className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
         />
       </div>

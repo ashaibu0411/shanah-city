@@ -1,4 +1,4 @@
-export type ChoirCalendarEventCategory = "service" | "rehearsal" | "event" | "other";
+export type ChoirCalendarEventCategory = "service" | "rehearsal" | "event" | "time-away" | "other";
 
 export type ChoirCalendarPersonalStatus = "assigned" | "confirmed" | "response_needed";
 

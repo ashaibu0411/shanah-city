@@ -8,6 +8,7 @@ import { ChoirSetlistHeader } from "@/components/groups/choir/setlist/ChoirSetli
 import { ChoirTeamTabs, type ChoirTeamTabId } from "@/components/groups/choir/team/ChoirTeamTabs";
 import { TeamAssignmentCard } from "@/components/groups/choir/team/TeamAssignmentCard";
 import { CHOIR_HERO_IMAGE_PATH, SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
+import { choirAvailabilityTimeAwayHref } from "@/lib/choir-availability-links";
 import type { ChoirTeamAssignmentView, ChoirTeamPagePayload } from "@/lib/choir-team-types";
 import { worshipPlannerPath } from "@/lib/worship-plan-links";
 import "../choir-premium.css";
@@ -492,8 +493,8 @@ function AssignmentDetailSheet({
               </button>
             )
           ) : null}
-          <Link href={`/groups/${SHANAH_WORSHIP_GROUP_ID}?calendar=1`} className="choir-setlist-manage-link text-center">
-            Request unavailability
+          <Link href={choirAvailabilityTimeAwayHref(SHANAH_WORSHIP_GROUP_ID)} className="choir-setlist-manage-link text-center">
+            Request time away
           </Link>
         </div>
       </div>

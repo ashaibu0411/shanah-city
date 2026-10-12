@@ -231,13 +231,15 @@ export async function verifyCheckoutKid(
 }
 
 export async function getUnavailabilityRequests() {
-  return readJson<UnavailabilityRequest[]>("unavailability.json", []);
+  const { readJsonFromData } = await import("@/lib/json-file-store");
+  return readJsonFromData<UnavailabilityRequest[]>("unavailability.json", []);
 }
 
 export async function addUnavailabilityRequest(request: UnavailabilityRequest) {
+  const { writeJsonToData } = await import("@/lib/json-file-store");
   const requests = await getUnavailabilityRequests();
   requests.unshift(request);
-  await writeJson("unavailability.json", requests);
+  await writeJsonToData("unavailability.json", requests);
   return request;
 }
 
@@ -245,10 +247,11 @@ export async function updateUnavailabilityRequest(
   id: string,
   update: Partial<UnavailabilityRequest>,
 ) {
+  const { writeJsonToData } = await import("@/lib/json-file-store");
   const requests = await getUnavailabilityRequests();
   const index = requests.findIndex((request) => request.id === id);
   if (index === -1) return null;
   requests[index] = { ...requests[index], ...update };
-  await writeJson("unavailability.json", requests);
+  await writeJsonToData("unavailability.json", requests);
   return requests[index];
 }

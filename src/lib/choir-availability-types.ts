@@ -9,6 +9,7 @@ export type ChoirAvailabilityTabId =
   | "home"
   | "schedule"
   | "my-schedule"
+  | "time-away"
   | "upcoming"
   | "past"
   | "guidelines";

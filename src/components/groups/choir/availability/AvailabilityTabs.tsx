@@ -11,6 +11,7 @@ type AvailabilityTabsProps = {
 
 const TABS: { id: ChoirAvailabilityTabId; label: string }[] = [
   { id: "home", label: "Availability" },
+  { id: "time-away", label: "Time Away" },
   { id: "my-schedule", label: "My Schedule" },
   { id: "upcoming", label: "Upcoming Dates" },
   { id: "past", label: "Past Dates" },

@@ -4,6 +4,7 @@ import { upsertEvent, deleteEvent } from "@/lib/event-server";
 import type { UnavailabilityRequest } from "@/lib/member-types";
 import type { ChurchEvent } from "@/lib/types";
 import { unavailabilityCalendarEventId } from "@/lib/choir-calendar-utils";
+import { formatAmericanDateRange } from "@/lib/unavailability-dates";
 
 async function choirGroupMeta() {
   const groupId = getConfiguredWorshipGroupId();
@@ -13,14 +14,6 @@ async function choirGroupMeta() {
     groupId,
     groupName: group?.name ?? "Shanah Worship (Choir)",
   };
-}
-
-function dayLabel(isoDate: string) {
-  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
 }
 
 function buildRangeEvent(input: {
@@ -33,10 +26,7 @@ function buildRangeEvent(input: {
   groupId: string;
   groupName: string;
 }): ChurchEvent {
-  const start = dayLabel(input.startsOn);
-  const end = dayLabel(input.endsOn);
-  const dateLabel =
-    input.startsOn === input.endsOn ? start : `${start} – ${end}`;
+  const dateLabel = formatAmericanDateRange(input.startsOn, input.endsOn);
 
   return {
     id: input.id,

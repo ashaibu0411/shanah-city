@@ -8,6 +8,7 @@ const BADGE_LABEL: Record<ChoirCalendarEvent["category"], string> = {
   service: "Service",
   rehearsal: "Rehearsal",
   event: "Event",
+  "time-away": "Time away",
   other: "Other",
 };
 

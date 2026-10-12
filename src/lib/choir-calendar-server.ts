@@ -11,6 +11,8 @@ import {
 import type { ChoirCalendarEvent, ChoirCalendarPagePayload } from "@/lib/choir-calendar-types";
 import { isGroupScheduleDetailEvent } from "@/lib/choir-calendar-utils";
 import { getEvents } from "@/lib/event-server";
+import { buildChoirTimeAwayCalendarEvents } from "@/lib/choir-time-away-calendar";
+import { getUnavailabilityRequests } from "@/lib/member-server";
 import { site } from "@/lib/site";
 import { listWorshipPlans } from "@/lib/worship-server";
 import {
@@ -115,6 +117,8 @@ function categorizeGroupEvent(event: {
   if (isGroupScheduleDetailEvent(event.id)) return "service";
   const title = event.title.toLowerCase();
   if (title.includes("rehearsal")) return "rehearsal";
+  if (event.id.startsWith("choir-unavail-")) return "time-away";
+  if (title.includes(" away")) return "time-away";
   if (title.includes("workshop") || title.includes("encounter") || title.includes("night")) {
     return "event";
   }
@@ -200,6 +204,7 @@ export async function buildChoirCalendarPagePayload(
 
   const churchEvents = await getEvents({ groupId });
   for (const event of churchEvents) {
+    if (event.id.startsWith("choir-unavail-")) continue;
     if (isGroupScheduleDetailEvent(event.id)) {
       const slot = `${event.startsOn ?? ""}|`;
       const duplicatePlan = worshipServiceSlots.has(`${event.startsOn}|`) ||
@@ -216,6 +221,9 @@ export async function buildChoirCalendarPagePayload(
       events.push(mapped);
     }
   }
+
+  const timeAwayRequests = await getUnavailabilityRequests();
+  events.push(...buildChoirTimeAwayCalendarEvents(user, timeAwayRequests));
 
   const unique = new Map<string, ChoirCalendarEvent>();
   for (const entry of events) {

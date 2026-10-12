@@ -8,7 +8,12 @@ import { AvailabilityTabs } from "@/components/groups/choir/availability/Availab
 import { OpportunityCard } from "@/components/groups/choir/availability/OpportunityCard";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
 import { ChoirAvailabilityAssignmentsPreview } from "@/components/groups/choir/availability/ChoirAvailabilityAssignmentsPreview";
-import { choirAvailabilityHref, choirMyScheduleHref } from "@/lib/choir-availability-links";
+import { ChoirAvailabilityTimeAwaySection } from "@/components/groups/choir/availability/ChoirAvailabilityTimeAwaySection";
+import {
+  choirAvailabilityHref,
+  choirAvailabilityTimeAwayHref,
+  choirMyScheduleHref,
+} from "@/lib/choir-availability-links";
 import type {
   ChoirAvailabilityAssignmentPreview,
   ChoirAvailabilityHomePayload,
@@ -23,6 +28,7 @@ import "../choir-premium.css";
 
 function parseTab(value: string | null): ChoirAvailabilityTabId {
   if (value === "schedule" || value === "my-schedule") return "my-schedule";
+  if (value === "time-away" || value === "timeaway") return "time-away";
   if (value === "upcoming" || value === "past" || value === "guidelines") {
     return value;
   }
@@ -55,7 +61,8 @@ export function ChoirAvailabilityCenterPage({
 }: ChoirAvailabilityCenterPageProps) {
   const searchParams = useSearchParams();
   const tab = parseTab(searchParams.get("tab"));
-  const homeRequired = tab === "home" || tab === "upcoming" || tab === "past" || tab === "guidelines";
+  const homeRequired =
+    tab === "home" || tab === "time-away" || tab === "upcoming" || tab === "past" || tab === "guidelines";
 
   const [payload, setPayload] = useState<ChoirAvailabilityHomePayload | null>(initialHomePayload);
   const [listRows, setListRows] = useState<ChoirAvailabilityOpportunityView[]>([]);
@@ -325,7 +332,11 @@ export function ChoirAvailabilityCenterPage({
             <h1 className="font-display text-2xl font-bold text-[var(--choir-heading)]">Share when you can serve</h1>
             <p className="mt-2 text-sm leading-relaxed text-[var(--choir-body)]">
               Your responses help worship leadership plan. Availability is not an assignment — updating here does not
-              add or remove you from the service roster.
+              add or remove you from the service roster.               For vacation, sick days, or travel, open{" "}
+              <Link href={choirAvailabilityTimeAwayHref(groupId)} className="font-semibold text-[var(--choir-heading)] underline">
+                Time Away
+              </Link>
+              .
             </p>
           </header>
 
@@ -372,7 +383,14 @@ export function ChoirAvailabilityCenterPage({
               <p className="choir-song-quick-title">My Schedule</p>
               <p className="choir-song-quick-sub">Assignments & changes</p>
             </Link>
+            <Link href={choirAvailabilityTimeAwayHref(groupId)} className="choir-song-quick-card choir-avail-quick-span-2">
+              <span className="choir-song-quick-icon">🏝</span>
+              <p className="choir-song-quick-title">Request time off</p>
+              <p className="choir-song-quick-sub">Vacation, sick leave, travel</p>
+            </Link>
           </div>
+
+          <ChoirAvailabilityTimeAwaySection groupId={groupId} compact />
 
           <section aria-labelledby="choir-avail-upcoming">
             <div className="choir-song-section-head">
@@ -597,6 +615,10 @@ export function ChoirAvailabilityCenterPage({
             </section>
           ) : null}
         </>
+      ) : null}
+
+      {tab === "time-away" && payload ? (
+        <ChoirAvailabilityTimeAwaySection groupId={groupId} />
       ) : null}
 
       {tab === "my-schedule" ? (

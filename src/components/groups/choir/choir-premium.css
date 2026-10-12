@@ -1271,6 +1271,15 @@
   background: var(--choir-event);
 }
 
+.choir-calendar-page .choir-calendar-dot-time-away {
+  background: #9b6b9e;
+}
+
+.choir-calendar-page .choir-calendar-event-badge-time-away {
+  background: #efe4f0;
+  color: #6b3d6f;
+}
+
 .choir-calendar-page .choir-calendar-dot-other {
   background: var(--choir-other);
 }
@@ -2733,6 +2742,25 @@
 
 .choir-availability-page .choir-avail-quick-grid .choir-song-quick-card {
   min-height: 88px;
+}
+
+.choir-availability-page .choir-avail-quick-span-2 {
+  grid-column: 1 / -1;
+}
+
+.choir-availability-page .choir-avail-field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-availability-page .choir-avail-away-banner {
+  border-radius: 12px;
+  border: 1px solid var(--choir-gold);
+  background: rgba(214, 166, 76, 0.12);
+  padding: 10px 12px;
 }
 
 .choir-availability-page .choir-calendar-cell.is-selected {
