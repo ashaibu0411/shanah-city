@@ -3,6 +3,7 @@ import { choirAvailabilityHref, choirMyScheduleHref } from "@/lib/choir-availabi
 import { choirConnectHref } from "@/lib/choir-connect-links";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
 import { choirResourcesHref } from "@/lib/choir-resource-links";
+import { choirWorshipEventsHref } from "@/lib/choir-events-links";
 import { choirSongSuggestionsHref } from "@/lib/choir-song-suggestion-links";
 
 export type ChoirHomeQuickActionLinks = {
@@ -71,9 +72,8 @@ export function choirExploreNavItems(
     {
       id: "worship-events",
       title: "Worship Events",
-      description: "Special worship gatherings & programs.",
-      href: null,
-      comingSoon: true,
+      description: "Special worship gatherings, concerts and training.",
+      href: choirWorshipEventsHref(groupId),
       iconLabel: "✦",
     },
     {

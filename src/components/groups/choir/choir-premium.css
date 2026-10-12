@@ -2771,3 +2771,336 @@
   color: var(--choir-muted);
   white-space: nowrap;
 }
+
+/* Worship Events (Page 12) */
+.choir-worship-events-page .choir-worship-events-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+}
+
+.choir-worship-events-page .choir-worship-events-tab {
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--choir-surface-soft);
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.choir-worship-events-page .choir-worship-events-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-worship-events-page .choir-we-hero {
+  position: relative;
+  min-height: 210px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #181322;
+}
+
+.choir-worship-events-page .choir-we-hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px;
+  background: linear-gradient(180deg, transparent 8%, rgba(24, 19, 34, 0.92) 72%);
+}
+
+.choir-worship-events-page .choir-we-hero-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--choir-gold);
+}
+
+.choir-worship-events-page .choir-we-hero-title {
+  margin-top: 6px;
+  font-family: var(--font-display, serif);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.choir-worship-events-page .choir-we-hero-sub {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.choir-worship-events-page .choir-we-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.choir-worship-events-page .choir-we-quick-card {
+  position: relative;
+  min-height: 96px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: #fff;
+  padding: 12px 28px 12px 12px;
+  text-align: left;
+  box-shadow: 0 2px 10px rgba(37, 32, 42, 0.06);
+}
+
+.choir-worship-events-page .choir-we-quick-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--choir-surface-soft);
+  color: var(--choir-gold-dark);
+}
+
+.choir-worship-events-page .choir-we-quick-title {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-worship-events-page .choir-we-quick-sub {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--choir-muted);
+}
+
+.choir-worship-events-page .choir-we-quick-chevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+  color: var(--choir-muted);
+}
+
+.choir-worship-events-page .choir-we-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.choir-worship-events-page .choir-we-section-title {
+  font-family: var(--font-display, serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+.choir-worship-events-page .choir-we-see-all {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--choir-gold-dark);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.choir-worship-events-page .choir-we-featured-card {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--choir-border);
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(37, 32, 42, 0.08);
+}
+
+.choir-worship-events-page .choir-we-featured-media {
+  position: relative;
+  min-height: 180px;
+  background: #181322;
+}
+
+.choir-worship-events-page .choir-we-featured-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(24, 19, 34, 0.35) 100%);
+}
+
+.choir-worship-events-page .choir-we-featured-body {
+  padding: 14px;
+}
+
+.choir-worship-events-page .choir-we-featured-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--choir-gold-dark);
+}
+
+.choir-worship-events-page .choir-we-featured-title {
+  margin-top: 4px;
+  font-family: var(--font-display, serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+.choir-worship-events-page .choir-we-featured-meta,
+.choir-worship-events-page .choir-we-featured-audience {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--choir-body);
+}
+
+.choir-worship-events-page .choir-we-featured-desc {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--choir-muted);
+}
+
+.choir-worship-events-page .choir-we-featured-actions {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choir-worship-events-page .choir-we-list-card {
+  display: grid;
+  grid-template-columns: 52px 56px 1fr 16px;
+  gap: 10px;
+  align-items: center;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: #fff;
+  padding: 10px;
+  min-height: 88px;
+}
+
+.choir-worship-events-page .choir-we-list-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.choir-worship-events-page .choir-we-list-month {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--choir-gold-dark);
+}
+
+.choir-worship-events-page .choir-we-list-day {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-worship-events-page .choir-we-list-weekday {
+  font-size: 10px;
+  color: var(--choir-muted);
+}
+
+.choir-worship-events-page .choir-we-list-thumb {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--choir-surface-soft);
+}
+
+.choir-worship-events-page .choir-we-list-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-worship-events-page .choir-we-list-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--choir-muted);
+}
+
+.choir-worship-events-page .choir-we-list-chevron {
+  font-size: 22px;
+  color: var(--choir-muted);
+}
+
+.choir-worship-events-page .choir-we-reg-badge {
+  display: inline-flex;
+  margin-top: 6px;
+  border-radius: 9999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.choir-worship-events-page .choir-we-reg-open {
+  background: rgba(52, 133, 103, 0.12);
+  color: #348567;
+}
+
+.choir-worship-events-page .choir-we-reg-confirmed {
+  background: rgba(214, 166, 76, 0.2);
+  color: var(--choir-gold-dark);
+}
+
+.choir-worship-events-page .choir-we-reg-muted,
+.choir-worship-events-page .choir-we-reg-neutral {
+  background: var(--choir-surface-soft);
+  color: var(--choir-muted);
+}
+
+.choir-worship-events-page .choir-we-detail-hero {
+  position: relative;
+  min-height: 220px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #181322;
+}
+
+.choir-worship-events-page .choir-we-detail-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 20%, rgba(24, 19, 34, 0.88) 100%);
+}
+
+.choir-worship-events-page .choir-we-detail-hero-copy {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 16px;
+}
+
+.choir-worship-events-page .choir-we-detail-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--choir-gold);
+}
+
+.choir-worship-events-page .choir-we-detail-title {
+  margin-top: 4px;
+  font-family: var(--font-display, serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.choir-worship-events-page .choir-we-detail-meta {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
