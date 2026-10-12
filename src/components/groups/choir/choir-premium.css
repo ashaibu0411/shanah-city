@@ -1021,3 +1021,348 @@
   padding: 20px 16px 28px;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
 }
+
+/* Worship calendar (Page 4) */
+.choir-calendar-page {
+  --choir-service: #e6a11b;
+  --choir-rehearsal: #7755d9;
+  --choir-event: #4dba91;
+  --choir-other: #c9cbd0;
+}
+
+.choir-calendar-page .choir-calendar-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+}
+
+.choir-calendar-page .choir-calendar-tab {
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--choir-surface-soft);
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  white-space: nowrap;
+}
+
+.choir-calendar-page .choir-calendar-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-calendar-page .choir-calendar-hero {
+  position: relative;
+  min-height: 168px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--choir-hero-dark);
+}
+
+.choir-calendar-page .choir-calendar-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(24, 19, 34, 0.25) 0%, rgba(24, 19, 34, 0.88) 100%);
+}
+
+.choir-calendar-page .choir-calendar-hero-copy {
+  position: relative;
+  z-index: 1;
+  padding: 18px 16px;
+  color: #faf7f1;
+}
+
+.choir-calendar-page .choir-calendar-hero-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--choir-gold);
+}
+
+.choir-calendar-page .choir-calendar-hero-title {
+  margin-top: 6px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.choir-calendar-page .choir-calendar-hero-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(250, 247, 241, 0.9);
+}
+
+.choir-calendar-page .choir-calendar-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.choir-calendar-page .choir-calendar-filter {
+  min-height: 34px;
+  border-radius: 9999px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--choir-body);
+}
+
+.choir-calendar-page .choir-calendar-filter.is-active {
+  border-color: var(--choir-gold);
+  background: var(--choir-gold-soft);
+  color: var(--choir-heading);
+}
+
+.choir-calendar-page .choir-calendar-month-card {
+  border-radius: 18px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 14px 12px 12px;
+  box-shadow: 0 4px 16px rgba(37, 32, 42, 0.06);
+}
+
+.choir-calendar-page .choir-calendar-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.choir-calendar-page .choir-calendar-month-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-calendar-page .choir-calendar-month-nav {
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  border: none;
+  background: var(--choir-surface-soft);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--choir-heading);
+}
+
+.choir-calendar-page .choir-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.choir-calendar-page .choir-calendar-weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-muted);
+}
+
+.choir-calendar-page .choir-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.choir-calendar-page .choir-calendar-cell {
+  display: flex;
+  min-height: 44px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  padding: 4px 0;
+}
+
+.choir-calendar-page .choir-calendar-cell.is-outside .choir-calendar-cell-num {
+  color: var(--choir-muted);
+  opacity: 0.45;
+}
+
+.choir-calendar-page .choir-calendar-cell.is-today:not(.is-selected) {
+  outline: 2px solid var(--choir-gold-soft);
+}
+
+.choir-calendar-page .choir-calendar-cell.is-selected {
+  background: var(--choir-gold);
+}
+
+.choir-calendar-page .choir-calendar-cell.is-selected .choir-calendar-cell-num {
+  color: var(--choir-heading);
+  font-weight: 800;
+}
+
+.choir-calendar-page .choir-calendar-cell-num {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--choir-heading);
+}
+
+.choir-calendar-page .choir-calendar-dots {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+}
+
+.choir-calendar-page .choir-calendar-dot {
+  height: 5px;
+  width: 5px;
+  border-radius: 9999px;
+}
+
+.choir-calendar-page .choir-calendar-dot-service {
+  background: var(--choir-service);
+}
+
+.choir-calendar-page .choir-calendar-dot-rehearsal {
+  background: var(--choir-rehearsal);
+}
+
+.choir-calendar-page .choir-calendar-dot-event {
+  background: var(--choir-event);
+}
+
+.choir-calendar-page .choir-calendar-dot-other {
+  background: var(--choir-other);
+}
+
+.choir-calendar-page .choir-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--choir-border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--choir-body);
+}
+
+.choir-calendar-page .choir-calendar-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.choir-calendar-page .choir-calendar-event-card {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 10px;
+  box-shadow: 0 4px 14px rgba(37, 32, 42, 0.05);
+}
+
+.choir-calendar-page .choir-calendar-event-card.is-selected {
+  border-color: var(--choir-gold);
+}
+
+.choir-calendar-page .choir-calendar-event-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 42px;
+  line-height: 1.1;
+}
+
+.choir-calendar-page .choir-calendar-event-month {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--choir-muted);
+}
+
+.choir-calendar-page .choir-calendar-event-day {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-calendar-page .choir-calendar-event-dow {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--choir-muted);
+}
+
+.choir-calendar-page .choir-calendar-event-thumb {
+  border-radius: 10px;
+  object-fit: cover;
+  height: 52px;
+  width: 52px;
+}
+
+.choir-calendar-page .choir-calendar-event-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-calendar-page .choir-calendar-event-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--choir-muted);
+}
+
+.choir-calendar-page .choir-calendar-event-badge {
+  border-radius: 9999px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.choir-calendar-page .choir-calendar-event-badge-service {
+  background: var(--choir-service);
+}
+
+.choir-calendar-page .choir-calendar-event-badge-rehearsal {
+  background: var(--choir-rehearsal);
+}
+
+.choir-calendar-page .choir-calendar-event-badge-event {
+  background: var(--choir-event);
+}
+
+.choir-calendar-page .choir-calendar-event-badge-other {
+  background: var(--choir-other);
+  color: var(--choir-heading);
+}
+
+.choir-calendar-page .choir-calendar-event-chevron {
+  font-size: 1.25rem;
+  color: var(--choir-muted);
+}
+
+.choir-calendar-page .choir-calendar-add-btn {
+  display: flex;
+  min-height: 50px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 14px;
+  border: none;
+  background: var(--choir-gold);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  box-shadow: 0 4px 14px rgba(214, 166, 76, 0.35);
+}
+
+.choir-calendar-page .choir-calendar-add-btn:disabled {
+  opacity: 0.5;
+}

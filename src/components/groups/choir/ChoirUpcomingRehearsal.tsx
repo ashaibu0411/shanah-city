@@ -4,14 +4,14 @@ import { CHOIR_HERO_IMAGE_PATH } from "@/lib/choir-group-constants";
 
 type ChoirUpcomingRehearsalProps = {
   rehearsal: ChoirRehearsalView | null;
-  onSeeAll: () => void;
+  calendarHref: string;
   canManageSchedule: boolean;
   onManageSchedule?: () => void;
 };
 
 export function ChoirUpcomingRehearsal({
   rehearsal,
-  onSeeAll,
+  calendarHref,
   canManageSchedule,
   onManageSchedule,
 }: ChoirUpcomingRehearsalProps) {
@@ -21,13 +21,9 @@ export function ChoirUpcomingRehearsal({
         <h2 id="choir-rehearsal-heading" className="choir-section-heading">
           Upcoming rehearsal
         </h2>
-        <button
-          type="button"
-          onClick={onSeeAll}
-          className="min-h-[44px] text-xs font-bold text-[var(--choir-gold-dark)]"
-        >
+        <Link href={calendarHref} className="min-h-[44px] inline-flex items-center text-xs font-bold text-[var(--choir-gold-dark)]">
           See all
-        </button>
+        </Link>
       </div>
 
       {!rehearsal ? (
@@ -47,7 +43,7 @@ export function ChoirUpcomingRehearsal({
           ) : null}
         </div>
       ) : (
-        <Link href={rehearsal.calendarHref} className="choir-card block overflow-hidden transition active:scale-[0.99]">
+        <Link href={calendarHref} className="choir-card block overflow-hidden transition active:scale-[0.99]">
           <div className="choir-rehearsal-thumb-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={CHOIR_HERO_IMAGE_PATH} alt="" className="choir-rehearsal-thumb" />

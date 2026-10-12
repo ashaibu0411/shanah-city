@@ -91,7 +91,7 @@ function pickRehearsalFromPlans(plans: WorshipServicePlan[], now: Date): ChoirRe
     location: site.heroChurchName,
     notes: next.plan.rehearsalNotes?.trim() || undefined,
     source: "worship-plan",
-    calendarHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}?calendar=1`,
+    calendarHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`,
   };
 }
 
@@ -124,7 +124,7 @@ async function pickRehearsalFromSchedule(groupId: string, now: Date): Promise<Ch
     location: site.heroChurchName,
     notes: next.entry.notes?.trim() || undefined,
     source: "service-schedule",
-    calendarHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}?calendar=1&event=${encodeURIComponent(`group-schedule-${groupId}-${next.entry.id}`)}`,
+    calendarHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`,
   };
 }
 

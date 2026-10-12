@@ -10,7 +10,7 @@ import {
 
 type ChoirQuickActionsProps = {
   setlistsHref: string;
-  onMySchedule: () => void;
+  myScheduleHref: string;
   rehearsalRoomHref: string | null;
   onWorshipTeam: () => void;
   onWorshipAcademy: () => void;
@@ -19,7 +19,7 @@ type ChoirQuickActionsProps = {
 
 export function ChoirQuickActions({
   setlistsHref,
-  onMySchedule,
+  myScheduleHref,
   rehearsalRoomHref,
   onWorshipTeam,
   onWorshipAcademy,
@@ -38,7 +38,7 @@ export function ChoirQuickActions({
       title: "My schedule",
       subtitle: "Services & rehearsals",
       icon: <ChoirIconCalendar />,
-      onClick: onMySchedule,
+      href: myScheduleHref,
     },
     {
       key: "rehearsal",

@@ -90,6 +90,8 @@ export function ChoirGroupDashboard({
   }
 
   const setlistsHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/setlists`;
+  const calendarHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`;
+  const myScheduleHref = `${calendarHref}?tab=my`;
 
   if (loading) {
     return (
@@ -128,7 +130,7 @@ export function ChoirGroupDashboard({
 
       <ChoirQuickActions
         setlistsHref={setlistsHref}
-        onMySchedule={onOpenCalendar}
+        myScheduleHref={myScheduleHref}
         rehearsalRoomHref={home.rehearsalRoomHref}
         onWorshipTeam={onOpenInfo}
         onWorshipAcademy={onOpenWorshipAcademy}
@@ -147,7 +149,7 @@ export function ChoirGroupDashboard({
 
       <ChoirUpcomingRehearsal
         rehearsal={home.rehearsal}
-        onSeeAll={onOpenCalendar}
+        calendarHref={calendarHref}
         canManageSchedule={home.canManageSchedule}
         onManageSchedule={onOpenCalendar}
       />

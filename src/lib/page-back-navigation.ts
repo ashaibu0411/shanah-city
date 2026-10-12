@@ -75,6 +75,7 @@ export function resolvePageBackLink(
     if (
       path === `${choirGroupPath}/setlists` ||
       path === `${choirGroupPath}/rehearsal` ||
+      path === `${choirGroupPath}/calendar` ||
       path === `${choirGroupPath}/announcements`
     ) {
       return { href: choirGroupPath, label: "Back to worship home" };
