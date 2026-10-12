@@ -8,7 +8,9 @@ import { ChoirSectionTabs } from "@/components/groups/choir/ChoirSectionTabs";
 import type { GroupBandTab } from "@/components/groups/GroupBandTabs";
 import { ChoirHero } from "@/components/groups/choir/ChoirHero";
 import { ChoirNextAssignmentCard } from "@/components/groups/choir/ChoirNextAssignmentCard";
+import { ChoirExploreNav } from "@/components/groups/choir/ChoirExploreNav";
 import { ChoirQuickActions } from "@/components/groups/choir/ChoirQuickActions";
+import { choirExploreNavItems, choirHomeQuickActionLinks } from "@/lib/choir-home-links";
 import { ChoirUpcomingRehearsal } from "@/components/groups/choir/ChoirUpcomingRehearsal";
 import { ChoirAnnouncements } from "@/components/groups/choir/ChoirAnnouncements";
 import { ChoirPreparationChecklist } from "@/components/groups/choir/ChoirPreparationChecklist";
@@ -87,12 +89,9 @@ export function ChoirGroupDashboard({
     }
   }
 
-  const setlistsHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/setlists`;
+  const quickLinks = choirHomeQuickActionLinks(groupId);
   const calendarHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`;
-  const myScheduleHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/availability?tab=my-schedule`;
-  const worshipTeamHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/team`;
-  const worshipAcademyHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/academy`;
-  const teamConnectHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/connect`;
+  const exploreItems = choirExploreNavItems(groupId, { isLeader });
 
   if (loading) {
     return (
@@ -130,13 +129,15 @@ export function ChoirGroupDashboard({
       />
 
       <ChoirQuickActions
-        setlistsHref={setlistsHref}
-        myScheduleHref={myScheduleHref}
+        setlistsHref={quickLinks.setlists}
+        myScheduleHref={quickLinks.mySchedule}
         rehearsalRoomHref={home.rehearsalRoomHref}
-        worshipTeamHref={worshipTeamHref}
-        worshipAcademyHref={worshipAcademyHref}
-        teamConnectHref={teamConnectHref}
+        worshipTeamHref={quickLinks.worshipTeam}
+        worshipAcademyHref={quickLinks.worshipAcademy}
+        teamConnectHref={quickLinks.teamConnect}
       />
+
+      <ChoirExploreNav items={exploreItems} />
 
       {isLeader ? (
         <button

@@ -2677,3 +2677,97 @@
   font-weight: 700;
   color: var(--choir-heading);
 }
+
+/* Choir home — Explore Shanah Worship */
+.choir-group-home .choir-explore-section {
+  margin-top: 4px;
+}
+
+.choir-group-home .choir-explore-heading {
+  font-family: var(--font-display, serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--choir-heading);
+  margin-bottom: 10px;
+}
+
+.choir-group-home .choir-explore-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choir-group-home .choir-explore-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 12px 14px;
+  box-shadow: 0 4px 14px rgba(37, 32, 42, 0.04);
+  text-align: left;
+  width: 100%;
+}
+
+.choir-group-home .choir-explore-row-disabled {
+  opacity: 0.92;
+  cursor: default;
+}
+
+.choir-group-home .choir-explore-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  height: 40px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--choir-gold-soft);
+  color: var(--choir-gold-dark);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.choir-group-home .choir-explore-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.choir-group-home .choir-explore-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  line-height: 1.2;
+}
+
+.choir-group-home .choir-explore-desc {
+  font-size: 11px;
+  color: var(--choir-muted);
+  line-height: 1.35;
+}
+
+.choir-group-home .choir-explore-chevron {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--choir-muted);
+  line-height: 1;
+}
+
+.choir-group-home .choir-explore-badge {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--choir-surface-soft);
+  padding: 4px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--choir-muted);
+  white-space: nowrap;
+}
