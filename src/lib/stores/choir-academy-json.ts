@@ -1,6 +1,5 @@
 import { randomUUID } from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
+import { readJsonFromData, writeJsonToData } from "@/lib/json-file-store";
 import type {
   ChoirAcademyAssignment,
   ChoirAcademyCourse,
@@ -9,7 +8,7 @@ import type {
   ChoirAcademyStore,
 } from "@/lib/choir-academy-types";
 
-const FILE = path.join(process.cwd(), "data", "choir-academy.json");
+const STORE_FILENAME = "choir-academy.json";
 
 const EMPTY: ChoirAcademyStore = {
   courses: [],
@@ -19,23 +18,17 @@ const EMPTY: ChoirAcademyStore = {
 };
 
 async function readStore(): Promise<ChoirAcademyStore> {
-  try {
-    const raw = await fs.readFile(FILE, "utf-8");
-    const parsed = JSON.parse(raw) as Partial<ChoirAcademyStore>;
-    return {
-      courses: Array.isArray(parsed.courses) ? parsed.courses : [],
-      lessons: Array.isArray(parsed.lessons) ? parsed.lessons : [],
-      progress: Array.isArray(parsed.progress) ? parsed.progress : [],
-      assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
-    };
-  } catch {
-    return { ...EMPTY };
-  }
+  const parsed = await readJsonFromData<Partial<ChoirAcademyStore>>(STORE_FILENAME, {});
+  return {
+    courses: Array.isArray(parsed.courses) ? parsed.courses : [],
+    lessons: Array.isArray(parsed.lessons) ? parsed.lessons : [],
+    progress: Array.isArray(parsed.progress) ? parsed.progress : [],
+    assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
+  };
 }
 
 async function writeStore(store: ChoirAcademyStore) {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(store, null, 2));
+  await writeJsonToData(STORE_FILENAME, store);
 }
 
 export async function listChoirAcademyCoursesJson(groupId: string) {

@@ -1,6 +1,65 @@
 {
-  "courses": [],
-  "lessons": [],
+  "courses": [
+    {
+      "id": "course-heart-of-worship-intro",
+      "groupId": "group-choir",
+      "pathId": "heart-of-worship",
+      "title": "The Heart of Worship",
+      "description": "Why worship is about Jesus—not music, production, or performance. Curated teaching from Matt Redman on the story behind the song, plus reflection for our team.",
+      "instructorName": "Matt Redman (featured teaching)",
+      "learningObjectives": [
+        "Understand why Soul Survivor Watford stripped music away to refocus worship",
+        "Examine your own motives when you serve on worship team",
+        "Return to offering God more than a song—worship from the heart"
+      ],
+      "estimatedMinutes": 25,
+      "difficulty": "beginner",
+      "status": "published",
+      "sequentialLessons": true,
+      "createdAt": "2026-03-24T12:00:00.000Z",
+      "updatedAt": "2026-03-24T12:00:00.000Z"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "lesson-heart-of-worship-story",
+      "groupId": "group-choir",
+      "courseId": "course-heart-of-worship-intro",
+      "title": "Matt Redman: The story behind the song",
+      "type": "video",
+      "sortOrder": 0,
+      "durationMinutes": 6,
+      "youtubeVideoId": "m83TSHhg-jU",
+      "bodyMarkdown": "Video: Matt Redman on BBC Radio 2 *The Sunday Hour* — how \"The Heart of Worship\" was written after his church worshipped with only voices and Bibles for a season.\n\nSource: [YouTube — Matt Redman interview](https://www.youtube.com/watch?v=m83TSHhg-jU)",
+      "createdAt": "2026-03-24T12:00:00.000Z",
+      "updatedAt": "2026-03-24T12:00:00.000Z"
+    },
+    {
+      "id": "lesson-heart-of-worship-reflection",
+      "groupId": "group-choir",
+      "courseId": "course-heart-of-worship-intro",
+      "title": "Team reflection: More than a song",
+      "type": "article",
+      "sortOrder": 1,
+      "durationMinutes": 10,
+      "bodyMarkdown": "## When the music fades\n\nMatt Redman describes a season when leadership removed the band and sound system so the church could worship with **only voices and Bibles**. The awkward first week led him to ask: *When I serve, am I offering worship to God—or building my own thing?*\n\nThat question is for every worship team member, not just song leaders.\n\n## Discuss or journal\n\n1. What props do we lean on (sound, lights, familiar songs, strong voices) that can hide a dry heart?\n2. When you are scheduled to serve, what is one way you prepare your **heart**, not only your part?\n3. How can Shanah Worship keep Jesus at the center when we plan services and rehearsals?\n\n## Go deeper (optional reading)\n\n- [Song Story: Heart of Worship — Worship Leader Magazine](https://worshipleader.com/worship-culture/song-story-heart-of-worship/)\n- [Back to the Heart of Worship — Desiring God](https://www.desiringgod.org/articles/back-to-the-heart-of-worship)\n\nWhen you finish, tap **Mark complete** so your progress is recorded.",
+      "createdAt": "2026-03-24T12:00:00.000Z",
+      "updatedAt": "2026-03-24T12:00:00.000Z"
+    },
+    {
+      "id": "lesson-heart-of-worship-live",
+      "groupId": "group-choir",
+      "courseId": "course-heart-of-worship-intro",
+      "title": "Worship together: The Heart of Worship (live)",
+      "type": "video",
+      "sortOrder": 2,
+      "durationMinutes": 4,
+      "youtubeVideoId": "D4RUjGsTfks",
+      "bodyMarkdown": "Optional closing worship — Passion live featuring Matt Redman.\n\nSource: [YouTube — Passion / Matt Redman](https://www.youtube.com/watch?v=D4RUjGsTfks)",
+      "createdAt": "2026-03-24T12:00:00.000Z",
+      "updatedAt": "2026-03-24T12:00:00.000Z"
+    }
+  ],
   "progress": [],
   "assignments": []
 }
