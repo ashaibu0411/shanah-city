@@ -45,6 +45,7 @@ import type { MinistryReadinessPublicPack } from "@/lib/ministry-readiness-types
 import { MinistryReadinessFlow } from "@/components/groups/MinistryReadinessFlow";
 import { ChoirGroupDashboard } from "@/components/groups/choir/ChoirGroupDashboard";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
+import "@/components/groups/choir/choir-premium.css";
 
 type DetailSection =
   | "overview"
