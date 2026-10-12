@@ -48,10 +48,10 @@ export function ChoirGroupDashboard({
 
   const load = useCallback(() => {
     setLoading(true);
-    fetch(`/api/groups/choir-home?groupId=${encodeURIComponent(groupId)}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.home) {
+    fetch(`/api/groups/choir-home?groupId=${encodeURIComponent(groupId)}`, { credentials: "include" })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data.home) {
           setError(data.error ?? "Could not load choir home.");
           setHome(null);
         } else {
@@ -107,6 +107,9 @@ export function ChoirGroupDashboard({
     return (
       <div className="choir-group-home rounded-2xl p-4">
         <p className="text-sm text-red-700">{error ?? "Unavailable."}</p>
+        <button type="button" className="choir-setlist-manage-link mt-3" onClick={load}>
+          Retry
+        </button>
       </div>
     );
   }
