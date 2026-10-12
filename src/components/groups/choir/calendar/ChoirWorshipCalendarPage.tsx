@@ -16,6 +16,7 @@ import type {
 import { buildIcsEventFile, downloadIcsFile } from "@/lib/calendar-ics-export";
 import { getZonedDateParts } from "@/lib/denver-time";
 import { worshipPlannerPath } from "@/lib/worship-plan-links";
+import { ChoirRehearsalsListView } from "@/components/groups/choir/calendar/ChoirRehearsalsListView";
 import "../choir-premium.css";
 
 type CategoryFilter = "all" | ChoirCalendarEventCategory;
@@ -29,7 +30,8 @@ const LEGEND: { category: ChoirCalendarEventCategory; label: string }[] = [
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
-function parseTab(value: string | null): ChoirCalendarTabId {
+function parseTab(value: string | null, filter: string | null): ChoirCalendarTabId {
+  if (filter === "rehearsals" || value === "rehearsals") return "rehearsals";
   if (value === "my" || value === "team" || value === "list") return value;
   return "calendar";
 }
@@ -53,7 +55,9 @@ export function ChoirWorshipCalendarPage({ groupId }: ChoirWorshipCalendarPagePr
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [tab, setTab] = useState<ChoirCalendarTabId>(() => parseTab(searchParams.get("tab")));
+  const [tab, setTab] = useState<ChoirCalendarTabId>(() =>
+    parseTab(searchParams.get("tab"), searchParams.get("filter")),
+  );
   const [payload, setPayload] = useState<ChoirCalendarPagePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +102,7 @@ export function ChoirWorshipCalendarPage({ groupId }: ChoirWorshipCalendarPagePr
       router.replace(`/groups/${encodeURIComponent(groupId)}/availability?tab=my-schedule`);
       return;
     }
-    setTab(parseTab(searchParams.get("tab")));
+    setTab(parseTab(searchParams.get("tab"), searchParams.get("filter")));
     const event = searchParams.get("event");
     if (event) setSelectedEventId(event);
     const date = searchParams.get("date");
@@ -155,6 +159,11 @@ export function ChoirWorshipCalendarPage({ groupId }: ChoirWorshipCalendarPagePr
     setTab(next);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", next);
+    if (next === "rehearsals") {
+      params.set("filter", "rehearsals");
+    } else {
+      params.delete("filter");
+    }
     router.replace(`?${params.toString()}`, { scroll: false });
   }
 
@@ -387,6 +396,15 @@ export function ChoirWorshipCalendarPage({ groupId }: ChoirWorshipCalendarPagePr
             )}
           </section>
         </div>
+      ) : null}
+
+      {tab === "rehearsals" ? (
+        <ChoirRehearsalsListView
+          groupId={groupId}
+          events={events}
+          payload={payload}
+          onSelectEvent={openEvent}
+        />
       ) : null}
 
       {tab === "my" ? (

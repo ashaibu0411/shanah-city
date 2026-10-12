@@ -1,4 +1,4 @@
-export type ChoirCalendarTabId = "calendar" | "my" | "team" | "list";
+export type ChoirCalendarTabId = "calendar" | "my" | "team" | "list" | "rehearsals";
 
 type ChoirCalendarTabsProps = {
   active: ChoirCalendarTabId;
@@ -7,6 +7,7 @@ type ChoirCalendarTabsProps = {
 
 const TABS: { id: ChoirCalendarTabId; label: string }[] = [
   { id: "calendar", label: "Calendar" },
+  { id: "rehearsals", label: "Rehearsals" },
   { id: "my", label: "My Schedule" },
   { id: "team", label: "Team Schedule" },
   { id: "list", label: "List View" },

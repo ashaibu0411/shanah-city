@@ -9,6 +9,7 @@ import {
 } from "@/lib/group-service-schedule-config";
 import { listChoirAnnouncementFeed } from "@/lib/choir-announcements-server";
 import { canManageGroupEvents } from "@/lib/group-permissions-server";
+import { choirCalendarRehearsalsHref } from "@/lib/choir-calendar-links";
 import {
   SHANAH_WORSHIP_GROUP_ID,
   choirPlanKey,
@@ -109,7 +110,7 @@ function pickRehearsalFromPlans(
     location: site.heroChurchName,
     notes: next.plan.rehearsalNotes?.trim() || undefined,
     source: "worship-plan",
-    calendarHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`,
+    calendarHref: choirCalendarRehearsalsHref(SHANAH_WORSHIP_GROUP_ID),
   };
 }
 
@@ -142,7 +143,7 @@ async function pickRehearsalFromSchedule(groupId: string, now: Date): Promise<Ch
     location: site.heroChurchName,
     notes: next.entry.notes?.trim() || undefined,
     source: "service-schedule",
-    calendarHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`,
+    calendarHref: choirCalendarRehearsalsHref(SHANAH_WORSHIP_GROUP_ID),
   };
 }
 

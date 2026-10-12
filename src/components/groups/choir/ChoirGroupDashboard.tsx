@@ -10,6 +10,7 @@ import { ChoirHero } from "@/components/groups/choir/ChoirHero";
 import { ChoirNextAssignmentCard } from "@/components/groups/choir/ChoirNextAssignmentCard";
 import { ChoirExploreNav } from "@/components/groups/choir/ChoirExploreNav";
 import { ChoirQuickActions } from "@/components/groups/choir/ChoirQuickActions";
+import { choirCalendarRehearsalsHref } from "@/lib/choir-calendar-links";
 import { choirExploreNavItems, choirHomeQuickActionLinks } from "@/lib/choir-home-links";
 import { ChoirUpcomingRehearsal } from "@/components/groups/choir/ChoirUpcomingRehearsal";
 import { ChoirAnnouncements } from "@/components/groups/choir/ChoirAnnouncements";
@@ -91,6 +92,7 @@ export function ChoirGroupDashboard({
 
   const quickLinks = choirHomeQuickActionLinks(groupId);
   const calendarHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`;
+  const rehearsalsSeeAllHref = choirCalendarRehearsalsHref(groupId);
   const exploreItems = choirExploreNavItems(groupId, { isLeader });
 
   if (loading) {
@@ -151,7 +153,7 @@ export function ChoirGroupDashboard({
 
       <ChoirUpcomingRehearsal
         rehearsal={home.rehearsal}
-        calendarHref={calendarHref}
+        calendarHref={rehearsalsSeeAllHref}
         canManageSchedule={home.canManageSchedule}
         onManageSchedule={onOpenCalendar}
       />

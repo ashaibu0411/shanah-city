@@ -3,6 +3,7 @@ import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getGroupDetail } from "@/lib/group-server";
 import { isMemberTrainingRequired } from "@/lib/ministry-readiness-server";
 import { canManageGroupEvents } from "@/lib/group-permissions-server";
+import { choirCalendarRehearsalsHref } from "@/lib/choir-calendar-links";
 import {
   SHANAH_WORSHIP_GROUP_ID,
   choirPlanKey,
@@ -101,7 +102,7 @@ function planRehearsalEvent(plan: WorshipServicePlan): ChoirCalendarEvent | null
     worshipPlanKey: planKey,
     personalRoleLabel: null,
     personalStatus: null,
-    detailHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar?event=${encodeURIComponent(`worship-rehearsal-${planKey}`)}`,
+    detailHref: choirCalendarRehearsalsHref(SHANAH_WORSHIP_GROUP_ID, `worship-rehearsal-${planKey}`),
     startsAtMs: combinePlanDateTime(plan.rehearsalDate, rehearsalTime).getTime(),
   };
 }
