@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChoirSetlistHeader } from "@/components/groups/choir/setlist/ChoirSetlistHeader";
 import { ChoirCalendarTabs, type ChoirCalendarTabId } from "@/components/groups/choir/calendar/ChoirCalendarTabs";
 import { ChoirEventCard } from "@/components/groups/choir/calendar/ChoirEventCard";
-import { CHOIR_HERO_IMAGE_PATH, SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
+import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
 import type {
   ChoirCalendarEvent,
   ChoirCalendarEventCategory,
@@ -16,10 +15,17 @@ import type {
 import { buildIcsEventFile, downloadIcsFile } from "@/lib/calendar-ics-export";
 import { getZonedDateParts } from "@/lib/denver-time";
 import { worshipPlannerPath } from "@/lib/worship-plan-links";
+import { choirAvailabilityHref, choirMyScheduleHref } from "@/lib/choir-availability-links";
+import { choirWorshipEventsHref } from "@/lib/choir-events-links";
+import {
+  categoryFilterToParam,
+  parseCalendarCategoryFilter,
+  parseCalendarDisplayMode,
+  type ChoirCalendarCategoryFilter,
+  type ChoirCalendarDisplayMode,
+} from "@/lib/choir-calendar-url";
 import { ChoirRehearsalsListView } from "@/components/groups/choir/calendar/ChoirRehearsalsListView";
 import "../choir-premium.css";
-
-type CategoryFilter = "all" | ChoirCalendarEventCategory;
 
 const LEGEND: { category: ChoirCalendarEventCategory; label: string }[] = [
   { category: "service", label: "Service" },
@@ -76,7 +82,12 @@ export function ChoirWorshipCalendarPage({
 
   const [selectedDateKey, setSelectedDateKey] = useState(denverToday.dateKey);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(searchParams.get("event"));
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [categoryFilter, setCategoryFilter] = useState<ChoirCalendarCategoryFilter>(() =>
+    parseCalendarCategoryFilter(searchParams.get("filter"), searchParams.get("tab")),
+  );
+  const [displayMode, setDisplayMode] = useState<ChoirCalendarDisplayMode>(() =>
+    parseCalendarDisplayMode(searchParams.get("display")),
+  );
   const [listMode, setListMode] = useState<"upcoming" | "past">("upcoming");
 
   const load = useCallback(() => {
@@ -85,7 +96,7 @@ export function ChoirWorshipCalendarPage({
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok || !data.payload) {
-          setError(data.error ?? "Could not load calendar.");
+          setError(data.error ?? "Unable to load the worship calendar.");
           setPayload(null);
         } else {
           setPayload(data.payload);
@@ -94,7 +105,7 @@ export function ChoirWorshipCalendarPage({
         setLoading(false);
       })
       .catch(() => {
-        setError("Could not load calendar.");
+        setError("Unable to load the worship calendar.");
         setLoading(false);
       });
   }, [groupId]);
@@ -109,7 +120,10 @@ export function ChoirWorshipCalendarPage({
       router.replace(`/groups/${encodeURIComponent(groupId)}/my-schedule`);
       return;
     }
-    setTab(parseTab(searchParams.get("tab"), searchParams.get("filter")));
+    const nextTab = parseTab(searchParams.get("tab"), searchParams.get("filter"));
+    setTab(nextTab);
+    setCategoryFilter(parseCalendarCategoryFilter(searchParams.get("filter"), searchParams.get("tab")));
+    setDisplayMode(parseCalendarDisplayMode(searchParams.get("display")));
     const event = searchParams.get("event");
     if (event) setSelectedEventId(event);
     const date = searchParams.get("date");
@@ -121,6 +135,9 @@ export function ChoirWorshipCalendarPage({
 
   const filteredEvents = useMemo(() => {
     if (categoryFilter === "all") return events;
+    if (categoryFilter === "mine") {
+      return events.filter((event) => Boolean(event.personalRoleLabel));
+    }
     return events.filter((event) => event.category === categoryFilter);
   }, [events, categoryFilter]);
 
@@ -144,9 +161,12 @@ export function ChoirWorshipCalendarPage({
     [filteredEvents, nowMs],
   );
 
-  const myEvents = useMemo(
-    () => events.filter((event) => event.personalRoleLabel).sort((a, b) => a.startsAtMs - b.startsAtMs),
-    [events],
+  const agendaEvents = useMemo(
+    () =>
+      [...filteredEvents]
+        .filter((event) => event.startsAtMs >= nowMs - 3_600_000)
+        .sort((a, b) => a.startsAtMs - b.startsAtMs),
+    [filteredEvents, nowMs],
   );
 
   const listEvents = useMemo(() => {
@@ -162,16 +182,54 @@ export function ChoirWorshipCalendarPage({
     [events, selectedEventId],
   );
 
-  function changeTab(next: ChoirCalendarTabId) {
-    setTab(next);
+  function replaceCalendarParams(mutate: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", next);
-    if (next === "rehearsals") {
-      params.set("filter", "rehearsals");
-    } else {
-      params.delete("filter");
-    }
+    mutate(params);
     router.replace(`?${params.toString()}`, { scroll: false });
+  }
+
+  function changeTab(next: ChoirCalendarTabId) {
+    if (next === "my") {
+      router.push(`/groups/${encodeURIComponent(groupId)}/my-schedule`);
+      return;
+    }
+    setTab(next);
+    replaceCalendarParams((params) => {
+      params.set("tab", next);
+      if (next === "rehearsals") {
+        params.set("filter", "rehearsals");
+      } else if (next === "calendar") {
+        params.delete("tab");
+      } else {
+        params.delete("filter");
+      }
+    });
+  }
+
+  function changeCategoryFilter(next: ChoirCalendarCategoryFilter) {
+    setCategoryFilter(next);
+    replaceCalendarParams((params) => {
+      params.set("tab", "calendar");
+      const param = categoryFilterToParam(next);
+      if (param) params.set("filter", param);
+      else params.delete("filter");
+    });
+  }
+
+  function changeDisplayMode(next: ChoirCalendarDisplayMode) {
+    setDisplayMode(next);
+    replaceCalendarParams((params) => {
+      if (next === "agenda") params.set("display", "agenda");
+      else params.delete("display");
+    });
+  }
+
+  function goToToday() {
+    setMonthCursor({ year: Number(denverToday.year), month: Number(denverToday.month) - 1 });
+    setSelectedDateKey(denverToday.dateKey);
+    replaceCalendarParams((params) => {
+      params.set("date", denverToday.dateKey);
+    });
   }
 
   function selectDate(dateKey: string) {
@@ -273,40 +331,14 @@ export function ChoirWorshipCalendarPage({
       <ChoirCalendarTabs active={tab} onChange={changeTab} />
 
       {tab === "calendar" ? (
-        <div className="space-y-5">
-          <div className="choir-calendar-hero choir-page-bleed">
-            <Image src={CHOIR_HERO_IMAGE_PATH} alt="" fill className="object-cover object-center" sizes="100vw" priority />
-            <div className="choir-calendar-hero-overlay" />
-            <div className="choir-calendar-hero-copy">
-              <p className="choir-calendar-hero-kicker">Our schedule</p>
-              <h2 className="choir-calendar-hero-title font-display">Worship Together</h2>
-              <p className="choir-calendar-hero-sub">Rehearsals. Services. Events.</p>
-              <p className="choir-calendar-hero-sub">Equip. Prepare. Serve.</p>
-            </div>
-          </div>
-
-          <div className="choir-calendar-filter-row">
-            {(["all", "service", "rehearsal", "event"] as CategoryFilter[]).map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                className={`choir-calendar-filter ${categoryFilter === filter ? "is-active" : ""}`}
-                onClick={() => setCategoryFilter(filter)}
-              >
-                {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
-              </button>
-            ))}
-          </div>
-
+        <div className="choir-calendar-main space-y-4">
           <section className="choir-calendar-month-card" aria-label="Monthly calendar">
             <div className="choir-calendar-month-header">
               <button
                 type="button"
                 className="choir-calendar-month-nav"
                 aria-label="Previous month"
-                onClick={() =>
-                  setMonthCursor((cursor) => shiftMonth(cursor.year, cursor.month, -1))
-                }
+                onClick={() => setMonthCursor((cursor) => shiftMonth(cursor.year, cursor.month, -1))}
               >
                 ‹
               </button>
@@ -315,77 +347,128 @@ export function ChoirWorshipCalendarPage({
                 type="button"
                 className="choir-calendar-month-nav"
                 aria-label="Next month"
-                onClick={() =>
-                  setMonthCursor((cursor) => shiftMonth(cursor.year, cursor.month, 1))
-                }
+                onClick={() => setMonthCursor((cursor) => shiftMonth(cursor.year, cursor.month, 1))}
               >
                 ›
               </button>
             </div>
-            <div className="choir-calendar-weekdays">
-              {WEEKDAYS.map((label) => (
-                <span key={label} className="choir-calendar-weekday">{label}</span>
-              ))}
-            </div>
-            <div className="choir-calendar-grid">
-              {grid.map((cell) => {
-                const markers = eventsByDate.get(cell.dateKey);
-                const isSelected = cell.dateKey === selectedDateKey;
-                const isToday = cell.dateKey === denverToday.dateKey;
-                return (
-                  <button
-                    key={`${cell.dateKey}-${cell.inMonth}`}
-                    type="button"
-                    className={`choir-calendar-cell ${isSelected ? "is-selected" : ""} ${isToday ? "is-today" : ""} ${cell.inMonth ? "" : "is-outside"}`}
-                    onClick={() => selectDate(cell.dateKey)}
-                    aria-label={cell.dateKey}
-                  >
-                    <span className="choir-calendar-cell-num">{cell.day}</span>
-                    {markers && markers.size > 0 ? (
-                      <span className="choir-calendar-dots" aria-hidden>
-                        {[...markers].slice(0, 3).map((category) => (
-                          <span key={category} className={`choir-calendar-dot choir-calendar-dot-${category}`} />
-                        ))}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="choir-calendar-legend">
-              {LEGEND.map((entry) => (
-                <span key={entry.category} className="choir-calendar-legend-item">
-                  <span className={`choir-calendar-dot choir-calendar-dot-${entry.category}`} aria-hidden />
-                  {entry.label}
-                </span>
-              ))}
-            </div>
+            <button type="button" className="choir-calendar-today-btn" onClick={goToToday}>
+              Today
+            </button>
+
+            {displayMode === "month" ? (
+              <>
+                <div className="choir-calendar-weekdays">
+                  {WEEKDAYS.map((label, index) => (
+                    <span key={`${label}-${index}`} className="choir-calendar-weekday">
+                      {label}
+                    </span>
+                  ))}
+                </div>
+                <div className="choir-calendar-grid">
+                  {grid.map((cell) => {
+                    const markers = eventsByDate.get(cell.dateKey);
+                    const isSelected = cell.dateKey === selectedDateKey;
+                    const isToday = cell.dateKey === denverToday.dateKey;
+                    return (
+                      <button
+                        key={`${cell.dateKey}-${cell.inMonth}`}
+                        type="button"
+                        className={`choir-calendar-cell ${isSelected ? "is-selected" : ""} ${isToday ? "is-today" : ""} ${cell.inMonth ? "" : "is-outside"}`}
+                        onClick={() => selectDate(cell.dateKey)}
+                        aria-label={cell.dateKey}
+                      >
+                        <span className="choir-calendar-cell-num">{cell.day}</span>
+                        {markers && markers.size > 0 ? (
+                          <span className="choir-calendar-dots" aria-hidden>
+                            {[...markers].slice(0, 3).map((category) => (
+                              <span key={category} className={`choir-calendar-dot choir-calendar-dot-${category}`} />
+                            ))}
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="choir-calendar-legend">
+                  {LEGEND.map((entry) => (
+                    <span key={entry.category} className="choir-calendar-legend-item">
+                      <span className={`choir-calendar-dot choir-calendar-dot-${entry.category}`} aria-hidden />
+                      {entry.label}
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : null}
           </section>
 
-          <section aria-labelledby="choir-selected-day">
-            <h2 id="choir-selected-day" className="choir-section-heading text-base">
-              {new Date(`${selectedDateKey}T12:00:00`).toLocaleDateString(undefined, {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
-            </h2>
-            {selectedDayEvents.length === 0 ? (
-              <p className="mt-2 text-sm text-[var(--choir-muted)]">No events on this date.</p>
-            ) : (
-              <ul className="mt-2 space-y-2">
-                {selectedDayEvents.map((event) => (
-                  <li key={event.id}>
-                    <ChoirEventCard event={event} selected={selectedEventId === event.id} onSelect={() => openEvent(event)} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <div className="choir-calendar-view-row" role="tablist" aria-label="Calendar display">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={displayMode === "month"}
+              className={`choir-calendar-view-btn ${displayMode === "month" ? "is-active" : ""}`}
+              onClick={() => changeDisplayMode("month")}
+            >
+              Month
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={displayMode === "agenda"}
+              className={`choir-calendar-view-btn ${displayMode === "agenda" ? "is-active" : ""}`}
+              onClick={() => changeDisplayMode("agenda")}
+            >
+              Agenda
+            </button>
+          </div>
+
+          {displayMode === "agenda" ? (
+            <section aria-label="Agenda">
+              {agendaEvents.length === 0 ? (
+                <p className="text-sm text-[var(--choir-muted)]">No upcoming events match this filter.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {agendaEvents.map((event) => (
+                    <li key={event.id}>
+                      <ChoirEventCard event={event} onSelect={() => openEvent(event)} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : (
+            <section aria-labelledby="choir-selected-day">
+              <h2 id="choir-selected-day" className="choir-section-heading text-base">
+                {new Date(`${selectedDateKey}T12:00:00`).toLocaleDateString(undefined, {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </h2>
+              {selectedDayEvents.length === 0 ? (
+                <p className="mt-2 text-sm text-[var(--choir-muted)]">No events scheduled for this date.</p>
+              ) : (
+                <ul className="mt-2 space-y-2">
+                  {selectedDayEvents.map((event) => (
+                    <li key={event.id}>
+                      <ChoirEventCard
+                        event={event}
+                        selected={selectedEventId === event.id}
+                        onSelect={() => openEvent(event)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
 
           <section aria-labelledby="choir-upcoming-schedule">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 id="choir-upcoming-schedule" className="choir-section-heading text-base">Upcoming schedule</h2>
+              <h2 id="choir-upcoming-schedule" className="choir-section-heading text-base">
+                Upcoming events
+              </h2>
               <button type="button" className="text-xs font-bold text-[var(--choir-gold-dark)]" onClick={() => changeTab("list")}>
                 See all
               </button>
@@ -402,6 +485,27 @@ export function ChoirWorshipCalendarPage({
               </ul>
             )}
           </section>
+
+          <div className="choir-calendar-filter-row" role="group" aria-label="Event filters">
+            {(
+              [
+                { id: "all" as const, label: "All Events" },
+                { id: "service" as const, label: "Services" },
+                { id: "rehearsal" as const, label: "Rehearsals" },
+                { id: "event" as const, label: "Special Events" },
+                { id: "mine" as const, label: "My Assignments" },
+              ] as const
+            ).map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                className={`choir-calendar-filter ${categoryFilter === filter.id ? "is-active" : ""}`}
+                onClick={() => changeCategoryFilter(filter.id)}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 
@@ -412,42 +516,6 @@ export function ChoirWorshipCalendarPage({
           payload={payload}
           onSelectEvent={openEvent}
         />
-      ) : null}
-
-      {tab === "my" ? (
-        <div className="space-y-4">
-          <div>
-            <h2 className="font-display text-xl font-bold text-[var(--choir-heading)]">My worship schedule</h2>
-            <p className="mt-1 text-sm text-[var(--choir-muted)]">
-              Your services, rehearsals, and ministry commitments.
-            </p>
-            {payload.memberRoleLabel ? (
-              <p className="mt-2 text-sm font-semibold text-[var(--choir-body)]">Role: {payload.memberRoleLabel}</p>
-            ) : null}
-          </div>
-          {myEvents.length === 0 ? (
-            <div className="choir-card p-5 text-center">
-              <p className="font-bold text-[var(--choir-heading)]">No upcoming assignments</p>
-              <p className="mt-2 text-sm text-[var(--choir-muted)]">
-                Your worship assignments will appear here when they are published.
-              </p>
-            </div>
-          ) : (
-            <ul className="space-y-2">
-              {myEvents.map((event) => (
-                <li key={event.id}>
-                  <ChoirEventCard event={event} onSelect={() => openEvent(event)} />
-                  {statusLabel(event) ? (
-                    <p className="mt-1 px-1 text-xs font-semibold text-[var(--choir-muted)]">Status: {statusLabel(event)}</p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-          <Link href={`/groups/${SHANAH_WORSHIP_GROUP_ID}?calendar=1`} className="choir-setlist-manage-link block text-center">
-            Request time away →
-          </Link>
-        </div>
       ) : null}
 
       {tab === "team" ? (
@@ -532,6 +600,7 @@ export function ChoirWorshipCalendarPage({
 
       {selectedEvent ? (
         <EventDetailSheet
+          groupId={groupId}
           event={selectedEvent}
           canManageWorship={payload.canManageWorship}
           onClose={closeEventSheet}
@@ -543,11 +612,13 @@ export function ChoirWorshipCalendarPage({
 }
 
 function EventDetailSheet({
+  groupId,
   event,
   canManageWorship,
   onClose,
   onAddToCalendar,
 }: {
+  groupId: string;
   event: ChoirCalendarEvent;
   canManageWorship: boolean;
   onClose: () => void;
@@ -579,6 +650,21 @@ function EventDetailSheet({
         {event.description ? (
           <p className="mt-3 text-sm text-[var(--choir-body)] whitespace-pre-wrap">{event.description}</p>
         ) : null}
+        <p className="mt-2 text-sm">
+          <span className="font-semibold">Type:</span>{" "}
+          {event.category === "service"
+            ? "Worship service"
+            : event.category === "rehearsal"
+              ? "Rehearsal"
+              : event.category === "event"
+                ? "Special event"
+                : "Ministry activity"}
+        </p>
+        {event.teamLabel ? (
+          <p className="text-sm">
+            <span className="font-semibold">Team:</span> {event.teamLabel}
+          </p>
+        ) : null}
         {event.personalRoleLabel ? (
           <p className="mt-2 text-sm">
             <span className="font-semibold">Your role:</span> {event.personalRoleLabel}
@@ -587,10 +673,25 @@ function EventDetailSheet({
         ) : null}
         <div className="mt-4 flex flex-col gap-2">
           {setlistHref && event.category === "service" ? (
-            <Link href={setlistHref} className="choir-btn-primary text-center">View setlist</Link>
+            <Link href={setlistHref} className="choir-btn-primary text-center">
+              View setlist
+            </Link>
           ) : null}
-          <Link href={rehearsalHref} className="choir-btn-secondary text-center">Open rehearsal room</Link>
-          <button type="button" className="choir-btn-secondary" onClick={onAddToCalendar}>Add to device calendar</button>
+          <Link href={rehearsalHref} className="choir-btn-secondary text-center">
+            Open rehearsal room
+          </Link>
+          <Link href={choirMyScheduleHref(groupId)} className="choir-btn-secondary text-center">
+            My Schedule
+          </Link>
+          <Link href={choirAvailabilityHref(groupId)} className="choir-btn-secondary text-center">
+            Availability Center
+          </Link>
+          <Link href={choirWorshipEventsHref(groupId)} className="choir-btn-secondary text-center">
+            Worship Events
+          </Link>
+          <button type="button" className="choir-btn-secondary" onClick={onAddToCalendar}>
+            Add to device calendar
+          </button>
           {canManageWorship && event.serviceDate && event.serviceTime ? (
             <Link
               href={worshipPlannerPath({ serviceDate: event.serviceDate, serviceTime: event.serviceTime })}

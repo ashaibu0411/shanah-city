@@ -75,7 +75,7 @@ export function ChoirRehearsalsListView({
         <div className="choir-card p-5 text-center">
           <p className="font-display text-lg font-bold text-[var(--choir-heading)]">No Upcoming Rehearsals</p>
           <p className="mt-2 text-sm text-[var(--choir-muted)]">
-            There are no rehearsals scheduled at the moment. Check back for updates from worship leadership.
+            No upcoming rehearsals are currently scheduled.
           </p>
           <Link
             href={`/groups/${encodeURIComponent(groupId)}/calendar`}

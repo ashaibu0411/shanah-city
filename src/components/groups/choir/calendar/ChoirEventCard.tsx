@@ -50,6 +50,11 @@ export function ChoirEventCard({ event, selected, onSelect }: ChoirEventCardProp
             <span aria-hidden>♫</span> {event.teamLabel}
           </p>
         ) : null}
+        {event.personalRoleLabel ? (
+          <p className="choir-calendar-event-meta font-semibold text-[var(--choir-gold-dark)]">
+            <span aria-hidden>✓</span> Your role: {event.personalRoleLabel}
+          </p>
+        ) : null}
       </div>
       <span className={`choir-calendar-event-badge choir-calendar-event-badge-${event.category}`}>
         {BADGE_LABEL[event.category]}

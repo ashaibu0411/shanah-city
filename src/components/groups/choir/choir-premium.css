@@ -1114,6 +1114,43 @@
   color: var(--choir-body);
 }
 
+.choir-calendar-page .choir-calendar-today-btn {
+  margin: 0 0 10px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface-soft);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--choir-gold-dark);
+}
+
+.choir-calendar-page .choir-calendar-view-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--choir-surface-soft);
+}
+
+.choir-calendar-page .choir-calendar-view-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  background: transparent;
+}
+
+.choir-calendar-page .choir-calendar-view-btn.is-active {
+  background: var(--choir-surface);
+  color: var(--choir-heading);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
 .choir-calendar-page .choir-calendar-filter.is-active {
   border-color: var(--choir-gold);
   background: var(--choir-gold-soft);

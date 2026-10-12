@@ -45,7 +45,7 @@ export default async function GroupWorshipCalendarPage({ params }: CalendarPageP
     }
   } catch (error) {
     console.error("[groups/calendar]", error);
-    initialError = error instanceof Error ? error.message : "Could not load calendar.";
+    initialError = error instanceof Error ? error.message : "Unable to load the worship calendar.";
   }
 
   return (
