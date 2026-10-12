@@ -7,7 +7,7 @@ import { ChoirGroupHeader } from "@/components/groups/choir/ChoirGroupHeader";
 import { ChoirSectionTabs } from "@/components/groups/choir/ChoirSectionTabs";
 import type { GroupBandTab } from "@/components/groups/GroupBandTabs";
 import { ChoirHero } from "@/components/groups/choir/ChoirHero";
-import { ChoirNextAssignmentCard } from "@/components/groups/choir/ChoirNextAssignmentCard";
+import { ChoirNextWorshipAssignmentCard } from "@/components/groups/choir/ChoirNextWorshipAssignmentCard";
 import { ChoirExploreNav } from "@/components/groups/choir/ChoirExploreNav";
 import { ChoirQuickActions } from "@/components/groups/choir/ChoirQuickActions";
 import { choirCalendarRehearsalsHref } from "@/lib/choir-calendar-links";
@@ -128,7 +128,7 @@ export function ChoirGroupDashboard({
 
       <ChoirHero />
 
-      <ChoirNextAssignmentCard
+      <ChoirNextWorshipAssignmentCard
         assignment={home.assignment}
         upcomingPreview={home.upcomingServicePreview}
       />
