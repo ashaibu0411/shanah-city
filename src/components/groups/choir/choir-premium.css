@@ -1909,3 +1909,199 @@
   color: var(--choir-heading);
   box-shadow: 0 4px 14px rgba(214, 166, 76, 0.35);
 }
+
+/* Ministry Resource Center (Page 9) */
+.choir-resources-page .choir-resource-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+}
+
+.choir-resources-page .choir-resource-tab {
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--choir-surface-soft);
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.choir-resources-page .choir-resource-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-resources-page .choir-resource-quick-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.choir-resources-page .choir-resource-quick-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 118px;
+  min-height: 108px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 10px 22px 10px 10px;
+  box-shadow: 0 6px 18px rgba(37, 32, 42, 0.05);
+}
+
+.choir-resources-page .choir-resource-quick-icon {
+  display: inline-flex;
+  height: 32px;
+  width: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--choir-gold-soft);
+  font-size: 14px;
+}
+
+.choir-resources-page .choir-resource-quick-title {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  line-height: 1.2;
+}
+
+.choir-resources-page .choir-resource-quick-sub {
+  font-size: 10px;
+  color: var(--choir-muted);
+  line-height: 1.2;
+}
+
+.choir-resources-page .choir-resource-quick-chevron {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--choir-muted);
+}
+
+.choir-resources-page .choir-resource-featured-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.choir-resources-page .choir-resource-featured-card {
+  flex: 0 0 auto;
+  width: 168px;
+  border-radius: 16px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 8px;
+}
+
+.choir-resources-page .choir-resource-featured-img {
+  height: 88px;
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.choir-resources-page .choir-resource-featured-badge {
+  display: inline-block;
+  margin-top: 6px;
+  border-radius: 9999px;
+  background: var(--choir-gold);
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-resources-page .choir-resource-featured-title {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  line-height: 1.2;
+}
+
+.choir-resources-page .choir-resource-featured-desc {
+  font-size: 11px;
+  color: var(--choir-muted);
+  line-height: 1.2;
+}
+
+.choir-resources-page .choir-resource-featured-meta {
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--choir-gold-dark);
+}
+
+.choir-resources-page .choir-resource-library-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 10px 12px;
+}
+
+.choir-resources-page .choir-resource-file-icon {
+  flex: 0 0 auto;
+  font-size: 18px;
+}
+
+.choir-resources-page .choir-resource-links-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.choir-resources-page .choir-resource-link-card {
+  flex: 0 0 auto;
+  width: 148px;
+  min-height: 88px;
+  border-radius: 14px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 10px;
+  position: relative;
+  padding-right: 22px;
+}
+
+.choir-resources-page .choir-resource-request-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border-radius: 16px;
+  background: var(--choir-surface-soft);
+  padding: 14px;
+}
+
+.choir-resources-page .choir-resource-request-icon {
+  font-size: 28px;
+}
+
+.choir-resources-page .choir-resource-request-btn {
+  min-height: 44px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--choir-gold);
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--choir-heading);
+  white-space: nowrap;
+}
