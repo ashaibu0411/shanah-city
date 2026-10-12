@@ -97,9 +97,34 @@ export function GroupChatPanel({
   const [privacyBusy, setPrivacyBusy] = useState(false);
   const [disappearingSeconds, setDisappearingSeconds] = useState(0);
   const [replyDraft, setReplyDraft] = useState<ChatReplyDraft | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messagesRef = useRef<GroupChatMessage[]>([]);
   const sendingRef = useRef(false);
+  /** When false, the member is reading older messages — do not jump to the latest on poll/updates. */
+  const stickToBottomRef = useRef(true);
+
+  const SCROLL_STICK_THRESHOLD_PX = 120;
+
+  function readStickToBottom() {
+    const el = scrollContainerRef.current;
+    if (!el) return true;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    return distanceFromBottom <= SCROLL_STICK_THRESHOLD_PX;
+  }
+
+  function syncStickToBottomFromScroll() {
+    stickToBottomRef.current = readStickToBottom();
+  }
+
+  function scrollMessagesToBottom(behavior: ScrollBehavior = "smooth") {
+    const el = scrollContainerRef.current;
+    if (!el) {
+      bottomRef.current?.scrollIntoView({ behavior });
+      return;
+    }
+    el.scrollTo({ top: el.scrollHeight, behavior });
+  }
   const mentionMembers = useMemo(
     () =>
       participants
@@ -153,6 +178,7 @@ export function GroupChatPanel({
   }
 
   useEffect(() => {
+    stickToBottomRef.current = true;
     loadMessages();
     loadBlocks();
   }, [groupId]);
@@ -162,8 +188,9 @@ export function GroupChatPanel({
   }, [messages]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, typingUsers]);
+    if (!stickToBottomRef.current) return;
+    scrollMessagesToBottom(loading ? "auto" : "smooth");
+  }, [messages, typingUsers, loading]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -228,6 +255,7 @@ export function GroupChatPanel({
 
       setDraft("");
       setReplyDraft(null);
+      stickToBottomRef.current = true;
       setMessages((current) => mergeChatMessagesById(current, [data.message]));
       notifyNotificationsChanged();
     } finally {
@@ -511,7 +539,11 @@ export function GroupChatPanel({
         </p>
       ) : null}
 
-      <div className={chatPremium.wallpaper}>
+      <div
+        ref={scrollContainerRef}
+        className={chatPremium.wallpaper}
+        onScroll={syncStickToBottomFromScroll}
+      >
         {loading ? (
           <p className="px-4 py-8 text-center text-sm text-night-500">Loading messages…</p>
         ) : messages.length === 0 ? (
