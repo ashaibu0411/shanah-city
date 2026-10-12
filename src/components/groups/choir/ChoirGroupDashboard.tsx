@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ChoirHomeDashboard } from "@/lib/choir-dashboard-types";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
+import { ChoirGroupHeader } from "@/components/groups/choir/ChoirGroupHeader";
+import { ChoirSectionTabs } from "@/components/groups/choir/ChoirSectionTabs";
+import type { GroupBandTab } from "@/components/groups/GroupBandTabs";
 import { ChoirHero } from "@/components/groups/choir/ChoirHero";
 import { ChoirNextAssignmentCard } from "@/components/groups/choir/ChoirNextAssignmentCard";
 import { ChoirQuickActions } from "@/components/groups/choir/ChoirQuickActions";
@@ -15,6 +18,9 @@ import "./choir-premium.css";
 type ChoirGroupDashboardProps = {
   groupId: string;
   isLeader: boolean;
+  sectionTabs: GroupBandTab[];
+  activeSectionId: string;
+  onSectionChange: (id: string) => void;
   onOpenChat: () => void;
   onOpenCalendar: () => void;
   onOpenInfo: () => void;
@@ -25,6 +31,9 @@ type ChoirGroupDashboardProps = {
 export function ChoirGroupDashboard({
   groupId,
   isLeader,
+  sectionTabs,
+  activeSectionId,
+  onSectionChange,
   onOpenChat,
   onOpenCalendar,
   onOpenInfo,
@@ -103,7 +112,16 @@ export function ChoirGroupDashboard({
 
   return (
     <div className="choir-group-home -mx-1 space-y-[18px] px-1 pb-2">
+      <ChoirGroupHeader onChatClick={onOpenChat} />
       <ChoirHero />
+
+      {sectionTabs.length > 0 ? (
+        <ChoirSectionTabs
+          tabs={sectionTabs}
+          activeId={activeSectionId}
+          onChange={onSectionChange}
+        />
+      ) : null}
 
       <ChoirNextAssignmentCard
         assignment={home.assignment}

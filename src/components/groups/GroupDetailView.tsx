@@ -469,7 +469,7 @@ export function GroupDetailView({
             hubIsActive={detailSection === "overview"}
           />
         )
-      ) : (
+      ) : showChoirHome ? null : (
         <GroupBandHeader
           group={detail}
           showChatAction={Boolean(hasMemberAccess && user)}
@@ -499,7 +499,7 @@ export function GroupDetailView({
         </div>
       ) : null}
 
-      {user && detailTabs.length > 0 && !isPowerCouplesGroup ? (
+      {user && detailTabs.length > 0 && !isPowerCouplesGroup && !showChoirHome ? (
         <GroupBandTabs
           tabs={detailTabs}
           activeId={defaultSectionForTabs}
@@ -523,7 +523,13 @@ export function GroupDetailView({
 
       <div
         className={`${
-          isPowerCouplesGroup ? (powerCouplesHubHome ? "" : couplesHubPremium.inset) : groupsPremium.pageInset
+          isPowerCouplesGroup
+            ? powerCouplesHubHome
+              ? ""
+              : couplesHubPremium.inset
+            : showChoirHome
+              ? "px-4 pb-6 pt-0"
+              : groupsPremium.pageInset
         } space-y-4`}
       >
         {isPowerCouplesGroup && !powerCouplesHubHome && user ? (
@@ -645,6 +651,14 @@ export function GroupDetailView({
             <ChoirGroupDashboard
               groupId={detail.id}
               isLeader={detail.isAdmin || detail.isAssistantLeader}
+              sectionTabs={detailTabs}
+              activeSectionId={defaultSectionForTabs}
+              onSectionChange={(id) => {
+                setDetailSection(id as DetailSection);
+                if (id !== "manage") {
+                  setManageScrollTarget(null);
+                }
+              }}
               onOpenChat={() => setDetailSection("chat")}
               onOpenCalendar={() => setDetailSection("calendar")}
               onOpenInfo={() => setDetailSection("info")}

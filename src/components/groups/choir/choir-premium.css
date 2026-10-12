@@ -1,3 +1,61 @@
+.choir-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0 10px;
+}
+
+.choir-header-icon-btn {
+  display: inline-flex;
+  height: 44px;
+  width: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  color: var(--choir-heading);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.choir-header-icon-btn:active {
+  transform: scale(0.97);
+  background: var(--choir-surface-soft);
+}
+
+.choir-section-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.choir-section-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.choir-section-tab {
+  flex-shrink: 0;
+  min-height: 36px;
+  border-radius: 9999px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--choir-body);
+}
+
+.choir-section-tab-active {
+  border-color: var(--choir-heading);
+  background: var(--choir-heading);
+  color: #faf7f1;
+}
+
 .choir-group-home {
   --choir-page: #faf7f1;
   --choir-surface: #ffffff;
@@ -32,7 +90,9 @@
 
 .choir-group-home .choir-hero {
   position: relative;
-  min-height: 168px;
+  min-height: 188px;
+  max-height: 220px;
+  aspect-ratio: 16 / 10;
   border-radius: 18px;
   overflow: hidden;
   background: var(--choir-hero-dark);
@@ -44,6 +104,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 22%;
 }
 
 .choir-group-home .choir-hero-overlay {
@@ -75,6 +136,7 @@
 .choir-group-home .choir-hero-tagline {
   margin-top: 6px;
   font-size: 0.82rem;
+  font-style: italic;
   line-height: 1.45;
   color: rgba(250, 247, 241, 0.92);
 }
@@ -85,13 +147,53 @@
   width: 100%;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   border-radius: 14px;
-  background: linear-gradient(180deg, var(--choir-gold) 0%, var(--choir-gold-dark) 100%);
+  background: linear-gradient(90deg, var(--choir-gold) 0%, #c9923f 55%, var(--choir-gold-dark) 100%);
   color: #fff;
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.choir-group-home .choir-meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--choir-body);
+}
+
+.choir-group-home .choir-meta-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+  color: var(--choir-gold-dark);
+}
+
+.choir-group-home .choir-role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--choir-border);
+}
+
+.choir-group-home .choir-role-cell-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--choir-muted);
+}
+
+.choir-group-home .choir-role-cell-value {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--choir-heading);
 }
 
 .choir-group-home .choir-btn-primary:active {

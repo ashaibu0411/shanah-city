@@ -64,6 +64,39 @@ export function ChoirIconChat() {
   );
 }
 
+export function ChoirIconCalendarSmall() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M6 2a1 1 0 0 0-2 0v1H4a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3h-1V2a1 1 0 1 0-2 0v1H6V2Zm11 7H3v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9Z"
+      />
+    </svg>
+  );
+}
+
+export function ChoirIconPin() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M10 2a5 5 0 0 0-5 5c0 3.5 5 9 5 9s5-5.5 5-9a5 5 0 0 0-5-5Zm0 6.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"
+      />
+    </svg>
+  );
+}
+
+export function ChoirIconMic() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M10 12a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v4a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H3a7 7 0 0 0 6 6.92V17H7v2h6v-2h-2v-1.08A7 7 0 0 0 17 9h-2Z"
+      />
+    </svg>
+  );
+}
+
 export function ChoirIconStar() {
   return (
     <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" aria-hidden>
