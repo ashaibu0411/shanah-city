@@ -108,13 +108,24 @@ export function ChoirNextAssignmentCard({
                   <p className="choir-role-cell-value text-[15px]">Worship choir</p>
                 </div>
               </div>
-              <Link
-                href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/setlists?date=${encodeURIComponent(card.serviceDate)}&time=${encodeURIComponent(card.serviceTime)}`}
-                className="choir-assignment-cta"
-              >
-                View worship plan
-                <span aria-hidden>→</span>
-              </Link>
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                {assignment ? (
+                  <Link
+                    href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/team`}
+                    className="choir-assignment-cta"
+                  >
+                    My assignments
+                    <span aria-hidden>→</span>
+                  </Link>
+                ) : null}
+                <Link
+                  href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/setlists?date=${encodeURIComponent(card.serviceDate)}&time=${encodeURIComponent(card.serviceTime)}`}
+                  className="choir-assignment-cta"
+                >
+                  View setlist
+                  <span aria-hidden>→</span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

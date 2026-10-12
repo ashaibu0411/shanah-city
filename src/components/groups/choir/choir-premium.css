@@ -1366,3 +1366,110 @@
 .choir-calendar-page .choir-calendar-add-btn:disabled {
   opacity: 0.5;
 }
+
+/* Worship team (Page 5) — reuses calendar event card styles */
+.choir-team-page .choir-team-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+}
+
+.choir-team-page .choir-team-tab {
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--choir-surface-soft);
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--choir-muted);
+  white-space: nowrap;
+}
+
+.choir-team-page .choir-team-tab-active {
+  background: var(--choir-gold);
+  color: var(--choir-heading);
+  box-shadow: 0 2px 8px rgba(214, 166, 76, 0.35);
+}
+
+.choir-team-page .choir-team-role-badge {
+  border-radius: 9999px;
+  background: var(--choir-gold-soft);
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--choir-gold-dark);
+  max-width: 88px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.choir-team-page .choir-team-status-badge {
+  border-radius: 9999px;
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.choir-team-page .choir-team-status-past {
+  background: var(--choir-success);
+}
+
+.choir-team-page .choir-team-preview-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.choir-team-page .choir-team-preview-card {
+  flex: 0 0 auto;
+  width: 88px;
+  text-align: center;
+}
+
+.choir-team-page .choir-team-avatar {
+  height: 56px;
+  width: 56px;
+  border-radius: 9999px;
+  object-fit: cover;
+  margin: 0 auto;
+  display: block;
+}
+
+.choir-team-page .choir-team-avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--choir-gold-soft);
+  color: var(--choir-gold-dark);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.choir-team-page .choir-team-preview-name {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--choir-heading);
+  line-height: 1.2;
+}
+
+.choir-team-page .choir-team-preview-role {
+  font-size: 10px;
+  color: var(--choir-muted);
+  line-height: 1.2;
+}
+
+.choir-team-page .choir-team-directory-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--choir-border);
+  background: var(--choir-surface);
+  padding: 10px 12px;
+}
