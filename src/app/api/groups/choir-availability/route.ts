@@ -6,6 +6,7 @@ import type { ChoirAvailabilityTabId } from "@/lib/choir-availability-types";
 import {
   buildChoirAvailabilityCalendarMonth,
   buildChoirAvailabilityHomePayload,
+  buildChoirMySchedulePayload,
   buildChoirTeamAvailabilityDashboard,
   getChoirAvailabilityGuidelines,
   getChoirAvailabilityPreferences,
@@ -49,6 +50,12 @@ export async function GET(request: Request) {
     const schedule = await getChoirAvailabilitySchedulePayload(user, groupId);
     if (!schedule) return NextResponse.json({ error: "Access denied." }, { status: 403 });
     return NextResponse.json({ schedule });
+  }
+
+  if (view === "my_schedule") {
+    const mySchedule = await buildChoirMySchedulePayload(user, groupId);
+    if (!mySchedule) return NextResponse.json({ error: "Access denied." }, { status: 403 });
+    return NextResponse.json({ mySchedule });
   }
 
   if (view === "calendar") {

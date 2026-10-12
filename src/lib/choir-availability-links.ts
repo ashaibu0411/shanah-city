@@ -7,6 +7,10 @@ export function choirAvailabilityHref(groupId: string, tab?: ChoirAvailabilityTa
   return `${base}?${params.toString()}`;
 }
 
+export function choirMyScheduleHref(groupId: string) {
+  return choirAvailabilityHref(groupId, "my-schedule");
+}
+
 export function choirAvailabilityTeamHref(groupId: string) {
   return `/groups/${encodeURIComponent(groupId)}/availability/team`;
 }

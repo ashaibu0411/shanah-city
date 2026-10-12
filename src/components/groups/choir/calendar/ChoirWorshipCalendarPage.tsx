@@ -94,12 +94,16 @@ export function ChoirWorshipCalendarPage({ groupId }: ChoirWorshipCalendarPagePr
   }, [load]);
 
   useEffect(() => {
+    if (searchParams.get("tab") === "my") {
+      router.replace(`/groups/${encodeURIComponent(groupId)}/availability?tab=my-schedule`);
+      return;
+    }
     setTab(parseTab(searchParams.get("tab")));
     const event = searchParams.get("event");
     if (event) setSelectedEventId(event);
     const date = searchParams.get("date");
     if (date?.trim()) setSelectedDateKey(date.trim());
-  }, [searchParams]);
+  }, [searchParams, groupId, router]);
 
   const events = payload?.events ?? [];
   const nowMs = Date.now();

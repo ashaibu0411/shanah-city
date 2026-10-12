@@ -12,6 +12,8 @@ import type {
   ChoirAvailabilityPreferences,
   ChoirAvailabilityResponse,
   ChoirAvailabilityTabId,
+  ChoirMySchedulePayload,
+  ChoirMyScheduleRehearsalView,
   ChoirScheduleChangeRequest,
 } from "@/lib/choir-availability-types";
 import { DEFAULT_AVAILABILITY_GUIDELINES as DEFAULT_GUIDELINES } from "@/lib/choir-availability-types";
@@ -24,6 +26,13 @@ import { isMemberTrainingRequired } from "@/lib/ministry-readiness-server";
 import { sendPushToUsers } from "@/lib/push-server";
 import { isGroupLeaderOrAssistant } from "@/lib/group-admin-utils";
 import { getGroups } from "@/lib/group-server";
+import { listWorshipPlans } from "@/lib/worship-server";
+import { site } from "@/lib/site";
+import {
+  combinePlanDateTime,
+  serviceDateTimeLabel,
+  worshipTimeLabel,
+} from "@/lib/worship-types";
 import {
   createChoirScheduleChangeRequestJson,
   getChoirAvailabilityDeadlinesJson,
@@ -211,7 +220,7 @@ export async function buildChoirAvailabilityHomePayload(
     teamAvailabilityHref: canManage ? choirAvailabilityTeamHref(groupId) : null,
     opportunities: upcomingSlice,
     assignmentPreview,
-    scheduleTabHref: `/groups/${groupId}/availability?tab=schedule`,
+    scheduleTabHref: `/groups/${groupId}/availability?tab=my-schedule`,
     teamPageHref: `/groups/${groupId}/team`,
     summary: summarize(opportunities),
   };
@@ -320,6 +329,62 @@ export async function getChoirAvailabilitySchedulePayload(user: PublicMember, gr
       changeRequestPending: pendingPlanKeys.has(assignment.planKey),
     })),
     recent: team.recent,
+  };
+}
+
+function isoDaysAgo(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString().slice(0, 10);
+}
+
+export async function buildChoirMySchedulePayload(
+  user: PublicMember,
+  groupId: string,
+): Promise<ChoirMySchedulePayload | null> {
+  const schedule = await getChoirAvailabilitySchedulePayload(user, groupId);
+  const opportunities = await listChoirAvailabilityOpportunities(user, groupId, "upcoming");
+  if (!schedule || !opportunities) return null;
+
+  const nowMs = Date.now();
+  const since = isoDaysAgo(30);
+  const plans = (await listWorshipPlans({ since }))
+    .filter((plan) => plan.status === "published")
+    .sort(
+      (a, b) =>
+        combinePlanDateTime(a.serviceDate, a.serviceTime).getTime() -
+        combinePlanDateTime(b.serviceDate, b.serviceTime).getTime(),
+    );
+
+  const rehearsals: ChoirMyScheduleRehearsalView[] = [];
+  for (const plan of plans) {
+    if (!plan.rehearsalDate?.trim()) continue;
+    const mine = plan.team.find((member) => member.userId === user.id);
+    if (!mine) continue;
+    const rehearsalTime = plan.rehearsalTime?.trim() || "19:00";
+    const startsAtMs = combinePlanDateTime(plan.rehearsalDate, rehearsalTime).getTime();
+    if (startsAtMs < nowMs - 3_600_000) continue;
+    const serviceTitle = plan.title?.trim() || "Sunday Service";
+    rehearsals.push({
+      id: `rehearsal-${plan.serviceDate}-${plan.serviceTime}`,
+      title: `Rehearsal — ${serviceTitle}`,
+      dateKey: plan.rehearsalDate,
+      timeLabel: worshipTimeLabel(rehearsalTime) || rehearsalTime,
+      dateTimeLabel: serviceDateTimeLabel(plan.rehearsalDate, rehearsalTime),
+      location: site.heroChurchName,
+      relatedServiceTitle: serviceTitle,
+      startsAtMs,
+    });
+  }
+
+  const availabilitySubmitted = opportunities.filter((row) => row.availabilityStatus !== "not_responded");
+  const availabilityAwaiting = opportunities.filter((row) => row.availabilityStatus === "not_responded");
+
+  return {
+    assignments: schedule.upcoming,
+    rehearsals,
+    availabilitySubmitted,
+    availabilityAwaiting,
   };
 }
 

@@ -15,16 +15,17 @@ import type {
   ChoirAvailabilityOpportunityView,
   ChoirAvailabilityTabId,
 } from "@/lib/choir-availability-types";
-import type { ChoirTeamAssignmentView } from "@/lib/choir-team-types";
 import {
   ChoirIconCalendar,
   ChoirIconUsers,
 } from "@/components/groups/choir/choir-icons";
+import { ChoirMyScheduleTab } from "@/components/groups/choir/availability/ChoirMyScheduleTab";
 import { getZonedDateParts } from "@/lib/denver-time";
 import "../choir-premium.css";
 
 function parseTab(value: string | null): ChoirAvailabilityTabId {
-  if (value === "schedule" || value === "upcoming" || value === "past" || value === "guidelines") {
+  if (value === "schedule" || value === "my-schedule") return "my-schedule";
+  if (value === "upcoming" || value === "past" || value === "guidelines") {
     return value;
   }
   return "home";
@@ -45,10 +46,6 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
 
   const [payload, setPayload] = useState<ChoirAvailabilityHomePayload | null>(null);
   const [listRows, setListRows] = useState<ChoirAvailabilityOpportunityView[]>([]);
-  const [schedule, setSchedule] = useState<{
-    upcoming: ChoirAvailabilityAssignmentPreview[];
-    recent: ChoirTeamAssignmentView[];
-  } | null>(null);
   const [guidelinesMarkdown, setGuidelinesMarkdown] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,13 +122,7 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
         .catch(() => undefined);
       return;
     }
-    if (tab === "schedule") {
-      fetch(`/api/groups/choir-availability?groupId=${encodeURIComponent(groupId)}&view=schedule`)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.schedule) setSchedule(data.schedule);
-        })
-        .catch(() => undefined);
+    if (tab === "my-schedule") {
       return;
     }
     const params = new URLSearchParams({
@@ -207,20 +198,6 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
     setMessage(data.partial ? "Some responses could not be saved." : "All changes saved.");
     setBulkOpen(false);
     loadHome();
-    loadTabData();
-  }
-
-  async function confirmAssignment(assignment: ChoirTeamAssignmentView, ready: boolean) {
-    await fetch("/api/worship", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "mark_ready",
-        serviceDate: assignment.serviceDate,
-        serviceTime: assignment.serviceTime,
-        ready,
-      }),
-    });
     loadTabData();
   }
 
@@ -311,7 +288,7 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
               <p className="choir-song-quick-title">Mark Availability</p>
               <p className="choir-song-quick-sub">Let us know your dates</p>
             </button>
-            <Link href={choirAvailabilityHref(groupId, "schedule")} className="choir-song-quick-card">
+            <Link href={choirAvailabilityHref(groupId, "my-schedule")} className="choir-song-quick-card">
               <span className="choir-song-quick-icon"><ChoirIconCalendar /></span>
               <p className="choir-song-quick-title">View Schedule</p>
               <p className="choir-song-quick-sub">See your assignments</p>
@@ -425,7 +402,7 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
           <section>
             <div className="choir-song-section-head">
               <h2 className="choir-song-section-title">My Assignments</h2>
-              <Link href={choirAvailabilityHref(groupId, "schedule")} className="choir-song-see-all">
+              <Link href={choirAvailabilityHref(groupId, "my-schedule")} className="choir-song-see-all">
                 See All
               </Link>
             </div>
@@ -436,7 +413,7 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
                 {payload.assignmentPreview.map((assignment) => (
                   <Link
                     key={assignment.id}
-                    href={choirAvailabilityHref(groupId, "schedule")}
+                    href={choirAvailabilityHref(groupId, "my-schedule")}
                     className="choir-avail-assignment-card"
                   >
                     <div>
@@ -466,20 +443,7 @@ export function ChoirAvailabilityCenterPage({ groupId }: { groupId: string }) {
         </>
       ) : null}
 
-      {tab === "schedule" ? (
-        <ScheduleTab
-          schedule={schedule}
-          onConfirm={confirmAssignment}
-          onRequestChange={(assignment) => {
-            const match = listRows.find((row) => row.event.worshipPlanKey === assignment.planKey);
-            if (match) {
-              setChangeOpen({ ...assignment, changeRequestPending: assignment.changeRequestPending });
-            } else {
-              setMessage("Open an assigned event from Upcoming Dates to request a change.");
-            }
-          }}
-        />
-      ) : null}
+      {tab === "my-schedule" ? <ChoirMyScheduleTab groupId={groupId} /> : null}
 
       {(tab === "upcoming" || tab === "past") && (
         <OpportunitiesTab
@@ -729,55 +693,6 @@ function PreferencesSheet({ groupId, onClose }: { groupId: string; onClose: () =
         </button>
       </div>
     </div>
-  );
-}
-
-function ScheduleTab({
-  schedule,
-  onConfirm,
-  onRequestChange,
-}: {
-  schedule: {
-    upcoming: ChoirAvailabilityAssignmentPreview[];
-    recent: ChoirTeamAssignmentView[];
-  } | null;
-  onConfirm: (assignment: ChoirTeamAssignmentView, ready: boolean) => void;
-  onRequestChange: (assignment: ChoirAvailabilityAssignmentPreview) => void;
-}) {
-  if (!schedule) return <p className="text-sm text-[var(--choir-muted)]">Loading schedule…</p>;
-  return (
-    <section className="space-y-3">
-      <h2 className="font-display text-xl font-bold text-[var(--choir-heading)]">My schedule</h2>
-      {schedule.upcoming.length === 0 ? (
-        <p className="text-sm text-[var(--choir-muted)]">No upcoming assignments.</p>
-      ) : (
-        schedule.upcoming.map((assignment) => (
-          <div key={assignment.id} className="choir-card space-y-2 p-4">
-            <p className="font-semibold text-[var(--choir-heading)]">{assignment.title}</p>
-            <p className="text-sm text-[var(--choir-muted)]">{assignment.dateTimeLabel}</p>
-            <p className="text-sm">Role: {assignment.roleLabel}</p>
-            <p className="text-sm">
-              Assignment: {assignment.status === "confirmed" ? "Confirmed" : "Awaiting confirmation"}
-              {assignment.changeRequestPending ? " · Change requested" : ""}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {assignment.status === "confirmed" ? (
-                <button type="button" className="choir-btn-secondary" onClick={() => onConfirm(assignment, false)}>
-                  Mark not confirmed
-                </button>
-              ) : (
-                <button type="button" className="choir-btn-primary" onClick={() => onConfirm(assignment, true)}>
-                  Confirm assignment
-                </button>
-              )}
-              <button type="button" className="choir-avail-response-btn" onClick={() => onRequestChange(assignment)}>
-                Request change
-              </button>
-            </div>
-          </div>
-        ))
-      )}
-    </section>
   );
 }
 

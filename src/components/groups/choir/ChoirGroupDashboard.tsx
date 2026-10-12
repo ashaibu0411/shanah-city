@@ -89,7 +89,7 @@ export function ChoirGroupDashboard({
 
   const setlistsHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/setlists`;
   const calendarHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`;
-  const myScheduleHref = `${calendarHref}?tab=my`;
+  const myScheduleHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/availability?tab=my-schedule`;
   const worshipTeamHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/team`;
   const worshipAcademyHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/academy`;
   const teamConnectHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/connect`;

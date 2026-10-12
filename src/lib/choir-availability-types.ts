@@ -8,9 +8,28 @@ export type ChoirAvailabilityDisplayStatus = ChoirAvailabilityResponse | "not_re
 export type ChoirAvailabilityTabId =
   | "home"
   | "schedule"
+  | "my-schedule"
   | "upcoming"
   | "past"
   | "guidelines";
+
+export type ChoirMyScheduleRehearsalView = {
+  id: string;
+  title: string;
+  dateKey: string;
+  timeLabel: string;
+  dateTimeLabel: string;
+  location: string;
+  relatedServiceTitle: string;
+  startsAtMs: number;
+};
+
+export type ChoirMySchedulePayload = {
+  assignments: ChoirAvailabilityAssignmentPreview[];
+  rehearsals: ChoirMyScheduleRehearsalView[];
+  availabilitySubmitted: ChoirAvailabilityOpportunityView[];
+  availabilityAwaiting: ChoirAvailabilityOpportunityView[];
+};
 
 export type ChoirAvailabilityConflictKind =
   | "unavailable_assigned"
