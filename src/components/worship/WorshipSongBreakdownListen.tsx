@@ -48,7 +48,7 @@ export function WorshipSongBreakdownListen({
   }
 
   return (
-    <div className="mt-3 space-y-3 border-t border-night-900/5 pt-3">
+    <div id="worship-song-listen" className="mt-3 space-y-3 border-t border-night-900/5 pt-3">
       <p className="text-xs font-semibold uppercase tracking-wide text-night-500">Listen &amp; practice</p>
       {hasYouTube && song.youtubeVideoId && (
         <WorshipYouTubeReference

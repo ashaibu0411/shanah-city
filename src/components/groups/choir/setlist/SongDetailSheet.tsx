@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { WorshipSongBreakdownListen } from "@/components/worship/WorshipSongBreakdownListen";
 import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBreakdownLyrics";
@@ -17,6 +18,7 @@ type SongDetailSheetProps = {
   position?: number;
   userId?: string;
   canManage: boolean;
+  focusListen?: boolean;
   onClose: () => void;
 };
 
@@ -30,8 +32,17 @@ export function SongDetailSheet({
   position,
   userId,
   canManage,
+  focusListen = false,
   onClose,
 }: SongDetailSheetProps) {
+  useEffect(() => {
+    if (!open || !song || !focusListen) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById("worship-song-listen")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open, focusListen, song?.id]);
+
   if (!open || !song) return null;
 
   const rehearsalHref = `/groups/${SHANAH_WORSHIP_GROUP_ID}/rehearsal?date=${encodeURIComponent(serviceDate)}&time=${encodeURIComponent(serviceTime)}&song=${encodeURIComponent(song.id)}`;

@@ -11,8 +11,7 @@ import { WorshipAudioPlayer } from "@/components/worship/WorshipAudioPlayer";
 import { CHOIR_HERO_IMAGE_PATH } from "@/lib/choir-group-constants";
 import type { ChoirRehearsalPagePayload } from "@/lib/choir-rehearsal-types";
 import type { ChoirSetlistServiceSummary } from "@/lib/choir-setlist-types";
-import { worshipSongListenUrl, worshipPlannerPath } from "@/lib/worship-plan-links";
-import { openExternalMediaUrl } from "@/lib/open-external-media";
+import { worshipPlannerPath } from "@/lib/worship-plan-links";
 import {
   countSongsPrepared,
   listPracticeTracksForPart,
@@ -56,7 +55,11 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
   const [planLoading, setPlanLoading] = useState(false);
 
   const [activeSongId, setActiveSongId] = useState<string | null>(null);
-  const [detailSong, setDetailSong] = useState<{ song: WorshipSong; position: number } | null>(null);
+  const [detailSong, setDetailSong] = useState<{
+    song: WorshipSong;
+    position: number;
+    focusListen?: boolean;
+  } | null>(null);
   const [servicePickerOpen, setServicePickerOpen] = useState(false);
 
   const loadPayload = useCallback(() => {
@@ -202,10 +205,13 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
     }
   }
 
-  async function openReferenceAudio(song: WorshipSong) {
-    if (!plan) return;
-    const url = worshipSongListenUrl(song, plan);
-    await openExternalMediaUrl(url);
+  function openReferenceAudio(song: WorshipSong) {
+    const idx = songs.findIndex((entry) => entry.id === song.id);
+    setDetailSong({
+      song,
+      position: idx >= 0 ? idx + 1 : 1,
+      focusListen: true,
+    });
   }
 
   const userId = user?.id;
@@ -340,6 +346,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
           memberPartRole={memberPartRole}
           userId={userId}
           canManage={canManage}
+          focusListen={detailSong.focusListen}
           onClose={() => setDetailSong(null)}
           onTogglePrepared={(prepared) => {
             void toggleSongPrepared(detailSong.song.id, prepared);

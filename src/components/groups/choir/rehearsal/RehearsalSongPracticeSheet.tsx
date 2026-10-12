@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import {
   listPracticeTracksForPart,
@@ -24,6 +25,7 @@ type RehearsalSongPracticeSheetProps = {
   memberPartRole: string | null;
   userId?: string;
   canManage: boolean;
+  focusListen?: boolean;
   onClose: () => void;
   onTogglePrepared: (prepared: boolean) => void;
 };
@@ -37,9 +39,18 @@ export function RehearsalSongPracticeSheet({
   memberPartRole,
   userId,
   canManage,
+  focusListen = false,
   onClose,
   onTogglePrepared,
 }: RehearsalSongPracticeSheetProps) {
+  useEffect(() => {
+    if (!open || !song || !focusListen) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById("worship-song-listen")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open, focusListen, song?.id]);
+
   if (!open || !song) return null;
 
   const partRole = memberPartRole?.trim() || "full";

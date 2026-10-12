@@ -1,9 +1,8 @@
 "use client";
 
+import { WorshipSongBreakdownListen } from "@/components/worship/WorshipSongBreakdownListen";
 import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBreakdownLyrics";
-import { openExternalMediaUrl } from "@/lib/open-external-media";
-import type { WorshipLibrarySong } from "@/lib/worship-types";
-import { getYouTubeWatchUrlWithSegment } from "@/lib/worship-youtube-timestamp-utils";
+import { mergePlanSongWithLibrary, type WorshipLibrarySong } from "@/lib/worship-types";
 
 type LibrarySongDetailSheetProps = {
   open: boolean;
@@ -14,11 +13,15 @@ type LibrarySongDetailSheetProps = {
 export function LibrarySongDetailSheet({ open, song, onClose }: LibrarySongDetailSheetProps) {
   if (!open || !song) return null;
 
-  async function openAudio() {
-    if (song?.youtubeVideoId) {
-      await openExternalMediaUrl(getYouTubeWatchUrlWithSegment(song.youtubeVideoId));
-    }
-  }
+  const listenSong = mergePlanSongWithLibrary(
+    {
+      id: song.id,
+      title: song.title,
+      key: song.defaultKey?.trim() || "C",
+      preparedBy: [],
+    },
+    song,
+  );
 
   return (
     <div className="choir-setlist-sheet-backdrop" role="presentation" onClick={onClose}>
@@ -74,11 +77,9 @@ export function LibrarySongDetailSheet({ open, song, onClose }: LibrarySongDetai
           </a>
         ) : null}
 
-        {song.youtubeVideoId ? (
-          <button type="button" className="choir-btn-primary mt-4" onClick={openAudio}>
-            Open reference audio
-          </button>
-        ) : null}
+        <div className="mt-4">
+          <WorshipSongBreakdownListen song={listenSong} planStatus="published" />
+        </div>
 
         <WorshipSongBreakdownLyrics title={song.title} lyrics={song.lyrics ?? undefined} />
       </div>

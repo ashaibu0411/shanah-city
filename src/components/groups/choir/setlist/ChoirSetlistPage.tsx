@@ -5,9 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
 import type { ChoirSetlistPagePayload } from "@/lib/choir-setlist-types";
-import type { WorshipLibrarySong, WorshipServicePlan, WorshipSong } from "@/lib/worship-types";
-import { worshipSongListenUrl } from "@/lib/worship-plan-links";
-import { openExternalMediaUrl } from "@/lib/open-external-media";
+import { normalizeSongs, type WorshipLibrarySong, type WorshipServicePlan, type WorshipSong } from "@/lib/worship-types";
 import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBreakdownLyrics";
 import { ChoirSetlistHeader } from "@/components/groups/choir/setlist/ChoirSetlistHeader";
 import { SetlistSegmentTabs, type SetlistTabId } from "@/components/groups/choir/setlist/SetlistSegmentTabs";
@@ -40,7 +38,11 @@ export function ChoirSetlistPage({ groupId }: ChoirSetlistPageProps) {
   const [plan, setPlan] = useState<WorshipServicePlan | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
 
-  const [detailSong, setDetailSong] = useState<{ song: WorshipSong; position: number } | null>(null);
+  const [detailSong, setDetailSong] = useState<{
+    song: WorshipSong;
+    position: number;
+    focusListen?: boolean;
+  } | null>(null);
   const [lyricsSong, setLyricsSong] = useState<WorshipSong | null>(null);
   const [librarySong, setLibrarySong] = useState<WorshipLibrarySong | null>(null);
 
@@ -160,10 +162,14 @@ export function ChoirSetlistPage({ groupId }: ChoirSetlistPageProps) {
     }
   }
 
-  async function openAudio(song: WorshipSong) {
+  function openAudio(song: WorshipSong) {
     if (!plan) return;
-    const url = worshipSongListenUrl(song, plan);
-    await openExternalMediaUrl(url);
+    const idx = normalizeSongs(plan.songs).findIndex((entry) => entry.id === song.id);
+    setDetailSong({
+      song,
+      position: idx >= 0 ? idx + 1 : 1,
+      focusListen: true,
+    });
   }
 
   const favoriteIds = payload?.favoriteSongIds ?? [];
@@ -244,6 +250,7 @@ export function ChoirSetlistPage({ groupId }: ChoirSetlistPageProps) {
         planStatus={plan?.status ?? "draft"}
         userId={user?.id}
         canManage={canManage}
+        focusListen={detailSong?.focusListen}
         onClose={() => setDetailSong(null)}
       />
 

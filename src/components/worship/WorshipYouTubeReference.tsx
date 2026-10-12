@@ -69,6 +69,10 @@ export function WorshipYouTubeReference({
           Open on YouTube
         </a>
       </div>
+      <p className="border-t border-night-900/5 px-3 py-2 text-[11px] leading-relaxed text-night-500">
+        Plays in the app below. YouTube may pause when you switch apps; uploaded practice tracks use the in-app
+        player and can keep playing in the background when your device allows it.
+      </p>
     </div>
   );
 }
