@@ -3,7 +3,17 @@ import type { CommunityStatus } from "@/lib/member-types";
 
 export const STORY_IMAGE_MS = 5000;
 /** Photo/text stories with attached worship music (Instagram-style). */
-export const STORY_IMAGE_WITH_MUSIC_MS = 15_000;
+export const STORY_IMAGE_WITH_MUSIC_MS = 20_000;
+
+export function storySlideDurationMs(slide: {
+  mediaType: string;
+  music?: unknown;
+}) {
+  if (slide.mediaType === "image" || slide.mediaType === "text") {
+    return slide.music ? STORY_IMAGE_WITH_MUSIC_MS : STORY_IMAGE_MS;
+  }
+  return STORY_IMAGE_MS;
+}
 export const STORY_LINK_MS = 8000;
 export const SEEN_STORIES_STORAGE_KEY = "shanah-community-story-seen";
 export const COMMUNITY_STORY_MAX_MEDIA = 10;

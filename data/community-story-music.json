@@ -1,6 +1,6 @@
 {
   "tracks": [
-    { "id": "way-maker", "title": "Way Maker", "artist": "Sinach", "youtubeVideoId": "iX-QaNzd-0Y", "tags": ["worship", "global", "nigeria", "gospel"], "startSeconds": 43 },
+    { "id": "way-maker", "title": "Way Maker", "artist": "Sinach", "youtubeVideoId": "QM8jQHE5AAk", "tags": ["worship", "global", "nigeria", "gospel"], "startSeconds": 82 },
     { "id": "i-know-who-i-am", "title": "I Know Who I Am", "artist": "Sinach", "youtubeVideoId": "frtZ4XfoXxM", "tags": ["worship", "nigeria", "gospel", "global"], "startSeconds": 68 },
     { "id": "great-god", "title": "Great God", "artist": "Sinach", "youtubeVideoId": "TFCu1bO3nSk", "tags": ["worship", "nigeria", "gospel"] },
     { "id": "excess-love", "title": "Excess Love", "artist": "Mercy Chinwo", "youtubeVideoId": "ChIdBaaos18", "tags": ["worship", "nigeria", "gospel"], "startSeconds": 30 },
@@ -61,6 +61,6 @@
     { "id": "trust-in-god", "title": "Trust In God", "artist": "Elevation Worship", "youtubeVideoId": "QS04WbSnxok", "tags": ["worship", "global", "gospel"] },
     { "id": "for-your-glory", "title": "For Your Glory", "artist": "Tasha Cobbs Leonard", "youtubeVideoId": "Inq7ol-1uP8", "tags": ["gospel", "global", "worship"] },
     { "id": "spirit-lead-me", "title": "Spirit Lead Me", "artist": "Influence Music & Michael Ketterer", "youtubeVideoId": "q-wGMlYfBq8", "tags": ["worship", "global"] },
-    { "id": "way-maker-leeland", "title": "Way Maker (Live)", "artist": "Leeland", "youtubeVideoId": "iX-QaNzd-0Y", "tags": ["worship", "global", "gospel"] }
+    { "id": "way-maker-studio", "title": "Way Maker", "artist": "Sinach", "youtubeVideoId": "n4XWfwLHeLM", "tags": ["worship", "global", "nigeria", "gospel"], "startSeconds": 88 }
   ]
 }

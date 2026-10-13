@@ -19,8 +19,7 @@ import { getNextWorshipService } from "@/lib/community-worship-service";
 import {
   findDeckIndex,
   resolveStoryMediaUrl,
-  STORY_IMAGE_MS,
-  STORY_IMAGE_WITH_MUSIC_MS,
+  storySlideDurationMs,
   type StoryDeck,
 } from "@/lib/community-story-utils";
 import { parseStoryLinkFromStatus } from "@/lib/community-story-link-shared";
@@ -468,7 +467,7 @@ export function CommunityStoryViewer({
     setProgress(0);
     setMediaFailed(false);
 
-    const slideDurationMs = slide.music ? STORY_IMAGE_WITH_MUSIC_MS : STORY_IMAGE_MS;
+    const slideDurationMs = storySlideDurationMs(slide);
 
     let frame = 0;
     const tick = () => {
@@ -931,7 +930,12 @@ export function CommunityStoryViewer({
 
         {slide.music ? (
           <CommunityStoryMusicAttach
+            key={slide.music.trackId}
             music={slide.music}
+            slideDurationMs={storySlideDurationMs(slide)}
+            musicContinuesOnNextSlide={Boolean(
+              deck?.items[slideIndex + 1]?.music?.trackId === slide.music.trackId,
+            )}
             paused={playbackPaused}
             soundOn={soundOn}
             onToggleSound={() => setSoundOn((current) => !current)}
