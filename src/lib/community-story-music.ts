@@ -7,6 +7,8 @@ export type CommunityStoryMusicTrack = {
   title: string;
   artist: string;
   youtubeVideoId: string;
+  /** Hosted MP3/M4A URL — preferred for story playback (no video). */
+  audioUrl?: string;
   tags?: string[];
   /** Optional hook start (seconds) for story playback. */
   startSeconds?: number;
