@@ -2205,6 +2205,8 @@
   }
 
   .messages-hub-composer-field {
+    display: block;
+    width: 100%;
     background: var(--color-surface);
     border: 1px solid rgba(0, 0, 0, 0.08);
     color: var(--color-ink);
@@ -2231,10 +2233,16 @@
   .messages-hub-composer-textarea {
     display: block;
     width: 100%;
+    min-width: 0;
     min-height: 1.35rem;
     max-height: min(42dvh, 280px);
     overflow-y: auto;
-    field-sizing: content;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .messages-hub-composer-trailing {
+    max-width: 42%;
   }
 
   html.dark .messages-hub-composer-field {
@@ -2626,10 +2634,13 @@
   }
 
   .chat-premium-composer-textarea {
+    width: 100%;
+    min-width: 0;
     min-height: 1.35rem;
     max-height: min(42dvh, 280px);
     overflow-y: auto;
-    field-sizing: content;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 
   html.dark .chat-premium-composer-field {

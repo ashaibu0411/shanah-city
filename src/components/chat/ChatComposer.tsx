@@ -381,10 +381,10 @@ export function ChatComposer({
             </>
           ) : null}
 
-          <div className="relative min-w-0 flex-1">
+          <div className="relative flex min-w-0 flex-1 items-end gap-1">
             {mentionPicker("absolute bottom-full left-0 mb-1 w-[min(100vw-2rem,18rem)]")}
             <div
-              className={`messages-hub-composer-field flex min-w-0 flex-1 gap-0.5 px-3 py-1 ${vanishMode ? "is-vanish" : ""} ${hideHubFieldIcons ? "messages-hub-composer-field--typing items-start" : "items-center rounded-full"}`}
+              className={`messages-hub-composer-field min-w-0 flex-1 px-3 py-1 ${vanishMode ? "is-vanish" : ""} ${hideHubFieldIcons ? "messages-hub-composer-field--typing" : "rounded-full"}`}
             >
               <textarea
                 ref={inputRef}
@@ -395,61 +395,52 @@ export function ChatComposer({
                 onKeyUp={syncMentionCursor}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="messages-hub-composer-textarea min-w-0 flex-1 resize-none bg-transparent py-2 text-[15px] leading-snug text-[var(--color-ink)] caret-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-soft)] disabled:opacity-50"
+                className="messages-hub-composer-textarea block w-full min-w-0 resize-none bg-transparent py-2 text-[15px] leading-snug text-[var(--color-ink)] caret-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-soft)] disabled:opacity-50"
                 onKeyDown={handleComposerKeyDown}
               />
-              {!hideHubFieldIcons ? (
-                <div className="messages-hub-composer-field-actions flex shrink-0 items-center gap-0.5">
-                  <button
-                    type="button"
-                    onPointerDown={handleMicPointerDown}
-                    onPointerUp={() => void handleMicPointerUp()}
-                    onPointerLeave={() => void handleMicPointerUp()}
-                    onClick={handleMicClick}
-                    disabled={!canUseVoice || voiceBusy}
-                    className={`messages-hub-composer-icon disabled:opacity-40 ${micActive ? "messages-hub-composer-icon-recording" : ""}`}
-                    aria-label={
-                      dictation.listening
-                        ? "Stop speech to text"
-                        : voice.recording
-                          ? "Release to send voice message"
-                          : "Hold for voice message, tap for speech to text"
-                    }
-                  >
-                    <HubMicIcon />
-                  </button>
-                  {allowAttachment && onPickAttachment ? (
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      disabled={disabled || attachmentBusy}
-                      className="messages-hub-composer-icon disabled:opacity-40"
-                      aria-label="Add photo"
-                    >
-                      <HubGalleryIcon />
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => setShowEmojiPicker((current) => !current)}
-                    disabled={disabled}
-                    className="messages-hub-composer-icon disabled:opacity-40"
-                    aria-label="Stickers"
-                  >
-                    <HubStickerIcon />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowEmojiPicker((current) => !current)}
-                    disabled={disabled}
-                    className="messages-hub-composer-icon disabled:opacity-40"
-                    aria-label="More"
-                  >
-                    <HubPlusIcon />
-                  </button>
-                </div>
-              ) : null}
             </div>
+            {!hideHubFieldIcons ? (
+              <div className="messages-hub-composer-trailing flex shrink-0 items-center gap-0.5 pb-0.5">
+                <button
+                  type="button"
+                  onPointerDown={handleMicPointerDown}
+                  onPointerUp={() => void handleMicPointerUp()}
+                  onPointerLeave={() => void handleMicPointerUp()}
+                  onClick={handleMicClick}
+                  disabled={!canUseVoice || voiceBusy}
+                  className={`messages-hub-composer-icon disabled:opacity-40 ${micActive ? "messages-hub-composer-icon-recording" : ""}`}
+                  aria-label={
+                    dictation.listening
+                      ? "Stop speech to text"
+                      : voice.recording
+                        ? "Release to send voice message"
+                        : "Hold for voice message, tap for speech to text"
+                  }
+                >
+                  <HubMicIcon />
+                </button>
+                {allowAttachment && onPickAttachment ? (
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={disabled || attachmentBusy}
+                    className="messages-hub-composer-icon disabled:opacity-40"
+                    aria-label="Add photo"
+                  >
+                    <HubGalleryIcon />
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker((current) => !current)}
+                  disabled={disabled}
+                  className="messages-hub-composer-icon disabled:opacity-40"
+                  aria-label="Emoji and stickers"
+                >
+                  <HubStickerIcon />
+                </button>
+              </div>
+            ) : null}
           </div>
           <button
             type="button"
