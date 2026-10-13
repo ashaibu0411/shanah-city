@@ -1447,6 +1447,7 @@ export function MessagesHub() {
                           mine={mine}
                           content={message.content}
                           createdAtLabel={formatBubbleTime(message.createdAt)}
+                          createdAt={message.createdAt}
                           reactions={message.reactions}
                           reply={message.reply}
                           currentUserId={user.id}

@@ -621,9 +621,15 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                   ✕
                 </button>
               </div>
-              <div className="px-4 py-3">
+              <div className="community-story-caption-dialog-body px-4 py-3">
+                {composeMode !== "service" ? (
+                  <CommunityStoryMusicPicker
+                    selectedTrackId={selectedMusicTrack?.id ?? null}
+                    onSelect={setSelectedMusicTrack}
+                  />
+                ) : null}
                 {composeMode === "media" ? (
-                  <p className="text-sm text-night-600 dark:text-sand-300">
+                  <p className="mt-3 text-sm text-night-600 dark:text-sand-300">
                     {pendingFiles.length === 1
                       ? "Add an optional caption (shown on your story and in push previews)."
                       : `Sharing ${Math.min(pendingFiles.length, COMMUNITY_STORY_MAX_MEDIA)} items — caption applies to the first only.`}
@@ -684,12 +690,6 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                       "your group"}{" "}
                     · visible on the community stories row
                   </p>
-                ) : null}
-                {composeMode !== "service" ? (
-                  <CommunityStoryMusicPicker
-                    selectedTrackId={selectedMusicTrack?.id ?? null}
-                    onSelect={setSelectedMusicTrack}
-                  />
                 ) : null}
                 <div className="mt-4 flex gap-2">
                   <button

@@ -16,7 +16,12 @@ import { ChatPollEmbed } from "@/components/polls/ChatPollEmbed";
 import { ChatStoryEmbed } from "@/components/chat/ChatStoryEmbed";
 import { extractPollIdFromChatContent, stripPollMarkerFromChatContent } from "@/lib/poll-chat-links";
 import { backgroundCapableAudioEventHandlers } from "@/lib/native-background-playback";
-import { extractStoryIdFromChatContent, stripStoryMarkerFromChatContent } from "@/lib/story-dm-links";
+import {
+  extractStoryIdFromChatContent,
+  parseStoryDmReplyPresentation,
+  storyDmEmbedExpired,
+  stripStoryMarkerFromChatContent,
+} from "@/lib/story-dm-links";
 import { worshipChatActionForMessage } from "@/lib/worship-chat-links";
 import { ChatMessageReplyQuote } from "@/components/chat/ChatMessageReplyQuote";
 import { ChatReactionEmojiPicker } from "@/components/chat/ChatReactionEmojiPicker";
@@ -36,6 +41,8 @@ type ChatMessageBubbleProps = {
   senderName?: string;
   content: string;
   createdAtLabel: string;
+  /** ISO timestamp — used for story-reply embed expiry. */
+  createdAt?: string;
   reactions?: ChatMessageReaction[];
   reply?: ChatMessageReply;
   currentUserId: string;
@@ -76,6 +83,7 @@ export function ChatMessageBubble({
   senderName,
   content,
   createdAtLabel,
+  createdAt,
   reactions,
   reply,
   currentUserId,
@@ -150,7 +158,19 @@ export function ChatMessageBubble({
     return parseDirectChatImageUrl(visibleText);
   }, [unsent, imageSrc, visibleText]);
   const inlineImageSrc = imageSrc ?? directImageUrl;
-  const bubbleText = directImageUrl ? "" : visibleText;
+  const storyReplyPresentation = useMemo(
+    () => (embeddedStoryId && visibleText ? parseStoryDmReplyPresentation(visibleText) : null),
+    [embeddedStoryId, visibleText],
+  );
+  const showStoryEmbed =
+    embeddedStoryId &&
+    !editing &&
+    (!createdAt || !storyDmEmbedExpired(createdAt));
+  const bubbleText = directImageUrl
+    ? ""
+    : storyReplyPresentation
+      ? storyReplyPresentation.summary
+      : visibleText;
   const audioSrc =
     getChatAttachmentApiUrl(attachmentUrl) &&
     isChatAudioAttachment(attachmentType, attachmentName)
@@ -505,8 +525,13 @@ export function ChatMessageBubble({
                   }
                 />
               ) : null}
-              {embeddedStoryId && !editing ? (
-                <ChatStoryEmbed statusId={embeddedStoryId} mine={mine} />
+              {showStoryEmbed ? (
+                <ChatStoryEmbed
+                  statusId={embeddedStoryId}
+                  mine={mine}
+                  compact
+                  accentEmoji={storyReplyPresentation?.emoji}
+                />
               ) : null}
               {embeddedPollId && groupId && !editing ? (
                 <ChatPollEmbed pollId={embeddedPollId} groupId={groupId} mine={mine} />

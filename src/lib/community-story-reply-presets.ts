@@ -7,10 +7,12 @@ export type StoryReplyPreset = {
 };
 
 const DEFAULT_STORY_REPLY_PRESETS: StoryReplyPreset[] = [
-  { id: "amen", label: "Amen 🙌", message: "Amen 🙌" },
-  { id: "pray", label: "Praying for you 🙏", message: "Praying for you 🙏" },
   { id: "love", label: "Love this ❤️", message: "Love this ❤️" },
+  { id: "amen", label: "Amen 🙌", message: "Amen 🙌" },
+  { id: "pray", label: "Praying 🙏", message: "Praying for you 🙏" },
   { id: "fire", label: "So good! 🔥", message: "So good! 🔥" },
+  { id: "beautiful", label: "Beautiful ✨", message: "This is beautiful ✨" },
+  { id: "on-way", label: "On my way!", message: "On my way!" },
 ];
 
 const SERVICE_INVITE_REPLY_PRESETS: StoryReplyPreset[] = [

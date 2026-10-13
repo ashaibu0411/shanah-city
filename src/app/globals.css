@@ -5200,6 +5200,19 @@ html.dark .community-media-photo-frame {
   backdrop-filter: blur(4px);
 }
 
+.community-story-caption-dialog-body {
+  max-height: min(62vh, 28rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.community-story-quick-reactions-always {
+  margin-bottom: 0.35rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+
 .community-composer-dialog {
   position: relative;
   z-index: 1;

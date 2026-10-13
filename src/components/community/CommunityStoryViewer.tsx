@@ -9,6 +9,7 @@ import { readJsonResponse } from "@/lib/read-json-response";
 import {
   COMMUNITY_STORY_REACTION_KINDS,
   instagramFloatingQuickReactionButtonsForStory,
+  quickReactionButtonsForStory,
   reactionButtonsForStory,
   reactionMeta,
   totalStoryReactionCount,
@@ -291,6 +292,7 @@ export function CommunityStoryViewer({
   const floatingQuickReactions = slide
     ? instagramFloatingQuickReactionButtonsForStory(slide.storyKind)
     : [];
+  const alwaysVisibleQuickReactions = slide ? quickReactionButtonsForStory(slide.storyKind) : [];
   const replyPresets = slide ? storyReplyPresetsForKind(slide.storyKind) : [];
   const goingCount = slide?.reactions?.coming ?? 0;
   const isServiceInvite = slide?.storyKind === "service_invite";
@@ -996,6 +998,29 @@ export function CommunityStoryViewer({
               })}
             </div>
           ) : null}
+          <div
+            className="community-story-quick-reactions community-story-quick-reactions-always"
+            role="toolbar"
+            aria-label="Quick reactions"
+          >
+            {alwaysVisibleQuickReactions.map((button) => {
+              const active = slide.viewerReactions?.includes(button.kind);
+              return (
+                <button
+                  key={`always-${button.kind}`}
+                  type="button"
+                  disabled={reactionBusy}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void toggleReaction(button.kind)}
+                  className={`community-story-quick-reaction-btn ${active ? "community-story-quick-reaction-btn-active" : ""}`}
+                  aria-label={button.label}
+                  aria-pressed={active}
+                >
+                  <span aria-hidden>{button.emoji}</span>
+                </button>
+              );
+            })}
+          </div>
           <div
             className="community-story-reply-presets"
             role="toolbar"

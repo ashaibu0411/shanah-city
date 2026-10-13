@@ -15,7 +15,19 @@ type StoryPreview = {
   expired: boolean;
 };
 
-export function ChatStoryEmbed({ statusId, mine }: { statusId: string; mine?: boolean }) {
+type ChatStoryEmbedProps = {
+  statusId: string;
+  mine?: boolean;
+  compact?: boolean;
+  accentEmoji?: string | null;
+};
+
+export function ChatStoryEmbed({
+  statusId,
+  mine,
+  compact = false,
+  accentEmoji = null,
+}: ChatStoryEmbedProps) {
   const [preview, setPreview] = useState<StoryPreview | null>(null);
   const [error, setError] = useState("");
 
@@ -61,6 +73,44 @@ export function ChatStoryEmbed({ statusId, mine }: { statusId: string; mine?: bo
     preview.mediaType === "image" || preview.mediaType === "video"
       ? resolveStoryMediaUrl(preview.mediaUrl)
       : null;
+
+  if (compact) {
+    return (
+      <Link
+        href={communityStoryDeepLink(statusId)}
+        className={`mt-2 flex max-w-[min(100%,18rem)] items-center gap-2.5 rounded-xl border px-2 py-1.5 ${shell}`}
+      >
+        <div className="relative h-12 w-9 shrink-0 overflow-hidden rounded-lg bg-night-900">
+          {mediaUrl ? (
+            preview.mediaType === "video" ? (
+              <video src={mediaUrl} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={mediaUrl} alt="" className="h-full w-full object-cover" />
+            )
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[9px] font-bold uppercase text-white/80">
+              Text
+            </div>
+          )}
+          {accentEmoji ? (
+            <span
+              className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm shadow ring-1 ring-black/10 dark:bg-night-800"
+              aria-hidden
+            >
+              {accentEmoji}
+            </span>
+          ) : null}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[11px] font-semibold text-night-900 dark:text-sand-100">
+            {preview.authorName}
+          </p>
+          <p className="truncate text-[10px] text-teal-800 dark:text-teal-300">View story</p>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <Link

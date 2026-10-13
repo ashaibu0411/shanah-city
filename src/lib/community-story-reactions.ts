@@ -58,6 +58,19 @@ export const INSTAGRAM_PRIMARY_QUICK_REACTION_KINDS = [
   "sad",
 ] as const satisfies readonly CommunityStoryReactionKind[];
 
+/** Always-visible story reaction row (tap to react + DM author). */
+export const STORY_VISIBLE_QUICK_REACTION_KINDS = [
+  "love",
+  "heart",
+  "fire",
+  "clap",
+  "laugh",
+  "wow",
+  "sad",
+  "pray",
+  "amen",
+] as const satisfies readonly CommunityStoryReactionKind[];
+
 const DEFAULT_STORY_REACTION_ORDER: CommunityStoryReactionKind[] = [
   ...INSTAGRAM_QUICK_REACTION_KINDS,
 ];
@@ -116,7 +129,7 @@ export function quickReactionButtonsForStory(
     ];
   }
 
-  return INSTAGRAM_PRIMARY_QUICK_REACTION_KINDS.map((kind) => ({
+  return STORY_VISIBLE_QUICK_REACTION_KINDS.map((kind) => ({
     kind,
     ...REACTION_META[kind],
   }));
