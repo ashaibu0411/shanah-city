@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { CommunityStatus } from "@/lib/member-types";
 import { authorInitial } from "@/lib/community-ui-utils";
+import { parseGroupStoryAuthorId } from "@/lib/group-community-story-ids";
 import { resolveStoryMediaUrl } from "@/lib/community-story-utils";
 
 type CommunityStoryRingProps = {
@@ -30,8 +31,10 @@ export function CommunityStoryRing({
 }: CommunityStoryRingProps) {
   const [avatarFailed, setAvatarFailed] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
-  const avatarSrc =
-    authorId && !avatarFailed
+  const groupId = parseGroupStoryAuthorId(authorId);
+  const avatarSrc = groupId
+    ? `/api/groups/icon?groupId=${encodeURIComponent(groupId)}`
+    : authorId && !avatarFailed
       ? `/api/profile/avatar?userId=${encodeURIComponent(authorId)}`
       : null;
   const previewUrl = preview ? resolveStoryMediaUrl(preview.mediaUrl) : null;

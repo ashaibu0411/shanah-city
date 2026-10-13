@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/db";
 import { communityStatusExpiry } from "@/lib/community-media-server";
-import type { CommunityStatusMediaType, CommunityStatusStoryKind } from "@/lib/member-types";
+import { canDeleteGroupCommunityStatus } from "@/lib/group-community-story-server";
+import type {
+  CommunityStatusMediaType,
+  CommunityStatusMusic,
+  CommunityStatusStoryKind,
+} from "@/lib/member-types";
 
 export type CommunityStatusRecord = {
   id: string;
@@ -10,6 +15,9 @@ export type CommunityStatusRecord = {
   mediaType: CommunityStatusMediaType;
   caption?: string;
   storyKind: CommunityStatusStoryKind;
+  groupId?: string;
+  postedByUserId?: string;
+  music?: CommunityStatusMusic;
   createdAt: string;
   expiresAt: string;
 };
@@ -27,6 +35,21 @@ function parseMediaType(value: string): CommunityStatusMediaType {
   return "image";
 }
 
+function mapMusic(record: {
+  musicTrackId: string | null;
+  musicTitle: string | null;
+  musicArtist: string | null;
+  musicYoutubeVideoId: string | null;
+}): CommunityStatusMusic | undefined {
+  if (!record.musicTrackId || !record.musicYoutubeVideoId) return undefined;
+  return {
+    trackId: record.musicTrackId,
+    title: record.musicTitle?.trim() || "Song",
+    artist: record.musicArtist?.trim() || "Artist",
+    youtubeVideoId: record.musicYoutubeVideoId,
+  };
+}
+
 function mapStatus(record: {
   id: string;
   authorId: string;
@@ -35,9 +58,16 @@ function mapStatus(record: {
   mediaType: string;
   caption: string | null;
   storyKind?: string | null;
+  groupId?: string | null;
+  postedByUserId?: string | null;
+  musicTrackId?: string | null;
+  musicTitle?: string | null;
+  musicArtist?: string | null;
+  musicYoutubeVideoId?: string | null;
   createdAt: Date;
   expiresAt: Date;
 }): CommunityStatusRecord {
+  const music = mapMusic(record);
   return {
     id: record.id,
     authorId: record.authorId,
@@ -46,6 +76,9 @@ function mapStatus(record: {
     mediaType: parseMediaType(record.mediaType),
     caption: record.caption ?? undefined,
     storyKind: parseStoryKind(record.storyKind),
+    groupId: record.groupId ?? undefined,
+    postedByUserId: record.postedByUserId ?? undefined,
+    music,
     createdAt: record.createdAt.toISOString(),
     expiresAt: record.expiresAt.toISOString(),
   };
@@ -68,6 +101,9 @@ export async function addCommunityStatus(input: {
   mediaType: CommunityStatusMediaType;
   caption?: string;
   storyKind?: CommunityStatusStoryKind;
+  groupId?: string;
+  postedByUserId?: string;
+  music?: CommunityStatusMusic;
   expiresAt?: Date;
 }) {
   const created = await prisma.communityStatus.create({
@@ -79,6 +115,12 @@ export async function addCommunityStatus(input: {
       mediaType: input.mediaType,
       caption: input.caption ?? null,
       storyKind: input.storyKind ?? "default",
+      groupId: input.groupId ?? null,
+      postedByUserId: input.postedByUserId ?? null,
+      musicTrackId: input.music?.trackId ?? null,
+      musicTitle: input.music?.title ?? null,
+      musicArtist: input.music?.artist ?? null,
+      musicYoutubeVideoId: input.music?.youtubeVideoId ?? null,
       expiresAt: input.expiresAt ?? communityStatusExpiry(),
     },
   });
@@ -101,13 +143,22 @@ export async function deleteExpiredCommunityStatuses() {
   });
 }
 
-export async function deleteCommunityStatus(input: { id: string; authorId: string }) {
+export async function deleteCommunityStatus(input: { id: string; userId: string }) {
   const existing = await prisma.communityStatus.findUnique({
     where: { id: input.id },
   });
 
   if (!existing) return null;
-  if (existing.authorId !== input.authorId) return "forbidden";
+
+  const isPersonalAuthor = existing.authorId === input.userId;
+  const isGroupPoster = existing.postedByUserId === input.userId;
+  const isGroupLeader =
+    existing.groupId != null &&
+    (await canDeleteGroupCommunityStatus(input.userId, existing.groupId));
+
+  if (!isPersonalAuthor && !isGroupPoster && !isGroupLeader) {
+    return "forbidden";
+  }
 
   await prisma.communityStatus.delete({
     where: { id: input.id },

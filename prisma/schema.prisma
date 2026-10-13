@@ -186,18 +186,25 @@ model CommunityPostReaction {
 }
 
 model CommunityStatus {
-  id         String   @id
-  authorId   String
-  authorName String
-  mediaUrl   String
-  mediaType  String
-  caption    String?
-  storyKind  String   @default("default")
-  createdAt  DateTime @default(now())
-  expiresAt  DateTime
+  id                    String   @id
+  authorId              String
+  authorName            String
+  mediaUrl              String
+  mediaType             String
+  caption               String?
+  storyKind             String   @default("default")
+  groupId               String?
+  postedByUserId        String?
+  musicTrackId          String?
+  musicTitle            String?
+  musicArtist           String?
+  musicYoutubeVideoId   String?
+  createdAt             DateTime @default(now())
+  expiresAt             DateTime
 
   @@index([expiresAt])
   @@index([authorId])
+  @@index([groupId])
 }
 
 model CommunityStatusReaction {

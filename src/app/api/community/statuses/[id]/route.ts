@@ -32,7 +32,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
   try {
     const result = await deleteCommunityStatus({
       id: statusId,
-      authorId: user.id,
+      userId: user.id,
     });
 
     if (result === "forbidden") {

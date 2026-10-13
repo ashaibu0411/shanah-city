@@ -23,6 +23,7 @@ import {
 } from "@/lib/community-story-utils";
 import { parseStoryLinkFromStatus } from "@/lib/community-story-link-shared";
 import { storyReplyPresetsForKind } from "@/lib/community-story-reply-presets";
+import { CommunityStoryMusicAttach } from "@/components/community/CommunityStoryMusicAttach";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
 import { CommunityLivePlayer } from "@/components/community/CommunityLivePlayer";
 import { MentionInput } from "@/components/mentions/MentionField";
@@ -281,7 +282,8 @@ export function CommunityStoryViewer({
   const deck = deckIndex >= 0 ? navigationDecks[deckIndex] : undefined;
   const slide = deck?.items[slideIndex];
   const mediaUrl = slide ? resolveStoryMediaUrl(slide.mediaUrl) : "";
-  const isOwnStory = deck?.authorId === currentUserId;
+  const isOwnStory =
+    deck?.authorId === currentUserId || slide?.postedByUserId === currentUserId;
   const [liveStoryUiActive, setLiveStoryUiActive] = useState(false);
   const playbackPaused = paused || replyFocused || liveStoryUiActive;
   const nextService = useMemo(() => getNextWorshipService(), []);
@@ -920,6 +922,8 @@ export function CommunityStoryViewer({
             onError={() => setMediaFailed(true)}
           />
         )}
+
+        {slide.music ? <CommunityStoryMusicAttach music={slide.music} /> : null}
 
         {slide.mediaType === "link" ? (
           <>

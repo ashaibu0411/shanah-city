@@ -33,5 +33,5 @@ export async function startCommunityStoryLive(input: {
 }
 
 export async function endCommunityStoryLive(input: { statusId: string; authorId: string }) {
-  return deleteCommunityStatus({ id: input.statusId, authorId: input.authorId });
+  return deleteCommunityStatus({ id: input.statusId, userId: input.authorId });
 }

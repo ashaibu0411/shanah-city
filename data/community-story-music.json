@@ -1,0 +1,22 @@
+{
+  "tracks": [
+    { "id": "way-maker", "title": "Way Maker", "artist": "Sinach", "youtubeVideoId": "iX-QaNzd-0Y", "tags": ["worship", "global"] },
+    { "id": "goodness-of-god", "title": "Goodness of God", "artist": "Bethel Music", "youtubeVideoId": "CqybaIesbuA", "tags": ["worship"] },
+    { "id": "what-a-beautiful-name", "title": "What a Beautiful Name", "artist": "Hillsong Worship", "youtubeVideoId": "nQWFzMvCfLE", "tags": ["worship"] },
+    { "id": "oceans", "title": "Oceans (Where Feet May Fail)", "artist": "Hillsong UNITED", "youtubeVideoId": "dy9nwe9_xzw", "tags": ["worship"] },
+    { "id": "reckless-love", "title": "Reckless Love", "artist": "Cory Asbury", "youtubeVideoId": "6Af6b_wyiwI", "tags": ["worship"] },
+    { "id": "build-my-life", "title": "Build My Life", "artist": "Housefires", "youtubeVideoId": "WPo0_eeGiWc", "tags": ["worship"] },
+    { "id": "great-are-you-lord", "title": "Great Are You Lord", "artist": "All Sons & Daughters", "youtubeVideoId": "mBcqE6LIE0Q", "tags": ["worship"] },
+    { "id": "10-000-reasons", "title": "10,000 Reasons (Bless the Lord)", "artist": "Matt Redman", "youtubeVideoId": "DXDGE0RIpxE", "tags": ["worship"] },
+    { "id": "how-great-is-our-god", "title": "How Great Is Our God", "artist": "Chris Tomlin", "youtubeVideoId": "KBD18s8j056", "tags": ["worship"] },
+    { "id": "firm-foundation", "title": "Firm Foundation (He Won't)", "artist": "Maverick City Music", "youtubeVideoId": "35m3M-ZjJaA", "tags": ["worship", "gospel"] },
+    { "id": "promises", "title": "Promises", "artist": "Maverick City Music", "youtubeVideoId": "q47T0XrKnQc", "tags": ["worship", "gospel"] },
+    { "id": "graves-into-gardens", "title": "Graves Into Gardens", "artist": "Elevation Worship", "youtubeVideoId": "MhBY2cAi2yA", "tags": ["worship"] },
+    { "id": "you-say", "title": "You Say", "artist": "Lauren Daigle", "youtubeVideoId": "sIaT7Jl2dfI", "tags": ["contemporary"] },
+    { "id": "king-of-kings", "title": "King of Kings", "artist": "Hillsong Worship", "youtubeVideoId": "OfZOF5A10nY", "tags": ["worship"] },
+    { "id": "who-you-say-i-am", "title": "Who You Say I Am", "artist": "Hillsong Worship", "youtubeVideoId": "lKw6uSNJ1G4", "tags": ["worship"] },
+    { "id": "this-is-amazing-grace", "title": "This Is Amazing Grace", "artist": "Phil Wickham", "youtubeVideoId": "XFrGehrOhCs", "tags": ["worship"] },
+    { "id": "surrounded-fight-my-battles", "title": "Surrounded (Fight My Battles)", "artist": "Upperroom", "youtubeVideoId": "m83TSHhg-jU", "tags": ["worship"] },
+    { "id": "break-every-chain", "title": "Break Every Chain", "artist": "Tasha Cobbs Leonard", "youtubeVideoId": "uGlKDD3B5nY", "tags": ["gospel", "worship"] }
+  ]
+}

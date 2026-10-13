@@ -29,6 +29,9 @@ import {
   markStoriesSeen,
 } from "@/lib/community-story-utils";
 import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
+import { CommunityStoryMusicPicker } from "@/components/community/CommunityStoryMusicPicker";
+import { groupStoryAuthorId } from "@/lib/group-community-story-ids";
+import type { CommunityStoryMusicTrack } from "@/lib/community-story-music";
 import { MentionTextarea } from "@/components/mentions/MentionField";
 import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete";
 
@@ -61,6 +64,13 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
   const [linkDraft, setLinkDraft] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [groupStoryOptions, setGroupStoryOptions] = useState<
+    Array<{ id: string; name: string; category: string }>
+  >([]);
+  const [composeAsGroupId, setComposeAsGroupId] = useState<string | null>(null);
+  const [selectedMusicTrack, setSelectedMusicTrack] = useState<CommunityStoryMusicTrack | null>(
+    null,
+  );
   const nextService = useMemo(() => getNextWorshipService(), []);
 
   useEffect(() => {
@@ -100,6 +110,17 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     void loadStatuses();
   }, [loadStatuses]);
 
+  useEffect(() => {
+    if (!user) {
+      setGroupStoryOptions([]);
+      return;
+    }
+    fetch("/api/community/group-stories/options")
+      .then((response) => response.json())
+      .then((data) => setGroupStoryOptions(data.groups ?? []))
+      .catch(() => setGroupStoryOptions([]));
+  }, [user]);
+
   useOnAppRefresh(() => {
     void loadStatuses();
   });
@@ -136,6 +157,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
 
   function openMediaPicker() {
     closeShareMenu();
+    setComposeAsGroupId(null);
     openCommunityGalleryPicker(
       fileRef.current,
       (files) => {
@@ -151,6 +173,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
 
   function openTextComposer() {
     closeShareMenu();
+    setComposeAsGroupId(null);
     setComposeMode("text");
     setPendingFiles([]);
     setCaptionDraft("");
@@ -186,6 +209,42 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     setCaptionDraft("");
     setLinkDraft("");
     setComposeMode("media");
+    setComposeAsGroupId(null);
+    setSelectedMusicTrack(null);
+  }
+
+  function openGroupStoryComposer(groupId: string) {
+    closeShareMenu();
+    setComposeAsGroupId(groupId);
+    openCommunityGalleryPicker(
+      fileRef.current,
+      (files) => {
+        if (files.length === 0) return;
+        setComposeMode("media");
+        setPendingFiles(files);
+        setCaptionDraft("");
+        setCaptionOpen(true);
+      },
+      { preferNativePhotoPicker: true },
+    );
+  }
+
+  function openGroupTextStoryComposer(groupId: string) {
+    closeShareMenu();
+    setComposeAsGroupId(groupId);
+    setComposeMode("text");
+    setPendingFiles([]);
+    setCaptionDraft("");
+    setLinkDraft("");
+    setCaptionOpen(true);
+  }
+
+  function storyPostPayload(extra: Record<string, unknown> = {}) {
+    return {
+      ...extra,
+      ...(composeAsGroupId ? { groupId: composeAsGroupId } : {}),
+      ...(selectedMusicTrack ? { musicTrackId: selectedMusicTrack.id } : {}),
+    };
   }
 
   function confirmComposeAndShare() {
@@ -243,11 +302,13 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
       const response = await fetch("/api/community/statuses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mediaType: "link",
-          linkUrl: input.linkUrl,
-          caption: input.caption,
-        }),
+        body: JSON.stringify(
+          storyPostPayload({
+            mediaType: "link",
+            linkUrl: input.linkUrl,
+            caption: input.caption,
+          }),
+        ),
       });
       const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
       if (!response.ok || !data.status) {
@@ -276,11 +337,13 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
       const response = await fetch("/api/community/statuses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mediaType: "text",
-          caption: input.caption,
-          storyKind: input.storyKind ?? "default",
-        }),
+        body: JSON.stringify(
+          storyPostPayload({
+            mediaType: "text",
+            caption: input.caption,
+            storyKind: input.storyKind ?? "default",
+          }),
+        ),
       });
       const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
       if (!response.ok || !data.status) {
@@ -299,10 +362,13 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     if (!user || savedStatuses.length === 0) return;
 
     const firstSaved = savedStatuses[0];
+    const deckAuthorId = firstSaved.groupId
+      ? groupStoryAuthorId(firstSaved.groupId)
+      : user.id;
     setStatuses((current) => {
       const next = [...savedStatuses.toReversed(), ...current];
       const nextDecks = buildStoryDecks(next, seenIds, user.id, priorityAuthorIds);
-      const myDeckIndex = findDeckIndex(nextDecks, user.id);
+      const myDeckIndex = findDeckIndex(nextDecks, deckAuthorId);
       const myDeckItems = nextDecks[myDeckIndex]?.items ?? [];
       const slideIndex = Math.max(
         0,
@@ -350,7 +416,9 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
         const response = await fetch("/api/community/statuses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mediaUrl, mediaType, caption: statusCaption }),
+          body: JSON.stringify(
+            storyPostPayload({ mediaUrl, mediaType, caption: statusCaption }),
+          ),
         });
         const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
         if (!response.ok || !data.status) {
@@ -482,6 +550,36 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                     Stream to your story · church family can watch in real time
                   </p>
                 </button>
+                {groupStoryOptions.length > 0 ? (
+                  <div className="border-t border-night-900/10 pt-2 dark:border-white/10">
+                    <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-night-500 dark:text-sand-400">
+                      Group stories (leaders)
+                    </p>
+                    {groupStoryOptions.map((group) => (
+                      <div key={group.id} className="mb-2 space-y-1.5 last:mb-0">
+                        <button
+                          type="button"
+                          onClick={() => openGroupStoryComposer(group.id)}
+                          className="w-full rounded-xl border border-violet-500/25 bg-violet-500/5 px-4 py-3 text-left hover:bg-violet-500/10"
+                        >
+                          <p className="font-semibold text-night-900 dark:text-sand-100">
+                            Photo or video · {group.name}
+                          </p>
+                          <p className="text-xs text-night-600 dark:text-sand-400">
+                            Shows on community as the {group.name} story ring
+                          </p>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openGroupTextStoryComposer(group.id)}
+                          className="w-full rounded-xl border border-night-900/10 px-4 py-2.5 text-left text-sm font-semibold text-night-800 hover:bg-sand-50 dark:border-white/10 dark:text-sand-200 dark:hover:bg-white/5"
+                        >
+                          Text update · {group.name}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>,
@@ -579,6 +677,20 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                 <p className="mt-1 text-right text-xs text-night-500 dark:text-sand-400">
                   {captionDraft.length}/200
                 </p>
+                {composeAsGroupId ? (
+                  <p className="mt-3 rounded-xl bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-900 dark:text-violet-200">
+                    Posting as{" "}
+                    {groupStoryOptions.find((group) => group.id === composeAsGroupId)?.name ??
+                      "your group"}{" "}
+                    · visible on the community stories row
+                  </p>
+                ) : null}
+                {composeMode !== "service" ? (
+                  <CommunityStoryMusicPicker
+                    selectedTrackId={selectedMusicTrack?.id ?? null}
+                    onSelect={setSelectedMusicTrack}
+                  />
+                ) : null}
                 <div className="mt-4 flex gap-2">
                   <button
                     type="button"

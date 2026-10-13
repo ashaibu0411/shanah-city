@@ -1,3 +1,4 @@
+import { parseGroupStoryAuthorId } from "@/lib/group-community-story-ids";
 import type { CommunityStatus } from "@/lib/member-types";
 
 export const STORY_IMAGE_MS = 5000;
@@ -8,6 +9,7 @@ export const COMMUNITY_STORY_MAX_MEDIA = 10;
 export type StoryDeck = {
   authorId: string;
   authorName: string;
+  groupId?: string;
   items: CommunityStatus[];
   previewItem: CommunityStatus;
   hasUnseen: boolean;
@@ -82,6 +84,7 @@ export function buildStoryDecks(
     decks.push({
       authorId,
       authorName: previewItem.authorName,
+      groupId: previewItem.groupId ?? parseGroupStoryAuthorId(authorId) ?? undefined,
       items: sorted,
       previewItem,
       hasUnseen,

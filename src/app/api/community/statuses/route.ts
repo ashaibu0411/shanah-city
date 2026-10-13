@@ -10,9 +10,14 @@ import {
   notifyStoryPosted,
 } from "@/lib/community-status-viewer-server";
 import { addCommunityStatus } from "@/lib/community-status-server";
+import { findCommunityStoryMusicTrack } from "@/lib/community-story-music";
 import { defaultServiceInviteCaption } from "@/lib/community-worship-service";
 import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
-import type { CommunityStatusStoryKind } from "@/lib/member-types";
+import {
+  assertCanPostGroupCommunityStory,
+  groupStoryAuthorId,
+} from "@/lib/group-community-story-server";
+import type { CommunityStatusMusic, CommunityStatusStoryKind } from "@/lib/member-types";
 import { notifyMemberMentions } from "@/lib/mention-notify-server";
 
 function parseStoryKind(value: unknown): CommunityStatusStoryKind {
@@ -50,6 +55,8 @@ export async function POST(request: Request) {
   let mediaType: "image" | "video" | "text" | "link" | "audio" | null = null;
   let caption = "";
   let storyKind: CommunityStatusStoryKind = "default";
+  let groupId = "";
+  let musicTrackId = "";
 
   if (contentType.includes("application/json")) {
     const body = (await request.json()) as {
@@ -58,7 +65,11 @@ export async function POST(request: Request) {
       caption?: string;
       storyKind?: CommunityStatusStoryKind;
       linkUrl?: string;
+      groupId?: string;
+      musicTrackId?: string;
     };
+    groupId = String(body.groupId ?? "").trim();
+    musicTrackId = String(body.musicTrackId ?? "").trim();
     mediaUrl = String(body.mediaUrl ?? body.linkUrl ?? "").trim();
     storyKind = parseStoryKind(body.storyKind);
     caption = String(body.caption ?? "").trim();
@@ -103,6 +114,8 @@ export async function POST(request: Request) {
     const file = formData.get("file");
     caption = String(formData.get("caption") ?? "").trim();
     storyKind = parseStoryKind(formData.get("storyKind"));
+    groupId = String(formData.get("groupId") ?? "").trim();
+    musicTrackId = String(formData.get("musicTrackId") ?? "").trim();
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "Photo or video is required." }, { status: 400 });
@@ -119,22 +132,53 @@ export async function POST(request: Request) {
   }
 
   try {
+    let authorId = user.id;
+    let authorName = getPublicDisplayName(user);
+    let postedByUserId: string | undefined;
+    let notifyGroupId: string | undefined;
+
+    if (groupId) {
+      const group = await assertCanPostGroupCommunityStory(user.id, groupId);
+      authorId = groupStoryAuthorId(group.id);
+      authorName = group.name;
+      postedByUserId = user.id;
+      notifyGroupId = group.id;
+    }
+
+    let music: CommunityStatusMusic | undefined;
+    if (musicTrackId) {
+      const track = findCommunityStoryMusicTrack(musicTrackId);
+      if (!track) {
+        return NextResponse.json({ error: "That song is not in the story music library." }, { status: 400 });
+      }
+      music = {
+        trackId: track.id,
+        title: track.title,
+        artist: track.artist,
+        youtubeVideoId: track.youtubeVideoId,
+      };
+    }
+
     const status = await addCommunityStatus({
       id: `status-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      authorId: user.id,
-      authorName: getPublicDisplayName(user),
+      authorId,
+      authorName,
       mediaUrl,
       mediaType: mediaType ?? "text",
       caption: caption || undefined,
       storyKind,
+      groupId: notifyGroupId,
+      postedByUserId,
+      music,
     });
 
     const [withReactions] = await attachReactionsToStatuses([status], user.id);
 
     void notifyStoryPosted({
-      authorId: user.id,
-      authorName: getPublicDisplayName(user),
+      authorId,
+      authorName,
       caption: caption || undefined,
+      groupId: notifyGroupId,
     });
 
     if (caption) {
@@ -143,7 +187,7 @@ export async function POST(request: Request) {
         authorName: getPublicDisplayName(user),
         content: caption,
         url: "/community",
-        contextLabel: "Story",
+        contextLabel: notifyGroupId ? "Group story" : "Story",
         preferenceKey: "announcements",
       });
     }

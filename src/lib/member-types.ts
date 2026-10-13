@@ -47,6 +47,13 @@ export type CommunityStatusMediaType = "image" | "video" | "text" | "link" | "au
 
 export type CommunityStatusStoryKind = "default" | "service_invite";
 
+export type CommunityStatusMusic = {
+  trackId: string;
+  title: string;
+  artist: string;
+  youtubeVideoId: string;
+};
+
 export type CommunityStatus = {
   id: string;
   authorId: string;
@@ -55,6 +62,9 @@ export type CommunityStatus = {
   mediaType: CommunityStatusMediaType;
   caption?: string;
   storyKind?: CommunityStatusStoryKind;
+  groupId?: string;
+  postedByUserId?: string;
+  music?: CommunityStatusMusic;
   createdAt: string;
   expiresAt: string;
   reactions?: CommunityStatusReactionCounts;

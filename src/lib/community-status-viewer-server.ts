@@ -1,3 +1,7 @@
+import {
+  getGroupMemberIdsForStoryNotify,
+  getGroupStoryPriorityAuthorIds,
+} from "@/lib/group-community-story-server";
 import { getStoryCircleUserIds } from "@/lib/community-story-priority-server";
 import { attachReactionsToStatuses } from "@/lib/community-status-reaction-server";
 import {
@@ -12,7 +16,14 @@ export async function loadCommunityStatusesForViewer(viewerId?: string) {
   const statuses = await getActiveCommunityStatuses();
   const enriched = await attachReactionsToStatuses(statuses, viewerId);
   const withDisplayNames = await resolveDisplayNamesForCommunityStatuses(enriched);
-  const priorityAuthorIds = viewerId ? await getStoryCircleUserIds(viewerId) : [];
+  const priorityAuthorIds = viewerId
+    ? [
+        ...new Set([
+          ...(await getStoryCircleUserIds(viewerId)),
+          ...(await getGroupStoryPriorityAuthorIds(viewerId)),
+        ]),
+      ]
+    : [];
   return { statuses: withDisplayNames, priorityAuthorIds };
 }
 
@@ -20,9 +31,12 @@ export async function notifyStoryPosted(input: {
   authorId: string;
   authorName: string;
   caption?: string;
+  groupId?: string;
 }) {
   try {
-    const recipientIds = await getStoryCircleUserIds(input.authorId);
+    const recipientIds = input.groupId
+      ? await getGroupMemberIdsForStoryNotify(input.groupId)
+      : await getStoryCircleUserIds(input.authorId);
     await notifyCommunityStory({
       authorId: input.authorId,
       authorName: input.authorName,
