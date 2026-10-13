@@ -36,10 +36,10 @@ function parseMediaType(value: string): CommunityStatusMediaType {
 }
 
 function mapMusic(record: {
-  musicTrackId: string | null;
-  musicTitle: string | null;
-  musicArtist: string | null;
-  musicYoutubeVideoId: string | null;
+  musicTrackId?: string | null;
+  musicTitle?: string | null;
+  musicArtist?: string | null;
+  musicYoutubeVideoId?: string | null;
 }): CommunityStatusMusic | undefined {
   if (!record.musicTrackId || !record.musicYoutubeVideoId) return undefined;
   return {
