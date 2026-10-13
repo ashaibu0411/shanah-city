@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui";
 import { ChatReplyComposerBanner } from "@/components/chat/ChatReplyComposerBanner";
 import { chatPremium } from "@/components/chat/chat-premium";
@@ -11,6 +11,8 @@ import { formatRecordingElapsed, useAudioRecorder } from "@/lib/use-audio-record
 import { useSpeechDictation } from "@/lib/use-speech-dictation";
 import type { ChatReplyDraft } from "@/lib/chat-reply-types";
 import type { MentionMember } from "@/lib/mentions";
+
+const COMPOSER_TEXTAREA_MAX_HEIGHT_PX = 280;
 
 type PendingAttachment = {
   attachmentUrl: string;
@@ -60,7 +62,7 @@ export function ChatComposer({
 }: ChatComposerProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
   const mentionCursorRef = useRef(0);
@@ -131,6 +133,19 @@ export function ChatComposer({
     };
   }, [onTyping]);
 
+  const resizeComposerField = useCallback(() => {
+    const field = inputRef.current;
+    if (!field) return;
+    field.style.height = "0px";
+    const nextHeight = Math.min(field.scrollHeight, COMPOSER_TEXTAREA_MAX_HEIGHT_PX);
+    field.style.height = `${nextHeight}px`;
+    field.style.overflowY = field.scrollHeight > COMPOSER_TEXTAREA_MAX_HEIGHT_PX ? "auto" : "hidden";
+  }, []);
+
+  useEffect(() => {
+    resizeComposerField();
+  }, [value, resizeComposerField]);
+
   function notifyTyping(nextValue: string) {
     if (!onTyping) return;
     onTyping(nextValue.trim().length > 0);
@@ -173,7 +188,25 @@ export function ChatComposer({
   const compact = density === "compact";
   const hub = density === "whatsapp" || density === "instagram";
   /** Instagram-style hub: trailing icons steal width from the text field while composing. */
-  const hideHubFieldIcons = value.trim().length > 0;
+  const composerTypingActive = value.trim().length > 0;
+  const hideHubFieldIcons = composerTypingActive;
+
+  function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (onMentionKeyDown(event)) return;
+    if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
+      event.preventDefault();
+      handleSend();
+    }
+  }
+
+  function handleComposerChange(event: ChangeEvent<HTMLTextAreaElement>) {
+    onChange(event.target.value);
+    notifyTyping(event.target.value);
+    syncMentionCursor();
+    if (event.target.value.trim() && showEmojiPicker) {
+      setShowEmojiPicker(false);
+    }
+  }
 
   function handleSend() {
     if (busy || disabled || attachmentBusy || voiceBusy) return;
@@ -297,7 +330,9 @@ export function ChatComposer({
 
   if (hub) {
     return (
-      <div className="messages-hub-composer px-3 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+      <div
+        className={`messages-hub-composer px-3 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))] ${composerTypingActive ? "messages-hub-composer--typing" : ""}`}
+      >
         {replyDraft && onClearReply ? (
           <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
         ) : null}
@@ -322,8 +357,10 @@ export function ChatComposer({
           </div>
         )}
 
-        <div className="flex min-w-0 items-center gap-2">
-          {allowAttachment && onPickAttachment && (
+        <div
+          className={`messages-hub-composer-row flex min-w-0 gap-2 ${composerTypingActive ? "items-end" : "items-center"}`}
+        >
+          {allowAttachment && onPickAttachment && !hideHubFieldIcons ? (
             <>
               <input
                 ref={fileRef}
@@ -336,42 +373,30 @@ export function ChatComposer({
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={disabled || attachmentBusy}
-                className="messages-hub-camera-btn"
+                className="messages-hub-camera-btn shrink-0"
                 aria-label="Camera"
               >
                 <HubCameraIcon />
               </button>
             </>
-          )}
+          ) : null}
 
           <div className="relative min-w-0 flex-1">
             {mentionPicker("absolute bottom-full left-0 mb-1 w-[min(100vw-2rem,18rem)]")}
             <div
-              className={`messages-hub-composer-field flex min-w-0 flex-1 items-center gap-0.5 rounded-full px-3 py-1 ${vanishMode ? "is-vanish" : ""} ${hideHubFieldIcons ? "messages-hub-composer-field--typing" : ""}`}
+              className={`messages-hub-composer-field flex min-w-0 flex-1 gap-0.5 px-3 py-1 ${vanishMode ? "is-vanish" : ""} ${hideHubFieldIcons ? "messages-hub-composer-field--typing items-start" : "items-center rounded-full"}`}
             >
-              <input
+              <textarea
                 ref={inputRef}
+                rows={1}
                 value={value}
-                onChange={(event) => {
-                  onChange(event.target.value);
-                  notifyTyping(event.target.value);
-                  syncMentionCursor();
-                  if (event.target.value.trim() && showEmojiPicker) {
-                    setShowEmojiPicker(false);
-                  }
-                }}
+                onChange={handleComposerChange}
                 onClick={syncMentionCursor}
                 onKeyUp={syncMentionCursor}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="min-w-0 flex-1 bg-transparent py-2 text-[15px] text-[var(--color-ink)] caret-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-soft)] disabled:opacity-50"
-                onKeyDown={(event) => {
-                  if (onMentionKeyDown(event)) return;
-                  if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
-                    event.preventDefault();
-                    handleSend();
-                  }
-                }}
+                className="messages-hub-composer-textarea min-w-0 flex-1 resize-none bg-transparent py-2 text-[15px] leading-snug text-[var(--color-ink)] caret-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-soft)] disabled:opacity-50"
+                onKeyDown={handleComposerKeyDown}
               />
               {!hideHubFieldIcons ? (
                 <div className="messages-hub-composer-field-actions flex shrink-0 items-center gap-0.5">
@@ -508,28 +533,21 @@ export function ChatComposer({
           >
             🎙
           </button>
-          <div className={`${chatPremium.composerField} relative`}>
+          <div
+            className={`${chatPremium.composerField} relative ${composerTypingActive ? "chat-premium-composer-field--typing items-start" : "items-center"}`}
+          >
             {mentionPicker("absolute bottom-full left-0 mb-1 w-full min-w-[14rem]")}
-            <input
+            <textarea
               ref={inputRef}
+              rows={1}
               value={value}
-              onChange={(event) => {
-                onChange(event.target.value);
-                notifyTyping(event.target.value);
-                syncMentionCursor();
-              }}
+              onChange={handleComposerChange}
               onClick={syncMentionCursor}
               onKeyUp={syncMentionCursor}
               placeholder={placeholder}
               disabled={disabled}
-              className={chatPremium.composerInput}
-              onKeyDown={(event) => {
-                if (onMentionKeyDown(event)) return;
-                if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
-                  event.preventDefault();
-                  handleSend();
-                }
-              }}
+              className={`${chatPremium.composerInput} chat-premium-composer-textarea resize-none`}
+              onKeyDown={handleComposerKeyDown}
             />
           </div>
           <button
@@ -617,28 +635,17 @@ export function ChatComposer({
         )}
         <div className="relative min-w-0 flex-1">
           {mentionPicker("absolute bottom-full left-0 mb-1 w-full min-w-[14rem]")}
-        <input
+        <textarea
           ref={inputRef}
+          rows={1}
           value={value}
-          onChange={(event) => {
-            onChange(event.target.value);
-            notifyTyping(event.target.value);
-            syncMentionCursor();
-          }}
+          onChange={handleComposerChange}
           onClick={syncMentionCursor}
           onKeyUp={syncMentionCursor}
           placeholder={placeholder}
           disabled={disabled}
-          className="min-w-0 flex-1 rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2 disabled:opacity-50"
-          onKeyDown={(event) => {
-            if (onMentionKeyDown(event)) return;
-            if (event.key === "Enter" && !event.shiftKey && !disabled && canSend) {
-              event.preventDefault();
-              onSend(pendingAttachment ?? undefined);
-              setPendingAttachment(null);
-              onTyping?.(false);
-            }
-          }}
+          className="chat-premium-composer-textarea min-w-0 flex-1 resize-none rounded-xl border border-night-900/10 bg-white px-3 py-2.5 text-sm leading-snug outline-none ring-night-900/5 focus:ring-2 disabled:opacity-50"
+          onKeyDown={handleComposerKeyDown}
         />
         </div>
         <Button
