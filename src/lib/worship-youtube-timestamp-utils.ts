@@ -68,16 +68,17 @@ export function getYouTubeEmbedUrlWithSegment(
 /** Story music: short clip via hidden embed (no loop — story length caps playback). */
 export function getYouTubeStoryBackgroundEmbedSrc(
   videoId: string,
-  input: { paused: boolean; soundOn: boolean },
+  input: { paused: boolean; soundOn: boolean; preferMutedAutoplay?: boolean },
   startSeconds?: number,
   endSeconds?: number,
 ) {
   const base = getYouTubeEmbedUrlWithSegment(videoId, startSeconds, endSeconds);
   const params = new URLSearchParams();
-  if (!input.paused && input.soundOn) {
+  const wantsSound = input.soundOn && !input.preferMutedAutoplay;
+  if (!input.paused && (input.soundOn || input.preferMutedAutoplay)) {
     params.set("autoplay", "1");
   }
-  params.set("mute", input.soundOn ? "0" : "1");
+  params.set("mute", wantsSound ? "0" : "1");
   params.set("controls", "0");
   params.set("disablekb", "1");
   params.set("fs", "0");

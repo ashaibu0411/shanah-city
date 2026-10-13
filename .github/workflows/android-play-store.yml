@@ -19,11 +19,14 @@ on:
       - main
     paths:
       - "android/**"
+      - "ios/**"
       - "capacitor.config.ts"
       - "mobile/**"
       - "scripts/generate-splash-screens.cjs"
       - "package.json"
       - "package-lock.json"
+      - "src/lib/native-biometric-login.ts"
+      - "src/components/auth/**"
       - ".github/workflows/android-play-store.yml"
 
 concurrency:

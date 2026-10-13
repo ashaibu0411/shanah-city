@@ -6,6 +6,7 @@ import { readJsonResponse } from "@/lib/read-json-response";
 import { getYouTubeStoryBackgroundEmbedSrc } from "@/lib/worship-youtube-timestamp-utils";
 
 type CommunityStoryMusicAttachProps = {
+  slideId: string;
   music: CommunityStatusMusic;
   slideDurationMs: number;
   musicContinuesOnNextSlide: boolean;
@@ -23,6 +24,7 @@ type PlaybackPayload = {
 };
 
 export function CommunityStoryMusicAttach({
+  slideId,
   music,
   slideDurationMs,
   musicContinuesOnNextSlide,
@@ -31,10 +33,10 @@ export function CommunityStoryMusicAttach({
   onToggleSound,
 }: CommunityStoryMusicAttachProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const sessionTrackRef = useRef<string | null>(null);
   const [loadError, setLoadError] = useState("");
   const [playback, setPlayback] = useState<PlaybackPayload | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [youtubeUnmuted, setYoutubeUnmuted] = useState(false);
 
   const startSeconds =
     typeof playback?.startSeconds === "number" && playback.startSeconds >= 0
@@ -63,7 +65,6 @@ export function CommunityStoryMusicAttach({
       .then((data) => {
         if (data.mode === "audio" && data.audioUrl) {
           setPlayback(data);
-          sessionTrackRef.current = music.trackId;
           return;
         }
         if (data.mode === "youtube" && (data.youtubeVideoId || music.youtubeVideoId)) {
@@ -71,7 +72,6 @@ export function CommunityStoryMusicAttach({
             ...data,
             youtubeVideoId: data.youtubeVideoId ?? music.youtubeVideoId,
           });
-          sessionTrackRef.current = music.trackId;
           return;
         }
         setLoadError("Audio unavailable for this song.");
@@ -82,40 +82,56 @@ export function CommunityStoryMusicAttach({
   }, [music.trackId, music.youtubeVideoId]);
 
   useEffect(() => {
+    setPlayback(null);
+    setLoadError("");
+    setYoutubeUnmuted(false);
     loadPlayback();
-  }, [loadPlayback, reloadToken]);
+  }, [loadPlayback, music.trackId, slideId, reloadToken]);
 
   useEffect(() => {
-    return () => {
-      sessionTrackRef.current = null;
-    };
-  }, [music.trackId]);
+    if (!soundOn || paused || playback?.mode !== "youtube") {
+      setYoutubeUnmuted(false);
+      return;
+    }
+    setYoutubeUnmuted(false);
+    const timer = window.setTimeout(() => setYoutubeUnmuted(true), 300);
+    return () => window.clearTimeout(timer);
+  }, [slideId, music.trackId, paused, playback?.mode, soundOn]);
 
   const youtubeEmbedSrc = useMemo(() => {
     if (playback?.mode !== "youtube" || !playback.youtubeVideoId) return "";
     return getYouTubeStoryBackgroundEmbedSrc(
       playback.youtubeVideoId,
-      { paused, soundOn },
+      {
+        paused,
+        soundOn,
+        preferMutedAutoplay: soundOn && !youtubeUnmuted,
+      },
       startSeconds ?? undefined,
       clipEndSeconds,
     );
-  }, [clipEndSeconds, paused, playback?.mode, playback?.youtubeVideoId, soundOn, startSeconds]);
+  }, [
+    clipEndSeconds,
+    paused,
+    playback?.mode,
+    playback?.youtubeVideoId,
+    soundOn,
+    startSeconds,
+    youtubeUnmuted,
+  ]);
 
-  const youtubeEmbedKey = `${music.trackId}-${reloadToken}`;
+  const youtubeEmbedKey = `${slideId}-${music.trackId}-${youtubeUnmuted ? "on" : "muted"}-${reloadToken}`;
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || playback?.mode !== "audio" || !playback.audioUrl) return;
 
-    const isContinuingTrack = sessionTrackRef.current === music.trackId && audio.src;
-    if (!isContinuingTrack) {
-      audio.src = playback.audioUrl;
-      audio.loop = false;
-      audio.load();
-    }
+    audio.src = playback.audioUrl;
+    audio.loop = false;
+    audio.load();
 
     const applyStart = () => {
-      if (startSeconds != null && startSeconds > 0 && !isContinuingTrack) {
+      if (startSeconds != null && startSeconds > 0) {
         try {
           audio.currentTime = startSeconds;
         } catch {
@@ -144,6 +160,7 @@ export function CommunityStoryMusicAttach({
       audio.removeEventListener("loadedmetadata", applyStart);
       audio.removeEventListener("error", onError);
       if (clipTimer != null) window.clearTimeout(clipTimer);
+      audio.pause();
     };
   }, [
     music.trackId,
@@ -151,6 +168,7 @@ export function CommunityStoryMusicAttach({
     paused,
     playback,
     slideDurationMs,
+    slideId,
     soundOn,
     startSeconds,
   ]);
@@ -168,7 +186,6 @@ export function CommunityStoryMusicAttach({
 
   function handleStickerClick() {
     if (loadError) {
-      sessionTrackRef.current = null;
       setReloadToken((value) => value + 1);
       return;
     }

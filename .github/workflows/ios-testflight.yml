@@ -9,10 +9,16 @@ on:
       - main
     paths:
       - "ios/**"
+      - "android/**"
       - "capacitor.config.ts"
       - "mobile/**"
+      - "package.json"
+      - "package-lock.json"
+      - "src/lib/native-biometric-login.ts"
+      - "src/components/auth/**"
       - "scripts/generate-ios-icon.cjs"
       - "scripts/generate-splash-screens.cjs"
+      - "scripts/set-ios-version.cjs"
       - ".github/workflows/ios-testflight.yml"
 
 concurrency:

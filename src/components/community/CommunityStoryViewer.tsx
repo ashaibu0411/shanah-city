@@ -930,7 +930,8 @@ export function CommunityStoryViewer({
 
         {slide.music ? (
           <CommunityStoryMusicAttach
-            key={slide.music.trackId}
+            key={`${slide.id}-${slide.music.trackId}`}
+            slideId={slide.id}
             music={slide.music}
             slideDurationMs={storySlideDurationMs(slide)}
             musicContinuesOnNextSlide={Boolean(
