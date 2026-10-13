@@ -71,6 +71,7 @@ export function getYouTubeStoryBackgroundEmbedSrc(
   input: { paused: boolean; soundOn: boolean; preferMutedAutoplay?: boolean },
   startSeconds?: number,
   endSeconds?: number,
+  origin?: string,
 ) {
   const base = getYouTubeEmbedUrlWithSegment(videoId, startSeconds, endSeconds);
   const params = new URLSearchParams();
@@ -83,6 +84,9 @@ export function getYouTubeStoryBackgroundEmbedSrc(
   params.set("disablekb", "1");
   params.set("fs", "0");
   params.set("iv_load_policy", "3");
+  if (origin?.trim()) {
+    params.set("origin", origin.trim());
+  }
   const extra = params.toString();
   return base.includes("?") ? `${base}&${extra}` : `${base}?${extra}`;
 }

@@ -1,6 +1,15 @@
 import musicCatalog from "../../data/community-story-music.json";
 
-export type CommunityStoryMusicRegion = "global" | "nigeria" | "ghana" | "gospel";
+export type CommunityStoryMusicRegion =
+  | "global"
+  | "nigeria"
+  | "ghana"
+  | "gospel"
+  | "uk"
+  | "latin"
+  | "south-africa"
+  | "kenya"
+  | "brazil";
 
 export type CommunityStoryMusicTrack = {
   id: string;
@@ -25,6 +34,11 @@ export const COMMUNITY_STORY_MUSIC_REGIONS: {
   { id: "nigeria", label: "Nigeria" },
   { id: "ghana", label: "Ghana" },
   { id: "gospel", label: "Gospel classics" },
+  { id: "uk", label: "UK & Ireland" },
+  { id: "latin", label: "Latin America" },
+  { id: "south-africa", label: "South Africa" },
+  { id: "kenya", label: "Kenya & East Africa" },
+  { id: "brazil", label: "Brazil" },
 ];
 
 export function listCommunityStoryMusicTracks() {

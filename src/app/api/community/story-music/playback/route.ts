@@ -19,30 +19,32 @@ export async function GET(request: Request) {
       ? Math.floor(track.startSeconds)
       : null;
 
+  const youtubeVideoId = track.youtubeVideoId.trim();
+  const basePayload = { youtubeVideoId, startSeconds };
+
   const hosted = track.audioUrl?.trim();
   if (hosted) {
     return NextResponse.json({
       mode: "audio" as const,
       audioUrl: hosted,
-      startSeconds,
+      ...basePayload,
     });
   }
 
   const origin = new URL(request.url).origin;
   const proxiedAudioUrl = `${origin}/api/community/story-music/stream?trackId=${encodeURIComponent(trackId)}`;
 
-  const directAudio = await resolveStoryMusicAudioStreamUrl(track.youtubeVideoId);
+  const directAudio = await resolveStoryMusicAudioStreamUrl(youtubeVideoId);
   if (directAudio) {
     return NextResponse.json({
       mode: "audio" as const,
       audioUrl: proxiedAudioUrl,
-      startSeconds,
+      ...basePayload,
     });
   }
 
   return NextResponse.json({
     mode: "youtube" as const,
-    youtubeVideoId: track.youtubeVideoId,
-    startSeconds,
+    ...basePayload,
   });
 }
