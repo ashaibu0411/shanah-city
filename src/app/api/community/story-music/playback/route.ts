@@ -14,24 +14,35 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unknown track." }, { status: 404 });
   }
 
+  const startSeconds =
+    typeof track.startSeconds === "number" && track.startSeconds >= 0
+      ? Math.floor(track.startSeconds)
+      : null;
+
   const hosted = track.audioUrl?.trim();
   if (hosted) {
     return NextResponse.json({
+      mode: "audio" as const,
       audioUrl: hosted,
-      startSeconds: track.startSeconds ?? null,
+      startSeconds,
     });
   }
 
-  const audioUrl = await resolveStoryMusicAudioStreamUrl(track.youtubeVideoId);
-  if (!audioUrl) {
-    return NextResponse.json(
-      { error: "Could not load audio for this song. Try another track." },
-      { status: 503 },
-    );
+  const origin = new URL(request.url).origin;
+  const proxiedAudioUrl = `${origin}/api/community/story-music/stream?trackId=${encodeURIComponent(trackId)}`;
+
+  const directAudio = await resolveStoryMusicAudioStreamUrl(track.youtubeVideoId);
+  if (directAudio) {
+    return NextResponse.json({
+      mode: "audio" as const,
+      audioUrl: proxiedAudioUrl,
+      startSeconds,
+    });
   }
 
   return NextResponse.json({
-    audioUrl,
-    startSeconds: track.startSeconds ?? null,
+    mode: "youtube" as const,
+    youtubeVideoId: track.youtubeVideoId,
+    startSeconds,
   });
 }

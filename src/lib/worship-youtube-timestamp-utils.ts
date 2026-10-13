@@ -65,6 +65,28 @@ export function getYouTubeEmbedUrlWithSegment(
   return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
 }
 
+/** Story music: plays audio via hidden embed when direct audio URLs are unavailable. */
+export function getYouTubeStoryBackgroundEmbedSrc(
+  videoId: string,
+  input: { paused: boolean; soundOn: boolean },
+  startSeconds?: number,
+) {
+  const base = getYouTubeEmbedUrlWithSegment(videoId, startSeconds);
+  const params = new URLSearchParams();
+  if (!input.paused && input.soundOn) {
+    params.set("autoplay", "1");
+  }
+  params.set("mute", input.soundOn ? "0" : "1");
+  params.set("loop", "1");
+  params.set("playlist", videoId);
+  params.set("controls", "0");
+  params.set("disablekb", "1");
+  params.set("fs", "0");
+  params.set("iv_load_policy", "3");
+  const extra = params.toString();
+  return base.includes("?") ? `${base}&${extra}` : `${base}?${extra}`;
+}
+
 export function getYouTubeWatchUrlWithSegment(
   videoId: string,
   startSeconds?: number,
