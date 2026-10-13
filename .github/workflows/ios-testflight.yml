@@ -139,6 +139,11 @@ jobs:
           echo "IOS_BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "Using CFBundleVersion=$BUILD_NUMBER"
 
+      - name: Apply iOS version to Xcode project
+        run: |
+          node scripts/set-ios-version.cjs
+          grep MARKETING_VERSION ios/App/App.xcodeproj/project.pbxproj | head -n 2
+
       - name: Build archive
         run: |
           echo "Workflow commit: $GITHUB_SHA"
@@ -176,6 +181,25 @@ jobs:
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
           IPA_PATH=$(find "$EXPORT_PATH" -maxdepth 1 -name "*.ipa" | head -n 1)
           echo "IPA_PATH=$IPA_PATH" >> "$GITHUB_ENV"
+
+      - name: Verify IPA version before upload
+        run: |
+          set -euo pipefail
+          VERIFY_DIR="$RUNNER_TEMP/ipa-verify"
+          rm -rf "$VERIFY_DIR"
+          mkdir -p "$VERIFY_DIR"
+          unzip -q "$IPA_PATH" -d "$VERIFY_DIR"
+          APP_PLIST="$(find "$VERIFY_DIR/Payload" -maxdepth 2 -name Info.plist | head -n 1)"
+          SHORT="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP_PLIST")"
+          BUNDLE="$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$APP_PLIST")"
+          echo "IPA CFBundleShortVersionString=$SHORT"
+          echo "IPA CFBundleVersion=$BUNDLE"
+          echo "Expected MARKETING_VERSION=$MARKETING_VERSION"
+          if [ "$SHORT" != "$MARKETING_VERSION" ]; then
+            echo "Version mismatch: IPA has $SHORT but workflow expects $MARKETING_VERSION."
+            echo "Do not re-run an old failed job — run a new workflow on the latest main commit."
+            exit 1
+          fi
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
