@@ -105,6 +105,26 @@ export function summarizeChatReactions(
   return [...map.values()];
 }
 
+export function groupChatReactionsByEmoji(reactions: ChatMessageReaction[] | undefined) {
+  const groups = new Map<string, ChatMessageReaction[]>();
+  for (const reaction of normalizeChatReactions(reactions)) {
+    const list = groups.get(reaction.emoji) ?? [];
+    list.push(reaction);
+    groups.set(reaction.emoji, list);
+  }
+  return groups;
+}
+
+export function currentUserReactedWithEmoji(
+  reactions: ChatMessageReaction[] | undefined,
+  currentUserId: string,
+  emoji: string,
+) {
+  return normalizeChatReactions(reactions).some(
+    (reaction) => reaction.userId === currentUserId && reaction.emoji === emoji,
+  );
+}
+
 export function insertAtCursor(value: string, insertion: string, selectionStart: number, selectionEnd: number) {
   return `${value.slice(0, selectionStart)}${insertion}${value.slice(selectionEnd)}`;
 }
