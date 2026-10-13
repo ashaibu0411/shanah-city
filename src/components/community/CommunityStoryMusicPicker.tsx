@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { CommunityStoryMusicTrack } from "@/lib/community-story-music";
+import {
+  COMMUNITY_STORY_MUSIC_REGIONS,
+  type CommunityStoryMusicRegion,
+  type CommunityStoryMusicTrack,
+} from "@/lib/community-story-music";
 
 type CommunityStoryMusicPickerProps = {
   selectedTrackId: string | null;
@@ -16,6 +20,7 @@ export function CommunityStoryMusicPicker({
   const [query, setQuery] = useState("");
   const [tracks, setTracks] = useState<CommunityStoryMusicTrack[]>([]);
   const [loading, setLoading] = useState(false);
+  const [region, setRegion] = useState<CommunityStoryMusicRegion | "all">("all");
 
   useEffect(() => {
     if (!expanded && !selectedTrackId) return;
@@ -23,7 +28,9 @@ export function CommunityStoryMusicPicker({
     let cancelled = false;
     const timer = window.setTimeout(() => {
       setLoading(true);
-      fetch(`/api/community/story-music?q=${encodeURIComponent(query.trim())}`)
+      fetch(
+        `/api/community/story-music?q=${encodeURIComponent(query.trim())}&region=${encodeURIComponent(region)}`,
+      )
         .then((response) => response.json())
         .then((data) => {
           if (cancelled) return;
@@ -41,7 +48,7 @@ export function CommunityStoryMusicPicker({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [query, expanded, selectedTrackId]);
+  }, [query, expanded, selectedTrackId, region]);
 
   const selected = tracks.find((track) => track.id === selectedTrackId) ?? null;
 
@@ -52,7 +59,7 @@ export function CommunityStoryMusicPicker({
         className="mt-3 flex w-full items-center justify-between rounded-xl border border-clay-500/35 bg-clay-500/8 px-3 py-2.5 text-left"
         onClick={() => setExpanded(true)}
       >
-        <span className="text-sm font-semibold text-night-900 dark:text-sand-100">♪ Add worship song</span>
+        <span className="text-sm font-semibold text-night-900 dark:text-sand-100">♪ Add song (plays in story)</span>
         <span className="text-xs font-semibold text-clay-800 dark:text-clay-200">Optional</span>
       </button>
     );
@@ -62,7 +69,7 @@ export function CommunityStoryMusicPicker({
     <div className="mt-3 rounded-xl border border-night-900/10 bg-sand-50/80 p-3 dark:border-white/10 dark:bg-night-900/40">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-night-600 dark:text-sand-400">
-          Worship song
+          Background music
         </p>
         {selectedTrackId ? (
           <button
@@ -91,14 +98,30 @@ export function CommunityStoryMusicPicker({
         </p>
       ) : (
         <>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {COMMUNITY_STORY_MUSIC_REGIONS.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  region === entry.id
+                    ? "bg-clay-600 text-white"
+                    : "bg-white text-night-700 ring-1 ring-night-900/10 dark:bg-night-800 dark:text-sand-200 dark:ring-white/10"
+                }`}
+                onClick={() => setRegion(entry.id)}
+              >
+                {entry.label}
+              </button>
+            ))}
+          </div>
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search worship favorites…"
+            placeholder="Search gospel & worship…"
             className="community-story-caption-input mt-2 w-full rounded-lg border border-night-900/12 bg-white px-3 py-2 text-sm dark:border-white/15 dark:bg-night-950"
           />
-          <ul className="mt-2 max-h-28 space-y-1 overflow-y-auto">
+          <ul className="mt-2 max-h-36 space-y-1 overflow-y-auto">
             {loading ? (
               <li className="px-2 py-1 text-xs text-night-500">Loading songs…</li>
             ) : tracks.length === 0 ? (

@@ -20,6 +20,7 @@ import {
   findDeckIndex,
   resolveStoryMediaUrl,
   STORY_IMAGE_MS,
+  STORY_IMAGE_WITH_MUSIC_MS,
   type StoryDeck,
 } from "@/lib/community-story-utils";
 import { parseStoryLinkFromStatus } from "@/lib/community-story-link-shared";
@@ -301,6 +302,7 @@ export function CommunityStoryViewer({
     [slide?.reactions],
   );
   const showStorySoundToggle =
+    Boolean(slide?.music) ||
     slide?.mediaType === "video" ||
     (slide?.mediaType === "link" &&
       parseStoryLinkFromStatus(slide.mediaType, slide.mediaUrl)?.platform === "youtube");
@@ -352,7 +354,7 @@ export function CommunityStoryViewer({
     setReplyError("");
     setMediaFailed(false);
     setMediaErrorDetail("");
-    setSoundOn(false);
+    setSoundOn(Boolean(slide?.music));
     setShowInsights(false);
     setInsightsData(null);
     setInsightsError("");
@@ -466,11 +468,13 @@ export function CommunityStoryViewer({
     setProgress(0);
     setMediaFailed(false);
 
+    const slideDurationMs = slide.music ? STORY_IMAGE_WITH_MUSIC_MS : STORY_IMAGE_MS;
+
     let frame = 0;
     const tick = () => {
       if (!pausedRef.current) {
         const elapsed = elapsedRef.current + (Date.now() - startRef.current);
-        const nextProgress = Math.min(100, (elapsed / STORY_IMAGE_MS) * 100);
+        const nextProgress = Math.min(100, (elapsed / slideDurationMs) * 100);
         setProgress(nextProgress);
         if (nextProgress >= 100) {
           goNext();
@@ -482,7 +486,7 @@ export function CommunityStoryViewer({
 
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [goNext, playbackPaused, slide?.id, slide?.mediaType, slideIndex]);
+  }, [goNext, playbackPaused, slide?.id, slide?.mediaType, slide?.music, slideIndex]);
 
   useEffect(() => {
     if (!slide) return;
@@ -925,7 +929,14 @@ export function CommunityStoryViewer({
           />
         )}
 
-        {slide.music ? <CommunityStoryMusicAttach music={slide.music} /> : null}
+        {slide.music ? (
+          <CommunityStoryMusicAttach
+            music={slide.music}
+            paused={playbackPaused}
+            soundOn={soundOn}
+            onToggleSound={() => setSoundOn((current) => !current)}
+          />
+        ) : null}
 
         {slide.mediaType === "link" ? (
           <>
