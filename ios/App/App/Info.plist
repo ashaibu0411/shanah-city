@@ -73,6 +73,8 @@
 		<string>audio</string>
 		<string>remote-notification</string>
 	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Shana City uses Face ID so you can sign in quickly without typing your password.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Shana City uses the camera for community stories, posts, and live video.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

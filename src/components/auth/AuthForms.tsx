@@ -2,10 +2,19 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSafeNextPath } from "@/components/auth/AuthPageShell";
 import { Button, Card } from "@/components/ui";
+import {
+  clearBiometricLogin,
+  enableBiometricLogin,
+  getBiometricLoginAvailability,
+  hasBiometricLoginSaved,
+  isBiometricUserCancel,
+  readBiometricLoginCredentials,
+  type BiometricLoginAvailability,
+} from "@/lib/native-biometric-login";
 import type { SignupGroupOption } from "@/lib/group-types";
 import { ParticipationTypePicker } from "@/components/profile/ParticipationTypePicker";
 import type { MemberParticipationType } from "@/lib/member-participation";
@@ -104,6 +113,72 @@ export function SignInForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [biometric, setBiometric] = useState<BiometricLoginAvailability | null>(null);
+  const [biometricSaved, setBiometricSaved] = useState(false);
+  const [enableBiometricNextLogin, setEnableBiometricNextLogin] = useState(true);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const autoBiometricAttempted = useRef(false);
+  const biometricSignInInFlight = useRef(false);
+
+  const signInWithBiometric = useCallback(
+    async (fromUser: boolean) => {
+      if (biometricSignInInFlight.current) return;
+      biometricSignInInFlight.current = true;
+
+      setBiometricLoading(true);
+      if (fromUser) setError(null);
+
+      try {
+        const { email: savedEmail, password: savedPassword } = await readBiometricLoginCredentials();
+        setEmail(savedEmail);
+
+        const response = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: savedEmail, password: savedPassword }),
+        });
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+
+        if (!response.ok) {
+          await clearBiometricLogin();
+          setBiometricSaved(false);
+          setError(
+            data.error ??
+              "Saved sign-in no longer works (for example after a password change). Use your password, then turn biometrics on again.",
+          );
+          return;
+        }
+
+        await refresh();
+        router.push(nextPath);
+        router.refresh();
+      } catch (caught) {
+        if (isBiometricUserCancel(caught)) return;
+        setError("Could not sign in with biometrics. Use your password instead.");
+      } finally {
+        setBiometricLoading(false);
+        biometricSignInInFlight.current = false;
+      }
+    },
+    [nextPath, refresh, router],
+  );
+
+  useEffect(() => {
+    void (async () => {
+      const [availability, saved] = await Promise.all([
+        getBiometricLoginAvailability(),
+        hasBiometricLoginSaved(),
+      ]);
+      setBiometric(availability);
+      setBiometricSaved(saved);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!biometric?.supported || !biometricSaved || autoBiometricAttempted.current) return;
+    autoBiometricAttempted.current = true;
+    void signInWithBiometric(false);
+  }, [biometric?.supported, biometricSaved, signInWithBiometric]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -124,6 +199,21 @@ export function SignInForm() {
       }
 
       await refresh();
+
+      if (biometric?.supported) {
+        if (enableBiometricNextLogin) {
+          try {
+            await enableBiometricLogin(email, password);
+            setBiometricSaved(true);
+          } catch {
+            // User cancelled saving to the secure enclave.
+          }
+        } else {
+          await clearBiometricLogin();
+          setBiometricSaved(false);
+        }
+      }
+
       router.push(nextPath);
       router.refresh();
     } catch {
@@ -132,6 +222,9 @@ export function SignInForm() {
       setLoading(false);
     }
   }
+
+  const showBiometricButton = Boolean(biometric?.supported && biometricSaved);
+  const biometricLabel = biometric?.label ?? "Biometrics";
 
   return (
     <Card>
@@ -146,7 +239,21 @@ export function SignInForm() {
         </p>
       )}
 
-      <form onSubmit={submit} className="mt-6 space-y-4">
+      {showBiometricButton ? (
+        <div className="mt-6 space-y-3">
+          <Button
+            type="button"
+            className={`w-full ${biometricLoading ? "opacity-70" : ""}`}
+            onClick={() => void signInWithBiometric(true)}
+            disabled={biometricLoading || loading}
+          >
+            {biometricLoading ? "Confirming…" : `Sign in with ${biometricLabel}`}
+          </Button>
+          <p className="text-center text-xs text-night-500">or use your password below</p>
+        </div>
+      ) : null}
+
+      <form onSubmit={submit} className={`space-y-4 ${showBiometricButton ? "mt-4" : "mt-6"}`}>
         <Field id="sign-in-email" label="Email">
           <input
             id="sign-in-email"
@@ -177,12 +284,30 @@ export function SignInForm() {
           </Link>
         </p>
 
+        {biometric?.supported && !biometricSaved ? (
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-night-900/10 bg-sand-50/80 px-3 py-3 text-sm text-night-700">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={enableBiometricNextLogin}
+              onChange={(event) => setEnableBiometricNextLogin(event.target.checked)}
+            />
+            <span>
+              Use <span className="font-semibold">{biometricLabel}</span> next time on this device
+            </span>
+          </label>
+        ) : null}
+
         {error && (
           <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
         )}
 
-        <Button type="submit" className={`w-full ${loading ? "opacity-70" : ""}`}>
-          {loading ? "Signing in..." : "Sign in"}
+        <Button
+          type="submit"
+          variant={showBiometricButton ? "secondary" : undefined}
+          className={`w-full ${loading ? "opacity-70" : ""}`}
+        >
+          {loading ? "Signing in..." : showBiometricButton ? "Sign in with password" : "Sign in"}
         </Button>
       </form>
 

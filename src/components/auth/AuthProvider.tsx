@@ -109,6 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await fetch("/api/auth", { method: "DELETE" });
+    const { clearBiometricLogin } = await import("@/lib/native-biometric-login");
+    await clearBiometricLogin();
     setUser(null);
     setActivity([]);
     setPermissions(defaultPermissions);
