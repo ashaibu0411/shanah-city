@@ -47,8 +47,22 @@ export function ChoirPreparationChecklist({
                   href={`/groups/${SHANAH_WORSHIP_GROUP_ID}/availability`}
                   className="flex min-h-[44px] items-center gap-3 rounded-xl bg-[var(--choir-surface-soft)] px-3 py-2 text-sm text-[var(--choir-body)]"
                 >
-                  <span className="text-[var(--choir-gold-dark)]">→</span>
-                  {item.label}
+                  <span
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                      isChecked
+                        ? "border-[var(--choir-gold)] bg-[var(--choir-gold)] text-[var(--choir-heading)]"
+                        : "border-[var(--choir-muted)] bg-white"
+                    }`}
+                    aria-hidden
+                  >
+                    {isChecked ? "✓" : ""}
+                  </span>
+                  <span className="flex-1">{item.label}</span>
+                  {!isChecked ? (
+                    <span className="text-xs font-bold text-[var(--choir-gold-dark)]">Confirm →</span>
+                  ) : (
+                    <span className="text-xs font-semibold text-[var(--choir-muted)]">Update</span>
+                  )}
                 </Link>
               </li>
             );

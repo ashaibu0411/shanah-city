@@ -228,6 +228,11 @@ export function ChoirAvailabilityCenterPage({
     setMessage("Availability saved.");
     setSelectedRow(null);
     setEditorError(null);
+    window.dispatchEvent(
+      new CustomEvent("shanah:choir-availability-updated", {
+        detail: { groupId: SHANAH_WORSHIP_GROUP_ID },
+      }),
+    );
     loadHome();
     loadTabData();
   }
@@ -267,6 +272,11 @@ export function ChoirAvailabilityCenterPage({
     setMessage(data.partial ? "Some responses could not be saved." : "All changes saved.");
     if (data.partial !== true) setBulkDraft({});
     setBulkOpen(false);
+    window.dispatchEvent(
+      new CustomEvent("shanah:choir-availability-updated", {
+        detail: { groupId: SHANAH_WORSHIP_GROUP_ID },
+      }),
+    );
     loadHome();
     loadBulkOpportunities();
     loadCalendar();

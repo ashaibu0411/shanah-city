@@ -18,7 +18,8 @@ import type {
   ChoirHomeDashboard,
   ChoirRehearsalView,
 } from "@/lib/choir-dashboard-types";
-import { getChoirPreparation } from "@/lib/choir-preparation-server";
+import { getChoirPreparation, setChoirPreparationChecked } from "@/lib/choir-preparation-server";
+import { userHasAvailabilityResponseForPlan } from "@/lib/choir-preparation-availability-sync";
 import { nextDefaultChoirRehearsal } from "@/lib/choir-default-rehearsal";
 import { getEvents } from "@/lib/event-server";
 import { site } from "@/lib/site";
@@ -241,6 +242,17 @@ export async function buildChoirHomeDashboard(
   if (preparationPlanKey) {
     try {
       preparationChecked = await getChoirPreparation(user.id, preparationPlanKey);
+      if (
+        !preparationChecked.includes("availability") &&
+        (await userHasAvailabilityResponseForPlan(user, groupId, preparationPlanKey))
+      ) {
+        preparationChecked = await setChoirPreparationChecked(
+          user.id,
+          preparationPlanKey,
+          "availability",
+          true,
+        );
+      }
     } catch (error) {
       console.error("[choir-home] preparation load failed", error);
       preparationChecked = [];

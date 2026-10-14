@@ -17,6 +17,7 @@ import type {
   ChoirScheduleChangeRequest,
 } from "@/lib/choir-availability-types";
 import { DEFAULT_AVAILABILITY_GUIDELINES as DEFAULT_GUIDELINES } from "@/lib/choir-availability-types";
+import { markPreparationAvailabilityForEvent } from "@/lib/choir-preparation-availability-sync";
 import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
 import { buildChoirTeamPagePayload, listChoirMemberAssignments } from "@/lib/choir-team-server";
 import type { ChoirTeamAssignmentView } from "@/lib/choir-team-types";
@@ -551,7 +552,14 @@ export async function handleChoirAvailabilityAction(user: PublicMember, body: Re
     });
 
     void notifyLeadersAvailabilityChange(groupId, user, event.title, response);
-    return { record };
+
+    try {
+      await markPreparationAvailabilityForEvent(user.id, event);
+    } catch (syncError) {
+      console.error("[choir-availability] preparation sync failed", syncError);
+    }
+
+    return { record, preparationSynced: true };
   }
 
   if (action === "save_bulk") {

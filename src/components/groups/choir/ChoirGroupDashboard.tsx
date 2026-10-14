@@ -48,30 +48,65 @@ export function ChoirGroupDashboard({
   const [error, setError] = useState<string | null>(null);
   const [checked, setChecked] = useState<string[]>([]);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    fetch(`/api/groups/choir-home?groupId=${encodeURIComponent(groupId)}`, { credentials: "include" })
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok || !data.home) {
-          setError(data.error ?? "Could not load choir home.");
-          setHome(null);
-        } else {
-          setHome(data.home);
-          setChecked(data.home.preparationChecked ?? []);
-          setError(null);
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Could not load choir home.");
-        setLoading(false);
-      });
-  }, [groupId]);
+  const applyHomePayload = useCallback((homePayload: ChoirHomeDashboard) => {
+    setHome(homePayload);
+    setChecked(homePayload.preparationChecked ?? []);
+    setError(null);
+  }, []);
+
+  const load = useCallback(
+    (options?: { quiet?: boolean }) => {
+      if (!options?.quiet) setLoading(true);
+      fetch(`/api/groups/choir-home?groupId=${encodeURIComponent(groupId)}`, { credentials: "include" })
+        .then(async (response) => {
+          const data = await response.json();
+          if (!response.ok || !data.home) {
+            if (!options?.quiet) {
+              setError(data.error ?? "Could not load choir home.");
+              setHome(null);
+            }
+          } else {
+            applyHomePayload(data.home);
+          }
+          if (!options?.quiet) setLoading(false);
+        })
+        .catch(() => {
+          if (!options?.quiet) {
+            setError("Could not load choir home.");
+            setLoading(false);
+          }
+        });
+    },
+    [applyHomePayload, groupId],
+  );
 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    function refreshQuietly() {
+      if (document.visibilityState !== "visible") return;
+      load({ quiet: true });
+    }
+
+    function onAvailabilityUpdated(event: Event) {
+      const detail = (event as CustomEvent<{ groupId?: string }>).detail;
+      if (detail?.groupId && detail.groupId !== groupId) return;
+      refreshQuietly();
+    }
+
+    window.addEventListener("pageshow", refreshQuietly);
+    window.addEventListener("focus", refreshQuietly);
+    document.addEventListener("visibilitychange", refreshQuietly);
+    window.addEventListener("shanah:choir-availability-updated", onAvailabilityUpdated);
+    return () => {
+      window.removeEventListener("pageshow", refreshQuietly);
+      window.removeEventListener("focus", refreshQuietly);
+      document.removeEventListener("visibilitychange", refreshQuietly);
+      window.removeEventListener("shanah:choir-availability-updated", onAvailabilityUpdated);
+    };
+  }, [groupId, load]);
 
   async function updatePreparation(itemId: string, isChecked: boolean) {
     if (!home?.preparationPlanKey) return;
