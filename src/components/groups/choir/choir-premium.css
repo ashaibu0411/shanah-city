@@ -3767,7 +3767,7 @@
 /* Worship home — welcome banner with photo */
 .choir-home-welcome-photo {
   position: relative;
-  min-height: 148px;
+  min-height: 172px;
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid var(--choir-border);
@@ -3780,7 +3780,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 42%;
+  object-position: center top;
 }
 
 .choir-home-welcome-overlay {
@@ -3791,7 +3791,8 @@
     rgba(24, 19, 34, 0.88) 0%,
     rgba(24, 19, 34, 0.72) 45%,
     rgba(24, 19, 34, 0.35) 100%
-  );
+  ),
+    linear-gradient(180deg, rgba(24, 19, 34, 0.55) 0%, transparent 22%);
 }
 
 .choir-home-welcome-copy {
