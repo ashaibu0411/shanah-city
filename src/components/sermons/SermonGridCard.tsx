@@ -1,7 +1,7 @@
 "use client";
 
 import { SermonMediaPanel } from "@/components/sermons/SermonMediaPanel";
-import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-server";
+import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-shared";
 
 export function SermonGridCard({ video }: { video: SermonVideo }) {
   return (

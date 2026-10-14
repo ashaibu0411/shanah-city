@@ -13,7 +13,7 @@ const LAUNCHER_ITEMS: LauncherItem[] = [
   { id: "calendar", label: "Events", href: "/calendar" },
   { id: "live", label: "Media", href: "/live" },
   { id: "groups", label: "Groups", href: "/groups" },
-  { id: "devotions", label: "Devotions", href: "/devotions" },
+  { id: "check-in", label: "Check-in", href: "/check-in" },
   { id: "sermons", label: "Sermons", href: "/sermons" },
   { id: "give", label: "Give", href: "/give" },
   { id: "messages", label: "Messages", href: "/messages" },
@@ -61,11 +61,11 @@ function LauncherIcon({ id }: { id: string }) {
           <path d="M16 13c-.34 0-.67.02-1 .06 1.17.84 2 2.05 2 3.44V19h6v-2c0-2.66-5.33-4-8-4Z" />
         </svg>
       );
-    case "devotions":
+    case "check-in":
       return (
         <svg {...shared}>
-          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H18v16.5H6.5A2.5 2.5 0 0 0 4 22V5.5Z" />
-          <path d="M8 7h8M8 11h6" />
+          <path d="M9 11 12 14 22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
         </svg>
       );
     case "sermons":

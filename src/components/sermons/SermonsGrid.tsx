@@ -1,6 +1,6 @@
 import { ExternalLink } from "@/components/ui";
 import { SermonGridCard } from "@/components/sermons/SermonGridCard";
-import { getShanahCityYouTubeChannelUrl, type SermonVideo } from "@/lib/youtube-sermons-server";
+import { getShanahCityYouTubeChannelUrl, type SermonVideo } from "@/lib/youtube-sermons-shared";
 
 type SermonsGridProps = {
   videos: SermonVideo[];

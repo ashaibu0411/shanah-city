@@ -3,7 +3,7 @@ import { quickActions } from "@/lib/site";
 
 const actionGradients: Record<string, string> = {
   "/live": "from-red-600 via-rose-600 to-red-800",
-  "/devotions": "from-amber-500 via-orange-500 to-orange-600",
+  "/check-in": "from-teal-600 via-emerald-600 to-teal-800",
   "/connect": "from-blue-600 via-indigo-600 to-indigo-700",
   "/community": "from-emerald-500 via-teal-500 to-teal-600",
   "/give": "from-violet-600 via-purple-600 to-purple-800",

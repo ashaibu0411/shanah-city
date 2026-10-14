@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { HomeView } from "@/components/home/HomeView";
-import { getTodayDevotion } from "@/lib/devotion-server";
 import { getChurchSocialImages } from "@/lib/facebook-church-media";
 import { listUrgentAlertsForHomeCarousel } from "@/lib/urgent-alert-server";
 import { getEvents } from "@/lib/event-server";
@@ -20,8 +19,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect(`/alerts/${encodeURIComponent(alert.trim())}`);
   }
 
-  const [todayDevotion, urgentAlerts, churchImages, sermonVideos, churchEvents] = await Promise.all([
-    getTodayDevotion(),
+  const [urgentAlerts, churchImages, sermonVideos, churchEvents] = await Promise.all([
     listUrgentAlertsForHomeCarousel(),
     getChurchSocialImages(),
     getChannelSermons(),
@@ -32,7 +30,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   return (
     <Suspense fallback={<p className="text-sm text-night-600">Loading…</p>}>
       <HomeView
-        todayDevotion={todayDevotion}
         urgentAlerts={urgentAlerts}
         churchImages={churchImages}
         latestSermon={sermonVideos[0] ?? null}

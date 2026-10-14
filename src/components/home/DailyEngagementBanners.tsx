@@ -188,6 +188,25 @@ export function DevotionBrowseNudge() {
   );
 }
 
+export function CheckInHomeBanner() {
+  return (
+    <Link
+      href="/check-in"
+      className="mobile-card flex items-center justify-between gap-3 border border-night-900/8 bg-white px-4 py-3.5 transition active:scale-[0.99] dark:border-white/10 dark:bg-[var(--color-surface)]"
+    >
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-night-900 dark:text-sand-100">Check-in</p>
+        <p className="text-xs text-night-600 dark:text-sand-400">
+          Kids ministry labels · FrontLiners arrival
+        </p>
+      </div>
+      <span className="shrink-0 rounded-full bg-teal-800 px-3 py-1.5 text-xs font-bold text-white dark:bg-teal-700">
+        Open
+      </span>
+    </Link>
+  );
+}
+
 export function AnniversaryHomeBanner() {
   const { user } = useAuth();
   const [nudge, setNudge] = useState<CoupleLinkStatusResponse["anniversaryNudge"]>(null);

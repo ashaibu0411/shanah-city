@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { ChatYouTubeEmbed } from "@/components/chat/ChatYouTubeEmbed";
+import { SermonYouTubeEmbed } from "@/components/sermons/SermonYouTubeEmbed";
 import { useSermonPlayer } from "@/components/sermons/SermonPlayerProvider";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
 
@@ -29,12 +29,7 @@ export function SermonMediaPanel({
     <div className={className}>
       {showVideo ? (
         <div className={compact ? "p-2" : "p-3 md:p-4"}>
-          <ChatYouTubeEmbed
-            videoId={video.id}
-            title={title}
-            vertical={false}
-            className="!mt-0 !max-w-none w-full"
-          />
+          <SermonYouTubeEmbed videoId={video.id} title={title} className="w-full" />
           <button
             type="button"
             className="mt-2 text-xs font-semibold text-sand-200 underline"

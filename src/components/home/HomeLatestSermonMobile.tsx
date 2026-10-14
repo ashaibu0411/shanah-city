@@ -1,15 +1,34 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { SermonMediaPanel } from "@/components/sermons/SermonMediaPanel";
 import { latestSermon } from "@/lib/site";
-import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-server";
+import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-shared";
 
 export function HomeLatestSermonMobile({ video }: { video: SermonVideo | null }) {
-  const title = video?.title ?? latestSermon.title;
-  const youtubeUrl = video?.watchUrl ?? latestSermon.youtubeUrl;
-  const dateLabel = video ? formatSermonDate(video.publishedAt) : latestSermon.date;
-  const thumbnail = video?.thumbnailUrl ?? "/sermons/latest-message.svg";
+  const [resolved, setResolved] = useState<SermonVideo | null>(video);
+
+  useEffect(() => {
+    setResolved(video);
+  }, [video]);
+
+  useEffect(() => {
+    if (video?.id) return;
+
+    fetch("/api/sermons?limit=1", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        const first = Array.isArray(data.videos) ? (data.videos[0] as SermonVideo | undefined) : undefined;
+        if (first?.id) setResolved(first);
+      })
+      .catch(() => undefined);
+  }, [video?.id]);
+
+  const title = resolved?.title ?? latestSermon.title;
+  const youtubeUrl = resolved?.watchUrl ?? latestSermon.youtubeUrl;
+  const dateLabel = resolved ? formatSermonDate(resolved.publishedAt) : latestSermon.date;
+  const thumbnail = resolved?.thumbnailUrl ?? "/sermons/latest-message.svg";
 
   return (
     <section>
@@ -21,15 +40,11 @@ export function HomeLatestSermonMobile({ video }: { video: SermonVideo | null })
       </div>
 
       <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-night-900/8 dark:bg-[var(--color-surface)] dark:ring-white/10">
-        {video ? (
-          <SermonMediaPanel video={video} title={title} thumbnail={thumbnail} compact className="bg-night-900" />
+        {resolved ? (
+          <SermonMediaPanel video={resolved} title={title} thumbnail={thumbnail} compact className="bg-night-900" />
         ) : (
           <div className="p-6 text-sm text-night-600 dark:text-sand-300">
-            Latest message loading — browse{" "}
-            <a href={youtubeUrl} className="font-semibold underline">
-              YouTube
-            </a>
-            .
+            Loading latest message from YouTube…
           </div>
         )}
 

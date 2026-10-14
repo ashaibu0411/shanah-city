@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useOnAppRefresh } from "@/hooks/useOnAppRefresh";
 import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { DevotionPromoCard } from "@/components/devotions/DevotionPromoCard";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { HomeLatestSermonMobile } from "@/components/home/HomeLatestSermonMobile";
 import { HomeMobileHero } from "@/components/home/HomeMobileHero";
@@ -15,7 +14,6 @@ import { HomeUpcomingEventsMobile } from "@/components/home/HomeUpcomingEventsMo
 import { liveStream, site } from "@/lib/site";
 import { getPublicDisplayFirstName } from "@/lib/member-display-name";
 import { getYouTubeThumbnail } from "@/lib/streams";
-import { pickTodayDevotion } from "@/lib/devotion-utils";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import { churchSocialImageForAction } from "@/lib/facebook-church-media";
 import { homeLiveSpotlightMediaClass, homeMobileHeroImage } from "@/lib/home-explore-tile-images";
@@ -26,13 +24,12 @@ import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import {
   AnniversaryHomeBanner,
-  DevotionBrowseNudge,
+  CheckInHomeBanner,
   LeaderReportHomeBanner,
   FollowUpHomeBanner,
   TrainingHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
-import type { Devotion } from "@/lib/types";
 import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
@@ -46,7 +43,6 @@ function homeGreeting(name?: string | null) {
 }
 
 type MobileHomeProps = {
-  todayDevotion: Devotion | null;
   urgentAlerts: UrgentAlert[];
   churchImages: ChurchSocialImages;
   highlightAlertId?: string | null;
@@ -55,7 +51,6 @@ type MobileHomeProps = {
 };
 
 export function MobileHome({
-  todayDevotion,
   urgentAlerts,
   churchImages,
   highlightAlertId = null,
@@ -64,33 +59,6 @@ export function MobileHome({
 }: MobileHomeProps) {
   const { campus } = useApp();
   const { user } = useAuth();
-  const [devotion, setDevotion] = useState<Devotion | null>(todayDevotion);
-
-  useEffect(() => {
-    setDevotion(todayDevotion);
-  }, [todayDevotion]);
-
-  useEffect(() => {
-    fetch("/api/devotions", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data.devotions)) {
-          setDevotion(pickTodayDevotion(data.devotions));
-        }
-      })
-      .catch(() => undefined);
-  }, []);
-
-  useOnAppRefresh(() => {
-    fetch("/api/devotions", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data.devotions)) {
-          setDevotion(pickTodayDevotion(data.devotions));
-        }
-      })
-      .catch(() => undefined);
-  });
 
   const { livePhase, schedule: liveSchedule, refresh: refreshLiveSchedule } =
     useUpcomingLiveStreamSchedule();
@@ -210,11 +178,7 @@ export function MobileHome({
         </Link>
       </MobilePremiumFrame>
 
-      {devotion ? (
-        <DevotionPromoCard devotion={devotion} variant="mobile" className="space-y-0" />
-      ) : null}
-
-      <DevotionBrowseNudge />
+      <CheckInHomeBanner />
 
       <LeaderReportHomeBanner />
       <TrainingHomeBanner />

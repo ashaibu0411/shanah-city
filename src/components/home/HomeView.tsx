@@ -1,6 +1,5 @@
 "use client";
 
-import { DevotionPreview } from "@/components/devotions/DevotionCard";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { CampusStrip } from "@/components/home/CampusStrip";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -11,7 +10,7 @@ import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
 import {
   AnniversaryHomeBanner,
-  DevotionBrowseNudge,
+  CheckInHomeBanner,
   LeaderReportHomeBanner,
   FollowUpHomeBanner,
   TrainingHomeBanner,
@@ -21,7 +20,6 @@ import { HomeStoriesSection } from "@/components/home/HomeStoriesSection";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { SermonCard } from "@/components/sermons/SermonCard";
 import { SectionTitle } from "@/components/ui";
-import type { Devotion } from "@/lib/types";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
@@ -29,7 +27,6 @@ import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
 
 type HomeViewProps = {
-  todayDevotion: Devotion | null;
   urgentAlerts: UrgentAlert[];
   churchImages: ChurchSocialImages;
   latestSermon?: SermonVideo | null;
@@ -37,7 +34,6 @@ type HomeViewProps = {
 };
 
 export function HomeView({
-  todayDevotion,
   urgentAlerts,
   churchImages,
   latestSermon = null,
@@ -49,7 +45,6 @@ export function HomeView({
   if (isMobileApp) {
     return (
       <MobileHome
-        todayDevotion={todayDevotion}
         urgentAlerts={urgentAlerts}
         churchImages={churchImages}
         highlightAlertId={highlightAlertId}
@@ -71,8 +66,7 @@ export function HomeView({
       <AnniversaryHomeBanner />
       <QuickActions />
       <CampusStrip />
-      {todayDevotion ? <DevotionPreview devotion={todayDevotion} /> : null}
-      <DevotionBrowseNudge />
+      <CheckInHomeBanner />
       <PrayerHomeBanner />
 
       <section className="mb-8">

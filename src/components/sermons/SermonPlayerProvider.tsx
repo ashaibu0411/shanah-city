@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { backgroundCapableAudioEventHandlers } from "@/lib/native-background-playback";
-import type { SermonVideo } from "@/lib/youtube-sermons-server";
+import type { SermonVideo } from "@/lib/youtube-sermons-shared";
 
 type SermonPlayerContextValue = {
   sermon: SermonVideo | null;
@@ -145,7 +145,7 @@ export function SermonPlayerProvider({ children }: { children: ReactNode }) {
       paused,
       loading,
       error,
-      isCurrent: (videoId: string) => sermon?.id === videoId && playing,
+      isCurrent: (videoId: string) => sermon?.id === videoId && (playing || paused || loading),
       playAudio,
       pause,
       resume,
