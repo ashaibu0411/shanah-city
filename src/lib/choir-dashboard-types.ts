@@ -1,3 +1,5 @@
+import type { GroupCategory } from "@/lib/group-types";
+
 export type ChoirAssignmentView = {
   planKey: string;
   serviceDate: string;
@@ -32,11 +34,41 @@ export type ChoirAnnouncementView = {
   isSample?: boolean;
 };
 
+export type ChoirPinnedLeadershipAnnouncement = {
+  id: string;
+  title: string;
+  excerpt: string;
+  authorName: string;
+  createdAt: string;
+  detailHref: string;
+};
+
+export type ChoirHomeChatContext = {
+  groupId: string;
+  groupName: string;
+  groupCategory: GroupCategory;
+  groupIconUrl?: string;
+  groupUpdatedAt: string;
+  userId: string;
+  memberCount: number;
+  participants: {
+    id: string;
+    name: string;
+    isLeader: boolean;
+    subtitle?: string;
+  }[];
+};
+
 export type ChoirHomeDashboard = {
   assignment: ChoirAssignmentView | null;
   upcomingServicePreview: ChoirAssignmentView | null;
   rehearsal: ChoirRehearsalView | null;
   announcements: ChoirAnnouncementView[];
+  pinnedLeadershipAnnouncement: ChoirPinnedLeadershipAnnouncement | null;
+  chatContext: ChoirHomeChatContext | null;
+  teamConnectChatHref: string;
+  chatUnreadCount: number;
+  canAccessTeamChat: boolean;
   preparationPlanKey: string | null;
   preparationChecked: string[];
   canManageSchedule: boolean;

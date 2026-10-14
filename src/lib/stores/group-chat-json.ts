@@ -116,7 +116,7 @@ function computeSeenCount(
 
 export async function listGroupChatMessages(
   groupId: string,
-  options?: { after?: string; viewerId?: string; memberIds?: string[] },
+  options?: { after?: string; limit?: number; viewerId?: string; memberIds?: string[] },
 ) {
   await purgeExpiredGroupMessages();
   const all = await readMessages();
@@ -134,7 +134,8 @@ export async function listGroupChatMessages(
   const readStates = await readReadStates();
   const memberIds = options?.memberIds ?? [];
 
-  return messages.slice(-100).map((message) => {
+  const windowSize = options?.after ? messages.length : Math.min(options?.limit ?? 100, 100);
+  return messages.slice(-windowSize).map((message) => {
     const mapped = mapExtras(message);
     if (options?.viewerId && message.senderId === options.viewerId && memberIds.length > 0) {
       mapped.seenCount = computeSeenCount(message, readStates.filter((s) => s.groupId === groupId), memberIds);

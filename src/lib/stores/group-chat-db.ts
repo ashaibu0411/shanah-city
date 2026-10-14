@@ -92,7 +92,7 @@ export async function clearGroupChatMessages(groupId: string) {
 
 export async function listGroupChatMessages(
   groupId: string,
-  options?: { after?: string; viewerId?: string; memberIds?: string[] },
+  options?: { after?: string; limit?: number; viewerId?: string; memberIds?: string[] },
 ) {
   await prisma.groupChatMessage.deleteMany({
     where: { groupId, expiresAt: { lte: new Date() } },
@@ -114,13 +114,14 @@ export async function listGroupChatMessages(
     }
   }
 
+  const take = options?.after ? 100 : Math.min(options?.limit ?? 100, 100);
   const records = await prisma.groupChatMessage.findMany({
     where,
-    orderBy: { createdAt: "asc" },
-    take: 100,
+    orderBy: options?.after ? { createdAt: "asc" } : { createdAt: "desc" },
+    take,
   });
 
-  const messages = records.map(mapMessage);
+  const messages = (options?.after ? records : [...records].reverse()).map(mapMessage);
   const memberIds = options?.memberIds ?? [];
 
   if (!options?.viewerId || memberIds.length === 0) {

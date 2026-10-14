@@ -6,7 +6,9 @@ import { SHANAH_WORSHIP_GROUP_ID } from "@/lib/choir-group-constants";
 import { ChoirGroupHeader } from "@/components/groups/choir/ChoirGroupHeader";
 import { ChoirSectionTabs } from "@/components/groups/choir/ChoirSectionTabs";
 import type { GroupBandTab } from "@/components/groups/GroupBandTabs";
-import { ChoirHero } from "@/components/groups/choir/ChoirHero";
+import { ChoirHomeWelcome } from "@/components/groups/choir/ChoirHomeWelcome";
+import { ChoirHomePinnedAnnouncement } from "@/components/groups/choir/ChoirHomePinnedAnnouncement";
+import { ChoirHomeTeamConversation } from "@/components/groups/choir/ChoirHomeTeamConversation";
 import { ChoirNextWorshipAssignmentCard } from "@/components/groups/choir/ChoirNextWorshipAssignmentCard";
 import { ChoirExploreNav } from "@/components/groups/choir/ChoirExploreNav";
 import { ChoirQuickActions } from "@/components/groups/choir/ChoirQuickActions";
@@ -115,7 +117,7 @@ export function ChoirGroupDashboard({
   }
 
   return (
-    <div className="choir-group-home choir-page-shell space-y-[18px] pb-2">
+    <div className="choir-group-home choir-page-shell space-y-5 pb-2">
       <ChoirGroupHeader onChatClick={onOpenChat} />
 
       {sectionTabs.length > 0 ? (
@@ -126,12 +128,19 @@ export function ChoirGroupDashboard({
         />
       ) : null}
 
-      <ChoirHero />
+      <ChoirHomeWelcome />
 
-      <ChoirNextWorshipAssignmentCard
-        assignment={home.assignment}
-        upcomingPreview={home.upcomingServicePreview}
-      />
+      {home.pinnedLeadershipAnnouncement ? (
+        <ChoirHomePinnedAnnouncement announcement={home.pinnedLeadershipAnnouncement} />
+      ) : null}
+
+      {home.canAccessTeamChat && home.chatContext ? (
+        <ChoirHomeTeamConversation
+          chatContext={home.chatContext}
+          fullConversationHref={home.teamConnectChatHref}
+          unreadCount={home.chatUnreadCount}
+        />
+      ) : null}
 
       <ChoirQuickActions
         setlistsHref={quickLinks.setlists}
@@ -140,6 +149,18 @@ export function ChoirGroupDashboard({
         worshipTeamHref={quickLinks.worshipTeam}
         worshipAcademyHref={quickLinks.worshipAcademy}
         teamConnectHref={quickLinks.teamConnect}
+      />
+
+      <ChoirNextWorshipAssignmentCard
+        assignment={home.assignment}
+        upcomingPreview={home.upcomingServicePreview}
+      />
+
+      <ChoirUpcomingRehearsal
+        rehearsal={home.rehearsal}
+        calendarHref={rehearsalsSeeAllHref}
+        canManageSchedule={home.canManageSchedule}
+        onManageSchedule={onOpenCalendar}
       />
 
       <ChoirExploreNav items={exploreItems} />
@@ -153,13 +174,6 @@ export function ChoirGroupDashboard({
           Manage worship team →
         </button>
       ) : null}
-
-      <ChoirUpcomingRehearsal
-        rehearsal={home.rehearsal}
-        calendarHref={rehearsalsSeeAllHref}
-        canManageSchedule={home.canManageSchedule}
-        onManageSchedule={onOpenCalendar}
-      />
 
       <ChoirAnnouncements items={home.announcements} />
 

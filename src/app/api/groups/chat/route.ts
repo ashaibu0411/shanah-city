@@ -35,6 +35,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const groupId = searchParams.get("groupId")?.trim();
   const after = searchParams.get("after")?.trim() || undefined;
+  const markReadParam = searchParams.get("markRead");
+  const shouldMarkRead = markReadParam !== "0" && markReadParam !== "false";
+  const limitRaw = searchParams.get("limit")?.trim();
+  const limitParsed = limitRaw ? Number.parseInt(limitRaw, 10) : undefined;
+  const limit =
+    limitParsed && Number.isFinite(limitParsed) && limitParsed > 0
+      ? Math.min(limitParsed, 100)
+      : undefined;
 
   if (!groupId) {
     return NextResponse.json({ error: "groupId is required." }, { status: 400 });
@@ -49,11 +57,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error }, { status: 403 });
   }
 
-  await markGroupChatRead(groupId, user.id);
+  if (shouldMarkRead) {
+    await markGroupChatRead(groupId, user.id);
+  }
 
   const memberIds = access.detail!.memberIds;
   const messages = await listGroupChatMessages(groupId, {
     after,
+    limit: after ? undefined : limit,
     viewerId: user.id,
     memberIds,
   });

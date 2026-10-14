@@ -7,7 +7,10 @@ import {
   getGroupServiceScheduleConfig,
   programLabel,
 } from "@/lib/group-service-schedule-config";
-import { listChoirAnnouncementFeed } from "@/lib/choir-announcements-server";
+import { listChoirAnnouncementFeed, listStoredChoirAnnouncementFeed } from "@/lib/choir-announcements-server";
+import { choirConnectHref } from "@/lib/choir-connect-links";
+import { getGroupChatInboxForUser } from "@/lib/group-chat-server";
+import { memberHasFullGroupAccess } from "@/lib/ministry-readiness-server";
 import { canManageGroupEvents } from "@/lib/group-permissions-server";
 import { choirCalendarRehearsalsHref } from "@/lib/choir-calendar-links";
 import {
@@ -223,11 +226,67 @@ export async function buildChoirHomeDashboard(
     return `/groups/${SHANAH_WORSHIP_GROUP_ID}/rehearsal`;
   })();
 
+  const chatAccess = group ? await memberHasFullGroupAccess(user.id, groupId) : { allowed: false as const };
+  const canAccessTeamChat = chatAccess.allowed;
+
+  const teamConnectChatHref = choirConnectHref(groupId, "chat");
+
+  let chatUnreadCount = 0;
+  if (canAccessTeamChat) {
+    const inbox = await getGroupChatInboxForUser(user.id);
+    chatUnreadCount = inbox.find((row) => row.groupId === groupId)?.unreadCount ?? 0;
+  }
+
+  const storedAnnouncements = await listStoredChoirAnnouncementFeed(groupId);
+  const pinnedRow = storedAnnouncements.find((row) => row.pinned && !row.isSample);
+  const pinnedLeadershipAnnouncement = pinnedRow
+    ? {
+        id: pinnedRow.id,
+        title: pinnedRow.title,
+        excerpt: pinnedRow.excerpt,
+        authorName: pinnedRow.authorName,
+        createdAt: pinnedRow.createdAt,
+        detailHref: `${choirConnectHref(groupId, "announcements")}#announcement-${encodeURIComponent(pinnedRow.id)}`,
+      }
+    : null;
+
+  const chatContext =
+    group && canAccessTeamChat
+      ? {
+          groupId: group.id,
+          groupName: group.name,
+          groupCategory: group.category,
+          groupIconUrl: group.iconUrl,
+          groupUpdatedAt: group.updatedAt,
+          userId: user.id,
+          memberCount: group.members.length,
+          participants: group.members.map((member) => ({
+            id: member.id,
+            name: member.name,
+            isLeader: member.isAdmin || member.isAssistantLeader,
+            subtitle: member.isAdmin
+              ? "Leader"
+              : member.isAssistantLeader
+                ? "Assistant leader"
+                : undefined,
+          })),
+        }
+      : null;
+
+  const announcementsWithoutPinnedDuplicate = pinnedLeadershipAnnouncement
+    ? announcements.filter((item) => item.id !== pinnedLeadershipAnnouncement.id)
+    : announcements;
+
   return {
     assignment,
     upcomingServicePreview,
     rehearsal,
-    announcements,
+    announcements: announcementsWithoutPinnedDuplicate,
+    pinnedLeadershipAnnouncement,
+    chatContext,
+    teamConnectChatHref,
+    chatUnreadCount,
+    canAccessTeamChat,
     preparationPlanKey,
     preparationChecked,
     canManageSchedule,

@@ -3763,3 +3763,58 @@
   background: var(--choir-surface);
   color: var(--choir-body);
 }
+
+/* Worship home — embedded team conversation */
+.choir-home-welcome {
+  box-shadow: 0 8px 24px rgba(37, 32, 42, 0.05);
+}
+
+.choir-home-chat-card {
+  padding: 0;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.choir-home-chat-messages {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.choir-home-chat-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--choir-success);
+}
+
+.choir-home-chat-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--choir-success);
+  box-shadow: 0 0 0 3px rgba(52, 133, 103, 0.2);
+}
+
+.choir-home-chat-unread {
+  display: inline-flex;
+  min-width: 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--choir-gold);
+  padding: 0 7px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--choir-heading);
+}
+
+.choir-home-chat-composer {
+  position: relative;
+  z-index: 2;
+}
