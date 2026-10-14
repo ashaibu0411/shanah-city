@@ -155,7 +155,7 @@ export function ChoirGroupDashboard({
     return (
       <div className="choir-group-home rounded-2xl p-4">
         <p className="text-sm text-red-700">{error ?? "Unavailable."}</p>
-        <button type="button" className="choir-setlist-manage-link mt-3" onClick={load}>
+        <button type="button" className="choir-setlist-manage-link mt-3" onClick={() => load()}>
           Retry
         </button>
       </div>
