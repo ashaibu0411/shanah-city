@@ -24,10 +24,17 @@ import {
 } from "@/lib/rate-limit-server";
 
 export async function GET() {
-  return NextResponse.json({
-    enabled: isStripeGivingConfigured(),
-    funds: GIVING_CHECKOUT_FUNDS,
-  });
+  return NextResponse.json(
+    {
+      enabled: isStripeGivingConfigured(),
+      funds: GIVING_CHECKOUT_FUNDS,
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    },
+  );
 }
 
 export async function POST(request: Request) {

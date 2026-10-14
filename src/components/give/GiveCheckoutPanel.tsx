@@ -30,9 +30,12 @@ function formatMoney(amount: number) {
   return amount.toLocaleString(undefined, { style: "currency", currency: "USD" });
 }
 
+type FundOption = { value: GivingFund; label: string };
+
 export function GiveCheckoutPanel() {
   const { user, loading } = useAuth();
   const [enabled, setEnabled] = useState(false);
+  const [fundOptions, setFundOptions] = useState<FundOption[]>([...GIVING_CHECKOUT_FUNDS]);
   const [fund, setFund] = useState<GivingFund>("tithe");
   const [frequency, setFrequency] = useState<GivingCheckoutFrequency>("once");
   const [preset, setPreset] = useState<number | "custom">(50);
@@ -46,10 +49,17 @@ export function GiveCheckoutPanel() {
   const minStartDate = useMemo(() => givingTodayDateKey(), []);
 
   useEffect(() => {
-    fetch("/api/giving/checkout")
+    fetch("/api/giving/checkout", { cache: "no-store" })
       .then((response) => response.json())
       .then((data) => {
         setEnabled(Boolean(data.enabled));
+        const fromApi = (data.funds ?? []) as FundOption[];
+        if (fromApi.length > 0) {
+          setFundOptions(fromApi);
+          setFund((current) =>
+            fromApi.some((option) => option.value === current) ? current : fromApi[0].value,
+          );
+        }
       })
       .catch(() => setEnabled(false));
   }, []);
@@ -153,20 +163,21 @@ export function GiveCheckoutPanel() {
 
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="space-y-6">
-            <div>
-              <p className={editorialPremium.sectionLabel}>Fund</p>
-              <select
-                value={fund}
-                onChange={(event) => setFund(event.target.value as GivingFund)}
-                className="mt-2 block w-full rounded-2xl border border-night-900/10 bg-white px-4 py-3 text-sm font-medium text-night-900 outline-none ring-night-900/5 focus:ring-2 dark:border-white/10 dark:bg-[var(--color-surface)]"
-              >
-                {GIVING_CHECKOUT_FUNDS.map((option) => (
-                  <option key={option.value} value={option.value}>
+            <fieldset>
+              <legend className={editorialPremium.sectionLabel}>Fund</legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {fundOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setFund(option.value)}
+                    className={premiumTabPill(fund === option.value, "px-3 py-2.5 text-left")}
+                  >
                     {option.label}
-                  </option>
+                  </button>
                 ))}
-              </select>
-            </div>
+              </div>
+            </fieldset>
 
             <fieldset>
               <legend className={editorialPremium.sectionLabel}>Frequency</legend>
