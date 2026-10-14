@@ -21,7 +21,7 @@ import {
   loadMediaProgress,
   saveMediaProgress,
 } from "@/lib/shanah-media-progress";
-import { notifyShanahMediaStarting } from "@/lib/shanah-media-helpers";
+import { notifyShanahMediaStarting, resolveAbsoluteMediaUrl } from "@/lib/shanah-media-helpers";
 import {
   SHANAH_MEDIA_SPEEDS,
   type ShanahMediaItem,
@@ -295,28 +295,42 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
         nativeSupportedRef.current = useNative;
       }
 
+      const streamUrl = resolveAbsoluteMediaUrl(next.audioUrl);
+      let nativeStarted = false;
+
       if (useNative) {
         nativeActiveRef.current = true;
         setNativeBackgroundAudioActive(false);
         try {
           await ShanahNativeMedia.play({
-            url: next.audioUrl,
+            url: streamUrl,
             title: next.title,
             artist: next.artist,
             artworkUrl: next.artworkUrl,
             startAtSec: startAt > 0 ? startAt : undefined,
           });
           await ShanahNativeMedia.setRate({ rate: playbackRate });
-          setPlaying(true);
-          setPaused(false);
-          setLoading(false);
-          pendingStartRef.current = undefined;
-        } catch (err) {
+          await new Promise((resolve) => window.setTimeout(resolve, 700));
+          const nativeState = await ShanahNativeMedia.getState();
+          nativeStarted = Boolean(
+            nativeState.playing || nativeState.buffering || (nativeState.duration ?? 0) > 0,
+          );
+          if (nativeStarted) {
+            setPlaying(true);
+            setPaused(Boolean(nativeState.paused));
+            setLoading(false);
+            pendingStartRef.current = undefined;
+          } else {
+            nativeActiveRef.current = false;
+            void ShanahNativeMedia.stop().catch(() => undefined);
+          }
+        } catch {
           nativeActiveRef.current = false;
-          setError(err instanceof Error ? err.message : "Could not play audio.");
-          setPlaying(false);
-          setLoading(false);
+          void ShanahNativeMedia.stop().catch(() => undefined);
         }
+      }
+
+      if (nativeStarted) {
         return;
       }
 
@@ -328,7 +342,8 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
       }
 
       nativeActiveRef.current = false;
-      audio.src = next.audioUrl;
+      setNativeBackgroundAudioActive(true);
+      audio.src = streamUrl;
       audio.playbackRate = playbackRate;
 
       try {
@@ -336,6 +351,7 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
         setPlaying(true);
         setPaused(false);
         setLoading(false);
+        pendingStartRef.current = undefined;
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not play audio.");
         setPlaying(false);

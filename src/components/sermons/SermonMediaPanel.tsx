@@ -42,11 +42,11 @@ export function SermonMediaPanel({
         <div className={`relative ${compact ? "aspect-video" : "aspect-video md:min-h-[280px] md:aspect-auto md:h-full"}`}>
           <Image src={thumbnail} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
           <div className="absolute inset-0 bg-gradient-to-t from-night-950/70 via-night-950/10 to-night-950/20" />
-          <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 p-4">
+          <div className="absolute inset-x-0 bottom-0 z-10 flex flex-wrap gap-2 p-4">
             <button
               type="button"
               onClick={() => setShowVideo(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-night-900 shadow-lg"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-night-900 shadow-lg"
             >
               <span aria-hidden>▶</span> Watch
             </button>
@@ -61,14 +61,21 @@ export function SermonMediaPanel({
                 }
                 void playAudio(video);
               }}
-              className="inline-flex items-center gap-2 rounded-full bg-night-900/85 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/25 backdrop-blur-sm"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-night-900/85 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/25 backdrop-blur-sm disabled:opacity-70"
             >
               {loading && !listening ? "Loading…" : listening && playing && !paused ? "Pause audio" : listening && paused ? "Resume audio" : "Listen"}
             </button>
           </div>
         </div>
       )}
-      {error ? <p className="px-4 py-2 text-xs text-amber-200">{error}</p> : null}
+      {error ? (
+        <p
+          className="mx-3 mb-3 mt-1 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-950 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-800/50"
+          role="alert"
+        >
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useShanahMedia } from "@/components/media/ShanahMediaPlayerProvider";
-import { sermonToShanahMediaItem } from "@/lib/shanah-media-helpers";
+import { resolveAbsoluteMediaUrl, sermonToShanahMediaItem } from "@/lib/shanah-media-helpers";
 import type { SermonVideo } from "@/lib/youtube-sermons-shared";
 
 type SermonPlayerContextValue = {
@@ -41,11 +41,10 @@ export function SermonPlayerProvider({ children }: { children: ReactNode }) {
   const paused = Boolean(sermon && mediaSermonId === sermon.id && media.paused);
 
   useEffect(() => {
-    if (media.item?.kind !== "sermon-audio" && !loading) {
+    if (media.item?.kind !== "sermon-audio" && !loading && !error) {
       setSermon(null);
-      setError(null);
     }
-  }, [media.item, loading]);
+  }, [media.item, loading, error]);
 
   useEffect(() => {
     if (media.error && mediaSermonId && sermon?.id === mediaSermonId) {
@@ -85,10 +84,14 @@ export function SermonPlayerProvider({ children }: { children: ReactNode }) {
           throw new Error("Audio-only playback is not available for this message. Use Watch instead.");
         }
 
-        await media.play(sermonToShanahMediaItem(next, data.audioUrl));
+        await media.play(
+          sermonToShanahMediaItem(next, resolveAbsoluteMediaUrl(String(data.audioUrl))),
+        );
+        if (media.error) {
+          throw new Error(media.error);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not play audio.");
-        setSermon(null);
       } finally {
         setLoading(false);
       }

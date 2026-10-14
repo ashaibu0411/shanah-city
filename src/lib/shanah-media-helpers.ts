@@ -1,4 +1,13 @@
 import type { ShanahMediaItem, ShanahMediaKind } from "@/lib/shanah-media-types";
+
+/** ExoPlayer and some WebViews require absolute http(s) URLs. */
+export function resolveAbsoluteMediaUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (typeof window === "undefined") return trimmed;
+  return new URL(trimmed, window.location.origin).href;
+}
 import type { SermonVideo } from "@/lib/youtube-sermons-shared";
 import {
   inferWorshipAudioContentType,
