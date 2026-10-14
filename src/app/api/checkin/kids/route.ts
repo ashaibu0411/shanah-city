@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { canAccessKidsMinistry } from "@/lib/kids-access-server";
-import { enrichCheckInFromProfile } from "@/lib/kids-server";
+import { notifyKidsCheckIn } from "@/lib/kids-notify-server";
+import { enrichCheckInFromProfile, filterActiveCheckIns } from "@/lib/kids-server";
 import {
   addKidCheckIn,
   getKidCheckIns,
@@ -108,6 +109,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "All fields are required." }, { status: 400 });
   }
 
+  const existingActive = filterActiveCheckIns(await getKidCheckIns(), { service });
+  const normalizedChild = childName.trim().toLowerCase();
+  const duplicate = existingActive.find(
+    (entry) =>
+      entry.childName.trim().toLowerCase() === normalizedChild &&
+      (entry.parentUserId === user.id || entry.parentName === user.name),
+  );
+  if (duplicate) {
+    return NextResponse.json(
+      {
+        error: `${childName} is already checked in for ${service}. Reprint labels from your check-in list or check out first.`,
+        checkin: duplicate,
+      },
+      { status: 409 },
+    );
+  }
+
   const profileExtras = enrichCheckInFromProfile(user, childName);
   const familyChild = familyMemberId
     ? user.family.find((member) => member.id === familyMemberId)
@@ -128,6 +146,8 @@ export async function POST(request: Request) {
     medicalNotes: familyChild?.medicalNotes ?? profileExtras.medicalNotes,
     authorizedPickup: familyChild?.authorizedPickup ?? profileExtras.authorizedPickup,
   });
+
+  void notifyKidsCheckIn(entry);
 
   return NextResponse.json({ checkin: entry }, { status: 201 });
 }

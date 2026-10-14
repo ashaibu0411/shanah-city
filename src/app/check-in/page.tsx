@@ -48,7 +48,20 @@ export default function CheckInPage() {
             onChange={(id) => setTab(id as "volunteer" | "kids")}
           />
 
-          {tab === "volunteer" ? <VolunteerCheckInPanel /> : <KidsCheckInPanel />}
+          {tab === "volunteer" ? (
+            <VolunteerCheckInPanel />
+          ) : (
+            <>
+              <p className="mb-4 text-sm text-night-600">
+                Greeter desk? Open{" "}
+                <a href="/check-in/kiosk" className="font-semibold text-night-900 underline">
+                  check-in station mode
+                </a>{" "}
+                on your tablet.
+              </p>
+              <KidsCheckInPanel />
+            </>
+          )}
         </>
       )}
     </>

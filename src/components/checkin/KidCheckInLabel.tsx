@@ -99,6 +99,21 @@ export function KidCheckInLabel({ checkIn, printId = "kid-checkin-label" }: KidC
   );
 }
 
+function escapeHtml(value: string) {
+  return value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function openPrintDocument(title: string, bodyHtml: string, width = 480, height = 720) {
+  const printWindow = window.open("", "_blank", `width=${width},height=${height}`);
+  if (!printWindow) return;
+  printWindow.document.write(bodyHtml);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
+}
+
+/** Brother DK-1202 / parent pickup tag (~2.4" wide). */
 export function printKidCheckInLabel(checkIn: KidCheckIn) {
   const checkedInTime = new Date(checkIn.checkedInAt).toLocaleString(undefined, {
     weekday: "short",
@@ -112,16 +127,22 @@ export function printKidCheckInLabel(checkIn: KidCheckIn) {
       (alert) => `
         <div class="alert ${alert.tone}">
           <span>${alert.label}</span>
-          <strong>${alert.value.replace(/</g, "&lt;")}</strong>
+          <strong>${escapeHtml(alert.value)}</strong>
         </div>
       `,
     )
     .join("");
 
-  const printWindow = window.open("", "_blank", "width=480,height=720");
-  if (!printWindow) return;
+  const pickupList =
+    checkIn.authorizedPickup && checkIn.authorizedPickup.length > 0
+      ? `<div class="box full"><span>Authorized pickup only</span>${escapeHtml(
+          checkIn.authorizedPickup.map((c) => c.name).join(", "),
+        )}</div>`
+      : `<div class="box full pickup-note"><span>Pickup policy</span>Child released only to parent/guardian with matching security code.</div>`;
 
-  printWindow.document.write(`
+  openPrintDocument(
+    `${checkIn.childName} Check-in Label`,
+    `
     <!DOCTYPE html>
     <html>
       <head>
@@ -145,39 +166,98 @@ export function printKidCheckInLabel(checkIn: KidCheckIn) {
           .code { margin-top: 16px; background: #1a2332; color: white; border-radius: 14px; padding: 16px; text-align: center; }
           .code strong { display: block; font-size: 34px; letter-spacing: 0.2em; margin-top: 8px; }
           .footer { margin-top: 16px; text-align: center; font-size: 11px; color: #526b91; }
+          .pickup-note { font-size: 12px; line-height: 1.35; }
         </style>
       </head>
       <body>
         <div class="label">
           <div class="brand">
-            <small>${site.name}</small>
+            <small>${escapeHtml(site.name)}</small>
             <div>Kids Ministry Check-in</div>
           </div>
           <div class="child">
             <span>CHILD</span>
-            <h1>${checkIn.childName}</h1>
+            <h1>${escapeHtml(checkIn.childName)}</h1>
           </div>
           ${alerts ? `<div class="alerts">${alerts}</div>` : ""}
           <div class="grid">
-            <div class="box"><span>Room</span>${checkIn.ageGroup}</div>
-            <div class="box"><span>Service</span>${checkIn.service}</div>
-            <div class="box full"><span>Parent / guardian</span>${checkIn.parentName}</div>
+            <div class="box"><span>Room</span>${escapeHtml(checkIn.ageGroup)}</div>
+            <div class="box"><span>Service</span>${escapeHtml(checkIn.service)}</div>
+            <div class="box full"><span>Parent / guardian</span>${escapeHtml(checkIn.parentName)}</div>
+            ${pickupList}
           </div>
           <div class="code">
             <span>PICKUP SECURITY CODE</span>
-            <strong>${checkIn.securityCode ?? "----"}</strong>
+            <strong>${escapeHtml(checkIn.securityCode ?? "----")}</strong>
           </div>
           <div class="footer">
-            <div>Checked in: ${checkedInTime}</div>
-            ${checkIn.notes ? `<div>Notes: ${checkIn.notes}</div>` : ""}
-            <div style="margin-top:10px;font-weight:700;">Keep this label for pickup.</div>
+            <div>Checked in: ${escapeHtml(checkedInTime)}</div>
+            ${checkIn.notes ? `<div>Notes: ${escapeHtml(checkIn.notes)}</div>` : ""}
+            <div style="margin-top:10px;font-weight:700;">Keep this label for pickup. Do not share your code.</div>
           </div>
         </div>
       </body>
     </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
-  printWindow.close();
+  `,
+  );
+}
+
+/** Brother DK-11209 small clothing sticker (~2.4" × 1.1"). */
+export function printKidClothingLabel(checkIn: KidCheckIn) {
+  const allergy = checkIn.allergies?.trim();
+  const medical = checkIn.medicalNotes?.trim();
+  const alertLine = allergy
+    ? `ALLERGY: ${escapeHtml(allergy)}`
+    : medical
+      ? `MEDICAL: ${escapeHtml(medical)}`
+      : "";
+
+  openPrintDocument(
+    `${checkIn.childName} Clothing Label`,
+    `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${escapeHtml(checkIn.childName)} Clothing Label</title>
+        <style>
+          @page { size: 62mm 29mm; margin: 0; }
+          body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #1a2332; }
+          .sticker {
+            width: 62mm;
+            height: 29mm;
+            box-sizing: border-box;
+            padding: 2mm 2.5mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 1px dashed #999;
+          }
+          .name { font-size: 13pt; font-weight: 700; line-height: 1.1; }
+          .meta { font-size: 8pt; margin-top: 1mm; }
+          .code { font-size: 14pt; font-weight: 700; letter-spacing: 0.12em; margin-top: 1mm; }
+          .alert { font-size: 7pt; font-weight: 700; color: #92400e; margin-top: 1mm; text-transform: uppercase; }
+        </style>
+      </head>
+      <body>
+        <div class="sticker">
+          <div class="name">${escapeHtml(checkIn.childName)}</div>
+          <div class="meta">${escapeHtml(checkIn.ageGroup)} · ${escapeHtml(site.name)}</div>
+          <div class="code">${escapeHtml(checkIn.securityCode ?? "----")}</div>
+          ${alertLine ? `<div class="alert">${alertLine}</div>` : ""}
+        </div>
+      </body>
+    </html>
+  `,
+    320,
+    240,
+  );
+}
+
+export function printKidCheckInLabels(checkIn: KidCheckIn, options?: { clothing?: boolean; parent?: boolean }) {
+  const printParent = options?.parent !== false;
+  const printClothing = options?.clothing !== false;
+  if (printParent) printKidCheckInLabel(checkIn);
+  if (printClothing) {
+    window.setTimeout(() => printKidClothingLabel(checkIn), printParent ? 800 : 0);
+  }
 }

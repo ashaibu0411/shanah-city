@@ -60,18 +60,19 @@ export function KidsMinistryPanel({
   const [incidentCheckInId, setIncidentCheckInId] = useState("");
   const [incidentParentUserId, setIncidentParentUserId] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (options?: { silent?: boolean }) => {
+    const silent = options?.silent === true;
+    if (!silent) setLoading(true);
     setError(null);
     const params = new URLSearchParams({ service });
     if (weekStarting) params.set("week", weekStarting);
 
     const response = await fetch(`/api/kids/ministry?${params.toString()}`);
     const payload = await response.json();
-    setLoading(false);
+    if (!silent) setLoading(false);
 
     if (!response.ok) {
-      setError(payload.error ?? "Could not load kids ministry data.");
+      if (!silent) setError(payload.error ?? "Could not load kids ministry data.");
       return;
     }
 
@@ -83,6 +84,16 @@ export function KidsMinistryPanel({
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  useEffect(() => {
+    const intervalMs = 15_000;
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void load({ silent: true });
+      }
+    }, intervalMs);
+    return () => window.clearInterval(id);
   }, [load]);
 
   async function verifyPickup() {
@@ -223,9 +234,12 @@ export function KidsMinistryPanel({
               className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
             />
           </label>
-          <Button variant="secondary" onClick={load} disabled={loading}>
+          <Button variant="secondary" onClick={() => load()} disabled={loading}>
             Refresh
           </Button>
+          <p className="text-xs text-night-500 sm:ml-auto sm:self-center">
+            Roster updates automatically every 15 seconds.
+          </p>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -261,6 +275,29 @@ export function KidsMinistryPanel({
         <>
           {tab === "roster" && (
             <div className="space-y-6">
+              {data.roster.some((e) => e.hasAllergyAlert || e.hasMedicalAlert) && (
+                <Card className="border-amber-200 bg-amber-50">
+                  <h2 className="font-display text-lg font-semibold text-amber-950">
+                    Safety alerts active
+                  </h2>
+                  <p className="mt-1 text-sm text-amber-900">
+                    Review allergy and medical flags before releasing a child. Pickup requires the parent security
+                    code; verify identity against authorized pickup on the roster.
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm text-amber-950">
+                    {[...data.roster]
+                      .filter((e) => e.hasAllergyAlert || e.hasMedicalAlert)
+                      .map((entry) => (
+                        <li key={entry.id}>
+                          <span className="font-semibold">{entry.childName}</span> ({entry.ageGroup})
+                          {entry.hasAllergyAlert && ` — Allergy: ${entry.allergies}`}
+                          {entry.hasMedicalAlert && ` — Medical: ${entry.medicalNotes}`}
+                        </li>
+                      ))}
+                  </ul>
+                </Card>
+              )}
+
               <Card>
                 <h2 className="font-display text-xl font-semibold text-night-900">
                   Room headcount
@@ -285,10 +322,22 @@ export function KidsMinistryPanel({
                   <p className="mt-3 text-sm text-night-500">No children checked in for this service.</p>
                 ) : (
                   <ul className="mt-4 space-y-3">
-                    {data.roster.map((entry) => (
+                    {[...data.roster]
+                      .sort((a, b) => {
+                        const score = (e: (typeof data.roster)[number]) =>
+                          (e.hasMedicalAlert ? 2 : 0) + (e.hasAllergyAlert ? 1 : 0);
+                        return score(b) - score(a);
+                      })
+                      .map((entry) => (
                       <li
                         key={entry.id}
-                        className="rounded-xl border border-night-900/5 bg-sand-50 px-4 py-3 text-sm"
+                        className={`rounded-xl border px-4 py-3 text-sm ${
+                          entry.hasMedicalAlert
+                            ? "border-red-200 bg-red-50/80"
+                            : entry.hasAllergyAlert
+                              ? "border-amber-200 bg-amber-50/80"
+                              : "border-night-900/5 bg-sand-50"
+                        }`}
                       >
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
@@ -341,7 +390,8 @@ export function KidsMinistryPanel({
                 Pickup verification
               </h2>
               <p className="mt-2 text-sm text-night-600">
-                Enter the security code from the parent label before releasing a child.
+                Enter the security code from the parent label before releasing a child. Match the adult to the parent
+                name and authorized pickup list on the roster — code alone is not enough if you do not recognize them.
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <select
