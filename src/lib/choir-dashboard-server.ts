@@ -237,9 +237,15 @@ export async function buildChoirHomeDashboard(
 
   const preparationPlanKey =
     assignment?.planKey ?? upcomingServicePreview?.planKey ?? null;
-  const preparationChecked = preparationPlanKey
-    ? await getChoirPreparation(user.id, preparationPlanKey)
-    : [];
+  let preparationChecked: string[] = [];
+  if (preparationPlanKey) {
+    try {
+      preparationChecked = await getChoirPreparation(user.id, preparationPlanKey);
+    } catch (error) {
+      console.error("[choir-home] preparation load failed", error);
+      preparationChecked = [];
+    }
+  }
 
   const rehearsalRoomHref = (() => {
     const target = assignment ?? upcomingServicePreview;
