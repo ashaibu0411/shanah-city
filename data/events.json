@@ -1,0 +1,40 @@
+[
+  {
+    "id": "1",
+    "title": "Friday Evening Worship",
+    "date": "Every Friday",
+    "time": "7:00 PM – 9:30 PM",
+    "location": "380 S Potomac Street, Unit 120, Aurora, CO 80012",
+    "recurringWeekday": 5,
+    "published": true,
+    "sortOrder": 0
+  },
+  {
+    "id": "2",
+    "title": "Sunday Morning Worship",
+    "date": "Every Sunday",
+    "time": "10:00 AM – 12:30 PM",
+    "location": "380 S Potomac Street, Unit 120, Aurora, CO 80012",
+    "recurringWeekday": 0,
+    "published": true,
+    "sortOrder": 1
+  },
+  {
+    "id": "3",
+    "title": "Shanah City Accra",
+    "date": "Weekly",
+    "time": "Fri 7:00 PM · Sun 10:00 AM (GMT)",
+    "location": "Accra, Ghana · admin@shanahcity.org",
+    "published": true,
+    "sortOrder": 2
+  },
+  {
+    "id": "4",
+    "title": "Watch Online",
+    "date": "Fri & Sun",
+    "time": "Live on YouTube",
+    "location": "youtube.com/@ShanahCity",
+    "published": true,
+    "sortOrder": 3
+  }
+]
