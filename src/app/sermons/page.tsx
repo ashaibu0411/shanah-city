@@ -6,6 +6,8 @@ import {
   getShanahCityYouTubeChannelUrl,
 } from "@/lib/youtube-sermons-server";
 
+export const dynamic = "force-dynamic";
+
 export default async function SermonsPage() {
   const videos = await getChannelSermons();
   const latest = videos[0] ?? null;

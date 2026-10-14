@@ -20,8 +20,10 @@ import { AppRefreshBridge } from "@/components/app/AppRefreshBridge";
 import { AppNotificationBadgeSync } from "@/components/app/AppNotificationBadgeSync";
 import { NativeAppBoot } from "@/components/app/NativeAppBoot";
 import { DevotionMiniPlayer } from "@/components/devotions/DevotionMiniPlayer";
+import { SermonMiniPlayer } from "@/components/sermons/SermonMiniPlayer";
 import { BackgroundPlaybackProvider } from "@/components/app/BackgroundPlaybackProvider";
 import { DevotionPlayerProvider } from "@/components/devotions/DevotionPlayerProvider";
+import { SermonPlayerProvider } from "@/components/sermons/SermonPlayerProvider";
 import { TopBar } from "@/components/app/TopBar";
 
 
@@ -39,6 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <AppShellProvider>
           <DevotionPlayerProvider>
+          <SermonPlayerProvider>
           <BackgroundPlaybackProvider>
 
           <NativeAppBoot />
@@ -68,6 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
             <DevotionMiniPlayer />
+            <SermonMiniPlayer />
             <MobileNav />
 
             <MobileMoreSheet />
@@ -75,6 +79,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           </BackgroundPlaybackProvider>
+          </SermonPlayerProvider>
           </DevotionPlayerProvider>
         </AppShellProvider>
 
