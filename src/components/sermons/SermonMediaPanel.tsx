@@ -49,7 +49,7 @@ export function SermonMediaPanel({
 }: SermonMediaPanelProps) {
   const [showVideo, setShowVideo] = useState(false);
   const { permissions } = useAuth();
-  const { playAudio, loading, error, isCurrent, pause, resume, paused, playing } = useSermonPlayer();
+  const { playAudio, playWatch, loading, error, isCurrent, pause, resume, paused, playing } = useSermonPlayer();
   const listening = isCurrent(video.id);
 
   return (
@@ -73,10 +73,17 @@ export function SermonMediaPanel({
           <div className="absolute inset-x-0 bottom-0 z-10 flex flex-wrap gap-2 p-4">
             <button
               type="button"
-              onClick={() => setShowVideo(true)}
+              onClick={() => void playWatch(video)}
               className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-night-900 shadow-lg"
             >
               <span aria-hidden>▶</span> Watch
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowVideo(true)}
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/25"
+            >
+              Inline video
             </button>
             <button
               type="button"

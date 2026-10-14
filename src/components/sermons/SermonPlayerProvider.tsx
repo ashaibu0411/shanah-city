@@ -10,7 +10,11 @@ import {
   type ReactNode,
 } from "react";
 import { useShanahMedia } from "@/components/media/ShanahMediaPlayerProvider";
-import { resolveAbsoluteMediaUrl, sermonToShanahMediaItem } from "@/lib/shanah-media-helpers";
+import {
+  resolveAbsoluteMediaUrl,
+  sermonToShanahMediaItem,
+  sermonWatchMediaItem,
+} from "@/lib/shanah-media-helpers";
 import type { SermonVideo } from "@/lib/youtube-sermons-shared";
 
 type SermonPlayerContextValue = {
@@ -21,6 +25,7 @@ type SermonPlayerContextValue = {
   error: string | null;
   isCurrent: (videoId: string) => boolean;
   playAudio: (sermon: SermonVideo) => Promise<void>;
+  playWatch: (sermon: SermonVideo) => Promise<void>;
   pause: () => void;
   resume: () => void;
   stop: () => void;
@@ -87,10 +92,41 @@ export function SermonPlayerProvider({ children }: { children: ReactNode }) {
         }
 
         await media.play(
-          sermonToShanahMediaItem(next, resolveAbsoluteMediaUrl(String(data.audioUrl))),
+          sermonToShanahMediaItem(next, resolveAbsoluteMediaUrl(String(data.audioUrl)), {
+            companionAudioUrl: resolveAbsoluteMediaUrl(String(data.audioUrl)),
+            publishedAt: next.publishedAt,
+          }),
+          { mode: "audio" },
         );
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not play audio.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [media],
+  );
+
+  const playWatch = useCallback(
+    async (next: SermonVideo) => {
+      setError(null);
+      setSermon(next);
+      setLoading(true);
+      let companion: string | null = null;
+      try {
+        const response = await fetch(`/api/sermons/playback?v=${encodeURIComponent(next.id)}`);
+        const data = await response.json();
+        if (response.ok && data.mode === "audio" && data.audioUrl) {
+          companion = resolveAbsoluteMediaUrl(String(data.audioUrl));
+        }
+      } catch {
+        /* watch still works without listen */
+      }
+      try {
+        await media.play(sermonWatchMediaItem(next, companion), { mode: "video" });
+        media.setFullPlayerOpen(true);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not open video.");
       } finally {
         setLoading(false);
       }
@@ -109,11 +145,12 @@ export function SermonPlayerProvider({ children }: { children: ReactNode }) {
         (sermon?.id === videoId || mediaSermonId === videoId) &&
         (playing || paused || loading || media.loading),
       playAudio,
+      playWatch,
       pause,
       resume,
       stop,
     }),
-    [sermon, playing, paused, loading, media.loading, mediaSermonId, error, playAudio, pause, resume, stop],
+    [sermon, playing, paused, loading, media.loading, mediaSermonId, error, playAudio, playWatch, pause, resume, stop],
   );
 
   return <SermonPlayerContext.Provider value={value}>{children}</SermonPlayerContext.Provider>;

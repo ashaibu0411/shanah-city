@@ -14,15 +14,40 @@ import {
   resolveWorshipAudioUrl,
 } from "@/lib/worship-audio-shared";
 
-export function sermonToShanahMediaItem(sermon: SermonVideo, audioUrl: string): ShanahMediaItem {
+export function sermonToShanahMediaItem(
+  sermon: SermonVideo,
+  audioUrl: string,
+  extras?: { companionAudioUrl?: string; hostedVideoUrl?: string; publishedAt?: string },
+): ShanahMediaItem {
+  const companion = extras?.companionAudioUrl ?? audioUrl;
   return {
     id: `sermon-${sermon.id}`,
     kind: "sermon-audio",
     title: sermon.title,
     artist: "Shanah City",
     artworkUrl: sermon.thumbnailUrl,
-    audioUrl,
-    href: "/sermons",
+    audioUrl: companion,
+    companionAudioUrl: companion.startsWith("http") || companion.startsWith("/") ? companion : undefined,
+    hostedVideoUrl: extras?.hostedVideoUrl,
+    youtubeVideoId: sermon.id,
+    publishedAt: extras?.publishedAt ?? sermon.publishedAt,
+    href: `/sermons?v=${encodeURIComponent(sermon.id)}`,
+    resumeKey: `sermon-${sermon.id}`,
+  };
+}
+
+export function sermonWatchMediaItem(sermon: SermonVideo, companionAudioUrl?: string | null): ShanahMediaItem {
+  return {
+    id: `sermon-${sermon.id}`,
+    kind: "sermon-video",
+    title: sermon.title,
+    artist: "Shanah City",
+    artworkUrl: sermon.thumbnailUrl,
+    audioUrl: companionAudioUrl ?? "",
+    companionAudioUrl: companionAudioUrl ?? undefined,
+    youtubeVideoId: sermon.id,
+    publishedAt: sermon.publishedAt,
+    href: `/sermons?v=${encodeURIComponent(sermon.id)}`,
     resumeKey: `sermon-${sermon.id}`,
   };
 }
