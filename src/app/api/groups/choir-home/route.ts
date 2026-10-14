@@ -6,7 +6,7 @@ import {
   CHOIR_PREPARATION_ITEMS,
   SHANAH_WORSHIP_GROUP_ID,
 } from "@/lib/choir-group-constants";
-import { setChoirPreparationChecked } from "@/lib/stores/choir-preparation-json";
+import { setChoirPreparationChecked } from "@/lib/choir-preparation-server";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();

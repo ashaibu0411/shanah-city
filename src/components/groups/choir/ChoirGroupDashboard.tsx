@@ -75,9 +75,18 @@ export function ChoirGroupDashboard({
 
   async function updatePreparation(itemId: string, isChecked: boolean) {
     if (!home?.preparationPlanKey) return;
+    const previous = checked;
+    setChecked((current) =>
+      isChecked
+        ? current.includes(itemId)
+          ? current
+          : [...current, itemId]
+        : current.filter((id) => id !== itemId),
+    );
     const response = await fetch("/api/groups/choir-home", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         action: "preparation",
         groupId: SHANAH_WORSHIP_GROUP_ID,
@@ -89,6 +98,8 @@ export function ChoirGroupDashboard({
     const data = await response.json();
     if (response.ok) {
       setChecked(data.checked ?? []);
+    } else {
+      setChecked(previous);
     }
   }
 

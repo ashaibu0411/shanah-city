@@ -1225,6 +1225,16 @@ model ChoirServiceSchedule {
   @@index([groupId, serviceDate])
 }
 
+model ChoirPreparationChecklist {
+  userId    String
+  planKey   String
+  checked   Json     @default("[]")
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, planKey])
+  @@index([userId])
+}
+
 // —— Couples Hub (private marriage workspace; scoped by coupleLinkId) ——
 
 model CoupleCalendarEvent {

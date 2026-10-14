@@ -2,11 +2,6 @@ import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getGroupDetail } from "@/lib/group-server";
 import { isMemberTrainingRequired } from "@/lib/ministry-readiness-server";
-import { listGroupServiceSchedules } from "@/lib/choir-service-schedule-server";
-import {
-  getGroupServiceScheduleConfig,
-  programLabel,
-} from "@/lib/group-service-schedule-config";
 import { listChoirAnnouncementFeed, listStoredChoirAnnouncementFeed } from "@/lib/choir-announcements-server";
 import { choirConnectHref } from "@/lib/choir-connect-links";
 import { getGroupChatInboxForUser } from "@/lib/group-chat-server";
@@ -23,7 +18,9 @@ import type {
   ChoirHomeDashboard,
   ChoirRehearsalView,
 } from "@/lib/choir-dashboard-types";
-import { getChoirPreparation } from "@/lib/stores/choir-preparation-json";
+import { getChoirPreparation } from "@/lib/choir-preparation-server";
+import { nextDefaultChoirRehearsal } from "@/lib/choir-default-rehearsal";
+import { getEvents } from "@/lib/event-server";
 import { site } from "@/lib/site";
 import { listWorshipPlans } from "@/lib/worship-server";
 import { canManageWorshipPlan } from "@/lib/worship-access-server";
@@ -84,70 +81,103 @@ function planToAssignmentView(
   };
 }
 
-function pickRehearsalFromPlans(
+function isLeaderRehearsalEvent(title: string) {
+  return title.toLowerCase().includes("rehearsal");
+}
+
+function eventTimeToPlanTime(time: string | undefined) {
+  const raw = time?.trim() ?? "";
+  const match = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return raw || "18:00";
+  let hour = Number.parseInt(match[1], 10);
+  const minute = match[2];
+  const meridiem = match[3].toUpperCase();
+  if (meridiem === "PM" && hour < 12) hour += 12;
+  if (meridiem === "AM" && hour === 12) hour = 0;
+  return `${String(hour).padStart(2, "0")}:${minute}`;
+}
+
+async function pickLeaderScheduledRehearsals(
+  groupId: string,
+  now: Date,
+): Promise<Array<{ when: number; view: ChoirRehearsalView }>> {
+  const events = await getEvents({ groupId });
+  const results: Array<{ when: number; view: ChoirRehearsalView }> = [];
+
+  for (const event of events) {
+    const dateKey = event.startsOn?.trim();
+    if (!dateKey || !isLeaderRehearsalEvent(event.title ?? "")) continue;
+
+    const planTime = eventTimeToPlanTime(event.time);
+    const when = combinePlanDateTime(dateKey, planTime).getTime();
+    if (when < now.getTime() - 3_600_000) continue;
+
+    const date = new Date(`${dateKey}T12:00:00`);
+    results.push({
+      when,
+      view: {
+        id: `group-event-rehearsal-${event.id}`,
+        title: event.title.trim() || "Worship rehearsal",
+        dateLabel: date.toLocaleDateString(undefined, {
+          weekday: "long",
+          month: "short",
+          day: "numeric",
+        }),
+        timeLabel: event.time?.trim() || "Time TBD",
+        location: event.location?.trim() || site.heroChurchName,
+        notes: event.rsvpInstructions?.trim() || undefined,
+        source: "group-event",
+        calendarHref: choirCalendarRehearsalsHref(SHANAH_WORSHIP_GROUP_ID),
+      },
+    });
+  }
+
+  return results;
+}
+
+function pickPlanScheduledRehearsals(
   plans: WorshipServicePlan[],
   now: Date,
-): ChoirRehearsalView | null {
-  const candidates = plans
+): Array<{ when: number; view: ChoirRehearsalView }> {
+  return plans
     .filter((plan) => plan.rehearsalDate && plan.status === "published")
     .map((plan) => ({
       plan,
-      when: combinePlanDateTime(plan.rehearsalDate!, plan.rehearsalTime || "19:00"),
+      when: combinePlanDateTime(plan.rehearsalDate!, plan.rehearsalTime || "19:00").getTime(),
     }))
-    .filter((entry) => entry.when.getTime() >= now.getTime() - 3_600_000)
-    .sort((a, b) => a.when.getTime() - b.when.getTime());
-
-  const next = candidates[0];
-  if (!next) return null;
-
-  const date = new Date(`${next.plan.rehearsalDate!}T12:00:00`);
-  return {
-    id: `plan-rehearsal-${next.plan.serviceDate}-${next.plan.serviceTime}`,
-    title: `Rehearsal for ${next.plan.title?.trim() || "Sunday Service"}`,
-    dateLabel: date.toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "short",
-      day: "numeric",
-    }),
-    timeLabel: next.plan.rehearsalTime ? worshipTimeLabel(next.plan.rehearsalTime) : "Time TBD",
-    location: site.heroChurchName,
-    notes: next.plan.rehearsalNotes?.trim() || undefined,
-    source: "worship-plan",
-    calendarHref: choirCalendarRehearsalsHref(SHANAH_WORSHIP_GROUP_ID),
-  };
+    .filter((entry) => entry.when >= now.getTime() - 3_600_000)
+    .map(({ plan, when }) => {
+      const date = new Date(`${plan.rehearsalDate!}T12:00:00`);
+      return {
+        when,
+        view: {
+          id: `plan-rehearsal-${plan.serviceDate}-${plan.serviceTime}`,
+          title: `Rehearsal for ${plan.title?.trim() || "Sunday Service"}`,
+          dateLabel: date.toLocaleDateString(undefined, {
+            weekday: "long",
+            month: "short",
+            day: "numeric",
+          }),
+          timeLabel: plan.rehearsalTime ? worshipTimeLabel(plan.rehearsalTime) : "Time TBD",
+          location: site.heroChurchName,
+          notes: plan.rehearsalNotes?.trim() || undefined,
+          source: "worship-plan" as const,
+          calendarHref: choirCalendarRehearsalsHref(SHANAH_WORSHIP_GROUP_ID),
+        },
+      };
+    });
 }
 
-async function pickRehearsalFromSchedule(groupId: string, now: Date): Promise<ChoirRehearsalView | null> {
-  const entries = await listGroupServiceSchedules(groupId);
-  const upcoming = entries
-    .map((entry) => ({
-      entry,
-      when: combinePlanDateTime(entry.serviceDate, entry.serviceTime),
-    }))
-    .filter((row) => row.when.getTime() >= now.getTime() - 3_600_000)
-    .sort((a, b) => a.when.getTime() - b.when.getTime());
-
-  const next = upcoming[0];
-  if (!next) return null;
-
-  const scheduleConfig = getGroupServiceScheduleConfig(groupId);
-  const date = new Date(`${next.entry.serviceDate}T12:00:00`);
-  return {
-    id: `schedule-${next.entry.id}`,
-    title: scheduleConfig
-      ? programLabel(scheduleConfig, next.entry.program)
-      : next.entry.program,
-    dateLabel: date.toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "short",
-      day: "numeric",
-    }),
-    timeLabel: worshipTimeLabel(next.entry.serviceTime),
-    location: site.heroChurchName,
-    notes: next.entry.notes?.trim() || undefined,
-    source: "service-schedule",
-    calendarHref: choirCalendarRehearsalsHref(SHANAH_WORSHIP_GROUP_ID),
-  };
+async function resolveUpcomingRehearsal(
+  groupId: string,
+  plans: WorshipServicePlan[],
+  now: Date,
+): Promise<ChoirRehearsalView> {
+  const leaderEvents = await pickLeaderScheduledRehearsals(groupId, now);
+  const planRehearsals = pickPlanScheduledRehearsals(plans, now);
+  const candidates = [...planRehearsals, ...leaderEvents].sort((a, b) => a.when - b.when);
+  if (candidates[0]) return candidates[0].view;
+  return nextDefaultChoirRehearsal(now);
 }
 
 export async function buildChoirHomeDashboard(
@@ -192,10 +222,7 @@ export async function buildChoirHomeDashboard(
   }
 
   const now = new Date();
-  let rehearsal = pickRehearsalFromPlans(publishedPlans, now);
-  if (!rehearsal) {
-    rehearsal = await pickRehearsalFromSchedule(groupId, now);
-  }
+  const rehearsal = await resolveUpcomingRehearsal(groupId, publishedPlans, now);
 
   const feed = await listChoirAnnouncementFeed(groupId, 3);
   const announcements: ChoirAnnouncementView[] = feed.map((item) => ({

@@ -9,11 +9,7 @@ import {
   SHANAH_WORSHIP_GROUP_ID,
   choirPlanKey,
 } from "@/lib/choir-group-constants";
-import { listGroupServiceSchedules } from "@/lib/choir-service-schedule-server";
-import {
-  getGroupServiceScheduleConfig,
-  programLabel,
-} from "@/lib/group-service-schedule-config";
+import { nextDefaultChoirRehearsal } from "@/lib/choir-default-rehearsal";
 import { listWorshipPlans } from "@/lib/worship-server";
 import {
   canManageWorshipPlan,
@@ -95,39 +91,6 @@ function pickRehearsalFromPlans(plans: WorshipServicePlan[], now: Date): ChoirRe
   };
 }
 
-async function pickRehearsalFromSchedule(groupId: string, now: Date): Promise<ChoirRehearsalView | null> {
-  const entries = await listGroupServiceSchedules(groupId);
-  const upcoming = entries
-    .map((entry) => ({
-      entry,
-      when: combinePlanDateTime(entry.serviceDate, entry.serviceTime),
-    }))
-    .filter((row) => row.when.getTime() >= now.getTime() - 3_600_000)
-    .sort((a, b) => a.when.getTime() - b.when.getTime());
-
-  const next = upcoming[0];
-  if (!next) return null;
-
-  const scheduleConfig = getGroupServiceScheduleConfig(groupId);
-  const date = new Date(`${next.entry.serviceDate}T12:00:00`);
-  return {
-    id: `schedule-${next.entry.id}`,
-    title: scheduleConfig
-      ? programLabel(scheduleConfig, next.entry.program)
-      : next.entry.program,
-    dateLabel: date.toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "short",
-      day: "numeric",
-    }),
-    timeLabel: worshipTimeLabel(next.entry.serviceTime),
-    location: site.heroChurchName,
-    notes: next.entry.notes?.trim() || undefined,
-    source: "service-schedule",
-    calendarHref: `/groups/${SHANAH_WORSHIP_GROUP_ID}/calendar`,
-  };
-}
-
 export async function buildChoirRehearsalPagePayload(
   user: PublicMember,
   groupId: string,
@@ -168,7 +131,7 @@ export async function buildChoirRehearsalPagePayload(
     now,
   );
   if (!rehearsal) {
-    rehearsal = await pickRehearsalFromSchedule(groupId, now);
+    rehearsal = nextDefaultChoirRehearsal(now);
   }
 
   return {

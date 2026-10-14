@@ -415,7 +415,7 @@
 }
 
 .choir-group-home .choir-rehearsal-thumb-wrap {
-  height: 108px;
+  height: 132px;
   overflow: hidden;
 }
 
@@ -423,7 +423,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 30%;
+  object-position: center 12%;
 }
 
 .choir-group-home .choir-prep-progress {
@@ -459,6 +459,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 12%;
 }
 
 .choir-group-home .choir-word-overlay {

@@ -26,23 +26,7 @@ export function ChoirUpcomingRehearsal({
         </Link>
       </div>
 
-      {!rehearsal ? (
-        <div className="choir-card p-4">
-          <p className="font-bold text-[var(--choir-heading)]">No upcoming rehearsal</p>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--choir-muted)]">
-            New rehearsal details will appear here when your leader publishes them.
-          </p>
-          {canManageSchedule && onManageSchedule ? (
-            <button
-              type="button"
-              onClick={onManageSchedule}
-              className="mt-4 text-sm font-semibold text-[var(--choir-gold-dark)] underline"
-            >
-              Schedule on Events tab
-            </button>
-          ) : null}
-        </div>
-      ) : (
+      {rehearsal ? (
         <Link href={calendarHref} className="choir-card block overflow-hidden transition active:scale-[0.99]">
           <div className="choir-rehearsal-thumb-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -55,7 +39,16 @@ export function ChoirUpcomingRehearsal({
             <p className="text-sm text-[var(--choir-muted)]">{rehearsal.location}</p>
           </div>
         </Link>
-      )}
+      ) : null}
+      {canManageSchedule && onManageSchedule ? (
+        <button
+          type="button"
+          onClick={onManageSchedule}
+          className="mt-3 text-xs font-semibold text-[var(--choir-gold-dark)] underline"
+        >
+          Schedule a different rehearsal day →
+        </button>
+      ) : null}
     </section>
   );
 }

@@ -20,7 +20,7 @@ export type ChoirRehearsalView = {
   timeLabel: string;
   location: string;
   notes?: string;
-  source: "worship-plan" | "service-schedule";
+  source: "worship-plan" | "group-event" | "default-weekly";
   calendarHref: string;
 };
 
