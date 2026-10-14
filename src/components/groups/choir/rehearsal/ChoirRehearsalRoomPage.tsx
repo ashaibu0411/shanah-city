@@ -311,7 +311,6 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
             if (song.chartUrl) window.open(song.chartUrl, "_blank", "noopener,noreferrer");
           }}
           memberPartRole={memberPartRole}
-          isPublished={isPublished}
           rehearsal={payload.rehearsal}
           noteBullets={noteBullets}
           onNotesNavigate={() => changeTab("notes")}
