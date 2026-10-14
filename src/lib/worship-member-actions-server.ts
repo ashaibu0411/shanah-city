@@ -3,6 +3,7 @@ import {
   getSongPartNotes,
   normalizeMemberSuggestions,
   normalizeSongParts,
+  normalizeTeam,
   upsertPracticeStem,
   type WorshipMemberSuggestion,
   type WorshipPracticeStem,
@@ -120,13 +121,37 @@ export async function attachMemberPracticeStem(input: {
   partRole: string;
   stem: Omit<WorshipPracticeStem, "role" | "status">;
   isManager: boolean;
+  /** Choir / rehearsal room: allow upload when not on this service roster (leader still reviews). */
+  allowChoirRehearsalUpload?: boolean;
 }) {
   return updateWorshipPlanContent(input.serviceDate, input.serviceTime, (plan) => {
-    const member = plan.team.find((entry) => entry.userId === input.userId);
+    let team = normalizeTeam(plan.team);
+    let member = team.find((entry) => entry.userId === input.userId);
+    const choirSelfServe = Boolean(input.allowChoirRehearsalUpload) && !input.isManager;
+
     if (!member && !input.isManager) {
-      throw new Error("You are not on the team for this service.");
+      if (!choirSelfServe) {
+        throw new Error("You are not on the team for this service.");
+      }
+      team = normalizeTeam([
+        ...team,
+        {
+          userId: input.userId,
+          name: input.userName.trim() || "Choir member",
+          role: "singer",
+          partRole: input.partRole,
+          ready: false,
+        },
+      ]);
+      member = team.find((entry) => entry.userId === input.userId);
     }
-    if (!input.isManager && member?.partRole !== input.partRole) {
+
+    if (
+      !input.isManager &&
+      member?.partRole?.trim() &&
+      member.partRole !== input.partRole &&
+      !choirSelfServe
+    ) {
       throw new Error("You can only upload a recording for your assigned part.");
     }
 
@@ -145,7 +170,7 @@ export async function attachMemberPracticeStem(input: {
 
     const songs = [...plan.songs];
     songs[songIndex] = { ...song, practiceStems: nextStem };
-    return { ...plan, songs };
+    return { ...plan, team, songs };
   });
 }
 

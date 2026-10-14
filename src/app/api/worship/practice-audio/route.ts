@@ -58,6 +58,7 @@ export async function POST(request: Request) {
         partRole,
         stem: stemMeta,
         isManager,
+        allowChoirRehearsalUpload: !isManager,
       });
 
       return NextResponse.json({
