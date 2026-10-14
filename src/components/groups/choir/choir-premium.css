@@ -1008,6 +1008,16 @@
   color: var(--choir-heading);
 }
 
+.choir-rehearsal-page .choir-rehearsal-record-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: #c62828;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
 .choir-rehearsal-page .choir-rehearsal-song-row {
   display: flex;
   align-items: flex-start;

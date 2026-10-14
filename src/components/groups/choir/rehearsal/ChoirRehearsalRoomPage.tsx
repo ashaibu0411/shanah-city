@@ -21,6 +21,9 @@ import {
   type WorshipServicePlan,
   type WorshipSong,
 } from "@/lib/worship-types";
+import { RehearsalLongFormRecorder } from "./RehearsalLongFormRecorder";
+import { RehearsalPendingUploadsPanel } from "./RehearsalPendingUploadsPanel";
+import { RehearsalRecordingLibrary } from "./RehearsalRecordingLibrary";
 import { RehearsalSegmentTabs, type RehearsalTabId } from "./RehearsalSegmentTabs";
 import { RehearsalPartRecordingPanel } from "./RehearsalPartRecordingPanel";
 import { RehearsalSongPracticeSheet } from "./RehearsalSongPracticeSheet";
@@ -42,10 +45,10 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
   const searchParams = useSearchParams();
   const { user } = useAuth();
 
-  const initialTab = (searchParams.get("tab") as RehearsalTabId) || "room";
-  const [tab, setTab] = useState<RehearsalTabId>(
-    initialTab === "audio" || initialTab === "parts" || initialTab === "notes" ? initialTab : "room",
-  );
+  const VALID_TABS: RehearsalTabId[] = ["room", "record", "library", "audio", "parts", "notes"];
+  const tabParam = searchParams.get("tab") as RehearsalTabId | null;
+  const initialTab = tabParam && VALID_TABS.includes(tabParam) ? tabParam : "room";
+  const [tab, setTab] = useState<RehearsalTabId>(initialTab);
 
   const [payload, setPayload] = useState<ChoirRehearsalPagePayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -340,6 +343,31 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
           noteBullets={noteBullets}
           onNotesNavigate={() => changeTab("notes")}
         />
+      ) : null}
+
+      {tab === "record" ? (
+        <>
+        <RehearsalPendingUploadsPanel groupId={groupId} />
+        <RehearsalLongFormRecorder
+          groupId={groupId}
+          serviceDate={selectedService?.serviceDate}
+          serviceTime={selectedService ? String(selectedService.serviceTime) : undefined}
+          songs={songs}
+          defaultSongId={activeSongId}
+          memberPartRole={rosterPartRole}
+          canManage={canManage}
+        />
+        </>
+      ) : null}
+
+      {tab === "library" ? (
+        <>
+        <RehearsalPendingUploadsPanel groupId={groupId} />
+        <RehearsalRecordingLibrary
+          groupId={groupId}
+          initialFilter={searchParams.get("filter") === "mine" ? "mine" : "all"}
+        />
+        </>
       ) : null}
 
       {tab === "audio" ? (

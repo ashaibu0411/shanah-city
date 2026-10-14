@@ -1382,6 +1382,37 @@ model CoupleHubAnnouncement {
   updatedAt     DateTime @updatedAt
 }
 
+model ChoirRehearsalLibraryRecording {
+  id              String    @id
+  groupId         String
+  title           String
+  description     String?
+  category        String
+  mediaType       String    @default("audio")
+  audioUrl        String
+  fileName        String
+  fileSizeBytes   Int?
+  durationSeconds Int?
+  visibility      String    @default("private")
+  uploadStatus    String    @default("ready")
+  recordedBy      String
+  recordedByName  String
+  serviceDate     String?
+  serviceTime     String?
+  songId          String?
+  vocalPart       String?
+  instrumentRole  String?
+  createdAt       DateTime
+  updatedAt       DateTime
+  deletedAt       DateTime?
+
+  @@index([groupId, createdAt])
+  @@index([recordedBy])
+  @@index([category])
+  @@index([visibility])
+  @@index([uploadStatus])
+}
+
 /** Authorized Listen audio paired with a YouTube sermon video id. */
 model SermonListenAudio {
   youtubeVideoId String   @id

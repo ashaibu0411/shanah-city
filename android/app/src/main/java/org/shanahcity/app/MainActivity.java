@@ -16,6 +16,7 @@ public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     registerPlugin(ShanahNativeMediaPlugin.class);
+    registerPlugin(ShanahNativeRecorderPlugin.class);
     super.onCreate(savedInstanceState);
     ensureDefaultNotificationChannel();
 

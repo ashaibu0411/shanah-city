@@ -1,4 +1,4 @@
-export type RehearsalTabId = "room" | "audio" | "parts" | "notes";
+export type RehearsalTabId = "room" | "record" | "library" | "audio" | "parts" | "notes";
 
 type RehearsalSegmentTabsProps = {
   active: RehearsalTabId;
@@ -6,7 +6,9 @@ type RehearsalSegmentTabsProps = {
 };
 
 const TABS: { id: RehearsalTabId; label: string }[] = [
-  { id: "room", label: "Rehearsal Room" },
+  { id: "room", label: "Practice" },
+  { id: "record", label: "Record" },
+  { id: "library", label: "Library" },
   { id: "audio", label: "Audio" },
   { id: "parts", label: "Parts" },
   { id: "notes", label: "Notes" },
