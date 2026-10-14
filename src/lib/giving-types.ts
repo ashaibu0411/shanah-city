@@ -4,6 +4,8 @@ export type GivingFund =
   | "missions"
   | "building"
   | "special"
+  | "covenant_seed"
+  | "pastor_appreciation"
   | "other";
 
 export type GivingMethod =
@@ -54,6 +56,8 @@ export const GIVING_FUND_OPTIONS: { value: GivingFund; label: string }[] = [
   { value: "missions", label: "Missions" },
   { value: "building", label: "Building" },
   { value: "special", label: "Special project" },
+  { value: "covenant_seed", label: "Covenant Seed" },
+  { value: "pastor_appreciation", label: "Pastor Appreciation" },
   { value: "other", label: "Other" },
 ];
 
