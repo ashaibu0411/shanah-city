@@ -56,8 +56,8 @@ export function getShanahMediaCapabilities(
     backgroundAudio: audio && (isAndroidApp() || typeof document !== "undefined"),
     pictureInPicture: hasHostedVideo && playbackMode === "video",
     cast: hasHostedVideo || (hasAuthorizedAudio && playbackMode === "audio"),
-    seek: audio || hasHostedVideo,
-    playbackSpeed: audio || hasHostedVideo,
+    seek: audio || hasHostedVideo || (hasYoutube && playbackMode === "video"),
+    playbackSpeed: audio || hasHostedVideo || (hasYoutube && playbackMode === "video"),
     switchToAudio:
       playbackMode === "video" && hasAuthorizedAudio && Boolean(item.companionAudioUrl || item.audioUrl),
     switchToVideo:

@@ -1,13 +1,15 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShanahMedia } from "@/components/media/ShanahMediaPlayerProvider";
 import { ShanahMediaMoreOptionsSheet } from "@/components/media/ShanahMediaMoreOptionsSheet";
-import { getSermonYouTubeEmbedSrc } from "@/components/sermons/SermonYouTubeEmbed";
+import { ShanahYouTubeIframePlayer } from "@/components/media/ShanahYouTubeIframePlayer";
 import { getShanahMediaCapabilities } from "@/lib/shanah-media-capabilities";
 import { resolveAbsoluteMediaUrl } from "@/lib/shanah-media-helpers";
 import { SHANAH_MEDIA_SPEEDS } from "@/lib/shanah-media-types";
+import { setNativeVideoPictureInPictureEligible } from "@/lib/native-webview-bridge";
+import "@/components/media/shanah-media-full-player.css";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -21,6 +23,107 @@ function formatPublished(iso?: string) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function IconChevronDown() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconCast() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 16.5A8.5 8.5 0 0 1 12 8m0 0a8.5 8.5 0 0 1 8 8.5M8 16a4 4 0 0 1 8 0M12 20h.01"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconPip() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="5" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="2" />
+      <rect x="11" y="11" width="10" height="8" rx="1.5" stroke="currentColor" strokeWidth="2" fill="#000" />
+    </svg>
+  );
+}
+
+function IconPlay() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+function IconPause() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+    </svg>
+  );
+}
+
+function IconSkipBack() {
+  return (
+    <svg className="shanah-media-full-player__skip-icon" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 6v2.5l-5 3.5 5 3.5V18M19 6v12"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconSkipForward() {
+  return (
+    <svg className="shanah-media-full-player__skip-icon" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 18v-2.5l5-3.5-5-3.5V6M5 18V6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconMore() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <circle cx="5" cy="12" r="1.75" />
+      <circle cx="12" cy="12" r="1.75" />
+      <circle cx="19" cy="12" r="1.75" />
+    </svg>
+  );
+}
+
+function IconVideoMode() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M10 10l5 2-5 2v-4z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function IconAudioMode() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 3v18M8 7v10M16 7v10M4 10v4M20 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 export function ShanahMediaFullPlayer() {
@@ -59,16 +162,28 @@ export function ShanahMediaFullPlayer() {
     enterPictureInPicture,
     openCast,
     shareCurrent,
+    registerYouTubeController,
+    handleYouTubeTimeUpdate,
+    handleYouTubePlayingChange,
+    handleYouTubeEnded,
+    handleYouTubeError,
   } = useShanahMedia();
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!fullPlayerOpen) return;
+    if (!fullPlayerOpen) {
+      delete document.body.dataset.mediaPlayerImmersive;
+      setNativeVideoPictureInPictureEligible(false);
+      return;
+    }
+    document.body.dataset.mediaPlayerImmersive = "true";
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
+      delete document.body.dataset.mediaPlayerImmersive;
       document.body.style.overflow = previous;
+      setNativeVideoPictureInPictureEligible(false);
     };
   }, [fullPlayerOpen]);
 
@@ -81,224 +196,216 @@ export function ShanahMediaFullPlayer() {
   const isVideoMode = playbackMode === "video" && item && (item.hostedVideoUrl || item.youtubeVideoId);
   const hostedVideoSrc =
     item?.hostedVideoUrl && isVideoMode ? resolveAbsoluteMediaUrl(item.hostedVideoUrl) : "";
+  const isYouTubeVideo =
+    Boolean(item?.youtubeVideoId && isVideoMode && !item?.hostedVideoUrl);
+  const customTimeline = !isVideoMode || Boolean(hostedVideoSrc) || isYouTubeVideo;
+  const showHostedVideo = Boolean(hostedVideoSrc && isVideoMode);
 
-  const bindVideoRef = (element: HTMLVideoElement | null) => {
-    videoLocalRef.current = element;
-    registerVideoElement(element);
-  };
+  useEffect(() => {
+    const eligible =
+      fullPlayerOpen &&
+      showHostedVideo &&
+      caps.pictureInPicture &&
+      playing &&
+      !paused;
+    setNativeVideoPictureInPictureEligible(eligible);
+  }, [caps.pictureInPicture, fullPlayerOpen, paused, playing, showHostedVideo]);
+
+  useEffect(() => {
+    if (videoLocalRef.current && caps.playbackSpeed) {
+      videoLocalRef.current.playbackRate = playbackRate;
+    }
+  }, [playbackRate, caps.playbackSpeed, hostedVideoSrc]);
+
+  const bindVideoRef = useCallback(
+    (element: HTMLVideoElement | null) => {
+      videoLocalRef.current = element;
+      registerVideoElement(element);
+    },
+    [registerVideoElement],
+  );
+
+  const cycleSpeed = useCallback(() => {
+    if (!caps.playbackSpeed) return;
+    const index = SHANAH_MEDIA_SPEEDS.indexOf(playbackRate);
+    const next = SHANAH_MEDIA_SPEEDS[(index + 1) % SHANAH_MEDIA_SPEEDS.length];
+    setPlaybackRate(next);
+  }, [caps.playbackSpeed, playbackRate, setPlaybackRate]);
 
   if (!mounted || !fullPlayerOpen || !item) return null;
 
-  const progress = duration > 0 ? Math.min(100, (position / duration) * 100) : 0;
-  const youtubeSrc =
-    item.youtubeVideoId && isVideoMode
-      ? getSermonYouTubeEmbedSrc(item.youtubeVideoId, window.location.origin)
-      : "";
+  const remaining = duration > 0 ? Math.max(0, duration - position) : 0;
+
+  const playPauseDisabled = loading && !isVideoMode && !isYouTubeVideo;
 
   return createPortal(
-    <div className="fixed inset-0 z-[200] flex flex-col bg-night-950 text-white">
-      <div className="flex items-center justify-between px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
+    <div className="shanah-media-full-player fixed inset-0 z-[200]">
+      <header className="shanah-media-full-player__header">
         <button
           type="button"
-          className="min-h-[44px] rounded-full px-3 text-sm font-semibold text-white/90"
+          className="shanah-media-full-player__icon-btn"
+          aria-label="Minimize player"
           onClick={() => setFullPlayerOpen(false)}
         >
-          Minimize
+          <IconChevronDown />
         </button>
-        <div className="flex items-center gap-1">
+        <div className="shanah-media-full-player__title-block">
+          <p className="shanah-media-full-player__title">{item.title}</p>
+          {publishedLabel ? <p className="shanah-media-full-player__date">{publishedLabel}</p> : null}
+        </div>
+        <div className="shanah-media-full-player__header-actions">
           {caps.cast ? (
             <button
               type="button"
-              className="min-h-[44px] min-w-[44px] rounded-full text-lg"
+              className="shanah-media-full-player__icon-btn"
               aria-label="Cast"
               onClick={() => void openCast()}
             >
-              📺
+              <IconCast />
             </button>
           ) : null}
           {caps.pictureInPicture ? (
             <button
               type="button"
-              className="min-h-[44px] min-w-[44px] rounded-full text-lg"
+              className="shanah-media-full-player__icon-btn"
               aria-label="Picture in Picture"
               onClick={() => void enterPictureInPicture()}
             >
-              ⧉
+              <IconPip />
             </button>
           ) : null}
-          <button
-            type="button"
-            className="min-h-[44px] rounded-full px-3 text-sm font-semibold text-white/90"
-            onClick={() => setMoreOpen(true)}
-          >
-            More
-          </button>
         </div>
-      </div>
+      </header>
 
-      <div className="flex min-h-0 flex-1 flex-col px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="shanah-media-full-player__stage">
         {isVideoMode ? (
-          <div className="w-full shrink-0 overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
+          <div className="shanah-media-full-player__video-wrap">
             {hostedVideoSrc ? (
               <video
                 ref={bindVideoRef}
                 src={hostedVideoSrc}
-                className="aspect-video w-full bg-black object-contain"
+                className="shanah-media-full-player__video"
                 playsInline
                 controls={false}
               />
-            ) : youtubeSrc ? (
-              <div className="aspect-video w-full">
-                <iframe
-                  src={youtubeSrc}
-                  title={item.title}
-                  className="h-full w-full"
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                  allowFullScreen
-                />
-              </div>
+            ) : isYouTubeVideo && item.youtubeVideoId ? (
+              <ShanahYouTubeIframePlayer
+                videoId={item.youtubeVideoId}
+                origin={window.location.origin}
+                playbackRate={playbackRate}
+                onControllerReady={registerYouTubeController}
+                onTimeUpdate={handleYouTubeTimeUpdate}
+                onPlayingChange={handleYouTubePlayingChange}
+                onEnded={handleYouTubeEnded}
+                onError={handleYouTubeError}
+              />
             ) : null}
           </div>
         ) : (
-          <div className="mx-auto aspect-square w-full max-w-[min(100%,280px)] overflow-hidden rounded-3xl bg-night-800 ring-1 ring-white/10">
+          <div className="shanah-media-full-player__artwork">
             {item.artworkUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.artworkUrl} alt="" className="h-full w-full object-cover" />
+              <img src={item.artworkUrl} alt="" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-5xl">♪</div>
+              <div className="flex h-full w-full items-center justify-center text-5xl text-white/40">♪</div>
             )}
           </div>
         )}
+      </div>
 
-        <h1 className="mt-4 line-clamp-2 font-display text-xl font-semibold leading-snug">{item.title}</h1>
-        <p className="mt-1 text-sm text-sand-300">{item.artist}</p>
-        {publishedLabel ? <p className="mt-1 text-xs text-sand-500">{publishedLabel}</p> : null}
+      {!isVideoMode ? (
+        <div className="shanah-media-full-player__audio-meta">
+          <h2>{item.title}</h2>
+          <p>{item.artist}</p>
+        </div>
+      ) : null}
 
-        {!isVideoMode || hostedVideoSrc ? (
-          <div className="mt-5 w-full">
+      <footer className="shanah-media-full-player__dock">
+        {customTimeline ? (
+          <div className="shanah-media-full-player__timeline">
+            <span className="shanah-media-full-player__time">{formatTime(position)}</span>
             <input
               type="range"
               min={0}
               max={duration || 100}
-              value={Math.min(position, duration || position)}
+              value={Math.min(position, duration || position || 0)}
               onChange={(event) => seek(Number(event.target.value))}
-              className="w-full accent-clay-400"
+              className="shanah-media-full-player__seek"
               aria-label="Playback position"
             />
-            <div className="mt-1 flex justify-between text-xs text-sand-400">
-              <span>{formatTime(position)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
+            <span className="shanah-media-full-player__time shanah-media-full-player__time--right">
+              −{formatTime(remaining)}
+            </span>
+            <span className="shanah-media-full-player__mode-icon" aria-hidden>
+              {isVideoMode ? <IconVideoMode /> : <IconAudioMode />}
+            </span>
           </div>
-        ) : (
-          <p className="mt-4 text-xs leading-relaxed text-sand-400">
-            YouTube controls the timeline here. Use Listen for background audio when your team has published it.
-          </p>
-        )}
+        ) : null}
 
-        {(!isVideoMode || hostedVideoSrc) && (
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-            <button
-              type="button"
-              className="min-h-[44px] min-w-[44px] rounded-full bg-white/10 px-4 text-sm font-bold"
-              onClick={() => skipBackward(15)}
-            >
-              −15s
-            </button>
-            <button
-              type="button"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-lg font-bold text-night-900"
-              onClick={paused || !playing ? resume : pause}
-              disabled={loading && !isVideoMode}
-            >
-              {loading || buffering ? "…" : paused || !playing ? "▶" : "❚❚"}
-            </button>
-            <button
-              type="button"
-              className="min-h-[44px] min-w-[44px] rounded-full bg-white/10 px-4 text-sm font-bold"
-              onClick={() => skipForward(15)}
-            >
-              +15s
-            </button>
-          </div>
-        )}
-
-        {caps.switchToAudio && isVideoMode ? (
+        <div className="shanah-media-full-player__controls">
           <button
             type="button"
-            className="mt-4 min-h-[44px] w-full rounded-full bg-clay-500/90 text-sm font-bold text-night-950"
-            onClick={() => void switchToAudio()}
+            className="shanah-media-full-player__speed"
+            aria-label="Playback speed"
+            disabled={!caps.playbackSpeed}
+            onClick={cycleSpeed}
           >
-            Switch to audio
+            {playbackRate}x
           </button>
-        ) : null}
-
-        {caps.switchToVideo && !isVideoMode ? (
           <button
             type="button"
-            className="mt-4 min-h-[44px] w-full rounded-full bg-white/10 text-sm font-bold"
-            onClick={() => void switchToVideo()}
+            className="shanah-media-full-player__skip"
+            aria-label="Rewind 15 seconds"
+            disabled={!customTimeline}
+            onClick={() => skipBackward(15)}
           >
-            Switch to video
+            <IconSkipBack />
+            <span>15</span>
           </button>
-        ) : null}
-
-        {!isVideoMode ? (
-          <label className="mt-4 block text-center text-sm text-sand-300">
-            Speed{" "}
-            <select
-              value={playbackRate}
-              onChange={(event) =>
-                setPlaybackRate(Number(event.target.value) as (typeof SHANAH_MEDIA_SPEEDS)[number])
-              }
-              className="ml-2 rounded-lg border border-white/15 bg-night-900 px-2 py-1 text-white"
-            >
-              {SHANAH_MEDIA_SPEEDS.map((speed) => (
-                <option key={speed} value={speed}>
-                  {speed}x
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
+          <button
+            type="button"
+            className="shanah-media-full-player__play"
+            aria-label={paused || !playing ? "Play" : "Pause"}
+            disabled={playPauseDisabled}
+            onClick={paused || !playing ? resume : pause}
+          >
+            {loading || buffering ? (
+              <span className="text-sm font-bold">…</span>
+            ) : paused || !playing ? (
+              <IconPlay />
+            ) : (
+              <IconPause />
+            )}
+          </button>
+          <button
+            type="button"
+            className="shanah-media-full-player__skip"
+            aria-label="Forward 15 seconds"
+            disabled={!customTimeline}
+            onClick={() => skipForward(15)}
+          >
+            <IconSkipForward />
+            <span>15</span>
+          </button>
+          <button
+            type="button"
+            className="shanah-media-full-player__icon-btn"
+            aria-label="More options"
+            onClick={() => setMoreOpen(true)}
+          >
+            <IconMore />
+          </button>
+        </div>
 
         {error ? (
-          <div className="mt-4 rounded-2xl bg-red-950/50 px-4 py-3 text-sm text-red-100">
-            {error}
-            <button type="button" className="ml-3 font-bold underline" onClick={retry}>
+          <div className="shanah-media-full-player__error">
+            {error}{" "}
+            <button type="button" className="font-bold underline" onClick={retry}>
               Retry
             </button>
           </div>
         ) : null}
-
-        {queue.length > 0 ? (
-          <div className="mt-6 rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs font-bold uppercase tracking-wide text-sand-400">Up next</p>
-              <button type="button" className="text-xs font-semibold text-clay-300" onClick={clearQueue}>
-                Clear
-              </button>
-            </div>
-            <ul className="space-y-2 text-sm">
-              {queue.slice(0, 5).map((entry) => (
-                <li key={entry.id} className="flex items-center justify-between gap-2">
-                  <span className="truncate">{entry.title}</span>
-                  <button
-                    type="button"
-                    className="shrink-0 text-xs text-sand-400"
-                    onClick={() => removeFromQueue(entry.id)}
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="mt-3 text-sm font-semibold text-clay-300" onClick={nextInQueue}>
-              Play next in queue
-            </button>
-          </div>
-        ) : null}
-      </div>
+      </footer>
 
       <ShanahMediaMoreOptionsSheet
         open={moreOpen}
@@ -312,15 +419,12 @@ export function ShanahMediaFullPlayer() {
         onCast={() => void openCast()}
         onPictureInPicture={() => void enterPictureInPicture()}
         onShare={() => void shareCurrent()}
+        onStop={stop}
+        queue={queue}
+        onNextInQueue={nextInQueue}
+        onRemoveFromQueue={removeFromQueue}
+        onClearQueue={clearQueue}
       />
-
-      <button
-        type="button"
-        className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 min-h-[44px] rounded-full bg-white/10 px-4 text-xs font-bold"
-        onClick={stop}
-      >
-        Stop
-      </button>
     </div>,
     document.body,
   );

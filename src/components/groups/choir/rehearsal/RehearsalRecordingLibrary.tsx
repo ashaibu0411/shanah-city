@@ -216,6 +216,8 @@ export function RehearsalRecordingLibrary({ groupId, initialFilter = "all" }: Re
                   title: entry.title,
                   artist: entry.recordedByName,
                   kind: "worship-rehearsal",
+                  mediaType: entry.mediaType,
+                  href: `/groups/${groupId}/rehearsal/recordings`,
                 }}
               />
             ) : null}

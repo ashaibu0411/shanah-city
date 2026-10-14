@@ -16,6 +16,8 @@ export function getSermonYouTubeEmbedSrc(videoId: string, origin?: string) {
     playsinline: "1",
     enablejsapi: "1",
     fs: "1",
+    controls: "1",
+    iv_load_policy: "3",
   });
   if (origin) params.set("origin", origin);
   return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;

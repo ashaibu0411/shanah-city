@@ -6,6 +6,7 @@ import { isNativeAppPlatform } from "@/lib/native-app";
 type ShanahBridge = {
   setFilePickerOpen?: (open: boolean) => void;
   setBackgroundAudioActive?: (active: boolean) => void;
+  setVideoPictureInPictureEligible?: (eligible: boolean) => void;
 };
 
 function bridge() {
@@ -26,6 +27,16 @@ export function setNativeBackgroundAudioActive(active: boolean) {
   if (Capacitor.getPlatform() !== "android") return;
   try {
     bridge()?.setBackgroundAudioActive?.(active);
+  } catch {
+    // Ignore bridge errors on older app builds.
+  }
+}
+
+/** When true, Android MainActivity may enter system PiP on Home if supported. */
+export function setNativeVideoPictureInPictureEligible(eligible: boolean) {
+  if (Capacitor.getPlatform() !== "android") return;
+  try {
+    bridge()?.setVideoPictureInPictureEligible?.(eligible);
   } catch {
     // Ignore bridge errors on older app builds.
   }

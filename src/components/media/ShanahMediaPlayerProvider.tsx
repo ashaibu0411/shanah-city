@@ -30,6 +30,12 @@ import {
   type ShanahMediaPlaybackMode,
   type ShanahMediaSpeed,
 } from "@/lib/shanah-media-types";
+import type { ShanahYouTubeController } from "@/lib/shanah-youtube-controller";
+import { Capacitor } from "@capacitor/core";
+import {
+  isShanahNativeHostedVideoSupported,
+  ShanahNativeHostedVideo,
+} from "@/lib/shanah-native-hosted-video";
 
 type ShanahMediaContextValue = {
   item: ShanahMediaItem | null;
@@ -46,6 +52,11 @@ type ShanahMediaContextValue = {
   playbackMode: ShanahMediaPlaybackMode;
   isCurrent: (id: string) => boolean;
   registerVideoElement: (element: HTMLVideoElement | null) => void;
+  registerYouTubeController: (controller: ShanahYouTubeController | null) => void;
+  handleYouTubeTimeUpdate: (position: number, duration: number) => void;
+  handleYouTubePlayingChange: (active: boolean, buffering: boolean) => void;
+  handleYouTubeEnded: () => void;
+  handleYouTubeError: (message: string) => void;
   play: (
     item: ShanahMediaItem,
     options?: { startAt?: number; queue?: ShanahMediaItem[]; mode?: ShanahMediaPlaybackMode },
@@ -136,6 +147,7 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
   const [playbackMode, setPlaybackMode] = useState<ShanahMediaPlaybackMode>("audio");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const youtubeControllerRef = useRef<ShanahYouTubeController | null>(null);
   const itemRef = useRef<ShanahMediaItem | null>(null);
   const queueRef = useRef<ShanahMediaItem[]>([]);
   const lastProgressSaveRef = useRef(0);
@@ -234,6 +246,14 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
       videoRef.current.removeAttribute("src");
       videoRef.current.load();
     }
+    if (youtubeControllerRef.current) {
+      try {
+        youtubeControllerRef.current.destroy();
+      } catch {
+        // ignore
+      }
+      youtubeControllerRef.current = null;
+    }
     setPlaybackMode("audio");
     setItem(null);
     setPosition(0);
@@ -290,8 +310,71 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
     [persistProgress],
   );
 
+  const registerYouTubeController = useCallback((controller: ShanahYouTubeController | null) => {
+    if (youtubeControllerRef.current && youtubeControllerRef.current !== controller) {
+      try {
+        youtubeControllerRef.current.destroy();
+      } catch {
+        // ignore
+      }
+    }
+    youtubeControllerRef.current = controller;
+    if (controller) {
+      const startAt = pendingStartRef.current;
+      if (startAt != null && startAt > 0) {
+        controller.seekTo(startAt);
+        setPosition(startAt);
+        pendingStartRef.current = undefined;
+      }
+      setLoading(false);
+    }
+  }, []);
+
+  const handleYouTubeTimeUpdate = useCallback(
+    (seconds: number, total: number) => {
+      if (!youtubeControllerRef.current) return;
+      setPosition(seconds);
+      if (Number.isFinite(total) && total > 0) setDuration(total);
+      if (itemRef.current) persistProgress(itemRef.current, seconds);
+    },
+    [persistProgress],
+  );
+
+  const handleYouTubePlayingChange = useCallback((active: boolean, isBuffering: boolean) => {
+    setBuffering(isBuffering);
+    if (active && !isBuffering) {
+      setPlaying(true);
+      setPaused(false);
+      setLoading(false);
+      return;
+    }
+    if (isBuffering) {
+      setPlaying(true);
+      setLoading(false);
+      return;
+    }
+    setPaused(true);
+    setPlaying(true);
+  }, []);
+
+  const handleYouTubeError = useCallback((message: string) => {
+    setError(message);
+    setLoading(false);
+  }, []);
+
+  const handleYouTubeEnded = useCallback(() => {
+    const current = itemRef.current;
+    if (current?.resumeKey || current?.id) {
+      clearMediaProgress(current.resumeKey ?? current.id);
+    }
+    if (queueRef.current.length > 0) nextInQueueRef.current();
+    else stopRef.current();
+  }, []);
+
   const pause = useCallback(() => {
-    if (playbackMode === "video" && videoRef.current) {
+    if (playbackMode === "video" && youtubeControllerRef.current) {
+      youtubeControllerRef.current.pauseVideo();
+    } else if (playbackMode === "video" && videoRef.current) {
       videoRef.current.pause();
     } else if (nativeActiveRef.current) {
       void ShanahNativeMedia.pause().catch(() => undefined);
@@ -303,7 +386,9 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
   }, [playbackMode]);
 
   const resume = useCallback(() => {
-    if (playbackMode === "video" && videoRef.current) {
+    if (playbackMode === "video" && youtubeControllerRef.current) {
+      youtubeControllerRef.current.playVideo();
+    } else if (playbackMode === "video" && videoRef.current) {
       void videoRef.current.play().catch(() => undefined);
     } else if (nativeActiveRef.current) {
       void ShanahNativeMedia.resume().catch(() => undefined);
@@ -317,7 +402,9 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
   const seek = useCallback((seconds: number) => {
     if (!Number.isFinite(seconds)) return;
     const next = Math.max(0, seconds);
-    if (playbackMode === "video" && videoRef.current) {
+    if (playbackMode === "video" && youtubeControllerRef.current) {
+      youtubeControllerRef.current.seekTo(next);
+    } else if (playbackMode === "video" && videoRef.current) {
       videoRef.current.currentTime = next;
     } else if (nativeActiveRef.current) {
       void ShanahNativeMedia.seek({ positionSec: next }).catch(() => undefined);
@@ -344,6 +431,15 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
     }
     const audio = audioRef.current;
     if (audio) audio.playbackRate = rate;
+    const video = videoRef.current;
+    if (video) video.playbackRate = rate;
+    if (youtubeControllerRef.current) {
+      try {
+        youtubeControllerRef.current.setPlaybackRate(rate);
+      } catch {
+        // Some YouTube videos restrict speed changes.
+      }
+    }
   }, []);
 
   const startItem = useCallback(
@@ -374,10 +470,47 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
       setQueue(options?.queue ?? queueRef.current.filter((entry) => entry.id !== next.id));
 
       if (wantsVideo) {
+        const hostedUrl = next.hostedVideoUrl?.trim();
+        const useNativeHosted =
+          Capacitor.getPlatform() === "android" &&
+          hostedUrl?.startsWith("https://") &&
+          Boolean(next.preferNativeHostedVideo) &&
+          (await isShanahNativeHostedVideoSupported());
+
+        if (useNativeHosted && hostedUrl) {
+          setPlaying(true);
+          setPaused(false);
+          setLoading(true);
+          try {
+            const result = await ShanahNativeHostedVideo.present({
+              url: resolveAbsoluteMediaUrl(hostedUrl),
+              title: next.title,
+              artist: next.artist,
+              publishedAt: next.publishedAt,
+              startAtSec: options?.startAt,
+              playbackRate,
+            });
+            if (result.lastPositionSec != null && result.lastPositionSec > 0) {
+              setPosition(result.lastPositionSec);
+            }
+            setPlaying(false);
+            setPaused(false);
+            setLoading(false);
+            setFullPlayerOpen(false);
+            if (result.completed) {
+              stopRef.current();
+            }
+            return;
+          } catch {
+            setLoading(false);
+            // Fall through to in-app HTML5 player.
+          }
+        }
+
         setFullPlayerOpen(true);
         setPlaying(true);
         setPaused(false);
-        setLoading(false);
+        setLoading(Boolean(next.youtubeVideoId && !next.hostedVideoUrl));
         pendingStartRef.current = options?.startAt;
         return;
       }
@@ -476,7 +609,19 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
       setError("No authorized audio is available for this message.");
       return;
     }
-    const handoff = videoRef.current?.currentTime ?? position;
+    const handoff =
+      youtubeControllerRef.current?.getCurrentTime() ??
+      videoRef.current?.currentTime ??
+      position;
+    if (youtubeControllerRef.current) {
+      youtubeControllerRef.current.pauseVideo();
+      try {
+        youtubeControllerRef.current.destroy();
+      } catch {
+        // ignore
+      }
+      youtubeControllerRef.current = null;
+    }
     if (videoRef.current) videoRef.current.pause();
     setPlaybackMode("audio");
     await startItem(
@@ -503,17 +648,26 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
 
   const enterPictureInPicture = useCallback(async () => {
     const video = videoRef.current;
-    if (!video || !document.pictureInPictureEnabled) {
+    if (!video) {
       setError("Picture-in-Picture is not supported for this video on your device.");
       return;
     }
-    try {
-      if (document.pictureInPictureElement !== video) {
-        await video.requestPictureInPicture();
+    if (document.pictureInPictureEnabled) {
+      try {
+        if (document.pictureInPictureElement !== video) {
+          await video.requestPictureInPicture();
+        }
+        return;
+      } catch {
+        // Fall through to Android activity PiP hint (Home) on supported builds.
       }
-    } catch {
-      setError("Could not enter Picture-in-Picture.");
     }
+    const { Capacitor } = await import("@capacitor/core");
+    if (Capacitor.getPlatform() === "android") {
+      setError("Press Home to watch in the floating video window.");
+      return;
+    }
+    setError("Picture-in-Picture is not supported for this video on your device.");
   }, []);
 
   const openCast = useCallback(async () => {
@@ -619,6 +773,11 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
       fullPlayerOpen,
       playbackMode,
       registerVideoElement,
+      registerYouTubeController,
+      handleYouTubeTimeUpdate,
+      handleYouTubePlayingChange,
+      handleYouTubeEnded,
+      handleYouTubeError,
       isCurrent: (id: string) => item?.id === id && (playing || paused || loading),
       play,
       switchToAudio,
@@ -655,6 +814,11 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
       fullPlayerOpen,
       playbackMode,
       registerVideoElement,
+      registerYouTubeController,
+      handleYouTubeTimeUpdate,
+      handleYouTubePlayingChange,
+      handleYouTubeEnded,
+      handleYouTubeError,
       play,
       switchToAudio,
       switchToVideo,

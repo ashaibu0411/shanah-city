@@ -27,6 +27,8 @@ export type ShanahMediaItem = {
   /** Authorized listen URL for Switch to Audio (never YouTube extract) */
   companionAudioUrl?: string;
   publishedAt?: string;
+  /** Android ExoPlayer fullscreen (hosted MP4/HLS only) */
+  preferNativeHostedVideo?: boolean;
 };
 
 export const SHANAH_MEDIA_SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2] as const;

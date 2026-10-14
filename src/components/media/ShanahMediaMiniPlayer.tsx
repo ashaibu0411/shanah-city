@@ -19,16 +19,17 @@ export function ShanahMediaMiniPlayer() {
     duration,
     pause,
     resume,
+    fullPlayerOpen,
     setFullPlayerOpen,
   } = useShanahMedia();
 
-  if (!item || !playing) return null;
+  if (!item || !playing || fullPlayerOpen) return null;
 
   const progress = duration > 0 ? Math.min(100, (position / duration) * 100) : 0;
   const href = item.href ?? "/";
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 z-[46] px-3 lg:px-6 bottom-[calc(5.6rem+env(safe-area-inset-bottom,0px))] lg:bottom-6">
+    <div className="shanah-media-mini-player-root pointer-events-none fixed inset-x-0 z-[46] px-3 lg:px-6 bottom-[calc(5.6rem+env(safe-area-inset-bottom,0px))] lg:bottom-6">
       <div className="app-mobile-inner pointer-events-auto mx-auto w-full overflow-hidden rounded-2xl bg-night-950 text-white shadow-2xl ring-1 ring-white/10">
         <div className="h-0.5 bg-white/15">
           <div className="h-full bg-clay-400 transition-[width] duration-200" style={{ width: `${progress}%` }} />

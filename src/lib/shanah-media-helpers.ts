@@ -60,10 +60,30 @@ export function worshipTrackToShanahMediaItem(options: {
   artist?: string;
   kind?: ShanahMediaKind;
   href?: string;
+  hostedVideoUrl?: string;
+  preferNativeHostedVideo?: boolean;
+  mediaType?: "audio" | "video";
+}): ShanahMediaItem | null {
+  return worshipRehearsalToShanahMediaItem(options);
+}
+
+/** Choir / worship rehearsal uploads (audio-only or video with optional native ExoPlayer on Android). */
+export function worshipRehearsalToShanahMediaItem(options: {
+  id: string;
+  src: string;
+  fileName?: string;
+  title: string;
+  artist?: string;
+  kind?: ShanahMediaKind;
+  href?: string;
+  hostedVideoUrl?: string;
+  preferNativeHostedVideo?: boolean;
+  mediaType?: "audio" | "video";
 }): ShanahMediaItem | null {
   const audioUrl = resolveWorshipAudioUrl(options.src);
   if (!audioUrl) return null;
-  return {
+
+  const base: ShanahMediaItem = {
     id: options.id,
     kind: options.kind ?? "worship-rehearsal",
     title: options.title,
@@ -72,6 +92,27 @@ export function worshipTrackToShanahMediaItem(options: {
     contentType: inferWorshipAudioContentType(options.fileName ?? options.src),
     href: options.href,
     resumeKey: options.id,
+  };
+
+  const isVideo = options.mediaType === "video" || Boolean(options.hostedVideoUrl);
+  if (!isVideo) {
+    return base;
+  }
+
+  const hostedVideoUrl = options.hostedVideoUrl
+    ? resolveWorshipAudioUrl(options.hostedVideoUrl)
+    : audioUrl;
+  const httpsHosted = hostedVideoUrl.startsWith("https://");
+  const nameHint = (options.fileName ?? hostedVideoUrl).toLowerCase();
+  const preferNative =
+    options.preferNativeHostedVideo ??
+    (httpsHosted && /\.(mp4|m4v|mov)(\?|#|$)/i.test(nameHint));
+
+  return {
+    ...base,
+    hostedVideoUrl,
+    companionAudioUrl: httpsHosted ? audioUrl : undefined,
+    preferNativeHostedVideo: preferNative,
   };
 }
 

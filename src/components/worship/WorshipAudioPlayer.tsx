@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useShanahMediaOptional } from "@/components/media/ShanahMediaPlayerProvider";
 import { backgroundCapableAudioEventHandlers } from "@/lib/native-background-playback";
-import { worshipTrackToShanahMediaItem } from "@/lib/shanah-media-helpers";
+import { worshipRehearsalToShanahMediaItem } from "@/lib/shanah-media-helpers";
 import type { ShanahMediaKind } from "@/lib/shanah-media-types";
 import {
   inferWorshipAudioContentType,
@@ -21,6 +21,7 @@ type WorshipAudioPlayerProps = {
     artist?: string;
     kind?: ShanahMediaKind;
     href?: string;
+    mediaType?: "audio" | "video";
   };
 };
 
@@ -33,7 +34,7 @@ export function WorshipAudioPlayer({ src, fileName, className, globalPlayer }: W
   if (!resolvedSrc) return null;
 
   if (globalPlayer && media) {
-    const item = worshipTrackToShanahMediaItem({
+    const item = worshipRehearsalToShanahMediaItem({
       id: globalPlayer.id,
       src,
       fileName,
@@ -41,34 +42,66 @@ export function WorshipAudioPlayer({ src, fileName, className, globalPlayer }: W
       artist: globalPlayer.artist,
       kind: globalPlayer.kind,
       href: globalPlayer.href,
+      mediaType: globalPlayer.mediaType,
     });
     const current = item ? media.isCurrent(item.id) : false;
     const busy = current && (media.playing || media.loading);
+    const isVideoEntry = globalPlayer.mediaType === "video" && Boolean(item?.hostedVideoUrl);
+
+    const playAudio = () => {
+      if (!item) return;
+      if (current && media.playbackMode === "audio" && media.playing) {
+        if (media.paused) media.resume();
+        else media.pause();
+        return;
+      }
+      void media.play(item, { mode: "audio" });
+    };
+
+    const playVideo = () => {
+      if (!item?.hostedVideoUrl) return;
+      if (current && media.playbackMode === "video" && media.playing) {
+        if (media.paused) media.resume();
+        else media.pause();
+        return;
+      }
+      void media.play(item, { mode: "video" });
+    };
 
     return (
       <div className={className}>
         <div className="flex flex-wrap items-center gap-2">
+          {isVideoEntry ? (
+            <button
+              type="button"
+              className="inline-flex min-h-[44px] items-center rounded-full bg-night-900 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/15"
+              disabled={media.loading && !current}
+              onClick={playVideo}
+            >
+              {media.loading && !current
+                ? "Loading…"
+                : current && media.playbackMode === "video" && media.playing && !media.paused
+                  ? "Pause video"
+                  : current && media.playbackMode === "video" && media.paused
+                    ? "Resume video"
+                    : "Watch"}
+            </button>
+          ) : null}
           <button
             type="button"
             className="inline-flex min-h-[44px] items-center rounded-full bg-night-900 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/15"
             disabled={media.loading && !current}
-            onClick={() => {
-              if (!item) return;
-              if (current && media.playing) {
-                if (media.paused) media.resume();
-                else media.pause();
-                return;
-              }
-              void media.play(item);
-            }}
+            onClick={playAudio}
           >
             {media.loading && !current
               ? "Loading…"
-              : current && media.playing && !media.paused
+              : current && media.playbackMode === "audio" && media.playing && !media.paused
                 ? "Pause"
                 : current && media.paused
                   ? "Resume"
-                  : "Listen in app"}
+                  : isVideoEntry
+                    ? "Listen in app"
+                    : "Listen in app"}
           </button>
           {busy ? (
             <button

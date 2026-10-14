@@ -2,9 +2,11 @@ package org.shanahcity.app;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PictureInPictureParams;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Rational;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
@@ -12,11 +14,13 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
   private static volatile boolean filePickerOpen = false;
   private static volatile boolean backgroundAudioActive = false;
+  private static volatile boolean videoPictureInPictureEligible = false;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     registerPlugin(ShanahNativeMediaPlugin.class);
     registerPlugin(ShanahNativeRecorderPlugin.class);
+    registerPlugin(ShanahHostedVideoPlugin.class);
     super.onCreate(savedInstanceState);
     ensureDefaultNotificationChannel();
 
@@ -31,6 +35,24 @@ public class MainActivity extends BridgeActivity {
       webView.getSettings().setDisplayZoomControls(false);
       webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
       webView.addJavascriptInterface(new ShanahBridge(), "ShanahBridge");
+    }
+  }
+
+  @Override
+  public void onUserLeaveHint() {
+    super.onUserLeaveHint();
+    if (!videoPictureInPictureEligible || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+      return;
+    }
+    if (isInPictureInPictureMode()) {
+      return;
+    }
+    try {
+      PictureInPictureParams params =
+        new PictureInPictureParams.Builder().setAspectRatio(new Rational(16, 9)).build();
+      enterPictureInPictureMode(params);
+    } catch (IllegalStateException ignored) {
+      // Activity not in resumed state — skip PiP.
     }
   }
 
@@ -93,6 +115,11 @@ public class MainActivity extends BridgeActivity {
     @JavascriptInterface
     public void setBackgroundAudioActive(boolean active) {
       backgroundAudioActive = active;
+    }
+
+    @JavascriptInterface
+    public void setVideoPictureInPictureEligible(boolean eligible) {
+      videoPictureInPictureEligible = eligible;
     }
   }
 }

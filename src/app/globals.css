@@ -483,6 +483,16 @@
     pointer-events: none !important;
   }
 
+  body[data-media-player-immersive="true"] .app-mobile-header,
+  body[data-media-player-immersive="true"] .mobile-app-header,
+  body[data-media-player-immersive="true"] .app-mobile-bottom-nav,
+  body[data-media-player-immersive="true"] .mobile-bottom-nav,
+  body[data-media-player-immersive="true"] .app-desktop-topbar,
+  body[data-media-player-immersive="true"] .shanah-media-mini-player-root {
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
   body[data-shell="mobile"] .app-shell-layout,
   body[data-shell="mobile"] .app-main,
   body[data-shell="mobile"] .app-mobile-inner {
