@@ -421,7 +421,6 @@ type RehearsalRoomTabContentProps = {
   onOpenLyrics: (song: WorshipSong) => void;
   onOpenChords: (song: WorshipSong) => void;
   memberPartRole: string | null;
-  isPublished: boolean;
   rehearsal: ChoirRehearsalPagePayload["rehearsal"];
   noteBullets: string[];
   onNotesNavigate: () => void;
@@ -454,7 +453,6 @@ function RehearsalRoomTabContent({
   onOpenLyrics,
   onOpenChords,
   memberPartRole,
-  isPublished,
   rehearsal,
   noteBullets,
   onNotesNavigate,
