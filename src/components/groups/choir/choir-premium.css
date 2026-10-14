@@ -3764,10 +3764,76 @@
   color: var(--choir-body);
 }
 
-/* Worship home — embedded team conversation */
-.choir-home-welcome {
-  box-shadow: 0 8px 24px rgba(37, 32, 42, 0.05);
+/* Worship home — welcome banner with photo */
+.choir-home-welcome-photo {
+  position: relative;
+  min-height: 148px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--choir-border);
+  box-shadow: 0 8px 24px rgba(37, 32, 42, 0.08);
 }
+
+.choir-home-welcome-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+}
+
+.choir-home-welcome-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(24, 19, 34, 0.88) 0%,
+    rgba(24, 19, 34, 0.72) 45%,
+    rgba(24, 19, 34, 0.35) 100%
+  );
+}
+
+.choir-home-welcome-copy {
+  position: relative;
+  z-index: 1;
+  padding: 16px 16px 14px;
+  max-width: 92%;
+}
+
+.choir-home-welcome-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--choir-gold);
+}
+
+.choir-home-welcome-title {
+  margin-top: 6px;
+  font-family: var(--font-display, ui-serif, Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #faf7f1;
+}
+
+.choir-home-welcome-lead {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(250, 247, 241, 0.95);
+}
+
+.choir-home-welcome-tagline {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: rgba(250, 247, 241, 0.78);
+}
+
+/* Worship home — embedded team conversation */
 
 .choir-home-chat-card {
   padding: 0;

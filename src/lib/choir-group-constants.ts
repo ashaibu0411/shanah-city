@@ -6,6 +6,8 @@ export const CHOIR_BRAND_TAGLINE = "One Sound. One Heart. One Presence.";
 
 /** Replace with a dedicated choir hero asset when available. */
 export const CHOIR_HERO_IMAGE_PATH = "/home/home-gallery-45.jpg";
+/** Cropped worship photo for the choir home welcome banner (no overlay text). */
+export const CHOIR_HOME_WELCOME_IMAGE_PATH = "/home/shanah-worship-welcome.jpg";
 
 export const CHOIR_WORD_FOR_TEAM = {
   reference: "Psalm 100:2 (KJV)",
