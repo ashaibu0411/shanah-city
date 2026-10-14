@@ -21,8 +21,12 @@ function prefersAppleFriendlyRecording() {
   return /\bSafari\//.test(ua) && !/Chrome|Chromium|CriOS|FxiOS|EdgiOS/i.test(ua);
 }
 
+export function isMediaRecorderSupported() {
+  return typeof MediaRecorder !== "undefined";
+}
+
 export function pickMediaRecorderMimeType(): string {
-  if (typeof MediaRecorder === "undefined") return "";
+  if (!isMediaRecorderSupported()) return "";
   const candidates = prefersAppleFriendlyRecording()
     ? RECORDER_MIME_CANDIDATES_APPLE
     : RECORDER_MIME_CANDIDATES;
@@ -30,6 +34,29 @@ export function pickMediaRecorderMimeType(): string {
     if (MediaRecorder.isTypeSupported(candidate)) return candidate;
   }
   return "";
+}
+
+/** Create a MediaRecorder for mic capture; tries mime fallbacks (Safari/iOS can reject the first type). */
+export function createAudioMediaRecorder(stream: MediaStream): MediaRecorder {
+  if (!isMediaRecorderSupported()) {
+    throw new Error("MediaRecorder is not available in this browser.");
+  }
+
+  const preferred = pickMediaRecorderMimeType();
+  const attempts = preferred
+    ? [preferred, ...RECORDER_MIME_CANDIDATES_APPLE.filter((entry) => entry !== preferred)]
+    : [...RECORDER_MIME_CANDIDATES_APPLE];
+
+  for (const mimeType of attempts) {
+    if (mimeType && !MediaRecorder.isTypeSupported(mimeType)) continue;
+    try {
+      return mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+    } catch {
+      continue;
+    }
+  }
+
+  return new MediaRecorder(stream);
 }
 
 export function extensionForRecorderMime(mimeType: string) {

@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { CommunityStoryRing } from "@/components/community/CommunityStoryRing";
 import { CommunityStoryViewer } from "@/components/community/CommunityStoryViewer";
+import { CommunityStoryViewerBoundary } from "@/components/community/CommunityStoryViewerBoundary";
 import type { CommunityStatus, CommunityStatusStoryKind } from "@/lib/member-types";
 import {
   defaultServiceInviteCaption,
@@ -365,19 +366,15 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     const deckAuthorId = firstSaved.groupId
       ? groupStoryAuthorId(firstSaved.groupId)
       : user.id;
-    setStatuses((current) => {
-      const next = [...savedStatuses.toReversed(), ...current];
-      const nextDecks = buildStoryDecks(next, seenIds, user.id, priorityAuthorIds);
-      const myDeckIndex = findDeckIndex(nextDecks, deckAuthorId);
-      const myDeckItems = nextDecks[myDeckIndex]?.items ?? [];
-      const slideIndex = Math.max(
-        0,
-        myDeckItems.findIndex((item) => item.id === firstSaved.id),
-      );
-      setViewerStart({ deckIndex: Math.max(0, myDeckIndex), slideIndex });
-      setViewerOpen(true);
-      return next;
-    });
+    const next = [...savedStatuses.toReversed(), ...statuses];
+    const nextDecks = buildStoryDecks(next, seenIds, user.id, priorityAuthorIds);
+    const myDeckIndex = findDeckIndex(nextDecks, deckAuthorId);
+    const myDeckItems = nextDecks[myDeckIndex]?.items ?? [];
+    const slideIndex = Math.max(0, myDeckItems.findIndex((item) => item.id === firstSaved.id));
+
+    setStatuses(next);
+    setViewerStart({ deckIndex: Math.max(0, myDeckIndex), slideIndex });
+    setViewerOpen(true);
   }
 
   async function uploadStatuses(fileList: File[], caption?: string) {
@@ -762,35 +759,37 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
           ref={fileRef}
           type="file"
           multiple
-          accept="image/*,video/*,audio/*,.heic,.heif,.3gp,.mp4,.mov,.webm,.mp3,.m4a,.aac,.wav,.ogg"
+          accept="image/*,video/*,audio/*,.heic,.heif,.3gp,.mp4,.mov,.webm,.mp3,.m4a,.aac,.wav,.ogg,.caf"
           className="hidden"
         />
       </div>
 
       {viewerOpen && decks.length > 0 ? (
-        <CommunityStoryViewer
-          key={`${viewerStart.deckIndex}-${viewerStart.slideIndex}-${decks[viewerStart.deckIndex]?.authorId ?? "story"}`}
-          decks={decks}
-          initialDeckIndex={viewerStart.deckIndex}
-          initialSlideIndex={viewerStart.slideIndex}
-          currentUserId={user.id}
-          onClose={() => setViewerOpen(false)}
-          onStoriesSeen={(ids) => {
-            setSeenIds((current) => markStoriesSeen(ids, current));
-          }}
-          onStoryDeleted={(statusId) => {
-            setStatuses((current) => current.filter((status) => status.id !== statusId));
-          }}
-          onStatusReactionChange={(statusId, reactions, viewerReactions) => {
-            setStatuses((current) =>
-              current.map((status) =>
-                status.id === statusId
-                  ? { ...status, reactions, viewerReactions }
-                  : status,
-              ),
-            );
-          }}
-        />
+        <CommunityStoryViewerBoundary onClose={() => setViewerOpen(false)}>
+          <CommunityStoryViewer
+            key={`${viewerStart.deckIndex}-${viewerStart.slideIndex}-${decks[viewerStart.deckIndex]?.authorId ?? "story"}`}
+            decks={decks}
+            initialDeckIndex={viewerStart.deckIndex}
+            initialSlideIndex={viewerStart.slideIndex}
+            currentUserId={user.id}
+            onClose={() => setViewerOpen(false)}
+            onStoriesSeen={(ids) => {
+              setSeenIds((current) => markStoriesSeen(ids, current));
+            }}
+            onStoryDeleted={(statusId) => {
+              setStatuses((current) => current.filter((status) => status.id !== statusId));
+            }}
+            onStatusReactionChange={(statusId, reactions, viewerReactions) => {
+              setStatuses((current) =>
+                current.map((status) =>
+                  status.id === statusId
+                    ? { ...status, reactions, viewerReactions }
+                    : status,
+                ),
+              );
+            }}
+          />
+        </CommunityStoryViewerBoundary>
       ) : null}
     </>
   );

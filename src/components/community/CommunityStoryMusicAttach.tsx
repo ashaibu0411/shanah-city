@@ -279,6 +279,8 @@ export function CommunityStoryMusicAttach({
     onToggleSound?.();
   }
 
+  if (!music.trackId?.trim()) return null;
+
   return (
     <>
       {engine === "audio" ? (

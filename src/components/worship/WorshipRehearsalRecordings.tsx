@@ -5,7 +5,9 @@ import { Button, Card } from "@/components/ui";
 import { WorshipAudioPlayer } from "@/components/worship/WorshipAudioPlayer";
 import type { WorshipRehearsalRecording } from "@/lib/worship-types";
 import {
+  createAudioMediaRecorder,
   extensionForRecorderMime,
+  isMediaRecorderSupported,
   pickMediaRecorderMimeType,
 } from "@/lib/worship-audio-shared";
 
@@ -79,14 +81,17 @@ export function WorshipRehearsalRecordings({
       setError("Recording is not supported in this browser.");
       return;
     }
+    if (!isMediaRecorderSupported()) {
+      setError(
+        "In-app recording is not supported on this device. Record in Voice Memos, then upload the M4A file below.",
+      );
+      return;
+    }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = pickMediaRecorderMimeType();
-      mimeTypeRef.current = mimeType;
-      const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
+      const recorder = createAudioMediaRecorder(stream);
+      mimeTypeRef.current = recorder.mimeType || pickMediaRecorderMimeType();
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunksRef.current.push(event.data);

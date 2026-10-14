@@ -928,7 +928,7 @@ export function CommunityStoryViewer({
           />
         )}
 
-        {slide.music ? (
+        {slide.music?.trackId?.trim() ? (
           <CommunityStoryMusicAttach
             key={`${slide.id}-${slide.music.trackId}`}
             slideId={slide.id}
