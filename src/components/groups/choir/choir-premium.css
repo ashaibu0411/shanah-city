@@ -992,6 +992,12 @@
   opacity: 0.45;
 }
 
+.choir-rehearsal-page .choir-rehearsal-quick-action-highlight {
+  grid-column: 1 / -1;
+  border-color: var(--choir-gold);
+  background: var(--choir-gold-soft);
+}
+
 .choir-rehearsal-page .choir-rehearsal-resource-btn {
   min-height: 44px;
   border-radius: 12px;

@@ -22,6 +22,7 @@ import {
   type WorshipSong,
 } from "@/lib/worship-types";
 import { RehearsalSegmentTabs, type RehearsalTabId } from "./RehearsalSegmentTabs";
+import { RehearsalPartRecordingPanel } from "./RehearsalPartRecordingPanel";
 import { RehearsalSongPracticeSheet } from "./RehearsalSongPracticeSheet";
 import {
   hasApprovedPracticeAudio,
@@ -228,8 +229,28 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
 
   const userId = user?.id;
   const canManage = payload?.canManage ?? false;
-  const memberPartRole = payload?.memberPartRole ?? null;
-  const partRole = memberPartRole?.trim() || "full";
+  const rosterPartRole = useMemo(() => {
+    if (plan && userId) {
+      const member = plan.team.find((entry) => entry.userId === userId);
+      if (member?.partRole?.trim()) return member.partRole.trim();
+    }
+    return payload?.memberPartRole?.trim() || null;
+  }, [plan, userId, payload?.memberPartRole]);
+  const partRole = rosterPartRole || "full";
+
+  function applyUpdatedSong(updatedSong: WorshipSong) {
+    const normalized = normalizeSongs([updatedSong])[0] ?? updatedSong;
+    setPlan((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        songs: current.songs.map((entry) => (entry.id === normalized.id ? normalized : entry)),
+      };
+    });
+    setDetailSong((current) =>
+      current && current.song.id === normalized.id ? { ...current, song: normalized } : current,
+    );
+  }
 
   const preparedCount = userId ? countSongsPrepared(userId, songs) : 0;
   const totalSongs = songs.length;
@@ -310,7 +331,10 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
           onOpenChords={(song) => {
             if (song.chartUrl) window.open(song.chartUrl, "_blank", "noopener,noreferrer");
           }}
-          memberPartRole={memberPartRole}
+          rosterPartRole={rosterPartRole}
+          serviceDate={selectedService?.serviceDate ?? ""}
+          serviceTime={selectedService ? String(selectedService.serviceTime) : ""}
+          onSongUpdated={applyUpdatedSong}
           rehearsal={payload.rehearsal}
           noteBullets={noteBullets}
           onNotesNavigate={() => changeTab("notes")}
@@ -333,7 +357,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
       {tab === "parts" ? (
         <RehearsalPartsTab
           songs={songs}
-          memberPartRole={memberPartRole}
+          rosterPartRole={rosterPartRole}
           userId={userId}
           canManage={canManage}
           isPublished={isPublished}
@@ -363,7 +387,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
           position={detailSong.position}
           plan={plan}
           serviceTitle={serviceTitle}
-          memberPartRole={memberPartRole}
+          rosterPartRole={rosterPartRole}
           userId={userId}
           canManage={canManage}
           serviceDate={selectedService.serviceDate}
@@ -374,19 +398,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
           onTogglePrepared={(prepared) => {
             void toggleSongPrepared(detailSong.song.id, prepared);
           }}
-          onSongUpdated={(updatedSong) => {
-            const normalized = normalizeSongs([updatedSong])[0] ?? updatedSong;
-            setPlan((current) => {
-              if (!current) return current;
-              return {
-                ...current,
-                songs: current.songs.map((entry) => (entry.id === normalized.id ? normalized : entry)),
-              };
-            });
-            setDetailSong((current) =>
-              current && current.song.id === normalized.id ? { ...current, song: normalized } : current,
-            );
-          }}
+          onSongUpdated={applyUpdatedSong}
         />
       ) : null}
     </div>
@@ -419,7 +431,10 @@ type RehearsalRoomTabContentProps = {
   onOpenRecordPart: (song: WorshipSong) => void;
   onOpenLyrics: (song: WorshipSong) => void;
   onOpenChords: (song: WorshipSong) => void;
-  memberPartRole: string | null;
+  rosterPartRole: string | null;
+  serviceDate: string;
+  serviceTime: string;
+  onSongUpdated: (song: WorshipSong) => void;
   rehearsal: ChoirRehearsalPagePayload["rehearsal"];
   noteBullets: string[];
   onNotesNavigate: () => void;
@@ -451,7 +466,10 @@ function RehearsalRoomTabContent({
   onOpenRecordPart,
   onOpenLyrics,
   onOpenChords,
-  memberPartRole,
+  rosterPartRole,
+  serviceDate,
+  serviceTime,
+  onSongUpdated,
   rehearsal,
   noteBullets,
   onNotesNavigate,
@@ -583,10 +601,10 @@ function RehearsalRoomTabContent({
               <span>Your part ({worshipPracticeStemLabel(partRole)})</span>
               <span aria-hidden>›</span>
             </button>
-            {isPublished && memberPartRole?.trim() ? (
+            {isPublished && userId ? (
               <button
                 type="button"
-                className="choir-rehearsal-quick-action"
+                className="choir-rehearsal-quick-action choir-rehearsal-quick-action-highlight"
                 onClick={() => onOpenRecordPart(activeSong)}
               >
                 <span>Record your part</span>
@@ -594,6 +612,26 @@ function RehearsalRoomTabContent({
               </button>
             ) : null}
           </div>
+        </section>
+      ) : null}
+
+      {isPublished && activeSong && userId && serviceDate && serviceTime ? (
+        <section className="choir-card p-4" aria-labelledby="choir-record-rehearsal-heading">
+          <h2 id="choir-record-rehearsal-heading" className="font-display text-lg font-bold text-[var(--choir-heading)]">
+            Record for rehearsal
+          </h2>
+          <p className="mt-1 text-sm text-[var(--choir-muted)]">
+            For <span className="font-semibold text-[var(--choir-heading)]">{activeSong.title}</span> — submit audio
+            for your leader to review.
+          </p>
+          <RehearsalPartRecordingPanel
+            serviceDate={serviceDate}
+            serviceTime={serviceTime}
+            song={activeSong}
+            userId={userId}
+            rosterPartRole={rosterPartRole}
+            onSongUpdated={onSongUpdated}
+          />
         </section>
       ) : null}
 
@@ -751,33 +789,33 @@ function RehearsalAudioTab({
 
 function RehearsalPartsTab({
   songs,
-  memberPartRole,
+  rosterPartRole,
   userId,
   canManage,
   isPublished,
   onOpenDetail,
 }: {
   songs: WorshipSong[];
-  memberPartRole: string | null;
+  rosterPartRole: string | null;
   userId?: string;
   canManage: boolean;
   isPublished: boolean;
   onOpenDetail: (song: WorshipSong, position: number) => void;
 }) {
-  const part = memberPartRole?.trim() || "full";
+  const part = rosterPartRole?.trim() || "full";
 
   return (
     <div className="space-y-3">
       <h2 className="font-display text-lg font-bold text-[var(--choir-heading)]">Vocal parts</h2>
       <p className="text-sm text-[var(--choir-muted)]">
-        {memberPartRole
+        {rosterPartRole
           ? `Your section: ${worshipPracticeStemLabel(part)}`
           : "Open a song to practice full mix or uploaded part tracks."}
       </p>
-      {isPublished && memberPartRole?.trim() ? (
+      {isPublished && userId ? (
         <p className="text-xs text-[var(--choir-muted)]">
-          Open a song, or use <strong className="text-[var(--choir-heading)]">Record your part</strong> on the
-          Rehearsal Room tab.
+          Scroll to <strong className="text-[var(--choir-heading)]">Record for rehearsal</strong> on the Rehearsal Room
+          tab, or open a song and use Record your part.
         </p>
       ) : null}
       <ul className="space-y-2">
