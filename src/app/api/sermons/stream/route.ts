@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resolveStoryMusicAudioStreamUrl } from "@/lib/community-story-music-playback-server";
+import { resolveSermonStreamUpstream } from "@/lib/sermon-audio-playback-server";
 
 export const runtime = "nodejs";
 
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid video id." }, { status: 400 });
   }
 
-  const upstream = await resolveStoryMusicAudioStreamUrl(videoId);
+  const upstream = await resolveSermonStreamUpstream(videoId);
   if (!upstream) {
     return NextResponse.json({ error: "Audio stream unavailable." }, { status: 503 });
   }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resolveStoryMusicAudioStreamUrl } from "@/lib/community-story-music-playback-server";
+import { resolveSermonAudioPlayback } from "@/lib/sermon-audio-playback-server";
 
 export const runtime = "nodejs";
 
@@ -9,12 +9,22 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid video id." }, { status: 400 });
   }
 
-  const directAudio = await resolveStoryMusicAudioStreamUrl(videoId);
-  if (directAudio) {
+  const resolved = await resolveSermonAudioPlayback(videoId);
+  if (resolved?.kind === "direct") {
+    return NextResponse.json({
+      mode: "audio" as const,
+      youtubeVideoId: videoId,
+      audioUrl: resolved.url,
+      source: "hosted" as const,
+    });
+  }
+
+  if (resolved?.kind === "proxy") {
     return NextResponse.json({
       mode: "audio" as const,
       youtubeVideoId: videoId,
       audioUrl: `/api/sermons/stream?v=${encodeURIComponent(videoId)}`,
+      source: "stream" as const,
     });
   }
 

@@ -81,15 +81,14 @@ export function SermonPlayerProvider({ children }: { children: ReactNode }) {
           throw new Error(data.error ?? "Could not start audio.");
         }
         if (data.mode !== "audio" || !data.audioUrl) {
-          throw new Error("Audio-only playback is not available for this message. Use Watch instead.");
+          throw new Error(
+            "Listen isn’t set up for this message yet. Use Watch for video, or ask your team to publish an audio file for this sermon.",
+          );
         }
 
         await media.play(
           sermonToShanahMediaItem(next, resolveAbsoluteMediaUrl(String(data.audioUrl))),
         );
-        if (media.error) {
-          throw new Error(media.error);
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not play audio.");
       } finally {

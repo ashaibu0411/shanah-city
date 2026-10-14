@@ -1,0 +1,3 @@
+{
+  "_readme": "Add YouTube video IDs (11 characters) mapped to authorized MP3/M4A URLs (Firebase Storage, Vercel Blob, etc.) for Listen mode. Example: \"dQw4w9WgXcQ\": \"https://example.com/sermon-audio.mp3\""
+}
