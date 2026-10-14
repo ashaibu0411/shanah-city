@@ -14,6 +14,7 @@ import { WorshipAudioPlayer } from "@/components/worship/WorshipAudioPlayer";
 import { WorshipSongBreakdownListen } from "@/components/worship/WorshipSongBreakdownListen";
 import { WorshipSongBreakdownLyrics } from "@/components/worship/WorshipSongBreakdownLyrics";
 import { SetlistSongThumbnail } from "@/components/groups/choir/setlist/SetlistSongThumbnail";
+import { WorshipMemberPartRecording } from "@/components/worship/WorshipMemberPartRecording";
 import { instrumentalStemsForSong, songPrepLabel, songPrepStatus, vocalStemsForSong } from "./rehearsal-utils";
 
 type RehearsalSongPracticeSheetProps = {
@@ -25,9 +26,13 @@ type RehearsalSongPracticeSheetProps = {
   memberPartRole: string | null;
   userId?: string;
   canManage: boolean;
+  serviceDate: string;
+  serviceTime: string;
   focusListen?: boolean;
+  focusRecord?: boolean;
   onClose: () => void;
   onTogglePrepared: (prepared: boolean) => void;
+  onSongUpdated?: (song: WorshipSong) => void;
 };
 
 export function RehearsalSongPracticeSheet({
@@ -39,9 +44,13 @@ export function RehearsalSongPracticeSheet({
   memberPartRole,
   userId,
   canManage,
+  serviceDate,
+  serviceTime,
   focusListen = false,
+  focusRecord = false,
   onClose,
   onTogglePrepared,
+  onSongUpdated,
 }: RehearsalSongPracticeSheetProps) {
   useEffect(() => {
     if (!open || !song || !focusListen) return;
@@ -50,6 +59,14 @@ export function RehearsalSongPracticeSheet({
     });
     return () => cancelAnimationFrame(frame);
   }, [open, focusListen, song?.id]);
+
+  useEffect(() => {
+    if (!open || !song || !focusRecord) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById("rehearsal-part-recording")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open, focusRecord, song?.id]);
 
   if (!open || !song) return null;
 
@@ -139,6 +156,31 @@ export function RehearsalSongPracticeSheet({
             </ul>
           )}
         </section>
+
+        {plan.status === "published" && memberPartRole?.trim() && userId ? (
+          <section className="mt-5" aria-labelledby="choir-record-part-heading">
+            <h3 id="choir-record-part-heading" className="text-sm font-bold text-[var(--choir-heading)]">
+              Submit your recording
+            </h3>
+            <p className="mt-1 text-xs text-[var(--choir-muted)]">
+              Leaders can review your {worshipPartLabel(memberPartRole).toLowerCase()} take for this service.
+            </p>
+            <WorshipMemberPartRecording
+              appearance="choir"
+              serviceDate={serviceDate}
+              serviceTime={serviceTime}
+              song={song}
+              partRole={memberPartRole.trim()}
+              userId={userId}
+              onUpdated={onSongUpdated}
+            />
+          </section>
+        ) : plan.status === "published" && userId && !memberPartRole?.trim() ? (
+          <p className="mt-5 rounded-xl bg-[var(--choir-surface-soft)] px-3 py-2 text-xs text-[var(--choir-muted)]">
+            Ask your worship leader to assign your vocal part (soprano, alto, tenor, bass) on the team roster to
+            record here.
+          </p>
+        ) : null}
 
         <section className="mt-5" aria-labelledby="choir-instrumental-heading">
           <h3 id="choir-instrumental-heading" className="text-sm font-bold text-[var(--choir-heading)]">

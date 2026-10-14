@@ -18,6 +18,8 @@ type WorshipMemberPartRecordingProps = {
   partRole: string;
   userId?: string;
   onUpdated?: (song: WorshipSong) => void;
+  /** Match choir rehearsal room styling when embedded there. */
+  appearance?: "planner" | "choir";
 };
 
 export function WorshipMemberPartRecording({
@@ -27,7 +29,9 @@ export function WorshipMemberPartRecording({
   partRole,
   userId,
   onUpdated,
+  appearance = "planner",
 }: WorshipMemberPartRecordingProps) {
+  const isChoir = appearance === "choir";
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -152,11 +156,24 @@ export function WorshipMemberPartRecording({
   }
 
   return (
-    <div className="mt-4 rounded-xl border border-night-900/5 bg-white p-4">
-      <p className="text-sm font-semibold text-night-900">
+    <div
+      id="rehearsal-part-recording"
+      className={
+        isChoir
+          ? "mt-4 rounded-xl border border-[var(--choir-border)] bg-[var(--choir-surface-soft)] p-4"
+          : "mt-4 rounded-xl border border-night-900/5 bg-white p-4"
+      }
+    >
+      <p
+        className={
+          isChoir
+            ? "text-sm font-bold text-[var(--choir-heading)]"
+            : "text-sm font-semibold text-night-900"
+        }
+      >
         Record your {worshipPartLabel(partRole).toLowerCase()} line
       </p>
-      <p className="mt-1 text-xs text-night-500">
+      <p className={`mt-1 text-xs ${isChoir ? "text-[var(--choir-muted)]" : "text-night-500"}`}>
         Record or upload a short clip of your part so leaders can hear your approach. Use a voice
         memo or sing along to the YouTube reference — we do not download from YouTube.
       </p>
@@ -179,13 +196,28 @@ export function WorshipMemberPartRecording({
       )}
 
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
-      {message && <p className="mt-2 text-xs text-emerald-700">{message}</p>}
+      {message && <p className={`mt-2 text-xs ${isChoir ? "text-[var(--choir-success)]" : "text-emerald-700"}`}>{message}</p>}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {!recording ? (
-          <Button type="button" onClick={startRecording} disabled={uploading}>
-            Record
-          </Button>
+          isChoir ? (
+            <button type="button" className="choir-btn-primary !py-2 !text-sm" onClick={startRecording} disabled={uploading}>
+              Record
+            </button>
+          ) : (
+            <Button type="button" onClick={startRecording} disabled={uploading}>
+              Record
+            </Button>
+          )
+        ) : isChoir ? (
+          <>
+            <button type="button" className="choir-btn-secondary !py-2 !text-sm" onClick={stopRecording}>
+              Stop
+            </button>
+            <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-semibold text-red-800">
+              {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
+            </span>
+          </>
         ) : (
           <>
             <Button type="button" variant="secondary" onClick={stopRecording}>
@@ -196,21 +228,38 @@ export function WorshipMemberPartRecording({
             </span>
           </>
         )}
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={uploadCapturedRecording}
-          disabled={recording || uploading || !hasCapture}
-        >
-          Upload recording
-        </Button>
+        {isChoir ? (
+          <button
+            type="button"
+            className="choir-btn-secondary !py-2 !text-sm"
+            onClick={uploadCapturedRecording}
+            disabled={recording || uploading || !hasCapture}
+          >
+            Upload recording
+          </button>
+        ) : (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={uploadCapturedRecording}
+            disabled={recording || uploading || !hasCapture}
+          >
+            Upload recording
+          </Button>
+        )}
       </div>
 
-      <label className="mt-3 inline-block cursor-pointer rounded-full bg-violet-100 px-4 py-2 text-xs font-semibold text-violet-900 hover:bg-violet-200">
-        {uploading ? "Uploading…" : stem ? "Replace recording" : "Upload recording"}
+      <label
+        className={
+          isChoir
+            ? "choir-btn-secondary mt-3 inline-flex cursor-pointer !py-2 !text-xs"
+            : "mt-3 inline-block cursor-pointer rounded-full bg-violet-100 px-4 py-2 text-xs font-semibold text-violet-900 hover:bg-violet-200"
+        }
+      >
+        {uploading ? "Uploading…" : stem ? "Replace recording" : "Upload from files"}
         <input
           type="file"
-          accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm"
+          accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm,.caf"
           className="hidden"
           disabled={uploading}
           onChange={(event) => {

@@ -59,6 +59,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
     song: WorshipSong;
     position: number;
     focusListen?: boolean;
+    focusRecord?: boolean;
   } | null>(null);
   const [servicePickerOpen, setServicePickerOpen] = useState(false);
 
@@ -211,6 +212,17 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
       song,
       position: idx >= 0 ? idx + 1 : 1,
       focusListen: true,
+      focusRecord: false,
+    });
+  }
+
+  function openRecordPart(song: WorshipSong) {
+    const idx = songs.findIndex((entry) => entry.id === song.id);
+    setDetailSong({
+      song,
+      position: idx >= 0 ? idx + 1 : 1,
+      focusListen: false,
+      focusRecord: true,
     });
   }
 
@@ -288,10 +300,18 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
           onSelectSong={selectSong}
           onOpenDetail={(song, position) => setDetailSong({ song, position })}
           onOpenReferenceAudio={openReferenceAudio}
-          onOpenLyrics={(song) => setDetailSong({ song, position: songs.findIndex((s) => s.id === song.id) + 1 })}
+          onOpenRecordPart={openRecordPart}
+          onOpenLyrics={(song) =>
+            setDetailSong({
+              song,
+              position: songs.findIndex((s) => s.id === song.id) + 1,
+            })
+          }
           onOpenChords={(song) => {
             if (song.chartUrl) window.open(song.chartUrl, "_blank", "noopener,noreferrer");
           }}
+          memberPartRole={memberPartRole}
+          isPublished={isPublished}
           rehearsal={payload.rehearsal}
           noteBullets={noteBullets}
           onNotesNavigate={() => changeTab("notes")}
@@ -317,6 +337,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
           memberPartRole={memberPartRole}
           userId={userId}
           canManage={canManage}
+          isPublished={isPublished}
           onOpenDetail={(song, position) => setDetailSong({ song, position })}
         />
       ) : null}
@@ -336,7 +357,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
         </Link>
       ) : null}
 
-      {plan && detailSong ? (
+      {plan && detailSong && selectedService ? (
         <RehearsalSongPracticeSheet
           open={Boolean(detailSong)}
           song={detailSong.song}
@@ -346,10 +367,26 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
           memberPartRole={memberPartRole}
           userId={userId}
           canManage={canManage}
+          serviceDate={selectedService.serviceDate}
+          serviceTime={String(selectedService.serviceTime)}
           focusListen={detailSong.focusListen}
+          focusRecord={detailSong.focusRecord}
           onClose={() => setDetailSong(null)}
           onTogglePrepared={(prepared) => {
             void toggleSongPrepared(detailSong.song.id, prepared);
+          }}
+          onSongUpdated={(updatedSong) => {
+            const normalized = normalizeSongs([updatedSong])[0] ?? updatedSong;
+            setPlan((current) => {
+              if (!current) return current;
+              return {
+                ...current,
+                songs: current.songs.map((entry) => (entry.id === normalized.id ? normalized : entry)),
+              };
+            });
+            setDetailSong((current) =>
+              current && current.song.id === normalized.id ? { ...current, song: normalized } : current,
+            );
           }}
         />
       ) : null}
@@ -380,8 +417,11 @@ type RehearsalRoomTabContentProps = {
   onSelectSong: (id: string) => void;
   onOpenDetail: (song: WorshipSong, position: number) => void;
   onOpenReferenceAudio: (song: WorshipSong) => void;
+  onOpenRecordPart: (song: WorshipSong) => void;
   onOpenLyrics: (song: WorshipSong) => void;
   onOpenChords: (song: WorshipSong) => void;
+  memberPartRole: string | null;
+  isPublished: boolean;
   rehearsal: ChoirRehearsalPagePayload["rehearsal"];
   noteBullets: string[];
   onNotesNavigate: () => void;
@@ -410,8 +450,11 @@ function RehearsalRoomTabContent({
   onSelectSong,
   onOpenDetail,
   onOpenReferenceAudio,
+  onOpenRecordPart,
   onOpenLyrics,
   onOpenChords,
+  memberPartRole,
+  isPublished,
   rehearsal,
   noteBullets,
   onNotesNavigate,
@@ -543,6 +586,16 @@ function RehearsalRoomTabContent({
               <span>Your part ({worshipPracticeStemLabel(partRole)})</span>
               <span aria-hidden>›</span>
             </button>
+            {isPublished && memberPartRole?.trim() ? (
+              <button
+                type="button"
+                className="choir-rehearsal-quick-action"
+                onClick={() => onOpenRecordPart(activeSong)}
+              >
+                <span>Record your part</span>
+                <span aria-hidden>›</span>
+              </button>
+            ) : null}
           </div>
         </section>
       ) : null}
@@ -704,12 +757,14 @@ function RehearsalPartsTab({
   memberPartRole,
   userId,
   canManage,
+  isPublished,
   onOpenDetail,
 }: {
   songs: WorshipSong[];
   memberPartRole: string | null;
   userId?: string;
   canManage: boolean;
+  isPublished: boolean;
   onOpenDetail: (song: WorshipSong, position: number) => void;
 }) {
   const part = memberPartRole?.trim() || "full";
@@ -722,6 +777,12 @@ function RehearsalPartsTab({
           ? `Your section: ${worshipPracticeStemLabel(part)}`
           : "Open a song to practice full mix or uploaded part tracks."}
       </p>
+      {isPublished && memberPartRole?.trim() ? (
+        <p className="text-xs text-[var(--choir-muted)]">
+          Open a song, or use <strong className="text-[var(--choir-heading)]">Record your part</strong> on the
+          Rehearsal Room tab.
+        </p>
+      ) : null}
       <ul className="space-y-2">
         {songs.map((song, index) => {
           const stems = vocalStemsForSong(song, { userId, isManager: canManage });
