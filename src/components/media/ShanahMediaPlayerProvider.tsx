@@ -11,6 +11,11 @@ import {
   type ReactNode,
 } from "react";
 import { backgroundCapableAudioEventHandlers } from "@/lib/native-background-playback";
+import { setNativeBackgroundAudioActive } from "@/lib/native-webview-bridge";
+import {
+  isShanahNativeMediaSupported,
+  ShanahNativeMedia,
+} from "@/lib/shanah-native-media";
 import {
   clearMediaProgress,
   loadMediaProgress,
@@ -121,6 +126,20 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
   const queueRef = useRef<ShanahMediaItem[]>([]);
   const lastProgressSaveRef = useRef(0);
   const pendingStartRef = useRef<number | undefined>(undefined);
+  const nativeSupportedRef = useRef(false);
+  const nativeActiveRef = useRef(false);
+  const nextInQueueRef = useRef<() => void>(() => undefined);
+  const stopRef = useRef<() => void>(() => undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    void isShanahNativeMediaSupported().then((supported) => {
+      if (!cancelled) nativeSupportedRef.current = supported;
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     itemRef.current = item;
@@ -138,11 +157,53 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
     saveMediaProgress(key, seconds);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    let listener: { remove: () => Promise<void> } | undefined;
+
+    void (async () => {
+      const supported = await isShanahNativeMediaSupported();
+      if (cancelled || !supported) return;
+      listener = await ShanahNativeMedia.addListener("state", (state) => {
+        if (!nativeActiveRef.current) return;
+        const pos = state.position ?? 0;
+        setPosition(pos);
+        setDuration(state.duration ?? 0);
+        setBuffering(Boolean(state.buffering));
+        setPlaying(Boolean(state.playing) || Boolean(state.paused));
+        setPaused(Boolean(state.paused));
+        setLoading(false);
+        if (itemRef.current) persistProgress(itemRef.current, pos);
+        if (state.ended) {
+          const current = itemRef.current;
+          if (current?.resumeKey || current?.id) {
+            clearMediaProgress(current.resumeKey ?? current.id);
+          }
+          if (queueRef.current.length > 0) {
+            nextInQueueRef.current();
+          } else {
+            stopRef.current();
+          }
+        }
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+      void listener?.remove();
+    };
+  }, [persistProgress]);
+
   const stop = useCallback(() => {
     const audio = audioRef.current;
     const current = itemRef.current;
     if (current && position > 0) {
       persistProgress(current, position);
+    }
+    if (nativeActiveRef.current) {
+      nativeActiveRef.current = false;
+      void ShanahNativeMedia.stop().catch(() => undefined);
+      setNativeBackgroundAudioActive(false);
     }
     if (audio) {
       audio.pause();
@@ -161,22 +222,34 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
   }, [persistProgress, position]);
 
   const pause = useCallback(() => {
-    audioRef.current?.pause();
+    if (nativeActiveRef.current) {
+      void ShanahNativeMedia.pause().catch(() => undefined);
+    } else {
+      audioRef.current?.pause();
+    }
     setPaused(true);
     setPlaying(true);
   }, []);
 
   const resume = useCallback(() => {
-    void audioRef.current?.play().catch(() => undefined);
+    if (nativeActiveRef.current) {
+      void ShanahNativeMedia.resume().catch(() => undefined);
+    } else {
+      void audioRef.current?.play().catch(() => undefined);
+    }
     setPaused(false);
     setPlaying(true);
   }, []);
 
   const seek = useCallback((seconds: number) => {
-    const audio = audioRef.current;
-    if (!audio || !Number.isFinite(seconds)) return;
+    if (!Number.isFinite(seconds)) return;
     const next = Math.max(0, seconds);
-    audio.currentTime = next;
+    if (nativeActiveRef.current) {
+      void ShanahNativeMedia.seek({ positionSec: next }).catch(() => undefined);
+    } else {
+      const audio = audioRef.current;
+      if (audio) audio.currentTime = next;
+    }
     setPosition(next);
   }, []);
 
@@ -191,6 +264,9 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
 
   const setPlaybackRate = useCallback((rate: ShanahMediaSpeed) => {
     setPlaybackRateState(rate);
+    if (nativeActiveRef.current) {
+      void ShanahNativeMedia.setRate({ rate }).catch(() => undefined);
+    }
     const audio = audioRef.current;
     if (audio) audio.playbackRate = rate;
   }, []);
@@ -200,6 +276,50 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
       notifyShanahMediaStarting();
       setError(null);
       setLoading(true);
+
+      if (itemRef.current?.id !== next.id) {
+        if (itemRef.current && position > 0) persistProgress(itemRef.current, position);
+        audioRef.current?.pause();
+      }
+
+      setItem(next);
+      setQueue(options?.queue ?? queueRef.current.filter((entry) => entry.id !== next.id));
+      const startAt =
+        options?.startAt ??
+        (next.resumeKey || next.id ? loadMediaProgress(next.resumeKey ?? next.id) : 0);
+      pendingStartRef.current = startAt;
+
+      let useNative = nativeSupportedRef.current;
+      if (!useNative) {
+        useNative = await isShanahNativeMediaSupported();
+        nativeSupportedRef.current = useNative;
+      }
+
+      if (useNative) {
+        nativeActiveRef.current = true;
+        setNativeBackgroundAudioActive(false);
+        try {
+          await ShanahNativeMedia.play({
+            url: next.audioUrl,
+            title: next.title,
+            artist: next.artist,
+            artworkUrl: next.artworkUrl,
+            startAtSec: startAt > 0 ? startAt : undefined,
+          });
+          await ShanahNativeMedia.setRate({ rate: playbackRate });
+          setPlaying(true);
+          setPaused(false);
+          setLoading(false);
+          pendingStartRef.current = undefined;
+        } catch (err) {
+          nativeActiveRef.current = false;
+          setError(err instanceof Error ? err.message : "Could not play audio.");
+          setPlaying(false);
+          setLoading(false);
+        }
+        return;
+      }
+
       const audio = audioRef.current;
       if (!audio) {
         setError("Audio player unavailable.");
@@ -207,17 +327,7 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
         return;
       }
 
-      if (itemRef.current?.id !== next.id) {
-        if (itemRef.current && position > 0) persistProgress(itemRef.current, position);
-        audio.pause();
-      }
-
-      setItem(next);
-      setQueue(options?.queue ?? queueRef.current.filter((entry) => entry.id !== next.id));
-      pendingStartRef.current =
-        options?.startAt ??
-        (next.resumeKey || next.id ? loadMediaProgress(next.resumeKey ?? next.id) : 0);
-
+      nativeActiveRef.current = false;
       audio.src = next.audioUrl;
       audio.playbackRate = playbackRate;
 
@@ -256,6 +366,11 @@ export function ShanahMediaPlayerProvider({ children }: { children: ReactNode })
     setQueue(rest);
     void startItem(head, { queue: rest, startAt: 0 });
   }, [startItem, stop]);
+
+  useEffect(() => {
+    nextInQueueRef.current = nextInQueue;
+    stopRef.current = stop;
+  }, [nextInQueue, stop]);
 
   const previousInQueue = useCallback(() => {
     seek(0);

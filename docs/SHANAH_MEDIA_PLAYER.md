@@ -41,12 +41,15 @@ Mounted in `AppShell.tsx` inside `ShanahMediaPlayerProvider` (wraps devotion + s
 
 ## 6. Native Android service
 
-- **Not implemented** in this phase. Background on Android still relies on WebView audio + existing keep-alive bridge.
-- **Required next step:** Media3 `MediaSessionService`, foreground service type `mediaPlayback`, manifest permissions, Capacitor plugin or custom bridge syncing one playback source with the web UI.
+- **Phase 2 (in repo):** `ShanahMediaPlaybackService` (Media3 ExoPlayer + `MediaSessionService`), `ShanahNativeMediaPlugin` Capacitor plugin, JS bridge in `src/lib/shanah-native-media.ts`.
+- On Android APK, `ShanahMediaPlayerProvider` prefers native playback when the plugin is available; web `<audio>` remains for browsers.
+- **Must verify on device:** notification controls, lock screen, Bluetooth, audio focus, and long sessions.
 
 ## 7. Android manifest changes
 
-- None for Media3 yet. Existing: `INTERNET`, `WAKE_LOCK`, `POST_NOTIFICATIONS`, etc.
+- `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`
+- `ShanahMediaPlaybackService` with `foregroundServiceType="mediaPlayback"`
+- Gradle: `androidx.media3` exoplayer, session, ui (see `android/variables.gradle`)
 
 ## 8. Sermon audio integration
 
@@ -102,7 +105,6 @@ Mounted in `AppShell.tsx` inside `ShanahMediaPlayerProvider` (wraps devotion + s
 
 ## 18. Remaining steps before APK release
 
-1. Implement and test **Media3** foreground service + Capacitor bridge.
-2. Run full **§28 test matrix** on a physical Android device.
+1. Build APK (`npm run mobile:sync`, Android Studio) and run full **§28 test matrix** on a physical Android device.
 3. Wire remaining inline `WorshipAudioPlayer` sites (planner, academy) if desired.
 4. `npm run build` + Vercel deploy smoke test.
