@@ -18,6 +18,7 @@ import { RehearsalPartRecordingPanel } from "@/components/groups/choir/rehearsal
 import { instrumentalStemsForSong, songPrepLabel, songPrepStatus, vocalStemsForSong } from "./rehearsal-utils";
 
 type RehearsalSongPracticeSheetProps = {
+  groupId: string;
   open: boolean;
   song: WorshipSong | null;
   position: number;
@@ -36,6 +37,7 @@ type RehearsalSongPracticeSheetProps = {
 };
 
 export function RehearsalSongPracticeSheet({
+  groupId,
   open,
   song,
   position,
@@ -149,7 +151,17 @@ export function RehearsalSongPracticeSheet({
                     {song.key?.trim() ? (
                       <p className="mt-0.5 text-xs text-[var(--choir-muted)]">Service key: {song.key.trim()}</p>
                     ) : null}
-                    <WorshipAudioPlayer className="mt-2 w-full" src={stem.audioUrl} fileName={stem.fileName} />
+                    <WorshipAudioPlayer
+                      className="mt-2 w-full"
+                      src={stem.audioUrl}
+                      fileName={stem.fileName}
+                      globalPlayer={{
+                        id: `rehearsal-${serviceDate}-${serviceTime}-${song.id}-${stem.role}`,
+                        title: `${song.title} · ${worshipPracticeStemLabel(stem.role)}`,
+                        kind: "worship-rehearsal",
+                        href: `/groups/${groupId}/rehearsal`,
+                      }}
+                    />
                   </li>
                 );
               })}
@@ -187,7 +199,17 @@ export function RehearsalSongPracticeSheet({
               {instrumentStems.map((stem) => (
                 <li key={stem.role} className="rounded-xl border border-[var(--choir-border)] bg-[var(--choir-surface-soft)] px-3 py-3">
                   <p className="text-sm font-bold text-[var(--choir-heading)]">{worshipPracticeStemLabel(stem.role)}</p>
-                  <WorshipAudioPlayer className="mt-2 w-full" src={stem.audioUrl} fileName={stem.fileName} />
+                  <WorshipAudioPlayer
+                    className="mt-2 w-full"
+                    src={stem.audioUrl}
+                    fileName={stem.fileName}
+                    globalPlayer={{
+                      id: `rehearsal-${serviceDate}-${serviceTime}-${song.id}-${stem.role}`,
+                      title: `${song.title} · ${worshipPracticeStemLabel(stem.role)}`,
+                      kind: "worship-rehearsal",
+                      href: `/groups/${groupId}/rehearsal`,
+                    }}
+                  />
                 </li>
               ))}
             </ul>

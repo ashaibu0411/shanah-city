@@ -6,11 +6,11 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { backgroundCapableAudioEventHandlers } from "@/lib/native-background-playback";
+import { useShanahMedia } from "@/components/media/ShanahMediaPlayerProvider";
+import { sermonToShanahMediaItem } from "@/lib/shanah-media-helpers";
 import type { SermonVideo } from "@/lib/youtube-sermons-shared";
 
 type SermonPlayerContextValue = {
@@ -28,83 +28,53 @@ type SermonPlayerContextValue = {
 
 const SermonPlayerContext = createContext<SermonPlayerContextValue | null>(null);
 
-function updateMediaSession(
-  sermon: SermonVideo | null,
-  handlers: { play?: () => void; pause?: () => void; stop?: () => void },
-) {
-  if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
-  if (!sermon) {
-    navigator.mediaSession.metadata = null;
-    navigator.mediaSession.playbackState = "none";
-    return;
-  }
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title: sermon.title,
-    artist: "Shanah City",
-    album: "Messages",
-    artwork: [{ src: sermon.thumbnailUrl, sizes: "512x512", type: "image/jpeg" }],
-  });
-  navigator.mediaSession.setActionHandler("play", handlers.play ?? null);
-  navigator.mediaSession.setActionHandler("pause", handlers.pause ?? null);
-  navigator.mediaSession.setActionHandler("stop", handlers.stop ?? null);
-}
-
 export function SermonPlayerProvider({ children }: { children: ReactNode }) {
+  const media = useShanahMedia();
   const [sermon, setSermon] = useState<SermonVideo | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [paused, setPaused] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const sermonRef = useRef<SermonVideo | null>(null);
+
+  const mediaSermonId =
+    media.item?.kind === "sermon-audio" ? media.item.id.replace(/^sermon-/, "") : null;
+
+  const playing = Boolean(sermon && mediaSermonId === sermon.id && media.playing);
+  const paused = Boolean(sermon && mediaSermonId === sermon.id && media.paused);
 
   useEffect(() => {
-    sermonRef.current = sermon;
-  }, [sermon]);
+    if (media.item?.kind !== "sermon-audio" && !loading) {
+      setSermon(null);
+      setError(null);
+    }
+  }, [media.item, loading]);
 
-  const stop = useCallback(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
+  useEffect(() => {
+    if (media.error && mediaSermonId && sermon?.id === mediaSermonId) {
+      setError(media.error);
     }
-    setPlaying(false);
-    setPaused(false);
-    setLoading(false);
-    setError(null);
-    setSermon(null);
-    if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
-      navigator.mediaSession.playbackState = "none";
-      navigator.mediaSession.metadata = null;
-    }
-  }, []);
+  }, [media.error, mediaSermonId, sermon?.id]);
 
   const pause = useCallback(() => {
-    audioRef.current?.pause();
-    setPaused(true);
-    if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
-      navigator.mediaSession.playbackState = "paused";
-    }
-  }, []);
+    if (mediaSermonId) media.pause();
+  }, [media, mediaSermonId]);
 
   const resume = useCallback(() => {
-    void audioRef.current?.play().catch(() => undefined);
-    setPaused(false);
-    if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
-      navigator.mediaSession.playbackState = "playing";
+    if (mediaSermonId) media.resume();
+  }, [media, mediaSermonId]);
+
+  const stop = useCallback(() => {
+    if (media.item?.kind === "sermon-audio") {
+      media.stop();
     }
-  }, []);
+    setSermon(null);
+    setError(null);
+    setLoading(false);
+  }, [media]);
 
   const playAudio = useCallback(
     async (next: SermonVideo) => {
       setError(null);
-      if (sermonRef.current?.id !== next.id) {
-        stop();
-        setSermon(next);
-      }
+      setSermon(next);
       setLoading(true);
-
       try {
         const response = await fetch(`/api/sermons/playback?v=${encodeURIComponent(next.id)}`);
         const data = await response.json();
@@ -115,62 +85,36 @@ export function SermonPlayerProvider({ children }: { children: ReactNode }) {
           throw new Error("Audio-only playback is not available for this message. Use Watch instead.");
         }
 
-        const audio = audioRef.current;
-        if (!audio) throw new Error("Audio player unavailable.");
-
-        audio.src = data.audioUrl;
-        await audio.play();
-        setPlaying(true);
-        setPaused(false);
-        updateMediaSession(next, { play: resume, pause, stop });
-        if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "playing";
-        }
+        await media.play(sermonToShanahMediaItem(next, data.audioUrl));
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not play audio.");
-        setPlaying(false);
+        setSermon(null);
       } finally {
         setLoading(false);
       }
     },
-    [pause, resume, stop],
+    [media],
   );
-
-  const audioHandlers = useMemo(() => backgroundCapableAudioEventHandlers(), []);
 
   const value = useMemo(
     () => ({
       sermon,
       playing,
       paused,
-      loading,
+      loading: loading || (Boolean(sermon) && media.loading && mediaSermonId === sermon?.id),
       error,
-      isCurrent: (videoId: string) => sermon?.id === videoId && (playing || paused || loading),
+      isCurrent: (videoId: string) =>
+        (sermon?.id === videoId || mediaSermonId === videoId) &&
+        (playing || paused || loading || media.loading),
       playAudio,
       pause,
       resume,
       stop,
     }),
-    [sermon, playing, paused, loading, error, playAudio, pause, resume, stop],
+    [sermon, playing, paused, loading, media.loading, mediaSermonId, error, playAudio, pause, resume, stop],
   );
 
-  return (
-    <SermonPlayerContext.Provider value={value}>
-      <audio
-        ref={audioRef}
-        className="hidden"
-        playsInline
-        preload="none"
-        onPlay={audioHandlers.onPlay}
-        onPause={audioHandlers.onPause}
-        onEnded={() => {
-          audioHandlers.onEnded();
-          stop();
-        }}
-      />
-      {children}
-    </SermonPlayerContext.Provider>
-  );
+  return <SermonPlayerContext.Provider value={value}>{children}</SermonPlayerContext.Provider>;
 }
 
 export function useSermonPlayer() {

@@ -33,6 +33,8 @@ import {
   speakNativeDevotionChunk,
   stopNativeDevotionTts,
 } from "@/lib/devotion-native-tts";
+import { useShanahMediaOptional } from "@/components/media/ShanahMediaPlayerProvider";
+import { SHANAH_MEDIA_START_EVENT } from "@/lib/shanah-media-helpers";
 
 const KEEP_ALIVE_SRC = "/silence.wav";
 
@@ -79,6 +81,7 @@ function updateMediaSession(devotion: Devotion | null, handlers: {
 }
 
 export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
+  const shanahMedia = useShanahMediaOptional();
   const [devotion, setDevotion] = useState<Devotion | null>(null);
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -169,6 +172,10 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     generationRef.current += 1;
     playingRef.current = false;
     pausedRef.current = false;
+    const current = devotionRef.current;
+    if (current && devotionHasAudio(current) && shanahMedia?.isCurrent(`devotion-${current.id}`)) {
+      shanahMedia.stop();
+    }
     cancelTts();
     stopKeepAlive();
     const audio = audioRef.current;
@@ -186,7 +193,15 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
       navigator.mediaSession.playbackState = "none";
       navigator.mediaSession.metadata = null;
     }
-  }, [cancelTts, stopKeepAlive]);
+  }, [cancelTts, shanahMedia, stopKeepAlive]);
+
+  useEffect(() => {
+    const onGlobalMedia = () => {
+      if (playingRef.current) stop();
+    };
+    window.addEventListener(SHANAH_MEDIA_START_EVENT, onGlobalMedia);
+    return () => window.removeEventListener(SHANAH_MEDIA_START_EVENT, onGlobalMedia);
+  }, [stop]);
 
   const speakCurrentChunk = useCallback(() => {
     if (!playingRef.current || pausedRef.current) return;
@@ -247,6 +262,12 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
   const pause = useCallback(() => {
     if (!playingRef.current) return;
     pausedRef.current = true;
+    const current = devotionRef.current;
+    if (current && devotionHasAudio(current) && shanahMedia?.isCurrent(`devotion-${current.id}`)) {
+      shanahMedia.pause();
+      setPaused(true);
+      return;
+    }
     if (devotionRef.current && devotionHasAudio(devotionRef.current) && audioRef.current) {
       audioRef.current.pause();
     } else if (backendRef.current === "native") {
@@ -259,11 +280,17 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
       navigator.mediaSession.playbackState = "paused";
     }
-  }, []);
+  }, [shanahMedia]);
 
   const resume = useCallback(() => {
     if (!playingRef.current) return;
     pausedRef.current = false;
+    const current = devotionRef.current;
+    if (current && devotionHasAudio(current) && shanahMedia?.isCurrent(`devotion-${current.id}`)) {
+      shanahMedia.resume();
+      setPaused(false);
+      return;
+    }
     if (devotionRef.current && devotionHasAudio(devotionRef.current) && audioRef.current) {
       void audioRef.current.play().catch(() => undefined);
     } else if (backendRef.current === "native") {
@@ -281,7 +308,25 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
     if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
       navigator.mediaSession.playbackState = "playing";
     }
-  }, [speakCurrentChunk, startKeepAlive]);
+  }, [shanahMedia, speakCurrentChunk, startKeepAlive]);
+
+  useEffect(() => {
+    if (!devotion || !devotionHasAudio(devotion) || !shanahMedia) return;
+    const mediaId = `devotion-${devotion.id}`;
+    if (shanahMedia.item?.id === mediaId) {
+      setPlaying(shanahMedia.playing);
+      setPaused(shanahMedia.paused);
+      playingRef.current = shanahMedia.playing;
+      pausedRef.current = shanahMedia.paused;
+      return;
+    }
+    if (!shanahMedia.item && playing) {
+      playingRef.current = false;
+      pausedRef.current = false;
+      setPlaying(false);
+      setPaused(false);
+    }
+  }, [devotion, playing, shanahMedia, shanahMedia?.item, shanahMedia?.playing, shanahMedia?.paused]);
 
   const play = useCallback(
     (next: Devotion) => {
@@ -301,6 +346,19 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
       setPlaying(true);
       setPaused(false);
       chunkIndexRef.current = 0;
+
+      if (devotionHasAudio(next) && next.audioUrl && shanahMedia) {
+        void shanahMedia.play({
+          id: `devotion-${next.id}`,
+          kind: "devotion-audio",
+          title: next.title,
+          artist: "Shanah City Devotions",
+          audioUrl: next.audioUrl,
+          href: `/devotions/${next.id}`,
+          resumeKey: `devotion-${next.id}`,
+        });
+        return;
+      }
 
       updateMediaSession(next, {
         play: () => resume(),
@@ -334,7 +392,7 @@ export function DevotionPlayerProvider({ children }: { children: ReactNode }) {
       startKeepAlive();
       speakCurrentChunk();
     },
-    [cancelTts, pause, resume, speakCurrentChunk, startKeepAlive, stop, stopKeepAlive],
+    [cancelTts, pause, resume, shanahMedia, speakCurrentChunk, startKeepAlive, stop, stopKeepAlive],
   );
 
   const setVoice = useCallback(

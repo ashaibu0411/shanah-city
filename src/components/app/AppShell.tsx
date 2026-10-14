@@ -20,6 +20,9 @@ import { AppRefreshBridge } from "@/components/app/AppRefreshBridge";
 import { AppNotificationBadgeSync } from "@/components/app/AppNotificationBadgeSync";
 import { NativeAppBoot } from "@/components/app/NativeAppBoot";
 import { DevotionMiniPlayer } from "@/components/devotions/DevotionMiniPlayer";
+import { ShanahMediaFullPlayer } from "@/components/media/ShanahMediaFullPlayer";
+import { ShanahMediaMiniPlayer } from "@/components/media/ShanahMediaMiniPlayer";
+import { ShanahMediaPlayerProvider } from "@/components/media/ShanahMediaPlayerProvider";
 import { SermonMiniPlayer } from "@/components/sermons/SermonMiniPlayer";
 import { BackgroundPlaybackProvider } from "@/components/app/BackgroundPlaybackProvider";
 import { DevotionPlayerProvider } from "@/components/devotions/DevotionPlayerProvider";
@@ -40,6 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <ReadabilityProvider>
 
         <AppShellProvider>
+          <ShanahMediaPlayerProvider>
           <DevotionPlayerProvider>
           <SermonPlayerProvider>
           <BackgroundPlaybackProvider>
@@ -70,6 +74,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
 
+            <ShanahMediaMiniPlayer />
+            <ShanahMediaFullPlayer />
             <DevotionMiniPlayer />
             <SermonMiniPlayer />
             <MobileNav />
@@ -81,6 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </BackgroundPlaybackProvider>
           </SermonPlayerProvider>
           </DevotionPlayerProvider>
+          </ShanahMediaPlayerProvider>
         </AppShellProvider>
 
         </ReadabilityProvider>

@@ -299,6 +299,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
 
       {tab === "room" ? (
         <RehearsalRoomTabContent
+          groupId={groupId}
           services={services}
           selectedService={selectedService}
           servicePickerOpen={servicePickerOpen}
@@ -343,6 +344,9 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
 
       {tab === "audio" ? (
         <RehearsalAudioTab
+          groupId={groupId}
+          serviceDate={selectedService?.serviceDate ?? ""}
+          serviceTime={selectedService ? String(selectedService.serviceTime) : ""}
           songs={songs}
           plan={plan}
           userId={userId}
@@ -382,6 +386,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
 
       {plan && detailSong && selectedService ? (
         <RehearsalSongPracticeSheet
+          groupId={groupId}
           open={Boolean(detailSong)}
           song={detailSong.song}
           position={detailSong.position}
@@ -406,6 +411,7 @@ export function ChoirRehearsalRoomPage({ groupId }: ChoirRehearsalRoomPageProps)
 }
 
 type RehearsalRoomTabContentProps = {
+  groupId: string;
   services: ChoirSetlistServiceSummary[];
   selectedService: ChoirSetlistServiceSummary | null;
   servicePickerOpen: boolean;
@@ -441,6 +447,7 @@ type RehearsalRoomTabContentProps = {
 };
 
 function RehearsalRoomTabContent({
+  groupId,
   services,
   selectedService,
   servicePickerOpen,
@@ -569,7 +576,21 @@ function RehearsalRoomTabContent({
             </div>
           </div>
           {activeStem ? (
-            <WorshipAudioPlayer className="mt-3 w-full" src={activeStem.audioUrl} fileName={activeStem.fileName} />
+            <WorshipAudioPlayer
+              className="mt-3 w-full"
+              src={activeStem.audioUrl}
+              fileName={activeStem.fileName}
+              globalPlayer={
+                activeSong
+                  ? {
+                      id: `rehearsal-${serviceDate}-${serviceTime}-${activeSong.id}-${activeStem.role}`,
+                      title: `${activeSong.title} · ${worshipPracticeStemLabel(activeStem.role)}`,
+                      kind: "worship-rehearsal",
+                      href: `/groups/${groupId}/rehearsal`,
+                    }
+                  : undefined
+              }
+            />
           ) : (
             <button type="button" className="choir-rehearsal-resource-btn mt-3 w-full" onClick={() => onOpenReferenceAudio(activeSong)}>
               Open practice reference
@@ -721,6 +742,9 @@ function RehearsalRoomTabContent({
 }
 
 function RehearsalAudioTab({
+  groupId,
+  serviceDate,
+  serviceTime,
   songs,
   plan,
   userId,
@@ -730,6 +754,9 @@ function RehearsalAudioTab({
   onOpenDetail,
   onOpenReference,
 }: {
+  groupId: string;
+  serviceDate: string;
+  serviceTime: string;
   songs: WorshipSong[];
   plan: WorshipServicePlan | null;
   userId?: string;
@@ -772,7 +799,17 @@ function RehearsalAudioTab({
                   <p className="font-bold text-[var(--choir-heading)]">{song.title}</p>
                 </button>
                 {stem ? (
-                  <WorshipAudioPlayer className="mt-2 w-full" src={stem.audioUrl} fileName={stem.fileName} />
+                  <WorshipAudioPlayer
+                    className="mt-2 w-full"
+                    src={stem.audioUrl}
+                    fileName={stem.fileName}
+                    globalPlayer={{
+                      id: `rehearsal-${serviceDate}-${serviceTime}-${song.id}-${stem.role}`,
+                      title: `${song.title} · ${worshipPracticeStemLabel(stem.role)}`,
+                      kind: "worship-rehearsal",
+                      href: `/groups/${groupId}/rehearsal`,
+                    }}
+                  />
                 ) : (
                   <button type="button" className="choir-rehearsal-resource-btn mt-2" onClick={() => onOpenReference(song)}>
                     Open reference

@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { useDevotionPlayer } from "@/components/devotions/DevotionPlayerProvider";
+import { useShanahMediaOptional } from "@/components/media/ShanahMediaPlayerProvider";
+import { devotionHasAudio } from "@/lib/devotion-utils";
 
 export function DevotionMiniPlayer() {
   const { devotion, playing, paused, pause, resume, stop } = useDevotionPlayer();
+  const media = useShanahMediaOptional();
 
   if (!playing || !devotion) return null;
+  if (devotionHasAudio(devotion) && media?.item?.kind === "devotion-audio") return null;
 
   return (
     <div className="pointer-events-none fixed inset-x-0 z-[45] px-3 lg:px-6 bottom-[calc(5.6rem+env(safe-area-inset-bottom,0px))] lg:bottom-6">
