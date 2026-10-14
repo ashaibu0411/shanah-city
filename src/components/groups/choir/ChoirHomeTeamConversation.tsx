@@ -80,24 +80,24 @@ export function ChoirHomeTeamConversation({
 
   return (
     <section className="choir-home-chat-card choir-card overflow-hidden" aria-labelledby="choir-home-chat-heading">
-      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[var(--choir-border)] px-4 py-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
+      <div className="border-b border-[var(--choir-border)] px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <h2 id="choir-home-chat-heading" className="choir-section-heading text-base">
               Team conversation
             </h2>
             {titleSuffix}
             <LiveDot active={channel.connected && !channel.loading && !channel.status} />
           </div>
-          <p className="mt-0.5 text-xs text-[var(--choir-muted)]">Connect with your worship family.</p>
+          <Link
+            href={fullConversationHref}
+            onClick={() => void channel.markRead()}
+            className="shrink-0 text-xs font-bold text-[var(--choir-gold-dark)] underline-offset-2 hover:underline"
+          >
+            Full chat
+          </Link>
         </div>
-        <Link
-          href={fullConversationHref}
-          onClick={() => void channel.markRead()}
-          className="inline-flex min-h-[44px] shrink-0 items-center text-xs font-bold text-[var(--choir-gold-dark)]"
-        >
-          Open full conversation →
-        </Link>
+        <p className="mt-1 text-xs text-[var(--choir-muted)]">Connect with your worship family.</p>
       </div>
 
       {channel.status ? (
@@ -182,19 +182,17 @@ export function ChoirHomeTeamConversation({
         </div>
       ) : null}
 
-      <div className="choir-home-chat-composer border-t border-[var(--choir-border)] bg-[var(--choir-surface)] px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2">
+      <div className="choir-home-chat-composer border-t border-[var(--choir-border)] bg-[var(--choir-surface)] px-3 pb-[max(10px,env(safe-area-inset-bottom))] pt-2">
         <ChatComposer
           value={channel.draft}
           onChange={channel.setDraft}
           onSend={channel.sendMessage}
           busy={channel.busy}
-          placeholder={
-            channel.replyDraft ? "Write a reply…" : "Write a message to the team…"
-          }
+          placeholder={channel.replyDraft ? "Reply…" : "Message the team…"}
           onTyping={channel.sendTyping}
           onPickAttachment={channel.uploadAttachment}
           attachmentBusy={channel.attachmentBusy}
-          density="compact"
+          density="choir-home"
           vanishMode={channel.disappearingSeconds > 0}
           replyDraft={channel.replyDraft}
           onClearReply={() => channel.setReplyDraft(null)}

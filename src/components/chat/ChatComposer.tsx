@@ -30,7 +30,7 @@ type ChatComposerProps = {
   placeholder?: string;
   sendLabel?: string;
   allowAttachment?: boolean;
-  density?: "default" | "compact" | "whatsapp" | "instagram";
+  density?: "default" | "compact" | "whatsapp" | "instagram" | "choir-home";
   vanishMode?: boolean;
   onTyping?: (isTyping: boolean) => void;
   onPickAttachment?: (file: File) => Promise<PendingAttachment | null>;
@@ -186,6 +186,7 @@ export function ChatComposer({
 
   const canSend = Boolean(value.trim() || pendingAttachment);
   const compact = density === "compact";
+  const choirHome = density === "choir-home";
   const hub = density === "whatsapp" || density === "instagram";
   /** Instagram-style hub: trailing icons steal width from the text field while composing. */
   const composerTypingActive = value.trim().length > 0;
@@ -457,6 +458,92 @@ export function ChatComposer({
     );
   }
 
+  if (choirHome) {
+    return (
+      <div className="choir-home-composer-root">
+        {replyDraft && onClearReply ? (
+          <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
+        ) : null}
+        {renderVoiceStatusBanner()}
+        {renderPendingAttachmentPreview("choir-home-composer-attachment mb-2 flex items-center gap-2")}
+
+        {showEmojiPicker ? (
+          <div className="choir-home-composer-emoji mb-2 flex flex-wrap gap-1">
+            {QUICK_CHAT_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => appendEmoji(emoji)}
+                className="rounded-lg px-2 py-1 text-lg hover:bg-black/5"
+                aria-label={`Insert ${emoji}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="choir-home-composer-row">
+          <div className="choir-home-composer-field">
+            {mentionPicker("absolute bottom-full left-0 z-10 mb-1 w-[min(100vw-2.5rem,18rem)]")}
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={value}
+              onChange={handleComposerChange}
+              onClick={syncMentionCursor}
+              onKeyUp={syncMentionCursor}
+              placeholder={placeholder}
+              disabled={disabled}
+              className="choir-home-composer-input"
+              onKeyDown={handleComposerKeyDown}
+            />
+            <div className="choir-home-composer-inline-actions">
+              {allowAttachment && onPickAttachment ? (
+                <>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(event) => handleAttachmentPick(event.target.files?.[0] ?? null)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={disabled || attachmentBusy}
+                    className="choir-home-composer-inline-btn"
+                    aria-label="Add photo"
+                  >
+                    {attachmentBusy ? "…" : <HubGalleryIcon />}
+                  </button>
+                </>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker((current) => !current)}
+                disabled={disabled}
+                className="choir-home-composer-inline-btn"
+                aria-label="Add emoji"
+              >
+                <HubStickerIcon />
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={busy || disabled || !canSend}
+            className="choir-home-composer-send"
+            aria-label={busy ? "Sending…" : sendLabel}
+          >
+            {busy ? <span className="text-sm font-bold">…</span> : <HubSendIcon />}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (compact) {
     return (
       <>
@@ -548,7 +635,7 @@ export function ChatComposer({
             className={chatPremium.sendButton}
             aria-label={sendLabel}
           >
-            {busy ? "…" : sendLabel}
+            {busy ? "…" : <HubSendIcon />}
           </button>
         </div>
       </>
