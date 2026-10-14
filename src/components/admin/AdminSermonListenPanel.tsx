@@ -17,6 +17,8 @@ export function AdminSermonListenPanel() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [blobConfigured, setBlobConfigured] = useState(true);
+  const [databaseReady, setDatabaseReady] = useState(true);
 
   const parsedVideoId = useMemo(() => parseYouTubeVideoId(youtubeUrl), [youtubeUrl]);
 
@@ -35,6 +37,8 @@ export function AdminSermonListenPanel() {
     }
     setPublished(data.published ?? []);
     setLatestVideos(data.latestVideos ?? []);
+    setBlobConfigured(data.blobConfigured !== false);
+    setDatabaseReady(data.databaseReady !== false);
   }, [permissions.canManageAdmin]);
 
   useEffect(() => {
@@ -102,6 +106,19 @@ export function AdminSermonListenPanel() {
           Subsplash-style: paste the YouTube message, upload one audio file, and Listen works in the app
           immediately. Watch still uses YouTube.
         </p>
+
+        {!blobConfigured ? (
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-900 ring-1 ring-red-200" role="alert">
+            Vercel Blob is not configured (<code className="text-xs">BLOB_READ_WRITE_TOKEN</code>). Uploads will
+            fail until you connect Blob storage in the Vercel project and redeploy.
+          </p>
+        ) : null}
+        {!databaseReady ? (
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-900 ring-1 ring-red-200" role="alert">
+            Database table for sermon Listen is missing. Redeploy so migrations run, or run{" "}
+            <code className="text-xs">npx prisma migrate deploy</code> on production.
+          </p>
+        ) : null}
 
         <form className="mt-5 space-y-4" onSubmit={publish}>
           <div>

@@ -34,11 +34,16 @@ function mapRecord(record: {
 }
 
 export async function getSermonListenAudioUrl(youtubeVideoId: string): Promise<string | null> {
-  const row = await prisma.sermonListenAudio.findUnique({
-    where: { youtubeVideoId },
-    select: { audioUrl: true },
-  });
-  return row?.audioUrl?.trim() || null;
+  try {
+    const row = await prisma.sermonListenAudio.findUnique({
+      where: { youtubeVideoId },
+      select: { audioUrl: true },
+    });
+    return row?.audioUrl?.trim() || null;
+  } catch (error) {
+    console.error("[sermon-listen] database read failed", error);
+    return null;
+  }
 }
 
 export async function listSermonListenRecords(limit = 40): Promise<SermonListenRecord[]> {

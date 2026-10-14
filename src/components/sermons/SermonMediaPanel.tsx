@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { SermonYouTubeEmbed } from "@/components/sermons/SermonYouTubeEmbed";
 import { useSermonPlayer } from "@/components/sermons/SermonPlayerProvider";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
@@ -22,6 +24,7 @@ export function SermonMediaPanel({
   className = "",
 }: SermonMediaPanelProps) {
   const [showVideo, setShowVideo] = useState(false);
+  const { permissions } = useAuth();
   const { playAudio, loading, error, isCurrent, pause, resume, paused, playing } = useSermonPlayer();
   const listening = isCurrent(video.id);
 
@@ -69,12 +72,17 @@ export function SermonMediaPanel({
         </div>
       )}
       {error ? (
-        <p
+        <div
           className="mx-3 mb-3 mt-1 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-950 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-800/50"
           role="alert"
         >
-          {error}
-        </p>
+          <p>{error}</p>
+          {permissions.canManageAdmin ? (
+            <Link href="/admin/sermons" className="mt-2 inline-block font-bold text-teal-900 underline">
+              Publish Listen audio for this message →
+            </Link>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

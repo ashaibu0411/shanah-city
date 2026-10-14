@@ -33,6 +33,14 @@ export async function saveSermonAudioFile(file: File) {
     throw new Error("Upload an audio file under 120 MB (mp3, m4a, wav, ogg, webm).");
   }
 
+  if (!useBlobStorage()) {
+    if (process.env.VERCEL) {
+      throw new Error(
+        "Server file storage is not configured. In Vercel, add a Blob store and set BLOB_READ_WRITE_TOKEN, then redeploy.",
+      );
+    }
+  }
+
   if (useBlobStorage()) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);

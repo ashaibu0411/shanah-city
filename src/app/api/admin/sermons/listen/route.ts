@@ -10,8 +10,18 @@ import {
   upsertSermonListenRecord,
 } from "@/lib/stores/sermon-listen-db";
 import { loadChannelSermons } from "@/lib/youtube-sermons-server";
+import { isBlobConfigured } from "@/lib/use-blob";
 
 export const runtime = "nodejs";
+
+async function checkDatabaseReady() {
+  try {
+    await listSermonListenRecords(1);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -22,14 +32,17 @@ export async function GET() {
     return NextResponse.json({ error: "Admin access required." }, { status: 403 });
   }
 
-  const [published, latestVideos] = await Promise.all([
-    listSermonListenRecords(),
+  const [published, latestVideos, databaseReady] = await Promise.all([
+    listSermonListenRecords().catch(() => [] as Awaited<ReturnType<typeof listSermonListenRecords>>),
     loadChannelSermons(8),
+    checkDatabaseReady(),
   ]);
 
   return NextResponse.json({
     published,
     latestVideos,
+    blobConfigured: isBlobConfigured(),
+    databaseReady,
   });
 }
 
