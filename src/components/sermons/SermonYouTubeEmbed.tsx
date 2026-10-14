@@ -41,14 +41,20 @@ export function SermonYouTubeEmbed({ videoId, title, className = "" }: SermonYou
           referrerPolicy="strict-origin-when-cross-origin"
         />
       </div>
-      <a
-        href={watchUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block px-3 py-2 text-xs font-semibold text-teal-700 hover:underline dark:text-teal-300"
-      >
-        Open on YouTube
-      </a>
+      <div className="border-t border-white/10 px-3 py-2">
+        <a
+          href={watchUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-semibold text-teal-300 hover:underline"
+        >
+          Open on YouTube
+        </a>
+        <p className="mt-1.5 text-[11px] leading-snug text-sand-400">
+          YouTube Premium in the YouTube app may allow background play there. In Shanah City, use Listen for
+          in-app background audio.
+        </p>
+      </div>
     </div>
   );
 }

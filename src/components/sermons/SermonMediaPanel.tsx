@@ -16,6 +16,30 @@ type SermonMediaPanelProps = {
   className?: string;
 };
 
+function SermonPlaybackHint({ compact, watching }: { compact: boolean; watching: boolean }) {
+  if (watching) {
+    return (
+      <p
+        className={`leading-relaxed text-sand-300/95 ${compact ? "mt-2 px-1 text-[11px]" : "mt-3 text-xs"}`}
+      >
+        Video plays while you stay in Shanah City. If you open another app or lock your phone, YouTube usually
+        stops. For audio while multitasking, tap Listen once audio is published for this message.
+      </p>
+    );
+  }
+
+  return (
+    <p
+      className={`leading-snug text-night-600 dark:text-sand-400 ${
+        compact ? "mx-3 mt-2 text-[11px]" : "mx-4 mt-2 text-xs"
+      }`}
+    >
+      Watch is for video in the app. Listen is for background audio in other apps after your team publishes an
+      audio file for this message.
+    </p>
+  );
+}
+
 export function SermonMediaPanel({
   video,
   title,
@@ -40,6 +64,7 @@ export function SermonMediaPanel({
           >
             Hide video
           </button>
+          <SermonPlaybackHint compact={compact} watching />
         </div>
       ) : (
         <div className={`relative ${compact ? "aspect-video" : "aspect-video md:min-h-[280px] md:aspect-auto md:h-full"}`}>
@@ -71,6 +96,7 @@ export function SermonMediaPanel({
           </div>
         </div>
       )}
+      {!showVideo ? <SermonPlaybackHint compact={compact} watching={false} /> : null}
       {error ? (
         <div
           className="mx-3 mb-3 mt-1 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium leading-relaxed text-amber-950 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-100 dark:ring-amber-800/50"
