@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { getSermonListenAudioUrl } from "@/lib/stores/sermon-listen-db";
 
 type PipedStreamResponse = {
   audioStreams?: { url?: string; mimeType?: string; bitrate?: number }[];
@@ -28,6 +29,10 @@ export type SermonAudioPlaybackResolution =
   | { kind: "proxy"; upstreamUrl: string };
 
 let overrideMapCache: Record<string, string> | null = null;
+
+export function invalidateSermonAudioOverrideCache() {
+  overrideMapCache = null;
+}
 
 function loadSermonAudioOverrides(): Record<string, string> {
   if (overrideMapCache) return overrideMapCache;
@@ -146,6 +151,11 @@ export async function resolveSermonAudioPlayback(
   const id = youtubeVideoId.trim();
   if (!/^[a-zA-Z0-9_-]{11}$/.test(id)) return null;
 
+  const fromDb = await getSermonListenAudioUrl(id);
+  if (fromDb) {
+    return { kind: "direct", url: fromDb };
+  }
+
   const override = getSermonAudioOverride(id);
   if (override) {
     return { kind: "direct", url: override };
@@ -161,6 +171,9 @@ export async function resolveSermonAudioPlayback(
 export async function resolveSermonStreamUpstream(youtubeVideoId: string): Promise<string | null> {
   const id = youtubeVideoId.trim();
   if (!/^[a-zA-Z0-9_-]{11}$/.test(id)) return null;
+
+  const fromDb = await getSermonListenAudioUrl(id);
+  if (fromDb) return fromDb;
 
   const override = getSermonAudioOverride(id);
   if (override) return override;

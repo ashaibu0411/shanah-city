@@ -18,6 +18,12 @@ export const ADMIN_PORTAL_LINKS = [
     adminOnly: true,
   },
   {
+    href: "/admin/sermons",
+    label: "Sermon Listen",
+    description: "YouTube + Listen audio uploads",
+    adminOnly: true,
+  },
+  {
     href: "/admin/approvals",
     label: "Approvals",
     description: "Ministry membership requests",

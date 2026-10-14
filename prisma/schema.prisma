@@ -1381,3 +1381,15 @@ model CoupleHubAnnouncement {
   updatedByName String?
   updatedAt     DateTime @updatedAt
 }
+
+/** Authorized Listen audio paired with a YouTube sermon video id. */
+model SermonListenAudio {
+  youtubeVideoId String   @id
+  title          String?
+  audioUrl       String
+  audioFileName  String?
+  uploadedById   String?
+  uploadedByName String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
