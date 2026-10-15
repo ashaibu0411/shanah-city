@@ -1127,6 +1127,19 @@
   background: var(--choir-hero-dark);
 }
 
+.choir-calendar-page .choir-calendar-hero img {
+  object-fit: cover;
+  object-position: center 22%;
+}
+
+.choir-connect-page .choir-calendar-hero {
+  min-height: 180px;
+}
+
+.choir-connect-page .choir-calendar-hero img {
+  object-position: center 18%;
+}
+
 .choir-calendar-page .choir-calendar-hero-overlay {
   position: absolute;
   inset: 0;
@@ -1924,6 +1937,7 @@
   width: 100%;
   border-radius: 10px;
   object-fit: cover;
+  object-position: center 22%;
 }
 
 .choir-connect-page .choir-connect-pinned-title {

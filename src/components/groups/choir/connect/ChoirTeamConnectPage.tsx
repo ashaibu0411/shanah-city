@@ -228,7 +228,7 @@ function TeamConnectHomeView({
   return (
     <div className="space-y-5">
       <div className="choir-calendar-hero choir-page-bleed">
-        <Image src={CHOIR_HERO_IMAGE_PATH} alt="" fill className="object-cover object-center" sizes="100vw" priority />
+        <Image src={CHOIR_HERO_IMAGE_PATH} alt="" fill className="object-cover" sizes="100vw" priority />
         <div className="choir-calendar-hero-overlay" />
         <div className="choir-calendar-hero-copy">
           <p className="choir-calendar-hero-kicker">Team connect</p>
