@@ -24,7 +24,16 @@
     "mobile:splash": "node scripts/generate-splash-screens.cjs",
     "mobile:ios:screenshots": "node scripts/capture-app-store-screenshots.cjs && node scripts/compose-app-store-screenshots.cjs",
     "mobile:ios:screenshots:ipad": "node scripts/compose-app-store-ipad-screenshots.cjs",
-    "training:choir-pdf": "node scripts/render-choir-training-pdf.mjs"
+    "training:choir-pdf": "node scripts/render-choir-training-pdf.mjs",
+    "test:marriage": "node scripts/marriage-counseling-workflow.test.mjs",
+    "test:marriage:e2e": "tsx scripts/marriage-counseling-integration.ts",
+    "test:marriage:security": "node scripts/marriage-api-security.test.mjs",
+    "test:marriage:playwright": "playwright test e2e/marriage-two-partner-journey.spec.ts e2e/marriage-stage2-phase2b.spec.ts",
+    "test:marriage:playwright:install": "playwright install chromium",
+    "test:marriage:all": "npm run test:marriage && npm run test:marriage:security && npm run test:marriage:e2e",
+    "test:marriage:stage2": "tsx scripts/marriage-stage2-integration.ts",
+    "test:marriage:phase2a": "tsx scripts/marriage-stage2-phase2a.ts",
+    "test:marriage:phase2b": "tsx scripts/marriage-stage2-phase2b.ts"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "^8.0.2",
@@ -68,6 +77,7 @@
     "@types/web-push": "^3.6.4",
     "postcss": "^8.4.49",
     "prisma": "^7.9.1",
+    "@playwright/test": "^1.55.0",
     "puppeteer": "^24.36.1",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.23.12",

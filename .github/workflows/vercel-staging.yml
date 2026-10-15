@@ -1,0 +1,38 @@
+name: Vercel Staging Deploy
+
+# Deploys the STAGING Vercel project only (separate from production shanah-city).
+# Setup (one time):
+# 1. Create Vercel project "shanah-city-staging" with Production Branch = staging
+# 2. Vercel → that project → Settings → Git → Deploy Hooks → Create (branch: staging)
+# 3. GitHub → repo Settings → Secrets → Actions → VERCEL_STAGING_DEPLOY_HOOK = hook URL
+# Do NOT put this URL in VERCEL_DEPLOY_HOOK (production).
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-staging-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  trigger-vercel-staging:
+    name: Trigger Vercel staging build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: POST staging deploy hook
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_STAGING_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "::warning::VERCEL_STAGING_DEPLOY_HOOK is not set. Skipping staging deploy hook."
+            echo "Configure the staging Vercel project deploy hook, or deploy manually in Vercel."
+            exit 0
+          fi
+          echo "Triggering Vercel STAGING deploy hook for ${GITHUB_SHA}"
+          curl --fail --silent --show-error --request POST "$DEPLOY_HOOK"
+          echo "Staging deploy hook triggered."

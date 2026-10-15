@@ -1,3 +1,4 @@
+import { MarriageCommunityPromo } from "@/components/marriage/MarriageCommunityPromo";
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { CommunityStatusRow } from "@/components/community/CommunityStatusRow";
 import { PollsSection } from "@/components/polls/PollsSection";
@@ -66,6 +67,7 @@ export default async function CommunityPage({
         >
           See moments from your groups and friends, pray in one tap, and stay connected day to day.
         </p>
+        <MarriageCommunityPromo />
         <MarkFeedRead feed="community" />
         <PollsSection
           initialPolls={polls.filter((poll) => !poll.targetGroupId)}

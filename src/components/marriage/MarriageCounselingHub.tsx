@@ -1,0 +1,380 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
+import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
+import type { MarriageHubSummary, MarriageProgramType } from "@/lib/marriage-counseling-types";
+import { readJsonResponse } from "@/lib/read-json-response";
+import { MarriageStage2HubPromo } from "@/components/marriage/MarriageStage2HubPromo";
+import { isMarriageStage2ClientEnabled } from "@/lib/marriage-stage2-feature";
+
+function statusLabel(mod: MarriageHubSummary["modules"][0]) {
+  if (mod.comparisonReady) return "Compare ready";
+  if (mod.myStatus === "submitted" && mod.partnerStatus !== "submitted") return "Waiting for partner";
+  if (mod.myStatus === "draft") return "In progress";
+  if (mod.myStatus === "submitted") return "Submitted";
+  return "Not started";
+}
+
+export function MarriageCounselingHub() {
+  const router = useRouter();
+  const [hub, setHub] = useState<MarriageHubSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [starting, setStarting] = useState<MarriageProgramType | null>(null);
+
+  const load = useCallback(async () => {
+    setError("");
+    const res = await fetch("/api/marriage/hub", { cache: "no-store" });
+    const data = await readJsonResponse<MarriageHubSummary & { error?: string }>(res);
+    if (!res.ok) {
+      setError(data.error ?? "Could not load hub.");
+      setHub(null);
+    } else {
+      setHub(data);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function startInviteProgram(programType: MarriageProgramType) {
+    setStarting(programType);
+    setError("");
+    try {
+      const res = await fetch("/api/marriage/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create", programType }),
+      });
+      const data = await readJsonResponse<{ error?: string }>(res);
+      if (!res.ok) throw new Error(data.error ?? "Could not start journey.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not start.");
+    } finally {
+      setStarting(null);
+    }
+  }
+
+  async function startProgram(programType: MarriageProgramType) {
+    setStarting(programType);
+    setError("");
+    try {
+      const res = await fetch("/api/marriage/journey", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "start", programType }),
+      });
+      const data = await readJsonResponse<{ error?: string }>(res);
+      if (!res.ok) throw new Error(data.error ?? "Could not start journey.");
+      await load();
+      router.push("/marriage/consent");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not start.");
+    } finally {
+      setStarting(null);
+    }
+  }
+
+  async function recordConsent() {
+    if (!hub?.journey) return;
+    setError("");
+    const res = await fetch("/api/marriage/journey", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "consent", journeyId: hub.journey.id }),
+    });
+    const data = await readJsonResponse<{ error?: string }>(res);
+    if (!res.ok) setError(data.error ?? "Consent failed.");
+    else await load();
+  }
+
+  if (loading) {
+    return (
+      <div className={marriagePremium.page}>
+        <div className={marriagePremium.inset}>
+          <p className={marriagePremium.cardMuted}>Loading your journey…</p>
+        </div>
+      </div>
+    );
+  }
+
+  const journey = hub?.journey;
+  const needsConsent = journey && !hub?.myConsent;
+  const inProgressModule = hub?.modules.find(
+    (m) => m.myStatus === "draft" || (m.myStatus !== "submitted" && m.partnerStatus === "submitted"),
+  );
+  const continueModule =
+    inProgressModule ?? hub?.modules.find((m) => m.myStatus !== "submitted");
+
+  return (
+    <div className={marriagePremium.page}>
+      <div className={marriagePremium.inset}>
+        <div className={marriagePremium.hero}>
+          <p className={marriagePremium.sectionLabel}>Marriage &amp; Relationships</p>
+          <h1 className={marriagePremium.heroTitle}>Before We Say &ldquo;I Do&rdquo;</h1>
+          <p className={marriagePremium.heroLead}>
+            A private, self-guided journey for you and your partner — with shared comparisons unlocked
+            only after you both submit.
+          </p>
+        </div>
+
+        {error && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
+
+        {!hub?.coupleLinkActive && !journey && (
+          <div className="mt-6 space-y-4">
+            <CouplesLinkGate pendingIncoming={hub?.pendingPartnerLink} tone="sheet" />
+            <div className={marriagePremium.card}>
+              <p className="font-semibold">Premarital without spouse link</p>
+              <p className={`${marriagePremium.cardMuted} mt-2`}>
+                Start a journey and share an invitation code — your partner joins with their own login.
+                This does not mark you as married in Power Couples.
+              </p>
+              <button
+                type="button"
+                className={`${marriagePremium.primaryCta} mt-3`}
+                disabled={starting !== null}
+                onClick={() => startInviteProgram("premarital")}
+              >
+                {starting === "premarital" ? "Creating…" : "Start with invitation code"}
+              </button>
+              <Link href="/marriage/join" className={`${marriagePremium.secondaryCta} mt-2`}>
+                Join with a code
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {hub?.coupleLinkActive && !journey && (
+          <div className="mt-6 space-y-3">
+            <p className={marriagePremium.cardMuted}>
+              Choose a program. Power Couples membership is not required.
+            </p>
+            <button
+              type="button"
+              className={marriagePremium.primaryCta}
+              disabled={starting !== null}
+              onClick={() => startProgram("premarital")}
+            >
+              {starting === "premarital" ? "Starting…" : "Start premarital journey"}
+            </button>
+            <button
+              type="button"
+              className={marriagePremium.secondaryCta}
+              disabled={starting !== null}
+              onClick={() => startProgram("enrichment")}
+            >
+              {starting === "enrichment" ? "Starting…" : "Start marriage enrichment"}
+            </button>
+            <Link href="/marriage/about" className={`${marriagePremium.secondaryCta} mt-2`}>
+              Learn about the program
+            </Link>
+          </div>
+        )}
+
+        {journey && needsConsent && (
+          <div className={`${marriagePremium.card} mt-6`}>
+            <p className="font-display text-base font-semibold">Consent &amp; privacy</p>
+            <p className={`${marriagePremium.cardMuted} mt-2`}>
+              Answers marked shared appear to your partner only after you both submit. Private and
+              counselor-only responses are never shown to your partner without consent. This tool
+              supports pastoral preparation — not emergency or clinical care.
+            </p>
+            <button type="button" className={`${marriagePremium.primaryCta} mt-4`} onClick={() => recordConsent()}>
+              I understand — continue
+            </button>
+          </div>
+        )}
+
+        {journey && hub.myConsent && (
+          <>
+            <div className={`${marriagePremium.card} mt-6`}>
+              <p className={marriagePremium.sectionLabel}>My journey</p>
+              <p className="mt-1 font-display text-lg font-semibold capitalize">
+                {hub.programType?.replace("_", " ")}
+              </p>
+              {hub.partnerName && (
+                <p className={`${marriagePremium.cardMuted} mt-1`}>With {hub.partnerName}</p>
+              )}
+              {!hub.partnerJoined && hub.pendingInviteCode && (
+                <div className="mt-3 rounded-xl bg-clay-50 px-3 py-2 dark:bg-clay-950/40">
+                  <p className="text-xs font-bold uppercase text-clay-800 dark:text-clay-200">Partner invite code</p>
+                  <p className="font-mono text-lg font-bold tracking-widest">{hub.pendingInviteCode}</p>
+                  <p className={`${marriagePremium.cardMuted} mt-1`}>Share privately; expires in 14 days.</p>
+                </div>
+              )}
+              {hub.partnerJoined && !hub.partnerConsent && (
+                <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">
+                  Waiting for your partner to accept consent on their device.
+                </p>
+              )}
+            </div>
+
+            {isMarriageStage2ClientEnabled() && hub.stage2?.enabled && (
+              <MarriageStage2HubPromo
+                resumeModuleId={hub.stage2.resumeModuleId}
+                activitiesCompleted={hub.stage2.modulesCompleted}
+                activitiesTotal={hub.stage2.activitiesTotal}
+              />
+            )}
+
+            {continueModule && (
+              <div className="mt-4">
+                <Link
+                  href={`/marriage/module/${continueModule.moduleId}`}
+                  className={marriagePremium.primaryCta}
+                >
+                  Continue assessment
+                </Link>
+              </div>
+            )}
+
+            {hub.upcomingHomework.length > 0 && (
+              <div className={`${marriagePremium.card} mt-4`}>
+                <p className={marriagePremium.sectionLabel}>Homework</p>
+                <ul className="mt-2 space-y-2">
+                  {hub.upcomingHomework.map((item) => (
+                    <li key={item.id} className="text-sm">
+                      <p className="font-semibold">{item.title}</p>
+                      {item.dueAt && (
+                        <p className="text-xs text-night-500">
+                          Due {new Date(item.dueAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        className="mt-1 text-xs font-bold text-clay-700 underline"
+                        onClick={async () => {
+                          await fetch("/api/marriage/assignments", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ assignmentId: item.id }),
+                          });
+                          await load();
+                        }}
+                      >
+                        Mark complete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {hub.nextSession && (
+              <div className={`${marriagePremium.card} mt-4`}>
+                <p className={marriagePremium.sectionLabel}>Upcoming counseling</p>
+                {hub.nextSession.topic && (
+                  <p className="text-sm font-medium">{hub.nextSession.topic}</p>
+                )}
+                <p className="mt-1 text-sm font-semibold">
+                  {new Date(hub.nextSession.scheduledAt).toLocaleString(undefined, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </p>
+                {hub.nextSession.zoomUrl && (
+                  <a
+                    href={hub.nextSession.zoomUrl}
+                    className="mt-2 inline-block text-sm font-semibold text-clay-700 underline"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open Zoom link
+                  </a>
+                )}
+              </div>
+            )}
+
+            <div className="mt-6">
+              <p className={`${marriagePremium.sectionLabel} mb-3`}>Learning modules</p>
+              <ul className="space-y-2">
+                {hub.modules.map((mod) => (
+                  <li key={mod.moduleId} className={marriagePremium.moduleRow}>
+                    <Link href={`/marriage/module/${mod.moduleId}`} className="min-w-0 flex-1">
+                      <span className="block text-sm font-semibold">{mod.title}</span>
+                      <span className="block text-xs text-night-500 dark:text-sand-400">
+                        {statusLabel(mod)}
+                      </span>
+                    </Link>
+                    {mod.comparisonReady && (
+                      <Link
+                        href={`/marriage/module/${mod.moduleId}/compare`}
+                        className="shrink-0 rounded-full bg-clay-100 px-3 py-1 text-xs font-bold text-clay-900 dark:bg-clay-800 dark:text-clay-50"
+                      >
+                        Compare
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-6 grid gap-2">
+              <Link href="/marriage/journal" className={marriagePremium.secondaryCta}>
+                Couple journal
+              </Link>
+              <Link href="/couples" className={marriagePremium.secondaryCta}>
+                Power Couples resources (optional)
+              </Link>
+              {hub.isCounselor && (
+                <Link href="/marriage/counselor" className={marriagePremium.secondaryCta}>
+                  Counselor workspace
+                </Link>
+              )}
+              {hub.isCurriculumAdmin && (
+                <Link href="/marriage/admin/curriculum" className={marriagePremium.secondaryCta}>
+                  Curriculum administration
+                </Link>
+              )}
+              {journey && (
+                <>
+                  <button
+                    type="button"
+                    className={marriagePremium.secondaryCta}
+                    onClick={async () => {
+                      const res = await fetch(`/api/marriage/privacy?journeyId=${journey.id}`);
+                      const data = await res.json();
+                      if (res.ok) {
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `marriage-journey-${journey.id}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      } else setError(data.error ?? "Export failed.");
+                    }}
+                  >
+                    Export my journey data
+                  </button>
+                  <button
+                    type="button"
+                    className={marriagePremium.secondaryCta}
+                    onClick={async () => {
+                      const res = await fetch("/api/marriage/privacy", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "request_deletion", journeyId: journey.id }),
+                      });
+                      const data = await readJsonResponse<{ error?: string; message?: string }>(res);
+                      if (!res.ok) setError(data.error ?? "Request failed.");
+                      else setError(data.message ?? "Deletion request submitted.");
+                    }}
+                  >
+                    Request journey deletion
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

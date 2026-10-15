@@ -10,6 +10,9 @@
 
 # testing
 /coverage
+/.e2e-isolated/
+/playwright-report/
+/test-results/
 
 # next.js
 /.next/
@@ -40,6 +43,7 @@ yarn-error.log*
 # env files
 .env*
 !.env.example
+!.env.staging.example
 
 # member data (local dev — use a database in production)
 /data/users.json

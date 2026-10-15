@@ -1434,3 +1434,254 @@ model SermonListenAudio {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
+
+model MarriageCounselingJourney {
+  id                     String    @id
+  coupleLinkId           String    @default("")
+  programType            String
+  status                 String    @default("active")
+  currentModuleId        String?
+  counselorUserId        String?
+  createdBy              String
+  createdAt              DateTime
+  updatedAt              DateTime
+  completedAt            DateTime?
+  pairingMode            String    @default("spouse_link")
+  participantAId         String?
+  participantBId         String?
+  guidedModuleIdsJson    String?
+  curriculumVersion      String?
+  counselorAccessRevokedAt DateTime?
+  deletionRequestedAt    DateTime?
+
+  @@index([coupleLinkId])
+  @@index([counselorUserId])
+  @@index([status])
+  @@index([participantAId])
+  @@index([participantBId])
+}
+
+model MarriageJourneyConsent {
+  journeyId      String
+  userId         String
+  consentVersion String
+  consentedAt    DateTime
+
+  @@id([journeyId, userId])
+}
+
+model MarriageAssessmentResponse {
+  id                 String    @id
+  journeyId          String
+  moduleId           String
+  contentVersion     String
+  userId             String
+  status             String    @default("draft")
+  answersJson        String
+  lastSavedAt        DateTime
+  submittedAt        DateTime?
+  revisionGeneration Int       @default(0)
+
+  @@unique([journeyId, moduleId, userId])
+  @@index([journeyId, moduleId])
+}
+
+model MarriageComparisonUnlock {
+  journeyId      String
+  moduleId       String
+  contentVersion String
+  unlockedAt     DateTime
+
+  @@id([journeyId, moduleId, contentVersion])
+}
+
+model MarriageJournalEntry {
+  id         String   @id
+  journeyId  String
+  authorId   String
+  authorName String
+  visibility String
+  kind       String
+  body       String
+  moduleId   String?
+  createdAt  DateTime
+  updatedAt  DateTime
+
+  @@index([journeyId, createdAt])
+}
+
+model MarriageCounselingSession {
+  id                     String   @id
+  journeyId              String
+  scheduledAt            DateTime
+  zoomUrl                String?
+  notes                  String?
+  topic                  String?
+  status                 String   @default("scheduled")
+  prepModuleIdsJson      String?
+  homeworkAssignmentIdsJson String?
+  createdBy              String
+  createdAt              DateTime
+  updatedAt              DateTime?
+  completedAt            DateTime?
+  cancelledAt            DateTime?
+
+  @@index([journeyId, scheduledAt])
+}
+
+model MarriageCounselorAssignment {
+  id                 String   @id
+  journeyId          String
+  counselorUserId    String
+  title              String
+  description        String?
+  moduleId           String?
+  dueAt              DateTime?
+  completedByJson    String   @default("[]")
+  sessionId          String?
+  createdAt          DateTime
+
+  @@index([journeyId, dueAt])
+}
+
+model MarriageJourneyInvite {
+  id               String    @id
+  code             String    @unique
+  journeyId        String
+  createdBy        String
+  intendedEmail    String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  acceptedByUserId String?
+  acceptedAt       DateTime?
+  createdAt        DateTime
+
+  @@index([journeyId])
+}
+
+model MarriageRevisionRequest {
+  id          String    @id
+  journeyId   String
+  moduleId    String
+  userId      String
+  reason      String?
+  status      String    @default("pending")
+  requestedAt DateTime
+  resolvedAt  DateTime?
+  resolvedBy  String?
+
+  @@index([journeyId, status])
+}
+
+model MarriageAuditLog {
+  id          String   @id
+  at          DateTime
+  actorUserId String
+  action      String
+  journeyId   String?
+  targetUserId String?
+  metaJson    String?
+
+  @@index([journeyId, at])
+}
+
+model MarriageDiscussionMark {
+  id              String   @id
+  journeyId       String
+  moduleId        String
+  questionId      String
+  markedByUserId  String
+  sharedNote      String?
+  markedAt        DateTime
+
+  @@unique([journeyId, moduleId, questionId, markedByUserId])
+  @@index([journeyId, moduleId])
+}
+
+model MarriageCounselorNote {
+  id              String   @id
+  journeyId       String
+  counselorUserId String
+  body            String
+  createdAt       DateTime
+  updatedAt       DateTime
+
+  @@index([journeyId])
+}
+
+model MarriageCurriculumVersion {
+  id             String    @id
+  version        String
+  status         String
+  modulesJson    String
+  createdBy      String
+  createdByName  String
+  createdAt      DateTime
+  updatedAt      DateTime
+  publishedAt    DateTime?
+  basedOnVersion String?
+
+  @@index([status])
+  @@index([version])
+}
+
+model MarriageProgramTrack {
+  programType String   @id
+  entriesJson String
+  updatedAt   DateTime
+  updatedBy   String
+}
+
+model MarriageActionPlan {
+  id              String    @id
+  journeyId       String
+  moduleId        String?
+  title           String
+  createdByUserId String
+  itemsJson       String
+  status          String    @default("draft")
+  agreedAt        DateTime?
+  createdAt       DateTime
+  updatedAt       DateTime
+
+  @@index([journeyId, updatedAt])
+}
+
+model MarriageSharedGoal {
+  id                 String    @id
+  journeyId          String
+  title              String
+  description        String?
+  category           String
+  createdByUserId    String
+  acknowledgedByJson String    @default("[]")
+  targetDate         DateTime?
+  createdAt          DateTime
+  updatedAt          DateTime
+
+  @@index([journeyId, updatedAt])
+}
+
+model MarriageSharingConsent {
+  journeyId  String
+  moduleId   String
+  questionId String
+  userId     String
+  granted    Boolean  @default(false)
+  updatedAt  DateTime
+
+  @@id([journeyId, moduleId, questionId, userId])
+  @@index([journeyId, moduleId])
+}
+
+model MarriageActivitySyncSession {
+  id              String   @id
+  journeyId       String
+  moduleId        String
+  startedByUserId String
+  status          String   @default("open")
+  createdAt       DateTime
+  updatedAt       DateTime
+
+  @@index([journeyId, moduleId, status])
+}

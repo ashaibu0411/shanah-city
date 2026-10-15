@@ -38,7 +38,12 @@ import type {
   GroupVisibility,
 } from "@/lib/group-types";
 
-const GROUPS_FILE = path.join(process.cwd(), "data", "groups.json");
+function groupsDataDir() {
+  const override = process.env.GROUPS_DATA_DIR?.trim();
+  return override ? path.resolve(override) : path.join(process.cwd(), "data");
+}
+
+const groupsFile = () => path.join(groupsDataDir(), "groups.json");
 
 async function readJson<T>(file: string, fallback: T): Promise<T> {
   try {
@@ -56,12 +61,12 @@ async function writeJson<T>(file: string, data: T) {
 
 export async function getGroups() {
   await ensureChurchGroups();
-  const groups = await readJson<Group[]>(GROUPS_FILE, []);
+  const groups = await readJson<Group[]>(groupsFile(), []);
   return groups.filter((group) => !isDeprecatedPastoralRoleGroup(group.id));
 }
 
 async function ensureChurchGroups() {
-  const groups = await readJson<Group[]>(GROUPS_FILE, []);
+  const groups = await readJson<Group[]>(groupsFile(), []);
   const users = await getUsers();
   const leaderIds = users.filter((user) => user.role === "leader").map((user) => user.id);
   const bootstrapEmail = process.env.ADMIN_BOOTSTRAP_EMAIL?.trim().toLowerCase();
@@ -138,7 +143,7 @@ export async function getSignupGroupOptions() {
 }
 
 async function saveGroups(groups: Group[]) {
-  await writeJson(GROUPS_FILE, groups);
+  await writeJson(groupsFile(), groups);
 }
 
 async function filterGroupsForUser(

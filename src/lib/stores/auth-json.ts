@@ -12,10 +12,14 @@ import type {
 import { normalizeDisplayName } from "@/lib/member-display-name";
 import { parseMemberParticipationType } from "@/lib/member-participation";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const USERS_FILE = path.join(DATA_DIR, "users.json");
-const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
-const ACTIVITY_FILE = path.join(DATA_DIR, "activity.json");
+function authDataDir() {
+  const override = process.env.AUTH_DATA_DIR?.trim();
+  return override ? path.resolve(override) : path.join(process.cwd(), "data");
+}
+
+const usersFile = () => path.join(authDataDir(), "users.json");
+const sessionsFile = () => path.join(authDataDir(), "sessions.json");
+const activityFile = () => path.join(authDataDir(), "activity.json");
 export const SESSION_DAYS = 30;
 
 async function readJson<T>(file: string, fallback: T): Promise<T> {
@@ -28,7 +32,7 @@ async function readJson<T>(file: string, fallback: T): Promise<T> {
 }
 
 async function writeJson<T>(file: string, data: T) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.mkdir(authDataDir(), { recursive: true });
   await fs.writeFile(file, JSON.stringify(data, null, 2));
 }
 
@@ -38,7 +42,7 @@ export function toPublicMember(user: MemberProfile): PublicMember {
 }
 
 export async function getUsers() {
-  return readJson<MemberProfile[]>(USERS_FILE, []);
+  return readJson<MemberProfile[]>(usersFile(), []);
 }
 
 export async function getUserByEmail(email: string) {
@@ -92,7 +96,7 @@ export async function createUser(input: {
 
   const users = await getUsers();
   users.push(user);
-  await writeJson(USERS_FILE, users);
+  await writeJson(usersFile(), users);
   await logActivity(user.id, "signup", "Created Shanah City account");
   return user;
 }
@@ -138,7 +142,7 @@ export async function updateUserProfile(
   }
 
   users[index] = next;
-  await writeJson(USERS_FILE, users);
+  await writeJson(usersFile(), users);
   await logActivity(userId, "profile_update", "Updated profile");
   return users[index];
 }
@@ -150,7 +154,7 @@ export async function addFamilyMember(userId: string, member: FamilyMember) {
 
   users[index].family = [...users[index].family, member];
   users[index].updatedAt = new Date().toISOString();
-  await writeJson(USERS_FILE, users);
+  await writeJson(usersFile(), users);
   await logActivity(userId, "family_added", `Added ${member.name} to family`);
   return users[index];
 }
@@ -173,7 +177,7 @@ export async function updateFamilyMember(
     name: update.name?.trim() ?? users[index].family[memberIndex].name,
   };
   users[index].updatedAt = new Date().toISOString();
-  await writeJson(USERS_FILE, users);
+  await writeJson(usersFile(), users);
   await logActivity(userId, "family_updated", `Updated family member`);
   return users[index];
 }
@@ -185,16 +189,16 @@ export async function removeFamilyMember(userId: string, memberId: string) {
 
   users[index].family = users[index].family.filter((member) => member.id !== memberId);
   users[index].updatedAt = new Date().toISOString();
-  await writeJson(USERS_FILE, users);
+  await writeJson(usersFile(), users);
   return users[index];
 }
 
 async function getSessions() {
-  return readJson<{ token: string; userId: string; expiresAt: string }[]>(SESSIONS_FILE, []);
+  return readJson<{ token: string; userId: string; expiresAt: string }[]>(sessionsFile(), []);
 }
 
 async function saveSessions(sessions: { token: string; userId: string; expiresAt: string }[]) {
-  await writeJson(SESSIONS_FILE, sessions);
+  await writeJson(sessionsFile(), sessions);
 }
 
 export async function createSession(userId: string) {
@@ -226,7 +230,7 @@ export async function getUserFromSession(token?: string | null) {
 }
 
 export async function getActivity(userId: string) {
-  const activity = await readJson<ActivityItem[]>(ACTIVITY_FILE, []);
+  const activity = await readJson<ActivityItem[]>(activityFile(), []);
   return activity.filter((item) => item.userId === userId).slice(0, 20);
 }
 
@@ -257,7 +261,7 @@ export async function updateNotificationPrefs(
     kids: prefs.kids ?? users[index].notificationPrefs?.kids ?? true,
   };
   users[index].updatedAt = new Date().toISOString();
-  await writeJson(USERS_FILE, users);
+  await writeJson(usersFile(), users);
   await logActivity(userId, "notifications_updated", "Updated notification preferences");
   return users[index];
 }
@@ -272,7 +276,7 @@ export async function promoteUserRole(
 
   users[index].role = role;
   users[index].updatedAt = new Date().toISOString();
-  await writeJson(USERS_FILE, users);
+  await writeJson(usersFile(), users);
   await logActivity(userId, "leader_promoted", `Role updated to ${role}`);
   return users[index];
 }
@@ -284,7 +288,7 @@ export async function updateUserPassword(userId: string, password: string) {
 
   users[index].passwordHash = await bcrypt.hash(password, 10);
   users[index].updatedAt = new Date().toISOString();
-  await writeJson(USERS_FILE, users);
+  await writeJson(usersFile(), users);
   await logActivity(userId, "password_reset", "Password reset completed");
   return users[index];
 }
@@ -294,7 +298,7 @@ async function logActivity(
   type: ActivityItem["type"],
   label: string,
 ) {
-  const activity = await readJson<ActivityItem[]>(ACTIVITY_FILE, []);
+  const activity = await readJson<ActivityItem[]>(activityFile(), []);
   activity.unshift({
     id: `act-${Date.now()}`,
     userId,
@@ -302,5 +306,5 @@ async function logActivity(
     label,
     createdAt: new Date().toISOString(),
   });
-  await writeJson(ACTIVITY_FILE, activity.slice(0, 500));
+  await writeJson(activityFile(), activity.slice(0, 500));
 }
