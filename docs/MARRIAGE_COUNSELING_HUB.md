@@ -45,8 +45,31 @@
 
 ## Roles
 
-- Counselor: `MARRIAGE_COUNSELOR_USER_IDS`, senior/associate pastor, admin
-- Curriculum admin: `MARRIAGE_CURRICULUM_ADMIN_USER_IDS`, admin, counselors
+### Who can counsel (view workspace, sessions, authorized answers)
+
+Any signed-in member who matches **one** of:
+
+1. **`MARRIAGE_COUNSELOR_USER_IDS`** — comma-separated user ids on Vercel (for lay or additional counselors).
+2. **Pastoral role** — `senior_pastor` or `associate_pastor` in church pastoral role assignments.
+3. **Church admin** — users who can manage the admin portal.
+
+Counselors open **`/marriage/counselor`** (also linked from the marriage hub when the hub API marks `isCounselor`).
+
+### Which couples a counselor sees
+
+- Each journey may store **`counselorUserId`** (optional). When set, that counselor “owns” the case; other counselors are blocked unless they are church admins.
+- When **`counselorUserId` is empty** (typical for couples who start on their own with an invite code), **any** marriage counselor can open the journey.
+- The counselor dashboard lists journeys assigned to you; if none are assigned, it falls back to **all active journeys** (so the senior pastor can see self-started couples).
+
+There is **no in-app UI yet** to reassign a journey to another counselor after it starts. To delegate today: add their user id to **`MARRIAGE_COUNSELOR_USER_IDS`**, or set their pastoral role. A future release can add “assign counselor” on the journey record.
+
+### Follow-up “assignments” (homework)
+
+These are **tasks for the couple** (readings, activities), not assigning a different pastor as counselor. Created from the counselor journey detail / workspace APIs.
+
+### Curriculum admin
+
+- **`MARRIAGE_CURRICULUM_ADMIN_USER_IDS`**, or church admin, or anyone who qualifies as a marriage counselor.
 
 ## Testing
 

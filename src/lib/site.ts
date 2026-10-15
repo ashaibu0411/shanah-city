@@ -180,6 +180,13 @@ export const couplesNavItem = {
   icon: "♥",
 } as const;
 
+/** Premarital / marriage counseling hub (More menu + sidebar). */
+export const marriageCounselingNavItem = {
+  label: "Marriage Prep",
+  href: "/marriage",
+  icon: "💍",
+} as const;
+
 export const adminNavItem = {
   label: "Admin",
   href: "/admin",

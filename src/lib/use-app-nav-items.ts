@@ -5,6 +5,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import {
   adminNavItem,
   couplesNavItem,
+  marriageCounselingNavItem,
   frontlinersNavItem,
   kidsMinistryNavItem,
   site,
@@ -23,11 +24,12 @@ export function useAppNavItems(): AppNavItem[] {
     if (user) {
       const groupsIndex = items.findIndex((item) => item.href === "/groups");
       if (groupsIndex === -1) {
-        items = [...items, couplesNavItem];
+        items = [...items, couplesNavItem, marriageCounselingNavItem];
       } else {
         items = [
           ...items.slice(0, groupsIndex + 1),
           couplesNavItem,
+          marriageCounselingNavItem,
           ...items.slice(groupsIndex + 1),
         ];
       }
