@@ -11,6 +11,7 @@ import type {
   MarriageStage2LessonDefinition,
 } from "@/lib/marriage-counseling-types";
 import { MarriageAnswerSharingConsent } from "@/components/marriage/MarriageAnswerSharingConsent";
+import { MarriageSubmittedReadOnlyNotice } from "@/components/marriage/MarriageSubmittedReadOnlyNotice";
 import { computeModuleSubmissionProgress } from "@/lib/marriage-module-progress";
 import { readJsonResponse } from "@/lib/read-json-response";
 
@@ -195,10 +196,14 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
         {data.partnerProgress.status === "submitted" && !data.comparisonUnlocked && (
           <p className="mt-2 text-sm text-sky-800">Your partner submitted — finish required items to compare.</p>
         )}
-        {locked && data.comparisonUnlocked && (
-          <Link href={`/marriage/module/${moduleId}/compare`} className={`${marriagePremium.primaryCta} mt-4 inline-flex`}>
-            View comparison
-          </Link>
+        {locked && (
+          <div className="mt-4">
+            <MarriageSubmittedReadOnlyNotice
+              comparisonUnlocked={data.comparisonUnlocked}
+              partnerSubmitted={data.partnerProgress.status === "submitted"}
+              moduleId={moduleId}
+            />
+          </div>
         )}
         <ul className="mt-6 space-y-3">
           {lessons.map((lesson) => {
@@ -281,51 +286,55 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
         {savedAt && !saving ? ` · Saved ${new Date(savedAt).toLocaleTimeString()}` : saving ? " · Saving…" : ""}
       </p>
 
-      {!locked && (
-        <div className={`${marriagePremium.questionCard} mt-4`}>
-          <p className="text-xs font-semibold uppercase tracking-wide text-clay-700">{visibilityNote(question)}</p>
-          <p className="mt-3 text-base font-medium leading-snug">{question.prompt}</p>
-          {question.explanation && <p className={`${marriagePremium.cardMuted} mt-2`}>{question.explanation}</p>}
-          <MarriageAnswerSharingConsent
-            journeyId={data.journeyId}
-            moduleId={moduleId}
-            question={question}
-            disabled={locked}
-          />
-          <MarriageQuestionInput question={question} value={answers[question.id]} onChange={setAnswer} disabled={locked} />
-          {question.allowSkip && !locked && (
-            <button type="button" className="mt-4 text-sm font-semibold text-night-500 underline" onClick={() => setAnswer("__skip__")}>
-              Prefer not to answer
-            </button>
-          )}
-        </div>
+      {locked && (
+        <MarriageSubmittedReadOnlyNotice
+          comparisonUnlocked={data.comparisonUnlocked}
+          partnerSubmitted={data.partnerProgress.status === "submitted"}
+          moduleId={moduleId}
+        />
       )}
+
+      <div className={`${marriagePremium.questionCard} mt-4`}>
+        <p className="text-xs font-semibold uppercase tracking-wide text-clay-700">{visibilityNote(question)}</p>
+        <p className="mt-3 text-base font-medium leading-snug">{question.prompt}</p>
+        {question.explanation && <p className={`${marriagePremium.cardMuted} mt-2`}>{question.explanation}</p>}
+        <MarriageAnswerSharingConsent
+          journeyId={data.journeyId}
+          moduleId={moduleId}
+          question={question}
+          disabled={locked}
+        />
+        <MarriageQuestionInput question={question} value={answers[question.id]} onChange={setAnswer} disabled={locked} />
+        {question.allowSkip && !locked && (
+          <button type="button" className="mt-4 text-sm font-semibold text-night-500 underline" onClick={() => setAnswer("__skip__")}>
+            Prefer not to answer
+          </button>
+        )}
+      </div>
 
       {error && <p className="mt-3 text-sm text-red-800">{error}</p>}
 
-      {!locked && (
-        <div className="marriage-assessment-sticky-footer grid grid-cols-2 gap-2">
-          <button type="button" className={marriagePremium.secondaryCta} disabled={index === 0} onClick={() => setIndex((i) => Math.max(0, i - 1))}>
-            Back
+      <div className="marriage-assessment-sticky-footer grid grid-cols-2 gap-2">
+        <button type="button" className={marriagePremium.secondaryCta} disabled={index === 0} onClick={() => setIndex((i) => Math.max(0, i - 1))}>
+          Back
+        </button>
+        {index < lessonQuestions.length - 1 ? (
+          <button type="button" className={marriagePremium.primaryCta} onClick={() => setIndex((i) => i + 1)}>
+            Continue
           </button>
-          {index < lessonQuestions.length - 1 ? (
-            <button type="button" className={marriagePremium.primaryCta} onClick={() => setIndex((i) => i + 1)}>
-              Continue
-            </button>
-          ) : (
-            <button
-              type="button"
-              className={marriagePremium.primaryCta}
-              onClick={() => {
-                setActiveLessonId(null);
-                router.replace(`/marriage/module/${moduleId}`);
-              }}
-            >
-              Done with lesson
-            </button>
-          )}
-        </div>
-      )}
+        ) : (
+          <button
+            type="button"
+            className={marriagePremium.primaryCta}
+            onClick={() => {
+              setActiveLessonId(null);
+              router.replace(`/marriage/module/${moduleId}`);
+            }}
+          >
+            {locked ? "Back to lessons" : "Done with lesson"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

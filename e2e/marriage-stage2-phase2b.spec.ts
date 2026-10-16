@@ -52,6 +52,74 @@ test.describe("Stage 2 Phase 2B", () => {
     expect(await page.getByTestId(`lesson-${LESSON_SOCIAL}`).innerText()).toMatch(/1\/\d+ responses/);
   });
 
+  test("submitted module: read-only answers, navigation, refresh, PATCH blocked", async ({
+    page,
+    playwright,
+    baseURL,
+  }) => {
+    test.setTimeout(120_000);
+    const partnerA = await newAuthedRequest(playwright, baseURL!, "partnerA");
+    const partnerB = await newAuthedRequest(playwright, baseURL!, "partnerB");
+    const journeyId = await setupPremaritalJourney(partnerA, partnerB);
+
+    const privateSecret = "e2e-submitted-readonly-private-7711";
+    await partnerA.patch(`/api/marriage/assessment/${MOD1}`, {
+      data: { answers: { "m01-reflect-hopes": privateSecret } },
+    });
+    await saveAndSubmitModule(partnerA, MOD1);
+
+    const socialQuestionId = "m01-soc-1";
+    const aAss = await partnerA.get(`/api/marriage/assessment/${MOD1}`);
+    const aJson = await aAss.json();
+    expect(aJson.myResponse?.status).toBe("submitted");
+    expect(aJson.myResponse?.answers?.[socialQuestionId]).toBeTruthy();
+    expect(aJson.myResponse?.answers?.["m01-reflect-hopes"]).toBe(privateSecret);
+
+    const patchBlocked = await partnerA.patch(`/api/marriage/assessment/${MOD1}`, {
+      data: { answers: { [socialQuestionId]: "1" } },
+    });
+    expect(patchBlocked.ok()).toBeFalsy();
+
+    const bPeek = await partnerB.get(`/api/marriage/assessment/${MOD1}`);
+    const bJson = await bPeek.json();
+    expect(bJson.myResponse?.answers?.["m01-reflect-hopes"]).toBeUndefined();
+    expect(JSON.stringify(bJson)).not.toContain(privateSecret);
+    expect(bJson.comparisonUnlocked).toBe(false);
+
+    await signInPage(page, "partnerA");
+    await page.request.post("/api/marriage/journey", {
+      data: { action: "consent", journeyId },
+    });
+    await page.goto(`/marriage/module/${MOD1}?lesson=${LESSON_SOCIAL}`);
+    await expect(page.getByTestId("marriage-lesson-read-only-banner")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Submitted — Read Only/i)).toBeVisible();
+    await expect(
+      page.getByText(/After a full day of people and noise, I need quiet before I can connect well at home/i),
+    ).toBeVisible();
+
+    const savedChoice = String(aJson.myResponse.answers[socialQuestionId]);
+    const likertLabels: Record<string, RegExp> = {
+      "1": /Strongly disagree/i,
+      "2": /Disagree/i,
+      "3": /Neutral/i,
+      "4": /Agree/i,
+      "5": /Strongly agree/i,
+    };
+    const activeOption = page.locator("button").filter({ hasText: likertLabels[savedChoice] ?? /Agree/i }).first();
+    await expect(activeOption).toBeDisabled();
+
+    await page.locator(".marriage-assessment-sticky-footer").getByRole("button", { name: /Continue/i }).click();
+    await expect(page.getByText(/Item 2 of/i)).toBeVisible({ timeout: 10_000 });
+    await page.locator(".marriage-assessment-sticky-footer").getByRole("button", { name: /Back/i }).click();
+    await expect(page.getByText(/Item 1 of/i)).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByTestId("marriage-lesson-read-only-banner")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByText(/After a full day of people and noise, I need quiet before I can connect well at home/i),
+    ).toBeVisible();
+  });
+
   test("API: temperament compare, snapshot, privacy, budget, intimacy gate", async ({
     page,
     playwright,
