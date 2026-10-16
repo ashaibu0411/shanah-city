@@ -10,6 +10,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
+    "db:deploy:staging": "node scripts/db-deploy-staging.cjs",
     "db:seed-rosters": "tsx scripts/publish-group-rosters.ts",
     "db:grandfather-readiness": "tsx scripts/grandfather-ministry-members.ts",
     "db:seed": "tsx scripts/migrate-json-to-db.ts",
