@@ -442,6 +442,20 @@ export async function getDiscussionMarks(journeyId: string, moduleId: string) {
   return store.discussionMarks.filter((m) => m.journeyId === journeyId && m.moduleId === moduleId);
 }
 
+export async function clearDiscussionMarksForQuestion(
+  journeyId: string,
+  moduleId: string,
+  questionId: string,
+) {
+  const store = await readStore();
+  const before = store.discussionMarks.length;
+  store.discussionMarks = store.discussionMarks.filter(
+    (m) => !(m.journeyId === journeyId && m.moduleId === moduleId && m.questionId === questionId),
+  );
+  await writeStore(store);
+  return before - store.discussionMarks.length;
+}
+
 export async function listActionPlans(journeyId: string) {
   const store = await readStore();
   return store.actionPlans

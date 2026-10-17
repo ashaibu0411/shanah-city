@@ -17,6 +17,7 @@ import { getPendingInviteCodeForJourney } from "@/lib/marriage-counseling-invite
 import { isMarriageCurriculumAdmin } from "@/lib/marriage-counseling-access";
 import { resolveJourneyPartnerId } from "@/lib/marriage-counseling-participants";
 import { buildSharedComparisonItems } from "@/lib/marriage-counseling-comparison-utils";
+import { attachDiscussionToComparisonItems } from "@/lib/marriage-discussion-utils";
 import { validateBudgetAnswer } from "@/lib/marriage-budget-utils";
 import {
   notifyMarriageComparisonReady,
@@ -403,7 +404,7 @@ function validateAnswers(
   }
 }
 
-export async function getComparisonForViewer(viewer: PublicMember, moduleId: string) {
+async function loadComparisonBundle(viewer: PublicMember, moduleId: string) {
   const hub = await getMarriageHubSummary(viewer);
   if (!hub.journey) throw new Error("No active journey.");
 
@@ -421,7 +422,7 @@ export async function getComparisonForViewer(viewer: PublicMember, moduleId: str
   }
 
   const { isMarriageStage2Enabled } = await import("@/lib/marriage-stage2-feature");
-  let items;
+  let items: MarriageComparisonItem[];
   if (isMarriageStage2Enabled()) {
     const consents = await store().listSharingConsents(hub.journey.id, moduleId);
     const { buildComparisonItemsWithConsent } = await import("@/lib/marriage-stage2-activity-engine");
@@ -442,6 +443,9 @@ export async function getComparisonForViewer(viewer: PublicMember, moduleId: str
   const marks = await store().getDiscussionMarks(hub.journey.id, moduleId);
 
   return {
+    hub,
+    partnerId,
+    contentVersion,
     moduleTitle: mod.title,
     items,
     marks,
@@ -449,25 +453,91 @@ export async function getComparisonForViewer(viewer: PublicMember, moduleId: str
   };
 }
 
+function assertEligibleComparisonQuestion(items: MarriageComparisonItem[], questionId: string) {
+  const item = items.find((i) => i.questionId === questionId);
+  if (!item) {
+    throw new Error("This question is not available for couple discussion.");
+  }
+  return item;
+}
+
+export async function getComparisonForViewer(viewer: PublicMember, moduleId: string) {
+  const bundle = await loadComparisonBundle(viewer, moduleId);
+  const items = attachDiscussionToComparisonItems(bundle.items, bundle.marks);
+
+  return {
+    moduleTitle: bundle.moduleTitle,
+    items,
+    marks: bundle.marks,
+    journeyId: bundle.journeyId,
+    contentVersion: bundle.contentVersion,
+    viewerId: viewer.id,
+    partnerId: bundle.partnerId,
+  };
+}
+
 export async function markDiscussion(
   viewer: PublicMember,
   moduleId: string,
   questionId: string,
-  sharedNote?: string,
 ) {
-  const hub = await getMarriageHubSummary(viewer);
-  if (!hub.journey) throw new Error("No active journey.");
-  await assertJourneyParticipant(hub.journey, viewer.id);
+  const bundle = await loadComparisonBundle(viewer, moduleId);
+  assertEligibleComparisonQuestion(bundle.items, questionId);
+
+  const existing = bundle.marks.find(
+    (m) => m.questionId === questionId && m.markedByUserId === viewer.id,
+  );
 
   return store().upsertDiscussionMark({
-    id: `md-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    journeyId: hub.journey.id,
+    id: existing?.id ?? `md-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    journeyId: bundle.journeyId,
     moduleId,
     questionId,
     markedByUserId: viewer.id,
-    sharedNote,
+    sharedNote: existing?.sharedNote,
     markedAt: new Date().toISOString(),
   });
+}
+
+export async function saveDiscussionNote(
+  viewer: PublicMember,
+  moduleId: string,
+  questionId: string,
+  sharedNote: string,
+) {
+  const body = sharedNote.trim();
+  if (!body) throw new Error("Note cannot be empty.");
+
+  const bundle = await loadComparisonBundle(viewer, moduleId);
+  assertEligibleComparisonQuestion(bundle.items, questionId);
+
+  const forQuestion = bundle.marks.filter((m) => m.questionId === questionId);
+  const existing = forQuestion.find((m) => m.markedByUserId === viewer.id);
+  if (!forQuestion.length) {
+    throw new Error("Mark this topic as discussed before adding a shared note.");
+  }
+
+  return store().upsertDiscussionMark({
+    id: existing?.id ?? `md-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    journeyId: bundle.journeyId,
+    moduleId,
+    questionId,
+    markedByUserId: viewer.id,
+    sharedNote: body,
+    markedAt: existing?.markedAt ?? new Date().toISOString(),
+  });
+}
+
+export async function reopenDiscussion(
+  viewer: PublicMember,
+  moduleId: string,
+  questionId: string,
+) {
+  const bundle = await loadComparisonBundle(viewer, moduleId);
+  assertEligibleComparisonQuestion(bundle.items, questionId);
+
+  await store().clearDiscussionMarksForQuestion(bundle.journeyId, moduleId, questionId);
+  return { ok: true as const };
 }
 
 export async function listJournal(viewer: PublicMember) {

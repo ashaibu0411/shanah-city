@@ -324,6 +324,17 @@ export type MarriageBudgetWorksheetAnswer = {
   notes?: string;
 };
 
+export type MarriageComparisonDiscussionState = {
+  discussed: boolean;
+  markedByUserId?: string;
+  markedAt?: string;
+  sharedNotes: Array<{
+    authorUserId: string;
+    body: string;
+    markedAt: string;
+  }>;
+};
+
 export type MarriageComparisonItem = {
   questionId: string;
   prompt: string;
@@ -331,6 +342,8 @@ export type MarriageComparisonItem = {
   myAnswer: unknown;
   partnerAnswer: unknown;
   category: "aligned" | "different" | "needs_conversation" | "not_yet_discussed";
+  /** Couple discussion tracking — separate from answer-difference category. */
+  discussion?: MarriageComparisonDiscussionState;
 };
 
 export type MarriageHubModuleProgress = {

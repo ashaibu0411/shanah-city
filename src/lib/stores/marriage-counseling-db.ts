@@ -765,6 +765,17 @@ export async function getDiscussionMarks(journeyId: string, moduleId: string) {
   );
 }
 
+export async function clearDiscussionMarksForQuestion(
+  journeyId: string,
+  moduleId: string,
+  questionId: string,
+) {
+  const result = await prisma.marriageDiscussionMark.deleteMany({
+    where: { journeyId, moduleId, questionId },
+  });
+  return result.count;
+}
+
 export async function listActionPlans(journeyId: string) {
   const rows = await prisma.marriageActionPlan.findMany({
     where: { journeyId },

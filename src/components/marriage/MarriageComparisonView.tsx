@@ -41,14 +41,18 @@ export function MarriageComparisonView({ moduleId }: { moduleId: string }) {
   const [items, setItems] = useState<MarriageComparisonItem[]>([]);
   const [title, setTitle] = useState("");
   const [error, setError] = useState("");
-  const [note, setNote] = useState("");
-  const [activeQ, setActiveQ] = useState<string | null>(null);
+  const [viewerId, setViewerId] = useState<string | null>(null);
+  const [busyQ, setBusyQ] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<Record<string, string>>({});
+  const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
+  const [noteOpenQ, setNoteOpenQ] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/marriage/comparison/${moduleId}`, { cache: "no-store" });
     const data = await readJsonResponse<{
       items: MarriageComparisonItem[];
       moduleTitle: string;
+      viewerId?: string;
       error?: string;
     }>(res);
     if (!res.ok) {
@@ -57,21 +61,50 @@ export function MarriageComparisonView({ moduleId }: { moduleId: string }) {
     }
     setItems(data.items);
     setTitle(data.moduleTitle);
+    if (data.viewerId) setViewerId(data.viewerId);
+    setError("");
   }, [moduleId]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  async function markDiscussed(questionId: string) {
-    await fetch("/api/marriage/discussion", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ moduleId, questionId, sharedNote: note || undefined }),
+  async function postDiscussion(
+    questionId: string,
+    payload: { action: "mark" | "reopen" | "note"; sharedNote?: string },
+  ) {
+    setBusyQ(questionId);
+    setActionError((prev) => {
+      const next = { ...prev };
+      delete next[questionId];
+      return next;
     });
-    setNote("");
-    setActiveQ(null);
-    await load();
+    try {
+      const res = await fetch("/api/marriage/discussion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ moduleId, questionId, ...payload }),
+      });
+      const body = await readJsonResponse<{ error?: string }>(res);
+      if (!res.ok) {
+        setActionError((prev) => ({
+          ...prev,
+          [questionId]: body.error ?? "Could not save discussion status.",
+        }));
+        return;
+      }
+      if (payload.action === "note") {
+        setNoteOpenQ(null);
+        setNoteDraft((prev) => {
+          const next = { ...prev };
+          delete next[questionId];
+          return next;
+        });
+      }
+      await load();
+    } finally {
+      setBusyQ(null);
+    }
   }
 
   if (error) {
@@ -86,59 +119,146 @@ export function MarriageComparisonView({ moduleId }: { moduleId: string }) {
   }
 
   return (
-    <div>
+    <div data-testid="marriage-comparison-view">
       <Link href="/marriage" className="text-sm font-semibold text-clay-700">
         ← Hub
       </Link>
       <h1 className="mt-2 font-display text-xl font-semibold">Let&apos;s talk about it</h1>
       <p className={marriagePremium.cardMuted}>{title}</p>
+      <p className={`${marriagePremium.cardMuted} mt-1 text-xs`}>
+        &ldquo;Discussed&rdquo; means you talked about it — not that you agree or have resolved everything.
+      </p>
 
       {moduleId === "s2-temperament-discovery" && <MarriageTemperamentSummary />}
 
       <ul className="mt-6 space-y-4">
-        {items.map((item) => (
-          <li key={item.questionId} className={marriagePremium.card}>
-            <span className={badge(item.category)}>{label(item.category)}</span>
-            <p className="mt-2 text-sm font-semibold">{item.prompt}</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <div className="rounded-xl bg-stone-50 p-3 text-sm dark:bg-white/5">
-                <p className="text-xs font-bold uppercase text-night-500">You</p>
-                <p className="mt-1">{formatAnswer(item.myAnswer)}</p>
+        {items.map((item) => {
+          const discussed = item.discussion?.discussed === true;
+          const busy = busyQ === item.questionId;
+          const err = actionError[item.questionId];
+          const markedByYou = item.discussion?.markedByUserId === viewerId;
+
+          return (
+            <li key={item.questionId} className={marriagePremium.card} data-testid={`compare-card-${item.questionId}`}>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={badge(item.category)}>{label(item.category)}</span>
+                {discussed && (
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100"
+                    data-testid={`discussed-badge-${item.questionId}`}
+                  >
+                    <span aria-hidden>✓</span> Discussed
+                  </span>
+                )}
               </div>
-              <div className="rounded-xl bg-stone-50 p-3 text-sm dark:bg-white/5">
-                <p className="text-xs font-bold uppercase text-night-500">Partner</p>
-                <p className="mt-1">{formatAnswer(item.partnerAnswer)}</p>
+              {discussed && item.discussion?.markedAt && (
+                <p className="mt-1 text-xs text-night-500">
+                  Marked {markedByYou ? "by you" : "by your partner"}{" "}
+                  {new Date(item.discussion.markedAt).toLocaleString()}
+                </p>
+              )}
+              <p className="mt-2 text-sm font-semibold">{item.prompt}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="rounded-xl bg-stone-50 p-3 text-sm dark:bg-white/5">
+                  <p className="text-xs font-bold uppercase text-night-500">You</p>
+                  <p className="mt-1 break-words">{formatAnswer(item.myAnswer)}</p>
+                </div>
+                <div className="rounded-xl bg-stone-50 p-3 text-sm dark:bg-white/5">
+                  <p className="text-xs font-bold uppercase text-night-500">Partner</p>
+                  <p className="mt-1 break-words">{formatAnswer(item.partnerAnswer)}</p>
+                </div>
               </div>
-            </div>
-            {item.discussionPrompt && (
-              <p className={`${marriagePremium.cardMuted} mt-3`}>{item.discussionPrompt}</p>
-            )}
-            <button
-              type="button"
-              className={`${marriagePremium.secondaryCta} mt-3`}
-              onClick={() => setActiveQ(item.questionId)}
-            >
-              Mark discussed
-            </button>
-            {activeQ === item.questionId && (
-              <div className="mt-2">
-                <textarea
-                  className="w-full rounded-xl border border-night-900/10 px-3 py-2 text-sm"
-                  placeholder="Optional shared note (what you learned)"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className={`${marriagePremium.primaryCta} mt-2`}
-                  onClick={() => markDiscussed(item.questionId)}
-                >
-                  Save
-                </button>
+              {item.discussionPrompt && (
+                <p className={`${marriagePremium.cardMuted} mt-3`}>{item.discussionPrompt}</p>
+              )}
+
+              {item.discussion?.sharedNotes?.length ? (
+                <div className="mt-3 rounded-xl border border-night-900/10 p-3 dark:border-white/10">
+                  <p className="text-xs font-bold uppercase text-night-500">Shared notes (both partners)</p>
+                  <ul className="mt-2 space-y-2">
+                    {item.discussion.sharedNotes.map((n) => (
+                      <li key={`${n.authorUserId}-${n.markedAt}`} className="text-sm">
+                        <p className="text-xs text-night-500">
+                          {n.authorUserId === viewerId ? "You" : "Partner"} ·{" "}
+                          {new Date(n.markedAt).toLocaleDateString()}
+                        </p>
+                        <p className="mt-0.5 whitespace-pre-wrap">{n.body}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {!discussed ? (
+                  <button
+                    type="button"
+                    className={marriagePremium.primaryCta}
+                    disabled={busy}
+                    data-testid={`mark-discussed-${item.questionId}`}
+                    onClick={() => void postDiscussion(item.questionId, { action: "mark" })}
+                  >
+                    {busy ? "Saving…" : "Mark discussed"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={marriagePremium.secondaryCta}
+                    disabled={busy}
+                    data-testid={`reopen-discussion-${item.questionId}`}
+                    onClick={() => void postDiscussion(item.questionId, { action: "reopen" })}
+                  >
+                    {busy ? "Saving…" : "Reopen discussion"}
+                  </button>
+                )}
+                {discussed && (
+                  <button
+                    type="button"
+                    className={marriagePremium.secondaryCta}
+                    disabled={busy}
+                    data-testid={`add-note-${item.questionId}`}
+                    onClick={() => setNoteOpenQ((q) => (q === item.questionId ? null : item.questionId))}
+                  >
+                    Add note
+                  </button>
+                )}
               </div>
-            )}
-          </li>
-        ))}
+
+              {noteOpenQ === item.questionId && (
+                <div className="mt-2">
+                  <p className="text-xs text-night-500">This note is visible to both partners on this journey.</p>
+                  <textarea
+                    className="mt-1 min-h-[72px] w-full max-w-full rounded-xl border border-night-900/10 px-3 py-2 text-sm"
+                    placeholder="What you learned together (optional)"
+                    value={noteDraft[item.questionId] ?? ""}
+                    onChange={(e) =>
+                      setNoteDraft((prev) => ({ ...prev, [item.questionId]: e.target.value }))
+                    }
+                  />
+                  <button
+                    type="button"
+                    className={`${marriagePremium.primaryCta} mt-2`}
+                    disabled={busy || !noteDraft[item.questionId]?.trim()}
+                    onClick={() =>
+                      void postDiscussion(item.questionId, {
+                        action: "note",
+                        sharedNote: noteDraft[item.questionId],
+                      })
+                    }
+                  >
+                    {busy ? "Saving…" : "Save shared note"}
+                  </button>
+                </div>
+              )}
+
+              {err && (
+                <p className="mt-2 text-sm text-red-800" data-testid={`discussion-error-${item.questionId}`}>
+                  {err}
+                </p>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       <Link href={`/marriage/module/${moduleId}/discuss`} className={`${marriagePremium.primaryCta} mt-6`}>
