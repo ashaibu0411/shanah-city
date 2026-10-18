@@ -442,18 +442,27 @@ export async function getDiscussionMarks(journeyId: string, moduleId: string) {
   return store.discussionMarks.filter((m) => m.journeyId === journeyId && m.moduleId === moduleId);
 }
 
-export async function clearDiscussionMarksForQuestion(
+export async function reopenDiscussionForQuestion(
   journeyId: string,
   moduleId: string,
   questionId: string,
 ) {
   const store = await readStore();
-  const before = store.discussionMarks.length;
-  store.discussionMarks = store.discussionMarks.filter(
-    (m) => !(m.journeyId === journeyId && m.moduleId === moduleId && m.questionId === questionId),
-  );
+  let cleared = 0;
+  const next: typeof store.discussionMarks = [];
+  for (const m of store.discussionMarks) {
+    if (m.journeyId !== journeyId || m.moduleId !== moduleId || m.questionId !== questionId) {
+      next.push(m);
+      continue;
+    }
+    if (m.sharedNote?.trim()) {
+      next.push({ ...m, discussedAt: null });
+      cleared += 1;
+    }
+  }
+  store.discussionMarks = next;
   await writeStore(store);
-  return before - store.discussionMarks.length;
+  return cleared;
 }
 
 export async function listActionPlans(journeyId: string) {

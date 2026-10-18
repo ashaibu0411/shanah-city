@@ -488,6 +488,7 @@ export async function markDiscussion(
     (m) => m.questionId === questionId && m.markedByUserId === viewer.id,
   );
 
+  const now = new Date().toISOString();
   return store().upsertDiscussionMark({
     id: existing?.id ?? `md-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     journeyId: bundle.journeyId,
@@ -495,7 +496,8 @@ export async function markDiscussion(
     questionId,
     markedByUserId: viewer.id,
     sharedNote: existing?.sharedNote,
-    markedAt: new Date().toISOString(),
+    markedAt: existing?.sharedNote?.trim() ? existing.markedAt : now,
+    discussedAt: now,
   });
 }
 
@@ -525,6 +527,7 @@ export async function saveDiscussionNote(
     markedByUserId: viewer.id,
     sharedNote: body,
     markedAt: existing?.markedAt ?? new Date().toISOString(),
+    discussedAt: existing?.discussedAt,
   });
 }
 
@@ -536,7 +539,7 @@ export async function reopenDiscussion(
   const bundle = await loadComparisonBundle(viewer, moduleId);
   assertEligibleComparisonQuestion(bundle.items, questionId);
 
-  await store().clearDiscussionMarksForQuestion(bundle.journeyId, moduleId, questionId);
+  await store().reopenDiscussionForQuestion(bundle.journeyId, moduleId, questionId);
   return { ok: true as const };
 }
 

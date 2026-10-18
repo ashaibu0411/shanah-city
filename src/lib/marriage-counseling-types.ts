@@ -287,7 +287,13 @@ export type MarriageDiscussionMarkRecord = {
   questionId: string;
   markedByUserId: string;
   sharedNote?: string;
+  /** Note authorship / display time — preserved across reopen. */
   markedAt: string;
+  /**
+   * When this partner last marked the topic discussed.
+   * `null` = explicitly reopened (note row kept). `undefined` = legacy row (treated as discussed).
+   */
+  discussedAt?: string | null;
 };
 
 export type MarriageQuestionOption = {

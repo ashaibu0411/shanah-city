@@ -32,6 +32,23 @@ function run() {
   assert.equal(items[0].discussion?.discussed, true);
   assert.equal(items[0].category, "needs_conversation");
 
+  const noteMarks = [
+    {
+      id: "2",
+      journeyId: "j1",
+      moduleId: "mod1",
+      questionId: "m01-soc-1",
+      markedByUserId: "user-a",
+      sharedNote: "Kept note",
+      markedAt: "2026-01-01T12:00:00.000Z",
+      discussedAt: null,
+    },
+  ];
+  const reopened = deriveSharedDiscussion(noteMarks, "m01-soc-1");
+  assert.equal(reopened.discussed, false);
+  assert.equal(reopened.sharedNotes.length, 1);
+  assert.equal(reopened.sharedNotes[0].body, "Kept note");
+
   console.log("marriage-discussion-utils.test.ts: OK");
 }
 

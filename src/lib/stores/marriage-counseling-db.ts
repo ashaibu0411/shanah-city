@@ -723,7 +723,20 @@ export async function listAllActiveJourneys() {
   return rows.map(mapJourney);
 }
 
+function discussedAtForCreate(mark: MarriageDiscussionMarkRecord): Date | null {
+  if (mark.discussedAt === null) return null;
+  if (mark.discussedAt) return new Date(mark.discussedAt);
+  return new Date(mark.markedAt);
+}
+
+function discussedAtForUpdate(mark: MarriageDiscussionMarkRecord): Date | null | undefined {
+  if (mark.discussedAt === undefined) return undefined;
+  if (mark.discussedAt === null) return null;
+  return new Date(mark.discussedAt);
+}
+
 export async function upsertDiscussionMark(mark: MarriageDiscussionMarkRecord) {
+  const discussedUpdate = discussedAtForUpdate(mark);
   await prisma.marriageDiscussionMark.upsert({
     where: {
       journeyId_moduleId_questionId_markedByUserId: {
@@ -741,10 +754,12 @@ export async function upsertDiscussionMark(mark: MarriageDiscussionMarkRecord) {
       markedByUserId: mark.markedByUserId,
       sharedNote: mark.sharedNote ?? null,
       markedAt: new Date(mark.markedAt),
+      discussedAt: discussedAtForCreate(mark),
     },
     update: {
       sharedNote: mark.sharedNote ?? null,
       markedAt: new Date(mark.markedAt),
+      ...(discussedUpdate !== undefined ? { discussedAt: discussedUpdate } : {}),
     },
   });
   return mark;
@@ -761,19 +776,33 @@ export async function getDiscussionMarks(journeyId: string, moduleId: string) {
       markedByUserId: r.markedByUserId,
       sharedNote: r.sharedNote ?? undefined,
       markedAt: r.markedAt.toISOString(),
+      discussedAt: r.discussedAt ? r.discussedAt.toISOString() : r.discussedAt === null ? null : undefined,
     }),
   );
 }
 
-export async function clearDiscussionMarksForQuestion(
+export async function reopenDiscussionForQuestion(
   journeyId: string,
   moduleId: string,
   questionId: string,
 ) {
-  const result = await prisma.marriageDiscussionMark.deleteMany({
+  const rows = await prisma.marriageDiscussionMark.findMany({
     where: { journeyId, moduleId, questionId },
   });
-  return result.count;
+  let touched = 0;
+  for (const row of rows) {
+    if (row.sharedNote?.trim()) {
+      await prisma.marriageDiscussionMark.update({
+        where: { id: row.id },
+        data: { discussedAt: null },
+      });
+      touched += 1;
+    } else {
+      await prisma.marriageDiscussionMark.delete({ where: { id: row.id } });
+      touched += 1;
+    }
+  }
+  return touched;
 }
 
 export async function listActionPlans(journeyId: string) {

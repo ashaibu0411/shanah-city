@@ -2,6 +2,7 @@ import type {
   MarriageComparisonItem,
   MarriageDiscussionMarkRecord,
 } from "@/lib/marriage-counseling-types";
+import { markCountsAsDiscussed, markHasSharedNote } from "@/lib/marriage-discussion-mark-utils";
 
 export type MarriageComparisonDiscussionView = {
   discussed: boolean;
@@ -23,26 +24,29 @@ export function deriveSharedDiscussion(
     .filter((m) => m.questionId === questionId)
     .sort((a, b) => a.markedAt.localeCompare(b.markedAt));
 
-  if (!forQuestion.length) {
-    return { discussed: false, sharedNotes: [] };
-  }
-
-  const primary = forQuestion.reduce((latest, m) =>
-    m.markedAt.localeCompare(latest.markedAt) >= 0 ? m : latest,
-  );
-
   const sharedNotes = forQuestion
-    .filter((m) => m.sharedNote && m.sharedNote.trim())
+    .filter((m) => markHasSharedNote(m))
     .map((m) => ({
       authorUserId: m.markedByUserId,
       body: m.sharedNote!.trim(),
       markedAt: m.markedAt,
     }));
 
+  const discussedMarks = forQuestion.filter((m) => markCountsAsDiscussed(m));
+  if (!discussedMarks.length) {
+    return { discussed: false, sharedNotes };
+  }
+
+  const primary = discussedMarks.reduce((latest, m) => {
+    const latestAt = latest.discussedAt ?? latest.markedAt;
+    const at = m.discussedAt ?? m.markedAt;
+    return at.localeCompare(latestAt) >= 0 ? m : latest;
+  });
+
   return {
     discussed: true,
     markedByUserId: primary.markedByUserId,
-    markedAt: primary.markedAt,
+    markedAt: primary.discussedAt ?? primary.markedAt,
     sharedNotes,
   };
 }

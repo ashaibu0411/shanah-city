@@ -1586,13 +1586,14 @@ model MarriageAuditLog {
 }
 
 model MarriageDiscussionMark {
-  id              String   @id
+  id              String    @id
   journeyId       String
   moduleId        String
   questionId      String
   markedByUserId  String
   sharedNote      String?
   markedAt        DateTime
+  discussedAt     DateTime?
 
   @@unique([journeyId, moduleId, questionId, markedByUserId])
   @@index([journeyId, moduleId])

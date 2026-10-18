@@ -1,31 +1,21 @@
 const { execSync } = require("child_process");
+const {
+  getDirectDatabaseUrl,
+  enforceStagingMigrateGuardIfNeeded,
+} = require("./build-migrate-guard.cjs");
 
 function run(command, env) {
   execSync(command, { stdio: "inherit", env: env ?? process.env });
 }
 
-function getDirectDatabaseUrl() {
-  if (process.env.DIRECT_URL?.trim()) {
-    return process.env.DIRECT_URL.trim();
-  }
-  if (process.env.DIRECT_DATABASE_URL?.trim()) {
-    return process.env.DIRECT_DATABASE_URL.trim();
-  }
-
-  const pooled = process.env.DATABASE_URL?.trim();
-  if (!pooled) {
-    return null;
-  }
-  if (pooled.includes("-pooler.")) {
-    return pooled.replace("-pooler.", ".");
-  }
-  if (pooled.includes("-pooler")) {
-    return pooled.replace("-pooler", "");
-  }
-  return pooled;
+try {
+  enforceStagingMigrateGuardIfNeeded(process.env);
+} catch (error) {
+  console.error(error instanceof Error ? error.message : "Staging migrate guard failed.");
+  process.exit(1);
 }
 
-const directUrl = getDirectDatabaseUrl();
+const directUrl = getDirectDatabaseUrl(process.env);
 if (directUrl) {
   run("npx prisma migrate deploy", {
     ...process.env,
