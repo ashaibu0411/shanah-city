@@ -45,14 +45,27 @@ const GAP_NOTE_SIMILAR = "Similar on this theme — compare stories, not scores.
 const GAP_NOTE_DIFFERENT = "Different preferences — plan explicitly.";
 const GAP_NOTE_LARGE = "Large difference — go slowly; counselor optional if stuck.";
 
+function likertIntegerOrNull(n: number): number | null {
+  if (!Number.isFinite(n) || !Number.isInteger(n)) return null;
+  if (n < 1 || n > 5) return null;
+  return n;
+}
+
+/** Parse stored likert answer; only integers 1–5 are valid. */
 export function parseLikertRaw(value: unknown): number | null {
   if (value == null || value === "__skip__") return null;
   if (typeof value === "object" && value && "choice" in (value as object)) {
-    const n = Number((value as { choice: string }).choice);
-    return Number.isFinite(n) ? n : null;
+    return parseLikertRaw((value as { choice: unknown }).choice);
   }
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed === "") return null;
+    return likertIntegerOrNull(Number(trimmed));
+  }
+  if (typeof value === "number") {
+    return likertIntegerOrNull(value);
+  }
+  return likertIntegerOrNull(Number(value));
 }
 
 export function agreementBandFromMean(mean: number): AgreementBand {
