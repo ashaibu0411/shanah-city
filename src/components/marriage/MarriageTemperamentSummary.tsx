@@ -35,8 +35,8 @@ export function MarriageTemperamentSummary() {
   if (!payload?.sections?.length) return null;
 
   return (
-    <div className={`${marriagePremium.card} mt-6`}>
-      <h2 className="font-display text-lg font-semibold">Temperament snapshot</h2>
+    <div className={`${marriagePremium.card} mt-8 w-full min-w-0 p-5 sm:p-6`}>
+      <h2 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">Temperament snapshot</h2>
       <MarriageTemperamentSnapshotView
         sections={payload.sections}
         disclaimer={payload.disclaimer ?? ""}

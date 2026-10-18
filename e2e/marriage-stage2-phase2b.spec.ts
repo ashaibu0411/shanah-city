@@ -168,6 +168,27 @@ test.describe("Stage 2 Phase 2B", () => {
     await page.goto(`/marriage/module/${MOD1}/compare`);
     await expect(page.getByTestId("temperament-snapshot")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("temperament-scoring-model-version")).toContainText("2.0.0");
+    await expect(page.getByTestId("temperament-snapshot-row-social_stimulation")).toBeVisible();
+    await expect(page.getByTestId("temperament-card-you-social_stimulation")).toBeVisible();
+    await expect(page.getByTestId("temperament-prompt-social_stimulation")).toBeVisible();
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const youCard = page.getByTestId("temperament-card-you-social_stimulation");
+    const partnerCard = page.getByTestId("temperament-card-partner-social_stimulation");
+    const youBox = await youCard.boundingBox();
+    const partnerBox = await partnerCard.boundingBox();
+    expect(youBox && partnerBox).toBeTruthy();
+    if (youBox && partnerBox) {
+      expect(Math.abs(youBox.y - partnerBox.y)).toBeLessThan(8);
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const youMobile = await page.getByTestId("temperament-card-you-social_stimulation").boundingBox();
+    const partnerMobile = await page.getByTestId("temperament-card-partner-social_stimulation").boundingBox();
+    expect(youMobile && partnerMobile).toBeTruthy();
+    if (youMobile && partnerMobile) {
+      expect(partnerMobile.y).toBeGreaterThan(youMobile.y);
+    }
 
     const strangerAssessment = await stranger.get(`/api/marriage/assessment/${MOD1}`);
     expect(strangerAssessment.status()).toBeGreaterThanOrEqual(400);

@@ -119,11 +119,11 @@ export function MarriageComparisonView({ moduleId }: { moduleId: string }) {
   }
 
   return (
-    <div data-testid="marriage-comparison-view">
+    <div className="w-full min-w-0" data-testid="marriage-comparison-view">
       <Link href="/marriage" className="text-sm font-semibold text-clay-700">
         ← Hub
       </Link>
-      <h1 className="mt-2 font-display text-xl font-semibold">Let&apos;s talk about it</h1>
+      <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight sm:text-3xl">Let&apos;s talk about it</h1>
       <p className={marriagePremium.cardMuted}>{title}</p>
       <p className={`${marriagePremium.cardMuted} mt-1 text-xs`}>
         &ldquo;Discussed&rdquo; means you talked about it — not that you agree or have resolved everything.
@@ -158,14 +158,14 @@ export function MarriageComparisonView({ moduleId }: { moduleId: string }) {
                 </p>
               )}
               <p className="mt-2 text-sm font-semibold">{item.prompt}</p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <div className="rounded-xl bg-stone-50 p-3 text-sm dark:bg-white/5">
-                  <p className="text-xs font-bold uppercase text-night-500">You</p>
-                  <p className="mt-1 break-words">{formatAnswer(item.myAnswer)}</p>
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div className="min-w-0 rounded-2xl border border-night-900/10 bg-stone-50/90 p-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-night-500">You</p>
+                  <p className="mt-2 break-words leading-relaxed">{formatAnswer(item.myAnswer)}</p>
                 </div>
-                <div className="rounded-xl bg-stone-50 p-3 text-sm dark:bg-white/5">
-                  <p className="text-xs font-bold uppercase text-night-500">Partner</p>
-                  <p className="mt-1 break-words">{formatAnswer(item.partnerAnswer)}</p>
+                <div className="min-w-0 rounded-2xl border border-night-900/10 bg-stone-50/90 p-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-night-500">Partner</p>
+                  <p className="mt-2 break-words leading-relaxed">{formatAnswer(item.partnerAnswer)}</p>
                 </div>
               </div>
               {item.discussionPrompt && (

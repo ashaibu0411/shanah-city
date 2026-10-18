@@ -2,7 +2,11 @@ import { editorialPremium } from "@/components/app/editorial-premium";
 
 export const marriagePremium = {
   page: "marriage-counseling-page min-w-0 max-w-[430px] mx-auto text-night-900 dark:text-sand-100",
+  /** Side-by-side compare + temperament snapshot — comfortable desktop reading width. */
+  comparePage:
+    "marriage-counseling-page min-w-0 w-full max-w-[1040px] mx-auto text-night-900 dark:text-sand-100",
   inset: "px-4 pb-28 pt-2 safe-bottom",
+  compareInset: "px-4 sm:px-6 lg:px-8 pb-28 pt-2 safe-bottom",
   hero:
     "rounded-[1.75rem] bg-gradient-to-br from-rose-950 via-night-900 to-clay-900 p-6 text-white shadow-lg ring-1 ring-white/10",
   heroTitle: "font-display text-2xl font-semibold tracking-tight",
