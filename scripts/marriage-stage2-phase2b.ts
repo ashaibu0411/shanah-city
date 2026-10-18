@@ -10,6 +10,7 @@ import {
   marriageStage2IntimacyModuleAccessible,
 } from "../src/lib/marriage-stage2-feature";
 import { buildTemperamentInsights } from "../src/lib/marriage-stage2-temperament-insights";
+import { buildTemperamentSnapshotV2 } from "../src/lib/marriage-stage2-temperament-scoring-v2";
 import { freezeStage2ModulesIntoSnapshot } from "../src/lib/marriage-curriculum-stage2-merge";
 import { computeModuleSubmissionProgress } from "../src/lib/marriage-module-progress";
 
@@ -74,7 +75,15 @@ function run() {
     { "m01-soc-1": "5", "m01-soc-2": "4" },
     { "m01-soc-1": "2", "m01-soc-2": "2" },
   );
-  assert.ok(insights.length >= 5, "temperament dimension insights");
+  assert.ok(insights.length >= 5, "temperament v1 dimension insights");
+
+  const v2 = buildTemperamentSnapshotV2(
+    { "m01-soc-2": "5", "m01-soc-4": "5", "m01-soc-6": "5", "m01-soc-7": "5", "m01-soc-9": "5" },
+    { "m01-soc-2": "2", "m01-soc-4": "2", "m01-soc-6": "2", "m01-soc-7": "2", "m01-soc-9": "2" },
+  );
+  assert.equal(v2.scoringModelVersion, "temperament-scoring/2.0.0");
+  const subscaleCount = v2.sections.flatMap((s) => s.rows.filter((r) => r.rowKind === "subscale")).length;
+  assert.equal(subscaleCount, 7, "temperament v2 seven subscales");
 
   const compare = buildComparisonItemsWithConsent(
     temp.questions.filter((q) => q.visibility === "shared_after_both_submit").slice(0, 5),

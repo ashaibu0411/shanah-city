@@ -34,7 +34,8 @@
     "test:marriage:all": "npm run test:marriage && npm run test:marriage:security && npm run test:marriage:e2e",
     "test:marriage:stage2": "tsx scripts/marriage-stage2-integration.ts",
     "test:marriage:phase2a": "tsx scripts/marriage-stage2-phase2a.ts",
-    "test:marriage:phase2b": "tsx scripts/marriage-stage2-phase2b.ts"
+    "test:marriage:phase2b": "tsx scripts/marriage-stage2-phase2b.ts",
+    "test:marriage:temperament-scoring": "tsx scripts/marriage-stage2-temperament-scoring.test.ts"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "^8.0.2",

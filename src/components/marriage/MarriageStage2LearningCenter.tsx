@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import type { MarriageStage2Dashboard } from "@/lib/marriage-counseling-types";
 import { readJsonResponse } from "@/lib/read-json-response";
+import { MarriageTemperamentSnapshotView } from "@/components/marriage/MarriageTemperamentSnapshotView";
+import type { TemperamentSnapshotSection } from "@/lib/marriage-stage2-temperament-scoring-v2";
 
 const CATEGORY_LABELS: Record<string, string> = {
   learning: "Reflection",
@@ -18,7 +20,8 @@ export function MarriageStage2LearningCenter() {
   const [error, setError] = useState("");
   const [goalTitle, setGoalTitle] = useState("");
   const [temperament, setTemperament] = useState<{
-    insights: Array<{ dimension: string; partnerALabel: string; partnerBLabel: string; note: string }>;
+    scoringModelVersion?: string;
+    sections?: TemperamentSnapshotSection[];
     disclaimer: string;
   } | null>(null);
 
@@ -142,20 +145,15 @@ export function MarriageStage2LearningCenter() {
         <button type="button" className={`${marriagePremium.secondaryCta} mt-3 min-h-[44px]`} onClick={() => void loadTemperament()}>
           View side-by-side insights
         </button>
-        {temperament && (
-          <ul className="mt-4 space-y-3 text-sm">
-            {temperament.insights.map((row, i) => (
-              <li key={i} className="rounded-lg bg-stone-50 p-3 dark:bg-stone-900/40">
-                <p className="font-semibold">{row.dimension}</p>
-                <p>
-                  You: {row.partnerALabel} · Partner: {row.partnerBLabel}
-                </p>
-                <p className={marriagePremium.cardMuted}>{row.note}</p>
-              </li>
-            ))}
-            <p className="text-xs text-night-500">{temperament.disclaimer}</p>
-          </ul>
-        )}
+        {temperament?.sections?.length ? (
+          <div className="mt-4">
+            <MarriageTemperamentSnapshotView
+              sections={temperament.sections}
+              disclaimer={temperament.disclaimer}
+              scoringModelVersion={temperament.scoringModelVersion ?? "temperament-scoring/2.0.0"}
+            />
+          </div>
+        ) : null}
       </div>
 
       <div className={`${marriagePremium.card} mt-6`}>

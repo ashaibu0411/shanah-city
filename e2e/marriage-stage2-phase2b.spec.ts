@@ -167,6 +167,7 @@ test.describe("Stage 2 Phase 2B", () => {
     await signInPage(page, "partnerA");
     await page.goto(`/marriage/module/${MOD1}/compare`);
     await expect(page.getByTestId("temperament-snapshot")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("temperament-scoring-model-version")).toContainText("2.0.0");
 
     const strangerAssessment = await stranger.get(`/api/marriage/assessment/${MOD1}`);
     expect(strangerAssessment.status()).toBeGreaterThanOrEqual(400);
