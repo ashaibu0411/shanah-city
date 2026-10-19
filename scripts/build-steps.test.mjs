@@ -178,7 +178,10 @@ const stagingProdEnv = {
   assert.equal(outcome.ok, false);
   assert.equal(outcome.failedAt, "staging_guard");
   assert.ok(guardFailure instanceof Error);
-  assert.match(guardFailure.message, /staging pooled host/);
+  assert.match(
+    guardFailure.message,
+    /production Neon endpoints are not allowed|staging pooled host/,
+  );
   assert.deepEqual(commands, []);
 }
 

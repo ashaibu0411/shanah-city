@@ -19,6 +19,9 @@ const PRODUCTION_POOLED_HOST =
 /** Production Neon — direct (unpooled) migrate endpoint. */
 const PRODUCTION_DIRECT_HOST = "ep-young-glade-auv3jgsb.c-10.us-east-1.aws.neon.tech";
 
+/** Expected Postgres database name for Neon staging and production (path segment). */
+const EXPECTED_DATABASE_NAME = "neondb";
+
 function getDirectDatabaseUrl(env) {
   if (env.DIRECT_URL?.trim()) {
     return env.DIRECT_URL.trim();
@@ -40,7 +43,7 @@ function getDirectDatabaseUrl(env) {
   return pooled;
 }
 
-function parsePostgresHostname(connectionString) {
+function parsePostgresConnectionTarget(connectionString) {
   if (!connectionString || typeof connectionString !== "string") {
     return { ok: false, reason: "missing connection string" };
   }
@@ -53,10 +56,35 @@ function parsePostgresHostname(connectionString) {
     if (!parsed.hostname) {
       return { ok: false, reason: "connection string has no hostname" };
     }
-    return { ok: true, hostname: parsed.hostname };
+    const rawPath = parsed.pathname?.replace(/^\//, "") ?? "";
+    const database = rawPath ? decodeURIComponent(rawPath.split("/")[0]) : "";
+    if (!database) {
+      return { ok: false, reason: "connection string has no database name in path" };
+    }
+    return { ok: true, hostname: parsed.hostname, database };
   } catch {
     return { ok: false, reason: "connection string is not a valid URL" };
   }
+}
+
+function parsePostgresHostname(connectionString) {
+  const target = parsePostgresConnectionTarget(connectionString);
+  if (!target.ok) {
+    return target;
+  }
+  return { ok: true, hostname: target.hostname };
+}
+
+function assertExpectedDatabaseName(target, label, fieldName) {
+  if (target.database !== EXPECTED_DATABASE_NAME) {
+    throw new Error(
+      `${label}: ${fieldName} must use database ${EXPECTED_DATABASE_NAME} (got ${target.database}).`,
+    );
+  }
+}
+
+function isProductionNeonHostname(hostname) {
+  return hostname === PRODUCTION_POOLED_HOST || hostname === PRODUCTION_DIRECT_HOST;
 }
 
 function isLocalhostHostname(hostname) {
@@ -99,8 +127,8 @@ function assertDirectUrlAliasesConsistent(env, label) {
   if (!directUrl || !directDatabaseUrl) {
     return;
   }
-  const a = parsePostgresHostname(directUrl);
-  const b = parsePostgresHostname(directDatabaseUrl);
+  const a = parsePostgresConnectionTarget(directUrl);
+  const b = parsePostgresConnectionTarget(directDatabaseUrl);
   if (!a.ok) {
     throw new Error(`${label}: DIRECT_URL invalid (${a.reason}).`);
   }
@@ -110,6 +138,11 @@ function assertDirectUrlAliasesConsistent(env, label) {
   if (a.hostname !== b.hostname) {
     throw new Error(
       `${label}: DIRECT_URL and DIRECT_DATABASE_URL must target the same host (got ${a.hostname} vs ${b.hostname}).`,
+    );
+  }
+  if (a.database !== b.database) {
+    throw new Error(
+      `${label}: DIRECT_URL and DIRECT_DATABASE_URL must target the same database (got ${a.database} vs ${b.database}).`,
     );
   }
 }
@@ -138,6 +171,76 @@ function isProductionVercelBuild(env) {
 }
 
 /**
+ * Shared staging connection checks (Vercel build + manual db:deploy:staging).
+ * @param {NodeJS.ProcessEnv} env
+ * @param {string} label
+ */
+function validateStagingMigrateConnectionTargets(env, label) {
+  assertDirectUrlAliasesConsistent(env, label);
+
+  const runtimeRaw = env.DATABASE_URL?.trim();
+  const migrationRaw = env.DIRECT_URL?.trim();
+
+  if (!runtimeRaw) {
+    throw new Error(`${label}: DATABASE_URL is required for staging migrations.`);
+  }
+  if (!migrationRaw) {
+    throw new Error(`${label}: DIRECT_URL must be set explicitly for staging migrations.`);
+  }
+
+  const runtime = parsePostgresConnectionTarget(runtimeRaw);
+  if (!runtime.ok) {
+    throw new Error(`${label}: DATABASE_URL invalid (${runtime.reason}).`);
+  }
+
+  const migration = parsePostgresConnectionTarget(migrationRaw);
+  if (!migration.ok) {
+    throw new Error(`${label}: migration URL invalid (${migration.reason}).`);
+  }
+
+  if (isLocalhostHostname(runtime.hostname) || isLocalhostHostname(migration.hostname)) {
+    throw new Error(`${label}: localhost database targets are not allowed.`);
+  }
+
+  if (isProductionNeonHostname(runtime.hostname) || isProductionNeonHostname(migration.hostname)) {
+    throw new Error(`${label}: production Neon endpoints are not allowed for staging migrations.`);
+  }
+
+  assertExpectedDatabaseName(runtime, label, "DATABASE_URL");
+  assertExpectedDatabaseName(migration, label, "migration URL");
+
+  if (runtime.database !== migration.database) {
+    throw new Error(
+      `${label}: DATABASE_URL and migration URL must target the same database (got ${runtime.database} vs ${migration.database}).`,
+    );
+  }
+
+  if (runtime.hostname !== STAGING_POOLED_HOST) {
+    throw new Error(
+      `${label}: DATABASE_URL must use staging pooled host ${STAGING_POOLED_HOST} (got ${runtime.hostname}).`,
+    );
+  }
+
+  if (migration.hostname !== STAGING_DIRECT_HOST) {
+    throw new Error(
+      `${label}: migration URL must use staging direct host ${STAGING_DIRECT_HOST} (got ${migration.hostname}).`,
+    );
+  }
+
+  if (!stagingEndpointsAligned(runtime.hostname, migration.hostname)) {
+    throw new Error(
+      `${label}: DATABASE_URL and migration URL are not the aligned staging Neon pair.`,
+    );
+  }
+
+  return {
+    runtimeHost: runtime.hostname,
+    migrationHost: migration.hostname,
+    database: runtime.database,
+  };
+}
+
+/**
  * Validates staging migrate targets. Throws Error with sanitized message (hostnames only).
  * @param {NodeJS.ProcessEnv} env
  */
@@ -155,53 +258,22 @@ function validateStagingMigrateGuard(env) {
     }
   }
 
-  assertDirectUrlAliasesConsistent(env, "Staging migrate guard");
+  const targets = validateStagingMigrateConnectionTargets(env, "Staging migrate guard");
+  return { skipped: false, ...targets };
+}
 
-  const runtimeRaw = env.DATABASE_URL?.trim();
-  const migrationRaw = env.DIRECT_URL?.trim();
-
-  if (!runtimeRaw) {
-    throw new Error("Staging migrate guard: DATABASE_URL is required for shanah-city-staging builds.");
-  }
-  if (!migrationRaw) {
+/**
+ * Manual `npm run db:deploy:staging` — same URL rules as Vercel staging guard, before Prisma CLI.
+ * @param {NodeJS.ProcessEnv} env
+ */
+function validateManualStagingMigrateDeploy(env) {
+  if (env.STAGING_DATABASE_CONFIRM?.trim() !== STAGING_VERCEL_PROJECT) {
     throw new Error(
-      "Staging migrate guard: DIRECT_URL must be set explicitly for shanah-city-staging builds.",
+      `Staging manual migrate: set STAGING_DATABASE_CONFIRM=${STAGING_VERCEL_PROJECT} before running migrations.`,
     );
   }
 
-  const runtime = parsePostgresHostname(runtimeRaw);
-  if (!runtime.ok) {
-    throw new Error(`Staging migrate guard: DATABASE_URL invalid (${runtime.reason}).`);
-  }
-
-  const migration = parsePostgresHostname(migrationRaw);
-  if (!migration.ok) {
-    throw new Error(`Staging migrate guard: migration URL invalid (${migration.reason}).`);
-  }
-
-  if (isLocalhostHostname(runtime.hostname) || isLocalhostHostname(migration.hostname)) {
-    throw new Error("Staging migrate guard: localhost database targets are not allowed.");
-  }
-
-  if (runtime.hostname !== STAGING_POOLED_HOST) {
-    throw new Error(
-      `Staging migrate guard: DATABASE_URL must use staging pooled host ${STAGING_POOLED_HOST} (got ${runtime.hostname}).`,
-    );
-  }
-
-  if (migration.hostname !== STAGING_DIRECT_HOST) {
-    throw new Error(
-      `Staging migrate guard: migration URL must use staging direct host ${STAGING_DIRECT_HOST} (got ${migration.hostname}).`,
-    );
-  }
-
-  if (!stagingEndpointsAligned(runtime.hostname, migration.hostname)) {
-    throw new Error(
-      "Staging migrate guard: DATABASE_URL and migration URL are not the aligned staging Neon pair.",
-    );
-  }
-
-  return { skipped: false, runtimeHost: runtime.hostname, migrationHost: migration.hostname };
+  return validateStagingMigrateConnectionTargets(env, "Staging manual migrate");
 }
 
 /**
@@ -227,18 +299,27 @@ function validateProductionMigrateGuard(env) {
     );
   }
 
-  const runtime = parsePostgresHostname(runtimeRaw);
+  const runtime = parsePostgresConnectionTarget(runtimeRaw);
   if (!runtime.ok) {
     throw new Error(`Production migrate guard: DATABASE_URL invalid (${runtime.reason}).`);
   }
 
-  const migration = parsePostgresHostname(migrationRaw);
+  const migration = parsePostgresConnectionTarget(migrationRaw);
   if (!migration.ok) {
     throw new Error(`Production migrate guard: migration URL invalid (${migration.reason}).`);
   }
 
   if (isLocalhostHostname(runtime.hostname) || isLocalhostHostname(migration.hostname)) {
     throw new Error("Production migrate guard: localhost database targets are not allowed.");
+  }
+
+  assertExpectedDatabaseName(runtime, "Production migrate guard", "DATABASE_URL");
+  assertExpectedDatabaseName(migration, "Production migrate guard", "migration URL");
+
+  if (runtime.database !== migration.database) {
+    throw new Error(
+      `Production migrate guard: DATABASE_URL and migration URL must target the same database (got ${runtime.database} vs ${migration.database}).`,
+    );
   }
 
   if (
@@ -268,7 +349,12 @@ function validateProductionMigrateGuard(env) {
     );
   }
 
-  return { skipped: false, runtimeHost: runtime.hostname, migrationHost: migration.hostname };
+  return {
+    skipped: false,
+    runtimeHost: runtime.hostname,
+    migrationHost: migration.hostname,
+    database: runtime.database,
+  };
 }
 
 function enforceStagingMigrateGuardIfNeeded(env) {
@@ -311,11 +397,15 @@ module.exports = {
   PRODUCTION_VERCEL_PROJECT,
   PRODUCTION_POOLED_HOST,
   PRODUCTION_DIRECT_HOST,
+  EXPECTED_DATABASE_NAME,
   getDirectDatabaseUrl,
   parsePostgresHostname,
+  parsePostgresConnectionTarget,
   isStagingVercelBuild,
   isProductionVercelBuild,
   validateStagingMigrateGuard,
+  validateStagingMigrateConnectionTargets,
+  validateManualStagingMigrateDeploy,
   validateProductionMigrateGuard,
   enforceStagingMigrateGuardIfNeeded,
   enforceProductionMigrateGuardIfNeeded,

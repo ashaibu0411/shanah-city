@@ -13,6 +13,9 @@ const {
   PRODUCTION_DIRECT_HOST,
   validateStagingMigrateGuard,
   validateProductionMigrateGuard,
+  validateManualStagingMigrateDeploy,
+  EXPECTED_DATABASE_NAME,
+  parsePostgresConnectionTarget,
   isStagingVercelBuild,
   isProductionVercelBuild,
   isVercelPreviewBuild,
@@ -26,8 +29,8 @@ const PROD_DIRECT = PRODUCTION_DIRECT_HOST;
 const STAGING_POOLED_C10 = "ep-soft-flower-b89de4t0-pooler.c-10.us-east-1.aws.neon.tech";
 const STAGING_DIRECT_C10 = "ep-soft-flower-b89de4t0.c-10.us-east-1.aws.neon.tech";
 
-function url(host) {
-  return `postgresql://neondb_owner:REDACTED@${host}/neondb?sslmode=require`;
+function url(host, database = EXPECTED_DATABASE_NAME) {
+  return `postgresql://neondb_owner:REDACTED@${host}/${database}?sslmode=require`;
 }
 
 const stagingEnv = {
@@ -83,7 +86,7 @@ assert.throws(
       ...stagingEnv,
       DATABASE_URL: url(PROD_POOLED),
     }),
-  /DATABASE_URL must use staging pooled host/,
+  /production Neon endpoints are not allowed|staging pooled host/,
   "production runtime URL rejected",
 );
 
@@ -93,7 +96,7 @@ assert.throws(
       ...stagingEnv,
       DIRECT_URL: url(PROD_DIRECT),
     }),
-  /migration URL must use staging direct host/,
+  /production Neon endpoints are not allowed|migration URL must use staging direct host/,
   "production migrate URL rejected",
 );
 
@@ -104,7 +107,7 @@ assert.throws(
       DATABASE_URL: url(STAGING_POOLED_HOST),
       DIRECT_URL: url(PROD_DIRECT),
     }),
-  /migration URL must use staging direct host/,
+  /production Neon endpoints are not allowed|migration URL must use staging direct host/,
   "split-brain rejected",
 );
 
@@ -190,7 +193,7 @@ assert.throws(
       DATABASE_URL: url(PROD_POOLED),
       DIRECT_URL: url(PROD_DIRECT),
     }),
-  /staging pooled host/,
+  /production Neon endpoints are not allowed|staging pooled host/,
   "staging project with production URLs rejected",
 );
 
@@ -202,7 +205,7 @@ assert.throws(
       DATABASE_URL: url(PROD_POOLED),
       DIRECT_URL: url(PROD_DIRECT),
     }),
-  /staging pooled host/,
+  /production Neon endpoints are not allowed|staging pooled host/,
   "guard flag with production URLs rejected",
 );
 
@@ -337,7 +340,7 @@ assert.throws(
       DATABASE_URL: url(PROD_POOLED),
       DIRECT_URL: url(PROD_DIRECT),
     }),
-  /staging pooled host/,
+  /production Neon endpoints are not allowed|staging pooled host/,
   "production URLs rejected by staging guard",
 );
 
@@ -458,6 +461,110 @@ assert.deepEqual(
   resolvePrismaMigrateDeployPlan({}),
   { run: false, reason: "database_url_unset" },
   "local build without DATABASE_URL skips migrate",
+);
+
+assert.throws(
+  () =>
+    validateStagingMigrateGuard({
+      ...stagingEnv,
+      DATABASE_URL: url(STAGING_POOLED_HOST, "shanah_city"),
+    }),
+  /must use database neondb/,
+  "staging guard rejects wrong DATABASE_URL database name",
+);
+
+assert.throws(
+  () =>
+    validateStagingMigrateGuard({
+      ...stagingEnv,
+      DATABASE_URL: url(STAGING_POOLED_HOST),
+      DIRECT_URL: url(STAGING_DIRECT_HOST, "otherdb"),
+    }),
+  /must target the same database|must use database neondb/,
+  "staging guard rejects mismatched URL path databases",
+);
+
+assert.throws(
+  () =>
+    validateProductionMigrateGuard({
+      VERCEL: "1",
+      VERCEL_PROJECT_NAME: "shanah-city",
+      VERCEL_ENV: "production",
+      DATABASE_URL: url(PROD_POOLED, "production"),
+      DIRECT_URL: url(PROD_DIRECT),
+    }),
+  /must use database neondb/,
+  "production guard rejects wrong database name",
+);
+
+const manualStagingBase = {
+  STAGING_DATABASE_CONFIRM: "shanah-city-staging",
+  DATABASE_URL: url(STAGING_POOLED_HOST),
+  DIRECT_URL: url(STAGING_DIRECT_HOST),
+};
+
+assert.deepEqual(
+  validateManualStagingMigrateDeploy(manualStagingBase).database,
+  EXPECTED_DATABASE_NAME,
+  "manual staging migrate accepts valid staging configuration",
+);
+
+assert.throws(
+  () =>
+    validateManualStagingMigrateDeploy({
+      ...manualStagingBase,
+      DATABASE_URL: url(PROD_POOLED),
+      DIRECT_URL: url(PROD_DIRECT),
+    }),
+  /production Neon endpoints are not allowed/,
+  "manual staging migrate rejects production hostnames",
+);
+
+assert.throws(
+  () =>
+    validateManualStagingMigrateDeploy({
+      ...manualStagingBase,
+      DATABASE_URL: "postgresql://user:REDACTED@localhost:5432/neondb",
+    }),
+  /localhost database targets are not allowed/,
+  "manual staging migrate rejects localhost",
+);
+
+assert.throws(
+  () =>
+    validateManualStagingMigrateDeploy({
+      STAGING_DATABASE_CONFIRM: "shanah-city-staging",
+      DATABASE_URL: url(STAGING_POOLED_HOST),
+    }),
+  /DIRECT_URL must be set explicitly/,
+  "manual staging migrate rejects missing DIRECT_URL",
+);
+
+assert.throws(
+  () =>
+    validateManualStagingMigrateDeploy({
+      ...manualStagingBase,
+      DIRECT_URL: url(STAGING_DIRECT_HOST),
+      DIRECT_DATABASE_URL: url(STAGING_DIRECT_HOST, "wrongdb"),
+    }),
+  /must target the same database/,
+  "manual staging migrate rejects conflicting direct URL databases",
+);
+
+assert.throws(
+  () =>
+    validateManualStagingMigrateDeploy({
+      DATABASE_URL: url(STAGING_POOLED_HOST),
+      DIRECT_URL: url(STAGING_DIRECT_HOST),
+    }),
+  /STAGING_DATABASE_CONFIRM/,
+  "manual staging migrate requires confirmation flag",
+);
+
+assert.equal(
+  parsePostgresConnectionTarget(url(STAGING_POOLED_HOST)).database,
+  "neondb",
+  "parsePostgresConnectionTarget reads database from path",
 );
 
 console.log("build-migrate-guard.test.mjs: OK");
