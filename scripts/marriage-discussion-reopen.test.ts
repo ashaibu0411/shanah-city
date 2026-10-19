@@ -149,6 +149,12 @@ async function run() {
   assert.equal(item.discussion?.discussed, false, "E");
   assert.deepEqual(snapNotes(item), notesAfterCreate, "F");
 
+  await markDiscussion(userA, MOD, Q);
+  cmp = await getComparisonForViewer(userA, MOD);
+  item = cmp.items.find((i) => i.questionId === Q)!;
+  assert.equal(item.discussion?.discussed, true);
+  assert.deepEqual(snapNotes(item), notesAfterCreate, "mark discussed must not erase notes after reopen");
+
   await markDiscussion(userB, MOD, Q);
   cmp = await getComparisonForViewer(userB, MOD);
   item = cmp.items.find((i) => i.questionId === Q)!;
@@ -182,6 +188,67 @@ async function run() {
   markOnlyItem = (await getComparisonForViewer(userA, MOD)).items.find((i) => i.questionId === markOnlyQ)!;
   assert.equal(markOnlyItem.discussion?.discussed, false);
   assert.equal(markOnlyItem.discussion?.sharedNotes.length, 0);
+  const markOnlyRows = (await store.getDiscussionMarks(journey.id, MOD)).filter(
+    (m) => m.questionId === markOnlyQ,
+  );
+  assert.equal(markOnlyRows.length, 1, "mark-only row survives non-destructive reopen");
+  assert.equal(markOnlyRows[0].discussedAt, null);
+
+  const guardQ = "m01-soc-3";
+  async function seedPartnerMark(
+    id: string,
+    sharedNote: string | undefined,
+  ) {
+    const row: MarriageDiscussionMarkRecord = {
+      id,
+      journeyId: journey.id,
+      moduleId: MOD,
+      questionId: guardQ,
+      markedByUserId: "u-a",
+      markedAt: now,
+      discussedAt: now,
+    };
+    if (sharedNote !== undefined) {
+      row.sharedNote = sharedNote;
+    }
+    await store.upsertDiscussionMark(row);
+  }
+
+  await seedPartnerMark("md-guard-ws", "   ");
+  await markDiscussion(userA, MOD, guardQ);
+  let guardRow = (await store.getDiscussionMarks(journey.id, MOD)).find(
+    (m) => m.questionId === guardQ && m.markedByUserId === "u-a",
+  )!;
+  assert.equal(guardRow.sharedNote, "   ", "whitespace-only note preserved on status-only mark");
+
+  await seedPartnerMark("md-guard-ws", "");
+  await markDiscussion(userA, MOD, guardQ);
+  guardRow = (await store.getDiscussionMarks(journey.id, MOD)).find(
+    (m) => m.questionId === guardQ && m.markedByUserId === "u-a",
+  )!;
+  assert.equal(guardRow.sharedNote, "", "empty note not overwritten on status-only mark");
+
+  await seedPartnerMark("md-guard-ws", "Exact partner note  ");
+  await markDiscussion(userA, MOD, guardQ);
+  guardRow = (await store.getDiscussionMarks(journey.id, MOD)).find(
+    (m) => m.questionId === guardQ && m.markedByUserId === "u-a",
+  )!;
+  assert.equal(guardRow.sharedNote, "Exact partner note  ", "nonempty note preserved exactly");
+
+  await store.upsertDiscussionMark({
+    id: "md-guard-none",
+    journeyId: journey.id,
+    moduleId: MOD,
+    questionId: guardQ,
+    markedByUserId: "u-b",
+    markedAt: now,
+    discussedAt: now,
+  });
+  await markDiscussion(userB, MOD, guardQ);
+  const noNoteRow = (await store.getDiscussionMarks(journey.id, MOD)).find(
+    (m) => m.id === "md-guard-none",
+  )!;
+  assert.equal(noNoteRow.sharedNote, undefined, "mark-only row stays note-free");
 
   const legacyMarks: MarriageDiscussionMarkRecord[] = [
     {

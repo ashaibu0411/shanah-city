@@ -757,8 +757,8 @@ export async function upsertDiscussionMark(mark: MarriageDiscussionMarkRecord) {
       discussedAt: discussedAtForCreate(mark),
     },
     update: {
-      sharedNote: mark.sharedNote ?? null,
       markedAt: new Date(mark.markedAt),
+      ...(mark.sharedNote !== undefined ? { sharedNote: mark.sharedNote ?? null } : {}),
       ...(discussedUpdate !== undefined ? { discussedAt: discussedUpdate } : {}),
     },
   });
@@ -781,28 +781,35 @@ export async function getDiscussionMarks(journeyId: string, moduleId: string) {
   );
 }
 
+type ReopenDiscussionMarkClient = {
+  marriageDiscussionMark: {
+    updateMany: (args: {
+      where: { journeyId: string; moduleId: string; questionId: string };
+      data: { discussedAt: null };
+    }) => Promise<{ count: number }>;
+  };
+};
+
+/** Non-destructive reopen: clears discussed status only (Test 9L). */
+export async function reopenDiscussionForQuestionWithClient(
+  client: ReopenDiscussionMarkClient,
+  journeyId: string,
+  moduleId: string,
+  questionId: string,
+) {
+  const result = await client.marriageDiscussionMark.updateMany({
+    where: { journeyId, moduleId, questionId },
+    data: { discussedAt: null },
+  });
+  return result.count;
+}
+
 export async function reopenDiscussionForQuestion(
   journeyId: string,
   moduleId: string,
   questionId: string,
 ) {
-  const rows = await prisma.marriageDiscussionMark.findMany({
-    where: { journeyId, moduleId, questionId },
-  });
-  let touched = 0;
-  for (const row of rows) {
-    if (row.sharedNote?.trim()) {
-      await prisma.marriageDiscussionMark.update({
-        where: { id: row.id },
-        data: { discussedAt: null },
-      });
-      touched += 1;
-    } else {
-      await prisma.marriageDiscussionMark.delete({ where: { id: row.id } });
-      touched += 1;
-    }
-  }
-  return touched;
+  return reopenDiscussionForQuestionWithClient(prisma, journeyId, moduleId, questionId);
 }
 
 export async function listActionPlans(journeyId: string) {

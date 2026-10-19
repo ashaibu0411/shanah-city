@@ -34,6 +34,7 @@ import type {
   MarriageJourneyConsentRecord,
   MarriageProgramType,
   MarriageQuestionDefinition,
+  MarriageDiscussionMarkRecord,
 } from "@/lib/marriage-counseling-types";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
@@ -489,16 +490,19 @@ export async function markDiscussion(
   );
 
   const now = new Date().toISOString();
-  return store().upsertDiscussionMark({
+  const payload: MarriageDiscussionMarkRecord = {
     id: existing?.id ?? `md-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     journeyId: bundle.journeyId,
     moduleId,
     questionId,
     markedByUserId: viewer.id,
-    sharedNote: existing?.sharedNote,
     markedAt: existing?.sharedNote?.trim() ? existing.markedAt : now,
     discussedAt: now,
-  });
+  };
+  if (existing?.sharedNote?.trim()) {
+    payload.sharedNote = existing.sharedNote;
+  }
+  return store().upsertDiscussionMark(payload);
 }
 
 export async function saveDiscussionNote(

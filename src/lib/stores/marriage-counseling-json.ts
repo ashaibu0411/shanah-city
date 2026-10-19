@@ -432,7 +432,14 @@ export async function upsertDiscussionMark(mark: MarriageDiscussionMarkRecord) {
       m.markedByUserId === mark.markedByUserId,
   );
   if (index === -1) store.discussionMarks.push(mark);
-  else store.discussionMarks[index] = mark;
+  else {
+    const prev = store.discussionMarks[index];
+    const merged: MarriageDiscussionMarkRecord = { ...prev, ...mark };
+    if (mark.sharedNote === undefined) {
+      merged.sharedNote = prev.sharedNote;
+    }
+    store.discussionMarks[index] = merged;
+  }
   await writeStore(store);
   return mark;
 }
@@ -449,18 +456,13 @@ export async function reopenDiscussionForQuestion(
 ) {
   const store = await readStore();
   let cleared = 0;
-  const next: typeof store.discussionMarks = [];
   for (const m of store.discussionMarks) {
     if (m.journeyId !== journeyId || m.moduleId !== moduleId || m.questionId !== questionId) {
-      next.push(m);
       continue;
     }
-    if (m.sharedNote?.trim()) {
-      next.push({ ...m, discussedAt: null });
-      cleared += 1;
-    }
+    m.discussedAt = null;
+    cleared += 1;
   }
-  store.discussionMarks = next;
   await writeStore(store);
   return cleared;
 }
