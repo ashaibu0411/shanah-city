@@ -1,0 +1,2 @@
+# Align Prisma migration checksum with production (LF-only migration.sql).
+prisma/migrations/20261017210000_marriage_discussion_reopen/migration.sql text eol=lf
