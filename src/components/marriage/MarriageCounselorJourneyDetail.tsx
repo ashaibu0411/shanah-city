@@ -5,43 +5,44 @@ import { useEffect, useState } from "react";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import { readJsonResponse } from "@/lib/read-json-response";
 
-type Stage2LessonBlock = {
-  moduleId: string;
-  title: string;
-  partnerAStatus: string;
-  partnerBStatus: string;
-  comparisonReady: boolean;
-  partnerARequiredComplete: boolean;
-  partnerBRequiredComplete: boolean;
-  optionalRemainingA: number;
-  optionalRemainingB: number;
-  lessons: Array<{
-    lessonId: string;
-    title: string;
-    partnerA: { answered: number; total: number; requiredComplete: boolean; optionalRemaining: number };
-    partnerB: { answered: number; total: number; requiredComplete: boolean; optionalRemaining: number } | null;
-  }>;
+type AdminDetail = {
+  access: "administrative";
+  journeyId: string;
+  coupleNames: string;
+  assignedCounselorName: string | null;
+  journeyStatus: string;
+  programType: string;
+  moduleCount: number;
+  completedModules: number;
+  viewerHasClinicalAccess: boolean;
 };
 
-type Detail = {
-  coupleLabel: string;
-  journey: { id: string; programType: string; status: string };
+type ClinicalDetail = {
+  access: "clinical";
+  journeyId: string;
+  coupleNames: string;
+  journeyStatus: string;
+  programType: string;
   moduleProgress: Array<{ moduleId: string; title: string; bothSubmitted: boolean; awaitingBoth: boolean }>;
-  stage2LessonProgress?: Stage2LessonBlock[];
-  comparisonSummaries: Array<{
+  stage2LessonProgress?: Array<{
     moduleId: string;
-    moduleTitle: string;
-    needsAttention: number;
-    aligned: number;
-    items: Array<{ prompt: string; category: string }>;
+    title: string;
+    partnerAStatus: string;
+    partnerBStatus: string;
+    comparisonReady: boolean;
+    lessons: Array<{ lessonId: string; title: string; partnerA: { answered: number; total: number }; partnerB: { answered: number; total: number } | null }>;
   }>;
+  comparisonSummaries: Array<{ moduleId: string; moduleTitle: string; needsAttention: number; aligned: number; items: Array<{ prompt: string; category: string }> }>;
   attentionAreas: Array<{ prompt: string; category: string; discussionPrompt?: string }>;
-  authorizedAnswers: Array<{ moduleTitle: string; userName: string; prompt: string }>;
+  authorizedAnswers: Array<{ moduleTitle: string; userName: string; prompt: string; withheld: boolean; answer?: string }>;
   sessions: Array<{ id: string; scheduledAt: string; topic?: string; zoomUrl?: string; status?: string }>;
   assignments: Array<{ id: string; title: string; dueAt?: string; completedByUserIds: string[] }>;
-  notes: Array<{ body: string; updatedAt: string; createdAt?: string }>;
+  notes: Array<{ body: string; updatedAt: string }>;
   revisions: Array<{ id: string; status: string; moduleId: string }>;
+  comparisonDisclosurePhase?: string;
 };
+
+type Detail = AdminDetail | ClinicalDetail;
 
 export function MarriageCounselorJourneyDetail({ journeyId }: { journeyId: string }) {
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -70,13 +71,39 @@ export function MarriageCounselorJourneyDetail({ journeyId }: { journeyId: strin
 
   if (!detail) return <p className={marriagePremium.cardMuted}>Loading couple…</p>;
 
+  if (detail.access === "administrative") {
+    return (
+      <div className="pb-24">
+        <Link href="/marriage/counselor" className="text-sm font-semibold text-clay-700">
+          ← Counselor list
+        </Link>
+        <h1 className="mt-2 font-display text-xl font-semibold">{detail.coupleNames}</h1>
+        <p className={`${marriagePremium.cardMuted} capitalize`}>
+          {detail.programType} · {detail.journeyStatus}
+        </p>
+        <div className={`${marriagePremium.card} mt-6`}>
+          <p className="font-semibold">Administrative overview</p>
+          <p className={`${marriagePremium.cardMuted} mt-1 text-sm`}>
+            Clinical answers, comparisons, sessions, and notes are hidden until you are the assigned counselor.
+          </p>
+          <p className="mt-3 text-sm">Assigned counselor: {detail.assignedCounselorName ?? "Unassigned"}</p>
+          <p className="text-sm">
+            Progress: {detail.completedModules}/{detail.moduleCount} modules both submitted
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pb-24">
       <Link href="/marriage/counselor" className="text-sm font-semibold text-clay-700">
         ← Counselor list
       </Link>
-      <h1 className="mt-2 font-display text-xl font-semibold">{detail.coupleLabel}</h1>
-      <p className={`${marriagePremium.cardMuted} capitalize`}>{detail.journey.programType} · {detail.journey.status}</p>
+      <h1 className="mt-2 font-display text-xl font-semibold">{detail.coupleNames}</h1>
+      <p className={`${marriagePremium.cardMuted} capitalize`}>
+        {detail.programType} · {detail.journeyStatus}
+      </p>
 
       {detail.attentionAreas.length > 0 && (
         <div className={`${marriagePremium.card} mt-6 border-l-4 border-amber-500`}>
@@ -86,9 +113,6 @@ export function MarriageCounselorJourneyDetail({ journeyId }: { journeyId: strin
               <li key={i} className="text-sm">
                 <span className={marriagePremium.badgeDifferent}>{area.category.replace(/_/g, " ")}</span>
                 <p className="mt-1 font-medium">{area.prompt}</p>
-                {area.discussionPrompt && (
-                  <p className={`${marriagePremium.cardMuted} mt-1`}>{area.discussionPrompt}</p>
-                )}
               </li>
             ))}
           </ul>
@@ -112,18 +136,11 @@ export function MarriageCounselorJourneyDetail({ journeyId }: { journeyId: strin
       {(detail.stage2LessonProgress?.length ?? 0) > 0 && (
         <div className={`${marriagePremium.card} mt-4`} data-testid="counselor-lesson-progress">
           <p className="font-semibold">Lesson progress (Stage 2)</p>
-          <p className={`${marriagePremium.cardMuted} text-xs`}>Completion counts only — private answer text is never shown here.</p>
+          <p className={`${marriagePremium.cardMuted} text-xs`}>Completion counts only — answer text is never shown.</p>
           <ul className="mt-3 space-y-4 text-sm">
             {detail.stage2LessonProgress!.map((block) => (
               <li key={block.moduleId}>
                 <p className="font-medium">{block.title}</p>
-                <p className="text-xs text-night-500">
-                  Partner A: {block.partnerAStatus.replace("_", " ")}
-                  {block.partnerARequiredComplete ? " · required complete" : " · required incomplete"} ·{" "}
-                  {block.optionalRemainingA} optional left · Partner B: {block.partnerBStatus.replace("_", " ")}
-                  {block.partnerBRequiredComplete ? " · required complete" : ""} · Compare{" "}
-                  {block.comparisonReady ? "ready" : "not ready"}
-                </p>
                 <ul className="mt-2 space-y-1 border-l-2 border-stone-200 pl-3 dark:border-stone-700">
                   {block.lessons.map((lesson) => (
                     <li key={lesson.lessonId}>
@@ -142,6 +159,12 @@ export function MarriageCounselorJourneyDetail({ journeyId }: { journeyId: strin
         </div>
       )}
 
+      {detail.comparisonSummaries.length === 0 && detail.comparisonDisclosurePhase === "withheld_until_explicit_consent" && (
+        <p className={`${marriagePremium.cardMuted} mt-4 text-sm`}>
+          Spouse comparison summaries are withheld until explicit counselor comparison consent exists.
+        </p>
+      )}
+
       {detail.assignments.length > 0 && (
         <div className={`${marriagePremium.card} mt-4`}>
           <p className="font-semibold">Follow-up assignments</p>
@@ -149,8 +172,9 @@ export function MarriageCounselorJourneyDetail({ journeyId }: { journeyId: strin
             {detail.assignments.map((a) => (
               <li key={a.id}>
                 {a.title}
-                {a.dueAt && <span className="text-xs text-night-500"> · due {new Date(a.dueAt).toLocaleDateString()}</span>}
-                <span className="text-xs text-night-500"> · completed by {a.completedByUserIds.length} partner(s)</span>
+                {a.dueAt && (
+                  <span className="text-xs text-night-500"> · due {new Date(a.dueAt).toLocaleDateString()}</span>
+                )}
               </li>
             ))}
           </ul>
@@ -160,9 +184,6 @@ export function MarriageCounselorJourneyDetail({ journeyId }: { journeyId: strin
       {detail.comparisonSummaries.map((summary) => (
         <div key={summary.moduleId} className={`${marriagePremium.card} mt-4`}>
           <p className="font-semibold">{summary.moduleTitle}</p>
-          <p className="text-xs text-night-500">
-            {summary.aligned} aligned · {summary.needsAttention} need attention
-          </p>
           <ul className="mt-2 space-y-2 text-sm">
             {summary.items
               .filter((i) => i.category !== "aligned")
@@ -224,31 +245,26 @@ export function MarriageCounselorJourneyDetail({ journeyId }: { journeyId: strin
       </div>
 
       <div className={`${marriagePremium.card} mt-4`}>
-        <p className="font-semibold">Homework</p>
-        <ul className="mt-2 space-y-1 text-sm">
-          {detail.assignments.map((a) => (
-            <li key={a.id}>
-              {a.title}
-              {a.dueAt && ` · due ${new Date(a.dueAt).toLocaleDateString()}`}
-              {a.completedByUserIds.length >= 2 ? " · complete" : " · open"}
+        <p className="font-semibold">Consented counselor responses</p>
+        <ul className="mt-2 space-y-2 text-sm">
+          {detail.authorizedAnswers.map((a, i) => (
+            <li key={i}>
+              <p className="text-xs font-bold text-night-500">
+                {a.userName} · {a.moduleTitle}
+              </p>
+              <p>{a.prompt}</p>
+              {a.withheld ? (
+                <p className="text-xs text-amber-800">Withheld — valid spouse consent required.</p>
+              ) : (
+                <p className="mt-1 rounded-lg bg-stone-50 p-2 dark:bg-white/5">{a.answer}</p>
+              )}
             </li>
           ))}
+          {detail.authorizedAnswers.length === 0 && (
+            <p className={marriagePremium.cardMuted}>No consented responses yet.</p>
+          )}
         </ul>
       </div>
-
-      {detail.authorizedAnswers.length > 0 && (
-        <div className={`${marriagePremium.card} mt-4`}>
-          <p className="font-semibold">Counselor-authorized responses</p>
-          <ul className="mt-2 space-y-2 text-sm">
-            {detail.authorizedAnswers.map((a, i) => (
-              <li key={i}>
-                <p className="text-xs font-bold text-night-500">{a.userName} · {a.moduleTitle}</p>
-                <p>{a.prompt}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <div className={`${marriagePremium.card} mt-4`}>
         <p className="font-semibold">Private counselor notes</p>

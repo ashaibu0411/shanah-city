@@ -5,6 +5,10 @@ import {
   getCounselorJourneyDetail,
   saveCounselorPrivateNote,
 } from "@/lib/marriage-counseling-counselor-server";
+import {
+  counselorRouteErrorBody,
+  counselorRouteErrorStatus,
+} from "@/lib/marriage-counselor-api-security";
 
 type Params = { params: Promise<{ journeyId: string }> };
 
@@ -18,10 +22,10 @@ export async function GET(_request: Request, { params }: Params) {
     const detail = await getCounselorJourneyDetail(user, journeyId);
     return NextResponse.json(detail);
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Access denied." },
-      { status: 403 },
-    );
+    const message = error instanceof Error ? error.message : "Access denied.";
+    return NextResponse.json(counselorRouteErrorBody(message), {
+      status: counselorRouteErrorStatus(message),
+    });
   }
 }
 
@@ -45,9 +49,9 @@ export async function POST(request: Request, { params }: Params) {
     const note = await saveCounselorPrivateNote(user, journeyId, noteBody);
     return NextResponse.json({ ok: true, note });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Save failed." },
-      { status: 403 },
-    );
+    const message = error instanceof Error ? error.message : "Save failed.";
+    return NextResponse.json(counselorRouteErrorBody(message), {
+      status: counselorRouteErrorStatus(message),
+    });
   }
 }

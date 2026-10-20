@@ -11,6 +11,7 @@ import type {
   MarriageStage2LessonDefinition,
 } from "@/lib/marriage-counseling-types";
 import { MarriageAnswerSharingConsent } from "@/components/marriage/MarriageAnswerSharingConsent";
+import { MarriageCounselorAnswerConsent } from "@/components/marriage/MarriageCounselorAnswerConsent";
 import { MarriageSubmittedReadOnlyNotice } from "@/components/marriage/MarriageSubmittedReadOnlyNotice";
 import { computeModuleSubmissionProgress } from "@/lib/marriage-module-progress";
 import { readJsonResponse } from "@/lib/read-json-response";
@@ -295,15 +296,32 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
       )}
 
       <div className={`${marriagePremium.questionCard} mt-4`}>
-        <p className="text-xs font-semibold uppercase tracking-wide text-clay-700">{visibilityNote(question)}</p>
+        {question.visibility !== "counselor_with_consent" && (
+          <p className="text-xs font-semibold uppercase tracking-wide text-clay-700">{visibilityNote(question)}</p>
+        )}
         <p className="mt-3 text-base font-medium leading-snug">{question.prompt}</p>
         {question.explanation && <p className={`${marriagePremium.cardMuted} mt-2`}>{question.explanation}</p>}
-        <MarriageAnswerSharingConsent
-          journeyId={data.journeyId}
-          moduleId={moduleId}
-          question={question}
-          disabled={locked}
-        />
+        {question.visibility === "counselor_with_consent" ? (
+          <MarriageCounselorAnswerConsent
+            journeyId={data.journeyId}
+            moduleId={moduleId}
+            questionId={question.id}
+            submitted={locked}
+            answerDisclosable={
+              answers[question.id] !== undefined &&
+              answers[question.id] !== "" &&
+              answers[question.id] !== null &&
+              answers[question.id] !== "__skip__"
+            }
+          />
+        ) : (
+          <MarriageAnswerSharingConsent
+            journeyId={data.journeyId}
+            moduleId={moduleId}
+            question={question}
+            disabled={locked}
+          />
+        )}
         <MarriageQuestionInput question={question} value={answers[question.id]} onChange={setAnswer} disabled={locked} />
         {question.allowSkip && !locked && (
           <button type="button" className="mt-4 text-sm font-semibold text-night-500 underline" onClick={() => setAnswer("__skip__")}>

@@ -298,20 +298,15 @@ export async function saveAssessmentDraft(
   validateAnswers(mod.questions, answers, false);
 
   const now = new Date().toISOString();
-  const existing = await store().getResponse(assessment.journeyId, moduleId, viewer.id);
-  const record = {
-    id: existing?.id ?? `mar-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  await store().applyAssessmentDraftPatch({
     journeyId: assessment.journeyId,
     moduleId,
-    contentVersion: assessment.contentVersion,
     userId: viewer.id,
-    status: "draft" as const,
-    answers: { ...(existing?.answers ?? {}), ...answers },
+    contentVersion: assessment.contentVersion,
+    patch: answers,
+    questions: mod.questions,
     lastSavedAt: now,
-    submittedAt: undefined,
-    revisionGeneration: existing?.revisionGeneration,
-  };
-  await store().saveResponse(record);
+  });
 
   const journey = await store().getJourneyById(assessment.journeyId);
   if (journey && journey.currentModuleId !== moduleId) {

@@ -1,6 +1,35 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
+import {
+  computeAnswerFingerprint,
+  isAnswerDisclosableToCounselor,
+} from "@/lib/marriage-counselor-consent";
+import {
+  acquireAssessmentDraftAdvisoryLock,
+  lockCounselingJourneyRow,
+  lockRevisionRequestRow,
+  type MarriageDbTransaction,
+} from "@/lib/marriage-concurrency-protocol";
+import {
+  counselorJourneyAccessChangeRequiresInvalidation,
+  assertNoCounselorFieldsInGenericJourneyPatch,
+  type CounselorJourneyAccessPatch,
+} from "@/lib/marriage-counselor-assignment-change";
+import {
+  invalidateCounselorQuestionsInTransaction,
+  mapSharingConsentRow,
+} from "@/lib/marriage-counselor-consent-invalidation";
+import { invalidateAllCounselorDisclosureForJourneyInTransaction } from "@/lib/marriage-counselor-journey-consent-invalidation";
+import {
+  assertCounselorSharingConsentGrant,
+  buildCounselorConsentRevocationRecord,
+  mergePartnerSharingConsentPatch,
+} from "@/lib/marriage-sharing-consent-persistence";
+import type { MarriageQuestionDefinition } from "@/lib/marriage-counseling-types";
 import type {
   MarriageAssessmentResponseRecord,
+  MarriagePartnerSharingConsentPatch,
   MarriageAuditLogRecord,
   MarriageComparisonUnlockRecord,
   MarriageCounselingJourneyRecord,
@@ -149,23 +178,18 @@ export async function updateJourney(
     deletionRequestedAt: string | null;
   }>,
 ) {
+  assertNoCounselorFieldsInGenericJourneyPatch(patch);
   const row = await prisma.marriageCounselingJourney.update({
     where: { id },
     data: {
       status: patch.status,
       currentModuleId: patch.currentModuleId,
-      counselorUserId: patch.counselorUserId,
       completedAt: patch.completedAt ? new Date(patch.completedAt) : undefined,
       participantBId: patch.participantBId,
       guidedModuleIdsJson: patch.guidedModuleIds
         ? JSON.stringify(patch.guidedModuleIds)
         : undefined,
       curriculumVersion: patch.curriculumVersion,
-      counselorAccessRevokedAt: patch.counselorAccessRevokedAt
-        ? new Date(patch.counselorAccessRevokedAt)
-        : patch.counselorAccessRevokedAt === null
-          ? null
-          : undefined,
       deletionRequestedAt: patch.deletionRequestedAt
         ? new Date(patch.deletionRequestedAt)
         : patch.deletionRequestedAt === null
@@ -175,6 +199,41 @@ export async function updateJourney(
     },
   });
   return mapJourney(row);
+}
+
+export async function applyCounselorJourneyAccessChange(
+  journeyId: string,
+  patch: CounselorJourneyAccessPatch,
+) {
+  const now = new Date().toISOString();
+
+  return prisma.$transaction(async (tx) => {
+    await lockCounselingJourneyRow(tx, journeyId);
+    const journeyRow = await tx.marriageCounselingJourney.findUnique({ where: { id: journeyId } });
+    if (!journeyRow) throw new Error("Journey not found.");
+
+    const journey = mapJourney(journeyRow);
+    const shouldInvalidate = counselorJourneyAccessChangeRequiresInvalidation(journey, patch);
+    if (shouldInvalidate) {
+      await invalidateAllCounselorDisclosureForJourneyInTransaction(tx, journeyId, now);
+    }
+
+    const row = await tx.marriageCounselingJourney.update({
+      where: { id: journeyId },
+      data: {
+        counselorUserId:
+          patch.counselorUserId !== undefined ? patch.counselorUserId : undefined,
+        counselorAccessRevokedAt:
+          patch.counselorAccessRevokedAt !== undefined
+            ? patch.counselorAccessRevokedAt
+              ? new Date(patch.counselorAccessRevokedAt)
+              : null
+            : undefined,
+        updatedAt: new Date(),
+      },
+    });
+    return mapJourney(row);
+  });
 }
 
 export async function upsertConsent(record: MarriageJourneyConsentRecord) {
@@ -239,9 +298,15 @@ export async function listResponsesForJourneyModule(journeyId: string, moduleId:
   }));
 }
 
-export async function saveResponse(record: MarriageAssessmentResponseRecord) {
-  await prisma.marriageAssessmentResponse.upsert({
-    where: { journeyId_moduleId_userId: { journeyId: record.journeyId, moduleId: record.moduleId, userId: record.userId } },
+function assessmentResponseUpsertArgs(record: MarriageAssessmentResponseRecord) {
+  return {
+    where: {
+      journeyId_moduleId_userId: {
+        journeyId: record.journeyId,
+        moduleId: record.moduleId,
+        userId: record.userId,
+      },
+    },
     create: {
       id: record.id,
       journeyId: record.journeyId,
@@ -262,8 +327,174 @@ export async function saveResponse(record: MarriageAssessmentResponseRecord) {
       submittedAt: record.submittedAt ? new Date(record.submittedAt) : null,
       revisionGeneration: record.revisionGeneration ?? 0,
     },
+  };
+}
+
+async function saveResponseWithClient(client: MarriageDbTransaction, record: MarriageAssessmentResponseRecord) {
+  await client.marriageAssessmentResponse.upsert(assessmentResponseUpsertArgs(record));
+  return record;
+}
+
+export async function saveResponse(record: MarriageAssessmentResponseRecord) {
+  await saveResponseWithClient(prisma, record);
+  return record;
+}
+
+export type ApplyAssessmentDraftPatchInput = {
+  journeyId: string;
+  moduleId: string;
+  userId: string;
+  contentVersion: string;
+  patch: Record<string, unknown>;
+  questions: MarriageQuestionDefinition[];
+  lastSavedAt: string;
+};
+
+export async function applyAssessmentDraftPatch(input: ApplyAssessmentDraftPatchInput) {
+  const { journeyId, moduleId, userId, contentVersion, patch, questions, lastSavedAt } = input;
+
+  await prisma.$transaction(async (tx) => {
+    await acquireAssessmentDraftAdvisoryLock(tx, journeyId, moduleId, userId);
+
+    const row = await tx.marriageAssessmentResponse.findFirst({
+      where: { journeyId, moduleId, userId },
+    });
+
+    if (row?.status === "submitted") {
+      throw new Error("This assessment is submitted. Contact your counselor to revise.");
+    }
+
+    const previousAnswers = row
+      ? (JSON.parse(row.answersJson) as Record<string, unknown>)
+      : {};
+    const mergedAnswers = { ...previousAnswers, ...patch };
+    const changedCounselorQuestionIds = getChangedCounselorConsentQuestionIds(
+      questions,
+      previousAnswers,
+      mergedAnswers,
+    );
+
+    const record: MarriageAssessmentResponseRecord = {
+      id: row?.id ?? `mar-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      journeyId,
+      moduleId,
+      contentVersion: row?.contentVersion ?? contentVersion,
+      userId,
+      status: "draft",
+      answers: mergedAnswers,
+      lastSavedAt,
+      submittedAt: undefined,
+      revisionGeneration: row?.revisionGeneration ?? 0,
+    };
+
+    await saveResponseWithClient(tx, record);
+
+    if (changedCounselorQuestionIds.length > 0) {
+      await invalidateCounselorQuestionsInTransaction(tx, {
+        journeyId,
+        moduleId,
+        userId,
+        questionIds: changedCounselorQuestionIds,
+        revokedAt: lastSavedAt,
+      });
+    }
+  });
+
+  return { lastSavedAt };
+}
+
+/** @deprecated Use applyAssessmentDraftPatch with an answer patch. */
+export async function saveAssessmentResponseWithCounselorConsentInvalidation(
+  record: MarriageAssessmentResponseRecord,
+  invalidateCounselorQuestionIds: string[],
+) {
+  await prisma.$transaction(async (tx) => {
+    await acquireAssessmentDraftAdvisoryLock(tx, record.journeyId, record.moduleId, record.userId);
+    await saveResponseWithClient(tx, record);
+    if (invalidateCounselorQuestionIds.length > 0) {
+      await invalidateCounselorQuestionsInTransaction(tx, {
+        journeyId: record.journeyId,
+        moduleId: record.moduleId,
+        userId: record.userId,
+        questionIds: invalidateCounselorQuestionIds,
+        revokedAt: record.lastSavedAt,
+      });
+    }
   });
   return record;
+}
+
+export async function approveAssessmentRevisionRequest(
+  revisionRequestId: string,
+  resolvedByUserId: string,
+  counselorConsentQuestionIds: string[],
+): Promise<{ ok: true; idempotent: boolean }> {
+  const now = new Date().toISOString();
+
+  const result = await prisma.$transaction(async (tx) => {
+    await lockRevisionRequestRow(tx, revisionRequestId);
+    const request = await tx.marriageRevisionRequest.findUnique({
+      where: { id: revisionRequestId },
+    });
+    if (!request) throw new Error("Request not found.");
+    if (request.status !== "pending") {
+      return { ok: true as const, idempotent: true };
+    }
+
+    await acquireAssessmentDraftAdvisoryLock(
+      tx,
+      request.journeyId,
+      request.moduleId,
+      request.userId,
+    );
+
+    const row = await tx.marriageAssessmentResponse.findFirst({
+      where: {
+        journeyId: request.journeyId,
+        moduleId: request.moduleId,
+        userId: request.userId,
+      },
+    });
+    if (!row) throw new Error("Assessment response not found.");
+
+    await tx.marriageRevisionRequest.update({
+      where: { id: revisionRequestId },
+      data: {
+        status: "approved",
+        resolvedAt: new Date(now),
+        resolvedBy: resolvedByUserId,
+      },
+    });
+
+    const answers = JSON.parse(row.answersJson) as Record<string, unknown>;
+    const reopened: MarriageAssessmentResponseRecord = {
+      id: row.id,
+      journeyId: row.journeyId,
+      moduleId: row.moduleId,
+      contentVersion: row.contentVersion,
+      userId: row.userId,
+      status: "draft",
+      answers,
+      lastSavedAt: now,
+      submittedAt: undefined,
+      revisionGeneration: (row.revisionGeneration ?? 0) + 1,
+    };
+    await saveResponseWithClient(tx, reopened);
+
+    if (counselorConsentQuestionIds.length > 0) {
+      await invalidateCounselorQuestionsInTransaction(tx, {
+        journeyId: request.journeyId,
+        moduleId: request.moduleId,
+        userId: request.userId,
+        questionIds: counselorConsentQuestionIds,
+        revokedAt: now,
+      });
+    }
+
+    return { ok: true as const, idempotent: false };
+  });
+
+  return result;
 }
 
 export async function getUnlock(journeyId: string, moduleId: string, contentVersion: string) {
@@ -944,19 +1175,75 @@ export async function saveSharedGoal(goal: MarriageSharedGoalRecord) {
 
 export async function listSharingConsents(journeyId: string, moduleId: string) {
   const rows = await prisma.marriageSharingConsent.findMany({ where: { journeyId, moduleId } });
-  return rows.map(
-    (r): MarriageSharingConsentRecord => ({
-      journeyId: r.journeyId,
-      moduleId: r.moduleId,
-      questionId: r.questionId,
-      userId: r.userId,
-      granted: r.granted,
-      updatedAt: r.updatedAt.toISOString(),
-    }),
-  );
+  return rows.map(mapSharingConsentRow);
 }
 
-export async function saveSharingConsent(record: MarriageSharingConsentRecord) {
+export async function getSharingConsentByKey(
+  journeyId: string,
+  moduleId: string,
+  questionId: string,
+  userId: string,
+): Promise<MarriageSharingConsentRecord | null> {
+  const row = await prisma.marriageSharingConsent.findUnique({
+    where: {
+      journeyId_moduleId_questionId_userId: { journeyId, moduleId, questionId, userId },
+    },
+  });
+  return row ? mapSharingConsentRow(row) : null;
+}
+
+/** Stage 2 partner comparison — updates granted only; preserves counselor metadata columns. */
+export async function savePartnerSharingConsent(patch: MarriagePartnerSharingConsentPatch) {
+  const existingRow = await prisma.marriageSharingConsent.findUnique({
+    where: {
+      journeyId_moduleId_questionId_userId: {
+        journeyId: patch.journeyId,
+        moduleId: patch.moduleId,
+        questionId: patch.questionId,
+        userId: patch.userId,
+      },
+    },
+  });
+  const merged = mergePartnerSharingConsentPatch(
+    existingRow ? mapSharingConsentRow(existingRow) : null,
+    patch,
+  );
+  await prisma.marriageSharingConsent.upsert({
+    where: {
+      journeyId_moduleId_questionId_userId: {
+        journeyId: patch.journeyId,
+        moduleId: patch.moduleId,
+        questionId: patch.questionId,
+        userId: patch.userId,
+      },
+    },
+    create: {
+      journeyId: merged.journeyId,
+      moduleId: merged.moduleId,
+      questionId: merged.questionId,
+      userId: merged.userId,
+      granted: merged.granted,
+      counselorDisclosureGranted: merged.counselorDisclosureGranted === true,
+      updatedAt: new Date(merged.updatedAt),
+      consentedCounselorUserId: merged.consentedCounselorUserId ?? null,
+      generationAtGrant: merged.generationAtGrant ?? null,
+      answerFingerprint: merged.answerFingerprint ?? null,
+      grantedAt: merged.grantedAt ? new Date(merged.grantedAt) : null,
+    },
+    update: {
+      granted: merged.granted,
+      updatedAt: new Date(merged.updatedAt),
+    },
+  });
+  return merged;
+}
+
+/** Counselor answer disclosure consent — full metadata read/write. */
+export async function saveCounselorSharingConsent(record: MarriageSharingConsentRecord) {
+  if (record.counselorDisclosureGranted) {
+    assertCounselorSharingConsentGrant(record);
+  }
+  const counselorActive = record.counselorDisclosureGranted === true;
   await prisma.marriageSharingConsent.upsert({
     where: {
       journeyId_moduleId_questionId_userId: {
@@ -972,14 +1259,265 @@ export async function saveSharingConsent(record: MarriageSharingConsentRecord) {
       questionId: record.questionId,
       userId: record.userId,
       granted: record.granted,
+      counselorDisclosureGranted: counselorActive,
       updatedAt: new Date(record.updatedAt),
+      consentedCounselorUserId: counselorActive ? record.consentedCounselorUserId ?? null : null,
+      generationAtGrant: counselorActive ? record.generationAtGrant ?? null : null,
+      answerFingerprint: counselorActive ? record.answerFingerprint ?? null : null,
+      grantedAt: counselorActive && record.grantedAt ? new Date(record.grantedAt) : null,
     },
     update: {
-      granted: record.granted,
+      counselorDisclosureGranted: counselorActive,
       updatedAt: new Date(record.updatedAt),
+      consentedCounselorUserId: counselorActive ? record.consentedCounselorUserId ?? null : null,
+      generationAtGrant: counselorActive ? record.generationAtGrant ?? null : null,
+      answerFingerprint: counselorActive ? record.answerFingerprint ?? null : null,
+      grantedAt: counselorActive && record.grantedAt ? new Date(record.grantedAt) : null,
     },
   });
   return record;
+}
+
+/** @deprecated Use savePartnerSharingConsent for Stage 2 partner sharing. */
+export async function saveSharingConsent(record: MarriageSharingConsentRecord) {
+  return savePartnerSharingConsent({
+    journeyId: record.journeyId,
+    moduleId: record.moduleId,
+    questionId: record.questionId,
+    userId: record.userId,
+    granted: record.granted,
+    updatedAt: record.updatedAt,
+  });
+}
+
+export type ApplyCounselorConsentGrantInput = {
+  journeyId: string;
+  moduleId: string;
+  questionId: string;
+  userId: string;
+  expectedCounselorUserId: string;
+  answerFingerprint: string;
+};
+
+export type ApplyCounselorConsentRevokeInput = {
+  journeyId: string;
+  moduleId: string;
+  questionId: string;
+  userId: string;
+};
+
+async function upsertCounselorSharingConsentInTransaction(
+  tx: MarriageDbTransaction,
+  record: MarriageSharingConsentRecord,
+) {
+  if (record.counselorDisclosureGranted) assertCounselorSharingConsentGrant(record);
+  const counselorActive = record.counselorDisclosureGranted === true;
+  await tx.marriageSharingConsent.upsert({
+    where: {
+      journeyId_moduleId_questionId_userId: {
+        journeyId: record.journeyId,
+        moduleId: record.moduleId,
+        questionId: record.questionId,
+        userId: record.userId,
+      },
+    },
+    create: {
+      journeyId: record.journeyId,
+      moduleId: record.moduleId,
+      questionId: record.questionId,
+      userId: record.userId,
+      granted: record.granted,
+      counselorDisclosureGranted: counselorActive,
+      updatedAt: new Date(record.updatedAt),
+      consentedCounselorUserId: counselorActive ? record.consentedCounselorUserId ?? null : null,
+      generationAtGrant: counselorActive ? record.generationAtGrant ?? null : null,
+      answerFingerprint: counselorActive ? record.answerFingerprint ?? null : null,
+      grantedAt: counselorActive && record.grantedAt ? new Date(record.grantedAt) : null,
+    },
+    update: {
+      counselorDisclosureGranted: counselorActive,
+      updatedAt: new Date(record.updatedAt),
+      consentedCounselorUserId: counselorActive ? record.consentedCounselorUserId ?? null : null,
+      generationAtGrant: counselorActive ? record.generationAtGrant ?? null : null,
+      answerFingerprint: counselorActive ? record.answerFingerprint ?? null : null,
+      grantedAt: counselorActive && record.grantedAt ? new Date(record.grantedAt) : null,
+    },
+  });
+}
+
+export async function applyCounselorConsentGrant(
+  input: ApplyCounselorConsentGrantInput,
+): Promise<{ idempotent: boolean }> {
+  const now = new Date().toISOString();
+
+  return prisma.$transaction(async (tx) => {
+    await lockCounselingJourneyRow(tx, input.journeyId);
+    const journey = await tx.marriageCounselingJourney.findUnique({
+      where: { id: input.journeyId },
+    });
+    if (!journey?.counselorUserId?.trim()) {
+      throw new Error("No counselor is assigned to your journey yet.");
+    }
+    if (journey.counselorAccessRevokedAt) {
+      throw new Error("Counselor access has been revoked for this journey.");
+    }
+    if (journey.counselorUserId !== input.expectedCounselorUserId) {
+      throw new Error("Counselor assignment does not match.");
+    }
+
+    await acquireAssessmentDraftAdvisoryLock(
+      tx,
+      input.journeyId,
+      input.moduleId,
+      input.userId,
+    );
+
+    const response = await tx.marriageAssessmentResponse.findFirst({
+      where: {
+        journeyId: input.journeyId,
+        moduleId: input.moduleId,
+        userId: input.userId,
+      },
+    });
+    if (!response || response.status !== "submitted") {
+      throw new Error("Submit this assessment before sharing answers with your counselor.");
+    }
+
+    const answers = JSON.parse(response.answersJson) as Record<string, unknown>;
+    const answer = answers[input.questionId];
+    if (!isAnswerDisclosableToCounselor(answer)) {
+      throw new Error("This answer cannot be shared until you provide a response.");
+    }
+
+    const fingerprint = computeAnswerFingerprint(answer);
+    if (fingerprint !== input.answerFingerprint) {
+      throw new Error("Answer changed. Refresh and try again.");
+    }
+
+    const genRow = await tx.marriageAnswerChangeGeneration.findUnique({
+      where: {
+        journeyId_moduleId_questionId_userId: {
+          journeyId: input.journeyId,
+          moduleId: input.moduleId,
+          questionId: input.questionId,
+          userId: input.userId,
+        },
+      },
+    });
+    const generation = genRow?.generation ?? 0;
+
+    const existingRow = await tx.marriageSharingConsent.findUnique({
+      where: {
+        journeyId_moduleId_questionId_userId: {
+          journeyId: input.journeyId,
+          moduleId: input.moduleId,
+          questionId: input.questionId,
+          userId: input.userId,
+        },
+      },
+    });
+    const existing = existingRow ? mapSharingConsentRow(existingRow) : null;
+    if (
+      existing?.counselorDisclosureGranted &&
+      existing.consentedCounselorUserId === journey.counselorUserId &&
+      existing.generationAtGrant === generation &&
+      existing.answerFingerprint === fingerprint
+    ) {
+      return { idempotent: true };
+    }
+
+    const record: MarriageSharingConsentRecord = {
+      journeyId: input.journeyId,
+      moduleId: input.moduleId,
+      questionId: input.questionId,
+      userId: input.userId,
+      granted: existing?.granted ?? false,
+      counselorDisclosureGranted: true,
+      updatedAt: now,
+      consentedCounselorUserId: journey.counselorUserId,
+      generationAtGrant: generation,
+      answerFingerprint: fingerprint,
+      grantedAt: now,
+    };
+    await upsertCounselorSharingConsentInTransaction(tx, record);
+    return { idempotent: false };
+  });
+}
+
+export async function applyCounselorConsentRevoke(
+  input: ApplyCounselorConsentRevokeInput,
+): Promise<{ idempotent: boolean }> {
+  const now = new Date().toISOString();
+
+  return prisma.$transaction(async (tx) => {
+    await lockCounselingJourneyRow(tx, input.journeyId);
+    await acquireAssessmentDraftAdvisoryLock(
+      tx,
+      input.journeyId,
+      input.moduleId,
+      input.userId,
+    );
+
+    const existingRow = await tx.marriageSharingConsent.findUnique({
+      where: {
+        journeyId_moduleId_questionId_userId: {
+          journeyId: input.journeyId,
+          moduleId: input.moduleId,
+          questionId: input.questionId,
+          userId: input.userId,
+        },
+      },
+    });
+    const existing = existingRow ? mapSharingConsentRow(existingRow) : null;
+    const revocation = buildCounselorConsentRevocationRecord(
+      existing,
+      input,
+      now,
+    );
+    if (!revocation) {
+      return { idempotent: true };
+    }
+    await upsertCounselorSharingConsentInTransaction(tx, revocation);
+    return { idempotent: false };
+  });
+}
+
+export async function getAnswerChangeGeneration(
+  journeyId: string,
+  moduleId: string,
+  questionId: string,
+  userId: string,
+): Promise<number> {
+  const row = await prisma.marriageAnswerChangeGeneration.findUnique({
+    where: {
+      journeyId_moduleId_questionId_userId: { journeyId, moduleId, questionId, userId },
+    },
+  });
+  return row?.generation ?? 0;
+}
+
+export async function incrementAnswerChangeGeneration(
+  journeyId: string,
+  moduleId: string,
+  questionId: string,
+  userId: string,
+): Promise<number> {
+  const row = await prisma.marriageAnswerChangeGeneration.upsert({
+    where: {
+      journeyId_moduleId_questionId_userId: { journeyId, moduleId, questionId, userId },
+    },
+    create: {
+      journeyId,
+      moduleId,
+      questionId,
+      userId,
+      generation: 1,
+    },
+    update: {
+      generation: { increment: 1 },
+    },
+  });
+  return row.generation;
 }
 
 export async function getActivitySyncSession(journeyId: string, moduleId: string) {

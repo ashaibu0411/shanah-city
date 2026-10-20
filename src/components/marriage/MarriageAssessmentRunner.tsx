@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MarriageAnswerSharingConsent } from "@/components/marriage/MarriageAnswerSharingConsent";
+import { MarriageCounselorAnswerConsent } from "@/components/marriage/MarriageCounselorAnswerConsent";
 import { MarriageQuestionInput } from "@/components/marriage/MarriageQuestionInput";
 import { MarriageSubmittedReadOnlyNotice } from "@/components/marriage/MarriageSubmittedReadOnlyNotice";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
@@ -172,7 +173,20 @@ export function MarriageAssessmentRunner({ moduleId }: { moduleId: string }) {
       )}
 
       <div className={marriagePremium.questionCard}>
-        {isMarriageStage2ClientEnabled() && data.journeyId ? (
+        {question.visibility === "counselor_with_consent" && data.journeyId ? (
+          <MarriageCounselorAnswerConsent
+            journeyId={data.journeyId}
+            moduleId={moduleId}
+            questionId={question.id}
+            submitted={locked}
+            answerDisclosable={
+              answers[question.id] !== undefined &&
+              answers[question.id] !== "" &&
+              answers[question.id] !== null &&
+              answers[question.id] !== "__skip__"
+            }
+          />
+        ) : isMarriageStage2ClientEnabled() && data.journeyId ? (
           <MarriageAnswerSharingConsent
             journeyId={data.journeyId}
             moduleId={moduleId}

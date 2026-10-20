@@ -1,7 +1,7 @@
 import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import {
-  assertCounselorForJourney,
+  assertClinicalCounselorForJourney,
   assertJourneyParticipantLoose,
   isMarriageCounselor,
 } from "@/lib/marriage-counseling-access";
@@ -87,7 +87,7 @@ export async function revokeCounselorAccess(viewer: PublicMember, journeyId: str
   const journey = await store().getJourneyById(journeyId);
   if (!journey) throw new Error("Journey not found.");
   await assertJourneyParticipantLoose(journey, viewer.id);
-  await store().updateJourney(journeyId, {
+  await store().applyCounselorJourneyAccessChange(journeyId, {
     counselorAccessRevokedAt: new Date().toISOString(),
     counselorUserId: null,
   });
@@ -120,6 +120,6 @@ export async function adminArchiveJourney(admin: PublicMember, journeyId: string
 export async function listJourneyAuditForCounselor(counselor: PublicMember, journeyId: string) {
   const journey = await store().getJourneyById(journeyId);
   if (!journey) throw new Error("Journey not found.");
-  await assertCounselorForJourney(counselor, journey);
+  await assertClinicalCounselorForJourney(counselor, journey);
   return store().listAuditLogs(journeyId);
 }

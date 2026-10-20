@@ -2,6 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { getCounselorDashboard } from "@/lib/marriage-counseling-server";
+import {
+  counselorRouteErrorBody,
+  counselorRouteErrorStatus,
+} from "@/lib/marriage-counselor-api-security";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -14,9 +18,9 @@ export async function GET() {
     const dashboard = await getCounselorDashboard(user);
     return NextResponse.json(dashboard);
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Access denied." },
-      { status: 403 },
-    );
+    const message = error instanceof Error ? error.message : "Access denied.";
+    return NextResponse.json(counselorRouteErrorBody(message), {
+      status: counselorRouteErrorStatus(message),
+    });
   }
 }

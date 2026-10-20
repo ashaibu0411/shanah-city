@@ -1664,15 +1664,30 @@ model MarriageSharedGoal {
 }
 
 model MarriageSharingConsent {
+  journeyId                   String
+  moduleId                    String
+  questionId                  String
+  userId                      String
+  granted                     Boolean   @default(false)
+  counselorDisclosureGranted  Boolean   @default(false)
+  updatedAt                   DateTime
+  consentedCounselorUserId    String?
+  generationAtGrant           Int?
+  answerFingerprint           String?
+  grantedAt                   DateTime?
+
+  @@id([journeyId, moduleId, questionId, userId])
+  @@index([journeyId, moduleId])
+}
+
+model MarriageAnswerChangeGeneration {
   journeyId  String
   moduleId   String
   questionId String
   userId     String
-  granted    Boolean  @default(false)
-  updatedAt  DateTime
+  generation Int      @default(0)
 
   @@id([journeyId, moduleId, questionId, userId])
-  @@index([journeyId, moduleId])
 }
 
 model MarriageActivitySyncSession {

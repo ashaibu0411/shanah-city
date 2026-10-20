@@ -63,25 +63,70 @@ export async function assertJourneyParticipantLoose(
   }
 }
 
+export function isJourneyCounselorAccessRevoked(journey: MarriageCounselingJourneyRecord): boolean {
+  return Boolean(journey.counselorAccessRevokedAt?.trim());
+}
+
+/** Authenticated marriage counselor / pastoral role (not assignment-specific). */
+export async function assertMarriageCounselorRole(user: PublicMember): Promise<void> {
+  if (!(await isMarriageCounselor(user))) {
+    throw new Error("Counselor access required.");
+  }
+}
+
+export function viewerIsAssignedClinicalCounselor(
+  viewerId: string,
+  journey: MarriageCounselingJourneyRecord,
+): boolean {
+  if (isJourneyCounselorAccessRevoked(journey)) return false;
+  if (!journey.counselorUserId?.trim()) return false;
+  return journey.counselorUserId === viewerId;
+}
+
+/**
+ * Clinical access: assigned counselor only. Pastor/admin role does not bypass assignment.
+ */
+export async function assertClinicalCounselorForJourney(
+  user: PublicMember,
+  journey: MarriageCounselingJourneyRecord,
+): Promise<void> {
+  await assertMarriageCounselorRole(user);
+  if (isJourneyCounselorAccessRevoked(journey)) {
+    throw new Error("Counselor access has been revoked for this journey.");
+  }
+  if (!viewerIsAssignedClinicalCounselor(user.id, journey)) {
+    throw new Error("Access denied.");
+  }
+}
+
+/** Administrative roster/progress view for pastoral oversight (no clinical payload). */
+export async function assertAdministrativeCounselorOverviewAccess(
+  user: PublicMember,
+  journey: MarriageCounselingJourneyRecord,
+): Promise<void> {
+  await assertMarriageCounselorRole(user);
+}
+
+export async function viewerHasClinicalCounselorAccess(
+  user: PublicMember,
+  journey: MarriageCounselingJourneyRecord,
+): Promise<boolean> {
+  if (!(await isMarriageCounselor(user))) return false;
+  return viewerIsAssignedClinicalCounselor(user.id, journey);
+}
+
+/** @deprecated Use assertClinicalCounselorForJourney for confidential data; overview uses administrative helpers. */
 export async function assertCounselorForJourney(
   user: PublicMember,
   journey: MarriageCounselingJourneyRecord,
 ) {
-  const counselor = await isMarriageCounselor(user);
-  if (!counselor) throw new Error("Counselor access required.");
-  if (journey.counselorAccessRevokedAt) {
-    throw new Error("Counselor access has been revoked for this journey.");
-  }
-  if (journey.counselorUserId && journey.counselorUserId !== user.id) {
-    const admin = await canManageAsAdmin(user);
-    if (!admin) throw new Error("This couple is assigned to another counselor.");
-  }
+  await assertClinicalCounselorForJourney(user, journey);
 }
 
 export async function counselorCanViewJourney(
   user: PublicMember,
   journey: MarriageCounselingJourneyRecord,
 ) {
-  await assertCounselorForJourney(user, journey);
+  await assertClinicalCounselorForJourney(user, journey);
   return true;
 }

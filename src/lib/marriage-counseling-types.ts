@@ -59,7 +59,8 @@ export type MarriageStage2ActivityKind =
   | "ranking"
   | "reflection";
 
-export type MarriageSharingConsentRecord = {
+/** Stage 2 partner comparison sharing — updates granted/updatedAt only; preserves counselor columns. */
+export type MarriagePartnerSharingConsentPatch = {
   journeyId: string;
   moduleId: string;
   questionId: string;
@@ -67,6 +68,38 @@ export type MarriageSharingConsentRecord = {
   granted: boolean;
   updatedAt: string;
 };
+
+export type MarriageSharingConsentRecord = {
+  journeyId: string;
+  moduleId: string;
+  questionId: string;
+  userId: string;
+  /** Partner-to-partner comparison sharing (Stage 2). */
+  granted: boolean;
+  updatedAt: string;
+  /** Spouse-controlled counselor answer disclosure; independent of `granted`. */
+  counselorDisclosureGranted?: boolean;
+  /** Assigned counselor at grant time; required for counselor answer disclosure (Phase 2+). */
+  consentedCounselorUserId?: string | null;
+  /** Answer change generation at grant time; must match current generation for disclosure. */
+  generationAtGrant?: number | null;
+  /** Optional secondary verification; not sufficient alone for disclosure. */
+  answerFingerprint?: string | null;
+  grantedAt?: string | null;
+};
+
+export type MarriageAnswerChangeGenerationRecord = {
+  journeyId: string;
+  moduleId: string;
+  questionId: string;
+  userId: string;
+  generation: number;
+};
+
+export type MarriageAnswerChangeGenerationKey = Pick<
+  MarriageAnswerChangeGenerationRecord,
+  "journeyId" | "moduleId" | "questionId" | "userId"
+>;
 
 export type MarriageActivitySyncSessionRecord = {
   id: string;

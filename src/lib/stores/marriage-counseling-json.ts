@@ -17,7 +17,31 @@ import type {
   MarriageSharedGoalRecord,
   MarriageSharingConsentRecord,
   MarriageActivitySyncSessionRecord,
+  MarriageAnswerChangeGenerationRecord,
+  MarriagePartnerSharingConsentPatch,
+  MarriageQuestionDefinition,
 } from "@/lib/marriage-counseling-types";
+import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
+import {
+  computeAnswerFingerprint,
+  isAnswerDisclosableToCounselor,
+} from "@/lib/marriage-counselor-consent";
+import type {
+  ApplyCounselorConsentGrantInput,
+  ApplyCounselorConsentRevokeInput,
+} from "@/lib/stores/marriage-counseling-db";
+import {
+  assertCounselorSharingConsentGrant,
+  buildCounselorConsentRevocationRecord,
+  mergePartnerSharingConsentPatch,
+} from "@/lib/marriage-sharing-consent-persistence";
+import { isJourneyCounselorAccessRevoked } from "@/lib/marriage-counseling-access";
+import {
+  assertNoCounselorFieldsInGenericJourneyPatch,
+  counselorJourneyAccessChangeRequiresInvalidation,
+  type CounselorJourneyAccessPatch,
+} from "@/lib/marriage-counselor-assignment-change";
+import { invalidateAllCounselorDisclosureForJourneyInMemory } from "@/lib/marriage-counselor-journey-consent-invalidation";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FILE =
@@ -41,6 +65,7 @@ type StoreFile = {
   sharedGoals: MarriageSharedGoalRecord[];
   sharingConsents: MarriageSharingConsentRecord[];
   activitySyncSessions: MarriageActivitySyncSessionRecord[];
+  answerChangeGenerations: MarriageAnswerChangeGenerationRecord[];
 };
 
 async function readStore(): Promise<StoreFile> {
@@ -65,6 +90,7 @@ async function readStore(): Promise<StoreFile> {
       sharedGoals: [],
       sharingConsents: [],
       activitySyncSessions: [],
+      answerChangeGenerations: [],
     };
   }
 }
@@ -74,6 +100,7 @@ function ensureStage2Collections(store: StoreFile): StoreFile {
   if (!store.sharedGoals) store.sharedGoals = [];
   if (!store.sharingConsents) store.sharingConsents = [];
   if (!store.activitySyncSessions) store.activitySyncSessions = [];
+  if (!store.answerChangeGenerations) store.answerChangeGenerations = [];
   return store;
 }
 
@@ -169,6 +196,7 @@ export async function updateJourney(
     >
   >,
 ) {
+  assertNoCounselorFieldsInGenericJourneyPatch(patch);
   const store = await readStore();
   const index = store.journeys.findIndex((j) => j.id === id);
   if (index === -1) throw new Error("Journey not found.");
@@ -179,6 +207,39 @@ export async function updateJourney(
   };
   await writeStore(store);
   return store.journeys[index];
+}
+
+/** Single read/modify/write — mirrors DB journey lock + bulk counselor invalidation. */
+export async function applyCounselorJourneyAccessChange(
+  journeyId: string,
+  patch: CounselorJourneyAccessPatch,
+) {
+  const now = new Date().toISOString();
+  const store = await readStore();
+  const index = store.journeys.findIndex((j) => j.id === journeyId);
+  if (index === -1) throw new Error("Journey not found.");
+  const journey = store.journeys[index]!;
+
+  if (counselorJourneyAccessChangeRequiresInvalidation(journey, patch)) {
+    store.sharingConsents = invalidateAllCounselorDisclosureForJourneyInMemory(
+      store.sharingConsents,
+      journeyId,
+      now,
+    );
+  }
+
+  store.journeys[index] = {
+    ...journey,
+    counselorUserId:
+      patch.counselorUserId !== undefined ? patch.counselorUserId : journey.counselorUserId,
+    counselorAccessRevokedAt:
+      patch.counselorAccessRevokedAt !== undefined
+        ? patch.counselorAccessRevokedAt
+        : journey.counselorAccessRevokedAt,
+    updatedAt: now,
+  };
+  await writeStore(store);
+  return store.journeys[index]!;
 }
 
 export async function upsertConsent(record: MarriageJourneyConsentRecord) {
@@ -211,13 +272,214 @@ export async function listResponsesForJourneyModule(journeyId: string, moduleId:
   return store.responses.filter((r) => r.journeyId === journeyId && r.moduleId === moduleId);
 }
 
+function responseIndex(store: StoreFile, record: MarriageAssessmentResponseRecord) {
+  return store.responses.findIndex(
+    (r) =>
+      r.journeyId === record.journeyId &&
+      r.moduleId === record.moduleId &&
+      r.userId === record.userId,
+  );
+}
+
 export async function saveResponse(record: MarriageAssessmentResponseRecord) {
   const store = await readStore();
-  const index = store.responses.findIndex((r) => r.id === record.id);
+  const index = responseIndex(store, record);
   if (index === -1) store.responses.push(record);
   else store.responses[index] = record;
   await writeStore(store);
   return record;
+}
+
+/** Same lock order as DB advisory draft lock — one read/modify/write per operation (single writer). */
+function invalidateCounselorQuestionsInJsonStore(
+  store: StoreFile,
+  params: {
+    journeyId: string;
+    moduleId: string;
+    userId: string;
+    questionIds: string[];
+    revokedAt: string;
+  },
+): void {
+  const { journeyId, moduleId, userId, questionIds, revokedAt } = params;
+  for (const questionId of questionIds) {
+    const genIndex = store.answerChangeGenerations.findIndex(
+      (g) =>
+        g.journeyId === journeyId &&
+        g.moduleId === moduleId &&
+        g.questionId === questionId &&
+        g.userId === userId,
+    );
+    if (genIndex === -1) {
+      store.answerChangeGenerations.push({
+        journeyId,
+        moduleId,
+        questionId,
+        userId,
+        generation: 1,
+      });
+    } else {
+      store.answerChangeGenerations[genIndex] = {
+        ...store.answerChangeGenerations[genIndex]!,
+        generation: store.answerChangeGenerations[genIndex]!.generation + 1,
+      };
+    }
+
+    const consentIndex = store.sharingConsents.findIndex(
+      (c) =>
+        c.journeyId === journeyId &&
+        c.moduleId === moduleId &&
+        c.questionId === questionId &&
+        c.userId === userId,
+    );
+    const existing = consentIndex === -1 ? null : store.sharingConsents[consentIndex]!;
+    const revocation = buildCounselorConsentRevocationRecord(
+      existing,
+      { journeyId, moduleId, questionId, userId },
+      revokedAt,
+    );
+    if (revocation) {
+      if (consentIndex === -1) store.sharingConsents.push(revocation);
+      else store.sharingConsents[consentIndex] = revocation;
+    }
+  }
+}
+
+export type ApplyAssessmentDraftPatchInput = {
+  journeyId: string;
+  moduleId: string;
+  userId: string;
+  contentVersion: string;
+  patch: Record<string, unknown>;
+  questions: MarriageQuestionDefinition[];
+  lastSavedAt: string;
+};
+
+export async function applyAssessmentDraftPatch(input: ApplyAssessmentDraftPatchInput) {
+  const { journeyId, moduleId, userId, contentVersion, patch, questions, lastSavedAt } = input;
+  const store = await readStore();
+
+  const rowIndex = store.responses.findIndex(
+    (r) => r.journeyId === journeyId && r.moduleId === moduleId && r.userId === userId,
+  );
+  const row = rowIndex === -1 ? null : store.responses[rowIndex]!;
+
+  if (row?.status === "submitted") {
+    throw new Error("This assessment is submitted. Contact your counselor to revise.");
+  }
+
+  const previousAnswers = row?.answers ?? {};
+  const mergedAnswers = { ...previousAnswers, ...patch };
+  const changedCounselorQuestionIds = getChangedCounselorConsentQuestionIds(
+    questions,
+    previousAnswers,
+    mergedAnswers,
+  );
+
+  const record: MarriageAssessmentResponseRecord = {
+    id: row?.id ?? `mar-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    journeyId,
+    moduleId,
+    contentVersion: row?.contentVersion ?? contentVersion,
+    userId,
+    status: "draft",
+    answers: mergedAnswers,
+    lastSavedAt,
+    submittedAt: undefined,
+    revisionGeneration: row?.revisionGeneration ?? 0,
+  };
+
+  if (rowIndex === -1) store.responses.push(record);
+  else store.responses[rowIndex] = record;
+
+  if (changedCounselorQuestionIds.length > 0) {
+    invalidateCounselorQuestionsInJsonStore(store, {
+      journeyId,
+      moduleId,
+      userId,
+      questionIds: changedCounselorQuestionIds,
+      revokedAt: lastSavedAt,
+    });
+  }
+
+  await writeStore(store);
+  return { lastSavedAt };
+}
+
+export async function saveAssessmentResponseWithCounselorConsentInvalidation(
+  record: MarriageAssessmentResponseRecord,
+  invalidateCounselorQuestionIds: string[],
+) {
+  const store = await readStore();
+  const index = responseIndex(store, record);
+  if (index === -1) store.responses.push(record);
+  else store.responses[index] = record;
+
+  if (invalidateCounselorQuestionIds.length > 0) {
+    invalidateCounselorQuestionsInJsonStore(store, {
+      journeyId: record.journeyId,
+      moduleId: record.moduleId,
+      userId: record.userId,
+      questionIds: invalidateCounselorQuestionIds,
+      revokedAt: record.lastSavedAt,
+    });
+  }
+
+  await writeStore(store);
+  return record;
+}
+
+export async function approveAssessmentRevisionRequest(
+  revisionRequestId: string,
+  resolvedByUserId: string,
+  counselorConsentQuestionIds: string[],
+): Promise<{ ok: true; idempotent: boolean }> {
+  const now = new Date().toISOString();
+  const store = await readStore();
+
+  const reqIndex = store.revisionRequests.findIndex((r) => r.id === revisionRequestId);
+  if (reqIndex === -1) throw new Error("Request not found.");
+  const request = store.revisionRequests[reqIndex]!;
+  if (request.status !== "pending") {
+    return { ok: true, idempotent: true };
+  }
+
+  const rowIndex = store.responses.findIndex(
+    (r) =>
+      r.journeyId === request.journeyId &&
+      r.moduleId === request.moduleId &&
+      r.userId === request.userId,
+  );
+  if (rowIndex === -1) throw new Error("Assessment response not found.");
+  const row = store.responses[rowIndex]!;
+
+  store.revisionRequests[reqIndex] = {
+    ...request,
+    status: "approved",
+    resolvedAt: now,
+    resolvedBy: resolvedByUserId,
+  };
+
+  store.responses[rowIndex] = {
+    ...row,
+    status: "draft",
+    submittedAt: undefined,
+    lastSavedAt: now,
+    revisionGeneration: (row.revisionGeneration ?? 0) + 1,
+  };
+
+  if (counselorConsentQuestionIds.length > 0) {
+    invalidateCounselorQuestionsInJsonStore(store, {
+      journeyId: request.journeyId,
+      moduleId: request.moduleId,
+      userId: request.userId,
+      questionIds: counselorConsentQuestionIds,
+      revokedAt: now,
+    });
+  }
+
+  await writeStore(store);
+  return { ok: true, idempotent: false };
 }
 
 export async function getUnlock(journeyId: string, moduleId: string, contentVersion: string) {
@@ -514,7 +776,45 @@ export async function listSharingConsents(journeyId: string, moduleId: string) {
   return store.sharingConsents.filter((c) => c.journeyId === journeyId && c.moduleId === moduleId);
 }
 
-export async function saveSharingConsent(record: MarriageSharingConsentRecord) {
+export async function getSharingConsentByKey(
+  journeyId: string,
+  moduleId: string,
+  questionId: string,
+  userId: string,
+): Promise<MarriageSharingConsentRecord | null> {
+  const store = await readStore();
+  return (
+    store.sharingConsents.find(
+      (c) =>
+        c.journeyId === journeyId &&
+        c.moduleId === moduleId &&
+        c.questionId === questionId &&
+        c.userId === userId,
+    ) ?? null
+  );
+}
+
+export async function savePartnerSharingConsent(patch: MarriagePartnerSharingConsentPatch) {
+  const store = await readStore();
+  const index = store.sharingConsents.findIndex(
+    (c) =>
+      c.journeyId === patch.journeyId &&
+      c.moduleId === patch.moduleId &&
+      c.questionId === patch.questionId &&
+      c.userId === patch.userId,
+  );
+  const existing = index === -1 ? null : store.sharingConsents[index]!;
+  const merged = mergePartnerSharingConsentPatch(existing, patch);
+  if (index === -1) store.sharingConsents.push(merged);
+  else store.sharingConsents[index] = merged;
+  await writeStore(store);
+  return merged;
+}
+
+export async function saveCounselorSharingConsent(record: MarriageSharingConsentRecord) {
+  if (record.counselorDisclosureGranted) {
+    assertCounselorSharingConsentGrant(record);
+  }
   const store = await readStore();
   const index = store.sharingConsents.findIndex(
     (c) =>
@@ -523,10 +823,212 @@ export async function saveSharingConsent(record: MarriageSharingConsentRecord) {
       c.questionId === record.questionId &&
       c.userId === record.userId,
   );
-  if (index === -1) store.sharingConsents.push(record);
-  else store.sharingConsents[index] = record;
+  const normalized: MarriageSharingConsentRecord =
+    record.counselorDisclosureGranted === true
+      ? record
+      : {
+          ...record,
+          counselorDisclosureGranted: false,
+          consentedCounselorUserId: null,
+          generationAtGrant: null,
+          answerFingerprint: null,
+          grantedAt: null,
+        };
+  if (index === -1) store.sharingConsents.push(normalized);
+  else store.sharingConsents[index] = normalized;
   await writeStore(store);
-  return record;
+  return normalized;
+}
+
+/** @deprecated Use savePartnerSharingConsent for Stage 2 partner sharing. */
+export async function saveSharingConsent(record: MarriageSharingConsentRecord) {
+  return savePartnerSharingConsent({
+    journeyId: record.journeyId,
+    moduleId: record.moduleId,
+    questionId: record.questionId,
+    userId: record.userId,
+    granted: record.granted,
+    updatedAt: record.updatedAt,
+  });
+}
+
+export async function getAnswerChangeGeneration(
+  journeyId: string,
+  moduleId: string,
+  questionId: string,
+  userId: string,
+): Promise<number> {
+  const store = await readStore();
+  const row = store.answerChangeGenerations.find(
+    (g) =>
+      g.journeyId === journeyId &&
+      g.moduleId === moduleId &&
+      g.questionId === questionId &&
+      g.userId === userId,
+  );
+  return row?.generation ?? 0;
+}
+
+export async function incrementAnswerChangeGeneration(
+  journeyId: string,
+  moduleId: string,
+  questionId: string,
+  userId: string,
+): Promise<number> {
+  const store = await readStore();
+  const index = store.answerChangeGenerations.findIndex(
+    (g) =>
+      g.journeyId === journeyId &&
+      g.moduleId === moduleId &&
+      g.questionId === questionId &&
+      g.userId === userId,
+  );
+  if (index === -1) {
+    store.answerChangeGenerations.push({
+      journeyId,
+      moduleId,
+      questionId,
+      userId,
+      generation: 1,
+    });
+    await writeStore(store);
+    return 1;
+  }
+  const next = store.answerChangeGenerations[index]!.generation + 1;
+  store.answerChangeGenerations[index] = {
+    ...store.answerChangeGenerations[index]!,
+    generation: next,
+  };
+  await writeStore(store);
+  return next;
+}
+
+function upsertSharingConsentInStore(store: StoreFile, record: MarriageSharingConsentRecord) {
+  if (record.counselorDisclosureGranted) assertCounselorSharingConsentGrant(record);
+  const index = store.sharingConsents.findIndex(
+    (c) =>
+      c.journeyId === record.journeyId &&
+      c.moduleId === record.moduleId &&
+      c.questionId === record.questionId &&
+      c.userId === record.userId,
+  );
+  const normalized: MarriageSharingConsentRecord =
+    record.counselorDisclosureGranted === true
+      ? record
+      : {
+          ...record,
+          counselorDisclosureGranted: false,
+          consentedCounselorUserId: null,
+          generationAtGrant: null,
+          answerFingerprint: null,
+          grantedAt: null,
+        };
+  if (index === -1) store.sharingConsents.push(normalized);
+  else store.sharingConsents[index] = normalized;
+}
+
+/** Single read/modify/write — same serialization as DB advisory draft lock. */
+export async function applyCounselorConsentGrant(
+  input: ApplyCounselorConsentGrantInput,
+): Promise<{ idempotent: boolean }> {
+  const now = new Date().toISOString();
+  const store = await readStore();
+
+  const journey = store.journeys.find((j) => j.id === input.journeyId);
+  if (!journey?.counselorUserId?.trim()) {
+    throw new Error("No counselor is assigned to your journey yet.");
+  }
+  if (isJourneyCounselorAccessRevoked(journey)) {
+    throw new Error("Counselor access has been revoked for this journey.");
+  }
+  if (journey.counselorUserId !== input.expectedCounselorUserId) {
+    throw new Error("Counselor assignment does not match.");
+  }
+
+  const response = store.responses.find(
+    (r) =>
+      r.journeyId === input.journeyId &&
+      r.moduleId === input.moduleId &&
+      r.userId === input.userId,
+  );
+  if (!response || response.status !== "submitted") {
+    throw new Error("Submit this assessment before sharing answers with your counselor.");
+  }
+
+  const answer = response.answers[input.questionId];
+  if (!isAnswerDisclosableToCounselor(answer)) {
+    throw new Error("This answer cannot be shared until you provide a response.");
+  }
+
+  const fingerprint = computeAnswerFingerprint(answer);
+  if (fingerprint !== input.answerFingerprint) {
+    throw new Error("Answer changed. Refresh and try again.");
+  }
+
+  const genRow = store.answerChangeGenerations.find(
+    (g) =>
+      g.journeyId === input.journeyId &&
+      g.moduleId === input.moduleId &&
+      g.questionId === input.questionId &&
+      g.userId === input.userId,
+  );
+  const generation = genRow?.generation ?? 0;
+
+  const consentIndex = store.sharingConsents.findIndex(
+    (c) =>
+      c.journeyId === input.journeyId &&
+      c.moduleId === input.moduleId &&
+      c.questionId === input.questionId &&
+      c.userId === input.userId,
+  );
+  const existing = consentIndex === -1 ? null : store.sharingConsents[consentIndex]!;
+  if (
+    existing?.counselorDisclosureGranted &&
+    existing.consentedCounselorUserId === journey.counselorUserId &&
+    existing.generationAtGrant === generation &&
+    existing.answerFingerprint === fingerprint
+  ) {
+    return { idempotent: true };
+  }
+
+  upsertSharingConsentInStore(store, {
+    journeyId: input.journeyId,
+    moduleId: input.moduleId,
+    questionId: input.questionId,
+    userId: input.userId,
+    granted: existing?.granted ?? false,
+    counselorDisclosureGranted: true,
+    updatedAt: now,
+    consentedCounselorUserId: journey.counselorUserId,
+    generationAtGrant: generation,
+    answerFingerprint: fingerprint,
+    grantedAt: now,
+  });
+  await writeStore(store);
+  return { idempotent: false };
+}
+
+export async function applyCounselorConsentRevoke(
+  input: ApplyCounselorConsentRevokeInput,
+): Promise<{ idempotent: boolean }> {
+  const now = new Date().toISOString();
+  const store = await readStore();
+
+  const consentIndex = store.sharingConsents.findIndex(
+    (c) =>
+      c.journeyId === input.journeyId &&
+      c.moduleId === input.moduleId &&
+      c.questionId === input.questionId &&
+      c.userId === input.userId,
+  );
+  const existing = consentIndex === -1 ? null : store.sharingConsents[consentIndex]!;
+  const revocation = buildCounselorConsentRevocationRecord(existing, input, now);
+  if (!revocation) {
+    return { idempotent: true };
+  }
+  upsertSharingConsentInStore(store, revocation);
+  await writeStore(store);
+  return { idempotent: false };
 }
 
 export async function getActivitySyncSession(journeyId: string, moduleId: string) {
