@@ -1,4 +1,14 @@
+import {
+  assertMarriageE2eIsolationSafeForDatabaseRouting,
+  isVerifiedMarriageE2eIsolation,
+} from "@/lib/marriage-e2e-isolation-guard";
+
 export function useDatabase() {
-  if (process.env.MARRIAGE_E2E_ISOLATED === "1") return false;
+  assertMarriageE2eIsolationSafeForDatabaseRouting();
+
+  if (isVerifiedMarriageE2eIsolation()) {
+    return false;
+  }
+
   return Boolean(process.env.DATABASE_URL?.trim());
 }

@@ -35,6 +35,13 @@
     "test:marriage:stage2": "tsx scripts/marriage-stage2-integration.ts",
     "test:marriage:phase2a": "tsx scripts/marriage-stage2-phase2a.ts",
     "test:marriage:phase2b": "tsx scripts/marriage-stage2-phase2b.ts",
+    "test:marriage:phase3m": "tsx scripts/marriage-phase3m-assignment-approval.test.ts",
+    "test:marriage:phase3m:ui": "tsx scripts/marriage-phase3m-assignment-ui.test.ts",
+    "test:marriage:phase3m:coordinator": "tsx scripts/marriage-phase3m-admin-coordinator-visibility.test.ts",
+    "test:marriage:phase3m:coordinator-ui": "tsx scripts/marriage-phase3m-coordinator-ui.test.ts",
+    "test:marriage:phase3m:e2e": "playwright test e2e/marriage-phase3m-assignment-api.spec.ts e2e/marriage-phase3m-assignment-workflow.spec.ts e2e/marriage-phase3m-coordinator-ui.spec.ts e2e/marriage-phase3m-restoration-ui.spec.ts --project=chromium",
+    "test:marriage:e2e-guard": "tsx scripts/marriage-e2e-isolation-guard.test.ts",
+    "test:marriage:phase3m:pagination": "tsx scripts/marriage-phase3m-roster-pagination.test.ts",
     "test:marriage:temperament-scoring": "tsx scripts/marriage-stage2-temperament-scoring.test.ts",
     "test:build-migrate-guard": "node scripts/build-migrate-guard.test.mjs"
   },

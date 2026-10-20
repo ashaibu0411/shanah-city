@@ -1,0 +1,264 @@
+import { getUserById } from "@/lib/auth-server";
+import type { PublicMember } from "@/lib/auth-types";
+import {
+  assertSeniorPastor,
+  canSubmitCounselorAssignmentRequest,
+  isSeniorPastor,
+} from "@/lib/marriage-counselor-assignment-authority";
+import { getCounselorAssignmentRequestStatus } from "@/lib/marriage-counselor-assignment-request-server";
+import {
+  filterAdministrativeCoordinatorRoster,
+  type AdministrativeCoordinatorRosterRow,
+} from "@/lib/marriage-counselor-assignment-ui";
+import {
+  ASSIGNMENT_LIST_MAX_LIMIT,
+  decodeAssignmentListCursor,
+  paginateDescendingSortedRecords,
+  paginateSortedRecords,
+  type AssignmentListQuery,
+  type PaginatedRows,
+} from "@/lib/marriage-counselor-assignment-list-pagination";
+import { assignmentAdminIdsFromEnv } from "@/lib/marriage-journey-administrative-coordinator-policy";
+import { listActiveJourneysForAssignmentAdminViewer } from "@/lib/marriage-journey-administrative-coordinator-server";
+import {
+  resolveAssignedCounselorDisplayName,
+  resolveCoupleDisplayNames,
+} from "@/lib/marriage-counselor-journey-names";
+import type { MarriageCounselorAssignmentRequestRecord } from "@/lib/marriage-counseling-types";
+import { marriageStore } from "@/lib/stores/marriage-counseling-store";
+
+const store = () => marriageStore();
+
+async function resolveUserDisplayName(userId: string | null | undefined): Promise<string | null> {
+  if (!userId?.trim()) return null;
+  const user = await getUserById(userId);
+  return user?.name?.trim() || userId;
+}
+
+export type EnrichedAssignmentRequestRow = {
+  request: MarriageCounselorAssignmentRequestRecord;
+  journeyId: string;
+  coupleNames: string;
+  requestedCounselorName: string | null;
+  requesterName: string | null;
+  previousCounselorName: string | null;
+};
+
+async function enrichRequestRow(
+  request: MarriageCounselorAssignmentRequestRecord,
+): Promise<EnrichedAssignmentRequestRow> {
+  const journey = await store().getJourneyById(request.journeyId);
+  if (!journey) throw new Error("Journey not found.");
+  return {
+    request,
+    journeyId: journey.id,
+    coupleNames: await resolveCoupleDisplayNames(journey),
+    requestedCounselorName: await resolveAssignedCounselorDisplayName(
+      request.requestedCounselorUserId,
+    ),
+    requesterName: await resolveUserDisplayName(request.requestedByUserId),
+    previousCounselorName: await resolveAssignedCounselorDisplayName(
+      request.previousCounselorUserId,
+    ),
+  };
+}
+
+function matchesQueueSearch(row: EnrichedAssignmentRequestRow, search: string): boolean {
+  const q = search.trim().toLowerCase();
+  if (!q) return true;
+  const haystack = [
+    row.coupleNames,
+    row.requestedCounselorName ?? "",
+    row.requesterName ?? "",
+    row.request.requestType,
+  ]
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(q);
+}
+
+export async function getCounselorAssignmentUiCapabilities(viewer: PublicMember) {
+  const canSubmit = await canSubmitCounselorAssignmentRequest(viewer);
+  const canApprove = await isSeniorPastor(viewer);
+  return {
+    canSubmitRequest: canSubmit,
+    canApprove,
+    canAccessAdminPage: canSubmit || canApprove,
+  };
+}
+
+export type AdminJourneyRow = {
+  journeyId: string;
+  coupleNames: string;
+  programType: string;
+  activeCounselorUserId: string | null;
+  activeCounselorName: string | null;
+  workflowStatus: Awaited<ReturnType<typeof getCounselorAssignmentRequestStatus>>;
+};
+
+function matchesCoupleSearch(input: { coupleNames: string; programType: string }, search: string) {
+  const q = search.trim().toLowerCase();
+  if (!q) return true;
+  return `${input.coupleNames} ${input.programType}`.toLowerCase().includes(q);
+}
+
+export async function listCounselorAssignmentAdminJourneyRowsPaginated(
+  viewer: PublicMember,
+  query: AssignmentListQuery,
+): Promise<PaginatedRows<AdminJourneyRow>> {
+  if (!(await canSubmitCounselorAssignmentRequest(viewer)) && !(await isSeniorPastor(viewer))) {
+    throw new Error("Not authorized.");
+  }
+  const journeys = await listActiveJourneysForAssignmentAdminViewer(viewer);
+  const rows: AdminJourneyRow[] = [];
+  for (const journey of journeys) {
+    const coupleNames = await resolveCoupleDisplayNames(journey);
+    if (!matchesCoupleSearch({ coupleNames, programType: journey.programType }, query.search)) {
+      continue;
+    }
+    const status = await getCounselorAssignmentRequestStatus(viewer, journey.id);
+    rows.push({
+      journeyId: journey.id,
+      coupleNames,
+      programType: journey.programType,
+      activeCounselorUserId: status.activeCounselorUserId,
+      activeCounselorName: await resolveAssignedCounselorDisplayName(status.activeCounselorUserId),
+      workflowStatus: status,
+    });
+  }
+  rows.sort((a, b) => {
+    const byName = a.coupleNames.localeCompare(b.coupleNames);
+    if (byName !== 0) return byName;
+    return a.journeyId.localeCompare(b.journeyId);
+  });
+  return paginateSortedRecords(rows, query.limit, query.cursor, (row) => ({
+    k: row.coupleNames.toLowerCase(),
+    id: row.journeyId,
+  }));
+}
+
+export async function listSeniorPastorCounselorApprovalQueuePaginated(
+  viewer: PublicMember,
+  query: AssignmentListQuery,
+): Promise<PaginatedRows<EnrichedAssignmentRequestRow>> {
+  await assertSeniorPastor(viewer);
+  const pending = await store().listAllPendingCounselorAssignmentRequests();
+  const enriched: EnrichedAssignmentRequestRow[] = [];
+  for (const request of pending) {
+    const row = await enrichRequestRow(request);
+    if (matchesQueueSearch(row, query.search)) enriched.push(row);
+  }
+  return paginateDescendingSortedRecords(enriched, query.limit, query.cursor, (row) => ({
+    k: row.request.requestedAt,
+    id: row.request.id,
+  }));
+}
+
+export async function listSeniorPastorCounselorApprovalHistoryPaginated(
+  viewer: PublicMember,
+  query: AssignmentListQuery,
+): Promise<PaginatedRows<EnrichedAssignmentRequestRow>> {
+  await assertSeniorPastor(viewer);
+  const history = await store().listCounselorAssignmentRequestHistory();
+  const enriched: EnrichedAssignmentRequestRow[] = [];
+  for (const request of history) {
+    const row = await enrichRequestRow(request);
+    if (matchesQueueSearch(row, query.search)) enriched.push(row);
+  }
+  return paginateDescendingSortedRecords(enriched, query.limit, query.cursor, (row) => ({
+    k: row.request.reviewedAt ?? row.request.requestedAt,
+    id: row.request.id,
+  }));
+}
+
+export async function listEligibleAssignmentAdmins(viewer: PublicMember) {
+  await assertSeniorPastor(viewer);
+  const ids = assignmentAdminIdsFromEnv();
+  const admins: { userId: string; displayName: string }[] = [];
+  for (const userId of ids) {
+    if (userId === viewer.id) continue;
+    admins.push({
+      userId,
+      displayName: (await resolveUserDisplayName(userId)) ?? userId,
+    });
+  }
+  admins.sort((a, b) => a.displayName.localeCompare(b.displayName));
+  return admins;
+}
+
+export async function listSeniorPastorAdministrativeCoordinatorRosterPaginated(
+  viewer: PublicMember,
+  query: AssignmentListQuery,
+): Promise<PaginatedRows<AdministrativeCoordinatorRosterRow>> {
+  await assertSeniorPastor(viewer);
+  const journeys = await store().listAllActiveJourneys();
+  const rows: AdministrativeCoordinatorRosterRow[] = [];
+  for (const journey of journeys) {
+    const coord = await store().getJourneyAdministrativeCoordinator(journey.id);
+    rows.push({
+      journeyId: journey.id,
+      coupleNames: await resolveCoupleDisplayNames(journey),
+      programType: journey.programType,
+      coordinatorUserId: coord?.coordinatorUserId ?? null,
+      coordinatorName: coord ? await resolveUserDisplayName(coord.coordinatorUserId) : null,
+      assignedAt: coord?.assignedAt ?? null,
+      assignedByUserId: coord?.assignedByUserId ?? null,
+      assignedByName: coord ? await resolveUserDisplayName(coord.assignedByUserId) : null,
+    });
+  }
+  const filtered = filterAdministrativeCoordinatorRoster(rows, {
+    search: query.search,
+    assignment: query.coordinatorFilter,
+  });
+  filtered.sort((a, b) => {
+    const byName = a.coupleNames.localeCompare(b.coupleNames);
+    if (byName !== 0) return byName;
+    return a.journeyId.localeCompare(b.journeyId);
+  });
+  return paginateSortedRecords(filtered, query.limit, query.cursor, (row) => ({
+    k: row.coupleNames.toLowerCase(),
+    id: row.journeyId,
+  }));
+}
+
+async function collectAllAssignmentListPages<T>(
+  fetchPage: (viewer: PublicMember, query: AssignmentListQuery) => Promise<PaginatedRows<T>>,
+  viewer: PublicMember,
+  base: Partial<AssignmentListQuery> = {},
+): Promise<T[]> {
+  const all: T[] = [];
+  let cursor = base.cursor ?? null;
+  for (;;) {
+    const page = await fetchPage(viewer, {
+      limit: ASSIGNMENT_LIST_MAX_LIMIT,
+      cursor,
+      search: base.search ?? "",
+      coordinatorFilter: base.coordinatorFilter ?? "all",
+    });
+    all.push(...page.rows);
+    if (!page.pageInfo.nextCursor) break;
+    cursor = decodeAssignmentListCursor(page.pageInfo.nextCursor);
+    if (!cursor) break;
+  }
+  return all;
+}
+
+/** Test / script helper — walks every page (no silent truncation). */
+export async function listCounselorAssignmentAdminJourneyRows(viewer: PublicMember) {
+  return collectAllAssignmentListPages(listCounselorAssignmentAdminJourneyRowsPaginated, viewer);
+}
+
+export async function listSeniorPastorAdministrativeCoordinatorRoster(viewer: PublicMember) {
+  return collectAllAssignmentListPages(
+    listSeniorPastorAdministrativeCoordinatorRosterPaginated,
+    viewer,
+  );
+}
+
+export async function listSeniorPastorCounselorApprovalQueue(viewer: PublicMember) {
+  return collectAllAssignmentListPages(listSeniorPastorCounselorApprovalQueuePaginated, viewer);
+}
+
+export async function listSeniorPastorCounselorApprovalHistory(viewer: PublicMember) {
+  return collectAllAssignmentListPages(listSeniorPastorCounselorApprovalHistoryPaginated, viewer);
+}

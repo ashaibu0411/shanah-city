@@ -6,6 +6,7 @@ import type { Prisma } from "@prisma/client";
  * Always acquire in this order when multiple resources are touched:
  *
  * 1. **MarriageCounselingJourney** (`id`) — counselor assignment via `applyCounselorJourneyAccessChange`.
+ * 1b. **MarriageCounselorAssignmentRequest** (`id`) — after journey lock, when executing approval workflow.
  * 2. **MarriageRevisionRequest** (`id`, `FOR UPDATE`) — revision resolve idempotency.
  * 3. **Assessment draft serialization** — advisory xact lock on `(journeyId, moduleId, userId)`.
  * 4. **MarriageAssessmentResponse** — read/upsert after advisory lock (same composite key).
@@ -54,6 +55,18 @@ export async function lockCounselingJourneyRow(
   await tx.$queryRaw`
     SELECT "id" FROM "MarriageCounselingJourney"
     WHERE "id" = ${journeyId}
+    FOR UPDATE
+  `;
+}
+
+/** Locks assignment request row (call after journey lock for consistent ordering). */
+export async function lockCounselorAssignmentRequestRow(
+  tx: MarriageDbTransaction,
+  requestId: string,
+): Promise<void> {
+  await tx.$queryRaw`
+    SELECT "id" FROM "MarriageCounselorAssignmentRequest"
+    WHERE "id" = ${requestId}
     FOR UPDATE
   `;
 }

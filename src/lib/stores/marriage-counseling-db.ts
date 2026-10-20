@@ -9,9 +9,16 @@ import {
 import {
   acquireAssessmentDraftAdvisoryLock,
   lockCounselingJourneyRow,
+  lockCounselorAssignmentRequestRow,
   lockRevisionRequestRow,
   type MarriageDbTransaction,
 } from "@/lib/marriage-concurrency-protocol";
+import {
+  assertApprovedRequestReadyToExecute,
+  buildExecutionPatchForRequest,
+  canExecuteApprovedRequestNow,
+  validateJourneySnapshotMatchesRequest,
+} from "@/lib/marriage-counselor-assignment-execution";
 import {
   counselorJourneyAccessChangeRequiresInvalidation,
   assertNoCounselorFieldsInGenericJourneyPatch,
@@ -46,6 +53,10 @@ import type {
   MarriageSharedGoalRecord,
   MarriageSharingConsentRecord,
   MarriageActivitySyncSessionRecord,
+  MarriageCounselorAssignmentRequestRecord,
+  MarriageCounselorAssignmentAcknowledgmentRecord,
+  MarriageCounselorParticipantRevocationRecord,
+  MarriageJourneyAdministrativeCoordinatorRecord,
 } from "@/lib/marriage-counseling-types";
 
 function mapJourney(row: {
@@ -1559,4 +1570,531 @@ export async function saveActivitySyncSession(session: MarriageActivitySyncSessi
     },
   });
   return session;
+}
+
+function mapAssignmentRequest(row: {
+  id: string;
+  journeyId: string;
+  requestType: string;
+  requestedCounselorUserId: string | null;
+  previousCounselorUserId: string | null;
+  status: string;
+  requestedByUserId: string;
+  requestedAt: Date;
+  reviewedByUserId: string | null;
+  reviewedAt: Date | null;
+  decisionNote: string | null;
+  executedAt: Date | null;
+}): MarriageCounselorAssignmentRequestRecord {
+  return {
+    id: row.id,
+    journeyId: row.journeyId,
+    requestType: row.requestType as MarriageCounselorAssignmentRequestRecord["requestType"],
+    requestedCounselorUserId: row.requestedCounselorUserId,
+    previousCounselorUserId: row.previousCounselorUserId,
+    status: row.status as MarriageCounselorAssignmentRequestRecord["status"],
+    requestedByUserId: row.requestedByUserId,
+    requestedAt: row.requestedAt.toISOString(),
+    reviewedByUserId: row.reviewedByUserId,
+    reviewedAt: row.reviewedAt?.toISOString() ?? null,
+    decisionNote: row.decisionNote,
+    executedAt: row.executedAt?.toISOString() ?? null,
+  };
+}
+
+export async function saveCounselorAssignmentRequest(record: MarriageCounselorAssignmentRequestRecord) {
+  await prisma.marriageCounselorAssignmentRequest.upsert({
+    where: { id: record.id },
+    create: {
+      id: record.id,
+      journeyId: record.journeyId,
+      requestType: record.requestType,
+      requestedCounselorUserId: record.requestedCounselorUserId,
+      previousCounselorUserId: record.previousCounselorUserId,
+      status: record.status,
+      requestedByUserId: record.requestedByUserId,
+      requestedAt: new Date(record.requestedAt),
+      reviewedByUserId: record.reviewedByUserId ?? null,
+      reviewedAt: record.reviewedAt ? new Date(record.reviewedAt) : null,
+      decisionNote: record.decisionNote ?? null,
+      executedAt: record.executedAt ? new Date(record.executedAt) : null,
+    },
+    update: {
+      status: record.status,
+      reviewedByUserId: record.reviewedByUserId ?? null,
+      reviewedAt: record.reviewedAt ? new Date(record.reviewedAt) : null,
+      decisionNote: record.decisionNote ?? null,
+      executedAt: record.executedAt ? new Date(record.executedAt) : null,
+    },
+  });
+  return record;
+}
+
+export async function getCounselorAssignmentRequestById(id: string) {
+  const row = await prisma.marriageCounselorAssignmentRequest.findUnique({ where: { id } });
+  return row ? mapAssignmentRequest(row) : null;
+}
+
+export async function getPendingCounselorAssignmentRequestForJourney(journeyId: string) {
+  const row = await prisma.marriageCounselorAssignmentRequest.findFirst({
+    where: { journeyId, status: "pending" },
+    orderBy: { requestedAt: "desc" },
+  });
+  return row ? mapAssignmentRequest(row) : null;
+}
+
+export async function getApprovedCounselorAssignmentRequestAwaitingExecution(journeyId: string) {
+  const row = await prisma.marriageCounselorAssignmentRequest.findFirst({
+    where: { journeyId, status: "approved" },
+    orderBy: { reviewedAt: "desc" },
+  });
+  return row ? mapAssignmentRequest(row) : null;
+}
+
+export async function supersedePendingCounselorAssignmentRequests(
+  journeyId: string,
+  exceptRequestId?: string,
+) {
+  const now = new Date();
+  await prisma.marriageCounselorAssignmentRequest.updateMany({
+    where: {
+      journeyId,
+      status: "pending",
+      ...(exceptRequestId ? { NOT: { id: exceptRequestId } } : {}),
+    },
+    data: { status: "superseded", reviewedAt: now },
+  });
+}
+
+export async function listAllPendingCounselorAssignmentRequests() {
+  const rows = await prisma.marriageCounselorAssignmentRequest.findMany({
+    where: { status: "pending" },
+    orderBy: [{ requestedAt: "desc" }, { id: "desc" }],
+  });
+  return rows.map(mapAssignmentRequest);
+}
+
+export async function listCounselorAssignmentRequestHistory() {
+  const rows = await prisma.marriageCounselorAssignmentRequest.findMany({
+    where: {
+      status: { in: ["approved", "rejected", "executed", "cancelled", "superseded"] },
+    },
+    orderBy: [{ reviewedAt: "desc" }, { requestedAt: "desc" }, { id: "desc" }],
+  });
+  return rows.map(mapAssignmentRequest);
+}
+
+export async function saveCounselorAssignmentAcknowledgment(
+  record: MarriageCounselorAssignmentAcknowledgmentRecord,
+) {
+  await prisma.marriageCounselorAssignmentAcknowledgment.upsert({
+    where: { requestId_userId: { requestId: record.requestId, userId: record.userId } },
+    create: {
+      requestId: record.requestId,
+      journeyId: record.journeyId,
+      userId: record.userId,
+      counselorUserId: record.counselorUserId,
+      acknowledgedAt: new Date(record.acknowledgedAt),
+    },
+    update: {
+      counselorUserId: record.counselorUserId,
+      acknowledgedAt: new Date(record.acknowledgedAt),
+    },
+  });
+  return record;
+}
+
+export async function listCounselorAssignmentAcknowledgmentsForRequest(requestId: string) {
+  const rows = await prisma.marriageCounselorAssignmentAcknowledgment.findMany({
+    where: { requestId },
+  });
+  return rows.map(
+    (r): MarriageCounselorAssignmentAcknowledgmentRecord => ({
+      requestId: r.requestId,
+      journeyId: r.journeyId,
+      userId: r.userId,
+      counselorUserId: r.counselorUserId,
+      acknowledgedAt: r.acknowledgedAt.toISOString(),
+    }),
+  );
+}
+
+export async function upsertParticipantCounselorRevocation(
+  record: MarriageCounselorParticipantRevocationRecord,
+) {
+  await prisma.marriageCounselorParticipantRevocation.upsert({
+    where: { journeyId_userId: { journeyId: record.journeyId, userId: record.userId } },
+    create: {
+      journeyId: record.journeyId,
+      userId: record.userId,
+      revokedAt: new Date(record.revokedAt),
+    },
+    update: { revokedAt: new Date(record.revokedAt) },
+  });
+  return record;
+}
+
+export async function listParticipantCounselorRevocations(journeyId: string) {
+  const rows = await prisma.marriageCounselorParticipantRevocation.findMany({ where: { journeyId } });
+  return rows.map(
+    (r): MarriageCounselorParticipantRevocationRecord => ({
+      journeyId: r.journeyId,
+      userId: r.userId,
+      revokedAt: r.revokedAt.toISOString(),
+    }),
+  );
+}
+
+export async function clearParticipantCounselorRevocations(journeyId: string) {
+  await prisma.marriageCounselorParticipantRevocation.deleteMany({ where: { journeyId } });
+}
+
+export async function setJourneyAdministrativeCoordinator(
+  record: MarriageJourneyAdministrativeCoordinatorRecord,
+) {
+  await prisma.marriageJourneyAdministrativeCoordinator.upsert({
+    where: { journeyId: record.journeyId },
+    create: {
+      journeyId: record.journeyId,
+      coordinatorUserId: record.coordinatorUserId,
+      assignedByUserId: record.assignedByUserId,
+      assignedAt: new Date(record.assignedAt),
+    },
+    update: {
+      coordinatorUserId: record.coordinatorUserId,
+      assignedByUserId: record.assignedByUserId,
+      assignedAt: new Date(record.assignedAt),
+    },
+  });
+  return record;
+}
+
+export async function removeJourneyAdministrativeCoordinator(journeyId: string) {
+  await prisma.marriageJourneyAdministrativeCoordinator.deleteMany({ where: { journeyId } });
+}
+
+export async function getJourneyAdministrativeCoordinator(journeyId: string) {
+  const row = await prisma.marriageJourneyAdministrativeCoordinator.findUnique({
+    where: { journeyId },
+  });
+  if (!row) return null;
+  return {
+    journeyId: row.journeyId,
+    coordinatorUserId: row.coordinatorUserId,
+    assignedByUserId: row.assignedByUserId,
+    assignedAt: row.assignedAt.toISOString(),
+  } satisfies MarriageJourneyAdministrativeCoordinatorRecord;
+}
+
+export async function listJourneyIdsForAdministrativeCoordinator(coordinatorUserId: string) {
+  const rows = await prisma.marriageJourneyAdministrativeCoordinator.findMany({
+    where: { coordinatorUserId },
+    select: { journeyId: true },
+  });
+  return rows.map((r) => r.journeyId);
+}
+
+export async function listActiveJourneysForAdministrativeCoordinator(coordinatorUserId: string) {
+  const rows = await prisma.marriageJourneyAdministrativeCoordinator.findMany({
+    where: { coordinatorUserId },
+    select: { journeyId: true },
+  });
+  const ids = rows.map((r) => r.journeyId);
+  if (ids.length === 0) return [];
+  const journeys = await prisma.marriageCounselingJourney.findMany({
+    where: { id: { in: ids }, status: "active" },
+  });
+  return journeys.map(mapJourney);
+}
+
+async function loadAssignmentExecutionSnapshot(
+  tx: MarriageDbTransaction,
+  requestId: string,
+  journeyId: string,
+) {
+  const reqRow = await tx.marriageCounselorAssignmentRequest.findUnique({ where: { id: requestId } });
+  if (!reqRow) throw new Error("Request not found.");
+  const journeyRow = await tx.marriageCounselingJourney.findUnique({ where: { id: journeyId } });
+  if (!journeyRow) throw new Error("Journey not found.");
+  const revocations = await tx.marriageCounselorParticipantRevocation.findMany({
+    where: { journeyId },
+  });
+  const ackRows = await tx.marriageCounselorAssignmentAcknowledgment.findMany({
+    where: { requestId },
+  });
+  const request = mapAssignmentRequest(reqRow);
+  const acknowledgments = ackRows.map(
+    (r): MarriageCounselorAssignmentAcknowledgmentRecord => ({
+      requestId: r.requestId,
+      journeyId: r.journeyId,
+      userId: r.userId,
+      counselorUserId: r.counselorUserId,
+      acknowledgedAt: r.acknowledgedAt.toISOString(),
+    }),
+  );
+  const participantRevocations = revocations.map(
+    (r): MarriageCounselorParticipantRevocationRecord => ({
+      journeyId: r.journeyId,
+      userId: r.userId,
+      revokedAt: r.revokedAt.toISOString(),
+    }),
+  );
+  return {
+    request,
+    journey: mapJourney(journeyRow),
+    acknowledgments,
+    participantRevocations,
+  };
+}
+
+async function applyCounselorAssignmentExecutionInTransaction(
+  tx: MarriageDbTransaction,
+  request: MarriageCounselorAssignmentRequestRecord,
+  journey: MarriageCounselingJourneyRecord,
+  nowIso: string,
+) {
+  const patch = buildExecutionPatchForRequest(request);
+  if (counselorJourneyAccessChangeRequiresInvalidation(journey, patch)) {
+    await invalidateAllCounselorDisclosureForJourneyInTransaction(tx, request.journeyId, nowIso);
+  }
+  await tx.marriageCounselingJourney.update({
+    where: { id: request.journeyId },
+    data: {
+      counselorUserId: patch.counselorUserId !== undefined ? patch.counselorUserId : undefined,
+      counselorAccessRevokedAt:
+        patch.counselorAccessRevokedAt !== undefined
+          ? patch.counselorAccessRevokedAt
+            ? new Date(patch.counselorAccessRevokedAt)
+            : null
+          : undefined,
+      updatedAt: new Date(),
+    },
+  });
+  await tx.marriageCounselorParticipantRevocation.deleteMany({
+    where: { journeyId: request.journeyId },
+  });
+  await tx.marriageCounselorAssignmentRequest.update({
+    where: { id: request.id },
+    data: { status: "executed", executedAt: new Date() },
+  });
+}
+
+/** Atomic execution with in-transaction validation (PostgreSQL). */
+export async function executeCounselorAssignmentRequestTransaction(requestId: string) {
+  const nowIso = new Date().toISOString();
+  return prisma.$transaction(async (tx) => {
+    const initial = await tx.marriageCounselorAssignmentRequest.findUnique({
+      where: { id: requestId },
+    });
+    if (!initial) throw new Error("Request not found.");
+
+    await lockCounselingJourneyRow(tx, initial.journeyId);
+    await lockCounselorAssignmentRequestRow(tx, requestId);
+
+    const snap = await loadAssignmentExecutionSnapshot(tx, requestId, initial.journeyId);
+    assertApprovedRequestReadyToExecute({
+      request: snap.request,
+      currentCounselorUserId: snap.journey.counselorUserId,
+      revocations: snap.participantRevocations,
+      acknowledgments: snap.acknowledgments,
+    });
+
+    await applyCounselorAssignmentExecutionInTransaction(
+      tx,
+      snap.request,
+      snap.journey,
+      nowIso,
+    );
+
+    const updated = await tx.marriageCounselingJourney.findUnique({
+      where: { id: initial.journeyId },
+    });
+    return mapJourney(updated!);
+  });
+}
+
+export async function approveCounselorAssignmentRequestInTransaction(input: {
+  requestId: string;
+  seniorPastorUserId: string;
+  decisionNote?: string | null;
+  requireExplicitSelfApproval: boolean;
+}): Promise<{ executed: boolean; journeyId: string }> {
+  const now = new Date();
+  return prisma.$transaction(async (tx) => {
+    const initial = await tx.marriageCounselorAssignmentRequest.findUnique({
+      where: { id: input.requestId },
+    });
+    if (!initial) throw new Error("Request not found.");
+
+    await lockCounselingJourneyRow(tx, initial.journeyId);
+    await lockCounselorAssignmentRequestRow(tx, input.requestId);
+
+    const snapBefore = await loadAssignmentExecutionSnapshot(
+      tx,
+      input.requestId,
+      initial.journeyId,
+    );
+    if (snapBefore.request.status !== "pending") {
+      throw new Error("Request is not pending.");
+    }
+    if (
+      snapBefore.request.requestedByUserId === input.seniorPastorUserId &&
+      input.requireExplicitSelfApproval
+    ) {
+      throw new Error("Explicit approval confirmation required.");
+    }
+    validateJourneySnapshotMatchesRequest(
+      snapBefore.request,
+      snapBefore.journey.counselorUserId,
+    );
+
+    await tx.marriageCounselorAssignmentRequest.update({
+      where: { id: input.requestId },
+      data: {
+        status: "approved",
+        reviewedByUserId: input.seniorPastorUserId,
+        reviewedAt: now,
+        decisionNote: input.decisionNote ?? null,
+      },
+    });
+
+    const snap = await loadAssignmentExecutionSnapshot(tx, input.requestId, initial.journeyId);
+    const executed = canExecuteApprovedRequestNow({
+      request: snap.request,
+      currentCounselorUserId: snap.journey.counselorUserId,
+      revocations: snap.participantRevocations,
+      acknowledgments: snap.acknowledgments,
+    });
+
+    if (executed) {
+      await applyCounselorAssignmentExecutionInTransaction(
+        tx,
+        snap.request,
+        snap.journey,
+        now.toISOString(),
+      );
+    }
+
+    return { executed, journeyId: initial.journeyId };
+  });
+}
+
+export async function acknowledgeCounselorAssignmentRestorationInTransaction(input: {
+  requestId: string;
+  participantUserId: string;
+  counselorUserId: string;
+}): Promise<{ executed: boolean; journeyId: string }> {
+  const now = new Date();
+  return prisma.$transaction(async (tx) => {
+    const initial = await tx.marriageCounselorAssignmentRequest.findUnique({
+      where: { id: input.requestId },
+    });
+    if (!initial) throw new Error("Request not found.");
+
+    await lockCounselingJourneyRow(tx, initial.journeyId);
+    await lockCounselorAssignmentRequestRow(tx, input.requestId);
+
+    const snap = await loadAssignmentExecutionSnapshot(tx, input.requestId, initial.journeyId);
+    if (snap.request.status !== "approved") {
+      throw new Error("This assignment is not awaiting participant authorization.");
+    }
+    if (snap.request.executedAt) {
+      throw new Error("This assignment is already active.");
+    }
+    if (snap.request.requestType === "remove") {
+      throw new Error("Removal requests do not require acknowledgment.");
+    }
+    const approvedCounselor = snap.request.requestedCounselorUserId?.trim();
+    if (!approvedCounselor || approvedCounselor !== input.counselorUserId.trim()) {
+      throw new Error("Acknowledgment does not match the approved counselor.");
+    }
+    const required = snap.participantRevocations.map((r) => r.userId);
+    if (!required.includes(input.participantUserId)) {
+      throw new Error("You are not required to authorize this restoration.");
+    }
+
+    await tx.marriageCounselorAssignmentAcknowledgment.upsert({
+      where: {
+        requestId_userId: { requestId: input.requestId, userId: input.participantUserId },
+      },
+      create: {
+        requestId: input.requestId,
+        journeyId: initial.journeyId,
+        userId: input.participantUserId,
+        counselorUserId: input.counselorUserId,
+        acknowledgedAt: now,
+      },
+      update: {
+        counselorUserId: input.counselorUserId,
+        acknowledgedAt: now,
+      },
+    });
+
+    const snapAfter = await loadAssignmentExecutionSnapshot(tx, input.requestId, initial.journeyId);
+    const executed = canExecuteApprovedRequestNow({
+      request: snapAfter.request,
+      currentCounselorUserId: snapAfter.journey.counselorUserId,
+      revocations: snapAfter.participantRevocations,
+      acknowledgments: snapAfter.acknowledgments,
+    });
+
+    if (executed) {
+      await applyCounselorAssignmentExecutionInTransaction(
+        tx,
+        snapAfter.request,
+        snapAfter.journey,
+        now.toISOString(),
+      );
+    }
+
+    return { executed, journeyId: initial.journeyId };
+  });
+}
+
+export async function revokeParticipantCounselorAccessInTransaction(
+  journeyId: string,
+  participantUserId: string,
+) {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  return prisma.$transaction(async (tx) => {
+    await lockCounselingJourneyRow(tx, journeyId);
+
+    await tx.marriageCounselorParticipantRevocation.upsert({
+      where: { journeyId_userId: { journeyId, userId: participantUserId } },
+      create: { journeyId, userId: participantUserId, revokedAt: now },
+      update: { revokedAt: now },
+    });
+
+    await tx.marriageCounselorAssignmentRequest.updateMany({
+      where: {
+        journeyId,
+        OR: [{ status: "pending" }, { status: "approved", executedAt: null }],
+      },
+      data: {
+        status: "cancelled",
+        reviewedAt: now,
+        decisionNote: "Cancelled because a participant revoked counselor access.",
+      },
+    });
+
+    const journeyRow = await tx.marriageCounselingJourney.findUnique({ where: { id: journeyId } });
+    if (!journeyRow) throw new Error("Journey not found.");
+    const journey = mapJourney(journeyRow);
+    const patch: CounselorJourneyAccessPatch = {
+      counselorAccessRevokedAt: nowIso,
+      counselorUserId: null,
+    };
+    if (counselorJourneyAccessChangeRequiresInvalidation(journey, patch)) {
+      await invalidateAllCounselorDisclosureForJourneyInTransaction(tx, journeyId, nowIso);
+    }
+    await tx.marriageCounselingJourney.update({
+      where: { id: journeyId },
+      data: {
+        counselorUserId: null,
+        counselorAccessRevokedAt: now,
+        updatedAt: now,
+      },
+    });
+  });
 }

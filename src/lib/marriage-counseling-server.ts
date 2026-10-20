@@ -137,11 +137,17 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
 
   const isCounselor = await isMarriageCounselor(viewer);
   const isCurriculumAdmin = await isMarriageCurriculumAdmin(viewer);
+  const { canSubmitCounselorAssignmentRequest, isSeniorPastor } = await import(
+    "@/lib/marriage-counselor-assignment-authority"
+  );
+  const canSubmitCounselorAssignment = await canSubmitCounselorAssignmentRequest(viewer);
+  const isSeniorPastorCounselorApprover = await isSeniorPastor(viewer);
 
   const { buildStage2Dashboard } = await import("@/lib/marriage-stage2-server");
   const stage2 = await buildStage2Dashboard(viewer);
 
   return {
+    viewerId: viewer.id,
     journey,
     programType,
     partnerName,
@@ -156,6 +162,8 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     pendingInviteCode,
     isCounselor,
     isCurriculumAdmin,
+    canSubmitCounselorAssignment,
+    isSeniorPastorCounselorApprover,
     contentVersion,
     stage2: stage2 ?? undefined,
   };

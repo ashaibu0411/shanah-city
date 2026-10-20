@@ -232,6 +232,56 @@ export type MarriageAuditLogRecord = {
   meta?: Record<string, string | number | boolean>;
 };
 
+/** Pastoral workflow — clinical counselor on journey (not homework tasks). */
+export type MarriageCounselorAssignmentRequestType = "assign" | "reassign" | "remove";
+
+export type MarriageCounselorAssignmentRequestStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "superseded"
+  | "executed";
+
+export type MarriageCounselorAssignmentRequestRecord = {
+  id: string;
+  journeyId: string;
+  requestType: MarriageCounselorAssignmentRequestType;
+  /** Target counselor; null for remove. */
+  requestedCounselorUserId: string | null;
+  previousCounselorUserId: string | null;
+  status: MarriageCounselorAssignmentRequestStatus;
+  requestedByUserId: string;
+  requestedAt: string;
+  reviewedByUserId?: string | null;
+  reviewedAt?: string | null;
+  decisionNote?: string | null;
+  executedAt?: string | null;
+};
+
+/** Participant authorizes restoration after revoke — not assessment disclosure consent. */
+export type MarriageCounselorAssignmentAcknowledgmentRecord = {
+  requestId: string;
+  journeyId: string;
+  userId: string;
+  counselorUserId: string;
+  acknowledgedAt: string;
+};
+
+export type MarriageCounselorParticipantRevocationRecord = {
+  journeyId: string;
+  userId: string;
+  revokedAt: string;
+};
+
+/** Administrative coordination scope for assignment admins (not clinical access). */
+export type MarriageJourneyAdministrativeCoordinatorRecord = {
+  journeyId: string;
+  coordinatorUserId: string;
+  assignedByUserId: string;
+  assignedAt: string;
+};
+
 export type MarriageSessionStatus = "scheduled" | "completed" | "cancelled";
 
 export type MarriageCounselorAssignmentRecord = {
@@ -485,6 +535,7 @@ export type MarriageStage2Dashboard = {
 };
 
 export type MarriageHubSummary = {
+  viewerId: string;
   journey: MarriageCounselingJourneyRecord | null;
   programType: MarriageProgramType | null;
   partnerName: string | null;
@@ -499,6 +550,8 @@ export type MarriageHubSummary = {
   pendingInviteCode: string | null;
   isCounselor: boolean;
   isCurriculumAdmin: boolean;
+  canSubmitCounselorAssignment: boolean;
+  isSeniorPastorCounselorApprover: boolean;
   contentVersion: string;
   stage2?: MarriageStage2Dashboard;
 };

@@ -20,6 +20,10 @@ import type {
   MarriageAnswerChangeGenerationRecord,
   MarriagePartnerSharingConsentPatch,
   MarriageQuestionDefinition,
+  MarriageCounselorAssignmentRequestRecord,
+  MarriageCounselorAssignmentAcknowledgmentRecord,
+  MarriageCounselorParticipantRevocationRecord,
+  MarriageJourneyAdministrativeCoordinatorRecord,
 } from "@/lib/marriage-counseling-types";
 import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
 import {
@@ -67,6 +71,10 @@ type StoreFile = {
   sharingConsents: MarriageSharingConsentRecord[];
   activitySyncSessions: MarriageActivitySyncSessionRecord[];
   answerChangeGenerations: MarriageAnswerChangeGenerationRecord[];
+  assignmentRequests: MarriageCounselorAssignmentRequestRecord[];
+  assignmentAcknowledgments: MarriageCounselorAssignmentAcknowledgmentRecord[];
+  participantCounselorRevocations: MarriageCounselorParticipantRevocationRecord[];
+  administrativeCoordinators: MarriageJourneyAdministrativeCoordinatorRecord[];
 };
 
 async function readStore(): Promise<StoreFile> {
@@ -92,6 +100,10 @@ async function readStore(): Promise<StoreFile> {
       sharingConsents: [],
       activitySyncSessions: [],
       answerChangeGenerations: [],
+      assignmentRequests: [],
+      assignmentAcknowledgments: [],
+      participantCounselorRevocations: [],
+      administrativeCoordinators: [],
     };
   }
 }
@@ -102,6 +114,10 @@ function ensureStage2Collections(store: StoreFile): StoreFile {
   if (!store.sharingConsents) store.sharingConsents = [];
   if (!store.activitySyncSessions) store.activitySyncSessions = [];
   if (!store.answerChangeGenerations) store.answerChangeGenerations = [];
+  if (!store.assignmentRequests) store.assignmentRequests = [];
+  if (!store.assignmentAcknowledgments) store.assignmentAcknowledgments = [];
+  if (!store.participantCounselorRevocations) store.participantCounselorRevocations = [];
+  if (!store.administrativeCoordinators) store.administrativeCoordinators = [];
   return store;
 }
 
@@ -1051,4 +1067,366 @@ export async function saveActivitySyncSession(session: MarriageActivitySyncSessi
   else store.activitySyncSessions[index] = session;
   await writeStore(store);
   return session;
+}
+
+export async function saveCounselorAssignmentRequest(record: MarriageCounselorAssignmentRequestRecord) {
+  const store = await readStore();
+  const index = store.assignmentRequests.findIndex((r) => r.id === record.id);
+  if (index === -1) store.assignmentRequests.push(record);
+  else store.assignmentRequests[index] = record;
+  await writeStore(store);
+  return record;
+}
+
+export async function getCounselorAssignmentRequestById(id: string) {
+  const store = await readStore();
+  return store.assignmentRequests.find((r) => r.id === id) ?? null;
+}
+
+export async function getPendingCounselorAssignmentRequestForJourney(journeyId: string) {
+  const store = await readStore();
+  return (
+    store.assignmentRequests.find(
+      (r) => r.journeyId === journeyId && r.status === "pending",
+    ) ?? null
+  );
+}
+
+export async function getApprovedCounselorAssignmentRequestAwaitingExecution(journeyId: string) {
+  const store = await readStore();
+  return (
+    store.assignmentRequests.find(
+      (r) => r.journeyId === journeyId && r.status === "approved",
+    ) ?? null
+  );
+}
+
+export async function supersedePendingCounselorAssignmentRequests(
+  journeyId: string,
+  exceptRequestId?: string,
+) {
+  const store = await readStore();
+  const now = new Date().toISOString();
+  for (const r of store.assignmentRequests) {
+    if (r.journeyId !== journeyId || r.status !== "pending") continue;
+    if (exceptRequestId && r.id === exceptRequestId) continue;
+    r.status = "superseded";
+    r.reviewedAt = now;
+  }
+  await writeStore(store);
+}
+
+export async function listAllPendingCounselorAssignmentRequests() {
+  const store = await readStore();
+  return store.assignmentRequests
+    .filter((r) => r.status === "pending")
+    .sort((a, b) => {
+      const byTime = b.requestedAt.localeCompare(a.requestedAt);
+      if (byTime !== 0) return byTime;
+      return b.id.localeCompare(a.id);
+    });
+}
+
+export async function listCounselorAssignmentRequestHistory() {
+  const store = await readStore();
+  return store.assignmentRequests
+    .filter((r) =>
+      ["approved", "rejected", "executed", "cancelled", "superseded"].includes(r.status),
+    )
+    .sort((a, b) => {
+      const aKey = a.reviewedAt ?? a.requestedAt;
+      const bKey = b.reviewedAt ?? b.requestedAt;
+      const byTime = bKey.localeCompare(aKey);
+      if (byTime !== 0) return byTime;
+      return b.id.localeCompare(a.id);
+    });
+}
+
+export async function saveCounselorAssignmentAcknowledgment(
+  record: MarriageCounselorAssignmentAcknowledgmentRecord,
+) {
+  const store = await readStore();
+  const index = store.assignmentAcknowledgments.findIndex(
+    (a) => a.requestId === record.requestId && a.userId === record.userId,
+  );
+  if (index === -1) store.assignmentAcknowledgments.push(record);
+  else store.assignmentAcknowledgments[index] = record;
+  await writeStore(store);
+  return record;
+}
+
+export async function listCounselorAssignmentAcknowledgmentsForRequest(requestId: string) {
+  const store = await readStore();
+  return store.assignmentAcknowledgments.filter((a) => a.requestId === requestId);
+}
+
+export async function upsertParticipantCounselorRevocation(
+  record: MarriageCounselorParticipantRevocationRecord,
+) {
+  const store = await readStore();
+  const index = store.participantCounselorRevocations.findIndex(
+    (r) => r.journeyId === record.journeyId && r.userId === record.userId,
+  );
+  if (index === -1) store.participantCounselorRevocations.push(record);
+  else store.participantCounselorRevocations[index] = record;
+  await writeStore(store);
+  return record;
+}
+
+export async function listParticipantCounselorRevocations(journeyId: string) {
+  const store = await readStore();
+  return store.participantCounselorRevocations.filter((r) => r.journeyId === journeyId);
+}
+
+export async function clearParticipantCounselorRevocations(journeyId: string) {
+  const store = await readStore();
+  store.participantCounselorRevocations = store.participantCounselorRevocations.filter(
+    (r) => r.journeyId !== journeyId,
+  );
+  await writeStore(store);
+}
+
+/** Single read/write execution path mirroring PostgreSQL validation semantics. */
+export async function tryExecuteCounselorAssignmentRequestAtomic(
+  requestId: string,
+): Promise<{ executed: boolean; journeyId: string }> {
+  const now = new Date().toISOString();
+  const store = await readStore();
+  const reqIndex = store.assignmentRequests.findIndex((r) => r.id === requestId);
+  if (reqIndex === -1) throw new Error("Request not found.");
+  const request = store.assignmentRequests[reqIndex]!;
+  const journeyIndex = store.journeys.findIndex((j) => j.id === request.journeyId);
+  if (journeyIndex === -1) throw new Error("Journey not found.");
+  const journey = store.journeys[journeyIndex]!;
+
+  const {
+    assertApprovedRequestReadyToExecute,
+    buildExecutionPatchForRequest,
+    canExecuteApprovedRequestNow,
+  } = await import("@/lib/marriage-counselor-assignment-execution");
+
+  const revocations = store.participantCounselorRevocations.filter(
+    (r) => r.journeyId === request.journeyId,
+  );
+  const acknowledgments = store.assignmentAcknowledgments.filter(
+    (a) => a.requestId === requestId,
+  );
+
+  if (
+    !canExecuteApprovedRequestNow({
+      request,
+      currentCounselorUserId: journey.counselorUserId,
+      revocations,
+      acknowledgments,
+    })
+  ) {
+    return { executed: false, journeyId: request.journeyId };
+  }
+
+  assertApprovedRequestReadyToExecute({
+    request,
+    currentCounselorUserId: journey.counselorUserId,
+    revocations,
+    acknowledgments,
+  });
+
+  const patch = buildExecutionPatchForRequest(request);
+  if (counselorJourneyAccessChangeRequiresInvalidation(journey, patch)) {
+    store.sharingConsents = invalidateAllCounselorDisclosureForJourneyInMemory(
+      store.sharingConsents,
+      request.journeyId,
+      now,
+    );
+  }
+  store.journeys[journeyIndex] = {
+    ...journey,
+    counselorUserId:
+      patch.counselorUserId !== undefined ? patch.counselorUserId : journey.counselorUserId,
+    counselorAccessRevokedAt:
+      patch.counselorAccessRevokedAt !== undefined
+        ? patch.counselorAccessRevokedAt
+        : journey.counselorAccessRevokedAt,
+    updatedAt: now,
+  };
+  store.participantCounselorRevocations = store.participantCounselorRevocations.filter(
+    (r) => r.journeyId !== request.journeyId,
+  );
+  store.assignmentRequests[reqIndex] = {
+    ...request,
+    status: "executed",
+    executedAt: now,
+  };
+  await writeStore(store);
+  return { executed: true, journeyId: request.journeyId };
+}
+
+export async function approveCounselorAssignmentRequestAtomic(input: {
+  requestId: string;
+  seniorPastorUserId: string;
+  decisionNote?: string | null;
+  requireExplicitSelfApproval: boolean;
+}): Promise<{ executed: boolean; journeyId: string }> {
+  const now = new Date().toISOString();
+  const store = await readStore();
+  const reqIndex = store.assignmentRequests.findIndex((r) => r.id === input.requestId);
+  if (reqIndex === -1) throw new Error("Request not found.");
+  const request = store.assignmentRequests[reqIndex]!;
+  const journeyIndex = store.journeys.findIndex((j) => j.id === request.journeyId);
+  if (journeyIndex === -1) throw new Error("Journey not found.");
+  const journey = store.journeys[journeyIndex]!;
+
+  const { validateJourneySnapshotMatchesRequest, canExecuteApprovedRequestNow } =
+    await import("@/lib/marriage-counselor-assignment-execution");
+
+  if (request.status !== "pending") throw new Error("Request is not pending.");
+  if (
+    request.requestedByUserId === input.seniorPastorUserId &&
+    input.requireExplicitSelfApproval
+  ) {
+    throw new Error("Explicit approval confirmation required.");
+  }
+  validateJourneySnapshotMatchesRequest(request, journey.counselorUserId);
+
+  store.assignmentRequests[reqIndex] = {
+    ...request,
+    status: "approved",
+    reviewedByUserId: input.seniorPastorUserId,
+    reviewedAt: now,
+    decisionNote: input.decisionNote ?? null,
+  };
+  await writeStore(store);
+
+  const result = await tryExecuteCounselorAssignmentRequestAtomic(input.requestId);
+  return result;
+}
+
+export async function acknowledgeCounselorAssignmentRestorationAtomic(input: {
+  requestId: string;
+  participantUserId: string;
+  counselorUserId: string;
+}): Promise<{ executed: boolean; journeyId: string }> {
+  const now = new Date().toISOString();
+  const store = await readStore();
+  const reqIndex = store.assignmentRequests.findIndex((r) => r.id === input.requestId);
+  if (reqIndex === -1) throw new Error("Request not found.");
+  const request = store.assignmentRequests[reqIndex]!;
+
+  if (request.status !== "approved") {
+    throw new Error("This assignment is not awaiting participant authorization.");
+  }
+  if (request.executedAt) throw new Error("This assignment is already active.");
+  if (request.requestType === "remove") {
+    throw new Error("Removal requests do not require acknowledgment.");
+  }
+  const approvedCounselor = request.requestedCounselorUserId?.trim();
+  if (!approvedCounselor || approvedCounselor !== input.counselorUserId.trim()) {
+    throw new Error("Acknowledgment does not match the approved counselor.");
+  }
+
+  const revocations = store.participantCounselorRevocations.filter(
+    (r) => r.journeyId === request.journeyId,
+  );
+  if (!revocations.some((r) => r.userId === input.participantUserId)) {
+    throw new Error("You are not required to authorize this restoration.");
+  }
+
+  const ackIndex = store.assignmentAcknowledgments.findIndex(
+    (a) => a.requestId === input.requestId && a.userId === input.participantUserId,
+  );
+  const ack = {
+    requestId: input.requestId,
+    journeyId: request.journeyId,
+    userId: input.participantUserId,
+    counselorUserId: input.counselorUserId,
+    acknowledgedAt: now,
+  };
+  if (ackIndex === -1) store.assignmentAcknowledgments.push(ack);
+  else store.assignmentAcknowledgments[ackIndex] = ack;
+  await writeStore(store);
+
+  return tryExecuteCounselorAssignmentRequestAtomic(input.requestId);
+}
+
+export async function revokeParticipantCounselorAccessAtomic(
+  journeyId: string,
+  participantUserId: string,
+) {
+  const now = new Date().toISOString();
+  const store = await readStore();
+  const journeyIndex = store.journeys.findIndex((j) => j.id === journeyId);
+  if (journeyIndex === -1) throw new Error("Journey not found.");
+  const journey = store.journeys[journeyIndex]!;
+
+  const revIndex = store.participantCounselorRevocations.findIndex(
+    (r) => r.journeyId === journeyId && r.userId === participantUserId,
+  );
+  const rev = { journeyId, userId: participantUserId, revokedAt: now };
+  if (revIndex === -1) store.participantCounselorRevocations.push(rev);
+  else store.participantCounselorRevocations[revIndex] = rev;
+
+  for (const r of store.assignmentRequests) {
+    if (r.journeyId !== journeyId) continue;
+    if (r.status === "pending" || (r.status === "approved" && !r.executedAt)) {
+      r.status = "cancelled";
+      r.reviewedAt = now;
+      r.decisionNote = "Cancelled because a participant revoked counselor access.";
+    }
+  }
+
+  const patch = { counselorAccessRevokedAt: now, counselorUserId: null };
+  if (counselorJourneyAccessChangeRequiresInvalidation(journey, patch)) {
+    store.sharingConsents = invalidateAllCounselorDisclosureForJourneyInMemory(
+      store.sharingConsents,
+      journeyId,
+      now,
+    );
+  }
+  store.journeys[journeyIndex] = {
+    ...journey,
+    counselorUserId: null,
+    counselorAccessRevokedAt: now,
+    updatedAt: now,
+  };
+  await writeStore(store);
+}
+
+export async function setJourneyAdministrativeCoordinator(
+  record: MarriageJourneyAdministrativeCoordinatorRecord,
+) {
+  const store = await readStore();
+  const index = store.administrativeCoordinators.findIndex((r) => r.journeyId === record.journeyId);
+  if (index === -1) store.administrativeCoordinators.push(record);
+  else store.administrativeCoordinators[index] = record;
+  await writeStore(store);
+  return record;
+}
+
+export async function removeJourneyAdministrativeCoordinator(journeyId: string) {
+  const store = await readStore();
+  store.administrativeCoordinators = store.administrativeCoordinators.filter(
+    (r) => r.journeyId !== journeyId,
+  );
+  await writeStore(store);
+}
+
+export async function getJourneyAdministrativeCoordinator(journeyId: string) {
+  const store = await readStore();
+  return store.administrativeCoordinators.find((r) => r.journeyId === journeyId) ?? null;
+}
+
+export async function listJourneyIdsForAdministrativeCoordinator(coordinatorUserId: string) {
+  const store = await readStore();
+  return store.administrativeCoordinators
+    .filter((r) => r.coordinatorUserId === coordinatorUserId)
+    .map((r) => r.journeyId);
+}
+
+export async function listActiveJourneysForAdministrativeCoordinator(coordinatorUserId: string) {
+  const store = await readStore();
+  const ids = new Set(
+    store.administrativeCoordinators
+      .filter((r) => r.coordinatorUserId === coordinatorUserId)
+      .map((r) => r.journeyId),
+  );
+  return store.journeys.filter((j) => j.status === "active" && ids.has(j.id));
 }

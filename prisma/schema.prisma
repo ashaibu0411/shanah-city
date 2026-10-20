@@ -1544,6 +1544,52 @@ model MarriageCounselorAssignment {
   @@index([journeyId, dueAt])
 }
 
+model MarriageCounselorAssignmentRequest {
+  id                       String    @id
+  journeyId                String
+  requestType              String
+  requestedCounselorUserId String?
+  previousCounselorUserId  String?
+  status                   String
+  requestedByUserId        String
+  requestedAt              DateTime
+  reviewedByUserId         String?
+  reviewedAt               DateTime?
+  decisionNote             String?
+  executedAt               DateTime?
+
+  @@index([journeyId, status])
+}
+
+model MarriageCounselorAssignmentAcknowledgment {
+  requestId       String
+  journeyId       String
+  userId          String
+  counselorUserId String
+  acknowledgedAt  DateTime
+
+  @@id([requestId, userId])
+  @@index([journeyId])
+}
+
+model MarriageCounselorParticipantRevocation {
+  journeyId  String
+  userId     String
+  revokedAt  DateTime
+
+  @@id([journeyId, userId])
+}
+
+/** Option A — administrative coordination scope (not clinical counselor). */
+model MarriageJourneyAdministrativeCoordinator {
+  journeyId         String   @id
+  coordinatorUserId String
+  assignedByUserId  String
+  assignedAt        DateTime
+
+  @@index([coordinatorUserId])
+}
+
 model MarriageJourneyInvite {
   id               String    @id
   code             String    @unique

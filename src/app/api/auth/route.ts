@@ -20,8 +20,10 @@ import { linkGivingRecordsToUser } from "@/lib/giving-server";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { parseMemberParticipationType } from "@/lib/member-participation";
 import { getSessionPermissions } from "@/lib/session-permissions";
+import { shouldBypassAuthRateLimitForMarriageE2e } from "@/lib/marriage-e2e-isolation-guard";
 
 async function checkAuthRateLimit(request: Request, action: string) {
+  if (shouldBypassAuthRateLimitForMarriageE2e()) return null;
   const ip = getClientIp(request);
   const result = await enforceRateLimit(`auth:${action}:${ip}`, {
     limit: action === "forgot" ? 5 : 15,

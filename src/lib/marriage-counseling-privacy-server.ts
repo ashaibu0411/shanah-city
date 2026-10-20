@@ -87,10 +87,16 @@ export async function revokeCounselorAccess(viewer: PublicMember, journeyId: str
   const journey = await store().getJourneyById(journeyId);
   if (!journey) throw new Error("Journey not found.");
   await assertJourneyParticipantLoose(journey, viewer.id);
-  await store().applyCounselorJourneyAccessChange(journeyId, {
-    counselorAccessRevokedAt: new Date().toISOString(),
-    counselorUserId: null,
-  });
+
+  const { useDatabase } = await import("@/lib/use-database");
+  if (useDatabase()) {
+    const db = await import("@/lib/stores/marriage-counseling-db");
+    await db.revokeParticipantCounselorAccessInTransaction(journeyId, viewer.id);
+  } else {
+    const json = await import("@/lib/stores/marriage-counseling-json");
+    await json.revokeParticipantCounselorAccessAtomic(journeyId, viewer.id);
+  }
+
   await logMarriageAudit({
     actorUserId: viewer.id,
     action: "counselor_access_revoked",

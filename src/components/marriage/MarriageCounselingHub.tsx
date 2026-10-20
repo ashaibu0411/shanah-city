@@ -8,6 +8,7 @@ import { marriagePremium } from "@/components/marriage/marriage-counseling-premi
 import type { MarriageHubSummary, MarriageProgramType } from "@/lib/marriage-counseling-types";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { MarriageStage2HubPromo } from "@/components/marriage/MarriageStage2HubPromo";
+import { MarriageCounselorAssignmentParticipantPanel } from "@/components/marriage/MarriageCounselorAssignmentParticipantPanel";
 import { isMarriageStage2ClientEnabled } from "@/lib/marriage-stage2-feature";
 
 function statusLabel(mod: MarriageHubSummary["modules"][0]) {
@@ -24,7 +25,6 @@ export function MarriageCounselingHub() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [starting, setStarting] = useState<MarriageProgramType | null>(null);
-
   const load = useCallback(async () => {
     setError("");
     const res = await fetch("/api/marriage/hub", { cache: "no-store" });
@@ -331,6 +331,22 @@ export function MarriageCounselingHub() {
                 <Link href="/marriage/admin/curriculum" className={marriagePremium.secondaryCta}>
                   Curriculum administration
                 </Link>
+              )}
+              {(hub.canSubmitCounselorAssignment || hub.isSeniorPastorCounselorApprover) && (
+                <Link
+                  href="/marriage/admin/counselor-assignments"
+                  className={marriagePremium.secondaryCta}
+                >
+                  {hub.isSeniorPastorCounselorApprover
+                    ? "Counselor approvals"
+                    : "Counselor assignment requests"}
+                </Link>
+              )}
+              {journey && hub.viewerId && (
+                <MarriageCounselorAssignmentParticipantPanel
+                  journeyId={journey.id}
+                  viewerUserId={hub.viewerId}
+                />
               )}
               {journey && (
                 <>

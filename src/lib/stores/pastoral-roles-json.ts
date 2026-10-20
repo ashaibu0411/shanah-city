@@ -2,7 +2,11 @@ import { promises as fs } from "fs";
 import path from "path";
 import type { PastoralRole, PastoralRoleAssignments } from "@/lib/pastoral-roles-types";
 
-const FILE = path.join(process.cwd(), "data", "pastoral-roles.json");
+function rolesFilePath() {
+  const isolated = process.env.AUTH_DATA_DIR?.trim();
+  if (isolated) return path.join(isolated, "pastoral-roles.json");
+  return path.join(process.cwd(), "data", "pastoral-roles.json");
+}
 
 const EMPTY: PastoralRoleAssignments = {
   seniorPastorUserId: null,
@@ -11,7 +15,7 @@ const EMPTY: PastoralRoleAssignments = {
 
 async function readAssignments(): Promise<PastoralRoleAssignments> {
   try {
-    const raw = await fs.readFile(FILE, "utf-8");
+    const raw = await fs.readFile(rolesFilePath(), "utf-8");
     const parsed = JSON.parse(raw) as PastoralRoleAssignments;
     return {
       seniorPastorUserId: parsed.seniorPastorUserId ?? null,
@@ -26,8 +30,9 @@ async function readAssignments(): Promise<PastoralRoleAssignments> {
 }
 
 async function writeAssignments(assignments: PastoralRoleAssignments) {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(assignments, null, 2));
+  const file = rolesFilePath();
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  await fs.writeFile(file, JSON.stringify(assignments, null, 2));
 }
 
 export async function getPastoralRoleAssignments() {
