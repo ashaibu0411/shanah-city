@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { PublicMember } from "../src/lib/auth-types";
 import {
+  counselorConsentGrantVersionFromModuleStatus,
   grantCounselorAnswerConsent,
   listCounselorConsentStatusForModule,
 } from "../src/lib/marriage-counselor-consent-participant";
@@ -24,7 +25,9 @@ async function routeGetStatus(user: PublicMember, journeyId: string, moduleId: s
 
 /** Mirrors POST grant branch response fields (without NextResponse wrapper). */
 async function routePostGrant(user: PublicMember, journeyId: string, moduleId: string, questionId: string) {
-  const result = await grantCounselorAnswerConsent(user, journeyId, moduleId, questionId);
+  const listed = await listCounselorConsentStatusForModule(user, journeyId, moduleId);
+  const version = counselorConsentGrantVersionFromModuleStatus(listed, questionId);
+  const result = await grantCounselorAnswerConsent(user, journeyId, moduleId, questionId, version);
   const status = await listCounselorConsentStatusForModule(user, journeyId, moduleId);
   return { ...result, ok: true as const, status };
 }
@@ -67,11 +70,26 @@ async function main() {
 
   const getBody = await routeGetStatus(member("u-a"), journey.id, modId);
   assert.ok(Array.isArray(getBody.items));
-  assert.equal(JSON.stringify(getBody).includes("Route test secret"), false);
+  const itemA = getBody.items.find((i) => i.questionId === questionId);
+  assert.ok(itemA?.savedAnswerDisplay?.includes("Route test secret"));
+
+  await jsonStore.saveResponse({
+    id: "r2",
+    journeyId: journey.id,
+    moduleId: modId,
+    contentVersion: "v1",
+    userId: "u-b",
+    status: "submitted",
+    answers: { [questionId]: "Partner B secret payload" },
+    lastSavedAt: new Date().toISOString(),
+    submittedAt: new Date().toISOString(),
+  });
+  const getPartner = await routeGetStatus(member("u-b"), journey.id, modId);
+  assert.equal(JSON.stringify(getPartner).includes("Route test secret"), false);
 
   const postBody = await routePostGrant(member("u-a"), journey.id, modId, questionId);
   assert.equal(postBody.ok, true);
-  assert.equal(JSON.stringify(postBody).includes("Route test secret"), false);
+  assert.equal(JSON.stringify(postBody).includes("Partner B secret"), false);
   assert.ok(postBody.status.items.some((i) => i.questionId === questionId && i.state === "shared_with_counselor"));
 
   rmSync(dir, { recursive: true, force: true });

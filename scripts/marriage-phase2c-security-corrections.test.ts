@@ -11,6 +11,7 @@ import { join } from "node:path";
 import type { PublicMember } from "../src/lib/auth-types";
 import { COUNSELOR_JOURNEY_ACCESS_PATCH_FORBIDDEN } from "../src/lib/marriage-counselor-assignment-change";
 import {
+  counselorConsentGrantVersionFromModuleStatus,
   grantCounselorAnswerConsent,
   listCounselorConsentStatusForModule,
   resolveCounselorConsentUiState,
@@ -23,6 +24,17 @@ import { consentGranted } from "../src/lib/marriage-stage2-activity-engine";
 
 function member(id: string): PublicMember {
   return { id, name: id, email: `${id}@test.local`, role: "member" } as PublicMember;
+}
+
+async function grantAtListedVersion(
+  viewer: PublicMember,
+  journeyId: string,
+  modId: string,
+  questionId: string,
+) {
+  const status = await listCounselorConsentStatusForModule(viewer, journeyId, modId);
+  const version = counselorConsentGrantVersionFromModuleStatus(status, questionId);
+  return grantCounselorAnswerConsent(viewer, journeyId, modId, questionId, version);
 }
 
 async function setupJourney(counselorId: string) {
@@ -64,7 +76,7 @@ async function setupJourney(counselorId: string) {
 async function testReassignmentABA() {
   const { dir, jsonStore, journey, modId, questionId } = await setupJourney("c-a");
 
-  await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, questionId);
+  await grantAtListedVersion(member("u-a"), journey.id, modId, questionId);
 
   await jsonStore.applyCounselorJourneyAccessChange(journey.id, { counselorUserId: "c-b" });
   let j2 = await jsonStore.getJourneyById(journey.id);
@@ -86,7 +98,7 @@ async function testReassignmentABA() {
 
 async function testUnassignInvalidatesConsent() {
   const { dir, jsonStore, journey, modId, questionId } = await setupJourney("c-a");
-  await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, questionId);
+  await grantAtListedVersion(member("u-a"), journey.id, modId, questionId);
 
   await jsonStore.applyCounselorJourneyAccessChange(journey.id, { counselorUserId: null });
   const row = (await jsonStore.listSharingConsents(journey.id, modId)).find(
@@ -101,7 +113,7 @@ async function testUnassignInvalidatesConsent() {
 
 async function testRevokeCounselorAccessInvalidates() {
   const { dir, journey, modId, questionId } = await setupJourney("c-a");
-  await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, questionId);
+  await grantAtListedVersion(member("u-a"), journey.id, modId, questionId);
 
   await revokeCounselorAccess(member("u-a"), journey.id);
   const status = await listCounselorConsentStatusForModule(member("u-a"), journey.id, modId);
@@ -114,7 +126,7 @@ async function testRevokeCounselorAccessInvalidates() {
 
 async function testFormerCounselorDenied() {
   const { dir, jsonStore, journey, modId, questionId } = await setupJourney("c-a");
-  await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, questionId);
+  await grantAtListedVersion(member("u-a"), journey.id, modId, questionId);
 
   let j = await jsonStore.getJourneyById(journey.id);
   let allowed = await buildCounselorAuthorizedAnswerViews(member("c-a"), j!);
@@ -142,7 +154,7 @@ async function testPartnerSharingUnaffectedByCounselorRevoke() {
     updatedAt: new Date().toISOString(),
   });
 
-  await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, "fb-sensitive");
+  await grantAtListedVersion(member("u-a"), journey.id, modId, "fb-sensitive");
   await revokeCounselorAnswerConsent(member("u-a"), journey.id, modId, "fb-sensitive");
 
   const partnerRow = (await jsonStore.listSharingConsents(journey.id, modId)).find(
@@ -167,7 +179,7 @@ async function testPartnerAndCounselorIndependence() {
     updatedAt: new Date().toISOString(),
   });
 
-  await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, "fb-sensitive");
+  await grantAtListedVersion(member("u-a"), journey.id, modId, "fb-sensitive");
   const consents = await jsonStore.listSharingConsents(journey.id, modId);
   const counselorRow = consents.find((c) => c.questionId === "fb-sensitive");
   assert.equal(counselorRow?.counselorDisclosureGranted, true);
@@ -193,14 +205,32 @@ async function testPartnerAndCounselorIndependence() {
   delete process.env.MARRIAGE_COUNSELING_DATA_FILE;
 }
 
-async function testConsentStatusNoAnswerText() {
-  const { dir, journey, modId } = await setupJourney("c-a");
-  await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, "fb-sensitive");
+async function testConsentStatusOwnAnswerOnlyForParticipant() {
+  const { dir, jsonStore, journey, modId, questionId } = await setupJourney("c-a");
+  await jsonStore.saveResponse({
+    id: "rb",
+    journeyId: journey.id,
+    moduleId: modId,
+    contentVersion: "v1",
+    userId: "u-b",
+    status: "submitted",
+    answers: { [questionId]: "Spouse B clinical secret" },
+    lastSavedAt: new Date().toISOString(),
+    submittedAt: new Date().toISOString(),
+  });
 
-  const status = await listCounselorConsentStatusForModule(member("u-a"), journey.id, modId);
-  const serialized = JSON.stringify(status);
-  assert.equal(serialized.includes("Clinical secret"), false);
-  assert.equal(serialized.includes("answer"), false);
+  const statusA = await listCounselorConsentStatusForModule(member("u-a"), journey.id, modId);
+  const statusB = await listCounselorConsentStatusForModule(member("u-b"), journey.id, modId);
+  assert.ok(
+    statusA.items.find((i) => i.questionId === questionId)?.savedAnswerDisplay?.includes("Clinical secret"),
+  );
+  assert.equal(JSON.stringify(statusA).includes("Spouse B clinical secret"), false);
+  assert.ok(
+    statusB.items.find((i) => i.questionId === questionId)?.savedAnswerDisplay?.includes(
+      "Spouse B clinical secret",
+    ),
+  );
+  assert.equal(JSON.stringify(statusB).includes("Clinical secret"), false);
 
   rmSync(dir, { recursive: true, force: true });
   delete process.env.MARRIAGE_COUNSELING_DATA_FILE;
@@ -209,12 +239,20 @@ async function testConsentStatusNoAnswerText() {
 async function testCrossSpouseGrantDenied() {
   const { dir, journey, modId, questionId } = await setupJourney("c-a");
   await assert.rejects(
-    () => grantCounselorAnswerConsent(member("u-stranger"), journey.id, modId, questionId),
+    () =>
+      grantCounselorAnswerConsent(member("u-stranger"), journey.id, modId, questionId, {
+        answerFingerprint: "b".repeat(64),
+        answerGeneration: 0,
+      }),
     /not part of this journey/,
   );
-  await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, questionId);
+  await grantAtListedVersion(member("u-a"), journey.id, modId, questionId);
   await assert.rejects(
-    () => grantCounselorAnswerConsent(member("u-b"), journey.id, modId, questionId),
+    () =>
+      grantCounselorAnswerConsent(member("u-b"), journey.id, modId, questionId, {
+        answerFingerprint: "c".repeat(64),
+        answerGeneration: 0,
+      }),
     /Submit this assessment before sharing/,
   );
 
@@ -271,7 +309,7 @@ async function main() {
   await testFormerCounselorDenied();
   await testPartnerSharingUnaffectedByCounselorRevoke();
   await testPartnerAndCounselorIndependence();
-  await testConsentStatusNoAnswerText();
+  await testConsentStatusOwnAnswerOnlyForParticipant();
   await testCrossSpouseGrantDenied();
   await testGenericUpdateJourneyFailsClosed();
   console.log("marriage-phase2c-security-corrections.test.ts: OK");

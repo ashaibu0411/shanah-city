@@ -23,6 +23,7 @@ import type {
 } from "@/lib/marriage-counseling-types";
 import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
 import {
+  COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE,
   computeAnswerFingerprint,
   isAnswerDisclosableToCounselor,
 } from "@/lib/marriage-counselor-consent";
@@ -960,11 +961,6 @@ export async function applyCounselorConsentGrant(
     throw new Error("This answer cannot be shared until you provide a response.");
   }
 
-  const fingerprint = computeAnswerFingerprint(answer);
-  if (fingerprint !== input.answerFingerprint) {
-    throw new Error("Answer changed. Refresh and try again.");
-  }
-
   const genRow = store.answerChangeGenerations.find(
     (g) =>
       g.journeyId === input.journeyId &&
@@ -973,6 +969,14 @@ export async function applyCounselorConsentGrant(
       g.userId === input.userId,
   );
   const generation = genRow?.generation ?? 0;
+  if (generation !== input.answerGeneration) {
+    throw new Error(COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE);
+  }
+
+  const fingerprint = computeAnswerFingerprint(answer);
+  if (fingerprint !== input.answerFingerprint) {
+    throw new Error(COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE);
+  }
 
   const consentIndex = store.sharingConsents.findIndex(
     (c) =>

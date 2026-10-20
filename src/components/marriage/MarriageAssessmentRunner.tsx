@@ -179,6 +179,7 @@ export function MarriageAssessmentRunner({ moduleId }: { moduleId: string }) {
             moduleId={moduleId}
             questionId={question.id}
             submitted={locked}
+            localAnswer={answers[question.id]}
             answerDisclosable={
               answers[question.id] !== undefined &&
               answers[question.id] !== "" &&

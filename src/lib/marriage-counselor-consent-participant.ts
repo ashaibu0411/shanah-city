@@ -10,7 +10,9 @@ import type {
 } from "@/lib/marriage-counseling-types";
 import {
   computeAnswerFingerprint,
+  formatSavedAnswerForParticipantConsent,
   isAnswerDisclosableToCounselor,
+  isValidCounselorAnswerFingerprint,
   verifyCounselorAnswerDisclosure,
 } from "@/lib/marriage-counselor-consent";
 import { isCounselorDisclosureGranted } from "@/lib/marriage-sharing-consent-counselor-state";
@@ -30,7 +32,31 @@ export type MarriageCounselorConsentStatusItem = {
   state: MarriageCounselorConsentUiState;
   canGrant: boolean;
   canRevoke: boolean;
+  /** Saved answer the participant may authorize (viewer-owned only). */
+  savedAnswerDisplay: string | null;
+  savedAnswer: unknown;
+  answerFingerprint: string | null;
+  answerGeneration: number | null;
 };
+
+export type CounselorConsentGrantVersion = {
+  answerFingerprint: string;
+  answerGeneration: number;
+};
+
+export function counselorConsentGrantVersionFromModuleStatus(
+  status: MarriageCounselorConsentModuleStatus,
+  questionId: string,
+): CounselorConsentGrantVersion {
+  const item = status.items.find((i) => i.questionId === questionId);
+  if (!item?.answerFingerprint || item.answerGeneration == null) {
+    throw new Error("Consent version unavailable.");
+  }
+  return {
+    answerFingerprint: item.answerFingerprint,
+    answerGeneration: item.answerGeneration,
+  };
+}
 
 export type MarriageCounselorConsentModuleStatus = {
   journeyId: string;
@@ -132,11 +158,18 @@ export async function listCounselorConsentStatusForModule(
     const answerReady = submitted && isAnswerDisclosableToCounselor(currentAnswer);
     const counselorOk =
       Boolean(journey.counselorUserId?.trim()) && !isJourneyCounselorAccessRevoked(journey);
+    const fingerprint = answerReady ? computeAnswerFingerprint(currentAnswer) : null;
     items.push({
       questionId: question.id,
       state,
       canGrant: answerReady && counselorOk && state !== "shared_with_counselor",
       canRevoke: state === "shared_with_counselor",
+      savedAnswerDisplay: answerReady
+        ? formatSavedAnswerForParticipantConsent(currentAnswer)
+        : null,
+      savedAnswer: answerReady ? currentAnswer : null,
+      answerFingerprint: fingerprint,
+      answerGeneration: submitted ? currentGeneration : null,
     });
   }
 
@@ -156,6 +189,7 @@ export async function grantCounselorAnswerConsent(
   journeyId: string,
   moduleId: string,
   questionId: string,
+  version: CounselorConsentGrantVersion,
 ) {
   const { journey, mod, response } = await loadParticipantCounselorConsentContext(
     viewer,
@@ -177,20 +211,26 @@ export async function grantCounselorAnswerConsent(
     throw new Error("This answer cannot be shared until you provide a response.");
   }
 
-  const fingerprint = computeAnswerFingerprint(answer);
+  if (!isValidCounselorAnswerFingerprint(version.answerFingerprint)) {
+    throw new Error("Consent version is required.");
+  }
+  if (!Number.isInteger(version.answerGeneration) || version.answerGeneration < 0) {
+    throw new Error("Consent version is required.");
+  }
+
   const result = await store().applyCounselorConsentGrant({
     journeyId: journey.id,
     moduleId,
     questionId,
     userId: viewer.id,
     expectedCounselorUserId: journey.counselorUserId,
-    answerFingerprint: fingerprint,
+    answerFingerprint: version.answerFingerprint.trim(),
+    answerGeneration: version.answerGeneration,
   });
 
   return {
     ok: true as const,
     idempotent: result.idempotent,
-    fingerprint,
   };
 }
 

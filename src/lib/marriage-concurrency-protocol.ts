@@ -28,8 +28,11 @@ export const MARRIAGE_HUB_LOCK_ORDER = [
 
 export type MarriageDbTransaction = Prisma.TransactionClient;
 
+/** Delimiter must not be NUL — PostgreSQL text parameters reject 0x00 (UTF8 error 22021). */
+const ASSESSMENT_DRAFT_LOCK_SEP = "\u001E";
+
 function assessmentDraftLockKey(journeyId: string, moduleId: string, userId: string): string {
-  return `${journeyId}\0${moduleId}\0${userId}`;
+  return `${journeyId}${ASSESSMENT_DRAFT_LOCK_SEP}${moduleId}${ASSESSMENT_DRAFT_LOCK_SEP}${userId}`;
 }
 
 /** Serializes concurrent draft saves and revision reopen for one participant module. */

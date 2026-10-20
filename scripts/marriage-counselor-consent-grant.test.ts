@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { PublicMember } from "../src/lib/auth-types";
 import {
+  counselorConsentGrantVersionFromModuleStatus,
   grantCounselorAnswerConsent,
   listCounselorConsentStatusForModule,
   revokeCounselorAnswerConsent,
@@ -17,6 +18,17 @@ import type { MarriageQuestionDefinition } from "../src/lib/marriage-counseling-
 
 function member(id: string): PublicMember {
   return { id, name: id, email: `${id}@test.local`, role: "member" } as PublicMember;
+}
+
+async function grantAtListedVersion(
+  viewer: PublicMember,
+  journeyId: string,
+  modId: string,
+  questionId: string,
+) {
+  const status = await listCounselorConsentStatusForModule(viewer, journeyId, modId);
+  const version = counselorConsentGrantVersionFromModuleStatus(status, questionId);
+  return grantCounselorAnswerConsent(viewer, journeyId, modId, questionId, version);
 }
 
 async function testGrantRevokeFlow() {
@@ -52,25 +64,29 @@ async function testGrantRevokeFlow() {
   });
 
   await assert.rejects(
-    () => grantCounselorAnswerConsent(member("u-stranger"), journey.id, modId, questionId),
+    () =>
+      grantCounselorAnswerConsent(member("u-stranger"), journey.id, modId, questionId, {
+        answerFingerprint: "a".repeat(64),
+        answerGeneration: 0,
+      }),
     /not part of this journey/,
   );
 
-  const grant1 = await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, questionId);
+  const grant1 = await grantAtListedVersion(member("u-a"), journey.id, modId, questionId);
   assert.equal(grant1.ok, true);
 
   const status1 = await listCounselorConsentStatusForModule(member("u-a"), journey.id, modId);
   const item1 = status1.items.find((i) => i.questionId === questionId);
   assert.equal(item1?.state, "shared_with_counselor");
 
-  const grant2 = await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, questionId);
+  const grant2 = await grantAtListedVersion(member("u-a"), journey.id, modId, questionId);
   assert.equal(grant2.idempotent, true);
 
   await revokeCounselorAnswerConsent(member("u-a"), journey.id, modId, questionId);
   const status2 = await listCounselorConsentStatusForModule(member("u-a"), journey.id, modId);
   assert.equal(status2.items.find((i) => i.questionId === questionId)?.state, "not_shared");
 
-  await grantCounselorAnswerConsent(member("u-a"), journey.id, modId, questionId);
+  await grantAtListedVersion(member("u-a"), journey.id, modId, questionId);
   await jsonStore.incrementAnswerChangeGeneration(journey.id, modId, questionId, "u-a");
   const status3 = await listCounselorConsentStatusForModule(member("u-a"), journey.id, modId);
   assert.equal(status3.items.find((i) => i.questionId === questionId)?.state, "withdrawn");

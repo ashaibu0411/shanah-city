@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
 import {
+  COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE,
   computeAnswerFingerprint,
   isAnswerDisclosableToCounselor,
 } from "@/lib/marriage-counselor-consent";
@@ -1297,6 +1298,7 @@ export type ApplyCounselorConsentGrantInput = {
   userId: string;
   expectedCounselorUserId: string;
   answerFingerprint: string;
+  answerGeneration: number;
 };
 
 export type ApplyCounselorConsentRevokeInput = {
@@ -1389,11 +1391,6 @@ export async function applyCounselorConsentGrant(
       throw new Error("This answer cannot be shared until you provide a response.");
     }
 
-    const fingerprint = computeAnswerFingerprint(answer);
-    if (fingerprint !== input.answerFingerprint) {
-      throw new Error("Answer changed. Refresh and try again.");
-    }
-
     const genRow = await tx.marriageAnswerChangeGeneration.findUnique({
       where: {
         journeyId_moduleId_questionId_userId: {
@@ -1405,6 +1402,14 @@ export async function applyCounselorConsentGrant(
       },
     });
     const generation = genRow?.generation ?? 0;
+    if (generation !== input.answerGeneration) {
+      throw new Error(COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE);
+    }
+
+    const fingerprint = computeAnswerFingerprint(answer);
+    if (fingerprint !== input.answerFingerprint) {
+      throw new Error(COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE);
+    }
 
     const existingRow = await tx.marriageSharingConsent.findUnique({
       where: {

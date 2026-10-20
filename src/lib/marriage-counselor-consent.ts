@@ -18,6 +18,10 @@ export type CounselorDisclosureDenialReason =
 
 const ANSWER_FINGERPRINT_PATTERN = /^[a-f0-9]{64}$/i;
 
+/** Shown when grant-time answer version does not match stored answer (participant must re-review). */
+export const COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE =
+  "Your answer has changed. Please review the latest saved answer before sharing it.";
+
 export function isValidCounselorAnswerFingerprint(fingerprint: string | null | undefined): boolean {
   if (!fingerprint?.trim()) return false;
   return ANSWER_FINGERPRINT_PATTERN.test(fingerprint.trim());
@@ -64,6 +68,14 @@ export function shouldIncrementGenerationForAnswerChange(
   nextAnswer: unknown,
 ): boolean {
   return !answerValuesEqual(previousAnswer, nextAnswer);
+}
+
+/** Read-only label for the participant consent panel (their own saved answer only). */
+export function formatSavedAnswerForParticipantConsent(value: unknown): string {
+  if (value === undefined || value === null || value === "") return "";
+  if (value === "__skip__") return "(Skipped)";
+  if (typeof value === "string") return value;
+  return JSON.stringify(value);
 }
 
 export function isAnswerDisclosableToCounselor(answer: unknown): boolean {

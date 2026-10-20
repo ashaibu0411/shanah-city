@@ -55,7 +55,16 @@ export async function POST(request: Request, { params }: Params) {
 
   try {
     if (action === "grant") {
-      const result = await grantCounselorAnswerConsent(user, journeyId, moduleId, questionId);
+      const answerFingerprint = String(body.answerFingerprint ?? "").trim();
+      const answerGenerationRaw = body.answerGeneration;
+      const answerGeneration =
+        typeof answerGenerationRaw === "number"
+          ? answerGenerationRaw
+          : Number.parseInt(String(answerGenerationRaw ?? ""), 10);
+      const result = await grantCounselorAnswerConsent(user, journeyId, moduleId, questionId, {
+        answerFingerprint,
+        answerGeneration,
+      });
       const status = await listCounselorConsentStatusForModule(user, journeyId, moduleId);
       return NextResponse.json({ ...result, ok: true, status });
     }

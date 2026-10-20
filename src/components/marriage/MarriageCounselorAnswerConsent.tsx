@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
+import {
+  answerValuesEqual,
+  COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE,
+} from "@/lib/marriage-counselor-consent";
 import type { MarriageCounselorConsentModuleStatus } from "@/lib/marriage-counselor-consent-participant";
 import { readJsonResponse } from "@/lib/read-json-response";
 
@@ -11,12 +15,14 @@ export function MarriageCounselorAnswerConsent({
   questionId,
   submitted,
   answerDisclosable,
+  localAnswer,
 }: {
   journeyId: string;
   moduleId: string;
   questionId: string;
   submitted: boolean;
   answerDisclosable: boolean;
+  localAnswer: unknown;
 }) {
   const [status, setStatus] = useState<MarriageCounselorConsentModuleStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,22 +79,50 @@ export function MarriageCounselorAnswerConsent({
     !assignmentActive || item?.state === "withdrawn";
   const showPrivate = !shared && (!withdrawn || !assignmentActive);
 
+  const savedAnswerLoaded =
+    Boolean(item?.savedAnswerDisplay != null && item.savedAnswerDisplay !== "") ||
+    (item?.savedAnswer != null && item.savedAnswer !== "");
+  const versionReady =
+    Boolean(item?.answerFingerprint) && item?.answerGeneration != null;
+  const localMatchesSaved =
+    item?.savedAnswer !== undefined &&
+    item.savedAnswer !== null &&
+    answerValuesEqual(localAnswer, item.savedAnswer);
+  const versionBindingReady = savedAnswerLoaded && versionReady && localMatchesSaved;
+
   async function mutate(action: "grant" | "revoke") {
     setBusy(true);
     setError("");
     try {
+      const body: Record<string, unknown> = { action, journeyId, questionId };
+      if (action === "grant") {
+        if (!item?.answerFingerprint || item.answerGeneration == null) {
+          throw new Error("Saved answer is still loading. Try again in a moment.");
+        }
+        if (!localMatchesSaved) {
+          throw new Error("Save your answer before sharing with your counselor.");
+        }
+        body.answerFingerprint = item.answerFingerprint;
+        body.answerGeneration = item.answerGeneration;
+      }
       const res = await fetch(
         `/api/marriage/assessment/${encodeURIComponent(moduleId)}/counselor-consent`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, journeyId, questionId }),
+          body: JSON.stringify(body),
         },
       );
       const data = await readJsonResponse<{ error?: string; status?: MarriageCounselorConsentModuleStatus }>(
         res,
       );
-      if (!res.ok) throw new Error(data.error ?? "Request failed.");
+      if (!res.ok) {
+        const message = data.error ?? "Request failed.";
+        if (message === COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE) {
+          await load();
+        }
+        throw new Error(message);
+      }
       if (data.status) setStatus(data.status);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Request failed.");
@@ -104,6 +138,12 @@ export function MarriageCounselorAnswerConsent({
 
   const canToggleGrant =
     submitted && answerDisclosable && status?.counselorAssigned && !status.counselorAccessRevoked;
+
+  const grantDisabled =
+    busy ||
+    loading ||
+    !versionBindingReady ||
+    (item?.state === "shared_with_counselor" ? false : !item?.canGrant);
 
   return (
     <div
@@ -135,18 +175,40 @@ export function MarriageCounselorAnswerConsent({
         <p className="mt-2 text-xs text-night-600">Add an answer before sharing with your counselor.</p>
       )}
       {canToggleGrant && item && (
-        <label className="mt-3 flex min-h-[44px] cursor-pointer items-center gap-3">
-          <input
-            type="checkbox"
-            data-testid={`counselor-consent-toggle-${questionId}`}
-            disabled={busy || loading}
-            checked={shared}
-            onChange={(e) => void mutate(e.target.checked ? "grant" : "revoke")}
-            className="h-5 w-5 rounded border-stone-400"
-            aria-label="Share this answer with our assigned counselor"
-          />
-          <span>Share this answer with our assigned counselor</span>
-        </label>
+        <>
+          <div
+            className="mt-3 rounded-lg border border-stone-200 bg-white/80 p-3 dark:border-stone-700 dark:bg-night-900/40"
+            data-testid={`counselor-consent-saved-answer-${questionId}`}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-clay-700">
+              Saved answer you are authorizing
+            </p>
+            {loading || !savedAnswerLoaded ? (
+              <p className="mt-2 text-xs text-night-600">Loading saved answer…</p>
+            ) : (
+              <p className="mt-2 whitespace-pre-wrap text-sm text-night-800 dark:text-night-100">
+                {item.savedAnswerDisplay}
+              </p>
+            )}
+          </div>
+          {!loading && submitted && answerDisclosable && !localMatchesSaved && (
+            <p className="mt-2 text-xs text-amber-900 dark:text-amber-200">
+              You have unsaved changes. Save your answer before sharing with your counselor.
+            </p>
+          )}
+          <label className="mt-3 flex min-h-[44px] cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              data-testid={`counselor-consent-toggle-${questionId}`}
+              disabled={grantDisabled && !shared}
+              checked={shared}
+              onChange={(e) => void mutate(e.target.checked ? "grant" : "revoke")}
+              className="h-5 w-5 rounded border-stone-400"
+              aria-label="Share this answer with our assigned counselor"
+            />
+            <span>Share this answer with our assigned counselor</span>
+          </label>
+        </>
       )}
       {error && <p className="mt-2 text-xs text-red-800">{error}</p>}
     </div>
