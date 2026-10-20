@@ -45,4 +45,45 @@ assert.match(
   "comparisons only include shared visibility questions",
 );
 
+function walkTsx(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) out.push(...walkTsx(p));
+    else if (name.endsWith(".tsx") || name.endsWith(".ts")) out.push(p);
+  }
+  return out;
+}
+
+const clientConsentImport = /@\/lib\/marriage-counselor-consent(?:["']|$)/;
+const sharedConsentImport = /marriage-counselor-consent-shared/;
+
+for (const file of walkTsx(join(root, "src/components"))) {
+  const src = readFileSync(file, "utf8");
+  if (!/^["']use client["']/m.test(src)) continue;
+  const rel = file.replace(root + "\\", "").replace(root + "/", "");
+  assert.doesNotMatch(
+    src,
+    clientConsentImport,
+    `${rel} must not import server-only marriage-counselor-consent (use marriage-counselor-consent-shared)`,
+  );
+  if (rel.includes("MarriageCounselorAnswerConsent")) {
+    assert.match(
+      src,
+      sharedConsentImport,
+      `${rel} should import browser-safe marriage-counselor-consent-shared`,
+    );
+  }
+}
+
+const sharedConsent = readFileSync(
+  join(root, "src/lib/marriage-counselor-consent-shared.ts"),
+  "utf8",
+);
+assert.doesNotMatch(
+  sharedConsent,
+  /node:crypto|from ["']crypto["']/,
+  "marriage-counselor-consent-shared must not import Node crypto",
+);
+
 console.log(`marriage-api-security.test.mjs: OK (${routes.length} routes)`);

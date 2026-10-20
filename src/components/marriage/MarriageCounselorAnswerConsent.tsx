@@ -5,7 +5,7 @@ import { marriagePremium } from "@/components/marriage/marriage-counseling-premi
 import {
   answerValuesEqual,
   COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE,
-} from "@/lib/marriage-counselor-consent";
+} from "@/lib/marriage-counselor-consent-shared";
 import type { MarriageCounselorConsentModuleStatus } from "@/lib/marriage-counselor-consent-participant";
 import { readJsonResponse } from "@/lib/read-json-response";
 

@@ -8,13 +8,12 @@ import type {
   MarriageQuestionDefinition,
   MarriageSharingConsentRecord,
 } from "@/lib/marriage-counseling-types";
+import { computeAnswerFingerprint, verifyCounselorAnswerDisclosure } from "@/lib/marriage-counselor-consent";
 import {
-  computeAnswerFingerprint,
   formatSavedAnswerForParticipantConsent,
   isAnswerDisclosableToCounselor,
   isValidCounselorAnswerFingerprint,
-  verifyCounselorAnswerDisclosure,
-} from "@/lib/marriage-counselor-consent";
+} from "@/lib/marriage-counselor-consent-shared";
 import { isCounselorDisclosureGranted } from "@/lib/marriage-sharing-consent-counselor-state";
 import { resolveAssignedCounselorDisplayName } from "@/lib/marriage-counselor-journey-names";
 import { getModuleDefinition } from "@/lib/marriage-curriculum-service";
