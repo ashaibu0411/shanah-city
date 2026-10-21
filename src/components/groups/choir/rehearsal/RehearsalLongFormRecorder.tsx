@@ -26,6 +26,7 @@ import {
 import {
   createAudioMediaRecorder,
   extensionForRecorderMime,
+  getWorshipRecordingMediaStream,
   isMediaRecorderSupported,
   pickMediaRecorderMimeType,
 } from "@/lib/worship-audio-shared";
@@ -225,10 +226,6 @@ export function RehearsalLongFormRecorder({
       return;
     }
 
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setError("Microphone recording is not supported in this browser.");
-      return;
-    }
     if (!isMediaRecorderSupported()) {
       setError("MediaRecorder is not available. Try updating the app or use Chrome.");
       return;
@@ -236,7 +233,7 @@ export function RehearsalLongFormRecorder({
 
     try {
       nativeActiveRef.current = false;
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await getWorshipRecordingMediaStream();
       streamRef.current = stream;
       setMicReady(true);
 

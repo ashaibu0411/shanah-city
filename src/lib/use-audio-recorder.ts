@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   createAudioMediaRecorder,
   extensionForRecorderMime,
+  getWorshipRecordingMediaStream,
   isMediaRecorderSupported,
   pickMediaRecorderMimeType,
 } from "@/lib/worship-audio-shared";
@@ -37,10 +38,6 @@ export function useAudioRecorder() {
     setError(null);
     clearCapture();
 
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setError("Recording is not supported in this browser.");
-      return false;
-    }
     if (!isMediaRecorderSupported()) {
       setError(
         "In-app recording is not supported on this device. Record in Voice Memos, then upload the file.",
@@ -49,7 +46,7 @@ export function useAudioRecorder() {
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await getWorshipRecordingMediaStream();
       streamRef.current = stream;
       const recorder = createAudioMediaRecorder(stream);
       mimeTypeRef.current = recorder.mimeType || pickMediaRecorderMimeType();
