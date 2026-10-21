@@ -335,23 +335,20 @@ async function main() {
       });
     }
 
-    // E — unassigned / admin bypass
+    // E — unassigned counselor cannot open unrelated journey detail
     {
       const viewsB = await buildCounselorAuthorizedAnswerViews(member(ctx.cB), ctx.journey);
       const rowB = viewsB.find((v) => v.questionId === Q && v.userId === ctx.uA);
-      let adminOk = false;
+      let pastorDenied = false;
       try {
-        const detail = await getCounselorJourneyDetail(member("p3e-pastor"), journeyId);
-        adminOk = detail.access === "administrative";
-        const serialized = JSON.stringify(detail);
-        if (serialized.includes(`p3e-private-${runTag}`)) adminOk = false;
+        await getCounselorJourneyDetail(member("p3e-pastor"), journeyId);
       } catch {
-        adminOk = false;
+        pastorDenied = true;
       }
       results.push({
         id: "E",
-        pass: Boolean(rowB?.withheld) && adminOk,
-        detail: `c-b withheld=${rowB?.withheld} pastor admin without answer leak=${adminOk}`,
+        pass: Boolean(rowB?.withheld) && pastorDenied,
+        detail: `c-b withheld=${rowB?.withheld} unassigned pastor denied=${pastorDenied}`,
       });
     }
 

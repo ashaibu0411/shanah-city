@@ -80,6 +80,7 @@ export async function assignCoordinator(
   expect(res.ok(), body.error).toBeTruthy();
 }
 
+/** Clinical journey access (assigned counselor). Unassigned/revoked-off-roster → 403. */
 export async function expectCounselorClinicalAccess(
   counselor: APIRequestContext,
   journeyId: string,
@@ -89,13 +90,31 @@ export async function expectCounselorClinicalAccess(
     `/api/marriage/counselor/journey/${encodeURIComponent(journeyId)}`,
   );
   const body = await res.json();
-  expect(res.ok(), body.error).toBeTruthy();
   if (allowed) {
+    expect(res.ok(), body.error).toBeTruthy();
     expect(body.access).toBe("clinical");
   } else {
-    expect(body.access).toBe("administrative");
-    expect(body.viewerHasClinicalAccess).toBe(false);
-    assertNoClinicalLeak(body);
+    expect(res.status(), body.error ?? JSON.stringify(body)).toBe(403);
+    expect(String(body.error ?? "")).toMatch(/Access denied/i);
+  }
+}
+
+/** Assigned counselor may open clinical detail; individual answers stay withheld without consent. */
+export async function expectCounselorJourneyWithheldAnswers(
+  counselor: APIRequestContext,
+  journeyId: string,
+) {
+  const res = await counselor.get(
+    `/api/marriage/counselor/journey/${encodeURIComponent(journeyId)}`,
+  );
+  const body = await res.json();
+  expect(res.ok(), body.error).toBeTruthy();
+  expect(body.access).toBe("clinical");
+  assertNoClinicalLeak(body);
+  if (Array.isArray(body.authorizedAnswers)) {
+    for (const row of body.authorizedAnswers) {
+      expect(row.withheld).toBe(true);
+    }
   }
 }
 

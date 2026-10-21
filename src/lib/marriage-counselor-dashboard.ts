@@ -20,9 +20,7 @@ const store = () => marriageStore();
 export async function listMarriageCounselorDashboardJourneys(
   viewerId: string,
 ): Promise<MarriageCounselingJourneyRecord[]> {
-  const assigned = await store().listJourneysForCounselor(viewerId);
-  if (assigned.length > 0) return assigned;
-  return store().listAllActiveJourneys();
+  return store().listJourneysForCounselor(viewerId);
 }
 
 export async function assertCounselorCanAccessJourneyOnDashboard(

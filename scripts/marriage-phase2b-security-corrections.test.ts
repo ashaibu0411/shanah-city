@@ -123,9 +123,13 @@ async function testAdminVsClinicalJourneyDetail() {
     participantBId: "u-b",
   });
 
-  const adminView = await getCounselorJourneyDetail(member("pastor-view"), journey.id);
-  assert.equal(adminView.access, "administrative");
-  assertAdminDtoClean(adminView);
+  await assert.rejects(
+    () => getCounselorJourneyDetail(member("pastor-view"), journey.id),
+    (err: Error) => {
+      assert.equal(err.message, MARRIAGE_COUNSELOR_ACCESS_DENIED);
+      return true;
+    },
+  );
 
   const clinicalView = await getCounselorJourneyDetail(member("c-assigned"), journey.id);
   assert.equal(clinicalView.access, "clinical");
