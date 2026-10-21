@@ -9,6 +9,7 @@ import type {
   NotificationPrefs,
   PublicMember,
 } from "@/lib/auth-types";
+import { logPhase3mUserLookupDiagnostic } from "@/lib/marriage-phase3m-assignment-display-diagnostic";
 import { normalizeDisplayName } from "@/lib/member-display-name";
 import { parseMemberParticipationType } from "@/lib/member-participation";
 
@@ -52,7 +53,9 @@ export async function getUserByEmail(email: string) {
 
 export async function getUserById(id: string) {
   const users = await getUsers();
-  return users.find((user) => user.id === id);
+  const user = users.find((entry) => entry.id === id) ?? null;
+  logPhase3mUserLookupDiagnostic("json", user);
+  return user;
 }
 
 export async function createUser(input: {

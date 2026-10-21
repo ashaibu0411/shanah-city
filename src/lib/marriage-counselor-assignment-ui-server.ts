@@ -26,6 +26,9 @@ import {
   resolveCoupleDisplayNames,
 } from "@/lib/marriage-counselor-journey-names";
 import type { MarriageCounselorAssignmentRequestRecord } from "@/lib/marriage-counseling-types";
+import {
+  isPhase3mAssignmentDisplayDiagnosticActive,
+} from "@/lib/marriage-phase3m-assignment-display-diagnostic";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
 const store = () => marriageStore();
@@ -37,7 +40,20 @@ async function resolveUserDisplayName(userId: string | null | undefined): Promis
   const user = await getUserById(userId);
   if (!user) return UNKNOWN_MEMBER_LABEL;
   const label = getPublicDisplayName(user).trim();
-  return label || UNKNOWN_MEMBER_LABEL;
+  const resolved = label || UNKNOWN_MEMBER_LABEL;
+  if (isPhase3mAssignmentDisplayDiagnosticActive()) {
+    console.info(
+      JSON.stringify({
+        tag: "phase3m-assignment-display-resolve",
+        lookupSucceeded: true,
+        nameNonEmpty: Boolean(user.name?.trim()),
+        displayNameNonEmpty: Boolean(user.displayName?.trim()),
+        publicLabelNonEmpty: Boolean(label),
+        resolvedAsUnknown: resolved === UNKNOWN_MEMBER_LABEL,
+      }),
+    );
+  }
+  return resolved;
 }
 
 export type EnrichedAssignmentRequestRow = {

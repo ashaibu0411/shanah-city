@@ -8,6 +8,7 @@ import type {
   PublicMember,
 } from "@/lib/auth-types";
 import { mapDbUserToProfile, notificationPrefsToDb } from "@/lib/auth-user-mapper";
+import { logPhase3mUserLookupDiagnostic } from "@/lib/marriage-phase3m-assignment-display-diagnostic";
 import { normalizeDisplayName } from "@/lib/member-display-name";
 import { parseMemberParticipationType } from "@/lib/member-participation";
 import { prisma } from "@/lib/db";
@@ -24,7 +25,9 @@ async function loadUser(id: string) {
     where: { id },
     include: { family: true },
   });
-  return user ? mapDbUserToProfile(user) : null;
+  const profile = user ? mapDbUserToProfile(user) : null;
+  logPhase3mUserLookupDiagnostic("db", profile);
+  return profile;
 }
 
 export async function getUsers() {
