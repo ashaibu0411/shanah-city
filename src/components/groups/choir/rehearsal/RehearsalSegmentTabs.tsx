@@ -8,7 +8,7 @@ type RehearsalSegmentTabsProps = {
 const TABS: { id: RehearsalTabId; label: string }[] = [
   { id: "room", label: "Practice" },
   { id: "record", label: "Record" },
-  { id: "library", label: "Library" },
+  { id: "library", label: "Recordings" },
   { id: "audio", label: "Audio" },
   { id: "parts", label: "Parts" },
   { id: "notes", label: "Notes" },

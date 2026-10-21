@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { WorshipAudioPlayer } from "@/components/worship/WorshipAudioPlayer";
 import {
@@ -9,6 +10,7 @@ import {
   type ChoirRecordingCategory,
   type ChoirRehearsalLibraryRecording,
 } from "@/lib/choir-rehearsal-recording-types";
+import { choirRecordingsLibraryHref } from "@/lib/choir-recordings-links";
 
 type LibraryFilter =
   | "all"
@@ -113,7 +115,7 @@ export function RehearsalRecordingLibrary({ groupId, initialFilter = "all" }: Re
   return (
     <div className="space-y-4">
       <div className="choir-card p-4">
-        <h2 className="font-display text-lg font-bold text-[var(--choir-heading)]">Recording library</h2>
+        <h2 className="font-display text-lg font-bold text-[var(--choir-heading)]">Shanah Worship recordings</h2>
         <p className="mt-1 text-sm text-[var(--choir-muted)]">
           Saved rehearsal audio for Shanah Worship. Song-linked part recordings still appear on each song.
         </p>
@@ -166,7 +168,14 @@ export function RehearsalRecordingLibrary({ groupId, initialFilter = "all" }: Re
 
       {!loading && !sorted.length ? (
         <div className="choir-card p-5 text-center text-sm text-[var(--choir-muted)]">
-          No recordings yet. Use the Record tab to capture a rehearsal session.
+          No recordings yet.{" "}
+          <Link
+            href={choirRecordingsLibraryHref(groupId, { tab: "record" })}
+            className="font-semibold text-[var(--choir-gold-dark)] underline"
+          >
+            Record a rehearsal
+          </Link>
+          .
         </div>
       ) : null}
 
@@ -217,7 +226,7 @@ export function RehearsalRecordingLibrary({ groupId, initialFilter = "all" }: Re
                   artist: entry.recordedByName,
                   kind: "worship-rehearsal",
                   mediaType: entry.mediaType,
-                  href: `/groups/${groupId}/rehearsal/recordings`,
+                  href: choirRecordingsLibraryHref(groupId),
                 }}
               />
             ) : null}

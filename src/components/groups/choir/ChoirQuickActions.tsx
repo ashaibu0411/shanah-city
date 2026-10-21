@@ -11,6 +11,7 @@ import {
 type ChoirQuickActionsProps = {
   setlistsHref: string;
   myScheduleHref: string;
+  recordingsHref: string;
   rehearsalRoomHref: string | null;
   worshipTeamHref: string;
   worshipAcademyHref: string;
@@ -20,6 +21,7 @@ type ChoirQuickActionsProps = {
 export function ChoirQuickActions({
   setlistsHref,
   myScheduleHref,
+  recordingsHref,
   rehearsalRoomHref,
   worshipTeamHref,
   worshipAcademyHref,
@@ -32,6 +34,13 @@ export function ChoirQuickActions({
       subtitle: "Songs & arrangements",
       icon: <ChoirIconMusic />,
       href: setlistsHref,
+    },
+    {
+      key: "recordings",
+      title: "Recordings",
+      subtitle: "Library & uploads",
+      icon: <ChoirIconHeadphones />,
+      href: recordingsHref,
     },
     {
       key: "schedule",

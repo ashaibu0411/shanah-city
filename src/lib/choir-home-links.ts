@@ -6,10 +6,12 @@ import { choirResourcesHref } from "@/lib/choir-resource-links";
 import { choirWorshipEventsHref } from "@/lib/choir-events-links";
 import { choirLeaderStudioHref } from "@/lib/choir-leader-studio-links";
 import { choirSongSuggestionsHref } from "@/lib/choir-song-suggestion-links";
+import { choirRecordingsLibraryHref } from "@/lib/choir-recordings-links";
 
 export type ChoirHomeQuickActionLinks = {
   setlists: string;
   mySchedule: string;
+  recordings: string;
   worshipTeam: string;
   worshipAcademy: string;
   teamConnect: string;
@@ -29,6 +31,7 @@ export function choirHomeQuickActionLinks(groupId: string = SHANAH_WORSHIP_GROUP
   return {
     setlists: `/groups/${encodeURIComponent(groupId)}/setlists`,
     mySchedule: choirMyScheduleHref(groupId),
+    recordings: choirRecordingsLibraryHref(groupId),
     worshipTeam: `/groups/${encodeURIComponent(groupId)}/team`,
     worshipAcademy: choirAcademyHomeHref(groupId),
     teamConnect: choirConnectHref(groupId),
@@ -42,6 +45,13 @@ export function choirExploreNavItems(
   const isLeader = options?.isLeader ?? false;
 
   const items: ChoirExploreNavItem[] = [
+    {
+      id: "recordings",
+      title: "Recordings",
+      description: "Rehearsal library — listen, record, and upload.",
+      href: choirRecordingsLibraryHref(groupId),
+      iconLabel: "🎙️",
+    },
     {
       id: "calendar",
       title: "Worship Calendar",

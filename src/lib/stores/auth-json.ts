@@ -229,6 +229,27 @@ export async function getUserFromSession(token?: string | null) {
   return user ? toPublicMember(user) : null;
 }
 
+/** Extend a valid session (sliding window) — returns false if missing or expired. */
+export async function renewSession(token: string) {
+  const sessions = await getSessions();
+  const index = sessions.findIndex((item) => item.token === token);
+  if (index === -1) return false;
+  if (new Date(sessions[index].expiresAt) < new Date()) {
+    await deleteSession(token);
+    return false;
+  }
+  const user = await getUserById(sessions[index].userId);
+  if (!user) {
+    await deleteSession(token);
+    return false;
+  }
+  sessions[index].expiresAt = new Date(
+    Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  await saveSessions(sessions);
+  return true;
+}
+
 export async function getActivity(userId: string) {
   const activity = await readJson<ActivityItem[]>(activityFile(), []);
   return activity.filter((item) => item.userId === userId).slice(0, 20);

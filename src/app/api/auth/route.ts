@@ -5,6 +5,7 @@ import {
   createUser,
   getActivity,
   getUserFromSession,
+  renewSession,
   SESSION_COOKIE,
   SESSION_DAYS,
   toPublicMember,
@@ -43,41 +44,65 @@ async function authServerError(error: unknown) {
   );
 }
 
+function sessionCookieOptions(maxAge = SESSION_DAYS * 24 * 60 * 60) {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    maxAge,
+    path: "/",
+  };
+}
+
+const unauthenticatedPermissions = {
+  canUploadGallery: false,
+  canManageLiveStream: false,
+  canWriteDevotions: false,
+  canManageAdmin: false,
+  canAccessFinance: false,
+  canAccessWorshipPlanner: false,
+  canManageWorshipPlan: false,
+  canAccessFrontLiners: false,
+  canManageFrontLiners: false,
+  canAccessFollowUp: false,
+  canManageFollowUp: false,
+  canManageGuestSubmissions: false,
+  canAccessKidsMinistry: false,
+  canManageKidsMinistry: false,
+  canSubmitMinistryReports: false,
+  canShowLeaderReportHomeBanner: false,
+  canReviewMinistryReports: false,
+  canSeeGuestHomeBanner: false,
+};
+
+function unauthenticatedAuthResponse(clearSessionCookie: boolean) {
+  const response = NextResponse.json({
+    user: null,
+    permissions: unauthenticatedPermissions,
+  });
+  if (clearSessionCookie) {
+    response.cookies.set(SESSION_COOKIE, "", sessionCookieOptions(0));
+  }
+  return response;
+}
+
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get(SESSION_COOKIE)?.value;
-    const user = await getUserFromSession(token);
+    const token = cookieStore.get(SESSION_COOKIE)?.value?.trim() || "";
+    const user = await getUserFromSession(token || undefined);
     if (!user) {
-      return NextResponse.json({
-        user: null,
-        permissions: {
-          canUploadGallery: false,
-          canManageLiveStream: false,
-          canWriteDevotions: false,
-          canManageAdmin: false,
-          canAccessFinance: false,
-          canAccessWorshipPlanner: false,
-          canManageWorshipPlan: false,
-          canAccessFrontLiners: false,
-          canManageFrontLiners: false,
-          canAccessFollowUp: false,
-          canManageFollowUp: false,
-          canManageGuestSubmissions: false,
-          canAccessKidsMinistry: false,
-          canManageKidsMinistry: false,
-          canSubmitMinistryReports: false,
-          canShowLeaderReportHomeBanner: false,
-          canReviewMinistryReports: false,
-          canSeeGuestHomeBanner: false,
-        },
-      });
+      return unauthenticatedAuthResponse(Boolean(token));
     }
     const [activity, permissions] = await Promise.all([
       getActivity(user.id),
       getSessionPermissions(user),
     ]);
-    return NextResponse.json({ user, activity, permissions });
+    const response = NextResponse.json({ user, activity, permissions });
+    if (token && (await renewSession(token))) {
+      response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
+    }
+    return response;
   } catch (error) {
     return authServerError(error);
   }
@@ -119,13 +144,7 @@ export async function POST(request: Request) {
           { user: publicUser, permissions, ministryResults, linkedGifts },
           { status: 201 },
         );
-        response.cookies.set(SESSION_COOKIE, session.token, {
-          httpOnly: true,
-          sameSite: "lax",
-          secure: process.env.NODE_ENV === "production",
-          maxAge: SESSION_DAYS * 24 * 60 * 60,
-          path: "/",
-        });
+        response.cookies.set(SESSION_COOKIE, session.token, sessionCookieOptions());
         return response;
       } catch (error) {
         return NextResponse.json(
@@ -145,13 +164,7 @@ export async function POST(request: Request) {
     const publicUser = toPublicMember(user);
     const permissions = await getSessionPermissions(publicUser);
     const response = NextResponse.json({ user: publicUser, permissions, linkedGifts });
-    response.cookies.set(SESSION_COOKIE, session.token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: SESSION_DAYS * 24 * 60 * 60,
-      path: "/",
-    });
+    response.cookies.set(SESSION_COOKIE, session.token, sessionCookieOptions());
     return response;
   } catch (error) {
     return authServerError(error);

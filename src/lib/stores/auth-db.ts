@@ -238,6 +238,24 @@ export async function getUserFromSession(token?: string | null) {
   return user ? toPublicMember(user) : null;
 }
 
+/** Extend a valid session (sliding window) — returns false if missing or expired. */
+export async function renewSession(token: string) {
+  const session = await prisma.session.findUnique({ where: { token } });
+  if (!session) return false;
+  if (session.expiresAt < new Date()) {
+    await deleteSession(token);
+    return false;
+  }
+  const user = await loadUser(session.userId);
+  if (!user) {
+    await deleteSession(token);
+    return false;
+  }
+  const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
+  await prisma.session.update({ where: { token }, data: { expiresAt } });
+  return true;
+}
+
 export async function getActivity(userId: string) {
   const activity = await prisma.activityLog.findMany({
     where: { userId },
