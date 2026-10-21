@@ -21,6 +21,7 @@ import { linkGivingRecordsToUser } from "@/lib/giving-server";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { parseMemberParticipationType } from "@/lib/member-participation";
 import { getSessionPermissions } from "@/lib/session-permissions";
+import { logPhase3mAuthDbContextDiagnosticAfterGetAuth } from "@/lib/marriage-phase3m-auth-db-context-diagnostic";
 import { shouldBypassAuthRateLimitForMarriageE2e } from "@/lib/marriage-e2e-isolation-guard";
 
 async function checkAuthRateLimit(request: Request, action: string) {
@@ -91,6 +92,7 @@ export async function GET() {
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE)?.value?.trim() || "";
     const user = await getUserFromSession(token || undefined);
+    await logPhase3mAuthDbContextDiagnosticAfterGetAuth(user).catch(() => {});
     if (!user) {
       return unauthenticatedAuthResponse(Boolean(token));
     }

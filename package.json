@@ -44,6 +44,7 @@
     "test:marriage:phase3m:pagination": "tsx scripts/marriage-phase3m-roster-pagination.test.ts",
     "test:marriage:phase3m:display-search": "tsx scripts/marriage-phase3m-assignment-display-search.test.ts",
     "test:marriage:phase3m:database-identity": "tsx scripts/marriage-phase3m-database-identity-diagnostic.test.ts",
+    "test:marriage:phase3m:auth-db-context": "tsx scripts/marriage-phase3m-auth-db-context-diagnostic.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
     "test:choir:recordings-access": "tsx scripts/choir-rehearsal-recordings-access.test.ts",
