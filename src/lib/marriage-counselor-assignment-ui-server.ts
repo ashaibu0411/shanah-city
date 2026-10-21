@@ -1,5 +1,6 @@
 import { getUserById } from "@/lib/auth-server";
 import type { PublicMember } from "@/lib/auth-types";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import {
   assertSeniorPastor,
   canSubmitCounselorAssignmentRequest,
@@ -29,10 +30,14 @@ import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
 const store = () => marriageStore();
 
+const UNKNOWN_MEMBER_LABEL = "Unknown member";
+
 async function resolveUserDisplayName(userId: string | null | undefined): Promise<string | null> {
   if (!userId?.trim()) return null;
   const user = await getUserById(userId);
-  return user?.name?.trim() || userId;
+  if (!user) return UNKNOWN_MEMBER_LABEL;
+  const label = getPublicDisplayName(user).trim();
+  return label || UNKNOWN_MEMBER_LABEL;
 }
 
 export type EnrichedAssignmentRequestRow = {
@@ -96,10 +101,16 @@ export type AdminJourneyRow = {
   workflowStatus: Awaited<ReturnType<typeof getCounselorAssignmentRequestStatus>>;
 };
 
-function matchesCoupleSearch(input: { coupleNames: string; programType: string }, search: string) {
+function matchesCoupleSearch(
+  input: { coupleNames: string; programType: string; activeCounselorName?: string | null },
+  search: string,
+) {
   const q = search.trim().toLowerCase();
   if (!q) return true;
-  return `${input.coupleNames} ${input.programType}`.toLowerCase().includes(q);
+  const haystack = [input.coupleNames, input.programType, input.activeCounselorName ?? ""]
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(q);
 }
 
 export async function listCounselorAssignmentAdminJourneyRowsPaginated(
@@ -113,16 +124,24 @@ export async function listCounselorAssignmentAdminJourneyRowsPaginated(
   const rows: AdminJourneyRow[] = [];
   for (const journey of journeys) {
     const coupleNames = await resolveCoupleDisplayNames(journey);
-    if (!matchesCoupleSearch({ coupleNames, programType: journey.programType }, query.search)) {
+    const status = await getCounselorAssignmentRequestStatus(viewer, journey.id);
+    const activeCounselorName = await resolveAssignedCounselorDisplayName(
+      status.activeCounselorUserId,
+    );
+    if (
+      !matchesCoupleSearch(
+        { coupleNames, programType: journey.programType, activeCounselorName },
+        query.search,
+      )
+    ) {
       continue;
     }
-    const status = await getCounselorAssignmentRequestStatus(viewer, journey.id);
     rows.push({
       journeyId: journey.id,
       coupleNames,
       programType: journey.programType,
       activeCounselorUserId: status.activeCounselorUserId,
-      activeCounselorName: await resolveAssignedCounselorDisplayName(status.activeCounselorUserId),
+      activeCounselorName,
       workflowStatus: status,
     });
   }

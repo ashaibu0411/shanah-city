@@ -42,6 +42,7 @@
     "test:marriage:phase3m:e2e": "playwright test e2e/marriage-phase3m-assignment-api.spec.ts e2e/marriage-phase3m-assignment-workflow.spec.ts e2e/marriage-phase3m-coordinator-ui.spec.ts e2e/marriage-phase3m-restoration-ui.spec.ts --project=chromium",
     "test:marriage:e2e-guard": "tsx scripts/marriage-e2e-isolation-guard.test.ts",
     "test:marriage:phase3m:pagination": "tsx scripts/marriage-phase3m-roster-pagination.test.ts",
+    "test:marriage:phase3m:display-search": "tsx scripts/marriage-phase3m-assignment-display-search.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
     "test:choir:recordings-access": "tsx scripts/choir-rehearsal-recordings-access.test.ts",
