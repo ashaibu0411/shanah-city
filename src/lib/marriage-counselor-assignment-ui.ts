@@ -6,6 +6,14 @@ export type CounselorAssignmentUiPermissions = {
   canAcknowledgeRestoration: boolean;
 };
 
+/** Hub /marriage nav — mirrors getCounselorAssignmentUiCapabilities().canAccessAdminPage. */
+export function marriageHubShowsCounselorAssignmentsNav(input: {
+  canSubmitCounselorAssignment: boolean;
+  isSeniorPastorCounselorApprover: boolean;
+}): boolean {
+  return input.canSubmitCounselorAssignment || input.isSeniorPastorCounselorApprover;
+}
+
 /** UI must mirror server permissions — never treat missing buttons as authorization. */
 export function counselorAssignmentUiCapabilities(
   permissions: CounselorAssignmentUiPermissions,

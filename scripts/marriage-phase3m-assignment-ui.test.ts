@@ -7,6 +7,7 @@ import {
   counselorAssignmentHistoryStatusLabel,
   counselorAssignmentUiCapabilities,
   counselorAssignmentWorkflowStatusLabel,
+  marriageHubShowsCounselorAssignmentsNav,
 } from "../src/lib/marriage-counselor-assignment-ui";
 
 function testAdminNeverSeesApproveActions() {
@@ -58,12 +59,37 @@ function testHistoryExecutedLabel() {
   );
 }
 
+function testHubCounselorAssignmentsNavVisibility() {
+  assert.equal(
+    marriageHubShowsCounselorAssignmentsNav({
+      canSubmitCounselorAssignment: false,
+      isSeniorPastorCounselorApprover: false,
+    }),
+    false,
+  );
+  assert.equal(
+    marriageHubShowsCounselorAssignmentsNav({
+      canSubmitCounselorAssignment: true,
+      isSeniorPastorCounselorApprover: false,
+    }),
+    true,
+  );
+  assert.equal(
+    marriageHubShowsCounselorAssignmentsNav({
+      canSubmitCounselorAssignment: false,
+      isSeniorPastorCounselorApprover: true,
+    }),
+    true,
+  );
+}
+
 async function main() {
   testAdminNeverSeesApproveActions();
   testSeniorPastorSeesApprovalDashboardNotAdminSubmit();
   testParticipantRestorationFlag();
   testPendingStatusCopy();
   testHistoryExecutedLabel();
+  testHubCounselorAssignmentsNavVisibility();
   console.log("marriage-phase3m-assignment-ui.test.ts: all passed");
 }
 

@@ -10,6 +10,7 @@ import { readJsonResponse } from "@/lib/read-json-response";
 import { MarriageStage2HubPromo } from "@/components/marriage/MarriageStage2HubPromo";
 import { MarriageCounselorAssignmentParticipantPanel } from "@/components/marriage/MarriageCounselorAssignmentParticipantPanel";
 import { isMarriageStage2ClientEnabled } from "@/lib/marriage-stage2-feature";
+import { marriageHubShowsCounselorAssignmentsNav } from "@/lib/marriage-counselor-assignment-ui";
 
 function statusLabel(mod: MarriageHubSummary["modules"][0]) {
   if (mod.comparisonReady) return "Compare ready";
@@ -112,6 +113,12 @@ export function MarriageCounselingHub() {
   const continueModule =
     inProgressModule ?? hub?.modules.find((m) => m.myStatus !== "submitted");
 
+  const showMarriagePrepStaffNav =
+    hub &&
+    (hub.isCounselor ||
+      hub.isCurriculumAdmin ||
+      marriageHubShowsCounselorAssignmentsNav(hub));
+
   return (
     <div className={marriagePremium.page}>
       <div className={marriagePremium.inset}>
@@ -125,6 +132,29 @@ export function MarriageCounselingHub() {
         </div>
 
         {error && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
+
+        {showMarriagePrepStaffNav && (
+          <div className="mt-6 grid gap-2">
+            {hub.isCounselor && (
+              <Link href="/marriage/counselor" className={marriagePremium.secondaryCta}>
+                Counselor workspace
+              </Link>
+            )}
+            {hub.isCurriculumAdmin && (
+              <Link href="/marriage/admin/curriculum" className={marriagePremium.secondaryCta}>
+                Curriculum administration
+              </Link>
+            )}
+            {marriageHubShowsCounselorAssignmentsNav(hub) && (
+              <Link
+                href="/marriage/admin/counselor-assignments"
+                className={marriagePremium.secondaryCta}
+              >
+                Counselor assignments
+              </Link>
+            )}
+          </div>
+        )}
 
         {!hub?.coupleLinkActive && !journey && (
           <div className="mt-6 space-y-4">
@@ -322,26 +352,6 @@ export function MarriageCounselingHub() {
               <Link href="/couples" className={marriagePremium.secondaryCta}>
                 Power Couples resources (optional)
               </Link>
-              {hub.isCounselor && (
-                <Link href="/marriage/counselor" className={marriagePremium.secondaryCta}>
-                  Counselor workspace
-                </Link>
-              )}
-              {hub.isCurriculumAdmin && (
-                <Link href="/marriage/admin/curriculum" className={marriagePremium.secondaryCta}>
-                  Curriculum administration
-                </Link>
-              )}
-              {(hub.canSubmitCounselorAssignment || hub.isSeniorPastorCounselorApprover) && (
-                <Link
-                  href="/marriage/admin/counselor-assignments"
-                  className={marriagePremium.secondaryCta}
-                >
-                  {hub.isSeniorPastorCounselorApprover
-                    ? "Counselor approvals"
-                    : "Counselor assignment requests"}
-                </Link>
-              )}
               {journey && hub.viewerId && (
                 <MarriageCounselorAssignmentParticipantPanel
                   journeyId={journey.id}
