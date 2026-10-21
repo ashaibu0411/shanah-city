@@ -79,14 +79,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user?: PublicMember | null;
         activity?: ActivityItem[];
         permissions?: AuthPermissions;
+        error?: string;
       };
+
+      if (response.ok) {
+        setUser(data.user ?? null);
+        setActivity(data.activity ?? []);
+        setPermissions(data.permissions ?? defaultPermissions);
+        return;
+      }
+
+      if (response.status >= 500) {
+        return;
+      }
+
       setUser(data.user ?? null);
       setActivity(data.activity ?? []);
       setPermissions(data.permissions ?? defaultPermissions);
     } catch {
-      setUser(null);
-      setActivity([]);
-      setPermissions(defaultPermissions);
+      /* Keep the current signed-in user on transient network failures. */
     } finally {
       setLoading(false);
     }

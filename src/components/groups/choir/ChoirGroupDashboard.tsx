@@ -191,6 +191,7 @@ export function ChoirGroupDashboard({
       <ChoirQuickActions
         setlistsHref={quickLinks.setlists}
         myScheduleHref={quickLinks.mySchedule}
+        recordingsHref={quickLinks.recordings}
         rehearsalRoomHref={home.rehearsalRoomHref}
         worshipTeamHref={quickLinks.worshipTeam}
         worshipAcademyHref={quickLinks.worshipAcademy}

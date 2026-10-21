@@ -39,6 +39,7 @@ export const updateFamilyMember = (
 ) => store().updateFamilyMember(userId, memberId, update);
 export const createSession = (userId: string) => store().createSession(userId);
 export const deleteSession = (token: string) => store().deleteSession(token);
+export const renewSession = (token: string) => store().renewSession(token);
 export const getUserFromSession = (token?: string | null) =>
   store().getUserFromSession(token);
 export const getActivity = (userId: string) => store().getActivity(userId);
