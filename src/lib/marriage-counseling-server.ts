@@ -117,11 +117,19 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
 
     const sessions = await store().listSessions(journey.id);
     const now = Date.now();
+    const { marriageSessionInstantMs } = await import("@/lib/marriage-session-scheduling");
     nextSession =
-      sessions.find(
-        (s: MarriageCounselingSessionRecord) =>
-          s.status !== "cancelled" && new Date(s.scheduledAt).getTime() >= now,
-      ) ?? null;
+      sessions
+        .filter(
+          (s: MarriageCounselingSessionRecord) =>
+            s.status !== "cancelled" &&
+            marriageSessionInstantMs(s.scheduledAt, s.schedulingTimeZone) >= now,
+        )
+        .sort(
+          (a, b) =>
+            marriageSessionInstantMs(a.scheduledAt, a.schedulingTimeZone) -
+            marriageSessionInstantMs(b.scheduledAt, b.schedulingTimeZone),
+        )[0] ?? null;
 
     const assignments = await store().listAssignments(journey.id);
     upcomingHomework = assignments

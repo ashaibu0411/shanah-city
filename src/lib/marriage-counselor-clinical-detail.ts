@@ -63,6 +63,7 @@ export type MarriageCounselorClinicalJourneyDetail = {
   sessions: Array<{
     id: string;
     scheduledAt: string;
+    schedulingTimeZone?: string;
     topic?: string;
     zoomUrl?: string;
     status?: string;
@@ -266,6 +267,7 @@ export async function buildMarriageCounselorClinicalDetail(
     .map((s) => ({
       id: s.id,
       scheduledAt: s.scheduledAt,
+      schedulingTimeZone: s.schedulingTimeZone,
       topic: s.topic,
       zoomUrl: s.zoomUrl,
       status: s.status,

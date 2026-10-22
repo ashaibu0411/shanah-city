@@ -42,7 +42,14 @@ export type MarriageCounselorClinicalDashboardRow = {
   programType: string;
   moduleProgress: MarriageCounselorModuleProgressOverview[];
   authorizedAnswers: MarriageCounselorAuthorizedAnswerView[];
-  sessions: Array<{ id: string; scheduledAt: string; topic?: string; zoomUrl?: string; status?: string }>;
+  sessions: Array<{
+    id: string;
+    scheduledAt: string;
+    schedulingTimeZone?: string;
+    topic?: string;
+    zoomUrl?: string;
+    status?: string;
+  }>;
   assignments: Array<{ id: string; title: string; dueAt?: string }>;
   homeworkDue: Array<{ id: string; title: string; dueAt?: string }>;
 };

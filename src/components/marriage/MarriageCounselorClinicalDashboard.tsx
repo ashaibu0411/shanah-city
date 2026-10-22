@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { MarriageCounselorSessionDateTimeField } from "@/components/marriage/MarriageCounselorSessionDateTimeField";
 import { MarriageCounselorSessionTopicField } from "@/components/marriage/MarriageCounselorSessionTopicField";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
+import {
+  formatMarriageSessionScheduledAt,
+  marriageSessionInstantMs,
+} from "@/lib/marriage-session-scheduling";
 import { readJsonResponse } from "@/lib/read-json-response";
 
 export type MarriageCounselorClinicalDetailView = {
@@ -41,7 +46,14 @@ export type MarriageCounselorClinicalDetailView = {
   }>;
   attentionAreas: Array<{ prompt: string; category: string; discussionPrompt?: string }>;
   authorizedAnswers: Array<{ moduleTitle: string; userName: string; prompt: string; withheld: boolean; answer?: string }>;
-  sessions: Array<{ id: string; scheduledAt: string; topic?: string; zoomUrl?: string; status?: string }>;
+  sessions: Array<{
+    id: string;
+    scheduledAt: string;
+    schedulingTimeZone?: string;
+    topic?: string;
+    zoomUrl?: string;
+    status?: string;
+  }>;
   assignments: Array<{ id: string; title: string; dueAt?: string; completedByUserIds: string[] }>;
   notes: Array<{ body: string; updatedAt: string }>;
   revisions: Array<{ id: string; status: string; moduleId: string }>;
@@ -97,8 +109,12 @@ export function MarriageCounselorClinicalDashboard({
   const upcomingSessions = useMemo(() => {
     const now = Date.now();
     return [...detail.sessions]
-      .filter((s) => new Date(s.scheduledAt).getTime() >= now - 60_000)
-      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+      .filter((s) => marriageSessionInstantMs(s.scheduledAt, s.schedulingTimeZone) >= now - 60_000)
+      .sort(
+        (a, b) =>
+          marriageSessionInstantMs(a.scheduledAt, a.schedulingTimeZone) -
+          marriageSessionInstantMs(b.scheduledAt, b.schedulingTimeZone),
+      );
   }, [detail.sessions]);
 
   const nextSession = upcomingSessions[0] ?? null;
@@ -140,7 +156,8 @@ export function MarriageCounselorClinicalDashboard({
       body: JSON.stringify({
         action: "create",
         journeyId,
-        scheduledAt: String(fd.get("scheduledAt") ?? ""),
+        scheduledAtLocal: String(fd.get("scheduledAtLocal") ?? ""),
+        schedulingTimeZone: String(fd.get("schedulingTimeZone") ?? ""),
         topic: String(fd.get("topic") ?? "") || undefined,
         zoomUrl: String(fd.get("zoomUrl") ?? "") || undefined,
       }),
@@ -201,7 +218,9 @@ export function MarriageCounselorClinicalDashboard({
           </span>
           <span className="marriage-c3m-meta-chip">
             Next session ·{" "}
-            {nextSession ? new Date(nextSession.scheduledAt).toLocaleString() : "None scheduled"}
+            {nextSession
+              ? formatMarriageSessionScheduledAt(nextSession.scheduledAt, nextSession.schedulingTimeZone)
+              : "None scheduled"}
           </span>
         </div>
       </header>
@@ -417,7 +436,9 @@ export function MarriageCounselorClinicalDashboard({
               {detail.sessions.map((session) => (
                 <li key={session.id} className="rounded-xl border border-[#E8E2DA] p-3 dark:border-white/10">
                   <p className="font-semibold">{session.topic ?? "Counseling session"}</p>
-                  <p className="marriage-c3m-muted mt-0.5">{new Date(session.scheduledAt).toLocaleString()}</p>
+                  <p className="marriage-c3m-muted mt-0.5">
+                    {formatMarriageSessionScheduledAt(session.scheduledAt, session.schedulingTimeZone)}
+                  </p>
                   {session.status ? (
                     <p className="marriage-c3m-muted mt-0.5 text-xs capitalize">{session.status.replace(/_/g, " ")}</p>
                   ) : null}
@@ -438,7 +459,7 @@ export function MarriageCounselorClinicalDashboard({
               }}
             >
               <p className="text-sm font-semibold">Schedule session</p>
-              <input name="scheduledAt" type="datetime-local" required className="marriage-c3m-input" />
+              <MarriageCounselorSessionDateTimeField required inputClassName="marriage-c3m-input" />
               <MarriageCounselorSessionTopicField name="topic" inputClassName="marriage-c3m-input" />
               <input name="zoomUrl" placeholder="Zoom link (optional)" className="marriage-c3m-input" />
               <button type="submit" disabled={sessionBusy} className="marriage-c3m-btn-primary min-h-[44px]">

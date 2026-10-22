@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import type { MarriageStage2Dashboard } from "@/lib/marriage-counseling-types";
+import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 import { readJsonResponse } from "@/lib/read-json-response";
 
 const SECTION_ICONS: Record<string, string> = {
@@ -94,10 +95,7 @@ export function MarriageCouplesLearningCenter() {
         <div className={`${marriagePremium.card} mt-4`}>
           <p className="text-xs font-bold uppercase text-clay-800">Next counseling session</p>
           <p className="mt-1 text-sm font-semibold">
-            {new Date(dash.nextSessionAt).toLocaleString(undefined, {
-              dateStyle: "medium",
-              timeStyle: "short",
-            })}
+            {formatMarriageSessionScheduledAt(dash.nextSessionAt)}
           </p>
         </div>
       )}

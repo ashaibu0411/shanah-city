@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MarriageCounselorSessionTopicField } from "@/components/marriage/MarriageCounselorSessionTopicField";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
+import {
+  formatMarriageSessionScheduledAt,
+  MARRIAGE_COUNSELING_SCHEDULING_TIMEZONE,
+} from "@/lib/marriage-session-scheduling";
 import { readJsonResponse } from "@/lib/read-json-response";
 
 type AdminRow = {
@@ -24,7 +28,7 @@ type ClinicalRow = {
   programType: string;
   moduleProgress: Array<{ moduleId: string; title: string; bothSubmitted: boolean }>;
   authorizedAnswers: Array<{ moduleTitle: string; prompt: string; userName: string; withheld: boolean; answer?: string }>;
-  sessions: Array<{ id: string; scheduledAt: string; topic?: string }>;
+  sessions: Array<{ id: string; scheduledAt: string; schedulingTimeZone?: string; topic?: string }>;
   homeworkDue: Array<{ id: string; title: string }>;
 };
 
@@ -53,7 +57,8 @@ export function MarriageCounselorWorkspace() {
       body: JSON.stringify({
         action: "create",
         journeyId: sessionForm.journeyId,
-        scheduledAt: sessionForm.scheduledAt,
+        scheduledAtLocal: sessionForm.scheduledAt,
+        schedulingTimeZone: MARRIAGE_COUNSELING_SCHEDULING_TIMEZONE,
         topic: sessionForm.topic,
         zoomUrl: sessionForm.zoomUrl,
         homework: sessionForm.topic
@@ -102,12 +107,18 @@ export function MarriageCounselorWorkspace() {
               </option>
             ))}
           </select>
-          <input
-            type="datetime-local"
-            className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-            value={sessionForm.scheduledAt}
-            onChange={(e) => setSessionForm((s) => ({ ...s, scheduledAt: e.target.value }))}
-          />
+          <div className="mt-2">
+            <input
+              type="datetime-local"
+              aria-label="Session date and time"
+              className="w-full rounded-xl border border-[#E8E2DA] px-3 py-2 text-sm dark:border-white/10"
+              value={sessionForm.scheduledAt}
+              onChange={(e) => setSessionForm((s) => ({ ...s, scheduledAt: e.target.value }))}
+            />
+            <p className="mt-1 text-xs text-night-500">
+              Enter time in America/Denver (church scheduling timezone).
+            </p>
+          </div>
           <div className="mt-2">
             <MarriageCounselorSessionTopicField
               value={sessionForm.topic}
@@ -161,7 +172,8 @@ export function MarriageCounselorWorkspace() {
               )}
               {row.sessions.slice(0, 2).map((s) => (
                 <p key={s.id} className="mt-1 text-xs text-night-600">
-                  Session {s.topic ?? ""} — {new Date(s.scheduledAt).toLocaleString()}
+                  Session {s.topic ?? ""} —{" "}
+                  {formatMarriageSessionScheduledAt(s.scheduledAt, s.schedulingTimeZone)}
                 </p>
               ))}
               {row.authorizedAnswers.length > 0 && (

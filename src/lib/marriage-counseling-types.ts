@@ -341,6 +341,8 @@ export type MarriageCounselingSessionRecord = {
   id: string;
   journeyId: string;
   scheduledAt: string;
+  /** IANA timezone for interpreting legacy naive scheduledAt values and display (JSON store; DB column pending). */
+  schedulingTimeZone?: string;
   zoomUrl?: string;
   notes?: string;
   topic?: string;

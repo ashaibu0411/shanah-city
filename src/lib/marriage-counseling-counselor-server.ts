@@ -26,6 +26,10 @@ import {
   toCounselorSessionApiView,
   type MarriageCounselorSessionApiView,
 } from "@/lib/marriage-counselor-api-security";
+import {
+  classifyStoredScheduledAt,
+  normalizeNewSessionScheduledAtInput,
+} from "@/lib/marriage-session-scheduling";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
 const store = () => marriageStore();
@@ -35,6 +39,7 @@ export async function createCounselingSession(
   input: {
     journeyId: string;
     scheduledAt: string;
+    schedulingTimeZone?: string;
     topic?: string;
     zoomUrl?: string;
     prepModuleIds?: string[];
@@ -48,6 +53,13 @@ export async function createCounselingSession(
   const now = new Date().toISOString();
   const homeworkIds: string[] = [];
   for (const item of input.homework ?? []) {
+    let dueAt = item.dueAt;
+    if (dueAt && classifyStoredScheduledAt(dueAt) === "naive_local") {
+      dueAt = normalizeNewSessionScheduledAtInput({
+        scheduledAtLocal: dueAt,
+        schedulingTimeZone: input.schedulingTimeZone,
+      }).scheduledAt;
+    }
     const assignment: MarriageCounselorAssignmentRecord = {
       id: `mca-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       journeyId: journey.id,
@@ -55,7 +67,7 @@ export async function createCounselingSession(
       title: item.title,
       description: item.description,
       moduleId: item.moduleId,
-      dueAt: item.dueAt,
+      dueAt,
       completedByUserIds: [],
       createdAt: now,
     };
@@ -67,6 +79,7 @@ export async function createCounselingSession(
     id: `mcs-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     journeyId: journey.id,
     scheduledAt: input.scheduledAt,
+    schedulingTimeZone: input.schedulingTimeZone,
     topic: input.topic,
     zoomUrl: input.zoomUrl?.trim() || undefined,
     prepModuleIds: input.prepModuleIds,
@@ -93,6 +106,7 @@ export async function updateCounselingSession(
   sessionId: string,
   patch: Partial<{
     scheduledAt: string;
+    schedulingTimeZone: string;
     topic: string;
     zoomUrl: string;
     status: "scheduled" | "completed" | "cancelled";

@@ -32,6 +32,7 @@ export type MarriageCounselorSessionApiView = {
   id: string;
   journeyId: string;
   scheduledAt: string;
+  schedulingTimeZone?: string;
   topic?: string;
   zoomUrl?: string;
   status?: string;
@@ -49,6 +50,7 @@ export function toCounselorSessionApiView(
     id: session.id,
     journeyId: session.journeyId,
     scheduledAt: session.scheduledAt,
+    schedulingTimeZone: session.schedulingTimeZone,
     topic: session.topic,
     zoomUrl: session.zoomUrl,
     status: session.status,

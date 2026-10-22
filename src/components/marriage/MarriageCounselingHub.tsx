@@ -11,6 +11,7 @@ import { MarriageStage2HubPromo } from "@/components/marriage/MarriageStage2HubP
 import { MarriageCounselorAssignmentParticipantPanel } from "@/components/marriage/MarriageCounselorAssignmentParticipantPanel";
 import { isMarriageStage2ClientEnabled } from "@/lib/marriage-stage2-feature";
 import { marriageHubShowsCounselorAssignmentsNav } from "@/lib/marriage-counselor-assignment-ui";
+import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 
 function statusLabel(mod: MarriageHubSummary["modules"][0]) {
   if (mod.comparisonReady) return "Compare ready";
@@ -303,10 +304,10 @@ export function MarriageCounselingHub() {
                   <p className="text-sm font-medium">{hub.nextSession.topic}</p>
                 )}
                 <p className="mt-1 text-sm font-semibold">
-                  {new Date(hub.nextSession.scheduledAt).toLocaleString(undefined, {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
+                  {formatMarriageSessionScheduledAt(
+                    hub.nextSession.scheduledAt,
+                    hub.nextSession.schedulingTimeZone,
+                  )}
                 </p>
                 {hub.nextSession.zoomUrl && (
                   <a

@@ -116,9 +116,18 @@ export async function buildStage2Dashboard(viewer: PublicMember): Promise<Marria
   const sharedGoals = await store().listSharedGoals(journey.id);
   const assignmentsOpen = ctx.assignmentsOpen;
   const sessions = await store().listSessions(journey.id);
-  const nextSession = sessions.find(
-    (s) => s.status !== "cancelled" && new Date(s.scheduledAt).getTime() >= Date.now(),
-  );
+  const { marriageSessionInstantMs } = await import("@/lib/marriage-session-scheduling");
+  const nextSession = sessions
+    .filter(
+      (s) =>
+        s.status !== "cancelled" &&
+        marriageSessionInstantMs(s.scheduledAt, s.schedulingTimeZone) >= Date.now(),
+    )
+    .sort(
+      (a, b) =>
+        marriageSessionInstantMs(a.scheduledAt, a.schedulingTimeZone) -
+        marriageSessionInstantMs(b.scheduledAt, b.schedulingTimeZone),
+    )[0];
   let partnerName: string | null = null;
   if (partnerId) {
     const { getUserById } = await import("@/lib/auth-server");
