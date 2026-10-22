@@ -1,6 +1,5 @@
 "use client";
 
-import { brandLogos } from "@/lib/site";
 import { messagingUi, type InboxFilter } from "@/lib/messaging-ui";
 
 type ChatInboxChromeProps = {
@@ -32,21 +31,17 @@ export function ChatInboxChrome({
 }: ChatInboxChromeProps) {
   return (
     <div className={messagingUi.inboxHeader}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={brandLogos.light} alt="" className={messagingUi.inboxBrand} />
-          <h1 className={messagingUi.inboxTitle}>
-            Messages
-            {totalUnread > 0 ? (
-              <span className={messagingUi.rowBadge} aria-label={`${totalUnread} unread`}>
-                {totalUnread > 99 ? "99+" : totalUnread}
-              </span>
-            ) : null}
-          </h1>
-        </div>
+      <div className={messagingUi.inboxTitleRow}>
+        <h1 className={messagingUi.inboxTitle}>
+          Messages
+          {totalUnread > 0 ? (
+            <span className={messagingUi.inboxUnreadBadge} aria-label={`${totalUnread} unread`}>
+              {totalUnread > 99 ? "99+" : totalUnread}
+            </span>
+          ) : null}
+        </h1>
         <button type="button" className={messagingUi.inboxIconBtn} onClick={onNewMessage} aria-label="New message">
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <svg className={messagingUi.inboxIconGlyph} viewBox="0 0 24 24" fill="none" aria-hidden>
             <path
               d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"
               stroke="currentColor"
@@ -59,7 +54,7 @@ export function ChatInboxChrome({
       </div>
 
       <div className={messagingUi.searchWrap}>
-        <svg className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9a9188]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+        <svg className={messagingUi.searchIcon} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
           <path
             fillRule="evenodd"
             d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
@@ -70,7 +65,7 @@ export function ChatInboxChrome({
           type="search"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search messages or people…"
+          placeholder="Search messages or people..."
           aria-label="Search messages or people"
           className={messagingUi.searchInput}
         />
