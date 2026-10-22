@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { MarriageCounselorSessionTopicField } from "@/components/marriage/MarriageCounselorSessionTopicField";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import { readJsonResponse } from "@/lib/read-json-response";
 
@@ -87,6 +88,7 @@ export function MarriageCounselorClinicalDashboard({
   const [noteBusy, setNoteBusy] = useState(false);
   const [noteFeedback, setNoteFeedback] = useState<"saved" | "">("");
   const [sessionBusy, setSessionBusy] = useState(false);
+  const [sessionFormKey, setSessionFormKey] = useState(0);
   const [assignBusy, setAssignBusy] = useState(false);
 
   const completedModules = detail.moduleProgress.filter((m) => m.bothSubmitted).length;
@@ -150,6 +152,7 @@ export function MarriageCounselorClinicalDashboard({
       return;
     }
     form.reset();
+    setSessionFormKey((k) => k + 1);
     await onRefresh();
   }
 
@@ -427,6 +430,7 @@ export function MarriageCounselorClinicalDashboard({
               ))}
             </ul>
             <form
+              key={sessionFormKey}
               className="marriage-c3m-form mt-4"
               onSubmit={async (e) => {
                 e.preventDefault();
@@ -435,7 +439,7 @@ export function MarriageCounselorClinicalDashboard({
             >
               <p className="text-sm font-semibold">Schedule session</p>
               <input name="scheduledAt" type="datetime-local" required className="marriage-c3m-input" />
-              <input name="topic" placeholder="Session topic" className="marriage-c3m-input" />
+              <MarriageCounselorSessionTopicField name="topic" inputClassName="marriage-c3m-input" />
               <input name="zoomUrl" placeholder="Zoom link (optional)" className="marriage-c3m-input" />
               <button type="submit" disabled={sessionBusy} className="marriage-c3m-btn-primary min-h-[44px]">
                 {sessionBusy ? "Scheduling…" : "Schedule session"}

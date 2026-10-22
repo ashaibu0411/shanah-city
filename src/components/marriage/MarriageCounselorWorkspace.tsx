@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { MarriageCounselorSessionTopicField } from "@/components/marriage/MarriageCounselorSessionTopicField";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import { readJsonResponse } from "@/lib/read-json-response";
 
@@ -107,12 +108,13 @@ export function MarriageCounselorWorkspace() {
             value={sessionForm.scheduledAt}
             onChange={(e) => setSessionForm((s) => ({ ...s, scheduledAt: e.target.value }))}
           />
-          <input
-            className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-            placeholder="Session topic"
-            value={sessionForm.topic}
-            onChange={(e) => setSessionForm((s) => ({ ...s, topic: e.target.value }))}
-          />
+          <div className="mt-2">
+            <MarriageCounselorSessionTopicField
+              value={sessionForm.topic}
+              onChange={(topic) => setSessionForm((s) => ({ ...s, topic }))}
+              inputClassName="w-full rounded-xl border border-[#E8E2DA] px-3 py-2 text-sm dark:border-white/10"
+            />
+          </div>
           <input
             className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
             placeholder="Zoom URL (optional)"
