@@ -3,7 +3,7 @@ export const chatPremium = {
   wallpaper: "chat-premium-wallpaper min-h-0 flex-1 overflow-x-hidden overflow-y-auto py-3",
   datePill: "chat-premium-date-pill",
   panel:
-    "chat-premium-panel fixed inset-0 z-50 flex min-w-0 max-w-full flex-col overflow-x-hidden font-sans lg:relative lg:inset-auto lg:z-auto lg:min-h-[min(720px,calc(100dvh-10rem))] lg:overflow-hidden lg:rounded-[1.75rem] lg:shadow-[0_24px_80px_rgba(45,36,24,0.12)] dark:lg:shadow-[0_24px_80px_rgba(0,0,0,0.45)]",
+    "chat-premium-panel fixed inset-0 z-50 flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden font-sans lg:relative lg:inset-auto lg:z-auto lg:min-h-[min(720px,calc(100dvh-10rem))] lg:rounded-[1.75rem] lg:shadow-[0_24px_80px_rgba(45,36,24,0.12)] dark:lg:shadow-[0_24px_80px_rgba(0,0,0,0.45)]",
   groupHeader:
     "chat-premium-group-header shrink-0 px-3 pb-3 pt-[max(0.5rem,env(safe-area-inset-top))]",
   headerIconButton: "chat-premium-header-icon-btn",

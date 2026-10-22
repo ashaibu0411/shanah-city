@@ -22,7 +22,12 @@ import {
 import { getGroupArtwork } from "@/lib/group-artwork";
 import { chatPremium } from "@/components/chat/chat-premium";
 import { ChatThreadHeader } from "@/components/chat/ChatThreadHeader";
-import { ChatGroupSubnav } from "@/components/chat/ChatGroupSubnav";
+import { ChatGroupSubnav, type ChatGroupSubnavTab } from "@/components/chat/ChatGroupSubnav";
+import {
+  ChatGroupEventsPanel,
+  ChatGroupFilesPanel,
+  ChatGroupMembersPanel,
+} from "@/components/chat/ChatGroupTabPanels";
 import { messagingUi } from "@/lib/messaging-ui";
 import { ChatPrivacySheet } from "@/components/chat/ChatPrivacySheet";
 import {
@@ -100,6 +105,7 @@ export function GroupChatPanel({
   const [privacyBusy, setPrivacyBusy] = useState(false);
   const [disappearingSeconds, setDisappearingSeconds] = useState(0);
   const [replyDraft, setReplyDraft] = useState<ChatReplyDraft | null>(null);
+  const [activeTab, setActiveTab] = useState<ChatGroupSubnavTab>("chat");
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messagesRef = useRef<GroupChatMessage[]>([]);
@@ -421,9 +427,10 @@ export function GroupChatPanel({
   const blockedIds = new Set(blocks.map((block) => block.blockedUserId));
   const typingText = typingLabel(typingUsers);
   const subtitle = typingText || `${memberCount} participant${memberCount === 1 ? "" : "s"}`;
+  const isLeader = participants.some((entry) => entry.id === userId && entry.isLeader);
 
   return (
-    <div className={`${messagingUi.shell} ${groupsPremium.chatPanel} flex min-h-0 flex-1 flex-col`}>
+    <div className={`${messagingUi.shell} ${groupsPremium.chatPanel} flex min-h-0 flex-1 flex-col overflow-hidden`}>
       <ChatThreadHeader
         title={groupName}
         subtitle={subtitle}
@@ -484,13 +491,10 @@ export function GroupChatPanel({
           </div>
         }
       />
-      <ChatGroupSubnav
-        groupId={groupId}
-        active="chat"
-        onMembers={() => setShowParticipants(true)}
-      />
+      <ChatGroupSubnav active={activeTab} onTabChange={setActiveTab} />
 
-      {reportTarget ? (
+      <div className={messagingUi.threadBody}>
+      {activeTab === "chat" && reportTarget ? (
         <div className="shrink-0 border-b border-red-100 bg-red-50/90 px-4 py-3">
           <p className="text-sm font-semibold text-red-900">Report {reportTarget.senderName}</p>
           <textarea
@@ -523,17 +527,38 @@ export function GroupChatPanel({
         </div>
       ) : null}
 
-      {status ? <div className={groupsPremium.chatStatusBanner}>{status}</div> : null}
+      {activeTab === "chat" && status ? (
+        <div className={`${groupsPremium.chatStatusBanner} shrink-0`}>{status}</div>
+      ) : null}
 
-      {disappearingBannerText(disappearingSeconds) ? (
+      {activeTab === "chat" && disappearingBannerText(disappearingSeconds) ? (
         <p className="messages-hub-system-notice shrink-0 border-b border-black/5 px-4 py-3 dark:border-white/10">
           {disappearingBannerText(disappearingSeconds)}
         </p>
       ) : null}
 
+      {activeTab === "files" ? (
+        <div className={messagingUi.messageScroll}>
+          <ChatGroupFilesPanel groupId={groupId} isLeader={isLeader} />
+        </div>
+      ) : null}
+
+      {activeTab === "events" ? (
+        <div className={messagingUi.messageScroll}>
+          <ChatGroupEventsPanel groupId={groupId} />
+        </div>
+      ) : null}
+
+      {activeTab === "members" ? (
+        <div className={messagingUi.messageScroll}>
+          <ChatGroupMembersPanel participants={participants} currentUserId={userId} />
+        </div>
+      ) : null}
+
+      {activeTab === "chat" ? (
       <div
         ref={scrollContainerRef}
-        className={messagingUi.wallpaper}
+        className={messagingUi.messageScroll}
         onScroll={syncStickToBottomFromScroll}
       >
         {loading ? (
@@ -613,7 +638,9 @@ export function GroupChatPanel({
         )}
         <div ref={bottomRef} />
       </div>
+      ) : null}
 
+      {activeTab === "chat" ? (
       <div className={messagingUi.composerBar}>
         <ChatComposer
           value={draft}
@@ -637,6 +664,8 @@ export function GroupChatPanel({
           mentionMembers={mentionMembers}
           mentionAllowAll
         />
+      </div>
+      ) : null}
       </div>
 
       <ChatParticipantsSheet

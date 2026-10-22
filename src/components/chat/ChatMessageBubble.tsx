@@ -462,7 +462,7 @@ export function ChatMessageBubble({
         <div
           className={`relative min-w-0 max-w-full text-sm ${
             hub
-              ? `${hubRadius} px-3 py-2 ${
+              ? `${hubRadius} px-2.5 py-1.5 ${
                   mine ? messagingUi.bubbleOut : messagingUi.bubbleIn
                 } ${(imageSrc || audioSrc || youtubeVideoIds.length > 0) && !unsent ? "!bg-transparent !p-0 !shadow-none" : ""}`
               : compact
@@ -642,7 +642,7 @@ export function ChatMessageBubble({
         </div>
         </div>
 
-        {hasActions && !compact && (
+        {hasActions && !compact && !hub && (
           <div className={`relative ${compact ? "mt-0.5" : "mt-1"}`}>
             <button
               type="button"

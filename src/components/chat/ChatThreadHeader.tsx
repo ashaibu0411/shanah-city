@@ -23,7 +23,7 @@ export function ChatThreadHeader({
   menu,
 }: ChatThreadHeaderProps) {
   return (
-    <header className={messagingUi.threadHeader}>
+    <header className={`${messagingUi.threadHeader} shrink-0`}>
       <div className="flex min-w-0 items-center gap-2">
         {onBack ? (
           <button type="button" onClick={onBack} className={messagingUi.threadHeaderBack} aria-label="Back">

@@ -1220,7 +1220,7 @@ export function MessagesHub() {
       </aside>
 
       <section
-        className={`messages-hub-chat-pane min-w-0 flex-1 flex-col max-lg:max-w-full ${
+        className={`${messagingUi.threadPane} messages-hub-chat-pane min-h-0 min-w-0 flex-1 flex-col overflow-hidden max-lg:max-w-full ${
           showChatPane
             ? "flex max-lg:absolute max-lg:inset-0 max-lg:z-20 max-lg:w-full max-lg:bg-[var(--chat-wallpaper,#f7f4ef)] dark:max-lg:bg-[var(--chat-wallpaper,#151210)]"
             : "hidden lg:flex"
@@ -1360,21 +1360,20 @@ export function MessagesHub() {
           )
         ) : activeThread ? (
           <>
-            <DirectChatHeader
+            <ChatThreadHeader
               title={activeThread.otherName}
               subtitle={
                 typingLabel(typingUsers) ||
                 (isActiveBlocked ? "Blocked" : "Private message")
               }
-              avatarName={activeThread.otherName}
-              showBack={isMobileApp}
-              onBack={closeChatView}
+              onBack={isMobileApp ? closeChatView : undefined}
+              avatar={<MemberAvatar name={activeThread.otherName} size="sm" />}
               menu={
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setShowChatMenu((value) => !value)}
-                    className={chatPremium.headerIconButton}
+                    className={messagingUi.threadHeaderAction}
                     aria-label="Conversation options"
                   >
                     <svg viewBox="0 0 20 20" className="h-5 w-5" aria-hidden>
@@ -1443,8 +1442,9 @@ export function MessagesHub() {
               }
             />
 
+            <div className={messagingUi.threadBody}>
             {showReport && (
-              <div className="border-b border-red-100 bg-red-50/70 px-4 py-3">
+              <div className="shrink-0 border-b border-red-100 bg-red-50/70 px-4 py-3">
                 <p className="text-sm font-semibold text-red-900">Report harassment</p>
                 <p className="mt-0.5 text-[11px] text-red-800/80">
                   Leaders will review this. The member will also be blocked.
@@ -1480,7 +1480,7 @@ export function MessagesHub() {
             )}
 
             {isActiveBlocked && (
-              <div className="border-b border-red-100 bg-red-50 px-4 py-2 text-center text-xs text-red-800">
+              <div className="shrink-0 border-b border-red-100 bg-red-50 px-4 py-2 text-center text-xs text-red-800">
                 You blocked this member. Unblock them to send messages again.
               </div>
             )}
@@ -1491,7 +1491,7 @@ export function MessagesHub() {
               </p>
             ) : null}
 
-            <div className={messagingUi.wallpaper}>
+            <div className={messagingUi.messageScroll}>
               {messages.length === 0 ? (
                 <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-6 text-center">
                   <div className={chatPremium.emptyCard}>
@@ -1600,6 +1600,7 @@ export function MessagesHub() {
                 onClearReply={() => setReplyDraft(null)}
                 mentionMembers={chatMentionMembers}
               />
+            </div>
             </div>
           </>
         ) : (

@@ -27,6 +27,8 @@ export const messagingUi = {
   subnav: "messaging-v2-subnav",
   subnavTab: "messaging-v2-subnav-tab",
   subnavTabActive: "messaging-v2-subnav-tab messaging-v2-subnav-tab-active",
+  threadBody: "messaging-v2-thread-body",
+  messageScroll: "messaging-v2-message-scroll messaging-v2-wallpaper chat-premium-wallpaper",
   wallpaper: "messaging-v2-wallpaper chat-premium-wallpaper",
   composerBar: "messaging-v2-composer-bar",
   composerRow: "messaging-v2-composer-row",
