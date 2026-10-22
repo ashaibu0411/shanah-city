@@ -536,6 +536,15 @@ export type MarriageStage2Dashboard = {
   nextSessionAt: string | null;
 };
 
+/** Participant-safe counseling session fields for the marriage hub. */
+export type MarriageHubUpcomingSessionView = {
+  id: string;
+  topic?: string;
+  scheduledAt: string;
+  schedulingTimeZone?: string;
+  zoomUrl?: string;
+};
+
 export type MarriageHubSummary = {
   viewerId: string;
   journey: MarriageCounselingJourneyRecord | null;
@@ -548,6 +557,7 @@ export type MarriageHubSummary = {
   partnerJoined: boolean;
   modules: MarriageHubModuleProgress[];
   nextSession: MarriageCounselingSessionRecord | null;
+  upcomingSessions: MarriageHubUpcomingSessionView[];
   upcomingHomework: MarriageHubAssignmentView[];
   pendingInviteCode: string | null;
   isCounselor: boolean;

@@ -297,30 +297,52 @@ export function MarriageCounselingHub() {
               </div>
             )}
 
-            {hub.nextSession && (
-              <div className={`${marriagePremium.card} mt-4`}>
-                <p className={marriagePremium.sectionLabel}>Upcoming counseling</p>
-                {hub.nextSession.topic && (
-                  <p className="text-sm font-medium">{hub.nextSession.topic}</p>
-                )}
-                <p className="mt-1 text-sm font-semibold">
-                  {formatMarriageSessionScheduledAt(
-                    hub.nextSession.scheduledAt,
-                    hub.nextSession.schedulingTimeZone,
-                  )}
+            <div className={`${marriagePremium.card} mt-4`}>
+              <p className={marriagePremium.sectionLabel}>Upcoming counseling</p>
+              {hub.upcomingSessions.length === 0 ? (
+                <p className="mt-2 text-sm text-night-500">
+                  No counseling sessions scheduled yet. Your counselor will add appointments here.
                 </p>
-                {hub.nextSession.zoomUrl && (
-                  <a
-                    href={hub.nextSession.zoomUrl}
-                    className="mt-2 inline-block text-sm font-semibold text-clay-700 underline"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open Zoom link
-                  </a>
-                )}
-              </div>
-            )}
+              ) : (
+                <ul className="mt-3 space-y-3" aria-label="Upcoming counseling sessions">
+                  {hub.upcomingSessions.map((session, index) => (
+                    <li
+                      key={session.id}
+                      className={`rounded-xl border px-3 py-3 text-sm ${
+                        index === 0
+                          ? "border-clay-400 bg-stone-50 dark:border-clay-600 dark:bg-white/5"
+                          : "border-stone-200 dark:border-white/10"
+                      }`}
+                    >
+                      {index === 0 ? (
+                        <p className="text-xs font-bold uppercase tracking-wide text-clay-800 dark:text-clay-300">
+                          Next session
+                        </p>
+                      ) : null}
+                      <p className="mt-0.5 font-semibold text-night-900 dark:text-sand-100">
+                        {session.topic?.trim() || "Counseling session"}
+                      </p>
+                      <p className="mt-1 font-medium">
+                        {formatMarriageSessionScheduledAt(
+                          session.scheduledAt,
+                          session.schedulingTimeZone,
+                        )}
+                      </p>
+                      {session.zoomUrl ? (
+                        <a
+                          href={session.zoomUrl}
+                          className="mt-2 inline-block text-sm font-semibold text-clay-700 underline dark:text-clay-300"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open Zoom link
+                        </a>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
             <div className="mt-6">
               <p className={`${marriagePremium.sectionLabel} mb-3`}>Learning modules</p>
