@@ -27,6 +27,7 @@ import {
   messageExpiresAt,
   normalizeDisappearingSeconds,
 } from "@/lib/chat-disappearing";
+import { messageInboxPreview } from "@/lib/message-inbox-preview";
 
 function mapThread(record: {
   id: string;
@@ -96,10 +97,7 @@ function mapMessage(record: {
 }
 
 function previewForMessage(message: DirectMessage) {
-  if (message.deletedAt) return "Message unsent";
-  if (message.reply) return `↩ ${message.content.slice(0, 100) || "Reply"}`;
-  if (message.attachmentUrl && !message.content.trim()) return "Photo";
-  return message.content.slice(0, 120);
+  return messageInboxPreview(message);
 }
 
 export async function getMemberDirectory(currentUserId: string) {

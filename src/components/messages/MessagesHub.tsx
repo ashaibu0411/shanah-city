@@ -236,6 +236,7 @@ export function MessagesHub() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const activeThreadIdRef = useRef<string | null>(null);
   const activeGroupIdRef = useRef<string | null>(null);
+  const sendInFlightRef = useRef(false);
 
   const chatMentionMembers = useMemo(
     () => members.map((member) => ({ id: member.id, name: member.name })),
@@ -497,6 +498,45 @@ export function MessagesHub() {
     });
   }, [inboxSearch, threads, groupChats]);
 
+  const totalInboxUnread = useMemo(() => {
+    let total = 0;
+    for (const thread of threads) {
+      total += unreadByThread[thread.id] ?? 0;
+    }
+    for (const chat of groupChats) {
+      total += unreadByThread[groupInboxKey(chat.groupId)] ?? chat.unreadCount ?? 0;
+    }
+    return total;
+  }, [threads, groupChats, unreadByThread]);
+
+  const matchingDirectoryMembers = useMemo(() => {
+    const query = inboxSearch.trim().toLowerCase();
+    if (query.length < 2) return [];
+    const inInbox = new Set<string>();
+    for (const thread of threads) {
+      if (thread.otherUserId) inInbox.add(thread.otherUserId);
+    }
+    return members
+      .filter(
+        (member) =>
+          member.id !== user?.id &&
+          !inInbox.has(member.id) &&
+          member.name.toLowerCase().includes(query),
+      )
+      .slice(0, 6);
+  }, [inboxSearch, members, threads, user?.id]);
+
+  function startMessageWithMember(member: MemberDirectoryEntry) {
+    setInboxSearch("");
+    setNewRecipientIds([member.id]);
+    setShowNew(true);
+    setActiveThreadId(null);
+    setActiveGroupId(null);
+    setGroupChatDetail(null);
+    setMessages([]);
+    router.push(`/messages?member=${encodeURIComponent(member.id)}&name=${encodeURIComponent(member.name)}`);
+  }
+
   const dmSeenReceipt = useMemo(() => {
     if (!user) return null;
     for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -659,6 +699,11 @@ export function MessagesHub() {
     attachment?: PendingAttachment,
   ) {
     if (!draft.trim() && !attachment) return;
+    if (sendInFlightRef.current) return;
+    sendInFlightRef.current = true;
+
+    const outgoingText = draft.trim();
+    setDraft("");
     setBusy(true);
     setStatus("");
 
@@ -666,47 +711,55 @@ export function MessagesHub() {
     for (const member of selectedRecipients) {
       recipientNames[member.id] = member.name;
     }
-    const response = await fetch("/api/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        content: draft.trim(),
-        threadId: activeThreadId ?? undefined,
-        recipientIds:
-          activeThreadId || newRecipientIds.length === 0
-            ? undefined
-            : newRecipientIds,
-        recipientNames:
-          activeThreadId || newRecipientIds.length === 0 ? undefined : recipientNames,
-        recipientId:
-          activeThreadId || newRecipientIds.length !== 1
-            ? undefined
-            : newRecipientIds[0],
-        recipientName:
-          activeThreadId || newRecipientIds.length !== 1
-            ? undefined
-            : selectedRecipients[0]?.name ?? "Member",
-        attachmentUrl: attachment?.attachmentUrl,
-        attachmentType: attachment?.attachmentType,
-        attachmentName: attachment?.attachmentName,
-        replyToMessageId: replyDraft?.messageId,
-        replyExcerpt: replyDraft?.excerpt,
-      }),
-    });
-    const data = await response.json();
-    setBusy(false);
+    const savedReply = replyDraft;
+    try {
+      const response = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: outgoingText,
+          threadId: activeThreadId ?? undefined,
+          recipientIds:
+            activeThreadId || newRecipientIds.length === 0
+              ? undefined
+              : newRecipientIds,
+          recipientNames:
+            activeThreadId || newRecipientIds.length === 0 ? undefined : recipientNames,
+          recipientId:
+            activeThreadId || newRecipientIds.length !== 1
+              ? undefined
+              : newRecipientIds[0],
+          recipientName:
+            activeThreadId || newRecipientIds.length !== 1
+              ? undefined
+              : selectedRecipients[0]?.name ?? "Member",
+          attachmentUrl: attachment?.attachmentUrl,
+          attachmentType: attachment?.attachmentType,
+          attachmentName: attachment?.attachmentName,
+          replyToMessageId: savedReply?.messageId,
+          replyExcerpt: savedReply?.excerpt,
+        }),
+      });
+      const data = await response.json();
 
-    if (!response.ok) {
-      setStatus(data.error ?? "Could not send message.");
-      return;
+      if (!response.ok) {
+        setDraft(outgoingText);
+        setStatus(data.error ?? "Could not send message.");
+        return;
+      }
+
+      setReplyDraft(null);
+      setShowNew(false);
+      clearRecipients();
+      await loadInbox();
+      await loadThread(data.thread.id);
+    } catch {
+      setDraft(outgoingText);
+      setStatus("Could not send message.");
+    } finally {
+      setBusy(false);
+      sendInFlightRef.current = false;
     }
-
-    setDraft("");
-    setReplyDraft(null);
-    setShowNew(false);
-    clearRecipients();
-    await loadInbox();
-    await loadThread(data.thread.id);
   }
 
   async function toggleReaction(messageId: string, emoji: string) {
@@ -912,13 +965,23 @@ export function MessagesHub() {
       >
         <div className="messages-hub-header px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="messages-hub-header-title">Chats</h2>
+            <h2 className="messages-hub-header-title">
+              Messages
+              {totalInboxUnread > 0 ? (
+                <span
+                  className="messages-hub-unread-badge messages-hub-header-unread"
+                  aria-label={`${totalInboxUnread} unread`}
+                >
+                  {totalInboxUnread > 99 ? "99+" : totalInboxUnread}
+                </span>
+              ) : null}
+            </h2>
             <div className="flex items-center gap-1">
               {!isMobileApp ? (
                 <button
                   type="button"
                   onClick={() => setShowSafety((value) => !value)}
-                  className="rounded-full px-2 py-1.5 text-xs font-semibold text-sand-200/90 hover:bg-white/10"
+                  className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-sand-200/90 hover:bg-white/10"
                 >
                   Safety
                 </button>
@@ -926,24 +989,54 @@ export function MessagesHub() {
               <button
                 type="button"
                 onClick={openNewMessage}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-sand-100 hover:bg-white/10"
+                className="messages-hub-new-btn"
                 aria-label="New message"
               >
-                ✎
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path
+                    d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 8v8M8 12h8"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </button>
             </div>
           </div>
           <div className="relative mt-3">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-sand-300/80">
-              ⌕
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sand-300/80">
+              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                <path
+                  fillRule="evenodd"
+                  d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </span>
             <input
               type="search"
               value={inboxSearch}
               onChange={(event) => setInboxSearch(event.target.value)}
-              placeholder="Search or start new chat"
-              className="messages-hub-search w-full rounded-xl py-2.5 pl-9 pr-3 text-sm outline-none"
+              placeholder="Search messages or people"
+              aria-label="Search messages or people"
+              className="messages-hub-search w-full rounded-2xl py-2.5 pl-9 pr-9 text-sm outline-none"
             />
+            {inboxSearch.trim() ? (
+              <button
+                type="button"
+                onClick={() => setInboxSearch("")}
+                className="messages-hub-search-clear"
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -1002,11 +1095,15 @@ export function MessagesHub() {
         )}
 
         <div className="flex-1 overflow-y-auto">
-          {filteredInbox.length === 0 ? (
+          {filteredInbox.length === 0 && matchingDirectoryMembers.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-              <p className="text-sm font-medium text-night-900 dark:text-sand-100">No chats yet</p>
+              <p className="text-sm font-medium text-night-900 dark:text-sand-100">
+                {inboxSearch.trim() ? "No matching conversations" : "No messages yet"}
+              </p>
               <p className="mt-1 text-xs text-night-500 dark:text-sand-400">
-                Direct messages and group chats you participate in appear here.
+                {inboxSearch.trim()
+                  ? "Try another name or start a new message."
+                  : "Direct messages and group chats you participate in appear here."}
               </p>
               <button
                 type="button"
@@ -1016,8 +1113,8 @@ export function MessagesHub() {
                 New message
               </button>
             </div>
-          ) : (
-            filteredInbox.map((row) => {
+          ) : null}
+          {filteredInbox.map((row) => {
               if (row.kind === "direct") {
                 const thread = row.thread;
                 const active = activeThreadId === thread.id;
@@ -1044,7 +1141,7 @@ export function MessagesHub() {
                         <span
                           className={`shrink-0 text-xs ${
                             unread > 0
-                              ? "font-semibold text-amber-600 dark:text-amber-300"
+                              ? "font-semibold text-[#7462CF] dark:text-[#a898f0]"
                               : "text-night-500 dark:text-sand-400"
                           }`}
                         >
@@ -1062,7 +1159,7 @@ export function MessagesHub() {
                           {thread.lastMessage}
                         </p>
                         {unread > 0 ? (
-                          <span className="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[11px] font-semibold text-night-950">
+                          <span className="messages-hub-unread-badge shrink-0">
                             {unread > 9 ? "9+" : unread}
                           </span>
                         ) : null}
@@ -1104,7 +1201,7 @@ export function MessagesHub() {
                       <span
                         className={`shrink-0 text-xs ${
                           unread > 0
-                            ? "font-semibold text-amber-600 dark:text-amber-300"
+                            ? "font-semibold text-[#7462CF] dark:text-[#a898f0]"
                             : "text-night-500 dark:text-sand-400"
                         }`}
                       >
@@ -1122,7 +1219,7 @@ export function MessagesHub() {
                         {chat.lastMessage}
                       </p>
                       {unread > 0 ? (
-                        <span className="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[11px] font-semibold text-night-950">
+                        <span className="messages-hub-unread-badge shrink-0">
                           {unread > 9 ? "9+" : unread}
                         </span>
                       ) : null}
@@ -1130,15 +1227,42 @@ export function MessagesHub() {
                   </div>
                 </button>
               );
-            })
-          )}
+            })}
+          {matchingDirectoryMembers.length > 0 ? (
+            <div className="border-t border-[#E8E2DA] px-4 py-3 dark:border-white/10">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-night-500 dark:text-sand-400">
+                People
+              </p>
+              <ul className="mt-2 space-y-1">
+                {matchingDirectoryMembers.map((member) => (
+                  <li key={member.id}>
+                    <button
+                      type="button"
+                      onClick={() => startMessageWithMember(member)}
+                      className="messages-hub-member-hit flex w-full items-center gap-3 rounded-2xl px-2 py-2 text-left"
+                    >
+                      <MemberAvatar name={member.name} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-night-900 dark:text-sand-100">
+                          {member.name}
+                        </p>
+                        <p className="truncate text-xs text-night-500 dark:text-sand-400">
+                          Start a conversation
+                        </p>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </aside>
 
       <section
         className={`messages-hub-chat-pane min-w-0 flex-1 flex-col max-lg:max-w-full ${
           showChatPane
-            ? "flex max-lg:absolute max-lg:inset-0 max-lg:z-20 max-lg:w-full max-lg:bg-[var(--chat-wallpaper,#e5ddd5)] dark:max-lg:bg-[var(--chat-wallpaper,#0b141a)]"
+            ? "flex max-lg:absolute max-lg:inset-0 max-lg:z-20 max-lg:w-full max-lg:bg-[var(--chat-wallpaper,#f7f4ef)] dark:max-lg:bg-[var(--chat-wallpaper,#151210)]"
             : "hidden lg:flex"
         }`}
       >

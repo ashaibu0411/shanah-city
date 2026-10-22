@@ -26,6 +26,7 @@ import {
   messageExpiresAt,
   normalizeDisappearingSeconds,
 } from "@/lib/chat-disappearing";
+import { messageInboxPreview } from "@/lib/message-inbox-preview";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const THREADS_FILE = path.join(DATA_DIR, "message-threads.json");
@@ -57,10 +58,7 @@ function mapMessage(message: DirectMessage): DirectMessage {
 }
 
 function previewForMessage(message: DirectMessage) {
-  if (message.deletedAt) return "Message unsent";
-  if (message.reply) return `↩ ${message.content.slice(0, 100) || "Reply"}`;
-  if (message.attachmentUrl && !message.content.trim()) return "Photo";
-  return message.content.slice(0, 120);
+  return messageInboxPreview(message);
 }
 
 function syncThreadPreview(

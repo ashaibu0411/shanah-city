@@ -14,7 +14,7 @@ export const chatPremium = {
   composerBar:
     "chat-premium-composer-bar shrink-0 px-3 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]",
   composerRow: "flex min-w-0 w-full items-end gap-2",
-  composerField: "chat-premium-composer-field",
+  composerField: "chat-premium-composer-field min-h-[2.75rem]",
   composerInput:
     "w-full bg-transparent text-[15px] leading-snug text-night-900 outline-none placeholder:text-night-400 disabled:opacity-50 dark:text-sand-100 dark:placeholder:text-sand-500",
   sendButton: "chat-premium-send-btn",
