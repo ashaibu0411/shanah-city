@@ -274,7 +274,7 @@ export function MarriageCounselingHub() {
                       <p className="font-semibold">{item.title}</p>
                       {item.dueAt && (
                         <p className="text-xs text-night-500">
-                          Due {new Date(item.dueAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                          Due {formatMarriageSessionScheduledAt(item.dueAt, item.dueAtTimeZone)}
                         </p>
                       )}
                       <button

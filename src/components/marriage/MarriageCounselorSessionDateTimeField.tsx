@@ -4,12 +4,14 @@ import { MARRIAGE_COUNSELING_SCHEDULING_TIMEZONE } from "@/lib/marriage-session-
 
 type Props = {
   name?: string;
+  label?: string;
   inputClassName?: string;
   required?: boolean;
 };
 
 export function MarriageCounselorSessionDateTimeField({
   name = "scheduledAtLocal",
+  label = "Date & time",
   inputClassName = "marriage-c3m-input",
   required,
 }: Props) {
@@ -18,7 +20,7 @@ export function MarriageCounselorSessionDateTimeField({
   return (
     <div className="marriage-session-schedule-datetime">
       <label className="text-sm font-semibold text-[#292219] dark:text-sand-100" htmlFor={`${name}-input`}>
-        Date & time
+        {label}
       </label>
       <input
         id={`${name}-input`}

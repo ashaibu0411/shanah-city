@@ -77,6 +77,21 @@ export function sessionSchedulingTimeZone(record?: { schedulingTimeZone?: string
   return record?.schedulingTimeZone?.trim() || MARRIAGE_COUNSELING_SCHEDULING_TIMEZONE;
 }
 
+/** Homework due dates use the same wall-clock → UTC contract as counseling sessions. */
+export function normalizeAssignmentDueAtInput(input: {
+  dueAt?: string;
+  dueAtLocal?: string;
+  schedulingTimeZone?: string;
+}): { dueAt: string; dueAtTimeZone: string } | undefined {
+  if (!input.dueAtLocal?.trim() && !input.dueAt?.trim()) return undefined;
+  const normalized = normalizeNewSessionScheduledAtInput({
+    scheduledAtLocal: input.dueAtLocal,
+    scheduledAt: input.dueAt,
+    schedulingTimeZone: input.schedulingTimeZone,
+  });
+  return { dueAt: normalized.scheduledAt, dueAtTimeZone: normalized.schedulingTimeZone };
+}
+
 /** Parse stored value for comparisons/display without mutating persisted data. */
 export function parseStoredSessionScheduledAt(
   stored: string,

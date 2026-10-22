@@ -292,6 +292,8 @@ export type MarriageCounselorAssignmentRecord = {
   description?: string;
   moduleId?: string;
   dueAt?: string;
+  /** IANA zone for legacy naive dueAt and display (JSON store; DB column pending). */
+  dueAtTimeZone?: string;
   completedByUserIds: string[];
   createdAt: string;
   sessionId?: string;
@@ -451,6 +453,7 @@ export type MarriageHubAssignmentView = {
   id: string;
   title: string;
   dueAt?: string;
+  dueAtTimeZone?: string;
   completed: boolean;
   moduleId?: string;
 };

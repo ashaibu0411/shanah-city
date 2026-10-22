@@ -72,6 +72,7 @@ export type MarriageCounselorClinicalJourneyDetail = {
     id: string;
     title: string;
     dueAt?: string;
+    dueAtTimeZone?: string;
     completedByUserIds: string[];
   }>;
   notes: Array<{ id: string; body: string; updatedAt: string }>;
@@ -279,6 +280,7 @@ export async function buildMarriageCounselorClinicalDetail(
       id: a.id,
       title: a.title,
       dueAt: a.dueAt,
+      dueAtTimeZone: a.dueAtTimeZone,
       completedByUserIds: a.completedByUserIds,
     }));
 

@@ -20,7 +20,9 @@ export async function POST(request: Request) {
       title: String(body.title ?? ""),
       description: body.description ? String(body.description) : undefined,
       moduleId: body.moduleId ? String(body.moduleId) : undefined,
+      dueAtLocal: body.dueAtLocal ? String(body.dueAtLocal) : undefined,
       dueAt: body.dueAt ? String(body.dueAt) : undefined,
+      schedulingTimeZone: body.schedulingTimeZone ? String(body.schedulingTimeZone) : undefined,
     });
     return NextResponse.json({ ok: true, assignment });
   } catch (error) {

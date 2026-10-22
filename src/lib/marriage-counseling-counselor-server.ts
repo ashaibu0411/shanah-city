@@ -26,10 +26,7 @@ import {
   toCounselorSessionApiView,
   type MarriageCounselorSessionApiView,
 } from "@/lib/marriage-counselor-api-security";
-import {
-  classifyStoredScheduledAt,
-  normalizeNewSessionScheduledAtInput,
-} from "@/lib/marriage-session-scheduling";
+import { normalizeAssignmentDueAtInput } from "@/lib/marriage-session-scheduling";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
 const store = () => marriageStore();
@@ -53,13 +50,12 @@ export async function createCounselingSession(
   const now = new Date().toISOString();
   const homeworkIds: string[] = [];
   for (const item of input.homework ?? []) {
-    let dueAt = item.dueAt;
-    if (dueAt && classifyStoredScheduledAt(dueAt) === "naive_local") {
-      dueAt = normalizeNewSessionScheduledAtInput({
-        scheduledAtLocal: dueAt,
-        schedulingTimeZone: input.schedulingTimeZone,
-      }).scheduledAt;
-    }
+    const due = item.dueAt
+      ? normalizeAssignmentDueAtInput({
+          dueAt: item.dueAt,
+          schedulingTimeZone: input.schedulingTimeZone,
+        })
+      : undefined;
     const assignment: MarriageCounselorAssignmentRecord = {
       id: `mca-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       journeyId: journey.id,
@@ -67,7 +63,8 @@ export async function createCounselingSession(
       title: item.title,
       description: item.description,
       moduleId: item.moduleId,
-      dueAt,
+      dueAt: due?.dueAt,
+      dueAtTimeZone: due?.dueAtTimeZone,
       completedByUserIds: [],
       createdAt: now,
     };
@@ -173,12 +170,19 @@ export async function createCounselorActivityAssignment(
     description?: string;
     moduleId?: string;
     dueAt?: string;
+    dueAtLocal?: string;
+    schedulingTimeZone?: string;
   },
 ) {
   const journey = await store().getJourneyById(input.journeyId);
   if (!journey) throwCounselorAccessDenied();
   await assertClinicalCounselorForJourney(counselor, journey);
   const now = new Date().toISOString();
+  const due = normalizeAssignmentDueAtInput({
+    dueAt: input.dueAt,
+    dueAtLocal: input.dueAtLocal,
+    schedulingTimeZone: input.schedulingTimeZone,
+  });
   const assignment: MarriageCounselorAssignmentRecord = {
     id: `mca-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     journeyId: journey.id,
@@ -186,7 +190,8 @@ export async function createCounselorActivityAssignment(
     title: input.title.trim(),
     description: input.description?.trim(),
     moduleId: input.moduleId,
-    dueAt: input.dueAt,
+    dueAt: due?.dueAt,
+    dueAtTimeZone: due?.dueAtTimeZone,
     completedByUserIds: [],
     createdAt: now,
   };

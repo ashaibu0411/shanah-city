@@ -54,7 +54,13 @@ export type MarriageCounselorClinicalDetailView = {
     zoomUrl?: string;
     status?: string;
   }>;
-  assignments: Array<{ id: string; title: string; dueAt?: string; completedByUserIds: string[] }>;
+  assignments: Array<{
+    id: string;
+    title: string;
+    dueAt?: string;
+    dueAtTimeZone?: string;
+    completedByUserIds: string[];
+  }>;
   notes: Array<{ body: string; updatedAt: string }>;
   revisions: Array<{ id: string; status: string; moduleId: string }>;
   comparisonDisclosurePhase?: string;
@@ -183,7 +189,8 @@ export function MarriageCounselorClinicalDashboard({
         journeyId,
         title: String(fd.get("title") ?? ""),
         moduleId: String(fd.get("moduleId") ?? "") || undefined,
-        dueAt: String(fd.get("dueAt") ?? "") || undefined,
+        dueAtLocal: String(fd.get("dueAtLocal") ?? "") || undefined,
+        schedulingTimeZone: String(fd.get("schedulingTimeZone") ?? "") || undefined,
       }),
     });
     setAssignBusy(false);
@@ -393,7 +400,8 @@ export function MarriageCounselorClinicalDashboard({
                       <p className="font-medium">{assignment.title}</p>
                       {assignment.dueAt ? (
                         <p className="marriage-c3m-muted text-xs">
-                          Due {new Date(assignment.dueAt).toLocaleString()}
+                          Due{" "}
+                          {formatMarriageSessionScheduledAt(assignment.dueAt, assignment.dueAtTimeZone)}
                         </p>
                       ) : null}
                     </div>
@@ -418,7 +426,11 @@ export function MarriageCounselorClinicalDashboard({
               <p className="text-sm font-semibold">Assign activity</p>
               <input name="title" required placeholder="Activity title" className="marriage-c3m-input" />
               <input name="moduleId" placeholder="Related module id (optional)" className="marriage-c3m-input font-mono text-xs" />
-              <input name="dueAt" type="datetime-local" className="marriage-c3m-input" />
+              <MarriageCounselorSessionDateTimeField
+                name="dueAtLocal"
+                label="Due date & time"
+                inputClassName="marriage-c3m-input"
+              />
               <button type="submit" disabled={assignBusy} className="marriage-c3m-btn-secondary min-h-[44px]">
                 {assignBusy ? "Assigning…" : "Assign to couple"}
               </button>

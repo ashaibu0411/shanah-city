@@ -131,6 +131,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
         id: a.id,
         title: a.title,
         dueAt: a.dueAt,
+        dueAtTimeZone: a.dueAtTimeZone,
         completed: false,
         moduleId: a.moduleId,
       }));
