@@ -2,6 +2,10 @@ import { editorialPremium } from "@/components/app/editorial-premium";
 
 export const marriagePremium = {
   page: "marriage-counseling-page min-w-0 max-w-[430px] mx-auto text-night-900 dark:text-sand-100",
+  /** Counselor workspace + clinical journey dashboard (Phase 3M). */
+  counselorDashboardPage:
+    "marriage-c3m-dashboard min-w-0 w-full max-w-[1280px] mx-auto text-[#292219] dark:text-sand-100",
+  counselorDashboardInset: "px-4 sm:px-6 lg:px-8 pb-28 pt-4 safe-bottom",
   /** Side-by-side compare + temperament snapshot — comfortable desktop reading width. */
   comparePage:
     "marriage-counseling-page min-w-0 w-full max-w-[1040px] mx-auto text-night-900 dark:text-sand-100",

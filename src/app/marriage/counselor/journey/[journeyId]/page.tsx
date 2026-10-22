@@ -8,8 +8,8 @@ export default async function MarriageCounselorJourneyPage({
 }) {
   const { journeyId } = await params;
   return (
-    <div className={marriagePremium.page}>
-      <div className={marriagePremium.inset}>
+    <div className={marriagePremium.counselorDashboardPage}>
+      <div className={marriagePremium.counselorDashboardInset}>
         <MarriageCounselorJourneyDetail journeyId={journeyId} />
       </div>
     </div>

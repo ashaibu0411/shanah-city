@@ -3,8 +3,8 @@ import { marriagePremium } from "@/components/marriage/marriage-counseling-premi
 
 export default function MarriageCounselorPage() {
   return (
-    <div className={marriagePremium.page}>
-      <div className={marriagePremium.inset}>
+    <div className={marriagePremium.counselorDashboardPage}>
+      <div className={marriagePremium.counselorDashboardInset}>
         <MarriageCounselorWorkspace />
       </div>
     </div>

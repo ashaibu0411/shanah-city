@@ -15,6 +15,7 @@ export type MarriageCounselorModuleProgressOverview = {
   title: string;
   bothSubmitted: boolean;
   awaitingBoth: boolean;
+  submittedCount: number;
 };
 
 export type MarriageCounselorAdministrativeOverview = {
@@ -43,6 +44,7 @@ export async function buildModuleProgressOverview(
       title: mod.title,
       awaitingBoth: submitted.length < 2,
       bothSubmitted: submitted.length >= 2,
+      submittedCount: submitted.length,
     });
   }
   return progress;
