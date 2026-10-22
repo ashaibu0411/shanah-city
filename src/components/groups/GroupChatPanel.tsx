@@ -430,7 +430,10 @@ export function GroupChatPanel({
   const isLeader = participants.some((entry) => entry.id === userId && entry.isLeader);
 
   return (
-    <div className={`${messagingUi.shell} ${groupsPremium.chatPanel} flex min-h-0 flex-1 flex-col overflow-hidden`}>
+    <div
+      data-no-pull-refresh
+      className={`${messagingUi.shell} ${groupsPremium.chatPanel} flex min-h-0 flex-1 flex-col overflow-hidden`}
+    >
       <ChatThreadHeader
         title={groupName}
         subtitle={subtitle}

@@ -7,6 +7,10 @@ import { runAppRefresh } from "@/lib/app-refresh";
 const PULL_THRESHOLD = 64;
 const MAX_PULL = 108;
 
+/** Nested scroll UIs where pull-to-refresh must not hijack vertical pans. */
+const NO_PULL_SELECTOR =
+  "[data-no-pull-refresh], .messages-hub-root, .messaging-v2-shell, .chat-premium-panel";
+
 function isRefreshBlocked() {
   if (typeof document === "undefined") return true;
   if (document.body.dataset.storyViewerOpen === "true") return true;
@@ -23,6 +27,19 @@ function pageScrollTop() {
   );
 }
 
+function isInsideNoPullRegion(start: EventTarget | null) {
+  if (!(start instanceof Element)) return false;
+  return Boolean(start.closest(NO_PULL_SELECTOR));
+}
+
+function isScrollableOverflow(overflowY: string) {
+  return overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay";
+}
+
+function elementCanScrollVertically(node: Element) {
+  return node.scrollHeight > node.clientHeight + 1;
+}
+
 function findScrollableAncestor(start: EventTarget | null): Element | null {
   if (!(start instanceof Element)) return null;
 
@@ -30,9 +47,12 @@ function findScrollableAncestor(start: EventTarget | null): Element | null {
   while (node && node !== document.body && node !== document.documentElement) {
     const style = window.getComputedStyle(node);
     const overflowY = style.overflowY;
+    if (isScrollableOverflow(overflowY) && elementCanScrollVertically(node)) {
+      return node;
+    }
     if (
-      (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") &&
-      node.scrollHeight > node.clientHeight + 1
+      node.classList.contains("messaging-v2-message-scroll") &&
+      elementCanScrollVertically(node)
     ) {
       return node;
     }
@@ -47,6 +67,25 @@ function isAtScrollTop(scroller: Element | null) {
     return scroller.scrollTop <= 2;
   }
   return pageScrollTop() <= 2;
+}
+
+/** True when the touch began inside a nested scroller that is not at the top. */
+function isNestedScrollerNotAtTop(start: EventTarget | null) {
+  if (!(start instanceof Element)) return false;
+  let node: Element | null = start;
+  while (node && node !== document.body && node !== document.documentElement) {
+    const style = window.getComputedStyle(node);
+    if (
+      (isScrollableOverflow(style.overflowY) ||
+        node.classList.contains("messaging-v2-message-scroll")) &&
+      elementCanScrollVertically(node) &&
+      node.scrollTop > 2
+    ) {
+      return true;
+    }
+    node = node.parentElement;
+  }
+  return false;
 }
 
 type PullToRefreshProps = {
@@ -78,37 +117,41 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     setRefreshing(true);
     setPull(PULL_THRESHOLD);
     try {
-      if (isNativeApp) {
-        window.location.reload();
-        return;
-      }
       await runAppRefresh();
     } finally {
-      if (!isNativeApp) {
-        setRefreshing(false);
-        setPull(0);
-      }
+      setRefreshing(false);
+      setPull(0);
     }
-  }, [isNativeApp]);
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
 
     function onTouchStart(event: TouchEvent) {
       if (refreshingRef.current || isRefreshBlocked()) return;
+      if (isInsideNoPullRegion(event.target)) return;
+      if (isNestedScrollerNotAtTop(event.target)) return;
       scrollRootRef.current = findScrollableAncestor(event.target);
       if (!isAtScrollTop(scrollRootRef.current)) return;
-      const target = event.target;
-      if (target instanceof Element && target.closest("[data-no-pull-refresh]")) return;
       startYRef.current = event.touches[0]?.clientY ?? null;
       pullingRef.current = false;
     }
 
     function onTouchMove(event: TouchEvent) {
       if (refreshingRef.current || startYRef.current == null || isRefreshBlocked()) return;
-      if (!isAtScrollTop(scrollRootRef.current)) {
+      if (isInsideNoPullRegion(event.target)) {
         startYRef.current = null;
         setPull(0);
+        pullingRef.current = false;
+        return;
+      }
+
+      const scroller = findScrollableAncestor(event.target) ?? scrollRootRef.current;
+      scrollRootRef.current = scroller;
+      if (!isAtScrollTop(scroller)) {
+        startYRef.current = null;
+        setPull(0);
+        pullingRef.current = false;
         return;
       }
 
@@ -116,6 +159,7 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
       const delta = currentY - startYRef.current;
       if (delta <= 0) {
         setPull(0);
+        pullingRef.current = false;
         return;
       }
 

@@ -970,6 +970,7 @@ export function MessagesHub() {
 
   return (
     <div
+      data-no-pull-refresh
       className={`${messagingUi.shell} messages-hub-root relative flex w-full max-w-full overflow-hidden ${
         immersive
           ? "h-[100dvh]"
@@ -979,7 +980,7 @@ export function MessagesHub() {
       }`}
     >
       <aside
-        className={`${messagingUi.inboxPane} messages-hub-inbox flex min-w-0 shrink-0 flex-col border-night-900/8 max-lg:w-full lg:w-[min(100%,420px)] lg:border-r dark:border-white/10 ${
+        className={`${messagingUi.inboxPane} messages-hub-inbox flex min-h-0 min-w-0 shrink-0 flex-col border-night-900/8 max-lg:w-full lg:w-[min(100%,420px)] lg:border-r dark:border-white/10 ${
           showInbox ? "flex" : "hidden lg:flex"
         }`}
       >
@@ -1058,7 +1059,7 @@ export function MessagesHub() {
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
           {filteredInbox.length === 0 && matchingDirectoryMembers.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-6 text-center">
               <p className="text-sm font-medium text-night-900 dark:text-sand-100">
