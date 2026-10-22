@@ -226,6 +226,9 @@ export async function markHomeworkComplete(
 export async function getCounselorJourneyDetail(counselor: PublicMember, journeyId: string) {
   const journey = await store().getJourneyById(journeyId);
   if (!journey) throw new Error(MARRIAGE_COUNSELOR_ACCESS_DENIED);
+  if (journey.status === "archived") {
+    throw new Error(MARRIAGE_COUNSELOR_ACCESS_DENIED);
+  }
   try {
     await assertCounselorCanAccessJourneyOnDashboard(counselor, journey);
   } catch {

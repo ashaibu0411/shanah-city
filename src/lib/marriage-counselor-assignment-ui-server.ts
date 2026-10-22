@@ -19,6 +19,7 @@ import {
   type AssignmentListQuery,
   type PaginatedRows,
 } from "@/lib/marriage-counselor-assignment-list-pagination";
+import { canReviewJourneyDeletionRequests } from "@/lib/marriage-deletion-request-admin";
 import { assignmentAdminIdsFromEnv } from "@/lib/marriage-journey-administrative-coordinator-policy";
 import { listActiveJourneysForAssignmentAdminViewer } from "@/lib/marriage-journey-administrative-coordinator-server";
 import {
@@ -101,10 +102,12 @@ function matchesQueueSearch(row: EnrichedAssignmentRequestRow, search: string): 
 export async function getCounselorAssignmentUiCapabilities(viewer: PublicMember) {
   const canSubmit = await canSubmitCounselorAssignmentRequest(viewer);
   const canApprove = await isSeniorPastor(viewer);
+  const canReviewDeletionRequests = await canReviewJourneyDeletionRequests(viewer);
   return {
     canSubmitRequest: canSubmit,
     canApprove,
     canAccessAdminPage: canSubmit || canApprove,
+    canReviewDeletionRequests,
   };
 }
 

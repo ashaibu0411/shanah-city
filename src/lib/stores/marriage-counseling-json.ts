@@ -701,6 +701,15 @@ export async function listAllActiveJourneys() {
   return store.journeys.filter((j) => j.status === "active");
 }
 
+export async function listJourneysWithPendingDeletionRequest() {
+  const store = await readStore();
+  return store.journeys
+    .filter((j) => j.status === "active" && j.deletionRequestedAt)
+    .sort((a, b) =>
+      (a.deletionRequestedAt ?? "").localeCompare(b.deletionRequestedAt ?? ""),
+    );
+}
+
 export async function upsertDiscussionMark(mark: MarriageDiscussionMarkRecord) {
   const store = await readStore();
   const index = store.discussionMarks.findIndex(

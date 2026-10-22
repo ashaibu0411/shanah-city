@@ -567,6 +567,7 @@ export type MarriageHubSummary = {
   isCurriculumAdmin: boolean;
   canSubmitCounselorAssignment: boolean;
   isSeniorPastorCounselorApprover: boolean;
+  canReviewDeletionRequests: boolean;
   contentVersion: string;
   stage2?: MarriageStage2Dashboard;
 };

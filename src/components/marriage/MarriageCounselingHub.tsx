@@ -26,9 +26,11 @@ export function MarriageCounselingHub() {
   const [hub, setHub] = useState<MarriageHubSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [starting, setStarting] = useState<MarriageProgramType | null>(null);
   const load = useCallback(async () => {
     setError("");
+    setNotice("");
     const res = await fetch("/api/marriage/hub", { cache: "no-store" });
     const data = await readJsonResponse<MarriageHubSummary & { error?: string }>(res);
     if (!res.ok) {
@@ -132,7 +134,16 @@ export function MarriageCounselingHub() {
           </p>
         </div>
 
-        {error && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
+        {error && (
+          <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-200">
+            {error}
+          </p>
+        )}
+        {notice && (
+          <p className="mt-4 rounded-xl bg-stone-100 px-3 py-2 text-sm text-night-800 dark:bg-white/10 dark:text-sand-100">
+            {notice}
+          </p>
+        )}
 
         {showMarriagePrepStaffNav && (
           <div className="mt-6 grid gap-2">
@@ -152,6 +163,11 @@ export function MarriageCounselingHub() {
                 className={marriagePremium.secondaryCta}
               >
                 Counselor assignments
+              </Link>
+            )}
+            {hub.canReviewDeletionRequests && (
+              <Link href="/marriage/admin/deletion-requests" className={marriagePremium.secondaryCta}>
+                Deletion requests
               </Link>
             )}
           </div>
@@ -381,6 +397,19 @@ export function MarriageCounselingHub() {
                   viewerUserId={hub.viewerId}
                 />
               )}
+              {journey?.deletionRequestedAt && journey.status === "active" && (
+                <div className={`${marriagePremium.card} mt-4 border border-amber-200 bg-amber-50/80 dark:border-amber-900/40 dark:bg-amber-950/20`}>
+                  <p className="text-sm font-semibold text-amber-950 dark:text-amber-100">
+                    Pastoral review requested
+                  </p>
+                  <p className="mt-1 text-sm text-amber-900/90 dark:text-amber-100/90">
+                    You asked staff to review this journey for possible archival. Records are not permanently
+                    erased by this request. Both partners see this status until staff archive or dismiss the
+                    request.
+                  </p>
+                </div>
+              )}
+
               {journey && (
                 <>
                   <button
@@ -405,7 +434,10 @@ export function MarriageCounselingHub() {
                   <button
                     type="button"
                     className={marriagePremium.secondaryCta}
+                    disabled={Boolean(journey.deletionRequestedAt && journey.status === "active")}
                     onClick={async () => {
+                      setError("");
+                      setNotice("");
                       const res = await fetch("/api/marriage/privacy", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -413,10 +445,13 @@ export function MarriageCounselingHub() {
                       });
                       const data = await readJsonResponse<{ error?: string; message?: string }>(res);
                       if (!res.ok) setError(data.error ?? "Request failed.");
-                      else setError(data.message ?? "Deletion request submitted.");
+                      else {
+                        setNotice(data.message ?? "Request recorded.");
+                        await load();
+                      }
                     }}
                   >
-                    Request journey deletion
+                    Request pastoral review (archive)
                   </button>
                 </>
               )}

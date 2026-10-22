@@ -966,6 +966,14 @@ export async function listAllActiveJourneys() {
   return rows.map(mapJourney);
 }
 
+export async function listJourneysWithPendingDeletionRequest() {
+  const rows = await prisma.marriageCounselingJourney.findMany({
+    where: { status: "active", deletionRequestedAt: { not: null } },
+    orderBy: { deletionRequestedAt: "asc" },
+  });
+  return rows.map(mapJourney);
+}
+
 function discussedAtForCreate(mark: MarriageDiscussionMarkRecord): Date | null {
   if (mark.discussedAt === null) return null;
   if (mark.discussedAt) return new Date(mark.discussedAt);

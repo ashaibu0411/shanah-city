@@ -35,6 +35,7 @@
     "test:marriage:stage2": "tsx scripts/marriage-stage2-integration.ts",
     "test:marriage:phase2a": "tsx scripts/marriage-stage2-phase2a.ts",
     "test:marriage:phase2b": "tsx scripts/marriage-stage2-phase2b.ts",
+    "test:marriage:deletion-requests": "tsx scripts/marriage-journey-deletion-request.test.ts",
     "test:marriage:phase3m": "tsx scripts/marriage-phase3m-assignment-approval.test.ts",
     "test:marriage:phase3m:ui": "tsx scripts/marriage-phase3m-assignment-ui.test.ts",
     "test:marriage:phase3m:coordinator": "tsx scripts/marriage-phase3m-admin-coordinator-visibility.test.ts",

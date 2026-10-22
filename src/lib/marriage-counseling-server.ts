@@ -144,6 +144,8 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
   );
   const canSubmitCounselorAssignment = await canSubmitCounselorAssignmentRequest(viewer);
   const isSeniorPastorCounselorApprover = await isSeniorPastor(viewer);
+  const { canReviewJourneyDeletionRequests } = await import("@/lib/marriage-deletion-request-admin");
+  const canReviewDeletionRequests = await canReviewJourneyDeletionRequests(viewer);
 
   const { buildStage2Dashboard } = await import("@/lib/marriage-stage2-server");
   const stage2 = await buildStage2Dashboard(viewer);
@@ -167,6 +169,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     isCurriculumAdmin,
     canSubmitCounselorAssignment,
     isSeniorPastorCounselorApprover,
+    canReviewDeletionRequests,
     contentVersion,
     stage2: stage2 ?? undefined,
   };

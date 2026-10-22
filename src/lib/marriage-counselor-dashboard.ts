@@ -28,6 +28,9 @@ export async function assertCounselorCanAccessJourneyOnDashboard(
   journey: MarriageCounselingJourneyRecord,
 ): Promise<void> {
   await assertMarriageCounselorRole(viewer);
+  if (journey.status === "archived") {
+    throw new Error("Access denied.");
+  }
   const visible = await listMarriageCounselorDashboardJourneys(viewer.id);
   if (!visible.some((j) => j.id === journey.id)) {
     throw new Error("Access denied.");

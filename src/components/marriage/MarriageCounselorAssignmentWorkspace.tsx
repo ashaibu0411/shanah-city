@@ -24,6 +24,7 @@ type Capabilities = {
   canSubmitRequest: boolean;
   canApprove: boolean;
   canAccessAdminPage: boolean;
+  canReviewDeletionRequests?: boolean;
 };
 
 type CounselorOption = { userId: string; displayName: string };
@@ -391,6 +392,14 @@ export function MarriageCounselorAssignmentWorkspace() {
         <Link href="/marriage" className="text-sm font-semibold text-clay-700 dark:text-clay-300">
           ← Marriage hub
         </Link>
+        {caps.canReviewDeletionRequests ? (
+          <Link
+            href="/marriage/admin/deletion-requests"
+            className="mt-2 block text-sm font-semibold text-clay-700 dark:text-clay-300"
+          >
+            Journey deletion requests →
+          </Link>
+        ) : null}
         <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight">
           Counselor assignments
         </h1>

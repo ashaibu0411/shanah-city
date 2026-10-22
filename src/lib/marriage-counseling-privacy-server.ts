@@ -1,10 +1,12 @@
 import type { PublicMember } from "@/lib/auth-types";
-import { canManageAsAdmin } from "@/lib/admin-access-server";
 import {
   assertClinicalCounselorForJourney,
   assertJourneyParticipantLoose,
-  isMarriageCounselor,
 } from "@/lib/marriage-counseling-access";
+import {
+  archiveJourneyAfterDeletionReview,
+  journeyHasPendingDeletionRequest,
+} from "@/lib/marriage-deletion-request-admin";
 import { logMarriageAudit } from "@/lib/marriage-counseling-audit";
 import { listModulesForJourney } from "@/lib/marriage-curriculum-service";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
@@ -72,6 +74,14 @@ export async function requestJourneyDeletion(viewer: PublicMember, journeyId: st
   const journey = await store().getJourneyById(journeyId);
   if (!journey) throw new Error("Journey not found.");
   await assertJourneyParticipantLoose(journey, viewer.id);
+  if (journeyHasPendingDeletionRequest(journey)) {
+    return {
+      ok: true,
+      alreadyPending: true,
+      message:
+        "A pastoral review request is already on file for this journey. Staff will follow up when possible.",
+    };
+  }
   await store().updateJourney(journeyId, {
     deletionRequestedAt: new Date().toISOString(),
   });
@@ -80,7 +90,11 @@ export async function requestJourneyDeletion(viewer: PublicMember, journeyId: st
     action: "journey_deletion_requested",
     journeyId,
   });
-  return { ok: true, message: "Deletion request recorded. Pastoral staff will confirm." };
+  return {
+    ok: true,
+    message:
+      "Your request was sent for pastoral review. Staff may archive the journey after confirmation; this does not permanently erase records.",
+  };
 }
 
 export async function revokeCounselorAccess(viewer: PublicMember, journeyId: string) {
@@ -106,21 +120,7 @@ export async function revokeCounselorAccess(viewer: PublicMember, journeyId: str
 }
 
 export async function adminArchiveJourney(admin: PublicMember, journeyId: string) {
-  if (!(await canManageAsAdmin(admin)) && !(await isMarriageCounselor(admin))) {
-    throw new Error("Not authorized.");
-  }
-  const journey = await store().getJourneyById(journeyId);
-  if (!journey) throw new Error("Journey not found.");
-  if (!journey.deletionRequestedAt && !(await canManageAsAdmin(admin))) {
-    throw new Error("Deletion must be requested by participants first.");
-  }
-  await store().archiveJourneyData(journeyId);
-  await logMarriageAudit({
-    actorUserId: admin.id,
-    action: "journey_archived",
-    journeyId,
-  });
-  return { ok: true };
+  return archiveJourneyAfterDeletionReview(admin, journeyId);
 }
 
 export async function listJourneyAuditForCounselor(counselor: PublicMember, journeyId: string) {
