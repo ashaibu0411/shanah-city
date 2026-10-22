@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type Keyboa
 import { Button } from "@/components/ui";
 import { ChatReplyComposerBanner } from "@/components/chat/ChatReplyComposerBanner";
 import { chatPremium } from "@/components/chat/chat-premium";
+import { ChatAttachmentSheet } from "@/components/chat/ChatAttachmentSheet";
+import { messagingUi } from "@/lib/messaging-ui";
 import { MentionPicker } from "@/components/mentions/MentionPicker";
 import { useMentionAutocomplete } from "@/components/mentions/useMentionAutocomplete";
 import { insertAtCursor, isChatAudioAttachment, QUICK_CHAT_EMOJIS } from "@/lib/chat-utils";
@@ -30,7 +32,7 @@ type ChatComposerProps = {
   placeholder?: string;
   sendLabel?: string;
   allowAttachment?: boolean;
-  density?: "default" | "compact" | "whatsapp" | "instagram" | "choir-home";
+  density?: "default" | "compact" | "whatsapp" | "instagram" | "messaging" | "choir-home";
   vanishMode?: boolean;
   onTyping?: (isTyping: boolean) => void;
   onPickAttachment?: (file: File) => Promise<PendingAttachment | null>;
@@ -71,6 +73,7 @@ export function ChatComposer({
   const voice = useAudioRecorder();
   const dictation = useSpeechDictation();
   const [voiceBusy, setVoiceBusy] = useState(false);
+  const [attachSheetOpen, setAttachSheetOpen] = useState(false);
 
   const canUseVoice = Boolean(onPickAttachment) && !disabled && !busy && !attachmentBusy;
 
@@ -187,7 +190,9 @@ export function ChatComposer({
   const canSend = Boolean(value.trim() || pendingAttachment);
   const compact = density === "compact";
   const choirHome = density === "choir-home";
-  const hub = density === "whatsapp" || density === "instagram";
+  const hub =
+    density === "whatsapp" || density === "instagram" || density === "messaging";
+  const messagingLayout = density === "messaging" || density === "instagram" || density === "whatsapp";
   /** Instagram-style hub: trailing icons steal width from the text field while composing. */
   const composerTypingActive = value.trim().length > 0;
   const hideHubFieldIcons = composerTypingActive;
@@ -329,64 +334,54 @@ export function ChatComposer({
 
   const micActive = voice.recording || dictation.listening;
 
-  if (hub) {
+  if (hub && messagingLayout) {
+    const showSend = composerTypingActive || Boolean(pendingAttachment);
     return (
-      <div
-        className={`messages-hub-composer px-3 py-2 pb-[max(0.35rem,env(safe-area-inset-bottom))] ${composerTypingActive ? "messages-hub-composer--typing" : ""}`}
-      >
+      <div className={messagingUi.composerBar}>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif,audio/*"
+          className="hidden"
+          onChange={(event) => handleAttachmentPick(event.target.files?.[0] ?? null)}
+        />
         {replyDraft && onClearReply ? (
           <ChatReplyComposerBanner reply={replyDraft} onClear={onClearReply} />
         ) : null}
         {renderVoiceStatusBanner()}
         {renderPendingAttachmentPreview(
-          "mb-2 flex items-center gap-2 rounded-xl border border-night-900/8 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-[var(--color-surface)]",
+          "mb-2 flex items-center gap-2 rounded-xl border border-[#E8E2DA] bg-[#F7F4EF] p-2",
         )}
-
-        {showEmojiPicker && (
-          <div className="mb-2 flex flex-wrap gap-1 rounded-2xl border border-night-900/8 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-[var(--color-surface)]">
+        {showEmojiPicker ? (
+          <div className={`${chatPremium.emojiTray} mb-2`}>
             {QUICK_CHAT_EMOJIS.map((emoji) => (
               <button
                 key={emoji}
                 type="button"
                 onClick={() => appendEmoji(emoji)}
-                className="rounded-lg px-1.5 py-0.5 text-lg hover:bg-sand-50 dark:hover:bg-[var(--color-bg-muted)]"
+                className={chatPremium.emojiTrayBtn}
                 aria-label={`Insert ${emoji}`}
               >
                 {emoji}
               </button>
             ))}
           </div>
-        )}
-
-        <div
-          className={`messages-hub-composer-row flex min-w-0 gap-2 ${composerTypingActive ? "items-end" : "items-center"}`}
-        >
-          {allowAttachment && onPickAttachment && !hideHubFieldIcons ? (
-            <>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                className="hidden"
-                onChange={(event) => handleAttachmentPick(event.target.files?.[0] ?? null)}
-              />
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={disabled || attachmentBusy}
-                className="messages-hub-camera-btn shrink-0"
-                aria-label="Camera"
-              >
-                <HubCameraIcon />
-              </button>
-            </>
-          ) : null}
-
-          <div className="relative flex min-w-0 flex-1 items-end gap-1">
-            {mentionPicker("absolute bottom-full left-0 mb-1 w-[min(100vw-2rem,18rem)]")}
-            <div
-              className={`messages-hub-composer-field min-w-0 flex-1 px-3 py-1 ${vanishMode ? "is-vanish" : ""} ${hideHubFieldIcons ? "messages-hub-composer-field--typing" : "rounded-full"}`}
+        ) : null}
+        <div className={messagingUi.composerRow}>
+          {allowAttachment && onPickAttachment ? (
+            <button
+              type="button"
+              className={messagingUi.composerPlus}
+              disabled={disabled}
+              aria-label="Add attachment"
+              onClick={() => setAttachSheetOpen(true)}
             >
+              +
+            </button>
+          ) : null}
+          <div className="relative min-w-0 flex-1">
+            {mentionPicker("absolute bottom-full left-0 mb-1 w-[min(100vw-2rem,18rem)]")}
+            <div className={`${messagingUi.composerField} ${vanishMode ? "ring-1 ring-amber-400/40" : ""}`}>
               <textarea
                 ref={inputRef}
                 rows={1}
@@ -396,64 +391,69 @@ export function ChatComposer({
                 onKeyUp={syncMentionCursor}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="messages-hub-composer-textarea block w-full min-w-0 resize-none bg-transparent py-2 text-[15px] leading-snug text-[var(--color-ink)] caret-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-soft)] disabled:opacity-50"
+                className={`${chatPremium.composerInput} chat-premium-composer-textarea block min-h-[2.25rem] max-h-[280px] w-full resize-none py-1.5`}
                 onKeyDown={handleComposerKeyDown}
               />
             </div>
-            {!hideHubFieldIcons ? (
-              <div className="messages-hub-composer-trailing flex shrink-0 items-center gap-0.5 pb-0.5">
-                <button
-                  type="button"
-                  onPointerDown={handleMicPointerDown}
-                  onPointerUp={() => void handleMicPointerUp()}
-                  onPointerLeave={() => void handleMicPointerUp()}
-                  onClick={handleMicClick}
-                  disabled={!canUseVoice || voiceBusy}
-                  className={`messages-hub-composer-icon disabled:opacity-40 ${micActive ? "messages-hub-composer-icon-recording" : ""}`}
-                  aria-label={
-                    dictation.listening
-                      ? "Stop speech to text"
-                      : voice.recording
-                        ? "Release to send voice message"
-                        : "Hold for voice message, tap for speech to text"
-                  }
-                >
-                  <HubMicIcon />
-                </button>
-                {allowAttachment && onPickAttachment ? (
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={disabled || attachmentBusy}
-                    className="messages-hub-composer-icon disabled:opacity-40"
-                    aria-label="Add photo"
-                  >
-                    <HubGalleryIcon />
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={() => setShowEmojiPicker((current) => !current)}
-                  disabled={disabled}
-                  className="messages-hub-composer-icon disabled:opacity-40"
-                  aria-label="Emoji and stickers"
-                >
-                  <HubStickerIcon />
-                </button>
-              </div>
-            ) : null}
           </div>
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={busy || disabled || !canSend}
-            className={`${chatPremium.sendButton} messages-hub-send-btn`}
-            aria-label={sendLabel}
-          >
-            <span className="sr-only">{busy ? "Sending…" : sendLabel}</span>
-            <HubSendIcon />
-          </button>
+          {!showSend ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker((current) => !current)}
+                disabled={disabled}
+                className={messagingUi.composerIcon}
+                aria-label="Emoji"
+              >
+                <HubStickerIcon />
+              </button>
+              {allowAttachment && onPickAttachment ? (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={disabled || attachmentBusy}
+                  className={messagingUi.composerIcon}
+                  aria-label="Photos"
+                >
+                  <HubGalleryIcon />
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onPointerDown={handleMicPointerDown}
+                onPointerUp={() => void handleMicPointerUp()}
+                onPointerLeave={() => void handleMicPointerUp()}
+                onClick={handleMicClick}
+                disabled={!canUseVoice || voiceBusy}
+                className={`${messagingUi.composerVoice} ${micActive ? "messages-hub-composer-icon-recording" : ""}`}
+                aria-label="Voice message"
+              >
+                <HubMicIcon />
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={busy || disabled || !canSend}
+              className={messagingUi.composerSend}
+              aria-label={sendLabel}
+            >
+              {busy ? "…" : <HubSendIcon />}
+            </button>
+          )}
         </div>
+        <ChatAttachmentSheet
+          open={attachSheetOpen}
+          onClose={() => setAttachSheetOpen(false)}
+          allowPhoto={allowAttachment && Boolean(onPickAttachment)}
+          allowVoice={canUseVoice}
+          onPickPhoto={() => fileRef.current?.click()}
+          onPickCamera={() => fileRef.current?.click()}
+          onPickVoice={() => {
+            void handleMicPointerDown();
+          }}
+        />
       </div>
     );
   }

@@ -32,6 +32,9 @@ import { GroupChatPanel } from "@/components/groups/GroupChatPanel";
 import type { GroupCategory, GroupChatInboxEntry, GroupDetail } from "@/lib/group-types";
 import { getGroupArtwork } from "@/lib/group-artwork";
 import { groupsPremium } from "@/components/groups/groups-premium";
+import { ChatInboxChrome } from "@/components/chat/ChatInboxChrome";
+import { ChatThreadHeader } from "@/components/chat/ChatThreadHeader";
+import { messagingUi, type InboxFilter } from "@/lib/messaging-ui";
 
 type ThreadSummary = {
   id: string;
@@ -219,6 +222,7 @@ export function MessagesHub() {
   const [newRecipientIds, setNewRecipientIds] = useState<string[]>([]);
   const [memberSearch, setMemberSearch] = useState("");
   const [inboxSearch, setInboxSearch] = useState("");
+  const [inboxFilter, setInboxFilter] = useState<InboxFilter>("all");
   const [showNew, setShowNew] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
@@ -482,9 +486,25 @@ export function MessagesHub() {
       })),
     ].sort((a, b) => new Date(b.sortAt).getTime() - new Date(a.sortAt).getTime());
 
+    let filtered = rows;
+    if (inboxFilter === "unread") {
+      filtered = filtered.filter((row) => {
+        if (row.kind === "direct") {
+          return (unreadByThread[row.thread.id] ?? 0) > 0;
+        }
+        const unread =
+          unreadByThread[groupInboxKey(row.chat.groupId)] ?? row.chat.unreadCount ?? 0;
+        return unread > 0;
+      });
+    } else if (inboxFilter === "groups") {
+      filtered = filtered.filter((row) => row.kind === "group");
+    } else if (inboxFilter === "people") {
+      filtered = filtered.filter((row) => row.kind === "direct");
+    }
+
     const query = inboxSearch.trim().toLowerCase();
-    if (!query) return rows;
-    return rows.filter((row) => {
+    if (!query) return filtered;
+    return filtered.filter((row) => {
       if (row.kind === "direct") {
         return (
           row.thread.otherName.toLowerCase().includes(query) ||
@@ -496,7 +516,7 @@ export function MessagesHub() {
         row.chat.lastMessage.toLowerCase().includes(query)
       );
     });
-  }, [inboxSearch, threads, groupChats]);
+  }, [inboxSearch, inboxFilter, threads, groupChats, unreadByThread]);
 
   const totalInboxUnread = useMemo(() => {
     let total = 0;
@@ -950,7 +970,7 @@ export function MessagesHub() {
 
   return (
     <div
-      className={`messages-hub-root relative flex w-full max-w-full overflow-hidden ${
+      className={`${messagingUi.shell} messages-hub-root relative flex w-full max-w-full overflow-hidden ${
         immersive
           ? "h-[100dvh]"
           : isMobileApp
@@ -959,86 +979,30 @@ export function MessagesHub() {
       }`}
     >
       <aside
-        className={`messages-hub-inbox flex min-w-0 shrink-0 flex-col border-night-900/8 max-lg:w-full lg:w-[min(100%,390px)] lg:border-r dark:border-white/10 ${
+        className={`${messagingUi.inboxPane} messages-hub-inbox flex min-w-0 shrink-0 flex-col border-night-900/8 max-lg:w-full lg:w-[min(100%,420px)] lg:border-r dark:border-white/10 ${
           showInbox ? "flex" : "hidden lg:flex"
         }`}
       >
-        <div className="messages-hub-header px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="messages-hub-header-title">
-              Messages
-              {totalInboxUnread > 0 ? (
-                <span
-                  className="messages-hub-unread-badge messages-hub-header-unread"
-                  aria-label={`${totalInboxUnread} unread`}
-                >
-                  {totalInboxUnread > 99 ? "99+" : totalInboxUnread}
-                </span>
-              ) : null}
-            </h2>
-            <div className="flex items-center gap-1">
-              {!isMobileApp ? (
-                <button
-                  type="button"
-                  onClick={() => setShowSafety((value) => !value)}
-                  className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-sand-200/90 hover:bg-white/10"
-                >
-                  Safety
-                </button>
-              ) : null}
-              <button
-                type="button"
-                onClick={openNewMessage}
-                className="messages-hub-new-btn"
-                aria-label="New message"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path
-                    d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 8v8M8 12h8"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
+        <ChatInboxChrome
+          totalUnread={totalInboxUnread}
+          unreadCount={totalInboxUnread}
+          search={inboxSearch}
+          onSearchChange={setInboxSearch}
+          filter={inboxFilter}
+          onFilterChange={setInboxFilter}
+          onNewMessage={openNewMessage}
+        />
+        {!isMobileApp ? (
+          <div className="border-b border-[#E8E2DA] bg-[#251F1A] px-4 pb-2">
+            <button
+              type="button"
+              onClick={() => setShowSafety((value) => !value)}
+              className="text-xs font-semibold text-sand-200/90"
+            >
+              Safety & blocking
+            </button>
           </div>
-          <div className="relative mt-3">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sand-300/80">
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                <path
-                  fillRule="evenodd"
-                  d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </span>
-            <input
-              type="search"
-              value={inboxSearch}
-              onChange={(event) => setInboxSearch(event.target.value)}
-              placeholder="Search messages or people"
-              aria-label="Search messages or people"
-              className="messages-hub-search w-full rounded-2xl py-2.5 pl-9 pr-9 text-sm outline-none"
-            />
-            {inboxSearch.trim() ? (
-              <button
-                type="button"
-                onClick={() => setInboxSearch("")}
-                className="messages-hub-search-clear"
-                aria-label="Clear search"
-              >
-                ×
-              </button>
-            ) : null}
-          </div>
-        </div>
+        ) : null}
 
         {showSafety && (
           <div className="border-b border-night-900/8 bg-sand-50/80 px-4 py-3 dark:border-white/10 dark:bg-[var(--color-bg-soft)]">
@@ -1124,9 +1088,7 @@ export function MessagesHub() {
                     key={`direct-${thread.id}`}
                     type="button"
                     onClick={() => loadThread(thread.id)}
-                    className={`messages-hub-thread flex w-full items-center gap-3 border-b px-4 py-3 text-left ${
-                      active ? "is-active" : ""
-                    }`}
+                    className={active ? messagingUi.rowActive : messagingUi.row}
                   >
                     <MemberAvatar name={thread.otherName} size="sm" />
                     <div className="min-w-0 flex-1">
@@ -1159,9 +1121,7 @@ export function MessagesHub() {
                           {thread.lastMessage}
                         </p>
                         {unread > 0 ? (
-                          <span className="messages-hub-unread-badge shrink-0">
-                            {unread > 9 ? "9+" : unread}
-                          </span>
+                          <span className={messagingUi.rowBadge}>{unread > 9 ? "9+" : unread}</span>
                         ) : null}
                       </div>
                     </div>
@@ -1363,7 +1323,7 @@ export function MessagesHub() {
                 placeholder="Message"
                 sendLabel="Send"
                 allowAttachment={false}
-                density="instagram"
+                density="messaging"
                 mentionMembers={chatMentionMembers}
                 mentionAllowAll={newRecipientIds.length > 1}
               />
@@ -1531,7 +1491,7 @@ export function MessagesHub() {
               </p>
             ) : null}
 
-            <div className={chatPremium.wallpaper}>
+            <div className={messagingUi.wallpaper}>
               {messages.length === 0 ? (
                 <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-6 text-center">
                   <div className={chatPremium.emptyCard}>
@@ -1585,7 +1545,7 @@ export function MessagesHub() {
                           readAt={message.readAt}
                           showReadReceipt={lastOutgoing && group.isLast}
                           showMeta={group.showMeta}
-                          density="instagram"
+                          density="messaging"
                           canEdit={message.senderId === user.id}
                           canDelete={message.senderId === user.id}
                           canReport={!mine && Boolean(activeOtherUserId)}
@@ -1611,7 +1571,7 @@ export function MessagesHub() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className={chatPremium.composerBar}>
+            <div className={messagingUi.composerBar}>
               <ChatComposer
                 value={draft}
                 onChange={setDraft}
@@ -1634,7 +1594,7 @@ export function MessagesHub() {
                   uploadAttachment(file, { threadId: activeThreadId ?? undefined })
                 }
                 attachmentBusy={attachmentBusy}
-                density="instagram"
+                density="messaging"
                 vanishMode={disappearingSeconds > 0}
                 replyDraft={replyDraft}
                 onClearReply={() => setReplyDraft(null)}

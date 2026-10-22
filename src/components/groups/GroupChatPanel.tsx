@@ -21,6 +21,9 @@ import {
 } from "@/lib/chat-ui-utils";
 import { getGroupArtwork } from "@/lib/group-artwork";
 import { chatPremium } from "@/components/chat/chat-premium";
+import { ChatThreadHeader } from "@/components/chat/ChatThreadHeader";
+import { ChatGroupSubnav } from "@/components/chat/ChatGroupSubnav";
+import { messagingUi } from "@/lib/messaging-ui";
 import { ChatPrivacySheet } from "@/components/chat/ChatPrivacySheet";
 import {
   disappearingBannerText,
@@ -420,46 +423,30 @@ export function GroupChatPanel({
   const subtitle = typingText || `${memberCount} participant${memberCount === 1 ? "" : "s"}`;
 
   return (
-    <div className={groupsPremium.chatPanel}>
-      <header className={groupsPremium.chatHeader}>
-        <div className="relative flex items-center justify-center py-1">
-          {onBack ? (
-            <button
-              type="button"
-              onClick={onBack}
-              className={`${groupsPremium.chatHeaderIconButton} absolute left-0`}
-              aria-label="Back to group dashboard"
-            >
-              <BackIcon />
-            </button>
-          ) : null}
-            <button
-              type="button"
-              onClick={() => setShowParticipants(true)}
-              className="flex max-w-[68%] min-w-0 items-center gap-2.5 rounded-xl text-left hover:opacity-90"
-            >
-              <span className={`${groupsPremium.iconTile} ${chatPremium.headerAvatarRing} h-9 w-9 rounded-xl`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={artworkUrl} alt="" className={groupsPremium.iconTileImage} />
-              </span>
-              <div className="min-w-0 text-left">
-                <h1 className={`${groupsPremium.chatHeaderTitle} text-left`}>{groupName}</h1>
-                <p className={`${groupsPremium.chatHeaderSubtitle} text-xs`}>
-                  {subtitle}
-                </p>
-              </div>
-            </button>
-          <div className="absolute right-0">
+    <div className={`${messagingUi.shell} ${groupsPremium.chatPanel} flex min-h-0 flex-1 flex-col`}>
+      <ChatThreadHeader
+        title={groupName}
+        subtitle={subtitle}
+        onBack={onBack}
+        onAvatarClick={() => setShowParticipants(true)}
+        avatar={
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={artworkUrl} alt="" className="h-full w-full object-cover" />
+          </>
+        }
+        menu={
+          <div className="relative">
             <button
               type="button"
               onClick={() => setShowMenu((value) => !value)}
-              className={groupsPremium.chatHeaderIconButton}
+              className={messagingUi.threadHeaderAction}
               aria-label="Group chat options"
             >
               <MenuIcon />
             </button>
             {showMenu ? (
-              <div className={groupsPremium.chatMenu}>
+              <div className={`${groupsPremium.chatMenu} right-0 top-full mt-1`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -495,8 +482,13 @@ export function GroupChatPanel({
               </div>
             ) : null}
           </div>
-        </div>
-      </header>
+        }
+      />
+      <ChatGroupSubnav
+        groupId={groupId}
+        active="chat"
+        onMembers={() => setShowParticipants(true)}
+      />
 
       {reportTarget ? (
         <div className="shrink-0 border-b border-red-100 bg-red-50/90 px-4 py-3">
@@ -541,7 +533,7 @@ export function GroupChatPanel({
 
       <div
         ref={scrollContainerRef}
-        className={chatPremium.wallpaper}
+        className={messagingUi.wallpaper}
         onScroll={syncStickToBottomFromScroll}
       >
         {loading ? (
@@ -598,7 +590,7 @@ export function GroupChatPanel({
                     seenCount={message.seenCount}
                     showSeenCount={mine && group.isLast}
                     showMeta={group.showMeta}
-                    density="whatsapp"
+                    density="messaging"
                     canEdit={message.senderId === userId}
                     canDelete={message.senderId === userId}
                     canReport={message.senderId !== userId}
@@ -622,7 +614,7 @@ export function GroupChatPanel({
         <div ref={bottomRef} />
       </div>
 
-      <div className={groupsPremium.chatComposerWrap}>
+      <div className={messagingUi.composerBar}>
         <ChatComposer
           value={draft}
           onChange={setDraft}
@@ -638,7 +630,7 @@ export function GroupChatPanel({
           onTyping={sendTyping}
           onPickAttachment={uploadAttachment}
           attachmentBusy={attachmentBusy}
-          density="whatsapp"
+          density="messaging"
           vanishMode={disappearingSeconds > 0}
           replyDraft={replyDraft}
           onClearReply={() => setReplyDraft(null)}

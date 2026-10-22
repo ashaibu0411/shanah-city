@@ -9,6 +9,7 @@ import {
   isChatImageAttachment,
   messageIsUnsent,
   parseDirectChatImageUrl,
+  QUICK_CHAT_EMOJIS,
 } from "@/lib/chat-utils";
 import { ChatMessageText } from "@/components/chat/ChatMessageText";
 import { ChatWorshipActionButton } from "@/components/chat/ChatWorshipActionButton";
@@ -30,6 +31,7 @@ import { buildChatMessageReply } from "@/lib/chat-reply-utils";
 import type { ChatMessageReply } from "@/lib/chat-reply-types";
 import { senderAccentColor } from "@/lib/chat-ui-utils";
 import { chatPremium } from "@/components/chat/chat-premium";
+import { messagingUi } from "@/lib/messaging-ui";
 import { ChatYouTubeEmbed } from "@/components/chat/ChatYouTubeEmbed";
 import { extractYouTubeVideoIdsFromText } from "@/lib/media-clips-utils";
 
@@ -63,7 +65,7 @@ type ChatMessageBubbleProps = {
   canReport?: boolean;
   canBlock?: boolean;
   isBlocked?: boolean;
-  density?: "default" | "compact" | "whatsapp" | "instagram";
+  density?: "default" | "compact" | "whatsapp" | "instagram" | "messaging";
   senderAccent?: string;
   onEdit?: (content: string) => Promise<void> | void;
   onDelete?: () => Promise<void> | void;
@@ -198,7 +200,8 @@ export function ChatMessageBubble({
   }
 
   const compact = density === "compact";
-  const hub = density === "whatsapp" || density === "instagram";
+  const hub =
+    density === "whatsapp" || density === "instagram" || density === "messaging";
 
   const hubRadius = mine ? "rounded-[22px] rounded-br-md" : "rounded-[22px] rounded-bl-md";
 
@@ -355,8 +358,62 @@ export function ChatMessageBubble({
           React
         </button>
       ) : null}
+      {!unsent && content.trim() ? (
+        <button
+          type="button"
+          className={chatPremium.contextMenuItem}
+          onClick={async () => {
+            setShowActions(false);
+            try {
+              await navigator.clipboard.writeText(content);
+            } catch {
+              // ignore clipboard failures
+            }
+          }}
+        >
+          Copy message
+        </button>
+      ) : null}
     </div>
   );
+
+  const messagingActionsOverlay =
+    showActions &&
+    hub &&
+    (hasActions || !unsent) && (
+      <>
+        <button
+          type="button"
+          className={messagingUi.actionBackdrop}
+          aria-label="Close message actions"
+          onClick={() => setShowActions(false)}
+        />
+        <div
+          className="fixed inset-x-0 z-[62] flex flex-col items-center gap-2 px-4"
+          style={{ bottom: "max(5.5rem, calc(5rem + env(safe-area-inset-bottom)))" }}
+        >
+          {!unsent ? (
+            <div className={messagingUi.reactionBar} role="toolbar" aria-label="Quick reactions">
+              {QUICK_CHAT_EMOJIS.slice(0, 6).map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className={messagingUi.reactionEmoji}
+                  onClick={() => {
+                    setShowActions(false);
+                    onToggleReaction(emoji);
+                  }}
+                  aria-label={`React ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          <div className={`${messagingUi.actionSheet} static w-full max-w-sm translate-x-0`}>{actionsMenu}</div>
+        </div>
+      </>
+    );
 
   if (unsent) {
     return (
@@ -406,7 +463,7 @@ export function ChatMessageBubble({
           className={`relative min-w-0 max-w-full text-sm ${
             hub
               ? `${hubRadius} px-3 py-2 ${
-                  mine ? "messages-hub-bubble-out" : "messages-hub-bubble-in"
+                  mine ? messagingUi.bubbleOut : messagingUi.bubbleIn
                 } ${(imageSrc || audioSrc || youtubeVideoIds.length > 0) && !unsent ? "!bg-transparent !p-0 !shadow-none" : ""}`
               : compact
               ? mine
@@ -596,7 +653,7 @@ export function ChatMessageBubble({
             >
               •••
             </button>
-            {actionsMenu}
+            {!hub ? actionsMenu : null}
           </div>
         )}
 
@@ -609,6 +666,7 @@ export function ChatMessageBubble({
           />
         )}
       </div>
+      {messagingActionsOverlay}
     </div>
   );
 }
