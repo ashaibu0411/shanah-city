@@ -3,24 +3,30 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
-import type { MarriageCounselingJourneyRecord } from "@/lib/marriage-counseling-types";
 import { readJsonResponse } from "@/lib/read-json-response";
 
-type Row = {
-  journey: MarriageCounselingJourneyRecord;
-  coupleLabel: string;
+type AdminRow = {
+  access: "administrative";
+  journeyId: string;
+  coupleNames: string;
+  assignedCounselorName: string | null;
+  journeyStatus: string;
+  programType: string;
   moduleCount: number;
   completedModules: number;
+  viewerHasClinicalAccess?: boolean;
 };
 
+type DashboardRow = AdminRow | { access: "clinical"; journeyId: string; coupleNames: string; programType: string; completedModules?: number; moduleCount?: number };
+
 export function MarriageCounselorDashboard() {
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<DashboardRow[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     void (async () => {
       const res = await fetch("/api/marriage/counselor", { cache: "no-store" });
-      const data = await readJsonResponse<{ rows: Row[]; error?: string }>(res);
+      const data = await readJsonResponse<{ rows: DashboardRow[]; error?: string }>(res);
       if (!res.ok) setError(data.error ?? "Access denied.");
       else setRows(data.rows);
     })();
@@ -44,17 +50,36 @@ export function MarriageCounselorDashboard() {
       </Link>
       <h1 className="mt-2 font-display text-xl font-semibold">Counselor workspace</h1>
       <p className={marriagePremium.cardMuted}>
-        Shared comparisons and module progress only. Private reflections stay hidden unless consented.
+        Administrative overview for pastoral oversight. Clinical details require counselor assignment.
       </p>
 
       <ul className="mt-6 space-y-3">
-        {rows.map(({ journey, coupleLabel, moduleCount, completedModules }) => (
-          <li key={journey.id} className={marriagePremium.card}>
-            <p className="font-semibold">{coupleLabel || "Couple"}</p>
-            <p className={`${marriagePremium.cardMuted} mt-1 capitalize`}>
-              {journey.programType} · {completedModules}/{moduleCount} modules both submitted
-            </p>
-            <p className="text-xs text-night-500">Journey {journey.id.slice(0, 8)}…</p>
+        {rows.map((row) => (
+          <li key={row.journeyId} className={marriagePremium.card}>
+            <p className="font-semibold">{row.coupleNames || "Couple"}</p>
+            {row.access === "administrative" ? (
+              <>
+                <p className={`${marriagePremium.cardMuted} mt-1 capitalize`}>
+                  {row.programType} · {row.journeyStatus}
+                </p>
+                <p className="text-sm text-night-600">
+                  Counselor: {row.assignedCounselorName ?? "Unassigned"}
+                </p>
+                <p className="text-sm">
+                  Progress: {row.completedModules}/{row.moduleCount} modules both submitted
+                </p>
+              </>
+            ) : (
+              <p className={`${marriagePremium.cardMuted} mt-1 capitalize`}>
+                {row.programType} · assigned counselor
+              </p>
+            )}
+            <Link
+              href={`/marriage/counselor/journey/${row.journeyId}`}
+              className={`${marriagePremium.secondaryCta} mt-3 inline-block text-sm`}
+            >
+              View journey
+            </Link>
           </li>
         ))}
         {rows.length === 0 && <p className={marriagePremium.cardMuted}>No active journeys yet.</p>}

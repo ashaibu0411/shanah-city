@@ -1,24 +1,32 @@
 import type { PublicMember } from "@/lib/auth-types";
-import { getUserById } from "@/lib/auth-server";
 import {
-  assertCounselorForJourney,
-  counselorCanViewJourney,
-  isMarriageCounselor,
+  assertClinicalCounselorForJourney,
+  viewerHasClinicalCounselorAccess,
 } from "@/lib/marriage-counseling-access";
+import {
+  assertCounselorCanAccessJourneyOnDashboard,
+  buildCounselorDashboardRows,
+} from "@/lib/marriage-counselor-dashboard";
+import { buildMarriageCounselorAdministrativeOverview } from "@/lib/marriage-counselor-admin-overview";
+import { buildMarriageCounselorClinicalDetail } from "@/lib/marriage-counselor-clinical-detail";
 import { logMarriageAudit } from "@/lib/marriage-counseling-audit";
 import { resolveJourneyPartnerId, viewerIsJourneyParticipant } from "@/lib/marriage-counseling-participants";
-import { buildSharedComparisonItems } from "@/lib/marriage-counseling-comparison-utils";
 import {
-  getActiveContentVersionLabel,
   getModuleForContentVersion,
-  listModulesForJourney,
 } from "@/lib/marriage-curriculum-service";
 import type {
   MarriageCounselingSessionRecord,
   MarriageCounselorAssignmentRecord,
   MarriageCounselorNoteRecord,
 } from "@/lib/marriage-counseling-types";
-import { counselorLessonRowsForModule, computeModuleSubmissionProgress } from "@/lib/marriage-module-progress";
+import { listCounselorWithConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
+import {
+  MARRIAGE_COUNSELOR_ACCESS_DENIED,
+  throwCounselorAccessDenied,
+  toCounselorSessionApiView,
+  type MarriageCounselorSessionApiView,
+} from "@/lib/marriage-counselor-api-security";
+import { normalizeAssignmentDueAtInput } from "@/lib/marriage-session-scheduling";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
 const store = () => marriageStore();
@@ -28,6 +36,7 @@ export async function createCounselingSession(
   input: {
     journeyId: string;
     scheduledAt: string;
+    schedulingTimeZone?: string;
     topic?: string;
     zoomUrl?: string;
     prepModuleIds?: string[];
@@ -35,12 +44,18 @@ export async function createCounselingSession(
   },
 ) {
   const journey = await store().getJourneyById(input.journeyId);
-  if (!journey) throw new Error("Journey not found.");
-  await assertCounselorForJourney(counselor, journey);
+  if (!journey) throwCounselorAccessDenied();
+  await assertClinicalCounselorForJourney(counselor, journey);
 
   const now = new Date().toISOString();
   const homeworkIds: string[] = [];
   for (const item of input.homework ?? []) {
+    const due = item.dueAt
+      ? normalizeAssignmentDueAtInput({
+          dueAt: item.dueAt,
+          schedulingTimeZone: input.schedulingTimeZone,
+        })
+      : undefined;
     const assignment: MarriageCounselorAssignmentRecord = {
       id: `mca-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       journeyId: journey.id,
@@ -48,7 +63,8 @@ export async function createCounselingSession(
       title: item.title,
       description: item.description,
       moduleId: item.moduleId,
-      dueAt: item.dueAt,
+      dueAt: due?.dueAt,
+      dueAtTimeZone: due?.dueAtTimeZone,
       completedByUserIds: [],
       createdAt: now,
     };
@@ -60,6 +76,7 @@ export async function createCounselingSession(
     id: `mcs-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     journeyId: journey.id,
     scheduledAt: input.scheduledAt,
+    schedulingTimeZone: input.schedulingTimeZone,
     topic: input.topic,
     zoomUrl: input.zoomUrl?.trim() || undefined,
     prepModuleIds: input.prepModuleIds,
@@ -78,7 +95,7 @@ export async function createCounselingSession(
     meta: { sessionId: session.id },
   });
 
-  return session;
+  return toCounselorSessionApiView(session, counselor.id);
 }
 
 export async function updateCounselingSession(
@@ -86,17 +103,26 @@ export async function updateCounselingSession(
   sessionId: string,
   patch: Partial<{
     scheduledAt: string;
+    schedulingTimeZone: string;
     topic: string;
     zoomUrl: string;
     status: "scheduled" | "completed" | "cancelled";
     notes: string;
   }>,
-) {
+): Promise<MarriageCounselorSessionApiView> {
   const session = await store().getSessionById(sessionId);
-  if (!session) throw new Error("Session not found.");
+  if (!session) throwCounselorAccessDenied();
+
   const journey = await store().getJourneyById(session.journeyId);
-  if (!journey) throw new Error("Journey not found.");
-  await assertCounselorForJourney(counselor, journey);
+  if (!journey || journey.id !== session.journeyId) throwCounselorAccessDenied();
+
+  try {
+    await assertClinicalCounselorForJourney(counselor, journey);
+  } catch {
+    throwCounselorAccessDenied();
+  }
+
+  if (session.createdBy !== counselor.id) throwCounselorAccessDenied();
 
   const now = new Date().toISOString();
   const updated: MarriageCounselingSessionRecord = {
@@ -107,7 +133,7 @@ export async function updateCounselingSession(
     cancelledAt: patch.status === "cancelled" ? now : session.cancelledAt,
   };
   await store().saveSession(updated);
-  return updated;
+  return toCounselorSessionApiView(updated, counselor.id);
 }
 
 export async function saveCounselorPrivateNote(
@@ -116,8 +142,8 @@ export async function saveCounselorPrivateNote(
   body: string,
 ) {
   const journey = await store().getJourneyById(journeyId);
-  if (!journey) throw new Error("Journey not found.");
-  await assertCounselorForJourney(counselor, journey);
+  if (!journey) throwCounselorAccessDenied();
+  await assertClinicalCounselorForJourney(counselor, journey);
   const now = new Date().toISOString();
   const note: MarriageCounselorNoteRecord = {
     id: `mcn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -144,12 +170,19 @@ export async function createCounselorActivityAssignment(
     description?: string;
     moduleId?: string;
     dueAt?: string;
+    dueAtLocal?: string;
+    schedulingTimeZone?: string;
   },
 ) {
   const journey = await store().getJourneyById(input.journeyId);
-  if (!journey) throw new Error("Journey not found.");
-  await assertCounselorForJourney(counselor, journey);
+  if (!journey) throwCounselorAccessDenied();
+  await assertClinicalCounselorForJourney(counselor, journey);
   const now = new Date().toISOString();
+  const due = normalizeAssignmentDueAtInput({
+    dueAt: input.dueAt,
+    dueAtLocal: input.dueAtLocal,
+    schedulingTimeZone: input.schedulingTimeZone,
+  });
   const assignment: MarriageCounselorAssignmentRecord = {
     id: `mca-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     journeyId: journey.id,
@@ -157,7 +190,8 @@ export async function createCounselorActivityAssignment(
     title: input.title.trim(),
     description: input.description?.trim(),
     moduleId: input.moduleId,
-    dueAt: input.dueAt,
+    dueAt: due?.dueAt,
+    dueAtTimeZone: due?.dueAtTimeZone,
     completedByUserIds: [],
     createdAt: now,
   };
@@ -191,169 +225,19 @@ export async function markHomeworkComplete(
 
 export async function getCounselorJourneyDetail(counselor: PublicMember, journeyId: string) {
   const journey = await store().getJourneyById(journeyId);
-  if (!journey) throw new Error("Journey not found.");
-  await counselorCanViewJourney(counselor, journey);
-
-  const modules = await listModulesForJourney(journey);
-  const moduleProgress = [];
-  const stage2LessonProgress: Array<{
-    moduleId: string;
-    title: string;
-    partnerAStatus: string;
-    partnerBStatus: string;
-    comparisonReady: boolean;
-    partnerARequiredComplete: boolean;
-    partnerBRequiredComplete: boolean;
-    optionalRemainingA: number;
-    optionalRemainingB: number;
-    lessons: ReturnType<typeof counselorLessonRowsForModule>;
-  }> = [];
-
-  const participantAId = journey.participantAId ?? "";
-  const participantBId = journey.participantBId ?? null;
-
-  for (const mod of modules) {
-    const responses = await store().listResponsesForJourneyModule(journey.id, mod.id);
-    const submitted = responses.filter((r) => r.status === "submitted");
-    moduleProgress.push({
-      moduleId: mod.id,
-      title: mod.title,
-      awaitingBoth: submitted.length < 2,
-      bothSubmitted: submitted.length >= 2,
-    });
-
-    const contentVersion =
-      journey.curriculumVersion ?? responses[0]?.contentVersion ?? (await getActiveContentVersionLabel());
-    const moduleDef = await getModuleForContentVersion(mod.id, contentVersion);
-    if (!moduleDef?.lessons?.length || !participantAId) continue;
-
-    const answersByUser = new Map<string, Record<string, unknown>>();
-    for (const r of responses) {
-      answersByUser.set(r.userId, r.answers ?? {});
-    }
-    const progA = computeModuleSubmissionProgress(moduleDef, answersByUser.get(participantAId) ?? {});
-    const progB = participantBId
-      ? computeModuleSubmissionProgress(moduleDef, answersByUser.get(participantBId) ?? {})
-      : null;
-    const version = submitted[0]?.contentVersion;
-    let comparisonReady = false;
-    if (submitted.length >= 2 && version) {
-      comparisonReady = Boolean(await store().getUnlock(journey.id, mod.id, version));
-    }
-    const statusFor = (uid: string) => responses.find((r) => r.userId === uid)?.status ?? "not_started";
-
-    stage2LessonProgress.push({
-      moduleId: mod.id,
-      title: mod.title,
-      partnerAStatus: statusFor(participantAId),
-      partnerBStatus: participantBId ? statusFor(participantBId) : "not_started",
-      comparisonReady,
-      partnerARequiredComplete: progA.canSubmit,
-      partnerBRequiredComplete: progB?.canSubmit ?? false,
-      optionalRemainingA: progA.optionalTotal - progA.optionalDone,
-      optionalRemainingB: progB ? progB.optionalTotal - progB.optionalDone : 0,
-      lessons: counselorLessonRowsForModule(moduleDef, answersByUser, participantAId, participantBId),
-    });
+  if (!journey) throw new Error(MARRIAGE_COUNSELOR_ACCESS_DENIED);
+  if (journey.status === "archived") {
+    throw new Error(MARRIAGE_COUNSELOR_ACCESS_DENIED);
   }
-
-  const comparisonSummaries: Array<{
-    moduleId: string;
-    moduleTitle: string;
-    needsAttention: number;
-    aligned: number;
-    items: ReturnType<typeof buildSharedComparisonItems>;
-  }> = [];
-
-  for (const mod of modules) {
-    const responses = await store().listResponsesForJourneyModule(journey.id, mod.id);
-    const submitted = responses.filter((r) => r.status === "submitted");
-    if (submitted.length >= 2) {
-      const version = submitted[0].contentVersion;
-      const unlock = await store().getUnlock(journey.id, mod.id, version);
-      if (unlock) {
-        const moduleDef = await getModuleForContentVersion(mod.id, version);
-        if (moduleDef) {
-          const items = buildSharedComparisonItems(
-            moduleDef.questions,
-            submitted[0].answers,
-            submitted[1].answers,
-          );
-          comparisonSummaries.push({
-            moduleId: mod.id,
-            moduleTitle: mod.title,
-            needsAttention: items.filter((i) => i.category !== "aligned").length,
-            aligned: items.filter((i) => i.category === "aligned").length,
-            items,
-          });
-        }
-      }
-    }
+  try {
+    await assertCounselorCanAccessJourneyOnDashboard(counselor, journey);
+  } catch {
+    throw new Error(MARRIAGE_COUNSELOR_ACCESS_DENIED);
   }
-
-  const authorizedAnswers = [];
-  for (const mod of modules) {
-    const responses = await store().listResponsesForJourneyModule(journey.id, mod.id);
-    for (const response of responses) {
-      if (response.status !== "submitted") continue;
-      const moduleDef = await getModuleForContentVersion(mod.id, response.contentVersion);
-      if (!moduleDef) continue;
-      for (const question of moduleDef.questions) {
-        if (question.visibility !== "counselor_with_consent") continue;
-        const user = await getUserById(response.userId);
-        authorizedAnswers.push({
-          moduleId: mod.id,
-          moduleTitle: mod.title,
-          questionId: question.id,
-          prompt: question.prompt,
-          userId: response.userId,
-          userName: user?.name ?? "Member",
-          answer: response.answers[question.id],
-        });
-      }
-    }
+  if (await viewerHasClinicalCounselorAccess(counselor, journey)) {
+    return buildMarriageCounselorClinicalDetail(counselor, journey);
   }
-
-  const partnerA = journey.participantAId ? await getUserById(journey.participantAId) : null;
-  let partnerBName = journey.participantBId ? (await getUserById(journey.participantBId))?.name : null;
-  if (!partnerA && journey.coupleLinkId) {
-    const { getCoupleLinkById } = await import("@/lib/couple-link-server");
-    const link = await getCoupleLinkById(journey.coupleLinkId);
-    if (link) {
-      const a = await getUserById(link.userAId);
-      const b = await getUserById(link.userBId);
-      return {
-        journey,
-        coupleLabel: [a?.name, b?.name].filter(Boolean).join(" & "),
-        moduleProgress,
-        stage2LessonProgress,
-        comparisonSummaries,
-        attentionAreas: comparisonSummaries
-          .flatMap((s) => s.items.filter((i) => i.category !== "aligned"))
-          .slice(0, 12),
-        authorizedAnswers,
-        sessions: await store().listSessions(journey.id),
-        assignments: await store().listAssignments(journey.id),
-        notes: await store().listCounselorNotes(journey.id),
-        revisions: await store().listRevisionRequests(journey.id),
-      };
-    }
-  }
-
-  return {
-    journey,
-    coupleLabel: [partnerA?.name, partnerBName].filter(Boolean).join(" & "),
-    moduleProgress,
-    stage2LessonProgress,
-    comparisonSummaries,
-    attentionAreas: comparisonSummaries
-      .flatMap((s) => s.items.filter((i) => i.category !== "aligned"))
-      .slice(0, 12),
-    authorizedAnswers,
-    sessions: await store().listSessions(journey.id),
-    assignments: await store().listAssignments(journey.id),
-    notes: await store().listCounselorNotes(journey.id),
-    revisions: await store().listRevisionRequests(journey.id),
-  };
+  return buildMarriageCounselorAdministrativeOverview(counselor, journey);
 }
 
 export async function requestAssessmentRevision(
@@ -387,26 +271,31 @@ export async function resolveRevisionRequest(
   if (!request) throw new Error("Request not found.");
   const journey = await store().getJourneyById(request.journeyId);
   if (!journey) throw new Error("Journey not found.");
-  await assertCounselorForJourney(counselor, journey);
+  await assertClinicalCounselorForJourney(counselor, journey);
+
+  if (request.status !== "pending") {
+    return { ok: true };
+  }
 
   const now = new Date().toISOString();
-  await store().updateRevisionRequest(requestId, {
-    status: decision,
-    resolvedAt: now,
-    resolvedBy: counselor.id,
-  });
 
   if (decision === "approved") {
-    const existing = await store().getResponse(journey.id, request.moduleId, request.userId);
-    if (existing) {
-      await store().saveResponse({
-        ...existing,
-        status: "draft",
-        revisionGeneration: (existing.revisionGeneration ?? 0) + 1,
-        submittedAt: undefined,
-        lastSavedAt: now,
-      });
-    }
+    const response = await store().getResponse(journey.id, request.moduleId, request.userId);
+    if (!response) throw new Error("Assessment response not found.");
+    const moduleDef = await getModuleForContentVersion(request.moduleId, response.contentVersion);
+    if (!moduleDef) throw new Error("Module not found.");
+    const counselorConsentQuestionIds = listCounselorWithConsentQuestionIds(moduleDef.questions);
+    await store().approveAssessmentRevisionRequest(
+      requestId,
+      counselor.id,
+      counselorConsentQuestionIds,
+    );
+  } else {
+    await store().updateRevisionRequest(requestId, {
+      status: "denied",
+      resolvedAt: now,
+      resolvedBy: counselor.id,
+    });
   }
 
   await logMarriageAudit({
@@ -421,20 +310,6 @@ export async function resolveRevisionRequest(
 }
 
 export async function getEnhancedCounselorDashboard(viewer: PublicMember) {
-  if (!(await isMarriageCounselor(viewer))) throw new Error("Counselor access required.");
-  const assigned = await store().listJourneysForCounselor(viewer.id);
-  const allActive = assigned.length ? assigned : await store().listAllActiveJourneys();
-
-  const rows = [];
-  for (const journey of allActive.slice(0, 50)) {
-    const detail = await getCounselorJourneyDetail(viewer, journey.id);
-    const dueAssignments = detail.assignments.filter(
-      (a) => a.dueAt && new Date(a.dueAt).getTime() >= Date.now(),
-    );
-    rows.push({
-      ...detail,
-      homeworkDue: dueAssignments,
-    });
-  }
+  const rows = await buildCounselorDashboardRows(viewer);
   return { rows, counselorId: viewer.id };
 }

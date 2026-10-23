@@ -59,7 +59,8 @@ export type MarriageStage2ActivityKind =
   | "ranking"
   | "reflection";
 
-export type MarriageSharingConsentRecord = {
+/** Stage 2 partner comparison sharing — updates granted/updatedAt only; preserves counselor columns. */
+export type MarriagePartnerSharingConsentPatch = {
   journeyId: string;
   moduleId: string;
   questionId: string;
@@ -67,6 +68,38 @@ export type MarriageSharingConsentRecord = {
   granted: boolean;
   updatedAt: string;
 };
+
+export type MarriageSharingConsentRecord = {
+  journeyId: string;
+  moduleId: string;
+  questionId: string;
+  userId: string;
+  /** Partner-to-partner comparison sharing (Stage 2). */
+  granted: boolean;
+  updatedAt: string;
+  /** Spouse-controlled counselor answer disclosure; independent of `granted`. */
+  counselorDisclosureGranted?: boolean;
+  /** Assigned counselor at grant time; required for counselor answer disclosure (Phase 2+). */
+  consentedCounselorUserId?: string | null;
+  /** Answer change generation at grant time; must match current generation for disclosure. */
+  generationAtGrant?: number | null;
+  /** Optional secondary verification; not sufficient alone for disclosure. */
+  answerFingerprint?: string | null;
+  grantedAt?: string | null;
+};
+
+export type MarriageAnswerChangeGenerationRecord = {
+  journeyId: string;
+  moduleId: string;
+  questionId: string;
+  userId: string;
+  generation: number;
+};
+
+export type MarriageAnswerChangeGenerationKey = Pick<
+  MarriageAnswerChangeGenerationRecord,
+  "journeyId" | "moduleId" | "questionId" | "userId"
+>;
 
 export type MarriageActivitySyncSessionRecord = {
   id: string;
@@ -199,6 +232,56 @@ export type MarriageAuditLogRecord = {
   meta?: Record<string, string | number | boolean>;
 };
 
+/** Pastoral workflow — clinical counselor on journey (not homework tasks). */
+export type MarriageCounselorAssignmentRequestType = "assign" | "reassign" | "remove";
+
+export type MarriageCounselorAssignmentRequestStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "superseded"
+  | "executed";
+
+export type MarriageCounselorAssignmentRequestRecord = {
+  id: string;
+  journeyId: string;
+  requestType: MarriageCounselorAssignmentRequestType;
+  /** Target counselor; null for remove. */
+  requestedCounselorUserId: string | null;
+  previousCounselorUserId: string | null;
+  status: MarriageCounselorAssignmentRequestStatus;
+  requestedByUserId: string;
+  requestedAt: string;
+  reviewedByUserId?: string | null;
+  reviewedAt?: string | null;
+  decisionNote?: string | null;
+  executedAt?: string | null;
+};
+
+/** Participant authorizes restoration after revoke — not assessment disclosure consent. */
+export type MarriageCounselorAssignmentAcknowledgmentRecord = {
+  requestId: string;
+  journeyId: string;
+  userId: string;
+  counselorUserId: string;
+  acknowledgedAt: string;
+};
+
+export type MarriageCounselorParticipantRevocationRecord = {
+  journeyId: string;
+  userId: string;
+  revokedAt: string;
+};
+
+/** Administrative coordination scope for assignment admins (not clinical access). */
+export type MarriageJourneyAdministrativeCoordinatorRecord = {
+  journeyId: string;
+  coordinatorUserId: string;
+  assignedByUserId: string;
+  assignedAt: string;
+};
+
 export type MarriageSessionStatus = "scheduled" | "completed" | "cancelled";
 
 export type MarriageCounselorAssignmentRecord = {
@@ -209,6 +292,8 @@ export type MarriageCounselorAssignmentRecord = {
   description?: string;
   moduleId?: string;
   dueAt?: string;
+  /** IANA zone for legacy naive dueAt and display (JSON store; DB column pending). */
+  dueAtTimeZone?: string;
   completedByUserIds: string[];
   createdAt: string;
   sessionId?: string;
@@ -258,6 +343,8 @@ export type MarriageCounselingSessionRecord = {
   id: string;
   journeyId: string;
   scheduledAt: string;
+  /** IANA timezone for interpreting legacy naive scheduledAt values and display (JSON store; DB column pending). */
+  schedulingTimeZone?: string;
   zoomUrl?: string;
   notes?: string;
   topic?: string;
@@ -287,7 +374,13 @@ export type MarriageDiscussionMarkRecord = {
   questionId: string;
   markedByUserId: string;
   sharedNote?: string;
+  /** Note authorship / display time — preserved across reopen. */
   markedAt: string;
+  /**
+   * When this partner last marked the topic discussed.
+   * `null` = explicitly reopened (note row kept). `undefined` = legacy row (treated as discussed).
+   */
+  discussedAt?: string | null;
 };
 
 export type MarriageQuestionOption = {
@@ -324,6 +417,17 @@ export type MarriageBudgetWorksheetAnswer = {
   notes?: string;
 };
 
+export type MarriageComparisonDiscussionState = {
+  discussed: boolean;
+  markedByUserId?: string;
+  markedAt?: string;
+  sharedNotes: Array<{
+    authorUserId: string;
+    body: string;
+    markedAt: string;
+  }>;
+};
+
 export type MarriageComparisonItem = {
   questionId: string;
   prompt: string;
@@ -331,6 +435,8 @@ export type MarriageComparisonItem = {
   myAnswer: unknown;
   partnerAnswer: unknown;
   category: "aligned" | "different" | "needs_conversation" | "not_yet_discussed";
+  /** Couple discussion tracking — separate from answer-difference category. */
+  discussion?: MarriageComparisonDiscussionState;
 };
 
 export type MarriageHubModuleProgress = {
@@ -347,6 +453,7 @@ export type MarriageHubAssignmentView = {
   id: string;
   title: string;
   dueAt?: string;
+  dueAtTimeZone?: string;
   completed: boolean;
   moduleId?: string;
 };
@@ -432,7 +539,17 @@ export type MarriageStage2Dashboard = {
   nextSessionAt: string | null;
 };
 
+/** Participant-safe counseling session fields for the marriage hub. */
+export type MarriageHubUpcomingSessionView = {
+  id: string;
+  topic?: string;
+  scheduledAt: string;
+  schedulingTimeZone?: string;
+  zoomUrl?: string;
+};
+
 export type MarriageHubSummary = {
+  viewerId: string;
   journey: MarriageCounselingJourneyRecord | null;
   programType: MarriageProgramType | null;
   partnerName: string | null;
@@ -443,10 +560,14 @@ export type MarriageHubSummary = {
   partnerJoined: boolean;
   modules: MarriageHubModuleProgress[];
   nextSession: MarriageCounselingSessionRecord | null;
+  upcomingSessions: MarriageHubUpcomingSessionView[];
   upcomingHomework: MarriageHubAssignmentView[];
   pendingInviteCode: string | null;
   isCounselor: boolean;
   isCurriculumAdmin: boolean;
+  canSubmitCounselorAssignment: boolean;
+  isSeniorPastorCounselorApprover: boolean;
+  canReviewDeletionRequests: boolean;
   contentVersion: string;
   stage2?: MarriageStage2Dashboard;
 };

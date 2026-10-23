@@ -33,7 +33,8 @@ export async function GET(request: Request) {
   const view = url.searchParams.get("view");
   try {
     if (view === "temperament") {
-      return NextResponse.json(await getTemperamentInsightsForCouple(user));
+      const scoringModel = url.searchParams.get("scoringModel");
+      return NextResponse.json(await getTemperamentInsightsForCouple(user, { scoringModel }));
     }
     if (view === "sync") {
       const moduleId = url.searchParams.get("moduleId")?.trim();

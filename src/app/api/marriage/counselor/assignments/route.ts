@@ -2,6 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { createCounselorActivityAssignment } from "@/lib/marriage-counseling-counselor-server";
+import {
+  counselorRouteErrorBody,
+  counselorRouteErrorStatus,
+} from "@/lib/marriage-counselor-api-security";
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
@@ -16,13 +20,15 @@ export async function POST(request: Request) {
       title: String(body.title ?? ""),
       description: body.description ? String(body.description) : undefined,
       moduleId: body.moduleId ? String(body.moduleId) : undefined,
+      dueAtLocal: body.dueAtLocal ? String(body.dueAtLocal) : undefined,
       dueAt: body.dueAt ? String(body.dueAt) : undefined,
+      schedulingTimeZone: body.schedulingTimeZone ? String(body.schedulingTimeZone) : undefined,
     });
     return NextResponse.json({ ok: true, assignment });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Request failed." },
-      { status: 403 },
-    );
+    const message = error instanceof Error ? error.message : "Request failed.";
+    return NextResponse.json(counselorRouteErrorBody(message), {
+      status: counselorRouteErrorStatus(message),
+    });
   }
 }

@@ -13,6 +13,16 @@ import { allStage2ModuleDefinitions } from "@/lib/marriage-stage2-module-registr
 import { buildLearningSections } from "@/lib/marriage-stage2-learning-sections";
 import { isMarriageStage2Enabled } from "@/lib/marriage-stage2-feature";
 import { buildTemperamentInsights } from "@/lib/marriage-stage2-temperament-insights";
+import {
+  TEMPERAMENT_SCORING_V1,
+  TEMPERAMENT_V2_DISCLAIMER,
+  getTemperamentV2ScoredQuestionIds,
+  resolveTemperamentScoringModel,
+} from "@/lib/marriage-stage2-temperament-scoring-config";
+import {
+  buildTemperamentSnapshotV2,
+  filterTemperamentScoringAnswers,
+} from "@/lib/marriage-stage2-temperament-scoring-v2";
 import { getActiveContentVersionLabel, getModuleForContentVersion } from "@/lib/marriage-curriculum-service";
 import { MARRIAGE_CONSENT_VERSION } from "@/lib/marriage-counseling-curriculum";
 
@@ -106,9 +116,18 @@ export async function buildStage2Dashboard(viewer: PublicMember): Promise<Marria
   const sharedGoals = await store().listSharedGoals(journey.id);
   const assignmentsOpen = ctx.assignmentsOpen;
   const sessions = await store().listSessions(journey.id);
-  const nextSession = sessions.find(
-    (s) => s.status !== "cancelled" && new Date(s.scheduledAt).getTime() >= Date.now(),
-  );
+  const { marriageSessionInstantMs } = await import("@/lib/marriage-session-scheduling");
+  const nextSession = sessions
+    .filter(
+      (s) =>
+        s.status !== "cancelled" &&
+        marriageSessionInstantMs(s.scheduledAt, s.schedulingTimeZone) >= Date.now(),
+    )
+    .sort(
+      (a, b) =>
+        marriageSessionInstantMs(a.scheduledAt, a.schedulingTimeZone) -
+        marriageSessionInstantMs(b.scheduledAt, b.schedulingTimeZone),
+    )[0];
   let partnerName: string | null = null;
   if (partnerId) {
     const { getUserById } = await import("@/lib/auth-server");
@@ -131,7 +150,10 @@ export async function buildStage2Dashboard(viewer: PublicMember): Promise<Marria
   };
 }
 
-export async function getTemperamentInsightsForCouple(viewer: PublicMember) {
+export async function getTemperamentInsightsForCouple(
+  viewer: PublicMember,
+  options?: { scoringModel?: string | null },
+) {
   if (!isMarriageStage2Enabled()) throw new Error("Stage 2 is not enabled.");
   const ctx = await activeJourneyContext(viewer);
   if (!ctx?.journey) throw new Error("No active journey.");
@@ -155,15 +177,35 @@ export async function getTemperamentInsightsForCouple(viewer: PublicMember) {
   const mod = await getModuleForContentVersion(moduleId, myResponse.contentVersion);
   if (!mod) throw new Error("Module not found.");
 
-  const isA = viewer.id === myResponse.userId;
-  const answersA = isA ? myResponse.answers : partnerResponse.answers;
-  const answersB = isA ? partnerResponse.answers : myResponse.answers;
+  const answersViewer = myResponse.answers;
+  const answersPartner = partnerResponse.answers;
 
+  const scoringModel = resolveTemperamentScoringModel(options?.scoringModel);
+  const scoredIds = getTemperamentV2ScoredQuestionIds();
+  const viewerFiltered = filterTemperamentScoringAnswers(mod.questions, answersViewer, scoredIds);
+  const partnerFiltered = filterTemperamentScoringAnswers(mod.questions, answersPartner, scoredIds);
+
+  const contentVersion = myResponse.contentVersion;
+  const moduleTitle = mod.title;
+
+  if (scoringModel === TEMPERAMENT_SCORING_V1) {
+    return {
+      scoringModelVersion: TEMPERAMENT_SCORING_V1,
+      contentVersion,
+      moduleTitle,
+      insights: buildTemperamentInsights(mod.questions, answersViewer, answersPartner),
+      disclaimer:
+        "These insights describe tendencies, not disorders or fixed labels. Use them to encourage conversation and prayer.",
+    };
+  }
+
+  const snapshot = buildTemperamentSnapshotV2(viewerFiltered, partnerFiltered);
   return {
-    moduleTitle: mod.title,
-    insights: buildTemperamentInsights(mod.questions, answersA, answersB),
-    disclaimer:
-      "These insights describe tendencies, not disorders or fixed labels. Use them to encourage conversation and prayer.",
+    scoringModelVersion: snapshot.scoringModelVersion,
+    contentVersion,
+    moduleTitle,
+    disclaimer: snapshot.disclaimer || TEMPERAMENT_V2_DISCLAIMER,
+    sections: snapshot.sections,
   };
 }
 

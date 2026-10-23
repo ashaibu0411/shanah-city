@@ -1,40 +1,20 @@
 const { execSync } = require("child_process");
+const { executeBuildScript } = require("./build-steps.cjs");
 
 function run(command, env) {
   execSync(command, { stdio: "inherit", env: env ?? process.env });
 }
 
-function getDirectDatabaseUrl() {
-  if (process.env.DIRECT_URL?.trim()) {
-    return process.env.DIRECT_URL.trim();
-  }
-  if (process.env.DIRECT_DATABASE_URL?.trim()) {
-    return process.env.DIRECT_DATABASE_URL.trim();
-  }
+const result = executeBuildScript(process.env, {
+  run,
+  failBuild(error) {
+    console.error(
+      error instanceof Error ? error.message : "Build migration guard failed.",
+    );
+    process.exit(1);
+  },
+});
 
-  const pooled = process.env.DATABASE_URL?.trim();
-  if (!pooled) {
-    return null;
-  }
-  if (pooled.includes("-pooler.")) {
-    return pooled.replace("-pooler.", ".");
-  }
-  if (pooled.includes("-pooler")) {
-    return pooled.replace("-pooler", "");
-  }
-  return pooled;
+if (!result.ok) {
+  process.exit(1);
 }
-
-const directUrl = getDirectDatabaseUrl();
-if (directUrl) {
-  run("npx prisma migrate deploy", {
-    ...process.env,
-    DATABASE_URL: directUrl,
-  });
-} else if (process.env.DATABASE_URL?.trim()) {
-  run("npx prisma migrate deploy");
-} else {
-  console.log("Skipping prisma migrate deploy (DATABASE_URL not set).");
-}
-
-run("npx next build");

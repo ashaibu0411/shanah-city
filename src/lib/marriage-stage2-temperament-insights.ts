@@ -52,7 +52,7 @@ function avgLabel(avg: number | null) {
   return "Moderate / mixed (as answered)";
 }
 
-/** Side-by-side insights — descriptive, never diagnostic. */
+/** Legacy v1 — one row per temperamentDimension (temperament-scoring/1.0.0). */
 export function buildTemperamentInsights(
   questions: MarriageQuestionDefinition[],
   answersA: Record<string, unknown>,

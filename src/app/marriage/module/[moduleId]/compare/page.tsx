@@ -8,8 +8,8 @@ export default async function MarriageComparePage({
 }) {
   const { moduleId } = await params;
   return (
-    <div className={marriagePremium.page}>
-      <div className={marriagePremium.inset}>
+    <div className={marriagePremium.comparePage}>
+      <div className={marriagePremium.compareInset}>
         <MarriageComparisonView moduleId={moduleId} />
       </div>
     </div>

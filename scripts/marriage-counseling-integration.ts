@@ -126,7 +126,7 @@ async function main() {
   const participant = { id: "user-a", name: "Partner A" } as import("../src/lib/auth-types").PublicMember;
   const stranger = { id: "user-x", name: "Stranger" } as import("../src/lib/auth-types").PublicMember;
 
-  await store.updateJourney(journey.id, { counselorUserId: "counselor-1" });
+  await store.applyCounselorJourneyAccessChange(journey.id, { counselorUserId: "counselor-1" });
 
   const {
     createCounselingSession,
@@ -148,6 +148,8 @@ async function main() {
 
   await saveCounselorPrivateNote(counselor, journey.id, "Follow up on communication module.");
   const detail = await getCounselorJourneyDetail(counselor, journey.id);
+  assert.equal(detail.access, "clinical");
+  if (detail.access !== "clinical") throw new Error("Expected clinical counselor detail.");
   assert.ok(detail.sessions.some((s) => s.id === session.id));
   assert.ok(detail.assignments.length >= 1);
   assert.ok(detail.notes.some((n) => n.body.includes("communication")));

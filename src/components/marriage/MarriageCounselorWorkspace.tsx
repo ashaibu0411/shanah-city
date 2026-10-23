@@ -2,23 +2,44 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { MarriageCounselorSessionTopicField } from "@/components/marriage/MarriageCounselorSessionTopicField";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
+import {
+  formatMarriageSessionScheduledAt,
+  MARRIAGE_COUNSELING_SCHEDULING_TIMEZONE,
+} from "@/lib/marriage-session-scheduling";
 import { readJsonResponse } from "@/lib/read-json-response";
 
-type DashboardRow = {
-  journey: { id: string; programType: string };
-  coupleLabel: string;
-  moduleProgress: Array<{ moduleId: string; title: string; bothSubmitted: boolean; awaitingBoth: boolean }>;
-  authorizedAnswers: Array<{ moduleTitle: string; prompt: string; userName: string }>;
-  sessions: Array<{ id: string; scheduledAt: string; topic?: string; zoomUrl?: string; status?: string }>;
-  assignments: Array<{ id: string; title: string; dueAt?: string }>;
-  homeworkDue: Array<{ id: string; title: string; dueAt?: string }>;
+type AdminRow = {
+  access: "administrative";
+  journeyId: string;
+  coupleNames: string;
+  assignedCounselorName: string | null;
+  journeyStatus: string;
+  programType: string;
+  moduleCount: number;
+  completedModules: number;
 };
+
+type ClinicalRow = {
+  access: "clinical";
+  journeyId: string;
+  coupleNames: string;
+  programType: string;
+  moduleProgress: Array<{ moduleId: string; title: string; bothSubmitted: boolean }>;
+  authorizedAnswers: Array<{ moduleTitle: string; prompt: string; userName: string; withheld: boolean; answer?: string }>;
+  sessions: Array<{ id: string; scheduledAt: string; schedulingTimeZone?: string; topic?: string }>;
+  homeworkDue: Array<{ id: string; title: string }>;
+};
+
+type DashboardRow = AdminRow | ClinicalRow;
 
 export function MarriageCounselorWorkspace() {
   const [rows, setRows] = useState<DashboardRow[]>([]);
   const [error, setError] = useState("");
   const [sessionForm, setSessionForm] = useState({ journeyId: "", scheduledAt: "", topic: "", zoomUrl: "" });
+
+  const clinicalRows = rows.filter((r): r is ClinicalRow => r.access === "clinical");
 
   useEffect(() => {
     void (async () => {
@@ -36,7 +57,8 @@ export function MarriageCounselorWorkspace() {
       body: JSON.stringify({
         action: "create",
         journeyId: sessionForm.journeyId,
-        scheduledAt: sessionForm.scheduledAt,
+        scheduledAtLocal: sessionForm.scheduledAt,
+        schedulingTimeZone: MARRIAGE_COUNSELING_SCHEDULING_TIMEZONE,
         topic: sessionForm.topic,
         zoomUrl: sessionForm.zoomUrl,
         homework: sessionForm.topic
@@ -67,82 +89,113 @@ export function MarriageCounselorWorkspace() {
       </Link>
       <h1 className="mt-2 font-display text-xl font-semibold">Counselor workspace</h1>
       <p className={marriagePremium.cardMuted}>
-        Authorized counselor-only responses appear below. Private partner answers stay hidden.
+        Assigned counselors see consented answers only. Pastoral overview shows progress without clinical content.
       </p>
 
-      <div className={`${marriagePremium.card} mt-6`}>
-        <p className="font-semibold">Schedule session</p>
-        <select
-          className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-          value={sessionForm.journeyId}
-          onChange={(e) => setSessionForm((s) => ({ ...s, journeyId: e.target.value }))}
-        >
-          <option value="">Select couple journey</option>
-          {rows.map((r) => (
-            <option key={r.journey.id} value={r.journey.id}>
-              {r.coupleLabel || r.journey.id}
-            </option>
-          ))}
-        </select>
-        <input
-          type="datetime-local"
-          className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-          value={sessionForm.scheduledAt}
-          onChange={(e) => setSessionForm((s) => ({ ...s, scheduledAt: e.target.value }))}
-        />
-        <input
-          className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-          placeholder="Session topic"
-          value={sessionForm.topic}
-          onChange={(e) => setSessionForm((s) => ({ ...s, topic: e.target.value }))}
-        />
-        <input
-          className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-          placeholder="Zoom URL (optional)"
-          value={sessionForm.zoomUrl}
-          onChange={(e) => setSessionForm((s) => ({ ...s, zoomUrl: e.target.value }))}
-        />
-        <button type="button" className={`${marriagePremium.primaryCta} mt-3`} onClick={() => createSession()}>
-          Create session &amp; homework
-        </button>
-      </div>
+      {clinicalRows.length > 0 && (
+        <div className={`${marriagePremium.card} mt-6`}>
+          <p className="font-semibold">Schedule session</p>
+          <select
+            className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
+            value={sessionForm.journeyId}
+            onChange={(e) => setSessionForm((s) => ({ ...s, journeyId: e.target.value }))}
+          >
+            <option value="">Select assigned couple</option>
+            {clinicalRows.map((r) => (
+              <option key={r.journeyId} value={r.journeyId}>
+                {r.coupleNames || r.journeyId}
+              </option>
+            ))}
+          </select>
+          <div className="mt-2">
+            <input
+              type="datetime-local"
+              aria-label="Session date and time"
+              className="w-full rounded-xl border border-[#E8E2DA] px-3 py-2 text-sm dark:border-white/10"
+              value={sessionForm.scheduledAt}
+              onChange={(e) => setSessionForm((s) => ({ ...s, scheduledAt: e.target.value }))}
+            />
+            <p className="mt-1 text-xs text-night-500">
+              Enter time in America/Denver (church scheduling timezone).
+            </p>
+          </div>
+          <div className="mt-2">
+            <MarriageCounselorSessionTopicField
+              value={sessionForm.topic}
+              onChange={(topic) => setSessionForm((s) => ({ ...s, topic }))}
+              inputClassName="w-full rounded-xl border border-[#E8E2DA] px-3 py-2 text-sm dark:border-white/10"
+            />
+          </div>
+          <input
+            className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
+            placeholder="Zoom URL (optional)"
+            value={sessionForm.zoomUrl}
+            onChange={(e) => setSessionForm((s) => ({ ...s, zoomUrl: e.target.value }))}
+          />
+          <button type="button" className={`${marriagePremium.primaryCta} mt-3`} onClick={() => createSession()}>
+            Create session &amp; homework
+          </button>
+        </div>
+      )}
 
       <ul className="mt-6 space-y-4">
-        {rows.map((row) => (
-          <li key={row.journey.id} className={marriagePremium.card}>
-            <p className="font-semibold">{row.coupleLabel || "Couple"}</p>
-            <p className="text-xs capitalize text-night-500">{row.journey.programType}</p>
-            <p className="mt-2 text-sm">
-              Modules both submitted:{" "}
-              {row.moduleProgress.filter((m) => m.bothSubmitted).length}/{row.moduleProgress.length}
-            </p>
-            {row.homeworkDue.length > 0 && (
-              <p className="mt-1 text-sm text-amber-800">Homework due: {row.homeworkDue.map((h) => h.title).join(", ")}</p>
-            )}
-            {row.sessions.slice(0, 2).map((s) => (
-              <p key={s.id} className="mt-1 text-xs text-night-600">
-                Session {s.topic ?? ""} — {new Date(s.scheduledAt).toLocaleString()}
-                {s.zoomUrl ? " · Zoom attached" : ""}
+        {rows.map((row) =>
+          row.access === "administrative" ? (
+            <li key={row.journeyId} className={marriagePremium.card}>
+              <p className="font-semibold">{row.coupleNames || "Couple"}</p>
+              <p className="text-xs capitalize text-night-500">
+                {row.programType} · {row.journeyStatus}
               </p>
-            ))}
-            {row.authorizedAnswers.length > 0 && (
-              <div className="mt-3 rounded-xl bg-stone-50 p-3 dark:bg-white/5">
-                <p className="text-xs font-bold uppercase">Counselor-authorized responses</p>
-                {row.authorizedAnswers.slice(0, 3).map((a, i) => (
-                  <p key={i} className="mt-1 text-xs">
-                    {a.userName}: {a.moduleTitle} — {a.prompt.slice(0, 60)}…
-                  </p>
-                ))}
-              </div>
-            )}
-            <Link
-              href={`/marriage/counselor/journey/${row.journey.id}`}
-              className={`${marriagePremium.primaryCta} mt-3 text-sm`}
-            >
-              Open couple dashboard
-            </Link>
-          </li>
-        ))}
+              <p className="mt-1 text-sm">Counselor: {row.assignedCounselorName ?? "Unassigned"}</p>
+              <p className="mt-1 text-sm">
+                Modules both submitted: {row.completedModules}/{row.moduleCount}
+              </p>
+              <Link
+                href={`/marriage/counselor/journey/${row.journeyId}`}
+                className={`${marriagePremium.primaryCta} mt-3 text-sm`}
+              >
+                Overview
+              </Link>
+            </li>
+          ) : (
+            <li key={row.journeyId} className={marriagePremium.card}>
+              <p className="font-semibold">{row.coupleNames || "Couple"}</p>
+              <p className="text-xs capitalize text-night-500">{row.programType}</p>
+              <p className="mt-2 text-sm">
+                Modules both submitted:{" "}
+                {row.moduleProgress.filter((m) => m.bothSubmitted).length}/{row.moduleProgress.length}
+              </p>
+              {row.homeworkDue.length > 0 && (
+                <p className="mt-1 text-sm text-amber-800">
+                  Homework due: {row.homeworkDue.map((h) => h.title).join(", ")}
+                </p>
+              )}
+              {row.sessions.slice(0, 2).map((s) => (
+                <p key={s.id} className="mt-1 text-xs text-night-600">
+                  Session {s.topic ?? ""} —{" "}
+                  {formatMarriageSessionScheduledAt(s.scheduledAt, s.schedulingTimeZone)}
+                </p>
+              ))}
+              {row.authorizedAnswers.length > 0 && (
+                <div className="mt-3 rounded-xl bg-stone-50 p-3 dark:bg-white/5">
+                  <p className="text-xs font-bold uppercase">Consented responses</p>
+                  {row.authorizedAnswers.slice(0, 3).map((a, i) => (
+                    <p key={i} className="mt-1 text-xs">
+                      {a.userName}: {a.moduleTitle} —{" "}
+                      {a.withheld ? "Withheld (consent required)" : a.prompt.slice(0, 40)}
+                    </p>
+                  ))}
+                </div>
+              )}
+              <Link
+                href={`/marriage/counselor/journey/${row.journeyId}`}
+                className={`${marriagePremium.primaryCta} mt-3 text-sm`}
+              >
+                Open clinical dashboard
+              </Link>
+            </li>
+          ),
+        )}
       </ul>
     </div>
   );

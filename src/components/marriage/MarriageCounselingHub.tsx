@@ -8,7 +8,10 @@ import { marriagePremium } from "@/components/marriage/marriage-counseling-premi
 import type { MarriageHubSummary, MarriageProgramType } from "@/lib/marriage-counseling-types";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { MarriageStage2HubPromo } from "@/components/marriage/MarriageStage2HubPromo";
+import { MarriageCounselorAssignmentParticipantPanel } from "@/components/marriage/MarriageCounselorAssignmentParticipantPanel";
 import { isMarriageStage2ClientEnabled } from "@/lib/marriage-stage2-feature";
+import { marriageHubShowsCounselorAssignmentsNav } from "@/lib/marriage-counselor-assignment-ui";
+import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 
 function statusLabel(mod: MarriageHubSummary["modules"][0]) {
   if (mod.comparisonReady) return "Compare ready";
@@ -23,10 +26,11 @@ export function MarriageCounselingHub() {
   const [hub, setHub] = useState<MarriageHubSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [starting, setStarting] = useState<MarriageProgramType | null>(null);
-
   const load = useCallback(async () => {
     setError("");
+    setNotice("");
     const res = await fetch("/api/marriage/hub", { cache: "no-store" });
     const data = await readJsonResponse<MarriageHubSummary & { error?: string }>(res);
     if (!res.ok) {
@@ -112,6 +116,12 @@ export function MarriageCounselingHub() {
   const continueModule =
     inProgressModule ?? hub?.modules.find((m) => m.myStatus !== "submitted");
 
+  const showMarriagePrepStaffNav =
+    hub &&
+    (hub.isCounselor ||
+      hub.isCurriculumAdmin ||
+      marriageHubShowsCounselorAssignmentsNav(hub));
+
   return (
     <div className={marriagePremium.page}>
       <div className={marriagePremium.inset}>
@@ -124,7 +134,44 @@ export function MarriageCounselingHub() {
           </p>
         </div>
 
-        {error && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
+        {error && (
+          <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-200">
+            {error}
+          </p>
+        )}
+        {notice && (
+          <p className="mt-4 rounded-xl bg-stone-100 px-3 py-2 text-sm text-night-800 dark:bg-white/10 dark:text-sand-100">
+            {notice}
+          </p>
+        )}
+
+        {showMarriagePrepStaffNav && (
+          <div className="mt-6 grid gap-2">
+            {hub.isCounselor && (
+              <Link href="/marriage/counselor" className={marriagePremium.secondaryCta}>
+                Counselor workspace
+              </Link>
+            )}
+            {hub.isCurriculumAdmin && (
+              <Link href="/marriage/admin/curriculum" className={marriagePremium.secondaryCta}>
+                Curriculum administration
+              </Link>
+            )}
+            {marriageHubShowsCounselorAssignmentsNav(hub) && (
+              <Link
+                href="/marriage/admin/counselor-assignments"
+                className={marriagePremium.secondaryCta}
+              >
+                Counselor assignments
+              </Link>
+            )}
+            {hub.canReviewDeletionRequests && (
+              <Link href="/marriage/admin/deletion-requests" className={marriagePremium.secondaryCta}>
+                Deletion requests
+              </Link>
+            )}
+          </div>
+        )}
 
         {!hub?.coupleLinkActive && !journey && (
           <div className="mt-6 space-y-4">
@@ -243,7 +290,7 @@ export function MarriageCounselingHub() {
                       <p className="font-semibold">{item.title}</p>
                       {item.dueAt && (
                         <p className="text-xs text-night-500">
-                          Due {new Date(item.dueAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                          Due {formatMarriageSessionScheduledAt(item.dueAt, item.dueAtTimeZone)}
                         </p>
                       )}
                       <button
@@ -266,30 +313,52 @@ export function MarriageCounselingHub() {
               </div>
             )}
 
-            {hub.nextSession && (
-              <div className={`${marriagePremium.card} mt-4`}>
-                <p className={marriagePremium.sectionLabel}>Upcoming counseling</p>
-                {hub.nextSession.topic && (
-                  <p className="text-sm font-medium">{hub.nextSession.topic}</p>
-                )}
-                <p className="mt-1 text-sm font-semibold">
-                  {new Date(hub.nextSession.scheduledAt).toLocaleString(undefined, {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
+            <div className={`${marriagePremium.card} mt-4`}>
+              <p className={marriagePremium.sectionLabel}>Upcoming counseling</p>
+              {hub.upcomingSessions.length === 0 ? (
+                <p className="mt-2 text-sm text-night-500">
+                  No counseling sessions scheduled yet. Your counselor will add appointments here.
                 </p>
-                {hub.nextSession.zoomUrl && (
-                  <a
-                    href={hub.nextSession.zoomUrl}
-                    className="mt-2 inline-block text-sm font-semibold text-clay-700 underline"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open Zoom link
-                  </a>
-                )}
-              </div>
-            )}
+              ) : (
+                <ul className="mt-3 space-y-3" aria-label="Upcoming counseling sessions">
+                  {hub.upcomingSessions.map((session, index) => (
+                    <li
+                      key={session.id}
+                      className={`rounded-xl border px-3 py-3 text-sm ${
+                        index === 0
+                          ? "border-clay-400 bg-stone-50 dark:border-clay-600 dark:bg-white/5"
+                          : "border-stone-200 dark:border-white/10"
+                      }`}
+                    >
+                      {index === 0 ? (
+                        <p className="text-xs font-bold uppercase tracking-wide text-clay-800 dark:text-clay-300">
+                          Next session
+                        </p>
+                      ) : null}
+                      <p className="mt-0.5 font-semibold text-night-900 dark:text-sand-100">
+                        {session.topic?.trim() || "Counseling session"}
+                      </p>
+                      <p className="mt-1 font-medium">
+                        {formatMarriageSessionScheduledAt(
+                          session.scheduledAt,
+                          session.schedulingTimeZone,
+                        )}
+                      </p>
+                      {session.zoomUrl ? (
+                        <a
+                          href={session.zoomUrl}
+                          className="mt-2 inline-block text-sm font-semibold text-clay-700 underline dark:text-clay-300"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open Zoom link
+                        </a>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
             <div className="mt-6">
               <p className={`${marriagePremium.sectionLabel} mb-3`}>Learning modules</p>
@@ -322,16 +391,25 @@ export function MarriageCounselingHub() {
               <Link href="/couples" className={marriagePremium.secondaryCta}>
                 Power Couples resources (optional)
               </Link>
-              {hub.isCounselor && (
-                <Link href="/marriage/counselor" className={marriagePremium.secondaryCta}>
-                  Counselor workspace
-                </Link>
+              {journey && hub.viewerId && (
+                <MarriageCounselorAssignmentParticipantPanel
+                  journeyId={journey.id}
+                  viewerUserId={hub.viewerId}
+                />
               )}
-              {hub.isCurriculumAdmin && (
-                <Link href="/marriage/admin/curriculum" className={marriagePremium.secondaryCta}>
-                  Curriculum administration
-                </Link>
+              {journey?.deletionRequestedAt && journey.status === "active" && (
+                <div className={`${marriagePremium.card} mt-4 border border-amber-200 bg-amber-50/80 dark:border-amber-900/40 dark:bg-amber-950/20`}>
+                  <p className="text-sm font-semibold text-amber-950 dark:text-amber-100">
+                    Pastoral review requested
+                  </p>
+                  <p className="mt-1 text-sm text-amber-900/90 dark:text-amber-100/90">
+                    You asked staff to review this journey for possible archival. Records are not permanently
+                    erased by this request. Both partners see this status until staff archive or dismiss the
+                    request.
+                  </p>
+                </div>
               )}
+
               {journey && (
                 <>
                   <button
@@ -356,7 +434,10 @@ export function MarriageCounselingHub() {
                   <button
                     type="button"
                     className={marriagePremium.secondaryCta}
+                    disabled={Boolean(journey.deletionRequestedAt && journey.status === "active")}
                     onClick={async () => {
+                      setError("");
+                      setNotice("");
                       const res = await fetch("/api/marriage/privacy", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -364,10 +445,13 @@ export function MarriageCounselingHub() {
                       });
                       const data = await readJsonResponse<{ error?: string; message?: string }>(res);
                       if (!res.ok) setError(data.error ?? "Request failed.");
-                      else setError(data.message ?? "Deletion request submitted.");
+                      else {
+                        setNotice(data.message ?? "Request recorded.");
+                        await load();
+                      }
                     }}
                   >
-                    Request journey deletion
+                    Request pastoral review (archive)
                   </button>
                 </>
               )}

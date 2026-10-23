@@ -5,6 +5,10 @@ import {
   requestAssessmentRevision,
   resolveRevisionRequest,
 } from "@/lib/marriage-counseling-counselor-server";
+import {
+  counselorRouteErrorBody,
+  counselorRouteErrorStatus,
+} from "@/lib/marriage-counselor-api-security";
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
@@ -34,9 +38,9 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Request failed." },
-      { status: 400 },
-    );
+    const message = error instanceof Error ? error.message : "Request failed.";
+    return NextResponse.json(counselorRouteErrorBody(message), {
+      status: counselorRouteErrorStatus(message),
+    });
   }
 }

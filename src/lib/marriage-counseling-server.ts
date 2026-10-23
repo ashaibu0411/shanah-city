@@ -17,6 +17,7 @@ import { getPendingInviteCodeForJourney } from "@/lib/marriage-counseling-invite
 import { isMarriageCurriculumAdmin } from "@/lib/marriage-counseling-access";
 import { resolveJourneyPartnerId } from "@/lib/marriage-counseling-participants";
 import { buildSharedComparisonItems } from "@/lib/marriage-counseling-comparison-utils";
+import { attachDiscussionToComparisonItems } from "@/lib/marriage-discussion-utils";
 import { validateBudgetAnswer } from "@/lib/marriage-budget-utils";
 import {
   notifyMarriageComparisonReady,
@@ -33,6 +34,7 @@ import type {
   MarriageJourneyConsentRecord,
   MarriageProgramType,
   MarriageQuestionDefinition,
+  MarriageDiscussionMarkRecord,
 } from "@/lib/marriage-counseling-types";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
@@ -69,6 +71,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
   let partnerJoined = false;
   let modules: MarriageHubModuleProgress[] = [];
   let nextSession = null;
+  let upcomingSessions: MarriageHubSummary["upcomingSessions"] = [];
   let programType: MarriageProgramType | null = null;
   let pendingInviteCode: string | null = null;
   let upcomingHomework: MarriageHubAssignmentView[] = [];
@@ -114,12 +117,12 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     }
 
     const sessions = await store().listSessions(journey.id);
-    const now = Date.now();
-    nextSession =
-      sessions.find(
-        (s: MarriageCounselingSessionRecord) =>
-          s.status !== "cancelled" && new Date(s.scheduledAt).getTime() >= now,
-      ) ?? null;
+    const {
+      buildHubUpcomingSessionsFromRecords,
+      pickHubNextSession,
+    } = await import("@/lib/marriage-hub-upcoming-sessions");
+    nextSession = pickHubNextSession(sessions);
+    upcomingSessions = buildHubUpcomingSessionsFromRecords(sessions);
 
     const assignments = await store().listAssignments(journey.id);
     upcomingHomework = assignments
@@ -128,6 +131,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
         id: a.id,
         title: a.title,
         dueAt: a.dueAt,
+        dueAtTimeZone: a.dueAtTimeZone,
         completed: false,
         moduleId: a.moduleId,
       }));
@@ -135,11 +139,19 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
 
   const isCounselor = await isMarriageCounselor(viewer);
   const isCurriculumAdmin = await isMarriageCurriculumAdmin(viewer);
+  const { canSubmitCounselorAssignmentRequest, isSeniorPastor } = await import(
+    "@/lib/marriage-counselor-assignment-authority"
+  );
+  const canSubmitCounselorAssignment = await canSubmitCounselorAssignmentRequest(viewer);
+  const isSeniorPastorCounselorApprover = await isSeniorPastor(viewer);
+  const { canReviewJourneyDeletionRequests } = await import("@/lib/marriage-deletion-request-admin");
+  const canReviewDeletionRequests = await canReviewJourneyDeletionRequests(viewer);
 
   const { buildStage2Dashboard } = await import("@/lib/marriage-stage2-server");
   const stage2 = await buildStage2Dashboard(viewer);
 
   return {
+    viewerId: viewer.id,
     journey,
     programType,
     partnerName,
@@ -150,10 +162,14 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     partnerJoined,
     modules,
     nextSession,
+    upcomingSessions,
     upcomingHomework,
     pendingInviteCode,
     isCounselor,
     isCurriculumAdmin,
+    canSubmitCounselorAssignment,
+    isSeniorPastorCounselorApprover,
+    canReviewDeletionRequests,
     contentVersion,
     stage2: stage2 ?? undefined,
   };
@@ -171,6 +187,14 @@ export async function startMarriageJourney(viewer: PublicMember, programType: Ma
 
   const existing = await store().getActiveJourneyForCoupleLink(link.id);
   if (existing) return existing;
+
+  const { assertParticipantsMayStartNewJourney } = await import(
+    "@/lib/marriage-active-journey-lifecycle"
+  );
+  await assertParticipantsMayStartNewJourney({
+    participantUserIds: [link.userAId, link.userBId].filter(Boolean) as string[],
+    coupleLinkId: link.id,
+  });
 
   const curriculumVersion = await getActiveContentVersionLabel();
   const moduleList = await listModulesForJourney({
@@ -296,20 +320,15 @@ export async function saveAssessmentDraft(
   validateAnswers(mod.questions, answers, false);
 
   const now = new Date().toISOString();
-  const existing = await store().getResponse(assessment.journeyId, moduleId, viewer.id);
-  const record = {
-    id: existing?.id ?? `mar-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  await store().applyAssessmentDraftPatch({
     journeyId: assessment.journeyId,
     moduleId,
-    contentVersion: assessment.contentVersion,
     userId: viewer.id,
-    status: "draft" as const,
-    answers: { ...(existing?.answers ?? {}), ...answers },
+    contentVersion: assessment.contentVersion,
+    patch: answers,
+    questions: mod.questions,
     lastSavedAt: now,
-    submittedAt: undefined,
-    revisionGeneration: existing?.revisionGeneration,
-  };
-  await store().saveResponse(record);
+  });
 
   const journey = await store().getJourneyById(assessment.journeyId);
   if (journey && journey.currentModuleId !== moduleId) {
@@ -403,7 +422,7 @@ function validateAnswers(
   }
 }
 
-export async function getComparisonForViewer(viewer: PublicMember, moduleId: string) {
+async function loadComparisonBundle(viewer: PublicMember, moduleId: string) {
   const hub = await getMarriageHubSummary(viewer);
   if (!hub.journey) throw new Error("No active journey.");
 
@@ -421,7 +440,7 @@ export async function getComparisonForViewer(viewer: PublicMember, moduleId: str
   }
 
   const { isMarriageStage2Enabled } = await import("@/lib/marriage-stage2-feature");
-  let items;
+  let items: MarriageComparisonItem[];
   if (isMarriageStage2Enabled()) {
     const consents = await store().listSharingConsents(hub.journey.id, moduleId);
     const { buildComparisonItemsWithConsent } = await import("@/lib/marriage-stage2-activity-engine");
@@ -442,6 +461,9 @@ export async function getComparisonForViewer(viewer: PublicMember, moduleId: str
   const marks = await store().getDiscussionMarks(hub.journey.id, moduleId);
 
   return {
+    hub,
+    partnerId,
+    contentVersion,
     moduleTitle: mod.title,
     items,
     marks,
@@ -449,25 +471,97 @@ export async function getComparisonForViewer(viewer: PublicMember, moduleId: str
   };
 }
 
+function assertEligibleComparisonQuestion(items: MarriageComparisonItem[], questionId: string) {
+  const item = items.find((i) => i.questionId === questionId);
+  if (!item) {
+    throw new Error("This question is not available for couple discussion.");
+  }
+  return item;
+}
+
+export async function getComparisonForViewer(viewer: PublicMember, moduleId: string) {
+  const bundle = await loadComparisonBundle(viewer, moduleId);
+  const items = attachDiscussionToComparisonItems(bundle.items, bundle.marks);
+
+  return {
+    moduleTitle: bundle.moduleTitle,
+    items,
+    marks: bundle.marks,
+    journeyId: bundle.journeyId,
+    contentVersion: bundle.contentVersion,
+    viewerId: viewer.id,
+    partnerId: bundle.partnerId,
+  };
+}
+
 export async function markDiscussion(
   viewer: PublicMember,
   moduleId: string,
   questionId: string,
-  sharedNote?: string,
 ) {
-  const hub = await getMarriageHubSummary(viewer);
-  if (!hub.journey) throw new Error("No active journey.");
-  await assertJourneyParticipant(hub.journey, viewer.id);
+  const bundle = await loadComparisonBundle(viewer, moduleId);
+  assertEligibleComparisonQuestion(bundle.items, questionId);
 
-  return store().upsertDiscussionMark({
-    id: `md-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    journeyId: hub.journey.id,
+  const existing = bundle.marks.find(
+    (m) => m.questionId === questionId && m.markedByUserId === viewer.id,
+  );
+
+  const now = new Date().toISOString();
+  const payload: MarriageDiscussionMarkRecord = {
+    id: existing?.id ?? `md-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    journeyId: bundle.journeyId,
     moduleId,
     questionId,
     markedByUserId: viewer.id,
-    sharedNote,
-    markedAt: new Date().toISOString(),
+    markedAt: existing?.sharedNote?.trim() ? existing.markedAt : now,
+    discussedAt: now,
+  };
+  if (existing?.sharedNote?.trim()) {
+    payload.sharedNote = existing.sharedNote;
+  }
+  return store().upsertDiscussionMark(payload);
+}
+
+export async function saveDiscussionNote(
+  viewer: PublicMember,
+  moduleId: string,
+  questionId: string,
+  sharedNote: string,
+) {
+  const body = sharedNote.trim();
+  if (!body) throw new Error("Note cannot be empty.");
+
+  const bundle = await loadComparisonBundle(viewer, moduleId);
+  assertEligibleComparisonQuestion(bundle.items, questionId);
+
+  const forQuestion = bundle.marks.filter((m) => m.questionId === questionId);
+  const existing = forQuestion.find((m) => m.markedByUserId === viewer.id);
+  if (!forQuestion.length) {
+    throw new Error("Mark this topic as discussed before adding a shared note.");
+  }
+
+  return store().upsertDiscussionMark({
+    id: existing?.id ?? `md-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    journeyId: bundle.journeyId,
+    moduleId,
+    questionId,
+    markedByUserId: viewer.id,
+    sharedNote: body,
+    markedAt: existing?.markedAt ?? new Date().toISOString(),
+    discussedAt: existing?.discussedAt,
   });
+}
+
+export async function reopenDiscussion(
+  viewer: PublicMember,
+  moduleId: string,
+  questionId: string,
+) {
+  const bundle = await loadComparisonBundle(viewer, moduleId);
+  assertEligibleComparisonQuestion(bundle.items, questionId);
+
+  await store().reopenDiscussionForQuestion(bundle.journeyId, moduleId, questionId);
+  return { ok: true as const };
 }
 
 export async function listJournal(viewer: PublicMember) {

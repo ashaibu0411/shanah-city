@@ -1,5 +1,5 @@
 import type { PublicMember } from "@/lib/auth-types";
-import { getUserByEmail, getUserById } from "@/lib/auth-server";
+import { getUserByEmail } from "@/lib/auth-server";
 import { logMarriageAudit } from "@/lib/marriage-counseling-audit";
 import { assertJourneyParticipantLoose } from "@/lib/marriage-counseling-access";
 import {
@@ -9,6 +9,15 @@ import {
 import { notifyMarriagePartnerJoined } from "@/lib/marriage-counseling-notify";
 import { MARRIAGE_CONSENT_VERSION } from "@/lib/marriage-counseling-curriculum";
 import type { MarriageProgramType } from "@/lib/marriage-counseling-types";
+import {
+  MARRIAGE_ACTIVE_JOURNEY_CONFLICT,
+  buildJourneyEngagement,
+  isAbandonedInviteShell,
+  isSpouseLinkedJourney,
+  participantHasOtherActiveJourney,
+  pickHubActiveJourneyFromEngagements,
+  resolveHubActiveJourneyForUser,
+} from "@/lib/marriage-active-journey-lifecycle";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
 const store = () => marriageStore();
@@ -20,13 +29,64 @@ function generateInviteCode() {
   return code;
 }
 
+async function findOpenInviteForJourney(journeyId: string) {
+  const invites = await store().listInvitesForJourney(journeyId);
+  return (
+    invites.find(
+      (i) => !i.revokedAt && !i.acceptedAt && new Date(i.expiresAt).getTime() > Date.now(),
+    ) ?? null
+  );
+}
+
 export async function startJourneyWithInvite(
   viewer: PublicMember,
   programType: MarriageProgramType,
   options?: { intendedEmail?: string; counselorUserId?: string | null },
 ) {
-  const existing = await store().getActiveJourneyForUser(viewer.id);
-  if (existing) return { journey: existing, invite: null };
+  const actives = await store().listActiveJourneysForUser(viewer.id);
+  const hubJourney = await resolveHubActiveJourneyForUser(viewer.id, actives);
+  if (hubJourney) {
+    if (isSpouseLinkedJourney(hubJourney)) {
+      throw new Error(MARRIAGE_ACTIVE_JOURNEY_CONFLICT);
+    }
+    const invite = await findOpenInviteForJourney(hubJourney.id);
+    return { journey: hubJourney, invite };
+  }
+
+  const engagements = await Promise.all(actives.map((j) => buildJourneyEngagement(j)));
+  const abandonedOnly = engagements.filter((e) =>
+    isAbandonedInviteShell(e.journey, e.meaningfulActivityCount),
+  );
+  if (abandonedOnly.length > 0) {
+    const sorted = [...abandonedOnly].sort((a, b) =>
+      b.journey.createdAt.localeCompare(a.journey.createdAt),
+    );
+    const journey = sorted[0]!.journey;
+    let invite = await findOpenInviteForJourney(journey.id);
+    if (!invite) {
+      const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      invite = await store().createInvite({
+        id: `mji-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        code: generateInviteCode(),
+        journeyId: journey.id,
+        createdBy: viewer.id,
+        intendedEmail: options?.intendedEmail?.trim().toLowerCase(),
+        expiresAt,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    return { journey, invite };
+  }
+
+  const nonHubActives = engagements.filter(
+    (e) => !isAbandonedInviteShell(e.journey, e.meaningfulActivityCount),
+  );
+  if (nonHubActives.length > 0) {
+    const conflict = pickHubActiveJourneyFromEngagements(nonHubActives);
+    if (conflict) {
+      throw new Error(MARRIAGE_ACTIVE_JOURNEY_CONFLICT);
+    }
+  }
 
   const { getProgramTrackEntries } = await import("@/lib/marriage-curriculum-service");
   const track = await getProgramTrackEntries(programType);
@@ -98,8 +158,8 @@ export async function acceptJourneyInvite(viewer: PublicMember, code: string) {
     }
   }
 
-  const activeOther = await store().getActiveJourneyForUser(viewer.id);
-  if (activeOther && activeOther.id !== journey.id) {
+  const actives = await store().listActiveJourneysForUser(viewer.id);
+  if (participantHasOtherActiveJourney(actives, viewer.id, journey.id)) {
     throw new Error("You already have an active counseling journey.");
   }
 
@@ -164,6 +224,13 @@ export async function createCounselorJourneyInvite(
 ) {
   const participant = await getUserByEmail(input.participantEmail.trim().toLowerCase());
   if (!participant) throw new Error("No member found with that email.");
+
+  const { assertParticipantsMayStartNewJourney } = await import(
+    "@/lib/marriage-active-journey-lifecycle"
+  );
+  await assertParticipantsMayStartNewJourney({
+    participantUserIds: [participant.id],
+  });
 
   const curriculumVersion = await getActiveContentVersionLabel();
   const journey = await store().createJourney({
