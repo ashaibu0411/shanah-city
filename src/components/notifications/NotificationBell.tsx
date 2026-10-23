@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { AppNotificationItem, AppNotificationItemType } from "@/lib/notification-types";
 import { getGroupArtwork } from "@/lib/group-artwork";
 import { clearAllFeedNotifications, markNotificationFeedsRead } from "@/lib/notification-client";
@@ -112,16 +113,58 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
   } = useNotifications();
   const [open, setOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [panelLayout, setPanelLayout] = useState<{
+    top: number;
+    right: number;
+    width: number;
+  } | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
   const isLight = variant === "light";
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPanelLayout(null);
+      return;
+    }
+
+    function measure() {
+      const button = buttonRef.current;
+      if (!button) return;
+
+      const edge = Math.max(12, Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16);
+      const width = Math.min(352, window.innerWidth - edge * 2);
+      const rect = button.getBoundingClientRect();
+      let right = window.innerWidth - rect.right;
+      if (rect.right - width < edge) {
+        right = window.innerWidth - edge - width;
+      }
+      setPanelLayout({
+        top: rect.bottom + 8,
+        right,
+        width,
+      });
+    }
+
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
 
     function handlePointerDown(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || panelRef.current?.contains(target)) {
+        return;
       }
+      setOpen(false);
     }
 
     function handleEscape(event: KeyboardEvent) {
@@ -164,6 +207,7 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((current) => !current)}
         className={`relative rounded-xl p-2 transition ${
@@ -184,13 +228,22 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
         )}
       </button>
 
-      {open && (
+      {open &&
+        panelLayout &&
+        typeof document !== "undefined" &&
+        createPortal(
         <div
-          className={`absolute right-0 z-50 mt-2 w-[min(92vw,22rem)] overflow-hidden rounded-2xl border shadow-xl ${
+          ref={panelRef}
+          className={`fixed z-[200] overflow-hidden rounded-2xl border shadow-xl ${
             isLight
               ? "border-white/10 bg-night-950 text-white shadow-indigo-950/40"
               : "border-night-900/10 bg-white text-night-900 shadow-night-900/10"
           }`}
+          style={{
+            top: panelLayout.top,
+            right: panelLayout.right,
+            width: panelLayout.width,
+          }}
         >
           <div
             className={`flex items-start justify-between gap-2 border-b px-4 py-3 ${
@@ -267,8 +320,9 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
               </p>
             </div>
           )}
-        </div>
-      )}
+        </div>,
+        document.body,
+        )}
     </div>
   );
 }
