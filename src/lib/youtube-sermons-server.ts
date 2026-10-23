@@ -1,6 +1,7 @@
 import { liveVideoConfig } from "@/lib/live-config";
 import { getYouTubeVideoWatchUrl } from "@/lib/media-clips-utils";
 import { getYouTubeThumbnail } from "@/lib/streams";
+import { fetchYouTubeOEmbed } from "@/lib/worship-youtube-utils";
 import type { SermonVideo } from "@/lib/youtube-sermons-shared";
 
 export type { SermonVideo } from "@/lib/youtube-sermons-shared";
@@ -234,45 +235,64 @@ const YOUTUBE_BROWSER_HEADERS = {
   "Accept-Language": "en-US,en;q=0.9",
 } as const;
 
-async function fetchSermonsViaChannelScrape(handle: string, limit: number): Promise<SermonVideo[]> {
-  const normalized = handle.replace(/^@/, "").trim();
-  if (!normalized) return [];
+function extractVideoIdsFromYouTubeHtml(html: string, max: number): string[] {
+  const seen = new Set<string>();
+  const ids: string[] = [];
 
-  try {
-    const response = await fetch(`https://www.youtube.com/@${encodeURIComponent(normalized)}/videos`, {
-      headers: {
-        ...YOUTUBE_BROWSER_HEADERS,
-        Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
-      },
-      cache: "no-store",
-    });
-    if (!response.ok) return [];
-
-    const html = await response.text();
-    const seen = new Set<string>();
-    const videos: SermonVideo[] = [];
-
-    for (const match of html.matchAll(/"videoId":"([a-zA-Z0-9_-]{11})"/g)) {
-      const id = match[1];
-      if (!id || seen.has(id)) continue;
-      seen.add(id);
-
-      const titleMatch = new RegExp(
-        `"videoId":"${id}"[^}]*"title":\\{"runs":\\[\\{"text":"([^"]+)"`,
-      ).exec(html);
-      const title = titleMatch?.[1]?.trim() || "Latest message";
-      if (/^#?\s*shorts?\b/i.test(title)) continue;
-
-      videos.push(
-        toSermonVideo(id, title, new Date().toISOString()),
-      );
-      if (videos.length >= limit) break;
-    }
-
-    return videos;
-  } catch {
-    return [];
+  for (const match of html.matchAll(/"videoId":"([a-zA-Z0-9_-]{11})"/g)) {
+    const id = match[1];
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+    if (ids.length >= max * 3) break;
   }
+
+  return ids;
+}
+
+async function fetchSermonsViaChannelScrape(
+  handle: string,
+  channelId: string,
+  limit: number,
+): Promise<SermonVideo[]> {
+  const normalized = handle.replace(/^@/, "").trim();
+  const pageUrls = [
+    normalized ? `https://www.youtube.com/@${encodeURIComponent(normalized)}/videos` : null,
+    channelId ? `https://www.youtube.com/channel/${encodeURIComponent(channelId)}/videos` : null,
+  ].filter((url): url is string => Boolean(url));
+
+  for (const pageUrl of pageUrls) {
+    try {
+      const response = await fetch(pageUrl, {
+        headers: {
+          ...YOUTUBE_BROWSER_HEADERS,
+          Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+        },
+        cache: "no-store",
+      });
+      if (!response.ok) continue;
+
+      const html = await response.text();
+      const candidateIds = extractVideoIdsFromYouTubeHtml(html, limit);
+      if (candidateIds.length === 0) continue;
+
+      const videos: SermonVideo[] = [];
+      for (const id of candidateIds) {
+        const oEmbed = await fetchYouTubeOEmbed(id);
+        const title = oEmbed?.title?.trim() || "Latest message";
+        if (/^#?\s*shorts?\b/i.test(title)) continue;
+
+        videos.push(toSermonVideo(id, title, new Date().toISOString()));
+        if (videos.length >= limit) return videos;
+      }
+
+      if (videos.length > 0) return videos;
+    } catch {
+      continue;
+    }
+  }
+
+  return [];
 }
 
 async function fetchSermonsViaRss(channelId: string, limit: number): Promise<SermonVideo[]> {
@@ -312,7 +332,7 @@ export async function loadChannelSermons(limit = 50): Promise<SermonVideo[]> {
     if (fallbackRss.length > 0) return fallbackRss;
   }
 
-  const fromScrape = await fetchSermonsViaChannelScrape(SHANAH_YOUTUBE_HANDLE, limit);
+  const fromScrape = await fetchSermonsViaChannelScrape(SHANAH_YOUTUBE_HANDLE, channelId, limit);
   if (fromScrape.length > 0) return fromScrape;
 
   return [];
