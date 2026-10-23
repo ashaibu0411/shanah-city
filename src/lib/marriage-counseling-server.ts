@@ -188,6 +188,14 @@ export async function startMarriageJourney(viewer: PublicMember, programType: Ma
   const existing = await store().getActiveJourneyForCoupleLink(link.id);
   if (existing) return existing;
 
+  const { assertParticipantsMayStartNewJourney } = await import(
+    "@/lib/marriage-active-journey-lifecycle"
+  );
+  await assertParticipantsMayStartNewJourney({
+    participantUserIds: [link.userAId, link.userBId].filter(Boolean) as string[],
+    coupleLinkId: link.id,
+  });
+
   const curriculumVersion = await getActiveContentVersionLabel();
   const moduleList = await listModulesForJourney({
     id: "temp",

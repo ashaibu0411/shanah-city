@@ -148,19 +148,65 @@ export async function getJourneyById(id: string) {
   return j ? normalizeJourney(j) : null;
 }
 
-export async function getActiveJourneyForUser(userId: string) {
+export async function listArchivedJourneysForUser(userId: string) {
   const store = await readStore();
-  const active = store.journeys.filter((j) => j.status === "active");
-  for (const raw of active) {
+  const archived = store.journeys.filter((j) => j.status === "archived");
+  const byId = new Map<string, MarriageCounselingJourneyRecord>();
+  for (const raw of archived) {
     const j = normalizeJourney(raw);
-    if (j.participantAId === userId || j.participantBId === userId) return j;
+    if (j.participantAId === userId || j.participantBId === userId) {
+      byId.set(j.id, j);
+    }
     if (j.coupleLinkId) {
       const { getCoupleLinkById } = await import("@/lib/couple-link-server");
       const link = await getCoupleLinkById(j.coupleLinkId);
-      if (link && (link.userAId === userId || link.userBId === userId)) return j;
+      if (link && (link.userAId === userId || link.userBId === userId)) {
+        byId.set(j.id, j);
+      }
     }
   }
-  return null;
+  return [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function listActiveJourneysForUser(userId: string) {
+  const store = await readStore();
+  const active = store.journeys.filter((j) => j.status === "active");
+  const byId = new Map<string, MarriageCounselingJourneyRecord>();
+  for (const raw of active) {
+    const j = normalizeJourney(raw);
+    if (j.participantAId === userId || j.participantBId === userId) {
+      byId.set(j.id, j);
+    }
+    if (j.coupleLinkId) {
+      const { getCoupleLinkById } = await import("@/lib/couple-link-server");
+      const link = await getCoupleLinkById(j.coupleLinkId);
+      if (link && (link.userAId === userId || link.userBId === userId)) {
+        byId.set(j.id, j);
+      }
+    }
+  }
+  return [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function countSubmittedResponsesForJourney(journeyId: string) {
+  const store = await readStore();
+  return store.responses.filter((r) => r.journeyId === journeyId && r.status === "submitted")
+    .length;
+}
+
+/** Submitted or in-progress assessment work (includes Stage 2 activities). */
+export async function countMeaningfulAssessmentActivityForJourney(journeyId: string) {
+  const store = await readStore();
+  return store.responses.filter(
+    (r) =>
+      r.journeyId === journeyId && (r.status === "submitted" || r.status === "draft"),
+  ).length;
+}
+
+export async function getActiveJourneyForUser(userId: string) {
+  const { resolveHubActiveJourneyForUser } = await import("@/lib/marriage-active-journey-lifecycle");
+  const actives = await listActiveJourneysForUser(userId);
+  return resolveHubActiveJourneyForUser(userId, actives);
 }
 
 export async function getActiveJourneyForCoupleLink(coupleLinkId: string) {

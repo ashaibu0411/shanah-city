@@ -122,20 +122,75 @@ export async function getActiveJourneyForCoupleLink(coupleLinkId: string) {
   return row ? mapJourney(row) : null;
 }
 
-export async function getActiveJourneyForUser(userId: string) {
-  const row = await prisma.marriageCounselingJourney.findFirst({
+export async function listArchivedJourneysForUser(userId: string) {
+  const byId = new Map<string, ReturnType<typeof mapJourney>>();
+  const direct = await prisma.marriageCounselingJourney.findMany({
+    where: {
+      status: "archived",
+      OR: [{ participantAId: userId }, { participantBId: userId }],
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  for (const row of direct) {
+    byId.set(row.id, mapJourney(row));
+  }
+  const { getCoupleLinksForUser } = await import("@/lib/stores/couple-link-db");
+  const links = await getCoupleLinksForUser(userId);
+  for (const link of links) {
+    const onLink = await prisma.marriageCounselingJourney.findMany({
+      where: { status: "archived", coupleLinkId: link.id },
+      orderBy: { createdAt: "desc" },
+    });
+    for (const row of onLink) {
+      byId.set(row.id, mapJourney(row));
+    }
+  }
+  return [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function listActiveJourneysForUser(userId: string) {
+  const byId = new Map<string, ReturnType<typeof mapJourney>>();
+  const direct = await prisma.marriageCounselingJourney.findMany({
     where: {
       status: "active",
       OR: [{ participantAId: userId }, { participantBId: userId }],
     },
     orderBy: { createdAt: "desc" },
   });
-  if (row) return mapJourney(row);
+  for (const row of direct) {
+    byId.set(row.id, mapJourney(row));
+  }
   const { getCoupleLinksForUser } = await import("@/lib/stores/couple-link-db");
   const links = await getCoupleLinksForUser(userId);
-  const activeLink = links.find((l) => l.status === "active");
-  if (!activeLink) return null;
-  return getActiveJourneyForCoupleLink(activeLink.id);
+  for (const link of links.filter((l) => l.status === "active")) {
+    const onLink = await prisma.marriageCounselingJourney.findMany({
+      where: { status: "active", coupleLinkId: link.id },
+      orderBy: { createdAt: "desc" },
+    });
+    for (const row of onLink) {
+      byId.set(row.id, mapJourney(row));
+    }
+  }
+  return [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function countSubmittedResponsesForJourney(journeyId: string) {
+  return prisma.marriageAssessmentResponse.count({
+    where: { journeyId, status: "submitted" },
+  });
+}
+
+/** Submitted or in-progress assessment work (includes Stage 2 activities). */
+export async function countMeaningfulAssessmentActivityForJourney(journeyId: string) {
+  return prisma.marriageAssessmentResponse.count({
+    where: { journeyId, status: { in: ["submitted", "draft"] } },
+  });
+}
+
+export async function getActiveJourneyForUser(userId: string) {
+  const { resolveHubActiveJourneyForUser } = await import("@/lib/marriage-active-journey-lifecycle");
+  const actives = await listActiveJourneysForUser(userId);
+  return resolveHubActiveJourneyForUser(userId, actives);
 }
 
 export async function createJourney(input: {
