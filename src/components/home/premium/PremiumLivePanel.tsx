@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { LiveStreamCountdown } from "@/components/live/LiveStreamCountdown";
-import {
-  LiveStreamCountdownInline,
-  useUpcomingLiveStreamSchedule,
-} from "@/components/live/useLiveStreamSchedule";
+import { useUpcomingLiveStreamSchedule } from "@/components/live/useLiveStreamSchedule";
 import { homeLiveBannerMediaClass } from "@/lib/home-explore-tile-images";
 import { liveStream, site } from "@/lib/site";
 import { getYouTubeThumbnail } from "@/lib/streams";
@@ -89,17 +86,13 @@ export function PremiumLivePanel({ liveFlyerImage, variant = "desktop" }: Premiu
             </p>
           </>
         ) : !loading && schedule && livePhase === "upcoming" ? (
-          <>
-            <p className="premium-live__title">{schedule.title}</p>
-            <p className="premium-live__meta">Upcoming on YouTube & Facebook</p>
-            <div className="premium-live__countdown">
-              {mobile ? (
-                <LiveStreamCountdownInline />
-              ) : (
-                <LiveStreamCountdown schedule={schedule} variant="desktop-flyer" onComplete={refresh} />
-              )}
+          mobile ? (
+            <div className="premium-live__countdown premium-live__countdown--mobile">
+              <LiveStreamCountdown schedule={schedule} variant="card" onComplete={refresh} />
             </div>
-          </>
+          ) : (
+            <LiveStreamCountdown schedule={schedule} variant="desktop-flyer" onComplete={refresh} />
+          )
         ) : (
           <>
             <p className="premium-live__title">Watch live with us</p>
