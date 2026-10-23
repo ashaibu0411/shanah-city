@@ -16,7 +16,8 @@ export type AppNotificationItemType =
   | "media"
   | "worship"
   | "meeting"
-  | "kids";
+  | "kids"
+  | "ministry_report";
 
 export type AppNotificationItem = {
   id: string;

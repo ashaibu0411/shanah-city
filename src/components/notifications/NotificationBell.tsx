@@ -42,6 +42,8 @@ function notificationIcon(type: AppNotificationItemType) {
       return "📅";
     case "kids":
       return "🧒";
+    case "ministry_report":
+      return "📋";
     default:
       return "✉";
   }
@@ -94,6 +96,8 @@ function notificationTone(type: AppNotificationItemType) {
       return "bg-emerald-500/15 text-emerald-600";
     case "kids":
       return "bg-orange-500/15 text-orange-600";
+    case "ministry_report":
+      return "bg-amber-500/15 text-amber-700";
     default:
       return "bg-fuchsia-500/15 text-fuchsia-500";
   }

@@ -6,16 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Card } from "@/components/ui";
 import { SHANAH_POWER_COUPLES_GROUP_ID } from "@/lib/church-groups";
 import type { CoupleLinkStatusResponse } from "@/lib/couple-link-types";
-import {
-  formatReportMonth,
-  previousReportMonth,
-} from "@/lib/ministry-report-types";
 import { themeBannerDark, themeBannerText } from "@/lib/theme";
-
-type LeaderGroup = {
-  id: string;
-  name: string;
-};
 
 type PendingTraining = {
   groupId: string;
@@ -72,62 +63,6 @@ export function TrainingHomeBanner() {
         {pending.length === 1
           ? `${primary.groupName} · Tap to start training`
           : `${pending.length} teams need training · Start with ${primary.groupName}`}
-      </p>
-    </Link>
-  );
-}
-
-export function LeaderReportHomeBanner() {
-  const { permissions, user } = useAuth();
-  const [leaderGroups, setLeaderGroups] = useState<LeaderGroup[]>([]);
-  const [missingCount, setMissingCount] = useState(0);
-
-  useEffect(() => {
-    if (!user || !permissions.canShowLeaderReportHomeBanner) return;
-
-    const reportMonth = previousReportMonth();
-    fetch(`/api/ministry-reports?reportMonth=${encodeURIComponent(reportMonth)}`)
-      .then((response) => response.json())
-      .then((data) => {
-        const groups = (data.primaryLeaderGroups ?? data.leaderGroups ?? []) as LeaderGroup[];
-        setLeaderGroups(groups);
-        const reports = (data.reports ?? []) as Array<{ groupId: string; status: string }>;
-        const missing = groups.filter((group) => {
-          const report = reports.find((entry) => entry.groupId === group.id);
-          return (
-            !report ||
-            report.status === "draft" ||
-            report.status === "returned"
-          );
-        });
-        setMissingCount(missing.length);
-      })
-      .catch(() => undefined);
-  }, [permissions.canShowLeaderReportHomeBanner, user]);
-
-  if (!permissions.canShowLeaderReportHomeBanner || missingCount === 0 || leaderGroups.length === 0) {
-    return null;
-  }
-
-  const reportMonth = previousReportMonth();
-  const monthLabel = formatReportMonth(reportMonth);
-  const primaryGroup = leaderGroups[0];
-
-  return (
-    <Link
-      href={`/groups/${encodeURIComponent(primaryGroup.id)}?report=1`}
-      className={`theme-light-surface block rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/95 to-orange-50/90 px-4 py-3 ring-1 ring-amber-100 transition hover:border-amber-300 active:scale-[0.99] ${themeBannerDark.amber}`}
-    >
-      <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${themeBannerText.eyebrowAmber}`}>
-        Ministry report due
-      </p>
-      <p className={`mt-1 font-display text-base font-semibold ${themeBannerText.title}`}>
-        Submit your {monthLabel} report
-      </p>
-      <p className={`mt-1 text-sm ${themeBannerText.body}`}>
-        {leaderGroups.length === 1
-          ? `${primaryGroup.name} · Tap to open the monthly report tab`
-          : `${missingCount} team${missingCount === 1 ? "" : "s"} still need ${monthLabel} reports`}
       </p>
     </Link>
   );

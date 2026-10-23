@@ -1,5 +1,6 @@
 import { getGroups } from "@/lib/group-server";
 import { getFeedNotificationItems } from "@/lib/feed-notification-items";
+import { getMinistryReportNotificationItems } from "@/lib/ministry-report-notification-items";
 import type { AppNotificationItemType, AppNotificationsSummary } from "@/lib/notification-types";
 import * as groupChatDb from "@/lib/stores/group-chat-db";
 import * as groupChatJson from "@/lib/stores/group-chat-json";
@@ -18,13 +19,14 @@ function countByType(items: { type: AppNotificationItemType; count: number }[], 
 
 export async function getAppNotifications(userId: string): Promise<AppNotificationsSummary> {
   const groups = await getGroups();
-  const [directItems, groupItems, feedItems] = await Promise.all([
+  const [directItems, groupItems, feedItems, ministryReportItems] = await Promise.all([
     messageStore().getUnreadDirectMessageSummary(userId),
     groupChatStore().getUnreadGroupChatSummary(userId, groups),
     getFeedNotificationItems(userId),
+    getMinistryReportNotificationItems(userId),
   ]);
 
-  const items = [...directItems, ...groupItems, ...feedItems].sort(
+  const items = [...directItems, ...groupItems, ...feedItems, ...ministryReportItems].sort(
     (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
   );
 
@@ -36,10 +38,11 @@ export async function getAppNotifications(userId: string): Promise<AppNotificati
   const worship = countByType(feedItems, "worship");
   const meetings = countByType(feedItems, "meeting");
   const kids = countByType(feedItems, "kids");
+  const ministryReports = ministryReportItems.reduce((sum, item) => sum + item.count, 0);
   const feedTotal = community + devotions + media + worship + meetings + kids;
 
   return {
-    total: directMessages + groupChat + feedTotal,
+    total: directMessages + groupChat + feedTotal + ministryReports,
     directMessages,
     groupChat,
     community,

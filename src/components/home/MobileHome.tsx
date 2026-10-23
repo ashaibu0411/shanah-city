@@ -25,7 +25,6 @@ import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
 import {
   AnniversaryHomeBanner,
   CheckInHomeBanner,
-  LeaderReportHomeBanner,
   FollowUpHomeBanner,
   TrainingHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
@@ -180,7 +179,6 @@ export function MobileHome({
 
       <CheckInHomeBanner />
 
-      <LeaderReportHomeBanner />
       <TrainingHomeBanner />
       <FollowUpHomeBanner />
 

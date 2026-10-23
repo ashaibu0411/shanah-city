@@ -5,7 +5,6 @@ import {
   AnniversaryHomeBanner,
   CheckInHomeBanner,
   FollowUpHomeBanner,
-  LeaderReportHomeBanner,
   TrainingHomeBanner,
 } from "@/components/home/DailyEngagementBanners";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
@@ -27,7 +26,6 @@ export function PremiumEngagementRail({
       <PendingRsvpHomeBanner />
       <AnniversaryHomeBanner />
       <PrayerHomeBanner variant={mobile ? "mobile" : "desktop"} />
-      <LeaderReportHomeBanner />
       <TrainingHomeBanner />
       <FollowUpHomeBanner />
       {includeCheckIn ? <CheckInHomeBanner /> : null}
