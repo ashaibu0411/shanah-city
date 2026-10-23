@@ -228,12 +228,59 @@ async function fetchSermonsViaSearchApi(
   return filterLongFormVideos(videos, apiKey);
 }
 
+const YOUTUBE_BROWSER_HEADERS = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Accept-Language": "en-US,en;q=0.9",
+} as const;
+
+async function fetchSermonsViaChannelScrape(handle: string, limit: number): Promise<SermonVideo[]> {
+  const normalized = handle.replace(/^@/, "").trim();
+  if (!normalized) return [];
+
+  try {
+    const response = await fetch(`https://www.youtube.com/@${encodeURIComponent(normalized)}/videos`, {
+      headers: {
+        ...YOUTUBE_BROWSER_HEADERS,
+        Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+      },
+      cache: "no-store",
+    });
+    if (!response.ok) return [];
+
+    const html = await response.text();
+    const seen = new Set<string>();
+    const videos: SermonVideo[] = [];
+
+    for (const match of html.matchAll(/"videoId":"([a-zA-Z0-9_-]{11})"/g)) {
+      const id = match[1];
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+
+      const titleMatch = new RegExp(
+        `"videoId":"${id}"[^}]*"title":\\{"runs":\\[\\{"text":"([^"]+)"`,
+      ).exec(html);
+      const title = titleMatch?.[1]?.trim() || "Latest message";
+      if (/^#?\s*shorts?\b/i.test(title)) continue;
+
+      videos.push(
+        toSermonVideo(id, title, new Date().toISOString()),
+      );
+      if (videos.length >= limit) break;
+    }
+
+    return videos;
+  } catch {
+    return [];
+  }
+}
+
 async function fetchSermonsViaRss(channelId: string, limit: number): Promise<SermonVideo[]> {
   const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`;
 
   const response = await fetch(feedUrl, {
     headers: {
-      "User-Agent": "ShanahCityApp/1.0 (+https://shanah-city.vercel.app)",
+      ...YOUTUBE_BROWSER_HEADERS,
       Accept: "application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
     },
     cache: "no-store",
@@ -261,8 +308,12 @@ export async function loadChannelSermons(limit = 50): Promise<SermonVideo[]> {
   if (fromRss.length > 0) return fromRss;
 
   if (channelId !== DEFAULT_CHANNEL_ID) {
-    return fetchSermonsViaRss(DEFAULT_CHANNEL_ID, limit);
+    const fallbackRss = await fetchSermonsViaRss(DEFAULT_CHANNEL_ID, limit);
+    if (fallbackRss.length > 0) return fallbackRss;
   }
+
+  const fromScrape = await fetchSermonsViaChannelScrape(SHANAH_YOUTUBE_HANDLE, limit);
+  if (fromScrape.length > 0) return fromScrape;
 
   return [];
 }

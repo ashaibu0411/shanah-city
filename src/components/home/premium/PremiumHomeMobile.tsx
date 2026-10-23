@@ -9,7 +9,7 @@ import { PremiumEngagementRail } from "@/components/home/premium/PremiumEngageme
 import { PremiumHomeHero } from "@/components/home/premium/PremiumHomeHero";
 import { PremiumMobileLauncher } from "@/components/home/premium/PremiumQuickActions";
 import { PremiumUpcomingEvents } from "@/components/home/premium/PremiumUpcomingEvents";
-import { PremiumLivePanel } from "@/components/home/premium/PremiumLivePanel";
+import { PremiumMobileLiveCinema } from "@/components/home/premium/PremiumMobileLiveCinema";
 import { PremiumStoriesSection } from "@/components/home/premium/PremiumStoriesSection";
 import { PremiumSermonSection } from "@/components/home/premium/PremiumSermonSection";
 import { PremiumStayConnected } from "@/components/home/premium/PremiumStayConnected";
@@ -61,7 +61,7 @@ export function PremiumHomeMobile({
 
       <PremiumUpcomingEvents rows={upcomingEventRows} variant="mobile" />
 
-      <PremiumLivePanel liveFlyerImage={churchImages.live} variant="mobile" />
+      <PremiumMobileLiveCinema liveFlyerImage={churchImages.live} />
 
       <PremiumSermonSection video={latestSermon} variant="mobile" />
 

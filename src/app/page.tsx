@@ -5,6 +5,7 @@ import { getChurchSocialImages } from "@/lib/facebook-church-media";
 import { listUrgentAlertsForHomeCarousel } from "@/lib/urgent-alert-server";
 import { getEvents } from "@/lib/event-server";
 import { pickUpcomingHomeEventRows } from "@/lib/home-upcoming-events";
+import { mergeHomeSermonVideo } from "@/lib/home-sermon-display";
 import { getChannelSermons } from "@/lib/youtube-sermons-server";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +33,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <HomeView
         urgentAlerts={urgentAlerts}
         churchImages={churchImages}
-        latestSermon={sermonVideos[0] ?? null}
+        latestSermon={mergeHomeSermonVideo(sermonVideos[0] ?? null)}
         upcomingEventRows={upcomingEventRows}
       />
     </Suspense>

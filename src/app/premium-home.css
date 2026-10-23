@@ -602,6 +602,18 @@ html.dark .premium-icon-well--more { background: rgba(55, 65, 81, 0.35); color: 
   background: transparent;
 }
 
+.premium-live-cinema__countdown .mb-1 {
+  margin-bottom: 0.35rem;
+}
+
+.premium-live-cinema__countdown .mt-3 {
+  margin-top: 0.5rem;
+}
+
+.premium-live-cinema__countdown .line-clamp-1 {
+  display: none;
+}
+
 .premium-sermon__fallback-thumb {
   position: relative;
   display: block;
