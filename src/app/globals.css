@@ -2,16 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "./premium-home.css";
+
 @layer base {
   :root {
-    --color-bg: #f5f2e8;
-    --color-bg-soft: #f2efe8;
-    --color-bg-muted: #e8e2d6;
+    --color-bg: #f8f7f4;
+    --color-bg-soft: #f1eee8;
+    --color-bg-muted: #e8e5df;
     --color-surface: #ffffff;
-    --color-ink: #292524;
-    --color-ink-muted: #44403c;
-    --color-ink-soft: #78716c;
-    --color-border: rgba(41, 37, 36, 0.08);
+    --color-ink: #191c24;
+    --color-ink-muted: #666b75;
+    --color-ink-soft: #8b9099;
+    --color-border: #e8e5df;
+    --premium-navy: #10264a;
+    --premium-gold: #c9a66b;
     --color-accent: #c45d3e;
     --color-accent-strong: #a84d32;
     --color-accent-soft: #d4765a;
@@ -30,14 +34,16 @@
   }
 
   html.dark {
-    --color-bg: #1b1409;
-    --color-bg-soft: #221c14;
-    --color-bg-muted: #2d2418;
-    --color-surface: #2a231c;
-    --color-ink: #f5f1ea;
-    --color-ink-muted: #d4c4ad;
-    --color-ink-soft: #b8a48a;
-    --color-border: rgba(245, 241, 234, 0.1);
+    --color-bg: #0c111b;
+    --color-bg-soft: #151d2b;
+    --color-bg-muted: #1b2637;
+    --color-surface: #151d2b;
+    --color-ink: #f7f5f0;
+    --color-ink-muted: #aab3c2;
+    --color-ink-soft: #8a93a3;
+    --color-border: #293448;
+    --premium-navy: #d5b47a;
+    --premium-gold: #d5b47a;
     --color-accent: #d4765a;
     --color-accent-strong: #e08a6a;
     --color-accent-soft: #c45d3e;

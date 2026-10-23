@@ -1,25 +1,9 @@
 "use client";
 
 import { useAppShell } from "@/components/app/AppShellContext";
-import { CampusStrip } from "@/components/home/CampusStrip";
-import { HomeHero } from "@/components/home/HomeHero";
-import { LiveBanner } from "@/components/home/LiveBanner";
-import { MobileHome } from "@/components/home/MobileHome";
-import { QuickActions } from "@/components/home/QuickActions";
-import { PendingRsvpHomeBanner } from "@/components/home/PendingRsvpHomeBanner";
-import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
-import {
-  AnniversaryHomeBanner,
-  CheckInHomeBanner,
-  LeaderReportHomeBanner,
-  FollowUpHomeBanner,
-  TrainingHomeBanner,
-} from "@/components/home/DailyEngagementBanners";
+import { PremiumHomeDesktop } from "@/components/home/premium/PremiumHomeDesktop";
+import { PremiumHomeMobile } from "@/components/home/premium/PremiumHomeMobile";
 import { useUrgentAlertHighlight } from "@/components/home/useUrgentAlertHighlight";
-import { HomeStoriesSection } from "@/components/home/HomeStoriesSection";
-import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
-import { SermonCard } from "@/components/sermons/SermonCard";
-import { SectionTitle } from "@/components/ui";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
 
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
@@ -42,41 +26,17 @@ export function HomeView({
   const { isMobileApp } = useAppShell();
   const highlightAlertId = useUrgentAlertHighlight(urgentAlerts);
 
+  const shared = {
+    urgentAlerts,
+    highlightAlertId,
+    churchImages,
+    latestSermon,
+    upcomingEventRows,
+  };
+
   if (isMobileApp) {
-    return (
-      <MobileHome
-        urgentAlerts={urgentAlerts}
-        churchImages={churchImages}
-        highlightAlertId={highlightAlertId}
-        latestSermon={latestSermon}
-        upcomingEventRows={upcomingEventRows}
-      />
-    );
+    return <PremiumHomeMobile {...shared} latestSermon={latestSermon} />;
   }
 
-  return (
-    <>
-      <UrgentNewsHomeStrip alerts={urgentAlerts} highlightAlertId={highlightAlertId} variant="desktop" />
-      <HomeHero />
-      <LiveBanner liveFlyerImage={churchImages.live} />
-      <PendingRsvpHomeBanner />
-      <LeaderReportHomeBanner />
-      <TrainingHomeBanner />
-      <FollowUpHomeBanner />
-      <AnniversaryHomeBanner />
-      <QuickActions />
-      <CampusStrip />
-      <CheckInHomeBanner />
-      <PrayerHomeBanner />
-
-      <section className="mb-8">
-        <HomeStoriesSection />
-      </section>
-
-      <section className="mb-8">
-        <SectionTitle title="Latest sermon" href="/sermons" />
-        <SermonCard compact video={latestSermon} />
-      </section>
-    </>
-  );
+  return <PremiumHomeDesktop {...shared} latestSermon={latestSermon} />;
 }
