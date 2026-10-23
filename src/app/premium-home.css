@@ -654,6 +654,8 @@ html.dark .premium-icon-well--more { background: rgba(55, 65, 81, 0.35); color: 
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Keep faces in frame on short banners (default center crops foreheads). */
+  object-position: 52% 12%;
 }
 
 .premium-stay-connected__scrim {
@@ -776,6 +778,15 @@ html.dark .premium-icon-well--more { background: rgba(55, 65, 81, 0.35); color: 
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
+}
+
+.premium-feature-card--prayer .premium-feature-card__image {
+  object-position: 50% 8%;
+}
+
+.premium-feature-card--give .premium-feature-card__image {
+  object-position: 50% 5%;
 }
 
 .premium-feature-card__scrim {
