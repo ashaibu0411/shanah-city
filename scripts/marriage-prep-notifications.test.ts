@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const server = readFileSync(join(root, "src/lib/marriage-prep-notifications-server.ts"), "utf8");
-assert.match(server, /assertJourneyParticipantLoose/, "notifications scoped to journey participants");
+assert.match(server, /assertViewerCanAccessPrepNotification/, "notifications scoped by role and journey");
 assert.match(server, /tryCreateMarriagePrepUserNotification/, "deduplicated in-app records");
 assert.match(server, /sendPushToUsersWithPushEnabled/, "push respects pushEnabled preference");
 

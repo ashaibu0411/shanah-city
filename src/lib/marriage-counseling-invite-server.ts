@@ -180,6 +180,10 @@ export async function acceptJourneyInvite(viewer: PublicMember, code: string) {
     "@/lib/marriage-default-premarital-counselor-server"
   );
   void queueDefaultPremaritalCounselorAssignmentIfEligible(journey.id);
+  const { checkBothPartnersConsentedAndNotifyCounselor } = await import(
+    "@/lib/marriage-prep-notification-triggers"
+  );
+  void checkBothPartnersConsentedAndNotifyCounselor(journey.id);
 
   notifyMarriagePartnerJoined(journey.participantAId ?? journey.createdBy);
 

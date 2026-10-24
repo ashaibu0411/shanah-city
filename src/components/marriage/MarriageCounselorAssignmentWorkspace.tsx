@@ -18,6 +18,7 @@ import {
   type AdministrativeCoordinatorRosterRow,
   type CoordinatorRosterFilter,
 } from "@/lib/marriage-counselor-assignment-ui";
+import { MarriagePrepNotificationCenter } from "@/components/marriage/MarriagePrepNotificationCenter";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { useAuth } from "@/components/auth/AuthProvider";
 
@@ -473,9 +474,17 @@ export function MarriageCounselorAssignmentWorkspace() {
             Journey deletion requests →
           </Link>
         ) : null}
-        <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight">
-          Counselor assignments
-        </h1>
+        <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+          <h1 className="font-display text-2xl font-semibold tracking-tight">
+            Counselor assignments
+          </h1>
+          <MarriagePrepNotificationCenter
+            buttonLabel="Alerts"
+            panelLabel={
+              caps.canApprove ? "Pastoral administration alerts" : "Operational alerts"
+            }
+          />
+        </div>
         <p className={`${marriagePremium.cardMuted} mt-1`}>
           Assignments require Senior Pastor approval before a counselor receives clinical access.
         </p>

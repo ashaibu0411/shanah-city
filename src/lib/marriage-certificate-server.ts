@@ -347,6 +347,13 @@ export async function revokeFinalCertificate(
     metaJson: null,
     createdAt: now,
   });
+  const journey = await store().getJourneyById(cert.journeyId);
+  if (journey) {
+    const { notifySeniorPastorCertificateRevoked } = await import(
+      "@/lib/marriage-prep-notification-triggers"
+    );
+    void notifySeniorPastorCertificateRevoked(journey, cert.id);
+  }
   return updated;
 }
 
@@ -422,6 +429,10 @@ export async function replaceFinalCertificate(viewer: PublicMember, certificateI
   } catch (error) {
     throw duplicateActiveCertificateError(error);
   }
+  const { notifySeniorPastorCertificateReplaced } = await import(
+    "@/lib/marriage-prep-notification-triggers"
+  );
+  void notifySeniorPastorCertificateReplaced(journey, id);
   return record;
 }
 

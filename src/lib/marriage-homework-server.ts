@@ -458,5 +458,10 @@ export async function submitParticipantHomework(viewer: PublicMember, homeworkId
     lastSavedAt: now,
     submittedAt: now,
   });
+  const { notifyCounselorHomeworkSubmitted, notifyCounselorHomeworkReviewPending } = await import(
+    "@/lib/marriage-prep-notification-triggers"
+  );
+  void notifyCounselorHomeworkSubmitted(journey, homeworkId, viewer.id);
+  void notifyCounselorHomeworkReviewPending(journey, homeworkId, viewer.id);
   return { submittedAt: now };
 }

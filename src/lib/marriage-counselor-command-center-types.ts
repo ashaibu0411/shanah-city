@@ -68,6 +68,7 @@ export type MarriageCounselorCommandCenterAction = {
 export type MarriageCounselorCommandCenterView = {
   counselorId: string;
   schedulingTimeZone: string;
+  prepNotificationUnreadCount: number;
   overview: MarriageCounselorCommandCenterOverview;
   couples: MarriageCounselorCommandCenterCouple[];
   upcomingAppointments: MarriageCounselorCommandCenterAppointment[];

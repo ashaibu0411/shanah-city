@@ -361,9 +361,15 @@ export async function buildMarriageCounselorCommandCenter(
     pausedJourneys: couples.filter((c) => c.cardStatus === "paused").length,
   };
 
+  const { countUnreadMarriagePrepNotificationsForViewer } = await import(
+    "@/lib/marriage-prep-notifications-server"
+  );
+  const prepNotificationUnreadCount = await countUnreadMarriagePrepNotificationsForViewer(viewer);
+
   return {
     counselorId: viewer.id,
     schedulingTimeZone: MARRIAGE_COUNSELING_SCHEDULING_TIMEZONE,
+    prepNotificationUnreadCount,
     overview,
     couples,
     upcomingAppointments,

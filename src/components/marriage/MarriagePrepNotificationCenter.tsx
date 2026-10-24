@@ -8,6 +8,8 @@ import { readJsonResponse } from "@/lib/read-json-response";
 
 type Props = {
   initialUnreadCount?: number;
+  panelLabel?: string;
+  buttonLabel?: string;
 };
 
 function formatWhen(iso: string) {
@@ -18,7 +20,11 @@ function formatWhen(iso: string) {
   }
 }
 
-export function MarriagePrepNotificationCenter({ initialUnreadCount = 0 }: Props) {
+export function MarriagePrepNotificationCenter({
+  initialUnreadCount = 0,
+  panelLabel = "Your updates",
+  buttonLabel = "Updates",
+}: Props) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<MarriagePrepNotificationListView | null>(null);
   const [unread, setUnread] = useState(initialUnreadCount);
@@ -81,11 +87,11 @@ export function MarriagePrepNotificationCenter({ initialUnreadCount = 0 }: Props
         aria-controls="marriage-prep-notifications-panel"
         aria-label={
           unread > 0
-            ? `Marriage Prep updates, ${unread} unread`
-            : "Marriage Prep updates"
+            ? `${buttonLabel}, ${unread} unread`
+            : buttonLabel
         }
       >
-        Updates
+        {buttonLabel}
         {unread > 0 ? (
           <span className="ml-2 rounded-full bg-clay-700 px-2 py-0.5 text-xs font-bold text-white dark:bg-clay-400 dark:text-night-950">
             {unread > 9 ? "9+" : unread}
@@ -101,7 +107,7 @@ export function MarriagePrepNotificationCenter({ initialUnreadCount = 0 }: Props
           className={`${marriagePremium.card} absolute right-0 z-30 mt-2 w-[min(100vw-2rem,22rem)] shadow-lg`}
         >
           <div className="flex items-center justify-between gap-2">
-            <p className={marriagePremium.sectionLabel}>Your updates</p>
+            <p className={marriagePremium.sectionLabel}>{panelLabel}</p>
             <button
               type="button"
               disabled={busy || unread === 0}

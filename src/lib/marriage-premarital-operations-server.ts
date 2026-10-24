@@ -27,7 +27,6 @@ import {
 import {
   notifyMarriageAppointmentCancelled,
   notifyMarriageAppointmentRescheduled,
-  notifyMarriageAppointmentUpcoming,
 } from "@/lib/marriage-counseling-notify";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
@@ -102,6 +101,17 @@ export async function schedulePremaritalAppointment(
     updatedAt: now,
   };
   await store().saveSession(session);
+  const title = sessionTitle(input.premaritalSessionKey);
+  const { notifyCoupleAppointmentScheduled, notifyCounselorAppointmentEvent } = await import(
+    "@/lib/marriage-prep-notification-triggers"
+  );
+  void notifyCoupleAppointmentScheduled(journey, session.id, title);
+  void notifyCounselorAppointmentEvent(
+    journey,
+    session.id,
+    "counselor_appointment_scheduled",
+    "scheduled",
+  );
   await logMarriageAudit({
     actorUserId: viewer.id,
     action: "premarital_appointment_scheduled",
@@ -167,6 +177,13 @@ export async function reschedulePremaritalAppointment(
   await store().saveSession(updated);
 
   void notifyMarriageAppointmentRescheduled(journey, sessionId, sessionTitle(existing.premaritalSessionKey));
+  const { notifyCounselorAppointmentEvent } = await import("@/lib/marriage-prep-notification-triggers");
+  void notifyCounselorAppointmentEvent(
+    journey,
+    sessionId,
+    "counselor_appointment_rescheduled",
+    "rescheduled",
+  );
 
   await logMarriageAudit({
     actorUserId: viewer.id,
@@ -199,6 +216,13 @@ export async function cancelPremaritalAppointment(
   await store().saveSession(updated);
 
   void notifyMarriageAppointmentCancelled(journey, sessionId, sessionTitle(existing.premaritalSessionKey));
+  const { notifyCounselorAppointmentEvent } = await import("@/lib/marriage-prep-notification-triggers");
+  void notifyCounselorAppointmentEvent(
+    journey,
+    sessionId,
+    "counselor_appointment_cancelled",
+    "cancelled",
+  );
 
   await logMarriageAudit({
     actorUserId: viewer.id,

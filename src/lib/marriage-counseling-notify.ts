@@ -29,12 +29,14 @@ export function notifyMarriagePartnerSubmitted(partnerId: string) {
   });
 }
 
-export function notifyMarriageDefaultCounselorAssignmentQueued(counselorUserId: string) {
-  void sendPushToUsersWithPushEnabled([counselorUserId], {
-    title: "Premarital counselor assignment",
-    body: "A premarital journey was submitted for Senior Pastor approval with you as the proposed counselor.",
-    url: "/marriage/admin/counselor-assignments",
-  });
+export async function notifyMarriageDefaultCounselorAssignmentQueued(
+  counselorUserId: string,
+  journeyId: string,
+) {
+  const { notifyCounselorAssignmentProposed } = await import(
+    "@/lib/marriage-prep-notification-triggers"
+  );
+  void notifyCounselorAssignmentProposed(counselorUserId, journeyId);
 }
 
 export async function notifyMarriageAppointmentUpcoming(

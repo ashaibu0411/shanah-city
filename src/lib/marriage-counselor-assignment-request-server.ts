@@ -114,6 +114,13 @@ export async function createPendingCounselorAssignmentRequest(input: {
     },
   });
 
+  if (record.status === "pending") {
+    const { notifySeniorPastorAssignmentPending, notifyAssignmentAdminPendingOnJourney } =
+      await import("@/lib/marriage-prep-notification-triggers");
+    void notifySeniorPastorAssignmentPending(journey, record);
+    void notifyAssignmentAdminPendingOnJourney(journey, record.id);
+  }
+
   return { ok: true as const, request: record, created: true as const };
 }
 
@@ -163,6 +170,10 @@ export async function submitCounselorAssignmentRequest(
         previousCounselorUserId: previousCounselorUserId ?? "",
       },
     });
+    const { notifySeniorPastorAssignmentPending, notifyAssignmentAdminPendingOnJourney } =
+      await import("@/lib/marriage-prep-notification-triggers");
+    void notifySeniorPastorAssignmentPending(journey, record);
+    void notifyAssignmentAdminPendingOnJourney(journey, record.id);
     return { ok: true as const, request: record };
   }
 
@@ -237,6 +248,13 @@ export async function approveCounselorAssignmentRequest(
         requestType: request.requestType,
       },
     });
+    const journeyAfter = await store().getJourneyById(request.journeyId);
+    if (journeyAfter) {
+      const { notifyCoupleAndCounselorAssignmentActivated, checkBothPartnersConsentedAndNotifyCounselor } =
+        await import("@/lib/marriage-prep-notification-triggers");
+      void notifyCoupleAndCounselorAssignmentActivated(journeyAfter, request.id);
+      void checkBothPartnersConsentedAndNotifyCounselor(journeyAfter.id);
+    }
   }
 
   return { ok: true as const, request: approved, ...execution };
@@ -338,6 +356,13 @@ export async function acknowledgeCounselorAssignmentRestoration(
         requestType: request.requestType,
       },
     });
+    const journeyAfter = await store().getJourneyById(request.journeyId);
+    if (journeyAfter) {
+      const { notifyCoupleAndCounselorAssignmentActivated, checkBothPartnersConsentedAndNotifyCounselor } =
+        await import("@/lib/marriage-prep-notification-triggers");
+      void notifyCoupleAndCounselorAssignmentActivated(journeyAfter, request.id);
+      void checkBothPartnersConsentedAndNotifyCounselor(journeyAfter.id);
+    }
   }
 
   return { ok: true as const, ...execution };

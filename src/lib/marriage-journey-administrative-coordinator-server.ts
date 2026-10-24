@@ -60,6 +60,11 @@ export async function assignAdministrativeCoordinator(
     },
   });
 
+  const { notifyAdministrativeCoordinatorAssigned } = await import(
+    "@/lib/marriage-prep-notification-triggers"
+  );
+  void notifyAdministrativeCoordinatorAssigned(journey, coordinatorUserId);
+
   return { ok: true as const };
 }
 

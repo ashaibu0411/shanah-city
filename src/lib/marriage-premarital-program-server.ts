@@ -338,6 +338,10 @@ export async function updatePremaritalSessionStatus(
   if (status === "completed" && existing?.status !== "completed") {
     const { notifyMarriageSessionCompleted } = await import("@/lib/marriage-counseling-notify");
     void notifyMarriageSessionCompleted(journey, sessionKey);
+    const { checkEightSessionCompletionAndNotify } = await import(
+      "@/lib/marriage-prep-notification-triggers"
+    );
+    void checkEightSessionCompletionAndNotify(journey);
   }
   return record;
 }

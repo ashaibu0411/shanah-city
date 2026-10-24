@@ -109,7 +109,7 @@ export async function queueDefaultPremaritalCounselorAssignmentIfEligible(
     auditMeta: { source: "default_premarital_automation" },
   });
 
-  notifyMarriageDefaultCounselorAssignmentQueued(setting.counselorUserId);
+  notifyMarriageDefaultCounselorAssignmentQueued(setting.counselorUserId, journeyId);
 
   return { queued: true, requestId: request.id };
 }

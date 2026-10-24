@@ -336,6 +336,10 @@ export async function recordMarriageConsent(viewer: PublicMember, journeyId: str
     "@/lib/marriage-default-premarital-counselor-server"
   );
   void queueDefaultPremaritalCounselorAssignmentIfEligible(journeyId);
+  const { checkBothPartnersConsentedAndNotifyCounselor } = await import(
+    "@/lib/marriage-prep-notification-triggers"
+  );
+  void checkBothPartnersConsentedAndNotifyCounselor(journeyId);
   return { ok: true };
 }
 
@@ -486,6 +490,14 @@ export async function submitAssessment(viewer: PublicMember, moduleId: string) {
     viewer.id,
   );
   notifyMarriagePartnerSubmitted(partnerId);
+
+  const journeyForNotify = await store().getJourneyById(assessment.journeyId);
+  if (journeyForNotify) {
+    const { notifyCounselorAssessmentSubmitted } = await import(
+      "@/lib/marriage-prep-notification-triggers"
+    );
+    void notifyCounselorAssessmentSubmitted(journeyForNotify, moduleId, viewer.id);
+  }
 
   const partnerResponse = await store().getResponse(assessment.journeyId, moduleId, partnerId);
   if (partnerResponse?.status === "submitted") {

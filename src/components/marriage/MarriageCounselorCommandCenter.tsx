@@ -10,6 +10,7 @@ import type {
   MarriageCounselorCommandCenterView,
 } from "@/lib/marriage-counselor-command-center-types";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
+import { MarriagePrepNotificationCenter } from "@/components/marriage/MarriagePrepNotificationCenter";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { useEffect } from "react";
 
@@ -184,10 +185,19 @@ export function MarriageCounselorCommandCenter() {
         <Link href="/marriage" className="text-sm font-semibold text-clay-700 dark:text-clay-300">
           ← Marriage Prep hub
         </Link>
-        <h1 className="marriage-c3m-title mt-2">Counselor command center</h1>
-        <p className="marriage-c3m-muted mt-1 text-sm">
-          Assigned couples only · Times shown in {data.schedulingTimeZone.replace(/_/g, " ")}
-        </p>
+        <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="marriage-c3m-title">Counselor command center</h1>
+            <p className="marriage-c3m-muted mt-1 text-sm">
+              Assigned couples only · Times shown in {data.schedulingTimeZone.replace(/_/g, " ")}
+            </p>
+          </div>
+          <MarriagePrepNotificationCenter
+            initialUnreadCount={data.prepNotificationUnreadCount ?? 0}
+            buttonLabel="Alerts"
+            panelLabel="Counselor alerts"
+          />
+        </div>
       </header>
 
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Command center sections">

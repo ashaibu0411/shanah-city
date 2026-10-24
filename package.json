@@ -48,7 +48,7 @@
     "test:marriage:counselor-command-center": "tsx scripts/marriage-counselor-command-center.test.ts",
     "test:marriage:couple-experience": "tsx scripts/marriage-couple-experience.test.ts",
     "test:marriage:certificates": "tsx scripts/marriage-certificates-phase5.test.ts",
-    "test:marriage:notifications": "tsx scripts/marriage-prep-notifications.test.ts",
+    "test:marriage:notifications": "tsx scripts/marriage-prep-notifications.test.ts && tsx scripts/marriage-prep-role-notifications.test.ts",
     "test:app:nav": "tsx scripts/app-nav-items.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
