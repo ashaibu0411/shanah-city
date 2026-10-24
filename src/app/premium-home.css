@@ -336,6 +336,7 @@ html.dark .premium-btn--secondary {
 .premium-icon-well--give { background: #fdf2f8; color: #be185d; }
 .premium-icon-well--checkin { background: #ecfdf5; color: #047857; }
 .premium-icon-well--prayer { background: #f3e8ff; color: #7c3aed; }
+.premium-icon-well--marriage { background: #fff1f2; color: #be123c; }
 .premium-icon-well--more { background: #f3f4f6; color: #374151; }
 
 html.dark .premium-icon-well--live { background: rgba(185, 28, 28, 0.18); color: #fca5a5; }
@@ -345,6 +346,7 @@ html.dark .premium-icon-well--groups { background: rgba(15, 118, 110, 0.2); colo
 html.dark .premium-icon-well--give { background: rgba(190, 24, 93, 0.18); color: #f9a8d4; }
 html.dark .premium-icon-well--checkin { background: rgba(4, 120, 87, 0.2); color: #6ee7b7; }
 html.dark .premium-icon-well--prayer { background: rgba(124, 58, 237, 0.2); color: #c4b5fd; }
+html.dark .premium-icon-well--marriage { background: rgba(190, 18, 60, 0.2); color: #fda4af; }
 html.dark .premium-icon-well--more { background: rgba(55, 65, 81, 0.35); color: #e5e7eb; }
 
 /* Mobile launcher */

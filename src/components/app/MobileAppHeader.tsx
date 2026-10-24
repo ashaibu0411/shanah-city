@@ -44,6 +44,9 @@ const pageTitles: Record<string, string> = {
   "/about": "About",
   "/connect": "Connect",
   "/follow-up/guests": "Guest queue",
+  "/marriage": "Marriage Prep",
+  "/marriage/about": "Marriage Prep",
+  "/marriage/join": "Join journey",
 };
 
 export function MobileAppHeader() {

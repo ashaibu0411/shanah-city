@@ -8,7 +8,8 @@ export type PremiumQuickActionId =
   | "give"
   | "check-in"
   | "prayer"
-  | "meetings";
+  | "meetings"
+  | "marriage";
 
 export type PremiumQuickAction = {
   id: PremiumQuickActionId;
@@ -46,6 +47,13 @@ export const premiumDesktopQuickActions: PremiumQuickAction[] = [
     description: "Find community",
     href: "/groups",
     wellClass: "premium-icon-well--groups",
+  },
+  {
+    id: "marriage",
+    label: "Marriage Prep",
+    description: "Premarital journey",
+    href: "/marriage",
+    wellClass: "premium-icon-well--marriage",
   },
   {
     id: "give",
@@ -105,6 +113,13 @@ export const premiumMobileLauncherActions: PremiumQuickAction[] = [
     description: "",
     href: "/check-in",
     wellClass: "premium-icon-well--checkin",
+  },
+  {
+    id: "marriage",
+    label: "Marriage",
+    description: "",
+    href: "/marriage",
+    wellClass: "premium-icon-well--marriage",
   },
   {
     id: "prayer",

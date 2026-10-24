@@ -79,6 +79,15 @@ export function PremiumQuickActionIcon({
           <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none" />
         </svg>
       );
+    case "marriage":
+      return (
+        <svg {...props}>
+          <path d="M8 12a4 4 0 0 1 8 0" />
+          <circle cx="9" cy="9" r="2.5" />
+          <circle cx="15" cy="9" r="2.5" />
+          <path d="M7 20h10" />
+        </svg>
+      );
   }
 }
 
@@ -98,6 +107,8 @@ export function AppNavIconGlyph({ href, className = "h-[18px] w-[18px]" }: { hre
     "/campuses": "campuses",
     "/give": "give",
     "/profile": "profile",
+    "/marriage": "marriage",
+    "/groups/group-shanah-power-couples": "groups",
   };
 
   const key = map[href];
@@ -178,7 +189,8 @@ export function AppNavIconGlyph({ href, className = "h-[18px] w-[18px]" }: { hre
     key === "give" ||
     key === "check-in" ||
     key === "prayer" ||
-    key === "meetings"
+    key === "meetings" ||
+    key === "marriage"
   ) {
     return <PremiumQuickActionIcon id={key} className={className} />;
   }
