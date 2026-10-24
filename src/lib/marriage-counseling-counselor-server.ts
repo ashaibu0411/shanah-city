@@ -310,6 +310,12 @@ export async function resolveRevisionRequest(
 }
 
 export async function getEnhancedCounselorDashboard(viewer: PublicMember) {
-  const rows = await buildCounselorDashboardRows(viewer);
-  return { rows, counselorId: viewer.id };
+  const { buildMarriageCounselorCommandCenter } = await import(
+    "@/lib/marriage-counselor-command-center-server"
+  );
+  const [rows, commandCenter] = await Promise.all([
+    buildCounselorDashboardRows(viewer),
+    buildMarriageCounselorCommandCenter(viewer),
+  ]);
+  return { rows, commandCenter, counselorId: viewer.id };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MarriageCounselorSessionDateTimeField } from "@/components/marriage/MarriageCounselorSessionDateTimeField";
 import { MarriageCounselorSessionTopicField } from "@/components/marriage/MarriageCounselorSessionTopicField";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
@@ -12,6 +12,7 @@ import {
 import { readJsonResponse } from "@/lib/read-json-response";
 import { MarriageCounselorPremaritalProgramPanel } from "@/components/marriage/MarriageCounselorPremaritalProgramPanel";
 import { MarriageCounselorPremaritalOperationsPanel } from "@/components/marriage/MarriageCounselorPremaritalOperationsPanel";
+import { MarriageCounselorJourneyNav } from "@/components/marriage/MarriageCounselorJourneyNav";
 import type { MarriageCounselorPremaritalProgramView } from "@/lib/marriage-premarital-program-server";
 
 export type MarriageCounselorClinicalDetailView = {
@@ -112,6 +113,26 @@ export function MarriageCounselorClinicalDashboard({
   const [sessionBusy, setSessionBusy] = useState(false);
   const [sessionFormKey, setSessionFormKey] = useState(0);
   const [assignBusy, setAssignBusy] = useState(false);
+  const [showReadinessNav, setShowReadinessNav] = useState(false);
+
+  useEffect(() => {
+    if (detail.programType !== "premarital") {
+      setShowReadinessNav(false);
+      return;
+    }
+    void (async () => {
+      const res = await fetch(
+        `/api/marriage/counselor/premarital-operations?journeyId=${encodeURIComponent(journeyId)}`,
+        { cache: "no-store" },
+      );
+      if (!res.ok) {
+        setShowReadinessNav(false);
+        return;
+      }
+      const data = await readJsonResponse<{ operations?: { canEditReadiness?: boolean } }>(res);
+      setShowReadinessNav(Boolean(data.operations?.canEditReadiness));
+    })();
+  }, [detail.programType, journeyId]);
 
   const completedModules = detail.moduleProgress.filter((m) => m.bothSubmitted).length;
   const totalModules = detail.moduleProgress.length;
@@ -209,7 +230,12 @@ export function MarriageCounselorClinicalDashboard({
 
   return (
     <div className="marriage-c3m-dashboard-shell">
-      <header className="marriage-c3m-header">
+      <MarriageCounselorJourneyNav
+        journeyId={journeyId}
+        programType={detail.programType}
+        showReadiness={showReadinessNav}
+      />
+      <header className="marriage-c3m-header" id="journey-overview">
         <Link href="/marriage/counselor" className="marriage-c3m-back-link">
           ← Counselor workspace
         </Link>
@@ -278,12 +304,14 @@ export function MarriageCounselorClinicalDashboard({
       )}
 
       {detail.premaritalProgram && (
-        <MarriageCounselorPremaritalProgramPanel
-          journeyId={journeyId}
-          program={detail.premaritalProgram}
-          onRefresh={onRefresh}
-          onError={onError}
-        />
+        <div id="premarital-program">
+          <MarriageCounselorPremaritalProgramPanel
+            journeyId={journeyId}
+            program={detail.premaritalProgram}
+            onRefresh={onRefresh}
+            onError={onError}
+          />
+        </div>
       )}
 
       {detail.programType === "premarital" && (
@@ -471,7 +499,7 @@ export function MarriageCounselorClinicalDashboard({
         </div>
 
         <aside className="marriage-c3m-column-side">
-          <section className="marriage-c3m-panel">
+          <section className="marriage-c3m-panel" id="journey-sessions">
             <h2 className="marriage-c3m-section-title">Sessions</h2>
             {detail.sessions.length === 0 && (
               <p className="marriage-c3m-muted mt-2 text-sm">None scheduled.</p>
@@ -512,7 +540,7 @@ export function MarriageCounselorClinicalDashboard({
             </form>
           </section>
 
-          <section className="marriage-c3m-panel">
+          <section className="marriage-c3m-panel" id="journey-private-notes">
             <h2 className="marriage-c3m-section-title">Private counselor notes</h2>
             <p className="marriage-c3m-muted mt-1 text-xs">Not visible to the couple.</p>
             {detail.notes.length > 0 && (

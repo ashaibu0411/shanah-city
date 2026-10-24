@@ -45,6 +45,7 @@
     "test:marriage:homework-guidance": "tsx scripts/marriage-homework-written-guidance-coverage.test.ts",
     "test:marriage:premarital-operations": "tsx scripts/marriage-premarital-operations.test.ts",
     "test:marriage:premarital-operations:integration": "tsx scripts/marriage-premarital-operations-integration.ts",
+    "test:marriage:counselor-command-center": "tsx scripts/marriage-counselor-command-center.test.ts",
     "test:app:nav": "tsx scripts/app-nav-items.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
