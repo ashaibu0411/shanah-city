@@ -491,18 +491,18 @@ export function MarriageCounselorAssignmentWorkspace() {
               verified user ID — not display name. Per-journey overrides remain available below.
             </p>
             {defaultCounselorSavedId && defaultCounselorDisplayName && (
-              <p className="mt-2 text-sm">
-                Current: <strong>{defaultCounselorDisplayName}</strong>{" "}
+              <p className="mt-3 text-sm">
+                Current counselor: <strong>{defaultCounselorDisplayName}</strong>{" "}
                 <span className="font-mono text-xs text-night-500 dark:text-sand-400">
                   ({defaultCounselorSavedId})
                 </span>
               </p>
             )}
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
-              <label className="min-w-0 flex-1 text-sm">
+            <div className="mt-4 flex flex-col gap-4">
+              <label className="block text-sm">
                 <span className="font-semibold">Counselor account</span>
                 <select
-                  className="mt-1 w-full rounded-xl border border-clay-200 bg-white px-3 py-2 dark:border-clay-800 dark:bg-night-900"
+                  className="mt-1 w-full min-h-[44px] rounded-xl border border-clay-200 bg-white px-3 py-2 dark:border-clay-800 dark:bg-night-900"
                   value={defaultCounselorUserId}
                   onChange={(e) => setDefaultCounselorUserId(e.target.value)}
                   disabled={defaultCounselorBusy}
@@ -517,7 +517,7 @@ export function MarriageCounselorAssignmentWorkspace() {
               </label>
               <button
                 type="button"
-                className={marriagePremium.primaryCta}
+                className={`${marriagePremium.primaryCta} shrink-0`}
                 disabled={defaultCounselorBusy}
                 onClick={() => void saveDefaultPremaritalCounselor()}
               >
@@ -619,7 +619,7 @@ export function MarriageCounselorAssignmentWorkspace() {
                         <span>I am approving a request I submitted.</span>
                       </label>
                     )}
-                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <div className="mt-4 flex flex-col gap-3">
                       <button
                         type="button"
                         disabled={busyId === row.request.id}
