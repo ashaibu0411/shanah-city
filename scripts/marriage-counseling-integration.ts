@@ -155,7 +155,7 @@ async function main() {
   assert.ok(detail.notes.some((n) => n.body.includes("communication")));
   assert.equal(detail.authorizedAnswers.length, 0, "no counselor-only answers in this fixture");
 
-  await assert.rejects(() => getCounselorJourneyDetail(stranger, journey.id), /Counselor access required/);
+  await assert.rejects(() => getCounselorJourneyDetail(stranger, journey.id), /Access denied|Counselor access required/);
 
   const exported = await exportJourneyData(participant, journey.id);
   assert.ok(exported.responses.some((r) => r.moduleId === moduleId));

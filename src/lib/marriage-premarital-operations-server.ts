@@ -328,17 +328,28 @@ export async function buildCounselorPremaritalOperationsView(
 ): Promise<MarriageCounselorPremaritalOperationsView | null> {
   const journey = await store().getJourneyById(journeyId);
   if (!journey || journey.programType !== "premarital") return null;
-  await assertClinicalCounselorForJourney(viewer, journey);
 
-  const sessions = (await listAllJourneySessions(journeyId))
-    .filter((s) => s.premaritalSessionKey)
-    .map((s) => ({
-      ...s,
-      premaritalSessionTitle: sessionTitle(s.premaritalSessionKey),
-    }));
-
-  const clinicalRecords = await store().listPremaritalSessionClinicalForJourney(journeyId);
   const canEditReadiness = await isSeniorPastor(viewer);
+  let hasClinicalAccess = false;
+  try {
+    await assertClinicalCounselorForJourney(viewer, journey);
+    hasClinicalAccess = true;
+  } catch (error) {
+    if (!canEditReadiness) throw error;
+  }
+
+  const sessions = hasClinicalAccess
+    ? (await listAllJourneySessions(journeyId))
+        .filter((s) => s.premaritalSessionKey)
+        .map((s) => ({
+          ...s,
+          premaritalSessionTitle: sessionTitle(s.premaritalSessionKey),
+        }))
+    : [];
+
+  const clinicalRecords = hasClinicalAccess
+    ? await store().listPremaritalSessionClinicalForJourney(journeyId)
+    : [];
   const readinessReview = canEditReadiness
     ? await store().getPremaritalReadinessReview(journeyId)
     : null;
