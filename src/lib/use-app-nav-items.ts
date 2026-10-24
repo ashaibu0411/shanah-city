@@ -6,6 +6,7 @@ import {
   adminNavItem,
   couplesNavItem,
   marriageCounselingNavItem,
+  marriageCounselorAssignmentsNavItem,
   frontlinersNavItem,
   kidsMinistryNavItem,
   site,
@@ -25,6 +26,7 @@ type NavPermissions = {
   canReviewMinistryReports: boolean;
   canAccessFinance: boolean;
   canAccessCouplesHub: boolean;
+  canAccessMarriageCounselorAssignments: boolean;
 };
 
 function insertAfterGroups(items: AppNavItem[], ...toInsert: AppNavItem[]): AppNavItem[] {
@@ -51,6 +53,19 @@ export function buildAppNavItems(
     afterGroups.unshift(couplesNavItem);
   }
   items = insertAfterGroups(items, ...afterGroups);
+
+  if (user && permissions.canAccessMarriageCounselorAssignments) {
+    const marriageIdx = items.findIndex((item) => item.href === marriageCounselingNavItem.href);
+    if (marriageIdx >= 0) {
+      items = [
+        ...items.slice(0, marriageIdx + 1),
+        marriageCounselorAssignmentsNavItem,
+        ...items.slice(marriageIdx + 1),
+      ];
+    } else {
+      items = [...items, marriageCounselorAssignmentsNavItem];
+    }
+  }
 
   if (permissions.canWriteDevotions) {
     const profileIndex = items.findIndex((item) => item.href === "/profile");
@@ -137,6 +152,7 @@ export function useAppNavItems(): AppNavItem[] {
       permissions.canReviewMinistryReports,
       permissions.canAccessFinance,
       permissions.canAccessCouplesHub,
+      permissions.canAccessMarriageCounselorAssignments,
     ],
   );
 }

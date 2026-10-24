@@ -2,6 +2,7 @@ export type AdminPortalPermissions = {
   canManageAdmin: boolean;
   canReviewMinistryReports: boolean;
   canAccessFinance: boolean;
+  canAccessMarriageCounselorAssignments?: boolean;
 };
 
 export const ADMIN_PORTAL_LINKS = [
@@ -72,6 +73,13 @@ export const ADMIN_PORTAL_LINKS = [
     description: "Morning & evening clicks and leader reports",
     ministryManagementAllowed: true,
   },
+  {
+    href: "/marriage/admin/counselor-assignments",
+    label: "Counselor assignments",
+    description:
+      "Premarital counselor requests, default counselor configuration, and Senior Pastor approval",
+    marriageCounselorAssignmentsAllowed: true,
+  },
 ] as const;
 
 export function canAccessAdminPortal(permissions: AdminPortalPermissions) {
@@ -84,6 +92,9 @@ export function canAccessAdminPortal(permissions: AdminPortalPermissions) {
 
 export function filterAdminPortalLinks(permissions: AdminPortalPermissions) {
   return ADMIN_PORTAL_LINKS.filter((link) => {
+    if ("marriageCounselorAssignmentsAllowed" in link && link.marriageCounselorAssignmentsAllowed) {
+      return Boolean(permissions.canAccessMarriageCounselorAssignments);
+    }
     if ("financeOnly" in link && link.financeOnly) {
       return permissions.canAccessFinance;
     }

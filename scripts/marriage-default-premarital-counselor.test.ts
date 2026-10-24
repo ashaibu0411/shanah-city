@@ -84,6 +84,20 @@ const apiRoute = readFileSync(
 assert.match(apiRoute, /getUserFromSession/, "default counselor API requires session");
 assert.match(apiRoute, /assertCanManageDefaultPremaritalCounselorSetting/, "server-side auth");
 
+const sessionPerms = readFileSync(join(root, "src/lib/session-permissions.ts"), "utf8");
+assert.match(
+  sessionPerms,
+  /canAccessMarriageCounselorAssignmentsNav/,
+  "session exposes counselor assignment nav permission",
+);
+
+const navBuilder = readFileSync(join(root, "src/lib/use-app-nav-items.ts"), "utf8");
+assert.match(
+  navBuilder,
+  /marriageCounselorAssignmentsNavItem/,
+  "global nav includes counselor assignments for authorized users",
+);
+
 const consentHook = readFileSync(join(root, "src/lib/marriage-counseling-server.ts"), "utf8");
 assert.match(
   consentHook,

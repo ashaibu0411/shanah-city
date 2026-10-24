@@ -187,6 +187,12 @@ export const marriageCounselingNavItem = {
   icon: "💍",
 } as const;
 
+export const marriageCounselorAssignmentsNavItem = {
+  label: "Counselor Assignments",
+  href: "/marriage/admin/counselor-assignments",
+  icon: "🤝",
+} as const;
+
 export const adminNavItem = {
   label: "Admin",
   href: "/admin",

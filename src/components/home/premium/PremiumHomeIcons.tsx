@@ -108,6 +108,7 @@ export function AppNavIconGlyph({ href, className = "h-[18px] w-[18px]" }: { hre
     "/give": "give",
     "/profile": "profile",
     "/marriage": "marriage",
+    "/marriage/admin/counselor-assignments": "marriage",
     "/groups/group-shanah-power-couples": "groups",
   };
 

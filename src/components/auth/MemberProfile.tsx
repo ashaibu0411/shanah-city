@@ -263,6 +263,11 @@ export function MemberProfile() {
             Write devotions
           </Button>
         )}
+        {permissions.canAccessMarriageCounselorAssignments && (
+          <Button href="/marriage/admin/counselor-assignments" variant="secondary">
+            Counselor assignments
+          </Button>
+        )}
       </div>
 
       <div className={`grid ${isMobileApp ? "gap-3" : "gap-6 lg:grid-cols-3"}`}>

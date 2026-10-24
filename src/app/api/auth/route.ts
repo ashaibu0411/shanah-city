@@ -71,6 +71,8 @@ const unauthenticatedPermissions = {
   canShowLeaderReportHomeBanner: false,
   canReviewMinistryReports: false,
   canSeeGuestHomeBanner: false,
+  canAccessCouplesHub: false,
+  canAccessMarriageCounselorAssignments: false,
 };
 
 function unauthenticatedAuthResponse(clearSessionCookie: boolean) {

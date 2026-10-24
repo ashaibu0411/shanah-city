@@ -19,6 +19,7 @@ import {
   type CoordinatorRosterFilter,
 } from "@/lib/marriage-counselor-assignment-ui";
 import { readJsonResponse } from "@/lib/read-json-response";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 type Capabilities = {
   canSubmitRequest: boolean;
@@ -62,6 +63,7 @@ type QueueRow = {
 };
 
 export function MarriageCounselorAssignmentWorkspace() {
+  const { permissions } = useAuth();
   const [caps, setCaps] = useState<Capabilities | null>(null);
   const [counselors, setCounselors] = useState<CounselorOption[]>([]);
   const [adminRows, setAdminRows] = useState<AdminJourneyRow[]>([]);
@@ -430,7 +432,24 @@ export function MarriageCounselorAssignmentWorkspace() {
       <div className={marriagePremium.page}>
         <div className={marriagePremium.inset}>
           <div className={marriagePremium.card} role="alert">
-            <p className="text-sm text-red-800">You are not authorized to view this page.</p>
+            <p className="text-sm font-semibold text-red-900 dark:text-red-200">
+              You are not authorized to view this page.
+            </p>
+            <p className={`${marriagePremium.cardMuted} mt-2 text-sm`}>
+              Marriage Prep counselor assignments are separate from the general church admin portal.
+              Access requires your verified user ID in{" "}
+              <code className="text-xs">MARRIAGE_COUNSELOR_ASSIGNMENT_ADMIN_USER_IDS</code> (Vercel
+              env) or the Senior Pastor pastoral role. Clinical access still requires Senior Pastor
+              approval and couple consent — this setting only controls who may submit assignment
+              requests.
+            </p>
+            {permissions.canManageAdmin && !permissions.canAccessMarriageCounselorAssignments && (
+              <p className="mt-2 text-sm text-amber-900 dark:text-amber-100">
+                You are signed in as a church administrator, but not as a Marriage Prep assignment
+                admin. Ask ops to add your user ID to that environment variable and redeploy, or use
+                an account that is already listed.
+              </p>
+            )}
             <Link href="/marriage" className={`${marriagePremium.secondaryCta} mt-4 inline-block`}>
               Back to hub
             </Link>

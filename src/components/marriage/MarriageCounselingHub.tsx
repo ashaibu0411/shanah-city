@@ -25,7 +25,7 @@ function statusLabel(mod: MarriageHubSummary["modules"][0]) {
 
 export function MarriageCounselingHub() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, permissions } = useAuth();
   const [hub, setHub] = useState<MarriageHubSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -130,10 +130,15 @@ export function MarriageCounselingHub() {
   const continueModule =
     inProgressModule ?? hub?.modules.find((m) => m.myStatus !== "submitted");
 
+  const showCounselorAssignmentsNav =
+    permissions.canAccessMarriageCounselorAssignments ||
+    (hub ? marriageHubShowsCounselorAssignmentsNav(hub) : false);
+
   const showMarriagePrepStaffNav =
     hub &&
     (hub.isCounselor ||
       hub.isCurriculumAdmin ||
+      showCounselorAssignmentsNav ||
       marriageHubShowsCounselorAssignmentsNav(hub));
 
   return (
@@ -159,6 +164,17 @@ export function MarriageCounselingHub() {
           </p>
         )}
 
+        {!showMarriagePrepStaffNav && showCounselorAssignmentsNav && (
+          <div className="mt-6 grid gap-2">
+            <Link
+              href="/marriage/admin/counselor-assignments"
+              className={marriagePremium.secondaryCta}
+            >
+              Counselor assignments
+            </Link>
+          </div>
+        )}
+
         {showMarriagePrepStaffNav && (
           <div className="mt-6 grid gap-2">
             {hub.isCounselor && (
@@ -171,7 +187,7 @@ export function MarriageCounselingHub() {
                 Curriculum administration
               </Link>
             )}
-            {marriageHubShowsCounselorAssignmentsNav(hub) && (
+            {showCounselorAssignmentsNav && (
               <Link
                 href="/marriage/admin/counselor-assignments"
                 className={marriagePremium.secondaryCta}
