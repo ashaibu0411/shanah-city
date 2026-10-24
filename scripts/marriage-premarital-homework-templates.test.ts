@@ -44,7 +44,10 @@ for (const session of PREMARITAL_PROGRAM_SESSIONS) {
 }
 
 const summaries = listHomeworkTemplateSummaries();
-assert.ok(summaries.every((s) => s.timingLabel && s.estimatedMinutes));
+assert.ok(summaries.every((s) => s.timingLabel && s.estimatedMinutes && s.assignedAfterLabel));
+const s8 = summaries.find((s) => s.key === "premarital-after-s8-sendoff");
+assert.ok(s8?.postProgramNote?.includes("not preparation"), "session 8 sendoff explained");
+assert.equal(s8?.preparingForLabel, null, "session 8 has no preparing-for session");
 assert.ok(summaries.some((s) => s.key === WEEK_1_HOMEWORK_TEMPLATE_KEY));
 assert.match(
   MARRIAGE_HOMEWORK_TEMPLATES[WEEK_1_HOMEWORK_TEMPLATE_KEY].title,

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import type { MarriageCouplePremaritalProgramView } from "@/lib/marriage-counseling-types";
+import { MarriageHomeworkTimingLines } from "@/components/marriage/MarriageHomeworkTimingLines";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
+import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 
 type Props = {
   program: MarriageCouplePremaritalProgramView;
@@ -75,13 +77,17 @@ export function MarriageCouplePremaritalProgramSection({ program }: Props) {
               <li key={hw.homeworkId} className={marriagePremium.moduleRow}>
                 <Link href={`/marriage/homework/${hw.homeworkId}`} className="min-w-0 flex-1">
                   <span className="block font-semibold">{hw.title}</span>
-                  {hw.timingLabel ? (
-                    <span className="block text-xs text-night-500 dark:text-sand-400">{hw.timingLabel}</span>
-                  ) : null}
-                  <span className="block text-xs capitalize text-night-500 dark:text-sand-400">
+                  <MarriageHomeworkTimingLines
+                    className="mt-1"
+                    assignedAfterLabel={hw.assignedAfterLabel}
+                    preparingForLabel={hw.preparingForLabel}
+                    postProgramNote={hw.postProgramNote}
+                    estimatedMinutes={hw.estimatedMinutes}
+                    dueAt={hw.dueAt ?? undefined}
+                    formatDue={(due) => formatMarriageSessionScheduledAt(due)}
+                  />
+                  <span className="mt-1 block text-xs capitalize text-night-500 dark:text-sand-400">
                     {statusLabel(hw.status)}
-                    {hw.estimatedMinutes ? ` · ~${hw.estimatedMinutes} min` : ""}
-                    {hw.dueAt ? ` · due ${new Date(hw.dueAt).toLocaleDateString()}` : ""}
                   </span>
                 </Link>
               </li>

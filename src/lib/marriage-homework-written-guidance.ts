@@ -1,7 +1,8 @@
 import type { MarriageHomeworkActivityDef } from "@/lib/marriage-homework-types";
 import type { WrittenQuestionGuidance } from "@/lib/marriage-written-question-guidance";
+import { PREMARITAL_HOMEWORK_WRITTEN_GUIDANCE } from "@/lib/marriage-homework-written-guidance-premarital";
 
-const HOMEWORK_WRITTEN_GUIDANCE: Record<string, WrittenQuestionGuidance> = {
+const WEEK1_HOMEWORK_WRITTEN_GUIDANCE: Record<string, WrittenQuestionGuidance> = {
   "activity-a:a1": {
     explanation: "Name three strengths with a brief sentence each—not a résumé. Your partner will not see this answer.",
     writingExamples: [
@@ -97,6 +98,15 @@ const HOMEWORK_WRITTEN_GUIDANCE: Record<string, WrittenQuestionGuidance> = {
     ],
   },
 };
+
+const HOMEWORK_WRITTEN_GUIDANCE: Record<string, WrittenQuestionGuidance> = {
+  ...WEEK1_HOMEWORK_WRITTEN_GUIDANCE,
+  ...PREMARITAL_HOMEWORK_WRITTEN_GUIDANCE,
+};
+
+export function allHomeworkWrittenGuidanceKeys(): string[] {
+  return Object.keys(HOMEWORK_WRITTEN_GUIDANCE);
+}
 
 export function enrichHomeworkActivities(
   activities: MarriageHomeworkActivityDef[],

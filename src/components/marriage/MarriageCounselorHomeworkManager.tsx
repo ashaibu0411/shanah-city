@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MarriageCounselorSessionDateTimeField } from "@/components/marriage/MarriageCounselorSessionDateTimeField";
+import { MarriageHomeworkTimingLines } from "@/components/marriage/MarriageHomeworkTimingLines";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import type { MarriageCounselorHomeworkListItem } from "@/lib/marriage-homework-types";
 import type { MarriageHomeworkTemplateSummary } from "@/lib/marriage-homework-types";
@@ -66,6 +67,9 @@ export function MarriageCounselorHomeworkManager({
   const [message, setMessage] = useState("");
   const [notes, setNotes] = useState("");
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, string>>({});
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState<string | null>(
+    initialTemplateKey ?? null,
+  );
 
   const loadList = useCallback(async () => {
     const res = await fetch(`/api/marriage/counselor/homework?journeyId=${encodeURIComponent(journeyId)}`, {
@@ -99,18 +103,12 @@ export function MarriageCounselorHomeworkManager({
     void loadTemplates();
   }, [loadList, loadTemplates]);
 
-  const preselectRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!initialTemplateKey || templates.length === 0) return;
-    if (preselectRef.current === initialTemplateKey) return;
-    preselectRef.current = initialTemplateKey;
+    if (!initialTemplateKey) return;
+    setSelectedTemplateKey(initialTemplateKey);
     const existing = items.find((i) => i.templateKey === initialTemplateKey);
-    if (existing) {
-      setSelectedId(existing.id);
-      return;
-    }
-    void createFromTemplate(initialTemplateKey);
-  }, [initialTemplateKey, templates.length, items]);
+    if (existing) setSelectedId(existing.id);
+  }, [initialTemplateKey, items]);
 
   useEffect(() => {
     if (selectedId) void loadDetail(selectedId);
@@ -216,25 +214,67 @@ export function MarriageCounselorHomeworkManager({
         Draft homework stays hidden until you release it. Templates do not auto-assign to couples.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {templates.map((t) => (
+      <p className="marriage-c3m-muted mt-3 text-sm">Select a template to preview timing. Nothing is saved until you create a draft.</p>
+      <div className="mt-3 flex flex-col gap-2">
+        {templates.map((t) => {
+          const active = selectedTemplateKey === t.key;
+          const existing = items.find((i) => i.templateKey === t.key);
+          return (
+            <button
+              key={t.key}
+              type="button"
+              disabled={busy}
+              className={`min-h-[44px] w-full rounded-xl border px-3 py-3 text-left text-sm ${
+                active
+                  ? "border-[#B85C38] bg-[#F7F4EF] dark:border-clay-500 dark:bg-white/5"
+                  : "border-[#E8E2DA] dark:border-white/10"
+              }`}
+              onClick={() => {
+                setSelectedTemplateKey(t.key);
+                if (existing) setSelectedId(existing.id);
+                else setSelectedId(null);
+              }}
+            >
+              <span className="block font-semibold">{t.title}</span>
+              <MarriageHomeworkTimingLines
+                className="mt-1"
+                assignedAfterLabel={t.assignedAfterLabel}
+                preparingForLabel={t.preparingForLabel}
+                postProgramNote={t.postProgramNote}
+                estimatedMinutes={t.estimatedMinutes}
+              />
+              {existing ? (
+                <span className="mt-1 block text-xs font-semibold capitalize text-clay-800 dark:text-clay-200">
+                  Existing: {existing.status}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+
+      {selectedTemplateKey && !items.some((i) => i.templateKey === selectedTemplateKey) ? (
+        <div className="mt-4 rounded-xl border border-[#E8E2DA] bg-[#F7F4EF] px-3 py-4 dark:border-white/10 dark:bg-white/5">
+          <p className="text-sm font-semibold">Ready to create a draft?</p>
+          <p className="marriage-c3m-muted mt-1 text-xs">
+            Couples cannot see this homework until you review and release it.
+          </p>
           <button
-            key={t.key}
             type="button"
             disabled={busy}
-            className="marriage-c3m-btn-secondary min-h-[44px] w-full text-left text-sm sm:w-auto"
-            onClick={() => void createFromTemplate(t.key)}
+            className="marriage-c3m-btn-primary mt-3 min-h-[44px] w-full sm:w-auto"
+            onClick={() => void createFromTemplate(selectedTemplateKey)}
           >
-            <span className="block font-semibold">{t.title}</span>
-            {t.timingLabel ? (
-              <span className="marriage-c3m-muted block text-xs font-normal">{t.timingLabel}</span>
-            ) : null}
-            {t.estimatedMinutes ? (
-              <span className="marriage-c3m-muted block text-xs font-normal">~{t.estimatedMinutes} min</span>
-            ) : null}
+            Create homework draft
           </button>
-        ))}
-      </div>
+        </div>
+      ) : null}
+
+      {selectedTemplateKey && items.some((i) => i.templateKey === selectedTemplateKey && i.status === "released") ? (
+        <p className="mt-3 text-sm text-clay-800 dark:text-clay-200">
+          This template is already released for this couple. Select it in the list below to review submissions.
+        </p>
+      ) : null}
 
       {items.length > 0 ? (
         <ul className="mt-4 space-y-2">

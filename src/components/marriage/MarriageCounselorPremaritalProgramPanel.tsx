@@ -179,7 +179,7 @@ export function MarriageCounselorPremaritalProgramPanel({
                 href={`/marriage/counselor/journey/${journeyId}/homework?template=${encodeURIComponent(templateKey)}`}
                 className="marriage-c3m-btn-primary mt-3 inline-flex min-h-[44px] w-full items-center justify-center sm:w-auto"
               >
-                Prepare &amp; assign homework
+                Open homework manager
               </Link>
             ))}
             {active.homeworkRows.length > 0 && (

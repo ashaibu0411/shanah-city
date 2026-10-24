@@ -163,6 +163,9 @@ export async function buildCouplePremaritalProgramView(
               status: participantHomeworkStatus({ homework: h, response, nowMs: now }),
               dueAt: h.dueAt ?? null,
               timingLabel: timing?.timingLabel,
+              assignedAfterLabel: timing?.assignedAfterLabel,
+              preparingForLabel: timing?.preparingForLabel,
+              postProgramNote: timing?.postProgramNote,
               estimatedMinutes: timing?.estimatedMinutes,
             };
           }),

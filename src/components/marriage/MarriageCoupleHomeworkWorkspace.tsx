@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MarriageWrittenQuestionGuidance } from "@/components/marriage/MarriageWrittenQuestionGuidance";
+import { MarriageHomeworkTimingLines } from "@/components/marriage/MarriageHomeworkTimingLines";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import type { MarriageQuestionDefinition } from "@/lib/marriage-counseling-types";
 import { homeworkAnswerKey } from "@/lib/marriage-homework-types";
@@ -34,6 +35,9 @@ type Workspace = {
     dueAt?: string;
     dueAtTimeZone?: string;
     timingLabel?: string;
+    assignedAfterLabel?: string;
+    preparingForLabel?: string | null;
+    postProgramNote?: string;
     estimatedMinutes?: number;
     activities: Activity[];
   };
@@ -150,16 +154,18 @@ export function MarriageCoupleHomeworkWorkspace({ homeworkId }: { homeworkId: st
           ← My homework
         </Link>
         <h1 className="mt-3 font-display text-xl font-semibold">{data.homework.title}</h1>
-        {data.homework.timingLabel ? (
-          <p className="mt-1 text-xs text-night-600 dark:text-sand-400">{data.homework.timingLabel}</p>
-        ) : null}
+        <MarriageHomeworkTimingLines
+          className="mt-2"
+          assignedAfterLabel={data.homework.assignedAfterLabel}
+          preparingForLabel={data.homework.preparingForLabel}
+          postProgramNote={data.homework.postProgramNote}
+          estimatedMinutes={data.homework.estimatedMinutes}
+          dueAt={data.homework.dueAt}
+          dueAtTimeZone={data.homework.dueAtTimeZone}
+          formatDue={formatMarriageSessionScheduledAt}
+        />
         {data.homework.instructions ? (
           <p className={`${marriagePremium.cardMuted} mt-2 text-sm whitespace-pre-wrap`}>{data.homework.instructions}</p>
-        ) : null}
-        {data.homework.dueAt ? (
-          <p className="mt-2 text-sm font-medium">
-            Due {formatMarriageSessionScheduledAt(data.homework.dueAt, data.homework.dueAtTimeZone)}
-          </p>
         ) : null}
         <div className="mt-4">
           <div className="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-white/10">

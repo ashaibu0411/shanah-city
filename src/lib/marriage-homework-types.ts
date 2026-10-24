@@ -66,6 +66,9 @@ export type MarriageHomeworkTemplateSummary = {
   description: string;
   activityCount: number;
   timingLabel?: string;
+  assignedAfterLabel?: string;
+  preparingForLabel?: string | null;
+  postProgramNote?: string;
   estimatedMinutes?: number;
 };
 

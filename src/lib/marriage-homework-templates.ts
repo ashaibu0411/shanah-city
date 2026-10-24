@@ -189,6 +189,9 @@ export function listHomeworkTemplateSummaries(): MarriageHomeworkTemplateSummary
       description: t.description,
       activityCount: t.activities.length,
       timingLabel: meta?.timingLabel,
+      assignedAfterLabel: meta?.assignedAfterLabel,
+      preparingForLabel: meta?.preparingForLabel,
+      postProgramNote: meta?.postProgramNote,
       estimatedMinutes: meta?.estimatedMinutes,
     };
   });

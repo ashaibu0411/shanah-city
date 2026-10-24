@@ -343,6 +343,9 @@ export type MarriageCouplePremaritalProgramView = {
       status: string;
       dueAt: string | null;
       timingLabel?: string;
+      assignedAfterLabel?: string;
+      preparingForLabel?: string | null;
+      postProgramNote?: string;
       estimatedMinutes?: number;
     }>;
   }>;
@@ -352,6 +355,9 @@ export type MarriageCouplePremaritalProgramView = {
     status: string;
     dueAt: string | null;
     timingLabel?: string;
+    assignedAfterLabel?: string;
+    preparingForLabel?: string | null;
+    postProgramNote?: string;
     estimatedMinutes?: number;
   }>;
 };
@@ -636,6 +642,9 @@ export type MarriageHubSessionHomeworkView = {
   submitted: boolean;
   activityCount: number;
   timingLabel?: string;
+  assignedAfterLabel?: string;
+  preparingForLabel?: string | null;
+  postProgramNote?: string;
   estimatedMinutes?: number;
   templateKey?: string;
 };

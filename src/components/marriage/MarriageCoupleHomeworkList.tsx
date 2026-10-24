@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { MarriageHomeworkTimingLines } from "@/components/marriage/MarriageHomeworkTimingLines";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import type { MarriageHubSessionHomeworkView } from "@/lib/marriage-counseling-types";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
@@ -60,15 +61,17 @@ export function MarriageCoupleHomeworkList() {
                 <li key={item.id} className={marriagePremium.moduleRow}>
                   <Link href={`/marriage/homework/${item.id}`} className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold">{item.title}</span>
-                    {item.timingLabel ? (
-                      <span className="block text-xs text-night-500 dark:text-sand-400">{item.timingLabel}</span>
-                    ) : null}
-                    <span className="block text-xs capitalize text-night-500">{statusLabel(item.status)}</span>
-                    {item.dueAt ? (
-                      <span className="block text-xs text-night-500">
-                        Due {formatMarriageSessionScheduledAt(item.dueAt, item.dueAtTimeZone)}
-                      </span>
-                    ) : null}
+                    <MarriageHomeworkTimingLines
+                      className="mt-1"
+                      assignedAfterLabel={item.assignedAfterLabel}
+                      preparingForLabel={item.preparingForLabel}
+                      postProgramNote={item.postProgramNote}
+                      estimatedMinutes={item.estimatedMinutes}
+                      dueAt={item.dueAt}
+                      dueAtTimeZone={item.dueAtTimeZone}
+                      formatDue={formatMarriageSessionScheduledAt}
+                    />
+                    <span className="mt-1 block text-xs capitalize text-night-500">{statusLabel(item.status)}</span>
                   </Link>
                 </li>
               ))}

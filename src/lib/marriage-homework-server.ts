@@ -318,6 +318,9 @@ export async function listReleasedHomeworkForParticipant(viewer: PublicMember, j
       activityCount: hw.activities.length,
       templateKey: hw.templateKey,
       timingLabel: timing?.timingLabel,
+      assignedAfterLabel: timing?.assignedAfterLabel,
+      preparingForLabel: timing?.preparingForLabel,
+      postProgramNote: timing?.postProgramNote,
       estimatedMinutes: timing?.estimatedMinutes,
     });
   }
@@ -350,6 +353,9 @@ export async function getParticipantHomeworkWorkspace(viewer: PublicMember, home
       dueAtTimeZone: homework.dueAtTimeZone,
       activities: homework.activities,
       timingLabel: timing?.timingLabel,
+      assignedAfterLabel: timing?.assignedAfterLabel,
+      preparingForLabel: timing?.preparingForLabel,
+      postProgramNote: timing?.postProgramNote,
       estimatedMinutes: timing?.estimatedMinutes,
     },
     response: {
