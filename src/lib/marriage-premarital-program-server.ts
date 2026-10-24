@@ -141,6 +141,31 @@ export async function buildCouplePremaritalProgramView(
   const homeworkRows = await store().listSessionHomeworkForJourney(journey.id);
   const releasedHomework = homeworkRows.filter((h) => h.status === "released");
 
+  const { buildCoupleAppointmentViews } = await import("@/lib/marriage-premarital-operations-server");
+  const { marriageSessionInstantMs } = await import("@/lib/marriage-session-scheduling");
+  const nowMs = Date.now();
+  const journeyAppointments = await buildCoupleAppointmentViews(viewer, journey.id);
+  function appointmentForSessionKey(sessionKey: string) {
+    const forKey = journeyAppointments.filter((a) => a.premaritalSessionKey === sessionKey);
+    if (forKey.length === 0) return null;
+    const upcoming = forKey
+      .filter((a) => marriageSessionInstantMs(a.scheduledAt, a.schedulingTimeZone) >= nowMs)
+      .sort(
+        (a, b) =>
+          marriageSessionInstantMs(a.scheduledAt, a.schedulingTimeZone) -
+          marriageSessionInstantMs(b.scheduledAt, b.schedulingTimeZone),
+      );
+    if (upcoming[0]) return upcoming[0];
+    const past = forKey
+      .filter((a) => marriageSessionInstantMs(a.scheduledAt, a.schedulingTimeZone) < nowMs)
+      .sort(
+        (a, b) =>
+          marriageSessionInstantMs(b.scheduledAt, b.schedulingTimeZone) -
+          marriageSessionInstantMs(a.scheduledAt, a.schedulingTimeZone),
+      );
+    return past[0] ?? null;
+  }
+
   const sessions = await Promise.all(
     PREMARITAL_PROGRAM_SESSIONS.map(async (def) => {
       const row = records.find((r) => r.sessionKey === def.sessionKey);
@@ -185,6 +210,7 @@ export async function buildCouplePremaritalProgramView(
           partnerStatus: m.partnerStatus,
         })),
         releasedHomework: sessionHomework,
+        appointment: appointmentForSessionKey(def.sessionKey),
       };
     }),
   );

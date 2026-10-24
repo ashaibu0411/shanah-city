@@ -35,7 +35,7 @@ export function MarriageCoupleHomeworkList() {
 
   return (
     <div className={marriagePremium.page}>
-      <div className={marriagePremium.inset}>
+      <div className={`${marriagePremium.inset} min-w-0 overflow-x-hidden`}>
         <Link href="/marriage" className="text-sm font-semibold text-clay-700 underline dark:text-clay-300">
           ← Marriage Prep
         </Link>

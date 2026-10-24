@@ -149,10 +149,15 @@ export function MarriageCoupleHomeworkWorkspace({ homeworkId }: { homeworkId: st
 
   return (
     <div className={marriagePremium.page}>
-      <div className={marriagePremium.inset}>
-        <Link href="/marriage/homework" className="text-sm font-semibold text-clay-700 underline dark:text-clay-300">
-          ← My homework
-        </Link>
+      <div className={`${marriagePremium.inset} min-w-0 overflow-x-hidden`}>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          <Link href="/marriage" className="font-semibold text-clay-700 underline dark:text-clay-300">
+            ← Marriage Prep
+          </Link>
+          <Link href="/marriage/homework" className="font-semibold text-clay-700 underline dark:text-clay-300">
+            My homework
+          </Link>
+        </div>
         <h1 className="mt-3 font-display text-xl font-semibold">{data.homework.title}</h1>
         <MarriageHomeworkTimingLines
           className="mt-2"

@@ -1,3 +1,8 @@
+import type {
+  MarriageCoupleAppointmentNotice,
+  MarriageCoupleOnboardingView,
+} from "@/lib/marriage-couple-onboarding-types";
+
 export type MarriageProgramType =
   | "premarital"
   | "enrichment"
@@ -348,6 +353,8 @@ export type MarriageCouplePremaritalProgramView = {
       postProgramNote?: string;
       estimatedMinutes?: number;
     }>;
+    /** Next or most recent couple-visible appointment for this session key, if scheduled. */
+    appointment: MarriageCoupleAppointmentView | null;
   }>;
   allReleasedHomework: Array<{
     homeworkId: string;
@@ -757,5 +764,7 @@ export type MarriageHubSummary = {
   counselorSummary: MarriageHubCounselorSummary | null;
   premaritalProgram: MarriageCouplePremaritalProgramView | null;
   premaritalAppointments?: MarriageCoupleAppointmentView[];
+  premaritalAppointmentNotices?: MarriageCoupleAppointmentNotice[];
+  coupleOnboarding?: MarriageCoupleOnboardingView;
   stage2?: MarriageStage2Dashboard;
 };

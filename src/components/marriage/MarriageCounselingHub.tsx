@@ -14,7 +14,8 @@ import { MarriageCounselorAssignmentParticipantPanel } from "@/components/marria
 import { isMarriageStage2ClientEnabled } from "@/lib/marriage-stage2-feature";
 import { marriageHubShowsCounselorAssignmentsNav } from "@/lib/marriage-counselor-assignment-ui";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
-import { MarriageCouplePremaritalProgramSection } from "@/components/marriage/MarriageCouplePremaritalProgramSection";
+import { MarriageCoupleHubDashboard } from "@/components/marriage/MarriageCoupleHubDashboard";
+import { MarriageCoupleOnboardingSteps } from "@/components/marriage/MarriageCoupleOnboardingSteps";
 
 function statusLabel(mod: MarriageHubSummary["modules"][0]) {
   if (mod.comparisonReady) return "Compare ready";
@@ -204,6 +205,10 @@ export function MarriageCounselingHub() {
           </div>
         )}
 
+        {hub?.coupleOnboarding && !journey ? (
+          <MarriageCoupleOnboardingSteps onboarding={hub.coupleOnboarding} />
+        ) : null}
+
         {!hub?.coupleLinkActive && !journey && (
           <div className="mt-6 space-y-4">
             <CouplesLinkGate pendingIncoming={hub?.pendingPartnerLink} tone="sheet" />
@@ -255,6 +260,10 @@ export function MarriageCounselingHub() {
           </div>
         )}
 
+        {journey && needsConsent && hub?.coupleOnboarding ? (
+          <MarriageCoupleOnboardingSteps onboarding={hub.coupleOnboarding} />
+        ) : null}
+
         {journey && needsConsent && (
           <div className={`${marriagePremium.card} mt-6`}>
             <p className="font-display text-base font-semibold">Consent &amp; privacy</p>
@@ -271,44 +280,20 @@ export function MarriageCounselingHub() {
 
         {journey && hub.myConsent && (
           <>
-            <div className={`${marriagePremium.card} mt-6`}>
-              <p className={marriagePremium.sectionLabel}>My journey</p>
-              <p className="mt-1 font-display text-lg font-semibold capitalize">
-                {hub.programType?.replace("_", " ")}
-              </p>
-              {hub.partnerName && (
-                <p className={`${marriagePremium.cardMuted} mt-1`}>With {hub.partnerName}</p>
-              )}
-              {!hub.partnerJoined && hub.pendingInviteCode && (
-                <div className="mt-3 rounded-xl bg-clay-50 px-3 py-2 dark:bg-clay-950/40">
-                  <p className="text-xs font-bold uppercase text-clay-800 dark:text-clay-200">Partner invite code</p>
-                  <p className="font-mono text-lg font-bold tracking-widest">{hub.pendingInviteCode}</p>
-                  <p className={`${marriagePremium.cardMuted} mt-1`}>Share privately; expires in 14 days.</p>
-                </div>
-              )}
-              {hub.premaritalProgram && hub.myConsent && (
-              <MarriageCouplePremaritalProgramSection program={hub.premaritalProgram} />
-            )}
+            <MarriageCoupleHubDashboard
+              hub={hub}
+              continueModuleHref={continueModule ? `/marriage/module/${continueModule.moduleId}` : null}
+            />
 
-            {hub.partnerJoined && !hub.partnerConsent && (
-                <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">
-                  Waiting for your partner to accept consent on their device.
-                </p>
-              )}
-              {hub.counselorSummary && hub.counselorSummary.status !== "none" && (
-                <p className={`${marriagePremium.cardMuted} mt-2`}>
-                  {hub.counselorSummary.status === "assigned" && hub.counselorSummary.displayName
-                    ? `Premarital counselor: ${hub.counselorSummary.displayName}`
-                    : hub.counselorSummary.status === "pending_approval" &&
-                        hub.counselorSummary.displayName
-                      ? `Proposed counselor ${hub.counselorSummary.displayName} — awaiting Senior Pastor approval`
-                      : hub.counselorSummary.status === "awaiting_restoration" &&
-                          hub.counselorSummary.displayName
-                        ? `Counselor ${hub.counselorSummary.displayName} — acknowledgment required before access`
-                        : null}
-                </p>
-              )}
-            </div>
+            {hub.counselorSummary && hub.counselorSummary.status !== "none" && hub.counselorSummary.status !== "assigned" ? (
+              <p className={`${marriagePremium.cardMuted} mt-2 px-1 text-sm`}>
+                {hub.counselorSummary.status === "pending_approval" && hub.counselorSummary.displayName
+                  ? `Proposed counselor ${hub.counselorSummary.displayName} — awaiting Senior Pastor approval`
+                  : hub.counselorSummary.status === "awaiting_restoration" && hub.counselorSummary.displayName
+                    ? `Counselor ${hub.counselorSummary.displayName} — acknowledgment required before access`
+                    : null}
+              </p>
+            ) : null}
 
             {isMarriageStage2ClientEnabled() && hub.stage2?.enabled && (
               <MarriageStage2HubPromo
@@ -316,43 +301,6 @@ export function MarriageCounselingHub() {
                 activitiesCompleted={hub.stage2.modulesCompleted}
                 activitiesTotal={hub.stage2.activitiesTotal}
               />
-            )}
-
-            {continueModule && (
-              <div className="mt-4">
-                <Link
-                  href={`/marriage/module/${continueModule.moduleId}`}
-                  className={marriagePremium.primaryCta}
-                >
-                  Continue assessment
-                </Link>
-              </div>
-            )}
-
-            {(hub.sessionHomework?.length ?? 0) > 0 && (
-              <div className={`${marriagePremium.card} mt-4`}>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className={marriagePremium.sectionLabel}>My homework</p>
-                  <Link href="/marriage/homework" className="text-xs font-bold text-clay-700 underline dark:text-clay-300">
-                    View all
-                  </Link>
-                </div>
-                <ul className="mt-2 space-y-2">
-                  {hub.sessionHomework.map((item) => (
-                    <li key={item.id} className="text-sm">
-                      <Link href={`/marriage/homework/${item.id}`} className="font-semibold text-clay-900 dark:text-sand-100">
-                        {item.title}
-                      </Link>
-                      <p className="text-xs capitalize text-night-500">{item.status.replace(/_/g, " ")}</p>
-                      {item.dueAt ? (
-                        <p className="text-xs text-night-500">
-                          Due {formatMarriageSessionScheduledAt(item.dueAt, item.dueAtTimeZone)}
-                        </p>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              </div>
             )}
 
             {hub.upcomingHomework.length > 0 && (
@@ -387,80 +335,13 @@ export function MarriageCounselingHub() {
               </div>
             )}
 
-            <div className={`${marriagePremium.card} mt-4`}>
-              <p className={marriagePremium.sectionLabel}>Upcoming counseling</p>
-              {hub.upcomingSessions.length === 0 ? (
-                <p className="mt-2 text-sm text-night-500">
-                  No counseling sessions scheduled yet. Your counselor will add appointments here.
-                </p>
-              ) : (
-                <ul className="mt-3 space-y-3" aria-label="Upcoming counseling sessions">
-                  {hub.upcomingSessions.map((session, index) => (
-                    <li
-                      key={session.id}
-                      className={`rounded-xl border px-3 py-3 text-sm ${
-                        index === 0
-                          ? "border-clay-400 bg-stone-50 dark:border-clay-600 dark:bg-white/5"
-                          : "border-stone-200 dark:border-white/10"
-                      }`}
-                    >
-                      {index === 0 ? (
-                        <p className="text-xs font-bold uppercase tracking-wide text-clay-800 dark:text-clay-300">
-                          Next session
-                        </p>
-                      ) : null}
-                      <p className="mt-0.5 font-semibold text-night-900 dark:text-sand-100">
-                        {session.premaritalSessionTitle?.trim() ||
-                          session.topic?.trim() ||
-                          "Counseling session"}
-                      </p>
-                      <p className="mt-1 font-medium">
-                        {formatMarriageSessionScheduledAt(
-                          session.scheduledAt,
-                          session.schedulingTimeZone,
-                        )}
-                        {session.scheduledEndAt
-                          ? ` – ${formatMarriageSessionScheduledAt(session.scheduledEndAt, session.schedulingTimeZone)}`
-                          : ""}
-                      </p>
-                      {session.meetingMode ? (
-                        <p className="mt-1 text-xs capitalize text-night-500">
-                          {session.meetingMode.replace(/_/g, " ")}
-                        </p>
-                      ) : null}
-                      {session.locationOrLink ? (
-                        session.meetingMode === "video" ||
-                        session.locationOrLink.startsWith("http") ? (
-                          <a
-                            href={session.locationOrLink}
-                            className="mt-2 inline-block text-sm font-semibold text-clay-700 underline dark:text-clay-300 break-all"
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Open meeting link
-                          </a>
-                        ) : (
-                          <p className="mt-1 text-sm text-night-600 dark:text-sand-300">
-                            {session.locationOrLink}
-                          </p>
-                        )
-                      ) : session.zoomUrl ? (
-                        <a
-                          href={session.zoomUrl}
-                          className="mt-2 inline-block text-sm font-semibold text-clay-700 underline dark:text-clay-300"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Open Zoom link
-                        </a>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            {hub.upcomingSessions.length === 0 ? (
+              <p className={`${marriagePremium.cardMuted} mt-4 text-sm`}>
+                No counseling sessions scheduled yet. Your counselor will add appointments when ready.
+              </p>
+            ) : null}
 
-            <div className="mt-6">
+            <div className="mt-6 min-w-0">
               <p className={`${marriagePremium.sectionLabel} mb-3`}>Learning modules</p>
               <ul className="space-y-2">
                 {hub.modules.map((mod) => (

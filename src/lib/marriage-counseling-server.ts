@@ -160,15 +160,36 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
 
   let premaritalProgram: MarriageHubSummary["premaritalProgram"] = null;
   let premaritalAppointments: MarriageHubSummary["premaritalAppointments"];
+  let premaritalAppointmentNotices: MarriageHubSummary["premaritalAppointmentNotices"];
   if (journey && journey.programType === "premarital" && myConsent) {
     const { buildCouplePremaritalProgramView } = await import(
       "@/lib/marriage-premarital-program-server"
     );
     premaritalProgram = await buildCouplePremaritalProgramView(viewer, journey);
-    const { buildCoupleAppointmentViews } = await import(
+    const { buildCoupleAppointmentViews, listAllJourneySessions } = await import(
       "@/lib/marriage-premarital-operations-server"
     );
+    const { PREMARITAL_PROGRAM_SESSIONS } = await import(
+      "@/lib/marriage-premarital-eight-session-program"
+    );
     premaritalAppointments = await buildCoupleAppointmentViews(viewer, journey.id);
+    const cancelled = (await listAllJourneySessions(journey.id)).filter(
+      (s) => s.status === "cancelled" && s.premaritalSessionKey,
+    );
+    premaritalAppointmentNotices = cancelled.slice(0, 5).map((s) => {
+      const title =
+        PREMARITAL_PROGRAM_SESSIONS.find((p) => p.sessionKey === s.premaritalSessionKey)?.title ??
+        s.topic ??
+        "Counseling session";
+      return {
+        sessionTitle: title,
+        scheduledAt: s.scheduledAt,
+        schedulingTimeZone: s.schedulingTimeZone,
+        message: s.cancelReason?.trim()
+          ? `This appointment was cancelled. Your counselor noted: ${s.cancelReason.trim()}`
+          : "This appointment was cancelled. Your counselor will follow up with next steps.",
+      };
+    });
   }
 
   let counselorSummary: MarriageHubSummary["counselorSummary"] = null;
@@ -178,6 +199,17 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     );
     counselorSummary = await buildMarriageHubCounselorSummary(journey.id);
   }
+
+  const { buildCoupleOnboardingView } = await import("@/lib/marriage-couple-onboarding-server");
+  const coupleOnboarding = buildCoupleOnboardingView({
+    signedIn: true,
+    coupleLinkActive,
+    hasJourney: Boolean(journey),
+    partnerJoined,
+    myConsent,
+    partnerConsent,
+    counselorSummary,
+  });
 
   return {
     viewerId: viewer.id,
@@ -204,6 +236,8 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     counselorSummary,
     premaritalProgram,
     premaritalAppointments,
+    premaritalAppointmentNotices,
+    coupleOnboarding,
     stage2: stage2 ?? undefined,
   };
 }
