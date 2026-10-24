@@ -93,6 +93,7 @@ export async function POST(request: Request) {
         followUpActions: body.followUpActions ? String(body.followUpActions) : undefined,
         privateObservations: body.privateObservations ? String(body.privateObservations) : undefined,
         linkedAppointmentId: body.linkedAppointmentId ? String(body.linkedAppointmentId) : undefined,
+        releaseFollowUpToCouple: Boolean(body.releaseFollowUpToCouple),
       });
       return NextResponse.json({ ok: true, record });
     }

@@ -7,6 +7,7 @@ import { marriagePremium } from "@/components/marriage/marriage-counseling-premi
 import type { MarriageHubSessionHomeworkView } from "@/lib/marriage-counseling-types";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 import { readJsonResponse } from "@/lib/read-json-response";
+import { MarriagePrepBackToHub } from "@/components/marriage/MarriagePrepBackToHub";
 
 function statusLabel(status: MarriageHubSessionHomeworkView["status"]) {
   return status.replace(/_/g, " ");
@@ -36,9 +37,7 @@ export function MarriageCoupleHomeworkList() {
   return (
     <div className={marriagePremium.page}>
       <div className={`${marriagePremium.inset} min-w-0 overflow-x-hidden`}>
-        <Link href="/marriage" className="text-sm font-semibold text-clay-700 underline dark:text-clay-300">
-          ← Marriage Prep
-        </Link>
+        <MarriagePrepBackToHub />
         <h1 className="mt-3 font-display text-2xl font-semibold">My homework</h1>
         <p className={`${marriagePremium.cardMuted} mt-1 text-sm`}>
           Complete reflections at your pace. Your private answers are not shared with your partner.

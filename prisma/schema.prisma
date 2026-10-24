@@ -1699,6 +1699,23 @@ model MarriagePremaritalReminderDelivery {
   @@index([journeyId])
 }
 
+model MarriagePrepUserNotification {
+  id           String    @id
+  userId       String
+  journeyId    String
+  kind         String
+  referenceKey String
+  title        String
+  body         String
+  actionPath   String
+  readAt       DateTime?
+  createdAt    DateTime
+
+  @@unique([userId, kind, referenceKey])
+  @@index([userId, readAt, createdAt])
+  @@index([journeyId])
+}
+
 model MarriagePrepCertificateSetting {
   id                             String   @id @default("default")
   seniorPastorSignatureAssetPath String?

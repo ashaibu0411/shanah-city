@@ -166,8 +166,7 @@ export async function reschedulePremaritalAppointment(
   };
   await store().saveSession(updated);
 
-  const partnerIds = [journey.participantAId, journey.participantBId].filter(Boolean) as string[];
-  notifyMarriageAppointmentRescheduled(partnerIds, sessionTitle(existing.premaritalSessionKey));
+  void notifyMarriageAppointmentRescheduled(journey, sessionId, sessionTitle(existing.premaritalSessionKey));
 
   await logMarriageAudit({
     actorUserId: viewer.id,
@@ -199,8 +198,7 @@ export async function cancelPremaritalAppointment(
   };
   await store().saveSession(updated);
 
-  const partnerIds = [journey.participantAId, journey.participantBId].filter(Boolean) as string[];
-  notifyMarriageAppointmentCancelled(partnerIds, sessionTitle(existing.premaritalSessionKey));
+  void notifyMarriageAppointmentCancelled(journey, sessionId, sessionTitle(existing.premaritalSessionKey));
 
   await logMarriageAudit({
     actorUserId: viewer.id,
@@ -225,6 +223,7 @@ export async function savePremaritalSessionClinicalRecord(
     followUpActions?: string;
     privateObservations?: string;
     linkedAppointmentId?: string;
+    releaseFollowUpToCouple?: boolean;
   },
 ) {
   const journey = await store().getJourneyById(input.journeyId);
@@ -256,6 +255,13 @@ export async function savePremaritalSessionClinicalRecord(
     updatedByUserId: viewer.id,
   };
   await store().savePremaritalSessionClinical(record);
+  if (
+    input.releaseFollowUpToCouple &&
+    record.followUpActions?.trim()
+  ) {
+    const { notifyMarriageFollowUpReleased } = await import("@/lib/marriage-counseling-notify");
+    void notifyMarriageFollowUpReleased(journey, input.sessionKey);
+  }
   await logMarriageAudit({
     actorUserId: viewer.id,
     action: "premarital_clinical_record_saved",

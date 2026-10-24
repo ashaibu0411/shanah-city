@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { notifyMarriageHomeworkDue } from "@/lib/marriage-counseling-notify";
 import { notifyMarriageAppointmentUpcoming } from "@/lib/marriage-counseling-notify";
 import { marriageSessionInstantMs } from "@/lib/marriage-session-scheduling";
@@ -30,44 +29,25 @@ export async function processPremaritalReminders(options?: { nowMs?: number }) {
       if (session.status === "cancelled" || !session.premaritalSessionKey) continue;
       const ms = marriageSessionInstantMs(session.scheduledAt, session.schedulingTimeZone);
       if (ms < windowStart || ms > windowEnd) continue;
-      const referenceKey = `${session.id}:${session.scheduledAt}`;
-      const recorded = await store().tryRecordPremaritalReminderDelivery({
-        id: randomUUID(),
-        kind: "appointment_upcoming",
-        referenceKey,
-        journeyId,
-        sentAt: new Date(nowMs).toISOString(),
+      const result = await notifyMarriageAppointmentUpcoming(journey, session.id, {
+        sessionTitle: session.topic,
+        referenceKey: `${session.id}:${session.scheduledAt}`,
       });
-      if (!recorded) {
-        skippedDuplicate += 1;
-        continue;
-      }
-      notifyMarriageAppointmentUpcoming(partnerIds, session.topic);
-      appointmentReminders += 1;
+      if (result.created > 0) appointmentReminders += 1;
+      else skippedDuplicate += 1;
     }
 
     const homeworkRows = await store().listSessionHomeworkForJourney(journeyId);
     for (const hw of homeworkRows.filter((h) => h.status === "released" && h.dueAt)) {
       const dueMs = new Date(hw.dueAt!).getTime();
       if (dueMs < windowStart || dueMs > windowEnd) continue;
-      const referenceKey = `${hw.id}:due`;
-      const recorded = await store().tryRecordPremaritalReminderDelivery({
-        id: randomUUID(),
-        kind: "homework_due",
-        referenceKey,
-        journeyId,
-        sentAt: new Date(nowMs).toISOString(),
-      });
-      if (!recorded) {
-        skippedDuplicate += 1;
-        continue;
-      }
       for (const userId of partnerIds) {
         const response = await store().getSessionHomeworkResponse(hw.id, userId);
         const status = participantHomeworkStatus({ homework: hw, response, nowMs });
         if (status === "submitted") continue;
-        notifyMarriageHomeworkDue([userId]);
-        homeworkReminders += 1;
+        const result = await notifyMarriageHomeworkDue(journey, userId, hw.id);
+        if (result.created > 0) homeworkReminders += 1;
+        else skippedDuplicate += 1;
       }
     }
   }

@@ -206,6 +206,14 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     certificatesGallery = await buildCoupleCertificatesGallery(viewer, journey);
   }
 
+  let prepNotificationUnreadCount = 0;
+  if (journey && myConsent) {
+    const { countUnreadMarriagePrepNotificationsForViewer } = await import(
+      "@/lib/marriage-prep-notifications-server"
+    );
+    prepNotificationUnreadCount = await countUnreadMarriagePrepNotificationsForViewer(viewer);
+  }
+
   const { buildCoupleOnboardingView } = await import("@/lib/marriage-couple-onboarding-server");
   const coupleOnboarding = buildCoupleOnboardingView({
     signedIn: true,
@@ -245,6 +253,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     premaritalAppointmentNotices,
     coupleOnboarding,
     certificatesGallery,
+    prepNotificationUnreadCount,
     stage2: stage2 ?? undefined,
   };
 }

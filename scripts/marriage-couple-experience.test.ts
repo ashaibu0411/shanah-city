@@ -15,6 +15,9 @@ assert.match(premarital, /buildCoupleAppointmentViews/, "premarital couple view 
 
 const hubUi = readFileSync(join(root, "src/components/marriage/MarriageCounselingHub.tsx"), "utf8");
 assert.match(hubUi, /MarriageCoupleHubDashboard/, "marriage hub uses couple dashboard");
+
+const hubDash = readFileSync(join(root, "src/components/marriage/MarriageCoupleHubDashboard.tsx"), "utf8");
+assert.match(hubDash, /What to do next/, "consolidated couple action center");
 assert.doesNotMatch(hubUi, /reschedule request/i, "no fake reschedule UI on hub");
 
 const tracker = readFileSync(

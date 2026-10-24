@@ -312,6 +312,8 @@ export async function issueFinalCertificate(
     journeyId,
     meta: { certificateId: id, certificateNumber: record.certificateNumber },
   });
+  const { notifyMarriageFinalCertificateIssued } = await import("@/lib/marriage-counseling-notify");
+  void notifyMarriageFinalCertificateIssued(journey);
   return record;
 }
 

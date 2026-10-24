@@ -335,6 +335,10 @@ export async function updatePremaritalSessionStatus(
     updatedByUserId: viewer.id,
   };
   await store().savePremaritalProgramSession(record);
+  if (status === "completed" && existing?.status !== "completed") {
+    const { notifyMarriageSessionCompleted } = await import("@/lib/marriage-counseling-notify");
+    void notifyMarriageSessionCompleted(journey, sessionKey);
+  }
   return record;
 }
 

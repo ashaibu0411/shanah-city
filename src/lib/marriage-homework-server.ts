@@ -206,6 +206,8 @@ export async function updateSessionHomeworkDraft(
     dueAtLocal: patch.dueAtLocal,
     schedulingTimeZone: patch.schedulingTimeZone,
   });
+  const previousFeedback = homework.partnerFeedback ?? {};
+  const nextFeedback = patch.partnerFeedback ?? homework.partnerFeedback;
   const updated: MarriageSessionHomeworkRecord = {
     ...homework,
     title: patch.title?.trim() || homework.title,
@@ -215,13 +217,23 @@ export async function updateSessionHomeworkDraft(
       patch.counselorPrivateNotes !== undefined
         ? patch.counselorPrivateNotes
         : homework.counselorPrivateNotes,
-    partnerFeedback: patch.partnerFeedback ?? homework.partnerFeedback,
+    partnerFeedback: nextFeedback,
     sessionId: patch.sessionId ?? homework.sessionId,
     dueAt: due?.dueAt ?? (patch.dueAt === "" ? undefined : homework.dueAt),
     dueAtTimeZone: due?.dueAtTimeZone ?? homework.dueAtTimeZone,
     updatedAt: new Date().toISOString(),
   };
   await store().saveSessionHomework(updated);
+  if (patch.partnerFeedback && homework.status === "released") {
+    const { notifyMarriageCounselorFeedbackAvailable } = await import("@/lib/marriage-counseling-notify");
+    for (const [userId, text] of Object.entries(patch.partnerFeedback)) {
+      const trimmed = text?.trim();
+      if (!trimmed) continue;
+      const had = previousFeedback[userId]?.trim();
+      if (had === trimmed) continue;
+      void notifyMarriageCounselorFeedbackAvailable(journey, userId, homework.id);
+    }
+  }
   return updated;
 }
 
@@ -241,6 +253,8 @@ export async function releaseSessionHomework(viewer: PublicMember, homeworkId: s
     updatedAt: now,
   };
   await store().saveSessionHomework(updated);
+  const { notifyMarriageHomeworkReleased } = await import("@/lib/marriage-counseling-notify");
+  void notifyMarriageHomeworkReleased(journey, homeworkId);
   return updated;
 }
 
@@ -315,6 +329,7 @@ export async function listReleasedHomeworkForParticipant(viewer: PublicMember, j
       dueAtTimeZone: hw.dueAtTimeZone,
       status,
       submitted: Boolean(response?.submittedAt),
+      hasCounselorFeedback: Boolean(hw.partnerFeedback?.[viewer.id]?.trim()),
       activityCount: hw.activities.length,
       templateKey: hw.templateKey,
       timingLabel: timing?.timingLabel,

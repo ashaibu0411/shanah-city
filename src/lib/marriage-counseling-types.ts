@@ -733,6 +733,7 @@ export type MarriageHubSessionHomeworkView = {
   dueAtTimeZone?: string;
   status: "not_started" | "in_progress" | "submitted" | "overdue";
   submitted: boolean;
+  hasCounselorFeedback?: boolean;
   activityCount: number;
   timingLabel?: string;
   assignedAfterLabel?: string;
@@ -770,5 +771,6 @@ export type MarriageHubSummary = {
   premaritalAppointmentNotices?: MarriageCoupleAppointmentNotice[];
   coupleOnboarding?: MarriageCoupleOnboardingView;
   certificatesGallery?: import("@/lib/marriage-certificate-types").MarriageCoupleCertificatesGalleryView;
+  prepNotificationUnreadCount?: number;
   stage2?: MarriageStage2Dashboard;
 };

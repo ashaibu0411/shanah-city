@@ -51,6 +51,7 @@ yarn-error.log*
 /data/activity.json
 /data/password-reset-tokens.json
 /data/marriage-private/
+/data/marriage-prep-notifications.json
 
 # uploaded gallery photos (keep folder)
 /public/gallery/uploads/*

@@ -291,6 +291,7 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
                 topicsCovered: String(fd.get("topicsCovered") ?? ""),
                 followUpActions: String(fd.get("followUpActions") ?? ""),
                 privateObservations: String(fd.get("privateObservations") ?? ""),
+                releaseFollowUpToCouple: fd.get("releaseFollowUpToCouple") === "on",
               });
             }}
           >
@@ -331,7 +332,10 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
               <option value="postponed">Postponed</option>
             </select>
             <textarea name="topicsCovered" className="marriage-c3m-textarea" placeholder="Topics covered" defaultValue={clinicalByKey.get(clinicalKey)?.topicsCovered ?? ""} />
-            <textarea name="followUpActions" className="marriage-c3m-textarea" placeholder="Follow-up actions" defaultValue={clinicalByKey.get(clinicalKey)?.followUpActions ?? ""} />
+            <textarea name="followUpActions" className="marriage-c3m-textarea" placeholder="Follow-up actions (counselor workspace)" defaultValue={clinicalByKey.get(clinicalKey)?.followUpActions ?? ""} />
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="releaseFollowUpToCouple" /> Notify couple that follow-up steps are available (generic notice — no clinical details)
+            </label>
             <textarea name="privateObservations" className="marriage-c3m-textarea" placeholder="Private observations (counselor only)" defaultValue={clinicalByKey.get(clinicalKey)?.privateObservations ?? ""} />
             <button type="submit" disabled={busy} className="marriage-c3m-btn-secondary min-h-[44px] w-full sm:w-auto">
               Save attendance record

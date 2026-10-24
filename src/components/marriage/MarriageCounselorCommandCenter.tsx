@@ -121,8 +121,10 @@ export function MarriageCounselorCommandCenter() {
 
   if (loading) {
     return (
-      <div className={marriagePremium.card}>
-        <p className={marriagePremium.cardMuted}>Loading command center…</p>
+      <div className={marriagePremium.card} aria-busy="true">
+        <p className={marriagePremium.cardMuted} role="status">
+          Loading command center…
+        </p>
       </div>
     );
   }
