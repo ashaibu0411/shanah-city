@@ -342,7 +342,17 @@ export type MarriageCouplePremaritalProgramView = {
       title: string;
       status: string;
       dueAt: string | null;
+      timingLabel?: string;
+      estimatedMinutes?: number;
     }>;
+  }>;
+  allReleasedHomework: Array<{
+    homeworkId: string;
+    title: string;
+    status: string;
+    dueAt: string | null;
+    timingLabel?: string;
+    estimatedMinutes?: number;
   }>;
 };
 
@@ -625,6 +635,9 @@ export type MarriageHubSessionHomeworkView = {
   status: "not_started" | "in_progress" | "submitted" | "overdue";
   submitted: boolean;
   activityCount: number;
+  timingLabel?: string;
+  estimatedMinutes?: number;
+  templateKey?: string;
 };
 
 export type MarriageHubSummary = {

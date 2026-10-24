@@ -10,6 +10,13 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
   "session-1-foundations": {
     teachingSections: [
       {
+        heading: "Opening and session objectives (75–90 minutes)",
+        paragraphs: [
+          "Welcome the couple, thank them for preparing, and pray briefly for honesty and grace. Objectives today: (1) name marriage as covenant before God, (2) surface competing loyalties that could strain the union, (3) set expectations for this eight-session journey and homework between meetings, (4) assign nothing automatically — explain that after today you will release written homework they complete before Session 2.",
+          "Share a realistic example: a couple assumed love would solve in-law tension; preparation helped them agree on a ‘we respond together’ rule before the next family dinner. Another couple discovered one partner heard ‘covenant’ as legal permanence while the other heard emotional fireworks — aligning language prevented early disappointment.",
+        ],
+      },
+      {
         heading: "Marriage as covenant, not contract",
         paragraphs: [
           "Open by reminding the couple that Christian marriage is a covenant witnessed by God and the community, not a transactional agreement that ends when feelings change. Contracts protect self-interest; covenants bind us to faithfulness when self-interest fades. Ask each partner: “What did you imagine you were promising on your wedding day — feelings, or faithfulness?”",
@@ -30,6 +37,33 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
           "Explain how Shanah City’s assessments and homework support honesty but do not replace face-to-face pastoral care. Set expectations for this eight-session arc: preparation, not performance.",
         ],
       },
+      {
+        heading: "Practical in-session exercise",
+        paragraphs: [
+          "Have each partner complete this sentence aloud: “When I say ‘I do,’ I am promising God and you that I will __________ even when I do not feel __________.” Allow silence; do not rush.",
+          "Together write (or say) one sentence describing how church community will know when to intervene gently if they see strain in year one.",
+        ],
+      },
+      {
+        heading: "When partners answer differently",
+        paragraphs: [
+          "If one defines covenant as permanence and the other as daily romance, do not vote. Ask each to describe a married couple they admire and what promise they believe that couple keeps on hard days.",
+          "If community involvement feels smothering to one and essential to the other, schedule a follow-up boundary conversation rather than forcing agreement today.",
+        ],
+      },
+      {
+        heading: "Session wrap-up and closing prayer",
+        paragraphs: [
+          "Summarize themes heard. Confirm Session 2 focus (knowing self and background). Remind them individual homework after Session 1 stays private until they choose to share in counseling.",
+          "Prayer focus: God as witness (Malachi 2:14), courage to cleave, and a church that supports rather than performs for.",
+        ],
+      },
+      {
+        heading: "Suggested homework (counselor releases manually)",
+        paragraphs: [
+          "Use template “After Session 1 — Knowing yourself before Session 2” (legacy key week-1-knowing-yourself). Review draft, set due date before Session 2, then release explicitly.",
+        ],
+      },
     ],
     discussionQuestions: [
       "What does “covenant” mean to each of you in your own words?",
@@ -45,6 +79,13 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
   "session-2-knowing-yourself": {
     teachingSections: [
       {
+        heading: "Opening and session objectives",
+        paragraphs: [
+          "Pray and recall Session 1 themes. Objectives: explore temperament and family-of-origin without shaming culture or economics; review assessment progress; discuss homework completed after Session 1 only at the level each partner consents to share.",
+          "Example: partners from a loud, expressive home and a quiet, indirect home learned to name ‘I need words’ vs ‘I need calm’ instead of labeling each other rude or cold.",
+        ],
+      },
+      {
         heading: "Self-awareness before unity",
         paragraphs: [
           "Strong marriages are built from two whole-ish people, not two halves completing each other. Invite each partner to describe temperament, stress signals, and how they received love growing up. Use the Knowing Yourself and Family Background module themes — reference their written work only where they have consented to share.",
@@ -59,10 +100,37 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
         ],
       },
       {
-        heading: "Emotional health and homework",
+        heading: "Emotional health and homework review",
         paragraphs: [
-          "Introduce Week 1 homework if not yet released: private reflection first, then guided sharing in session. Emphasize that private answers stay private until they choose disclosure.",
+          "Review homework assigned after Session 1 (before today) only with permission — never read private journal entries aloud. Ask what was hardest and what surprised them about themselves.",
           "Discuss emotional health module themes: anxiety, depression, anger, and when professional help may be needed. Pastoral counseling is not therapy; know referral boundaries.",
+        ],
+      },
+      {
+        heading: "Practical in-session exercise",
+        paragraphs: [
+          "Timeline exercise: each partner names one childhood memory that shaped how they receive love. Partner may only ask clarifying questions, not debate the memory.",
+          "On paper, each lists one family rule they want to keep and one they want to rewrite for their new household.",
+        ],
+      },
+      {
+        heading: "When partners answer differently",
+        paragraphs: [
+          "Different stories are normal. Avoid ‘my family was healthier.’ Explore how two valid backgrounds will negotiate holidays, money, and conflict.",
+          "If trauma surfaces, pause curriculum performance; affirm courage and discuss whether individual support is needed.",
+        ],
+      },
+      {
+        heading: "Session wrap-up and closing prayer",
+        paragraphs: [
+          "Affirm God’s craftsmanship (Psalm 139). Preview communication session. Assign after Session 2 homework via Homework Manager when ready.",
+          "Prayer focus: patience while learning each other’s story; healing where family wounds remain.",
+        ],
+      },
+      {
+        heading: "Suggested homework",
+        paragraphs: [
+          "Release “After Session 2 — Communication practice before Session 3” after this meeting.",
         ],
       },
     ],
@@ -79,6 +147,12 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
   },
   "session-3-communication": {
     teachingSections: [
+      {
+        heading: "Opening and session objectives",
+        paragraphs: [
+          "Objectives: practice listening and repair; connect to Communication module; normalize conflict without contempt. Share example: a couple stopped midnight arguments by agreeing to resume after sleep — not abandonment, but wisdom.",
+        ],
+      },
       {
         heading: "Listening as spiritual discipline",
         paragraphs: [
@@ -100,6 +174,31 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
           "Trust rebuilds slowly; forgiveness is often instant before God but gradual in feeling. Couples should not weaponize past failures once addressed.",
         ],
       },
+      {
+        heading: "Practical in-session exercise",
+        paragraphs: [
+          "Ten-minute listening drill on a neutral topic (how each prefers to spend a day off). Speaker, listener repeat-back, then switch.",
+          "Draft a shared time-out phrase and return window (within 24 hours).",
+        ],
+      },
+      {
+        heading: "When partners answer differently",
+        paragraphs: [
+          "If one wants immediate resolution and one needs space, write both needs on a card and read them to each other without fixing.",
+          "If contempt language appears, stop and name it as covenant damage — not personality.",
+        ],
+      },
+      {
+        heading: "Session wrap-up and closing prayer",
+        paragraphs: [
+          "Summarize repair steps. Release after Session 3 money homework when appropriate.",
+          "Prayer focus: James 1:19 — quick to hear in a noisy world.",
+        ],
+      },
+      {
+        heading: "Suggested homework",
+        paragraphs: ["After Session 3 — Money and stewardship before Session 4."],
+      },
     ],
     discussionQuestions: [
       "What topic is hardest to talk about calmly, and why?",
@@ -114,6 +213,12 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
   },
   "session-4-money": {
     teachingSections: [
+      {
+        heading: "Opening and session objectives",
+        paragraphs: [
+          "Objectives: align hearts on stewardship; high-level transparency on debt, giving, and roles; refer complex legal/tax work to professionals. Example: immigrant couple merged remittance support for parents into budget talks early and avoided secret sending later.",
+        ],
+      },
       {
         heading: "Stewardship, not ownership",
         paragraphs: [
@@ -135,6 +240,31 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
           "Set one shared goal for year one (emergency fund, debt reduction, giving project) as an exercise in teamwork.",
         ],
       },
+      {
+        heading: "Practical in-session exercise",
+        paragraphs: [
+          "On one page, list all accounts, debts, and giving (percentages, not necessarily exact balances if shame is present — counselor may follow privately).",
+          "Agree on a monthly ‘money meeting’ date and length (30 minutes).",
+        ],
+      },
+      {
+        heading: "When partners answer differently",
+        paragraphs: [
+          "Spender/saver pairs need shared goals, not conversion. Ask what fear sits under spending or hoarding.",
+          "Income disparity: honor unpaid labor (caregiving, study, ministry) as real contribution.",
+        ],
+      },
+      {
+        heading: "Session wrap-up and closing prayer",
+        paragraphs: [
+          "Confirm transparency norms. Homework: after Session 4 family/boundaries template.",
+          "Prayer focus: faithfulness in little things (Luke 16:10).",
+        ],
+      },
+      {
+        heading: "Suggested homework",
+        paragraphs: ["After Session 4 — Family and boundaries before Session 5."],
+      },
     ],
     discussionQuestions: [
       "What did your family teach you about money — openly or by example?",
@@ -149,6 +279,12 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
   },
   "session-5-family-boundaries": {
     teachingSections: [
+      {
+        heading: "Opening and session objectives",
+        paragraphs: [
+          "Objectives: honor parents while prioritizing marriage; plan boundaries without shaming culture; align on children timing at a high level. Example: couple in multigenerational home agreed on quiet hours and decision rights before moving in.",
+        ],
+      },
       {
         heading: "Cleaving and honoring",
         paragraphs: [
@@ -170,6 +306,31 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
           "Optional in-laws module supports this session. Encourage couples to present a united front privately before public announcements.",
         ],
       },
+      {
+        heading: "Practical in-session exercise",
+        paragraphs: [
+          "Role-play one boundary conversation with a parent or relative (counselor plays the relative). Debrief tone and unity.",
+          "Sketch a two-year holiday plan framework — details can wait, principles cannot.",
+        ],
+      },
+      {
+        heading: "When partners answer differently",
+        paragraphs: [
+          "If one culture expects daily parent contact and another expects independence, negotiate rhythm, not victory.",
+          "Children timing disagreements: document both hopes and schedule continued conversation rather than forcing consensus.",
+        ],
+      },
+      {
+        heading: "Session wrap-up and closing prayer",
+        paragraphs: [
+          "Bless their courage to honor and cleave. Release after Session 5 intimacy/trust homework when ready.",
+          "Prayer focus: Genesis 2:24 wisdom in their specific family system.",
+        ],
+      },
+      {
+        heading: "Suggested homework",
+        paragraphs: ["After Session 5 — Intimacy and trust before Session 6."],
+      },
     ],
     discussionQuestions: [
       "Where do you feel caught between family and fiancé today?",
@@ -184,6 +345,12 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
   },
   "session-6-intimacy-trust": {
     teachingSections: [
+      {
+        heading: "Opening and session objectives",
+        paragraphs: [
+          "Objectives: teach mutual intimacy with discretion; address trust and media; follow safety protocols if coercion or abuse appears. Example: couple agreed on accountability for porn recovery without public shaming.",
+        ],
+      },
       {
         heading: "Emotional and physical intimacy",
         paragraphs: [
@@ -205,6 +372,31 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
           "Affirm confidentiality within legal/ethical limits. Some topics belong in private session with one partner if needed.",
         ],
       },
+      {
+        heading: "Practical in-session exercise",
+        paragraphs: [
+          "Each partner names one non-sexual affection habit that helps them feel close. Partner repeats back without joking.",
+          "Agree on two digital boundaries (screens in bed, private chats, etc.).",
+        ],
+      },
+      {
+        heading: "When partners answer differently",
+        paragraphs: [
+          "Different intimacy expectations are common; explore feelings and fears, not demands. Refer trauma or addiction to specialized help.",
+          "If one partner is not ready to discuss past sexual history, respect pace while noting wedding readiness implications privately.",
+        ],
+      },
+      {
+        heading: "Session wrap-up and closing prayer",
+        paragraphs: [
+          "Affirm dignity. Homework after Session 6 on faith and home vision.",
+          "Prayer focus: mutual honor and safety in the marriage bed.",
+        ],
+      },
+      {
+        heading: "Suggested homework",
+        paragraphs: ["After Session 6 — Faith and home vision before Session 7."],
+      },
     ],
     discussionQuestions: [
       "What helps you feel emotionally safe with your partner?",
@@ -219,6 +411,12 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
   },
   "session-7-faith-purpose": {
     teachingSections: [
+      {
+        heading: "Opening and session objectives",
+        paragraphs: [
+          "Objectives: unite around mission, spiritual rhythms, work/rest, and home atmosphere across cultures. Example: bilingual couple chose one language for prayer and both for hospitality.",
+        ],
+      },
       {
         heading: "Shared mission",
         paragraphs: [
@@ -239,6 +437,31 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
           "Home is atmosphere, not square footage. Name values: hospitality, laughter, prayer at meals, media rules, conflict rules. One-sentence vision exercise: “The home we are building honors God by…”",
         ],
       },
+      {
+        heading: "Practical in-session exercise",
+        paragraphs: [
+          "Write a one-sentence home vision together aloud until both can say amen honestly.",
+          "Pick one weekly spiritual rhythm to start in month one (meal prayer, Sabbath walk, serving together).",
+        ],
+      },
+      {
+        heading: "When partners answer differently",
+        paragraphs: [
+          "Different church backgrounds: clarify non-negotiables vs preferences.",
+          "Workaholism vs rest: negotiate caps on hours before resentment sets in.",
+        ],
+      },
+      {
+        heading: "Session wrap-up and closing prayer",
+        paragraphs: [
+          "Preview final readiness session. Release after Session 7 readiness prep homework.",
+          "Prayer focus: Joshua 24:15 decision, not drift.",
+        ],
+      },
+      {
+        heading: "Suggested homework",
+        paragraphs: ["After Session 7 — Readiness check before Session 8."],
+      },
     ],
     discussionQuestions: [
       "How will you pray together — even if awkward at first?",
@@ -253,6 +476,12 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
   },
   "session-8-readiness-review": {
     teachingSections: [
+      {
+        heading: "Opening and session objectives",
+        paragraphs: [
+          "Objectives: synthesize growth; name unresolved concerns honestly; bless and send; document private pastoral conditions. This is not a pass/fail exam — readiness is direction with open hands.",
+        ],
+      },
       {
         heading: "Synthesis, not checklist perfection",
         paragraphs: [
@@ -273,6 +502,30 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
           "Pray blessing over them. Give clear guidance on wedding-week stress, first-month adjustments, and when to seek help early rather than late.",
           "Document any pastoral conditions (e.g., continued counseling recommendation) in private notes, not as public shame.",
         ],
+      },
+      {
+        heading: "Practical in-session exercise",
+        paragraphs: [
+          "Each partner shares three strengths they see in the other’s preparation journey.",
+          "Together name one mentor couple and one early warning sign that will prompt them to seek help.",
+        ],
+      },
+      {
+        heading: "When partners answer differently",
+        paragraphs: [
+          "If one feels ready and one hesitant, explore specifics — do not proceed by pressure. Senior pastor may need to join for serious unresolved contempt, addiction, or safety issues.",
+        ],
+      },
+      {
+        heading: "Session wrap-up and closing prayer",
+        paragraphs: [
+          "Public blessing and practical wedding-week tips. Optional first-month homework after Session 8.",
+          "Prayer focus: Philippians 1:6 — God completes what He starts; invite congregation support.",
+        ],
+      },
+      {
+        heading: "Suggested homework",
+        paragraphs: ["After Session 8 — First month of marriage (optional send-off template)."],
       },
     ],
     discussionQuestions: [

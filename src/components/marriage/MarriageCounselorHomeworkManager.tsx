@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MarriageCounselorSessionDateTimeField } from "@/components/marriage/MarriageCounselorSessionDateTimeField";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import type { MarriageCounselorHomeworkListItem } from "@/lib/marriage-homework-types";
 import type { MarriageHomeworkTemplateSummary } from "@/lib/marriage-homework-types";
-import { WEEK_1_HOMEWORK_TEMPLATE_KEY } from "@/lib/marriage-homework-templates";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 import { readJsonResponse } from "@/lib/read-json-response";
 
@@ -52,7 +51,13 @@ type HomeworkDetail = {
   partnerViews: DetailPartner[];
 };
 
-export function MarriageCounselorHomeworkManager({ journeyId }: { journeyId: string }) {
+export function MarriageCounselorHomeworkManager({
+  journeyId,
+  initialTemplateKey,
+}: {
+  journeyId: string;
+  initialTemplateKey?: string;
+}) {
   const [items, setItems] = useState<MarriageCounselorHomeworkListItem[]>([]);
   const [templates, setTemplates] = useState<MarriageHomeworkTemplateSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -93,6 +98,19 @@ export function MarriageCounselorHomeworkManager({ journeyId }: { journeyId: str
     void loadList();
     void loadTemplates();
   }, [loadList, loadTemplates]);
+
+  const preselectRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!initialTemplateKey || templates.length === 0) return;
+    if (preselectRef.current === initialTemplateKey) return;
+    preselectRef.current = initialTemplateKey;
+    const existing = items.find((i) => i.templateKey === initialTemplateKey);
+    if (existing) {
+      setSelectedId(existing.id);
+      return;
+    }
+    void createFromTemplate(initialTemplateKey);
+  }, [initialTemplateKey, templates.length, items]);
 
   useEffect(() => {
     if (selectedId) void loadDetail(selectedId);
@@ -204,10 +222,16 @@ export function MarriageCounselorHomeworkManager({ journeyId }: { journeyId: str
             key={t.key}
             type="button"
             disabled={busy}
-            className="marriage-c3m-btn-secondary min-h-[44px] text-left text-sm"
+            className="marriage-c3m-btn-secondary min-h-[44px] w-full text-left text-sm sm:w-auto"
             onClick={() => void createFromTemplate(t.key)}
           >
-            Use template: {t.key === WEEK_1_HOMEWORK_TEMPLATE_KEY ? "Week 1" : t.title}
+            <span className="block font-semibold">{t.title}</span>
+            {t.timingLabel ? (
+              <span className="marriage-c3m-muted block text-xs font-normal">{t.timingLabel}</span>
+            ) : null}
+            {t.estimatedMinutes ? (
+              <span className="marriage-c3m-muted block text-xs font-normal">~{t.estimatedMinutes} min</span>
+            ) : null}
           </button>
         ))}
       </div>

@@ -159,6 +159,42 @@ export function MarriageCounselorPremaritalProgramPanel({
         </div>
 
         <div>
+          <p className="text-sm font-semibold">Individual reflection prompts (in session or homework)</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+            {active.reflectionPrompts.map((q) => (
+              <li key={q}>{q}</li>
+            ))}
+          </ul>
+        </div>
+
+        {active.suggestedHomeworkTemplateKeys.length > 0 && (
+          <div className="rounded-xl border border-[#E8E2DA] bg-[#F7F4EF] px-3 py-3 dark:border-white/10 dark:bg-white/5">
+            <p className="text-sm font-semibold">Homework after this session</p>
+            <p className="marriage-c3m-muted mt-1 text-xs">
+              Draft in Homework Manager, review, set due date, then release — nothing is sent automatically.
+            </p>
+            {active.suggestedHomeworkTemplateKeys.map((templateKey) => (
+              <Link
+                key={templateKey}
+                href={`/marriage/counselor/journey/${journeyId}/homework?template=${encodeURIComponent(templateKey)}`}
+                className="marriage-c3m-btn-primary mt-3 inline-flex min-h-[44px] w-full items-center justify-center sm:w-auto"
+              >
+                Prepare &amp; assign homework
+              </Link>
+            ))}
+            {active.homeworkRows.length > 0 && (
+              <ul className="mt-3 space-y-1 text-sm">
+                {active.homeworkRows.map((h) => (
+                  <li key={h.homeworkId}>
+                    {h.title} · <span className="capitalize">{h.status}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        <div>
           <p className="text-sm font-semibold">Linked assessments</p>
           <ul className="mt-2 space-y-1 text-sm">
             {active.linkedModulesDetailed.map((m) => (

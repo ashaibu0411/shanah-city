@@ -60,6 +60,9 @@ export function MarriageCoupleHomeworkList() {
                 <li key={item.id} className={marriagePremium.moduleRow}>
                   <Link href={`/marriage/homework/${item.id}`} className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold">{item.title}</span>
+                    {item.timingLabel ? (
+                      <span className="block text-xs text-night-500 dark:text-sand-400">{item.timingLabel}</span>
+                    ) : null}
                     <span className="block text-xs capitalize text-night-500">{statusLabel(item.status)}</span>
                     {item.dueAt ? (
                       <span className="block text-xs text-night-500">

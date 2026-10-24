@@ -21,6 +21,7 @@ import {
   listModulesForJourney,
 } from "@/lib/marriage-curriculum-service";
 import { participantHomeworkStatus } from "@/lib/marriage-homework-status";
+import { homeworkTemplateMeta } from "@/lib/marriage-homework-template-meta";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 import type { MarriageCounselingJourneyRecord } from "@/lib/marriage-counseling-types";
 
@@ -50,6 +51,7 @@ export type MarriageCounselorPremaritalProgramView = {
         status: string;
         templateKey: string | null;
       }>;
+      suggestedHomeworkTemplateKeys: string[];
     }
   >;
 };
@@ -154,11 +156,14 @@ export async function buildCouplePremaritalProgramView(
           .filter((h) => h.templateKey && templateKeys.has(h.templateKey))
           .map(async (h) => {
             const response = await store().getSessionHomeworkResponse(h.id, viewer.id);
+            const timing = homeworkTemplateMeta(h.templateKey);
             return {
               homeworkId: h.id,
               title: h.title,
               status: participantHomeworkStatus({ homework: h, response, nowMs: now }),
               dueAt: h.dueAt ?? null,
+              timingLabel: timing?.timingLabel,
+              estimatedMinutes: timing?.estimatedMinutes,
             };
           }),
       );
@@ -183,6 +188,16 @@ export async function buildCouplePremaritalProgramView(
 
   const completed = records.filter((r) => r.status === "completed").length;
 
+  const allReleasedHomework: MarriageCouplePremaritalProgramView["allReleasedHomework"] = [];
+  const seenHw = new Set<string>();
+  for (const session of sessions) {
+    for (const hw of session.releasedHomework) {
+      if (seenHw.has(hw.homeworkId)) continue;
+      seenHw.add(hw.homeworkId);
+      allReleasedHomework.push(hw);
+    }
+  }
+
   return {
     programKey: PREMARITAL_EIGHT_SESSION_PROGRAM_KEY,
     paused: Boolean(meta?.pausedAt),
@@ -190,6 +205,7 @@ export async function buildCouplePremaritalProgramView(
     sessionsCompleted: completed,
     sessionsTotal: PREMARITAL_PROGRAM_SESSIONS.length,
     sessions,
+    allReleasedHomework,
   };
 }
 
@@ -229,6 +245,7 @@ export async function buildCounselorPremaritalProgramView(
           status: h.status,
           templateKey: h.templateKey ?? null,
         })),
+      suggestedHomeworkTemplateKeys: def.homeworkTemplateKeys,
     };
   });
 

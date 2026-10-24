@@ -15,6 +15,7 @@ import {
   listHomeworkTemplateSummaries,
   templateMeta,
 } from "@/lib/marriage-homework-templates";
+import { homeworkTemplateMeta } from "@/lib/marriage-homework-template-meta";
 import type { MarriageHubSessionHomeworkView } from "@/lib/marriage-counseling-types";
 import type {
   MarriageCounselorHomeworkListItem,
@@ -132,7 +133,14 @@ export async function createSessionHomeworkDraft(
       throw new Error("This template is already released for this couple. Create a custom homework instead.");
     }
     const meta = templateMeta(input.templateKey.trim());
+    const timing = homeworkTemplateMeta(input.templateKey.trim());
     const now = new Date().toISOString();
+    let dueAt: string | undefined;
+    if (timing?.suggestedDueDaysAfterRelease) {
+      const due = new Date();
+      due.setDate(due.getDate() + timing.suggestedDueDaysAfterRelease);
+      dueAt = due.toISOString();
+    }
     const record: MarriageSessionHomeworkRecord = {
       id: randomUUID(),
       journeyId: journey.id,
@@ -142,6 +150,7 @@ export async function createSessionHomeworkDraft(
       title: input.title?.trim() || meta.title,
       instructions: input.instructions?.trim() || meta.description,
       status: "draft",
+      dueAt,
       activities: cloneTemplateActivities(input.templateKey.trim()),
       createdAt: now,
       updatedAt: now,
@@ -298,6 +307,7 @@ export async function listReleasedHomeworkForParticipant(viewer: PublicMember, j
   for (const hw of released) {
     const response = await store().getSessionHomeworkResponse(hw.id, viewer.id);
     const status = participantHomeworkStatus({ homework: hw, response, nowMs: now });
+    const timing = homeworkTemplateMeta(hw.templateKey);
     views.push({
       id: hw.id,
       title: hw.title,
@@ -306,6 +316,9 @@ export async function listReleasedHomeworkForParticipant(viewer: PublicMember, j
       status,
       submitted: Boolean(response?.submittedAt),
       activityCount: hw.activities.length,
+      templateKey: hw.templateKey,
+      timingLabel: timing?.timingLabel,
+      estimatedMinutes: timing?.estimatedMinutes,
     });
   }
   return views;
@@ -327,6 +340,7 @@ export async function getParticipantHomeworkWorkspace(viewer: PublicMember, home
     };
   const total = totalWritableQuestions(homework.activities);
   const answered = countAnsweredQuestions(homework.activities, response.answers);
+  const timing = homeworkTemplateMeta(homework.templateKey);
   return {
     homework: {
       id: homework.id,
@@ -335,6 +349,8 @@ export async function getParticipantHomeworkWorkspace(viewer: PublicMember, home
       dueAt: homework.dueAt,
       dueAtTimeZone: homework.dueAtTimeZone,
       activities: homework.activities,
+      timingLabel: timing?.timingLabel,
+      estimatedMinutes: timing?.estimatedMinutes,
     },
     response: {
       answers: response.answers,

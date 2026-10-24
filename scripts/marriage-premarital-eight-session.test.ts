@@ -22,6 +22,7 @@ for (const session of PREMARITAL_PROGRAM_SESSIONS) {
   assert.ok(session.discussionQuestions.length >= 3, `${session.sessionKey} discussion questions`);
   assert.ok(session.scriptures.length >= 2, `${session.sessionKey} scriptures`);
   assert.ok(session.completionChecklist.length >= 3, `${session.sessionKey} checklist`);
+  assert.equal(session.homeworkTemplateKeys.length, 1, `${session.sessionKey} homework template`);
 }
 
 const premaritalRequired = new Set(
@@ -53,7 +54,9 @@ const guides = readFileSync(
   join(root, "src/lib/marriage-premarital-session-guides.ts"),
   "utf8",
 );
-assert.ok(guides.length > 8000, "substantial counselor teaching content");
+assert.ok(guides.length > 12000, "substantial counselor teaching content");
+assert.match(guides, /Opening and session objectives/, "guides include session openings");
+assert.match(guides, /When partners answer differently/, "guides include disagreement guidance");
 
 console.log("marriage-premarital-eight-session.test.ts: OK");
 console.log(

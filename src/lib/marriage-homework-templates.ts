@@ -1,5 +1,15 @@
 import type { MarriageHomeworkActivityDef, MarriageHomeworkTemplateSummary } from "@/lib/marriage-homework-types";
 import { enrichHomeworkActivities } from "@/lib/marriage-homework-written-guidance";
+import { PREMARITAL_HOMEWORK_TEMPLATE_META } from "@/lib/marriage-homework-template-meta";
+import {
+  PREMARITAL_AFTER_S2_ACTIVITIES,
+  PREMARITAL_AFTER_S3_ACTIVITIES,
+  PREMARITAL_AFTER_S4_ACTIVITIES,
+  PREMARITAL_AFTER_S5_ACTIVITIES,
+  PREMARITAL_AFTER_S6_ACTIVITIES,
+  PREMARITAL_AFTER_S7_ACTIVITIES,
+  PREMARITAL_AFTER_S8_ACTIVITIES,
+} from "@/lib/marriage-premarital-homework-template-bodies";
 
 export const WEEK_1_HOMEWORK_TEMPLATE_KEY = "week-1-knowing-yourself";
 
@@ -121,20 +131,67 @@ export const MARRIAGE_HOMEWORK_TEMPLATES: Record<
   { title: string; description: string; activities: MarriageHomeworkActivityDef[] }
 > = {
   [WEEK_1_HOMEWORK_TEMPLATE_KEY]: {
-    title: "WEEK 1 — KNOWING YOURSELF BEFORE BECOMING ONE",
+    title: "After Session 1 — Knowing yourself before Session 2",
     description:
-      "This week's goal is to understand yourself, your background, and the kind of marriage you want to build. Answer honestly and thoughtfully. You do not need to finish everything in one sitting.",
+      "Assigned after your Session 1 meeting (Foundations of Marriage). Complete before Session 2 (Knowing Yourself and Your Background). Estimated time: about 90 minutes, in more than one sitting if needed. Private answers stay private; your partner cannot see your individual reflections.",
     activities: WEEK_1_ACTIVITIES,
+  },
+  "premarital-after-s2-communication": {
+    title: "After Session 2 — Communication practice before Session 3",
+    description:
+      "Assigned after Session 2. Complete before Session 3 (Communication and Conflict). Estimated time: about 75 minutes. Practice listening and name your conflict habits without blaming.",
+    activities: PREMARITAL_AFTER_S2_ACTIVITIES,
+  },
+  "premarital-after-s3-money": {
+    title: "After Session 3 — Money and stewardship before Session 4",
+    description:
+      "Assigned after Session 3. Complete before Session 4 (Money and Financial Stewardship). Estimated time: about 70 minutes. Be transparent about patterns; this is not legal or tax advice.",
+    activities: PREMARITAL_AFTER_S3_ACTIVITIES,
+  },
+  "premarital-after-s4-family": {
+    title: "After Session 4 — Family and boundaries before Session 5",
+    description:
+      "Assigned after Session 4. Complete before Session 5 (Family, Boundaries and In-Laws). Estimated time: about 80 minutes. Honor different family backgrounds without shame.",
+    activities: PREMARITAL_AFTER_S4_ACTIVITIES,
+  },
+  "premarital-after-s5-intimacy-trust": {
+    title: "After Session 5 — Intimacy and trust before Session 6",
+    description:
+      "Assigned after Session 5. Complete before Session 6 (Intimacy, Trust and Commitment). Estimated time: about 75 minutes. Sensitive topics may be discussed privately with your counselor.",
+    activities: PREMARITAL_AFTER_S5_ACTIVITIES,
+  },
+  "premarital-after-s6-faith-home": {
+    title: "After Session 6 — Faith and home vision before Session 7",
+    description:
+      "Assigned after Session 6. Complete before Session 7 (Faith, Purpose and Building a Home). Estimated time: about 75 minutes.",
+    activities: PREMARITAL_AFTER_S6_ACTIVITIES,
+  },
+  "premarital-after-s7-readiness-prep": {
+    title: "After Session 7 — Readiness check before Session 8",
+    description:
+      "Assigned after Session 7. Complete before Session 8 (Marriage Readiness and Final Review). Estimated time: about 60 minutes. Honesty helps your pastor bless you well.",
+    activities: PREMARITAL_AFTER_S7_ACTIVITIES,
+  },
+  "premarital-after-s8-sendoff": {
+    title: "After Session 8 — First month of marriage",
+    description:
+      "Assigned after your final counseling session. Estimated time: about 45 minutes over your first weeks as a married couple. Optional celebration module included.",
+    activities: PREMARITAL_AFTER_S8_ACTIVITIES,
   },
 };
 
 export function listHomeworkTemplateSummaries(): MarriageHomeworkTemplateSummary[] {
-  return Object.entries(MARRIAGE_HOMEWORK_TEMPLATES).map(([key, t]) => ({
-    key,
-    title: t.title,
-    description: t.description,
-    activityCount: t.activities.length,
-  }));
+  return Object.entries(MARRIAGE_HOMEWORK_TEMPLATES).map(([key, t]) => {
+    const meta = PREMARITAL_HOMEWORK_TEMPLATE_META[key];
+    return {
+      key,
+      title: t.title,
+      description: t.description,
+      activityCount: t.activities.length,
+      timingLabel: meta?.timingLabel,
+      estimatedMinutes: meta?.estimatedMinutes,
+    };
+  });
 }
 
 export function cloneTemplateActivities(templateKey: string): MarriageHomeworkActivityDef[] {

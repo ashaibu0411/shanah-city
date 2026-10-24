@@ -65,6 +65,8 @@ export type MarriageHomeworkTemplateSummary = {
   title: string;
   description: string;
   activityCount: number;
+  timingLabel?: string;
+  estimatedMinutes?: number;
 };
 
 export type MarriageCounselorHomeworkListItem = {

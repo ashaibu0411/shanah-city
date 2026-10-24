@@ -14,7 +14,12 @@ import { homeworkAnswerKey } from "../src/lib/marriage-homework-types";
 import type { MarriageSessionHomeworkRecord } from "../src/lib/marriage-homework-types";
 
 const templates = listHomeworkTemplateSummaries();
+assert.equal(templates.length, 8, "eight premarital homework templates");
 assert.ok(templates.some((t) => t.key === WEEK_1_HOMEWORK_TEMPLATE_KEY));
+for (const t of templates) {
+  const acts = cloneTemplateActivities(t.key);
+  assert.ok(acts.length >= 3, `${t.key} activities`);
+}
 
 const activities = cloneTemplateActivities(WEEK_1_HOMEWORK_TEMPLATE_KEY);
 assert.equal(activities.length, 4);

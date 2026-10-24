@@ -64,20 +64,26 @@ export function MarriageCouplePremaritalProgramSection({ program }: Props) {
         </ul>
       </div>
 
-      {current.releasedHomework.length > 0 && (
+      {program.allReleasedHomework.length > 0 && (
         <div className="mt-4">
-          <p className="text-sm font-semibold">Released homework</p>
-          <ul className="mt-2 space-y-2 text-sm">
-            {current.releasedHomework.map((hw) => (
-              <li key={hw.homeworkId}>
-                <Link href={`/marriage/homework/${hw.homeworkId}`} className="font-semibold underline">
-                  {hw.title}
+          <p className="text-sm font-semibold">Homework between sessions</p>
+          <p className={`${marriagePremium.cardMuted} mt-1 text-xs`}>
+            Only assignments your counselor released appear here. Individual answers stay private.
+          </p>
+          <ul className="mt-2 space-y-3 text-sm">
+            {program.allReleasedHomework.map((hw) => (
+              <li key={hw.homeworkId} className={marriagePremium.moduleRow}>
+                <Link href={`/marriage/homework/${hw.homeworkId}`} className="min-w-0 flex-1">
+                  <span className="block font-semibold">{hw.title}</span>
+                  {hw.timingLabel ? (
+                    <span className="block text-xs text-night-500 dark:text-sand-400">{hw.timingLabel}</span>
+                  ) : null}
+                  <span className="block text-xs capitalize text-night-500 dark:text-sand-400">
+                    {statusLabel(hw.status)}
+                    {hw.estimatedMinutes ? ` · ~${hw.estimatedMinutes} min` : ""}
+                    {hw.dueAt ? ` · due ${new Date(hw.dueAt).toLocaleDateString()}` : ""}
+                  </span>
                 </Link>
-                <span className="text-night-600 dark:text-sand-400">
-                  {" "}
-                  · {statusLabel(hw.status)}
-                  {hw.dueAt ? ` · due ${new Date(hw.dueAt).toLocaleDateString()}` : ""}
-                </span>
               </li>
             ))}
           </ul>

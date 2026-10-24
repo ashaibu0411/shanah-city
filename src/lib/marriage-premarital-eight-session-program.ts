@@ -55,12 +55,12 @@ export const PREMARITAL_PROGRAM_SESSIONS: PremaritalProgramSessionDefinition[] =
       { moduleId: "mod-06-faith", recommendedForSession: true },
       { moduleId: "mod-19-covenant", recommendedForSession: false },
     ],
-    homeworkTemplateKeys: [],
+    homeworkTemplateKeys: [WEEK_1_HOMEWORK_TEMPLATE_KEY],
     completionChecklist: [
       "Opened in prayer and named one hope for this counseling journey",
       "Couple articulated marriage as covenant in their own words",
       "Discussed role of church community and accountability",
-      "Agreed on next session focus and any assessments to complete",
+      "Drafted or released homework assigned after Session 1 (before Session 2) when ready",
     ],
   },
   {
@@ -87,12 +87,12 @@ export const PREMARITAL_PROGRAM_SESSIONS: PremaritalProgramSessionDefinition[] =
       { moduleId: "mod-02-family-background", recommendedForSession: true },
       { moduleId: "mod-10-emotional-health", recommendedForSession: true },
     ],
-    homeworkTemplateKeys: [WEEK_1_HOMEWORK_TEMPLATE_KEY],
+    homeworkTemplateKeys: ["premarital-after-s2-communication"],
     completionChecklist: [
       "Each partner shared one formative story from childhood or adolescence",
       "Named one strength and one growth area from family background",
       "Reviewed assessment progress for Knowing Yourself modules",
-      "Released or reviewed Week 1 homework if appropriate",
+      "Drafted or released homework assigned after Session 2 when ready",
     ],
   },
   {
@@ -118,12 +118,13 @@ export const PREMARITAL_PROGRAM_SESSIONS: PremaritalProgramSessionDefinition[] =
       { moduleId: "mod-03-communication", recommendedForSession: true },
       { moduleId: "mod-13-forgiveness", recommendedForSession: false },
     ],
-    homeworkTemplateKeys: [],
+    homeworkTemplateKeys: ["premarital-after-s3-money"],
     completionChecklist: [
       "Practiced a listening exercise (repeat-back) on a low-stakes topic",
       "Identified one unhealthy conflict pattern to watch for",
       "Named a repair step each partner can offer after tension",
       "Linked communication module assessments to session notes",
+      "Drafted or released homework assigned after Session 3 when ready",
     ],
   },
   {
@@ -146,12 +147,13 @@ export const PREMARITAL_PROGRAM_SESSIONS: PremaritalProgramSessionDefinition[] =
     ],
     ...PREMARITAL_SESSION_TEACHING_GUIDES["session-4-money"],
     linkedModules: [{ moduleId: "mod-04-money", recommendedForSession: true }],
-    homeworkTemplateKeys: [],
+    homeworkTemplateKeys: ["premarital-after-s4-family"],
     completionChecklist: [
       "Discussed current income, debt, and giving patterns at a high level",
       "Agreed on transparency norms (what must always be shared)",
       "Identified one financial goal for the first year of marriage",
       "Reviewed money module assessment together as allowed by consent",
+      "Drafted or released homework assigned after Session 4 when ready",
     ],
   },
   {
@@ -178,12 +180,13 @@ export const PREMARITAL_PROGRAM_SESSIONS: PremaritalProgramSessionDefinition[] =
       { moduleId: "mod-08-children", recommendedForSession: true },
       { moduleId: "mod-14-in-laws", recommendedForSession: false },
     ],
-    homeworkTemplateKeys: [],
+    homeworkTemplateKeys: ["premarital-after-s5-intimacy-trust"],
     completionChecklist: [
       "Discussed expectations for holidays and family visits",
       "Named one boundary each partner needs with extended family",
       "Aligned on timeline or openness regarding children if applicable",
       "Reviewed roles and children module responses as consented",
+      "Drafted or released homework assigned after Session 5 when ready",
     ],
   },
   {
@@ -209,12 +212,13 @@ export const PREMARITAL_PROGRAM_SESSIONS: PremaritalProgramSessionDefinition[] =
       { moduleId: "mod-05-intimacy", recommendedForSession: true },
       { moduleId: "mod-09-trust", recommendedForSession: true },
     ],
-    homeworkTemplateKeys: [],
+    homeworkTemplateKeys: ["premarital-after-s6-faith-home"],
     completionChecklist: [
       "Discussed expectations for emotional and physical intimacy in marriage",
       "Addressed trust, honesty, and any needed accountability",
       "Confirmed both partners feel safe to raise concerns with counselor",
       "Reviewed intimacy and trust assessments within consent boundaries",
+      "Drafted or released homework assigned after Session 6 when ready",
     ],
   },
   {
@@ -241,12 +245,13 @@ export const PREMARITAL_PROGRAM_SESSIONS: PremaritalProgramSessionDefinition[] =
       { moduleId: "mod-18-culture", recommendedForSession: false },
       { moduleId: "mod-15-work", recommendedForSession: false },
     ],
-    homeworkTemplateKeys: [],
+    homeworkTemplateKeys: ["premarital-after-s7-readiness-prep"],
     completionChecklist: [
       "Named shared spiritual practices for the first year of marriage",
       "Discussed vocation, rest, and household rhythms",
       "Aligned on a one-sentence vision for your home",
       "Reviewed vision module and optional culture/work modules",
+      "Drafted or released homework assigned after Session 7 when ready",
     ],
   },
   {
@@ -274,12 +279,13 @@ export const PREMARITAL_PROGRAM_SESSIONS: PremaritalProgramSessionDefinition[] =
       { moduleId: "mod-17-grief", recommendedForSession: false },
       { moduleId: "mod-20-celebration", recommendedForSession: false },
     ],
-    homeworkTemplateKeys: [],
+    homeworkTemplateKeys: ["premarital-after-s8-sendoff"],
     completionChecklist: [
       "Reviewed outstanding assessments and homework",
       "Named top three strengths of the relationship",
       "Named one or two areas for continued growth after the wedding",
       "Pastoral blessing and plan for post-wedding follow-up if needed",
+      "Drafted or released homework assigned after Session 8 when ready",
     ],
   },
 ];

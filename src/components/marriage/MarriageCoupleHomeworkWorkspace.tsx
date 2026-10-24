@@ -33,6 +33,8 @@ type Workspace = {
     instructions?: string;
     dueAt?: string;
     dueAtTimeZone?: string;
+    timingLabel?: string;
+    estimatedMinutes?: number;
     activities: Activity[];
   };
   response: { answers: Record<string, string>; lastSavedAt: string; submittedAt?: string };
@@ -148,6 +150,9 @@ export function MarriageCoupleHomeworkWorkspace({ homeworkId }: { homeworkId: st
           ← My homework
         </Link>
         <h1 className="mt-3 font-display text-xl font-semibold">{data.homework.title}</h1>
+        {data.homework.timingLabel ? (
+          <p className="mt-1 text-xs text-night-600 dark:text-sand-400">{data.homework.timingLabel}</p>
+        ) : null}
         {data.homework.instructions ? (
           <p className={`${marriagePremium.cardMuted} mt-2 text-sm whitespace-pre-wrap`}>{data.homework.instructions}</p>
         ) : null}
