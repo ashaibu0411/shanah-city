@@ -1614,6 +1614,26 @@ model MarriageCounselorParticipantRevocation {
   @@id([journeyId, userId])
 }
 
+model MarriagePremaritalProgramSession {
+  journeyId         String
+  sessionKey        String
+  status            String
+  privateNotes      String?
+  checklistJson     String?
+  updatedAt         DateTime
+  updatedByUserId   String?
+
+  @@id([journeyId, sessionKey])
+  @@index([journeyId])
+}
+
+model MarriagePremaritalProgramMeta {
+  journeyId         String   @id
+  pausedAt          DateTime?
+  extraSessionCount Int      @default(0)
+  updatedAt         DateTime
+}
+
 /** Singleton — default premarital counselor for automated assignment requests. */
 model MarriagePrepDefaultCounselorSetting {
   id                            String   @id @default("default")

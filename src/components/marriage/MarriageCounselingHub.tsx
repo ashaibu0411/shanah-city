@@ -14,6 +14,7 @@ import { MarriageCounselorAssignmentParticipantPanel } from "@/components/marria
 import { isMarriageStage2ClientEnabled } from "@/lib/marriage-stage2-feature";
 import { marriageHubShowsCounselorAssignmentsNav } from "@/lib/marriage-counselor-assignment-ui";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
+import { MarriageCouplePremaritalProgramSection } from "@/components/marriage/MarriageCouplePremaritalProgramSection";
 
 function statusLabel(mod: MarriageHubSummary["modules"][0]) {
   if (mod.comparisonReady) return "Compare ready";
@@ -285,7 +286,11 @@ export function MarriageCounselingHub() {
                   <p className={`${marriagePremium.cardMuted} mt-1`}>Share privately; expires in 14 days.</p>
                 </div>
               )}
-              {hub.partnerJoined && !hub.partnerConsent && (
+              {hub.premaritalProgram && hub.myConsent && (
+              <MarriageCouplePremaritalProgramSection program={hub.premaritalProgram} />
+            )}
+
+            {hub.partnerJoined && !hub.partnerConsent && (
                 <p className="mt-2 text-sm text-amber-800 dark:text-amber-200">
                   Waiting for your partner to accept consent on their device.
                 </p>

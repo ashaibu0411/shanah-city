@@ -18,6 +18,7 @@ import { counselorLessonRowsForModule, computeModuleSubmissionProgress } from "@
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 import type { MarriageCounselorModuleProgressOverview } from "@/lib/marriage-counselor-admin-overview";
 import { buildModuleProgressOverview } from "@/lib/marriage-counselor-admin-overview";
+import type { MarriageCounselorPremaritalProgramView } from "@/lib/marriage-premarital-program-server";
 
 const store = () => marriageStore();
 
@@ -78,6 +79,7 @@ export type MarriageCounselorClinicalJourneyDetail = {
   notes: Array<{ id: string; body: string; updatedAt: string }>;
   revisions: Array<{ id: string; status: string; moduleId: string }>;
   comparisonDisclosurePhase: string;
+  premaritalProgram: MarriageCounselorPremaritalProgramView | null;
 };
 
 function formatAnswerForCounselorDisplay(value: unknown): string {
@@ -294,12 +296,18 @@ export async function buildMarriageCounselorClinicalDetail(
     moduleId: r.moduleId,
   }));
 
+  const { buildCounselorPremaritalProgramView } = await import(
+    "@/lib/marriage-premarital-program-server"
+  );
+  const premaritalProgram = await buildCounselorPremaritalProgramView(viewer, journey);
+
   return {
     access: "clinical",
     journeyId: journey.id,
     coupleNames: await resolveCoupleDisplayNames(journey),
     journeyStatus: journey.status,
     programType: journey.programType,
+    premaritalProgram,
     moduleProgress,
     stage2LessonProgress,
     comparisonSummaries,

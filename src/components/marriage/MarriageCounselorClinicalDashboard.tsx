@@ -10,6 +10,8 @@ import {
   marriageSessionInstantMs,
 } from "@/lib/marriage-session-scheduling";
 import { readJsonResponse } from "@/lib/read-json-response";
+import { MarriageCounselorPremaritalProgramPanel } from "@/components/marriage/MarriageCounselorPremaritalProgramPanel";
+import type { MarriageCounselorPremaritalProgramView } from "@/lib/marriage-premarital-program-server";
 
 export type MarriageCounselorClinicalDetailView = {
   access: "clinical";
@@ -64,6 +66,7 @@ export type MarriageCounselorClinicalDetailView = {
   notes: Array<{ body: string; updatedAt: string }>;
   revisions: Array<{ id: string; status: string; moduleId: string }>;
   comparisonDisclosurePhase?: string;
+  premaritalProgram?: MarriageCounselorPremaritalProgramView | null;
 };
 
 function formatProgramSubtitle(programType: string) {
@@ -271,6 +274,15 @@ export function MarriageCounselorClinicalDashboard({
             ))}
           </ul>
         </div>
+      )}
+
+      {detail.premaritalProgram && (
+        <MarriageCounselorPremaritalProgramPanel
+          journeyId={journeyId}
+          program={detail.premaritalProgram}
+          onRefresh={onRefresh}
+          onError={onError}
+        />
       )}
 
       <div className="marriage-c3m-columns">

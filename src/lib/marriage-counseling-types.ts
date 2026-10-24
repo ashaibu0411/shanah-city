@@ -296,6 +296,56 @@ export type MarriageHubCounselorSummary = {
   status: "none" | "pending_approval" | "awaiting_restoration" | "assigned";
 };
 
+export type MarriagePremaritalProgramSessionStatus =
+  | "not_started"
+  | "in_progress"
+  | "completed";
+
+export type MarriagePremaritalProgramSessionRecord = {
+  journeyId: string;
+  sessionKey: string;
+  status: MarriagePremaritalProgramSessionStatus;
+  privateNotes: string | null;
+  checklistCompleted: Record<string, boolean>;
+  updatedAt: string;
+  updatedByUserId: string | null;
+};
+
+export type MarriagePremaritalProgramMetaRecord = {
+  journeyId: string;
+  pausedAt: string | null;
+  extraSessionCount: number;
+  updatedAt: string;
+};
+
+export type MarriageCouplePremaritalProgramView = {
+  programKey: string;
+  paused: boolean;
+  currentSessionKey: string | null;
+  sessionsCompleted: number;
+  sessionsTotal: number;
+  sessions: Array<{
+    sessionKey: string;
+    order: number;
+    title: string;
+    purpose: string;
+    status: MarriagePremaritalProgramSessionStatus;
+    linkedModules: Array<{
+      moduleId: string;
+      title: string;
+      recommendedForSession: boolean;
+      myStatus: "not_started" | "draft" | "submitted";
+      partnerStatus: "not_started" | "draft" | "submitted" | "unknown";
+    }>;
+    releasedHomework: Array<{
+      homeworkId: string;
+      title: string;
+      status: string;
+      dueAt: string | null;
+    }>;
+  }>;
+};
+
 export type MarriageSessionStatus = "scheduled" | "completed" | "cancelled";
 
 export type MarriageCounselorAssignmentRecord = {
@@ -600,5 +650,6 @@ export type MarriageHubSummary = {
   canReviewDeletionRequests: boolean;
   contentVersion: string;
   counselorSummary: MarriageHubCounselorSummary | null;
+  premaritalProgram: MarriageCouplePremaritalProgramView | null;
   stage2?: MarriageStage2Dashboard;
 };

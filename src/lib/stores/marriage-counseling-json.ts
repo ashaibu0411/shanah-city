@@ -25,6 +25,8 @@ import type {
   MarriageCounselorParticipantRevocationRecord,
   MarriageJourneyAdministrativeCoordinatorRecord,
   MarriagePrepDefaultCounselorSettingRecord,
+  MarriagePremaritalProgramSessionRecord,
+  MarriagePremaritalProgramMetaRecord,
 } from "@/lib/marriage-counseling-types";
 import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
 import {
@@ -77,6 +79,8 @@ type StoreFile = {
   participantCounselorRevocations: MarriageCounselorParticipantRevocationRecord[];
   administrativeCoordinators: MarriageJourneyAdministrativeCoordinatorRecord[];
   defaultPremaritalCounselor?: MarriagePrepDefaultCounselorSettingRecord | null;
+  premaritalProgramSessions?: MarriagePremaritalProgramSessionRecord[];
+  premaritalProgramMeta?: MarriagePremaritalProgramMetaRecord[];
 };
 
 async function readStore(): Promise<StoreFile> {
@@ -121,6 +125,8 @@ function ensureStage2Collections(store: StoreFile): StoreFile {
   if (!store.participantCounselorRevocations) store.participantCounselorRevocations = [];
   if (!store.administrativeCoordinators) store.administrativeCoordinators = [];
   if (store.defaultPremaritalCounselor === undefined) store.defaultPremaritalCounselor = null;
+  if (!store.premaritalProgramSessions) store.premaritalProgramSessions = [];
+  if (!store.premaritalProgramMeta) store.premaritalProgramMeta = [];
   return store;
 }
 
@@ -1499,6 +1505,40 @@ export async function saveMarriagePrepDefaultCounselorSetting(
 ): Promise<MarriagePrepDefaultCounselorSettingRecord> {
   const store = await readStore();
   store.defaultPremaritalCounselor = record;
+  await writeStore(store);
+  return record;
+}
+
+export async function listPremaritalProgramSessionsForJourney(journeyId: string) {
+  const store = await readStore();
+  return store.premaritalProgramSessions!.filter((s) => s.journeyId === journeyId);
+}
+
+export async function savePremaritalProgramSession(
+  record: MarriagePremaritalProgramSessionRecord,
+): Promise<MarriagePremaritalProgramSessionRecord> {
+  const store = await readStore();
+  const index = store.premaritalProgramSessions!.findIndex(
+    (s) => s.journeyId === record.journeyId && s.sessionKey === record.sessionKey,
+  );
+  if (index === -1) store.premaritalProgramSessions!.push(record);
+  else store.premaritalProgramSessions![index] = record;
+  await writeStore(store);
+  return record;
+}
+
+export async function getPremaritalProgramMeta(journeyId: string) {
+  const store = await readStore();
+  return store.premaritalProgramMeta!.find((m) => m.journeyId === journeyId) ?? null;
+}
+
+export async function savePremaritalProgramMeta(
+  record: MarriagePremaritalProgramMetaRecord,
+): Promise<MarriagePremaritalProgramMetaRecord> {
+  const store = await readStore();
+  const index = store.premaritalProgramMeta!.findIndex((m) => m.journeyId === record.journeyId);
+  if (index === -1) store.premaritalProgramMeta!.push(record);
+  else store.premaritalProgramMeta![index] = record;
   await writeStore(store);
   return record;
 }

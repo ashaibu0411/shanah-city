@@ -154,6 +154,14 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
   const { buildStage2Dashboard } = await import("@/lib/marriage-stage2-server");
   const stage2 = await buildStage2Dashboard(viewer);
 
+  let premaritalProgram: MarriageHubSummary["premaritalProgram"] = null;
+  if (journey && journey.programType === "premarital" && myConsent) {
+    const { buildCouplePremaritalProgramView } = await import(
+      "@/lib/marriage-premarital-program-server"
+    );
+    premaritalProgram = await buildCouplePremaritalProgramView(viewer, journey);
+  }
+
   let counselorSummary: MarriageHubSummary["counselorSummary"] = null;
   if (journey && myConsent && partnerConsent && partnerJoined) {
     const { buildMarriageHubCounselorSummary } = await import(
@@ -185,6 +193,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     canReviewDeletionRequests,
     contentVersion,
     counselorSummary,
+    premaritalProgram,
     stage2: stage2 ?? undefined,
   };
 }

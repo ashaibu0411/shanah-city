@@ -39,6 +39,7 @@
     "test:marriage:assessment-migration": "tsx scripts/marriage-assessment-migration.test.ts",
     "test:marriage:written-guidance": "tsx scripts/marriage-written-guidance.test.ts",
     "test:marriage:default-counselor": "tsx scripts/marriage-default-premarital-counselor.test.ts",
+    "test:marriage:premarital-program": "tsx scripts/marriage-premarital-eight-session.test.ts",
     "test:app:nav": "tsx scripts/app-nav-items.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
