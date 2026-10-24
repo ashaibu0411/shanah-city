@@ -271,6 +271,7 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
                 action: "save_clinical_record",
                 journeyId,
                 sessionKey: String(fd.get("clinicalSessionKey") ?? clinicalKey),
+                sessionDateLocal: String(fd.get("sessionDateLocal") ?? "") || undefined,
                 partnerAAttended: fd.get("partnerAAttended") === "on",
                 partnerBAttended: fd.get("partnerBAttended") === "on",
                 outcome: String(fd.get("outcome") ?? ""),
@@ -292,6 +293,17 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
                 </option>
               ))}
             </select>
+            <label className="text-sm font-semibold">Session date (optional)</label>
+            <input
+              type="date"
+              name="sessionDateLocal"
+              className="marriage-c3m-input"
+              defaultValue={
+                clinicalByKey.get(clinicalKey)?.sessionDate
+                  ? clinicalByKey.get(clinicalKey)!.sessionDate!.slice(0, 10)
+                  : ""
+              }
+            />
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="partnerAAttended" defaultChecked={clinicalByKey.get(clinicalKey)?.partnerAAttended ?? false} /> Partner A attended
             </label>
