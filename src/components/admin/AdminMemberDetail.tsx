@@ -53,6 +53,7 @@ export function AdminMemberDetail({
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [userIdCopied, setUserIdCopied] = useState(false);
 
   useEffect(() => {
     setName(person.name);
@@ -221,6 +222,16 @@ export function AdminMemberDetail({
 
   const hasPendingGroups = person.groups.some((group) => group.status === "pending");
 
+  async function copyUserId() {
+    try {
+      await navigator.clipboard.writeText(person.id);
+      setUserIdCopied(true);
+      window.setTimeout(() => setUserIdCopied(false), 2000);
+    } catch {
+      setMessage("Could not copy user ID. Select and copy the text manually.");
+    }
+  }
+
   return (
     <Card className="border-night-900/15 ring-2 ring-night-900/10">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -242,6 +253,24 @@ export function AdminMemberDetail({
         <div>
           <h4 className="font-semibold text-night-900">Contact & access</h4>
           <div className="mt-3 grid gap-3">
+            <div className="rounded-xl border border-night-900/10 bg-sand-50/80 px-3 py-2.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-night-500">
+                User ID
+              </p>
+              <p className="mt-1 text-xs leading-snug text-night-600">
+                Database account ID for server configuration (for example{" "}
+                <code className="text-[11px]">MARRIAGE_COUNSELOR_ASSIGNMENT_ADMIN_USER_IDS</code>
+                ). Not shown on public profiles.
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <code className="min-w-0 flex-1 break-all rounded-lg bg-white px-2 py-1.5 font-mono text-xs text-night-900 ring-1 ring-night-900/10">
+                  {person.id}
+                </code>
+                <Button type="button" variant="secondary" onClick={() => void copyUserId()}>
+                  {userIdCopied ? "Copied!" : "Copy ID"}
+                </Button>
+              </div>
+            </div>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}

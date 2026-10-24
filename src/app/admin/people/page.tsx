@@ -25,7 +25,7 @@ export default async function AdminPeoplePage() {
       <PageHeader
         eyebrow="Directory"
         title="Member directory"
-        description="Search by name, then open a profile to edit details or manage household members."
+        description="Search by name, open a profile to edit details, copy the User ID for server env vars, or manage household members."
       />
       <Suspense fallback={<p className="text-sm text-night-600">Loading directory…</p>}>
         <AdminPeoplePanel />
