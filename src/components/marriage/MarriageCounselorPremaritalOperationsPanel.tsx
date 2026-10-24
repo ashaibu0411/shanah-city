@@ -6,6 +6,7 @@ import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-schedul
 import type { MarriageCounselorPremaritalOperationsView } from "@/lib/marriage-counseling-types";
 import { PREMARITAL_PROGRAM_SESSIONS } from "@/lib/marriage-premarital-eight-session-program";
 import { readJsonResponse } from "@/lib/read-json-response";
+import { MarriageSeniorPastorFinalCertificatePanel } from "@/components/marriage/MarriageSeniorPastorFinalCertificatePanel";
 
 type Props = {
   journeyId: string;
@@ -336,6 +337,54 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
         </>
         ) : null}
 
+        {!readinessOnly && (
+          <div className="mt-6" id="premarital-ops-supplementary">
+            <h3 className="text-sm font-semibold">Additional counseling (beyond eight sessions)</h3>
+            <p className="marriage-c3m-muted mt-1 text-xs">
+              Supplementary sessions do not change the 8-session completion count or certificate eligibility on their
+              own.
+            </p>
+            <form
+              className="marriage-c3m-form mt-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                void post({
+                  action: "schedule_supplementary_appointment",
+                  journeyId,
+                  scheduledAtLocal: String(fd.get("scheduledAtLocal") ?? ""),
+                  schedulingTimeZone: String(fd.get("schedulingTimeZone") ?? ""),
+                  meetingMode: String(fd.get("meetingMode") ?? "video"),
+                  locationOrLink: String(fd.get("locationOrLink") ?? ""),
+                  topic: String(fd.get("topic") ?? ""),
+                });
+              }}
+            >
+              <MarriageCounselorSessionDateTimeField />
+              <select name="meetingMode" className="marriage-c3m-input" defaultValue="video">
+                <option value="video">Video</option>
+                <option value="in_person">In person</option>
+                <option value="phone">Phone</option>
+              </select>
+              <input name="locationOrLink" className="marriage-c3m-input" placeholder="Location or link" />
+              <input name="topic" className="marriage-c3m-input" placeholder="Session focus" />
+              <button type="submit" disabled={busy} className="marriage-c3m-btn-secondary min-h-[44px]">
+                Schedule supplementary session
+              </button>
+            </form>
+            {(ops.supplementaryAppointments ?? []).length > 0 ? (
+              <ul className="mt-3 space-y-2 text-sm">
+                {(ops.supplementaryAppointments ?? []).map((appt) => (
+                  <li key={appt.id} className="rounded-lg border border-stone-200 px-3 py-2 dark:border-white/10">
+                    <p className="font-semibold">{appt.topic ?? "Additional session"}</p>
+                    <p className="text-xs">{formatMarriageSessionScheduledAt(appt.scheduledAt, appt.schedulingTimeZone)}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        )}
+
         {ops.canEditReadiness && (
           <div id="premarital-ops-readiness">
             <h3 className="text-sm font-semibold">Senior Pastor readiness review</h3>
@@ -389,6 +438,7 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
                 {new Date(ops.readinessAudit[0]!.revisedAt).toLocaleString()}
               </p>
             )}
+            <MarriageSeniorPastorFinalCertificatePanel journeyId={journeyId} onError={onError} />
           </div>
         )}
       </div>

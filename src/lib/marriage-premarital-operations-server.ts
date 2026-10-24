@@ -338,13 +338,18 @@ export async function buildCounselorPremaritalOperationsView(
     if (!canEditReadiness) throw error;
   }
 
-  const sessions = hasClinicalAccess
-    ? (await listAllJourneySessions(journeyId))
-        .filter((s) => s.premaritalSessionKey)
-        .map((s) => ({
-          ...s,
-          premaritalSessionTitle: sessionTitle(s.premaritalSessionKey),
-        }))
+  const allSessions = hasClinicalAccess ? await listAllJourneySessions(journeyId) : [];
+  const sessions = allSessions
+    .filter((s) => s.premaritalSessionKey)
+    .map((s) => ({
+      ...s,
+      premaritalSessionTitle: sessionTitle(s.premaritalSessionKey),
+    }));
+  const supplementaryAppointments = allSessions
+    .filter((s) => !s.premaritalSessionKey)
+    .map((s) => ({ ...s, isSupplementary: true as const }));
+  const supplementaryClinical = hasClinicalAccess
+    ? await store().listSupplementaryClinicalForJourney(journeyId)
     : [];
 
   const clinicalRecords = hasClinicalAccess
@@ -359,6 +364,8 @@ export async function buildCounselorPremaritalOperationsView(
 
   return {
     appointments: sessions,
+    supplementaryAppointments,
+    supplementaryClinical,
     clinicalRecords,
     readinessReview,
     readinessAudit,
@@ -398,4 +405,112 @@ export function premaritalSessionOptionsForScheduling() {
     order: s.order,
     title: s.title,
   }));
+}
+
+export async function scheduleSupplementaryAppointment(
+  viewer: PublicMember,
+  input: {
+    journeyId: string;
+    scheduledAtLocal: string;
+    scheduledEndAtLocal?: string;
+    schedulingTimeZone?: string;
+    meetingMode: MarriageMeetingMode;
+    locationOrLink?: string;
+    topic?: string;
+  },
+) {
+  const journey = await store().getJourneyById(input.journeyId);
+  if (!journey) throw new Error("Journey not found.");
+  await assertClinicalCounselorForJourney(viewer, journey);
+  const scheduling = normalizeNewSessionScheduledAtInput({
+    scheduledAtLocal: input.scheduledAtLocal,
+    schedulingTimeZone: input.schedulingTimeZone,
+  });
+  const scheduledEndAt = normalizeEndAt({
+    scheduledEndAtLocal: input.scheduledEndAtLocal,
+    schedulingTimeZone: scheduling.schedulingTimeZone,
+  });
+  const now = new Date().toISOString();
+  const mode = input.meetingMode;
+  const locationOrLink = input.locationOrLink?.trim() || undefined;
+  const session: MarriageCounselingSessionRecord = {
+    id: randomUUID(),
+    journeyId: journey.id,
+    scheduledAt: scheduling.scheduledAt,
+    schedulingTimeZone: scheduling.schedulingTimeZone,
+    scheduledEndAt,
+    premaritalSessionKey: undefined,
+    meetingMode: mode,
+    locationOrLink,
+    zoomUrl: mode === "video" ? locationOrLink : undefined,
+    topic: input.topic?.trim() || "Additional premarital counseling",
+    status: "scheduled",
+    createdBy: viewer.id,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await store().saveSession(session);
+  const meta = (await store().getPremaritalProgramMeta(journey.id)) ?? {
+    journeyId: journey.id,
+    pausedAt: null,
+    extraSessionCount: 0,
+    updatedAt: now,
+  };
+  await store().savePremaritalProgramMeta({
+    ...meta,
+    extraSessionCount: meta.extraSessionCount + 1,
+    updatedAt: now,
+  });
+  await logMarriageAudit({
+    actorUserId: viewer.id,
+    action: "supplementary_appointment_scheduled",
+    journeyId: journey.id,
+    meta: { sessionId: session.id },
+  });
+  return session;
+}
+
+export async function saveSupplementaryClinicalRecord(
+  viewer: PublicMember,
+  input: {
+    journeyId: string;
+    appointmentId: string;
+    sessionDateLocal?: string;
+    schedulingTimeZone?: string;
+    partnerAAttended?: boolean | null;
+    partnerBAttended?: boolean | null;
+    topicsCovered?: string;
+    followUpActions?: string;
+    privateObservations?: string;
+  },
+) {
+  const journey = await store().getJourneyById(input.journeyId);
+  if (!journey) throw new Error("Journey not found.");
+  await assertClinicalCounselorForJourney(viewer, journey);
+  const appt = (await listAllJourneySessions(input.journeyId)).find((s) => s.id === input.appointmentId);
+  if (!appt || appt.premaritalSessionKey) throw new Error("Supplementary appointment not found.");
+
+  let sessionDate: string | null = null;
+  if (input.sessionDateLocal?.trim()) {
+    const tz = input.schedulingTimeZone?.trim() || "America/Denver";
+    const parsed = parseDateTimeLocalInTimeZone(input.sessionDateLocal.trim().slice(0, 10) + "T12:00", tz);
+    if (!parsed.ok) throw new Error(parsed.error);
+    sessionDate = parsed.iso;
+  }
+
+  const now = new Date().toISOString();
+  const record = {
+    appointmentId: input.appointmentId,
+    journeyId: input.journeyId,
+    sessionDate,
+    partnerAAttended: input.partnerAAttended ?? null,
+    partnerBAttended: input.partnerBAttended ?? null,
+    topicsCovered: input.topicsCovered?.trim() || null,
+    followUpActions: input.followUpActions?.trim() || null,
+    privateObservations: input.privateObservations?.trim() || null,
+    updatedAt: now,
+    updatedByUserId: viewer.id,
+  };
+  await store().saveSupplementaryClinical(record);
+  return record;
 }

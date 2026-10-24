@@ -312,6 +312,7 @@ export type MarriagePremaritalProgramSessionRecord = {
   status: MarriagePremaritalProgramSessionStatus;
   privateNotes: string | null;
   checklistCompleted: Record<string, boolean>;
+  completedAt: string | null;
   updatedAt: string;
   updatedByUserId: string | null;
 };
@@ -516,6 +517,8 @@ export type MarriageCoupleAppointmentView = {
 
 export type MarriageCounselorPremaritalOperationsView = {
   appointments: Array<MarriageCounselingSessionRecord & { premaritalSessionTitle?: string }>;
+  supplementaryAppointments: Array<MarriageCounselingSessionRecord & { isSupplementary: true }>;
+  supplementaryClinical: import("@/lib/marriage-certificate-types").MarriagePremaritalSupplementaryClinicalRecord[];
   clinicalRecords: MarriagePremaritalSessionClinicalRecord[];
   readinessReview: MarriagePremaritalReadinessReviewRecord | null;
   readinessAudit: MarriagePremaritalReadinessReviewAuditRecord[];
@@ -766,5 +769,6 @@ export type MarriageHubSummary = {
   premaritalAppointments?: MarriageCoupleAppointmentView[];
   premaritalAppointmentNotices?: MarriageCoupleAppointmentNotice[];
   coupleOnboarding?: MarriageCoupleOnboardingView;
+  certificatesGallery?: import("@/lib/marriage-certificate-types").MarriageCoupleCertificatesGalleryView;
   stage2?: MarriageStage2Dashboard;
 };

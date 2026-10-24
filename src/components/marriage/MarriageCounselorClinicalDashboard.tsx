@@ -12,6 +12,7 @@ import {
 import { readJsonResponse } from "@/lib/read-json-response";
 import { MarriageCounselorPremaritalProgramPanel } from "@/components/marriage/MarriageCounselorPremaritalProgramPanel";
 import { MarriageCounselorPremaritalOperationsPanel } from "@/components/marriage/MarriageCounselorPremaritalOperationsPanel";
+import { MarriageCounselorPastoralTimelinePanel } from "@/components/marriage/MarriageCounselorPastoralTimelinePanel";
 import { MarriageCounselorJourneyNav } from "@/components/marriage/MarriageCounselorJourneyNav";
 import type { MarriageCounselorPremaritalProgramView } from "@/lib/marriage-premarital-program-server";
 
@@ -315,7 +316,10 @@ export function MarriageCounselorClinicalDashboard({
       )}
 
       {detail.programType === "premarital" && (
-        <MarriageCounselorPremaritalOperationsPanel journeyId={journeyId} onError={onError} />
+        <>
+          <MarriageCounselorPremaritalOperationsPanel journeyId={journeyId} onError={onError} />
+          <MarriageCounselorPastoralTimelinePanel journeyId={journeyId} />
+        </>
       )}
 
       <div className="marriage-c3m-columns">

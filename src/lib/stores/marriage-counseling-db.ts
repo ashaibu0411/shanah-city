@@ -2235,6 +2235,7 @@ function mapPremaritalSession(row: {
   status: string;
   privateNotes: string | null;
   checklistJson: string | null;
+  completedAt: Date | null;
   updatedAt: Date;
   updatedByUserId: string | null;
 }): MarriagePremaritalProgramSessionRecord {
@@ -2252,6 +2253,7 @@ function mapPremaritalSession(row: {
     status: row.status as MarriagePremaritalProgramSessionRecord["status"],
     privateNotes: row.privateNotes,
     checklistCompleted,
+    completedAt: row.completedAt?.toISOString() ?? null,
     updatedAt: row.updatedAt.toISOString(),
     updatedByUserId: row.updatedByUserId,
   };
@@ -2275,6 +2277,7 @@ export async function savePremaritalProgramSession(
       status: record.status,
       privateNotes: record.privateNotes,
       checklistJson: JSON.stringify(record.checklistCompleted),
+      completedAt: record.completedAt ? new Date(record.completedAt) : null,
       updatedAt: new Date(record.updatedAt),
       updatedByUserId: record.updatedByUserId,
     },
@@ -2282,6 +2285,7 @@ export async function savePremaritalProgramSession(
       status: record.status,
       privateNotes: record.privateNotes,
       checklistJson: JSON.stringify(record.checklistCompleted),
+      completedAt: record.completedAt ? new Date(record.completedAt) : null,
       updatedAt: new Date(record.updatedAt),
       updatedByUserId: record.updatedByUserId,
     },

@@ -5,6 +5,7 @@ import type { MarriageHubSummary } from "@/lib/marriage-counseling-types";
 import { MarriageCoupleOnboardingSteps } from "@/components/marriage/MarriageCoupleOnboardingSteps";
 import { MarriageCoupleSessionProgressTracker } from "@/components/marriage/MarriageCoupleSessionProgressTracker";
 import { MarriageCoupleHelpSection } from "@/components/marriage/MarriageCoupleHelpSection";
+import { MarriageCoupleCertificatesSection } from "@/components/marriage/MarriageCoupleCertificatesSection";
 import { MarriageCouplePremaritalProgramSection } from "@/components/marriage/MarriageCouplePremaritalProgramSection";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
@@ -179,6 +180,10 @@ export function MarriageCoupleHubDashboard({ hub, continueModuleHref }: Props) {
           <MarriageCoupleSessionProgressTracker program={hub.premaritalProgram} />
           <MarriageCouplePremaritalProgramSection program={hub.premaritalProgram} />
         </>
+      ) : null}
+
+      {hub.certificatesGallery && hub.journey ? (
+        <MarriageCoupleCertificatesSection gallery={hub.certificatesGallery} journeyId={hub.journey.id} />
       ) : null}
 
       <MarriageCoupleHelpSection />

@@ -68,6 +68,7 @@ async function ensurePremaritalProgramSessions(journeyId: string) {
       status: "not_started",
       privateNotes: null,
       checklistCompleted: {},
+      completedAt: null,
       updatedAt: now,
       updatedByUserId: null,
     });
@@ -324,6 +325,12 @@ export async function updatePremaritalSessionStatus(
     status,
     privateNotes: existing?.privateNotes ?? null,
     checklistCompleted: existing?.checklistCompleted ?? {},
+    completedAt:
+      status === "completed"
+        ? existing?.completedAt ?? now
+        : status === "not_started"
+          ? null
+          : existing?.completedAt ?? null,
     updatedAt: now,
     updatedByUserId: viewer.id,
   };
@@ -354,6 +361,7 @@ export async function savePremaritalSessionPrivateNotes(
     status: existing?.status ?? "not_started",
     privateNotes: privateNotes.trim() || null,
     checklistCompleted: existing?.checklistCompleted ?? {},
+    completedAt: existing?.completedAt ?? null,
     updatedAt: now,
     updatedByUserId: viewer.id,
   };
@@ -391,6 +399,7 @@ export async function updatePremaritalSessionChecklist(
     status: existing?.status ?? "not_started",
     privateNotes: existing?.privateNotes ?? null,
     checklistCompleted,
+    completedAt: existing?.completedAt ?? null,
     updatedAt: now,
     updatedByUserId: viewer.id,
   };

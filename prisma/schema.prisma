@@ -1627,6 +1627,7 @@ model MarriagePremaritalProgramSession {
   status            String
   privateNotes      String?
   checklistJson     String?
+  completedAt       DateTime?
   updatedAt         DateTime
   updatedByUserId   String?
 
@@ -1695,6 +1696,63 @@ model MarriagePremaritalReminderDelivery {
   sentAt       DateTime
 
   @@unique([kind, referenceKey])
+  @@index([journeyId])
+}
+
+model MarriagePrepCertificateSetting {
+  id                             String   @id @default("default")
+  seniorPastorSignatureAssetPath String?
+  updatedAt                      DateTime
+  updatedByUserId                String?
+}
+
+model MarriagePremaritalFinalCertificate {
+  id                  String    @id
+  journeyId           String
+  certificateNumber   String    @unique
+  status              String
+  completionDate      DateTime?
+  issuedAt            DateTime
+  issuedByUserId      String
+  partnerADisplayName String
+  partnerBDisplayName String
+  seniorPastorName    String
+  seniorPastorTitle   String
+  revokedAt           DateTime?
+  revokeReason        String?
+  supersededById      String?
+  createdAt           DateTime
+
+  @@index([journeyId, status])
+  @@index([journeyId, issuedAt])
+}
+
+model MarriagePremaritalFinalCertificateAudit {
+  id            String   @id
+  certificateId String
+  journeyId     String
+  action        String
+  actorUserId   String
+  note          String?
+  metaJson      String?
+  createdAt     DateTime
+
+  @@index([journeyId, createdAt])
+  @@index([certificateId])
+}
+
+model MarriagePremaritalSupplementaryClinical {
+  appointmentId       String   @id
+  journeyId           String
+  sessionDate         DateTime?
+  partnerAAttended    Boolean?
+  partnerBAttended    Boolean?
+  topicsCovered       String?
+  followUpActions     String?
+  privateObservations String?
+  updatedAt           DateTime
+  updatedByUserId     String
+
   @@index([journeyId])
 }
 

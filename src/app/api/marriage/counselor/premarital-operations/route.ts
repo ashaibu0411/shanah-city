@@ -7,7 +7,9 @@ import {
   reschedulePremaritalAppointment,
   savePremaritalReadinessReview,
   savePremaritalSessionClinicalRecord,
+  saveSupplementaryClinicalRecord,
   schedulePremaritalAppointment,
+  scheduleSupplementaryAppointment,
 } from "@/lib/marriage-premarital-operations-server";
 import {
   counselorRouteErrorBody,
@@ -112,6 +114,34 @@ export async function POST(request: Request) {
         homeworkOverviewNote: body.homeworkOverviewNote ? String(body.homeworkOverviewNote) : undefined,
         assessmentOverviewNote: body.assessmentOverviewNote
           ? String(body.assessmentOverviewNote)
+          : undefined,
+      });
+      return NextResponse.json({ ok: true, record });
+    }
+    if (action === "schedule_supplementary_appointment") {
+      const session = await scheduleSupplementaryAppointment(user, {
+        journeyId: String(body.journeyId ?? ""),
+        scheduledAtLocal: String(body.scheduledAtLocal ?? ""),
+        scheduledEndAtLocal: body.scheduledEndAtLocal ? String(body.scheduledEndAtLocal) : undefined,
+        schedulingTimeZone: body.schedulingTimeZone ? String(body.schedulingTimeZone) : undefined,
+        meetingMode: body.meetingMode as "in_person" | "phone" | "video",
+        locationOrLink: body.locationOrLink ? String(body.locationOrLink) : undefined,
+        topic: body.topic ? String(body.topic) : undefined,
+      });
+      return NextResponse.json({ ok: true, session });
+    }
+    if (action === "save_supplementary_clinical") {
+      const record = await saveSupplementaryClinicalRecord(user, {
+        journeyId: String(body.journeyId ?? ""),
+        appointmentId: String(body.appointmentId ?? ""),
+        sessionDateLocal: body.sessionDateLocal ? String(body.sessionDateLocal) : undefined,
+        schedulingTimeZone: body.schedulingTimeZone ? String(body.schedulingTimeZone) : undefined,
+        partnerAAttended: body.partnerAAttended,
+        partnerBAttended: body.partnerBAttended,
+        topicsCovered: body.topicsCovered ? String(body.topicsCovered) : undefined,
+        followUpActions: body.followUpActions ? String(body.followUpActions) : undefined,
+        privateObservations: body.privateObservations
+          ? String(body.privateObservations)
           : undefined,
       });
       return NextResponse.json({ ok: true, record });
