@@ -15,6 +15,7 @@ import { readJsonResponse } from "@/lib/read-json-response";
 type AssessmentPayload = {
   module: MarriageModuleDefinition;
   journeyId: string;
+  migrationNotices?: Array<{ questionId: string; message: string }>;
   myResponse: {
     status: string;
     answers: Record<string, unknown>;
@@ -144,8 +145,10 @@ export function MarriageAssessmentRunner({ moduleId }: { moduleId: string }) {
 
   if (!data || !question) return null;
 
+  const revisionNotice = data.migrationNotices?.find((n) => n.questionId === question.id);
+
   return (
-    <div className="pb-32">
+    <div className="marriage-assessment-runner pb-[calc(11rem+env(safe-area-inset-bottom,0px))] lg:pb-32">
       <div className="mb-4">
         <Link href="/marriage" className="text-sm font-semibold text-clay-700">
           ← Hub
@@ -197,6 +200,11 @@ export function MarriageAssessmentRunner({ moduleId }: { moduleId: string }) {
         ) : (
           <p className="text-xs font-semibold uppercase tracking-wide text-clay-700">{visibilityNote(question)}</p>
         )}
+        {revisionNotice ? (
+          <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+            {revisionNotice.message}
+          </p>
+        ) : null}
         <p className="mt-3 text-base font-medium leading-snug">{question.prompt}</p>
         {question.explanation && (
           <p className={`${marriagePremium.cardMuted} mt-2`}>{question.explanation}</p>

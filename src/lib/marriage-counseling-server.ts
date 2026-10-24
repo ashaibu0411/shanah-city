@@ -265,11 +265,49 @@ export async function getAssessmentForViewer(
   if (!hub.journey) throw new Error("No active journey.");
   if (!hub.myConsent) throw new Error("Complete consent before assessments.");
 
-  const myResponse = await store().getResponse(hub.journey.id, moduleId, viewer.id);
-  const contentVersion = myResponse?.contentVersion ?? hub.contentVersion;
-  const mod =
-    (await getModuleForContentVersion(moduleId, contentVersion)) ??
-    (await getModuleDefinition(moduleId));
+  const { ACTIVE_MARRIAGE_ASSESSMENT_CONTENT_VERSION, getCanonicalModuleDefinition } = await import(
+    "@/lib/marriage-curriculum-canonical"
+  );
+  const { migrateDraftAssessmentResponse } = await import(
+    "@/lib/marriage-assessment-version-migration"
+  );
+
+  let myResponse = await store().getResponse(hub.journey.id, moduleId, viewer.id);
+  let migrationNotices: Array<{ questionId: string; message: string }> = [];
+  let contentVersion: string;
+  let mod: Awaited<ReturnType<typeof getModuleDefinition>>;
+
+  if (myResponse?.status === "submitted") {
+    contentVersion = myResponse.contentVersion;
+    mod =
+      (await getModuleForContentVersion(moduleId, contentVersion)) ??
+      (await getModuleDefinition(moduleId));
+  } else {
+    const priorVersion = myResponse?.contentVersion ?? hub.contentVersion;
+    const priorModule =
+      myResponse && priorVersion !== ACTIVE_MARRIAGE_ASSESSMENT_CONTENT_VERSION
+        ? ((await getModuleForContentVersion(moduleId, priorVersion)) ??
+          (await getModuleDefinition(moduleId)))
+        : null;
+    const targetModule =
+      getCanonicalModuleDefinition(moduleId) ?? (await getModuleDefinition(moduleId));
+    if (!targetModule) throw new Error("Module not found.");
+    if (myResponse) {
+      const migrated = migrateDraftAssessmentResponse({
+        record: myResponse,
+        priorModule,
+        targetModule,
+      });
+      migrationNotices = migrated.notices;
+      if (migrated.changed) {
+        await store().saveResponse(migrated.record);
+        myResponse = migrated.record;
+      }
+    }
+    contentVersion = ACTIVE_MARRIAGE_ASSESSMENT_CONTENT_VERSION;
+    mod = targetModule;
+  }
+
   if (!mod) throw new Error("Module not found.");
   const { marriageStage2IntimacyModuleAccessible, isMarriageStage2IntimacyModule } = await import(
     "@/lib/marriage-stage2-feature"
@@ -309,6 +347,7 @@ export async function getAssessmentForViewer(
       : null,
     partnerProgress,
     comparisonUnlocked: Boolean(unlock),
+    migrationNotices,
   };
 }
 

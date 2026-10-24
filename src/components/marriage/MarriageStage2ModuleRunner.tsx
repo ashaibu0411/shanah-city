@@ -266,7 +266,7 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
   const progress = lessonQuestions.length ? (index + 1) / lessonQuestions.length : 0;
 
   return (
-    <div className="pb-32">
+    <div className="marriage-assessment-runner pb-[calc(11rem+env(safe-area-inset-bottom,0px))] lg:pb-32">
       <button
         type="button"
         className="text-sm font-semibold text-clay-700"

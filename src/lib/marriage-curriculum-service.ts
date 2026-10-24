@@ -6,6 +6,11 @@ import {
   MARRIAGE_COUNSELING_CONTENT_VERSION_V2026_1,
   MARRIAGE_COUNSELING_MODULES_V2026_1,
 } from "@/lib/marriage-counseling-curriculum-v2026-1";
+import {
+  ACTIVE_MARRIAGE_ASSESSMENT_CONTENT_VERSION,
+  applyCanonicalQuestionCorrections,
+  getCanonicalModuleDefinition,
+} from "@/lib/marriage-curriculum-canonical";
 import { DEFAULT_PROGRAM_TRACKS } from "@/lib/marriage-counseling-program-tracks";
 import type {
   MarriageCounselingJourneyRecord,
@@ -24,7 +29,11 @@ const curriculumStore = () => marriageCurriculumStore();
 
 export async function getActiveContentVersionLabel() {
   const published = await curriculumStore().getPublishedCurriculumVersion();
-  return published?.version ?? MARRIAGE_COUNSELING_CONTENT_VERSION;
+  if (!published) return ACTIVE_MARRIAGE_ASSESSMENT_CONTENT_VERSION;
+  if (published.version === MARRIAGE_COUNSELING_CONTENT_VERSION_V2026_1) {
+    return ACTIVE_MARRIAGE_ASSESSMENT_CONTENT_VERSION;
+  }
+  return published.version;
 }
 
 export async function getAllModuleDefinitions(): Promise<MarriageModuleDefinition[]> {
@@ -32,6 +41,7 @@ export async function getAllModuleDefinitions(): Promise<MarriageModuleDefinitio
   let modules = published?.modules?.length
     ? published.modules.filter((m) => !m.archived)
     : MARRIAGE_COUNSELING_MODULES.filter((m) => !m.archived);
+  modules = applyCanonicalQuestionCorrections(modules);
   modules = mergeMissingStage2Modules(modules);
   return modules;
 }
@@ -81,11 +91,14 @@ export async function getModuleForContentVersion(
   const match = versions.find((v) => v.version === contentVersion && v.status !== "draft");
   if (match) {
     const mod = match.modules.find((m) => m.id === moduleId);
-    if (mod) return mod;
+    if (mod) {
+      const corrected = applyCanonicalQuestionCorrections([mod])[0];
+      return corrected ?? mod;
+    }
     // Published snapshot may predate Stage 2 modules — fall through to live definitions.
   }
   if (contentVersion === MARRIAGE_COUNSELING_CONTENT_VERSION) {
-    const legacy = MARRIAGE_COUNSELING_MODULES.find((m) => m.id === moduleId);
+    const legacy = getCanonicalModuleDefinition(moduleId);
     if (legacy) return legacy;
   }
   if (contentVersion === MARRIAGE_COUNSELING_CONTENT_VERSION_V2026_1) {

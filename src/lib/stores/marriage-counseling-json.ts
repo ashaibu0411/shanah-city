@@ -443,7 +443,7 @@ export async function applyAssessmentDraftPatch(input: ApplyAssessmentDraftPatch
     id: row?.id ?? `mar-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     journeyId,
     moduleId,
-    contentVersion: row?.contentVersion ?? contentVersion,
+    contentVersion,
     userId,
     status: "draft",
     answers: mergedAnswers,

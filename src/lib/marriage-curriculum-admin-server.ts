@@ -2,7 +2,9 @@ import type { PublicMember } from "@/lib/auth-types";
 import { isMarriageCurriculumAdmin } from "@/lib/marriage-counseling-access";
 import { logMarriageAudit } from "@/lib/marriage-counseling-audit";
 import { MARRIAGE_COUNSELING_CONTENT_VERSION } from "@/lib/marriage-counseling-curriculum";
+import { applyCanonicalQuestionCorrections } from "@/lib/marriage-curriculum-canonical";
 import { freezeStage2ModulesIntoSnapshot } from "@/lib/marriage-curriculum-stage2-merge";
+import { validateMarriageCurriculumModules } from "@/lib/marriage-curriculum-validation";
 import type { MarriageModuleDefinition } from "@/lib/marriage-counseling-types";
 import { marriageCurriculumStore } from "@/lib/stores/marriage-curriculum-store";
 
@@ -60,7 +62,16 @@ export async function publishCurriculumDraft(user: PublicMember, draftId: string
   const versions = await curriculumJson().listCurriculumVersions();
   const draft = versions.find((v) => v.id === draftId && v.status === "draft");
   if (!draft) throw new Error("Draft not found.");
-  const frozenModules = freezeStage2ModulesIntoSnapshot(draft.modules);
+  const frozenModules = applyCanonicalQuestionCorrections(
+    freezeStage2ModulesIntoSnapshot(draft.modules),
+  );
+  const validationIssues = validateMarriageCurriculumModules(frozenModules);
+  if (validationIssues.length > 0) {
+    const first = validationIssues[0]!;
+    throw new Error(
+      `Cannot publish: ${first.moduleId}/${first.questionId} — ${first.message}`,
+    );
+  }
   await curriculumJson().saveCurriculumDraft({
     id: draft.id,
     version: draft.version,
