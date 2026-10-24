@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from "fs";
 import path from "path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { readPrivateSignatureBytes, isPrivateSignaturePath } from "@/lib/marriage-certificate-private-assets";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 
 const NAVY = rgb(0.08, 0.14, 0.28);
@@ -21,6 +22,9 @@ async function loadLogoBytes() {
 
 async function loadSignatureBytes(assetPath: string | null | undefined) {
   if (!assetPath?.trim()) return null;
+  if (isPrivateSignaturePath(assetPath)) {
+    return readPrivateSignatureBytes(assetPath);
+  }
   const resolved = assetPath.startsWith("/")
     ? path.join(process.cwd(), "public", assetPath.replace(/^\//, ""))
     : path.join(process.cwd(), assetPath);

@@ -2,6 +2,7 @@ import type {
   MarriagePremaritalFinalCertificateAuditRecord,
   MarriagePremaritalFinalCertificateRecord,
   MarriagePremaritalSupplementaryClinicalRecord,
+  MarriagePrepCertificateSettingAuditRecord,
   MarriagePrepCertificateSettingRecord,
 } from "@/lib/marriage-certificate-types";
 import { promises as fs } from "fs";
@@ -16,6 +17,7 @@ type StoreFile = {
   finalCertificates: MarriagePremaritalFinalCertificateRecord[];
   finalCertificateAudit: MarriagePremaritalFinalCertificateAuditRecord[];
   certificateSetting: MarriagePrepCertificateSettingRecord | null;
+  certificateSettingAudit: MarriagePrepCertificateSettingAuditRecord[];
   supplementaryClinical: MarriagePremaritalSupplementaryClinicalRecord[];
 };
 
@@ -28,6 +30,7 @@ async function readStore(): Promise<StoreFile> {
       finalCertificates: [],
       finalCertificateAudit: [],
       certificateSetting: null,
+      certificateSettingAudit: [],
       supplementaryClinical: [],
     };
   }
@@ -93,6 +96,19 @@ export async function listSupplementaryClinicalForJourney(journeyId: string) {
 export async function getSupplementaryClinical(appointmentId: string) {
   const store = await readStore();
   return store.supplementaryClinical.find((r) => r.appointmentId === appointmentId) ?? null;
+}
+
+export async function listCertificateSettingAudit() {
+  const store = await readStore();
+  return (store.certificateSettingAudit ?? []).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function saveCertificateSettingAudit(record: MarriagePrepCertificateSettingAuditRecord) {
+  const store = await readStore();
+  if (!store.certificateSettingAudit) store.certificateSettingAudit = [];
+  store.certificateSettingAudit.push(record);
+  await writeStore(store);
+  return record;
 }
 
 export async function saveSupplementaryClinical(record: MarriagePremaritalSupplementaryClinicalRecord) {

@@ -4,6 +4,7 @@ import type {
   MarriagePremaritalFinalCertificateAuditRecord,
   MarriagePremaritalFinalCertificateRecord,
   MarriagePremaritalSupplementaryClinicalRecord,
+  MarriagePrepCertificateSettingAuditRecord,
   MarriagePrepCertificateSettingRecord,
 } from "@/lib/marriage-certificate-types";
 
@@ -152,6 +153,40 @@ export async function listFinalCertificateAuditForJourney(journeyId: string) {
   );
 }
 
+export async function listCertificateSettingAudit() {
+  const rows = await prisma.marriagePrepCertificateSettingAudit.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
+  return rows.map(
+    (r) =>
+      ({
+        id: r.id,
+        action: r.action as MarriagePrepCertificateSettingAuditRecord["action"],
+        actorUserId: r.actorUserId,
+        note: r.note,
+        previousPath: r.previousPath,
+        newPath: r.newPath,
+        createdAt: r.createdAt.toISOString(),
+      }) satisfies MarriagePrepCertificateSettingAuditRecord,
+  );
+}
+
+export async function saveCertificateSettingAudit(record: MarriagePrepCertificateSettingAuditRecord) {
+  await prisma.marriagePrepCertificateSettingAudit.create({
+    data: {
+      id: record.id,
+      action: record.action,
+      actorUserId: record.actorUserId,
+      note: record.note,
+      previousPath: record.previousPath,
+      newPath: record.newPath,
+      createdAt: new Date(record.createdAt),
+    },
+  });
+  return record;
+}
+
 export async function listSupplementaryClinicalForJourney(journeyId: string) {
   const rows = await prisma.marriagePremaritalSupplementaryClinical.findMany({ where: { journeyId } });
   return rows.map(
@@ -162,6 +197,7 @@ export async function listSupplementaryClinicalForJourney(journeyId: string) {
         sessionDate: r.sessionDate?.toISOString() ?? null,
         partnerAAttended: r.partnerAAttended,
         partnerBAttended: r.partnerBAttended,
+        outcome: r.outcome,
         topicsCovered: r.topicsCovered,
         followUpActions: r.followUpActions,
         privateObservations: r.privateObservations,
@@ -180,6 +216,7 @@ export async function getSupplementaryClinical(appointmentId: string) {
     sessionDate: r.sessionDate?.toISOString() ?? null,
     partnerAAttended: r.partnerAAttended,
     partnerBAttended: r.partnerBAttended,
+    outcome: r.outcome,
     topicsCovered: r.topicsCovered,
     followUpActions: r.followUpActions,
     privateObservations: r.privateObservations,
@@ -197,6 +234,7 @@ export async function saveSupplementaryClinical(record: MarriagePremaritalSupple
       sessionDate: record.sessionDate ? new Date(record.sessionDate) : null,
       partnerAAttended: record.partnerAAttended,
       partnerBAttended: record.partnerBAttended,
+      outcome: record.outcome,
       topicsCovered: record.topicsCovered,
       followUpActions: record.followUpActions,
       privateObservations: record.privateObservations,
@@ -207,6 +245,7 @@ export async function saveSupplementaryClinical(record: MarriagePremaritalSupple
       sessionDate: record.sessionDate ? new Date(record.sessionDate) : null,
       partnerAAttended: record.partnerAAttended,
       partnerBAttended: record.partnerBAttended,
+      outcome: record.outcome,
       topicsCovered: record.topicsCovered,
       followUpActions: record.followUpActions,
       privateObservations: record.privateObservations,

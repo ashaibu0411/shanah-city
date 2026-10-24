@@ -7,6 +7,7 @@ import type { MarriageCounselorPremaritalOperationsView } from "@/lib/marriage-c
 import { PREMARITAL_PROGRAM_SESSIONS } from "@/lib/marriage-premarital-eight-session-program";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { MarriageSeniorPastorFinalCertificatePanel } from "@/components/marriage/MarriageSeniorPastorFinalCertificatePanel";
+import { MarriageSupplementaryClinicalForms } from "@/components/marriage/MarriageSupplementaryClinicalForms";
 
 type Props = {
   journeyId: string;
@@ -53,6 +54,9 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
       return false;
     }
     await load();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("marriage-timeline-refresh"));
+    }
     return true;
   }
 
@@ -372,16 +376,13 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
                 Schedule supplementary session
               </button>
             </form>
-            {(ops.supplementaryAppointments ?? []).length > 0 ? (
-              <ul className="mt-3 space-y-2 text-sm">
-                {(ops.supplementaryAppointments ?? []).map((appt) => (
-                  <li key={appt.id} className="rounded-lg border border-stone-200 px-3 py-2 dark:border-white/10">
-                    <p className="font-semibold">{appt.topic ?? "Additional session"}</p>
-                    <p className="text-xs">{formatMarriageSessionScheduledAt(appt.scheduledAt, appt.schedulingTimeZone)}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            <MarriageSupplementaryClinicalForms
+              journeyId={journeyId}
+              appointments={ops.supplementaryAppointments ?? []}
+              clinical={ops.supplementaryClinical ?? []}
+              busy={busy}
+              onSave={post}
+            />
           </div>
         )}
 

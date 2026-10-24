@@ -33,6 +33,12 @@ export function MarriageCounselorPastoralTimelinePanel({ journeyId }: Props) {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    const onRefresh = () => void load();
+    window.addEventListener("marriage-timeline-refresh", onRefresh);
+    return () => window.removeEventListener("marriage-timeline-refresh", onRefresh);
+  }, [load]);
+
   return (
     <section className="mt-6 rounded-xl border border-stone-200 p-4 dark:border-white/10">
       <h3 className="text-sm font-semibold">Counseling timeline</h3>

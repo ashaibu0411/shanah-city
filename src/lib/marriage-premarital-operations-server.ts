@@ -479,6 +479,7 @@ export async function saveSupplementaryClinicalRecord(
     schedulingTimeZone?: string;
     partnerAAttended?: boolean | null;
     partnerBAttended?: boolean | null;
+    outcome?: string | null;
     topicsCovered?: string;
     followUpActions?: string;
     privateObservations?: string;
@@ -505,6 +506,7 @@ export async function saveSupplementaryClinicalRecord(
     sessionDate,
     partnerAAttended: input.partnerAAttended ?? null,
     partnerBAttended: input.partnerBAttended ?? null,
+    outcome: input.outcome?.trim() || null,
     topicsCovered: input.topicsCovered?.trim() || null,
     followUpActions: input.followUpActions?.trim() || null,
     privateObservations: input.privateObservations?.trim() || null,

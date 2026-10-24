@@ -1747,6 +1747,7 @@ model MarriagePremaritalSupplementaryClinical {
   sessionDate         DateTime?
   partnerAAttended    Boolean?
   partnerBAttended    Boolean?
+  outcome             String?
   topicsCovered       String?
   followUpActions     String?
   privateObservations String?
@@ -1754,6 +1755,16 @@ model MarriagePremaritalSupplementaryClinical {
   updatedByUserId     String
 
   @@index([journeyId])
+}
+
+model MarriagePrepCertificateSettingAudit {
+  id              String   @id
+  action          String
+  actorUserId     String
+  note            String?
+  previousPath    String?
+  newPath         String?
+  createdAt       DateTime
 }
 
 /** Singleton — default premarital counselor for automated assignment requests. */

@@ -138,6 +138,7 @@ export async function POST(request: Request) {
         schedulingTimeZone: body.schedulingTimeZone ? String(body.schedulingTimeZone) : undefined,
         partnerAAttended: body.partnerAAttended,
         partnerBAttended: body.partnerBAttended,
+        outcome: body.outcome != null ? String(body.outcome) : undefined,
         topicsCovered: body.topicsCovered ? String(body.topicsCovered) : undefined,
         followUpActions: body.followUpActions ? String(body.followUpActions) : undefined,
         privateObservations: body.privateObservations

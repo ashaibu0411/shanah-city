@@ -56,4 +56,17 @@ assert.equal(resolved.missing, true, "missing date when only status completed wi
 
 assert.match(sessionCertificateReference("abc-def", "session-1"), /^SC-/);
 
+const settings = readFileSync(join(root, "src/lib/marriage-certificate-settings-server.ts"), "utf8");
+assert.match(settings, /assertCertificateSettingsAdmin/, "signature settings restricted");
+assert.match(settings, /savePrivateSignaturePng/, "private signature storage");
+
+const reportPdf = readFileSync(join(root, "src/lib/marriage-pastoral-report-pdf.ts"), "utf8");
+assert.match(reportPdf, /Page \$\{index\} of \$\{total\}/, "report PDF page numbers");
+
+const suppUi = readFileSync(join(root, "src/components/marriage/MarriageSupplementaryClinicalForms.tsx"), "utf8");
+assert.match(suppUi, /save_supplementary_clinical/, "supplementary clinical form wired");
+
+const replaceUi = readFileSync(join(root, "src/components/marriage/MarriageSeniorPastorFinalCertificatePanel.tsx"), "utf8");
+assert.match(replaceUi, /action: "replace"/, "certificate replace UI");
+
 console.log("marriage-certificates-phase5.test.ts: OK");

@@ -42,11 +42,22 @@ export type MarriagePremaritalSupplementaryClinicalRecord = {
   sessionDate: string | null;
   partnerAAttended: boolean | null;
   partnerBAttended: boolean | null;
+  outcome: string | null;
   topicsCovered: string | null;
   followUpActions: string | null;
   privateObservations: string | null;
   updatedAt: string;
   updatedByUserId: string;
+};
+
+export type MarriagePrepCertificateSettingAuditRecord = {
+  id: string;
+  action: "upload" | "remove" | "replace";
+  actorUserId: string;
+  note: string | null;
+  previousPath: string | null;
+  newPath: string | null;
+  createdAt: string;
 };
 
 export type MarriageCoupleSessionCertificateView = {

@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import type { MarriagePastoralReportKind } from "@/lib/marriage-certificate-types";
-import { buildPastoralReportText } from "@/lib/marriage-pastoral-reports-server";
+import { buildPastoralReportPdf, buildPastoralReportText } from "@/lib/marriage-pastoral-reports-server";
 import { counselorRouteErrorBody, counselorRouteErrorStatus } from "@/lib/marriage-counselor-api-security";
 
 type Params = { params: Promise<{ journeyId: string }> };
@@ -28,12 +28,24 @@ export async function GET(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Valid kind required." }, { status: 400 });
   }
 
+  const format = new URL(request.url).searchParams.get("format")?.trim() ?? "pdf";
+
   try {
-    const text = await buildPastoralReportText(user, journeyId, kind);
-    return new NextResponse(text, {
+    if (format === "txt" || format === "text") {
+      const text = await buildPastoralReportText(user, journeyId, kind);
+      return new NextResponse(text, {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Content-Disposition": `attachment; filename="marriage-prep-${kind}-report.txt"`,
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+    const pdf = await buildPastoralReportPdf(user, journeyId, kind);
+    return new NextResponse(Buffer.from(pdf), {
       headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Content-Disposition": `attachment; filename="marriage-prep-${kind}-report.txt"`,
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="marriage-prep-${kind}-report.pdf"`,
         "Cache-Control": "no-store",
       },
     });

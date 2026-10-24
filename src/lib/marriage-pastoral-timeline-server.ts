@@ -77,7 +77,12 @@ export async function buildPastoralTimeline(viewer: PublicMember, journeyId: str
         at: row.sessionDate ?? row.updatedAt,
         category: "attendance",
         title: "Supplementary session record",
-        summary: row.topicsCovered?.trim() || "Clinical record updated",
+        summary: [
+          row.outcome ? `Outcome: ${row.outcome.replace(/_/g, " ")}` : null,
+          row.topicsCovered?.trim() || "Clinical record updated",
+        ]
+          .filter(Boolean)
+          .join(" · "),
         visibility: "clinical",
       });
     }
