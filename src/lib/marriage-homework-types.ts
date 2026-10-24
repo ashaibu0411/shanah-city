@@ -15,6 +15,8 @@ export type MarriageHomeworkQuestionDef = {
   prompt: string;
   responseKind: "long_text";
   visibility: MarriageHomeworkQuestionVisibility;
+  explanation?: string;
+  writingExamples?: string[];
 };
 
 export type MarriageHomeworkActivityDef = {

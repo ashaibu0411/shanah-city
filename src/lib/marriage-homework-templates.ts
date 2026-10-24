@@ -1,8 +1,9 @@
 import type { MarriageHomeworkActivityDef, MarriageHomeworkTemplateSummary } from "@/lib/marriage-homework-types";
+import { enrichHomeworkActivities } from "@/lib/marriage-homework-written-guidance";
 
 export const WEEK_1_HOMEWORK_TEMPLATE_KEY = "week-1-knowing-yourself";
 
-const WEEK_1_ACTIVITIES: MarriageHomeworkActivityDef[] = [
+const WEEK_1_ACTIVITIES: MarriageHomeworkActivityDef[] = enrichHomeworkActivities([
   {
     id: "activity-a",
     kind: "individual_writing",
@@ -113,7 +114,7 @@ const WEEK_1_ACTIVITIES: MarriageHomeworkActivityDef[] = [
     optionalModuleIds: ["mod-02-family-background"],
     questions: [],
   },
-];
+]);
 
 export const MARRIAGE_HOMEWORK_TEMPLATES: Record<
   string,

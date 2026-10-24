@@ -3,6 +3,7 @@
 import type { MarriageQuestionDefinition } from "@/lib/marriage-counseling-types";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import { MarriageBudgetWorksheet } from "@/components/marriage/MarriageBudgetWorksheet";
+import { MarriageWrittenQuestionGuidance } from "@/components/marriage/MarriageWrittenQuestionGuidance";
 
 export function MarriageQuestionInput({
   question,
@@ -48,21 +49,30 @@ export function MarriageQuestionInput({
 
   if (question.type === "long_reflection" || question.type === "short_answer") {
     const multiline = question.type === "long_reflection";
-    return multiline ? (
-      <textarea
-        className="mt-4 min-h-[120px] w-full rounded-xl border border-night-900/10 px-3 py-3 text-sm dark:border-white/12 dark:bg-[var(--color-bg-muted)]"
-        value={typeof value === "string" ? value : ""}
-        disabled={disabled}
-        placeholder={question.explanation ? undefined : "Share in your own words…"}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    ) : (
-      <input
-        className="mt-4 min-h-[44px] w-full rounded-xl border border-night-900/10 px-3 py-3 text-sm dark:border-white/12 dark:bg-[var(--color-bg-muted)]"
-        value={typeof value === "string" ? value : ""}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-      />
+    return (
+      <>
+        <MarriageWrittenQuestionGuidance question={question} />
+        <p className="mt-4 text-xs font-bold uppercase tracking-wide text-night-500 dark:text-sand-400">
+          Your answer
+        </p>
+        {multiline ? (
+          <textarea
+            className="mt-2 min-h-[120px] w-full rounded-xl border border-night-900/10 px-3 py-3 text-sm dark:border-white/12 dark:bg-[var(--color-bg-muted)]"
+            value={typeof value === "string" ? value : ""}
+            disabled={disabled}
+            placeholder="Share in your own words…"
+            onChange={(e) => onChange(e.target.value)}
+          />
+        ) : (
+          <input
+            className="mt-2 min-h-[44px] w-full rounded-xl border border-night-900/10 px-3 py-3 text-sm dark:border-white/12 dark:bg-[var(--color-bg-muted)]"
+            value={typeof value === "string" ? value : ""}
+            disabled={disabled}
+            placeholder="Share in your own words…"
+            onChange={(e) => onChange(e.target.value)}
+          />
+        )}
+      </>
     );
   }
 

@@ -7,6 +7,9 @@ import type {
   MarriageQuestionDefinition,
 } from "@/lib/marriage-counseling-types";
 import { validateMarriageCurriculumModules } from "@/lib/marriage-curriculum-validation";
+import {
+  isWrittenResponseQuestion,
+} from "@/lib/marriage-written-question-guidance";
 
 const canonicalModuleById = new Map(MARRIAGE_COUNSELING_MODULES.map((m) => [m.id, m]));
 
@@ -59,10 +62,15 @@ export function applyCanonicalQuestionCorrections(
       questions: mod.questions.map((q) => {
         const replacement = canonicalById.get(q.id);
         if (!replacement) return q;
-        if (questionNeedsCanonicalCorrection(mod.id, q)) {
-          return { ...replacement };
+        let merged = questionNeedsCanonicalCorrection(mod.id, q) ? { ...replacement } : { ...q };
+        if (isWrittenResponseQuestion(merged.type)) {
+          merged = {
+            ...merged,
+            explanation: replacement.explanation ?? merged.explanation,
+            writingExamples: replacement.writingExamples ?? merged.writingExamples,
+          };
         }
-        return q;
+        return merged;
       }),
     };
   });

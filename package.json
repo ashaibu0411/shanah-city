@@ -37,6 +37,7 @@
     "test:marriage:curriculum": "tsx scripts/marriage-curriculum-validation.test.ts",
     "test:marriage:homework": "tsx scripts/marriage-session-homework.test.ts",
     "test:marriage:assessment-migration": "tsx scripts/marriage-assessment-migration.test.ts",
+    "test:marriage:written-guidance": "tsx scripts/marriage-written-guidance.test.ts",
     "test:app:nav": "tsx scripts/app-nav-items.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",

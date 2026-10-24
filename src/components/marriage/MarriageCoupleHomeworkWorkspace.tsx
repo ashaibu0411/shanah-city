@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MarriageWrittenQuestionGuidance } from "@/components/marriage/MarriageWrittenQuestionGuidance";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
+import type { MarriageQuestionDefinition } from "@/lib/marriage-counseling-types";
 import { homeworkAnswerKey } from "@/lib/marriage-homework-types";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 import { readJsonResponse } from "@/lib/read-json-response";
@@ -16,7 +18,12 @@ type Activity = {
   scriptureRefs?: string[];
   moduleIds?: string[];
   optionalModuleIds?: string[];
-  questions: Array<{ id: string; prompt: string }>;
+  questions: Array<{
+    id: string;
+    prompt: string;
+    explanation?: string;
+    writingExamples?: string[];
+  }>;
 };
 
 type Workspace = {
@@ -205,9 +212,21 @@ export function MarriageCoupleHomeworkWorkspace({ homeworkId }: { homeworkId: st
               <ul className="mt-4 space-y-4">
                 {activity.questions.map((q) => {
                   const key = homeworkAnswerKey(activity.id, q.id);
+                  const guidanceQuestion: MarriageQuestionDefinition = {
+                    id: q.id,
+                    moduleId: activity.id,
+                    prompt: q.prompt,
+                    type: "long_reflection",
+                    required: true,
+                    visibility: "private_reflection",
+                    explanation: q.explanation,
+                    writingExamples: q.writingExamples,
+                  };
                   return (
                     <li key={q.id}>
-                      <label className="block text-sm font-semibold">{q.prompt}</label>
+                      <p className="text-sm font-semibold">{q.prompt}</p>
+                      <MarriageWrittenQuestionGuidance question={guidanceQuestion} />
+                      <p className="mt-3 text-xs font-bold uppercase tracking-wide text-night-500">Your answer</p>
                       <textarea
                         className="mt-2 min-h-[120px] w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-night-900"
                         value={answers[key] ?? ""}

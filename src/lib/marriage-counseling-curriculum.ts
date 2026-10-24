@@ -8,6 +8,7 @@ import {
   AGREEMENT_SCALE_OPTIONS,
   CHILDHOOD_HOME_TONE_OPTIONS,
 } from "@/lib/marriage-counseling-response-scales";
+import { enrichModulesWithWrittenGuidance } from "@/lib/marriage-written-question-guidance";
 
 export const MARRIAGE_COUNSELING_CONTENT_VERSION = "2026.2";
 export const MARRIAGE_CONSENT_VERSION = "2026.1";
@@ -30,6 +31,7 @@ function q(
     visibility: opts.visibility ?? "shared_after_both_submit",
     options: opts.options,
     explanation: opts.explanation,
+    writingExamples: opts.writingExamples,
     discussionPrompt: opts.discussionPrompt,
     allowSkip: opts.allowSkip,
     sensitivity: opts.sensitivity,
@@ -49,7 +51,7 @@ function moduleDef(
   return { id, title, summary, sortOrder, programTypes, questions };
 }
 
-export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
+const MARRIAGE_COUNSELING_MODULES_RAW: MarriageModuleDefinition[] = [
   moduleDef("mod-01-knowing-yourself", "Knowing Yourself & Your Partner", "Personality, emotions, conflict, and strengths.", 1, [
     q("mod-01-knowing-yourself", "kyp-temperament", "Which temperament description feels most familiar as a starting point (not a label)?", "single_choice", {
       options: [
@@ -464,6 +466,9 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
     q("mod-20-celebration", "joy-plan", "One way we will protect joy in our marriage is…", "short_answer"),
   ], ["enrichment", "guided"]),
 ];
+
+export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] =
+  enrichModulesWithWrittenGuidance(MARRIAGE_COUNSELING_MODULES_RAW);
 
 /** Built-in seed curriculum (20 modules). Published admin versions override at runtime. */
 export const MARRIAGE_SEED_MODULE_COUNT = MARRIAGE_COUNSELING_MODULES.length;

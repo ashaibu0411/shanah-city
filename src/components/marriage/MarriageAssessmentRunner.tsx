@@ -206,9 +206,6 @@ export function MarriageAssessmentRunner({ moduleId }: { moduleId: string }) {
           </p>
         ) : null}
         <p className="mt-3 text-base font-medium leading-snug">{question.prompt}</p>
-        {question.explanation && (
-          <p className={`${marriagePremium.cardMuted} mt-2`}>{question.explanation}</p>
-        )}
         <MarriageQuestionInput question={question} value={answers[question.id]} onChange={setAnswer} disabled={locked} />
         {question.allowSkip && !locked && (
           <button

@@ -398,6 +398,8 @@ export type MarriageQuestionDefinition = {
   visibility: MarriageAnswerVisibility;
   sensitivity?: "normal" | "high";
   explanation?: string;
+  /** Neutral examples shown before the answer field (written questions). */
+  writingExamples?: string[];
   discussionPrompt?: string;
   allowSkip?: boolean;
   min?: number;
