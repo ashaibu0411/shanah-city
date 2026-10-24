@@ -1720,8 +1720,11 @@ model MarriagePremaritalFinalCertificate {
   seniorPastorTitle   String
   revokedAt           DateTime?
   revokeReason        String?
-  supersededById      String?
-  createdAt           DateTime
+  supersededById              String?
+  signatureAssetPathAtIssue   String?
+  renderVersion               String?
+  issuedPdfAssetPath          String?
+  createdAt                   DateTime
 
   @@index([journeyId, status])
   @@index([journeyId, issuedAt])

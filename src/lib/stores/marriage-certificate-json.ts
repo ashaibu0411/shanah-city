@@ -74,6 +74,36 @@ export async function saveFinalCertificate(record: MarriagePremaritalFinalCertif
   return record;
 }
 
+export async function createActiveFinalCertificateAtomic(input: {
+  record: MarriagePremaritalFinalCertificateRecord;
+  audit: MarriagePremaritalFinalCertificateAuditRecord;
+}) {
+  const store = await readStore();
+  if (store.finalCertificates.some((c) => c.journeyId === input.record.journeyId && c.status === "active")) {
+    throw new Error("An active final certificate already exists.");
+  }
+  store.finalCertificates.push(input.record);
+  store.finalCertificateAudit.push(input.audit);
+  await writeStore(store);
+  return input.record;
+}
+
+export async function replaceActiveFinalCertificateAtomic(input: {
+  superseded: MarriagePremaritalFinalCertificateRecord;
+  replacement: MarriagePremaritalFinalCertificateRecord;
+  audit: MarriagePremaritalFinalCertificateAuditRecord;
+}) {
+  const store = await readStore();
+  const active = store.finalCertificates.find((c) => c.id === input.superseded.id && c.status === "active");
+  if (!active) throw new Error("Certificate is no longer active.");
+  const index = store.finalCertificates.findIndex((c) => c.id === input.superseded.id);
+  store.finalCertificates[index] = input.superseded;
+  store.finalCertificates.push(input.replacement);
+  store.finalCertificateAudit.push(input.audit);
+  await writeStore(store);
+  return input.replacement;
+}
+
 export async function saveFinalCertificateAudit(record: MarriagePremaritalFinalCertificateAuditRecord) {
   const store = await readStore();
   store.finalCertificateAudit.push(record);

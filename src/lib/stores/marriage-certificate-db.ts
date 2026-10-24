@@ -23,6 +23,9 @@ function mapFinal(row: {
   revokedAt: Date | null;
   revokeReason: string | null;
   supersededById: string | null;
+  signatureAssetPathAtIssue: string | null;
+  renderVersion: string | null;
+  issuedPdfAssetPath: string | null;
   createdAt: Date;
 }): MarriagePremaritalFinalCertificateRecord {
   return {
@@ -40,7 +43,33 @@ function mapFinal(row: {
     revokedAt: row.revokedAt?.toISOString() ?? null,
     revokeReason: row.revokeReason,
     supersededById: row.supersededById,
+    signatureAssetPathAtIssue: row.signatureAssetPathAtIssue,
+    renderVersion: row.renderVersion,
+    issuedPdfAssetPath: row.issuedPdfAssetPath,
     createdAt: row.createdAt.toISOString(),
+  };
+}
+
+function finalCertificateCreateData(record: MarriagePremaritalFinalCertificateRecord) {
+  return {
+    id: record.id,
+    journeyId: record.journeyId,
+    certificateNumber: record.certificateNumber,
+    status: record.status,
+    completionDate: record.completionDate ? new Date(record.completionDate) : null,
+    issuedAt: new Date(record.issuedAt),
+    issuedByUserId: record.issuedByUserId,
+    partnerADisplayName: record.partnerADisplayName,
+    partnerBDisplayName: record.partnerBDisplayName,
+    seniorPastorName: record.seniorPastorName,
+    seniorPastorTitle: record.seniorPastorTitle,
+    revokedAt: record.revokedAt ? new Date(record.revokedAt) : null,
+    revokeReason: record.revokeReason,
+    supersededById: record.supersededById,
+    signatureAssetPathAtIssue: record.signatureAssetPathAtIssue,
+    renderVersion: record.renderVersion,
+    issuedPdfAssetPath: record.issuedPdfAssetPath,
+    createdAt: new Date(record.createdAt),
   };
 }
 
@@ -89,32 +118,81 @@ export async function getFinalCertificateById(id: string) {
 export async function saveFinalCertificate(record: MarriagePremaritalFinalCertificateRecord) {
   await prisma.marriagePremaritalFinalCertificate.upsert({
     where: { id: record.id },
-    create: {
-      id: record.id,
-      journeyId: record.journeyId,
-      certificateNumber: record.certificateNumber,
-      status: record.status,
-      completionDate: record.completionDate ? new Date(record.completionDate) : null,
-      issuedAt: new Date(record.issuedAt),
-      issuedByUserId: record.issuedByUserId,
-      partnerADisplayName: record.partnerADisplayName,
-      partnerBDisplayName: record.partnerBDisplayName,
-      seniorPastorName: record.seniorPastorName,
-      seniorPastorTitle: record.seniorPastorTitle,
-      revokedAt: record.revokedAt ? new Date(record.revokedAt) : null,
-      revokeReason: record.revokeReason,
-      supersededById: record.supersededById,
-      createdAt: new Date(record.createdAt),
-    },
+    create: finalCertificateCreateData(record),
     update: {
       status: record.status,
       completionDate: record.completionDate ? new Date(record.completionDate) : null,
       revokedAt: record.revokedAt ? new Date(record.revokedAt) : null,
       revokeReason: record.revokeReason,
       supersededById: record.supersededById,
+      issuedPdfAssetPath: record.issuedPdfAssetPath,
     },
   });
   return record;
+}
+
+export async function createActiveFinalCertificateAtomic(input: {
+  record: MarriagePremaritalFinalCertificateRecord;
+  audit: MarriagePremaritalFinalCertificateAuditRecord;
+}) {
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.marriagePremaritalFinalCertificate.findFirst({
+      where: { journeyId: input.record.journeyId, status: "active" },
+    });
+    if (existing) throw new Error("An active final certificate already exists.");
+    await tx.marriagePremaritalFinalCertificate.create({ data: finalCertificateCreateData(input.record) });
+    await tx.marriagePremaritalFinalCertificateAudit.create({
+      data: {
+        id: input.audit.id,
+        certificateId: input.audit.certificateId,
+        journeyId: input.audit.journeyId,
+        action: input.audit.action,
+        actorUserId: input.audit.actorUserId,
+        note: input.audit.note,
+        metaJson: input.audit.metaJson,
+        createdAt: new Date(input.audit.createdAt),
+      },
+    });
+    return input.record;
+  });
+}
+
+export async function replaceActiveFinalCertificateAtomic(input: {
+  superseded: MarriagePremaritalFinalCertificateRecord;
+  replacement: MarriagePremaritalFinalCertificateRecord;
+  audit: MarriagePremaritalFinalCertificateAuditRecord;
+}) {
+  return prisma.$transaction(async (tx) => {
+    const active = await tx.marriagePremaritalFinalCertificate.findFirst({
+      where: { id: input.superseded.id, journeyId: input.superseded.journeyId, status: "active" },
+    });
+    if (!active) throw new Error("Certificate is no longer active.");
+    await tx.marriagePremaritalFinalCertificate.update({
+      where: { id: input.superseded.id },
+      data: {
+        status: input.superseded.status,
+        revokedAt: input.superseded.revokedAt ? new Date(input.superseded.revokedAt) : null,
+        revokeReason: input.superseded.revokeReason,
+        supersededById: input.superseded.supersededById,
+      },
+    });
+    await tx.marriagePremaritalFinalCertificate.create({
+      data: finalCertificateCreateData(input.replacement),
+    });
+    await tx.marriagePremaritalFinalCertificateAudit.create({
+      data: {
+        id: input.audit.id,
+        certificateId: input.audit.certificateId,
+        journeyId: input.audit.journeyId,
+        action: input.audit.action,
+        actorUserId: input.audit.actorUserId,
+        note: input.audit.note,
+        metaJson: input.audit.metaJson,
+        createdAt: new Date(input.audit.createdAt),
+      },
+    });
+    return input.replacement;
+  });
 }
 
 export async function saveFinalCertificateAudit(record: MarriagePremaritalFinalCertificateAuditRecord) {

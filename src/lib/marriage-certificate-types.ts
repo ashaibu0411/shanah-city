@@ -15,6 +15,12 @@ export type MarriagePremaritalFinalCertificateRecord = {
   revokedAt: string | null;
   revokeReason: string | null;
   supersededById: string | null;
+  /** Snapshot of configured signature ref at issuance (not live settings). */
+  signatureAssetPathAtIssue: string | null;
+  /** Template/renderer version frozen at issuance. */
+  renderVersion: string | null;
+  /** Immutable issued PDF in private storage. */
+  issuedPdfAssetPath: string | null;
   createdAt: string;
 };
 

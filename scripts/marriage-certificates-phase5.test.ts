@@ -60,6 +60,24 @@ const settings = readFileSync(join(root, "src/lib/marriage-certificate-settings-
 assert.match(settings, /assertCertificateSettingsAdmin/, "signature settings restricted");
 assert.match(settings, /savePrivateSignaturePng/, "private signature storage");
 
+const storage = readFileSync(join(root, "src/lib/marriage-private-storage.ts"), "utf8");
+assert.match(storage, /access: "private"/, "blob signatures are private");
+assert.match(storage, /assertMarriagePrivateStorageWritable/, "production requires blob config");
+
+const certPage = readFileSync(join(root, "src/app/marriage/admin/certificate-settings/page.tsx"), "utf8");
+assert.match(certPage, /canManageCertificateSettings/, "certificate settings page auth");
+
+const migration = readFileSync(
+  join(root, "prisma/migrations/20261024230000_marriage_cert_immutable_issue/migration.sql"),
+  "utf8",
+);
+assert.match(migration, /one_active_per_journey/, "DB partial unique for active final cert");
+
+assert.match(server, /issuedPdfAssetPath/, "immutable issued PDF artifact");
+assert.match(server, /signatureAssetPathAtIssue/, "signature snapshot at issue");
+const certDb = readFileSync(join(root, "src/lib/stores/marriage-certificate-db.ts"), "utf8");
+assert.match(certDb, /createActiveFinalCertificateAtomic/, "atomic final certificate issue");
+
 const reportPdf = readFileSync(join(root, "src/lib/marriage-pastoral-report-pdf.ts"), "utf8");
 assert.match(reportPdf, /Page \$\{index\} of \$\{total\}/, "report PDF page numbers");
 

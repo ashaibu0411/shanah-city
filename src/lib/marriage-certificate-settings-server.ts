@@ -9,11 +9,23 @@ import {
   readPrivateSignatureBytes,
   savePrivateSignaturePng,
 } from "@/lib/marriage-certificate-private-assets";
+import {
+  isMarriagePrivateStorageWritable,
+  marriagePrivateStorageConfigHint,
+  validatePngSignatureBytes,
+} from "@/lib/marriage-private-storage";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
 const store = () => marriageStore();
 
 const MAX_SIGNATURE_BYTES = 2 * 1024 * 1024;
+
+export function certificateSettingsStorageStatus() {
+  return {
+    writable: isMarriagePrivateStorageWritable(),
+    configurationHint: isMarriagePrivateStorageWritable() ? null : marriagePrivateStorageConfigHint(),
+  };
+}
 
 function certificateAdminIdsFromEnv(): Set<string> {
   const raw = process.env.MARRIAGE_CERTIFICATE_ADMIN_USER_IDS ?? "";
@@ -59,14 +71,18 @@ export async function getCertificateSettingsView(viewer: PublicMember) {
     updatedAt: setting?.updatedAt ?? null,
     updatedByUserId: setting?.updatedByUserId ?? null,
     audit: audit.slice(0, 20),
+    storage: certificateSettingsStorageStatus(),
   };
 }
 
 export async function uploadCertificateSignature(viewer: PublicMember, file: File) {
   await assertCertificateSettingsAdmin(viewer);
+  if (!isMarriagePrivateStorageWritable()) {
+    throw new Error(`Signature upload is disabled until private storage is configured. ${marriagePrivateStorageConfigHint()}`);
+  }
   if (file.type !== "image/png") throw new Error("Upload a PNG signature image (approved scan of authorized signature).");
   const bytes = Buffer.from(await file.arrayBuffer());
-  if (bytes.length > MAX_SIGNATURE_BYTES) throw new Error("Signature image is too large (max 2 MB).");
+  validatePngSignatureBytes(bytes, MAX_SIGNATURE_BYTES);
 
   const previous = await store().getMarriagePrepCertificateSetting();
   const pathRef = await savePrivateSignaturePng(bytes);

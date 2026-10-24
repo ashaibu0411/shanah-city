@@ -13,13 +13,20 @@ import {
   suggestProgramCompletionDate,
 } from "@/lib/marriage-certificate-eligibility";
 import {
+  MARRIAGE_CERTIFICATE_RENDER_VERSION,
   renderFinalProgramCertificatePdf,
   renderSessionCompletionCertificatePdf,
 } from "@/lib/marriage-certificate-pdf";
 import type {
   MarriageCoupleCertificatesGalleryView,
   MarriageFinalCertificateEligibilityView,
+  MarriagePremaritalFinalCertificateRecord,
 } from "@/lib/marriage-certificate-types";
+import {
+  readPrivateMarriageAssetBytes,
+  savePrivateIssuedFinalCertificatePdf,
+} from "@/lib/marriage-private-storage";
+import { Prisma } from "@prisma/client";
 import { PREMARITAL_PROGRAM_SESSIONS, getPremaritalSessionDefinition } from "@/lib/marriage-premarital-eight-session-program";
 import { getPastoralRoleAssignments } from "@/lib/pastoral-roles-server";
 import { PASTORAL_ROLE_LABELS, userIdForPastoralRole } from "@/lib/pastoral-roles-types";
@@ -50,6 +57,56 @@ function newCertificateNumber() {
   const year = new Date().getFullYear();
   const suffix = randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
   return `MP-${year}-${suffix}`;
+}
+
+async function renderFinalCertificatePdfBytes(
+  record: Pick<
+    MarriagePremaritalFinalCertificateRecord,
+    | "partnerADisplayName"
+    | "partnerBDisplayName"
+    | "completionDate"
+    | "certificateNumber"
+    | "issuedAt"
+    | "seniorPastorName"
+    | "seniorPastorTitle"
+    | "signatureAssetPathAtIssue"
+  >,
+) {
+  return renderFinalProgramCertificatePdf({
+    partnerAName: record.partnerADisplayName,
+    partnerBName: record.partnerBDisplayName,
+    programTitle: "Marriage Preparation Program",
+    completionDate: record.completionDate,
+    completionDateMissing: !record.completionDate,
+    certificateNumber: record.certificateNumber,
+    issuedAt: record.issuedAt,
+    seniorPastorName: record.seniorPastorName,
+    seniorPastorTitle: record.seniorPastorTitle,
+    signatureAssetPath: record.signatureAssetPathAtIssue,
+  });
+}
+
+async function persistImmutableIssuedPdf(record: MarriagePremaritalFinalCertificateRecord) {
+  const pdfBytes = await renderFinalCertificatePdfBytes(record);
+  const issuedPdfAssetPath = await savePrivateIssuedFinalCertificatePdf(
+    record.id,
+    Buffer.from(pdfBytes),
+  );
+  return { ...record, issuedPdfAssetPath };
+}
+
+function duplicateActiveCertificateError(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    return new Error("An active final certificate already exists.");
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("MarriagePremaritalFinalCertificate_one_active_per_journey")) {
+    return new Error("An active final certificate already exists.");
+  }
+  if (message.includes("An active final certificate already exists.")) {
+    return new Error(message);
+  }
+  return error instanceof Error ? error : new Error(message);
 }
 
 export async function buildCoupleCertificatesGallery(
@@ -201,13 +258,15 @@ export async function issueFinalCertificate(
     input?.completionDate?.trim() ||
     suggested.date ||
     null;
+  const setting = await store().getMarriagePrepCertificateSetting();
+  const signatureAssetPathAtIssue = setting?.seniorPastorSignatureAssetPath ?? null;
   const now = new Date().toISOString();
   const id = randomUUID();
-  const record = {
+  let record: MarriagePremaritalFinalCertificateRecord = {
     id,
     journeyId,
     certificateNumber: newCertificateNumber(),
-    status: "active" as const,
+    status: "active",
     completionDate,
     issuedAt: now,
     issuedByUserId: viewer.id,
@@ -218,19 +277,35 @@ export async function issueFinalCertificate(
     revokedAt: null,
     revokeReason: null,
     supersededById: null,
+    signatureAssetPathAtIssue,
+    renderVersion: MARRIAGE_CERTIFICATE_RENDER_VERSION,
+    issuedPdfAssetPath: null,
     createdAt: now,
   };
-  await store().saveFinalCertificate(record);
-  await store().saveFinalCertificateAudit({
+  record = await persistImmutableIssuedPdf(record);
+  const audit = {
     id: randomUUID(),
     certificateId: id,
     journeyId,
-    action: "issue",
+    action: "issue" as const,
     actorUserId: viewer.id,
     note: null,
-    metaJson: JSON.stringify({ certificateNumber: record.certificateNumber }),
+    metaJson: JSON.stringify({
+      certificateNumber: record.certificateNumber,
+      renderVersion: record.renderVersion,
+    }),
     createdAt: now,
-  });
+  };
+  try {
+    if (typeof store().createActiveFinalCertificateAtomic === "function") {
+      await store().createActiveFinalCertificateAtomic({ record, audit });
+    } else {
+      await store().saveFinalCertificate(record);
+      await store().saveFinalCertificateAudit(audit);
+    }
+  } catch (error) {
+    throw duplicateActiveCertificateError(error);
+  }
   await logMarriageAudit({
     actorUserId: viewer.id,
     action: "final_certificate_issued",
@@ -292,13 +367,15 @@ export async function replaceFinalCertificate(viewer: PublicMember, certificateI
 
   const names = await partnerDisplayNames(journey);
   const sp = await seniorPastorSigningInfo();
+  const setting = await store().getMarriagePrepCertificateSetting();
+  const signatureAssetPathAtIssue = setting?.seniorPastorSignatureAssetPath ?? null;
   const now = new Date().toISOString();
   const id = randomUUID();
-  const record = {
+  let record: MarriagePremaritalFinalCertificateRecord = {
     id,
     journeyId: cert.journeyId,
     certificateNumber: newCertificateNumber(),
-    status: "active" as const,
+    status: "active",
     completionDate: cert.completionDate,
     issuedAt: now,
     issuedByUserId: viewer.id,
@@ -309,26 +386,40 @@ export async function replaceFinalCertificate(viewer: PublicMember, certificateI
     revokedAt: null,
     revokeReason: null,
     supersededById: null,
+    signatureAssetPathAtIssue,
+    renderVersion: MARRIAGE_CERTIFICATE_RENDER_VERSION,
+    issuedPdfAssetPath: null,
     createdAt: now,
   };
-  await store().saveFinalCertificate({
+  record = await persistImmutableIssuedPdf(record);
+  const superseded = {
     ...cert,
-    status: "superseded",
+    status: "superseded" as const,
     revokedAt: now,
     revokeReason: `Superseded: ${trimmed}`,
     supersededById: id,
-  });
-  await store().saveFinalCertificate(record);
-  await store().saveFinalCertificateAudit({
+  };
+  const audit = {
     id: randomUUID(),
     certificateId: id,
     journeyId: cert.journeyId,
-    action: "replace",
+    action: "replace" as const,
     actorUserId: viewer.id,
     note: trimmed,
-    metaJson: JSON.stringify({ replacedCertificateId: certificateId }),
+    metaJson: JSON.stringify({ replacedCertificateId: certificateId, renderVersion: record.renderVersion }),
     createdAt: now,
-  });
+  };
+  try {
+    if (typeof store().replaceActiveFinalCertificateAtomic === "function") {
+      await store().replaceActiveFinalCertificateAtomic({ superseded, replacement: record, audit });
+    } else {
+      await store().saveFinalCertificate(superseded);
+      await store().saveFinalCertificate(record);
+      await store().saveFinalCertificateAudit(audit);
+    }
+  } catch (error) {
+    throw duplicateActiveCertificateError(error);
+  }
   return record;
 }
 
@@ -351,7 +442,6 @@ export async function generateFinalCertificatePdfForViewer(viewer: PublicMember,
   );
   if (!active) throw new Error("Final certificate has not been issued.");
 
-  const setting = await store().getMarriagePrepCertificateSetting();
   await store().saveFinalCertificateAudit({
     id: randomUUID(),
     certificateId: active.id,
@@ -363,18 +453,12 @@ export async function generateFinalCertificatePdfForViewer(viewer: PublicMember,
     createdAt: new Date().toISOString(),
   });
 
-  return renderFinalProgramCertificatePdf({
-    partnerAName: active.partnerADisplayName,
-    partnerBName: active.partnerBDisplayName,
-    programTitle: "Marriage Preparation Program",
-    completionDate: active.completionDate,
-    completionDateMissing: !active.completionDate,
-    certificateNumber: active.certificateNumber,
-    issuedAt: active.issuedAt,
-    seniorPastorName: active.seniorPastorName,
-    seniorPastorTitle: active.seniorPastorTitle,
-    signatureAssetPath: setting?.seniorPastorSignatureAssetPath ?? null,
-  });
+  if (active.issuedPdfAssetPath) {
+    const stored = await readPrivateMarriageAssetBytes(active.issuedPdfAssetPath);
+    if (stored) return stored;
+  }
+
+  return renderFinalCertificatePdfBytes(active);
 }
 
 export async function previewFinalCertificatePdf(viewer: PublicMember, journeyId: string) {

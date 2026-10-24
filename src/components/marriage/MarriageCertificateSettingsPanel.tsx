@@ -10,6 +10,7 @@ type SettingsView = {
   updatedAt: string | null;
   updatedByUserId: string | null;
   audit: MarriagePrepCertificateSettingAuditRecord[];
+  storage?: { writable: boolean; configurationHint: string | null };
 };
 
 export function MarriageCertificateSettingsPanel() {
@@ -50,6 +51,11 @@ export function MarriageCertificateSettingsPanel() {
         name and title only.
       </p>
       {error ? <p className="mt-4 text-sm text-red-800">{error}</p> : null}
+      {settings?.storage && !settings.storage.writable ? (
+        <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+          Signature upload is disabled until private storage is configured. {settings.storage.configurationHint}
+        </p>
+      ) : null}
 
       <div className={`${marriagePremium.card} mt-6`}>
         <p className={marriagePremium.sectionLabel}>Senior Pastor signature</p>
@@ -75,7 +81,7 @@ export function MarriageCertificateSettingsPanel() {
               type="file"
               accept="image/png"
               className="hidden"
-              disabled={busy}
+              disabled={busy || settings?.storage?.writable === false}
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) void upload(f);

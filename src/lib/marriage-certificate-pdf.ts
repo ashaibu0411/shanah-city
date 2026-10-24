@@ -2,6 +2,8 @@ import { readFileSync, existsSync } from "fs";
 import path from "path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { readPrivateSignatureBytes, isPrivateSignaturePath } from "@/lib/marriage-certificate-private-assets";
+
+export const MARRIAGE_CERTIFICATE_RENDER_VERSION = "2026.5.1";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 
 const NAVY = rgb(0.08, 0.14, 0.28);
