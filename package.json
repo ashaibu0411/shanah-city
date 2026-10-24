@@ -35,6 +35,7 @@
     "test:marriage:phase2a": "tsx scripts/marriage-stage2-phase2a.ts",
     "test:marriage:phase2b": "tsx scripts/marriage-stage2-phase2b.ts",
     "test:marriage:curriculum": "tsx scripts/marriage-curriculum-validation.test.ts",
+    "test:marriage:homework": "tsx scripts/marriage-session-homework.test.ts",
     "test:app:nav": "tsx scripts/app-nav-items.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",

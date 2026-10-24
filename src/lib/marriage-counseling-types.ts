@@ -551,6 +551,16 @@ export type MarriageHubUpcomingSessionView = {
   zoomUrl?: string;
 };
 
+export type MarriageHubSessionHomeworkView = {
+  id: string;
+  title: string;
+  dueAt?: string;
+  dueAtTimeZone?: string;
+  status: "not_started" | "in_progress" | "submitted" | "overdue";
+  submitted: boolean;
+  activityCount: number;
+};
+
 export type MarriageHubSummary = {
   viewerId: string;
   journey: MarriageCounselingJourneyRecord | null;
@@ -565,6 +575,7 @@ export type MarriageHubSummary = {
   nextSession: MarriageCounselingSessionRecord | null;
   upcomingSessions: MarriageHubUpcomingSessionView[];
   upcomingHomework: MarriageHubAssignmentView[];
+  sessionHomework: MarriageHubSessionHomeworkView[];
   pendingInviteCode: string | null;
   isCounselor: boolean;
   isCurriculumAdmin: boolean;

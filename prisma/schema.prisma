@@ -1544,6 +1544,40 @@ model MarriageCounselorAssignment {
   @@index([journeyId, dueAt])
 }
 
+model MarriageSessionHomework {
+  id                    String    @id
+  journeyId             String
+  counselorUserId       String
+  sessionId             String?
+  templateKey           String?
+  title                 String
+  instructions          String?
+  status                String    @default("draft")
+  dueAt                 DateTime?
+  dueAtTimeZone         String?
+  activitiesJson        String
+  counselorPrivateNotes String?
+  partnerFeedbackJson   String?
+  releasedAt            DateTime?
+  reopenedAt            DateTime?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@index([journeyId, status])
+  @@index([journeyId, templateKey])
+}
+
+model MarriageSessionHomeworkResponse {
+  homeworkId   String
+  userId       String
+  answersJson  String   @default("{}")
+  lastSavedAt  DateTime
+  submittedAt  DateTime?
+
+  @@id([homeworkId, userId])
+  @@index([homeworkId])
+}
+
 model MarriageCounselorAssignmentRequest {
   id                       String    @id
   journeyId                String

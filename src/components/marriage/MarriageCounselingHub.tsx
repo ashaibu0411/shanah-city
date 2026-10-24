@@ -295,6 +295,32 @@ export function MarriageCounselingHub() {
               </div>
             )}
 
+            {(hub.sessionHomework?.length ?? 0) > 0 && (
+              <div className={`${marriagePremium.card} mt-4`}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className={marriagePremium.sectionLabel}>My homework</p>
+                  <Link href="/marriage/homework" className="text-xs font-bold text-clay-700 underline dark:text-clay-300">
+                    View all
+                  </Link>
+                </div>
+                <ul className="mt-2 space-y-2">
+                  {hub.sessionHomework.map((item) => (
+                    <li key={item.id} className="text-sm">
+                      <Link href={`/marriage/homework/${item.id}`} className="font-semibold text-clay-900 dark:text-sand-100">
+                        {item.title}
+                      </Link>
+                      <p className="text-xs capitalize text-night-500">{item.status.replace(/_/g, " ")}</p>
+                      {item.dueAt ? (
+                        <p className="text-xs text-night-500">
+                          Due {formatMarriageSessionScheduledAt(item.dueAt, item.dueAtTimeZone)}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {hub.upcomingHomework.length > 0 && (
               <div className={`${marriagePremium.card} mt-4`}>
                 <p className={marriagePremium.sectionLabel}>Homework</p>
@@ -399,6 +425,9 @@ export function MarriageCounselingHub() {
             </div>
 
             <div className="mt-6 grid gap-2">
+              <Link href="/marriage/homework" className={marriagePremium.secondaryCta}>
+                My homework
+              </Link>
               <Link href="/marriage/journal" className={marriagePremium.secondaryCta}>
                 Couple journal
               </Link>

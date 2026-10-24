@@ -391,6 +391,21 @@ export function MarriageCounselorClinicalDashboard({
           </section>
 
           <section className="marriage-c3m-panel">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="marriage-c3m-section-title">Session homework</h2>
+              <Link
+                href={`/marriage/counselor/journey/${journeyId}/homework`}
+                className="marriage-c3m-btn-secondary min-h-[44px] text-sm"
+              >
+                Homework manager
+              </Link>
+            </div>
+            <p className="marriage-c3m-muted mt-1 text-xs">
+              Structured weekly homework with draft/release workflow. Quick legacy assignments remain below.
+            </p>
+          </section>
+
+          <section className="marriage-c3m-panel">
             <h2 className="marriage-c3m-section-title">Assigned activities</h2>
             {detail.assignments.length > 0 ? (
               <ul className="mt-3 space-y-2 text-sm">

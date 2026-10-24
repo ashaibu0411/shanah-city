@@ -75,6 +75,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
   let programType: MarriageProgramType | null = null;
   let pendingInviteCode: string | null = null;
   let upcomingHomework: MarriageHubAssignmentView[] = [];
+  let sessionHomework: MarriageHubSummary["sessionHomework"] = [];
   const contentVersion = await getActiveContentVersionLabel();
 
   if (journey) {
@@ -135,6 +136,9 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
         completed: false,
         moduleId: a.moduleId,
       }));
+
+    const { listReleasedHomeworkForParticipant } = await import("@/lib/marriage-homework-server");
+    sessionHomework = await listReleasedHomeworkForParticipant(viewer, journey.id);
   }
 
   const isCounselor = await isMarriageCounselor(viewer);
@@ -164,6 +168,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     nextSession,
     upcomingSessions,
     upcomingHomework,
+    sessionHomework,
     pendingInviteCode,
     isCounselor,
     isCurriculumAdmin,
