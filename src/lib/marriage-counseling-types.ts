@@ -282,6 +282,20 @@ export type MarriageJourneyAdministrativeCoordinatorRecord = {
   assignedAt: string;
 };
 
+/** Church-wide default for auto-queuing premarital counselor assignment requests. */
+export type MarriagePrepDefaultCounselorSettingRecord = {
+  counselorUserId: string | null;
+  /** Assignment admin whose identity is recorded on automated requests (must differ from counselor). */
+  automationRequestedByUserId: string | null;
+  updatedByUserId: string | null;
+  updatedAt: string;
+};
+
+export type MarriageHubCounselorSummary = {
+  displayName: string | null;
+  status: "none" | "pending_approval" | "awaiting_restoration" | "assigned";
+};
+
 export type MarriageSessionStatus = "scheduled" | "completed" | "cancelled";
 
 export type MarriageCounselorAssignmentRecord = {
@@ -585,5 +599,6 @@ export type MarriageHubSummary = {
   isSeniorPastorCounselorApprover: boolean;
   canReviewDeletionRequests: boolean;
   contentVersion: string;
+  counselorSummary: MarriageHubCounselorSummary | null;
   stage2?: MarriageStage2Dashboard;
 };

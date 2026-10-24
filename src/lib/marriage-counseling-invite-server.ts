@@ -176,6 +176,11 @@ export async function acceptJourneyInvite(viewer: PublicMember, code: string) {
     consentedAt: new Date().toISOString(),
   });
 
+  const { queueDefaultPremaritalCounselorAssignmentIfEligible } = await import(
+    "@/lib/marriage-default-premarital-counselor-server"
+  );
+  void queueDefaultPremaritalCounselorAssignmentIfEligible(journey.id);
+
   notifyMarriagePartnerJoined(journey.participantAId ?? journey.createdBy);
 
   await logMarriageAudit({

@@ -154,6 +154,14 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
   const { buildStage2Dashboard } = await import("@/lib/marriage-stage2-server");
   const stage2 = await buildStage2Dashboard(viewer);
 
+  let counselorSummary: MarriageHubSummary["counselorSummary"] = null;
+  if (journey && myConsent && partnerConsent && partnerJoined) {
+    const { buildMarriageHubCounselorSummary } = await import(
+      "@/lib/marriage-default-premarital-counselor-server"
+    );
+    counselorSummary = await buildMarriageHubCounselorSummary(journey.id);
+  }
+
   return {
     viewerId: viewer.id,
     journey,
@@ -176,6 +184,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     isSeniorPastorCounselorApprover,
     canReviewDeletionRequests,
     contentVersion,
+    counselorSummary,
     stage2: stage2 ?? undefined,
   };
 }
@@ -254,6 +263,10 @@ export async function recordMarriageConsent(viewer: PublicMember, journeyId: str
     consentVersion: MARRIAGE_CONSENT_VERSION,
     consentedAt: new Date().toISOString(),
   });
+  const { queueDefaultPremaritalCounselorAssignmentIfEligible } = await import(
+    "@/lib/marriage-default-premarital-counselor-server"
+  );
+  void queueDefaultPremaritalCounselorAssignmentIfEligible(journeyId);
   return { ok: true };
 }
 

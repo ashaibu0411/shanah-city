@@ -41,6 +41,82 @@ function inferRequestType(
   return "reassign";
 }
 
+export async function createPendingCounselorAssignmentRequest(input: {
+  journeyId: string;
+  requestedCounselorUserId: string;
+  requestedByUserId: string;
+  requestType?: MarriageCounselorAssignmentRequestType;
+  auditMeta?: Record<string, string>;
+}) {
+  const journey = await store().getJourneyById(input.journeyId);
+  if (!journey) throw new Error("Journey not found.");
+
+  const previousCounselorUserId = normalizeCounselorId(journey.counselorUserId);
+  const requestedCounselorUserId = normalizeCounselorId(input.requestedCounselorUserId);
+  const requestType =
+    input.requestType ?? inferRequestType(previousCounselorUserId, requestedCounselorUserId);
+
+  if (requestType === "remove") {
+    throw new Error("Remove requests require an explicit remove flow.");
+  }
+  if (!requestedCounselorUserId) throw new Error("Counselor is required.");
+  await assertEligibleClinicalCounselor(requestedCounselorUserId);
+  if (requestedCounselorUserId === input.requestedByUserId) {
+    throw new Error("Counselors cannot assign themselves.");
+  }
+  if (
+    requestType === "assign" &&
+    previousCounselorUserId &&
+    previousCounselorUserId !== requestedCounselorUserId
+  ) {
+    throw new Error("Use reassignment when a counselor is already assigned.");
+  }
+  if (requestType === "reassign" && previousCounselorUserId === requestedCounselorUserId) {
+    throw new Error("This counselor is already assigned.");
+  }
+
+  const existingPending = await store().getPendingCounselorAssignmentRequestForJourney(
+    input.journeyId,
+  );
+  if (
+    existingPending &&
+    existingPending.requestedCounselorUserId === requestedCounselorUserId &&
+    existingPending.requestType === requestType
+  ) {
+    return { ok: true as const, request: existingPending, created: false as const };
+  }
+
+  await store().supersedePendingCounselorAssignmentRequests(input.journeyId);
+
+  const now = new Date().toISOString();
+  const record: MarriageCounselorAssignmentRequestRecord = {
+    id: newRequestId(),
+    journeyId: input.journeyId,
+    requestType,
+    requestedCounselorUserId,
+    previousCounselorUserId,
+    status: "pending",
+    requestedByUserId: input.requestedByUserId,
+    requestedAt: now,
+  };
+  await store().saveCounselorAssignmentRequest(record);
+
+  await logMarriageAudit({
+    actorUserId: input.requestedByUserId,
+    action: "counselor_assignment_requested",
+    journeyId: input.journeyId,
+    targetUserId: record.requestedCounselorUserId ?? undefined,
+    meta: {
+      requestId: record.id,
+      requestType: record.requestType,
+      previousCounselorUserId: previousCounselorUserId ?? "",
+      ...input.auditMeta,
+    },
+  });
+
+  return { ok: true as const, request: record, created: true as const };
+}
+
 export async function submitCounselorAssignmentRequest(
   viewer: PublicMember,
   input: {
@@ -64,52 +140,41 @@ export async function submitCounselorAssignmentRequest(
 
   if (requestType === "remove") {
     if (!previousCounselorUserId) throw new Error("No counselor is assigned.");
-  } else {
-    if (!requestedCounselorUserId) throw new Error("Counselor is required.");
-    await assertEligibleClinicalCounselor(requestedCounselorUserId);
-    if (requestedCounselorUserId === viewer.id) {
-      throw new Error("Counselors cannot assign themselves.");
-    }
-    if (
-      requestType === "assign" &&
-      previousCounselorUserId &&
-      previousCounselorUserId !== requestedCounselorUserId
-    ) {
-      throw new Error("Use reassignment when a counselor is already assigned.");
-    }
-    if (requestType === "reassign" && previousCounselorUserId === requestedCounselorUserId) {
-      throw new Error("This counselor is already assigned.");
-    }
+    await store().supersedePendingCounselorAssignmentRequests(input.journeyId);
+    const now = new Date().toISOString();
+    const record: MarriageCounselorAssignmentRequestRecord = {
+      id: newRequestId(),
+      journeyId: input.journeyId,
+      requestType,
+      requestedCounselorUserId: null,
+      previousCounselorUserId,
+      status: "pending",
+      requestedByUserId: viewer.id,
+      requestedAt: now,
+    };
+    await store().saveCounselorAssignmentRequest(record);
+    await logMarriageAudit({
+      actorUserId: viewer.id,
+      action: "counselor_assignment_requested",
+      journeyId: input.journeyId,
+      meta: {
+        requestId: record.id,
+        requestType: record.requestType,
+        previousCounselorUserId: previousCounselorUserId ?? "",
+      },
+    });
+    return { ok: true as const, request: record };
   }
 
-  await store().supersedePendingCounselorAssignmentRequests(input.journeyId);
+  if (!requestedCounselorUserId) throw new Error("Counselor is required.");
 
-  const now = new Date().toISOString();
-  const record: MarriageCounselorAssignmentRequestRecord = {
-    id: newRequestId(),
+  const result = await createPendingCounselorAssignmentRequest({
     journeyId: input.journeyId,
-    requestType,
-    requestedCounselorUserId: requestType === "remove" ? null : requestedCounselorUserId,
-    previousCounselorUserId,
-    status: "pending",
+    requestedCounselorUserId,
     requestedByUserId: viewer.id,
-    requestedAt: now,
-  };
-  await store().saveCounselorAssignmentRequest(record);
-
-  await logMarriageAudit({
-    actorUserId: viewer.id,
-    action: "counselor_assignment_requested",
-    journeyId: input.journeyId,
-    targetUserId: record.requestedCounselorUserId ?? undefined,
-    meta: {
-      requestId: record.id,
-      requestType: record.requestType,
-      previousCounselorUserId: previousCounselorUserId ?? "",
-    },
+    requestType,
   });
-
-  return { ok: true as const, request: record };
+  return { ok: true as const, request: result.request };
 }
 
 export async function approveCounselorAssignmentRequest(

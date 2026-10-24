@@ -91,6 +91,12 @@ export function MarriageCounselorAssignmentWorkspace() {
   const [formMode, setFormMode] = useState<"assign" | "reassign" | "remove">("assign");
   const [selfApproveConfirm, setSelfApproveConfirm] = useState(false);
   const [viewerId, setViewerId] = useState<string | null>(null);
+  const [defaultCounselorUserId, setDefaultCounselorUserId] = useState<string>("");
+  const [defaultCounselorSavedId, setDefaultCounselorSavedId] = useState<string | null>(null);
+  const [defaultCounselorDisplayName, setDefaultCounselorDisplayName] = useState<string | null>(
+    null,
+  );
+  const [defaultCounselorBusy, setDefaultCounselorBusy] = useState(false);
 
   const uiCaps = useMemo(
     () =>
@@ -146,6 +152,26 @@ export function MarriageCounselorAssignmentWorkspace() {
             if (res.ok) setCounselors(data.counselors ?? []);
           })(),
         );
+        if (capData.canSubmitRequest) {
+          tasks.push(
+            (async () => {
+              const res = await fetch("/api/marriage/admin/default-premarital-counselor", {
+                cache: "no-store",
+              });
+              const data = await readJsonResponse<{
+                setting: { counselorUserId: string | null } | null;
+                counselorDisplayName: string | null;
+                error?: string;
+              }>(res);
+              if (res.ok) {
+                const id = data.setting?.counselorUserId ?? "";
+                setDefaultCounselorSavedId(data.setting?.counselorUserId ?? null);
+                setDefaultCounselorUserId(id);
+                setDefaultCounselorDisplayName(data.counselorDisplayName);
+              }
+            })(),
+          );
+        }
       }
 
       if (capData.canSubmitRequest || capData.canApprove) {
@@ -349,6 +375,34 @@ export function MarriageCounselorAssignmentWorkspace() {
     setSelfApproveConfirm(false);
   }
 
+  async function saveDefaultPremaritalCounselor() {
+    setDefaultCounselorBusy(true);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch("/api/marriage/admin/default-premarital-counselor", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          counselorUserId: defaultCounselorUserId.trim() || null,
+        }),
+      });
+      const data = await readJsonResponse<{
+        error?: string;
+        setting?: { counselorUserId: string | null };
+        counselorDisplayName?: string | null;
+      }>(res);
+      if (!res.ok) throw new Error(data.error ?? "Could not save default counselor.");
+      setDefaultCounselorSavedId(data.setting?.counselorUserId ?? null);
+      setDefaultCounselorDisplayName(data.counselorDisplayName ?? null);
+      setSuccess("Default premarital counselor saved.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save default counselor.");
+    } finally {
+      setDefaultCounselorBusy(false);
+    }
+  }
+
   async function rejectRequest(row: QueueRow) {
     const note = window.prompt("Optional note for the admin team:");
     if (note === null) return;
@@ -406,6 +460,53 @@ export function MarriageCounselorAssignmentWorkspace() {
         <p className={`${marriagePremium.cardMuted} mt-1`}>
           Assignments require Senior Pastor approval before a counselor receives clinical access.
         </p>
+
+        {caps.canSubmitRequest && (
+          <section className={`${marriagePremium.card} mt-6`} aria-labelledby="default-counselor-heading">
+            <h2 id="default-counselor-heading" className="text-base font-semibold">
+              Default premarital counselor
+            </h2>
+            <p className={`${marriagePremium.cardMuted} mt-1`}>
+              When both partners complete consent on a new premarital journey, the system queues an
+              assignment request for this counselor (same Senior Pastor approval workflow). Select by
+              verified user ID — not display name. Per-journey overrides remain available below.
+            </p>
+            {defaultCounselorSavedId && defaultCounselorDisplayName && (
+              <p className="mt-2 text-sm">
+                Current: <strong>{defaultCounselorDisplayName}</strong>{" "}
+                <span className="font-mono text-xs text-night-500 dark:text-sand-400">
+                  ({defaultCounselorSavedId})
+                </span>
+              </p>
+            )}
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+              <label className="min-w-0 flex-1 text-sm">
+                <span className="font-semibold">Counselor account</span>
+                <select
+                  className="mt-1 w-full rounded-xl border border-clay-200 bg-white px-3 py-2 dark:border-clay-800 dark:bg-night-900"
+                  value={defaultCounselorUserId}
+                  onChange={(e) => setDefaultCounselorUserId(e.target.value)}
+                  disabled={defaultCounselorBusy}
+                >
+                  <option value="">— None (manual assignment only) —</option>
+                  {counselors.map((c) => (
+                    <option key={c.userId} value={c.userId}>
+                      {c.displayName} ({c.userId})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className={marriagePremium.primaryCta}
+                disabled={defaultCounselorBusy}
+                onClick={() => void saveDefaultPremaritalCounselor()}
+              >
+                Save default
+              </button>
+            </div>
+          </section>
+        )}
 
         {error && (
           <p className="mt-4 text-sm text-red-800 dark:text-red-300" role="alert">

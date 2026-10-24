@@ -57,6 +57,7 @@ import type {
   MarriageCounselorAssignmentAcknowledgmentRecord,
   MarriageCounselorParticipantRevocationRecord,
   MarriageJourneyAdministrativeCoordinatorRecord,
+  MarriagePrepDefaultCounselorSettingRecord,
 } from "@/lib/marriage-counseling-types";
 
 function mapJourney(row: {
@@ -2160,4 +2161,39 @@ export async function revokeParticipantCounselorAccessInTransaction(
       },
     });
   });
+}
+
+export async function getMarriagePrepDefaultCounselorSetting(): Promise<MarriagePrepDefaultCounselorSettingRecord | null> {
+  const row = await prisma.marriagePrepDefaultCounselorSetting.findUnique({
+    where: { id: "default" },
+  });
+  if (!row) return null;
+  return {
+    counselorUserId: row.counselorUserId,
+    automationRequestedByUserId: row.automationRequestedByUserId,
+    updatedByUserId: row.updatedByUserId,
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export async function saveMarriagePrepDefaultCounselorSetting(
+  record: MarriagePrepDefaultCounselorSettingRecord,
+): Promise<MarriagePrepDefaultCounselorSettingRecord> {
+  await prisma.marriagePrepDefaultCounselorSetting.upsert({
+    where: { id: "default" },
+    create: {
+      id: "default",
+      counselorUserId: record.counselorUserId,
+      automationRequestedByUserId: record.automationRequestedByUserId,
+      updatedByUserId: record.updatedByUserId,
+      updatedAt: new Date(record.updatedAt),
+    },
+    update: {
+      counselorUserId: record.counselorUserId,
+      automationRequestedByUserId: record.automationRequestedByUserId,
+      updatedByUserId: record.updatedByUserId,
+      updatedAt: new Date(record.updatedAt),
+    },
+  });
+  return record;
 }

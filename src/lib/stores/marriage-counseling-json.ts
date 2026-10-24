@@ -24,6 +24,7 @@ import type {
   MarriageCounselorAssignmentAcknowledgmentRecord,
   MarriageCounselorParticipantRevocationRecord,
   MarriageJourneyAdministrativeCoordinatorRecord,
+  MarriagePrepDefaultCounselorSettingRecord,
 } from "@/lib/marriage-counseling-types";
 import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
 import {
@@ -75,6 +76,7 @@ type StoreFile = {
   assignmentAcknowledgments: MarriageCounselorAssignmentAcknowledgmentRecord[];
   participantCounselorRevocations: MarriageCounselorParticipantRevocationRecord[];
   administrativeCoordinators: MarriageJourneyAdministrativeCoordinatorRecord[];
+  defaultPremaritalCounselor?: MarriagePrepDefaultCounselorSettingRecord | null;
 };
 
 async function readStore(): Promise<StoreFile> {
@@ -118,6 +120,7 @@ function ensureStage2Collections(store: StoreFile): StoreFile {
   if (!store.assignmentAcknowledgments) store.assignmentAcknowledgments = [];
   if (!store.participantCounselorRevocations) store.participantCounselorRevocations = [];
   if (!store.administrativeCoordinators) store.administrativeCoordinators = [];
+  if (store.defaultPremaritalCounselor === undefined) store.defaultPremaritalCounselor = null;
   return store;
 }
 
@@ -1484,4 +1487,18 @@ export async function listActiveJourneysForAdministrativeCoordinator(coordinator
       .map((r) => r.journeyId),
   );
   return store.journeys.filter((j) => j.status === "active" && ids.has(j.id));
+}
+
+export async function getMarriagePrepDefaultCounselorSetting(): Promise<MarriagePrepDefaultCounselorSettingRecord | null> {
+  const store = await readStore();
+  return store.defaultPremaritalCounselor ?? null;
+}
+
+export async function saveMarriagePrepDefaultCounselorSetting(
+  record: MarriagePrepDefaultCounselorSettingRecord,
+): Promise<MarriagePrepDefaultCounselorSettingRecord> {
+  const store = await readStore();
+  store.defaultPremaritalCounselor = record;
+  await writeStore(store);
+  return record;
 }

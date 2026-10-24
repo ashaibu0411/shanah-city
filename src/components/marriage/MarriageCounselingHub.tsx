@@ -274,6 +274,19 @@ export function MarriageCounselingHub() {
                   Waiting for your partner to accept consent on their device.
                 </p>
               )}
+              {hub.counselorSummary && hub.counselorSummary.status !== "none" && (
+                <p className={`${marriagePremium.cardMuted} mt-2`}>
+                  {hub.counselorSummary.status === "assigned" && hub.counselorSummary.displayName
+                    ? `Premarital counselor: ${hub.counselorSummary.displayName}`
+                    : hub.counselorSummary.status === "pending_approval" &&
+                        hub.counselorSummary.displayName
+                      ? `Proposed counselor ${hub.counselorSummary.displayName} — awaiting Senior Pastor approval`
+                      : hub.counselorSummary.status === "awaiting_restoration" &&
+                          hub.counselorSummary.displayName
+                        ? `Counselor ${hub.counselorSummary.displayName} — acknowledgment required before access`
+                        : null}
+                </p>
+              )}
             </div>
 
             {isMarriageStage2ClientEnabled() && hub.stage2?.enabled && (
