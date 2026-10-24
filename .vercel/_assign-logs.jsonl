@@ -1,0 +1,9 @@
+﻿npx.cmd : npm warn Unknown env config "devdir". This will stop working in the next major version of npm. See `npm help 
+npmrc` for supported config options.
+At C:\Users\zaqno\AppData\Local\Temp\ps-script-bd9d38fe-92e3-468d-8c3c-1b9cfa14aa3b.ps1:103 char:41
++ ... hanah-city; npx.cmd vercel logs --deployment dpl_A3HkD7tCbfe125mefzhw ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm warn Unknow...config options.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+{"type":"summary","recordsReturned":0,"timeRange":{"start":"2026-10-21T15:43:49.250Z","end":"2026-10-21T16:28:49.250Z"},"pagination":{"hasMore":false,"next":null},"excludedIntervals":[]}

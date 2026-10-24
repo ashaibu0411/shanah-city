@@ -6,6 +6,7 @@ import {
   MarriageCounselorClinicalDashboard,
   type MarriageCounselorClinicalDetailView,
 } from "@/components/marriage/MarriageCounselorClinicalDashboard";
+import { MarriageCounselorPremaritalOperationsPanel } from "@/components/marriage/MarriageCounselorPremaritalOperationsPanel";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import { readJsonResponse } from "@/lib/read-json-response";
 
@@ -74,6 +75,9 @@ export function MarriageCounselorJourneyDetail({ journeyId }: { journeyId: strin
             Progress: {detail.completedModules}/{detail.moduleCount} modules both submitted
           </p>
         </div>
+        {detail.programType === "premarital" ? (
+          <MarriageCounselorPremaritalOperationsPanel journeyId={journeyId} onError={setError} />
+        ) : null}
       </div>
     );
   }

@@ -1,0 +1,6 @@
+---
+description: On Windows, invoke npm and npx via .cmd shims in terminal commands
+alwaysApply: true
+---
+
+When running shell commands on Windows in this project, use `npm.cmd` instead of `npm` and `npx.cmd` instead of `npx` (e.g. `npm.cmd run build`, `npx.cmd prisma generate`). This avoids PowerShell execution policy / shim issues.

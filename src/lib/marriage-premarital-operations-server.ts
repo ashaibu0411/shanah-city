@@ -363,6 +363,7 @@ export async function buildCounselorPremaritalOperationsView(
     readinessReview,
     readinessAudit,
     canEditReadiness,
+    readinessOnlyAccess: canEditReadiness && !hasClinicalAccess,
   };
 }
 

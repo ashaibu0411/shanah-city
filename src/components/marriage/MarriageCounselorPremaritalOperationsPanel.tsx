@@ -78,6 +78,8 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
 
   if (!ops) return null;
 
+  const readinessOnly = Boolean(ops.readinessOnlyAccess);
+
   return (
     <section className="marriage-c3m-panel mt-6" data-testid="counselor-premarital-operations">
       <h2 className="marriage-c3m-section-title">Counseling operations</h2>
@@ -86,12 +88,16 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
         sessions.
       </p>
       <nav className="mt-3 flex flex-wrap gap-2 text-xs font-semibold" aria-label="Operations sections">
-        <a href="#premarital-ops-appointments" className="rounded-full border border-[#E8E2DA] px-3 py-1 dark:border-white/10">
-          Appointments
-        </a>
-        <a href="#premarital-ops-attendance" className="rounded-full border border-[#E8E2DA] px-3 py-1 dark:border-white/10">
-          Attendance
-        </a>
+        {!readinessOnly ? (
+          <>
+            <a href="#premarital-ops-appointments" className="rounded-full border border-[#E8E2DA] px-3 py-1 dark:border-white/10">
+              Appointments
+            </a>
+            <a href="#premarital-ops-attendance" className="rounded-full border border-[#E8E2DA] px-3 py-1 dark:border-white/10">
+              Attendance
+            </a>
+          </>
+        ) : null}
         {ops.canEditReadiness ? (
           <a href="#premarital-ops-readiness" className="rounded-full border border-[#E8E2DA] px-3 py-1 dark:border-white/10">
             Readiness review
@@ -100,6 +106,8 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
       </nav>
 
       <div className="mt-4 space-y-6">
+        {!readinessOnly ? (
+        <>
         <div id="premarital-ops-appointments">
           <h3 className="text-sm font-semibold">Schedule appointment</h3>
           <form
@@ -325,6 +333,8 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
             </button>
           </form>
         </div>
+        </>
+        ) : null}
 
         {ops.canEditReadiness && (
           <div id="premarital-ops-readiness">

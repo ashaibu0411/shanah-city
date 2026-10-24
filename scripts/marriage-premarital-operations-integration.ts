@@ -21,7 +21,6 @@ async function main() {
   await pastoralStore.setPastoralRoleAssignment({
     role: "senior_pastor",
     userId: "user-sp",
-    updatedAt: new Date().toISOString(),
     updatedBy: "test",
     updatedByName: "Test",
   });
@@ -39,12 +38,13 @@ async function main() {
     curriculumVersion: MARRIAGE_COUNSELING_CONTENT_VERSION,
   });
 
-  const counselor = { id: "user-counselor", name: "Counselor", email: "c@test.local" };
-  const partnerA = { id: "user-a", name: "A", email: "a@test.local" };
-  const partnerB = { id: "user-b", name: "B", email: "b@test.local" };
-  const stranger = { id: "user-x", name: "X", email: "x@test.local" };
-  const seniorPastor = { id: "user-sp", name: "SP", email: "sp@test.local" };
-  const otherCounselor = { id: "user-other", name: "Other", email: "o@test.local" };
+  type Member = import("../src/lib/auth-types").PublicMember;
+  const counselor = { id: "user-counselor", name: "Counselor", email: "c@test.local" } as Member;
+  const partnerA = { id: "user-a", name: "A", email: "a@test.local" } as Member;
+  const partnerB = { id: "user-b", name: "B", email: "b@test.local" } as Member;
+  const stranger = { id: "user-x", name: "X", email: "x@test.local" } as Member;
+  const seniorPastor = { id: "user-sp", name: "SP", email: "sp@test.local" } as Member;
+  const otherCounselor = { id: "user-other", name: "Other", email: "o@test.local" } as Member;
 
   const {
     schedulePremaritalAppointment,

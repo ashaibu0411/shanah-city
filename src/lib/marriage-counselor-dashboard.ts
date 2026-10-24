@@ -3,6 +3,7 @@ import {
   assertMarriageCounselorRole,
   viewerHasClinicalCounselorAccess,
 } from "@/lib/marriage-counseling-access";
+import { isSeniorPastor } from "@/lib/marriage-counselor-assignment-authority";
 import type { MarriageCounselingJourneyRecord } from "@/lib/marriage-counseling-types";
 import {
   buildMarriageCounselorAdministrativeOverview,
@@ -32,9 +33,13 @@ export async function assertCounselorCanAccessJourneyOnDashboard(
     throw new Error("Access denied.");
   }
   const visible = await listMarriageCounselorDashboardJourneys(viewer.id);
-  if (!visible.some((j) => j.id === journey.id)) {
-    throw new Error("Access denied.");
+  if (visible.some((j) => j.id === journey.id)) {
+    return;
   }
+  if (journey.programType === "premarital" && (await isSeniorPastor(viewer))) {
+    return;
+  }
+  throw new Error("Access denied.");
 }
 
 export type MarriageCounselorClinicalDashboardRow = {

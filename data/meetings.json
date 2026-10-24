@@ -1,0 +1,91 @@
+[
+  {
+    "id": "shift-your-morning",
+    "title": "Shift Your Morning",
+    "campusId": "online",
+    "host": "Mary Asibey",
+    "schedule": "Monday – Friday, 8:00 AM MST",
+    "platform": "zoom",
+    "joinUrl": "https://us02web.zoom.us/j/6504487390?pwd=NHRTSXl2ZU9EL0VGMW14SDBIYzdzUT09",
+    "meetingId": "6504487390",
+    "recurringWeekdays": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "notifyEnabled": true,
+    "published": true,
+    "sortOrder": 0
+  },
+  {
+    "id": "shift-your-evening",
+    "title": "Shift Your Evening",
+    "campusId": "online",
+    "host": "Mary Asibey",
+    "schedule": "Tuesday – Thursday, 8:00 PM MST",
+    "platform": "zoom",
+    "joinUrl": "https://us02web.zoom.us/j/6504487390?pwd=NHRTSXl2ZU9EL0VGMW14SDBIYzdzUT09",
+    "meetingId": "6504487390",
+    "recurringWeekdays": [
+      2,
+      3,
+      4
+    ],
+    "notifyEnabled": true,
+    "published": true,
+    "sortOrder": 1
+  },
+  {
+    "id": "men-of-legacy",
+    "title": "Men of Legacy",
+    "campusId": "online",
+    "host": "Men of Legacy",
+    "schedule": "First Tuesday of the month, 8:00 PM MST",
+    "platform": "zoom",
+    "joinUrl": "https://us02web.zoom.us/j/89223627784?pwd=2thsBslipL2JQIEkXKMWWhVSZ4Blvs.1",
+    "meetingId": "89223627784",
+    "notifyEnabled": false,
+    "published": true,
+    "sortOrder": 2
+  },
+  {
+    "id": "shanah-ladies",
+    "title": "Shanah Ladies",
+    "campusId": "online",
+    "host": "Transformed Ladies",
+    "schedule": "First Thursday of the month, 8:00 PM MST",
+    "platform": "zoom",
+    "joinUrl": "https://us02web.zoom.us/j/81793880758?pwd=v4hKVatVo2dzPQhS3lksfmt3tiRehp.1",
+    "meetingId": "81793880758",
+    "notifyEnabled": false,
+    "published": true,
+    "sortOrder": 3
+  },
+  {
+    "id": "shanah-couples",
+    "title": "Shanah Power Couples",
+    "campusId": "online",
+    "host": "Shanah Power Couples",
+    "schedule": "First Wednesday of the month, 8:00 PM MST",
+    "platform": "zoom",
+    "joinUrl": "https://us02web.zoom.us/j/87974267086?pwd=m2kLQv6u2TMPmcpGpQbA6bAiBcUixJ.1",
+    "meetingId": "87974267086",
+    "notifyEnabled": false,
+    "published": true,
+    "sortOrder": 4
+  },
+  {
+    "id": "frontliners-meeting",
+    "title": "Frontliners",
+    "campusId": "online",
+    "host": "FrontLiners",
+    "schedule": "First Monday of the month, 7:00 PM MST",
+    "platform": "teams",
+    "joinUrl": "https://teams.microsoft.com/l/meetup-join/19%3ameeting_OWI3MzczNGItNTg2Yi00MjliLWI0ZDMtNjk3MGEzZmM3OTIy%40thread.v2/0?context=%7b%22Tid%22%3a%223db191db-2864-4ba6-b588-3c463f26ca3d%22%2c%22Oid%22%3a%225a0a7b02-4558-48b1-b13a-be0a411fc341%22%7d",
+    "notifyEnabled": false,
+    "published": true,
+    "sortOrder": 5
+  }
+]

@@ -513,6 +513,8 @@ export type MarriageCounselorPremaritalOperationsView = {
   readinessReview: MarriagePremaritalReadinessReviewRecord | null;
   readinessAudit: MarriagePremaritalReadinessReviewAuditRecord[];
   canEditReadiness: boolean;
+  /** Senior Pastor pastoral review without assigned clinical counselor role. */
+  readinessOnlyAccess?: boolean;
 };
 
 export type MarriageCounselorNoteRecord = {
