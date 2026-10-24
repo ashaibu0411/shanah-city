@@ -31,3 +31,41 @@ export function notifyMarriageDefaultCounselorAssignmentQueued(counselorUserId: 
     url: "/marriage/admin/counselor-assignments",
   });
 }
+
+export function notifyMarriageAppointmentUpcoming(userIds: string[], sessionTitle?: string) {
+  void sendPushToUsersWithPushEnabled(userIds, {
+    title: "Counseling appointment",
+    body: sessionTitle
+      ? `Upcoming session: ${sessionTitle}. Open Marriage Prep for time and location.`
+      : "You have an upcoming premarital counseling appointment. Open Marriage Prep for details.",
+    url: "/marriage",
+  });
+}
+
+export function notifyMarriageAppointmentRescheduled(userIds: string[], sessionTitle?: string) {
+  void sendPushToUsersWithPushEnabled(userIds, {
+    title: "Appointment updated",
+    body: sessionTitle
+      ? `${sessionTitle} was rescheduled. Check Marriage Prep for the new time.`
+      : "A counseling appointment was rescheduled. Check Marriage Prep for the new time.",
+    url: "/marriage",
+  });
+}
+
+export function notifyMarriageAppointmentCancelled(userIds: string[], sessionTitle?: string) {
+  void sendPushToUsersWithPushEnabled(userIds, {
+    title: "Appointment cancelled",
+    body: sessionTitle
+      ? `${sessionTitle} was cancelled. Your counselor will follow up in Marriage Prep.`
+      : "A counseling appointment was cancelled. Your counselor will follow up in Marriage Prep.",
+    url: "/marriage",
+  });
+}
+
+export function notifyMarriageHomeworkDue(userIds: string[]) {
+  void sendPushToUsersWithPushEnabled(userIds, {
+    title: "Marriage Prep homework",
+    body: "You have homework due soon. Open Marriage Prep to continue.",
+    url: "/marriage/homework",
+  });
+}

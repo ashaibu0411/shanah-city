@@ -1514,6 +1514,12 @@ model MarriageCounselingSession {
   id                     String   @id
   journeyId              String
   scheduledAt            DateTime
+  schedulingTimeZone     String?
+  scheduledEndAt         DateTime?
+  premaritalSessionKey   String?
+  meetingMode            String?
+  locationOrLink         String?
+  cancelReason           String?
   zoomUrl                String?
   notes                  String?
   topic                  String?
@@ -1527,6 +1533,7 @@ model MarriageCounselingSession {
   cancelledAt            DateTime?
 
   @@index([journeyId, scheduledAt])
+  @@index([journeyId, premaritalSessionKey])
 }
 
 model MarriageCounselorAssignment {
@@ -1632,6 +1639,63 @@ model MarriagePremaritalProgramMeta {
   pausedAt          DateTime?
   extraSessionCount Int      @default(0)
   updatedAt         DateTime
+}
+
+model MarriagePremaritalSessionClinical {
+  journeyId           String
+  sessionKey          String
+  sessionDate         DateTime?
+  partnerAAttended    Boolean?
+  partnerBAttended    Boolean?
+  outcome             String?
+  topicsCovered       String?
+  followUpActions     String?
+  privateObservations String?
+  linkedAppointmentId String?
+  updatedAt           DateTime
+  updatedByUserId     String
+
+  @@id([journeyId, sessionKey])
+  @@index([journeyId])
+}
+
+model MarriagePremaritalReadinessReview {
+  journeyId                  String   @id
+  status                     String
+  strengths                  String?
+  areasForDiscussion         String?
+  unresolvedConcerns         String?
+  recommendedNextSteps       String?
+  optionalAdditionalCounseling String?
+  pastoralRecommendation     String?
+  sessionsOverviewNote       String?
+  homeworkOverviewNote       String?
+  assessmentOverviewNote     String?
+  updatedAt                  DateTime
+  updatedByUserId            String
+}
+
+model MarriagePremaritalReadinessReviewAudit {
+  id              String   @id
+  journeyId       String
+  previousStatus  String?
+  newStatus       String
+  snapshotJson    String
+  revisedByUserId String
+  revisedAt       DateTime
+
+  @@index([journeyId, revisedAt])
+}
+
+model MarriagePremaritalReminderDelivery {
+  id           String   @id
+  kind         String
+  referenceKey String
+  journeyId    String
+  sentAt       DateTime
+
+  @@unique([kind, referenceKey])
+  @@index([journeyId])
 }
 
 /** Singleton — default premarital counselor for automated assignment requests. */

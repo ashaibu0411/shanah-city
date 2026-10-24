@@ -60,6 +60,9 @@ import type {
   MarriagePrepDefaultCounselorSettingRecord,
   MarriagePremaritalProgramSessionRecord,
   MarriagePremaritalProgramMetaRecord,
+  MarriagePremaritalSessionClinicalRecord,
+  MarriagePremaritalReadinessReviewRecord,
+  MarriagePremaritalReadinessReviewAuditRecord,
 } from "@/lib/marriage-counseling-types";
 
 function mapJourney(row: {
@@ -646,6 +649,12 @@ function mapSession(r: {
   id: string;
   journeyId: string;
   scheduledAt: Date;
+  schedulingTimeZone?: string | null;
+  scheduledEndAt?: Date | null;
+  premaritalSessionKey?: string | null;
+  meetingMode?: string | null;
+  locationOrLink?: string | null;
+  cancelReason?: string | null;
   zoomUrl: string | null;
   notes: string | null;
   topic: string | null;
@@ -662,6 +671,12 @@ function mapSession(r: {
     id: r.id,
     journeyId: r.journeyId,
     scheduledAt: r.scheduledAt.toISOString(),
+    schedulingTimeZone: r.schedulingTimeZone ?? undefined,
+    scheduledEndAt: r.scheduledEndAt?.toISOString(),
+    premaritalSessionKey: r.premaritalSessionKey ?? undefined,
+    meetingMode: (r.meetingMode as MarriageCounselingSessionRecord["meetingMode"]) ?? undefined,
+    locationOrLink: r.locationOrLink ?? undefined,
+    cancelReason: r.cancelReason ?? undefined,
     zoomUrl: r.zoomUrl ?? undefined,
     notes: r.notes ?? undefined,
     topic: r.topic ?? undefined,
@@ -686,10 +701,24 @@ export async function listSessions(journeyId: string) {
   return rows.map(mapSession);
 }
 
+export async function listAllSessionsForJourney(journeyId: string) {
+  const rows = await prisma.marriageCounselingSession.findMany({
+    where: { journeyId },
+    orderBy: { scheduledAt: "asc" },
+  });
+  return rows.map(mapSession);
+}
+
 export async function saveSession(session: MarriageCounselingSessionRecord) {
   const data = {
     journeyId: session.journeyId,
     scheduledAt: new Date(session.scheduledAt),
+    schedulingTimeZone: session.schedulingTimeZone ?? null,
+    scheduledEndAt: session.scheduledEndAt ? new Date(session.scheduledEndAt) : null,
+    premaritalSessionKey: session.premaritalSessionKey ?? null,
+    meetingMode: session.meetingMode ?? null,
+    locationOrLink: session.locationOrLink ?? null,
+    cancelReason: session.cancelReason ?? null,
     zoomUrl: session.zoomUrl ?? null,
     notes: session.notes ?? null,
     topic: session.topic ?? null,
@@ -2289,4 +2318,199 @@ export async function savePremaritalProgramMeta(
     },
   });
   return record;
+}
+
+export async function listPremaritalSessionClinicalForJourney(journeyId: string) {
+  const rows = await prisma.marriagePremaritalSessionClinical.findMany({ where: { journeyId } });
+  return rows.map(
+    (r) =>
+      ({
+        journeyId: r.journeyId,
+        sessionKey: r.sessionKey,
+        sessionDate: r.sessionDate?.toISOString() ?? null,
+        partnerAAttended: r.partnerAAttended,
+        partnerBAttended: r.partnerBAttended,
+        outcome: r.outcome as MarriagePremaritalSessionClinicalRecord["outcome"],
+        topicsCovered: r.topicsCovered,
+        followUpActions: r.followUpActions,
+        privateObservations: r.privateObservations,
+        linkedAppointmentId: r.linkedAppointmentId,
+        updatedAt: r.updatedAt.toISOString(),
+        updatedByUserId: r.updatedByUserId,
+      }) satisfies MarriagePremaritalSessionClinicalRecord,
+  );
+}
+
+export async function savePremaritalSessionClinical(record: MarriagePremaritalSessionClinicalRecord) {
+  await prisma.marriagePremaritalSessionClinical.upsert({
+    where: { journeyId_sessionKey: { journeyId: record.journeyId, sessionKey: record.sessionKey } },
+    create: {
+      journeyId: record.journeyId,
+      sessionKey: record.sessionKey,
+      sessionDate: record.sessionDate ? new Date(record.sessionDate) : null,
+      partnerAAttended: record.partnerAAttended ?? null,
+      partnerBAttended: record.partnerBAttended ?? null,
+      outcome: record.outcome ?? null,
+      topicsCovered: record.topicsCovered ?? null,
+      followUpActions: record.followUpActions ?? null,
+      privateObservations: record.privateObservations ?? null,
+      linkedAppointmentId: record.linkedAppointmentId ?? null,
+      updatedAt: new Date(record.updatedAt),
+      updatedByUserId: record.updatedByUserId,
+    },
+    update: {
+      sessionDate: record.sessionDate ? new Date(record.sessionDate) : null,
+      partnerAAttended: record.partnerAAttended ?? null,
+      partnerBAttended: record.partnerBAttended ?? null,
+      outcome: record.outcome ?? null,
+      topicsCovered: record.topicsCovered ?? null,
+      followUpActions: record.followUpActions ?? null,
+      privateObservations: record.privateObservations ?? null,
+      linkedAppointmentId: record.linkedAppointmentId ?? null,
+      updatedAt: new Date(record.updatedAt),
+      updatedByUserId: record.updatedByUserId,
+    },
+  });
+  return record;
+}
+
+export async function getPremaritalReadinessReview(journeyId: string) {
+  const row = await prisma.marriagePremaritalReadinessReview.findUnique({ where: { journeyId } });
+  if (!row) return null;
+  return mapReadinessReview(row);
+}
+
+function mapReadinessReview(row: {
+  journeyId: string;
+  status: string;
+  strengths: string | null;
+  areasForDiscussion: string | null;
+  unresolvedConcerns: string | null;
+  recommendedNextSteps: string | null;
+  optionalAdditionalCounseling: string | null;
+  pastoralRecommendation: string | null;
+  sessionsOverviewNote: string | null;
+  homeworkOverviewNote: string | null;
+  assessmentOverviewNote: string | null;
+  updatedAt: Date;
+  updatedByUserId: string;
+}): MarriagePremaritalReadinessReviewRecord {
+  return {
+    journeyId: row.journeyId,
+    status: row.status as MarriagePremaritalReadinessReviewRecord["status"],
+    strengths: row.strengths,
+    areasForDiscussion: row.areasForDiscussion,
+    unresolvedConcerns: row.unresolvedConcerns,
+    recommendedNextSteps: row.recommendedNextSteps,
+    optionalAdditionalCounseling: row.optionalAdditionalCounseling,
+    pastoralRecommendation: row.pastoralRecommendation,
+    sessionsOverviewNote: row.sessionsOverviewNote,
+    homeworkOverviewNote: row.homeworkOverviewNote,
+    assessmentOverviewNote: row.assessmentOverviewNote,
+    updatedAt: row.updatedAt.toISOString(),
+    updatedByUserId: row.updatedByUserId,
+  };
+}
+
+export async function savePremaritalReadinessReview(record: MarriagePremaritalReadinessReviewRecord) {
+  await prisma.marriagePremaritalReadinessReview.upsert({
+    where: { journeyId: record.journeyId },
+    create: {
+      journeyId: record.journeyId,
+      status: record.status,
+      strengths: record.strengths ?? null,
+      areasForDiscussion: record.areasForDiscussion ?? null,
+      unresolvedConcerns: record.unresolvedConcerns ?? null,
+      recommendedNextSteps: record.recommendedNextSteps ?? null,
+      optionalAdditionalCounseling: record.optionalAdditionalCounseling ?? null,
+      pastoralRecommendation: record.pastoralRecommendation ?? null,
+      sessionsOverviewNote: record.sessionsOverviewNote ?? null,
+      homeworkOverviewNote: record.homeworkOverviewNote ?? null,
+      assessmentOverviewNote: record.assessmentOverviewNote ?? null,
+      updatedAt: new Date(record.updatedAt),
+      updatedByUserId: record.updatedByUserId,
+    },
+    update: {
+      status: record.status,
+      strengths: record.strengths ?? null,
+      areasForDiscussion: record.areasForDiscussion ?? null,
+      unresolvedConcerns: record.unresolvedConcerns ?? null,
+      recommendedNextSteps: record.recommendedNextSteps ?? null,
+      optionalAdditionalCounseling: record.optionalAdditionalCounseling ?? null,
+      pastoralRecommendation: record.pastoralRecommendation ?? null,
+      sessionsOverviewNote: record.sessionsOverviewNote ?? null,
+      homeworkOverviewNote: record.homeworkOverviewNote ?? null,
+      assessmentOverviewNote: record.assessmentOverviewNote ?? null,
+      updatedAt: new Date(record.updatedAt),
+      updatedByUserId: record.updatedByUserId,
+    },
+  });
+  return record;
+}
+
+export async function listPremaritalReadinessReviewAudit(journeyId: string) {
+  const rows = await prisma.marriagePremaritalReadinessReviewAudit.findMany({
+    where: { journeyId },
+    orderBy: { revisedAt: "desc" },
+  });
+  return rows.map(
+    (r) =>
+      ({
+        id: r.id,
+        journeyId: r.journeyId,
+        previousStatus: r.previousStatus as MarriagePremaritalReadinessReviewAuditRecord["previousStatus"],
+        newStatus: r.newStatus as MarriagePremaritalReadinessReviewAuditRecord["newStatus"],
+        snapshotJson: r.snapshotJson,
+        revisedByUserId: r.revisedByUserId,
+        revisedAt: r.revisedAt.toISOString(),
+      }) satisfies MarriagePremaritalReadinessReviewAuditRecord,
+  );
+}
+
+export async function savePremaritalReadinessReviewAudit(
+  record: MarriagePremaritalReadinessReviewAuditRecord,
+) {
+  await prisma.marriagePremaritalReadinessReviewAudit.create({
+    data: {
+      id: record.id,
+      journeyId: record.journeyId,
+      previousStatus: record.previousStatus,
+      newStatus: record.newStatus,
+      snapshotJson: record.snapshotJson,
+      revisedByUserId: record.revisedByUserId,
+      revisedAt: new Date(record.revisedAt),
+    },
+  });
+  return record;
+}
+
+export async function listActivePremaritalJourneyIds() {
+  const rows = await prisma.marriageCounselingJourney.findMany({
+    where: { programType: "premarital", status: "active" },
+    select: { id: true },
+  });
+  return rows.map((r) => r.id);
+}
+
+export async function tryRecordPremaritalReminderDelivery(input: {
+  id: string;
+  kind: string;
+  referenceKey: string;
+  journeyId: string;
+  sentAt: string;
+}) {
+  try {
+    await prisma.marriagePremaritalReminderDelivery.create({
+      data: {
+        id: input.id,
+        kind: input.kind,
+        referenceKey: input.referenceKey,
+        journeyId: input.journeyId,
+        sentAt: new Date(input.sentAt),
+      },
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }

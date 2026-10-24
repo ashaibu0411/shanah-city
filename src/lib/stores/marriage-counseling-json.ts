@@ -81,6 +81,16 @@ type StoreFile = {
   defaultPremaritalCounselor?: MarriagePrepDefaultCounselorSettingRecord | null;
   premaritalProgramSessions?: MarriagePremaritalProgramSessionRecord[];
   premaritalProgramMeta?: MarriagePremaritalProgramMetaRecord[];
+  premaritalSessionClinical?: import("@/lib/marriage-counseling-types").MarriagePremaritalSessionClinicalRecord[];
+  premaritalReadinessReviews?: import("@/lib/marriage-counseling-types").MarriagePremaritalReadinessReviewRecord[];
+  premaritalReadinessAudit?: import("@/lib/marriage-counseling-types").MarriagePremaritalReadinessReviewAuditRecord[];
+  premaritalReminderDeliveries?: Array<{
+    id: string;
+    kind: string;
+    referenceKey: string;
+    journeyId: string;
+    sentAt: string;
+  }>;
 };
 
 async function readStore(): Promise<StoreFile> {
@@ -127,6 +137,10 @@ function ensureStage2Collections(store: StoreFile): StoreFile {
   if (store.defaultPremaritalCounselor === undefined) store.defaultPremaritalCounselor = null;
   if (!store.premaritalProgramSessions) store.premaritalProgramSessions = [];
   if (!store.premaritalProgramMeta) store.premaritalProgramMeta = [];
+  if (!store.premaritalSessionClinical) store.premaritalSessionClinical = [];
+  if (!store.premaritalReadinessReviews) store.premaritalReadinessReviews = [];
+  if (!store.premaritalReadinessAudit) store.premaritalReadinessAudit = [];
+  if (!store.premaritalReminderDeliveries) store.premaritalReminderDeliveries = [];
   return store;
 }
 
@@ -601,6 +615,13 @@ export async function listSessions(journeyId: string) {
   const store = await readStore();
   return store.sessions
     .filter((s) => s.journeyId === journeyId && s.status !== "cancelled")
+    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+}
+
+export async function listAllSessionsForJourney(journeyId: string) {
+  const store = await readStore();
+  return store.sessions
+    .filter((s) => s.journeyId === journeyId)
     .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
 }
 
@@ -1541,4 +1562,78 @@ export async function savePremaritalProgramMeta(
   else store.premaritalProgramMeta![index] = record;
   await writeStore(store);
   return record;
+}
+
+export async function listPremaritalSessionClinicalForJourney(journeyId: string) {
+  const store = await readStore();
+  return store.premaritalSessionClinical!.filter((r) => r.journeyId === journeyId);
+}
+
+export async function savePremaritalSessionClinical(
+  record: import("@/lib/marriage-counseling-types").MarriagePremaritalSessionClinicalRecord,
+) {
+  const store = await readStore();
+  const index = store.premaritalSessionClinical!.findIndex(
+    (r) => r.journeyId === record.journeyId && r.sessionKey === record.sessionKey,
+  );
+  if (index === -1) store.premaritalSessionClinical!.push(record);
+  else store.premaritalSessionClinical![index] = record;
+  await writeStore(store);
+  return record;
+}
+
+export async function getPremaritalReadinessReview(journeyId: string) {
+  const store = await readStore();
+  return store.premaritalReadinessReviews!.find((r) => r.journeyId === journeyId) ?? null;
+}
+
+export async function savePremaritalReadinessReview(
+  record: import("@/lib/marriage-counseling-types").MarriagePremaritalReadinessReviewRecord,
+) {
+  const store = await readStore();
+  const index = store.premaritalReadinessReviews!.findIndex((r) => r.journeyId === record.journeyId);
+  if (index === -1) store.premaritalReadinessReviews!.push(record);
+  else store.premaritalReadinessReviews![index] = record;
+  await writeStore(store);
+  return record;
+}
+
+export async function listPremaritalReadinessReviewAudit(journeyId: string) {
+  const store = await readStore();
+  return store
+    .premaritalReadinessAudit!.filter((a) => a.journeyId === journeyId)
+    .sort((a, b) => b.revisedAt.localeCompare(a.revisedAt));
+}
+
+export async function savePremaritalReadinessReviewAudit(
+  record: import("@/lib/marriage-counseling-types").MarriagePremaritalReadinessReviewAuditRecord,
+) {
+  const store = await readStore();
+  store.premaritalReadinessAudit!.push(record);
+  await writeStore(store);
+  return record;
+}
+
+export async function listActivePremaritalJourneyIds() {
+  const store = await readStore();
+  return store.journeys
+    .filter((j) => j.programType === "premarital" && j.status === "active")
+    .map((j) => j.id);
+}
+
+export async function tryRecordPremaritalReminderDelivery(input: {
+  id: string;
+  kind: string;
+  referenceKey: string;
+  journeyId: string;
+  sentAt: string;
+}) {
+  const store = await readStore();
+  const exists = store.premaritalReminderDeliveries!.some(
+    (d) => d.kind === input.kind && d.referenceKey === input.referenceKey,
+  );
+  if (exists) return false;
+  store.premaritalReminderDeliveries!.push(input);
+  await writeStore(store);
+  return true;
 }

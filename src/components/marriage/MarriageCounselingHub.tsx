@@ -410,15 +410,41 @@ export function MarriageCounselingHub() {
                         </p>
                       ) : null}
                       <p className="mt-0.5 font-semibold text-night-900 dark:text-sand-100">
-                        {session.topic?.trim() || "Counseling session"}
+                        {session.premaritalSessionTitle?.trim() ||
+                          session.topic?.trim() ||
+                          "Counseling session"}
                       </p>
                       <p className="mt-1 font-medium">
                         {formatMarriageSessionScheduledAt(
                           session.scheduledAt,
                           session.schedulingTimeZone,
                         )}
+                        {session.scheduledEndAt
+                          ? ` – ${formatMarriageSessionScheduledAt(session.scheduledEndAt, session.schedulingTimeZone)}`
+                          : ""}
                       </p>
-                      {session.zoomUrl ? (
+                      {session.meetingMode ? (
+                        <p className="mt-1 text-xs capitalize text-night-500">
+                          {session.meetingMode.replace(/_/g, " ")}
+                        </p>
+                      ) : null}
+                      {session.locationOrLink ? (
+                        session.meetingMode === "video" ||
+                        session.locationOrLink.startsWith("http") ? (
+                          <a
+                            href={session.locationOrLink}
+                            className="mt-2 inline-block text-sm font-semibold text-clay-700 underline dark:text-clay-300 break-all"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Open meeting link
+                          </a>
+                        ) : (
+                          <p className="mt-1 text-sm text-night-600 dark:text-sand-300">
+                            {session.locationOrLink}
+                          </p>
+                        )
+                      ) : session.zoomUrl ? (
                         <a
                           href={session.zoomUrl}
                           className="mt-2 inline-block text-sm font-semibold text-clay-700 underline dark:text-clay-300"

@@ -419,12 +419,20 @@ export type MarriageJournalEntryRecord = {
   updatedAt: string;
 };
 
+export type MarriageMeetingMode = "in_person" | "phone" | "video";
+
 export type MarriageCounselingSessionRecord = {
   id: string;
   journeyId: string;
   scheduledAt: string;
-  /** IANA timezone for interpreting legacy naive scheduledAt values and display (JSON store; DB column pending). */
+  /** IANA timezone for interpreting legacy naive scheduledAt values and display. */
   schedulingTimeZone?: string;
+  scheduledEndAt?: string;
+  /** Links appointment to eight-session program content (does not auto-complete content). */
+  premaritalSessionKey?: string;
+  meetingMode?: MarriageMeetingMode;
+  locationOrLink?: string;
+  cancelReason?: string;
   zoomUrl?: string;
   notes?: string;
   topic?: string;
@@ -436,6 +444,75 @@ export type MarriageCounselingSessionRecord = {
   updatedAt?: string;
   completedAt?: string;
   cancelledAt?: string;
+};
+
+export type MarriagePremaritalSessionClinicalOutcome = "completed" | "partial" | "postponed";
+
+export type MarriagePremaritalSessionClinicalRecord = {
+  journeyId: string;
+  sessionKey: string;
+  sessionDate?: string | null;
+  partnerAAttended?: boolean | null;
+  partnerBAttended?: boolean | null;
+  outcome?: MarriagePremaritalSessionClinicalOutcome | null;
+  topicsCovered?: string | null;
+  followUpActions?: string | null;
+  privateObservations?: string | null;
+  linkedAppointmentId?: string | null;
+  updatedAt: string;
+  updatedByUserId: string;
+};
+
+export type MarriagePremaritalReadinessStatus =
+  | "in_progress"
+  | "additional_counseling_recommended"
+  | "ready_to_proceed"
+  | "deferred";
+
+export type MarriagePremaritalReadinessReviewRecord = {
+  journeyId: string;
+  status: MarriagePremaritalReadinessStatus;
+  strengths?: string | null;
+  areasForDiscussion?: string | null;
+  unresolvedConcerns?: string | null;
+  recommendedNextSteps?: string | null;
+  optionalAdditionalCounseling?: string | null;
+  pastoralRecommendation?: string | null;
+  sessionsOverviewNote?: string | null;
+  homeworkOverviewNote?: string | null;
+  assessmentOverviewNote?: string | null;
+  updatedAt: string;
+  updatedByUserId: string;
+};
+
+export type MarriagePremaritalReadinessReviewAuditRecord = {
+  id: string;
+  journeyId: string;
+  previousStatus: MarriagePremaritalReadinessStatus | null;
+  newStatus: MarriagePremaritalReadinessStatus;
+  snapshotJson: string;
+  revisedByUserId: string;
+  revisedAt: string;
+};
+
+export type MarriageCoupleAppointmentView = {
+  id: string;
+  premaritalSessionKey?: string;
+  premaritalSessionTitle?: string;
+  scheduledAt: string;
+  scheduledEndAt?: string;
+  schedulingTimeZone?: string;
+  meetingMode?: MarriageMeetingMode;
+  locationOrLink?: string;
+  status?: MarriageSessionStatus;
+};
+
+export type MarriageCounselorPremaritalOperationsView = {
+  appointments: Array<MarriageCounselingSessionRecord & { premaritalSessionTitle?: string }>;
+  clinicalRecords: MarriagePremaritalSessionClinicalRecord[];
+  readinessReview: MarriagePremaritalReadinessReviewRecord | null;
+  readinessAudit: MarriagePremaritalReadinessReviewAuditRecord[];
+  canEditReadiness: boolean;
 };
 
 export type MarriageCounselorNoteRecord = {
@@ -628,8 +705,12 @@ export type MarriageStage2Dashboard = {
 export type MarriageHubUpcomingSessionView = {
   id: string;
   topic?: string;
+  premaritalSessionTitle?: string;
   scheduledAt: string;
+  scheduledEndAt?: string;
   schedulingTimeZone?: string;
+  meetingMode?: MarriageMeetingMode;
+  locationOrLink?: string;
   zoomUrl?: string;
 };
 
@@ -673,5 +754,6 @@ export type MarriageHubSummary = {
   contentVersion: string;
   counselorSummary: MarriageHubCounselorSummary | null;
   premaritalProgram: MarriageCouplePremaritalProgramView | null;
+  premaritalAppointments?: MarriageCoupleAppointmentView[];
   stage2?: MarriageStage2Dashboard;
 };

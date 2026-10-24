@@ -11,6 +11,7 @@ import {
 } from "@/lib/marriage-session-scheduling";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { MarriageCounselorPremaritalProgramPanel } from "@/components/marriage/MarriageCounselorPremaritalProgramPanel";
+import { MarriageCounselorPremaritalOperationsPanel } from "@/components/marriage/MarriageCounselorPremaritalOperationsPanel";
 import type { MarriageCounselorPremaritalProgramView } from "@/lib/marriage-premarital-program-server";
 
 export type MarriageCounselorClinicalDetailView = {
@@ -283,6 +284,10 @@ export function MarriageCounselorClinicalDashboard({
           onRefresh={onRefresh}
           onError={onError}
         />
+      )}
+
+      {detail.programType === "premarital" && (
+        <MarriageCounselorPremaritalOperationsPanel journeyId={journeyId} onError={onError} />
       )}
 
       <div className="marriage-c3m-columns">

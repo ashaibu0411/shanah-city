@@ -265,8 +265,9 @@ export async function buildMarriageCounselorClinicalDetail(
 
   const authorizedAnswers = await buildCounselorAuthorizedAnswerViews(viewer, journey);
 
-  const sessions = (await store().listSessions(journey.id))
-    .filter((s) => s.createdBy === viewer.id)
+  const { listAllJourneySessions } = await import("@/lib/marriage-premarital-operations-server");
+  const sessions = (await listAllJourneySessions(journey.id))
+    .filter((s) => s.status !== "cancelled")
     .map((s) => ({
       id: s.id,
       scheduledAt: s.scheduledAt,

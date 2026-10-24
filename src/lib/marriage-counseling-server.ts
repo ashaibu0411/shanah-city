@@ -117,7 +117,11 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
       });
     }
 
-    const sessions = await store().listSessions(journey.id);
+    const listSessionsForHub =
+      typeof store().listAllSessionsForJourney === "function"
+        ? () => store().listAllSessionsForJourney!(journey.id)
+        : () => store().listSessions(journey.id);
+    const sessions = await listSessionsForHub();
     const {
       buildHubUpcomingSessionsFromRecords,
       pickHubNextSession,
@@ -155,11 +159,16 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
   const stage2 = await buildStage2Dashboard(viewer);
 
   let premaritalProgram: MarriageHubSummary["premaritalProgram"] = null;
+  let premaritalAppointments: MarriageHubSummary["premaritalAppointments"];
   if (journey && journey.programType === "premarital" && myConsent) {
     const { buildCouplePremaritalProgramView } = await import(
       "@/lib/marriage-premarital-program-server"
     );
     premaritalProgram = await buildCouplePremaritalProgramView(viewer, journey);
+    const { buildCoupleAppointmentViews } = await import(
+      "@/lib/marriage-premarital-operations-server"
+    );
+    premaritalAppointments = await buildCoupleAppointmentViews(viewer, journey.id);
   }
 
   let counselorSummary: MarriageHubSummary["counselorSummary"] = null;
@@ -194,6 +203,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     contentVersion,
     counselorSummary,
     premaritalProgram,
+    premaritalAppointments,
     stage2: stage2 ?? undefined,
   };
 }
