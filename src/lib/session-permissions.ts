@@ -10,6 +10,7 @@ import { getGalleryUploadPermissions } from "@/lib/gallery-access-server";
 import { getWorshipPermissions } from "@/lib/worship-access-server";
 import { getKidsMinistryPermissions } from "@/lib/kids-access-server";
 import { getMinistryReportPermissions } from "@/lib/ministry-report-access-server";
+import { canAccessCouplesHubNav } from "@/lib/couples-hub-server";
 import type { PublicMember } from "@/lib/auth-types";
 
 const defaultPermissions = {
@@ -31,6 +32,7 @@ const defaultPermissions = {
   canShowLeaderReportHomeBanner: false,
   canReviewMinistryReports: false,
   canSeeGuestHomeBanner: false,
+  canAccessCouplesHub: false,
 };
 
 export async function getSessionPermissions(user: PublicMember | null) {
@@ -38,19 +40,31 @@ export async function getSessionPermissions(user: PublicMember | null) {
     return defaultPermissions;
   }
 
-  const [gallery, devotion, admin, finance, worship, frontliners, followUp, kids, ministryReports, guestQueue] =
-    await Promise.all([
-      getGalleryUploadPermissions(user),
-      getDevotionWritePermissions(user),
-      getAdminPermissions(user),
-      getFinancePermissions(user),
-      getWorshipPermissions(user),
-      getFrontLinersPermissions(user),
-      getFollowUpPermissions(user),
-      getKidsMinistryPermissions(user),
-      getMinistryReportPermissions(user),
-      canManageGuestSubmissions(user),
-    ]);
+  const [
+    gallery,
+    devotion,
+    admin,
+    finance,
+    worship,
+    frontliners,
+    followUp,
+    kids,
+    ministryReports,
+    guestQueue,
+    couplesHub,
+  ] = await Promise.all([
+    getGalleryUploadPermissions(user),
+    getDevotionWritePermissions(user),
+    getAdminPermissions(user),
+    getFinancePermissions(user),
+    getWorshipPermissions(user),
+    getFrontLinersPermissions(user),
+    getFollowUpPermissions(user),
+    getKidsMinistryPermissions(user),
+    getMinistryReportPermissions(user),
+    canManageGuestSubmissions(user),
+    canAccessCouplesHubNav(user),
+  ]);
 
   return {
     ...gallery,
@@ -66,5 +80,6 @@ export async function getSessionPermissions(user: PublicMember | null) {
     canShowLeaderReportHomeBanner: ministryReports.canShowLeaderReportHomeBanner,
     canReviewMinistryReports: ministryReports.canReviewMinistryReports,
     canSeeGuestHomeBanner: followUp.canSeeGuestHomeBanner,
+    canAccessCouplesHub: couplesHub,
   };
 }

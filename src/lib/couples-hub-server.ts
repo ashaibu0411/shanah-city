@@ -7,6 +7,17 @@ import { getGroups } from "@/lib/group-server";
 import { isGroupLeaderOrAssistant } from "@/lib/group-admin-utils";
 import type { CouplesHubOverview } from "@/lib/couples-hub-types";
 
+/** Sidebar / nav: Power Couples, linked partners, pending invites, or marriage ministry leaders. */
+export async function canAccessCouplesHubNav(user: PublicMember): Promise<boolean> {
+  const overview = await getCouplesHubOverview(user);
+  return (
+    overview.isPowerCouplesMember ||
+    overview.hasActiveLink ||
+    overview.pendingIncomingInvite ||
+    overview.canManageMarriageMinistry
+  );
+}
+
 export async function getCouplesHubOverview(user: PublicMember): Promise<CouplesHubOverview> {
   const [status, powerCouples, groups] = await Promise.all([
     getCoupleLinkStatus(user),

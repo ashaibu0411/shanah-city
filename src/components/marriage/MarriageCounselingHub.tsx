@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { CouplesLinkGate } from "@/components/couples/CouplesLinkGate";
+import { MarriageCounselingGuestIntro } from "@/components/marriage/MarriageCounselingGuestIntro";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import type { MarriageHubSummary, MarriageProgramType } from "@/lib/marriage-counseling-types";
 import { readJsonResponse } from "@/lib/read-json-response";
@@ -23,6 +25,7 @@ function statusLabel(mod: MarriageHubSummary["modules"][0]) {
 
 export function MarriageCounselingHub() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [hub, setHub] = useState<MarriageHubSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,8 +46,15 @@ export function MarriageCounselingHub() {
   }, []);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      setHub(null);
+      setError("");
+      return;
+    }
     void load();
-  }, [load]);
+  }, [load, authLoading, user]);
 
   async function startInviteProgram(programType: MarriageProgramType) {
     setStarting(programType);
@@ -98,14 +108,18 @@ export function MarriageCounselingHub() {
     else await load();
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className={marriagePremium.page}>
         <div className={marriagePremium.inset}>
-          <p className={marriagePremium.cardMuted}>Loading your journey…</p>
+          <p className={marriagePremium.cardMuted}>Loading…</p>
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return <MarriageCounselingGuestIntro />;
   }
 
   const journey = hub?.journey;

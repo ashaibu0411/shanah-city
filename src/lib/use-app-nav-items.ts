@@ -14,103 +14,129 @@ import {
   type AppNavItem,
 } from "@/lib/site";
 import { canAccessAdminPortal } from "@/lib/admin-portal-links";
+import type { PublicMember } from "@/lib/auth-types";
+
+type NavPermissions = {
+  canWriteDevotions: boolean;
+  canAccessWorshipPlanner: boolean;
+  canAccessFrontLiners: boolean;
+  canAccessKidsMinistry: boolean;
+  canManageAdmin: boolean;
+  canReviewMinistryReports: boolean;
+  canAccessFinance: boolean;
+  canAccessCouplesHub: boolean;
+};
+
+function insertAfterGroups(items: AppNavItem[], ...toInsert: AppNavItem[]): AppNavItem[] {
+  const groupsIndex = items.findIndex((item) => item.href === "/groups");
+  if (groupsIndex === -1) {
+    return [...items, ...toInsert];
+  }
+  return [
+    ...items.slice(0, groupsIndex + 1),
+    ...toInsert,
+    ...items.slice(groupsIndex + 1),
+  ];
+}
+
+/** Pure nav builder — used by sidebar, mobile More sheet, and tests. */
+export function buildAppNavItems(
+  user: PublicMember | null,
+  permissions: NavPermissions,
+): AppNavItem[] {
+  let items: AppNavItem[] = [...site.nav];
+
+  const afterGroups: AppNavItem[] = [marriageCounselingNavItem];
+  if (user && permissions.canAccessCouplesHub) {
+    afterGroups.unshift(couplesNavItem);
+  }
+  items = insertAfterGroups(items, ...afterGroups);
+
+  if (permissions.canWriteDevotions) {
+    const profileIndex = items.findIndex((item) => item.href === "/profile");
+    if (profileIndex === -1) {
+      items = [...items, writeDevotionsNavItem];
+    } else {
+      items = [
+        ...items.slice(0, profileIndex),
+        writeDevotionsNavItem,
+        ...items.slice(profileIndex),
+      ];
+    }
+  }
+
+  if (permissions.canAccessWorshipPlanner) {
+    const profileIndex = items.findIndex((item) => item.href === "/profile");
+    if (profileIndex === -1) {
+      items = [...items, worshipNavItem];
+    } else {
+      items = [
+        ...items.slice(0, profileIndex),
+        worshipNavItem,
+        ...items.slice(profileIndex),
+      ];
+    }
+  }
+
+  if (permissions.canAccessFrontLiners) {
+    const profileIndex = items.findIndex((item) => item.href === "/profile");
+    if (profileIndex === -1) {
+      items = [...items, frontlinersNavItem];
+    } else {
+      items = [
+        ...items.slice(0, profileIndex),
+        frontlinersNavItem,
+        ...items.slice(profileIndex),
+      ];
+    }
+  }
+
+  if (permissions.canAccessKidsMinistry) {
+    const profileIndex = items.findIndex((item) => item.href === "/profile");
+    if (profileIndex === -1) {
+      items = [...items, kidsMinistryNavItem];
+    } else {
+      items = [
+        ...items.slice(0, profileIndex),
+        kidsMinistryNavItem,
+        ...items.slice(profileIndex),
+      ];
+    }
+  }
+
+  if (
+    canAccessAdminPortal({
+      canManageAdmin: permissions.canManageAdmin,
+      canReviewMinistryReports: permissions.canReviewMinistryReports,
+      canAccessFinance: permissions.canAccessFinance,
+    })
+  ) {
+    const profileIndex = items.findIndex((item) => item.href === "/profile");
+    if (profileIndex === -1) {
+      items = [...items, adminNavItem];
+    } else {
+      items = [...items.slice(0, profileIndex), adminNavItem, ...items.slice(profileIndex)];
+    }
+  }
+
+  return items;
+}
 
 export function useAppNavItems(): AppNavItem[] {
   const { permissions, user } = useAuth();
 
-  return useMemo(() => {
-    let items: AppNavItem[] = [...site.nav];
-
-    if (user) {
-      const groupsIndex = items.findIndex((item) => item.href === "/groups");
-      if (groupsIndex === -1) {
-        items = [...items, couplesNavItem, marriageCounselingNavItem];
-      } else {
-        items = [
-          ...items.slice(0, groupsIndex + 1),
-          couplesNavItem,
-          marriageCounselingNavItem,
-          ...items.slice(groupsIndex + 1),
-        ];
-      }
-    }
-
-    if (permissions.canWriteDevotions) {
-      const profileIndex = items.findIndex((item) => item.href === "/profile");
-      if (profileIndex === -1) {
-        items = [...items, writeDevotionsNavItem];
-      } else {
-        items = [
-          ...items.slice(0, profileIndex),
-          writeDevotionsNavItem,
-          ...items.slice(profileIndex),
-        ];
-      }
-    }
-
-    if (permissions.canAccessWorshipPlanner) {
-      const profileIndex = items.findIndex((item) => item.href === "/profile");
-      if (profileIndex === -1) {
-        items = [...items, worshipNavItem];
-      } else {
-        items = [
-          ...items.slice(0, profileIndex),
-          worshipNavItem,
-          ...items.slice(profileIndex),
-        ];
-      }
-    }
-
-    if (permissions.canAccessFrontLiners) {
-      const profileIndex = items.findIndex((item) => item.href === "/profile");
-      if (profileIndex === -1) {
-        items = [...items, frontlinersNavItem];
-      } else {
-        items = [
-          ...items.slice(0, profileIndex),
-          frontlinersNavItem,
-          ...items.slice(profileIndex),
-        ];
-      }
-    }
-
-    if (permissions.canAccessKidsMinistry) {
-      const profileIndex = items.findIndex((item) => item.href === "/profile");
-      if (profileIndex === -1) {
-        items = [...items, kidsMinistryNavItem];
-      } else {
-        items = [
-          ...items.slice(0, profileIndex),
-          kidsMinistryNavItem,
-          ...items.slice(profileIndex),
-        ];
-      }
-    }
-
-    if (
-      canAccessAdminPortal({
-        canManageAdmin: permissions.canManageAdmin,
-        canReviewMinistryReports: permissions.canReviewMinistryReports,
-        canAccessFinance: permissions.canAccessFinance,
-      })
-    ) {
-      const profileIndex = items.findIndex((item) => item.href === "/profile");
-      if (profileIndex === -1) {
-        items = [...items, adminNavItem];
-      } else {
-        items = [...items.slice(0, profileIndex), adminNavItem, ...items.slice(profileIndex)];
-      }
-    }
-
-    return items;
-  }, [
-    user,
-    permissions.canWriteDevotions,
-    permissions.canAccessWorshipPlanner,
-    permissions.canAccessFrontLiners,
-    permissions.canAccessKidsMinistry,
-    permissions.canManageAdmin,
-    permissions.canReviewMinistryReports,
-    permissions.canAccessFinance,
-  ]);
+  return useMemo(
+    () => buildAppNavItems(user, permissions),
+    [
+      user,
+      permissions.canWriteDevotions,
+      permissions.canAccessWorshipPlanner,
+      permissions.canAccessFrontLiners,
+      permissions.canAccessKidsMinistry,
+      permissions.canManageAdmin,
+      permissions.canReviewMinistryReports,
+      permissions.canAccessFinance,
+      permissions.canAccessCouplesHub,
+    ],
+  );
 }
