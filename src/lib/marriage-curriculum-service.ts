@@ -2,6 +2,10 @@ import {
   MARRIAGE_COUNSELING_CONTENT_VERSION,
   MARRIAGE_COUNSELING_MODULES,
 } from "@/lib/marriage-counseling-curriculum";
+import {
+  MARRIAGE_COUNSELING_CONTENT_VERSION_V2026_1,
+  MARRIAGE_COUNSELING_MODULES_V2026_1,
+} from "@/lib/marriage-counseling-curriculum-v2026-1";
 import { DEFAULT_PROGRAM_TRACKS } from "@/lib/marriage-counseling-program-tracks";
 import type {
   MarriageCounselingJourneyRecord,
@@ -83,6 +87,10 @@ export async function getModuleForContentVersion(
   if (contentVersion === MARRIAGE_COUNSELING_CONTENT_VERSION) {
     const legacy = MARRIAGE_COUNSELING_MODULES.find((m) => m.id === moduleId);
     if (legacy) return legacy;
+  }
+  if (contentVersion === MARRIAGE_COUNSELING_CONTENT_VERSION_V2026_1) {
+    const frozen = MARRIAGE_COUNSELING_MODULES_V2026_1.find((m) => m.id === moduleId);
+    if (frozen) return frozen;
   }
   if (isMarriageStage2Enabled() && moduleId.startsWith("s2-")) {
     const stage2 = allStage2ModuleDefinitions().find((m) => m.id === moduleId);

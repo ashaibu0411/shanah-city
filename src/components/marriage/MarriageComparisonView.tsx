@@ -161,11 +161,15 @@ export function MarriageComparisonView({ moduleId }: { moduleId: string }) {
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
                 <div className="min-w-0 rounded-2xl border border-night-900/10 bg-stone-50/90 p-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
                   <p className="text-xs font-bold uppercase tracking-[0.14em] text-night-500">You</p>
-                  <p className="mt-2 break-words leading-relaxed">{formatAnswer(item.myAnswer)}</p>
+                  <p className="mt-2 break-words leading-relaxed">
+                    {item.myAnswerDisplay ?? formatAnswer(item.myAnswer)}
+                  </p>
                 </div>
                 <div className="min-w-0 rounded-2xl border border-night-900/10 bg-stone-50/90 p-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
                   <p className="text-xs font-bold uppercase tracking-[0.14em] text-night-500">Partner</p>
-                  <p className="mt-2 break-words leading-relaxed">{formatAnswer(item.partnerAnswer)}</p>
+                  <p className="mt-2 break-words leading-relaxed">
+                    {item.partnerAnswerDisplay ?? formatAnswer(item.partnerAnswer)}
+                  </p>
                 </div>
               </div>
               {item.discussionPrompt && (

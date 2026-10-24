@@ -260,7 +260,11 @@ export async function getAssessmentForViewer(
   if (!hub.journey) throw new Error("No active journey.");
   if (!hub.myConsent) throw new Error("Complete consent before assessments.");
 
-  const mod = await getModuleDefinition(moduleId);
+  const myResponse = await store().getResponse(hub.journey.id, moduleId, viewer.id);
+  const contentVersion = myResponse?.contentVersion ?? hub.contentVersion;
+  const mod =
+    (await getModuleForContentVersion(moduleId, contentVersion)) ??
+    (await getModuleDefinition(moduleId));
   if (!mod) throw new Error("Module not found.");
   const { marriageStage2IntimacyModuleAccessible, isMarriageStage2IntimacyModule } = await import(
     "@/lib/marriage-stage2-feature"
@@ -268,8 +272,6 @@ export async function getAssessmentForViewer(
   if (isMarriageStage2IntimacyModule(moduleId) && !marriageStage2IntimacyModuleAccessible(moduleId)) {
     throw new Error("This module is awaiting pastoral content approval.");
   }
-
-  const myResponse = await store().getResponse(hub.journey.id, moduleId, viewer.id);
   let partnerProgress: { status: string } = { status: "not_started" };
   try {
     const { partnerId } = await assertJourneyParticipant(hub.journey, viewer.id);
@@ -286,7 +288,6 @@ export async function getAssessmentForViewer(
     partnerProgress = { status: "not_started" };
   }
 
-  const contentVersion = myResponse?.contentVersion ?? hub.contentVersion;
   const unlock = await store().getUnlock(hub.journey.id, moduleId, contentVersion);
 
   return {

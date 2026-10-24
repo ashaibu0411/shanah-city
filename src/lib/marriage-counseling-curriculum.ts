@@ -4,8 +4,12 @@ import type {
   MarriageQuestionDefinition,
   MarriageQuestionType,
 } from "@/lib/marriage-counseling-types";
+import {
+  AGREEMENT_SCALE_OPTIONS,
+  CHILDHOOD_HOME_TONE_OPTIONS,
+} from "@/lib/marriage-counseling-response-scales";
 
-export const MARRIAGE_COUNSELING_CONTENT_VERSION = "2026.1";
+export const MARRIAGE_COUNSELING_CONTENT_VERSION = "2026.2";
 export const MARRIAGE_CONSENT_VERSION = "2026.1";
 
 const ALL_PROGRAMS: MarriageProgramType[] = ["premarital", "enrichment", "guided"];
@@ -33,22 +37,6 @@ function q(
     max: opts.max,
   };
 }
-
-const likertOptions = [
-  { id: "1", label: "Strongly disagree" },
-  { id: "2", label: "Disagree" },
-  { id: "3", label: "Neutral" },
-  { id: "4", label: "Agree" },
-  { id: "5", label: "Strongly agree" },
-];
-
-const agreementOptions = [
-  { id: "strongly_disagree", label: "Strongly disagree" },
-  { id: "disagree", label: "Disagree" },
-  { id: "neutral", label: "Neutral / unsure" },
-  { id: "agree", label: "Agree" },
-  { id: "strongly_agree", label: "Strongly agree" },
-];
 
 function moduleDef(
   id: string,
@@ -110,8 +98,12 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
     }),
   ]),
   moduleDef("mod-02-family-background", "Family Background", "Household patterns, traditions, and models you grew up with.", 2, [
-    q("mod-02-family-background", "fb-household", "How would you describe the emotional tone of your childhood home?", "likert", { options: likertOptions, min: 1, max: 5 }),
+    q("mod-02-family-background", "fb-household", "How would you describe the emotional tone of your childhood home?", "single_choice", {
+      options: CHILDHOOD_HOME_TONE_OPTIONS,
+      explanation: "Choose the option that fits best overall — there is no perfect label.",
+    }),
     q("mod-02-family-background", "fb-traditions", "Which family traditions matter most to you going forward?", "long_reflection", {
+      explanation: "List a few traditions (holidays, meals, faith practices, visits, etc.) and why they matter to you.",
       discussionPrompt: "Which traditions do we want to keep, adapt, or create new?",
     }),
     q("mod-02-family-background", "fb-parents-model", "What did you learn about marriage from your parents or caregivers?", "long_reflection", {
@@ -197,7 +189,14 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
         { id: "experiences", label: "Shared experiences" },
       ],
     }),
-    q("mod-04-money", "fin-accounts", "Our preference for day-to-day money management is…", "agreement", { options: agreementOptions }),
+    q("mod-04-money", "fin-accounts", "How do you prefer to handle day-to-day money management as a couple?", "single_choice", {
+      options: [
+        { id: "joint", label: "Mostly joint accounts and shared decisions" },
+        { id: "hybrid", label: "Some separate accounts with a shared budget plan" },
+        { id: "one_leads", label: "One of us leads day-to-day with regular check-ins" },
+        { id: "define_together", label: "We still need to define this together" },
+      ],
+    }),
     q("mod-04-money", "fin-debt", "How open should we be about existing debt with each other?", "single_choice", {
       options: [
         { id: "full", label: "Full transparency before marriage" },
@@ -206,8 +205,8 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
       ],
       discussionPrompt: "We will not ask for bank passwords or full account numbers here.",
     }),
-    q("mod-04-money", "fin-family", "Supporting extended family financially should be…", "likert", {
-      options: likertOptions,
+    q("mod-04-money", "fin-family", "We expect to help extended family financially when there is genuine need.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
       discussionPrompt: "Where do our families of origin influence this?",
     }),
     q("mod-04-money", "fin-exercise", "In a sample budget exercise, which line would you adjust first if income dropped 20%?", "single_choice", {
@@ -224,8 +223,12 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
     q("mod-05-intimacy", "int-emotional", "Emotional intimacy for me means…", "short_answer", {
       discussionPrompt: "Marriage never removes the need for mutual consent and respect.",
     }),
-    q("mod-05-intimacy", "int-affection", "Non-sexual affection is important to me…", "likert", { options: likertOptions }),
-    q("mod-05-intimacy", "int-talk", "I feel comfortable talking about physical intimacy…", "agreement", { options: agreementOptions }),
+    q("mod-05-intimacy", "int-affection", "Non-sexual affection is important to me in our relationship.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
+    q("mod-05-intimacy", "int-talk", "I feel comfortable talking with my partner about physical intimacy.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
     q("mod-05-intimacy", "int-expectations", "What expectations do you have about frequency and initiation?", "long_reflection", {
       visibility: "shared_after_both_submit",
       allowSkip: true,
@@ -242,7 +245,9 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
     }),
   ]),
   moduleDef("mod-06-faith", "Faith & Spiritual Life", "Prayer, worship, service, and growing together in Christ.", 6, [
-    q("mod-06-faith", "faith-prayer", "Praying together as a couple is…", "agreement", { options: agreementOptions }),
+    q("mod-06-faith", "faith-prayer", "Praying together regularly as a couple is important to us.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
     q("mod-06-faith", "faith-church", "Church participation looks like…", "short_answer", {
       discussionPrompt: "Difference is not automatic spiritual failure — talk about shared priorities.",
     }),
@@ -254,7 +259,9 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
         { id: "worship", label: "Worship beyond Sunday" },
       ],
     }),
-    q("mod-06-faith", "faith-giving", "Stewardship and giving should be…", "likert", { options: likertOptions }),
+    q("mod-06-faith", "faith-giving", "Generous giving and stewardship are priorities in our home.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
     q("mod-06-faith", "faith-lead", "Spiritual leadership in our home means…", "long_reflection", {
       discussionPrompt: "Describe partnership, not control.",
     }),
@@ -268,7 +275,9 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
         { id: "flex", label: "Flexible by season" },
       ],
     }),
-    q("mod-07-roles", "roles-clean", "Household cleaning expectations…", "agreement", { options: agreementOptions }),
+    q("mod-07-roles", "roles-clean", "We will share household cleaning in a way that feels fair to both of us.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
     q("mod-07-roles", "roles-labor", "Emotional labor (planning, remembering, coordinating) should be…", "short_answer", {
       discussionPrompt: "Use the responsibility-sharing exercise after you compare answers.",
     }),
@@ -311,10 +320,14 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
     q("mod-08-children", "ch-faith", "Faith upbringing for children should include…", "long_reflection", {
       discussionPrompt: "Avoid assumptions about fertility or private medical details.",
     }),
-    q("mod-08-children", "ch-balance", "Work–life balance when parenting arrives…", "likert", { options: likertOptions }),
+    q("mod-08-children", "ch-balance", "When we are parenting, fairly sharing work and family time will matter to us.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
   ]),
   moduleDef("mod-09-trust", "Trust & Boundaries", "Honesty, privacy, friendships, and digital life.", 9, [
-    q("mod-09-trust", "tr-honesty", "Financial or significant decisions should be…", "agreement", { options: agreementOptions }),
+    q("mod-09-trust", "tr-honesty", "We discuss significant financial decisions together before acting.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
     q("mod-09-trust", "tr-privacy", "Healthy privacy in marriage means…", "short_answer", {
       discussionPrompt: "Transparency is not the same as surveillance or control.",
     }),
@@ -355,7 +368,9 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
       ],
     }),
     q("mod-10-emotional-health", "eh-support", "I feel supported when you…", "short_answer"),
-    q("mod-10-emotional-health", "eh-help", "Asking for professional help (counseling, medical) is…", "agreement", { options: agreementOptions }),
+    q("mod-10-emotional-health", "eh-help", "Seeking professional counseling or medical help when needed is a wise step.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
     q("mod-10-emotional-health", "eh-grief", "When I grieve or disappoint, I need…", "long_reflection", { allowSkip: true }),
     q("mod-10-emotional-health", "eh-private", "Mental health history I prefer to discuss privately first", "long_reflection", {
       visibility: "counselor_with_consent",
@@ -394,8 +409,12 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
       discussionPrompt: "Share what readiness means — we will not label you ready or not ready.",
     }),
     q("mod-12-readiness", "rd-unresolved", "Topics we still need to discuss with support are…", "long_reflection", { allowSkip: true }),
-    q("mod-12-readiness", "rd-support", "We are willing to seek pastoral or professional help when needed…", "agreement", { options: agreementOptions }),
-    q("mod-12-readiness", "rd-respect", "Mutual respect during disagreement is…", "likert", { options: likertOptions }),
+    q("mod-12-readiness", "rd-support", "We are willing to seek pastoral or professional help when we need it.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
+    q("mod-12-readiness", "rd-respect", "Mutual respect during disagreement is essential in our marriage.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
     q("mod-12-readiness", "rd-final", "One commitment I make to you today is…", "short_answer", {
       discussionPrompt: "Use this in your next counseling session.",
     }),
@@ -423,7 +442,9 @@ export const MARRIAGE_COUNSELING_MODULES: MarriageModuleDefinition[] = [
     q("mod-15-work", "wr-hours", "Protecting family time from work means…", "long_reflection"),
   ], ["enrichment", "guided"]),
   moduleDef("mod-16-addiction", "Habits & Freedom", "Honesty about habits that affect the relationship.", 16, [
-    q("mod-16-addiction", "hb-open", "We should talk about habits that worry us…", "agreement", { options: agreementOptions }),
+    q("mod-16-addiction", "hb-open", "We should be able to talk openly about habits that concern our relationship.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
     q("mod-16-addiction", "hb-private", "Concerns I prefer to discuss with counselor first", "long_reflection", {
       visibility: "counselor_with_consent",
       allowSkip: true,

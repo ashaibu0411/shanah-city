@@ -434,6 +434,9 @@ export type MarriageComparisonItem = {
   discussionPrompt?: string;
   myAnswer: unknown;
   partnerAnswer: unknown;
+  /** Human-readable labels for choice-based answers (comparison UI). */
+  myAnswerDisplay?: string;
+  partnerAnswerDisplay?: string;
   category: "aligned" | "different" | "needs_conversation" | "not_yet_discussed";
   /** Couple discussion tracking — separate from answer-difference category. */
   discussion?: MarriageComparisonDiscussionState;

@@ -2,6 +2,7 @@ import type {
   MarriageComparisonItem,
   MarriageQuestionDefinition,
 } from "@/lib/marriage-counseling-types";
+import { formatMarriageAnswerForDisplay } from "@/lib/marriage-answer-display";
 
 export function compareCategory(
   question: MarriageQuestionDefinition,
@@ -31,6 +32,8 @@ export function buildSharedComparisonItems(
       discussionPrompt: question.discussionPrompt,
       myAnswer: answerA[question.id],
       partnerAnswer: answerB[question.id],
+      myAnswerDisplay: formatMarriageAnswerForDisplay(question, answerA[question.id]),
+      partnerAnswerDisplay: formatMarriageAnswerForDisplay(question, answerB[question.id]),
       category: compareCategory(question, answerA[question.id], answerB[question.id]),
     }));
 }

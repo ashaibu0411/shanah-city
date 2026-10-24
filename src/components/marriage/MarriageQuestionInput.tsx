@@ -53,6 +53,7 @@ export function MarriageQuestionInput({
         className="mt-4 min-h-[120px] w-full rounded-xl border border-night-900/10 px-3 py-3 text-sm dark:border-white/12 dark:bg-[var(--color-bg-muted)]"
         value={typeof value === "string" ? value : ""}
         disabled={disabled}
+        placeholder={question.explanation ? undefined : "Share in your own words…"}
         onChange={(e) => onChange(e.target.value)}
       />
     ) : (
