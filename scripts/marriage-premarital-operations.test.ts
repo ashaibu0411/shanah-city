@@ -43,7 +43,10 @@ const reminders = readFileSync(
   join(root, "src/lib/marriage-premarital-reminders-server.ts"),
   "utf8",
 );
-assert.match(reminders, /tryRecordPremaritalReminderDelivery/, "reminders dedupe deliveries");
+assert.match(reminders, /notifyMarriageAppointmentUpcoming/, "reminders delegate to unified notify");
+const prepNotify = readFileSync(join(root, "src/lib/marriage-prep-notifications-server.ts"), "utf8");
+assert.match(prepNotify, /tryRecordPremaritalReminderDelivery/, "push dedupe via reminder delivery log");
+assert.match(prepNotify, /tryCreateMarriagePrepUserNotification/, "in-app dedupe via unique notification rows");
 
 const migration = readFileSync(
   join(root, "prisma/migrations/20261024200000_marriage_premarital_operations/migration.sql"),
