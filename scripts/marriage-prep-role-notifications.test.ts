@@ -13,7 +13,9 @@ assert.match(server, /isSeniorPastor/, "senior pastor notification gate");
 assert.match(server, /assertAssignmentAdminOnJourney/, "assignment admin scope");
 
 const kinds = readFileSync(join(root, "src/lib/marriage-prep-notification-kinds.ts"), "utf8");
+assert.match(kinds, /counselor_proposed/, "proposed counselor inbox audience");
 assert.match(kinds, /counselor_new_assignment/, "counselor kinds");
+assert.match(server, /viewerIsProposedCounselorForJourney/, "proposed counselor access gate");
 assert.match(kinds, /sp_assignment_pending/, "senior pastor kinds");
 assert.match(kinds, /admin_coordinator_assigned/, "admin kinds");
 

@@ -69,22 +69,26 @@ export async function notifyAssignmentAdminPendingOnJourney(
 export async function notifyCounselorAssignmentProposed(counselorUserId: string, journeyId: string) {
   const journey = await store().getJourneyById(journeyId);
   if (!journey || !counselorUserId.trim()) return { created: 0 };
-  if (!journey.counselorUserId) {
-    const draftJourney = { ...journey, counselorUserId: counselorUserId.trim() };
-    return deliverMarriagePrepNotifications({
-      journey: draftJourney,
-      userIds: [counselorUserId],
-      audience: "counselor",
-      kind: "counselor_assignment_proposed",
-      referenceKey: journeyId,
-      title: "Premarital assignment proposed",
-      body: "A premarital journey lists you as the proposed counselor pending Senior Pastor approval.",
-      actionPath: "/marriage/admin/counselor-assignments",
-      pushTitle: "Premarital counselor assignment",
-      pushBody: "A premarital journey was submitted for Senior Pastor approval with you as the proposed counselor.",
-    });
-  }
-  return { created: 0 };
+
+  const proposedId = counselorUserId.trim();
+  const pending = await store().getPendingCounselorAssignmentRequestForJourney(journeyId);
+  const approved = await store().getApprovedCounselorAssignmentRequestAwaitingExecution(journeyId);
+  const target =
+    pending?.requestedCounselorUserId ?? approved?.requestedCounselorUserId ?? null;
+  if (target !== proposedId) return { created: 0 };
+
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: [proposedId],
+    audience: "counselor_proposed",
+    kind: "counselor_assignment_proposed",
+    referenceKey: journeyId,
+    title: "Premarital assignment proposed",
+    body: "A premarital journey lists you as the proposed counselor pending Senior Pastor approval.",
+    actionPath: "/marriage/admin/counselor-assignments",
+    pushTitle: "Premarital counselor assignment",
+    pushBody: "A premarital journey was submitted for Senior Pastor approval with you as the proposed counselor.",
+  });
 }
 
 export async function notifyCoupleAndCounselorAssignmentActivated(

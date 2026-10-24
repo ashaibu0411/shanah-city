@@ -3,6 +3,7 @@ import type { MarriagePrepNotificationKind } from "@/lib/marriage-prep-notificat
 export type MarriagePrepNotificationAudience =
   | "couple"
   | "counselor"
+  | "counselor_proposed"
   | "senior_pastor"
   | "assignment_admin";
 
@@ -33,6 +34,9 @@ const COUNSELOR_KINDS = new Set<MarriagePrepNotificationKind>([
   "counselor_attendance_missing",
   "counselor_homework_review_pending",
   "counselor_eight_session_closeout",
+]);
+
+const COUNSELOR_PROPOSED_KINDS = new Set<MarriagePrepNotificationKind>([
   "counselor_assignment_proposed",
 ]);
 
@@ -56,6 +60,7 @@ export function audienceForMarriagePrepNotificationKind(
 ): MarriagePrepNotificationAudience {
   if (COUPLE_KINDS.has(kind)) return "couple";
   if (COUNSELOR_KINDS.has(kind)) return "counselor";
+  if (COUNSELOR_PROPOSED_KINDS.has(kind)) return "counselor_proposed";
   if (SENIOR_PASTOR_KINDS.has(kind)) return "senior_pastor";
   if (ASSIGNMENT_ADMIN_KINDS.has(kind)) return "assignment_admin";
   return "couple";

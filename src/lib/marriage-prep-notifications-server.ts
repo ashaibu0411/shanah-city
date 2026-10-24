@@ -37,6 +37,17 @@ export async function getSeniorPastorUserId(): Promise<string | null> {
   return id || null;
 }
 
+async function viewerIsProposedCounselorForJourney(
+  viewerId: string,
+  journeyId: string,
+): Promise<boolean> {
+  const pending = await store().getPendingCounselorAssignmentRequestForJourney(journeyId);
+  if (pending?.requestedCounselorUserId === viewerId) return true;
+  const approved = await store().getApprovedCounselorAssignmentRequestAwaitingExecution(journeyId);
+  if (approved?.requestedCounselorUserId === viewerId) return true;
+  return false;
+}
+
 async function assertRecipientsForAudience(
   journey: MarriageCounselingJourneyRecord,
   userIds: string[],
@@ -60,6 +71,15 @@ async function assertRecipientsForAudience(
     }
     for (const id of unique) {
       if (id !== counselorId) throw new Error("Invalid notification recipient.");
+    }
+    return;
+  }
+
+  if (audience === "counselor_proposed") {
+    for (const id of unique) {
+      if (!(await viewerIsProposedCounselorForJourney(id, journey.id))) {
+        throw new Error("Invalid notification recipient.");
+      }
     }
     return;
   }
@@ -158,6 +178,14 @@ export async function assertViewerCanAccessPrepNotification(
       return;
     case "counselor":
       if (!viewerIsAssignedClinicalCounselor(viewer.id, journey)) {
+        throw new Error("Notification not found.");
+      }
+      return;
+    case "counselor_proposed":
+      if (
+        !(await viewerIsProposedCounselorForJourney(viewer.id, journey.id)) &&
+        !viewerIsAssignedClinicalCounselor(viewer.id, journey)
+      ) {
         throw new Error("Notification not found.");
       }
       return;
