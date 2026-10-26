@@ -11,6 +11,7 @@ import { MarriageCoupleProgramCompletionBanner } from "@/components/marriage/Mar
 import { MarriagePrepNotificationCenter } from "@/components/marriage/MarriagePrepNotificationCenter";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
+import { isLegacyAssignmentHomeworkId } from "@/lib/marriage-couple-homework-hub";
 
 type Props = {
   hub: MarriageHubSummary;
@@ -86,6 +87,20 @@ export function MarriageCoupleHubDashboard({ hub, continueModuleHref }: Props) {
       <div className={`${marriagePremium.card} mt-4 border border-clay-200 dark:border-clay-800`}>
         <p className={marriagePremium.sectionLabel}>What to do next</p>
         <ul className="mt-2 space-y-2 text-sm">
+          {!hub.myConsent ? (
+            <li>
+              <Link href="/marriage/consent" className="font-semibold text-clay-800 underline dark:text-clay-300">
+                Record your Marriage Prep consent
+              </Link>
+            </li>
+          ) : null}
+          {!hub.partnerJoined && hub.pendingInviteCode ? (
+            <li>
+              <Link href="/marriage/join" className="font-semibold text-clay-800 underline dark:text-clay-300">
+                Partner: enter invitation code
+              </Link>
+            </li>
+          ) : null}
           {nextUpcoming ? (
             <li>
               <span className="font-semibold">Next appointment: </span>
@@ -104,7 +119,14 @@ export function MarriageCoupleHubDashboard({ hub, continueModuleHref }: Props) {
           ) : null}
           {attentionHomework.slice(0, 3).map((hw) => (
             <li key={hw.id}>
-              <Link href={`/marriage/homework/${hw.id}`} className="font-semibold text-clay-800 underline dark:text-clay-300">
+              <Link
+                href={
+                  isLegacyAssignmentHomeworkId(hw.id)
+                    ? `/marriage/module/${(hw.templateKey ?? "").replace(/^legacy-module:/, "")}`
+                    : `/marriage/homework/${hw.id}`
+                }
+                className="font-semibold text-clay-800 underline dark:text-clay-300"
+              >
                 Homework: {hw.title}
               </Link>
               {hw.dueAt ? (
@@ -179,36 +201,6 @@ export function MarriageCoupleHubDashboard({ hub, continueModuleHref }: Props) {
         </div>
       )}
 
-      {hub.upcomingHomework.length > 0 && (hub.sessionHomework?.length ?? 0) === 0 ? (
-        <div className={`${marriagePremium.card} mt-4 min-w-0`}>
-          <p className={marriagePremium.sectionLabel}>Module assignments</p>
-          <p className={`${marriagePremium.cardMuted} mt-1 text-xs`}>
-            Legacy module tasks — counselor-released session homework appears here when assigned.
-          </p>
-          <ul className="mt-2 space-y-2">
-            {hub.upcomingHomework.map((item) => (
-              <li key={item.id} className="text-sm">
-                {item.moduleId ? (
-                  <Link
-                    href={`/marriage/module/${item.moduleId}`}
-                    className="font-semibold text-clay-900 dark:text-sand-100"
-                  >
-                    {item.title}
-                  </Link>
-                ) : (
-                  <span className="font-semibold">{item.title}</span>
-                )}
-                {item.dueAt ? (
-                  <p className="text-xs text-night-500">
-                    Due {formatMarriageSessionScheduledAt(item.dueAt, item.dueAtTimeZone)}
-                  </p>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
       {showStandaloneHomeworkCard ? (
         <div className={`${marriagePremium.card} mt-4 min-w-0`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -220,7 +212,14 @@ export function MarriageCoupleHubDashboard({ hub, continueModuleHref }: Props) {
           <ul className="mt-2 space-y-2">
             {hub.sessionHomework!.map((item) => (
               <li key={item.id} className="text-sm">
-                <Link href={`/marriage/homework/${item.id}`} className="font-semibold text-clay-900 dark:text-sand-100">
+                <Link
+                  href={
+                    isLegacyAssignmentHomeworkId(item.id)
+                      ? `/marriage/module/${(item.templateKey ?? "").replace(/^legacy-module:/, "") || "mod-01-knowing-yourself"}`
+                      : `/marriage/homework/${item.id}`
+                  }
+                  className="font-semibold text-clay-900 dark:text-sand-100"
+                >
                   {item.title}
                 </Link>
                 <p className="text-xs capitalize text-night-500">{item.status.replace(/_/g, " ")}</p>

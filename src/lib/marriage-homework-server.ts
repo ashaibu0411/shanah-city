@@ -25,6 +25,7 @@ import type { MarriageHubSessionHomeworkView } from "@/lib/marriage-counseling-t
 import type {
   MarriageCounselorHomeworkListItem,
   MarriageHomeworkActivityDef,
+  MarriageHomeworkParticipantStatus,
   MarriageSessionHomeworkRecord,
   MarriageSessionHomeworkResponseRecord,
 } from "@/lib/marriage-homework-types";
@@ -79,6 +80,10 @@ export async function listCounselorHomeworkForJourney(
   const rows = await store().listSessionHomeworkForJourney(journeyId);
   const now = Date.now();
   const items: MarriageCounselorHomeworkListItem[] = [];
+  const sessionTemplateKeys = new Set(
+    rows.filter((h) => h.status === "released" && h.templateKey).map((h) => h.templateKey as string),
+  );
+
   for (const hw of rows) {
     const responses = await store().listSessionHomeworkResponses(hw.id);
     const respA = responses.find((r) => r.userId === partnerAId) ?? null;
@@ -91,6 +96,7 @@ export async function listCounselorHomeworkForJourney(
       dueAt: hw.dueAt,
       dueAtTimeZone: hw.dueAtTimeZone,
       releasedAt: hw.releasedAt,
+      rowKind: "session_homework",
       partnerA: {
         userId: partnerAId ?? "",
         name: partnerAId ? await partnerLabel(partnerAId) : "Partner A",
@@ -107,6 +113,42 @@ export async function listCounselorHomeworkForJourney(
       },
     });
   }
+
+  const { legacyAssignmentHomeworkId } = await import("@/lib/marriage-couple-homework-hub");
+  const aId = journey.participantAId;
+  const bId = journey.participantBId;
+  const legacyAssignments = await store().listAssignments(journeyId);
+  for (const assignment of legacyAssignments) {
+    if (!assignment.dueAt) continue;
+    if (assignment.moduleId && sessionTemplateKeys.has(assignment.moduleId)) continue;
+    const syntheticId = legacyAssignmentHomeworkId(assignment.id);
+    if (items.some((i) => i.id === syntheticId)) continue;
+    const statusFor = (userId: string | null | undefined): MarriageHomeworkParticipantStatus => {
+      if (!userId) return "not_started";
+      return assignment.completedByUserIds.includes(userId) ? "submitted" : "not_started";
+    };
+    items.push({
+      id: syntheticId,
+      title: assignment.title,
+      status: "released",
+      templateKey: assignment.moduleId ? `legacy-module:${assignment.moduleId}` : "legacy-assignment",
+      dueAt: assignment.dueAt,
+      dueAtTimeZone: assignment.dueAtTimeZone,
+      rowKind: "legacy_module_assignment",
+      moduleId: assignment.moduleId,
+      partnerA: {
+        userId: aId ?? "",
+        name: aId ? await partnerLabel(aId) : "Partner A",
+        status: statusFor(aId),
+      },
+      partnerB: {
+        userId: bId ?? "",
+        name: bId ? await partnerLabel(bId) : "Partner B",
+        status: statusFor(bId),
+      },
+    });
+  }
+
   return items;
 }
 
@@ -288,6 +330,12 @@ export async function reopenSessionHomework(viewer: PublicMember, homeworkId: st
 }
 
 export async function getCounselorHomeworkDetail(viewer: PublicMember, homeworkId: string) {
+  const { isLegacyAssignmentHomeworkId } = await import("@/lib/marriage-couple-homework-hub");
+  if (isLegacyAssignmentHomeworkId(homeworkId)) {
+    throw new Error(
+      "Legacy module assignments are completed on module assessments. Use the module link from the homework list.",
+    );
+  }
   const homework = await store().getSessionHomeworkById(homeworkId);
   if (!homework) throw new Error("Homework not found.");
   const journey = await store().getJourneyById(homework.journeyId);
@@ -359,7 +407,33 @@ export async function listReleasedHomeworkForParticipant(viewer: PublicMember, j
   return views;
 }
 
+/** Couple homework list aligned with Marriage Prep hub (session + open legacy assignments). */
+export async function listUnifiedCoupleHomeworkForParticipant(
+  viewer: PublicMember,
+  journey: MarriageCounselingJourneyRecord,
+  options: { myConsent: boolean },
+): Promise<MarriageHubSessionHomeworkView[]> {
+  if (!options.myConsent) {
+    return listReleasedHomeworkForParticipant(viewer, journey.id);
+  }
+  const released = await listReleasedHomeworkForParticipant(viewer, journey.id);
+  const assignments = await store().listAssignments(journey.id);
+  const legacy = assignments
+    .filter((a) => a.dueAt && !a.completedByUserIds.includes(viewer.id))
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      dueAt: a.dueAt,
+      dueAtTimeZone: a.dueAtTimeZone,
+      completed: false,
+      moduleId: a.moduleId,
+    }));
+  const { mergeCoupleHomeworkHubViews } = await import("@/lib/marriage-couple-homework-hub");
+  return mergeCoupleHomeworkHubViews(released, legacy);
+}
+
 export async function getParticipantHomeworkWorkspace(viewer: PublicMember, homeworkId: string) {
+  await assertNotLegacyHomeworkListItem(homeworkId);
   const homework = await store().getSessionHomeworkById(homeworkId);
   if (!homework) throw new Error("Homework not found.");
   if (homework.status !== "released") throw new Error("This homework is not available yet.");
@@ -401,11 +475,21 @@ export async function getParticipantHomeworkWorkspace(viewer: PublicMember, home
   };
 }
 
+async function assertNotLegacyHomeworkListItem(homeworkId: string) {
+  const { isLegacyAssignmentHomeworkId } = await import("@/lib/marriage-couple-homework-hub");
+  if (isLegacyAssignmentHomeworkId(homeworkId)) {
+    throw new Error(
+      "This item is a module assignment. Complete it on the module assessment page linked from your homework list.",
+    );
+  }
+}
+
 export async function saveParticipantHomeworkDraft(
   viewer: PublicMember,
   homeworkId: string,
   patch: Record<string, string>,
 ) {
+  await assertNotLegacyHomeworkListItem(homeworkId);
   const homework = await store().getSessionHomeworkById(homeworkId);
   if (!homework) throw new Error("Homework not found.");
   if (homework.status !== "released") throw new Error("This homework is not available yet.");
@@ -447,6 +531,7 @@ export async function saveParticipantHomeworkDraft(
 }
 
 export async function submitParticipantHomework(viewer: PublicMember, homeworkId: string) {
+  await assertNotLegacyHomeworkListItem(homeworkId);
   const homework = await store().getSessionHomeworkById(homeworkId);
   if (!homework) throw new Error("Homework not found.");
   if (homework.status !== "released") throw new Error("This homework is not available yet.");

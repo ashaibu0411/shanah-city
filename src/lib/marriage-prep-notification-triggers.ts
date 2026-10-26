@@ -10,9 +10,15 @@ import {
   journeyPartnerUserIds,
 } from "@/lib/marriage-prep-notifications-server";
 import { PREMARITAL_PROGRAM_SESSIONS } from "@/lib/marriage-premarital-eight-session-program";
+import { getUserByEmail } from "@/lib/auth-server";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
 const store = () => marriageStore();
+
+function otherPartnerUserId(journey: MarriageCounselingJourneyRecord, userId: string) {
+  const ids = journeyPartnerUserIds(journey);
+  return ids.find((id) => id !== userId) ?? null;
+}
 
 function counselorJourneyPath(journeyId: string) {
   return `/marriage/counselor/journey/${journeyId}`;
@@ -147,9 +153,93 @@ export async function notifyCounselorPartnersConsentReady(journey: MarriageCouns
   });
 }
 
+export async function notifyIntendedPartnerInviteActive(
+  journey: MarriageCounselingJourneyRecord,
+  inviteId: string,
+  intendedEmail?: string | null,
+) {
+  const email = intendedEmail?.trim().toLowerCase();
+  if (!email) return { created: 0 };
+  const member = await getUserByEmail(email);
+  if (!member?.id) return { created: 0 };
+
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: [member.id],
+    audience: "pending_invitee",
+    kind: "partner_invite_active",
+    referenceKey: inviteId,
+    title: "Marriage Prep invitation",
+    body: "Your partner invited you to join a Marriage Prep journey. Open the hub to accept with your invitation code.",
+    actionPath: "/marriage/join",
+    pushTitle: "Marriage Prep invitation",
+    pushBody: "Your partner invited you to Marriage Prep. Open the app to join.",
+  });
+}
+
+export async function notifyHostPartnerJoined(
+  journey: MarriageCounselingJourneyRecord,
+  joinedUserId: string,
+) {
+  const hostId = journey.participantAId ?? journey.createdBy;
+  if (!hostId || hostId === joinedUserId) return { created: 0 };
+
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: [hostId],
+    audience: "couple",
+    kind: "partner_joined",
+    referenceKey: joinedUserId,
+    title: "Partner joined",
+    body: "Your partner joined your Marriage Prep journey. Complete consent when you are ready to continue together.",
+    actionPath: "/marriage/consent",
+    pushTitle: "Marriage journey",
+    pushBody: "Your partner joined your counseling journey.",
+  });
+}
+
+export async function notifyPartnerIndividualConsentRecorded(
+  journey: MarriageCounselingJourneyRecord,
+  consenterUserId: string,
+) {
+  const partnerId = otherPartnerUserId(journey, consenterUserId);
+  if (!partnerId) return { created: 0 };
+
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: [partnerId],
+    audience: "couple",
+    kind: "partner_consent_recorded",
+    referenceKey: consenterUserId,
+    title: "Partner consent recorded",
+    body: "Your partner recorded Marriage Prep consent. Record yours when ready so you can continue assessments and counseling together.",
+    actionPath: "/marriage/consent",
+    pushTitle: "Marriage Prep consent",
+    pushBody: "Your partner completed consent. Open Marriage Prep to record yours.",
+  });
+}
+
+export async function notifyCoupleBothConsented(journey: MarriageCounselingJourneyRecord) {
+  const partnerIds = journeyPartnerUserIds(journey);
+  if (partnerIds.length < 2) return { created: 0 };
+
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: partnerIds,
+    audience: "couple",
+    kind: "couple_both_consented",
+    referenceKey: journey.id,
+    title: "Consent complete",
+    body: "Both partners recorded consent. Continue assessments, comparisons, and counseling sessions from your Marriage Prep hub.",
+    actionPath: "/marriage",
+    pushTitle: "Marriage Prep ready",
+    pushBody: "Both partners completed consent. Open Marriage Prep to continue.",
+  });
+}
+
 export async function checkBothPartnersConsentedAndNotifyCounselor(journeyId: string) {
   const journey = await store().getJourneyById(journeyId);
-  if (!journey?.counselorUserId?.trim()) return;
+  if (!journey) return;
 
   const partnerIds = journeyPartnerUserIds(journey);
   if (partnerIds.length < 2) return;
@@ -160,7 +250,25 @@ export async function checkBothPartnersConsentedAndNotifyCounselor(journeyId: st
   );
   if (!partnerIds.every((id) => consented.has(id))) return;
 
-  void notifyCounselorPartnersConsentReady(journey);
+  void notifyCoupleBothConsented(journey);
+  if (journey.counselorUserId?.trim()) {
+    void notifyCounselorPartnersConsentReady(journey);
+  }
+}
+
+export async function notifyCouplePastoralReadinessReady(journey: MarriageCounselingJourneyRecord) {
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: journeyPartnerUserIds(journey),
+    audience: "couple",
+    kind: "pastoral_readiness_ready",
+    referenceKey: `${journey.id}:ready_to_proceed`,
+    title: "Pastoral readiness approved",
+    body: "Senior Pastor recorded a ready-to-proceed readiness decision. Certificate issuance may proceed when all requirements are met.",
+    actionPath: "/marriage",
+    pushTitle: "Marriage Prep readiness",
+    pushBody: "Pastoral readiness review is complete. Open Marriage Prep for next steps.",
+  });
 }
 
 export async function notifyCounselorAssessmentSubmitted(

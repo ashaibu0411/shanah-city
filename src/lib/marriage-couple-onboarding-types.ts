@@ -13,6 +13,8 @@ export type MarriageCoupleOnboardingStep = {
   description: string;
   complete: boolean;
   current: boolean;
+  actionHref?: string;
+  actionLabel?: string;
 };
 
 export type MarriageCoupleOnboardingView = {

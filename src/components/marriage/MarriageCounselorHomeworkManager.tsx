@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { MarriageCounselorSessionDateTimeField } from "@/components/marriage/MarriageCounselorSessionDateTimeField";
 import { MarriageHomeworkTimingLines } from "@/components/marriage/MarriageHomeworkTimingLines";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
+import { isLegacyAssignmentHomeworkId } from "@/lib/marriage-couple-homework-hub";
 import type { MarriageCounselorHomeworkListItem } from "@/lib/marriage-homework-types";
 import type { MarriageHomeworkTemplateSummary } from "@/lib/marriage-homework-types";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
@@ -86,6 +87,13 @@ export function MarriageCounselorHomeworkManager({
   }, []);
 
   const loadDetail = useCallback(async (homeworkId: string) => {
+    if (isLegacyAssignmentHomeworkId(homeworkId)) {
+      setDetail(null);
+      setMessage(
+        "This row is a historical module assignment. Partners complete it on the linked module assessment — not session homework.",
+      );
+      return;
+    }
     const res = await fetch(`/api/marriage/counselor/homework/${homeworkId}`, { cache: "no-store" });
     const data = await readJsonResponse<HomeworkDetail & { error?: string }>(res);
     if (!res.ok) return;
@@ -290,8 +298,16 @@ export function MarriageCounselorHomeworkManager({
                 onClick={() => setSelectedId(item.id)}
               >
                 <p className="font-semibold">{item.title}</p>
+                {item.rowKind === "legacy_module_assignment" && item.moduleId ? (
+                  <p className="mt-1 text-xs">
+                    Legacy module assignment ·{" "}
+                    <Link href={`/marriage/module/${item.moduleId}`} className="font-semibold underline">
+                      Open module
+                    </Link>
+                  </p>
+                ) : null}
                 <p className="marriage-c3m-muted mt-0.5 text-xs capitalize">
-                  {item.status}
+                  {item.rowKind === "legacy_module_assignment" ? "Module assignment" : item.status}
                   {item.dueAt
                     ? ` · Due ${formatMarriageSessionScheduledAt(item.dueAt, item.dueAtTimeZone)}`
                     : ""}
@@ -306,7 +322,7 @@ export function MarriageCounselorHomeworkManager({
           ))}
         </ul>
       ) : (
-        <p className="marriage-c3m-muted mt-3 text-sm">No session homework yet.</p>
+        <p className="marriage-c3m-muted mt-3 text-sm">No homework or legacy assignments yet.</p>
       )}
 
       {detail && (

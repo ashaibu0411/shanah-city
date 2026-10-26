@@ -6,7 +6,6 @@ import {
   getActiveContentVersionLabel,
   listModulesForJourney,
 } from "@/lib/marriage-curriculum-service";
-import { notifyMarriagePartnerJoined } from "@/lib/marriage-counseling-notify";
 import type { MarriageProgramType } from "@/lib/marriage-counseling-types";
 import {
   MARRIAGE_ACTIVE_JOURNEY_CONFLICT,
@@ -73,6 +72,10 @@ export async function startJourneyWithInvite(
         expiresAt,
         createdAt: new Date().toISOString(),
       });
+      const { notifyIntendedPartnerInviteActive } = await import(
+        "@/lib/marriage-prep-notification-triggers"
+      );
+      void notifyIntendedPartnerInviteActive(journey, invite.id, invite.intendedEmail);
     }
     return { journey, invite };
   }
@@ -123,6 +126,11 @@ export async function startJourneyWithInvite(
     meta: { programType },
   });
 
+  const { notifyIntendedPartnerInviteActive } = await import(
+    "@/lib/marriage-prep-notification-triggers"
+  );
+  void notifyIntendedPartnerInviteActive(journey, invite.id, invite.intendedEmail);
+
   return { journey, invite };
 }
 
@@ -165,12 +173,15 @@ export async function acceptJourneyInvite(viewer: PublicMember, code: string) {
     "@/lib/marriage-default-premarital-counselor-server"
   );
   void queueDefaultPremaritalCounselorAssignmentIfEligible(journey.id);
-  const { checkBothPartnersConsentedAndNotifyCounselor } = await import(
-    "@/lib/marriage-prep-notification-triggers"
-  );
-  void checkBothPartnersConsentedAndNotifyCounselor(journey.id);
-
-  notifyMarriagePartnerJoined(journey.participantAId ?? journey.createdBy);
+  const joined = await store().getJourneyById(journey.id);
+  if (joined) {
+    const { checkBothPartnersConsentedAndNotifyCounselor } = await import(
+      "@/lib/marriage-prep-notification-triggers"
+    );
+    const { notifyHostThatPartnerJoined } = await import("@/lib/marriage-partner-join-notify");
+    void notifyHostThatPartnerJoined(joined.participantAId ?? joined.createdBy, viewer.id);
+    void checkBothPartnersConsentedAndNotifyCounselor(joined.id);
+  }
 
   await logMarriageAudit({
     actorUserId: viewer.id,

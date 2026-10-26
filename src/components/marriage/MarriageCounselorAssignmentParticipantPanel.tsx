@@ -157,7 +157,11 @@ export function MarriageCounselorAssignmentParticipantPanel({
   });
 
   return (
-    <section className={`${marriagePremium.card} mt-4`} aria-labelledby="counselor-access-heading">
+    <section
+      id="counselor-assignment"
+      className={`${marriagePremium.card} mt-4`}
+      aria-labelledby="counselor-access-heading"
+    >
       <h2 id="counselor-access-heading" className="text-base font-semibold">
         Counselor access
       </h2>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { MarriageCoupleOnboardingView } from "@/lib/marriage-couple-onboarding-types";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 
@@ -15,6 +16,14 @@ export function MarriageCoupleOnboardingSteps({ onboarding }: Props) {
       </h2>
       <p className="mt-2 text-sm font-semibold text-night-900 dark:text-sand-100">{onboarding.nextStepTitle}</p>
       <p className={`${marriagePremium.cardMuted} mt-1 text-sm`}>{onboarding.nextStepDetail}</p>
+      {onboarding.steps.find((s) => s.current && s.actionHref) ? (
+        <Link
+          href={onboarding.steps.find((s) => s.current)!.actionHref!}
+          className="mt-3 inline-flex min-h-[44px] items-center rounded-full bg-clay-700 px-4 text-sm font-bold text-white dark:bg-clay-600"
+        >
+          {onboarding.steps.find((s) => s.current)!.actionLabel ?? "Continue"}
+        </Link>
+      ) : null}
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-white/10">
         <div
           className="h-full rounded-full bg-clay-600 transition-all"

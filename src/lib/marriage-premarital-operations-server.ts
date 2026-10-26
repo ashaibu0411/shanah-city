@@ -349,6 +349,12 @@ export async function savePremaritalReadinessReview(
     journeyId: input.journeyId,
     meta: { status: input.status },
   });
+  if (input.status === "ready_to_proceed" && previous?.status !== "ready_to_proceed") {
+    const { notifyCouplePastoralReadinessReady } = await import(
+      "@/lib/marriage-prep-notification-triggers"
+    );
+    void notifyCouplePastoralReadinessReady(journey);
+  }
   return record;
 }
 

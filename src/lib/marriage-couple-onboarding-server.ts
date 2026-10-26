@@ -5,6 +5,51 @@ import type {
   MarriageCoupleOnboardingView,
 } from "@/lib/marriage-couple-onboarding-types";
 
+function actionForStep(
+  stepId: MarriageCoupleOnboardingStepId,
+  input: {
+    coupleLinkActive: boolean;
+    hasJourney: boolean;
+    partnerJoined: boolean;
+    myConsent: boolean;
+    pendingInviteCode: boolean;
+    firstOpenModuleId: string | null;
+  },
+): { actionHref?: string; actionLabel?: string } {
+  switch (stepId) {
+    case "journey":
+      if (!input.hasJourney) {
+        return { actionHref: "/marriage", actionLabel: "Open Marriage Prep hub" };
+      }
+      return {};
+    case "link_partner":
+      if (input.hasJourney && !input.partnerJoined && !input.pendingInviteCode) {
+        return { actionHref: "/marriage/join", actionLabel: "Enter invitation code" };
+      }
+      if (!input.coupleLinkActive && !input.hasJourney) {
+        return { actionHref: "/couples", actionLabel: "Link spouse account" };
+      }
+      return {};
+    case "consent":
+      if (!input.myConsent) {
+        return { actionHref: "/marriage/consent", actionLabel: "Record your consent" };
+      }
+      return {};
+    case "begin_prep":
+      if (input.firstOpenModuleId) {
+        return {
+          actionHref: `/marriage/module/${input.firstOpenModuleId}`,
+          actionLabel: "Continue assessment",
+        };
+      }
+      return { actionHref: "/marriage/homework", actionLabel: "View homework" };
+    case "counselor":
+      return { actionHref: "/marriage#counselor-assignment", actionLabel: "Counselor status" };
+    default:
+      return {};
+  }
+}
+
 export function buildCoupleOnboardingView(input: {
   signedIn: boolean;
   coupleLinkActive: boolean;
@@ -13,6 +58,8 @@ export function buildCoupleOnboardingView(input: {
   myConsent: boolean;
   partnerConsent: boolean;
   counselorSummary: MarriageHubCounselorSummary | null;
+  pendingInviteCode?: boolean;
+  firstOpenModuleId?: string | null;
 }): MarriageCoupleOnboardingView {
   const counselorReady = input.counselorSummary?.status === "assigned";
   const counselorPending =
@@ -88,10 +135,24 @@ export function buildCoupleOnboardingView(input: {
     }
   }
 
-  const withCurrent = steps.map((s) => ({
-    ...s,
-    current: s.id === currentStepId,
-  }));
+  const navInput = {
+    coupleLinkActive: input.coupleLinkActive,
+    hasJourney: input.hasJourney,
+    partnerJoined: input.partnerJoined,
+    myConsent: input.myConsent,
+    pendingInviteCode: Boolean(input.pendingInviteCode),
+    firstOpenModuleId: input.firstOpenModuleId ?? null,
+  };
+
+  const withCurrent = steps.map((s) => {
+    const current = s.id === currentStepId;
+    const action = current ? actionForStep(s.id, navInput) : {};
+    return {
+      ...s,
+      current,
+      ...action,
+    };
+  });
 
   const completedCount = withCurrent.filter((s) => s.complete).length;
   const progressPercent = Math.round((completedCount / withCurrent.length) * 100);
