@@ -174,7 +174,9 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     const { PREMARITAL_PROGRAM_SESSIONS } = await import(
       "@/lib/marriage-premarital-eight-session-program"
     );
-    premaritalAppointments = await buildCoupleAppointmentViews(viewer, journey.id);
+    if (partnerJoined) {
+      premaritalAppointments = await buildCoupleAppointmentViews(viewer, journey.id);
+    }
     const cancelled = (await listAllJourneySessions(journey.id)).filter(
       (s) => s.status === "cancelled" && s.premaritalSessionKey,
     );

@@ -7,7 +7,6 @@ import {
   listModulesForJourney,
 } from "@/lib/marriage-curriculum-service";
 import { notifyMarriagePartnerJoined } from "@/lib/marriage-counseling-notify";
-import { MARRIAGE_CONSENT_VERSION } from "@/lib/marriage-counseling-curriculum";
 import type { MarriageProgramType } from "@/lib/marriage-counseling-types";
 import {
   MARRIAGE_ACTIVE_JOURNEY_CONFLICT,
@@ -106,13 +105,6 @@ export async function startJourneyWithInvite(
     curriculumVersion,
   });
 
-  await store().upsertConsent({
-    journeyId: journey.id,
-    userId: viewer.id,
-    consentVersion: MARRIAGE_CONSENT_VERSION,
-    consentedAt: new Date().toISOString(),
-  });
-
   const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
   const invite = await store().createInvite({
     id: `mji-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -167,13 +159,6 @@ export async function acceptJourneyInvite(viewer: PublicMember, code: string) {
   await store().updateInvite(invite.id, {
     acceptedByUserId: viewer.id,
     acceptedAt: new Date().toISOString(),
-  });
-
-  await store().upsertConsent({
-    journeyId: journey.id,
-    userId: viewer.id,
-    consentVersion: MARRIAGE_CONSENT_VERSION,
-    consentedAt: new Date().toISOString(),
   });
 
   const { queueDefaultPremaritalCounselorAssignmentIfEligible } = await import(

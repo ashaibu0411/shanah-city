@@ -2,12 +2,17 @@ import { randomUUID } from "crypto";
 import type { PublicMember } from "@/lib/auth-types";
 import { getUserById } from "@/lib/auth-server";
 import {
-  assertJourneyParticipant,
+  assertJourneyParticipantLoose,
   assertMarriageCounselorRole,
   isJourneyCounselorAccessRevoked,
   isMarriageCurriculumAdmin,
   viewerIsAssignedClinicalCounselor,
 } from "@/lib/marriage-counseling-access";
+import {
+  assertHomeworkAvailableForPartnerState,
+  homeworkRequiresJoinedPartner,
+  journeyPartnerJoined,
+} from "@/lib/marriage-homework-partner-policy";
 import type { MarriageCounselingJourneyRecord } from "@/lib/marriage-counseling-types";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import {
@@ -310,15 +315,27 @@ export async function getCounselorHomeworkDetail(viewer: PublicMember, homeworkI
   };
 }
 
+async function assertParticipantHomeworkAccess(
+  viewer: PublicMember,
+  journey: MarriageCounselingJourneyRecord,
+  homework: MarriageSessionHomeworkRecord,
+) {
+  await assertJourneyParticipantLoose(journey, viewer.id);
+  const joined = await journeyPartnerJoined(journey, viewer.id);
+  assertHomeworkAvailableForPartnerState(homework, joined);
+}
+
 export async function listReleasedHomeworkForParticipant(viewer: PublicMember, journeyId: string) {
   const journey = await store().getJourneyById(journeyId);
   if (!journey) throw new Error("Journey not found.");
-  await assertJourneyParticipant(journey, viewer.id);
+  await assertJourneyParticipantLoose(journey, viewer.id);
+  const partnerJoined = await journeyPartnerJoined(journey, viewer.id);
   const rows = await store().listSessionHomeworkForJourney(journeyId);
   const released = rows.filter((h) => h.status === "released");
   const now = Date.now();
   const views: MarriageHubSessionHomeworkView[] = [];
   for (const hw of released) {
+    if (!partnerJoined && homeworkRequiresJoinedPartner(hw)) continue;
     const response = await store().getSessionHomeworkResponse(hw.id, viewer.id);
     const status = participantHomeworkStatus({ homework: hw, response, nowMs: now });
     const timing = homeworkTemplateMeta(hw.templateKey);
@@ -348,7 +365,7 @@ export async function getParticipantHomeworkWorkspace(viewer: PublicMember, home
   if (homework.status !== "released") throw new Error("This homework is not available yet.");
   const journey = await store().getJourneyById(homework.journeyId);
   if (!journey) throw new Error("Journey not found.");
-  await assertJourneyParticipant(journey, viewer.id);
+  await assertParticipantHomeworkAccess(viewer, journey, homework);
   const response: MarriageSessionHomeworkResponseRecord =
     (await store().getSessionHomeworkResponse(homeworkId, viewer.id)) ?? {
       homeworkId,
@@ -394,7 +411,7 @@ export async function saveParticipantHomeworkDraft(
   if (homework.status !== "released") throw new Error("This homework is not available yet.");
   const journey = await store().getJourneyById(homework.journeyId);
   if (!journey) throw new Error("Journey not found.");
-  await assertJourneyParticipant(journey, viewer.id);
+  await assertParticipantHomeworkAccess(viewer, journey, homework);
   const existing = await store().getSessionHomeworkResponse(homeworkId, viewer.id);
   if (existing?.submittedAt && !homework.reopenedAt) {
     throw new Error("Homework already submitted.");
@@ -435,7 +452,7 @@ export async function submitParticipantHomework(viewer: PublicMember, homeworkId
   if (homework.status !== "released") throw new Error("This homework is not available yet.");
   const journey = await store().getJourneyById(homework.journeyId);
   if (!journey) throw new Error("Journey not found.");
-  await assertJourneyParticipant(journey, viewer.id);
+  await assertParticipantHomeworkAccess(viewer, journey, homework);
   const existing = await store().getSessionHomeworkResponse(homeworkId, viewer.id);
   const answers = existing?.answers ?? {};
   if (!homeworkIsCompleteForSubmit(homework.activities, answers)) {
