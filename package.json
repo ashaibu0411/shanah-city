@@ -53,6 +53,7 @@
     "test:read-json-response": "tsx scripts/read-json-response.test.ts",
     "test:marriage:hub-partner-gate": "tsx scripts/marriage-hub-partner-gate.test.ts",
     "test:marriage:homework-waiting-partner": "tsx scripts/marriage-homework-waiting-partner.test.ts",
+    "test:marriage:explicit-consent": "tsx scripts/marriage-explicit-consent.test.ts",
     "test:app:nav": "tsx scripts/app-nav-items.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",

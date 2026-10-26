@@ -428,6 +428,17 @@ const MARRIAGE_COUNSELING_MODULES_RAW: MarriageModuleDefinition[] = [
   moduleDef("mod-13-forgiveness", "Forgiveness & Repair", "Grace, apology, and rebuilding trust.", 13, [
     q("mod-13-forgiveness", "fg-need", "Forgiveness in marriage means…", "short_answer"),
     q("mod-13-forgiveness", "fg-repair", "After hurt, repair begins with…", "long_reflection", { allowSkip: true }),
+    q("mod-13-forgiveness", "fg-apology", "A meaningful apology includes…", "multiple_choice", {
+      options: [
+        { id: "ownership", label: "Owning the hurt without excuses" },
+        { id: "change", label: "A plan to change behavior" },
+        { id: "time", label: "Patience while trust rebuilds" },
+        { id: "prayer", label: "Prayer together when appropriate" },
+      ],
+    }),
+    q("mod-13-forgiveness", "fg-boundary", "Forgiveness does not always mean immediate trust is restored.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
   ], ["premarital", "enrichment", "guided"]),
   moduleDef("mod-14-in-laws", "In-Laws & Extended Family", "Boundaries with family of origin.", 14, [
     q("mod-14-in-laws", "il-holidays", "Holiday time with extended family should be…", "single_choice", {
@@ -438,10 +449,27 @@ const MARRIAGE_COUNSELING_MODULES_RAW: MarriageModuleDefinition[] = [
         { id: "discuss", label: "Case-by-case" },
       ],
     }),
+    q("mod-14-in-laws", "il-advice", "Unsolicited advice from family should be handled by…", "preferred_response", {
+      options: [
+        { id: "together", label: "A united response from us as a couple" },
+        { id: "speaker", label: "The partner whose family it is" },
+        { id: "defer", label: "Thank them and decide privately later" },
+      ],
+    }),
+    q("mod-14-in-laws", "il-boundary", "We will protect our marriage decisions from pressure by extended family.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
   ], ["premarital", "enrichment", "guided"]),
   moduleDef("mod-15-work", "Work & Rest", "Sabbath, burnout, and ambition.", 15, [
     q("mod-15-work", "wr-rest", "Healthy rest together looks like…", "short_answer"),
     q("mod-15-work", "wr-hours", "Protecting family time from work means…", "long_reflection"),
+    q("mod-15-work", "wr-sabbath", "We will protect at least one regular rest rhythm each week.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
+    q("mod-15-work", "wr-burnout", "Signs I am approaching burnout include…", "long_reflection", {
+      visibility: "private_reflection",
+      allowSkip: true,
+    }),
   ], ["enrichment", "guided"]),
   moduleDef("mod-16-addiction", "Habits & Freedom", "Honesty about habits that affect the relationship.", 16, [
     q("mod-16-addiction", "hb-open", "We should be able to talk openly about habits that concern our relationship.", "agreement", {

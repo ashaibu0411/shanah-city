@@ -89,6 +89,7 @@ export function MarriageCounselingHub() {
       const data = await readJsonResponse<{ error?: string }>(res);
       if (!res.ok) throw new Error(data.error ?? "Could not start journey.");
       await load();
+      router.push("/marriage/consent");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not start.");
     } finally {
@@ -114,19 +115,6 @@ export function MarriageCounselingHub() {
     } finally {
       setStarting(null);
     }
-  }
-
-  async function recordConsent() {
-    if (!hub?.journey) return;
-    setError("");
-    const res = await fetch("/api/marriage/journey", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "consent", journeyId: hub.journey.id }),
-    });
-    const data = await readJsonResponse<{ error?: string }>(res);
-    if (!res.ok) setError(data.error ?? "Consent failed.");
-    else await load();
   }
 
   if (pageGate === "loading") {
@@ -344,19 +332,16 @@ export function MarriageCounselingHub() {
           <MarriageCoupleOnboardingSteps onboarding={hub.coupleOnboarding} />
         ) : null}
 
-        {journey && needsConsent && (
-          <div className={`${marriagePremium.card} mt-6`}>
-            <p className="font-display text-base font-semibold">Consent &amp; privacy</p>
-            <p className={`${marriagePremium.cardMuted} mt-2`}>
-              Answers marked shared appear to your partner only after you both submit. Private and
-              counselor-only responses are never shown to your partner without consent. This tool
-              supports pastoral preparation — not emergency or clinical care.
+        {journey && needsConsent && hub.journey ? (
+          <div className="mt-6">
+            <Link href="/marriage/consent" className={`${marriagePremium.primaryCta} inline-block`}>
+              Review &amp; record your consent
+            </Link>
+            <p className={`${marriagePremium.cardMuted} mt-2 text-sm`}>
+              Consent is recorded separately for each partner — not when you create or accept an invitation.
             </p>
-            <button type="button" className={`${marriagePremium.primaryCta} mt-4`} onClick={() => recordConsent()}>
-              I understand — continue
-            </button>
           </div>
-        )}
+        ) : null}
 
         {journey && hub.myConsent && (
           <>
@@ -381,38 +366,6 @@ export function MarriageCounselingHub() {
                 activitiesCompleted={hub.stage2.modulesCompleted}
                 activitiesTotal={hub.stage2.activitiesTotal}
               />
-            )}
-
-            {hub.upcomingHomework.length > 0 && (
-              <div className={`${marriagePremium.card} mt-4`}>
-                <p className={marriagePremium.sectionLabel}>Homework</p>
-                <ul className="mt-2 space-y-2">
-                  {hub.upcomingHomework.map((item) => (
-                    <li key={item.id} className="text-sm">
-                      <p className="font-semibold">{item.title}</p>
-                      {item.dueAt && (
-                        <p className="text-xs text-night-500">
-                          Due {formatMarriageSessionScheduledAt(item.dueAt, item.dueAtTimeZone)}
-                        </p>
-                      )}
-                      <button
-                        type="button"
-                        className="mt-1 text-xs font-bold text-clay-700 underline"
-                        onClick={async () => {
-                          await fetch("/api/marriage/assignments", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ assignmentId: item.id }),
-                          });
-                          await load();
-                        }}
-                      >
-                        Mark complete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
             )}
 
             {hub.upcomingSessions.length === 0 ? (

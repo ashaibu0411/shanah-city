@@ -27,7 +27,7 @@ export function MarriageJoinInvite() {
       setLoading(false);
       return;
     }
-    router.push("/marriage");
+    router.push("/marriage/consent");
   }
 
   return (

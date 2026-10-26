@@ -1,6 +1,12 @@
-import { redirect } from "next/navigation";
+import { MarriageConsentClient } from "@/app/marriage/consent/MarriageConsentClient";
+import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 
-/** Consent is handled on the hub; keep route for funnels after journey start. */
 export default function MarriageConsentPage() {
-  redirect("/marriage");
+  return (
+    <div className={marriagePremium.page}>
+      <div className={marriagePremium.inset}>
+        <MarriageConsentClient />
+      </div>
+    </div>
+  );
 }

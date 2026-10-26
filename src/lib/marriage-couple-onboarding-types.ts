@@ -3,6 +3,7 @@ export type MarriageCoupleOnboardingStepId =
   | "journey"
   | "link_partner"
   | "consent"
+  | "partner_consent"
   | "counselor"
   | "begin_prep";
 

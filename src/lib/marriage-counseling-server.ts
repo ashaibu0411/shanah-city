@@ -141,7 +141,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
         moduleId: a.moduleId,
       }));
 
-    if (partnerJoined) {
+    if (myConsent) {
       const { listReleasedHomeworkForParticipant } = await import("@/lib/marriage-homework-server");
       sessionHomework = await listReleasedHomeworkForParticipant(viewer, journey.id);
     }
@@ -329,7 +329,8 @@ export async function startMarriageJourney(viewer: PublicMember, programType: Ma
 export async function recordMarriageConsent(viewer: PublicMember, journeyId: string) {
   const journey = await store().getJourneyById(journeyId);
   if (!journey) throw new Error("Journey not found.");
-  await assertJourneyParticipant(journey, viewer.id);
+  const { assertJourneyParticipantLoose } = await import("@/lib/marriage-counseling-access");
+  await assertJourneyParticipantLoose(journey, viewer.id);
   await store().upsertConsent({
     journeyId,
     userId: viewer.id,

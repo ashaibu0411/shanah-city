@@ -43,11 +43,22 @@ export function buildCoupleOnboardingView(input: {
     },
     {
       id: "consent",
-      title: "Individual consent",
-      description: "Each partner accepts privacy and sharing rules on their own device.",
-      complete: input.myConsent && input.partnerConsent && input.partnerJoined,
+      title: "Your consent",
+      description: "Accept privacy and sharing rules on this device before assessments.",
+      complete: input.myConsent,
       current: false,
     },
+    ...(input.partnerJoined
+      ? [
+          {
+            id: "partner_consent" as const,
+            title: "Partner consent",
+            description: "Your partner accepts the same rules on their own login.",
+            complete: input.partnerConsent,
+            current: false,
+          },
+        ]
+      : []),
     {
       id: "counselor",
       title: "Counselor assignment",
@@ -61,7 +72,10 @@ export function buildCoupleOnboardingView(input: {
       id: "begin_prep",
       title: "Assessments & homework",
       description: "Work through modules and counselor-released homework at your pace.",
-      complete: counselorReady && input.myConsent && input.partnerConsent,
+      complete:
+        counselorReady &&
+        input.myConsent &&
+        (!input.partnerJoined || input.partnerConsent),
       current: false,
     },
   ];
@@ -89,7 +103,10 @@ export function buildCoupleOnboardingView(input: {
   if (currentStep) {
     nextStepTitle = currentStep.title;
     nextStepDetail = currentStep.description;
-    if (currentStep.id === "consent" && input.myConsent && !input.partnerConsent) {
+    if (currentStep.id === "consent" && !input.myConsent) {
+      nextStepDetail = "Open consent on this device — inviting or joining does not record consent for you.";
+    }
+    if (currentStep.id === "partner_consent" && input.myConsent && !input.partnerConsent) {
       nextStepDetail = "Waiting for your partner to accept consent on their device.";
     }
     if (currentStep.id === "counselor" && counselorPending) {
