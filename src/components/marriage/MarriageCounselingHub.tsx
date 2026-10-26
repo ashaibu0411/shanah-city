@@ -9,6 +9,11 @@ import { MarriageCounselingGuestIntro } from "@/components/marriage/MarriageCoun
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import type { MarriageHubSummary, MarriageProgramType } from "@/lib/marriage-counseling-types";
 import { readJsonResponse } from "@/lib/read-json-response";
+import {
+  fetchMarriageHubSummaryClient,
+  marriageHubLoadErrorMessage,
+  resolveMarriageHubPageGate,
+} from "@/lib/marriage-hub-client";
 import { MarriageStage2HubPromo } from "@/components/marriage/MarriageStage2HubPromo";
 import { MarriageCounselorAssignmentParticipantPanel } from "@/components/marriage/MarriageCounselorAssignmentParticipantPanel";
 import { isMarriageStage2ClientEnabled } from "@/lib/marriage-stage2-feature";
@@ -29,34 +34,48 @@ export function MarriageCounselingHub() {
   const router = useRouter();
   const { user, loading: authLoading, permissions } = useAuth();
   const [hub, setHub] = useState<MarriageHubSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [hubLoading, setHubLoading] = useState(true);
+  const [hubLoadError, setHubLoadError] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [starting, setStarting] = useState<MarriageProgramType | null>(null);
   const load = useCallback(async () => {
     setError("");
     setNotice("");
-    const res = await fetch("/api/marriage/hub", { cache: "no-store" });
-    const data = await readJsonResponse<MarriageHubSummary & { error?: string }>(res);
-    if (!res.ok) {
-      setError(data.error ?? "Could not load hub.");
-      setHub(null);
-    } else {
-      setHub(data);
+    setHubLoadError(null);
+    setHubLoading(true);
+    try {
+      const result = await fetchMarriageHubSummaryClient();
+      if (result.ok) {
+        setHub(result.data);
+        setHubLoadError(null);
+      } else {
+        setHub(null);
+        setHubLoadError(marriageHubLoadErrorMessage(result));
+      }
+    } finally {
+      setHubLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      setLoading(false);
+      setHubLoading(false);
       setHub(null);
+      setHubLoadError(null);
       setError("");
       return;
     }
     void load();
   }, [load, authLoading, user]);
+
+  const pageGate = resolveMarriageHubPageGate({
+    authLoading,
+    hubLoading,
+    userId: user?.id,
+    hubLoadError,
+  });
 
   async function startInviteProgram(programType: MarriageProgramType) {
     setStarting(programType);
@@ -110,22 +129,83 @@ export function MarriageCounselingHub() {
     else await load();
   }
 
-  if (authLoading || loading) {
+  if (pageGate === "loading") {
     return (
       <div className={marriagePremium.page}>
         <div className={marriagePremium.inset}>
-          <p className={marriagePremium.cardMuted}>Loading…</p>
+          <p className={marriagePremium.cardMuted} aria-busy="true">
+            Loading…
+          </p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
+  if (pageGate === "guest") {
     return <MarriageCounselingGuestIntro />;
   }
 
-  const journey = hub?.journey;
-  const needsConsent = journey && !hub?.myConsent;
+  if (pageGate === "sign_in_required") {
+    return (
+      <div className={marriagePremium.page}>
+        <div className={marriagePremium.inset}>
+          <div className={marriagePremium.card} role="alert">
+            <p className="text-sm font-semibold text-red-900 dark:text-red-200">
+              Your session expired
+            </p>
+            <p className={`${marriagePremium.cardMuted} mt-2 text-sm`}>
+              Sign in again to open Marriage Prep. In the installed app, use the same account you use
+              on the website so your journey stays in sync.
+            </p>
+            <Link href="/sign-in?next=/marriage" className={`${marriagePremium.primaryCta} mt-4 inline-block`}>
+              Sign in
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (pageGate === "error" && hubLoadError) {
+    return (
+      <div className={marriagePremium.page}>
+        <div className={marriagePremium.inset}>
+          <div className={marriagePremium.card} role="alert">
+            <p className="text-sm font-semibold text-red-900 dark:text-red-200">
+              Could not load Marriage Prep
+            </p>
+            <p className={`${marriagePremium.cardMuted} mt-2 text-sm`}>{hubLoadError}</p>
+            <button type="button" className={`${marriagePremium.primaryCta} mt-4`} onClick={() => void load()}>
+              Try again
+            </button>
+            <Link href="/" className={`${marriagePremium.secondaryCta} mt-3 inline-block`}>
+              Back to home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hub) {
+    return (
+      <div className={marriagePremium.page}>
+        <div className={marriagePremium.inset}>
+          <div className={marriagePremium.card} role="alert">
+            <p className="text-sm font-semibold text-red-900 dark:text-red-200">
+              Marriage Prep did not finish loading
+            </p>
+            <button type="button" className={`${marriagePremium.primaryCta} mt-4`} onClick={() => void load()}>
+              Try again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const journey = hub.journey;
+  const needsConsent = journey && !hub.myConsent;
   const inProgressModule = hub?.modules.find(
     (m) => m.myStatus === "draft" || (m.myStatus !== "submitted" && m.partnerStatus === "submitted"),
   );

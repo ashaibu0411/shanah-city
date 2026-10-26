@@ -78,7 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const response = await fetch("/api/auth", { cache: "no-store" });
+      const response = await fetch("/api/auth", {
+        cache: "no-store",
+        signal: AbortSignal.timeout(30_000),
+      });
       const data = (await response.json().catch(() => ({}))) as {
         user?: PublicMember | null;
         activity?: ActivityItem[];
@@ -94,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (response.status >= 500) {
+        /* Preserve the current session on transient server errors (502–504). */
         return;
       }
 
