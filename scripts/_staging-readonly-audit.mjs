@@ -39,10 +39,19 @@ lines.push(
 );
 
 lines.push("\nvercel env run (hostname check only, no secrets logged):");
+const vercelChildEnv = { ...process.env };
+delete vercelChildEnv.DATABASE_URL;
+delete vercelChildEnv.DIRECT_URL;
+delete vercelChildEnv.DIRECT_DATABASE_URL;
 try {
   const hostOut = execSync(
     `npx.cmd vercel env run production --project=${STAGING_PROJECT} -- node scripts/_staging-host-check.mjs 2>&1`,
-    { cwd: root, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
+    {
+      cwd: root,
+      encoding: "utf8",
+      maxBuffer: 10 * 1024 * 1024,
+      env: vercelChildEnv,
+    },
   );
   lines.push(hostOut);
 } catch (e) {
@@ -53,7 +62,12 @@ lines.push("\nmigration audit via vercel env run:");
 try {
   const migOut = execSync(
     `npx.cmd vercel env run production --project=${STAGING_PROJECT} -- node scripts/_staging-migrations-query.mjs 2>&1`,
-    { cwd: root, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
+    {
+      cwd: root,
+      encoding: "utf8",
+      maxBuffer: 10 * 1024 * 1024,
+      env: vercelChildEnv,
+    },
   );
   lines.push(migOut);
   try {
