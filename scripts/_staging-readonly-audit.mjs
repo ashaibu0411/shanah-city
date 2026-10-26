@@ -2,8 +2,8 @@
  * Read-only staging DB audit via Vercel-injected env (no credentials printed).
  * Requires: vercel CLI auth + access to shanah-city-staging production env.
  */
-import { execSync, spawnSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { execSync } from "node:child_process";
+import { existsSync, renameSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -28,6 +28,26 @@ const BRANCH_MIGRATIONS = [
   "20261024230000_marriage_cert_immutable_issue",
   "20261024240000_marriage_prep_notifications",
 ];
+
+/** Prevent repo .env.local from overriding Vercel-injected staging secrets during CLI audit. */
+function withLocalDotenvHidden(fn) {
+  const backups = [];
+  for (const name of [".env.local", ".env"]) {
+    const p = join(root, name);
+    const bak = `${p}.__staging_audit_bak`;
+    if (existsSync(p)) {
+      renameSync(p, bak);
+      backups.push([p, bak]);
+    }
+  }
+  try {
+    return fn();
+  } finally {
+    for (const [p, bak] of backups) {
+      if (existsSync(bak)) renameSync(bak, p);
+    }
+  }
+}
 
 const lines = [];
 lines.push("vercel project inspect:");
