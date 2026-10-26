@@ -7,7 +7,7 @@ export async function readJsonResponse<T>(response: Response): Promise<T> {
     throw new Error(
       response.ok
         ? "Unexpected server response. Try again in a moment."
-        : `Upload failed (${response.status}). Try a smaller MP4 video.`,
+        : `Request failed (${response.status}). Try again in a moment.`,
     );
   }
 

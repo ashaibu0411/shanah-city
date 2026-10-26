@@ -50,6 +50,8 @@
     "test:marriage:certificates": "tsx scripts/marriage-certificates-phase5.test.ts",
     "test:marriage:notifications": "tsx scripts/marriage-prep-notifications.test.ts && tsx scripts/marriage-prep-role-notifications.test.ts",
     "test:marriage:hub-client": "tsx scripts/marriage-hub-client.test.ts",
+    "test:read-json-response": "tsx scripts/read-json-response.test.ts",
+    "test:marriage:hub-partner-gate": "tsx scripts/marriage-hub-partner-gate.test.ts",
     "test:app:nav": "tsx scripts/app-nav-items.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",

@@ -141,8 +141,10 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
         moduleId: a.moduleId,
       }));
 
-    const { listReleasedHomeworkForParticipant } = await import("@/lib/marriage-homework-server");
-    sessionHomework = await listReleasedHomeworkForParticipant(viewer, journey.id);
+    if (partnerJoined) {
+      const { listReleasedHomeworkForParticipant } = await import("@/lib/marriage-homework-server");
+      sessionHomework = await listReleasedHomeworkForParticipant(viewer, journey.id);
+    }
   }
 
   const isCounselor = await isMarriageCounselor(viewer);
@@ -161,7 +163,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
   let premaritalProgram: MarriageHubSummary["premaritalProgram"] = null;
   let premaritalAppointments: MarriageHubSummary["premaritalAppointments"];
   let premaritalAppointmentNotices: MarriageHubSummary["premaritalAppointmentNotices"];
-  if (journey && journey.programType === "premarital" && myConsent) {
+  if (journey && journey.programType === "premarital" && myConsent && partnerJoined) {
     const { buildCouplePremaritalProgramView } = await import(
       "@/lib/marriage-premarital-program-server"
     );
@@ -201,7 +203,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
   }
 
   let certificatesGallery: MarriageHubSummary["certificatesGallery"];
-  if (journey && journey.programType === "premarital" && myConsent) {
+  if (journey && journey.programType === "premarital" && myConsent && partnerJoined) {
     const { buildCoupleCertificatesGallery } = await import("@/lib/marriage-certificate-server");
     certificatesGallery = await buildCoupleCertificatesGallery(viewer, journey);
   }

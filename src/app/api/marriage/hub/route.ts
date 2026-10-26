@@ -10,6 +10,19 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
-  const summary = await getMarriageHubSummary(user);
-  return NextResponse.json(summary);
+  try {
+    const summary = await getMarriageHubSummary(user);
+    return NextResponse.json(summary);
+  } catch (error) {
+    console.error("[api/marriage/hub] GET failed", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Could not load Marriage Prep. Try again in a moment.",
+      },
+      { status: 500 },
+    );
+  }
 }
