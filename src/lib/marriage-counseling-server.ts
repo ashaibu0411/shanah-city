@@ -141,8 +141,10 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
         moduleId: a.moduleId,
       }));
 
-    const { listReleasedHomeworkForParticipant } = await import("@/lib/marriage-homework-server");
-    sessionHomework = await listReleasedHomeworkForParticipant(viewer, journey.id);
+    if (partnerJoined) {
+      const { listReleasedHomeworkForParticipant } = await import("@/lib/marriage-homework-server");
+      sessionHomework = await listReleasedHomeworkForParticipant(viewer, journey.id);
+    }
   }
 
   const isCounselor = await isMarriageCounselor(viewer);
@@ -172,7 +174,9 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     const { PREMARITAL_PROGRAM_SESSIONS } = await import(
       "@/lib/marriage-premarital-eight-session-program"
     );
-    premaritalAppointments = await buildCoupleAppointmentViews(viewer, journey.id);
+    if (partnerJoined) {
+      premaritalAppointments = await buildCoupleAppointmentViews(viewer, journey.id);
+    }
     const cancelled = (await listAllJourneySessions(journey.id)).filter(
       (s) => s.status === "cancelled" && s.premaritalSessionKey,
     );
