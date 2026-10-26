@@ -2,10 +2,15 @@ import { execSync } from "node:child_process";
 import { writeFileSync, appendFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isolatedVerifyEnv } from "./isolated-verify-env.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const log = join(root, ".tmp-marriage-verify.log");
-writeFileSync(log, `verify started ${new Date().toISOString()}\n`);
+const verifyEnv = isolatedVerifyEnv();
+writeFileSync(
+  log,
+  `verify started ${new Date().toISOString()}\nDATABASE_URL stripped: ${!verifyEnv.DATABASE_URL}\nMARRIAGE_E2E_ISOLATED: ${verifyEnv.MARRIAGE_E2E_ISOLATED}\n`,
+);
 
 const steps = [
   ["curriculum", "npm.cmd run test:marriage:curriculum"],
@@ -24,7 +29,12 @@ for (const [name, cmd] of steps) {
   appendFileSync(log, `\n=== ${name} ===\n`);
   let code = 0;
   try {
-    const out = execSync(cmd, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    const out = execSync(cmd, {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      env: verifyEnv,
+    });
     appendFileSync(log, out);
   } catch (e) {
     code = e.status ?? 1;
