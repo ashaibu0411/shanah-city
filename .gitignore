@@ -30,6 +30,13 @@ ios/App/Pods/
 ios/DerivedData/
 *.xcuserstate
 
+# marriage prep staging QA (local session cookies — never commit)
+data/staging-qa-session-cookies.json
+
+# agent/local verify logs
+.tmp-*.txt
+.tmp-*.log
+
 # misc
 .DS_Store
 *.pem
