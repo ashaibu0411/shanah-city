@@ -318,6 +318,10 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
   if (totalPaid <= 0) return null;
 
   const metadata = session.metadata ?? {};
+  if (metadata.type === "shop") {
+    return null;
+  }
+
   const giftAmount = giftAmountFromMetadata(metadata, totalPaid);
   const fund = parseFund(metadata.fund);
   const donorEmail = normalizeGivingEmail(
