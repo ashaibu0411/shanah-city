@@ -43,6 +43,10 @@ async function resolveActiveJourney(viewer: PublicMember) {
   return store().getActiveJourneyForUser(viewer.id);
 }
 
+export async function getActiveMarriageJourneyForUser(viewer: PublicMember) {
+  return resolveActiveJourney(viewer);
+}
+
 function partnerStatus(
   response: { status: string } | null,
 ): MarriageHubModuleProgress["partnerStatus"] {

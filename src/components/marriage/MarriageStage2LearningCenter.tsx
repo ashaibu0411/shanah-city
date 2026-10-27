@@ -111,6 +111,10 @@ export function MarriageStage2LearningCenter() {
         )}
       </div>
 
+      <Link href="/marriage/feedback" className={`${marriagePremium.secondaryCta} mt-6 inline-block`}>
+        My counselor&apos;s feedback (enrichment)
+      </Link>
+
       <div className="mt-6">
         <p className={marriagePremium.sectionLabel}>Guided activities</p>
         <ul className="mt-3 space-y-2">

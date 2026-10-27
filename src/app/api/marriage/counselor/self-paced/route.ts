@@ -16,6 +16,7 @@ import {
   setJourneyCounselingDeliveryMode,
 } from "@/lib/marriage-self-paced-server";
 import { parseCounselingDeliveryMode } from "@/lib/marriage-counseling-delivery-mode";
+import { buildCounselorSessionReviewWorkspace } from "@/lib/marriage-session-review-workspace";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -29,8 +30,9 @@ export async function GET(request: Request) {
 
   try {
     if (journeyId && sessionKey) {
+      const workspace = await buildCounselorSessionReviewWorkspace(user, journeyId, sessionKey);
       const detail = await getCounselorSessionReviewDetail(user, journeyId, sessionKey);
-      return NextResponse.json(detail);
+      return NextResponse.json({ ...detail, workspace });
     }
     const center = await buildCounselorSelfPacedReviewCenter(user);
     return NextResponse.json({ center });

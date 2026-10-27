@@ -53,6 +53,8 @@
     "test:marriage:homework-review": "tsx scripts/marriage-homework-review-lifecycle.test.ts",
     "test:marriage:counseling-mode": "tsx scripts/marriage-counseling-mode.test.ts",
     "test:marriage:stage2-modules": "tsx scripts/marriage-stage2-modules-registry.test.ts",
+    "test:marriage:couple-feedback": "tsx scripts/marriage-couple-feedback-center.test.ts",
+    "test:marriage:stage2-enrichment": "tsx scripts/marriage-stage2-enrichment-review.test.ts",
     "test:marriage:notifications": "tsx scripts/marriage-prep-notifications.test.ts && tsx scripts/marriage-prep-role-notifications.test.ts",
     "test:marriage:hub-client": "tsx scripts/marriage-hub-client.test.ts",
     "test:read-json-response": "tsx scripts/read-json-response.test.ts",

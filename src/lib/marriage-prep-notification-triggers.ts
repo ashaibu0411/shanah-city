@@ -687,7 +687,7 @@ export async function notifyCoupleSelfPacedFeedbackPublished(
     referenceKey: `${journey.id}:${sessionKey}`,
     title: "Counselor guidance posted",
     body: "Your counselor published recommendations for a Marriage Prep session. Sign in to read them.",
-    actionPath: `/marriage/premarital/session/${encodeURIComponent(sessionKey)}`,
+    actionPath: `/marriage/feedback?sessionKey=${encodeURIComponent(sessionKey)}`,
     pushTitle: "Marriage Prep",
     pushBody: "Your counselor posted new session guidance.",
   });

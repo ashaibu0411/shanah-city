@@ -16,7 +16,17 @@ type FileShape = {
   reviews: MarriageSelfPacedSessionReviewRecord[];
   clarifications: MarriageSessionClarificationMessageRecord[];
   deliveryModeAudits: unknown[];
-  sessionAudits: unknown[];
+  sessionAudits: Array<{
+    id?: string;
+    journeyId: string;
+    sessionKey: string;
+    action: string;
+    actorUserId: string;
+    previousStatus?: string | null;
+    newStatus?: string | null;
+    metaJson?: string | null;
+    createdAt: string;
+  }>;
 };
 
 async function readFile(): Promise<FileShape> {
@@ -64,8 +74,27 @@ export async function saveSelfPacedSessionReview(record: MarriageSelfPacedSessio
   return record;
 }
 
-export async function appendSelfPacedSessionAudit() {
-  /* audit optional in JSON mode */
+export async function appendSelfPacedSessionAudit(entry: {
+  journeyId: string;
+  sessionKey: string;
+  action: string;
+  actorUserId: string;
+  previousStatus?: string | null;
+  newStatus?: string | null;
+  metaJson?: string | null;
+}) {
+  const data = await readFile();
+  if (!data.sessionAudits) data.sessionAudits = [];
+  data.sessionAudits.push({ ...entry, id: `audit-${Date.now()}`, createdAt: new Date().toISOString() });
+  await writeFile(data);
+}
+
+export async function listSelfPacedSessionAudits(journeyId: string, sessionKey: string) {
+  const data = await readFile();
+  return (data.sessionAudits ?? []).filter(
+    (a: { journeyId?: string; sessionKey?: string }) =>
+      a.journeyId === journeyId && a.sessionKey === sessionKey,
+  );
 }
 
 export async function appendCounselingDeliveryModeAudit() {

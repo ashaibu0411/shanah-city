@@ -178,10 +178,17 @@ export async function counselorAssignSelfPacedSession(
   const journey = await store().getJourneyById(journeyId);
   if (!journey) throw new Error("Journey not found.");
   await assertClinicalCounselorForJourney(viewer, journey);
-  if (!journeyUsesSelfPacedCounselingReview(journey)) {
+  const { isStage2EnrichmentSessionKey, moduleIdFromEnrichmentSessionKey } = await import(
+    "@/lib/marriage-enrichment-session-keys"
+  );
+  if (!journeyUsesSelfPacedCounselingReview(journey) && !isStage2EnrichmentSessionKey(sessionKey)) {
     throw new Error("Self-paced review is not enabled for this journey's counseling mode.");
   }
-  const assignedModuleIds = requiredModuleIdsForSession(sessionKey, moduleIds);
+  const assignedModuleIds = isStage2EnrichmentSessionKey(sessionKey)
+    ? moduleIds?.length
+      ? moduleIds
+      : [moduleIdFromEnrichmentSessionKey(sessionKey)!].filter(Boolean)
+    : requiredModuleIdsForSession(sessionKey, moduleIds);
   const now = new Date().toISOString();
   const existing = await store().getSelfPacedSessionReview(journeyId, sessionKey);
   if (existing?.workflowStatus === "approved") {
@@ -231,8 +238,13 @@ export async function syncSelfPacedReviewsAfterModuleSubmit(
   moduleId: string,
 ) {
   const journey = await store().getJourneyById(journeyId);
-  if (!journey || !journeyUsesSelfPacedCounselingReview(journey)) return;
-  const reviews = await store().listSelfPacedSessionReviewsForJourney(journeyId);
+  if (!journey) return;
+  const { isStage2EnrichmentSessionKey } = await import("@/lib/marriage-enrichment-session-keys");
+  const usesSelfPaced = journeyUsesSelfPacedCounselingReview(journey);
+  const reviews = (await store().listSelfPacedSessionReviewsForJourney(journeyId)).filter(
+    (review) => usesSelfPaced || isStage2EnrichmentSessionKey(review.sessionKey),
+  );
+  if (reviews.length === 0) return;
   for (const review of reviews) {
     if (review.workflowStatus === "approved") continue;
     if (!review.assignedModuleIds.includes(moduleId)) continue;
@@ -391,7 +403,10 @@ export async function approveSelfPacedSession(
     review.workflowStatus,
     "approved",
   );
-  await updatePremaritalSessionStatus(viewer, journeyId, sessionKey, "completed");
+  const { isStage2EnrichmentSessionKey } = await import("@/lib/marriage-enrichment-session-keys");
+  if (!isStage2EnrichmentSessionKey(sessionKey)) {
+    await updatePremaritalSessionStatus(viewer, journeyId, sessionKey, "completed");
+  }
   return next;
 }
 

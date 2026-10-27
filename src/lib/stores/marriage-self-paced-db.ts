@@ -128,6 +128,24 @@ export async function saveSelfPacedSessionReview(record: MarriageSelfPacedSessio
   return mapReview(row);
 }
 
+export async function listSelfPacedSessionAudits(journeyId: string, sessionKey: string) {
+  const rows = await prisma.marriageSelfPacedSessionAudit.findMany({
+    where: { journeyId, sessionKey },
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    journeyId: row.journeyId,
+    sessionKey: row.sessionKey,
+    action: row.action,
+    actorUserId: row.actorUserId,
+    previousStatus: row.previousStatus,
+    newStatus: row.newStatus,
+    metaJson: row.metaJson,
+    createdAt: row.createdAt.toISOString(),
+  }));
+}
+
 export async function appendSelfPacedSessionAudit(input: {
   journeyId: string;
   sessionKey: string;

@@ -408,6 +408,9 @@ export function MarriageCounselingHub() {
             </div>
 
             <div className="mt-6 grid gap-2">
+              <Link href="/marriage/feedback" className={marriagePremium.secondaryCta}>
+                My counselor&apos;s feedback
+              </Link>
               <Link href="/marriage/homework" className={marriagePremium.secondaryCta}>
                 My homework
               </Link>
