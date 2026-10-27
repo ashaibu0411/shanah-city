@@ -5,7 +5,8 @@ export type MarriagePrepNotificationAudience =
   | "counselor"
   | "counselor_proposed"
   | "senior_pastor"
-  | "assignment_admin";
+  | "assignment_admin"
+  | "pending_invitee";
 
 const COUPLE_KINDS = new Set<MarriagePrepNotificationKind>([
   "homework_released",
@@ -19,7 +20,13 @@ const COUPLE_KINDS = new Set<MarriagePrepNotificationKind>([
   "final_certificate_issued",
   "follow_up_released",
   "counselor_assigned",
+  "partner_joined",
+  "partner_consent_recorded",
+  "couple_both_consented",
+  "pastoral_readiness_ready",
 ]);
+
+const PENDING_INVITEE_KINDS = new Set<MarriagePrepNotificationKind>(["partner_invite_active"]);
 
 const COUNSELOR_KINDS = new Set<MarriagePrepNotificationKind>([
   "counselor_new_assignment",
@@ -59,6 +66,7 @@ export function audienceForMarriagePrepNotificationKind(
   kind: MarriagePrepNotificationKind,
 ): MarriagePrepNotificationAudience {
   if (COUPLE_KINDS.has(kind)) return "couple";
+  if (PENDING_INVITEE_KINDS.has(kind)) return "pending_invitee";
   if (COUNSELOR_KINDS.has(kind)) return "counselor";
   if (COUNSELOR_PROPOSED_KINDS.has(kind)) return "counselor_proposed";
   if (SENIOR_PASTOR_KINDS.has(kind)) return "senior_pastor";

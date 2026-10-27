@@ -3,6 +3,7 @@ export type MarriageCoupleOnboardingStepId =
   | "journey"
   | "link_partner"
   | "consent"
+  | "partner_consent"
   | "counselor"
   | "begin_prep";
 
@@ -12,6 +13,8 @@ export type MarriageCoupleOnboardingStep = {
   description: string;
   complete: boolean;
   current: boolean;
+  actionHref?: string;
+  actionLabel?: string;
 };
 
 export type MarriageCoupleOnboardingView = {

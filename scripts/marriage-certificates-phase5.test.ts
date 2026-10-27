@@ -61,8 +61,16 @@ assert.match(settings, /assertCertificateSettingsAdmin/, "signature settings res
 assert.match(settings, /savePrivateSignaturePng/, "private signature storage");
 
 const storage = readFileSync(join(root, "src/lib/marriage-private-storage.ts"), "utf8");
+const marriageBlob = readFileSync(join(root, "src/lib/marriage-blob.ts"), "utf8");
 assert.match(storage, /access: "private"/, "blob signatures are private");
-assert.match(storage, /assertMarriagePrivateStorageWritable/, "production requires blob config");
+assert.match(storage, /assertMarriagePrivateStorageWritable/, "production requires marriage blob config");
+assert.match(storage, /MARRIAGE_BLOB_READ_WRITE_TOKEN/, "marriage storage documents dedicated token");
+assert.match(marriageBlob, /MARRIAGE_BLOB_READ_WRITE_TOKEN/, "marriage blob uses dedicated token env");
+assert.doesNotMatch(
+  storage,
+  /process\.env\.BLOB_READ_WRITE_TOKEN/,
+  "marriage storage must not read media token env",
+);
 
 const certPage = readFileSync(join(root, "src/app/marriage/admin/certificate-settings/page.tsx"), "utf8");
 assert.match(certPage, /canManageCertificateSettings/, "certificate settings page auth");

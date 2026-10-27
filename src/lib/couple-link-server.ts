@@ -143,7 +143,10 @@ export async function respondToCoupleLink(
     if (existing) {
       throw new Error("You already have a linked spouse account.");
     }
-    return store().updateCoupleLinkStatus(linkId, "active");
+    const updated = await store().updateCoupleLinkStatus(linkId, "active");
+    const { notifyAfterCoupleLinkAccepted } = await import("@/lib/marriage-partner-join-notify");
+    void notifyAfterCoupleLinkAccepted(updated, viewer.id);
+    return updated;
   }
 
   return store().updateCoupleLinkStatus(linkId, "declined");

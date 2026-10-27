@@ -428,6 +428,17 @@ const MARRIAGE_COUNSELING_MODULES_RAW: MarriageModuleDefinition[] = [
   moduleDef("mod-13-forgiveness", "Forgiveness & Repair", "Grace, apology, and rebuilding trust.", 13, [
     q("mod-13-forgiveness", "fg-need", "Forgiveness in marriage means…", "short_answer"),
     q("mod-13-forgiveness", "fg-repair", "After hurt, repair begins with…", "long_reflection", { allowSkip: true }),
+    q("mod-13-forgiveness", "fg-apology", "A meaningful apology includes…", "multiple_choice", {
+      options: [
+        { id: "ownership", label: "Owning the hurt without excuses" },
+        { id: "change", label: "A plan to change behavior" },
+        { id: "time", label: "Patience while trust rebuilds" },
+        { id: "prayer", label: "Prayer together when appropriate" },
+      ],
+    }),
+    q("mod-13-forgiveness", "fg-boundary", "Forgiveness does not always mean immediate trust is restored.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
   ], ["premarital", "enrichment", "guided"]),
   moduleDef("mod-14-in-laws", "In-Laws & Extended Family", "Boundaries with family of origin.", 14, [
     q("mod-14-in-laws", "il-holidays", "Holiday time with extended family should be…", "single_choice", {
@@ -438,10 +449,27 @@ const MARRIAGE_COUNSELING_MODULES_RAW: MarriageModuleDefinition[] = [
         { id: "discuss", label: "Case-by-case" },
       ],
     }),
+    q("mod-14-in-laws", "il-advice", "Unsolicited advice from family should be handled by…", "preferred_response", {
+      options: [
+        { id: "together", label: "A united response from us as a couple" },
+        { id: "speaker", label: "The partner whose family it is" },
+        { id: "defer", label: "Thank them and decide privately later" },
+      ],
+    }),
+    q("mod-14-in-laws", "il-boundary", "We will protect our marriage decisions from pressure by extended family.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
   ], ["premarital", "enrichment", "guided"]),
   moduleDef("mod-15-work", "Work & Rest", "Sabbath, burnout, and ambition.", 15, [
     q("mod-15-work", "wr-rest", "Healthy rest together looks like…", "short_answer"),
     q("mod-15-work", "wr-hours", "Protecting family time from work means…", "long_reflection"),
+    q("mod-15-work", "wr-sabbath", "We will protect at least one regular rest rhythm each week.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
+    q("mod-15-work", "wr-burnout", "Signs I am approaching burnout include…", "long_reflection", {
+      visibility: "private_reflection",
+      allowSkip: true,
+    }),
   ], ["enrichment", "guided"]),
   moduleDef("mod-16-addiction", "Habits & Freedom", "Honesty about habits that affect the relationship.", 16, [
     q("mod-16-addiction", "hb-open", "We should be able to talk openly about habits that concern our relationship.", "agreement", {
@@ -452,18 +480,56 @@ const MARRIAGE_COUNSELING_MODULES_RAW: MarriageModuleDefinition[] = [
       allowSkip: true,
       sensitivity: "high",
     }),
+    q("mod-16-addiction", "hb-accountability", "If a habit is harming our trust, we will seek help together rather than hiding it.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
+    q("mod-16-addiction", "hb-support", "When I feel tempted to escape stress unhealthily, I want my partner to…", "short_answer", {
+      visibility: "private_reflection",
+      allowSkip: true,
+    }),
   ], ["guided"]),
   moduleDef("mod-17-grief", "Loss & Transitions", "Grief, moves, and major life changes.", 17, [
     q("mod-17-grief", "gr-support", "When I grieve, I need you to…", "short_answer"),
+    q("mod-17-grief", "gr-space", "During seasons of loss, I may need more space or more closeness than usual.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
+    q("mod-17-grief", "gr-transition", "Major transitions (moves, job changes) affect us differently because…", "long_reflection", {
+      allowSkip: true,
+    }),
+    q("mod-17-grief", "gr-faith", "Our faith community can support us during grief by…", "short_answer", { required: false }),
   ], ["enrichment", "guided"]),
   moduleDef("mod-18-culture", "Culture & Identity", "Background, language, and traditions.", 18, [
     q("mod-18-culture", "cu-blend", "Blending our backgrounds will require…", "long_reflection"),
+    q("mod-18-culture", "cu-traditions", "Traditions from our families we want to keep in our home include…", "long_reflection"),
+    q("mod-18-culture", "cu-language", "Language or cultural differences we should discuss openly are…", "short_answer", {
+      allowSkip: true,
+    }),
+    q("mod-18-culture", "cu-respect", "We will honor each other's heritage without forcing assimilation.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
   ], ["premarital", "enrichment"]),
   moduleDef("mod-19-covenant", "Covenant & Community", "Accountability and church community.", 19, [
     q("mod-19-covenant", "cv-mentors", "Mentors or couples we admire are…", "short_answer", { required: false }),
+    q("mod-19-covenant", "cv-accountability", "We are willing to invite trusted mentors into our marriage for accountability.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
+    q("mod-19-covenant", "cv-church", "Serving in church together should look like…", "long_reflection", { allowSkip: true }),
+    q("mod-19-covenant", "cv-conflict-help", "If we stall in conflict, we will ask for pastoral help before giving up.", "agreement", {
+      options: AGREEMENT_SCALE_OPTIONS,
+    }),
   ], ["premarital", "enrichment"]),
   moduleDef("mod-20-celebration", "Celebration & Joy", "Fun, romance, and gratitude.", 20, [
     q("mod-20-celebration", "joy-plan", "One way we will protect joy in our marriage is…", "short_answer"),
+    q("mod-20-celebration", "joy-date", "Date nights or intentional time together should happen…", "single_choice", {
+      options: [
+        { id: "weekly", label: "About weekly" },
+        { id: "biweekly", label: "Every two weeks" },
+        { id: "monthly", label: "At least monthly" },
+        { id: "seasonal", label: "Seasonal rhythms we plan together" },
+      ],
+    }),
+    q("mod-20-celebration", "joy-gratitude", "I feel most appreciated when you…", "short_answer"),
+    q("mod-20-celebration", "joy-play", "Playfulness in our relationship could grow if we…", "long_reflection", { allowSkip: true }),
   ], ["enrichment", "guided"]),
 ];
 

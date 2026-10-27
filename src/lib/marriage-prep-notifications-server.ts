@@ -17,6 +17,7 @@ import type {
   MarriagePrepNotificationListView,
   MarriagePrepUserNotificationRecord,
 } from "@/lib/marriage-prep-notification-types";
+import { getUserById } from "@/lib/auth-server";
 import { getPastoralRoleAssignments } from "@/lib/pastoral-roles-server";
 import { sendPushToUsersWithPushEnabled } from "@/lib/push-server";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
@@ -35,6 +36,21 @@ export async function getSeniorPastorUserId(): Promise<string | null> {
   const assignments = await getPastoralRoleAssignments();
   const id = assignments.seniorPastorUserId?.trim();
   return id || null;
+}
+
+async function userIsOpenInviteeForJourney(journeyId: string, userId: string): Promise<boolean> {
+  const invites = await store().listInvitesForJourney(journeyId);
+  const open = invites.find(
+    (i) =>
+      !i.revokedAt &&
+      !i.acceptedAt &&
+      new Date(i.expiresAt).getTime() > Date.now() &&
+      i.intendedEmail?.trim(),
+  );
+  if (!open?.intendedEmail) return false;
+  const user = await getUserById(userId);
+  const email = user?.email?.trim().toLowerCase();
+  return Boolean(email && email === open.intendedEmail.trim().toLowerCase());
 }
 
 async function viewerIsProposedCounselorForJourney(
@@ -101,6 +117,16 @@ async function assertRecipientsForAudience(
         throw new Error("Invalid notification recipient.");
       }
     }
+    return;
+  }
+
+  if (audience === "pending_invitee") {
+    for (const id of unique) {
+      if (!(await userIsOpenInviteeForJourney(journey.id, id))) {
+        throw new Error("Invalid notification recipient.");
+      }
+    }
+    return;
   }
 }
 
@@ -196,6 +222,11 @@ export async function assertViewerCanAccessPrepNotification(
       return;
     case "assignment_admin":
       await assertAssignmentAdminOnJourney(viewer, journey.id);
+      return;
+    case "pending_invitee":
+      if (!(await userIsOpenInviteeForJourney(journey.id, viewer.id))) {
+        throw new Error("Notification not found.");
+      }
       return;
     default:
       await assertJourneyParticipantLoose(journey, viewer.id);

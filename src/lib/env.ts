@@ -1,3 +1,4 @@
+import { isMarriageBlobConfigured } from "@/lib/marriage-blob";
 import { isBlobConfigured } from "@/lib/use-blob";
 
 const PRODUCTION_REQUIRED = [
@@ -31,6 +32,7 @@ export function validateProductionEnv() {
 export function getEnvStatus() {
   const databaseConfigured = Boolean(process.env.DATABASE_URL?.trim());
   const blobConfigured = isBlobConfigured();
+  const marriageBlobConfigured = isMarriageBlobConfigured();
   const webPushConfigured = Boolean(
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() &&
       process.env.VAPID_PRIVATE_KEY?.trim() &&
@@ -59,6 +61,7 @@ export function getEnvStatus() {
   return {
     database: { configured: databaseConfigured },
     blob: { configured: blobConfigured },
+    marriageBlob: { configured: marriageBlobConfigured },
     push: {
       configured: pushConfigured,
       web: webPushConfigured,

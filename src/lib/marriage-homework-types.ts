@@ -72,6 +72,8 @@ export type MarriageHomeworkTemplateSummary = {
   estimatedMinutes?: number;
 };
 
+export type MarriageCounselorHomeworkRowKind = "session_homework" | "legacy_module_assignment";
+
 export type MarriageCounselorHomeworkListItem = {
   id: string;
   title: string;
@@ -80,6 +82,8 @@ export type MarriageCounselorHomeworkListItem = {
   dueAt?: string;
   dueAtTimeZone?: string;
   releasedAt?: string;
+  rowKind?: MarriageCounselorHomeworkRowKind;
+  moduleId?: string;
   partnerA: { userId: string; name: string; status: MarriageHomeworkParticipantStatus };
   partnerB: { userId: string; name: string; status: MarriageHomeworkParticipantStatus };
 };

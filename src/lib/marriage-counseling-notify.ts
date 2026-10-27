@@ -5,11 +5,10 @@ import {
 } from "@/lib/marriage-prep-notifications-server";
 import { sendPushToUsersWithPushEnabled } from "@/lib/push-server";
 
+/** @deprecated Prefer notifyHostThatPartnerJoined from marriage-partner-join-notify. */
 export function notifyMarriagePartnerJoined(partnerId: string) {
-  void sendPushToUsersWithPushEnabled([partnerId], {
-    title: "Marriage journey",
-    body: "Your partner joined your counseling journey.",
-    url: "/marriage",
+  void import("@/lib/marriage-partner-join-notify").then((m) => {
+    m.notifyMarriagePartnerJoinedPush(partnerId);
   });
 }
 

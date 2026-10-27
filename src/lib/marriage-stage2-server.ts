@@ -11,7 +11,10 @@ import type {
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 import { allStage2ModuleDefinitions } from "@/lib/marriage-stage2-module-registry";
 import { buildLearningSections } from "@/lib/marriage-stage2-learning-sections";
-import { isMarriageStage2Enabled } from "@/lib/marriage-stage2-feature";
+import {
+  isMarriageStage2Enabled,
+  marriageStage2IntimacyModuleAccessible,
+} from "@/lib/marriage-stage2-feature";
 import { buildTemperamentInsights } from "@/lib/marriage-stage2-temperament-insights";
 import {
   TEMPERAMENT_SCORING_V1,
@@ -27,6 +30,10 @@ import { getActiveContentVersionLabel, getModuleForContentVersion } from "@/lib/
 import { MARRIAGE_CONSENT_VERSION } from "@/lib/marriage-counseling-curriculum";
 
 const store = () => marriageStore();
+
+function accessibleStage2ModuleDefinitions() {
+  return allStage2ModuleDefinitions().filter((mod) => marriageStage2IntimacyModuleAccessible(mod.id));
+}
 
 async function activeJourneyContext(viewer: PublicMember) {
   const journey = await store().getActiveJourneyForUser(viewer.id);
@@ -68,7 +75,7 @@ export async function buildStage2Dashboard(viewer: PublicMember): Promise<Marria
       sharedGoals: [],
       assignmentsOpen: 0,
       modulesCompleted: 0,
-      activitiesTotal: allStage2ModuleDefinitions().length,
+      activitiesTotal: accessibleStage2ModuleDefinitions().length,
       sections: buildLearningSections(),
       partnerName: null,
       programType: null,
@@ -82,7 +89,7 @@ export async function buildStage2Dashboard(viewer: PublicMember): Promise<Marria
 
   const activities = [];
   let modulesCompleted = 0;
-  for (const mod of allStage2ModuleDefinitions()) {
+  for (const mod of accessibleStage2ModuleDefinitions()) {
     const myResponse = await store().getResponse(journey.id, mod.id, viewer.id);
     const partnerResponse = partnerId
       ? await store().getResponse(journey.id, mod.id, partnerId)
@@ -142,7 +149,7 @@ export async function buildStage2Dashboard(viewer: PublicMember): Promise<Marria
     sharedGoals,
     assignmentsOpen,
     modulesCompleted,
-    activitiesTotal: allStage2ModuleDefinitions().length,
+    activitiesTotal: accessibleStage2ModuleDefinitions().length,
     sections: buildLearningSections(),
     partnerName,
     programType: journey.programType,

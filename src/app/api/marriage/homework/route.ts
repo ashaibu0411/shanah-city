@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { MARRIAGE_CONSENT_VERSION } from "@/lib/marriage-counseling-curriculum";
+import { listUnifiedCoupleHomeworkForParticipant } from "@/lib/marriage-homework-server";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
-import { listReleasedHomeworkForParticipant } from "@/lib/marriage-homework-server";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -15,7 +16,11 @@ export async function GET() {
     if (!active) {
       return NextResponse.json({ journeyId: null, items: [] });
     }
-    const items = await listReleasedHomeworkForParticipant(user, active.id);
+    const consents = await marriageStore().getConsentsForJourney(active.id);
+    const myConsent = consents.some(
+      (c) => c.userId === user.id && c.consentVersion === MARRIAGE_CONSENT_VERSION,
+    );
+    const items = await listUnifiedCoupleHomeworkForParticipant(user, active, { myConsent });
     return NextResponse.json(
       { journeyId: active.id, items },
       { headers: { "Cache-Control": "private, no-store" } },

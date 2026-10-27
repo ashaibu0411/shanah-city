@@ -18,8 +18,13 @@ assert.match(kinds, /counselor_new_assignment/, "counselor kinds");
 assert.match(server, /viewerIsProposedCounselorForJourney/, "proposed counselor access gate");
 assert.match(kinds, /sp_assignment_pending/, "senior pastor kinds");
 assert.match(kinds, /admin_coordinator_assigned/, "admin kinds");
+assert.match(kinds, /pending_invitee/, "invitee audience for partner invite");
+assert.match(kinds, /couple_both_consented/, "both-partners consent couple notify");
 
 const triggers = readFileSync(join(root, "src/lib/marriage-prep-notification-triggers.ts"), "utf8");
+assert.match(triggers, /notifyHostPartnerJoined/, "partner joined in-app notify");
+assert.match(triggers, /notifyPartnerIndividualConsentRecorded/, "individual consent notify");
+assert.match(triggers, /notifyIntendedPartnerInviteActive/, "invite notify for intended member");
 assert.match(triggers, /notifyCoupleAndCounselorAssignmentActivated/, "assignment activation notify");
 assert.match(triggers, /notifyCounselorHomeworkSubmitted/, "homework submission routing");
 assert.match(triggers, /counselor_appointment_upcoming/, "counselor upcoming appointment kind");

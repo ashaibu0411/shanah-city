@@ -21,7 +21,6 @@ import { attachDiscussionToComparisonItems } from "@/lib/marriage-discussion-uti
 import { validateBudgetAnswer } from "@/lib/marriage-budget-utils";
 import {
   notifyMarriageComparisonReady,
-  notifyMarriagePartnerJoined,
   notifyMarriagePartnerSubmitted,
 } from "@/lib/marriage-counseling-notify";
 import type {
@@ -141,9 +140,14 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
         moduleId: a.moduleId,
       }));
 
-    if (partnerJoined) {
-      const { listReleasedHomeworkForParticipant } = await import("@/lib/marriage-homework-server");
-      sessionHomework = await listReleasedHomeworkForParticipant(viewer, journey.id);
+    if (myConsent) {
+      const { listUnifiedCoupleHomeworkForParticipant } = await import(
+        "@/lib/marriage-homework-server"
+      );
+      sessionHomework = await listUnifiedCoupleHomeworkForParticipant(viewer, journey, {
+        myConsent: true,
+      });
+      upcomingHomework = [];
     }
   }
 
@@ -174,7 +178,9 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     const { PREMARITAL_PROGRAM_SESSIONS } = await import(
       "@/lib/marriage-premarital-eight-session-program"
     );
-    premaritalAppointments = await buildCoupleAppointmentViews(viewer, journey.id);
+    if (partnerJoined) {
+      premaritalAppointments = await buildCoupleAppointmentViews(viewer, journey.id);
+    }
     const cancelled = (await listAllJourneySessions(journey.id)).filter(
       (s) => s.status === "cancelled" && s.premaritalSessionKey,
     );
@@ -217,6 +223,8 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
   }
 
   const { buildCoupleOnboardingView } = await import("@/lib/marriage-couple-onboarding-server");
+  const firstOpenModuleId =
+    modules.find((m) => m.myStatus !== "submitted")?.moduleId ?? modules[0]?.moduleId ?? null;
   const coupleOnboarding = buildCoupleOnboardingView({
     signedIn: true,
     coupleLinkActive,
@@ -225,6 +233,8 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     myConsent,
     partnerConsent,
     counselorSummary,
+    pendingInviteCode: Boolean(pendingInviteCode),
+    firstOpenModuleId,
   });
 
   return {
@@ -318,16 +328,14 @@ export async function startMarriageJourney(viewer: PublicMember, programType: Ma
     consentedAt: new Date().toISOString(),
   });
 
-  const partnerId = partnerIdFromLink(link, viewer.id);
-  if (partnerId) notifyMarriagePartnerJoined(partnerId);
-
   return journey;
 }
 
 export async function recordMarriageConsent(viewer: PublicMember, journeyId: string) {
   const journey = await store().getJourneyById(journeyId);
   if (!journey) throw new Error("Journey not found.");
-  await assertJourneyParticipant(journey, viewer.id);
+  const { assertJourneyParticipantLoose } = await import("@/lib/marriage-counseling-access");
+  await assertJourneyParticipantLoose(journey, viewer.id);
   await store().upsertConsent({
     journeyId,
     userId: viewer.id,
@@ -341,6 +349,13 @@ export async function recordMarriageConsent(viewer: PublicMember, journeyId: str
   const { checkBothPartnersConsentedAndNotifyCounselor } = await import(
     "@/lib/marriage-prep-notification-triggers"
   );
+  const refreshed = await store().getJourneyById(journeyId);
+  if (refreshed) {
+    const { notifyPartnerIndividualConsentRecorded } = await import(
+      "@/lib/marriage-prep-notification-triggers"
+    );
+    void notifyPartnerIndividualConsentRecorded(refreshed, viewer.id);
+  }
   void checkBothPartnersConsentedAndNotifyCounselor(journeyId);
   return { ok: true };
 }
