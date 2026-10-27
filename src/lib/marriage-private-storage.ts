@@ -2,7 +2,10 @@ import { randomUUID } from "crypto";
 import { mkdir, readFile, unlink, writeFile } from "fs/promises";
 import path from "path";
 import { del, get, put } from "@vercel/blob";
-import { isBlobConfigured } from "@/lib/use-blob";
+import {
+  isMarriageBlobConfigured,
+  marriageBlobRequestOptions,
+} from "@/lib/marriage-blob";
 
 /** Logical refs only — never expose blob URLs to clients or logs. */
 export const PRIVATE_BLOB_REF_PREFIX = "private://blob/";
@@ -26,14 +29,15 @@ export function isProductionMarriageStorageContext() {
 
 /** True when signature / issued PDF writes are allowed in this environment. */
 export function isMarriagePrivateStorageWritable() {
-  if (isBlobConfigured()) return true;
+  if (isMarriageBlobConfigured()) return true;
   return !isProductionMarriageStorageContext();
 }
 
 export function marriagePrivateStorageConfigHint() {
   return (
-    "Configure BLOB_READ_WRITE_TOKEN on Vercel (Vercel Blob store with read-write token). " +
-    "Signature and issued certificate files are stored with private access and retrieved only via authenticated server routes."
+    "Configure MARRIAGE_BLOB_READ_WRITE_TOKEN on Vercel (dedicated Private Blob store for Marriage Prep, read-write token). " +
+    "When the project also sets BLOB_STORE_ID for public media, set MARRIAGE_BLOB_STORE_ID to the marriage store id. " +
+    "Signature and issued certificate files use private access and are retrieved only via authenticated server routes."
   );
 }
 
@@ -87,13 +91,21 @@ async function streamToBuffer(stream: ReadableStream<Uint8Array>) {
   return Buffer.concat(chunks);
 }
 
+function marriageBlobAuthOptions() {
+  const auth = marriageBlobRequestOptions();
+  if (!auth) return null;
+  return auth;
+}
+
 export async function savePrivateMarriagePngSignature(bytes: Buffer) {
   validatePngSignatureBytes(bytes, 2 * 1024 * 1024);
   assertMarriagePrivateStorageWritable();
 
-  if (isBlobConfigured()) {
+  const blobAuth = marriageBlobAuthOptions();
+  if (blobAuth) {
     const pathname = `marriage/private/signatures/${randomUUID()}.png`;
     await put(pathname, bytes, {
+      ...blobAuth,
       access: "private",
       contentType: "image/png",
       addRandomSuffix: false,
@@ -114,9 +126,11 @@ export async function savePrivateIssuedFinalCertificatePdf(certificateId: string
   if (bytes.length > 8 * 1024 * 1024) throw new Error("Issued certificate PDF is too large.");
   assertMarriagePrivateStorageWritable();
 
-  if (isBlobConfigured()) {
+  const blobAuth = marriageBlobAuthOptions();
+  if (blobAuth) {
     const pathname = `marriage/private/certificates/final/${certificateId}.pdf`;
     await put(pathname, bytes, {
+      ...blobAuth,
       access: "private",
       contentType: "application/pdf",
       addRandomSuffix: false,
@@ -145,9 +159,14 @@ export async function readPrivateMarriageAssetBytes(assetPath: string | null | u
 
   const blobPath = blobPathnameFromRef(assetPath);
   if (blobPath) {
-    if (!isBlobConfigured()) return null;
+    const blobAuth = marriageBlobAuthOptions();
+    if (!blobAuth) return null;
     try {
-      const result = await get(blobPath, { access: "private", useCache: false });
+      const result = await get(blobPath, {
+        ...blobAuth,
+        access: "private",
+        useCache: false,
+      });
       if (!result || result.statusCode !== 200 || !result.stream) return null;
       return await streamToBuffer(result.stream);
     } catch {
@@ -184,9 +203,10 @@ export async function deletePrivateMarriageAsset(assetPath: string | null | unde
 
   const blobPath = blobPathnameFromRef(assetPath);
   if (blobPath) {
-    if (!isBlobConfigured()) return;
+    const blobAuth = marriageBlobAuthOptions();
+    if (!blobAuth) return;
     try {
-      await del(blobPath);
+      await del(blobPath, blobAuth);
     } catch {
       /* gone */
     }
