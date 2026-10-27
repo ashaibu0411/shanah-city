@@ -88,10 +88,14 @@ test.describe("Phase C staging acceptance (API + hub)", () => {
     expect(msg.length).toBeGreaterThan(0);
   });
 
-  test("stranger cannot access counselor journey APIs", async ({ context }) => {
+  test("stranger cannot access counselor APIs", async ({ context }) => {
     expect(await applyCookie(context, "stranger")).toBe(true);
-    const res = await context.request.get("/api/marriage/counselor/journeys");
-    expect(res.status()).toBe(403);
+    const dashboard = await context.request.get("/api/marriage/counselor");
+    expect(dashboard.status()).toBe(403);
+    const detail = await context.request.get(
+      "/api/marriage/counselor/journey/mj-1792881982047-oe7cmu",
+    );
+    expect(detail.status()).toBe(403);
   });
 
   test("eight-session premarital program structure on hub", async ({ context }) => {
