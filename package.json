@@ -58,6 +58,8 @@
     "test:marriage:partner-notifications": "tsx scripts/marriage-partner-notifications.test.ts",
     "test:marriage:counselor-homework-unified": "tsx scripts/marriage-counselor-homework-unified.test.ts",
     "test:marriage:verify": "node scripts/_run-verify.mjs",
+    "test:marriage:staging:phasec": "playwright test -c playwright.staging.phasec.config.ts",
+    "test:marriage:staging:api": "node scripts/_staging-marriage-phasec-api.mjs",
     "test:app:nav": "tsx scripts/app-nav-items.test.ts",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
