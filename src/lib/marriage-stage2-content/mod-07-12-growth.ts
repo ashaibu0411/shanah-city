@@ -23,6 +23,14 @@ function growthModule(
     "private_reflection",
     { lessonId: `${id}-l02`, allowSkip: true },
   );
+  const growthStep = q(
+    id,
+    `${id}-growth-step`,
+    "Name one concrete habit you will practice together in the next two weeks.",
+    "long_reflection",
+    "shared_after_both_submit",
+    { lessonId: `${id}-l03` },
+  );
   const sharedAgreement = q(
     id,
     `${id}-shared-agree`,
@@ -38,7 +46,7 @@ function growthModule(
     sortOrder,
     programTypes: ["premarital", "enrichment", "guided"],
     lessons,
-    questions: [...bank, privateReflection, sharedAgreement],
+    questions: [...bank, privateReflection, growthStep, sharedAgreement],
     meta: {
       stage2Section: section,
       activityKind: "agreement_builder",

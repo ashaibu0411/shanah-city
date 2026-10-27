@@ -35,6 +35,12 @@ import {
   totalWritableQuestions,
   countAnsweredQuestions,
 } from "@/lib/marriage-homework-status";
+import {
+  homeworkBlocksSessionApproval,
+  normalizeHomeworkReviewStatus,
+  partnerMayEditHomeworkAnswers,
+} from "@/lib/marriage-homework-review";
+import type { MarriageHomeworkCounselorReviewStatus } from "@/lib/marriage-homework-types";
 import { normalizeAssignmentDueAtInput } from "@/lib/marriage-session-scheduling";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
@@ -318,6 +324,9 @@ export async function reopenSessionHomework(viewer: PublicMember, homeworkId: st
       ...response,
       submittedAt: undefined,
       lastSavedAt: now,
+      reviewStatus: "assigned",
+      revisionNote: null,
+      reviewedAt: null,
     });
   }
   const updated: MarriageSessionHomeworkRecord = {
@@ -354,6 +363,9 @@ export async function getCounselorHomeworkDetail(viewer: PublicMember, homeworkI
         submittedAt: response?.submittedAt,
         answers: response?.answers ?? {},
         feedback: homework.partnerFeedback?.[userId],
+        reviewStatus: normalizeHomeworkReviewStatus(response?.reviewStatus),
+        revisionNote: response?.revisionNote ?? null,
+        reviewedAt: response?.reviewedAt ?? null,
       });
     }
   }
@@ -387,6 +399,10 @@ export async function listReleasedHomeworkForParticipant(viewer: PublicMember, j
     const response = await store().getSessionHomeworkResponse(hw.id, viewer.id);
     const status = participantHomeworkStatus({ homework: hw, response, nowMs: now });
     const timing = homeworkTemplateMeta(hw.templateKey);
+    const reviewStatus = normalizeHomeworkReviewStatus(response?.reviewStatus);
+    const actionRequired =
+      reviewStatus === "revision_requested" ||
+      (!response?.submittedAt && status !== "not_started");
     views.push({
       id: hw.id,
       title: hw.title,
@@ -394,6 +410,10 @@ export async function listReleasedHomeworkForParticipant(viewer: PublicMember, j
       dueAtTimeZone: hw.dueAtTimeZone,
       status,
       submitted: Boolean(response?.submittedAt),
+      counselorReviewStatus: reviewStatus,
+      revisionNote:
+        reviewStatus === "revision_requested" ? (response?.revisionNote?.trim() || undefined) : undefined,
+      actionRequired,
       hasCounselorFeedback: Boolean(hw.partnerFeedback?.[viewer.id]?.trim()),
       activityCount: hw.activities.length,
       templateKey: hw.templateKey,
@@ -446,7 +466,10 @@ export async function getParticipantHomeworkWorkspace(viewer: PublicMember, home
       userId: viewer.id,
       answers: {},
       lastSavedAt: new Date().toISOString(),
+      reviewStatus: "assigned",
     };
+  const reviewStatus = normalizeHomeworkReviewStatus(response.reviewStatus);
+  const canEdit = partnerMayEditHomeworkAnswers({ homework, response });
   const total = totalWritableQuestions(homework.activities);
   const answered = countAnsweredQuestions(homework.activities, response.answers);
   const timing = homeworkTemplateMeta(homework.templateKey);
@@ -468,10 +491,14 @@ export async function getParticipantHomeworkWorkspace(viewer: PublicMember, home
       answers: response.answers,
       lastSavedAt: response.lastSavedAt,
       submittedAt: response.submittedAt,
+      reviewStatus,
+      revisionNote: response.revisionNote ?? null,
     },
     progress: { answered, total },
     status: participantHomeworkStatus({ homework, response }),
     counselorFeedback: homework.partnerFeedback?.[viewer.id],
+    canEdit,
+    actionRequired: reviewStatus === "revision_requested",
   };
 }
 
@@ -497,15 +524,8 @@ export async function saveParticipantHomeworkDraft(
   if (!journey) throw new Error("Journey not found.");
   await assertParticipantHomeworkAccess(viewer, journey, homework);
   const existing = await store().getSessionHomeworkResponse(homeworkId, viewer.id);
-  if (existing?.submittedAt && !homework.reopenedAt) {
+  if (existing && !partnerMayEditHomeworkAnswers({ homework, response: existing })) {
     throw new Error("Homework already submitted.");
-  }
-  if (existing?.submittedAt && homework.reopenedAt) {
-    const reopenedMs = new Date(homework.reopenedAt).getTime();
-    const submittedMs = new Date(existing.submittedAt).getTime();
-    if (submittedMs > reopenedMs) {
-      throw new Error("Homework already submitted.");
-    }
   }
   const allowedKeys = new Set<string>();
   for (const activity of homework.activities) {
@@ -519,12 +539,15 @@ export async function saveParticipantHomeworkDraft(
     merged[key] = String(value ?? "");
   }
   const now = new Date().toISOString();
-  const record = {
+  const record: MarriageSessionHomeworkResponseRecord = {
     homeworkId,
     userId: viewer.id,
     answers: merged,
     lastSavedAt: now,
     submittedAt: existing?.submittedAt,
+    reviewStatus: normalizeHomeworkReviewStatus(existing?.reviewStatus),
+    revisionNote: existing?.revisionNote ?? null,
+    reviewedAt: existing?.reviewedAt ?? null,
   };
   await store().saveSessionHomeworkResponse(record);
   return { lastSavedAt: now, progress: { answered: countAnsweredQuestions(homework.activities, merged), total: totalWritableQuestions(homework.activities) } };
@@ -543,27 +566,112 @@ export async function submitParticipantHomework(viewer: PublicMember, homeworkId
   if (!homeworkIsCompleteForSubmit(homework.activities, answers)) {
     throw new Error("Please answer all reflection questions before submitting.");
   }
-  if (existing?.submittedAt && homework.reopenedAt) {
-    const reopenedMs = new Date(homework.reopenedAt).getTime();
-    const submittedMs = new Date(existing.submittedAt).getTime();
-    if (submittedMs > reopenedMs) {
-      throw new Error("Already submitted.");
-    }
-  } else if (existing?.submittedAt) {
+  const priorStatus = normalizeHomeworkReviewStatus(existing?.reviewStatus);
+  const isResubmit = Boolean(existing?.submittedAt) && priorStatus === "revision_requested";
+  if (existing?.submittedAt && !isResubmit && !partnerMayEditHomeworkAnswers({ homework, response: existing })) {
     throw new Error("Already submitted.");
   }
   const now = new Date().toISOString();
+  const nextReviewStatus: MarriageHomeworkCounselorReviewStatus = isResubmit ? "resubmitted" : "submitted";
   await store().saveSessionHomeworkResponse({
     homeworkId,
     userId: viewer.id,
     answers,
     lastSavedAt: now,
     submittedAt: now,
+    reviewStatus: nextReviewStatus,
+    revisionNote: isResubmit ? existing?.revisionNote ?? null : null,
+    reviewedAt: null,
   });
-  const { notifyCounselorHomeworkSubmitted, notifyCounselorHomeworkReviewPending } = await import(
+  const { notifyCounselorHomeworkSubmitted, notifyCounselorHomeworkReviewPending, notifyCounselorHomeworkResubmitted } =
+    await import("@/lib/marriage-prep-notification-triggers");
+  if (isResubmit) {
+    void notifyCounselorHomeworkResubmitted(journey, homeworkId, viewer.id);
+  } else {
+    void notifyCounselorHomeworkSubmitted(journey, homeworkId, viewer.id);
+    void notifyCounselorHomeworkReviewPending(journey, homeworkId, viewer.id);
+  }
+  return { submittedAt: now, reviewStatus: nextReviewStatus };
+}
+
+export async function assertSelfPacedSessionHomeworkApproved(journeyId: string, sessionKey: string) {
+  const journey = await store().getJourneyById(journeyId);
+  if (!journey?.participantAId || !journey.participantBId) return;
+  const rows = await store().listSessionHomeworkForJourney(journeyId);
+  const linked = rows.filter((h) => h.status === "released" && h.sessionId === sessionKey);
+  for (const hw of linked) {
+    const responses = await store().listSessionHomeworkResponses(hw.id);
+    const blocker = homeworkBlocksSessionApproval(
+      hw,
+      responses,
+      journey.participantAId,
+      journey.participantBId,
+    );
+    if (blocker) throw new Error(blocker);
+  }
+}
+
+export async function counselorRequestHomeworkRevision(
+  viewer: PublicMember,
+  homeworkId: string,
+  partnerUserId: string,
+  revisionNote: string,
+) {
+  const homework = await store().getSessionHomeworkById(homeworkId);
+  if (!homework) throw new Error("Homework not found.");
+  const journey = await store().getJourneyById(homework.journeyId);
+  if (!journey) throw new Error("Journey not found.");
+  await assertHomeworkManager(viewer, journey);
+  const note = revisionNote.trim();
+  if (!note) throw new Error("Describe what needs to be revised.");
+  const [aId, bId] = await partnerIds(journey);
+  if (partnerUserId !== aId && partnerUserId !== bId) {
+    throw new Error("Invalid partner for this homework.");
+  }
+  const response = await store().getSessionHomeworkResponse(homeworkId, partnerUserId);
+  if (!response?.submittedAt) throw new Error("Partner has not submitted this homework yet.");
+  const status = normalizeHomeworkReviewStatus(response.reviewStatus);
+  if (status === "approved") throw new Error("Homework is already approved.");
+  const now = new Date().toISOString();
+  await store().saveSessionHomeworkResponse({
+    ...response,
+    reviewStatus: "revision_requested",
+    revisionNote: note,
+    reviewedAt: now,
+  });
+  const { notifyCoupleHomeworkRevisionRequested } = await import(
     "@/lib/marriage-prep-notification-triggers"
   );
-  void notifyCounselorHomeworkSubmitted(journey, homeworkId, viewer.id);
-  void notifyCounselorHomeworkReviewPending(journey, homeworkId, viewer.id);
-  return { submittedAt: now };
+  void notifyCoupleHomeworkRevisionRequested(journey, homeworkId, partnerUserId);
+  return { ok: true as const, reviewStatus: "revision_requested" as const };
+}
+
+export async function counselorApproveHomeworkSubmission(
+  viewer: PublicMember,
+  homeworkId: string,
+  partnerUserId: string,
+) {
+  const homework = await store().getSessionHomeworkById(homeworkId);
+  if (!homework) throw new Error("Homework not found.");
+  const journey = await store().getJourneyById(homework.journeyId);
+  if (!journey) throw new Error("Journey not found.");
+  await assertHomeworkManager(viewer, journey);
+  const [aId, bId] = await partnerIds(journey);
+  if (partnerUserId !== aId && partnerUserId !== bId) {
+    throw new Error("Invalid partner for this homework.");
+  }
+  const response = await store().getSessionHomeworkResponse(homeworkId, partnerUserId);
+  if (!response?.submittedAt) throw new Error("Partner has not submitted this homework yet.");
+  const status = normalizeHomeworkReviewStatus(response.reviewStatus);
+  if (status === "approved") return { ok: true as const, reviewStatus: "approved" as const };
+  if (status !== "submitted" && status !== "resubmitted") {
+    throw new Error("Approve only after the partner submits or resubmits homework.");
+  }
+  const now = new Date().toISOString();
+  await store().saveSessionHomeworkResponse({
+    ...response,
+    reviewStatus: "approved",
+    reviewedAt: now,
+  });
+  return { ok: true as const, reviewStatus: "approved" as const };
 }

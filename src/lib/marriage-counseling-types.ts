@@ -129,6 +129,12 @@ export type MarriageJournalKind =
 
 export type MarriageJourneyPairingMode = "spouse_link" | "journey_invite";
 
+export type MarriageCounselingDeliveryMode =
+  | "IN_PERSON"
+  | "VIRTUAL"
+  | "SELF_PACED"
+  | "HYBRID";
+
 export type MarriageCounselingJourneyRecord = {
   id: string;
   /** Legacy spouse-link journeys; empty for invite-only premarital pairs. */
@@ -137,6 +143,8 @@ export type MarriageCounselingJourneyRecord = {
   status: MarriageJourneyStatus;
   currentModuleId: string | null;
   counselorUserId: string | null;
+  /** Null = legacy default (appointment/clinical completion). */
+  counselingDeliveryMode?: MarriageCounselingDeliveryMode | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -733,6 +741,9 @@ export type MarriageHubSessionHomeworkView = {
   dueAtTimeZone?: string;
   status: "not_started" | "in_progress" | "submitted" | "overdue";
   submitted: boolean;
+  counselorReviewStatus?: import("@/lib/marriage-homework-types").MarriageHomeworkCounselorReviewStatus;
+  revisionNote?: string;
+  actionRequired?: boolean;
   hasCounselorFeedback?: boolean;
   activityCount: number;
   timingLabel?: string;
@@ -773,4 +784,17 @@ export type MarriageHubSummary = {
   certificatesGallery?: import("@/lib/marriage-certificate-types").MarriageCoupleCertificatesGalleryView;
   prepNotificationUnreadCount?: number;
   stage2?: MarriageStage2Dashboard;
+  counselingExperience?: {
+    deliveryMode: import("@/lib/marriage-counseling-delivery-mode").MarriageCounselingDeliveryMode | null;
+    deliveryModeLabel: string;
+    canChangeDeliveryMode: boolean;
+    selfPacedDisclaimer?: string;
+    selfPacedSessions: Array<{
+      sessionKey: string;
+      workflowStatus: string;
+      readyForReviewAt?: string | null;
+      feedbackPublishedAt?: string | null;
+      approvedAt?: string | null;
+    }>;
+  };
 };

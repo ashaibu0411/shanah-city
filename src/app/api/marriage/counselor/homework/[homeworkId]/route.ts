@@ -6,6 +6,8 @@ import {
   counselorRouteErrorStatus,
 } from "@/lib/marriage-counselor-api-security";
 import {
+  counselorApproveHomeworkSubmission,
+  counselorRequestHomeworkRevision,
   getCounselorHomeworkDetail,
   releaseSessionHomework,
   reopenSessionHomework,
@@ -51,6 +53,23 @@ export async function PATCH(request: Request, { params }: Params) {
     if (action === "reopen") {
       const homework = await reopenSessionHomework(user, homeworkId);
       return NextResponse.json({ ok: true, homework });
+    }
+    if (action === "request_revision") {
+      const result = await counselorRequestHomeworkRevision(
+        user,
+        homeworkId,
+        String(body.partnerUserId ?? ""),
+        String(body.revisionNote ?? ""),
+      );
+      return NextResponse.json(result);
+    }
+    if (action === "approve_submission") {
+      const result = await counselorApproveHomeworkSubmission(
+        user,
+        homeworkId,
+        String(body.partnerUserId ?? ""),
+      );
+      return NextResponse.json(result);
     }
     const homework = await updateSessionHomeworkDraft(user, homeworkId, {
       title: body.title !== undefined ? String(body.title) : undefined,

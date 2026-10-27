@@ -237,6 +237,12 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     firstOpenModuleId,
   });
 
+  let counselingExperience: MarriageHubSummary["counselingExperience"];
+  if (journey && myConsent) {
+    const { buildCoupleCounselingExperienceView } = await import("@/lib/marriage-self-paced-server");
+    counselingExperience = await buildCoupleCounselingExperienceView(viewer, journey, { myConsent });
+  }
+
   return {
     viewerId: viewer.id,
     journey,
@@ -267,6 +273,7 @@ export async function getMarriageHubSummary(viewer: PublicMember): Promise<Marri
     certificatesGallery,
     prepNotificationUnreadCount,
     stage2: stage2 ?? undefined,
+    counselingExperience,
   };
 }
 
@@ -525,6 +532,9 @@ export async function submitAssessment(viewer: PublicMember, moduleId: string) {
       [viewer.id, partnerId],
     );
   }
+
+  const { syncSelfPacedReviewsAfterModuleSubmit } = await import("@/lib/marriage-self-paced-server");
+  await syncSelfPacedReviewsAfterModuleSubmit(assessment.journeyId, moduleId);
 
   return { submittedAt: now };
 }

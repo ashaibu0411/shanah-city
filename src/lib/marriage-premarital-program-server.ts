@@ -312,6 +312,10 @@ export async function updatePremaritalSessionStatus(
   if (!journey) throw new Error("Journey not found.");
   await assertClinicalCounselorForJourney(viewer, journey);
   if (!getPremaritalSessionDefinition(sessionKey)) throw new Error("Unknown session.");
+  if (status === "completed") {
+    const { assertPremaritalCompletionAllowed } = await import("@/lib/marriage-self-paced-server");
+    await assertPremaritalCompletionAllowed(viewer, journeyId, sessionKey, "completed");
+  }
   await ensurePremaritalProgramSessions(journeyId);
 
   const existing =

@@ -21,6 +21,7 @@ import { marriageHubShowsCounselorAssignmentsNav } from "@/lib/marriage-counselo
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 import { MarriageCoupleHubDashboard } from "@/components/marriage/MarriageCoupleHubDashboard";
 import { MarriageCoupleOnboardingSteps } from "@/components/marriage/MarriageCoupleOnboardingSteps";
+import { MarriageCoupleCounselingModePanel } from "@/components/marriage/MarriageCoupleCounselingModePanel";
 
 function statusLabel(mod: MarriageHubSummary["modules"][0]) {
   if (mod.comparisonReady) return "Compare ready";
@@ -349,6 +350,14 @@ export function MarriageCounselingHub() {
               hub={hub}
               continueModuleHref={continueModule ? `/marriage/module/${continueModule.moduleId}` : null}
             />
+
+            {hub.counselingExperience ? (
+              <MarriageCoupleCounselingModePanel
+                journeyId={journey.id}
+                experience={hub.counselingExperience}
+                onUpdated={() => void load()}
+              />
+            ) : null}
 
             {hub.counselorSummary && hub.counselorSummary.status !== "none" && hub.counselorSummary.status !== "assigned" ? (
               <p className={`${marriagePremium.cardMuted} mt-2 px-1 text-sm`}>

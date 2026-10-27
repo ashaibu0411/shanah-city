@@ -24,6 +24,8 @@ const COUPLE_KINDS = new Set<MarriagePrepNotificationKind>([
   "partner_consent_recorded",
   "couple_both_consented",
   "pastoral_readiness_ready",
+  "couple_self_paced_feedback",
+  "couple_homework_revision_requested",
 ]);
 
 const PENDING_INVITEE_KINDS = new Set<MarriagePrepNotificationKind>(["partner_invite_active"]);
@@ -41,6 +43,8 @@ const COUNSELOR_KINDS = new Set<MarriagePrepNotificationKind>([
   "counselor_attendance_missing",
   "counselor_homework_review_pending",
   "counselor_eight_session_closeout",
+  "counselor_self_paced_ready",
+  "counselor_homework_resubmitted",
 ]);
 
 const COUNSELOR_PROPOSED_KINDS = new Set<MarriagePrepNotificationKind>([

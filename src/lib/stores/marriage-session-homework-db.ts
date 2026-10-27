@@ -118,6 +118,9 @@ export async function listSessionHomeworkResponses(homeworkId: string) {
       answers: JSON.parse(r.answersJson) as Record<string, string>,
       lastSavedAt: r.lastSavedAt.toISOString(),
       submittedAt: r.submittedAt?.toISOString(),
+      reviewStatus: (r.reviewStatus ?? "assigned") as MarriageSessionHomeworkResponseRecord["reviewStatus"],
+      revisionNote: r.revisionNote,
+      reviewedAt: r.reviewedAt?.toISOString() ?? null,
     }),
   );
 }
@@ -133,6 +136,9 @@ export async function getSessionHomeworkResponse(homeworkId: string, userId: str
     answers: JSON.parse(r.answersJson) as Record<string, string>,
     lastSavedAt: r.lastSavedAt.toISOString(),
     submittedAt: r.submittedAt?.toISOString(),
+    reviewStatus: (r.reviewStatus ?? "assigned") as MarriageSessionHomeworkResponseRecord["reviewStatus"],
+    revisionNote: r.revisionNote,
+    reviewedAt: r.reviewedAt?.toISOString() ?? null,
   };
 }
 
@@ -145,11 +151,17 @@ export async function saveSessionHomeworkResponse(record: MarriageSessionHomewor
       answersJson: JSON.stringify(record.answers),
       lastSavedAt: new Date(record.lastSavedAt),
       submittedAt: record.submittedAt ? new Date(record.submittedAt) : null,
+      reviewStatus: record.reviewStatus ?? "assigned",
+      revisionNote: record.revisionNote ?? null,
+      reviewedAt: record.reviewedAt ? new Date(record.reviewedAt) : null,
     },
     update: {
       answersJson: JSON.stringify(record.answers),
       lastSavedAt: new Date(record.lastSavedAt),
       submittedAt: record.submittedAt ? new Date(record.submittedAt) : null,
+      reviewStatus: record.reviewStatus ?? "assigned",
+      revisionNote: record.revisionNote ?? null,
+      reviewedAt: record.reviewedAt ? new Date(record.reviewedAt) : null,
     },
   });
   return record;

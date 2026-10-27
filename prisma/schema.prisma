@@ -1442,6 +1442,8 @@ model MarriageCounselingJourney {
   status                 String    @default("active")
   currentModuleId        String?
   counselorUserId        String?
+  /// IN_PERSON | VIRTUAL | SELF_PACED | HYBRID — null preserves legacy behavior.
+  counselingDeliveryMode String?
   createdBy              String
   createdAt              DateTime
   updatedAt              DateTime
@@ -1459,6 +1461,68 @@ model MarriageCounselingJourney {
   @@index([status])
   @@index([participantAId])
   @@index([participantBId])
+  @@index([counselingDeliveryMode])
+}
+
+/// Counselor-led self-paced premarital session review (one row per journey + sessionKey).
+model MarriageSelfPacedSessionReview {
+  id                    String    @id
+  journeyId             String
+  sessionKey              String
+  assignedModuleIdsJson String
+  workflowStatus        String
+  assignedByUserId      String
+  assignedAt            DateTime
+  readyForReviewAt      DateTime?
+  feedbackDraftJson     String?
+  feedbackPublishedJson String?
+  feedbackPublishedAt   DateTime?
+  approvedAt            DateTime?
+  approvedByUserId      String?
+  pastoralFollowUpAt    DateTime?
+  updatedAt             DateTime
+
+  @@unique([journeyId, sessionKey])
+  @@index([journeyId, workflowStatus])
+  @@index([workflowStatus])
+}
+
+model MarriageSessionClarificationMessage {
+  id              String   @id
+  journeyId       String
+  sessionKey      String
+  authorUserId    String
+  authorRole      String
+  body            String
+  createdAt       DateTime
+
+  @@index([journeyId, sessionKey, createdAt])
+}
+
+model MarriageCounselingDeliveryModeAudit {
+  id            String   @id
+  journeyId     String
+  previousMode  String?
+  newMode       String
+  actorUserId   String
+  note          String?
+  createdAt     DateTime
+
+  @@index([journeyId, createdAt])
+}
+
+model MarriageSelfPacedSessionAudit {
+  id            String   @id
+  journeyId     String
+  sessionKey    String
+  action        String
+  actorUserId   String
+  previousStatus String?
+  newStatus     String?
+  metaJson      String?
+  createdAt     DateTime
+
+  @@index([journeyId, sessionKey, createdAt])
 }
 
 model MarriageJourneyConsent {
@@ -1575,14 +1639,19 @@ model MarriageSessionHomework {
 }
 
 model MarriageSessionHomeworkResponse {
-  homeworkId   String
-  userId       String
-  answersJson  String   @default("{}")
-  lastSavedAt  DateTime
-  submittedAt  DateTime?
+  homeworkId     String
+  userId         String
+  answersJson    String   @default("{}")
+  lastSavedAt    DateTime
+  submittedAt    DateTime?
+  /// assigned | submitted | revision_requested | resubmitted | approved
+  reviewStatus   String   @default("assigned")
+  revisionNote   String?
+  reviewedAt     DateTime?
 
   @@id([homeworkId, userId])
   @@index([homeworkId])
+  @@index([reviewStatus])
 }
 
 model MarriageCounselorAssignmentRequest {

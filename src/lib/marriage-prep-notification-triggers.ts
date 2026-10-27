@@ -361,6 +361,47 @@ export async function notifyCounselorHomeworkReviewPending(
   });
 }
 
+export async function notifyCounselorHomeworkResubmitted(
+  journey: MarriageCounselingJourneyRecord,
+  homeworkId: string,
+  partnerUserId: string,
+) {
+  const counselorId = journey.counselorUserId?.trim();
+  if (!counselorId) return { created: 0 };
+
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: [counselorId],
+    audience: "counselor",
+    kind: "counselor_homework_resubmitted",
+    referenceKey: `${homeworkId}:${partnerUserId}`,
+    title: "Homework resubmitted",
+    body: "A partner revised and resubmitted homework. Review the updated responses when ready.",
+    actionPath: `${counselorJourneyPath(journey.id)}/homework`,
+    pushTitle: "Homework resubmitted",
+    pushBody: "Revised homework is ready for your review.",
+  });
+}
+
+export async function notifyCoupleHomeworkRevisionRequested(
+  journey: MarriageCounselingJourneyRecord,
+  homeworkId: string,
+  partnerUserId: string,
+) {
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: [partnerUserId],
+    audience: "couple",
+    kind: "couple_homework_revision_requested",
+    referenceKey: homeworkId,
+    title: "Homework revision requested",
+    body: "Your counselor asked for changes on homework. Open the assignment to read instructions and resubmit.",
+    actionPath: `/marriage/homework/${homeworkId}`,
+    pushTitle: "Homework revision",
+    pushBody: "Your counselor requested homework revisions in Marriage Prep.",
+  });
+}
+
 export async function notifyCoupleAppointmentScheduled(
   journey: MarriageCounselingJourneyRecord,
   sessionId: string,
@@ -609,6 +650,46 @@ export async function notifyAdministrativeCoordinatorAssigned(
     actionPath: "/marriage/admin/counselor-assignments",
     pushTitle: "Marriage Prep coordinator",
     pushBody: "You were assigned to coordinate a Marriage Prep couple.",
+  });
+}
+
+export async function notifyCounselorSelfPacedReadyForReview(
+  journey: MarriageCounselingJourneyRecord,
+  sessionKey: string,
+) {
+  const counselorId = journey.counselorUserId;
+  if (!counselorId) return { created: 0 };
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: [counselorId],
+    audience: "counselor",
+    kind: "counselor_self_paced_ready",
+    referenceKey: `${journey.id}:${sessionKey}`,
+    title: "Session ready for review",
+    body: "Both partners submitted work for a self-paced counseling session. Open your review dashboard when you are ready.",
+    actionPath: `/marriage/counselor/review/${journey.id}/${encodeURIComponent(sessionKey)}`,
+    pushTitle: "Marriage Prep review",
+    pushBody: "A self-paced session is ready for your review.",
+  });
+}
+
+export async function notifyCoupleSelfPacedFeedbackPublished(
+  journey: MarriageCounselingJourneyRecord,
+  sessionKey: string,
+) {
+  const ids = [journey.participantAId, journey.participantBId].filter(Boolean) as string[];
+  if (ids.length === 0) return { created: 0 };
+  return deliverMarriagePrepNotifications({
+    journey,
+    userIds: ids,
+    audience: "couple",
+    kind: "couple_self_paced_feedback",
+    referenceKey: `${journey.id}:${sessionKey}`,
+    title: "Counselor guidance posted",
+    body: "Your counselor published recommendations for a Marriage Prep session. Sign in to read them.",
+    actionPath: `/marriage/premarital/session/${encodeURIComponent(sessionKey)}`,
+    pushTitle: "Marriage Prep",
+    pushBody: "Your counselor posted new session guidance.",
   });
 }
 

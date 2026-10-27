@@ -9,8 +9,11 @@ import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-schedul
 import { readJsonResponse } from "@/lib/read-json-response";
 import { MarriagePrepBackToHub } from "@/components/marriage/MarriagePrepBackToHub";
 
-function statusLabel(status: MarriageHubSessionHomeworkView["status"]) {
-  return status.replace(/_/g, " ");
+function statusLabel(item: MarriageHubSessionHomeworkView) {
+  if (item.counselorReviewStatus === "revision_requested") return "Revision requested";
+  if (item.counselorReviewStatus === "resubmitted") return "Resubmitted — awaiting review";
+  if (item.counselorReviewStatus === "approved") return "Approved";
+  return item.status.replace(/_/g, " ");
 }
 
 export function MarriageCoupleHomeworkList() {
@@ -31,8 +34,12 @@ export function MarriageCoupleHomeworkList() {
     void load();
   }, [load]);
 
-  const current = items.filter((i) => !i.submitted);
-  const history = items.filter((i) => i.submitted);
+  const current = items.filter(
+    (i) => i.actionRequired || !i.submitted || i.counselorReviewStatus === "revision_requested",
+  );
+  const history = items.filter(
+    (i) => i.submitted && i.counselorReviewStatus !== "revision_requested" && !i.actionRequired,
+  );
 
   return (
     <div className={marriagePremium.page}>
@@ -70,7 +77,10 @@ export function MarriageCoupleHomeworkList() {
                       dueAtTimeZone={item.dueAtTimeZone}
                       formatDue={formatMarriageSessionScheduledAt}
                     />
-                    <span className="mt-1 block text-xs capitalize text-night-500">{statusLabel(item.status)}</span>
+                    <span className="mt-1 block text-xs capitalize text-night-500">{statusLabel(item)}</span>
+                    {item.revisionNote ? (
+                      <span className="mt-1 block text-xs text-amber-900 dark:text-amber-200">{item.revisionNote}</span>
+                    ) : null}
                   </Link>
                 </li>
               ))}

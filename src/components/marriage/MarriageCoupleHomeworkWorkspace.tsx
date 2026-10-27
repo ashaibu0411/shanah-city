@@ -41,10 +41,18 @@ type Workspace = {
     estimatedMinutes?: number;
     activities: Activity[];
   };
-  response: { answers: Record<string, string>; lastSavedAt: string; submittedAt?: string };
+  response: {
+    answers: Record<string, string>;
+    lastSavedAt: string;
+    submittedAt?: string;
+    reviewStatus?: string;
+    revisionNote?: string | null;
+  };
   progress: { answered: number; total: number };
   status: string;
   counselorFeedback?: string;
+  canEdit?: boolean;
+  actionRequired?: boolean;
 };
 
 export function MarriageCoupleHomeworkWorkspace({ homeworkId }: { homeworkId: string }) {
@@ -74,7 +82,8 @@ export function MarriageCoupleHomeworkWorkspace({ homeworkId }: { homeworkId: st
 
   const activities = data?.homework.activities ?? [];
   const activity = activities[step] ?? null;
-  const submitted = Boolean(data?.response.submittedAt);
+  const canEdit = data?.canEdit ?? !data?.response.submittedAt;
+  const submitted = Boolean(data?.response.submittedAt) && !canEdit;
 
   const progressPct = useMemo(() => {
     if (!data?.progress.total) return 0;
@@ -82,7 +91,7 @@ export function MarriageCoupleHomeworkWorkspace({ homeworkId }: { homeworkId: st
   }, [data]);
 
   function queueSave(patch: Record<string, string>) {
-    if (submitted) return;
+    if (!canEdit) return;
     setSaveState("saving");
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
@@ -113,7 +122,11 @@ export function MarriageCoupleHomeworkWorkspace({ homeworkId }: { homeworkId: st
   }
 
   async function submitAll() {
-    if (!confirm("Submit your homework? You can ask your counselor to reopen if you need changes.")) return;
+    const isRevision = data?.response.reviewStatus === "revision_requested";
+    const msg = isRevision
+      ? "Resubmit your revised homework to your counselor?"
+      : "Submit your homework? You can ask your counselor to reopen if you need changes.";
+    if (!confirm(msg)) return;
     setError("");
     const res = await fetch(`/api/marriage/homework/${homeworkId}/submit`, { method: "POST" });
     const body = await readJsonResponse<{ error?: string }>(res);
@@ -186,6 +199,18 @@ export function MarriageCoupleHomeworkWorkspace({ homeworkId }: { homeworkId: st
           <div className={`${marriagePremium.card} mt-4 border border-clay-200`}>
             <p className={marriagePremium.sectionLabel}>Counselor feedback</p>
             <p className="mt-2 text-sm whitespace-pre-wrap">{data.counselorFeedback}</p>
+          </div>
+        ) : null}
+
+        {data.response.reviewStatus === "revision_requested" && data.response.revisionNote ? (
+          <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/30">
+            <p className="text-sm font-bold text-amber-950 dark:text-amber-100">Revision requested</p>
+            <p className="mt-1 text-sm whitespace-pre-wrap text-amber-900 dark:text-amber-100/90">
+              {data.response.revisionNote}
+            </p>
+            <p className="mt-2 text-xs text-amber-800 dark:text-amber-200/80">
+              Update your answers below, then submit again when you are ready.
+            </p>
           </div>
         ) : null}
 

@@ -26,6 +26,9 @@ type DetailPartner = {
   submittedAt?: string;
   answers: Record<string, string>;
   feedback?: string;
+  reviewStatus?: string;
+  revisionNote?: string | null;
+  reviewedAt?: string | null;
 };
 
 type HomeworkDetail = {
@@ -71,6 +74,7 @@ export function MarriageCounselorHomeworkManager({
   const [selectedTemplateKey, setSelectedTemplateKey] = useState<string | null>(
     initialTemplateKey ?? null,
   );
+  const [revisionNotes, setRevisionNotes] = useState<Record<string, string>>({});
 
   const loadList = useCallback(async () => {
     const res = await fetch(`/api/marriage/counselor/homework?journeyId=${encodeURIComponent(journeyId)}`, {
@@ -104,7 +108,34 @@ export function MarriageCounselorHomeworkManager({
       fb[p.userId] = p.feedback ?? data.homework.partnerFeedback?.[p.userId] ?? "";
     }
     setFeedbackDraft(fb);
+    const rev: Record<string, string> = {};
+    for (const p of data.partnerViews) rev[p.userId] = "";
+    setRevisionNotes(rev);
   }, []);
+
+  async function homeworkPartnerAction(action: "request_revision" | "approve_submission", partnerUserId: string) {
+    if (!selectedId) return;
+    setBusy(true);
+    setMessage("");
+    const body: Record<string, string> = { action, partnerUserId };
+    if (action === "request_revision") {
+      body.revisionNote = revisionNotes[partnerUserId] ?? "";
+    }
+    const res = await fetch(`/api/marriage/counselor/homework/${selectedId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await readJsonResponse<{ error?: string }>(res);
+    setBusy(false);
+    if (!res.ok) {
+      setMessage(data.error ?? "Request failed.");
+      return;
+    }
+    setMessage(action === "approve_submission" ? "Submission approved." : "Revision requested.");
+    await loadDetail(selectedId);
+    await loadList();
+  }
 
   useEffect(() => {
     void loadList();
@@ -414,7 +445,15 @@ export function MarriageCounselorHomeworkManager({
                   <p className="font-semibold">
                     {p.name}{" "}
                     <span className={statusBadge(p.status)}>{p.status.replace(/_/g, " ")}</span>
+                    {p.reviewStatus ? (
+                      <span className={`${statusBadge(p.reviewStatus)} ml-1`}>
+                        {p.reviewStatus.replace(/_/g, " ")}
+                      </span>
+                    ) : null}
                   </p>
+                  {p.revisionNote ? (
+                    <p className="mt-1 text-xs text-amber-900 dark:text-amber-200">Revision note: {p.revisionNote}</p>
+                  ) : null}
                   {Object.keys(p.answers).length === 0 ? (
                     <p className="marriage-c3m-muted mt-2 text-xs">No answers yet.</p>
                   ) : (
@@ -427,6 +466,39 @@ export function MarriageCounselorHomeworkManager({
                       ))}
                     </ul>
                   )}
+                  {p.submittedAt && p.reviewStatus !== "approved" ? (
+                    <div className="mt-3 space-y-2 border-t border-stone-200 pt-3 dark:border-white/10">
+                      <label className="block text-xs font-semibold">Request revision (partner sees this note)</label>
+                      <textarea
+                        className="marriage-c3m-textarea"
+                        rows={2}
+                        value={revisionNotes[p.userId] ?? ""}
+                        onChange={(e) =>
+                          setRevisionNotes((prev) => ({ ...prev, [p.userId]: e.target.value }))
+                        }
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          className="marriage-c3m-btn-secondary min-h-[44px] text-sm"
+                          onClick={() => void homeworkPartnerAction("request_revision", p.userId)}
+                        >
+                          Request revision
+                        </button>
+                        {(p.reviewStatus === "submitted" || p.reviewStatus === "resubmitted") && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            className="marriage-c3m-btn-primary min-h-[44px] text-sm"
+                            onClick={() => void homeworkPartnerAction("approve_submission", p.userId)}
+                          >
+                            Approve submission
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
