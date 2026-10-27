@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MarriageCounselorSessionDateTimeField } from "@/components/marriage/MarriageCounselorSessionDateTimeField";
 import { MarriageCounselorSessionTopicField } from "@/components/marriage/MarriageCounselorSessionTopicField";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
+import { MarriageCounselorStage2ReviewPanel } from "@/components/marriage/MarriageCounselorStage2ReviewPanel";
 import {
   formatMarriageSessionScheduledAt,
   marriageSessionInstantMs,
@@ -380,6 +381,13 @@ export function MarriageCounselorClinicalDashboard({
                         </li>
                       ))}
                     </ul>
+                    {block.comparisonReady ? (
+                      <MarriageCounselorStage2ReviewPanel
+                        journeyId={journeyId}
+                        moduleId={block.moduleId}
+                        moduleTitle={block.title}
+                      />
+                    ) : null}
                   </li>
                 ))}
               </ul>
