@@ -26,6 +26,7 @@ export async function GET() {
     ok,
     database,
     blob: env.blob,
+    marriageBlob: env.marriageBlob,
     push: env.push,
     cron: env.cron,
     adminBootstrap: env.adminBootstrap,
