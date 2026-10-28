@@ -65,7 +65,11 @@ Use output to prioritize [migration mappings](./STORY_MUSIC_MIGRATION_MAPPING.md
 | 6 | **Worship curator role** — Admin Group only vs. dedicated env allowlist for non-admin curators? |
 | 7 | **Budget** — Licensed API subscription ceiling (if vendor path chosen). |
 
-## Next engineering steps (after approval)
+## Phase 2 design (pre-implementation)
+
+See **[STORY_MUSIC_PHASE2_DESIGN.md](./STORY_MUSIC_PHASE2_DESIGN.md)** for proposed Prisma schema, Blob storage, RBAC, staging plan, and security model. **Implementation blocked** until that document is approved.
+
+## Next engineering steps (after Phase 2 design approval)
 
 1. Run usage report on staging DB; fill migration map for top tracks.  
 2. Ingest first authorized files + intake publish.  
