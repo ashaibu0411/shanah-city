@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { inferCommunityAudioContentType } from "@/lib/community-media-shared";
+import { communityAudioNameFromUrl } from "@/lib/community-story-member-audio-playback";
 import { resolveStoryMediaUrl } from "@/lib/community-story-utils";
 
 type CommunityStoryMemberAudioAttachProps = {
@@ -31,16 +32,42 @@ export function CommunityStoryMemberAudioAttach({
 }: CommunityStoryMemberAudioAttachProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const slideDurationMsRef = useRef(slideDurationMs);
+  const onDurationKnownRef = useRef(onDurationKnown);
+  const onProgressRef = useRef(onProgress);
+  const onPlaybackEndedRef = useRef(onPlaybackEnded);
+  const [needsUserPlay, setNeedsUserPlay] = useState(false);
   const [loadError, setLoadError] = useState("");
   const endedRef = useRef(false);
 
   slideDurationMsRef.current = slideDurationMs;
+  onDurationKnownRef.current = onDurationKnown;
+  onProgressRef.current = onProgress;
+  onPlaybackEndedRef.current = onPlaybackEnded;
 
   const src = resolveStoryMediaUrl(audioUrl);
-  const contentType = inferCommunityAudioContentType(audioUrl);
+  const contentType = inferCommunityAudioContentType(
+    communityAudioNameFromUrl(audioUrl),
+    undefined,
+  );
+
+  const tryPlay = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio || !src) return false;
+    try {
+      await audio.play();
+      setNeedsUserPlay(false);
+      setLoadError("");
+      return true;
+    } catch {
+      setNeedsUserPlay(true);
+      setLoadError("");
+      return false;
+    }
+  }, [src]);
 
   useEffect(() => {
     setLoadError("");
+    setNeedsUserPlay(false);
     endedRef.current = false;
   }, [slideId, audioUrl]);
 
@@ -48,29 +75,35 @@ export function CommunityStoryMemberAudioAttach({
     const audio = audioRef.current;
     if (!audio || !src) return;
 
-    const onError = () => setLoadError("Tap to play your recording");
+    const onError = () => {
+      setLoadError("Could not load your recording");
+      setNeedsUserPlay(true);
+    };
 
     const onLoadedMetadata = () => {
       const durationMs =
         Number.isFinite(audio.duration) && audio.duration > 0
           ? Math.ceil(audio.duration * 1000)
           : 0;
-      if (durationMs > 0) onDurationKnown?.(durationMs);
+      if (durationMs > 0) onDurationKnownRef.current?.(durationMs);
     };
 
     const onTimeUpdate = () => {
       const durationMs = slideDurationMsRef.current;
       if (durationMs <= 0) return;
       const pct = Math.min(100, ((audio.currentTime * 1000) / durationMs) * 100);
-      onProgress?.(pct);
+      onProgressRef.current?.(pct);
     };
 
     const onEnded = () => {
       if (endedRef.current) return;
       endedRef.current = true;
-      onPlaybackEnded?.();
+      onPlaybackEndedRef.current?.();
     };
 
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
     audio.src = src;
     audio.loop = false;
     audio.load();
@@ -79,10 +112,6 @@ export function CommunityStoryMemberAudioAttach({
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("ended", onEnded);
-
-    if (!paused && soundOn) {
-      void audio.play().catch(() => setLoadError("Tap to play your recording"));
-    }
 
     return () => {
       audio.removeEventListener("error", onError);
@@ -93,18 +122,19 @@ export function CommunityStoryMemberAudioAttach({
       audio.removeAttribute("src");
       audio.load();
     };
-  }, [onDurationKnown, onPlaybackEnded, onProgress, paused, slideId, soundOn, src]);
+  }, [slideId, src]);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !src) return;
     audio.muted = !soundOn;
     if (paused || !soundOn) {
       audio.pause();
-    } else {
-      void audio.play().catch(() => setLoadError("Tap to play your recording"));
+      return;
     }
-  }, [paused, soundOn]);
+    if (needsUserPlay) return;
+    void tryPlay();
+  }, [needsUserPlay, paused, soundOn, src, tryPlay]);
 
   useEffect(() => {
     if (audioContinuesOnNextSlide) return;
@@ -115,15 +145,22 @@ export function CommunityStoryMemberAudioAttach({
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [audioContinuesOnNextSlide]);
 
-  const retry = useCallback(() => {
-    setLoadError("");
-    const audio = audioRef.current;
-    if (!audio || !src) return;
-    audio.src = src;
-    void audio.play().catch(() => setLoadError("Could not play recording"));
-  }, [src]);
+  const handleStickerPress = useCallback(() => {
+    if (loadError || needsUserPlay) {
+      void tryPlay();
+      return;
+    }
+    onToggleSound?.();
+  }, [loadError, needsUserPlay, onToggleSound, tryPlay]);
 
   if (!audioUrl.trim()) return null;
+
+  const showPlayVoice = needsUserPlay || Boolean(loadError);
+  const label = showPlayVoice
+    ? "Play voice"
+    : soundOn
+      ? "Your recording · tap to mute"
+      : "Your recording · tap to play";
 
   return (
     <>
@@ -135,20 +172,13 @@ export function CommunityStoryMemberAudioAttach({
           <button
             type="button"
             className="flex max-w-[min(100vw-3rem,20rem)] items-center gap-2 text-left"
-            onClick={() => {
-              if (loadError) retry();
-              else onToggleSound?.();
-            }}
-            aria-label={
-              loadError ? "Retry story recording" : soundOn ? "Mute your recording" : "Play your recording"
-            }
+            onClick={handleStickerPress}
+            aria-label={showPlayVoice ? "Play voice on this story" : label}
           >
             <span className="shrink-0 text-sm" aria-hidden>
-              {soundOn && !loadError ? "🎙️" : "🔇"}
+              {showPlayVoice ? "▶️" : soundOn ? "🎙️" : "🔇"}
             </span>
-            <span className="min-w-0 truncate text-xs font-semibold text-white">
-              {loadError ? "Your recording · tap to play" : "Your recording · tap for sound"}
-            </span>
+            <span className="min-w-0 truncate text-xs font-semibold text-white">{label}</span>
           </button>
         </div>
       </div>

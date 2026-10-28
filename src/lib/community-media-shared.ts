@@ -151,10 +151,16 @@ export function inferCommunityVideoContentType(fileName: string, fileType?: stri
 }
 
 export function inferCommunityAudioContentType(fileName: string, fileType?: string) {
-  if (fileType && COMMUNITY_AUDIO_CONTENT_TYPES.includes(fileType as (typeof COMMUNITY_AUDIO_CONTENT_TYPES)[number])) {
-    return fileType;
+  const normalizedType = normalizeCommunityFileMime(fileType);
+  if (
+    normalizedType &&
+    (normalizedType.startsWith("audio/") ||
+      COMMUNITY_AUDIO_CONTENT_TYPES.includes(normalizedType as (typeof COMMUNITY_AUDIO_CONTENT_TYPES)[number]))
+  ) {
+    return normalizedType.startsWith("audio/") ? normalizedType : fileType?.split(";")[0]?.trim() ?? normalizedType;
   }
-  const lower = lowerName(fileName);
+  const baseName = fileName.includes("/") ? (fileName.split("/").pop() ?? fileName) : fileName;
+  const lower = lowerName(baseName);
   if (lower.endsWith(".wav")) return "audio/wav";
   if (lower.endsWith(".webm")) return "audio/webm";
   if (lower.endsWith(".ogg") || lower.endsWith(".weba")) return "audio/ogg";

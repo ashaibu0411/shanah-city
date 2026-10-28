@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CommunityStatusMusic } from "@/lib/member-types";
 import { readJsonResponse } from "@/lib/read-json-response";
+import { getYouTubeWatchUrlWithSegment } from "@/lib/worship-youtube-timestamp-utils";
 import type { StoryMusicPlaybackApiResponse } from "@/lib/story-music/playback-response";
 import { storyMusicHybridClientEnabled } from "@/lib/story-music/story-music-config";
-import type { StoryYoutubeWatchPayload } from "@/components/community/CommunityStoryYoutubeWatchOverlay";
 
 type CommunityStoryMusicAttachProps = {
   slideId: string;
@@ -16,12 +16,17 @@ type CommunityStoryMusicAttachProps = {
   soundOn: boolean;
   onToggleSound?: () => void;
   onNativeAudioAvailable?: (available: boolean) => void;
-  onYoutubeWatchRequest?: (payload: StoryYoutubeWatchPayload) => void;
 };
 
 type PlaybackPayload = StoryMusicPlaybackApiResponse;
 
 type PlaybackEngine = "audio" | "youtube" | "unavailable";
+
+function initialEngine(music: CommunityStatusMusic): PlaybackEngine | null {
+  if (storyMusicHybridClientEnabled()) return null;
+  if (music.youtubeVideoId?.trim()) return "youtube";
+  return null;
+}
 
 async function audioStreamReachable(audioUrl: string) {
   try {
@@ -45,12 +50,14 @@ export function CommunityStoryMusicAttach({
   soundOn,
   onToggleSound,
   onNativeAudioAvailable,
-  onYoutubeWatchRequest,
 }: CommunityStoryMusicAttachProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const nativeAudioCbRef = useRef(onNativeAudioAvailable);
+  nativeAudioCbRef.current = onNativeAudioAvailable;
+
   const [loadError, setLoadError] = useState("");
   const [playback, setPlayback] = useState<PlaybackPayload | null>(null);
-  const [engine, setEngine] = useState<PlaybackEngine | null>(null);
+  const [engine, setEngine] = useState<PlaybackEngine | null>(() => initialEngine(music));
   const [reloadToken, setReloadToken] = useState(0);
 
   const youtubeVideoId =
@@ -62,14 +69,15 @@ export function CommunityStoryMusicAttach({
       : null;
 
   useEffect(() => {
-    onNativeAudioAvailable?.(engine === "audio");
-  }, [engine, onNativeAudioAvailable]);
+    nativeAudioCbRef.current?.(engine === "audio");
+  }, [engine]);
 
-  const applyYoutubeFallback = useCallback(
+  const applyYoutubeLink = useCallback(
     (payload?: Partial<PlaybackPayload>) => {
       const videoId = payload?.youtubeVideoId?.trim() || music.youtubeVideoId?.trim();
       if (!videoId) {
-        setLoadError("Audio unavailable for this song.");
+        setEngine("unavailable");
+        setLoadError("Music unavailable for this story.");
         return;
       }
       setEngine("youtube");
@@ -86,7 +94,6 @@ export function CommunityStoryMusicAttach({
 
   const loadPlayback = useCallback(async () => {
     setLoadError("");
-    setEngine(null);
 
     try {
       const response = await fetch(
@@ -98,7 +105,7 @@ export function CommunityStoryMusicAttach({
 
       if (!response.ok) {
         if (!hybrid && music.youtubeVideoId?.trim()) {
-          applyYoutubeFallback({ youtubeVideoId: music.youtubeVideoId });
+          applyYoutubeLink({ youtubeVideoId: music.youtubeVideoId });
           return;
         }
         throw new Error(data.error ?? "Audio unavailable for this song.");
@@ -118,7 +125,7 @@ export function CommunityStoryMusicAttach({
           setEngine("audio");
           return;
         }
-        applyYoutubeFallback(data);
+        applyYoutubeLink(data);
         return;
       }
 
@@ -129,16 +136,15 @@ export function CommunityStoryMusicAttach({
       }
 
       if (!hybrid && data.mode === "youtube" && (data.youtubeVideoId || music.youtubeVideoId)) {
-        setPlayback({
+        applyYoutubeLink({
           ...data,
           youtubeVideoId: data.youtubeVideoId ?? music.youtubeVideoId,
         });
-        setEngine("youtube");
         return;
       }
 
       if (!hybrid && music.youtubeVideoId?.trim()) {
-        applyYoutubeFallback({ youtubeVideoId: music.youtubeVideoId });
+        applyYoutubeLink({ youtubeVideoId: music.youtubeVideoId });
         return;
       }
 
@@ -146,20 +152,16 @@ export function CommunityStoryMusicAttach({
       setLoadError(data.unavailableReason ?? "Audio unavailable for this song.");
     } catch (error) {
       if (!storyMusicHybridClientEnabled() && music.youtubeVideoId?.trim()) {
-        applyYoutubeFallback({ youtubeVideoId: music.youtubeVideoId });
+        applyYoutubeLink({ youtubeVideoId: music.youtubeVideoId });
         return;
       }
       setLoadError(error instanceof Error ? error.message : "Could not load story music.");
     }
-  }, [applyYoutubeFallback, music.trackId, music.youtubeVideoId]);
+  }, [applyYoutubeLink, music.trackId, music.youtubeVideoId]);
 
   useEffect(() => {
-    setPlayback(null);
-    setEngine(null);
-    setLoadError("");
-    onNativeAudioAvailable?.(false);
     void loadPlayback();
-  }, [loadPlayback, music.trackId, onNativeAudioAvailable, reloadToken, slideId]);
+  }, [loadPlayback, music.trackId, reloadToken, slideId]);
 
   const handleAudioFailure = useCallback(() => {
     if (playback?.hybrid) {
@@ -168,11 +170,11 @@ export function CommunityStoryMusicAttach({
       return;
     }
     if (engine === "audio" && music.youtubeVideoId?.trim()) {
-      applyYoutubeFallback();
+      applyYoutubeLink();
       return;
     }
     setLoadError("Tap to retry sound");
-  }, [applyYoutubeFallback, engine, music.youtubeVideoId, playback?.hybrid]);
+  }, [applyYoutubeLink, engine, music.youtubeVideoId, playback?.hybrid]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -230,9 +232,7 @@ export function CommunityStoryMusicAttach({
 
   useEffect(() => {
     const onVisibility = () => {
-      if (document.hidden) {
-        audioRef.current?.pause();
-      }
+      if (document.hidden) audioRef.current?.pause();
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
@@ -251,12 +251,12 @@ export function CommunityStoryMusicAttach({
 
   function openYoutubeWatch() {
     if (!youtubeVideoId) return;
-    onYoutubeWatchRequest?.({
-      videoId: youtubeVideoId,
-      title: music.title,
-      artist: music.artist,
-      startSeconds,
-    });
+    const url = getYouTubeWatchUrlWithSegment(
+      youtubeVideoId,
+      startSeconds ?? undefined,
+      undefined,
+    );
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   function handleStickerClick() {
@@ -273,7 +273,7 @@ export function CommunityStoryMusicAttach({
 
   if (!music.trackId?.trim()) return null;
 
-  const youtubeOnly = engine === "youtube";
+  const youtubeLink = engine === "youtube";
 
   return (
     <>
@@ -289,7 +289,7 @@ export function CommunityStoryMusicAttach({
             aria-label={
               loadError || engine === "unavailable"
                 ? "Retry story music"
-                : youtubeOnly
+                : youtubeLink
                   ? `Watch ${music.title} on YouTube`
                   : soundOn
                     ? "Mute story music"
@@ -297,13 +297,13 @@ export function CommunityStoryMusicAttach({
             }
           >
             <span className="shrink-0 text-sm" aria-hidden>
-              {youtubeOnly ? "▶️" : soundOn && !loadError && engine !== "unavailable" ? "🔊" : "🔇"}
+              {youtubeLink ? "▶️" : soundOn && !loadError && engine !== "unavailable" ? "🔊" : "🔇"}
             </span>
             <span className="min-w-0 truncate text-xs font-semibold text-white">
               {loadError || engine === "unavailable"
                 ? `${music.title} · tap to retry`
-                : youtubeOnly
-                  ? `${music.title} · ${music.artist} · tap to watch`
+                : youtubeLink
+                  ? `${music.title} · Watch on YouTube`
                   : `${music.title} · ${music.artist}`}
             </span>
           </button>
