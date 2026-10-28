@@ -11,7 +11,7 @@ async function main() {
   process.env.MARRIAGE_COUNSELING_DATA_FILE = join(dir, "marriage-counseling.json");
   process.env.MARRIAGE_CURRICULUM_DATA_FILE = join(dir, "marriage-curriculum.json");
   process.env.MARRIAGE_COUNSELOR_USER_IDS = "counselor-1";
-  delete process.env.DATABASE_URL;
+  for (const key of ["DATABASE_URL", "DIRECT_URL", "DIRECT_DATABASE_URL"]) delete process.env[key];
 
   const { marriageStore } = await import("../src/lib/stores/marriage-counseling-store");
   const store = marriageStore();
@@ -68,6 +68,7 @@ async function main() {
   const approved = await store.getSessionHomeworkResponse(hw.id, "user-a");
   assert.equal(approved?.reviewStatus, "approved");
 
+  await new Promise((r) => setTimeout(r, 150));
   rmSync(dir, { recursive: true, force: true });
   console.log("marriage-homework-review-lifecycle.test.ts: OK");
 }

@@ -59,9 +59,12 @@ type HomeworkDetail = {
 export function MarriageCounselorHomeworkManager({
   journeyId,
   initialTemplateKey,
+  initialSessionId,
 }: {
   journeyId: string;
   initialTemplateKey?: string;
+  /** Premarital sessionKey or stage2:moduleId — required for self-paced session completion linkage. */
+  initialSessionId?: string;
 }) {
   const [items, setItems] = useState<MarriageCounselorHomeworkListItem[]>([]);
   const [templates, setTemplates] = useState<MarriageHomeworkTemplateSummary[]>([]);
@@ -75,6 +78,7 @@ export function MarriageCounselorHomeworkManager({
     initialTemplateKey ?? null,
   );
   const [revisionNotes, setRevisionNotes] = useState<Record<string, string>>({});
+  const [linkedSessionId] = useState(initialSessionId?.trim() || "");
 
   const loadList = useCallback(async () => {
     const res = await fetch(`/api/marriage/counselor/homework?journeyId=${encodeURIComponent(journeyId)}`, {
@@ -161,7 +165,11 @@ export function MarriageCounselorHomeworkManager({
       const res = await fetch("/api/marriage/counselor/homework", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ journeyId, templateKey }),
+        body: JSON.stringify({
+          journeyId,
+          templateKey,
+          ...(linkedSessionId ? { sessionId: linkedSessionId } : {}),
+        }),
       });
       const data = await readJsonResponse<{ homework?: { id: string }; error?: string }>(res);
       if (!res.ok) throw new Error(data.error ?? "Could not create homework.");
@@ -252,6 +260,12 @@ export function MarriageCounselorHomeworkManager({
       <p className="marriage-c3m-muted mt-1 text-xs">
         Draft homework stays hidden until you release it. Templates do not auto-assign to couples.
       </p>
+      {linkedSessionId ? (
+        <p className="mt-2 rounded-lg border border-clay-200 bg-clay-50 px-3 py-2 text-xs font-medium text-clay-900 dark:border-clay-600 dark:bg-clay-900/30 dark:text-sand-100">
+          Linked to session: <span className="font-mono">{linkedSessionId}</span>. New drafts from this page will count
+          toward that session&apos;s completion requirements.
+        </p>
+      ) : null}
 
       <p className="marriage-c3m-muted mt-3 text-sm">Select a template to preview timing. Nothing is saved until you create a draft.</p>
       <div className="mt-3 flex flex-col gap-2">

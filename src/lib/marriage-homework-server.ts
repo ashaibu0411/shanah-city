@@ -298,6 +298,12 @@ export async function releaseSessionHomework(viewer: PublicMember, homeworkId: s
   await assertHomeworkManager(viewer, journey);
   await partnerIds(journey);
   if (homework.status === "released") return homework;
+  const { journeyUsesSelfPacedCounselingReview } = await import("@/lib/marriage-counseling-delivery-mode");
+  if (journeyUsesSelfPacedCounselingReview(journey) && !homework.sessionId?.trim()) {
+    throw new Error(
+      "Self-paced couples require homework linked to a session (sessionKey). Open homework from the session review page or set sessionId before releasing.",
+    );
+  }
   const now = new Date().toISOString();
   const updated: MarriageSessionHomeworkRecord = {
     ...homework,

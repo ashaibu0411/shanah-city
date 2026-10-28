@@ -12,7 +12,7 @@ async function main() {
   process.env.MARRIAGE_CURRICULUM_DATA_FILE = join(dir, "marriage-curriculum.json");
   process.env.MARRIAGE_SELF_PACED_DATA_FILE = join(dir, "marriage-self-paced.json");
   process.env.MARRIAGE_COUNSELOR_USER_IDS = "counselor-1";
-  delete process.env.DATABASE_URL;
+  for (const key of ["DATABASE_URL", "DIRECT_URL", "DIRECT_DATABASE_URL"]) delete process.env[key];
 
   const { marriageStore } = await import("../src/lib/stores/marriage-counseling-store");
   const store = marriageStore();
@@ -104,6 +104,7 @@ async function main() {
   assert.ok(published?.sharedFeedback?.includes("Great start"));
   assert.equal(published?.partnerSpecific, null);
 
+  await new Promise((r) => setTimeout(r, 150));
   rmSync(dir, { recursive: true, force: true });
   console.log("marriage-self-paced-workflow.test.ts: PASS");
 }

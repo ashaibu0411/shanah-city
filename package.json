@@ -51,6 +51,7 @@
     "test:marriage:private-storage": "tsx scripts/marriage-private-storage-token.test.ts",
     "test:marriage:self-paced": "tsx scripts/marriage-self-paced-workflow.test.ts",
     "test:marriage:homework-review": "tsx scripts/marriage-homework-review-lifecycle.test.ts",
+    "test:marriage:homework-session-link": "tsx scripts/marriage-homework-session-link.test.ts",
     "test:marriage:counseling-mode": "tsx scripts/marriage-counseling-mode.test.ts",
     "test:marriage:stage2-modules": "tsx scripts/marriage-stage2-modules-registry.test.ts",
     "test:marriage:couple-feedback": "tsx scripts/marriage-couple-feedback-center.test.ts",

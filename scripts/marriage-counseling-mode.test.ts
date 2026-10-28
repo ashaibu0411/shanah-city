@@ -9,7 +9,16 @@ async function main() {
   process.env.MARRIAGE_CURRICULUM_DATA_FILE = join(dir, "marriage-curriculum.json");
   process.env.MARRIAGE_SELF_PACED_DATA_FILE = join(dir, "marriage-self-paced.json");
   process.env.MARRIAGE_COUNSELOR_USER_IDS = "counselor-1";
-  delete process.env.DATABASE_URL;
+  for (const key of [
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "DIRECT_DATABASE_URL",
+    "POSTGRES_URL",
+    "POSTGRES_PRISMA_URL",
+    "POSTGRES_URL_NON_POOLING",
+  ]) {
+    delete process.env[key];
+  }
 
   const { marriageStore } = await import("../src/lib/stores/marriage-counseling-store");
   const store = marriageStore();
