@@ -80,6 +80,7 @@ export function isCommunityAudioName(name: string) {
     lower.endsWith(".wav") ||
     lower.endsWith(".ogg") ||
     lower.endsWith(".weba") ||
+    lower.endsWith(".webm") ||
     lower.endsWith(".caf")
   );
 }
@@ -124,6 +125,7 @@ export function inferCommunityAudioContentType(fileName: string, fileType?: stri
   }
   const lower = lowerName(fileName);
   if (lower.endsWith(".wav")) return "audio/wav";
+  if (lower.endsWith(".webm")) return "audio/webm";
   if (lower.endsWith(".ogg") || lower.endsWith(".weba")) return "audio/ogg";
   if (lower.endsWith(".m4a") || lower.endsWith(".aac")) return "audio/mp4";
   if (lower.endsWith(".caf")) return "audio/x-caf";

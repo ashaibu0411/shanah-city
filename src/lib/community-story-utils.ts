@@ -5,13 +5,28 @@ export const STORY_IMAGE_MS = 5000;
 /** Photo/text stories with attached worship music (Instagram-style). */
 export const STORY_IMAGE_WITH_MUSIC_MS = 20_000;
 
-export function storySlideDurationMs(slide: {
-  mediaType: string;
-  music?: unknown;
-  memberStoryAudio?: unknown;
-}) {
+export function storySlideDurationMs(
+  slide: {
+    mediaType: string;
+    music?: unknown;
+    memberStoryAudio?: unknown;
+  },
+  memberAudioDurationMs?: number | null,
+) {
   if (slide.mediaType === "image" || slide.mediaType === "text") {
-    return slide.music || slide.memberStoryAudio ? STORY_IMAGE_WITH_MUSIC_MS : STORY_IMAGE_MS;
+    const hasSoundtrack = Boolean(slide.music || slide.memberStoryAudio);
+    if (!hasSoundtrack) return STORY_IMAGE_MS;
+    if (
+      slide.memberStoryAudio &&
+      memberAudioDurationMs != null &&
+      memberAudioDurationMs > 0
+    ) {
+      return Math.min(
+        STORY_IMAGE_WITH_MUSIC_MS,
+        Math.max(STORY_IMAGE_MS, Math.ceil(memberAudioDurationMs)),
+      );
+    }
+    return STORY_IMAGE_WITH_MUSIC_MS;
   }
   return STORY_IMAGE_MS;
 }

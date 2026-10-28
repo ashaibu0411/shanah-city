@@ -91,6 +91,35 @@ export function getYouTubeStoryBackgroundEmbedSrc(
   return base.includes("?") ? `${base}&${extra}` : `${base}?${extra}`;
 }
 
+/** Visible in-story YouTube player (controls on, no hidden audio-only embed). */
+export function getYouTubeStoryVisibleEmbedSrc(
+  videoId: string,
+  input: { paused: boolean; soundOn: boolean },
+  startSeconds?: number,
+  origin?: string,
+) {
+  const params = new URLSearchParams({
+    rel: "0",
+    modestbranding: "1",
+    playsinline: "1",
+    enablejsapi: "1",
+    controls: "1",
+    fs: "0",
+    iv_load_policy: "3",
+  });
+  if (startSeconds != null && startSeconds >= 0) {
+    params.set("start", String(Math.floor(startSeconds)));
+  }
+  if (!input.paused) {
+    params.set("autoplay", "1");
+  }
+  params.set("mute", input.soundOn ? "0" : "1");
+  if (origin?.trim()) {
+    params.set("origin", origin.trim());
+  }
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params.toString()}`;
+}
+
 export function getYouTubeWatchUrlWithSegment(
   videoId: string,
   startSeconds?: number,
