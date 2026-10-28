@@ -38,7 +38,7 @@ async function main() {
   assert.ok(plan);
   assert.equal(plan.mode, "audio");
   assert.equal(plan.playability, "playable");
-  assert.ok(plan.audioUrl?.includes("/story-music-poc/ghana-worship-poc.wav"));
+  assert.ok(plan.audioUrl?.includes("/api/community/story-music/stream?trackId=poc-gh-adom-test"));
 
   const legacyPlan = await resolveStoryMusicPlayback("way-maker", ORIGIN);
   assert.ok(legacyPlan);
