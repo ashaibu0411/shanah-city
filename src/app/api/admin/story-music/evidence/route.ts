@@ -56,14 +56,14 @@ export async function POST(request: Request) {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
 
-  try {
-    await assertStoryMusicAdmin(user);
-  } catch {
-    return NextResponse.json({ error: "Admin Group access required." }, { status: 403 });
-  }
-
   if (!user) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  }
+
+  try {
+    await assertStoryMusicCurator(user);
+  } catch {
+    return NextResponse.json({ error: "Story music curator or admin access required." }, { status: 403 });
   }
 
   const form = await request.formData();
