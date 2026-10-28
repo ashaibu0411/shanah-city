@@ -81,28 +81,31 @@ test.describe("Community story member voice (staging)", () => {
     const uploadBody = JSON.parse(uploadText) as { mediaUrl?: string; mediaType?: string };
     expect(uploadBody.mediaType).toBe("audio");
     expect(uploadBody.mediaUrl).toBeTruthy();
+    audioUrl = uploadBody.mediaUrl!;
+    }
 
     const publish = await request.post(`${baseURL}/api/community/statuses`, {
       headers: { ...authHeaders, "Content-Type": "application/json" },
       data: {
         caption: "[e2e voice story]",
         mediaType: "text",
-        memberStoryAudioUrl: uploadBody.mediaUrl,
+        memberStoryAudioUrl: audioUrl,
         memberAudioRightsAck: true,
       },
     });
     expect(publish.status(), await publish.text()).toBe(201);
     const published = (await publish.json()) as { status?: { id?: string; memberStoryAudio?: { url?: string } } };
     const statusId = published.status?.id;
-    const audioUrl = published.status?.memberStoryAudio?.url;
+    const publishedAudioUrl = published.status?.memberStoryAudio?.url;
     expect(statusId).toBeTruthy();
-    expect(audioUrl).toBeTruthy();
+    expect(publishedAudioUrl).toBeTruthy();
+    audioUrl = publishedAudioUrl!;
 
     const feed = await request.get(`${baseURL}/api/community/statuses`, { headers: authHeaders });
     expect(feed.ok()).toBeTruthy();
     const feedBody = (await feed.json()) as { statuses?: { id: string; memberStoryAudio?: { url?: string } }[] };
     const fromFeed = feedBody.statuses?.find((entry) => entry.id === statusId);
-    expect(fromFeed?.memberStoryAudio?.url).toBe(audioUrl);
+    expect(fromFeed?.memberStoryAudio?.url).toBe(publishedAudioUrl);
 
     const range = await request.get(audioUrl!, { headers: { Range: "bytes=0-1023" } });
     expect(range.status()).toBeGreaterThanOrEqual(200);
