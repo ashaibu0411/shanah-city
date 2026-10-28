@@ -1,8 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC } from "@/lib/community-media-shared";
+import { COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC, normalizeCommunityFileMime } from "@/lib/community-media-shared";
 import { uploadCommunityMediaClient } from "@/lib/community-media-client";
+import {
+  createAudioMediaRecorder,
+  extensionForRecorderMime,
+  getWorshipRecordingMediaStream,
+  isMediaRecorderSupported,
+} from "@/lib/worship-audio-shared";
 
 type CommunityStoryMemberAudioPanelProps = {
   mode: "record" | "upload";
@@ -13,10 +19,16 @@ type CommunityStoryMemberAudioPanelProps = {
   onError: (message: string) => void;
 };
 
-function preferredRecorderMime() {
-  if (typeof MediaRecorder === "undefined") return "";
-  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
-  return candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? "";
+function storyRecordingFileName(mimeType: string) {
+  const ext = extensionForRecorderMime(mimeType).replace(/^\./, "") || "webm";
+  return `story-recording-${Date.now()}.${ext}`;
+}
+
+function normalizeRecordingMime(mimeType: string) {
+  const base = normalizeCommunityFileMime(mimeType);
+  if (base === "video/webm") return "audio/webm";
+  if (base.startsWith("audio/")) return base;
+  return mimeType.trim() || "audio/webm";
 }
 
 export function CommunityStoryMemberAudioPanel({
@@ -32,6 +44,7 @@ export function CommunityStoryMemberAudioPanel({
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const [elapsedSec, setElapsedSec] = useState(0);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const recorderMimeRef = useRef("");
   const chunksRef = useRef<BlobPart[]>([]);
   const previewRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number | null>(null);
@@ -50,11 +63,17 @@ export function CommunityStoryMemberAudioPanel({
   useEffect(() => () => stopRecording(), [stopRecording]);
 
   const uploadBlob = useCallback(
-    async (blob: Blob, fileName: string) => {
+    async (blob: Blob, fileName: string, mimeType: string) => {
       setUploading(true);
       onError("");
       try {
-        const file = new File([blob], fileName, { type: blob.type || "audio/webm" });
+        const normalizedType = normalizeRecordingMime(mimeType || blob.type);
+        const file = new File([blob], fileName, { type: normalizedType });
+        if (file.size < 256) {
+          onError("Recording was too short. Try again and speak for a few seconds.");
+          onAudioUrlChange(null);
+          return;
+        }
         const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
         if (mediaType !== "audio") {
           onError("Upload must be an audio file.");
@@ -75,23 +94,25 @@ export function CommunityStoryMemberAudioPanel({
   const startRecording = useCallback(async () => {
     onError("");
     onAudioUrlChange(null);
-    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+    if (!isMediaRecorderSupported()) {
       onError("Recording is not supported in this browser.");
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mime = preferredRecorderMime();
-      const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      const stream = await getWorshipRecordingMediaStream();
+      const recorder = createAudioMediaRecorder(stream);
+      const mimeType = recorder.mimeType || "audio/webm";
+      recorderMimeRef.current = mimeType;
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunksRef.current.push(event.data);
       };
       recorder.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        const ext = blob.type.includes("mp4") ? "m4a" : blob.type.includes("ogg") ? "ogg" : "webm";
-        void uploadBlob(blob, `story-recording-${Date.now()}.${ext}`);
+        const blobType = normalizeRecordingMime(recorderMimeRef.current || "audio/webm");
+        const blob = new Blob(chunksRef.current, { type: blobType });
+        const fileName = storyRecordingFileName(recorderMimeRef.current || blobType);
+        void uploadBlob(blob, fileName, blobType);
       };
       recorderRef.current = recorder;
       recorder.start(250);
@@ -119,7 +140,7 @@ export function CommunityStoryMemberAudioPanel({
         onError("Choose an audio file (MP3, M4A, WAV, WebM, OGG).");
         return;
       }
-      await uploadBlob(file, file.name);
+      await uploadBlob(file, file.name, file.type);
     },
     [onAudioUrlChange, onError, uploadBlob],
   );
@@ -206,42 +227,34 @@ export function CommunityStoryMemberAudioPanel({
       )}
 
       {audioUrl ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-200">Audio ready</span>
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2">
+          <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-200">Voice attached</span>
           <button
             type="button"
-            className="rounded-full bg-night-800 px-2.5 py-1 text-[11px] font-semibold text-white dark:bg-sand-200 dark:text-night-900"
+            className="rounded-full bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white"
             onClick={togglePreview}
           >
             {previewPlaying ? "Stop preview" : "Preview"}
           </button>
           <button
             type="button"
-            className="text-[11px] font-semibold text-night-600 underline dark:text-sand-300"
-            onClick={() => {
-              onAudioUrlChange(null);
-              setPreviewPlaying(false);
-            }}
+            className="rounded-full border border-emerald-700/40 px-2.5 py-1 text-xs font-semibold text-emerald-900 dark:text-emerald-100"
+            onClick={() => onAudioUrlChange(null)}
           >
             Remove
           </button>
+          <audio ref={previewRef} playsInline className="sr-only" aria-hidden />
         </div>
       ) : null}
 
-      <audio ref={previewRef} playsInline className="sr-only" aria-hidden tabIndex={-1} />
-
-      <label className="flex items-start gap-2 text-xs text-night-700 dark:text-sand-300">
+      <label className="flex cursor-pointer items-start gap-2 text-xs text-night-700 dark:text-sand-300">
         <input
           type="checkbox"
-          className="mt-0.5"
           checked={rightsAcknowledged}
           onChange={(event) => onRightsAckChange(event.target.checked)}
+          className="mt-0.5"
         />
-        <span>
-          I confirm I have permission to post this audio (my voice, my content, or authorized material). Singing a
-          cover or recording music from a speaker does not make it copyright-free. Report concerns via Messages to church
-          leadership.
-        </span>
+        <span>I have rights to use this audio on my story (my voice or content I am allowed to share).</span>
       </label>
     </div>
   );

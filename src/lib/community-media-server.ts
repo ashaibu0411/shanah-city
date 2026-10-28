@@ -100,11 +100,11 @@ export async function saveCommunityMedia(file: File) {
   if (isCommunityImageFile(file)) {
     return { mediaUrl: await saveCommunityImage(file), mediaType: "image" as const };
   }
-  if (isCommunityVideoFile(file)) {
-    return { mediaUrl: await saveCommunityVideo(file), mediaType: "video" as const };
-  }
   if (isCommunityAudioFile(file)) {
     return { mediaUrl: await saveCommunityAudio(file), mediaType: "audio" as const };
+  }
+  if (isCommunityVideoFile(file)) {
+    return { mediaUrl: await saveCommunityVideo(file), mediaType: "video" as const };
   }
   throw new Error("Upload a photo, video, or audio file.");
 }
