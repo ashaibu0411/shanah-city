@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
-import { assertStoryMusicAdmin } from "@/lib/story-music/story-music-admin-access";
+import { assertStoryMusicAdmin, assertStoryMusicCurator } from "@/lib/story-music/story-music-admin-access";
 import { storyMusicDbCatalogEnabled } from "@/lib/story-music/story-music-config";
 import { prisma } from "@/lib/db";
 import { decodeBlobPathname } from "@/lib/story-music/story-music-storage-ref";
