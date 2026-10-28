@@ -41,12 +41,17 @@ function mapMusic(record: {
   musicArtist?: string | null;
   musicYoutubeVideoId?: string | null;
 }): CommunityStatusMusic | undefined {
-  if (!record.musicTrackId || !record.musicYoutubeVideoId) return undefined;
+  const trackId = record.musicTrackId?.trim();
+  if (!trackId) return undefined;
+  const youtubeVideoId = record.musicYoutubeVideoId?.trim() ?? "";
+  const title = record.musicTitle?.trim();
+  // Legacy stories require YouTube id; hybrid authorized audio uses trackId + title only.
+  if (!youtubeVideoId && !title) return undefined;
   return {
-    trackId: record.musicTrackId,
-    title: record.musicTitle?.trim() || "Song",
+    trackId,
+    title: title || "Song",
     artist: record.musicArtist?.trim() || "Artist",
-    youtubeVideoId: record.musicYoutubeVideoId,
+    youtubeVideoId,
   };
 }
 

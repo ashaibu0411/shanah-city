@@ -1,4 +1,4 @@
-import { createReadStream } from "fs";
+import { closeSync, createReadStream, openSync, readSync, statSync } from "fs";
 import { Readable } from "stream";
 import { NextResponse } from "next/server";
 import type { StoryMusicTrackRecord } from "@/lib/story-music/types";
@@ -20,6 +20,49 @@ function streamHeaders(contentType: string, cache = "private, no-store") {
   headers.set("Accept-Ranges", "bytes");
   headers.set("Cache-Control", cache);
   return headers;
+}
+
+/** Local WAV streaming with HTTP Range support (WebView / mobile players). */
+export function streamLocalWavFile(
+  localPath: string,
+  request: Request,
+  cache = "private, no-store",
+): Response {
+  const size = statSync(localPath).size;
+  const rangeHeader = request.headers.get("range")?.trim();
+
+  if (rangeHeader) {
+    const match = /^bytes=(\d*)-(\d*)$/i.exec(rangeHeader);
+    if (match) {
+      const start = match[1] ? parseInt(match[1], 10) : 0;
+      const end = match[2] !== "" ? parseInt(match[2], 10) : size - 1;
+      if (Number.isNaN(start) || Number.isNaN(end) || start >= size || start > end) {
+        return new Response(null, {
+          status: 416,
+          headers: { "Content-Range": `bytes */${size}` },
+        });
+      }
+      const endClamped = Math.min(end, size - 1);
+      const length = endClamped - start + 1;
+      const fd = openSync(localPath, "r");
+      try {
+        const chunk = Buffer.alloc(length);
+        readSync(fd, chunk, 0, length, start);
+        const headers = streamHeaders("audio/wav", cache);
+        headers.set("Content-Range", `bytes ${start}-${endClamped}/${size}`);
+        headers.set("Content-Length", String(length));
+        return new Response(chunk, { status: 206, headers });
+      } finally {
+        closeSync(fd);
+      }
+    }
+  }
+
+  const headers = streamHeaders("audio/wav", cache);
+  headers.set("Content-Length", String(size));
+  const nodeStream = createReadStream(localPath);
+  const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+  return new Response(webStream, { status: 200, headers });
 }
 
 export async function streamHybridCatalogTrack(track: StoryMusicTrackRecord, request: Request) {
@@ -47,9 +90,7 @@ export async function streamHybridCatalogTrack(track: StoryMusicTrackRecord, req
     if (!fixtureRel) return NextResponse.json({ error: "Invalid test audio ref." }, { status: 403 });
     const localPath = resolveStoryMusicTestFixtureFile(fixtureRel);
     if (!localPath) return NextResponse.json({ error: "Test audio missing." }, { status: 503 });
-    const nodeStream = createReadStream(localPath);
-    const webStream = Readable.toWeb(nodeStream) as ReadableStream;
-    return new Response(webStream, { status: 200, headers: streamHeaders("audio/wav") });
+    return streamLocalWavFile(localPath, request);
   }
 
   if (ref.startsWith("/")) {
@@ -57,9 +98,7 @@ export async function streamHybridCatalogTrack(track: StoryMusicTrackRecord, req
     if (!localPath) {
       return NextResponse.json({ error: "Authorized audio path not allowed." }, { status: 403 });
     }
-    const nodeStream = createReadStream(localPath);
-    const webStream = Readable.toWeb(nodeStream) as ReadableStream;
-    return new Response(webStream, { status: 200, headers: streamHeaders("audio/wav", "private, max-age=300") });
+    return streamLocalWavFile(localPath, request, "private, max-age=300");
   }
 
   return NextResponse.json({ error: "Unsupported audio reference." }, { status: 403 });
