@@ -23,6 +23,8 @@ type CatalogFile = {
     tags?: string[];
     startSeconds?: number;
     rightsRecordId: string;
+    /** Omit or `active` for attach/search; `inactive` / `revoked` hide from picker but preserve story ids. */
+    status?: "active" | "inactive" | "revoked";
   }>;
 };
 type MigrationFile = { version: string; mappings: StoryMusicLegacyMigrationEntry[] };
@@ -80,13 +82,16 @@ export function rightsRecordIsExpired(record: StoryMusicRightsRecord): boolean {
 export function mapAuthorizedCatalogRow(
   row: Awaited<ReturnType<typeof loadAuthorizedProductionTracks>>[number],
 ): StoryMusicTrackRecord {
+  const status = row.status?.trim().toLowerCase();
+  const revoked = status === "inactive" || status === "revoked";
   return {
     id: row.id,
     title: row.title,
     artist: row.artist,
     provider: "church_authorized",
     providerTrackId: row.providerTrackId,
-    playability: row.audioPath?.trim() ? "playable" : "unavailable",
+    playability: !revoked && row.audioPath?.trim() ? "playable" : "unavailable",
+    unavailableReason: revoked ? "This song is no longer available for new stories." : undefined,
     country: row.country,
     language: row.language,
     genres: row.genres,

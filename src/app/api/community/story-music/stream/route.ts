@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 
   const ip = getClientIp(request);
   const rate = await enforceRateLimit(`story-music-stream:${ip}`, {
-    limit: 120,
+    limit: 300,
     windowSeconds: 60,
   });
   if (!rate.allowed) {
