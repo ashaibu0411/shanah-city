@@ -65,7 +65,10 @@
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
     "test:choir:recordings-access": "tsx scripts/choir-rehearsal-recordings-access.test.ts",
-    "test:worship:recording-audio": "tsx scripts/worship-recording-audio.test.ts"
+    "test:worship:recording-audio": "tsx scripts/worship-recording-audio.test.ts",
+    "test:story-music:hybrid": "tsx scripts/story-music-hybrid.test.ts",
+    "test:story-music:security": "tsx scripts/story-music-security.test.ts",
+    "story-music:poc-audio": "node scripts/generate-story-music-poc-audio.mjs"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "^8.0.2",

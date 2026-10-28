@@ -5,6 +5,8 @@ import type { CommunityStatusMusic } from "@/lib/member-types";
 import { isNativeAppPlatform } from "@/lib/native-app";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { getYouTubeStoryBackgroundEmbedSrc } from "@/lib/worship-youtube-timestamp-utils";
+import type { StoryMusicPlaybackApiResponse } from "@/lib/story-music/playback-response";
+import { storyMusicHybridClientEnabled } from "@/lib/story-music/story-music-config";
 
 type CommunityStoryMusicAttachProps = {
   slideId: string;
@@ -16,15 +18,9 @@ type CommunityStoryMusicAttachProps = {
   onToggleSound?: () => void;
 };
 
-type PlaybackPayload = {
-  mode?: "audio" | "youtube";
-  audioUrl?: string;
-  youtubeVideoId?: string;
-  startSeconds?: number | null;
-  error?: string;
-};
+type PlaybackPayload = StoryMusicPlaybackApiResponse;
 
-type PlaybackEngine = "audio" | "youtube";
+type PlaybackEngine = "audio" | "youtube" | "unavailable";
 
 async function audioStreamReachable(audioUrl: string) {
   try {
@@ -98,16 +94,24 @@ export function CommunityStoryMusicAttach({
         { cache: "no-store" },
       );
       const data = await readJsonResponse<PlaybackPayload>(response);
+      const hybrid = Boolean(data.hybrid);
 
       if (!response.ok) {
-        if (music.youtubeVideoId?.trim()) {
+        if (!hybrid && music.youtubeVideoId?.trim()) {
           applyYoutubeFallback({ youtubeVideoId: music.youtubeVideoId });
           return;
         }
         throw new Error(data.error ?? "Audio unavailable for this song.");
       }
 
-      if (data.mode === "audio" && data.audioUrl && data.youtubeVideoId) {
+      if (data.mode === "unavailable" || data.playability === "unavailable") {
+        setPlayback(data);
+        setEngine("unavailable");
+        setLoadError(data.unavailableReason ?? "Music unavailable for this story.");
+        return;
+      }
+
+      if (data.mode === "audio" && data.audioUrl && data.youtubeVideoId && !hybrid) {
         const streamOk = await audioStreamReachable(data.audioUrl);
         if (streamOk) {
           setPlayback(data);
@@ -124,7 +128,7 @@ export function CommunityStoryMusicAttach({
         return;
       }
 
-      if (data.mode === "youtube" && (data.youtubeVideoId || music.youtubeVideoId)) {
+      if (!hybrid && data.mode === "youtube" && (data.youtubeVideoId || music.youtubeVideoId)) {
         setPlayback({
           ...data,
           youtubeVideoId: data.youtubeVideoId ?? music.youtubeVideoId,
@@ -133,14 +137,15 @@ export function CommunityStoryMusicAttach({
         return;
       }
 
-      if (music.youtubeVideoId?.trim()) {
+      if (!hybrid && music.youtubeVideoId?.trim()) {
         applyYoutubeFallback({ youtubeVideoId: music.youtubeVideoId });
         return;
       }
 
-      setLoadError("Audio unavailable for this song.");
+      setEngine("unavailable");
+      setLoadError(data.unavailableReason ?? "Audio unavailable for this song.");
     } catch (error) {
-      if (music.youtubeVideoId?.trim()) {
+      if (!storyMusicHybridClientEnabled() && music.youtubeVideoId?.trim()) {
         applyYoutubeFallback({ youtubeVideoId: music.youtubeVideoId });
         return;
       }
@@ -200,12 +205,17 @@ export function CommunityStoryMusicAttach({
   const youtubeEmbedKey = `${slideId}-${music.trackId}-${youtubeUnmuted ? "on" : "muted"}-${reloadToken}`;
 
   const handleAudioFailure = useCallback(() => {
+    if (playback?.hybrid) {
+      setEngine("unavailable");
+      setLoadError("Tap to retry sound");
+      return;
+    }
     if (engine === "audio" && music.youtubeVideoId?.trim()) {
       applyYoutubeFallback();
       return;
     }
     setLoadError("Tap to retry sound");
-  }, [applyYoutubeFallback, engine, music.youtubeVideoId]);
+  }, [applyYoutubeFallback, engine, music.youtubeVideoId, playback?.hybrid]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -303,13 +313,19 @@ export function CommunityStoryMusicAttach({
             type="button"
             className="flex max-w-[min(100vw-3rem,20rem)] items-center gap-2 text-left"
             onClick={handleStickerClick}
-            aria-label={loadError ? "Retry story music" : soundOn ? "Mute story music" : "Play story music"}
+            aria-label={
+              loadError || engine === "unavailable"
+                ? "Retry story music"
+                : soundOn
+                  ? "Mute story music"
+                  : "Play story music"
+            }
           >
             <span className="shrink-0 text-sm" aria-hidden>
-              {soundOn && !loadError ? "🔊" : "🔇"}
+              {soundOn && !loadError && engine !== "unavailable" ? "🔊" : "🔇"}
             </span>
             <span className="min-w-0 truncate text-xs font-semibold text-white">
-              {loadError
+              {loadError || engine === "unavailable"
                 ? `${music.title} · tap to retry sound`
                 : `${music.title} · ${music.artist}`}
             </span>

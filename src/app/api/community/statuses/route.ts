@@ -10,7 +10,7 @@ import {
   notifyStoryPosted,
 } from "@/lib/community-status-viewer-server";
 import { addCommunityStatus } from "@/lib/community-status-server";
-import { findCommunityStoryMusicTrack } from "@/lib/community-story-music";
+import { assertTrackAttachable } from "@/lib/story-music/story-music-service";
 import { defaultServiceInviteCaption } from "@/lib/community-worship-service";
 import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
 import {
@@ -147,15 +147,16 @@ export async function POST(request: Request) {
 
     let music: CommunityStatusMusic | undefined;
     if (musicTrackId) {
-      const track = findCommunityStoryMusicTrack(musicTrackId);
-      if (!track) {
-        return NextResponse.json({ error: "That song is not in the story music library." }, { status: 400 });
+      const attach = assertTrackAttachable(musicTrackId);
+      if (!attach.ok) {
+        return NextResponse.json({ error: attach.error }, { status: 400 });
       }
+      const track = attach.track;
       music = {
         trackId: track.id,
         title: track.title,
         artist: track.artist,
-        youtubeVideoId: track.youtubeVideoId,
+        youtubeVideoId: track.youtubeVideoId ?? "",
       };
     }
 

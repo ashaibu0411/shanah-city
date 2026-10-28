@@ -1,0 +1,114 @@
+{
+  "version": "poc-1",
+  "_notice": "QA test tracks only. Require STORY_MUSIC_POC_CATALOG_ENABLED=1. Not for production worship.",
+  "tracks": [
+    {
+      "id": "poc-gh-adom-test",
+      "title": "POC — Ghana Worship Test",
+      "artist": "Shanah City QA Ensemble",
+      "providerTrackId": "ghana-worship-poc.wav",
+      "audioPath": "/story-music-poc/ghana-worship-poc.wav",
+      "country": "GH",
+      "language": "en",
+      "genres": ["worship", "gospel"],
+      "tags": ["ghana", "global", "worship"],
+      "startSeconds": 0
+    },
+    {
+      "id": "poc-ng-gospel-test",
+      "title": "POC — Nigeria Gospel Test",
+      "artist": "Shanah City QA Ensemble",
+      "providerTrackId": "nigeria-gospel-poc.wav",
+      "audioPath": "/story-music-poc/nigeria-gospel-poc.wav",
+      "country": "NG",
+      "language": "en",
+      "genres": ["gospel"],
+      "tags": ["nigeria", "global", "gospel"],
+      "startSeconds": 0
+    },
+    {
+      "id": "poc-za-gospel-test",
+      "title": "POC — South Africa Gospel Test",
+      "artist": "Shanah City QA Ensemble",
+      "providerTrackId": "south-africa-gospel-poc.wav",
+      "audioPath": "/story-music-poc/south-africa-gospel-poc.wav",
+      "country": "ZA",
+      "language": "en",
+      "genres": ["gospel"],
+      "tags": ["south-africa", "global", "gospel"],
+      "startSeconds": 0
+    },
+    {
+      "id": "poc-ke-worship-test",
+      "title": "POC — Kenya Worship Test",
+      "artist": "Shanah City QA Ensemble",
+      "providerTrackId": "kenya-worship-poc.wav",
+      "audioPath": "/story-music-poc/kenya-worship-poc.wav",
+      "country": "KE",
+      "language": "en",
+      "genres": ["worship"],
+      "tags": ["kenya", "global", "worship"],
+      "startSeconds": 0
+    },
+    {
+      "id": "poc-caribbean-gospel-test",
+      "title": "POC — Caribbean Gospel Test",
+      "artist": "Shanah City QA Ensemble",
+      "providerTrackId": "caribbean-gospel-poc.wav",
+      "audioPath": "/story-music-poc/caribbean-gospel-poc.wav",
+      "country": "JM",
+      "language": "en",
+      "genres": ["gospel"],
+      "tags": ["caribbean", "global", "gospel"],
+      "startSeconds": 0
+    },
+    {
+      "id": "poc-us-gospel-test",
+      "title": "POC — US Gospel Test",
+      "artist": "Shanah City QA Ensemble",
+      "providerTrackId": "us-gospel-poc.wav",
+      "audioPath": "/story-music-poc/us-gospel-poc.wav",
+      "country": "US",
+      "language": "en",
+      "genres": ["gospel"],
+      "tags": ["gospel", "global"],
+      "startSeconds": 0
+    },
+    {
+      "id": "poc-latin-worship-test",
+      "title": "POC — Latin Worship Test",
+      "artist": "Shanah City QA Ensemble",
+      "providerTrackId": "latin-worship-poc.wav",
+      "audioPath": "/story-music-poc/latin-worship-poc.wav",
+      "country": "MX",
+      "language": "es",
+      "genres": ["worship"],
+      "tags": ["latin", "global", "worship"],
+      "startSeconds": 0
+    },
+    {
+      "id": "poc-eu-worship-test",
+      "title": "POC — Europe Worship Test",
+      "artist": "Shanah City QA Ensemble",
+      "providerTrackId": "europe-worship-poc.wav",
+      "audioPath": "/story-music-poc/europe-worship-poc.wav",
+      "country": "GB",
+      "language": "en",
+      "genres": ["worship"],
+      "tags": ["uk", "global", "worship"],
+      "startSeconds": 0
+    },
+    {
+      "id": "poc-asia-worship-test",
+      "title": "POC — Asia Worship Test",
+      "artist": "Shanah City QA Ensemble",
+      "providerTrackId": "asia-worship-poc.wav",
+      "audioPath": "/story-music-poc/asia-worship-poc.wav",
+      "country": "KR",
+      "language": "ko",
+      "genres": ["worship"],
+      "tags": ["asia", "global", "worship"],
+      "startSeconds": 0
+    }
+  ]
+}

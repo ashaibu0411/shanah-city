@@ -21,6 +21,12 @@ export type CommunityStoryMusicTrack = {
   tags?: string[];
   /** Optional hook start (seconds) for story playback. */
   startSeconds?: number;
+  /** Hybrid: playable only when authorized audio exists. */
+  playability?: "playable" | "unavailable";
+  country?: string;
+  language?: string;
+  genres?: string[];
+  provider?: string;
 };
 
 const tracks = (musicCatalog.tracks ?? []) as CommunityStoryMusicTrack[];
