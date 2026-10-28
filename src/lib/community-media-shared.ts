@@ -47,6 +47,21 @@ function lowerName(name: string) {
   return name.toLowerCase();
 }
 
+/** Strip codec parameters (`audio/webm;codecs=opus` → `audio/webm`). */
+export function normalizeCommunityFileMime(fileType: string | undefined): string {
+  if (!fileType?.trim()) return "";
+  return fileType.split(";")[0]?.trim().toLowerCase() ?? "";
+}
+
+function fileMimeBase(file: File) {
+  return normalizeCommunityFileMime(file.type);
+}
+
+/** Mic story recordings use this filename prefix from CommunityStoryMemberAudioPanel. */
+export function isStoryVoiceRecordingFileName(name: string) {
+  return /^story-recording-\d+\.[a-z0-9]+$/i.test(name.trim());
+}
+
 export function isCommunityImageName(name: string) {
   const lower = lowerName(name);
   return (
@@ -90,20 +105,36 @@ export function isCommunityImageFile(file: File) {
     isCommunityImageName(file.name);
 }
 
-export function isCommunityVideoFile(file: File) {
-  return COMMUNITY_VIDEO_CONTENT_TYPES.includes(file.type as (typeof COMMUNITY_VIDEO_CONTENT_TYPES)[number]) ||
-    isCommunityVideoName(file.name);
+export function isCommunityAudioFile(file: File) {
+  const base = fileMimeBase(file);
+  if (base.startsWith("audio/")) return true;
+  if (base === "video/webm" && isStoryVoiceRecordingFileName(file.name)) return true;
+  return (
+    COMMUNITY_AUDIO_CONTENT_TYPES.includes(base as (typeof COMMUNITY_AUDIO_CONTENT_TYPES)[number]) ||
+    isCommunityAudioName(file.name)
+  );
 }
 
-export function isCommunityAudioFile(file: File) {
-  return COMMUNITY_AUDIO_CONTENT_TYPES.includes(file.type as (typeof COMMUNITY_AUDIO_CONTENT_TYPES)[number]) ||
-    isCommunityAudioName(file.name);
+export function isCommunityVideoFile(file: File) {
+  const base = fileMimeBase(file);
+  if (base.startsWith("audio/")) return false;
+  if (base === "video/webm" && isStoryVoiceRecordingFileName(file.name)) return false;
+  return (
+    COMMUNITY_VIDEO_CONTENT_TYPES.includes(base as (typeof COMMUNITY_VIDEO_CONTENT_TYPES)[number]) ||
+    base.startsWith("video/") ||
+    isCommunityVideoName(file.name)
+  );
 }
 
 export function inferCommunityMediaType(file: File): "image" | "video" | "audio" | null {
+  const base = fileMimeBase(file);
+  if (base.startsWith("audio/")) return "audio";
+  if (base.startsWith("video/") && !(base === "video/webm" && isStoryVoiceRecordingFileName(file.name))) {
+    return "video";
+  }
   if (isCommunityImageFile(file)) return "image";
-  if (isCommunityVideoFile(file)) return "video";
   if (isCommunityAudioFile(file)) return "audio";
+  if (isCommunityVideoFile(file)) return "video";
   return null;
 }
 

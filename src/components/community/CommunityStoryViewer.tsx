@@ -26,6 +26,10 @@ import { parseStoryLinkFromStatus } from "@/lib/community-story-link-shared";
 import { storyReplyPresetsForKind } from "@/lib/community-story-reply-presets";
 import { CommunityStoryMusicAttach } from "@/components/community/CommunityStoryMusicAttach";
 import { CommunityStoryMemberAudioAttach } from "@/components/community/CommunityStoryMemberAudioAttach";
+import {
+  CommunityStoryYoutubeWatchOverlay,
+  type StoryYoutubeWatchPayload,
+} from "@/components/community/CommunityStoryYoutubeWatchOverlay";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
 import { CommunityLivePlayer } from "@/components/community/CommunityLivePlayer";
 import { MentionInput } from "@/components/mentions/MentionField";
@@ -288,7 +292,10 @@ export function CommunityStoryViewer({
   const isOwnStory =
     deck?.authorId === currentUserId || slide?.postedByUserId === currentUserId;
   const [liveStoryUiActive, setLiveStoryUiActive] = useState(false);
+  const [youtubeWatch, setYoutubeWatch] = useState<StoryYoutubeWatchPayload | null>(null);
+  const [storyMusicNativeAudio, setStoryMusicNativeAudio] = useState(false);
   const playbackPaused = paused || replyFocused || liveStoryUiActive;
+  const timelinePaused = playbackPaused || Boolean(youtubeWatch);
   const nextService = useMemo(() => getNextWorshipService(), []);
   const reactionButtons = slide ? reactionButtonsForStory(slide.storyKind) : [];
   const floatingQuickReactions = slide
@@ -303,8 +310,8 @@ export function CommunityStoryViewer({
     [slide?.reactions],
   );
   const showStorySoundToggle =
-    Boolean(slide?.music) ||
     Boolean(slide?.memberStoryAudio?.url?.trim()) ||
+    storyMusicNativeAudio ||
     slide?.mediaType === "video" ||
     (slide?.mediaType === "link" &&
       parseStoryLinkFromStatus(slide.mediaType, slide.mediaUrl)?.platform === "youtube");
@@ -357,7 +364,11 @@ export function CommunityStoryViewer({
     setMediaFailed(false);
     setMediaErrorDetail("");
     setMemberAudioDurationMs(null);
-    setSoundOn(Boolean(slide?.music || slide?.memberStoryAudio?.url?.trim()));
+    setYoutubeWatch(null);
+    setStoryMusicNativeAudio(false);
+    setSoundOn(
+      Boolean(slide?.memberStoryAudio?.url?.trim()) || slide?.mediaType === "video",
+    );
     setShowInsights(false);
     setInsightsData(null);
     setInsightsError("");
@@ -450,7 +461,7 @@ export function CommunityStoryViewer({
   }, [markCurrentSeen, navigationDecks]);
 
   useEffect(() => {
-    if (!slide || playbackPaused) return;
+    if (!slide || timelinePaused) return;
     if (slide.mediaType === "live") {
       setProgress(100);
       return;
@@ -499,7 +510,7 @@ export function CommunityStoryViewer({
   }, [
     goNext,
     memberAudioDurationMs,
-    playbackPaused,
+    timelinePaused,
     slide?.id,
     slide?.mediaType,
     slide?.memberStoryAudio?.url,
@@ -957,12 +968,12 @@ export function CommunityStoryViewer({
             audioContinuesOnNextSlide={Boolean(
               deck?.items[slideIndex + 1]?.memberStoryAudio?.url === slide.memberStoryAudio?.url,
             )}
-            paused={playbackPaused}
+            paused={timelinePaused}
             soundOn={soundOn}
             onToggleSound={() => setSoundOn((current) => !current)}
             onDurationKnown={(ms) => setMemberAudioDurationMs(ms)}
             onProgress={(pct) => {
-              if (!playbackPaused && soundOn) setProgress(pct);
+              if (!timelinePaused && soundOn) setProgress(pct);
             }}
           />
         ) : slide.music?.trackId?.trim() ? (
@@ -974,10 +985,19 @@ export function CommunityStoryViewer({
             musicContinuesOnNextSlide={Boolean(
               deck?.items[slideIndex + 1]?.music?.trackId === slide.music.trackId,
             )}
-            paused={playbackPaused}
+            paused={timelinePaused}
             soundOn={soundOn}
             onToggleSound={() => setSoundOn((current) => !current)}
+            onNativeAudioAvailable={(available) => {
+              setStoryMusicNativeAudio(available);
+              if (available) setSoundOn(true);
+            }}
+            onYoutubeWatchRequest={(payload) => setYoutubeWatch(payload)}
           />
+        ) : null}
+
+        {youtubeWatch ? (
+          <CommunityStoryYoutubeWatchOverlay payload={youtubeWatch} onClose={() => setYoutubeWatch(null)} />
         ) : null}
 
         {slide.mediaType === "link" ? (
