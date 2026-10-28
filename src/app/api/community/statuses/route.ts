@@ -57,6 +57,8 @@ export async function POST(request: Request) {
   let storyKind: CommunityStatusStoryKind = "default";
   let groupId = "";
   let musicTrackId = "";
+  let memberStoryAudioUrl = "";
+  let memberAudioRightsAck = false;
 
   if (contentType.includes("application/json")) {
     const body = (await request.json()) as {
@@ -67,9 +69,13 @@ export async function POST(request: Request) {
       linkUrl?: string;
       groupId?: string;
       musicTrackId?: string;
+      memberStoryAudioUrl?: string;
+      memberAudioRightsAck?: boolean;
     };
     groupId = String(body.groupId ?? "").trim();
     musicTrackId = String(body.musicTrackId ?? "").trim();
+    memberStoryAudioUrl = String(body.memberStoryAudioUrl ?? "").trim();
+    memberAudioRightsAck = Boolean(body.memberAudioRightsAck);
     mediaUrl = String(body.mediaUrl ?? body.linkUrl ?? "").trim();
     storyKind = parseStoryKind(body.storyKind);
     caption = String(body.caption ?? "").trim();
@@ -116,6 +122,8 @@ export async function POST(request: Request) {
     storyKind = parseStoryKind(formData.get("storyKind"));
     groupId = String(formData.get("groupId") ?? "").trim();
     musicTrackId = String(formData.get("musicTrackId") ?? "").trim();
+    memberStoryAudioUrl = String(formData.get("memberStoryAudioUrl") ?? "").trim();
+    memberAudioRightsAck = formData.get("memberAudioRightsAck") === "true";
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "Photo or video is required." }, { status: 400 });
@@ -145,6 +153,31 @@ export async function POST(request: Request) {
       notifyGroupId = group.id;
     }
 
+    if (memberStoryAudioUrl && musicTrackId) {
+      return NextResponse.json(
+        { error: "Choose either YouTube gospel music or your own recording — not both." },
+        { status: 400 },
+      );
+    }
+
+    if (memberStoryAudioUrl) {
+      if (mediaType === "video") {
+        return NextResponse.json(
+          { error: "Member overlay audio is for photo or text stories. Video keeps its own sound." },
+          { status: 400 },
+        );
+      }
+      if (!memberAudioRightsAck) {
+        return NextResponse.json(
+          { error: "Confirm you have permission to post this audio." },
+          { status: 400 },
+        );
+      }
+      if (!isAllowedCommunityMediaUrl(memberStoryAudioUrl)) {
+        return NextResponse.json({ error: "Invalid story audio URL." }, { status: 400 });
+      }
+    }
+
     let music: CommunityStatusMusic | undefined;
     if (musicTrackId) {
       const attach = await assertTrackAttachable(musicTrackId);
@@ -171,6 +204,7 @@ export async function POST(request: Request) {
       groupId: notifyGroupId,
       postedByUserId,
       music,
+      memberStoryAudioUrl: memberStoryAudioUrl || null,
     });
 
     const [withReactions] = await attachReactionsToStatuses([status], user.id);

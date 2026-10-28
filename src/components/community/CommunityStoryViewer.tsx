@@ -25,6 +25,7 @@ import {
 import { parseStoryLinkFromStatus } from "@/lib/community-story-link-shared";
 import { storyReplyPresetsForKind } from "@/lib/community-story-reply-presets";
 import { CommunityStoryMusicAttach } from "@/components/community/CommunityStoryMusicAttach";
+import { CommunityStoryMemberAudioAttach } from "@/components/community/CommunityStoryMemberAudioAttach";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
 import { CommunityLivePlayer } from "@/components/community/CommunityLivePlayer";
 import { MentionInput } from "@/components/mentions/MentionField";
@@ -928,7 +929,20 @@ export function CommunityStoryViewer({
           />
         )}
 
-        {slide.music?.trackId?.trim() ? (
+        {slide.memberStoryAudio?.url?.trim() ? (
+          <CommunityStoryMemberAudioAttach
+            key={`${slide.id}-member-audio`}
+            slideId={slide.id}
+            audioUrl={slide.memberStoryAudio.url}
+            slideDurationMs={storySlideDurationMs(slide)}
+            audioContinuesOnNextSlide={Boolean(
+              deck?.items[slideIndex + 1]?.memberStoryAudio?.url === slide.memberStoryAudio?.url,
+            )}
+            paused={playbackPaused}
+            soundOn={soundOn}
+            onToggleSound={() => setSoundOn((current) => !current)}
+          />
+        ) : slide.music?.trackId?.trim() ? (
           <CommunityStoryMusicAttach
             key={`${slide.id}-${slide.music.trackId}`}
             slideId={slide.id}
