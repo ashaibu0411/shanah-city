@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { findCommunityStoryMusicTrack } from "@/lib/community-story-music";
 import { isStoryMusicHybridActive, findStoryMusicTrack } from "@/lib/story-music/story-music-service";
-import { streamHybridCatalogTrack } from "@/lib/story-music/story-music-stream-server";
+import {
+  streamHybridCatalogTrack,
+  streamLocalWavFile,
+} from "@/lib/story-music/story-music-stream-server";
 import { resolveStoryMusicAudioStreamUrl } from "@/lib/community-story-music-playback-server";
 import {
   isAllowedRemoteAudioUrl,
   resolveCatalogLocalPublicFile,
 } from "@/lib/story-music/story-music-audio-security";
-import { createReadStream } from "fs";
-import { Readable } from "stream";
 import { enforceRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit-server";
 
 export const runtime = "nodejs";
@@ -77,12 +78,7 @@ export async function GET(request: Request) {
 
   const localHosted = hosted ? resolveCatalogLocalPublicFile(hosted) : null;
   if (localHosted) {
-    const nodeStream = createReadStream(localHosted);
-    const webStream = Readable.toWeb(nodeStream) as ReadableStream;
-    const headers = new Headers();
-    headers.set("Content-Type", "audio/wav");
-    headers.set("Accept-Ranges", "bytes");
-    return new Response(webStream, { status: 200, headers });
+    return streamLocalWavFile(localHosted, request, "private, max-age=300");
   }
 
   const upstream = await resolveStoryMusicAudioStreamUrl(track.youtubeVideoId);
