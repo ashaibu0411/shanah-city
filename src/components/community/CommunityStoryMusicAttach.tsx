@@ -2,9 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CommunityStatusMusic } from "@/lib/member-types";
-import { isNativeAppPlatform } from "@/lib/native-app";
 import { readJsonResponse } from "@/lib/read-json-response";
-import { getYouTubeStoryBackgroundEmbedSrc } from "@/lib/worship-youtube-timestamp-utils";
+import { getYouTubeStoryVisibleEmbedSrc } from "@/lib/worship-youtube-timestamp-utils";
 import type { StoryMusicPlaybackApiResponse } from "@/lib/story-music/playback-response";
 import { storyMusicHybridClientEnabled } from "@/lib/story-music/story-music-config";
 
@@ -38,8 +37,8 @@ async function audioStreamReachable(audioUrl: string) {
 export function CommunityStoryMusicAttach({
   slideId,
   music,
-  slideDurationMs,
-  musicContinuesOnNextSlide,
+  slideDurationMs: _slideDurationMs,
+  musicContinuesOnNextSlide: _musicContinuesOnNextSlide,
   paused,
   soundOn,
   onToggleSound,
@@ -49,7 +48,6 @@ export function CommunityStoryMusicAttach({
   const [playback, setPlayback] = useState<PlaybackPayload | null>(null);
   const [engine, setEngine] = useState<PlaybackEngine | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
-  const [youtubeUnmuted, setYoutubeUnmuted] = useState(false);
 
   const youtubeVideoId =
     playback?.youtubeVideoId?.trim() || music.youtubeVideoId?.trim() || "";
@@ -58,12 +56,6 @@ export function CommunityStoryMusicAttach({
     typeof playback?.startSeconds === "number" && playback.startSeconds >= 0
       ? Math.floor(playback.startSeconds)
       : null;
-
-  const clipEndSeconds = useMemo(() => {
-    if (musicContinuesOnNextSlide) return undefined;
-    const start = startSeconds ?? 0;
-    return start + Math.max(1, Math.ceil(slideDurationMs / 1000));
-  }, [musicContinuesOnNextSlide, slideDurationMs, startSeconds]);
 
   const applyYoutubeFallback = useCallback(
     (payload?: Partial<PlaybackPayload>) => {
@@ -157,21 +149,8 @@ export function CommunityStoryMusicAttach({
     setPlayback(null);
     setEngine(null);
     setLoadError("");
-    setYoutubeUnmuted(false);
     void loadPlayback();
   }, [loadPlayback, music.trackId, slideId, reloadToken]);
-
-  const unmuteDelayMs = isNativeAppPlatform() ? 650 : 300;
-
-  useEffect(() => {
-    if (!soundOn || paused || engine !== "youtube") {
-      setYoutubeUnmuted(false);
-      return;
-    }
-    setYoutubeUnmuted(false);
-    const timer = window.setTimeout(() => setYoutubeUnmuted(true), unmuteDelayMs);
-    return () => window.clearTimeout(timer);
-  }, [engine, slideId, music.trackId, paused, soundOn, unmuteDelayMs]);
 
   const embedOrigin = useMemo(
     () => (typeof window !== "undefined" ? window.location.origin : undefined),
@@ -180,29 +159,15 @@ export function CommunityStoryMusicAttach({
 
   const youtubeEmbedSrc = useMemo(() => {
     if (engine !== "youtube" || !youtubeVideoId) return "";
-    return getYouTubeStoryBackgroundEmbedSrc(
+    return getYouTubeStoryVisibleEmbedSrc(
       youtubeVideoId,
-      {
-        paused,
-        soundOn,
-        preferMutedAutoplay: soundOn && !youtubeUnmuted,
-      },
+      { paused, soundOn },
       startSeconds ?? undefined,
-      clipEndSeconds,
       embedOrigin,
     );
-  }, [
-    clipEndSeconds,
-    embedOrigin,
-    engine,
-    paused,
-    soundOn,
-    startSeconds,
-    youtubeUnmuted,
-    youtubeVideoId,
-  ]);
+  }, [embedOrigin, engine, paused, soundOn, startSeconds, youtubeVideoId]);
 
-  const youtubeEmbedKey = `${slideId}-${music.trackId}-${youtubeUnmuted ? "on" : "muted"}-${reloadToken}`;
+  const youtubeEmbedKey = `${slideId}-${music.trackId}-${reloadToken}`;
 
   const handleAudioFailure = useCallback(() => {
     if (playback?.hybrid) {
@@ -244,27 +209,17 @@ export function CommunityStoryMusicAttach({
       void audio.play().catch(() => handleAudioFailure());
     }
 
-    let clipTimer: number | undefined;
-    if (!musicContinuesOnNextSlide && slideDurationMs > 0) {
-      clipTimer = window.setTimeout(() => {
-        audio.pause();
-      }, slideDurationMs);
-    }
-
     return () => {
       audio.removeEventListener("loadedmetadata", applyStart);
       audio.removeEventListener("error", onError);
-      if (clipTimer != null) window.clearTimeout(clipTimer);
       audio.pause();
     };
   }, [
     engine,
     handleAudioFailure,
     music.trackId,
-    musicContinuesOnNextSlide,
     paused,
     playback?.audioUrl,
-    slideDurationMs,
     slideId,
     soundOn,
     startSeconds,
@@ -318,15 +273,19 @@ export function CommunityStoryMusicAttach({
         <audio ref={audioRef} playsInline preload="auto" className="sr-only" aria-hidden tabIndex={-1} />
       ) : null}
       {engine === "youtube" && youtubeEmbedSrc ? (
-        <iframe
-          key={youtubeEmbedKey}
-          title={`${music.title} by ${music.artist}`}
-          src={youtubeEmbedSrc}
-          className="pointer-events-none fixed left-0 top-0 h-[200px] w-[320px] -translate-x-[120%] opacity-[0.01]"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          tabIndex={-1}
-          aria-hidden
-        />
+        <div className="pointer-events-none absolute inset-x-0 bottom-[7.5rem] z-20 flex justify-center px-3">
+          <div className="pointer-events-auto w-full max-w-[min(100%,22rem)] overflow-hidden rounded-xl bg-black/80 shadow-lg ring-1 ring-white/15">
+            <iframe
+              key={youtubeEmbedKey}
+              title={`${music.title} by ${music.artist} on YouTube`}
+              src={youtubeEmbedSrc}
+              className="aspect-video w-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+            <p className="px-2 py-1 text-[10px] text-white/70">YouTube · {music.artist}</p>
+          </div>
+        </div>
       ) : null}
       <div className="pointer-events-none absolute inset-x-0 bottom-[4.75rem] z-20 flex justify-center px-4">
         <div className="pointer-events-auto max-w-full rounded-full bg-black/55 px-3 py-1.5 shadow-lg ring-1 ring-white/15 backdrop-blur-md">

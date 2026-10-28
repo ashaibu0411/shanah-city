@@ -248,6 +248,7 @@ export function CommunityStoryViewer({
   const [reactionError, setReactionError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
+  const [memberAudioDurationMs, setMemberAudioDurationMs] = useState<number | null>(null);
   const [showInsights, setShowInsights] = useState(false);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsError, setInsightsError] = useState("");
@@ -303,6 +304,7 @@ export function CommunityStoryViewer({
   );
   const showStorySoundToggle =
     Boolean(slide?.music) ||
+    Boolean(slide?.memberStoryAudio?.url?.trim()) ||
     slide?.mediaType === "video" ||
     (slide?.mediaType === "link" &&
       parseStoryLinkFromStatus(slide.mediaType, slide.mediaUrl)?.platform === "youtube");
@@ -354,7 +356,8 @@ export function CommunityStoryViewer({
     setReplyError("");
     setMediaFailed(false);
     setMediaErrorDetail("");
-    setSoundOn(Boolean(slide?.music));
+    setMemberAudioDurationMs(null);
+    setSoundOn(Boolean(slide?.music || slide?.memberStoryAudio?.url?.trim()));
     setShowInsights(false);
     setInsightsData(null);
     setInsightsError("");
@@ -468,15 +471,22 @@ export function CommunityStoryViewer({
     setProgress(0);
     setMediaFailed(false);
 
-    const slideDurationMs = storySlideDurationMs(slide);
+    const slideDurationMs = storySlideDurationMs(slide, memberAudioDurationMs);
+    const memberAudioDrivesProgress = Boolean(slide.memberStoryAudio?.url?.trim());
 
     let frame = 0;
     const tick = () => {
-      if (!pausedRef.current) {
+      if (!pausedRef.current && !memberAudioDrivesProgress) {
         const elapsed = elapsedRef.current + (Date.now() - startRef.current);
         const nextProgress = Math.min(100, (elapsed / slideDurationMs) * 100);
         setProgress(nextProgress);
         if (nextProgress >= 100) {
+          goNext();
+          return;
+        }
+      } else if (!pausedRef.current && memberAudioDrivesProgress) {
+        const elapsed = elapsedRef.current + (Date.now() - startRef.current);
+        if (elapsed >= slideDurationMs) {
           goNext();
           return;
         }
@@ -486,7 +496,16 @@ export function CommunityStoryViewer({
 
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [goNext, playbackPaused, slide?.id, slide?.mediaType, slide?.music, slideIndex]);
+  }, [
+    goNext,
+    memberAudioDurationMs,
+    playbackPaused,
+    slide?.id,
+    slide?.mediaType,
+    slide?.memberStoryAudio?.url,
+    slide?.music,
+    slideIndex,
+  ]);
 
   useEffect(() => {
     if (!slide) return;
@@ -934,20 +953,24 @@ export function CommunityStoryViewer({
             key={`${slide.id}-member-audio`}
             slideId={slide.id}
             audioUrl={slide.memberStoryAudio.url}
-            slideDurationMs={storySlideDurationMs(slide)}
+            slideDurationMs={storySlideDurationMs(slide, memberAudioDurationMs)}
             audioContinuesOnNextSlide={Boolean(
               deck?.items[slideIndex + 1]?.memberStoryAudio?.url === slide.memberStoryAudio?.url,
             )}
             paused={playbackPaused}
             soundOn={soundOn}
             onToggleSound={() => setSoundOn((current) => !current)}
+            onDurationKnown={(ms) => setMemberAudioDurationMs(ms)}
+            onProgress={(pct) => {
+              if (!playbackPaused && soundOn) setProgress(pct);
+            }}
           />
         ) : slide.music?.trackId?.trim() ? (
           <CommunityStoryMusicAttach
             key={`${slide.id}-${slide.music.trackId}`}
             slideId={slide.id}
             music={slide.music}
-            slideDurationMs={storySlideDurationMs(slide)}
+            slideDurationMs={storySlideDurationMs(slide, memberAudioDurationMs)}
             musicContinuesOnNextSlide={Boolean(
               deck?.items[slideIndex + 1]?.music?.trackId === slide.music.trackId,
             )}
