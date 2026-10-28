@@ -281,6 +281,27 @@ export function CommunityStoryMusicAttach({
     }
   }, [engine, handleAudioFailure, paused, playback?.audioUrl, soundOn]);
 
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) {
+        audioRef.current?.pause();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  useEffect(
+    () => () => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    },
+    [],
+  );
+
   function handleStickerClick() {
     if (loadError) {
       setReloadToken((value) => value + 1);

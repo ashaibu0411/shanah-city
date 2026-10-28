@@ -12,22 +12,39 @@ type StoryMusicPreviewPlayerProps = {
 
 export function StoryMusicPreviewPlayer({ trackId, label = "Preview", className = "" }: StoryMusicPreviewPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [status, setStatus] = useState<"idle" | "loading" | "playing" | "unavailable">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "playing" | "paused" | "unavailable">("idle");
   const [reason, setReason] = useState("");
+  const loadedUrlRef = useRef<string | null>(null);
 
   const stop = useCallback(() => {
     const audio = audioRef.current;
     if (audio) {
       audio.pause();
       audio.removeAttribute("src");
+      audio.load();
     }
+    loadedUrlRef.current = null;
     setStatus("idle");
   }, []);
 
   const preview = useCallback(async () => {
+    setReason("");
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (status === "paused" && loadedUrlRef.current) {
+      try {
+        await audio.play();
+        setStatus("playing");
+      } catch {
+        setStatus("unavailable");
+        setReason("Could not resume preview.");
+      }
+      return;
+    }
+
     stop();
     setStatus("loading");
-    setReason("");
     try {
       const response = await fetch(
         `/api/community/story-music/playback?trackId=${encodeURIComponent(trackId)}`,
@@ -45,8 +62,7 @@ export function StoryMusicPreviewPlayer({ trackId, label = "Preview", className 
         return;
       }
 
-      const audio = audioRef.current;
-      if (!audio) return;
+      loadedUrlRef.current = data.audioUrl;
       audio.src = data.audioUrl;
       if (typeof data.startSeconds === "number" && data.startSeconds > 0) {
         audio.currentTime = data.startSeconds;
@@ -57,9 +73,18 @@ export function StoryMusicPreviewPlayer({ trackId, label = "Preview", className 
       setStatus("unavailable");
       setReason("Could not load preview.");
     }
-  }, [stop, trackId]);
+  }, [status, stop, trackId]);
 
   useEffect(() => () => stop(), [stop]);
+
+  const buttonLabel =
+    status === "loading"
+      ? "…"
+      : status === "playing"
+        ? "Pause"
+        : status === "paused"
+          ? "Resume"
+          : label;
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -69,11 +94,15 @@ export function StoryMusicPreviewPlayer({ trackId, label = "Preview", className 
         className="shrink-0 rounded-full bg-clay-600 px-2.5 py-1 text-[11px] font-semibold text-white disabled:opacity-50"
         disabled={status === "loading"}
         onClick={() => {
-          if (status === "playing") stop();
-          else void preview();
+          if (status === "playing") {
+            audioRef.current?.pause();
+            setStatus("paused");
+            return;
+          }
+          void preview();
         }}
       >
-        {status === "loading" ? "…" : status === "playing" ? "Stop" : label}
+        {buttonLabel}
       </button>
       {status === "unavailable" ? (
         <span className="text-[11px] text-amber-800 dark:text-amber-200">{reason}</span>

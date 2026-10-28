@@ -12,6 +12,7 @@ import {
   STORY_MUSIC_DISCOVERY_LANGUAGES,
 } from "@/lib/story-music/search";
 import { StoryMusicPreviewPlayer } from "@/components/community/StoryMusicPreviewPlayer";
+import { StoryMusicTrackArtwork } from "@/components/community/StoryMusicTrackArtwork";
 
 type CommunityStoryMusicPickerProps = {
   selectedTrackId: string | null;
@@ -122,11 +123,32 @@ export function CommunityStoryMusicPicker({
       ) : null}
 
       {selected ? (
-        <div className="mt-2 space-y-2">
-          <p className="text-sm font-semibold text-night-900 dark:text-sand-100">
-            ♪ {selected.title} · {selected.artist}
-          </p>
-          <StoryMusicPreviewPlayer trackId={selected.id} label="Preview again" />
+        <div className="mt-2 space-y-2 rounded-lg border border-clay-500/25 bg-white/70 p-2.5 dark:border-clay-400/20 dark:bg-night-950/50">
+          <div className="flex items-center gap-3">
+            <StoryMusicTrackArtwork
+              trackId={selected.id}
+              title={selected.title}
+              artist={selected.artist}
+              size="md"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-night-900 dark:text-sand-100">{selected.title}</p>
+              <p className="truncate text-xs text-night-600 dark:text-sand-400">{selected.artist}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <StoryMusicPreviewPlayer trackId={selected.id} label="Preview" />
+            <button
+              type="button"
+              className="text-[11px] font-semibold text-clay-800 underline dark:text-clay-200"
+              onClick={() => {
+                onSelect(null);
+                setExpanded(true);
+              }}
+            >
+              Change song
+            </button>
+          </div>
         </div>
       ) : (
         <>
@@ -213,13 +235,18 @@ export function CommunityStoryMusicPicker({
             ) : tracks.length === 0 ? (
               <li className="px-2 py-1 text-xs text-night-500">
                 {hybrid
-                  ? "No playable songs match — adjust filters or search."
+                  ? "No authorized songs are available yet — worship staff will add licensed recordings soon."
                   : "No matches — try another title or artist."}
               </li>
             ) : (
               tracks.map((track) => (
                 <li key={track.id} className="rounded-lg px-2 py-1.5 hover:bg-white/80 dark:hover:bg-night-800">
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <StoryMusicTrackArtwork
+                      trackId={track.id}
+                      title={track.title}
+                      artist={track.artist}
+                    />
                     <button
                       type="button"
                       className="min-w-0 flex-1 text-left text-sm"
