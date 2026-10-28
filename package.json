@@ -68,6 +68,8 @@
     "test:worship:recording-audio": "tsx scripts/worship-recording-audio.test.ts",
     "test:story-music:hybrid": "tsx scripts/story-music-hybrid.test.ts",
     "test:story-music:security": "tsx scripts/story-music-security.test.ts",
+    "report:story-music:legacy-usage": "node scripts/story-music-legacy-usage-report.mjs",
+    "test:story-music:admin": "tsx scripts/story-music-admin.test.ts",
     "story-music:poc-audio": "node scripts/generate-story-music-poc-audio.mjs"
   },
   "dependencies": {

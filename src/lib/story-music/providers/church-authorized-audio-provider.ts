@@ -10,6 +10,7 @@ import {
   isAllowedCatalogLocalAudioPath,
   storyMusicTestTrackVisible,
 } from "@/lib/story-music/story-music-audio-security";
+import { loadAuthorizedProductionTrackRecords } from "@/lib/story-music/story-music-catalog-loader";
 
 type ChurchTrackRow = {
   id: string;
@@ -51,7 +52,13 @@ function mapRow(row: ChurchTrackRow): StoryMusicTrackRecord {
 const allTracks = ((churchCatalog.tracks ?? []) as ChurchTrackRow[]).map(mapRow);
 
 function visibleTracks() {
-  return allTracks.filter((track) => storyMusicTestTrackVisible(track.id));
+  const production = loadAuthorizedProductionTrackRecords();
+  const poc = allTracks.filter((track) => storyMusicTestTrackVisible(track.id));
+  const byId = new Map<string, StoryMusicTrackRecord>();
+  for (const track of [...production, ...poc]) {
+    byId.set(track.id, track);
+  }
+  return [...byId.values()];
 }
 
 export const churchAuthorizedAudioProvider: StoryMusicProvider = {

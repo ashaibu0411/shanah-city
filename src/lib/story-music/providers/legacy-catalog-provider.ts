@@ -10,6 +10,7 @@ import {
   isAllowedCatalogLocalAudioPath,
   isAllowedRemoteAudioUrl,
 } from "@/lib/story-music/story-music-audio-security";
+import { legacyMigrationAudioPath } from "@/lib/story-music/story-music-catalog-loader";
 
 type LegacyRow = {
   id: string;
@@ -26,7 +27,8 @@ type LegacyRow = {
  * Hybrid mode does not attach or play via YouTube extraction — hosted audioUrl only if explicitly authorized.
  */
 function mapLegacy(row: LegacyRow): StoryMusicTrackRecord {
-  const hosted = row.audioUrl?.trim();
+  const migrationPath = legacyMigrationAudioPath(row.id);
+  const hosted = migrationPath || row.audioUrl?.trim();
   const hostedOk =
     Boolean(hosted) &&
     (isAllowedCatalogLocalAudioPath(hosted!) ||
@@ -43,9 +45,11 @@ function mapLegacy(row: LegacyRow): StoryMusicTrackRecord {
     startSeconds: row.startSeconds,
     youtubeVideoId: row.youtubeVideoId,
     audioPath: hosted,
-    unavailableReason: hosted
+    unavailableReason: hostedOk
       ? undefined
-      : "Legacy catalog entry — pending licensed replacement (track id preserved).",
+      : migrationPath
+        ? undefined
+        : "Legacy catalog entry — pending licensed replacement (track id preserved).",
   };
 }
 

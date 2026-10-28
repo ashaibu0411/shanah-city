@@ -175,3 +175,27 @@
 6. **Map legacy ids** — For top legacy YouTube-backed ids, add church or licensed file **keeping the same id** in `legacy_catalog` mapping table (future).
 
 This layer is **required** for authentic African and Caribbean gospel even if a B2B API is adopted for CCM/instrumental breadth.
+
+---
+
+## Pilot scorecard (verify before purchase — all **?** = not confirmed)
+
+| Requirement | Epidemic Partner | Artlist Biz | Soundstripe | Church-authorized |
+|-------------|------------------|-------------|-------------|-------------------|
+| Ghanaian gospel depth | ? | ? | ? | ✅ (your deals) |
+| Nigerian gospel depth | ? | ? | ? | ✅ |
+| South African gospel | ? | ? | ? | ✅ |
+| East African gospel | ? | ? | ? | ✅ |
+| Caribbean gospel | ? | ? | ? | ✅ |
+| US gospel / CCM | ? likely some | ? | ? | ⚠️ partial |
+| Latin worship | ? | ? | ? | ✅ local |
+| European worship | ? | ? | ? | ⚠️ |
+| Asian worship | ? | ? | ? | ✅ local |
+| Artist + title search API | ✅ documented | ? | ? | ✅ (your metadata) |
+| Full-track in-app stream | ✅ stream endpoint **?** UGC | ? | ? | ✅ HTTPS file |
+| UGC **story background** rights | ? contract | ? | ? | ✅ intake doc |
+| Android WebView `<audio>` | ✅ if HTTPS URL | ✅ if HTTPS | ✅ if HTTPS | ✅ |
+| Desktop browsers | ✅ | ✅ | ✅ | ✅ |
+| Public API + pricing | Dev free; Scale/Enterprise | Sales | Sales | N/A |
+
+**Action:** Before any subscription, complete vendor searches documented in [STORY_MUSIC_LICENSED_PILOT_READINESS.md](./STORY_MUSIC_LICENSED_PILOT_READINESS.md) and attach results to leadership review.

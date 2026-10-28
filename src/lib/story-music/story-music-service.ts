@@ -93,10 +93,22 @@ export function assertTrackAttachable(trackId: string): { ok: true; track: Story
   if (!storyMusicHybridEnabled()) {
     return { ok: true, track };
   }
-  if (track.playability !== "playable" || track.provider === "legacy_catalog") {
+  if (track.playability !== "playable") {
     return {
       ok: false,
       error: "This song cannot be attached until authorized playback is available. Use preview to confirm.",
+    };
+  }
+  if (track.provider === "legacy_catalog" && !track.audioPath?.trim()) {
+    return {
+      ok: false,
+      error: "Legacy track pending authorized audio mapping.",
+    };
+  }
+  if (track.provider === "licensed_catalog") {
+    return {
+      ok: false,
+      error: "Licensed catalog is not configured.",
     };
   }
   return { ok: true, track };

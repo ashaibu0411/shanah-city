@@ -1,0 +1,65 @@
+import { readFileSync, statSync } from "fs";
+import path from "path";
+import type { StoryMusicTrackRecord } from "@/lib/story-music/types";
+import { mapAuthorizedCatalogRow } from "@/lib/story-music/story-music-authorized-store";
+import type { StoryMusicLegacyMigrationEntry } from "@/lib/story-music/story-music-rights-types";
+import { isAllowedCatalogLocalAudioPath } from "@/lib/story-music/story-music-audio-security";
+
+const CATALOG_PATH = path.join(process.cwd(), "data", "story-music-authorized-catalog.json");
+const MIGRATION_PATH = path.join(process.cwd(), "data", "story-music-legacy-migration-map.json");
+
+let catalogCache: { mtimeMs: number; tracks: StoryMusicTrackRecord[] } | null = null;
+let migrationCache: { mtimeMs: number; mappings: StoryMusicLegacyMigrationEntry[] } | null = null;
+
+function fileMtimeMs(filePath: string) {
+  try {
+    return statSync(filePath).mtimeMs;
+  } catch {
+    return 0;
+  }
+}
+
+export function loadAuthorizedProductionTrackRecords(): StoryMusicTrackRecord[] {
+  const mtimeMs = fileMtimeMs(CATALOG_PATH);
+  if (catalogCache && catalogCache.mtimeMs === mtimeMs) return catalogCache.tracks;
+
+  try {
+    const raw = readFileSync(CATALOG_PATH, "utf8");
+    const parsed = JSON.parse(raw) as { tracks?: Parameters<typeof mapAuthorizedCatalogRow>[0][] };
+    const tracks = (parsed.tracks ?? []).map(mapAuthorizedCatalogRow).filter((t) => {
+      if (t.playability !== "playable") return false;
+      return t.audioPath && isAllowedCatalogLocalAudioPath(t.audioPath);
+    });
+    catalogCache = { mtimeMs, tracks };
+    return tracks;
+  } catch {
+    catalogCache = { mtimeMs, tracks: [] };
+    return [];
+  }
+}
+
+export function loadLegacyMigrationOverrides(): Map<string, StoryMusicLegacyMigrationEntry> {
+  const mtimeMs = fileMtimeMs(MIGRATION_PATH);
+  if (migrationCache && migrationCache.mtimeMs === mtimeMs) {
+    return new Map(migrationCache.mappings.map((m) => [m.legacyTrackId, m]));
+  }
+
+  try {
+    const raw = readFileSync(MIGRATION_PATH, "utf8");
+    const parsed = JSON.parse(raw) as { mappings?: StoryMusicLegacyMigrationEntry[] };
+    const mappings = parsed.mappings ?? [];
+    migrationCache = { mtimeMs, mappings };
+    return new Map(mappings.map((m) => [m.legacyTrackId, m]));
+  } catch {
+    migrationCache = { mtimeMs, mappings: [] };
+    return new Map();
+  }
+}
+
+export function legacyMigrationAudioPath(trackId: string): string | null {
+  const entry = loadLegacyMigrationOverrides().get(trackId);
+  if (!entry || entry.status !== "published") return null;
+  const audioPath = entry.audioPath?.trim();
+  if (!audioPath || !isAllowedCatalogLocalAudioPath(audioPath)) return null;
+  return audioPath;
+}

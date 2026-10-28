@@ -1,0 +1,5 @@
+{
+  "version": "1",
+  "description": "Maps legacy musicTrackId to authorized audio without changing CommunityStatus.musicTrackId.",
+  "mappings": []
+}
