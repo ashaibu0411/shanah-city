@@ -1,8 +1,10 @@
 import path from "path";
 import { realpathSync, existsSync } from "fs";
 
-/** Local public paths allowed for hybrid story music (catalog-controlled). */
-export const STORY_MUSIC_LOCAL_AUDIO_PREFIXES = ["story-music-poc/", "story-music/"] as const;
+/** Local public paths allowed for authorized hybrid catalog audio (under `public/`). */
+export const STORY_MUSIC_LOCAL_AUDIO_PREFIXES = ["story-music/"] as const;
+
+const STORY_MUSIC_TEST_FIXTURE_SUBDIR = "story-music-poc";
 
 export function storyMusicPocCatalogEnabled() {
   return process.env.STORY_MUSIC_POC_CATALOG_ENABLED?.trim() === "1";
@@ -62,6 +64,32 @@ export function resolveCatalogLocalPublicFile(audioPath: string): string | null 
     const resolved = realpathSync(absolute);
     const publicRoot = realpathSync(path.join(process.cwd(), "public"));
     if (!resolved.startsWith(publicRoot + path.sep) && resolved !== publicRoot) return null;
+    return resolved;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * QA synthesized WAVs live under `test-fixtures/` (never deployed as static gospel assets).
+ * Only used when STORY_MUSIC_POC_CATALOG_ENABLED=1 (local/staging).
+ */
+export function resolveStoryMusicTestFixtureFile(relativePath: string): string | null {
+  if (!storyMusicPocCatalogEnabled()) return null;
+  const normalized = relativePath.trim().replace(/^\/+/, "").replace(/\\/g, "/");
+  if (!normalized || normalized.includes("..")) return null;
+  if (
+    normalized !== STORY_MUSIC_TEST_FIXTURE_SUBDIR &&
+    !normalized.startsWith(`${STORY_MUSIC_TEST_FIXTURE_SUBDIR}/`)
+  ) {
+    return null;
+  }
+  const absolute = path.join(process.cwd(), "test-fixtures", normalized);
+  if (!existsSync(absolute)) return null;
+  try {
+    const resolved = realpathSync(absolute);
+    const fixtureRoot = realpathSync(path.join(process.cwd(), "test-fixtures"));
+    if (!resolved.startsWith(fixtureRoot + path.sep) && resolved !== fixtureRoot) return null;
     return resolved;
   } catch {
     return null;

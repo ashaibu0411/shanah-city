@@ -8,8 +8,10 @@ import type {
 import { matchesStoryMusicSearch } from "@/lib/story-music/search";
 import {
   isAllowedCatalogLocalAudioPath,
+  storyMusicPocCatalogEnabled,
   storyMusicTestTrackVisible,
 } from "@/lib/story-music/story-music-audio-security";
+import { isStoryMusicTestRef } from "@/lib/story-music/story-music-storage-ref";
 import { loadAuthorizedProductionTrackRecords } from "@/lib/story-music/story-music-catalog-loader";
 
 type ChurchTrackRow = {
@@ -25,9 +27,14 @@ type ChurchTrackRow = {
   startSeconds?: number;
 };
 
+function audioPathAllowed(audioPath: string) {
+  if (isStoryMusicTestRef(audioPath)) return storyMusicPocCatalogEnabled();
+  return isAllowedCatalogLocalAudioPath(audioPath);
+}
+
 function mapRow(row: ChurchTrackRow): StoryMusicTrackRecord {
   const audioPath = row.audioPath?.trim();
-  const pathOk = audioPath ? isAllowedCatalogLocalAudioPath(audioPath) : false;
+  const pathOk = audioPath ? audioPathAllowed(audioPath) : false;
   return {
     id: row.id,
     title: row.title,
@@ -49,11 +56,13 @@ function mapRow(row: ChurchTrackRow): StoryMusicTrackRecord {
   };
 }
 
-const allTracks = ((churchCatalog.tracks ?? []) as ChurchTrackRow[]).map(mapRow);
+function churchCatalogRows(): StoryMusicTrackRecord[] {
+  return ((churchCatalog.tracks ?? []) as ChurchTrackRow[]).map(mapRow);
+}
 
 function visibleTracks() {
   const production = loadAuthorizedProductionTrackRecords();
-  const poc = allTracks.filter((track) => storyMusicTestTrackVisible(track.id));
+  const poc = churchCatalogRows().filter((track) => storyMusicTestTrackVisible(track.id));
   const byId = new Map<string, StoryMusicTrackRecord>();
   for (const track of [...production, ...poc]) {
     byId.set(track.id, track);
@@ -93,7 +102,7 @@ export const churchAuthorizedAudioProvider: StoryMusicProvider = {
       !storyMusicTestTrackVisible(track.id) ||
       track.playability !== "playable" ||
       !track.audioPath?.trim() ||
-      !isAllowedCatalogLocalAudioPath(track.audioPath)
+      !audioPathAllowed(track.audioPath)
     ) {
       return {
         trackId: track.id,

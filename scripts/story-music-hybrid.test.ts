@@ -41,7 +41,7 @@ async function main() {
   const attach = await assertTrackAttachable("poc-gh-adom-test");
   assert.equal(attach.ok, true);
 
-  const wavPath = path.join(process.cwd(), "public", "story-music-poc", "ghana-worship-poc.wav");
+  const wavPath = path.join(process.cwd(), "test-fixtures", "story-music-poc", "ghana-worship-poc.wav");
   assert.ok(existsSync(wavPath), "POC wav must exist (run generate-story-music-poc-audio.mjs)");
 
   const plan = await resolveStoryMusicPlayback("poc-gh-adom-test", ORIGIN);

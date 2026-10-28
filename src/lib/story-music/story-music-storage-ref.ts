@@ -44,10 +44,11 @@ export function isStoryMusicTestRef(ref: string) {
   return ref.startsWith(STORY_MUSIC_TEST_REF_SCHEME);
 }
 
-export function decodeTestPublicPath(ref: string): string | null {
+/** Relative path under `test-fixtures/` (e.g. story-music-poc/ghana-worship-poc.wav). */
+export function decodeTestFixtureRelativePath(ref: string): string | null {
   if (!isStoryMusicTestRef(ref)) return null;
-  const rel = ref.slice(STORY_MUSIC_TEST_REF_SCHEME.length);
+  const rel = ref.slice(STORY_MUSIC_TEST_REF_SCHEME.length).replace(/^\/+/, "");
   if (!rel || rel.includes("..")) return null;
-  if (!rel.startsWith("story-music-poc/")) return null;
-  return `/${rel}`;
+  if (rel.startsWith("story-music-poc/")) return rel;
+  return `story-music-poc/${rel}`;
 }

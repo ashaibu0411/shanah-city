@@ -5,11 +5,14 @@ import type { StoryMusicTrackRecord } from "@/lib/story-music/types";
 import { fetchStoryMusicAudioBlob } from "@/lib/story-music/story-music-audio-server";
 import {
   decodeBlobPathname,
-  decodeTestPublicPath,
+  decodeTestFixtureRelativePath,
   STORY_MUSIC_BLOB_REF_SCHEME,
   STORY_MUSIC_TEST_REF_SCHEME,
 } from "@/lib/story-music/story-music-storage-ref";
-import { resolveCatalogLocalPublicFile } from "@/lib/story-music/story-music-audio-security";
+import {
+  resolveCatalogLocalPublicFile,
+  resolveStoryMusicTestFixtureFile,
+} from "@/lib/story-music/story-music-audio-security";
 
 function streamHeaders(contentType: string, cache = "private, no-store") {
   const headers = new Headers();
@@ -40,9 +43,9 @@ export async function streamHybridCatalogTrack(track: StoryMusicTrackRecord, req
   }
 
   if (ref.startsWith(STORY_MUSIC_TEST_REF_SCHEME)) {
-    const publicPath = decodeTestPublicPath(ref);
-    if (!publicPath) return NextResponse.json({ error: "Invalid test audio ref." }, { status: 403 });
-    const localPath = resolveCatalogLocalPublicFile(publicPath);
+    const fixtureRel = decodeTestFixtureRelativePath(ref);
+    if (!fixtureRel) return NextResponse.json({ error: "Invalid test audio ref." }, { status: 403 });
+    const localPath = resolveStoryMusicTestFixtureFile(fixtureRel);
     if (!localPath) return NextResponse.json({ error: "Test audio missing." }, { status: 503 });
     const nodeStream = createReadStream(localPath);
     const webStream = Readable.toWeb(nodeStream) as ReadableStream;

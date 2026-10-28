@@ -5,7 +5,7 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
-const OUT_DIR = path.join(process.cwd(), "public", "story-music-poc");
+const OUT_DIR = path.join(process.cwd(), "test-fixtures", "story-music-poc");
 
 const CLIPS = [
   { file: "ghana-worship-poc.wav", hz: 392 },
