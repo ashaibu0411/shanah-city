@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { storyProgressDurationMs } from "../src/lib/community-story-playback";
 import { storySlideDurationMs, STORY_IMAGE_MS, STORY_IMAGE_WITH_MUSIC_MS } from "../src/lib/community-story-utils";
 import { inferCommunityAudioContentType, isCommunityAudioName } from "../src/lib/community-media-shared";
+import { communityAudioNameFromUrl } from "../src/lib/community-story-member-audio-playback";
 import { getYouTubeStoryVisibleEmbedSrc } from "../src/lib/worship-youtube-timestamp-utils";
 
 assert.equal(
@@ -30,6 +31,12 @@ assert.equal(
 
 assert.equal(isCommunityAudioName("voice.webm"), true);
 assert.equal(inferCommunityAudioContentType("voice.webm"), "audio/webm");
+assert.equal(
+  inferCommunityAudioContentType(
+    communityAudioNameFromUrl("https://x.public.blob.vercel-storage.com/community/audio/story-recording-1.webm"),
+  ),
+  "audio/webm",
+);
 
 const visibleSrc = getYouTubeStoryVisibleEmbedSrc("abc123", { paused: false, soundOn: true }, 30, "https://app.test");
 assert.match(visibleSrc, /controls=1/);

@@ -26,10 +26,6 @@ import { parseStoryLinkFromStatus } from "@/lib/community-story-link-shared";
 import { storyReplyPresetsForKind } from "@/lib/community-story-reply-presets";
 import { CommunityStoryMusicAttach } from "@/components/community/CommunityStoryMusicAttach";
 import { CommunityStoryMemberAudioAttach } from "@/components/community/CommunityStoryMemberAudioAttach";
-import {
-  CommunityStoryYoutubeWatchOverlay,
-  type StoryYoutubeWatchPayload,
-} from "@/components/community/CommunityStoryYoutubeWatchOverlay";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
 import { CommunityLivePlayer } from "@/components/community/CommunityLivePlayer";
 import { MentionInput } from "@/components/mentions/MentionField";
@@ -292,10 +288,10 @@ export function CommunityStoryViewer({
   const isOwnStory =
     deck?.authorId === currentUserId || slide?.postedByUserId === currentUserId;
   const [liveStoryUiActive, setLiveStoryUiActive] = useState(false);
-  const [youtubeWatch, setYoutubeWatch] = useState<StoryYoutubeWatchPayload | null>(null);
   const [storyMusicNativeAudio, setStoryMusicNativeAudio] = useState(false);
+  const memberAudioDurationMsRef = useRef<number | null>(null);
   const playbackPaused = paused || replyFocused || liveStoryUiActive;
-  const timelinePaused = playbackPaused || Boolean(youtubeWatch);
+  const timelinePaused = playbackPaused;
   const nextService = useMemo(() => getNextWorshipService(), []);
   const reactionButtons = slide ? reactionButtonsForStory(slide.storyKind) : [];
   const floatingQuickReactions = slide
@@ -364,8 +360,8 @@ export function CommunityStoryViewer({
     setMediaFailed(false);
     setMediaErrorDetail("");
     setMemberAudioDurationMs(null);
-    setYoutubeWatch(null);
     setStoryMusicNativeAudio(false);
+    memberAudioDurationMsRef.current = null;
     setSoundOn(
       Boolean(slide?.memberStoryAudio?.url?.trim()) || slide?.mediaType === "video",
     );
@@ -482,7 +478,7 @@ export function CommunityStoryViewer({
     setProgress(0);
     setMediaFailed(false);
 
-    const slideDurationMs = storySlideDurationMs(slide, memberAudioDurationMs);
+    const slideDurationMs = storySlideDurationMs(slide, memberAudioDurationMsRef.current);
     const memberAudioDrivesProgress = Boolean(slide.memberStoryAudio?.url?.trim());
 
     let frame = 0;
@@ -509,7 +505,6 @@ export function CommunityStoryViewer({
     return () => window.cancelAnimationFrame(frame);
   }, [
     goNext,
-    memberAudioDurationMs,
     timelinePaused,
     slide?.id,
     slide?.mediaType,
@@ -530,6 +525,11 @@ export function CommunityStoryViewer({
       resumePlayback();
     }
   }, [replyFocused]);
+
+  const handleNativeMusicAudio = useCallback((available: boolean) => {
+    setStoryMusicNativeAudio(available);
+    if (available) setSoundOn(true);
+  }, []);
 
   useEffect(() => {
     if (!mounted) return;
@@ -971,7 +971,10 @@ export function CommunityStoryViewer({
             paused={timelinePaused}
             soundOn={soundOn}
             onToggleSound={() => setSoundOn((current) => !current)}
-            onDurationKnown={(ms) => setMemberAudioDurationMs(ms)}
+            onDurationKnown={(ms) => {
+              memberAudioDurationMsRef.current = ms;
+              setMemberAudioDurationMs(ms);
+            }}
             onProgress={(pct) => {
               if (!timelinePaused && soundOn) setProgress(pct);
             }}
@@ -988,16 +991,8 @@ export function CommunityStoryViewer({
             paused={timelinePaused}
             soundOn={soundOn}
             onToggleSound={() => setSoundOn((current) => !current)}
-            onNativeAudioAvailable={(available) => {
-              setStoryMusicNativeAudio(available);
-              if (available) setSoundOn(true);
-            }}
-            onYoutubeWatchRequest={(payload) => setYoutubeWatch(payload)}
+            onNativeAudioAvailable={handleNativeMusicAudio}
           />
-        ) : null}
-
-        {youtubeWatch ? (
-          <CommunityStoryYoutubeWatchOverlay payload={youtubeWatch} onClose={() => setYoutubeWatch(null)} />
         ) : null}
 
         {slide.mediaType === "link" ? (
