@@ -30,7 +30,7 @@ import {
   markStoriesSeen,
 } from "@/lib/community-story-utils";
 import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
-import { CommunityStoryMusicPicker } from "@/components/community/CommunityStoryMusicPicker";
+import { CommunityStorySoundtrackPicker } from "@/components/community/CommunityStorySoundtrackPicker";
 import { groupStoryAuthorId } from "@/lib/group-community-story-ids";
 import type { CommunityStoryMusicTrack } from "@/lib/community-story-music";
 import { MentionTextarea } from "@/components/mentions/MentionField";
@@ -72,7 +72,17 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
   const [selectedMusicTrack, setSelectedMusicTrack] = useState<CommunityStoryMusicTrack | null>(
     null,
   );
+  const [memberStoryAudioUrl, setMemberStoryAudioUrl] = useState<string | null>(null);
+  const [memberAudioRightsAck, setMemberAudioRightsAck] = useState(false);
+  const [soundtrackError, setSoundtrackError] = useState("");
   const nextService = useMemo(() => getNextWorshipService(), []);
+
+  const allowMemberStoryOverlay = useMemo(() => {
+    if (composeMode === "media" && pendingFiles.some((file) => isCommunityVideoFile(file))) {
+      return false;
+    }
+    return composeMode === "text" || composeMode === "media" || composeMode === "link";
+  }, [composeMode, pendingFiles]);
 
   useEffect(() => {
     setMounted(true);
@@ -212,6 +222,19 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     setComposeMode("media");
     setComposeAsGroupId(null);
     setSelectedMusicTrack(null);
+    setMemberStoryAudioUrl(null);
+    setMemberAudioRightsAck(false);
+    setSoundtrackError("");
+  }
+
+  function validateSoundtrackBeforeShare() {
+    if (memberStoryAudioUrl && !memberAudioRightsAck) {
+      return "Confirm you have permission to post your audio.";
+    }
+    if (memberStoryAudioUrl && selectedMusicTrack) {
+      return "Choose either YouTube gospel music or your own recording.";
+    }
+    return null;
   }
 
   function openGroupStoryComposer(groupId: string) {
@@ -245,10 +268,19 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
       ...extra,
       ...(composeAsGroupId ? { groupId: composeAsGroupId } : {}),
       ...(selectedMusicTrack ? { musicTrackId: selectedMusicTrack.id } : {}),
+      ...(memberStoryAudioUrl && memberAudioRightsAck
+        ? { memberStoryAudioUrl, memberAudioRightsAck: true }
+        : {}),
     };
   }
 
   function confirmComposeAndShare() {
+    const soundtrackValidation = validateSoundtrackBeforeShare();
+    if (soundtrackValidation) {
+      setError(soundtrackValidation);
+      return;
+    }
+
     if (composeMode === "media") {
       const files = pendingFiles;
       const caption = captionDraft.trim();
@@ -620,10 +652,21 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
               </div>
               <div className="community-story-caption-dialog-body px-4 py-3">
                 {composeMode !== "service" ? (
-                  <CommunityStoryMusicPicker
-                    selectedTrackId={selectedMusicTrack?.id ?? null}
-                    onSelect={setSelectedMusicTrack}
-                  />
+                  <>
+                    <CommunityStorySoundtrackPicker
+                      allowMemberOverlay={allowMemberStoryOverlay}
+                      selectedMusicTrackId={selectedMusicTrack?.id ?? null}
+                      onSelectMusic={setSelectedMusicTrack}
+                      memberAudioUrl={memberStoryAudioUrl}
+                      onMemberAudioUrl={setMemberStoryAudioUrl}
+                      memberRightsAck={memberAudioRightsAck}
+                      onMemberRightsAck={setMemberAudioRightsAck}
+                      onSoundtrackError={setSoundtrackError}
+                    />
+                    {soundtrackError ? (
+                      <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">{soundtrackError}</p>
+                    ) : null}
+                  </>
                 ) : null}
                 {composeMode === "media" ? (
                   <p className="mt-3 text-sm text-night-600 dark:text-sand-300">

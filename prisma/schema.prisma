@@ -199,6 +199,7 @@ model CommunityStatus {
   musicTitle            String?
   musicArtist           String?
   musicYoutubeVideoId   String?
+  memberStoryAudioUrl   String?
   createdAt             DateTime @default(now())
   expiresAt             DateTime
 

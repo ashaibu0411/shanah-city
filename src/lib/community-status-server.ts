@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/db";
 import { communityStatusExpiry } from "@/lib/community-media-server";
 import { canDeleteGroupCommunityStatus } from "@/lib/group-community-story-server";
+import { isAllowedCommunityMediaUrl } from "@/lib/community-media-shared";
 import type {
   CommunityStatusMediaType,
+  CommunityStatusMemberStoryAudio,
   CommunityStatusMusic,
   CommunityStatusStoryKind,
 } from "@/lib/member-types";
@@ -18,6 +20,7 @@ export type CommunityStatusRecord = {
   groupId?: string;
   postedByUserId?: string;
   music?: CommunityStatusMusic;
+  memberStoryAudio?: CommunityStatusMemberStoryAudio;
   createdAt: string;
   expiresAt: string;
 };
@@ -69,10 +72,14 @@ function mapStatus(record: {
   musicTitle?: string | null;
   musicArtist?: string | null;
   musicYoutubeVideoId?: string | null;
+  memberStoryAudioUrl?: string | null;
   createdAt: Date;
   expiresAt: Date;
 }): CommunityStatusRecord {
   const music = mapMusic(record);
+  const memberUrl = record.memberStoryAudioUrl?.trim();
+  const memberStoryAudio =
+    memberUrl && isAllowedCommunityMediaUrl(memberUrl) ? { url: memberUrl } : undefined;
   return {
     id: record.id,
     authorId: record.authorId,
@@ -84,6 +91,7 @@ function mapStatus(record: {
     groupId: record.groupId ?? undefined,
     postedByUserId: record.postedByUserId ?? undefined,
     music,
+    memberStoryAudio,
     createdAt: record.createdAt.toISOString(),
     expiresAt: record.expiresAt.toISOString(),
   };
@@ -109,6 +117,7 @@ export async function addCommunityStatus(input: {
   groupId?: string;
   postedByUserId?: string;
   music?: CommunityStatusMusic;
+  memberStoryAudioUrl?: string | null;
   expiresAt?: Date;
 }) {
   const created = await prisma.communityStatus.create({
@@ -126,6 +135,7 @@ export async function addCommunityStatus(input: {
       musicTitle: input.music?.title ?? null,
       musicArtist: input.music?.artist ?? null,
       musicYoutubeVideoId: input.music?.youtubeVideoId ?? null,
+      memberStoryAudioUrl: input.memberStoryAudioUrl?.trim() || null,
       expiresAt: input.expiresAt ?? communityStatusExpiry(),
     },
   });

@@ -8,9 +8,10 @@ export const STORY_IMAGE_WITH_MUSIC_MS = 20_000;
 export function storySlideDurationMs(slide: {
   mediaType: string;
   music?: unknown;
+  memberStoryAudio?: unknown;
 }) {
   if (slide.mediaType === "image" || slide.mediaType === "text") {
-    return slide.music ? STORY_IMAGE_WITH_MUSIC_MS : STORY_IMAGE_MS;
+    return slide.music || slide.memberStoryAudio ? STORY_IMAGE_WITH_MUSIC_MS : STORY_IMAGE_MS;
   }
   return STORY_IMAGE_MS;
 }

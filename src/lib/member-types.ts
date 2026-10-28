@@ -54,6 +54,11 @@ export type CommunityStatusMusic = {
   youtubeVideoId: string;
 };
 
+/** Member-owned overlay audio for a photo/text story (not YouTube catalog). */
+export type CommunityStatusMemberStoryAudio = {
+  url: string;
+};
+
 export type CommunityStatus = {
   id: string;
   authorId: string;
@@ -65,6 +70,7 @@ export type CommunityStatus = {
   groupId?: string;
   postedByUserId?: string;
   music?: CommunityStatusMusic;
+  memberStoryAudio?: CommunityStatusMemberStoryAudio;
   createdAt: string;
   expiresAt: string;
   reactions?: CommunityStatusReactionCounts;
