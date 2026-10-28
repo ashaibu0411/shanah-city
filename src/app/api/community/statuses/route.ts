@@ -147,7 +147,7 @@ export async function POST(request: Request) {
 
     let music: CommunityStatusMusic | undefined;
     if (musicTrackId) {
-      const attach = assertTrackAttachable(musicTrackId);
+      const attach = await assertTrackAttachable(musicTrackId);
       if (!attach.ok) {
         return NextResponse.json({ error: attach.error }, { status: 400 });
       }

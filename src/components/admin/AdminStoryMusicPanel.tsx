@@ -136,6 +136,16 @@ export function AdminStoryMusicPanel() {
                     type="button"
                     disabled={busy || !data?.writeEnabled}
                     className="text-xs font-semibold text-clay-800 underline disabled:opacity-50"
+                    onClick={() => void postAction("propose", { recordId: record.id })}
+                  >
+                    Propose for review
+                  </button>
+                ) : null}
+                {record.status === "proposed" ? (
+                  <button
+                    type="button"
+                    disabled={busy || !data?.writeEnabled}
+                    className="text-xs font-semibold text-clay-800 underline disabled:opacity-50"
                     onClick={() => void postAction("verify", { recordId: record.id })}
                   >
                     Mark rights verified

@@ -1,5 +1,6 @@
 export type StoryMusicRightsStatus =
   | "draft"
+  | "proposed"
   | "rights_verified"
   | "published"
   | "revoked"

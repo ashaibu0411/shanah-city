@@ -11,6 +11,9 @@ import {
 } from "@/lib/story-music/story-music-authorized-store";
 import { isAllowedCatalogLocalAudioPath } from "@/lib/story-music/story-music-audio-security";
 import { isStoryMusicTestTrackId } from "@/lib/story-music/story-music-audio-security";
+import type { CreateIntakeInput } from "@/lib/story-music/story-music-admin-types";
+
+export type { CreateIntakeInput };
 
 function slugId(input: string) {
   return input
@@ -19,29 +22,6 @@ function slugId(input: string) {
     .replace(/^-|-$/g, "")
     .slice(0, 48);
 }
-
-export type CreateIntakeInput = {
-  artist: string;
-  title: string;
-  recordingOwner: string;
-  compositionPublishing: string;
-  documentReference: string;
-  authorizedUses: string;
-  streamingPermitted: boolean;
-  storagePermitted: boolean;
-  territory: string;
-  licenseStartDate?: string;
-  licenseEndDate?: string;
-  revocationContact?: string;
-  catalogTrackId?: string;
-  audioPath?: string;
-  country?: string;
-  language?: string;
-  genres?: StoryMusicRightsRecord["genres"];
-  tags?: string[];
-  startSeconds?: number;
-  notes?: string;
-};
 
 export async function createStoryMusicIntake(
   actor: PublicMember,

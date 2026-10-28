@@ -2,62 +2,62 @@ import { createReadStream } from "fs";
 import { Readable } from "stream";
 import { NextResponse } from "next/server";
 import type { StoryMusicTrackRecord } from "@/lib/story-music/types";
+import { fetchStoryMusicAudioBlob } from "@/lib/story-music/story-music-audio-server";
 import {
-  isAllowedRemoteAudioUrl,
-  resolveCatalogLocalPublicFile,
-} from "@/lib/story-music/story-music-audio-security";
+  decodeBlobPathname,
+  decodeTestPublicPath,
+  STORY_MUSIC_BLOB_REF_SCHEME,
+  STORY_MUSIC_TEST_REF_SCHEME,
+} from "@/lib/story-music/story-music-storage-ref";
+import { resolveCatalogLocalPublicFile } from "@/lib/story-music/story-music-audio-security";
 
-async function proxyAllowlistedRemoteAudio(upstream: string, request: Request) {
-  if (!isAllowedRemoteAudioUrl(upstream)) {
-    return NextResponse.json({ error: "Remote audio host not allowed." }, { status: 403 });
-  }
-
-  const range = request.headers.get("range");
-  const upstreamResponse = await fetch(upstream, {
-    headers: range ? { Range: range } : undefined,
-    redirect: "error",
-  });
-
-  if (!upstreamResponse.ok || !upstreamResponse.body) {
-    return NextResponse.json({ error: "Could not fetch audio stream." }, { status: 502 });
-  }
-
+function streamHeaders(contentType: string, cache = "private, no-store") {
   const headers = new Headers();
-  const contentType = upstreamResponse.headers.get("content-type");
-  if (contentType) headers.set("Content-Type", contentType);
-  const contentLength = upstreamResponse.headers.get("content-length");
-  if (contentLength) headers.set("Content-Length", contentLength);
-  const contentRange = upstreamResponse.headers.get("content-range");
-  if (contentRange) headers.set("Content-Range", contentRange);
+  headers.set("Content-Type", contentType);
   headers.set("Accept-Ranges", "bytes");
-  headers.set("Cache-Control", "private, max-age=300");
-
-  return new Response(upstreamResponse.body, {
-    status: upstreamResponse.status,
-    headers,
-  });
+  headers.set("Cache-Control", cache);
+  return headers;
 }
 
 export async function streamHybridCatalogTrack(track: StoryMusicTrackRecord, request: Request) {
-  const hosted = track.audioPath?.trim();
-  if (!hosted) {
+  const ref = track.audioPath?.trim();
+  if (!ref) {
     return NextResponse.json({ error: "Audio stream unavailable." }, { status: 503 });
   }
 
-  if (hosted.startsWith("http://") || hosted.startsWith("https://")) {
-    return proxyAllowlistedRemoteAudio(hosted, request);
+  if (ref.startsWith(STORY_MUSIC_BLOB_REF_SCHEME)) {
+    const pathname = decodeBlobPathname(ref);
+    if (!pathname) return NextResponse.json({ error: "Invalid audio reference." }, { status: 403 });
+    try {
+      const blobResponse = await fetchStoryMusicAudioBlob(pathname);
+      const headers = new Headers(blobResponse.headers);
+      headers.set("Cache-Control", "private, no-store");
+      headers.set("Accept-Ranges", "bytes");
+      return new Response(blobResponse.body, { status: blobResponse.status, headers });
+    } catch {
+      return NextResponse.json({ error: "Could not stream audio." }, { status: 502 });
+    }
   }
 
-  const localPath = resolveCatalogLocalPublicFile(hosted);
-  if (!localPath) {
-    return NextResponse.json({ error: "Authorized audio path not allowed." }, { status: 403 });
+  if (ref.startsWith(STORY_MUSIC_TEST_REF_SCHEME)) {
+    const publicPath = decodeTestPublicPath(ref);
+    if (!publicPath) return NextResponse.json({ error: "Invalid test audio ref." }, { status: 403 });
+    const localPath = resolveCatalogLocalPublicFile(publicPath);
+    if (!localPath) return NextResponse.json({ error: "Test audio missing." }, { status: 503 });
+    const nodeStream = createReadStream(localPath);
+    const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+    return new Response(webStream, { status: 200, headers: streamHeaders("audio/wav") });
   }
 
-  const nodeStream = createReadStream(localPath);
-  const webStream = Readable.toWeb(nodeStream) as ReadableStream;
-  const headers = new Headers();
-  headers.set("Content-Type", "audio/wav");
-  headers.set("Accept-Ranges", "bytes");
-  headers.set("Cache-Control", "public, max-age=3600");
-  return new Response(webStream, { status: 200, headers });
+  if (ref.startsWith("/")) {
+    const localPath = resolveCatalogLocalPublicFile(ref);
+    if (!localPath) {
+      return NextResponse.json({ error: "Authorized audio path not allowed." }, { status: 403 });
+    }
+    const nodeStream = createReadStream(localPath);
+    const webStream = Readable.toWeb(nodeStream) as ReadableStream;
+    return new Response(webStream, { status: 200, headers: streamHeaders("audio/wav", "private, max-age=300") });
+  }
+
+  return NextResponse.json({ error: "Unsupported audio reference." }, { status: 403 });
 }

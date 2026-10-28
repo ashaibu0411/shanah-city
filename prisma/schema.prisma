@@ -1963,3 +1963,115 @@ model MarriageActivitySyncSession {
 
   @@index([journeyId, moduleId, status])
 }
+
+// --- Share Your Story music (Phase 2 — church-authorized pilot) ---
+
+model StoryMusicRightsRecord {
+  id                    String    @id
+  status                String
+  artist                String
+  title                 String
+  recordingOwner        String
+  compositionPublishing String
+  documentReference     String
+  evidenceSummary       String?
+  authorizedUses        String
+  streamingPermitted    Boolean   @default(false)
+  storagePermitted      Boolean   @default(false)
+  territory             String
+  territoryCodesJson    String?
+  licenseStartDate      DateTime?
+  licenseEndDate        DateTime?
+  revocationContact     String?
+  catalogTrackId        String    @unique
+  country               String?
+  language              String?
+  genresJson            String?
+  tagsJson              String?
+  startSeconds          Int?
+  audioStorageRef       String?
+  audioContentType      String?
+  audioByteLength       Int?
+  proposedByUserId      String?
+  proposedAt            DateTime?
+  verifiedAt            DateTime?
+  verifiedByUserId      String?
+  publishedAt           DateTime?
+  publishedByUserId     String?
+  revokedAt             DateTime?
+  revokedByUserId       String?
+  revokeReason          String?
+  notes                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  catalogEntry  StoryMusicCatalogTrack?
+  evidenceFiles StoryMusicRightsEvidence[]
+  auditEvents   StoryMusicAdminAuditEvent[]
+
+  @@index([status])
+}
+
+model StoryMusicCatalogTrack {
+  id              String   @id
+  rightsRecordId  String   @unique
+  rightsRecord    StoryMusicRightsRecord @relation(fields: [rightsRecordId], references: [id], onDelete: Cascade)
+  title           String
+  artist          String
+  providerKind    String   @default("church_authorized")
+  audioStorageRef String
+  audioContentType String?
+  startSeconds    Int?
+  country         String?
+  language        String?
+  genresJson      String?
+  tagsJson        String?
+  playability     String   @default("playable")
+  publishedAt     DateTime
+  revokedAt       DateTime?
+
+  @@index([playability])
+  @@index([country])
+}
+
+model StoryMusicRightsEvidence {
+  id               String   @id
+  rightsRecordId   String
+  rightsRecord     StoryMusicRightsRecord @relation(fields: [rightsRecordId], references: [id], onDelete: Cascade)
+  label            String
+  storageRef       String
+  contentType      String
+  byteLength       Int
+  uploadedByUserId String
+  uploadedAt       DateTime @default(now())
+
+  @@index([rightsRecordId])
+}
+
+model StoryMusicAdminAuditEvent {
+  id             String   @id
+  at             DateTime @default(now())
+  actorUserId    String
+  actorRole      String
+  action         String
+  targetType     String
+  targetId       String?
+  summary        String
+  metaJson       String?
+  rightsRecordId String?
+  rightsRecord   StoryMusicRightsRecord? @relation(fields: [rightsRecordId], references: [id], onDelete: SetNull)
+
+  @@index([at])
+  @@index([actorUserId])
+}
+
+model StoryMusicLegacyMigrationMap {
+  legacyTrackId   String   @id
+  rightsRecordId  String?
+  catalogTrackId  String?
+  audioStorageRef String?
+  status          String
+  notes           String?
+  updatedAt       DateTime @updatedAt
+  updatedByUserId String?
+}

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const genre = searchParams.get("genre") ?? "all";
 
   const hybrid = isStoryMusicHybridActive();
-  const tracks = searchStoryMusicTracks({
+  const tracks = await searchStoryMusicTracks({
     query: q,
     region,
     country,

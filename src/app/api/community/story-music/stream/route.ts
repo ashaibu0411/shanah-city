@@ -9,6 +9,7 @@ import {
 } from "@/lib/story-music/story-music-audio-security";
 import { createReadStream } from "fs";
 import { Readable } from "stream";
+import { enforceRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit-server";
 
 export const runtime = "nodejs";
 
@@ -47,8 +48,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing trackId." }, { status: 400 });
   }
 
+  const ip = getClientIp(request);
+  const rate = await enforceRateLimit(`story-music-stream:${ip}`, {
+    limit: 120,
+    windowSeconds: 60,
+  });
+  if (!rate.allowed) {
+    return rateLimitResponse(rate.retryAfterSeconds);
+  }
+
   if (isStoryMusicHybridActive()) {
-    const track = findStoryMusicTrack(trackId);
+    const track = await findStoryMusicTrack(trackId);
     if (!track || track.playability !== "playable") {
       return NextResponse.json({ error: "Audio stream unavailable." }, { status: 503 });
     }

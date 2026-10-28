@@ -2,8 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AdminStoryMusicPanel } from "@/components/admin/AdminStoryMusicPanel";
 import { PageHeader } from "@/components/ui";
-import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { isStoryMusicCurator } from "@/lib/story-music/story-music-admin-access";
 
 export default async function AdminStoryMusicPage() {
   const cookieStore = await cookies();
@@ -14,7 +14,7 @@ export default async function AdminStoryMusicPage() {
     redirect("/sign-in?next=/admin/story-music");
   }
 
-  if (!(await canManageAsAdmin(user))) {
+  if (!(await isStoryMusicCurator(user))) {
     redirect("/admin/approvals");
   }
 
