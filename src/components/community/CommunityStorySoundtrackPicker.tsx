@@ -25,7 +25,7 @@ const MODE_OPTIONS: Array<{
   subtitle: string;
   disabled?: boolean;
 }> = [
-  { id: "youtube", label: "YouTube Gospel", subtitle: "Search licensed previews via YouTube" },
+  { id: "youtube", label: "YouTube Gospel Music", subtitle: "Search & attach — official YouTube playback" },
   { id: "member-record", label: "Record My Audio", subtitle: "Microphone" },
   { id: "member-upload", label: "Upload My Audio", subtitle: "Your file" },
   {

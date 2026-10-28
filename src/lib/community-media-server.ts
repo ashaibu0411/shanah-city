@@ -88,7 +88,7 @@ export async function saveCommunityVideo(file: File) {
 
 export async function saveCommunityAudio(file: File) {
   if (!isCommunityAudioFile(file)) {
-    throw new Error("Upload an MP3, M4A, WAV, or OGG audio file.");
+    throw new Error("Upload an MP3, M4A, WAV, WebM, or OGG audio file.");
   }
   if (file.size > COMMUNITY_AUDIO_MAX_BYTES) {
     throw new Error("Audio must be under 15 MB.");
