@@ -46,7 +46,7 @@ STORY_MUSIC_ADMIN_WRITE_ENABLED=1
 Run against a database clone or staging (read-only aggregate):
 
 ```bash
-node scripts/story-music-legacy-usage-report.mjs
+npm run report:story-music:legacy-usage
 ```
 
 Output: `musicTrackId`, `totalStories`, `activeStories`, optional legacy catalog label — **no member ids**.

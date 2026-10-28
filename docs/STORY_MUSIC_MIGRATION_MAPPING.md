@@ -10,7 +10,7 @@
 |------|---------|
 | `data/story-music-legacy-migration-map.json` | Per-id audio path when remapped |
 | `data/story-music-authorized-catalog.json` | New ids for newly licensed tracks |
-| `scripts/story-music-legacy-usage-report.mjs` | Priority list (aggregate counts only) |
+| `scripts/story-music-legacy-usage-report.ts` | Priority list (aggregate counts only) |
 
 ## Mapping entry
 

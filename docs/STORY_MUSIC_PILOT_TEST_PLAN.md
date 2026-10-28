@@ -38,7 +38,7 @@
 ```bash
 npm run test:story-music:hybrid
 npm run test:story-music:security
-node scripts/story-music-legacy-usage-report.mjs   # requires DATABASE_URL
+npm run report:story-music:legacy-usage   # requires DATABASE_URL
 ```
 
 ## Sign-off
