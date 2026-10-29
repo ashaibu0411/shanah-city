@@ -168,7 +168,7 @@ export function CommunityComposer({
   async function uploadSinglePendingMedia(id: string, file: File) {
     try {
       const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
-      if (mediaType === "audio") {
+      if (mediaType !== "image" && mediaType !== "video") {
         throw new Error("For audio, use Moments (+ on Stories).");
       }
       setPendingMedia((current) =>
