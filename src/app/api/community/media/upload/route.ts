@@ -10,6 +10,7 @@ import {
   COMMUNITY_VIDEO_CONTENT_TYPES,
   COMMUNITY_VIDEO_MAX_BYTES,
 } from "@/lib/community-media-shared";
+import { communityBlobAccessMode } from "@/lib/community-blob";
 import { isBlobConfigured } from "@/lib/use-blob";
 
 const COMMUNITY_MEDIA_FALLBACK_MAX_BYTES = 4 * 1024 * 1024;
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
         }
 
         return {
+          access: communityBlobAccessMode(),
           allowedContentTypes: isVideoPath
             ? [...COMMUNITY_VIDEO_CONTENT_TYPES]
             : isAudioPath
