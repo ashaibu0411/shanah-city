@@ -186,8 +186,22 @@ export function isAllowedCommunityMediaUrl(url: string) {
   const trimmed = url.trim();
   if (!trimmed) return false;
   if (trimmed.startsWith("/uploads/community/")) return true;
+  if (trimmed.startsWith("/api/community/media/stream?")) {
+    const pathname = trimmed.split("pathname=")[1];
+    if (!pathname) return false;
+    try {
+      const decoded = decodeURIComponent(pathname.split("&")[0] ?? "");
+      return decoded.startsWith("community/audio/") || decoded.startsWith("community/images/") || decoded.startsWith("community/videos/");
+    } catch {
+      return false;
+    }
+  }
   try {
     const parsed = new URL(trimmed);
+    if (parsed.pathname.includes("/api/community/media/stream")) {
+      const pathname = parsed.searchParams.get("pathname") ?? "";
+      return pathname.startsWith("community/audio/") || pathname.startsWith("community/images/") || pathname.startsWith("community/videos/");
+    }
     return parsed.protocol === "https:" && parsed.hostname.endsWith(".public.blob.vercel-storage.com");
   } catch {
     return false;

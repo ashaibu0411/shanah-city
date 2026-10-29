@@ -2,6 +2,12 @@ import { put } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
 import {
+  communityBlobAccessMode,
+  communityBlobRequestOptions,
+  isPrivateStorePublicAccessError,
+  normalizeCommunityUploadedMediaUrl,
+} from "@/lib/community-blob";
+import {
   COMMUNITY_AUDIO_MAX_BYTES,
   COMMUNITY_IMAGE_MAX_BYTES,
   COMMUNITY_STATUS_HOURS,
@@ -48,15 +54,35 @@ async function savePublicFile(
 
   if (useBlobStorage()) {
     const bytes = await file.arrayBuffer();
-    const blob = await put(
-      `community/${folder}/${Date.now()}-${safeFileName(file.name)}`,
-      Buffer.from(bytes),
-      {
-        access: "public",
-        contentType: file.type || contentType || fallbackType,
-      },
-    );
-    return blob.url;
+    const pathname = `community/${folder}/${Date.now()}-${safeFileName(file.name)}`;
+    const opts = communityBlobRequestOptions();
+    if (!opts) {
+      throw new Error("Community media storage is not configured.");
+    }
+    const putBase = {
+      contentType: file.type || contentType || fallbackType,
+      token: opts.token,
+      addRandomSuffix: false,
+      ...(opts.storeId ? { storeId: opts.storeId } : {}),
+    };
+
+    const preferredAccess = communityBlobAccessMode();
+    try {
+      const blob = await put(pathname, Buffer.from(bytes), {
+        ...putBase,
+        access: preferredAccess,
+      });
+      return normalizeCommunityUploadedMediaUrl(pathname, blob.url, preferredAccess);
+    } catch (error) {
+      if (preferredAccess === "public" && isPrivateStorePublicAccessError(error)) {
+        const blob = await put(pathname, Buffer.from(bytes), {
+          ...putBase,
+          access: "private",
+        });
+        return normalizeCommunityUploadedMediaUrl(pathname, blob.url, "private");
+      }
+      throw error;
+    }
   }
 
   const uploadsDir = path.join(process.cwd(), "public", "uploads", "community", folder);

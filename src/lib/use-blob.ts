@@ -1,8 +1,10 @@
-/** True when server can read/write Vercel Blob (requires read-write token, not store id alone). */
+import { isCommunityBlobConfigured } from "@/lib/community-blob";
+
+/** True when server can read/write Vercel Blob for community media. */
 export function isBlobConfigured() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
+  return isCommunityBlobConfigured();
 }
 
 export function useBlobStorage() {
-  return isBlobConfigured();
+  return isCommunityBlobConfigured();
 }

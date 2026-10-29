@@ -1,5 +1,9 @@
 import { upload } from "@vercel/blob/client";
 import {
+  communityBlobAccessMode,
+  normalizeCommunityUploadedMediaUrl,
+} from "@/lib/community-blob";
+import {
   COMMUNITY_AUDIO_MAX_BYTES,
   COMMUNITY_IMAGE_MAX_BYTES,
   COMMUNITY_VIDEO_MAX_BYTES,
@@ -84,12 +88,15 @@ export async function uploadCommunityMediaClient(file: File) {
 
   try {
     const blob = await upload(pathname, file, {
-      access: "public",
+      access: communityBlobAccessMode(),
       handleUploadUrl: uploadHandleUrl(),
       multipart: file.size > 8 * 1024 * 1024,
       contentType: uploadContentType(file, mediaType),
     });
-    return { mediaUrl: blob.url, mediaType };
+    return {
+      mediaUrl: normalizeCommunityUploadedMediaUrl(pathname, blob.url),
+      mediaType,
+    };
   } catch (blobError) {
     const blobMessage =
       blobError instanceof Error ? blobError.message : "Direct upload failed.";

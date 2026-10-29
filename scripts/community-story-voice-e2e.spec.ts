@@ -72,10 +72,10 @@ test.describe("Community story member voice (staging)", () => {
       },
     });
     const uploadText = await upload.text();
-    if (!upload.ok()) {
-      if (uploadText.includes("private store") || uploadText.includes("Blob")) {
-        test.skip(true, "Staging Blob store cannot accept public community uploads in this environment.");
-      }
+    if (!upload.ok() && uploadText.includes("private store")) {
+      throw new Error(
+        `Community audio upload still failed on private store: ${uploadText.slice(0, 200)}`,
+      );
     }
     expect(upload.status(), uploadText).toBe(200);
     const uploadBody = JSON.parse(uploadText) as { mediaUrl?: string; mediaType?: string };
@@ -107,7 +107,10 @@ test.describe("Community story member voice (staging)", () => {
     const fromFeed = feedBody.statuses?.find((entry) => entry.id === statusId);
     expect(fromFeed?.memberStoryAudio?.url).toBe(publishedAudioUrl);
 
-    const range = await request.get(audioUrl!, { headers: { Range: "bytes=0-1023" } });
+    const range = await request.get(
+      publishedAudioUrl!.startsWith("http") ? publishedAudioUrl! : `${baseURL}${publishedAudioUrl}`,
+      { headers: { Range: "bytes=0-1023", Cookie: cookieHeader } },
+    );
     expect(range.status()).toBeGreaterThanOrEqual(200);
     expect(range.status()).toBeLessThan(300);
 
@@ -120,37 +123,62 @@ test.describe("Community story member voice (staging)", () => {
       },
     ]);
 
+    const playbackUrl = publishedAudioUrl!.startsWith("http")
+      ? publishedAudioUrl!
+      : `${baseURL}${publishedAudioUrl}`;
+
     const playback = await page.evaluate(async (url) => {
       const audio = document.createElement("audio");
       audio.preload = "auto";
-      const result = await new Promise<{ ok: boolean; duration: number; error: string }>((resolve) => {
-        const timer = window.setTimeout(() => resolve({ ok: false, duration: 0, error: "timeout" }), 15000);
-        audio.addEventListener(
-          "loadedmetadata",
-          () => {
+      const result = await new Promise<{ ok: boolean; playing: boolean; duration: number; error: string }>(
+        (resolve) => {
+          const timer = window.setTimeout(
+            () => resolve({ ok: false, playing: false, duration: 0, error: "timeout" }),
+            15000,
+          );
+          const finish = (payload: { ok: boolean; playing: boolean; duration: number; error: string }) => {
             window.clearTimeout(timer);
-            resolve({
-              ok: Number.isFinite(audio.duration) && audio.duration > 0,
-              duration: audio.duration,
-              error: "",
-            });
-          },
-          { once: true },
-        );
-        audio.addEventListener(
-          "error",
-          () => {
-            window.clearTimeout(timer);
-            resolve({ ok: false, duration: 0, error: "audio error" });
-          },
-          { once: true },
-        );
-        audio.src = url;
-        audio.load();
-      });
+            resolve(payload);
+          };
+          audio.addEventListener(
+            "loadedmetadata",
+            () => {
+              void audio
+                .play()
+                .then(() => {
+                  finish({
+                    ok: Number.isFinite(audio.duration) && audio.duration > 0,
+                    playing: !audio.paused,
+                    duration: audio.duration,
+                    error: "",
+                  });
+                })
+                .catch(() => {
+                  finish({
+                    ok: Number.isFinite(audio.duration) && audio.duration > 0,
+                    playing: false,
+                    duration: audio.duration,
+                    error: "play rejected",
+                  });
+                });
+            },
+            { once: true },
+          );
+          audio.addEventListener(
+            "error",
+            () => {
+              finish({ ok: false, playing: false, duration: 0, error: "audio error" });
+            },
+            { once: true },
+          );
+          audio.src = url;
+          audio.load();
+        },
+      );
       return result;
-    }, audioUrl!);
+    }, playbackUrl);
 
     expect(playback.ok, playback.error || `duration=${playback.duration}`).toBe(true);
+    expect(playback.playing, "audio element should reach playing state (not speaker verification)").toBe(true);
   });
 });

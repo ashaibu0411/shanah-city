@@ -74,6 +74,7 @@
     "test:community:story-member-audio": "tsx scripts/community-story-member-audio.test.ts",
     "test:community:story-playback": "tsx scripts/community-story-playback.test.ts",
     "test:community:story-voice-e2e": "playwright test -c playwright.staging.story.config.ts",
+    "test:community:blob-access": "tsx scripts/community-blob-access.test.ts",
     "story-music:poc-audio": "node scripts/generate-story-music-poc-audio.mjs"
   },
   "dependencies": {
