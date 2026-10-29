@@ -3,7 +3,11 @@
  */
 
 export function getStoryMusicAudioBlobToken(): string | null {
-  return process.env.STORY_MUSIC_BLOB_READ_WRITE_TOKEN?.trim() || null;
+  return (
+    process.env.STORY_MUSIC_BLOB_READ_WRITE_TOKEN?.trim() ||
+    process.env.BLOB_READ_WRITE_TOKEN?.trim() ||
+    null
+  );
 }
 
 export function getStoryMusicEvidenceBlobToken(): string | null {
