@@ -66,6 +66,7 @@ export function CommunityStoryMusicAttach({
   const [engine, setEngine] = useState<PlaybackEngine | null>(() => initialEngine(music));
   const [reloadToken, setReloadToken] = useState(0);
   const [youtubeViewerOpen, setYoutubeViewerOpen] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
 
   useEffect(() => {
     onYoutubeViewerActiveChange?.(youtubeViewerOpen);
@@ -300,6 +301,9 @@ export function CommunityStoryMusicAttach({
   if (!music.trackId?.trim()) return null;
 
   const youtubeVideoMode = engine === "youtube";
+  const attributionText = playback?.attributionText?.trim();
+  const licenseUrl = playback?.licenseUrl?.trim();
+  const sourceUrl = playback?.sourceUrl?.trim();
 
   return (
     <>
@@ -317,8 +321,36 @@ export function CommunityStoryMusicAttach({
         storyPhotoUrl={storyPhotoUrl}
         embedUnavailable={engine === "unavailable"}
       />
+      {showCredits && engine === "audio" && (attributionText || licenseUrl) ? (
+        <div className="pointer-events-auto absolute inset-x-4 bottom-[7.5rem] z-20 max-h-32 overflow-y-auto rounded-lg bg-black/75 px-3 py-2 text-[11px] text-white shadow-lg">
+          <p className="font-semibold">Music credit</p>
+          {attributionText ? <p className="mt-1">{attributionText}</p> : null}
+          {licenseUrl ? (
+            <a href={licenseUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block underline">
+              License
+            </a>
+          ) : null}
+          {sourceUrl ? (
+            <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block underline">
+              Source
+            </a>
+          ) : null}
+          <button type="button" className="mt-2 font-semibold underline" onClick={() => setShowCredits(false)}>
+            Close
+          </button>
+        </div>
+      ) : null}
       <div className="pointer-events-none absolute inset-x-0 bottom-[4.75rem] z-20 flex justify-center px-4">
         <div className="pointer-events-auto max-w-full rounded-full bg-black/55 px-3 py-1.5 shadow-lg ring-1 ring-white/15 backdrop-blur-md">
+          {engine === "audio" && (attributionText || licenseUrl) ? (
+            <button
+              type="button"
+              className="mr-2 text-[10px] font-semibold text-white/80 underline"
+              onClick={() => setShowCredits((v) => !v)}
+            >
+              Credit
+            </button>
+          ) : null}
           <button
             type="button"
             className="flex max-w-[min(100vw-3rem,20rem)] items-center gap-2 text-left"

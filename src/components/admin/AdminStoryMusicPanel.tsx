@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { StoryMusicRightsRecord } from "@/lib/story-music/story-music-rights-types";
+import { AdminStoryMusicDiscoveryPanel } from "@/components/admin/AdminStoryMusicDiscoveryPanel";
 
 type AdminPayload = {
   writeEnabled: boolean;
@@ -75,6 +76,8 @@ export function AdminStoryMusicPanel() {
           Intake records: {data.records.length}
         </p>
       ) : null}
+
+      <AdminStoryMusicDiscoveryPanel />
 
       <section className="rounded-xl border border-night-900/10 bg-white/80 p-4 dark:border-white/10 dark:bg-night-900/40">
         <h2 className="text-sm font-semibold text-night-900 dark:text-sand-100">New intake (draft)</h2>

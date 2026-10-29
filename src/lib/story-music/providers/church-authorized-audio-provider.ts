@@ -7,6 +7,7 @@ import type {
 } from "@/lib/story-music/types";
 import { matchesStoryMusicSearch } from "@/lib/story-music/search";
 import {
+  isAllowedCatalogAudioStorageRef,
   isAllowedCatalogLocalAudioPath,
   storyMusicPocCatalogEnabled,
   storyMusicTestTrackVisible,
@@ -29,6 +30,7 @@ type ChurchTrackRow = {
 
 function audioPathAllowed(audioPath: string) {
   if (isStoryMusicTestRef(audioPath)) return storyMusicPocCatalogEnabled();
+  if (isAllowedCatalogAudioStorageRef(audioPath)) return true;
   return isAllowedCatalogLocalAudioPath(audioPath);
 }
 
@@ -127,6 +129,10 @@ export const churchAuthorizedAudioProvider: StoryMusicProvider = {
       title: track.title,
       artist: track.artist,
       provider: track.provider,
+      licenseType: track.licenseType,
+      licenseUrl: track.licenseUrl,
+      attributionText: track.attributionText,
+      sourceUrl: track.sourceUrl,
     };
   },
 };

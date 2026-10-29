@@ -5,6 +5,7 @@ import { mapAuthorizedCatalogRow } from "@/lib/story-music/story-music-authorize
 import type { StoryMusicLegacyMigrationEntry } from "@/lib/story-music/story-music-rights-types";
 import { isAllowedCatalogLocalAudioPath } from "@/lib/story-music/story-music-audio-security";
 import { STORY_MUSIC_BLOB_REF_SCHEME } from "@/lib/story-music/story-music-storage-ref";
+import { trackVisibleInServerCatalog } from "@/lib/story-music/story-music-pilot-access";
 
 function productionAudioPathAllowed(audioPath: string) {
   const normalized = audioPath.trim();
@@ -12,7 +13,6 @@ function productionAudioPathAllowed(audioPath: string) {
   if (normalized.startsWith(STORY_MUSIC_BLOB_REF_SCHEME)) return true;
   return isAllowedCatalogLocalAudioPath(normalized);
 }
-
 
 const CATALOG_PATH = path.join(process.cwd(), "data", "story-music-authorized-catalog.json");
 const MIGRATION_PATH = path.join(process.cwd(), "data", "story-music-legacy-migration-map.json");
@@ -39,10 +39,13 @@ export function loadAuthorizedProductionTrackRecords(): StoryMusicTrackRecord[] 
         Parameters<typeof mapAuthorizedCatalogRow>[0] & { status?: string }
       >;
     };
-    const tracks = (parsed.tracks ?? []).map(mapAuthorizedCatalogRow).filter((t) => {
-      if (t.playability === "unavailable") return true;
-      return Boolean(t.audioPath && productionAudioPathAllowed(t.audioPath));
-    });
+    const tracks = (parsed.tracks ?? [])
+      .filter((row) => trackVisibleInServerCatalog(row))
+      .map(mapAuthorizedCatalogRow)
+      .filter((t) => {
+        if (t.playability === "unavailable") return true;
+        return Boolean(t.audioPath && productionAudioPathAllowed(t.audioPath));
+      });
     catalogCache = { mtimeMs, tracks };
     return tracks;
   } catch {

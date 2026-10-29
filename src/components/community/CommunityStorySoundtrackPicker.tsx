@@ -5,7 +5,13 @@ import type { CommunityStoryMusicTrack } from "@/lib/community-story-music";
 import { CommunityStoryMusicPicker } from "@/components/community/CommunityStoryMusicPicker";
 import { CommunityStoryMemberAudioPanel } from "@/components/community/CommunityStoryMemberAudioPanel";
 
-export type StorySoundtrackMode = "none" | "youtube" | "member-record" | "member-upload" | "library";
+export type StorySoundtrackMode =
+  | "none"
+  | "youtube"
+  | "member-record"
+  | "member-upload"
+  | "free-worship"
+  | "library";
 
 type CommunityStorySoundtrackPickerProps = {
   allowMemberOverlay: boolean;
@@ -19,19 +25,15 @@ type CommunityStorySoundtrackPickerProps = {
 };
 
 const SECTION_OPTIONS: Array<{
-  id: "youtube" | "background" | "library";
+  id: "youtube" | "background" | "free-worship" | "library";
   label: string;
   subtitle: string;
   disabled?: boolean;
 }> = [
-  { id: "youtube", label: "Gospel Music Videos", subtitle: "YouTube" },
   { id: "background", label: "Background Audio", subtitle: "Record or Upload" },
-  {
-    id: "library",
-    label: "Shanah Worship Music",
-    subtitle: "Coming Soon",
-    disabled: true,
-  },
+  { id: "youtube", label: "Gospel Music Videos", subtitle: "YouTube" },
+  { id: "free-worship", label: "Free Worship Music", subtitle: "Licensed library" },
+  { id: "library", label: "Shanah Worship Music", subtitle: "Coming Soon", disabled: true },
 ];
 
 export function CommunityStorySoundtrackPicker({
@@ -44,21 +46,45 @@ export function CommunityStorySoundtrackPicker({
   onMemberRightsAck,
   onSoundtrackError,
 }: CommunityStorySoundtrackPickerProps) {
-  const [section, setSection] = useState<"none" | "youtube" | "background" | "library">("none");
+  const [section, setSection] = useState<
+    "none" | "youtube" | "background" | "free-worship" | "library"
+  >("none");
   const [backgroundMode, setBackgroundMode] = useState<"member-record" | "member-upload">(
     "member-record",
   );
+  const [freeLibraryLive, setFreeLibraryLive] = useState(false);
 
   useEffect(() => {
-    if (selectedMusicTrackId && section === "none") setSection("youtube");
+    let cancelled = false;
+    fetch("/api/community/story-music?genre=all&q=")
+      .then((r) => r.json())
+      .then((data: { freeLibraryLive?: boolean }) => {
+        if (!cancelled) setFreeLibraryLive(Boolean(data.freeLibraryLive));
+      })
+      .catch(() => {
+        if (!cancelled) setFreeLibraryLive(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (selectedMusicTrackId && section === "none") setSection("free-worship");
     if (memberAudioUrl && section === "none") {
       setSection("background");
       setBackgroundMode("member-record");
     }
   }, [memberAudioUrl, section, selectedMusicTrackId]);
 
-  function selectSection(next: "youtube" | "background" | "library") {
+  function selectSection(next: "youtube" | "background" | "free-worship" | "library") {
     if (next === "library") return;
+    if (next === "free-worship" && !freeLibraryLive) {
+      onSoundtrackError(
+        "Free worship songs are being verified by the church team. Check back soon — your recorded voice still works today.",
+      );
+      return;
+    }
     if (next === "background" && !allowMemberOverlay) {
       onSoundtrackError("Use gospel music videos with video stories — your video keeps its own sound.");
       return;
@@ -71,6 +97,9 @@ export function CommunityStorySoundtrackPicker({
     } else if (next === "background") {
       onSelectMusic(null);
       setBackgroundMode("member-record");
+    } else if (next === "free-worship") {
+      onMemberAudioUrl(null);
+      onMemberRightsAck(false);
     }
   }
 
@@ -90,14 +119,17 @@ export function CommunityStorySoundtrackPicker({
       <p className="text-xs font-semibold uppercase tracking-wide text-night-600 dark:text-sand-400">
         Story soundtrack (optional)
       </p>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {SECTION_OPTIONS.map((option) => {
           const disabled =
-            option.disabled || (option.id === "background" && !allowMemberOverlay);
-          const active =
-            option.id === "background"
-              ? section === "background"
-              : section === option.id;
+            option.disabled ||
+            (option.id === "background" && !allowMemberOverlay) ||
+            (option.id === "free-worship" && !freeLibraryLive);
+          const active = section === option.id;
+          const subtitle =
+            option.id === "free-worship" && !freeLibraryLive
+              ? "Coming soon — verification in progress"
+              : option.subtitle;
           return (
             <button
               key={option.id}
@@ -113,9 +145,7 @@ export function CommunityStorySoundtrackPicker({
               <span className="block text-[13px] font-semibold text-night-900 dark:text-sand-100">
                 {option.label}
               </span>
-              <span className="mt-0.5 block text-[10px] text-night-500 dark:text-sand-400">
-                {option.subtitle}
-              </span>
+              <span className="mt-0.5 block text-[10px] text-night-500 dark:text-sand-400">{subtitle}</span>
             </button>
           );
         })}
@@ -148,9 +178,27 @@ export function CommunityStorySoundtrackPicker({
         </div>
       ) : null}
 
+      {section === "free-worship" && freeLibraryLive ? (
+        <CommunityStoryMusicPicker
+          selectedTrackId={selectedMusicTrackId}
+          heading="Free Worship Music"
+          subheading="Native background audio on your photo — preview before attaching."
+          onSelect={(track) => {
+            onSelectMusic(track);
+            if (track) {
+              onMemberAudioUrl(null);
+              onMemberRightsAck(false);
+            }
+          }}
+        />
+      ) : null}
+
       {section === "youtube" ? (
         <CommunityStoryMusicPicker
           selectedTrackId={selectedMusicTrackId}
+          heading="Gospel Music Videos"
+          subheading="Tap the sticker in your story to watch the official YouTube video."
+          youtubeMode
           onSelect={(track) => {
             onSelectMusic(track);
             if (track) {

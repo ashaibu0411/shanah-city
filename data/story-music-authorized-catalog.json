@@ -1,4 +1,43 @@
 {
   "version": "1",
-  "tracks": []
+  "tracks": [
+    {
+      "id": "qa-staging-shanah-instrumental-v1",
+      "title": "Staging QA Instrumental (TEST ONLY)",
+      "artist": "Shanah City QA",
+      "providerTrackId": "qa-staging-shanah-instrumental-v1.wav",
+      "audioPath": "story-music://blob/story-music/audio/staging-qa/qa-staging-shanah-instrumental-v1.wav",
+      "genres": [
+        "worship"
+      ],
+      "tags": [
+        "staging-qa-test-only"
+      ],
+      "rightsRecordId": "smr-staging-qa-instrumental-v1",
+      "status": "active",
+      "licenseType": "internal-staging-qa",
+      "licenseUrl": "",
+      "attributionText": "Shanah City QA test audio — not a commercial recording.",
+      "sourceUrl": ""
+    },
+    {
+      "id": "qa-production-pilot-instrumental-v1",
+      "title": "Pilot Test Instrumental (Admin QA Only)",
+      "artist": "Shanah City QA",
+      "providerTrackId": "qa-production-pilot-instrumental-v1.wav",
+      "audioPath": "story-music://blob/story-music/audio/production-pilot/qa-production-pilot-instrumental-v1.wav",
+      "genres": [
+        "worship"
+      ],
+      "tags": [
+        "production-pilot-test-only"
+      ],
+      "rightsRecordId": "smr-production-pilot-instrumental-v1",
+      "status": "active",
+      "licenseType": "internal-production-pilot",
+      "licenseUrl": "",
+      "attributionText": "Shanah City original QA test tone — admin/QA production pilot only; not a public worship release.",
+      "sourceUrl": ""
+    }
+  ]
 }

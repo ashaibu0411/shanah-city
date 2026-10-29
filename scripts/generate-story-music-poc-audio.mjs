@@ -17,6 +17,7 @@ const CLIPS = [
   { file: "latin-worship-poc.wav", hz: 698 },
   { file: "europe-worship-poc.wav", hz: 784 },
   { file: "asia-worship-poc.wav", hz: 880 },
+  { file: "shanah-staging-qa-instrumental.wav", hz: 523.25 },
 ];
 
 const SAMPLE_RATE = 22050;
