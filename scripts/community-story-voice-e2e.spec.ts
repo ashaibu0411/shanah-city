@@ -120,8 +120,10 @@ test.describe("Community story member voice (staging)", () => {
         value: cookieHeader.replace(/^shanah_session=/, ""),
         domain: new URL(baseURL!).hostname,
         path: "/",
+        sameSite: "Lax",
       },
     ]);
+    await page.goto(`${baseURL}/community`, { waitUntil: "domcontentloaded" });
 
     const playbackUrl = publishedAudioUrl!.startsWith("http")
       ? publishedAudioUrl!

@@ -39,7 +39,7 @@ export function communityBlobRequestOptions(): { token: string; storeId?: string
 
 export function isPrivateStorePublicAccessError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
-  return /private store/i.test(message) && /public access/i.test(message);
+  return /cannot use public access on a private store/i.test(message);
 }
 
 export function communityMediaStreamPath(pathname: string): string {
