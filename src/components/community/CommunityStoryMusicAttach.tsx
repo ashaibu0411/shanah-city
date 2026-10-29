@@ -6,6 +6,8 @@ import { readJsonResponse } from "@/lib/read-json-response";
 import { getYouTubeWatchUrlWithSegment } from "@/lib/worship-youtube-timestamp-utils";
 import type { StoryMusicPlaybackApiResponse } from "@/lib/story-music/playback-response";
 import { storyMusicHybridClientEnabled } from "@/lib/story-music/story-music-config";
+import { CommunityStoryYoutubeVideoViewer } from "@/components/community/CommunityStoryYoutubeVideoViewer";
+import { openExternalUrl } from "@/lib/native-app";
 
 type CommunityStoryMusicAttachProps = {
   slideId: string;
@@ -16,6 +18,8 @@ type CommunityStoryMusicAttachProps = {
   soundOn: boolean;
   onToggleSound?: () => void;
   onNativeAudioAvailable?: (available: boolean) => void;
+  storyPhotoUrl?: string | null;
+  onYoutubeViewerActiveChange?: (active: boolean) => void;
 };
 
 type PlaybackPayload = StoryMusicPlaybackApiResponse;
@@ -50,6 +54,8 @@ export function CommunityStoryMusicAttach({
   soundOn,
   onToggleSound,
   onNativeAudioAvailable,
+  storyPhotoUrl,
+  onYoutubeViewerActiveChange,
 }: CommunityStoryMusicAttachProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const nativeAudioCbRef = useRef(onNativeAudioAvailable);
@@ -59,6 +65,18 @@ export function CommunityStoryMusicAttach({
   const [playback, setPlayback] = useState<PlaybackPayload | null>(null);
   const [engine, setEngine] = useState<PlaybackEngine | null>(() => initialEngine(music));
   const [reloadToken, setReloadToken] = useState(0);
+  const [youtubeViewerOpen, setYoutubeViewerOpen] = useState(false);
+
+  useEffect(() => {
+    onYoutubeViewerActiveChange?.(youtubeViewerOpen);
+  }, [onYoutubeViewerActiveChange, youtubeViewerOpen]);
+
+  useEffect(
+    () => () => {
+      onYoutubeViewerActiveChange?.(false);
+    },
+    [onYoutubeViewerActiveChange],
+  );
 
   const youtubeVideoId =
     playback?.youtubeVideoId?.trim() || music.youtubeVideoId?.trim() || "";
@@ -163,6 +181,10 @@ export function CommunityStoryMusicAttach({
     void loadPlayback();
   }, [loadPlayback, music.trackId, reloadToken, slideId]);
 
+  useEffect(() => {
+    setYoutubeViewerOpen(false);
+  }, [slideId]);
+
   const handleAudioFailure = useCallback(() => {
     if (playback?.hybrid) {
       setEngine("unavailable");
@@ -249,14 +271,14 @@ export function CommunityStoryMusicAttach({
     [],
   );
 
-  function openYoutubeWatch() {
+  function openYoutubeWatchExternal() {
     if (!youtubeVideoId) return;
     const url = getYouTubeWatchUrlWithSegment(
       youtubeVideoId,
       startSeconds ?? undefined,
       undefined,
     );
-    window.open(url, "_blank", "noopener,noreferrer");
+    void openExternalUrl(url);
   }
 
   function handleStickerClick() {
@@ -265,7 +287,11 @@ export function CommunityStoryMusicAttach({
       return;
     }
     if (engine === "youtube") {
-      openYoutubeWatch();
+      if (youtubeVideoId) {
+        setYoutubeViewerOpen(true);
+      } else {
+        openYoutubeWatchExternal();
+      }
       return;
     }
     onToggleSound?.();
@@ -273,13 +299,24 @@ export function CommunityStoryMusicAttach({
 
   if (!music.trackId?.trim()) return null;
 
-  const youtubeLink = engine === "youtube";
+  const youtubeVideoMode = engine === "youtube";
 
   return (
     <>
       {engine === "audio" ? (
         <audio ref={audioRef} playsInline preload="auto" className="sr-only" aria-hidden tabIndex={-1} />
       ) : null}
+      <CommunityStoryYoutubeVideoViewer
+        open={youtubeViewerOpen && Boolean(youtubeVideoId)}
+        onClose={() => setYoutubeViewerOpen(false)}
+        videoId={youtubeVideoId}
+        title={music.title}
+        artist={music.artist}
+        startSeconds={startSeconds}
+        soundOn={soundOn}
+        storyPhotoUrl={storyPhotoUrl}
+        embedUnavailable={engine === "unavailable"}
+      />
       <div className="pointer-events-none absolute inset-x-0 bottom-[4.75rem] z-20 flex justify-center px-4">
         <div className="pointer-events-auto max-w-full rounded-full bg-black/55 px-3 py-1.5 shadow-lg ring-1 ring-white/15 backdrop-blur-md">
           <button
@@ -289,21 +326,21 @@ export function CommunityStoryMusicAttach({
             aria-label={
               loadError || engine === "unavailable"
                 ? "Retry story music"
-                : youtubeLink
-                  ? `Watch ${music.title} on YouTube`
+                : youtubeVideoMode
+                  ? `Watch gospel music video: ${music.title}`
                   : soundOn
-                    ? "Mute story music"
-                    : "Play story music"
+                    ? "Mute story background audio"
+                    : "Play story background audio"
             }
           >
             <span className="shrink-0 text-sm" aria-hidden>
-              {youtubeLink ? "▶️" : soundOn && !loadError && engine !== "unavailable" ? "🔊" : "🔇"}
+              {youtubeVideoMode ? "▶️" : soundOn && !loadError && engine !== "unavailable" ? "🔊" : "🔇"}
             </span>
             <span className="min-w-0 truncate text-xs font-semibold text-white">
               {loadError || engine === "unavailable"
                 ? `${music.title} · tap to retry`
-                : youtubeLink
-                  ? `${music.title} · Watch on YouTube`
+                : youtubeVideoMode
+                  ? `${music.title} · Tap for gospel video`
                   : `${music.title} · ${music.artist}`}
             </span>
           </button>

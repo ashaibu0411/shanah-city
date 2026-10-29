@@ -288,9 +288,10 @@ export function CommunityStoryViewer({
   const isOwnStory =
     deck?.authorId === currentUserId || slide?.postedByUserId === currentUserId;
   const [liveStoryUiActive, setLiveStoryUiActive] = useState(false);
+  const [storyYoutubeViewerActive, setStoryYoutubeViewerActive] = useState(false);
   const [storyMusicNativeAudio, setStoryMusicNativeAudio] = useState(false);
   const memberAudioDurationMsRef = useRef<number | null>(null);
-  const playbackPaused = paused || replyFocused || liveStoryUiActive;
+  const playbackPaused = paused || replyFocused || liveStoryUiActive || storyYoutubeViewerActive;
   const timelinePaused = playbackPaused;
   const nextService = useMemo(() => getNextWorshipService(), []);
   const reactionButtons = slide ? reactionButtonsForStory(slide.storyKind) : [];
@@ -361,6 +362,7 @@ export function CommunityStoryViewer({
     setMediaErrorDetail("");
     setMemberAudioDurationMs(null);
     setStoryMusicNativeAudio(false);
+    setStoryYoutubeViewerActive(false);
     memberAudioDurationMsRef.current = null;
     setSoundOn(
       Boolean(slide?.memberStoryAudio?.url?.trim()) || slide?.mediaType === "video",
@@ -992,6 +994,10 @@ export function CommunityStoryViewer({
             soundOn={soundOn}
             onToggleSound={() => setSoundOn((current) => !current)}
             onNativeAudioAvailable={handleNativeMusicAudio}
+            storyPhotoUrl={
+              slide.mediaType === "image" || slide.mediaType === "text" ? mediaUrl : null
+            }
+            onYoutubeViewerActiveChange={setStoryYoutubeViewerActive}
           />
         ) : null}
 
