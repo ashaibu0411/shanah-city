@@ -1,6 +1,7 @@
 import { upload } from "@vercel/blob/client";
 import {
   communityBlobAccessMode,
+  isPrivateStorePublicAccessError,
   normalizeCommunityUploadedMediaUrl,
 } from "@/lib/community-blob";
 import {
@@ -11,6 +12,7 @@ import {
   inferCommunityImageContentType,
   inferCommunityMediaType,
   inferCommunityVideoContentType,
+  normalizeCommunityFileMime,
   isCommunityAudioFile,
   isCommunityImageFile,
   isCommunityVideoFile,
@@ -21,21 +23,34 @@ function uploadHandleUrl() {
   return "/api/community/media/upload";
 }
 
-function friendlyCommunityUploadError(message: string, fileSize: number) {
+function friendlyCommunityUploadError(
+  message: string,
+  fileSize: number,
+  mediaType: "image" | "video" | "audio",
+) {
   const lower = message.toLowerCase();
   if (
     lower.includes("access denied") ||
     lower.includes("valid token") ||
     lower.includes("blob_read_write_token") ||
-    lower.includes("storage is not configured")
+    lower.includes("storage is not configured") ||
+    lower.includes("private store")
   ) {
-    return "Moments video upload isn't set up on the server yet. Please tell the church team to connect Vercel Blob (BLOB_READ_WRITE_TOKEN), or try again later.";
+    return mediaType === "audio"
+      ? "Voice upload isn't set up on the server yet. Please tell the church team, or try again later."
+      : "Moments media upload isn't set up on the server yet. Please tell the church team to connect Vercel Blob (BLOB_READ_WRITE_TOKEN), or try again later.";
   }
   if (lower.includes("sign in")) {
     return message;
   }
   if (fileSize > COMMUNITY_MEDIA_FALLBACK_MAX_BYTES) {
+    if (mediaType === "audio") {
+      return "Recording is too large for backup upload. Check your connection and try again.";
+    }
     return "Couldn't upload this video. Check your connection and try a shorter clip or lower quality.";
+  }
+  if (lower.includes("network") || lower.includes("failed to fetch")) {
+    return "Connection problem while uploading. Check your network and try again.";
   }
   return message;
 }
@@ -53,9 +68,11 @@ function safeFileName(name: string) {
 }
 
 function uploadContentType(file: File, mediaType: "image" | "video" | "audio") {
-  if (file.type) return file.type;
+  if (mediaType === "audio") {
+    return inferCommunityAudioContentType(file.name, file.type);
+  }
+  if (file.type) return normalizeCommunityFileMime(file.type) || file.type;
   if (mediaType === "video") return inferCommunityVideoContentType(file.name);
-  if (mediaType === "audio") return inferCommunityAudioContentType(file.name);
   return inferCommunityImageContentType(file.name);
 }
 
@@ -86,22 +103,39 @@ export async function uploadCommunityMediaClient(file: File) {
   const folder = uploadFolder(mediaType);
   const pathname = `community/${folder}/${Date.now()}-${safeFileName(file.name)}`;
 
-  try {
+  const preferredAccess = communityBlobAccessMode();
+  const contentType = uploadContentType(file, mediaType);
+
+  async function tryDirectUpload(access: "public" | "private") {
     const blob = await upload(pathname, file, {
-      access: communityBlobAccessMode(),
+      access,
       handleUploadUrl: uploadHandleUrl(),
       multipart: file.size > 8 * 1024 * 1024,
-      contentType: uploadContentType(file, mediaType),
+      contentType,
     });
     return {
-      mediaUrl: normalizeCommunityUploadedMediaUrl(pathname, blob.url),
+      mediaUrl: normalizeCommunityUploadedMediaUrl(pathname, blob.url, access),
       mediaType,
     };
+  }
+
+  try {
+    try {
+      return await tryDirectUpload(preferredAccess);
+    } catch (firstError) {
+      if (
+        preferredAccess === "public" &&
+        isPrivateStorePublicAccessError(firstError)
+      ) {
+        return await tryDirectUpload("private");
+      }
+      throw firstError;
+    }
   } catch (blobError) {
     const blobMessage =
       blobError instanceof Error ? blobError.message : "Direct upload failed.";
     if (file.size > COMMUNITY_MEDIA_FALLBACK_MAX_BYTES) {
-      throw new Error(friendlyCommunityUploadError(blobMessage, file.size));
+      throw new Error(friendlyCommunityUploadError(blobMessage, file.size, mediaType));
     }
     try {
       return await uploadCommunityMediaFallback(file, mediaType);
@@ -109,7 +143,7 @@ export async function uploadCommunityMediaClient(file: File) {
       const fallbackMessage =
         fallbackError instanceof Error ? fallbackError.message : "Upload failed.";
       throw new Error(
-        friendlyCommunityUploadError(fallbackMessage || blobMessage, file.size),
+        friendlyCommunityUploadError(fallbackMessage || blobMessage, file.size, mediaType),
       );
     }
   }
@@ -128,10 +162,24 @@ async function uploadCommunityMediaFallback(
   if (!response.ok) {
     throw new Error(data.error ?? "Upload failed.");
   }
-  if (data.mediaType !== mediaType || !data.mediaUrl) {
-    throw new Error("Upload failed. Try MP3, MP4, or JPG.");
+  if (!data.mediaUrl?.trim()) {
+    throw new Error(
+      mediaType === "audio"
+        ? "Voice upload did not return a file link. Try again."
+        : "Upload did not return a file link. Try again.",
+    );
   }
-  return { mediaUrl: data.mediaUrl, mediaType: data.mediaType as "image" | "video" | "audio" };
+  const savedType = data.mediaType as "image" | "video" | "audio" | undefined;
+  if (!savedType) {
+    throw new Error("Upload response was incomplete. Try again.");
+  }
+  if (savedType !== mediaType) {
+    if (mediaType === "audio") {
+      throw new Error("This file was saved as video or photo, not voice audio. Try recording again.");
+    }
+    throw new Error("This file type did not match what we expected. Try another file.");
+  }
+  return { mediaUrl: data.mediaUrl, mediaType: savedType };
 }
 
 export function validateCommunityStoryFile(file: File) {

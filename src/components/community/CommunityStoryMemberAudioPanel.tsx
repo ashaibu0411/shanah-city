@@ -49,6 +49,18 @@ export function CommunityStoryMemberAudioPanel({
   const previewRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const pendingRecordingRef = useRef<{ blob: Blob; fileName: string; mimeType: string } | null>(null);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
+  const [uploadFailed, setUploadFailed] = useState(false);
+
+  const revokeLocalPreview = useCallback(() => {
+    if (localPreviewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(localPreviewUrl);
+    }
+    setLocalPreviewUrl(null);
+    pendingRecordingRef.current = null;
+    setUploadFailed(false);
+  }, [localPreviewUrl]);
 
   const stopRecording = useCallback(() => {
     if (timerRef.current != null) {
@@ -62,38 +74,60 @@ export function CommunityStoryMemberAudioPanel({
 
   useEffect(() => () => stopRecording(), [stopRecording]);
 
+  useEffect(() => () => revokeLocalPreview(), [revokeLocalPreview]);
+
   const uploadBlob = useCallback(
-    async (blob: Blob, fileName: string, mimeType: string) => {
+    async (blob: Blob, fileName: string, mimeType: string, options?: { keepLocalPreview?: boolean }) => {
       setUploading(true);
       onError("");
+      setUploadFailed(false);
       try {
         const normalizedType = normalizeRecordingMime(mimeType || blob.type);
         const file = new File([blob], fileName, { type: normalizedType });
         if (file.size < 256) {
           onError("Recording was too short. Try again and speak for a few seconds.");
           onAudioUrlChange(null);
+          revokeLocalPreview();
           return;
+        }
+        pendingRecordingRef.current = { blob, fileName, mimeType: normalizedType };
+        if (options?.keepLocalPreview !== false) {
+          const preview = URL.createObjectURL(blob);
+          setLocalPreviewUrl((previous) => {
+            if (previous?.startsWith("blob:")) URL.revokeObjectURL(previous);
+            return preview;
+          });
         }
         const { mediaUrl, mediaType } = await uploadCommunityMediaClient(file);
         if (mediaType !== "audio") {
           onError("Upload must be an audio file.");
           onAudioUrlChange(null);
+          setUploadFailed(true);
           return;
         }
+        revokeLocalPreview();
         onAudioUrlChange(mediaUrl);
       } catch (error) {
         onError(error instanceof Error ? error.message : "Could not upload audio.");
         onAudioUrlChange(null);
+        setUploadFailed(true);
       } finally {
         setUploading(false);
       }
     },
-    [onAudioUrlChange, onError],
+    [onAudioUrlChange, onError, revokeLocalPreview],
   );
+
+  const retryUpload = useCallback(() => {
+    const pending = pendingRecordingRef.current;
+    if (!pending) return;
+    void uploadBlob(pending.blob, pending.fileName, pending.mimeType, { keepLocalPreview: false });
+  }, [uploadBlob]);
 
   const startRecording = useCallback(async () => {
     onError("");
     onAudioUrlChange(null);
+    revokeLocalPreview();
     if (!isMediaRecorderSupported()) {
       onError("Recording is not supported in this browser.");
       return;
@@ -129,12 +163,13 @@ export function CommunityStoryMemberAudioPanel({
     } catch {
       onError("Microphone permission is required to record.");
     }
-  }, [onAudioUrlChange, onError, stopRecording, uploadBlob]);
+  }, [onAudioUrlChange, onError, revokeLocalPreview, stopRecording, uploadBlob]);
 
   const handleFilePick = useCallback(
     async (file: File | null) => {
       onError("");
       onAudioUrlChange(null);
+      revokeLocalPreview();
       if (!file) return;
       if (!file.type.startsWith("audio/") && !/\.(mp3|m4a|wav|ogg|webm|aac|caf)$/i.test(file.name)) {
         onError("Choose an audio file (MP3, M4A, WAV, WebM, OGG).");
@@ -142,20 +177,22 @@ export function CommunityStoryMemberAudioPanel({
       }
       await uploadBlob(file, file.name, file.type);
     },
-    [onAudioUrlChange, onError, uploadBlob],
+    [onAudioUrlChange, onError, revokeLocalPreview, uploadBlob],
   );
+
+  const previewSourceUrl = audioUrl ?? localPreviewUrl;
 
   const togglePreview = useCallback(() => {
     const audio = previewRef.current;
-    if (!audio || !audioUrl) return;
+    if (!audio || !previewSourceUrl) return;
     if (previewPlaying) {
       audio.pause();
       setPreviewPlaying(false);
       return;
     }
-    audio.src = audioUrl;
+    audio.src = previewSourceUrl;
     void audio.play().then(() => setPreviewPlaying(true)).catch(() => onError("Could not preview audio."));
-  }, [audioUrl, onError, previewPlaying]);
+  }, [onError, previewPlaying, previewSourceUrl]);
 
   useEffect(() => {
     if (!previewPlaying) return;
@@ -226,9 +263,21 @@ export function CommunityStoryMemberAudioPanel({
         </div>
       )}
 
-      {audioUrl ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2">
-          <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-200">Voice attached</span>
+      {previewSourceUrl ? (
+        <div
+          className={`flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 ${
+            audioUrl ? "bg-emerald-500/10" : "bg-amber-500/10"
+          }`}
+        >
+          <span
+            className={`text-xs font-semibold ${
+              audioUrl
+                ? "text-emerald-800 dark:text-emerald-200"
+                : "text-amber-900 dark:text-amber-100"
+            }`}
+          >
+            {audioUrl ? "Voice attached" : uploadFailed ? "Recording ready — upload failed" : "Recording ready"}
+          </span>
           <button
             type="button"
             className="rounded-full bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white"
@@ -236,10 +285,23 @@ export function CommunityStoryMemberAudioPanel({
           >
             {previewPlaying ? "Stop preview" : "Preview"}
           </button>
+          {uploadFailed && pendingRecordingRef.current ? (
+            <button
+              type="button"
+              className="rounded-full bg-clay-600 px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-50"
+              disabled={uploading}
+              onClick={retryUpload}
+            >
+              {uploading ? "Uploading…" : "Retry upload"}
+            </button>
+          ) : null}
           <button
             type="button"
             className="rounded-full border border-emerald-700/40 px-2.5 py-1 text-xs font-semibold text-emerald-900 dark:text-emerald-100"
-            onClick={() => onAudioUrlChange(null)}
+            onClick={() => {
+              revokeLocalPreview();
+              onAudioUrlChange(null);
+            }}
           >
             Remove
           </button>
