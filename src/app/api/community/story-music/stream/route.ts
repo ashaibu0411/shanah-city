@@ -1,6 +1,9 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { findCommunityStoryMusicTrack } from "@/lib/community-story-music";
-import { isStoryMusicHybridActive, findStoryMusicTrack } from "@/lib/story-music/story-music-service";
+import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { shouldUseHybridStoryMusicStream } from "@/lib/story-music/story-music-service";
+import { viewerCanAccessStoryMusicTrack } from "@/lib/story-music/story-music-pilot-access";
 import {
   streamHybridCatalogTrack,
   streamLocalWavFile,
@@ -58,20 +61,23 @@ export async function GET(request: Request) {
     return rateLimitResponse(rate.retryAfterSeconds);
   }
 
-  if (isStoryMusicHybridActive()) {
-    const track = await findStoryMusicTrack(trackId);
-    if (!track || track.playability !== "playable") {
-      return NextResponse.json({ error: "Audio stream unavailable." }, { status: 503 });
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const user = await getUserFromSession(token);
+  const { useHybrid, track } = await shouldUseHybridStoryMusicStream(trackId, user);
+  if (useHybrid && track) {
+    if (!(await viewerCanAccessStoryMusicTrack(user, track))) {
+      return NextResponse.json({ error: "Audio stream unavailable." }, { status: 403 });
     }
     return streamHybridCatalogTrack(track, request);
   }
 
-  const track = findCommunityStoryMusicTrack(trackId);
-  if (!track) {
+  const legacyTrack = findCommunityStoryMusicTrack(trackId);
+  if (!legacyTrack) {
     return NextResponse.json({ error: "Unknown track." }, { status: 404 });
   }
 
-  const hosted = track.audioUrl?.trim();
+  const hosted = legacyTrack.audioUrl?.trim();
   if (hosted?.startsWith("https://") && isAllowedRemoteAudioUrl(hosted)) {
     return proxyLegacyRemoteAudio(hosted, request);
   }
@@ -81,7 +87,7 @@ export async function GET(request: Request) {
     return streamLocalWavFile(localHosted, request, "private, max-age=300");
   }
 
-  const upstream = await resolveStoryMusicAudioStreamUrl(track.youtubeVideoId);
+  const upstream = await resolveStoryMusicAudioStreamUrl(legacyTrack.youtubeVideoId);
   if (!upstream) {
     return NextResponse.json({ error: "Audio stream unavailable." }, { status: 503 });
   }

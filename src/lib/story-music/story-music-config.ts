@@ -23,5 +23,11 @@ export function storyMusicStagingQaLibraryEnabled() {
   return process.env.STORY_MUSIC_STAGING_QA_LIBRARY?.trim() === "1";
 }
 
+/** Admin / QA-only production pilot — pair with STORY_MUSIC_PILOT_* allowlists (never all members). */
+export function storyMusicProductionPilotEnabled() {
+  return process.env.STORY_MUSIC_PRODUCTION_PILOT_ENABLED?.trim() === "1";
+}
+
 export const STORY_MUSIC_STAGING_QA_TAG = "staging-qa-test-only";
-
+export const STORY_MUSIC_PRODUCTION_PILOT_TAG = "production-pilot-test-only";
+

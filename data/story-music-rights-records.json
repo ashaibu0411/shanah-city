@@ -26,6 +26,32 @@
       "verifiedAt": "2026-10-29T06:31:49.578Z",
       "publishedAt": "2026-10-29T06:31:49.578Z",
       "notes": "TEST ONLY. Excluded from production unless STORY_MUSIC_STAGING_QA_LIBRARY=1 (never in prod)."
+    },
+    {
+      "id": "smr-production-pilot-instrumental-v1",
+      "status": "published",
+      "artist": "Shanah City QA",
+      "title": "Pilot Test Instrumental (Admin QA Only)",
+      "recordingOwner": "Shanah City — original synthesized test tone",
+      "compositionPublishing": "Original work — Shanah City engineering (production device QA only)",
+      "documentReference": "Shanah City internal authorization 2026-10-29: limited production pilot for administrator and named QA accounts only; original test instrumental; not a member worship release.",
+      "authorizedUses": "Production pilot: in-app story background audio for allowlisted admin/QA accounts only",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "territory": "Production pilot — allowlisted accounts only; not general member release",
+      "catalogTrackId": "qa-production-pilot-instrumental-v1",
+      "audioPath": "story-music://blob/story-music/audio/production-pilot/qa-production-pilot-instrumental-v1.wav",
+      "genres": [
+        "worship"
+      ],
+      "tags": [
+        "production-pilot-test-only"
+      ],
+      "createdAt": "2026-10-29T18:00:00.000Z",
+      "updatedAt": "2026-10-29T18:00:00.000Z",
+      "verifiedAt": "2026-10-29T18:00:00.000Z",
+      "publishedAt": "2026-10-29T18:00:00.000Z",
+      "notes": "Requires STORY_MUSIC_PRODUCTION_PILOT_ENABLED=1 and account allowlist. Never enable STORY_MUSIC_STAGING_QA_LIBRARY on production."
     }
   ]
 }

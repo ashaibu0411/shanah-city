@@ -70,6 +70,7 @@
     "story-music:discover": "node scripts/story-music-discover-sources.mjs",
     "test:story-music:hybrid": "tsx scripts/story-music-hybrid.test.ts",
     "test:story-music:security": "tsx scripts/story-music-security.test.ts",
+    "test:story-music:pilot-access": "tsx scripts/story-music-pilot-access.test.ts",
     "report:story-music:legacy-usage": "tsx scripts/story-music-legacy-usage-report.ts",
     "test:story-music:admin": "tsx scripts/story-music-admin.test.ts",
     "test:story-music:phase2": "tsx scripts/story-music-phase2.test.ts",

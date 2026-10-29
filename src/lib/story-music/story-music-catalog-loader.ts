@@ -5,10 +5,7 @@ import { mapAuthorizedCatalogRow } from "@/lib/story-music/story-music-authorize
 import type { StoryMusicLegacyMigrationEntry } from "@/lib/story-music/story-music-rights-types";
 import { isAllowedCatalogLocalAudioPath } from "@/lib/story-music/story-music-audio-security";
 import { STORY_MUSIC_BLOB_REF_SCHEME } from "@/lib/story-music/story-music-storage-ref";
-import {
-  STORY_MUSIC_STAGING_QA_TAG,
-  storyMusicStagingQaLibraryEnabled,
-} from "@/lib/story-music/story-music-config";
+import { trackVisibleInServerCatalog } from "@/lib/story-music/story-music-pilot-access";
 
 function productionAudioPathAllowed(audioPath: string) {
   const normalized = audioPath.trim();
@@ -16,13 +13,6 @@ function productionAudioPathAllowed(audioPath: string) {
   if (normalized.startsWith(STORY_MUSIC_BLOB_REF_SCHEME)) return true;
   return isAllowedCatalogLocalAudioPath(normalized);
 }
-
-function catalogRowVisibleOnServer(row: { tags?: string[] }) {
-  const stagingQa = row.tags?.includes(STORY_MUSIC_STAGING_QA_TAG);
-  if (stagingQa) return storyMusicStagingQaLibraryEnabled();
-  return true;
-}
-
 
 const CATALOG_PATH = path.join(process.cwd(), "data", "story-music-authorized-catalog.json");
 const MIGRATION_PATH = path.join(process.cwd(), "data", "story-music-legacy-migration-map.json");
@@ -50,7 +40,7 @@ export function loadAuthorizedProductionTrackRecords(): StoryMusicTrackRecord[] 
       >;
     };
     const tracks = (parsed.tracks ?? [])
-      .filter((row) => catalogRowVisibleOnServer(row))
+      .filter((row) => trackVisibleInServerCatalog(row))
       .map(mapAuthorizedCatalogRow)
       .filter((t) => {
         if (t.playability === "unavailable") return true;

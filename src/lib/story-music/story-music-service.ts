@@ -1,7 +1,9 @@
 import { findCommunityStoryMusicTrack, searchCommunityStoryMusic } from "@/lib/community-story-music";
+import type { PublicMember } from "@/lib/auth-types";
 import {
   storyMusicDbCatalogEnabled,
   storyMusicHybridEnabled,
+  storyMusicProductionPilotEnabled,
 } from "@/lib/story-music/story-music-config";
 import { churchAuthorizedAudioProvider } from "@/lib/story-music/providers/church-authorized-audio-provider";
 import { legacyCatalogProvider } from "@/lib/story-music/providers/legacy-catalog-provider";
@@ -10,6 +12,7 @@ import {
   findDbCatalogTrackById,
   searchDbCatalogTracks,
 } from "@/lib/story-music/story-music-db-catalog";
+import { canUseFreeWorshipMusic } from "@/lib/story-music/story-music-pilot-access";
 import type {
   StoryMusicPlaybackPlan,
   StoryMusicSearchFilters,
@@ -22,6 +25,8 @@ const jsonHybridProviders = [
   licensedCatalogProviderStub,
   legacyCatalogProvider,
 ];
+
+type Viewer = Pick<PublicMember, "id" | "email"> | null | undefined;
 
 function toCommunityTrackShape(track: StoryMusicTrackRecord): CommunityStoryMusicTrack {
   return {
@@ -40,16 +45,48 @@ function toCommunityTrackShape(track: StoryMusicTrackRecord): CommunityStoryMusi
   };
 }
 
+function isChurchAuthorizedPlayableTrack(track: StoryMusicTrackRecord | null): track is StoryMusicTrackRecord {
+  return Boolean(
+    track &&
+      track.provider === "church_authorized" &&
+      track.playability === "playable" &&
+      track.audioPath?.trim(),
+  );
+}
+
+/** Global hybrid flag (env). Prefer session-aware helper in API routes. */
 export function isStoryMusicHybridActive() {
   return storyMusicHybridEnabled();
+}
+
+export async function isStoryMusicHybridActiveForViewer(viewer?: Viewer): Promise<boolean> {
+  if (storyMusicHybridEnabled()) return true;
+  if (storyMusicProductionPilotEnabled() && (await canUseFreeWorshipMusic(viewer))) return true;
+  return false;
+}
+
+async function isPilotScopedHybridOnly(viewer?: Viewer): Promise<boolean> {
+  return !storyMusicHybridEnabled() && (await isStoryMusicHybridActiveForViewer(viewer));
+}
+
+async function resolveLegacyPlayback(trackId: string, origin: string) {
+  const { resolveLegacyStoryMusicPlayback } = await import("@/lib/story-music/legacy-playback-bridge");
+  return resolveLegacyStoryMusicPlayback(trackId, origin);
 }
 
 export async function searchStoryMusicTracks(
   filters: StoryMusicSearchFilters,
   viewerCountry?: string | null,
+  viewer?: Viewer,
 ): Promise<CommunityStoryMusicTrack[]> {
-  if (!storyMusicHybridEnabled()) {
+  const hybridForViewer = await isStoryMusicHybridActiveForViewer(viewer);
+  if (!hybridForViewer) {
     return searchCommunityStoryMusic(filters.query ?? "", filters.limit ?? 32, filters.region);
+  }
+
+  if (await isPilotScopedHybridOnly(viewer)) {
+    const rows = churchAuthorizedAudioProvider.search({ ...filters, attachableOnly: true });
+    return rows.filter((t) => t.playability === "playable").map(toCommunityTrackShape);
   }
 
   if (storyMusicDbCatalogEnabled()) {
@@ -69,8 +106,19 @@ export async function searchStoryMusicTracks(
 export async function findStoryMusicTrack(
   trackId: string,
   viewerCountry?: string | null,
+  viewer?: Viewer,
 ): Promise<StoryMusicTrackRecord | null> {
-  if (!storyMusicHybridEnabled()) {
+  const hybridForViewer = await isStoryMusicHybridActiveForViewer(viewer);
+
+  if (await isPilotScopedHybridOnly(viewer)) {
+    const authorized = churchAuthorizedAudioProvider.findTrackById(trackId);
+    if (authorized) return authorized;
+    const legacy = findCommunityStoryMusicTrack(trackId);
+    if (!legacy) return null;
+    return legacyCatalogProvider.findTrackById(legacy.id);
+  }
+
+  if (!hybridForViewer) {
     const legacy = findCommunityStoryMusicTrack(trackId);
     if (!legacy) return null;
     return legacyCatalogProvider.findTrackById(legacy.id);
@@ -92,13 +140,21 @@ export async function resolveStoryMusicPlayback(
   trackId: string,
   origin: string,
   viewerCountry?: string | null,
+  viewer?: Viewer,
 ): Promise<StoryMusicPlaybackPlan | null> {
-  const track = await findStoryMusicTrack(trackId, viewerCountry);
+  if (await isPilotScopedHybridOnly(viewer)) {
+    const authorized = churchAuthorizedAudioProvider.findTrackById(trackId);
+    if (isChurchAuthorizedPlayableTrack(authorized)) {
+      return churchAuthorizedAudioProvider.resolvePlayback(authorized, origin);
+    }
+    return resolveLegacyPlayback(trackId, origin);
+  }
+
+  const track = await findStoryMusicTrack(trackId, viewerCountry, viewer);
   if (!track) return null;
 
-  if (!storyMusicHybridEnabled()) {
-    const { resolveLegacyStoryMusicPlayback } = await import("@/lib/story-music/legacy-playback-bridge");
-    return resolveLegacyStoryMusicPlayback(trackId, origin);
+  if (!(await isStoryMusicHybridActiveForViewer(viewer))) {
+    return resolveLegacyPlayback(trackId, origin);
   }
 
   if (storyMusicDbCatalogEnabled()) {
@@ -151,14 +207,36 @@ async function resolveDbOrProviderPlayback(
 export async function assertTrackAttachable(
   trackId: string,
   viewerCountry?: string | null,
+  viewer?: Viewer,
 ): Promise<{ ok: true; track: StoryMusicTrackRecord } | { ok: false; error: string }> {
-  const track = await findStoryMusicTrack(trackId, viewerCountry);
+  const track = await findStoryMusicTrack(trackId, viewerCountry, viewer);
   if (!track) {
     return { ok: false, error: "That song is not in the story music library." };
   }
-  if (!storyMusicHybridEnabled()) {
+  if (viewer !== undefined) {
+    const { viewerCanAccessStoryMusicTrack } = await import(
+      "@/lib/story-music/story-music-pilot-access"
+    );
+    if (!(await viewerCanAccessStoryMusicTrack(viewer, track))) {
+      return {
+        ok: false,
+        error: "Free worship music is not available for your account yet.",
+      };
+    }
+  }
+
+  const hybridForViewer = await isStoryMusicHybridActiveForViewer(viewer);
+  if (!hybridForViewer) {
     return { ok: true, track };
   }
+
+  if (await isPilotScopedHybridOnly(viewer)) {
+    if (!isChurchAuthorizedPlayableTrack(track)) {
+      return { ok: false, error: "That song is not in the story music library." };
+    }
+    return { ok: true, track };
+  }
+
   if (track.playability !== "playable") {
     return {
       ok: false,
@@ -172,4 +250,23 @@ export async function assertTrackAttachable(
     return { ok: false, error: "Licensed catalog is not configured." };
   }
   return { ok: true, track };
+}
+
+/** Stream route: use hybrid blob/local delivery for this track + viewer. */
+export async function shouldUseHybridStoryMusicStream(
+  trackId: string,
+  viewer?: Viewer,
+): Promise<{ useHybrid: boolean; track: StoryMusicTrackRecord | null }> {
+  if (storyMusicHybridEnabled()) {
+    const track = await findStoryMusicTrack(trackId, null, viewer);
+    return { useHybrid: Boolean(track && track.playability === "playable"), track };
+  }
+  if (await isPilotScopedHybridOnly(viewer)) {
+    const track = churchAuthorizedAudioProvider.findTrackById(trackId);
+    if (isChurchAuthorizedPlayableTrack(track)) {
+      return { useHybrid: true, track };
+    }
+    return { useHybrid: false, track: null };
+  }
+  return { useHybrid: false, track: null };
 }
