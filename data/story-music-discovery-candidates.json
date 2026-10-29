@@ -3987,6 +3987,30 @@
       "searchQuery": "fma archive gospel worship",
       "reviewStatus": "rejected",
       "rejectionReason": "Archive license URL failed strict filter."
+    },
+    {
+      "id": "smd-0eb452b6f960bc56576688b2",
+      "discoveredAt": "2026-10-29T04:50:00.000Z",
+      "updatedAt": "2026-10-29T04:50:00.000Z",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3",
+      "dedupeKey": "0eb452b6f960bc56576688b2",
+      "title": "Amazing Grace - Concert Band - United States Air Force Reserve Band.mp3",
+      "artist": "United States Air Force Reserve Band (performance); William Walker (composition)",
+      "category": "hymns",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3",
+      "licenseSlug": "public-domain",
+      "licenseUrl": "https://www.music.af.mil/Multimedia/Music/Public-Domain-Music/",
+      "licenseClass": "allowed",
+      "tags": [
+        "hymn",
+        "gospel",
+        "curator-added-first-launch"
+      ],
+      "searchQuery": "manual-first-launch",
+      "reviewStatus": "needs_review",
+      "rightsEvidenceNote": "Commons extmetadata Public domain; USAF public-domain music program. Composition: Newton/Walker hymn (PD). Curator must archive commons page + music.af.mil PD listing."
     }
   ]
 }
