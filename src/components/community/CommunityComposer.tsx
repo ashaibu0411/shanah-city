@@ -171,9 +171,10 @@ export function CommunityComposer({
       if (mediaType !== "image" && mediaType !== "video") {
         throw new Error("For audio, use Moments (+ on Stories).");
       }
+      const postMediaType = mediaType as "image" | "video";
       setPendingMedia((current) =>
         current.map((item) =>
-          item.id === id ? { ...item, mediaUrl, mediaType, uploading: false } : item,
+          item.id === id ? { ...item, mediaUrl, mediaType: postMediaType, uploading: false } : item,
         ),
       );
     } catch (uploadError) {

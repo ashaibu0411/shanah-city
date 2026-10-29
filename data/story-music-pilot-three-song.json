@@ -20,11 +20,12 @@
       "territory": "Worldwide (curator confirms PD scope for church member access outside U.S.)",
       "attributionText": "Performance: United States Air Force Reserve Band (public domain).",
       "transcode": false,
-      "eligibilityReview": "pass_pending_curator_signoff",
+      "eligibilityReview": "pass_pending_curator_territory_review",
       "qualityNote": "MP3 ~3:47; band + bagpipes; listen test required."
     },
     {
       "discoveryId": "smd-1688481f8842a8256a4b58be",
+      "eligibilityReview": "held_loc_performer_estate_clarification",
       "catalogTrackId": "my-lord-is-writin-cochran-field",
       "title": "My Lord Is Writin'",
       "artist": "Cochran Field Singers",
@@ -39,8 +40,7 @@
       "territory": "Worldwide for PD folklife transfer — curator must archive LoC page snapshot.",
       "attributionText": "Cochran Field Singers; source: Library of Congress American Folklife Center (via Wikimedia Commons).",
       "transcode": true,
-      "eligibilityReview": "pass_pending_curator_signoff",
-      "qualityNote": "OGG ~2:17; historic audio; transcode to MP3 for Samsung WebView consistency."
+      "qualityNote": "OGG ~2:17; historic audio; HOLD — LoC performer/estate clarification before ingest."
     },
     {
       "discoveryId": "smd-4c967d8504052cd492400375",
@@ -58,8 +58,8 @@
       "territory": "Worldwide (PD age + composition)",
       "attributionText": "Edison Mixed Quartet (1913 recording, public domain).",
       "transcode": true,
-      "eligibilityReview": "pass_pending_curator_signoff",
-      "qualityNote": "OGG ~4:12; historic cylinder transfer; transcode to MP3 recommended."
+      "eligibilityReview": "held_provenance_and_territorial_review",
+      "qualityNote": "OGG ~4:12; HOLD — original source provenance + territorial review before ingest."
     }
   ]
 }

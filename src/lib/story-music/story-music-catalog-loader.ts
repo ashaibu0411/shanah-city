@@ -5,12 +5,22 @@ import { mapAuthorizedCatalogRow } from "@/lib/story-music/story-music-authorize
 import type { StoryMusicLegacyMigrationEntry } from "@/lib/story-music/story-music-rights-types";
 import { isAllowedCatalogLocalAudioPath } from "@/lib/story-music/story-music-audio-security";
 import { STORY_MUSIC_BLOB_REF_SCHEME } from "@/lib/story-music/story-music-storage-ref";
+import {
+  STORY_MUSIC_STAGING_QA_TAG,
+  storyMusicStagingQaLibraryEnabled,
+} from "@/lib/story-music/story-music-config";
 
 function productionAudioPathAllowed(audioPath: string) {
   const normalized = audioPath.trim();
   if (!normalized) return false;
   if (normalized.startsWith(STORY_MUSIC_BLOB_REF_SCHEME)) return true;
   return isAllowedCatalogLocalAudioPath(normalized);
+}
+
+function catalogRowVisibleOnServer(row: { tags?: string[] }) {
+  const stagingQa = row.tags?.includes(STORY_MUSIC_STAGING_QA_TAG);
+  if (stagingQa) return storyMusicStagingQaLibraryEnabled();
+  return true;
 }
 
 
@@ -39,10 +49,13 @@ export function loadAuthorizedProductionTrackRecords(): StoryMusicTrackRecord[] 
         Parameters<typeof mapAuthorizedCatalogRow>[0] & { status?: string }
       >;
     };
-    const tracks = (parsed.tracks ?? []).map(mapAuthorizedCatalogRow).filter((t) => {
-      if (t.playability === "unavailable") return true;
-      return Boolean(t.audioPath && productionAudioPathAllowed(t.audioPath));
-    });
+    const tracks = (parsed.tracks ?? [])
+      .filter((row) => catalogRowVisibleOnServer(row))
+      .map(mapAuthorizedCatalogRow)
+      .filter((t) => {
+        if (t.playability === "unavailable") return true;
+        return Boolean(t.audioPath && productionAudioPathAllowed(t.audioPath));
+      });
     catalogCache = { mtimeMs, tracks };
     return tracks;
   } catch {

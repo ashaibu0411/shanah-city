@@ -9,7 +9,9 @@ export type StoryMusicAdminAuditAction =
   | "intake_revoke"
   | "intake_withdraw"
   | "catalog_update"
-  | "migration_map_update";
+  | "migration_map_update"
+  | "discovery_status"
+  | "discovery_promote";
 
 export type StoryMusicAdminAuditEntry = {
   id: string;
