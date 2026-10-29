@@ -1,4 +1,31 @@
 {
   "version": "1",
-  "records": []
+  "records": [
+    {
+      "id": "smr-staging-qa-instrumental-v1",
+      "status": "published",
+      "artist": "Shanah City QA",
+      "title": "Staging QA Instrumental (TEST ONLY)",
+      "recordingOwner": "Shanah City — original synthesized test tone",
+      "compositionPublishing": "Original work — Shanah City engineering (staging QA only)",
+      "documentReference": "Shanah City internal QA authorization: original synthesized instrumental for staging free-library pipeline verification only; not a production worship release.",
+      "authorizedUses": "Staging QA: in-app story background audio pipeline verification only",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "territory": "Staging environments only — not for production member release",
+      "catalogTrackId": "qa-staging-shanah-instrumental-v1",
+      "audioPath": "story-music://blob/story-music/audio/staging-qa/qa-staging-shanah-instrumental-v1.wav",
+      "genres": [
+        "worship"
+      ],
+      "tags": [
+        "staging-qa-test-only"
+      ],
+      "createdAt": "2026-10-29T06:31:49.578Z",
+      "updatedAt": "2026-10-29T06:31:49.578Z",
+      "verifiedAt": "2026-10-29T06:31:49.578Z",
+      "publishedAt": "2026-10-29T06:31:49.578Z",
+      "notes": "TEST ONLY. Excluded from production unless STORY_MUSIC_STAGING_QA_LIBRARY=1 (never in prod)."
+    }
+  ]
 }
