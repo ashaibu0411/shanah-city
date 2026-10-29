@@ -126,12 +126,8 @@ export function isCommunityVideoFile(file: File) {
   );
 }
 
+/** Match `saveCommunityMedia` order so client direct upload paths agree with server fallback. */
 export function inferCommunityMediaType(file: File): "image" | "video" | "audio" | null {
-  const base = fileMimeBase(file);
-  if (base.startsWith("audio/")) return "audio";
-  if (base.startsWith("video/") && !(base === "video/webm" && isStoryVoiceRecordingFileName(file.name))) {
-    return "video";
-  }
   if (isCommunityImageFile(file)) return "image";
   if (isCommunityAudioFile(file)) return "audio";
   if (isCommunityVideoFile(file)) return "video";

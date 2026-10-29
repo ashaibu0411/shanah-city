@@ -37,7 +37,11 @@ assert.equal(
 );
 assert.equal(
   inferCommunityMediaType(new FakeFile("clip.webm", "video/webm") as File),
-  "video",
+  "audio",
+);
+assert.equal(
+  inferCommunityMediaType(new FakeFile("recording.webm", "video/webm") as File),
+  "audio",
 );
 
 console.log("community-story-member-audio.test.ts OK");
