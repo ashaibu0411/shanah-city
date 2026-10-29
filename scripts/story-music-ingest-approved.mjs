@@ -84,12 +84,13 @@ async function main() {
   if (shouldTranscode) ext = ".mp3";
   const fileName = `${catalogTrackId}${ext}`;
   const blobPath = `story-music/audio/free-library/${fileName}`;
+  const audioPath = `story-music://blob/${blobPath}`;
 
   const intake = {
     catalogTrackId,
     artist: row.artist,
     title: row.title,
-    audioPath: `story-music://${blobPath}`,
+    audioPath,
     documentReference: row.rightsEvidenceRef ?? row.sourcePageUrl,
     recordingOwner: row.recordingRightsNote ?? row.artist,
     compositionPublishing: row.compositionRightsNote ?? "See rights evidence",

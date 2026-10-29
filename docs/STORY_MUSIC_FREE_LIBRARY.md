@@ -23,6 +23,8 @@ Curated first-launch review (125 candidates): `docs/STORY_MUSIC_FIRST_LIBRARY_SH
 
 Post human **approved** status: `node scripts/story-music-ingest-approved.mjs --candidate=<id> [--dry-run] [--transcode-mp3]` downloads verified audio (optional ffmpeg transcode for OGG/OPUS/WAV) into `.tmp-story-music-ingest/` — **never commit audio**; Blob upload remains a credentialed admin step before publish.
 
+**Three-song staging pilot:** `docs/STORY_MUSIC_PILOT_THREE_SONG_ELIGIBILITY.md` + `data/story-music-pilot-three-song.json` + `scripts/story-music-pilot-staging-ingest.mjs` (requires `STORY_MUSIC_PILOT_CURATOR_NAME` and `STORY_MUSIC_PILOT_CURATOR_ATTESTATION`).
+
 First-launch rights detail: `docs/STORY_MUSIC_FIRST_LAUNCH_RIGHTS.md`. Embedded OGG license probe: `node scripts/story-music-probe-embedded-license.mjs <url>`.
 
 ## Member UX

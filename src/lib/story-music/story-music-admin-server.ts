@@ -9,7 +9,7 @@ import {
   saveAuthorizedProductionCatalog,
   saveStoryMusicRightsRecords,
 } from "@/lib/story-music/story-music-authorized-store";
-import { isAllowedCatalogLocalAudioPath } from "@/lib/story-music/story-music-audio-security";
+import { isAllowedCatalogAudioStorageRef } from "@/lib/story-music/story-music-audio-security";
 import { isStoryMusicTestTrackId } from "@/lib/story-music/story-music-audio-security";
 import type { CreateIntakeInput } from "@/lib/story-music/story-music-admin-types";
 
@@ -133,8 +133,8 @@ export async function publishStoryMusicIntake(actor: PublicMember, recordId: str
   }
 
   const audioPath = record.audioPath?.trim();
-  if (!audioPath || !isAllowedCatalogLocalAudioPath(audioPath)) {
-    throw new Error("Audio path must point to an approved story-music/ file.");
+  if (!audioPath || !isAllowedCatalogAudioStorageRef(audioPath)) {
+    throw new Error("Audio path must point to an approved story-music/ file or story-music://blob/ ref.");
   }
 
   record.status = "published";

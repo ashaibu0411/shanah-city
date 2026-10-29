@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  isAllowedCatalogAudioStorageRef,
   isAllowedCatalogLocalAudioPath,
   isAllowedRemoteAudioUrl,
   isStoryMusicTestTrackId,
@@ -21,6 +22,12 @@ function main() {
   assert.equal(isAllowedCatalogLocalAudioPath("/story-music-poc/test.wav"), false);
   assert.equal(isAllowedCatalogLocalAudioPath("/etc/passwd"), false);
   assert.equal(isAllowedCatalogLocalAudioPath("/story-music/../../../secret"), false);
+
+  assert.equal(
+    isAllowedCatalogAudioStorageRef("story-music://blob/story-music/audio/free-library/track.mp3"),
+    true,
+  );
+  assert.equal(isAllowedCatalogAudioStorageRef("story-music://blob/evil.mp3"), false);
 
   assert.equal(isAllowedRemoteAudioUrl("https://blob.vercel-storage.com/x.mp3"), true);
   assert.equal(isAllowedRemoteAudioUrl("http://blob.vercel-storage.com/x.mp3"), false);

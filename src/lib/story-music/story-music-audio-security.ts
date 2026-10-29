@@ -52,6 +52,17 @@ export function isAllowedCatalogLocalAudioPath(audioPath: string): boolean {
   );
 }
 
+/** Local `public/story-music/` paths or private Blob refs for authorized catalog audio. */
+export function isAllowedCatalogAudioStorageRef(audioPath: string): boolean {
+  const normalized = audioPath.trim();
+  if (!normalized) return false;
+  if (normalized.startsWith("story-music://blob/")) {
+    const pathname = normalized.slice("story-music://blob/".length);
+    return Boolean(pathname) && !pathname.includes("..") && pathname.startsWith("story-music/audio/");
+  }
+  return isAllowedCatalogLocalAudioPath(normalized);
+}
+
 /**
  * Resolve a catalog audioPath to a file under `public/`, or null if traversal / prefix violation.
  */
