@@ -127,6 +127,10 @@ export const churchAuthorizedAudioProvider: StoryMusicProvider = {
       title: track.title,
       artist: track.artist,
       provider: track.provider,
+      licenseType: track.licenseType,
+      licenseUrl: track.licenseUrl,
+      attributionText: track.attributionText,
+      sourceUrl: track.sourceUrl,
     };
   },
 };

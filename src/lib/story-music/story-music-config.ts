@@ -13,3 +13,8 @@ export function storyMusicDbCatalogEnabled() {
   return process.env.STORY_MUSIC_DB_CATALOG?.trim() === "1";
 }
 
+/** Free licensed worship library (native audio). Requires hybrid + published authorized tracks. */
+export function storyMusicFreeLibraryEnabled() {
+  return process.env.STORY_MUSIC_FREE_LIBRARY_ENABLED?.trim() === "1";
+}
+

@@ -25,6 +25,10 @@ type CatalogFile = {
     rightsRecordId: string;
     /** Omit or `active` for attach/search; `inactive` / `revoked` hide from picker but preserve story ids. */
     status?: "active" | "inactive" | "revoked";
+    licenseType?: string;
+    licenseUrl?: string;
+    attributionText?: string;
+    sourceUrl?: string;
   }>;
 };
 type MigrationFile = { version: string; mappings: StoryMusicLegacyMigrationEntry[] };
@@ -98,5 +102,9 @@ export function mapAuthorizedCatalogRow(
     tags: row.tags,
     startSeconds: row.startSeconds,
     audioPath: row.audioPath,
+    licenseType: row.licenseType,
+    licenseUrl: row.licenseUrl,
+    attributionText: row.attributionText,
+    sourceUrl: row.sourceUrl,
   };
 }

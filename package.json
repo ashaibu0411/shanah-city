@@ -66,6 +66,8 @@
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
     "test:choir:recordings-access": "tsx scripts/choir-rehearsal-recordings-access.test.ts",
     "test:worship:recording-audio": "tsx scripts/worship-recording-audio.test.ts",
+    "test:story-music:free-license": "tsx scripts/story-music-free-license.test.ts",
+    "story-music:discover": "node scripts/story-music-discover-sources.mjs",
     "test:story-music:hybrid": "tsx scripts/story-music-hybrid.test.ts",
     "test:story-music:security": "tsx scripts/story-music-security.test.ts",
     "report:story-music:legacy-usage": "tsx scripts/story-music-legacy-usage-report.ts",

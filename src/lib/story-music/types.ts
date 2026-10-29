@@ -31,6 +31,10 @@ export type StoryMusicTrackRecord = {
   /** Direct HTTPS audio when playability is playable. */
   audioPath?: string;
   unavailableReason?: string;
+  licenseType?: string;
+  licenseUrl?: string;
+  attributionText?: string;
+  sourceUrl?: string;
 };
 
 export type StoryMusicSearchFilters = {
@@ -56,6 +60,10 @@ export type StoryMusicPlaybackPlan = {
   artist: string;
   provider: StoryMusicProviderKind;
   unavailableReason?: string;
+  licenseType?: string;
+  licenseUrl?: string;
+  attributionText?: string;
+  sourceUrl?: string;
 };
 
 export type StoryMusicProvider = {

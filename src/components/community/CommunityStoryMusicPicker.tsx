@@ -17,6 +17,10 @@ import { StoryMusicTrackArtwork } from "@/components/community/StoryMusicTrackAr
 type CommunityStoryMusicPickerProps = {
   selectedTrackId: string | null;
   onSelect: (track: CommunityStoryMusicTrack | null) => void;
+  heading?: string;
+  subheading?: string;
+  /** Legacy YouTube gospel catalog (not free worship library). */
+  youtubeMode?: boolean;
 };
 
 type SearchResponse = {
@@ -28,6 +32,9 @@ type SearchResponse = {
 export function CommunityStoryMusicPicker({
   selectedTrackId,
   onSelect,
+  heading = "Background music",
+  subheading,
+  youtubeMode = false,
 }: CommunityStoryMusicPickerProps) {
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState("");
@@ -52,6 +59,7 @@ export function CommunityStoryMusicPicker({
         language,
         genre,
       });
+      if (youtubeMode) params.set("youtube", "1");
       fetch(`/api/community/story-music?${params.toString()}`)
         .then((response) => response.json())
         .then((data: SearchResponse) => {
@@ -82,7 +90,7 @@ export function CommunityStoryMusicPicker({
         className="mt-3 flex w-full items-center justify-between rounded-xl border border-clay-500/35 bg-clay-500/8 px-3 py-2.5 text-left"
         onClick={() => setExpanded(true)}
       >
-        <span className="text-sm font-semibold text-night-900 dark:text-sand-100">♪ Add song (plays in story)</span>
+        <span className="text-sm font-semibold text-night-900 dark:text-sand-100">♪ {heading}</span>
         <span className="text-xs font-semibold text-clay-800 dark:text-clay-200">Optional</span>
       </button>
     );
@@ -92,7 +100,7 @@ export function CommunityStoryMusicPicker({
     <div className="mt-3 rounded-xl border border-night-900/10 bg-sand-50/80 p-3 dark:border-white/10 dark:bg-night-900/40">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-night-600 dark:text-sand-400">
-          Background music
+          {heading}
         </p>
         {selectedTrackId ? (
           <button
@@ -116,9 +124,15 @@ export function CommunityStoryMusicPicker({
         )}
       </div>
 
-      {hybrid ? (
+      {subheading ? (
+        <p className="mt-1 text-[11px] text-night-600 dark:text-sand-400">{subheading}</p>
+      ) : hybrid && !youtubeMode ? (
         <p className="mt-1 text-[11px] text-night-600 dark:text-sand-400">
           Preview before attaching. Only songs with confirmed playable audio can be selected.
+        </p>
+      ) : youtubeMode ? (
+        <p className="mt-1 text-[11px] text-night-600 dark:text-sand-400">
+          These open as YouTube gospel videos in your story — not silent background audio.
         </p>
       ) : null}
 

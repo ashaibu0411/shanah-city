@@ -10,6 +10,10 @@ export type StoryMusicPlaybackApiResponse = {
   startSeconds?: number | null;
   unavailableReason?: string;
   error?: string;
+  licenseType?: string;
+  licenseUrl?: string;
+  attributionText?: string;
+  sourceUrl?: string;
 };
 
 export function storyMusicPlaybackToApiResponse(plan: StoryMusicPlaybackPlan): StoryMusicPlaybackApiResponse {
@@ -38,6 +42,10 @@ export function storyMusicPlaybackToApiResponse(plan: StoryMusicPlaybackPlan): S
       mode: "audio",
       audioUrl: plan.audioUrl,
       youtubeVideoId: plan.youtubeVideoId,
+      licenseType: plan.licenseType,
+      licenseUrl: plan.licenseUrl,
+      attributionText: plan.attributionText,
+      sourceUrl: plan.sourceUrl,
     };
   }
 

@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
+import { searchCommunityStoryMusic } from "@/lib/community-story-music";
 import { isStoryMusicHybridActive, searchStoryMusicTracks } from "@/lib/story-music/story-music-service";
+import {
+  countActiveFreeWorshipTracks,
+  isStoryMusicFreeLibraryLiveForMembers,
+} from "@/lib/story-music/story-music-free-library";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,18 +15,23 @@ export async function GET(request: Request) {
   const genre = searchParams.get("genre") ?? "all";
 
   const hybrid = isStoryMusicHybridActive();
-  const tracks = await searchStoryMusicTracks({
-    query: q,
-    region,
-    country,
-    language,
-    genre,
-    limit: hybrid ? 56 : 56,
-  });
+  const youtubeCatalog = searchParams.get("youtube") === "1";
+  const tracks = youtubeCatalog
+    ? searchCommunityStoryMusic(q, 56, region)
+    : await searchStoryMusicTracks({
+        query: q,
+        region,
+        country,
+        language,
+        genre,
+        limit: 56,
+      });
 
   return NextResponse.json({
     hybrid,
     attachableOnly: hybrid,
+    freeLibraryLive: isStoryMusicFreeLibraryLiveForMembers(),
+    activeFreeTrackCount: countActiveFreeWorshipTracks(),
     tracks,
   });
 }
