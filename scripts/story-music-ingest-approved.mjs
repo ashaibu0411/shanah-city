@@ -135,8 +135,9 @@ async function main() {
   await mkdir(outDir, { recursive: true });
   const response = await fetch(audioUrl, { headers: { "User-Agent": "ShanahCityStoryMusic/1.0" } });
   if (!response.ok) throw new Error(`Download failed HTTP ${response.status}`);
-  if (!/^audio\//i.test(response.headers.get("content-type") ?? "")) {
-    throw new Error("Source did not return an audio MIME type.");
+  const declaredType = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+  if (!declaredType.startsWith("audio/") && !["application/ogg", "application/octet-stream"].includes(declaredType)) {
+    throw new Error("Source did not return a supported audio content type.");
   }
   const downloaded = path.join(outDir, `_download${path.extname(new URL(audioUrl).pathname) || ".bin"}`);
   const buffer = Buffer.from(await response.arrayBuffer());
@@ -179,13 +180,26 @@ async function main() {
       : [".ogg", ".oga"].includes(ext.toLowerCase())
         ? "audio/ogg"
         : ext.toLowerCase() === ".wav" ? "audio/wav" : "application/octet-stream";
-    await put(blobPath, finalBuffer, {
-      access: requestedAccess,
-      token,
-      contentType,
-      addRandomSuffix: false,
-    });
-    console.log(`Blob upload complete: ${blobPath} (${requestedAccess}). This is NOT a catalog publication. Complete admin rights intake and publish separately.`);
+    let access = requestedAccess;
+    try {
+      await put(blobPath, finalBuffer, {
+        access,
+        token,
+        contentType,
+        addRandomSuffix: false,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (access !== "public" || !/cannot use public access on a private store/i.test(message)) throw error;
+      access = "private";
+      await put(blobPath, finalBuffer, {
+        access,
+        token,
+        contentType,
+        addRandomSuffix: false,
+      });
+    }
+    console.log(`Blob upload complete: ${blobPath} (${access}). This is NOT a catalog publication. Complete admin rights intake and publish separately.`);
   } else {
     console.log(`Saved ${localPath} (${finalBuffer.length} bytes). Use --upload-blob after curator sign-off to upload, then admin intake verify/publish.`);
   }
