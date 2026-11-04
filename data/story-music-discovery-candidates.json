@@ -1,15 +1,15 @@
 {
   "version": "1",
-  "updatedAt": "2026-11-04T03:23:00.900Z",
+  "updatedAt": "2026-11-04T05:02:58.563Z",
   "candidates": [
     {
       "id": "smd-fcf40b8954248b34a7e15f57",
       "discoveredAt": "2026-10-29T03:55:20.163Z",
-      "updatedAt": "2026-10-29T03:55:20.163Z",
+      "updatedAt": "2026-11-04T05:02:58.563Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Gospel Train.mp3",
       "dedupeKey": "fcf40b8954248b34a7e15f57",
-      "title": "Gospel Train.mp3",
+      "title": "Gospel Train",
       "artist": "MU1 William F. Edwards, III (U.S. Navy)",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Gospel_Train.mp3",
@@ -18,15 +18,17 @@
       "licenseUrl": "",
       "licenseClass": "allowed",
       "tags": [
-        "gospel music"
+        "gospel music",
+        "free-library",
+        "gospel"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
+      "reviewStatus": "published",
       "catalogTrackId": "gospel-train-us-navy-edwards",
       "rightsEvidenceRef": "Wikimedia Commons File:Gospel_Train.mp3 (extmetadata LicenseShortName: Public domain); U.S. Navy recording.",
       "recordingRightsNote": "U.S. Navy recording marked Public domain on Wikimedia Commons.",
       "compositionRightsNote": "Traditional gospel spiritual — public domain.",
-      "territory": "Worldwide (PD recording and traditional composition — pending curator sign-off)",
+      "territory": "Worldwide (PD recording and traditional composition — curator confirmed app use)",
       "streamingPermitted": true,
       "storagePermitted": true,
       "attributionStatement": "Performance: MU1 William F. Edwards, III (public domain).",
@@ -34,7 +36,8 @@
         "gospel",
         "worship"
       ],
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "rejectionReason": "Commons license must be verified on the file page before import.",
+      "publishedCatalogTrackId": "gospel-train-us-navy-edwards"
     },
     {
       "id": "smd-043721f961e75d5388a43b7e",
@@ -2805,11 +2808,11 @@
     {
       "id": "smd-c48ba54c4945205fa63795e8",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-04T05:02:58.563Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The God of Abraham Praise - Concert Band - United States Air Force Band.mp3",
       "dedupeKey": "c48ba54c4945205fa63795e8",
-      "title": "The God of Abraham Praise - Concert Band - United States Air Force Band.mp3",
+      "title": "The God of Abraham Praise",
       "artist": "United States Air Force Band",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_God_of_Abraham_Praise_-_Concert_Band_-_United_States_Air_Force_Band.mp3",
@@ -2819,15 +2822,17 @@
       "licenseClass": "cc0",
       "fileFormat": "audio/mpeg",
       "tags": [
-        "praise music"
+        "praise music",
+        "free-library",
+        "hymn"
       ],
       "searchQuery": "praise music",
-      "reviewStatus": "needs_review",
+      "reviewStatus": "published",
       "catalogTrackId": "the-god-of-abraham-praise-usaf-band",
       "rightsEvidenceRef": "Wikimedia Commons File:The_God_of_Abraham_Praise_-_Concert_Band_-_United_States_Air_Force_Band.mp3 (extmetadata LicenseShortName: Public domain); hymn tune Leoni (traditional PD).",
       "recordingRightsNote": "United States Air Force Band concert band recording marked Public domain on Wikimedia Commons.",
       "compositionRightsNote": "Hymn text Thomas Olivers; tune Leoni (traditional) — public domain composition.",
-      "territory": "Worldwide (PD composition; U.S. federal band PD recording — pending curator sign-off)",
+      "territory": "Worldwide (PD composition; U.S. federal band PD recording — curator confirmed app use)",
       "streamingPermitted": true,
       "storagePermitted": true,
       "attributionStatement": "Performance: United States Air Force Band (public domain).",
@@ -2835,7 +2840,8 @@
         "hymns",
         "worship"
       ],
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "publishedCatalogTrackId": "the-god-of-abraham-praise-usaf-band"
     },
     {
       "id": "smd-fd4bd4908d8fb65f372c255b",
@@ -4019,12 +4025,12 @@
     {
       "id": "smd-0eb452b6f960bc56576688b2",
       "discoveredAt": "2026-10-29T04:50:00.000Z",
-      "updatedAt": "2026-10-29T04:50:00.000Z",
+      "updatedAt": "2026-11-04T05:02:58.563Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3",
       "dedupeKey": "0eb452b6f960bc56576688b2",
-      "title": "Amazing Grace - Concert Band - United States Air Force Reserve Band.mp3",
-      "artist": "United States Air Force Reserve Band (performance); William Walker (composition)",
+      "title": "Amazing Grace",
+      "artist": "United States Air Force Reserve Band",
       "category": "hymns",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3",
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3",
@@ -4034,15 +4040,16 @@
       "tags": [
         "hymn",
         "gospel",
-        "curator-added-first-launch"
+        "curator-added-first-launch",
+        "free-library"
       ],
       "searchQuery": "manual-first-launch",
-      "reviewStatus": "needs_review",
+      "reviewStatus": "published",
       "catalogTrackId": "amazing-grace-usaf-reserve-band",
       "rightsEvidenceRef": "Wikimedia Commons File:Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3 (extmetadata LicenseShortName: Public domain); USAF Public Domain Music program https://www.music.af.mil/Multimedia/Music/Public-Domain-Music/",
       "recordingRightsNote": "United States Air Force Reserve Band performance marked Public domain on Wikimedia Commons and USAF PD music program.",
       "compositionRightsNote": "Hymn text John Newton; tune New Britain / William Walker — public domain composition.",
-      "territory": "Worldwide (PD composition; U.S. federal band PD recording — pending curator sign-off)",
+      "territory": "Worldwide (PD composition; U.S. federal band PD recording — curator confirmed app use)",
       "streamingPermitted": true,
       "storagePermitted": true,
       "attributionStatement": "Performance: United States Air Force Reserve Band (public domain).",
@@ -4050,7 +4057,8 @@
         "hymns",
         "worship"
       ],
-      "rightsEvidenceNote": "Commons extmetadata Public domain; USAF public-domain music program. Composition: Newton/Walker hymn (PD). Curator must archive commons page + music.af.mil PD listing."
+      "rightsEvidenceNote": "Commons extmetadata Public domain; USAF public-domain music program. Composition: Newton/Walker hymn (PD). Curator must archive commons page + music.af.mil PD listing.",
+      "publishedCatalogTrackId": "amazing-grace-usaf-reserve-band"
     },
     {
       "id": "smd-acf38e4fef17a9492e2a06e2",

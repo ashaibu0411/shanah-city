@@ -38,6 +38,73 @@
       "licenseUrl": "",
       "attributionText": "Shanah City original QA test tone — admin/QA production pilot only; not a public worship release.",
       "sourceUrl": ""
+    },
+    {
+      "id": "amazing-grace-usaf-reserve-band",
+      "title": "Amazing Grace",
+      "artist": "United States Air Force Reserve Band",
+      "providerTrackId": "amazing-grace-usaf-reserve-band.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/amazing-grace-usaf-reserve-band.mp3",
+      "genres": [
+        "hymns",
+        "worship"
+      ],
+      "tags": [
+        "hymn",
+        "gospel",
+        "curator-added-first-launch",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-amazing-grace-usaf-reserve-band",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "https://www.music.af.mil/Multimedia/Music/Public-Domain-Music/",
+      "attributionText": "Performance: United States Air Force Reserve Band (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3"
+    },
+    {
+      "id": "the-god-of-abraham-praise-usaf-band",
+      "title": "The God of Abraham Praise",
+      "artist": "United States Air Force Band",
+      "providerTrackId": "the-god-of-abraham-praise-usaf-band.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/the-god-of-abraham-praise-usaf-band.mp3",
+      "genres": [
+        "hymns",
+        "worship"
+      ],
+      "tags": [
+        "praise music",
+        "free-library",
+        "hymn"
+      ],
+      "rightsRecordId": "smr-the-god-of-abraham-praise-usaf-band",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "https://www.music.af.mil/Multimedia/Music/Public-Domain-Music/",
+      "attributionText": "Performance: United States Air Force Band (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_God_of_Abraham_Praise_-_Concert_Band_-_United_States_Air_Force_Band.mp3"
+    },
+    {
+      "id": "gospel-train-us-navy-edwards",
+      "title": "Gospel Train",
+      "artist": "MU1 William F. Edwards, III (U.S. Navy)",
+      "providerTrackId": "gospel-train-us-navy-edwards.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/gospel-train-us-navy-edwards.mp3",
+      "genres": [
+        "gospel",
+        "worship"
+      ],
+      "tags": [
+        "gospel music",
+        "free-library",
+        "gospel"
+      ],
+      "rightsRecordId": "smr-gospel-train-us-navy-edwards",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Performance: MU1 William F. Edwards, III (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gospel_Train.mp3"
     }
   ]
 }

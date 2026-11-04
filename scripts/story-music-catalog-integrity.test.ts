@@ -17,12 +17,19 @@ async function main() {
   const catalog = loadJson("data/story-music-authorized-catalog.json");
   const rights = loadJson("data/story-music-rights-records.json");
 
+  const LAUNCH_IDS = [
+    "amazing-grace-usaf-reserve-band",
+    "the-god-of-abraham-praise-usaf-band",
+    "gospel-train-us-navy-edwards",
+  ];
+
   for (const id of DEFAULT_IMPORT_CANDIDATE_IDS) {
     const packet = FREE_LIBRARY_IMPORT_CANDIDATES[id as keyof typeof FREE_LIBRARY_IMPORT_CANDIDATES];
     const row = discovery.candidates?.find((c: { id: string }) => c.id === id);
     assert.ok(row, `discovery row ${id}`);
     assert.ok(packet.recordingUrl.startsWith("https://upload.wikimedia.org/"));
-    assert.equal(row.reviewStatus, "needs_review", `${id} must stay needs_review until attested import`);
+    assert.equal(row.reviewStatus, "published", `${id} must be published after successful import`);
+    assert.equal(row.publishedCatalogTrackId, packet.catalogTrackId, `${id} publishedCatalogTrackId`);
     assert.ok(row.rightsEvidenceRef?.trim(), `${id} rightsEvidenceRef`);
   }
 
@@ -41,9 +48,15 @@ async function main() {
   );
   assert.equal(
     freeLibraryPublished.length,
-    0,
-    "no free-library worship tracks published yet — run attested import before member launch",
+    LAUNCH_IDS.length,
+    "three free-library launch tracks must be published in catalog",
   );
+  for (const id of LAUNCH_IDS) {
+    assert.ok(
+      freeLibraryPublished.some((t: { id: string }) => t.id === id),
+      `catalog missing launch track ${id}`,
+    );
+  }
 
   delete process.env.STORY_MUSIC_PRODUCTION_PILOT_ENABLED;
   delete process.env.STORY_MUSIC_STAGING_QA_LIBRARY;
@@ -52,7 +65,11 @@ async function main() {
   process.env.NEXT_PUBLIC_STORY_MUSIC_HYBRID_ENABLED = "1";
 
   const memberTracks = countActiveFreeWorshipTracks();
-  assert.equal(memberTracks, 0, "member-visible free worship count must match published free-library catalog");
+  assert.equal(
+    memberTracks,
+    LAUNCH_IDS.length,
+    "member-visible free worship count must match published free-library catalog",
+  );
 
   console.log("story-music-catalog-integrity.test.ts OK");
 }

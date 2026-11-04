@@ -84,6 +84,7 @@
     "story-music:check-import-env": "node scripts/story-music-check-import-env.mjs",
     "story-music:verify-free-library": "node scripts/story-music-verify-free-library.mjs",
     "test:story-music:import-packets": "node scripts/story-music-import-packets.test.mjs",
+    "test:story-music:download-audio": "node scripts/story-music-download-audio.test.mjs",
     "test:story-music:catalog-integrity": "tsx scripts/story-music-catalog-integrity.test.ts"
   },
   "dependencies": {

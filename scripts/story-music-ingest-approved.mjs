@@ -15,6 +15,7 @@ import { readFile, mkdir, writeFile, unlink } from "fs/promises";
 import path from "path";
 import { createHash } from "crypto";
 import { spawnSync } from "child_process";
+import { fetchAudioWithRetry } from "./story-music-download-audio.mjs";
 
 const ROOT = process.cwd();
 const DISCOVERY_PATH =
@@ -138,8 +139,7 @@ async function main() {
   }
 
   await mkdir(outDir, { recursive: true });
-  const response = await fetch(audioUrl, { headers: { "User-Agent": "ShanahCityStoryMusic/1.0" } });
-  if (!response.ok) throw new Error(`Download failed HTTP ${response.status}`);
+  const response = await fetchAudioWithRetry(audioUrl, { label: catalogTrackId });
   const declaredType = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
   if (!declaredType.startsWith("audio/") && !["application/ogg", "application/octet-stream"].includes(declaredType)) {
     throw new Error("Source did not return a supported audio content type.");

@@ -8,7 +8,7 @@
  *   STORY_MUSIC_BLOB_READ_WRITE_TOKEN or BLOB_READ_WRITE_TOKEN
  *   STORY_MUSIC_ADMIN_WRITE_ENABLED=1
  *
- *   node scripts/story-music-import-free-library.mjs [--dry-run] [--candidates=id1,id2]
+ *   node scripts/story-music-import-free-library.mjs [--dry-run] [--force] [--candidates=id1,id2]
  */
 
 import { readFile, writeFile, mkdir } from "fs/promises";
@@ -19,6 +19,7 @@ import {
   DEFAULT_IMPORT_CANDIDATE_IDS,
   FREE_LIBRARY_IMPORT_CANDIDATES,
 } from "./story-music-rights-packets.mjs";
+import { shouldSkipVerifiedImport } from "./story-music-free-library-resume.mjs";
 
 const ROOT = process.cwd();
 const DISCOVERY_PATH = path.join(ROOT, "data", "story-music-discovery-candidates.json");
@@ -86,6 +87,7 @@ async function applyPacketToCandidate(row, packet) {
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
+  const force = process.argv.includes("--force");
   const ids = parseCandidateIds(process.argv.slice(2));
   const curator = process.env.STORY_MUSIC_CURATOR_NAME?.trim();
   const attestation = process.env.STORY_MUSIC_CURATOR_ATTESTATION?.trim();
@@ -112,6 +114,21 @@ async function main() {
       results.push({ id, ok: false, error: "unknown candidate or missing rights packet" });
       continue;
     }
+
+    if (!dryRun && blob) {
+      const skipCheck = await shouldSkipVerifiedImport(packet.catalogTrackId, blob, { force });
+      if (skipCheck.skip) {
+        results.push({
+          id,
+          ok: true,
+          skipped: true,
+          catalogTrackId: packet.catalogTrackId,
+          reason: skipCheck.reason,
+        });
+        continue;
+      }
+    }
+
     await applyPacketToCandidate(row, packet);
 
     if (dryRun) {
@@ -161,25 +178,37 @@ async function main() {
       `--intake=${intakeFile}`,
       `--candidate=${id}`,
     ]);
+    const publishOk = publish.status === 0;
+    if (publishOk) {
+      row.reviewStatus = "published";
+      row.publishedCatalogTrackId = packet.catalogTrackId;
+      row.updatedAt = new Date().toISOString();
+    }
     results.push({
       id,
-      ok: publish.status === 0,
+      ok: publishOk,
       catalogTrackId: packet.catalogTrackId,
       publish: publish.stdout?.trim(),
-      stderr: publish.status !== 0 ? publish.stderr?.slice(-400) : undefined,
+      stderr: !publishOk ? publish.stderr?.slice(-400) : undefined,
     });
+
+    if (publish.status === 0 && ids.indexOf(id) < ids.length - 1) {
+      await new Promise((r) => setTimeout(r, 3000));
+    }
   }
 
-  if (!dryRun && results.some((r) => r.ok)) {
+  if (!dryRun && results.some((r) => r.ok && !r.skipped)) {
     await writeFile(DISCOVERY_PATH, `${JSON.stringify(discovery, null, 2)}\n`);
   }
 
-  const imported = results.filter((r) => r.ok && !r.dryRun).length;
+  const imported = results.filter((r) => r.ok && !r.dryRun && !r.skipped).length;
+  const skipped = results.filter((r) => r.skipped).length;
   console.log(
     JSON.stringify(
       {
         dryRun,
         imported,
+        skipped,
         blockers,
         results,
       },
@@ -187,7 +216,7 @@ async function main() {
       2,
     ),
   );
-  process.exit(imported > 0 || (dryRun && results.every((r) => r.ok)) ? 0 : 1);
+  process.exit(imported > 0 || skipped > 0 || (dryRun && results.every((r) => r.ok)) ? 0 : 1);
 }
 
 main().catch((e) => {
