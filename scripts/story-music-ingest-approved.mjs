@@ -17,7 +17,9 @@ import { createHash } from "crypto";
 import { spawnSync } from "child_process";
 
 const ROOT = process.cwd();
-const DISCOVERY_PATH = path.join(ROOT, "data", "story-music-discovery-candidates.json");
+const DISCOVERY_PATH =
+  process.env.STORY_MUSIC_DISCOVERY_PATH?.trim() ||
+  path.join(ROOT, "data", "story-music-discovery-candidates.json");
 
 function parseArgs(argv) {
   const candidate = argv.find((a) => a.startsWith("--candidate="))?.split("=")[1];
@@ -96,7 +98,8 @@ async function main() {
     process.exit(1);
   }
 
-  const catalogTrackId = slug(`${row.artist}-${row.title}`) || candidate;
+  const catalogTrackId =
+    row.catalogTrackId?.trim() || slug(`${row.artist}-${row.title}`) || candidate;
   let ext = path.extname(new URL(audioUrl).pathname) || ".ogg";
   const shouldTranscode =
     transcodeMp3 && !/\.mp3$/i.test(ext) && /\.(ogg|oga|opus|wav|flac)$/i.test(ext);
@@ -125,6 +128,8 @@ async function main() {
     licenseUrl: row.licenseUrl,
     attributionText: row.attributionStatement,
     sourceUrl: row.sourcePageUrl,
+    genres: row.genres,
+    tags: row.tags,
   };
 
   if (dryRun) {

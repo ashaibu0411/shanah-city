@@ -79,7 +79,9 @@
     "test:community:story-youtube-viewer": "tsx scripts/community-story-youtube-viewer.test.ts",
     "test:community:story-voice-e2e": "playwright test -c playwright.staging.story.config.ts",
     "test:community:blob-access": "tsx scripts/community-blob-access.test.ts",
-    "story-music:poc-audio": "node scripts/generate-story-music-poc-audio.mjs"
+    "story-music:poc-audio": "node scripts/generate-story-music-poc-audio.mjs",
+    "story-music:import-free-library": "node scripts/story-music-import-free-library.mjs",
+    "test:story-music:import-packets": "node scripts/story-music-import-packets.test.mjs"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "^8.0.2",
