@@ -23,3 +23,12 @@
 ## Known blockers here
 
 This GitHub-connected session cannot access the church's private Vercel Blob token, download music bytes to its container, or assert curator approval for it. Cursor, using your authorized deployment credentials, remains the tool for completing the audio ingestion and runtime validation.
+
+Check local readiness (no secret values printed):
+
+```bash
+node scripts/story-music-check-import-env.mjs
+npm run story-music:import-free-library -- --dry-run
+```
+
+After import succeeds, follow [STORY_MUSIC_FREE_LIBRARY_MEMBER_LAUNCH.md](./STORY_MUSIC_FREE_LIBRARY_MEMBER_LAUNCH.md) for production flags. **Do not report the library complete with zero member-visible free-library tracks.**
