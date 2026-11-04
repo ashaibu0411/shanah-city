@@ -45,6 +45,7 @@ function loadEnvFile(filePath) {
 }
 
 loadEnvFile(path.join(ROOT, ".env.local"));
+loadEnvFile(path.join(ROOT, ".env.production.local"));
 loadEnvFile(path.join(ROOT, ".env"));
 
 function parseCandidateIds(argv) {

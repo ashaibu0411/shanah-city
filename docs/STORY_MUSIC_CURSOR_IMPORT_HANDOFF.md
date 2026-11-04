@@ -31,4 +31,7 @@ node scripts/story-music-check-import-env.mjs
 npm run story-music:import-free-library -- --dry-run
 ```
 
+Owner sign-off: [STORY_MUSIC_THREE_SONG_OWNER_CHECKLIST.md](./STORY_MUSIC_THREE_SONG_OWNER_CHECKLIST.md)  
+Production Blob + import: [STORY_MUSIC_PRODUCTION_BLOB_AND_IMPORT.md](./STORY_MUSIC_PRODUCTION_BLOB_AND_IMPORT.md)
+
 After import succeeds, follow [STORY_MUSIC_FREE_LIBRARY_MEMBER_LAUNCH.md](./STORY_MUSIC_FREE_LIBRARY_MEMBER_LAUNCH.md) for production flags. **Do not report the library complete with zero member-visible free-library tracks.**

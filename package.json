@@ -82,6 +82,7 @@
     "story-music:poc-audio": "node scripts/generate-story-music-poc-audio.mjs",
     "story-music:import-free-library": "node scripts/story-music-import-free-library.mjs",
     "story-music:check-import-env": "node scripts/story-music-check-import-env.mjs",
+    "story-music:verify-free-library": "node scripts/story-music-verify-free-library.mjs",
     "test:story-music:import-packets": "node scripts/story-music-import-packets.test.mjs",
     "test:story-music:catalog-integrity": "tsx scripts/story-music-catalog-integrity.test.ts"
   },
