@@ -7,7 +7,8 @@
  *   node scripts/story-music-ingest-approved.mjs --candidate smd-xxx --dry-run
  *   node scripts/story-music-ingest-approved.mjs --candidate smd-xxx --out-dir ./.tmp-story-music-ingest
  *
- * Blob upload is manual follow-up via admin or a separate credentialed step.
+ * --upload-blob uploads approved recordings with Vercel Blob credentials;
+ * publication remains a separate, audited admin intake action.
  */
 
 import { readFile, mkdir, writeFile, unlink } from "fs/promises";
@@ -22,18 +23,25 @@ function parseArgs(argv) {
   const candidate = argv.find((a) => a.startsWith("--candidate="))?.split("=")[1];
   const dryRun = argv.includes("--dry-run");
   const transcodeMp3 = argv.includes("--transcode-mp3");
+  const uploadBlob = argv.includes("--upload-blob");
   const outDir =
     argv.find((a) => a.startsWith("--out-dir="))?.split("=")[1] ??
     path.join(ROOT, ".tmp-story-music-ingest");
-  return { candidate, dryRun, transcodeMp3, outDir };
+  return { candidate, dryRun, transcodeMp3, uploadBlob, outDir };
 }
 
 function resolveDirectAudioUrl(row) {
-  const u = row.recordingUrl ?? "";
-  if (u.includes("upload.wikimedia.org") || u.includes("archive.org/download")) {
-    return u.split("?")[0];
+  try {
+    const url = new URL(row.recordingUrl ?? "");
+    if (url.protocol !== "https:") return null;
+    const commons = url.hostname === "upload.wikimedia.org" &&
+      url.pathname.startsWith("/wikipedia/commons/");
+    const archive = url.hostname === "archive.org" &&
+      url.pathname.startsWith("/download/");
+    return commons || archive ? url.origin + url.pathname : null;
+  } catch {
+    return null;
   }
-  return u.startsWith("http") ? u : null;
 }
 
 function ffmpegAvailable() {
@@ -50,7 +58,7 @@ function slug(s) {
 }
 
 async function main() {
-  const { candidate, dryRun, transcodeMp3, outDir } = parseArgs(process.argv.slice(2));
+  const { candidate, dryRun, transcodeMp3, uploadBlob, outDir } = parseArgs(process.argv.slice(2));
   if (!candidate) {
     console.error("Usage: --candidate=smd-... [--dry-run] [--out-dir=path]");
     process.exit(1);
@@ -64,6 +72,21 @@ async function main() {
   }
   if (row.reviewStatus !== "approved" && row.reviewStatus !== "published") {
     console.error(`Candidate status is ${row.reviewStatus}; human must approve first.`);
+    process.exit(1);
+  }
+  if (
+    !row.rightsEvidenceRef?.trim() ||
+    !row.recordingRightsNote?.trim() ||
+    !row.compositionRightsNote?.trim() ||
+    !row.territory?.trim() ||
+    row.streamingPermitted !== true ||
+    row.storagePermitted !== true
+  ) {
+    console.error("Approved candidate requires recorded evidence, composition and recording rights, territory, and explicit streaming/storage permissions.");
+    process.exit(1);
+  }
+  if (uploadBlob && (!process.env.STORY_MUSIC_CURATOR_NAME?.trim() || !process.env.STORY_MUSIC_CURATOR_ATTESTATION?.trim())) {
+    console.error("--upload-blob requires curator name and recorded authorization in environment variables.");
     process.exit(1);
   }
 
@@ -91,13 +114,13 @@ async function main() {
     artist: row.artist,
     title: row.title,
     audioPath,
-    documentReference: row.rightsEvidenceRef ?? row.sourcePageUrl,
-    recordingOwner: row.recordingRightsNote ?? row.artist,
-    compositionPublishing: row.compositionRightsNote ?? "See rights evidence",
+    documentReference: row.rightsEvidenceRef,
+    recordingOwner: row.recordingRightsNote,
+    compositionPublishing: row.compositionRightsNote,
     authorizedUses: "In-app user-generated story background audio (Shanah City Stories)",
-    streamingPermitted: true,
-    storagePermitted: true,
-    territory: "Worldwide",
+    streamingPermitted: row.streamingPermitted,
+    storagePermitted: row.storagePermitted,
+    territory: row.territory,
     licenseType: row.licenseSlug,
     licenseUrl: row.licenseUrl,
     attributionText: row.attributionStatement,
@@ -105,13 +128,16 @@ async function main() {
   };
 
   if (dryRun) {
-    console.log(JSON.stringify({ dryRun: true, intake, downloadFrom: audioUrl }, null, 2));
+    console.log(JSON.stringify({ dryRun: true, intake, downloadFrom: audioUrl, uploadBlobRequested: uploadBlob }, null, 2));
     return;
   }
 
   await mkdir(outDir, { recursive: true });
   const response = await fetch(audioUrl, { headers: { "User-Agent": "ShanahCityStoryMusic/1.0" } });
   if (!response.ok) throw new Error(`Download failed HTTP ${response.status}`);
+  if (!/^audio\//i.test(response.headers.get("content-type") ?? "")) {
+    throw new Error("Source did not return an audio MIME type.");
+  }
   const downloaded = path.join(outDir, `_download${path.extname(new URL(audioUrl).pathname) || ".bin"}`);
   const buffer = Buffer.from(await response.arrayBuffer());
   await writeFile(downloaded, buffer);
@@ -138,7 +164,31 @@ async function main() {
     path.join(outDir, `${fileName}.intake.json`),
     `${JSON.stringify({ ...intake, sha256: sha, bytes: finalBuffer.length, transcoded: shouldTranscode }, null, 2)}\n`,
   );
-  console.log(`Saved ${localPath} (${finalBuffer.length} bytes). Upload to Blob at ${blobPath}, then admin intake verify/publish.`);
+  if (uploadBlob) {
+    const token =
+      process.env.STORY_MUSIC_BLOB_READ_WRITE_TOKEN?.trim() ||
+      process.env.BLOB_READ_WRITE_TOKEN?.trim();
+    if (!token) throw new Error("STORY_MUSIC_BLOB_READ_WRITE_TOKEN is required for --upload-blob.");
+    const requestedAccess = process.env.STORY_MUSIC_BLOB_ACCESS?.trim() || "public";
+    if (!["public", "private"].includes(requestedAccess)) {
+      throw new Error("STORY_MUSIC_BLOB_ACCESS must be public or private.");
+    }
+    const { put } = await import("@vercel/blob");
+    const contentType = ext.toLowerCase() === ".mp3"
+      ? "audio/mpeg"
+      : [".ogg", ".oga"].includes(ext.toLowerCase())
+        ? "audio/ogg"
+        : ext.toLowerCase() === ".wav" ? "audio/wav" : "application/octet-stream";
+    await put(blobPath, finalBuffer, {
+      access: requestedAccess,
+      token,
+      contentType,
+      addRandomSuffix: false,
+    });
+    console.log(`Blob upload complete: ${blobPath} (${requestedAccess}). This is NOT a catalog publication. Complete admin rights intake and publish separately.`);
+  } else {
+    console.log(`Saved ${localPath} (${finalBuffer.length} bytes). Use --upload-blob after curator sign-off to upload, then admin intake verify/publish.`);
+  }
 }
 
 main().catch((e) => {
