@@ -16,9 +16,12 @@ export type StoryMusicPlaybackApiResponse = {
   sourceUrl?: string;
 };
 
-export function storyMusicPlaybackToApiResponse(plan: StoryMusicPlaybackPlan): StoryMusicPlaybackApiResponse {
+export function storyMusicPlaybackToApiResponse(
+  plan: StoryMusicPlaybackPlan,
+  hybridActive?: boolean,
+): StoryMusicPlaybackApiResponse {
   const base = {
-    hybrid: isStoryMusicHybridActive(),
+    hybrid: hybridActive ?? isStoryMusicHybridActive(),
     playability: plan.playability,
     startSeconds: plan.startSeconds ?? null,
     unavailableReason: plan.unavailableReason,
