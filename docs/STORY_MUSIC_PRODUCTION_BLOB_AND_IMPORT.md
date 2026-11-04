@@ -40,18 +40,24 @@ Optional: `STORY_MUSIC_BLOB_STORE_ID` if your project sets it.
 **Pull to your machine (does not print token in terminal if you avoid `cat`):**
 
 ```bash
-npx vercel env pull .env.production.local --environment=production
+npx vercel link --yes --project shanah-city
+npx vercel env pull .env.production.local --environment=production --yes
 ```
 
-Add `.env.production.local` to your local ignore habits (repo already ignores `.env*`).
+Vercel often writes **`[SENSITIVE]` placeholders** for secret variables (including `BLOB_READ_WRITE_TOKEN`). That is **not** a usable token. You must copy the **Read-Write** token once from the dashboard:
 
-Verify without exposing values:
+1. **shanah-city** → **Storage** → your Blob store → **Tokens** (or **Settings → Environment Variables** → `BLOB_READ_WRITE_TOKEN` → reveal/copy for Production).
+2. Paste into **`.env.local`** only:
 
-```bash
-npm run story-music:check-import-env
+```env
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_…
 ```
 
-Expect **set (62+ chars)** for a real `vercel_blob_rw_…` token, not a placeholder.
+(or `STORY_MUSIC_BLOB_READ_WRITE_TOKEN` if that is what production uses)
+
+3. Confirm: `npm run story-music:check-import-env` → token line shows **set (62+ chars)** or similar, not 11 chars.
+
+**Do not use** `vercel env run -- node scripts/…` on this CLI — it may deploy a stray project instead of running the script locally. Use dashboard token + `.env.local` for import.
 
 ---
 
