@@ -25,15 +25,12 @@ type CommunityStorySoundtrackPickerProps = {
 };
 
 const SECTION_OPTIONS: Array<{
-  id: "youtube" | "background" | "free-worship" | "library";
+  id: "free-worship" | "background";
   label: string;
   subtitle: string;
-  disabled?: boolean;
 }> = [
-  { id: "background", label: "Background Audio", subtitle: "Record or Upload" },
-  { id: "youtube", label: "Gospel Music Videos", subtitle: "YouTube" },
-  { id: "free-worship", label: "Free Worship Music", subtitle: "Licensed library" },
-  { id: "library", label: "Shanah Worship Music", subtitle: "Coming Soon", disabled: true },
+  { id: "free-worship", label: "Free Worship Music", subtitle: "Music behind your story photo" },
+  { id: "background", label: "Record Your Voice", subtitle: "Record or upload your own audio" },
 ];
 
 export function CommunityStorySoundtrackPicker({
@@ -46,13 +43,12 @@ export function CommunityStorySoundtrackPicker({
   onMemberRightsAck,
   onSoundtrackError,
 }: CommunityStorySoundtrackPickerProps) {
-  const [section, setSection] = useState<
-    "none" | "youtube" | "background" | "free-worship" | "library"
-  >("none");
+  const [section, setSection] = useState<"none" | "background" | "free-worship">("none");
   const [backgroundMode, setBackgroundMode] = useState<"member-record" | "member-upload">(
     "member-record",
   );
   const [freeLibraryLive, setFreeLibraryLive] = useState(false);
+  const [freeLibraryChecked, setFreeLibraryChecked] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +59,9 @@ export function CommunityStorySoundtrackPicker({
       })
       .catch(() => {
         if (!cancelled) setFreeLibraryLive(false);
+      })
+      .finally(() => {
+        if (!cancelled) setFreeLibraryChecked(true);
       });
     return () => {
       cancelled = true;
@@ -77,27 +76,18 @@ export function CommunityStorySoundtrackPicker({
     }
   }, [memberAudioUrl, section, selectedMusicTrackId]);
 
-  function selectSection(next: "youtube" | "background" | "free-worship" | "library") {
-    if (next === "library") return;
-    if (next === "free-worship" && !freeLibraryLive) {
-      onSoundtrackError(
-        "Free worship songs are being verified by the church team. Check back soon — your recorded voice still works today.",
-      );
+  function selectSection(next: "background" | "free-worship") {
+    if (!allowMemberOverlay) {
+      onSoundtrackError("Background sound is for photo or text stories. Videos keep their own sound.");
       return;
     }
-    if (next === "background" && !allowMemberOverlay) {
-      onSoundtrackError("Use gospel music videos with video stories — your video keeps its own sound.");
-      return;
-    }
+
     setSection(next);
     onSoundtrackError("");
-    if (next === "youtube") {
-      onMemberAudioUrl(null);
-      onMemberRightsAck(false);
-    } else if (next === "background") {
+    if (next === "background") {
       onSelectMusic(null);
       setBackgroundMode("member-record");
-    } else if (next === "free-worship") {
+    } else {
       onMemberAudioUrl(null);
       onMemberRightsAck(false);
     }
@@ -105,7 +95,7 @@ export function CommunityStorySoundtrackPicker({
 
   function selectBackgroundMode(next: "member-record" | "member-upload") {
     if (!allowMemberOverlay) {
-      onSoundtrackError("Use gospel music videos with video stories — your video keeps its own sound.");
+      onSoundtrackError("Background sound is for photo or text stories. Videos keep their own sound.");
       return;
     }
     setSection("background");
@@ -121,20 +111,20 @@ export function CommunityStorySoundtrackPicker({
       </p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {SECTION_OPTIONS.map((option) => {
-          const disabled =
-            option.disabled ||
-            (option.id === "background" && !allowMemberOverlay) ||
-            (option.id === "free-worship" && !freeLibraryLive);
+          const disabled = !allowMemberOverlay;
           const active = section === option.id;
           const subtitle =
             option.id === "free-worship" && !freeLibraryLive
-              ? "Coming soon — verification in progress"
+              ? freeLibraryChecked
+                ? "Songs awaiting approval"
+                : "Checking available songs…"
               : option.subtitle;
           return (
             <button
               key={option.id}
               type="button"
               disabled={disabled}
+              aria-pressed={active}
               className={`rounded-xl border px-2.5 py-2 text-left transition ${
                 active
                   ? "border-clay-600 bg-clay-500/15 ring-1 ring-clay-600/40"
@@ -178,35 +168,27 @@ export function CommunityStorySoundtrackPicker({
         </div>
       ) : null}
 
-      {section === "free-worship" && freeLibraryLive ? (
-        <CommunityStoryMusicPicker
-          selectedTrackId={selectedMusicTrackId}
-          heading="Free Worship Music"
-          subheading="Native background audio on your photo — preview before attaching."
-          onSelect={(track) => {
-            onSelectMusic(track);
-            if (track) {
-              onMemberAudioUrl(null);
-              onMemberRightsAck(false);
-            }
-          }}
-        />
-      ) : null}
-
-      {section === "youtube" ? (
-        <CommunityStoryMusicPicker
-          selectedTrackId={selectedMusicTrackId}
-          heading="Gospel Music Videos"
-          subheading="Tap the sticker in your story to watch the official YouTube video."
-          youtubeMode
-          onSelect={(track) => {
-            onSelectMusic(track);
-            if (track) {
-              onMemberAudioUrl(null);
-              onMemberRightsAck(false);
-            }
-          }}
-        />
+      {section === "free-worship" ? (
+        freeLibraryLive ? (
+          <CommunityStoryMusicPicker
+            selectedTrackId={selectedMusicTrackId}
+            heading="Free Worship Music"
+            subheading="Choose a licensed track to play behind your photo story."
+            onSelect={(track) => {
+              onSelectMusic(track);
+              if (track) {
+                onMemberAudioUrl(null);
+                onMemberRightsAck(false);
+              }
+            }}
+          />
+        ) : (
+          <p role="status" className="rounded-xl border border-night-900/10 bg-white/70 px-3 py-3 text-xs text-night-600 dark:border-white/10 dark:bg-night-950/40 dark:text-sand-300">
+            {freeLibraryChecked
+              ? "The church has not published any approved free worship songs yet. You can still record or upload your own audio."
+              : "Checking the free worship music library…"}
+          </p>
+        )
       ) : null}
 
       {section === "background" && backgroundMode === "member-record" ? (
