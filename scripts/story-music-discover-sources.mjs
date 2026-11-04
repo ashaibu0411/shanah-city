@@ -54,9 +54,36 @@ function classifyLicense(license, licenseUrl) {
   const combined = `${license ?? ""} ${licenseUrl ?? ""}`.toLowerCase();
   if (rejectLicense(license, licenseUrl)) return { licenseClass: "rejected", allowed: false };
   if (/cc0|publicdomain|public.?domain|pdm/.test(combined)) {
-    return { licenseClass: "cc0", allowed: true };
+    return { licenseClass: "cc0", allowed: true, storagePermittedDefault: true };
   }
-  return { licenseClass: "cc-by", allowed: true };
+  return {
+    licenseClass: "cc-by",
+    allowed: true,
+    storagePermittedDefault: false,
+  };
+}
+
+/** Streaming on a platform ≠ permission to host a copy in Shanah City Blob. */
+function redistributionReviewNote(licenseClass, storagePermittedDefault) {
+  if (storagePermittedDefault) {
+    return "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.";
+  }
+  return "CC BY (or similar) may allow streaming with attribution but NOT automatic redistribution/hosting — verify recording owner and storage rights before import.";
+}
+
+function annotateCandidateRights(row) {
+  const pd = row.licenseClass === "cc0" || /public.?domain/i.test(row.licenseSlug ?? "");
+  row.storagePermitted = pd ? undefined : false;
+  row.streamingPermitted = undefined;
+  row.redistributionReviewNote = redistributionReviewNote(row.licenseClass, pd);
+  if (!row.compositionRightsNote) {
+    row.compositionRightsNote =
+      "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.";
+  }
+  if (!row.recordingRightsNote) {
+    row.recordingRightsNote =
+      "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights.";
+  }
 }
 
 async function fetchJson(url, headers = {}) {
@@ -134,7 +161,7 @@ async function discoverOpenverse(maxPerQuery) {
         const sourcePageUrl = item.foreign_landing_url ?? item.detail_url ?? recordingUrl;
         if (!recordingUrl || !sourcePageUrl) continue;
         const stableId = String(item.id ?? item.identifier ?? sourcePageUrl);
-        rows.push({
+        const candidate = {
           source: "openverse",
           sourceStableId: stableId,
           dedupeKey: dedupeKey("openverse", stableId, recordingUrl),
@@ -152,7 +179,9 @@ async function discoverOpenverse(maxPerQuery) {
           searchQuery: q,
           reviewStatus: allowed ? "discovered" : "rejected",
           rejectionReason: allowed ? undefined : "License failed strict CC0/CC BY filter.",
-        });
+        };
+        if (allowed) annotateCandidateRights(candidate);
+        rows.push(candidate);
       }
     } catch (error) {
       console.warn(`Openverse query "${q}" failed:`, error instanceof Error ? error.message : error);
@@ -162,9 +191,20 @@ async function discoverOpenverse(maxPerQuery) {
   return rows;
 }
 
-async function discoverWikimedia(maxPerQuery) {
+const WIKIMEDIA_US_GOV_PD_SEARCHES = [
+  "United States Air Force Band",
+  "United States Air Force Reserve Band",
+  "Air Force Band public domain",
+  "U.S. Navy gospel",
+  "United States Navy Band hymn",
+  "Marine Band hymn",
+  "Army Band hymn public domain",
+  "Concert Band United States Air Force",
+];
+
+async function discoverWikimedia(maxPerQuery, searches) {
   const rows = [];
-  const searches = [
+  const queryList = searches ?? [
     "gospel music",
     "hymn music",
     "worship audio",
@@ -186,7 +226,7 @@ async function discoverWikimedia(maxPerQuery) {
     "gospel recording",
     "christian music audio",
   ];
-  for (const q of searches) {
+  for (const q of queryList) {
     const params = new URLSearchParams({
       action: "query",
       format: "json",
@@ -225,7 +265,7 @@ async function discoverWikimedia(maxPerQuery) {
         const fileTitle = title.replace(/^File:/i, "");
         const sourcePageUrl = `https://commons.wikimedia.org/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
         const stableId = title;
-        rows.push({
+        const candidate = {
           source: "wikimedia_commons",
           sourceStableId: stableId,
           dedupeKey: dedupeKey("wikimedia_commons", stableId, info.url),
@@ -239,13 +279,15 @@ async function discoverWikimedia(maxPerQuery) {
           licenseClass: allowed ? licenseClass : "rejected",
           durationSec: info.size ? undefined : undefined,
           fileFormat: info.mime,
-          tags: [q],
+          tags: [q, "wikimedia-commons"],
           searchQuery: q,
           reviewStatus: allowed ? "needs_review" : "rejected",
           rejectionReason: allowed
             ? "Commons metadata passed filter — human must verify composition/recording on file page."
             : "Commons license failed strict CC0/CC BY filter.",
-        });
+        };
+        if (allowed) annotateCandidateRights(candidate);
+        rows.push(candidate);
       }
     } catch (error) {
       console.warn(`Wikimedia query "${q}" failed:`, error instanceof Error ? error.message : error);
@@ -270,10 +312,13 @@ async function discoverFmaArchive(maxPerQuery) {
       const identifier = doc.identifier;
       if (!identifier) continue;
       const sourcePageUrl = `https://archive.org/details/${identifier}`;
-      const recordingUrl = `https://archive.org/download/${identifier}`;
       const licenseUrl = doc.licenseurl ?? "";
       const { licenseClass, allowed } = classifyLicense("", licenseUrl);
-      rows.push({
+      const formats = Array.isArray(doc.format) ? doc.format : [];
+      const hasAudioFile = formats.some((f) => /^(VBR MP3|MP3|Ogg Vorbis|Flac|WAVE)$/i.test(String(f)));
+      if (!hasAudioFile) continue;
+      const recordingUrl = `https://archive.org/download/${identifier}`;
+      const candidate = {
         source: "fma_archive",
         sourceStableId: identifier,
         dedupeKey: dedupeKey("fma_archive", identifier, recordingUrl),
@@ -288,8 +333,12 @@ async function discoverFmaArchive(maxPerQuery) {
         tags: ["archive.org", "fma"],
         searchQuery: q,
         reviewStatus: allowed ? "discovered" : "rejected",
-        rejectionReason: allowed ? undefined : "Archive license URL failed strict filter.",
-      });
+        rejectionReason: allowed
+          ? "Archive metadata only — pick a specific file URL before ingest; verify composition + recording rights."
+          : "Archive license URL failed strict filter.",
+      };
+      if (allowed) annotateCandidateRights(candidate);
+      rows.push(candidate);
       }
     } catch (error) {
       console.warn(`Archive search failed (${q.slice(0, 40)}…):`, error instanceof Error ? error.message : error);
@@ -322,6 +371,7 @@ function mergeCandidates(existing, incoming) {
 async function main() {
   const maxArg = process.argv.find((a) => a.startsWith("--max-per-query="));
   const maxPerQuery = maxArg ? Number(maxArg.split("=")[1]) : 30;
+  const onlyArg = process.argv.find((a) => a.startsWith("--only="))?.split("=")[1]?.trim();
 
   let existing = [];
   try {
@@ -331,12 +381,24 @@ async function main() {
     existing = [];
   }
 
-  console.log("Discovering from Openverse, Wikimedia Commons, FMA (Internet Archive)…");
-  const [openverse, wikimedia, fma] = await Promise.all([
-    discoverOpenverse(maxPerQuery),
-    discoverWikimedia(Math.min(maxPerQuery, 25)),
-    discoverFmaArchive(Math.min(maxPerQuery, 50)),
-  ]);
+  let openverse = [];
+  let wikimedia = [];
+  let fma = [];
+
+  if (onlyArg === "wikimedia-usgov-pd") {
+    console.log("Discovering U.S. military band PD candidates on Wikimedia Commons…");
+    wikimedia = await discoverWikimedia(Math.min(maxPerQuery, 20), WIKIMEDIA_US_GOV_PD_SEARCHES);
+  } else if (onlyArg) {
+    console.error(`Unknown --only=${onlyArg} (supported: wikimedia-usgov-pd)`);
+    process.exit(1);
+  } else {
+    console.log("Discovering from Openverse, Wikimedia Commons, FMA (Internet Archive)…");
+    [openverse, wikimedia, fma] = await Promise.all([
+      discoverOpenverse(maxPerQuery),
+      discoverWikimedia(Math.min(maxPerQuery, 25)),
+      discoverFmaArchive(Math.min(maxPerQuery, 50)),
+    ]);
+  }
 
   const merged = mergeCandidates(existing, [...openverse, ...wikimedia, ...fma]);
   const payload = {

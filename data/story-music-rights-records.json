@@ -52,6 +52,106 @@
       "verifiedAt": "2026-10-29T18:00:00.000Z",
       "publishedAt": "2026-10-29T18:00:00.000Z",
       "notes": "Requires STORY_MUSIC_PRODUCTION_PILOT_ENABLED=1 and account allowlist. Never enable STORY_MUSIC_STAGING_QA_LIBRARY on production."
+    },
+    {
+      "id": "smr-amazing-grace-usaf-reserve-band",
+      "status": "published",
+      "artist": "United States Air Force Reserve Band",
+      "title": "Amazing Grace",
+      "recordingOwner": "United States Air Force Reserve Band performance marked Public domain on Wikimedia Commons and USAF PD music program.",
+      "compositionPublishing": "Hymn text John Newton; tune New Britain / William Walker — public domain composition.",
+      "documentReference": "Wikimedia Commons File:Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3 (extmetadata LicenseShortName: Public domain); USAF Public Domain Music program https://www.music.af.mil/Multimedia/Music/Public-Domain-Music/\nCurator: Zaq Nombre (2026-11-04T04:52:56.639Z).",
+      "authorizedUses": "In-app user-generated story background audio (Shanah City Stories)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "territory": "Worldwide (PD composition; U.S. federal band PD recording — curator confirmed app use)",
+      "catalogTrackId": "amazing-grace-usaf-reserve-band",
+      "audioPath": "story-music://blob/story-music/audio/free-library/amazing-grace-usaf-reserve-band.mp3",
+      "genres": [
+        "hymns",
+        "worship"
+      ],
+      "tags": [
+        "hymn",
+        "gospel",
+        "curator-added-first-launch",
+        "free-library"
+      ],
+      "licenseType": "public-domain",
+      "licenseUrl": "https://www.music.af.mil/Multimedia/Music/Public-Domain-Music/",
+      "attributionText": "Performance: United States Air Force Reserve Band (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3",
+      "createdAt": "2026-11-04T04:52:56.639Z",
+      "updatedAt": "2026-11-04T04:52:56.639Z",
+      "verifiedAt": "2026-11-04T04:52:56.639Z",
+      "publishedAt": "2026-11-04T04:52:56.639Z",
+      "notes": "Blob sha256 ecf884156002cf4e4e3cbbd38c01a35cb70ec109d161c48befce69b1d8667789; 5505564 bytes."
+    },
+    {
+      "id": "smr-the-god-of-abraham-praise-usaf-band",
+      "status": "published",
+      "artist": "United States Air Force Band",
+      "title": "The God of Abraham Praise",
+      "recordingOwner": "United States Air Force Band concert band recording marked Public domain on Wikimedia Commons.",
+      "compositionPublishing": "Hymn text Thomas Olivers; tune Leoni (traditional) — public domain composition.",
+      "documentReference": "Wikimedia Commons File:The_God_of_Abraham_Praise_-_Concert_Band_-_United_States_Air_Force_Band.mp3 (extmetadata LicenseShortName: Public domain); hymn tune Leoni (traditional PD).\nCurator: Zaq Nombre (2026-11-04T04:52:59.129Z).",
+      "authorizedUses": "In-app user-generated story background audio (Shanah City Stories)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "territory": "Worldwide (PD composition; U.S. federal band PD recording — curator confirmed app use)",
+      "catalogTrackId": "the-god-of-abraham-praise-usaf-band",
+      "audioPath": "story-music://blob/story-music/audio/free-library/the-god-of-abraham-praise-usaf-band.mp3",
+      "genres": [
+        "hymns",
+        "worship"
+      ],
+      "tags": [
+        "praise music",
+        "free-library",
+        "hymn"
+      ],
+      "licenseType": "public-domain",
+      "licenseUrl": "https://www.music.af.mil/Multimedia/Music/Public-Domain-Music/",
+      "attributionText": "Performance: United States Air Force Band (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_God_of_Abraham_Praise_-_Concert_Band_-_United_States_Air_Force_Band.mp3",
+      "createdAt": "2026-11-04T04:52:59.129Z",
+      "updatedAt": "2026-11-04T04:52:59.129Z",
+      "verifiedAt": "2026-11-04T04:52:59.129Z",
+      "publishedAt": "2026-11-04T04:52:59.129Z",
+      "notes": "Blob sha256 58c28a8353cfe7e0aae62cafa5761b6aa1c3df8047fdbf1975f06a39ad374285; 3863713 bytes."
+    },
+    {
+      "id": "smr-gospel-train-us-navy-edwards",
+      "status": "published",
+      "artist": "MU1 William F. Edwards, III (U.S. Navy)",
+      "title": "Gospel Train",
+      "recordingOwner": "U.S. Navy recording marked Public domain on Wikimedia Commons.",
+      "compositionPublishing": "Traditional gospel spiritual — public domain.",
+      "documentReference": "Wikimedia Commons File:Gospel_Train.mp3 (extmetadata LicenseShortName: Public domain); U.S. Navy recording.\nCurator: Zaq Nombre (2026-11-04T04:58:25.302Z).",
+      "authorizedUses": "In-app user-generated story background audio (Shanah City Stories)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "territory": "Worldwide (PD recording and traditional composition — curator confirmed app use)",
+      "catalogTrackId": "gospel-train-us-navy-edwards",
+      "audioPath": "story-music://blob/story-music/audio/free-library/gospel-train-us-navy-edwards.mp3",
+      "genres": [
+        "gospel",
+        "worship"
+      ],
+      "tags": [
+        "gospel music",
+        "free-library",
+        "gospel"
+      ],
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Performance: MU1 William F. Edwards, III (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gospel_Train.mp3",
+      "createdAt": "2026-11-04T04:58:25.302Z",
+      "updatedAt": "2026-11-04T04:58:25.302Z",
+      "verifiedAt": "2026-11-04T04:58:25.302Z",
+      "publishedAt": "2026-11-04T04:58:25.302Z",
+      "notes": "Blob sha256 d227ee79f45561499bef820feadccc808c5175831f8a9d1a6dabf2025fddee77; 3569959 bytes."
     }
   ]
 }

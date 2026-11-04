@@ -1,6 +1,6 @@
 # Amazing Grace (USAF Reserve Band) — owner rights review packet
 
-**Not approved.** For Shanah City curator / owner sign-off only.
+**Not approved.** For Shanah City curator / owner sign-off only. See also [STORY_MUSIC_THREE_SONG_OWNER_CHECKLIST.md](./STORY_MUSIC_THREE_SONG_OWNER_CHECKLIST.md) for the combined three-track launch sign-off.
 
 ## Recording
 
