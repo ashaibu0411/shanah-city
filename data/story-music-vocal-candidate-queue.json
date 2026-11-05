@@ -27,7 +27,7 @@
       "streamingPermitted": true,
       "storagePermitted": false,
       "syncPermitted": "pending_curator",
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review"
     },
     {
@@ -54,7 +54,7 @@
       "streamingPermitted": true,
       "storagePermitted": false,
       "syncPermitted": "pending_curator",
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review"
     },
     {
@@ -81,7 +81,7 @@
       "streamingPermitted": true,
       "storagePermitted": false,
       "syncPermitted": "pending_curator",
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review"
     },
     {
@@ -110,7 +110,7 @@
       "streamingPermitted": true,
       "storagePermitted": true,
       "syncPermitted": true,
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review"
     },
     {
@@ -136,7 +136,7 @@
       "streamingPermitted": true,
       "storagePermitted": true,
       "syncPermitted": true,
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review"
     },
     {
@@ -161,7 +161,7 @@
       "streamingPermitted": true,
       "storagePermitted": true,
       "syncPermitted": true,
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review",
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/65/The_Golden_Jubilee_Quartet_-_Oh_Jonah.ogg",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Golden_Jubilee_Quartet_-_Oh_Jonah.ogg"
@@ -188,7 +188,7 @@
       "streamingPermitted": true,
       "storagePermitted": true,
       "syncPermitted": true,
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review",
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2c/The_Spiritual_Four_Quartet_-_John_the_Revelator.ogg",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Spiritual_Four_Quartet_-_John_the_Revelator.ogg"
@@ -215,7 +215,7 @@
       "streamingPermitted": true,
       "storagePermitted": true,
       "syncPermitted": true,
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review",
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Cochran_Field_Singers_-_My_Lord_Is_Writin%27.ogg",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ACochran_Field_Singers_-_My_Lord_Is_Writin'.ogg"
@@ -242,7 +242,7 @@
       "streamingPermitted": true,
       "storagePermitted": true,
       "syncPermitted": true,
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review",
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Middle_Georgia_Singers_-_Death_is_an_Awful_Thing.ogg",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AMiddle_Georgia_Singers_-_Death_is_an_Awful_Thing.ogg"
@@ -270,7 +270,7 @@
       "streamingPermitted": true,
       "storagePermitted": true,
       "syncPermitted": true,
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review",
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Bertha_Houston_-_We_are_Americans%2C_Praise_the_Lord.ogg",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ABertha_Houston_-_We_are_Americans%2C_Praise_the_Lord.ogg"
@@ -297,7 +297,7 @@
       "streamingPermitted": true,
       "storagePermitted": true,
       "syncPermitted": true,
-      "reviewerDecision": "pending_owner_listen",
+      "reviewerDecision": "owner_approved",
       "reviewStatus": "needs_review",
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/95/The_Four_Brothers_-_Death_Come_a-Knockin%27.ogg",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Four_Brothers_-_Death_Come_a-Knockin'.ogg"
@@ -363,5 +363,24 @@
       "title": "Gospel Train",
       "note": "Existing approved free-library track — unchanged."
     }
-  ]
+  ],
+  "ownerApproval": {
+    "decision": "approved_all_11_for_consideration",
+    "date": "2026-11-04",
+    "source": "explicit_in_chat_owner_instruction",
+    "scope": [
+      "vocal-priority-001",
+      "vocal-priority-002",
+      "vocal-priority-003",
+      "vocal-priority-004",
+      "vocal-005",
+      "vocal-006",
+      "vocal-007",
+      "vocal-008",
+      "vocal-009",
+      "vocal-010",
+      "vocal-011"
+    ],
+    "notes": "Owner approval of selection only. Does not assert individual listening, validate worldwide copyright, replace curator attestation, or authorize Blob import without completed rights checks."
+  }
 }
