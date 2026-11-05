@@ -20,6 +20,7 @@ import {
   getModuleForContentVersion,
   listModulesForJourney,
 } from "@/lib/marriage-curriculum-service";
+import { isAssessmentSubmitted } from "@/lib/marriage-assessment-participant-status";
 import { participantHomeworkStatus } from "@/lib/marriage-homework-status";
 import { homeworkTemplateMeta } from "@/lib/marriage-homework-template-meta";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
@@ -100,7 +101,7 @@ function responseStatus(
   response: { status?: string; submittedAt?: string | null } | null | undefined,
 ): "not_started" | "draft" | "submitted" {
   if (!response) return "not_started";
-  if (response.status === "submitted" || response.submittedAt) return "submitted";
+  if (isAssessmentSubmitted(response)) return "submitted";
   return "draft";
 }
 

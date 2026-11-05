@@ -450,7 +450,7 @@ export async function applyAssessmentDraftPatch(input: ApplyAssessmentDraftPatch
   );
   const row = rowIndex === -1 ? null : store.responses[rowIndex]!;
 
-  if (row?.status === "submitted") {
+  if (row?.status === "submitted" || row?.submittedAt) {
     throw new Error("This assessment is submitted. Contact your counselor to revise.");
   }
 

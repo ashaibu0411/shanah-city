@@ -433,7 +433,7 @@ export async function applyAssessmentDraftPatch(input: ApplyAssessmentDraftPatch
       where: { journeyId, moduleId, userId },
     });
 
-    if (row?.status === "submitted") {
+    if (row?.status === "submitted" || row?.submittedAt) {
       throw new Error("This assessment is submitted. Contact your counselor to revise.");
     }
 
