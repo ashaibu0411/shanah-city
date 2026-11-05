@@ -28,7 +28,7 @@ export function buildMod06IntimacyModule(): MarriageModuleDefinition {
       required: true,
       options: [
         { id: "yes", label: "Yes — I am an adult and choose to proceed" },
-        { id: "no", label: "Not now — I will skip sensitive sections" },
+        { id: "no", label: "Not now — I will skip this optional module" },
       ],
     },
   );
