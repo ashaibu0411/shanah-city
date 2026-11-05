@@ -76,6 +76,7 @@ const server = readFileSync("src/lib/marriage-counseling-server.ts", "utf8");
 const db = readFileSync("src/lib/stores/marriage-counseling-db.ts", "utf8");
 const json = readFileSync("src/lib/stores/marriage-counseling-json.ts", "utf8");
 const ui = readFileSync("src/components/marriage/MarriageStage2ModuleRunner.tsx", "utf8");
+const review = readFileSync("src/components/marriage/MarriageModuleSubmitReview.tsx", "utf8");
 assert.match(server, /assertIntimacyCanSubmit\(moduleId, existing\.answers\)/);
 assert.match(server, /visibleIntimacyModule\(mod, myResponse\?\.answers\)/);
 assert.match(server, /visibleIntimacyAnswers\(moduleId, myResponse\.answers\)/);
@@ -84,4 +85,6 @@ assert.match(db, /prepareIntimacyDraftPatch\(moduleId, previousAnswers, patch, q
 assert.match(json, /prepareIntimacyDraftPatch\(moduleId, previousAnswers, patch, questions\)/);
 assert.match(ui, /data-testid="intimacy-opt-in-gate"/);
 assert.match(ui, /intimacyOptedIn &&/);
+assert.match(review, /!intimateModuleDeclined/);
+assert.match(review, /disabled=\{!canSubmit \|\| submitting\}/);
 console.log("marriage-stage2-intimacy-consent.test.ts: OK");
