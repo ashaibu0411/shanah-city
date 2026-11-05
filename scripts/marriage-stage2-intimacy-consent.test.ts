@@ -54,12 +54,16 @@ assert.throws(
 const yesPatch = prepareIntimacyDraftPatch(mod.id, {}, { [ids[0]]: "yes" }, allQuestions);
 assert.equal(yesPatch[ids[0]], "yes");
 assert.equal(yesPatch[ids[1]], null, "fresh opt-in removes legacy answers that predate consent");
+const yesRoundTrip = prepareIntimacyDraftPatch(mod.id, {}, yesPatch, allQuestions);
+assert.equal(yesRoundTrip[ids[0]], "yes", "store-level recheck accepts null-only cleanup on opt-in");
 const permitted = prepareIntimacyDraftPatch(mod.id, previous, { [ids[1]]: "new sensitive response" }, allQuestions);
 assert.deepEqual(permitted, { [ids[1]]: "new sensitive response" });
 const declinePatch = prepareIntimacyDraftPatch(mod.id, previous, { [ids[0]]: "no" }, allQuestions);
 assert.equal(declinePatch[ids[0]], "no");
 assert.equal(declinePatch[ids[1]], null, "withdrawal clears sensitive drafts");
 assert.equal(declinePatch[ids[2]], null, "withdrawal clears explicitly shared drafts");
+const declineRoundTrip = prepareIntimacyDraftPatch(mod.id, previous, declinePatch, allQuestions);
+assert.equal(declineRoundTrip[ids[0]], "no", "store-level recheck accepts null-only cleanup on withdrawal");
 assert.throws(() => assertIntimacyCanSubmit(mod.id, { [ids[0]]: "no" }), /optional/);
 assert.throws(() => assertIntimacyCanSubmit(mod.id, {}), /optional/);
 assert.doesNotThrow(() => assertIntimacyCanSubmit(mod.id, previous));
