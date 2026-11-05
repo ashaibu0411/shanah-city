@@ -173,6 +173,17 @@ await withJsonStore(async () => {
   assert.ok(program, "premarital program for joined couple");
   const session1 = program!.sessions.find((s) => s.sessionKey === "session-1-foundations");
   assert.equal(session1?.status, "not_started", "counselor session completion stays separate");
+  assert.equal(
+    session1?.courseworkStatus,
+    "waiting_partner",
+    "self-paced participant sees submitted work while partner is pending, not session Not started",
+  );
+  assert.equal(program!.courseworkSubmittedCount, 1, "own completed coursework counts without counselor appointment");
+  assert.equal(
+    program!.currentCourseworkSessionKey,
+    "session-2-knowing-yourself",
+    "next self-paced lesson is not blocked by partner or counselor session marker",
+  );
   const session1Hw = session1?.releasedHomework.find((h) => h.homeworkId === hw.id);
   assert.equal(session1Hw?.status, "submitted", "Session 1 homework row shows submitted");
 
@@ -200,6 +211,24 @@ await withJsonStore(async () => {
     afterB.modules.find((m) => m.moduleId === moduleId)?.myStatus,
     "submitted",
     "submitAssessment path updates hub",
+  );
+  const afterBoth = await buildCouplePremaritalProgramView(viewerA, journey);
+  const submittedSession1 = afterBoth?.sessions.find((session) => session.sessionKey === "session-1-foundations");
+  assert.equal(
+    submittedSession1?.courseworkStatus,
+    "submitted",
+    "self-paced learning status recognizes both required assessments and own submitted homework",
+  );
+  assert.equal(
+    submittedSession1?.status,
+    "not_started",
+    "submissions never falsely mark the counselor-led session completed",
+  );
+  const partnerProgram = await buildCouplePremaritalProgramView(viewerB, journey);
+  assert.equal(
+    partnerProgram?.sessions.find((session) => session.sessionKey === "session-1-foundations")?.courseworkStatus,
+    "in_progress",
+    "partner has an independent homework state, even after submitting their own assessment",
   );
 });
 
