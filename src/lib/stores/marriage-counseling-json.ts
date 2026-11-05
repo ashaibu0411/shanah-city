@@ -279,6 +279,7 @@ export async function updateJourney(
       | "curriculumVersion"
       | "counselorAccessRevokedAt"
       | "deletionRequestedAt"
+      | "counselingDeliveryMode"
     >
   >,
 ) {
@@ -1629,11 +1630,12 @@ export async function tryRecordPremaritalReminderDelivery(input: {
   sentAt: string;
 }) {
   const store = await readStore();
-  const exists = store.premaritalReminderDeliveries!.some(
+  if (!store.premaritalReminderDeliveries) store.premaritalReminderDeliveries = [];
+  const exists = store.premaritalReminderDeliveries.some(
     (d) => d.kind === input.kind && d.referenceKey === input.referenceKey,
   );
   if (exists) return false;
-  store.premaritalReminderDeliveries!.push(input);
+  store.premaritalReminderDeliveries.push(input);
   await writeStore(store);
   return true;
 }

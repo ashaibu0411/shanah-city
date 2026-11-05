@@ -5,6 +5,7 @@ import {
   recordMarriageConsent,
   startMarriageJourney,
 } from "@/lib/marriage-counseling-server";
+import { parseCounselingDeliveryMode, setCoupleCounselingDeliveryMode } from "@/lib/marriage-self-paced-server";
 import type { MarriageProgramType } from "@/lib/marriage-counseling-types";
 
 export async function POST(request: Request) {
@@ -30,6 +31,15 @@ export async function POST(request: Request) {
     if (action === "consent") {
       await recordMarriageConsent(user, String(body.journeyId ?? ""));
       return NextResponse.json({ ok: true });
+    }
+    if (action === "set_counseling_mode") {
+      const journeyId = String(body.journeyId ?? "").trim();
+      const mode = parseCounselingDeliveryMode(body.mode);
+      if (!journeyId || !mode) {
+        return NextResponse.json({ error: "journeyId and mode required." }, { status: 400 });
+      }
+      const journey = await setCoupleCounselingDeliveryMode(user, journeyId, mode);
+      return NextResponse.json({ ok: true, counselingDeliveryMode: journey.counselingDeliveryMode ?? mode });
     }
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });
   } catch (error) {

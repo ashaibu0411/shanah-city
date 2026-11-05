@@ -2,6 +2,14 @@ export type MarriageSessionHomeworkStatus = "draft" | "released";
 
 export type MarriageHomeworkParticipantStatus = "not_started" | "in_progress" | "submitted" | "overdue";
 
+/** Counselor review lifecycle for a partner's homework submission. */
+export type MarriageHomeworkCounselorReviewStatus =
+  | "assigned"
+  | "submitted"
+  | "revision_requested"
+  | "resubmitted"
+  | "approved";
+
 export type MarriageHomeworkQuestionVisibility = "private" | "shared_with_partner";
 
 export type MarriageHomeworkActivityKind =
@@ -58,6 +66,9 @@ export type MarriageSessionHomeworkResponseRecord = {
   answers: Record<string, string>;
   lastSavedAt: string;
   submittedAt?: string;
+  reviewStatus?: MarriageHomeworkCounselorReviewStatus;
+  revisionNote?: string | null;
+  reviewedAt?: string | null;
 };
 
 export type MarriageHomeworkTemplateSummary = {

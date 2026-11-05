@@ -11,6 +11,7 @@ import type {
 } from "@/lib/marriage-counselor-command-center-types";
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 import { MarriagePrepNotificationCenter } from "@/components/marriage/MarriagePrepNotificationCenter";
+import { MarriageCounselorReviewCenterPanel } from "@/components/marriage/MarriageCounselorReviewCenterPanel";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { useEffect } from "react";
 
@@ -239,6 +240,7 @@ export function MarriageCounselorCommandCenter() {
             <OverviewStat label="Approaching final review" value={o.approachingFinalReview} />
             <OverviewStat label="Paused journeys" value={o.pausedJourneys} />
           </div>
+          <MarriageCounselorReviewCenterPanel />
           {data.actions.length > 0 && (
             <div className="marriage-c3m-panel">
               <h2 className="marriage-c3m-section-title">Priority actions</h2>
