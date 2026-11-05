@@ -92,7 +92,7 @@ export function MarriageCounselorPremaritalOperationsPanel({ journeyId, onError 
         Appointments and attendance are separate from eight-session content progress. Scheduling does not auto-complete
         sessions.
       </p>
-      <nav className="mt-3 flex flex-wrap gap-2 text-xs font-semibold" aria-label="Operations sections">
+      <nav className="marriage-c3m-ops-nav mt-3 text-xs font-semibold" aria-label="Operations sections (scroll horizontally for more)">
         {!readinessOnly ? (
           <>
             <a href="#premarital-ops-appointments" className="rounded-full border border-[#E8E2DA] px-3 py-1 dark:border-white/10">
