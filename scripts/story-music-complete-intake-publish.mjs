@@ -6,7 +6,7 @@
  *   node scripts/story-music-complete-intake-publish.mjs --intake=.tmp-story-music-ingest/foo.mp3.intake.json
  */
 
-import { readFile, writeFile } from "fs/promises";
+import { readFile, writeFile, rename } from "fs/promises";
 import path from "path";
 import { readFileSync } from "fs";
 
@@ -37,6 +37,12 @@ function loadEnvFile(filePath) {
 
 loadEnvFile(path.join(ROOT, ".env.local"));
 loadEnvFile(path.join(ROOT, ".env"));
+
+async function writeJsonAtomic(filePath, data) {
+  const tmp = `${filePath}.tmp-${process.pid}-${Date.now()}`;
+  await writeFile(tmp, `${JSON.stringify(data, null, 2)}\n`);
+  await rename(tmp, filePath);
+}
 
 function assertAdminWrite() {
   if (process.env.STORY_MUSIC_ADMIN_WRITE_ENABLED?.trim() !== "1") {
@@ -125,8 +131,8 @@ async function main() {
   catalogFile.tracks = catalogFile.tracks.filter((t) => t.id !== intake.catalogTrackId);
   catalogFile.tracks.push(catalogRow);
 
-  await writeFile(RIGHTS_PATH, `${JSON.stringify(rightsFile, null, 2)}\n`);
-  await writeFile(CATALOG_PATH, `${JSON.stringify(catalogFile, null, 2)}\n`);
+  await writeJsonAtomic(RIGHTS_PATH, rightsFile);
+  await writeJsonAtomic(CATALOG_PATH, catalogFile);
 
   if (candidateId) {
     const discovery = JSON.parse(await readFile(DISCOVERY_PATH, "utf8"));
@@ -135,7 +141,7 @@ async function main() {
       row.reviewStatus = "published";
       row.publishedCatalogTrackId = intake.catalogTrackId;
       row.updatedAt = now;
-      await writeFile(DISCOVERY_PATH, `${JSON.stringify(discovery, null, 2)}\n`);
+      await writeJsonAtomic(DISCOVERY_PATH, discovery);
     }
   }
 

@@ -8,8 +8,8 @@ import {
 } from "@/lib/community-story-music";
 import {
   STORY_MUSIC_DISCOVERY_COUNTRIES,
-  STORY_MUSIC_DISCOVERY_GENRES,
   STORY_MUSIC_DISCOVERY_LANGUAGES,
+  STORY_MUSIC_PICKER_CATEGORIES,
 } from "@/lib/story-music/search";
 import { StoryMusicPreviewPlayer } from "@/components/community/StoryMusicPreviewPlayer";
 import { StoryMusicTrackArtwork } from "@/components/community/StoryMusicTrackArtwork";
@@ -44,7 +44,7 @@ export function CommunityStoryMusicPicker({
   const [region, setRegion] = useState<CommunityStoryMusicRegion | "all">("all");
   const [country, setCountry] = useState("all");
   const [language, setLanguage] = useState("all");
-  const [genre, setGenre] = useState("all");
+  const [pickerCategory, setPickerCategory] = useState("all");
 
   useEffect(() => {
     if (!expanded && !selectedTrackId) return;
@@ -57,7 +57,7 @@ export function CommunityStoryMusicPicker({
         region,
         country,
         language,
-        genre,
+        pickerCategory,
       });
       if (youtubeMode) params.set("youtube", "1");
       fetch(`/api/community/story-music?${params.toString()}`)
@@ -79,7 +79,7 @@ export function CommunityStoryMusicPicker({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [query, expanded, selectedTrackId, region, country, language, genre]);
+  }, [query, expanded, selectedTrackId, region, country, language, pickerCategory]);
 
   const selected = tracks.find((track) => track.id === selectedTrackId) ?? null;
 
@@ -201,16 +201,16 @@ export function CommunityStoryMusicPicker({
                 ))}
               </div>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {STORY_MUSIC_DISCOVERY_GENRES.map((entry) => (
+                {STORY_MUSIC_PICKER_CATEGORIES.map((entry) => (
                   <button
                     key={entry.id}
                     type="button"
                     className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                      genre === entry.id
+                      pickerCategory === entry.id
                         ? "bg-emerald-700 text-white"
                         : "bg-white text-night-700 ring-1 ring-night-900/10 dark:bg-night-800 dark:text-sand-200 dark:ring-white/10"
                     }`}
-                    onClick={() => setGenre(entry.id)}
+                    onClick={() => setPickerCategory(entry.id)}
                   >
                     {entry.label}
                   </button>

@@ -81,11 +81,17 @@
     "test:community:blob-access": "tsx scripts/community-blob-access.test.ts",
     "story-music:poc-audio": "node scripts/generate-story-music-poc-audio.mjs",
     "story-music:import-free-library": "node scripts/story-music-import-free-library.mjs",
+    "story-music:import-vocal-batch": "node scripts/story-music-import-free-library.mjs --vocal-batch",
+    "story-music:discover-vocal-scale": "node scripts/story-music-discover-commons-vocal-at-scale.mjs",
+    "story-music:build-bulk-manifest": "node scripts/story-music-build-bulk-import-manifest.mjs",
+    "story-music:import-bulk-expansion": "node scripts/story-music-import-free-library.mjs --bulk-expansion",
     "story-music:check-import-env": "node scripts/story-music-check-import-env.mjs",
     "story-music:verify-free-library": "node scripts/story-music-verify-free-library.mjs",
     "test:story-music:import-packets": "node scripts/story-music-import-packets.test.mjs",
     "test:story-music:download-audio": "node scripts/story-music-download-audio.test.mjs",
     "test:story-music:catalog-integrity": "tsx scripts/story-music-catalog-integrity.test.ts",
+    "test:story-music:picker-categories": "tsx scripts/story-music-picker-categories.test.ts",
+    "story-music:merge-vocal-queue": "node scripts/story-music-merge-vocal-candidate-queue.mjs",
     "test:community:story-voice-layout": "tsx scripts/community-story-voice-and-music-layout.test.ts"
   },
   "dependencies": {

@@ -37,11 +37,13 @@ function resolveDirectAudioUrl(row) {
   try {
     const url = new URL(row.recordingUrl ?? "");
     if (url.protocol !== "https:") return null;
-    const commons = url.hostname === "upload.wikimedia.org" &&
-      url.pathname.startsWith("/wikipedia/commons/");
-    const archive = url.hostname === "archive.org" &&
-      url.pathname.startsWith("/download/");
-    return commons || archive ? url.origin + url.pathname : null;
+    const commons =
+      url.hostname === "upload.wikimedia.org" && url.pathname.startsWith("/wikipedia/commons/");
+    const archive = url.hostname === "archive.org" && url.pathname.startsWith("/download/");
+    const fma =
+      url.hostname === "files.freemusicarchive.org" &&
+      url.pathname.includes("/storage-freemusicarchive-org/tracks/");
+    return commons || archive || fma ? url.origin + url.pathname : null;
   } catch {
     return null;
   }
@@ -102,11 +104,11 @@ async function main() {
   const catalogTrackId =
     row.catalogTrackId?.trim() || slug(`${row.artist}-${row.title}`) || candidate;
   let ext = path.extname(new URL(audioUrl).pathname) || ".ogg";
-  const shouldTranscode =
+  let shouldTranscode =
     transcodeMp3 && !/\.mp3$/i.test(ext) && /\.(ogg|oga|opus|wav|flac)$/i.test(ext);
   if (shouldTranscode && !ffmpegAvailable()) {
-    console.error("--transcode-mp3 requested but ffmpeg not found on PATH.");
-    process.exit(1);
+    console.warn("--transcode-mp3 requested but ffmpeg not found on PATH; uploading source format.");
+    shouldTranscode = false;
   }
   if (shouldTranscode) ext = ".mp3";
   const fileName = `${catalogTrackId}${ext}`;

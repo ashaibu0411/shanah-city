@@ -1,0 +1,118 @@
+{
+  "version": "1",
+  "updatedAt": "2026-11-05T02:28:03.300Z",
+  "packets": {
+    "smd-55f30852f74554f007a52430": {
+      "catalogTrackId": "collegium-vocale-thomas-tallis-all-praise-to-you-tallis-s-canon-opus",
+      "title": "Thomas Tallis -- All praise to you (Tallis's canon).opus",
+      "artist": "Collegium Vocale",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/0/01/Thomas_Tallis_--_All_praise_to_you_%28Tallis%27s_canon%29.opus",
+      "licenseSlug": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "attributionStatement": "Thomas Tallis -- All praise to you (Tallis's canon).opus — Collegium Vocale (CC BY 3.0). Source: Wikimedia Commons.",
+      "rightsEvidenceRef": "Commons File:Thomas Tallis -- All praise to you (Tallis's canon).opus (CC BY 3.0).",
+      "recordingRightsNote": "Commons-verified CC BY 3.0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (CC BY — curator attestation on file for Blob hosting and story sync)",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
+      ]
+    },
+    "smd-1c79bfb17bad62792c5199df": {
+      "catalogTrackId": "collegium-vocale-thomas-tallis-all-praise-to-you",
+      "title": "Thomas Tallis -- All praise to you",
+      "artist": "Collegium Vocale",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Thomas_Tallis_--_All_praise_to_you.ogg",
+      "licenseSlug": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "attributionStatement": "Thomas Tallis -- All praise to you — Collegium Vocale (CC BY 3.0). Source: Wikimedia Commons.",
+      "rightsEvidenceRef": "Commons File:Thomas Tallis -- All praise to you.ogg (CC BY 3.0).",
+      "recordingRightsNote": "Commons-verified CC BY 3.0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (CC BY — curator attestation on file for Blob hosting and story sync)",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
+      ]
+    },
+    "smd-63b53cf27d69dacc32bdb70b": {
+      "catalogTrackId": "bull-of-heaven-079-praise-to-our-common-father-endlessness",
+      "title": "079- Praise to Our Common-Father-Endlessness",
+      "artist": "Bull of Heaven",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/4/49/079-_Praise_to_Our_Common-Father-Endlessness.ogg",
+      "licenseSlug": "public-domain",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "attributionStatement": "079- Praise to Our Common-Father-Endlessness — Bull of Heaven (public domain recording).",
+      "rightsEvidenceRef": "Commons File:079- Praise to Our Common-Father-Endlessness.ogg (CC0).",
+      "recordingRightsNote": "Commons-verified CC0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
+      ]
+    },
+    "smd-3f833a0e239b9582e75e81d5": {
+      "catalogTrackId": "words-william-whiting-1825-1878-tune-melita-by-john-bacchus-dykes-1823-1",
+      "title": "Eternal Father - U.S. Navy Band",
+      "artist": "Words: William Whiting (1825–1878) Tune: \"Melita\" by John Bacchus Dykes (1823–1876) Performance: U.S. Navy Band",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/4/41/Eternal_Father_-_U.S._Navy_Band.ogg",
+      "licenseSlug": "public-domain",
+      "licenseUrl": "",
+      "attributionStatement": "Eternal Father - U.S. Navy Band — Words: William Whiting (1825–1878) Tune: \"Melita\" by John Bacchus Dykes (1823–1876) Performance: U.S. Navy Band (public domain recording).",
+      "rightsEvidenceRef": "Commons File:Eternal Father - U.S. Navy Band.ogg (Public domain).",
+      "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights.",
+      "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "genres": [
+        "gospel"
+      ],
+      "tags": [
+        "free-library",
+        "verified-vocal",
+        "gospel_choirs"
+      ]
+    },
+    "smd-88b7f36e22b25dac5ef8ca0f": {
+      "catalogTrackId": "guanaco-colored-quartet-pharaoh-s-army-got-drowned-edis-srp-0198-12-oga",
+      "title": "Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga",
+      "artist": "Guanaco",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Colored_quartet.pharaoh%27s_army_got_drowned_EDIS-SRP-0198-12.oga",
+      "licenseSlug": "public-domain",
+      "licenseUrl": "",
+      "attributionStatement": "Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga — Guanaco (public domain recording).",
+      "rightsEvidenceRef": "Commons File:Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga (Public domain).",
+      "recordingRightsNote": "Commons LicenseShortName: Public domain.",
+      "compositionRightsNote": "Verify composition PD or cleared — traditional spiritual/hymn assumed pending file page review.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "free-library",
+        "verified-vocal",
+        "traditional_gospel"
+      ]
+    }
+  }
+}

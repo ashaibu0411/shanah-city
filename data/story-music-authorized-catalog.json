@@ -105,6 +105,522 @@
       "licenseUrl": "",
       "attributionText": "Performance: MU1 William F. Edwards, III (public domain).",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gospel_Train.mp3"
+    },
+    {
+      "id": "lee-wastler-in-your-hands",
+      "title": "In Your Hands",
+      "artist": "Lee Wastler",
+      "providerTrackId": "lee-wastler-in-your-hands.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/lee-wastler-in-your-hands.mp3",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-lee-wastler-in-your-hands",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "In Your Hands by Lee Wastler — CC BY 4.0. Source: Free Music Archive.",
+      "sourceUrl": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/in-your-hands/"
+    },
+    {
+      "id": "lee-wastler-a-fathers-love",
+      "title": "A Fathers Love",
+      "artist": "Lee Wastler",
+      "providerTrackId": "lee-wastler-a-fathers-love.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/lee-wastler-a-fathers-love.mp3",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-lee-wastler-a-fathers-love",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "A Fathers Love by Lee Wastler — CC BY 4.0. Source: Free Music Archive.",
+      "sourceUrl": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/a-fathers-love/"
+    },
+    {
+      "id": "lee-wastler-i-wish",
+      "title": "I Wish",
+      "artist": "Lee Wastler",
+      "providerTrackId": "lee-wastler-i-wish.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/lee-wastler-i-wish.mp3",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-lee-wastler-i-wish",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "I Wish by Lee Wastler — CC BY 4.0. Source: Free Music Archive.",
+      "sourceUrl": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/i-wish/"
+    },
+    {
+      "id": "swing-low-sweet-chariot-fisk-1909",
+      "title": "Swing Low, Sweet Chariot",
+      "artist": "Fisk Jubilee Singers",
+      "providerTrackId": "swing-low-sweet-chariot-fisk-1909.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/swing-low-sweet-chariot-fisk-1909.mp3",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-swing-low-sweet-chariot-fisk-1909",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Swing Low, Sweet Chariot — Fisk Jubilee Singers (1909). Public domain recording; traditional spiritual.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Swing_Low,_Sweet_Chariot_-_Fisk_Jubilee_Singers_(1909).mp3"
+    },
+    {
+      "id": "golden-slippers-fisk-jubilee-1909",
+      "title": "Golden Slippers",
+      "artist": "Fisk University Jubilee Singers",
+      "providerTrackId": "golden-slippers-fisk-jubilee-1909.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/golden-slippers-fisk-jubilee-1909.mp3",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-golden-slippers-fisk-jubilee-1909",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Golden Slippers — Fisk University Jubilee Singers (1909). Public domain.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Golden_Slippers_(1909,_Fisk_University_Jubilee_Singers).mp3"
+    },
+    {
+      "id": "golden-jubilee-quartet-oh-jonah",
+      "title": "Oh Jonah!",
+      "artist": "Golden Jubilee Quartet",
+      "providerTrackId": "golden-jubilee-quartet-oh-jonah.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/golden-jubilee-quartet-oh-jonah.ogg",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-golden-jubilee-quartet-oh-jonah",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Oh Jonah! — Golden Jubilee Quartet (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Golden_Jubilee_Quartet_-_Oh_Jonah.ogg"
+    },
+    {
+      "id": "spiritual-four-quartet-john-the-revelator",
+      "title": "John the Revelator",
+      "artist": "The Spiritual Four Quartet",
+      "providerTrackId": "spiritual-four-quartet-john-the-revelator.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/spiritual-four-quartet-john-the-revelator.ogg",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-spiritual-four-quartet-john-the-revelator",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "John the Revelator — The Spiritual Four Quartet (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Spiritual_Four_Quartet_-_John_the_Revelator.ogg"
+    },
+    {
+      "id": "cochran-field-singers-my-lord-is-writin",
+      "title": "My Lord Is Writin'",
+      "artist": "Cochran Field Singers",
+      "providerTrackId": "cochran-field-singers-my-lord-is-writin.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/cochran-field-singers-my-lord-is-writin.ogg",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-cochran-field-singers-my-lord-is-writin",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "My Lord Is Writin' — Cochran Field Singers (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ACochran_Field_Singers_-_My_Lord_Is_Writin'.ogg"
+    },
+    {
+      "id": "middle-georgia-singers-death-is-an-awful-thing",
+      "title": "Death is an Awful Thing",
+      "artist": "Middle Georgia Singers",
+      "providerTrackId": "middle-georgia-singers-death-is-an-awful-thing.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/middle-georgia-singers-death-is-an-awful-thing.ogg",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-middle-georgia-singers-death-is-an-awful-thing",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Death is an Awful Thing — Middle Georgia Singers (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMiddle_Georgia_Singers_-_Death_is_an_Awful_Thing.ogg"
+    },
+    {
+      "id": "bertha-houston-we-are-americans-praise-the-lord",
+      "title": "We are Americans, Praise the Lord",
+      "artist": "Bertha Houston and her congregation",
+      "providerTrackId": "bertha-houston-we-are-americans-praise-the-lord.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/bertha-houston-we-are-americans-praise-the-lord.ogg",
+      "genres": [
+        "gospel",
+        "worship"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-bertha-houston-we-are-americans-praise-the-lord",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "We are Americans, Praise the Lord — Bertha Houston and congregation (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ABertha_Houston_-_We_are_Americans%2C_Praise_the_Lord.ogg"
+    },
+    {
+      "id": "four-brothers-death-come-a-knockin",
+      "title": "Death Come a-Knockin'",
+      "artist": "The Four Brothers",
+      "providerTrackId": "four-brothers-death-come-a-knockin.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/four-brothers-death-come-a-knockin.ogg",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
+      ],
+      "rightsRecordId": "smr-four-brothers-death-come-a-knockin",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Death Come a-Knockin' — The Four Brothers (public domain).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Four_Brothers_-_Death_Come_a-Knockin'.ogg"
+    },
+    {
+      "id": "john-william-steffe-julia-ward-howe-arranged-by-eric-richards-performed-",
+      "title": "Battle Hymn of the Republic (USAFB)",
+      "artist": "John William Steffe/Julia Ward Howe, arranged by Eric Richards, performed by United States Air Force Band Airmen of Note, Colonel Dennis M. Layendecker, Commander and Music Director",
+      "providerTrackId": "john-william-steffe-julia-ward-howe-arranged-by-eric-richards-performed-.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/john-william-steffe-julia-ward-howe-arranged-by-eric-richards-performed-.ogg",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
+      ],
+      "rightsRecordId": "smr-john-william-steffe-julia-ward-howe-arranged-by-eric-richards-performed-",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Battle Hymn of the Republic (USAFB) — John William Steffe/Julia Ward Howe, arranged by Eric Richards, performed by United States Air Force Band Airmen of Note, Colonel Dennis M. Layendecker, Commander and Music Director (public domain recording).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ABattle_Hymn_of_the_Republic_(USAFB).ogg"
+    },
+    {
+      "id": "u-s-coast-guard-band-battle-hymn-of-the-republic-u-s-coast-guard-band",
+      "title": "Battle Hymn of the Republic - U.S. Coast Guard Band",
+      "artist": "U.S. Coast Guard Band",
+      "providerTrackId": "u-s-coast-guard-band-battle-hymn-of-the-republic-u-s-coast-guard-band.wav",
+      "audioPath": "story-music://blob/story-music/audio/free-library/u-s-coast-guard-band-battle-hymn-of-the-republic-u-s-coast-guard-band.wav",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
+      ],
+      "rightsRecordId": "smr-u-s-coast-guard-band-battle-hymn-of-the-republic-u-s-coast-guard-band",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Battle Hymn of the Republic - U.S. Coast Guard Band — U.S. Coast Guard Band (public domain recording).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ABattle_Hymn_of_the_Republic_-_U.S._Coast_Guard_Band.wav"
+    },
+    {
+      "id": "composition-william-steffe-performance-united-states-air-forces-in-europ",
+      "title": "\"The Battle Hymn of the Republic\" US Air Force Band",
+      "artist": "Composition: William Steffe; Performance: United States Air Forces in Europe Band, Concert Band; Recording: United States Air Force",
+      "providerTrackId": "composition-william-steffe-performance-united-states-air-forces-in-europ.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/composition-william-steffe-performance-united-states-air-forces-in-europ.ogg",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
+      ],
+      "rightsRecordId": "smr-composition-william-steffe-performance-united-states-air-forces-in-europ",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "\"The Battle Hymn of the Republic\" US Air Force Band — Composition: William Steffe; Performance: United States Air Forces in Europe Band, Concert Band; Recording: United States Air Force (public domain recording).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3A%22The_Battle_Hymn_of_the_Republic%22_US_Air_Force_Band.ogg"
+    },
+    {
+      "id": "composition-william-steffe-lyrics-julia-ward-howe-arrangement-floyd-werl",
+      "title": "The Battle Hymn of the Republic (1995) - Singing Sergeants - United States Air Force Band",
+      "artist": "Composition: William Steffe; Lyrics: Julia Ward Howe; Arrangement: Floyd Werle; Performance: United States Air Force Band, Singing Sergeants; Recording: United States Air Force",
+      "providerTrackId": "composition-william-steffe-lyrics-julia-ward-howe-arrangement-floyd-werl.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/composition-william-steffe-lyrics-julia-ward-howe-arrangement-floyd-werl.mp3",
+      "genres": [
+        "gospel"
+      ],
+      "tags": [
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_choirs"
+      ],
+      "rightsRecordId": "smr-composition-william-steffe-lyrics-julia-ward-howe-arrangement-floyd-werl",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "The Battle Hymn of the Republic (1995) - Singing Sergeants - United States Air Force Band — Composition: William Steffe; Lyrics: Julia Ward Howe; Arrangement: Floyd Werle; Performance: United States Air Force Band, Singing Sergeants; Recording: United States Air Force (public domain recording).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Battle_Hymn_of_the_Republic_(1995)_-_Singing_Sergeants_-_United_States_Air_Force_Band.mp3"
+    },
+    {
+      "id": "composition-william-steffe-arrangement-sammy-nestico-poetic-narration-wr",
+      "title": "Battle Hymn of the Republic - Concert Band - United States Air Force Heritage of America Band",
+      "artist": "Composition: William Steffe; Arrangement: Sammy Nestico; Poetic narration (writing): Jay B. Welsh; Performance: United States Air Force Heritage of America Band, Concert Band; Recording: United States",
+      "providerTrackId": "composition-william-steffe-arrangement-sammy-nestico-poetic-narration-wr.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/composition-william-steffe-arrangement-sammy-nestico-poetic-narration-wr.mp3",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
+      ],
+      "rightsRecordId": "smr-composition-william-steffe-arrangement-sammy-nestico-poetic-narration-wr",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Battle Hymn of the Republic - Concert Band - United States Air Force Heritage of America Band — Composition: William Steffe; Arrangement: Sammy Nestico; Poetic narration (writing): Jay B. Welsh; Performance: United States Air Force Heritage of America Band, Concert Band; Recording: United States Air Force (public domain recording).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ABattle_Hymn_of_the_Republic_-_Concert_Band_-_United_States_Air_Force_Heritage_of_America_Band.mp3"
+    },
+    {
+      "id": "text-charles-wesley-1707-1788-melody-the-scottish-psalter-1615-performer",
+      "title": "Let saints on earth in concert sing",
+      "artist": "Text: Charles Wesley (1707–1788); Melody: the Scottish Psalter (1615); performer: St. Paul's Episcopal Church, Indianapolis",
+      "providerTrackId": "text-charles-wesley-1707-1788-melody-the-scottish-psalter-1615-performer.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/text-charles-wesley-1707-1788-melody-the-scottish-psalter-1615-performer.ogg",
+      "genres": [
+        "gospel"
+      ],
+      "tags": [
+        "christian hymn",
+        "free-library",
+        "verified-vocal",
+        "gospel_choirs"
+      ],
+      "rightsRecordId": "smr-text-charles-wesley-1707-1788-melody-the-scottish-psalter-1615-performer",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "attributionText": "Let saints on earth in concert sing — Text: Charles Wesley (1707–1788); Melody: the Scottish Psalter (1615); performer: St. Paul's Episcopal Church, Indianapolis (public domain recording).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ALet_saints_on_earth_in_concert_sing.ogg"
+    },
+    {
+      "id": "wikimedia-commons-contributor-edisonmixedquartet-rockofages1913",
+      "title": "EdisonMixedQuartet RockOfAges1913",
+      "artist": "Wikimedia Commons contributor",
+      "providerTrackId": "wikimedia-commons-contributor-edisonmixedquartet-rockofages1913.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/wikimedia-commons-contributor-edisonmixedquartet-rockofages1913.ogg",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "christian hymn",
+        "free-library",
+        "verified-vocal",
+        "traditional_gospel"
+      ],
+      "rightsRecordId": "smr-wikimedia-commons-contributor-edisonmixedquartet-rockofages1913",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "EdisonMixedQuartet RockOfAges1913 — Wikimedia Commons contributor (public domain recording).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AEdisonMixedQuartet_RockOfAges1913.ogg"
+    },
+    {
+      "id": "words-william-whiting-1825-1878-tune-melita-by-john-bacchus-dykes-1823-1",
+      "title": "Eternal Father - U.S. Navy Band",
+      "artist": "Words: William Whiting (1825–1878) Tune: \"Melita\" by John Bacchus Dykes (1823–1876) Performance: U.S. Navy Band",
+      "providerTrackId": "words-william-whiting-1825-1878-tune-melita-by-john-bacchus-dykes-1823-1.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/words-william-whiting-1825-1878-tune-melita-by-john-bacchus-dykes-1823-1.ogg",
+      "genres": [
+        "gospel"
+      ],
+      "tags": [
+        "United States Navy Band hymn",
+        "wikimedia-commons",
+        "free-library",
+        "verified-vocal",
+        "gospel_choirs"
+      ],
+      "rightsRecordId": "smr-words-william-whiting-1825-1878-tune-melita-by-john-bacchus-dykes-1823-1",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Eternal Father - U.S. Navy Band — Words: William Whiting (1825–1878) Tune: \"Melita\" by John Bacchus Dykes (1823–1876) Performance: U.S. Navy Band (public domain recording).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AEternal_Father_-_U.S._Navy_Band.ogg"
+    },
+    {
+      "id": "collegium-vocale-thomas-tallis-all-praise-to-you-tallis-s-canon-opus",
+      "title": "Thomas Tallis -- All praise to you (Tallis's canon).opus",
+      "artist": "Collegium Vocale",
+      "providerTrackId": "collegium-vocale-thomas-tallis-all-praise-to-you-tallis-s-canon-opus.opus",
+      "audioPath": "story-music://blob/story-music/audio/free-library/collegium-vocale-thomas-tallis-all-praise-to-you-tallis-s-canon-opus.opus",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "praise music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
+      ],
+      "rightsRecordId": "smr-collegium-vocale-thomas-tallis-all-praise-to-you-tallis-s-canon-opus",
+      "status": "active",
+      "licenseType": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "attributionText": "Thomas Tallis -- All praise to you (Tallis's canon).opus — Collegium Vocale (CC BY 3.0). Source: Wikimedia Commons.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThomas_Tallis_--_All_praise_to_you_(Tallis's_canon).opus"
+    },
+    {
+      "id": "collegium-vocale-thomas-tallis-all-praise-to-you",
+      "title": "Thomas Tallis -- All praise to you",
+      "artist": "Collegium Vocale",
+      "providerTrackId": "collegium-vocale-thomas-tallis-all-praise-to-you.ogg",
+      "audioPath": "story-music://blob/story-music/audio/free-library/collegium-vocale-thomas-tallis-all-praise-to-you.ogg",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "praise music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
+      ],
+      "rightsRecordId": "smr-collegium-vocale-thomas-tallis-all-praise-to-you",
+      "status": "active",
+      "licenseType": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "attributionText": "Thomas Tallis -- All praise to you — Collegium Vocale (CC BY 3.0). Source: Wikimedia Commons.",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThomas_Tallis_--_All_praise_to_you.ogg"
+    },
+    {
+      "id": "guanaco-colored-quartet-pharaoh-s-army-got-drowned-edis-srp-0198-12-oga",
+      "title": "Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga",
+      "artist": "Guanaco",
+      "providerTrackId": "guanaco-colored-quartet-pharaoh-s-army-got-drowned-edis-srp-0198-12-oga.oga",
+      "audioPath": "story-music://blob/story-music/audio/free-library/guanaco-colored-quartet-pharaoh-s-army-got-drowned-edis-srp-0198-12-oga.oga",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "tags": [
+        "vocal-discovery-scale",
+        "negro spiritual quartet ogg",
+        "free-library",
+        "verified-vocal",
+        "traditional_gospel"
+      ],
+      "rightsRecordId": "smr-guanaco-colored-quartet-pharaoh-s-army-got-drowned-edis-srp-0198-12-oga",
+      "status": "active",
+      "licenseType": "public-domain",
+      "licenseUrl": "",
+      "attributionText": "Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga — Guanaco (public domain recording).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AColored_quartet.pharaoh's_army_got_drowned_EDIS-SRP-0198-12.oga"
     }
   ]
 }

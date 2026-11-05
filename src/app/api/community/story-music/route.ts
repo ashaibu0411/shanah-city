@@ -23,6 +23,7 @@ export async function GET(request: Request) {
   const country = searchParams.get("country") ?? "all";
   const language = searchParams.get("language") ?? "all";
   const genre = searchParams.get("genre") ?? "all";
+  const pickerCategory = searchParams.get("pickerCategory") ?? "all";
 
   const hybrid = await isStoryMusicHybridActiveForViewer(user);
   const youtubeCatalog = searchParams.get("youtube") === "1";
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
           country,
           language,
           genre,
+          pickerCategory,
           limit: 56,
         },
         null,

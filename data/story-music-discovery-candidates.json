@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updatedAt": "2026-11-04T05:02:58.563Z",
+  "updatedAt": "2026-11-05T01:01:56.965Z",
   "candidates": [
     {
       "id": "smd-fcf40b8954248b34a7e15f57",
@@ -53,13 +53,13 @@
       "recordingUrl": "https://commons.wikimedia.org/wiki/File:The_hymn_of_free_Russia_-_%D0%93%D0%B8%D0%BC%D0%BD_%D1%81%D0%B2%D0%BE%D0%B1%D0%BE%D0%B4%D0%BD%D0%BE%D0%B9_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8_(text_and_music_-_1917).ogg",
       "licenseSlug": "needs-page-review",
       "licenseUrl": "",
-      "licenseClass": "rejected",
+      "licenseClass": "public-domain",
       "tags": [
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-0d04cf2b69e0bfcfbe238d57",
@@ -81,8 +81,8 @@
         "christian hymn"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: instrumental-only signal."
     },
     {
       "id": "smd-7bf4342e4fd2362f261f2aa4",
@@ -103,30 +103,46 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: NC/ND/SA or unverified license."
     },
     {
       "id": "smd-a3726fb33f02da14349c02d8",
       "discoveredAt": "2026-10-29T03:55:20.163Z",
-      "updatedAt": "2026-10-29T03:55:20.163Z",
+      "updatedAt": "2026-11-05T01:03:59.262Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Faruqi-audio-sample.ogg",
       "dedupeKey": "a3726fb33f02da14349c02d8",
-      "title": "Faruqi-audio-sample.ogg",
-      "artist": "Wikimedia Commons contributor",
+      "title": "Faruqi-audio-sample",
+      "artist": "DrunkenJoe",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Faruqi-audio-sample.ogg",
-      "recordingUrl": "https://commons.wikimedia.org/wiki/File:Faruqi-audio-sample.ogg",
-      "licenseSlug": "needs-page-review",
-      "licenseUrl": "",
-      "licenseClass": "rejected",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Faruqi-audio-sample.ogg",
+      "licenseSlug": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "licenseClass": "cc-by",
       "tags": [
-        "worship audio"
+        "worship audio",
+        "free-library",
+        "verified-vocal",
+        "traditional_gospel"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "published",
+      "rejectionReason": "Commons license must be verified on the file page before import.",
+      "catalogTrackId": "drunkenjoe-faruqi-audio-sample",
+      "attributionStatement": "Faruqi-audio-sample — DrunkenJoe (CC BY 4.0). Source: Wikimedia Commons.",
+      "rightsEvidenceRef": "Commons File:Faruqi-audio-sample.ogg (CC BY 4.0).",
+      "recordingRightsNote": "Commons-verified CC BY 4.0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (CC BY — curator attestation on file for Blob hosting and story sync)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "publishedCatalogTrackId": "drunkenjoe-faruqi-audio-sample"
     },
     {
       "id": "smd-7b956750f95458bddb9d4223",
@@ -147,8 +163,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: NC/ND/SA or unverified license."
     },
     {
       "id": "smd-2c8c0b9bbcb43f0e9a2fecfa",
@@ -164,35 +180,52 @@
       "recordingUrl": "https://commons.wikimedia.org/wiki/File:Samuel_Corwin_-_02_-_Shiva_Worship_Ceremony_Varanasi.ogg",
       "licenseSlug": "needs-page-review",
       "licenseUrl": "",
-      "licenseClass": "rejected",
+      "licenseClass": "cc-by",
       "tags": [
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-4405f60b500128b0f3e6b4ef",
       "discoveredAt": "2026-10-29T03:55:20.163Z",
-      "updatedAt": "2026-10-29T03:55:20.163Z",
+      "updatedAt": "2026-11-05T01:04:02.752Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The strife is o'er.ogg",
       "dedupeKey": "4405f60b500128b0f3e6b4ef",
-      "title": "The strife is o'er.ogg",
-      "artist": "Wikimedia Commons contributor",
+      "title": "The strife is o'er",
+      "artist": "Ad te levavi animam meam/Choir of Ss. Simon &amp; Jude Cathedral, Phoenix, Arizona",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:The_strife_is_o'er.ogg",
-      "recordingUrl": "https://commons.wikimedia.org/wiki/File:The_strife_is_o'er.ogg",
-      "licenseSlug": "needs-page-review",
-      "licenseUrl": "",
-      "licenseClass": "rejected",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/The_strife_is_o%27er.ogg",
+      "licenseSlug": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "licenseClass": "cc-by",
       "tags": [
-        "christian hymn"
+        "christian hymn",
+        "free-library",
+        "verified-vocal",
+        "traditional_gospel",
+        "gospel_choirs"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "published",
+      "rejectionReason": "Commons license must be verified on the file page before import.",
+      "catalogTrackId": "ad-te-levavi-animam-meam-choir-of-ss-simon-amp-jude-cathedral-phoenix-ar",
+      "attributionStatement": "The strife is o'er — Ad te levavi animam meam/Choir of Ss. Simon &amp; Jude Cathedral, Phoenix, Arizona (CC BY 3.0). Source: Wikimedia Commons.",
+      "rightsEvidenceRef": "Commons File:The strife is o'er.ogg (CC BY 3.0).",
+      "recordingRightsNote": "Commons-verified CC BY 3.0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (CC BY — curator attestation on file for Blob hosting and story sync)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "publishedCatalogTrackId": "ad-te-levavi-animam-meam-choir-of-ss-simon-amp-jude-cathedral-phoenix-ar"
     },
     {
       "id": "smd-9faa9a40a47d3d66d9642a21",
@@ -213,8 +246,8 @@
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: NC/ND/SA or unverified license."
     },
     {
       "id": "smd-4046e750a40e89229afdc841",
@@ -230,13 +263,13 @@
       "recordingUrl": "https://commons.wikimedia.org/wiki/File:Misamis_Oriental_Hymn(Instrumental).flac",
       "licenseSlug": "needs-page-review",
       "licenseUrl": "",
-      "licenseClass": "rejected",
+      "licenseClass": "public-domain",
       "tags": [
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-3ec1bba0f728d57b72731bc1",
@@ -252,13 +285,13 @@
       "recordingUrl": "https://commons.wikimedia.org/wiki/File:Hymn-of-the-Azores.oga",
       "licenseSlug": "needs-page-review",
       "licenseUrl": "",
-      "licenseClass": "rejected",
+      "licenseClass": "public-domain",
       "tags": [
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-d8aa138219cb75f7ec8a7f89",
@@ -279,31 +312,47 @@
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons license must be verified on the file page before import."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: NC/ND/SA or unverified license."
     },
     {
       "id": "smd-e97f36d783b914b1d2ba9bcc",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T01:04:07.711Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:En-uk-negro spiritual.ogg",
       "dedupeKey": "e97f36d783b914b1d2ba9bcc",
-      "title": "En-uk-negro spiritual.ogg",
+      "title": "En-uk-negro spiritual",
       "artist": "No machine-readable author provided. Celestianpower assumed (based on copyright claims).",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AEn-uk-negro_spiritual.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/89/En-uk-negro_spiritual.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/89/En-uk-negro_spiritual.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "gospel music",
+        "free-library",
+        "verified-vocal",
+        "traditional_gospel"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "published",
+      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "catalogTrackId": "no-machine-readable-author-provided-celestianpower-assumed-based-on-copy",
+      "attributionStatement": "En-uk-negro spiritual — No machine-readable author provided. Celestianpower assumed (based on copyright claims). (public domain recording).",
+      "rightsEvidenceRef": "Commons File:En-uk-negro spiritual.ogg (Public domain).",
+      "recordingRightsNote": "Commons-verified Public domain; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "publishedCatalogTrackId": "no-machine-readable-author-provided-celestianpower-assumed-based-on-copy"
     },
     {
       "id": "smd-aef99437b4b298cb214c346a",
@@ -331,141 +380,286 @@
     {
       "id": "smd-58a33b4ddd7c70a444997b90",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:57:21.323Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The Golden Jubilee Quartet - Oh Jonah.ogg",
-      "dedupeKey": "58a33b4ddd7c70a444997b90",
-      "title": "The Golden Jubilee Quartet - Oh Jonah.ogg",
+      "dedupeKey": "bb6a307da36c1243462afa06",
+      "title": "Oh Jonah!",
       "artist": "Golden Jubilee Quartet",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Golden_Jubilee_Quartet_-_Oh_Jonah.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/65/The_Golden_Jubilee_Quartet_-_Oh_Jonah.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/65/The_Golden_Jubilee_Quartet_-_Oh_Jonah.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
       ],
-      "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "searchQuery": "vocal-candidate-queue",
+      "reviewStatus": "published",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "Oh Jonah! — Golden Jubilee Quartet (public domain).",
+      "compositionRightsNote": "Traditional spiritual — public domain.",
+      "recordingRightsNote": "Commons PD vocal quartet recording; format conversion to MP3 permitted for app compatibility (PD).",
+      "rightsEvidenceRef": "Commons File:The Golden Jubilee Quartet - Oh Jonah.ogg (LicenseShortName: Public domain).",
+      "territory": "Worldwide (PD — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Commons: quartet sings Oh Jonah.",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-006",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "catalogTrackId": "golden-jubilee-quartet-oh-jonah",
+      "publishedCatalogTrackId": "golden-jubilee-quartet-oh-jonah"
     },
     {
       "id": "smd-1688481f8842a8256a4b58be",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:57:31.354Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Cochran Field Singers - My Lord Is Writin'.ogg",
-      "dedupeKey": "1688481f8842a8256a4b58be",
-      "title": "Cochran Field Singers - My Lord Is Writin'.ogg",
+      "dedupeKey": "a70426be58b6bbfdab0afd0f",
+      "title": "My Lord Is Writin'",
       "artist": "Cochran Field Singers",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ACochran_Field_Singers_-_My_Lord_Is_Writin'.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Cochran_Field_Singers_-_My_Lord_Is_Writin%27.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Cochran_Field_Singers_-_My_Lord_Is_Writin%27.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
       ],
-      "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "searchQuery": "vocal-candidate-queue",
+      "reviewStatus": "published",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "My Lord Is Writin' — Cochran Field Singers (public domain).",
+      "compositionRightsNote": "Traditional spiritual — public domain.",
+      "recordingRightsNote": "Commons PD field recording — vocal gospel ensemble.",
+      "rightsEvidenceRef": "Commons File:Cochran Field Singers - My Lord Is Writin'.ogg (LicenseShortName: Public domain).",
+      "territory": "Worldwide (PD — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Historic gospel vocal group recording on Commons (PD).",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-008",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "catalogTrackId": "cochran-field-singers-my-lord-is-writin",
+      "publishedCatalogTrackId": "cochran-field-singers-my-lord-is-writin"
     },
     {
       "id": "smd-ce3bf86313bfae788cac4058",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:57:36.147Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Middle Georgia Singers - Death is an Awful Thing.ogg",
-      "dedupeKey": "ce3bf86313bfae788cac4058",
-      "title": "Middle Georgia Singers - Death is an Awful Thing.ogg",
+      "dedupeKey": "315db8306bf0b5bcb51873e5",
+      "title": "Death is an Awful Thing",
       "artist": "Middle Georgia Singers",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AMiddle_Georgia_Singers_-_Death_is_an_Awful_Thing.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Middle_Georgia_Singers_-_Death_is_an_Awful_Thing.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Middle_Georgia_Singers_-_Death_is_an_Awful_Thing.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
       ],
-      "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "searchQuery": "vocal-candidate-queue",
+      "reviewStatus": "published",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "Death is an Awful Thing — Middle Georgia Singers (public domain).",
+      "compositionRightsNote": "Traditional spiritual — public domain.",
+      "recordingRightsNote": "Commons PD vocal gospel field recording.",
+      "rightsEvidenceRef": "Commons File:Middle Georgia Singers - Death is an Awful Thing.ogg (LicenseShortName: Public domain).",
+      "territory": "Worldwide (PD — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Commons PD field recording — vocal gospel ensemble.",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-009",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "catalogTrackId": "middle-georgia-singers-death-is-an-awful-thing",
+      "publishedCatalogTrackId": "middle-georgia-singers-death-is-an-awful-thing"
     },
     {
       "id": "smd-56f742baea45ec91aa3e3aea",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:57:42.411Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Bertha Houston - We are Americans, Praise the Lord.ogg",
-      "dedupeKey": "56f742baea45ec91aa3e3aea",
-      "title": "Bertha Houston - We are Americans, Praise the Lord.ogg",
+      "dedupeKey": "babef4eb2f0088bef5edb1e8",
+      "title": "We are Americans, Praise the Lord",
       "artist": "Bertha Houston and her congregation",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ABertha_Houston_-_We_are_Americans%2C_Praise_the_Lord.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Bertha_Houston_-_We_are_Americans%2C_Praise_the_Lord.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Bertha_Houston_-_We_are_Americans%2C_Praise_the_Lord.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music",
-        "praise music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
       ],
-      "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "searchQuery": "vocal-candidate-queue",
+      "reviewStatus": "published",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "We are Americans, Praise the Lord — Bertha Houston and congregation (public domain).",
+      "compositionRightsNote": "Traditional/praise spiritual — public domain.",
+      "recordingRightsNote": "Commons PD congregational vocal praise recording.",
+      "rightsEvidenceRef": "Commons File:Bertha Houston - We are Americans, Praise the Lord.ogg (LicenseShortName: Public domain).",
+      "territory": "Worldwide (PD — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Congregational vocal praise recording (Commons PD).",
+      "pickerCategories": [
+        "traditional_gospel",
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-010",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "gospel",
+        "worship"
+      ],
+      "catalogTrackId": "bertha-houston-we-are-americans-praise-the-lord",
+      "publishedCatalogTrackId": "bertha-houston-we-are-americans-praise-the-lord"
     },
     {
       "id": "smd-5f5891377992d1b97e4f5620",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:57:47.420Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The Four Brothers - Death Come a-Knockin'.ogg",
-      "dedupeKey": "5f5891377992d1b97e4f5620",
-      "title": "The Four Brothers - Death Come a-Knockin'.ogg",
+      "dedupeKey": "7bd5a40a32a119a21b76c082",
+      "title": "Death Come a-Knockin'",
       "artist": "The Four Brothers",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Four_Brothers_-_Death_Come_a-Knockin'.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/95/The_Four_Brothers_-_Death_Come_a-Knockin%27.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/95/The_Four_Brothers_-_Death_Come_a-Knockin%27.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
       ],
-      "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "searchQuery": "vocal-candidate-queue",
+      "reviewStatus": "published",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "Death Come a-Knockin' — The Four Brothers (public domain).",
+      "compositionRightsNote": "Traditional spiritual — public domain.",
+      "recordingRightsNote": "Commons PD quartet vocal spiritual.",
+      "rightsEvidenceRef": "Commons File:The Four Brothers - Death Come a-Knockin'.ogg (LicenseShortName: Public domain).",
+      "territory": "Worldwide (PD — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Quartet vocal spiritual (Commons PD).",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-011",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "catalogTrackId": "four-brothers-death-come-a-knockin",
+      "publishedCatalogTrackId": "four-brothers-death-come-a-knockin"
     },
     {
       "id": "smd-06d679d532d0c17283a80b55",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:57:26.323Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The Spiritual Four Quartet - John the Revelator.ogg",
-      "dedupeKey": "06d679d532d0c17283a80b55",
-      "title": "The Spiritual Four Quartet - John the Revelator.ogg",
-      "artist": "Cochran Field Singers",
+      "dedupeKey": "e14d611a553c7d541aa6408a",
+      "title": "John the Revelator",
+      "artist": "The Spiritual Four Quartet",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Spiritual_Four_Quartet_-_John_the_Revelator.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2c/The_Spiritual_Four_Quartet_-_John_the_Revelator.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2c/The_Spiritual_Four_Quartet_-_John_the_Revelator.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
       ],
-      "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "searchQuery": "vocal-candidate-queue",
+      "reviewStatus": "published",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "John the Revelator — The Spiritual Four Quartet (public domain).",
+      "compositionRightsNote": "Traditional spiritual — public domain.",
+      "recordingRightsNote": "Commons PD vocal recording.",
+      "rightsEvidenceRef": "Commons File:The Spiritual Four Quartet - John the Revelator.ogg (LicenseShortName: Public domain).",
+      "territory": "Worldwide (PD — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Commons description names singers performing spiritual.",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-007",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "catalogTrackId": "spiritual-four-quartet-john-the-revelator",
+      "publishedCatalogTrackId": "spiritual-four-quartet-john-the-revelator"
     },
     {
       "id": "smd-edc18a1914804e50bce22ec1",
@@ -579,8 +773,8 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-b898c0fe7a5de719c9ab236d",
@@ -602,8 +796,8 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-54c025ebfde3cfc07c122773",
@@ -625,8 +819,8 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-1038bf5f5686eca71809b07f",
@@ -648,33 +842,47 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-6806e1fe9d06e7397c2630b2",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-11-04T03:23:00.899Z",
+      "updatedAt": "2026-11-05T01:54:48.863Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Gospel Train.mp3",
       "dedupeKey": "6806e1fe9d06e7397c2630b2",
-      "title": "Gospel Train.mp3",
+      "title": "Gospel Train",
       "artist": "MU1 William F. Edwards, III",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AGospel_Train.mp3",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/92/Gospel_Train.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/92/Gospel_Train.mp3",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "gospel music",
         "U.S. Navy gospel",
-        "wikimedia-commons"
+        "wikimedia-commons",
+        "free-library",
+        "verified-vocal",
+        "gospel_choirs"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Quarantined: failed vocal gospel QC / ineligible for member library.",
+      "catalogTrackId": "mu1-william-f-edwards-iii-gospel-train",
+      "attributionStatement": "Gospel Train — MU1 William F. Edwards, III (public domain recording).",
+      "rightsEvidenceRef": "Commons File:Gospel Train.mp3 (Public domain).",
+      "recordingRightsNote": "Commons-verified Public domain; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel"
+      ]
     },
     {
       "id": "smd-e17092ee09f9673333ad64ec",
@@ -719,8 +927,8 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-9f518f2306494cde3ab6f1c8",
@@ -742,8 +950,8 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-140015e79083049bd17920d1",
@@ -765,8 +973,8 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-9846ffed734305b6285880fa",
@@ -788,8 +996,8 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-3d498ae455f3c554d436eeda",
@@ -811,8 +1019,8 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-e43319d259ac78d17e855b48",
@@ -828,14 +1036,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Anonimo_-_Good_King_Wenceslas_%28Gospel%29.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-e396c4cb6b3e63d14869b1f0",
@@ -857,8 +1065,8 @@
         "gospel music"
       ],
       "searchQuery": "gospel music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-48af40c97edf9e0e2ddd9968",
@@ -874,15 +1082,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/20/Battle_Hymn_of_the_Republic%2C_Frank_C._Stanley%2C_Elise_Stevenson.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "hymn music",
         "christian hymn"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-34a6f0bbf7a3827c1d178d38",
@@ -898,63 +1106,96 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f2/Battle_Hymn_of_the_Republic%2C_Frank_C._Stanley%2C_Elise_Stevenson_%28unrestored%29.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "hymn music",
         "christian hymn"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-f0713aaac00452003a82abde",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T01:14:18.042Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Battle Hymn of the Republic (USAFB).ogg",
       "dedupeKey": "f0713aaac00452003a82abde",
-      "title": "Battle Hymn of the Republic (USAFB).ogg",
+      "title": "Battle Hymn of the Republic (USAFB)",
       "artist": "John William Steffe/Julia Ward Howe, arranged by Eric Richards, performed by United States Air Force Band Airmen of Note, Colonel Dennis M. Layendecker, Commander and Music Director",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ABattle_Hymn_of_the_Republic_(USAFB).ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Battle_Hymn_of_the_Republic_%28USAFB%29.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Battle_Hymn_of_the_Republic_%28USAFB%29.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
-        "hymn music"
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "published",
+      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "catalogTrackId": "john-william-steffe-julia-ward-howe-arranged-by-eric-richards-performed-",
+      "attributionStatement": "Battle Hymn of the Republic (USAFB) — John William Steffe/Julia Ward Howe, arranged by Eric Richards, performed by United States Air Force Band Airmen of Note, Colonel Dennis M. Layendecker, Commander and Music Director (public domain recording).",
+      "rightsEvidenceRef": "Commons File:Battle Hymn of the Republic (USAFB).ogg (Public domain).",
+      "recordingRightsNote": "Commons-verified Public domain; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "publishedCatalogTrackId": "john-william-steffe-julia-ward-howe-arranged-by-eric-richards-performed-"
     },
     {
       "id": "smd-e903fe0aea6a8f2c1c429301",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-11-04T03:23:00.899Z",
+      "updatedAt": "2026-11-05T01:54:48.870Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The Marine's Hymn - U.S. Navy Band.ogg",
       "dedupeKey": "e903fe0aea6a8f2c1c429301",
-      "title": "The Marine's Hymn - U.S. Navy Band.ogg",
-      "artist": "Composition: Jacques Offenbach (d. 1880)\nPerformance: U.S. Navy Band Ceremonial Band",
+      "title": "The Marine's Hymn - U.S. Navy Band",
+      "artist": "Composition: Jacques Offenbach (d. 1880) Performance: U.S. Navy Band Ceremonial Band",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Marine's_Hymn_-_U.S._Navy_Band.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e7/The_Marine%27s_Hymn_-_U.S._Navy_Band.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e7/The_Marine%27s_Hymn_-_U.S._Navy_Band.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "hymn music",
         "United States Navy Band hymn",
-        "wikimedia-commons"
+        "wikimedia-commons",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Quarantined: failed vocal gospel QC / ineligible for member library.",
+      "catalogTrackId": "composition-jacques-offenbach-d-1880-performance-u-s-navy-band-ceremonia",
+      "attributionStatement": "The Marine's Hymn - U.S. Navy Band — Composition: Jacques Offenbach (d. 1880) Performance: U.S. Navy Band Ceremonial Band (public domain recording).",
+      "rightsEvidenceRef": "Commons File:The Marine's Hymn - U.S. Navy Band.ogg (Public domain).",
+      "recordingRightsNote": "Commons-verified Public domain; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ]
     },
     {
       "id": "smd-4c2bd398c29c19248e152a99",
@@ -993,37 +1234,53 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/89/The_hymn_of_free_Russia_-_%D0%93%D0%B8%D0%BC%D0%BD_%D1%81%D0%B2%D0%BE%D0%B1%D0%BE%D0%B4%D0%BD%D0%BE%D0%B9_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8_%28text_and_music_-_1917%29.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-d719e143058f6e8bb7608e9b",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T01:54:48.870Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Marines' Hymn (slow) - U.S. Marine Band.ogg",
       "dedupeKey": "d719e143058f6e8bb7608e9b",
-      "title": "Marines' Hymn (slow) - U.S. Marine Band.ogg",
-      "artist": "Composition: Jacques Offenbach\nPerformance: United States Marine Band",
+      "title": "Marines' Hymn (slow) - U.S. Marine Band",
+      "artist": "Composition: Jacques Offenbach Performance: United States Marine Band",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AMarines'_Hymn_(slow)_-_U.S._Marine_Band.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/93/Marines%27_Hymn_%28slow%29_-_U.S._Marine_Band.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/93/Marines%27_Hymn_%28slow%29_-_U.S._Marine_Band.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
-        "hymn music"
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Quarantined: failed vocal gospel QC / ineligible for member library.",
+      "catalogTrackId": "composition-jacques-offenbach-performance-united-states-marine-band-mari",
+      "attributionStatement": "Marines' Hymn (slow) - U.S. Marine Band — Composition: Jacques Offenbach Performance: United States Marine Band (public domain recording).",
+      "rightsEvidenceRef": "Commons File:Marines' Hymn (slow) - U.S. Marine Band.ogg (Public domain).",
+      "recordingRightsNote": "Commons-verified Public domain; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ]
     },
     {
       "id": "smd-ad7048ae73dedfe3cd504638",
@@ -1052,25 +1309,41 @@
     {
       "id": "smd-073df76abf69aae1b6619f2b",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T01:14:59.206Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Battle Hymn of the Republic - U.S. Coast Guard Band.wav",
       "dedupeKey": "073df76abf69aae1b6619f2b",
-      "title": "Battle Hymn of the Republic - U.S. Coast Guard Band.wav",
+      "title": "Battle Hymn of the Republic - U.S. Coast Guard Band",
       "artist": "U.S. Coast Guard Band",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ABattle_Hymn_of_the_Republic_-_U.S._Coast_Guard_Band.wav",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/Battle_Hymn_of_the_Republic_-_U.S._Coast_Guard_Band.wav?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/Battle_Hymn_of_the_Republic_-_U.S._Coast_Guard_Band.wav",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/wav",
       "tags": [
-        "hymn music"
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "approved",
+      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "catalogTrackId": "u-s-coast-guard-band-battle-hymn-of-the-republic-u-s-coast-guard-band",
+      "attributionStatement": "Battle Hymn of the Republic - U.S. Coast Guard Band — U.S. Coast Guard Band (public domain recording).",
+      "rightsEvidenceRef": "Commons File:Battle Hymn of the Republic - U.S. Coast Guard Band.wav (Public domain).",
+      "recordingRightsNote": "Commons-verified Public domain; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ]
     },
     {
       "id": "smd-8c199575ab28c4894619772f",
@@ -1155,14 +1428,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/84/Marines%27_Hymn%2C_USMC_Band.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-420a68ff642ab8be4e7f30ca",
@@ -1178,14 +1451,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/7/76/The_hymn_of_free_Russia_%28Oreshkevich%2C_1917%29.opus?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-36967e5e38bede0bf18c1606",
@@ -1207,8 +1480,8 @@
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: instrumental-only signal."
     },
     {
       "id": "smd-d8173a0d89a63ec763935616",
@@ -1247,14 +1520,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/b/be/%22The_Battle_Hymn_of_the_Republic%22_US_Air_Force_Band.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-cabbb0f39f9169e0e4bd92e0",
@@ -1294,14 +1567,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7a/The_Battle_Hymn_of_the_Republic_%281995%29_-_Singing_Sergeants_-_United_States_Air_Force_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-40f742d3938c90b2950dd9a5",
@@ -1317,7 +1590,7 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Battle_Hymn_of_the_Republic_-_Concert_Band_-_United_States_Air_Force_Heritage_of_America_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "hymn music"
@@ -1340,14 +1613,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b5/The_Marines%27_Hymn_-_Concert_Band_-_United_States_Air_Force_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-40333e25003b240b5f1a5086",
@@ -1363,19 +1636,19 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/7/72/Battle_Hymn_of_the_Republic_%28slow%29_-_Concert_Band_-_United_States_Air_Forces_in_Europe_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-f6ab1ead614a6b311b506e11",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T01:35:04.468Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The Marines' Hymn performed by the 2nd Marine Division Band in London, UK.oga",
       "dedupeKey": "f6ab1ead614a6b311b506e11",
@@ -1383,22 +1656,38 @@
       "artist": "Wikimedia Commons contributor",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Marines'_Hymn_performed_by_the_2nd_Marine_Division_Band_in_London%2C_UK.oga",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1c/The_Marines%27_Hymn_performed_by_the_2nd_Marine_Division_Band_in_London%2C_UK.oga?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1c/The_Marines%27_Hymn_performed_by_the_2nd_Marine_Division_Band_in_London%2C_UK.oga",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
-        "hymn music"
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
+      "catalogTrackId": "wikimedia-commons-contributor-the-marines-hymn-performed-by-the-2nd-mari",
+      "attributionStatement": "The Marines' Hymn performed by the 2nd Marine Division Band in London, UK.oga — Wikimedia Commons contributor (public domain recording).",
+      "rightsEvidenceRef": "Commons File:The Marines' Hymn performed by the 2nd Marine Division Band in London, UK.oga (Public domain).",
+      "recordingRightsNote": "Commons-verified Public domain; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ]
     },
     {
       "id": "smd-ddc2ebc9afab009340de4216",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T01:45:06.984Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The Marines' Hymn (arr. D. Hunsberger for wind ensemble).opus",
       "dedupeKey": "ddc2ebc9afab009340de4216",
@@ -1406,17 +1695,33 @@
       "artist": "United States Marine Band",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Marines'_Hymn_(arr._D._Hunsberger_for_wind_ensemble).opus",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/d/dc/The_Marines%27_Hymn_%28arr._D._Hunsberger_for_wind_ensemble%29.opus?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/d/dc/The_Marines%27_Hymn_%28arr._D._Hunsberger_for_wind_ensemble%29.opus",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
-        "hymn music"
+        "hymn music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
+      "catalogTrackId": "united-states-marine-band-the-marines-hymn-arr-d-hunsberger-for-wind-ens",
+      "attributionStatement": "The Marines' Hymn (arr. D. Hunsberger for wind ensemble).opus — United States Marine Band (public domain recording).",
+      "rightsEvidenceRef": "Commons File:The Marines' Hymn (arr. D. Hunsberger for wind ensemble).opus (Public domain).",
+      "recordingRightsNote": "Commons-verified Public domain; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ]
     },
     {
       "id": "smd-4bcf9d793ddbe98c02a0b9ff",
@@ -1432,14 +1737,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/68/Verdi-Toscanini_-_Hymn_of_the_Nations_%281944%29.flac?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/flac",
       "tags": [
         "hymn music"
       ],
       "searchQuery": "hymn music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-94d4021d41bd7f507001984b",
@@ -1692,13 +1997,13 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c4/Handel_-_Messiah%2C_Part_2_%28Scherchen%29_-_36._Let_all_the_angels_of_God_worship_Him.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
+      "reviewStatus": "rejected",
       "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
     },
     {
@@ -1744,8 +2049,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-8281d192e487593b4beda923",
@@ -1790,8 +2095,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-3b4fe8fb65e06940afd35182",
@@ -1813,8 +2118,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-f053caa4e923aaf080596bb4",
@@ -1836,8 +2141,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-3372c3beb476114a8ad7e04c",
@@ -1859,8 +2164,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-0d6cb849707216cdf6cc59a5",
@@ -1882,8 +2187,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-bebea414851e105afc3ed59a",
@@ -1905,8 +2210,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-ab3dbf1ca18b8dc5d7f50a3b",
@@ -1928,8 +2233,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-61acfddb8f59ba6164cd121e",
@@ -1945,14 +2250,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Audio_Recording_of_President_Clinton%27s_Remarks_at_the_Bethel_A.M.E._Church_in_New_York_City_-_DPLA_-_36f1e486f322cf65fe2e7c50cd5dfaf3.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-5b5a8b28a7c932b2ea968597",
@@ -1974,8 +2279,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-31384b0f20d0e32ce23bf8e9",
@@ -1991,14 +2296,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Russian_Assistant_Prosecutor_M._Y._Raginsky_Speaking_on_German_Destruction_of_Religious_Places_of_Worship_in_the_USSR_-_DPLA_-_54b28f3ccda98b7275175f3e1429eed1.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-779e812eeef0ec8561727692",
@@ -2020,8 +2325,8 @@
         "worship audio"
       ],
       "searchQuery": "worship audio",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-c864e28169bfe52f23c56073",
@@ -2049,25 +2354,41 @@
     {
       "id": "smd-4c967d8504052cd492400375",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T02:16:25.264Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:EdisonMixedQuartet RockOfAges1913.ogg",
       "dedupeKey": "4c967d8504052cd492400375",
-      "title": "EdisonMixedQuartet RockOfAges1913.ogg",
+      "title": "EdisonMixedQuartet RockOfAges1913",
       "artist": "Wikimedia Commons contributor",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AEdisonMixedQuartet_RockOfAges1913.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b5/EdisonMixedQuartet_RockOfAges1913.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b5/EdisonMixedQuartet_RockOfAges1913.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
-        "christian hymn"
+        "christian hymn",
+        "free-library",
+        "verified-vocal",
+        "traditional_gospel"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "published",
+      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "catalogTrackId": "wikimedia-commons-contributor-edisonmixedquartet-rockofages1913",
+      "attributionStatement": "EdisonMixedQuartet RockOfAges1913 — Wikimedia Commons contributor (public domain recording).",
+      "rightsEvidenceRef": "Commons File:EdisonMixedQuartet RockOfAges1913.ogg (Public domain).",
+      "recordingRightsNote": "Commons-verified Public domain; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "publishedCatalogTrackId": "wikimedia-commons-contributor-edisonmixedquartet-rockofages1913"
     },
     {
       "id": "smd-c70a48f25a8a77cacfc3786f",
@@ -2089,8 +2410,8 @@
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-a86a35c35b7e7598e1111ef6",
@@ -2106,14 +2427,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Marcha_Oficial_de_All_Boys.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-41d9c6044783ae106d8f935b",
@@ -2135,8 +2456,8 @@
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-f1b8208d858e847d46e6d1bc",
@@ -2187,7 +2508,7 @@
     {
       "id": "smd-76caae5783452a85ecdd8821",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T01:45:08.653Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Rock of Ages (Hastings tune).mid",
       "dedupeKey": "76caae5783452a85ecdd8821",
@@ -2195,17 +2516,33 @@
       "artist": "Melody: Thomas Hastings (1784-1872); setting &amp; sound file: Rabanus Flavus (Peter Gerloff)",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ARock_of_Ages_(Hastings_tune).mid",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/d/df/Rock_of_Ages_%28Hastings_tune%29.mid?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "CC0",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/d/df/Rock_of_Ages_%28Hastings_tune%29.mid",
+      "licenseSlug": "public-domain",
       "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "licenseClass": "cc0",
       "fileFormat": "audio/midi",
       "tags": [
-        "christian hymn"
+        "christian hymn",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: MIDI file, not a vocal recording.",
+      "catalogTrackId": "melody-thomas-hastings-1784-1872-setting-amp-sound-file-rabanus-flavus-p",
+      "attributionStatement": "Rock of Ages (Hastings tune).mid — Melody: Thomas Hastings (1784-1872); setting &amp; sound file: Rabanus Flavus (Peter Gerloff) (public domain recording).",
+      "rightsEvidenceRef": "Commons File:Rock of Ages (Hastings tune).mid (CC0).",
+      "recordingRightsNote": "Commons-verified CC0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ]
     },
     {
       "id": "smd-6ce02f76bdfc12fad2137072",
@@ -2250,8 +2587,8 @@
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-5cefb0945e44548379ff569b",
@@ -2267,14 +2604,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/3/35/%D0%93%D0%B8%D0%BC%D0%BD_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B9_%D0%A0%D0%B5%D1%81%D0%BF%D1%83%D0%B1%D0%BB%D0%B8%D0%BA%D0%B8_%D0%B8_%D0%A0%D0%94%D0%A4%D0%A0_%28%D0%A0%D0%B0%D0%B1%D0%BE%D1%87%D0%B0%D1%8F-%D0%9C%D0%B0%D1%80%D1%81%D0%B5%D0%BB%D1%8C%D0%B5%D0%B7%D0%B0%29.oga?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-50d177738b0d8afee04b70e3",
@@ -2296,8 +2633,8 @@
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: instrumental-only signal."
     },
     {
       "id": "smd-eea5aecd2b4b771855a49fbf",
@@ -2313,14 +2650,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/4/49/Misamis_Oriental_Hymn.flac?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/flac",
       "tags": [
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-55752a28ecc580ae73ba8cf7",
@@ -2336,14 +2673,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Misamis_Oriental_Hymn%28Instrumental%29.flac?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/flac",
       "tags": [
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-5e162c986eaaf1e0acc61a6c",
@@ -2382,14 +2719,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/3/32/Hymn-of-the-Azores.oga?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-1c010bfd5dec527a419df594",
@@ -2411,31 +2748,46 @@
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-0a4e34a5c90178040be0e087",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T02:04:42.795Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Let saints on earth in concert sing.ogg",
       "dedupeKey": "0a4e34a5c90178040be0e087",
-      "title": "Let saints on earth in concert sing.ogg",
+      "title": "Let saints on earth in concert sing",
       "artist": "Text: Charles Wesley (1707–1788); Melody: the Scottish Psalter (1615); performer: St. Paul's Episcopal Church, Indianapolis",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ALet_saints_on_earth_in_concert_sing.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/59/Let_saints_on_earth_in_concert_sing.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "CC0",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/59/Let_saints_on_earth_in_concert_sing.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "christian hymn"
+        "christian hymn",
+        "free-library",
+        "verified-vocal",
+        "gospel_choirs"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "published",
+      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "catalogTrackId": "text-charles-wesley-1707-1788-melody-the-scottish-psalter-1615-performer",
+      "attributionStatement": "Let saints on earth in concert sing — Text: Charles Wesley (1707–1788); Melody: the Scottish Psalter (1615); performer: St. Paul's Episcopal Church, Indianapolis (public domain recording).",
+      "rightsEvidenceRef": "Commons File:Let saints on earth in concert sing.ogg (CC0).",
+      "recordingRightsNote": "Commons-verified CC0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel"
+      ],
+      "publishedCatalogTrackId": "text-charles-wesley-1707-1788-melody-the-scottish-psalter-1615-performer"
     },
     {
       "id": "smd-7c10904a72c15908debc5694",
@@ -2451,14 +2803,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f8/Cabuyao_Hymn.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-09704b95f1896ba5aa672a7f",
@@ -2480,8 +2832,8 @@
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: instrumental-only signal."
     },
     {
       "id": "smd-c99c681ed8b47803903e6e10",
@@ -2497,14 +2849,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/DAPITAN_HYMN.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "christian hymn"
       ],
       "searchQuery": "christian hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-66b82bcbebfc9408fa852523",
@@ -2526,13 +2878,13 @@
         "praise music"
       ],
       "searchQuery": "praise music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-55f30852f74554f007a52430",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T02:31:08.367Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Thomas Tallis -- All praise to you (Tallis's canon).opus",
       "dedupeKey": "55f30852f74554f007a52430",
@@ -2540,17 +2892,34 @@
       "artist": "Collegium Vocale",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThomas_Tallis_--_All_praise_to_you_(Tallis's_canon).opus",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/0/01/Thomas_Tallis_--_All_praise_to_you_%28Tallis%27s_canon%29.opus?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/0/01/Thomas_Tallis_--_All_praise_to_you_%28Tallis%27s_canon%29.opus",
       "licenseSlug": "CC BY 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
       "licenseClass": "cc-by",
       "fileFormat": "application/ogg",
       "tags": [
-        "praise music"
+        "praise music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "praise music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "published",
+      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "catalogTrackId": "collegium-vocale-thomas-tallis-all-praise-to-you-tallis-s-canon-opus",
+      "attributionStatement": "Thomas Tallis -- All praise to you (Tallis's canon).opus — Collegium Vocale (CC BY 3.0). Source: Wikimedia Commons.",
+      "rightsEvidenceRef": "Commons File:Thomas Tallis -- All praise to you (Tallis's canon).opus (CC BY 3.0).",
+      "recordingRightsNote": "Commons-verified CC BY 3.0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (CC BY — curator attestation on file for Blob hosting and story sync)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "publishedCatalogTrackId": "collegium-vocale-thomas-tallis-all-praise-to-you-tallis-s-canon-opus"
     },
     {
       "id": "smd-91dd173a9f02feb6e03562dd",
@@ -2716,25 +3085,42 @@
     {
       "id": "smd-1c79bfb17bad62792c5199df",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T02:31:10.786Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Thomas Tallis -- All praise to you.ogg",
       "dedupeKey": "1c79bfb17bad62792c5199df",
-      "title": "Thomas Tallis -- All praise to you.ogg",
+      "title": "Thomas Tallis -- All praise to you",
       "artist": "Collegium Vocale",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThomas_Tallis_--_All_praise_to_you.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Thomas_Tallis_--_All_praise_to_you.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Thomas_Tallis_--_All_praise_to_you.ogg",
       "licenseSlug": "CC BY 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
       "licenseClass": "cc-by",
       "fileFormat": "application/ogg",
       "tags": [
-        "praise music"
+        "praise music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "praise music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "published",
+      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "catalogTrackId": "collegium-vocale-thomas-tallis-all-praise-to-you",
+      "attributionStatement": "Thomas Tallis -- All praise to you — Collegium Vocale (CC BY 3.0). Source: Wikimedia Commons.",
+      "rightsEvidenceRef": "Commons File:Thomas Tallis -- All praise to you.ogg (CC BY 3.0).",
+      "recordingRightsNote": "Commons-verified CC BY 3.0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (CC BY — curator attestation on file for Blob hosting and story sync)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "publishedCatalogTrackId": "collegium-vocale-thomas-tallis-all-praise-to-you"
     },
     {
       "id": "smd-062d4dfb7ff34d82ef22ef4c",
@@ -2750,14 +3136,14 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a9/Yun_Sim-Deok_-_In_Praise_of_Death.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "praise music"
       ],
       "searchQuery": "praise music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-e5a8dc189dfde70ed198582b",
@@ -2869,25 +3255,41 @@
     {
       "id": "smd-63b53cf27d69dacc32bdb70b",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T02:30:21.085Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:079- Praise to Our Common-Father-Endlessness.ogg",
       "dedupeKey": "63b53cf27d69dacc32bdb70b",
-      "title": "079- Praise to Our Common-Father-Endlessness.ogg",
+      "title": "079- Praise to Our Common-Father-Endlessness",
       "artist": "Bull of Heaven",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3A079-_Praise_to_Our_Common-Father-Endlessness.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/4/49/079-_Praise_to_Our_Common-Father-Endlessness.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "CC0",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/4/49/079-_Praise_to_Our_Common-Father-Endlessness.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "praise music"
+        "praise music",
+        "free-library",
+        "verified-vocal",
+        "gospel_worship_songs"
       ],
       "searchQuery": "praise music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Quarantined: failed vocal gospel QC / ineligible for member library.",
+      "catalogTrackId": "bull-of-heaven-079-praise-to-our-common-father-endlessness",
+      "attributionStatement": "079- Praise to Our Common-Father-Endlessness — Bull of Heaven (public domain recording).",
+      "rightsEvidenceRef": "Commons File:079- Praise to Our Common-Father-Endlessness.ogg (CC0).",
+      "recordingRightsNote": "Commons-verified CC0; owner-approved vocal expansion batch.",
+      "compositionRightsNote": "Traditional hymn/spiritual or composition cleared via source license — verify if modern arrangement.",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ]
     },
     {
       "id": "smd-8264cd252c465577f55ac4c7",
@@ -2909,8 +3311,8 @@
         "praise music"
       ],
       "searchQuery": "praise music",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-28489f8f3cda76bef3d1d04d",
@@ -2932,7 +3334,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-08839d91f312deb131768c99",
@@ -2954,7 +3357,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-7122fd35577c912fa01f2cf9",
@@ -2976,7 +3380,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-d61576d6d6e7643ebfa01d68",
@@ -2998,7 +3403,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-72dc482a780ba42124cf9ada",
@@ -3020,7 +3426,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-8c6107aca63f2b37c95eb5c3",
@@ -3042,7 +3449,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-915dac931bfa65ab9997bb92",
@@ -3064,7 +3472,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-910c4343ae15d1ee07c21490",
@@ -3086,7 +3495,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-57661537fe82448f76d5d5de",
@@ -3108,7 +3518,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-e9a95a017b6121a10a752ef9",
@@ -3130,7 +3541,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-8daed6d389dfe3606ef200b8",
@@ -3152,7 +3564,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-b768224e6b1527c3755e5d3c",
@@ -3174,7 +3587,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-05cd3b8b9116ea02192c9902",
@@ -3196,7 +3610,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-6f1c4fde3166265e4c9e5369",
@@ -3218,7 +3633,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-3907f6dfb8ae14534e6edbef",
@@ -3240,7 +3656,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-674f6089cc9f3b56ce7d5354",
@@ -3262,7 +3679,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-94076e546ed7108536182fd4",
@@ -3284,7 +3702,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-fd9c41113c93e3347421d318",
@@ -3306,7 +3725,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-da3f3123159d93fc7656a222",
@@ -3328,7 +3748,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-d137c6b22f13878dc9d4924b",
@@ -3350,7 +3771,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-b2c83918f708009ea331b0f6",
@@ -3372,7 +3794,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-9f7cc918dc80660babfd9284",
@@ -3394,7 +3817,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-3b6eecca372cee0161c778cf",
@@ -3416,7 +3840,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-a06a8260ca8cbf7f153e7552",
@@ -3438,7 +3863,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-03e2f2ef374643907a761ab6",
@@ -3460,7 +3886,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-fc7b77856bd2f31fdf195351",
@@ -3482,7 +3909,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-0cd7751f2dc0ab5e0acc7a16",
@@ -3504,7 +3932,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-ded2163a0b5ca4e09f3cf1d6",
@@ -3526,7 +3955,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-3b3f991f5dace85503bb725a",
@@ -3548,7 +3978,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-213e9643bd05663190352016",
@@ -3570,7 +4001,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-ab467f80d214c22232436a7a",
@@ -3592,7 +4024,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-04780f26ebdcf8e56a3f0f7d",
@@ -3614,7 +4047,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-550164409ff16632376c9449",
@@ -3636,7 +4070,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-ae059f9d1a8400f099341115",
@@ -3658,7 +4093,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-05f4d7853bac38bf5922919d",
@@ -3680,7 +4116,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-70896c7505adeec0b65c1885",
@@ -3702,7 +4139,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-e88fe26894f73e8fb72374f4",
@@ -3724,7 +4162,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal."
     },
     {
       "id": "smd-32a6386eeefb3d2a917e7df9",
@@ -3746,7 +4185,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-093fae60bc359767182d6854",
@@ -3768,7 +4208,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-c006b6f635dfe2f49cae8255",
@@ -3790,7 +4231,8 @@
         "archive.org"
       ],
       "searchQuery": "fma archive gospel worship",
-      "reviewStatus": "discovered"
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content."
     },
     {
       "id": "smd-a2b3a27eec07548da2590e60",
@@ -4074,15 +4516,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/82/Angels_of_Christmas_-_Concert_Band_-_United_States_Air_Force_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4101,7 +4543,7 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/28/Scotland_the_Brave_-_Pipe_Band_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
@@ -4110,8 +4552,8 @@
         "Air Force Band public domain"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4130,15 +4572,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/7/73/Time_Travels_-_Concert_Band_-_United_States_Air_Force_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4157,15 +4599,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/1/11/Upon_This_Hill_-_Concert_Band_-_United_States_Air_Force_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4184,15 +4626,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Breaking_Barriers_-_Concert_Band_-_United_States_Air_Force.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4211,7 +4653,7 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fc/In_Pursuit_-_Concert_Band_-_United_States_Air_Force_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
@@ -4219,8 +4661,8 @@
         "Air Force Band public domain"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4239,7 +4681,7 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Allegro_in_C_Major_-_Air_Force_Strings_-_United_States_Air_Force_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
@@ -4247,8 +4689,8 @@
         "Air Force Band public domain"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4267,7 +4709,7 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7d/Retreat_-_Ceremonial_Band_-_United_States_Air_Force_Band_of_the_West.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
@@ -4275,8 +4717,8 @@
         "Air Force Band public domain"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4295,7 +4737,7 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/52/Bombasto_-_Concert_Band_-_United_States_Air_Force_Band_of_the_Rockies.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
@@ -4303,8 +4745,8 @@
         "Air Force Band public domain"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4323,7 +4765,7 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Go_Falcons_-_Concert_Band_-_United_States_Air_Force_Band_of_the_Rockies.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
@@ -4331,8 +4773,8 @@
         "Air Force Band public domain"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4351,7 +4793,7 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Falcon_Fight_-_Concert_Band_-_United_States_Air_Force_Band_of_the_Rockies.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
@@ -4359,8 +4801,8 @@
         "Air Force Band public domain"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4379,15 +4821,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6f/That%27s_Why_-_Concert_Band_-_United_States_Air_Force_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4406,15 +4848,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Let_Erin_Remember%2C_High_Road_to_Gairloch%2C_Minstrel_Boy_-_Pipe_Band_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4433,15 +4875,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5d/The_Mist_Covered_Mountains_-_Pipe_Band_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4460,15 +4902,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Theme_for_the_Greenlands_-_Southern_Aire_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4487,15 +4929,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fd/French_Scottishe_-_Southern_Aire_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4514,15 +4956,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/60/Castle_Walls_-_Southern_Aire_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4541,15 +4983,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Amazing_Grace_%28bagpipe%29_-_Pipe_Band_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4568,15 +5010,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Amazing_Grace_%28The_Fling%29_-_Pipe_Band_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4595,15 +5037,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/65/A_Christmas_Overture_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4622,15 +5064,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Semper_Fidelis_%281995%29_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4649,15 +5091,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Amazing_Grace_-_Concert_Band_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4676,15 +5118,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/20/Scotland_the_Brave_%281995%29_-_Pipe_Band_-_United_States_Air_Force_Reserve_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Air Force Reserve Band",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Air Force Reserve Band",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4703,15 +5145,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Fantasy_on_the_Air_Force_Hymn_-_Concert_Band_-_United_States_Air_Force_Heartland_of_America_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "Air Force Band public domain",
         "wikimedia-commons"
       ],
       "searchQuery": "Air Force Band public domain",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4730,15 +5172,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Undaunted_Courage_-_Concert_Band_-_United_States_Air_Force_Band_of_Mid-America.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "Air Force Band public domain",
         "wikimedia-commons"
       ],
       "searchQuery": "Air Force Band public domain",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4757,15 +5199,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/1/18/Centennial_Prelude_-_Concert_Band_-_United_States_Air_Force_Band_of_the_Golden_West.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "Air Force Band public domain",
         "wikimedia-commons"
       ],
       "searchQuery": "Air Force Band public domain",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4784,15 +5226,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Knights_of_the_Air_-_Concert_Band_-_United_States_Air_Force_Band_of_the_Golden_West.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "Air Force Band public domain",
         "wikimedia-commons"
       ],
       "searchQuery": "Air Force Band public domain",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4811,15 +5253,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Gloria_-_Concert_Band_-_United_States_Air_Force_Band_of_the_Rockies.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "Air Force Band public domain",
         "wikimedia-commons"
       ],
       "searchQuery": "Air Force Band public domain",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4838,15 +5280,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/64/Colombia.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "United States Navy Band hymn",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4865,15 +5307,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/d/db/Hymn_to_liberty_instrumental.oga?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "United States Navy Band hymn",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4892,15 +5334,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/55/United_States_Navy_Band_-_%C2%A1Oh%2C_gloria_inmarcesible%21.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "United States Navy Band hymn",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4908,29 +5350,42 @@
     {
       "id": "smd-3f833a0e239b9582e75e81d5",
       "discoveredAt": "2026-11-04T03:23:00.899Z",
-      "updatedAt": "2026-11-04T03:23:00.899Z",
+      "updatedAt": "2026-11-05T02:29:47.427Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Eternal Father - U.S. Navy Band.ogg",
       "dedupeKey": "3f833a0e239b9582e75e81d5",
-      "title": "Eternal Father - U.S. Navy Band.ogg",
-      "artist": "Words: William Whiting (1825–1878)\nTune: \"Melita\" by John Bacchus Dykes (1823–1876)\nPerformance: U.S. Navy Band",
+      "title": "Eternal Father - U.S. Navy Band",
+      "artist": "Words: William Whiting (1825–1878) Tune: \"Melita\" by John Bacchus Dykes (1823–1876) Performance: U.S. Navy Band",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AEternal_Father_-_U.S._Navy_Band.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/4/41/Eternal_Father_-_U.S._Navy_Band.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/4/41/Eternal_Father_-_U.S._Navy_Band.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "United States Navy Band hymn",
-        "wikimedia-commons"
+        "wikimedia-commons",
+        "free-library",
+        "verified-vocal",
+        "gospel_choirs"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
+      "reviewStatus": "published",
       "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
-      "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
+      "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights.",
+      "catalogTrackId": "words-william-whiting-1825-1878-tune-melita-by-john-bacchus-dykes-1823-1",
+      "attributionStatement": "Eternal Father - U.S. Navy Band — Words: William Whiting (1825–1878) Tune: \"Melita\" by John Bacchus Dykes (1823–1876) Performance: U.S. Navy Band (public domain recording).",
+      "rightsEvidenceRef": "Commons File:Eternal Father - U.S. Navy Band.ogg (Public domain).",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel"
+      ],
+      "publishedCatalogTrackId": "words-william-whiting-1825-1878-tune-melita-by-john-bacchus-dykes-1823-1"
     },
     {
       "id": "smd-657d3d64701ffb71aec48772",
@@ -4946,15 +5401,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Eternal_Father%2C_Strong_to_Save_%28chorus%2C_without_words%29.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "United States Navy Band hymn",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -4973,15 +5428,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c1/%22Eternal_Father%2C_Strong_to_Save%22_%281992%29%2C_performed_by_the_United_States_Marine_Band.oga?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "United States Navy Band hymn",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -5007,8 +5462,8 @@
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -5027,15 +5482,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/d/dd/United_States_Marine_Corps_song_%22The_Marines%27_Hymn%22%2C_performed_by_the_United_States_Navy_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Navy Band hymn",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -5054,15 +5509,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8c/DYKES_Eternal_Father_Strong_to_Save_%28The_Navy_Hymn%29_-_%22The_President%27s_Own%22_U.S._Marine_Band.opus?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "application/ogg",
       "tags": [
         "United States Navy Band hymn",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -5081,15 +5536,15 @@
       "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/59/The_Marine_Hymn_by_the_USNA_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       "licenseSlug": "Public domain",
       "licenseUrl": "",
-      "licenseClass": "cc0",
+      "licenseClass": "public-domain",
       "fileFormat": "audio/mpeg",
       "tags": [
         "United States Navy Band hymn",
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
       "redistributionReviewNote": "PD/CC0 metadata — curator must still confirm composition + recording + territory before Blob storage.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
@@ -5115,12 +5570,394 @@
         "wikimedia-commons"
       ],
       "searchQuery": "United States Navy Band hymn",
-      "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page.",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: no verified vocal gospel signal.",
       "storagePermitted": false,
       "redistributionReviewNote": "CC BY (or similar) may allow streaming with attribution but NOT automatic redistribution/hosting — verify recording owner and storage rights before import.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
+    },
+    {
+      "id": "smd-3cea848a8270510e20b0100e",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:56:51.677Z",
+      "source": "fma_archive",
+      "sourceStableId": "fma:lee-wastler/come-to-jesus/in-your-hands",
+      "dedupeKey": "3cea848a8270510e20b0100e",
+      "title": "In Your Hands",
+      "artist": "Lee Wastler",
+      "category": "worship",
+      "sourcePageUrl": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/in-your-hands/",
+      "recordingUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/zx8mvMNNno9s9xcTuoCXuZ5cvgocwvhaaYlrKElH.mp3",
+      "licenseSlug": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "licenseClass": "cc-by",
+      "attributionStatement": "In Your Hands by Lee Wastler — CC BY 4.0. Source: Free Music Archive.",
+      "compositionRightsNote": "Original composition by Lee Wastler (per FMA); CC BY 4.0 composition use with attribution.",
+      "recordingRightsNote": "Recording by Lee Wastler on FMA under CC BY 4.0. Church owner approved vocal batch import; curator env attestation covers worldwide Blob hosting and story background sync with required attribution.",
+      "rightsEvidenceRef": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/in-your-hands/ (Attribution 4.0 International; Instrumental: No). FMA License Guide: CC BY permits sync/derivatives with credit.",
+      "territory": "Worldwide (CC BY 4.0 recording and composition — owner-approved import with curator attestation)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": "pending_curator",
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "FMA track page: Instrumental = No; Christian Gospel/Rock with lyrics.",
+      "pickerCategories": [
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-priority-001",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "published",
+      "tags": [
+        "vocal-candidate-queue",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
+      ],
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "catalogTrackId": "lee-wastler-in-your-hands",
+      "publishedCatalogTrackId": "lee-wastler-in-your-hands"
+    },
+    {
+      "id": "smd-1bf25ffdf913025b49ab6037",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:56:58.559Z",
+      "source": "fma_archive",
+      "sourceStableId": "fma:lee-wastler/come-to-jesus/a-fathers-love",
+      "dedupeKey": "1bf25ffdf913025b49ab6037",
+      "title": "A Fathers Love",
+      "artist": "Lee Wastler",
+      "category": "worship",
+      "sourcePageUrl": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/a-fathers-love/",
+      "recordingUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/jEODpdJDqlcEp6I04NYYFKLhblUdAIFRCJUVlUIO.mp3",
+      "licenseSlug": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "licenseClass": "cc-by",
+      "attributionStatement": "A Fathers Love by Lee Wastler — CC BY 4.0. Source: Free Music Archive.",
+      "compositionRightsNote": "Original composition by Lee Wastler (per FMA).",
+      "recordingRightsNote": "FMA CC BY 4.0 recording; owner-approved batch import with curator attestation for hosting and story sync.",
+      "rightsEvidenceRef": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/a-fathers-love/ (CC BY 4.0; Instrumental: No).",
+      "territory": "Worldwide (CC BY 4.0 — owner-approved import with curator attestation)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": "pending_curator",
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "FMA track page: Instrumental = No; album Come To Jesus (Christian).",
+      "pickerCategories": [
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-priority-002",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "published",
+      "tags": [
+        "vocal-candidate-queue",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
+      ],
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "catalogTrackId": "lee-wastler-a-fathers-love",
+      "publishedCatalogTrackId": "lee-wastler-a-fathers-love"
+    },
+    {
+      "id": "smd-a4c53b2b5b53e5d3f57b2be3",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:57:05.090Z",
+      "source": "fma_archive",
+      "sourceStableId": "fma:lee-wastler/come-to-jesus/i-wish",
+      "dedupeKey": "a4c53b2b5b53e5d3f57b2be3",
+      "title": "I Wish",
+      "artist": "Lee Wastler",
+      "category": "worship",
+      "sourcePageUrl": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/i-wish/",
+      "recordingUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/NR5cDlXWxcgEylpa2x3A3j3Nylo4RJtcYBQtB1wY.mp3",
+      "licenseSlug": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "licenseClass": "cc-by",
+      "attributionStatement": "I Wish by Lee Wastler — CC BY 4.0. Source: Free Music Archive.",
+      "compositionRightsNote": "Original composition by Lee Wastler (per FMA).",
+      "recordingRightsNote": "FMA CC BY 4.0 recording; owner-approved batch import with curator attestation for hosting and story sync.",
+      "rightsEvidenceRef": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/i-wish/ (CC BY 4.0; Instrumental: No).",
+      "territory": "Worldwide (CC BY 4.0 — owner-approved import with curator attestation)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": "pending_curator",
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "FMA: Instrumental No; description references singer and lyrics theme.",
+      "pickerCategories": [
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-priority-003",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "published",
+      "tags": [
+        "vocal-candidate-queue",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
+      ],
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "catalogTrackId": "lee-wastler-i-wish",
+      "publishedCatalogTrackId": "lee-wastler-i-wish"
+    },
+    {
+      "id": "smd-543533520f6e5cda4dac6f43",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:57:10.113Z",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:Swing Low, Sweet Chariot - Fisk Jubilee Singers (1909).mp3",
+      "dedupeKey": "543533520f6e5cda4dac6f43",
+      "title": "Swing Low, Sweet Chariot",
+      "artist": "Fisk Jubilee Singers",
+      "category": "worship",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Swing_Low,_Sweet_Chariot_-_Fisk_Jubilee_Singers_(1909).mp3",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Swing_Low%2C_Sweet_Chariot_-_Fisk_Jubilee_Singers_%281909%29.mp3",
+      "licenseSlug": "public-domain",
+      "licenseUrl": "",
+      "licenseClass": "cc0",
+      "attributionStatement": "Swing Low, Sweet Chariot — Fisk Jubilee Singers (1909). Public domain recording; traditional spiritual.",
+      "compositionRightsNote": "Traditional spiritual (Wallace Willis); public domain composition.",
+      "recordingRightsNote": "1909 Victor recording; Commons PD US record expired. PD permits worldwide redistribution and sync.",
+      "rightsEvidenceRef": "Commons File:Swing Low, Sweet Chariot - Fisk Jubilee Singers (1909).mp3 (LicenseShortName: Public domain); LoC https://www.loc.gov/item/jukebox-128141/",
+      "territory": "Worldwide (PD US recording and traditional composition — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Commons description: gospel song recording by Fisk Jubilee Singers; LoC National Jukebox source.",
+      "pickerCategories": [
+        "traditional_gospel",
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-priority-004",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "published",
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "gospel_worship_songs",
+        "verified-vocal",
+        "free-library"
+      ],
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "catalogTrackId": "swing-low-sweet-chariot-fisk-1909",
+      "publishedCatalogTrackId": "swing-low-sweet-chariot-fisk-1909"
+    },
+    {
+      "id": "smd-16d1b08e5db0cdacb35f2428",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:57:15.650Z",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:Golden Slippers (1909, Fisk University Jubilee Singers).mp3",
+      "dedupeKey": "16d1b08e5db0cdacb35f2428",
+      "title": "Golden Slippers",
+      "artist": "Fisk University Jubilee Singers",
+      "category": "worship",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Golden_Slippers_(1909,_Fisk_University_Jubilee_Singers).mp3",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/Golden_Slippers_%281909%2C_Fisk_University_Jubilee_Singers%29.mp3",
+      "licenseSlug": "public-domain",
+      "licenseUrl": "",
+      "licenseClass": "cc0",
+      "attributionStatement": "Golden Slippers — Fisk University Jubilee Singers (1909). Public domain.",
+      "compositionRightsNote": "Traditional spiritual arrangement; public domain.",
+      "recordingRightsNote": "1909 LoC Jukebox recording; Commons public domain.",
+      "rightsEvidenceRef": "Commons File:Golden Slippers (1909, Fisk University Jubilee Singers).mp3 (LicenseShortName: Public domain).",
+      "territory": "Worldwide (PD recording and composition — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "LoC National Jukebox vocal Jubilee Singers recording (Commons PD).",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-005",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "published",
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal",
+        "free-library"
+      ],
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "catalogTrackId": "golden-slippers-fisk-jubilee-1909",
+      "publishedCatalogTrackId": "golden-slippers-fisk-jubilee-1909"
+    },
+    {
+      "id": "smd-88b7f36e22b25dac5ef8ca0f",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga",
+      "dedupeKey": "88b7f36e22b25dac5ef8ca0f",
+      "title": "Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga",
+      "artist": "Guanaco",
+      "category": "worship",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AColored_quartet.pharaoh's_army_got_drowned_EDIS-SRP-0198-12.oga",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Colored_quartet.pharaoh%27s_army_got_drowned_EDIS-SRP-0198-12.oga",
+      "licenseSlug": "public-domain",
+      "licenseUrl": "",
+      "licenseClass": "public-domain",
+      "fileFormat": "application/ogg",
+      "tags": [
+        "vocal-discovery-scale",
+        "negro spiritual quartet ogg",
+        "free-library",
+        "verified-vocal",
+        "traditional_gospel"
+      ],
+      "searchQuery": "negro spiritual quartet ogg",
+      "reviewStatus": "published",
+      "rejectionReason": "Commons vocal gospel scale discovery — verify recording/composition before import.",
+      "discoveredAt": "2026-11-05T01:01:56.965Z",
+      "updatedAt": "2026-11-05T02:31:51.433Z",
+      "vocalContent": "likely_vocal",
+      "compositionRightsNote": "Verify composition PD or cleared — traditional spiritual/hymn assumed pending file page review.",
+      "recordingRightsNote": "Commons LicenseShortName: Public domain.",
+      "rightsEvidenceRef": "Commons File:Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga (Public domain).",
+      "catalogTrackId": "guanaco-colored-quartet-pharaoh-s-army-got-drowned-edis-srp-0198-12-oga",
+      "attributionStatement": "Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga — Guanaco (public domain recording).",
+      "territory": "Worldwide (public domain recording — owner-approved import)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "publishedCatalogTrackId": "guanaco-colored-quartet-pharaoh-s-army-got-drowned-edis-srp-0198-12-oga"
+    },
+    {
+      "id": "smd-03f963846f205a051302c2ba",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:Inleiding King's Singers (audio).mp3",
+      "dedupeKey": "03f963846f205a051302c2ba",
+      "title": "Inleiding King's Singers (audio).mp3",
+      "artist": "deSingel",
+      "category": "worship",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AInleiding_King's_Singers_(audio).mp3",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Inleiding_King%27s_Singers_%28audio%29.mp3",
+      "licenseSlug": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "licenseClass": "cc-by",
+      "fileFormat": "audio/mpeg",
+      "tags": [
+        "vocal-discovery-scale",
+        "jubilee singers mp3"
+      ],
+      "searchQuery": "jubilee singers mp3",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: non-worship or ineligible content.",
+      "discoveredAt": "2026-11-05T01:01:56.965Z",
+      "updatedAt": "2026-11-05T01:01:56.965Z",
+      "vocalContent": "likely_vocal",
+      "compositionRightsNote": "Verify composition PD or cleared — traditional spiritual/hymn assumed pending file page review.",
+      "recordingRightsNote": "Commons LicenseShortName: CC BY 4.0.",
+      "rightsEvidenceRef": "Commons File:Inleiding King's Singers (audio).mp3 (CC BY 4.0)."
+    },
+    {
+      "id": "smd-d66d5db7995eacc99c80dbc5",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:Swing Low, Sweet Chariot - Fisk Jubilee Singers.ogg",
+      "dedupeKey": "d66d5db7995eacc99c80dbc5",
+      "title": "Swing Low, Sweet Chariot - Fisk Jubilee Singers.ogg",
+      "artist": "Written by Wallace Willis; recorded by the Fisk Jubilee Singers",
+      "category": "worship",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ASwing_Low%2C_Sweet_Chariot_-_Fisk_Jubilee_Singers.ogg",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Swing_Low%2C_Sweet_Chariot_-_Fisk_Jubilee_Singers.ogg",
+      "licenseSlug": "Public domain",
+      "licenseUrl": "",
+      "licenseClass": "public-domain",
+      "fileFormat": "application/ogg",
+      "tags": [
+        "vocal-discovery-scale",
+        "Fisk Jubilee Singers"
+      ],
+      "searchQuery": "Fisk Jubilee Singers",
+      "reviewStatus": "rejected",
+      "rejectionReason": "Expansion assess: duplicate of published catalog recording.",
+      "discoveredAt": "2026-11-05T01:01:56.965Z",
+      "updatedAt": "2026-11-05T01:01:56.965Z",
+      "vocalContent": "likely_vocal",
+      "compositionRightsNote": "Verify composition PD or cleared — traditional spiritual/hymn assumed pending file page review.",
+      "recordingRightsNote": "Commons LicenseShortName: Public domain.",
+      "rightsEvidenceRef": "Commons File:Swing Low, Sweet Chariot - Fisk Jubilee Singers.ogg (Public domain)."
+    },
+    {
+      "id": "smd-246d1f537d3000a458f9d360",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:01 - Go down Moses (Negro Spiritual).ogg",
+      "dedupeKey": "246d1f537d3000a458f9d360",
+      "title": "01 - Go down Moses (Negro Spiritual).ogg",
+      "artist": "Music: Traditional, interpreter: Les Petits Chanteurs de Montigny",
+      "category": "worship",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3A01_-_Go_down_Moses_(Negro_Spiritual).ogg",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8f/01_-_Go_down_Moses_%28Negro_Spiritual%29.ogg",
+      "licenseSlug": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "licenseClass": "rejected",
+      "fileFormat": "application/ogg",
+      "tags": [
+        "vocal-discovery-scale",
+        "Fisk Jubilee Singers"
+      ],
+      "searchQuery": "Fisk Jubilee Singers",
+      "reviewStatus": "rejected",
+      "rejectionReason": "License failed strict PD/CC BY filter.",
+      "discoveredAt": "2026-11-05T01:01:56.965Z",
+      "updatedAt": "2026-11-05T01:01:56.965Z",
+      "vocalContent": "likely_vocal"
+    },
+    {
+      "id": "smd-71ea1076d440e1642f9d7e20",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:Advanced Choirs - \"The Storm is Passing Over\" (May 2012).ogg",
+      "dedupeKey": "71ea1076d440e1642f9d7e20",
+      "title": "Advanced Choirs - \"The Storm is Passing Over\" (May 2012).ogg",
+      "artist": "Childrenschorussa",
+      "category": "worship",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AAdvanced_Choirs_-_%22The_Storm_is_Passing_Over%22_(May_2012).ogg",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Advanced_Choirs_-_%22The_Storm_is_Passing_Over%22_%28May_2012%29.ogg",
+      "licenseSlug": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "licenseClass": "rejected",
+      "fileFormat": "application/ogg",
+      "tags": [
+        "vocal-discovery-scale",
+        "gospel choir singing ogg"
+      ],
+      "searchQuery": "gospel choir singing ogg",
+      "reviewStatus": "rejected",
+      "rejectionReason": "License failed strict PD/CC BY filter.",
+      "discoveredAt": "2026-11-05T01:01:56.965Z",
+      "updatedAt": "2026-11-05T01:01:56.965Z",
+      "vocalContent": "likely_vocal"
     }
   ]
 }

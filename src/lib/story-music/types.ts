@@ -37,11 +37,19 @@ export type StoryMusicTrackRecord = {
   sourceUrl?: string;
 };
 
+export type StoryMusicPickerCategory =
+  | "gospel_worship_songs"
+  | "traditional_gospel"
+  | "instrumentals";
+
 export type StoryMusicSearchFilters = {
   query?: string;
   country?: string;
   language?: string;
+  /** Legacy granular genre id (gospel, worship, hymn, …). */
   genre?: string;
+  /** Story picker category chips (Gospel & Worship, Traditional Gospel, Instrumentals). */
+  pickerCategory?: StoryMusicPickerCategory | "all" | string;
   /** Legacy region chip (maps to tags). */
   region?: string;
   limit?: number;
