@@ -37,6 +37,14 @@ import type {
 } from "@/lib/marriage-counseling-types";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 import {
+  assertIntimacyCanSubmit,
+  MARRIAGE_INTIMACY_MODULE_ID,
+  MARRIAGE_INTIMACY_OPT_IN_QUESTION_ID,
+  prepareIntimacyDraftPatch,
+  visibleIntimacyAnswers,
+  visibleIntimacyModule,
+} from "@/lib/marriage-stage2-intimacy-consent";
+import {
   hubModuleStatusFromResponse,
   hubPartnerModuleStatusFromResponse,
   isAssessmentSubmitted,
@@ -450,13 +458,13 @@ export async function getAssessmentForViewer(
   const unlock = await store().getUnlock(hub.journey.id, moduleId, contentVersion);
 
   return {
-    module: mod,
+    module: visibleIntimacyModule(mod, myResponse?.answers),
     contentVersion,
     journeyId: hub.journey.id,
     myResponse: myResponse
       ? {
           status: isAssessmentSubmitted(myResponse) ? "submitted" : myResponse.status,
-          answers: myResponse.answers,
+          answers: visibleIntimacyAnswers(moduleId, myResponse.answers),
           lastSavedAt: myResponse.lastSavedAt,
           submittedAt: myResponse.submittedAt,
         }
@@ -478,7 +486,22 @@ export async function saveAssessmentDraft(
   }
 
   const mod = assessment.module;
-  validateAnswers(mod.questions, answers, false);
+  // The participant-facing module is intentionally restricted before opt-in.
+  // Use the full bank for server validation, consent invalidation, and withdrawal cleanup.
+  const fullQuestions = moduleId === MARRIAGE_INTIMACY_MODULE_ID
+    ? ((await getModuleForContentVersion(moduleId, assessment.contentVersion)) ??
+       (await getModuleDefinition(moduleId)))?.questions ?? mod.questions
+    : mod.questions;
+  const previousResponse = moduleId === MARRIAGE_INTIMACY_MODULE_ID
+    ? await store().getResponse(assessment.journeyId, moduleId, viewer.id)
+    : null;
+  const checkedPatch = prepareIntimacyDraftPatch(
+    moduleId,
+    previousResponse?.answers ?? {},
+    answers,
+    fullQuestions,
+  );
+  validateAnswers(fullQuestions, checkedPatch, false);
 
   const now = new Date().toISOString();
   await store().applyAssessmentDraftPatch({
@@ -486,10 +509,28 @@ export async function saveAssessmentDraft(
     moduleId,
     userId: viewer.id,
     contentVersion: assessment.contentVersion,
-    patch: answers,
-    questions: mod.questions,
+    patch: checkedPatch,
+    questions: fullQuestions,
     lastSavedAt: now,
   });
+
+  // Withdrawing or restarting consent revokes any previously granted explicit
+  // partner-sharing permissions as well as clearing the underlying draft answers.
+  if (moduleId === MARRIAGE_INTIMACY_MODULE_ID &&
+      Object.prototype.hasOwnProperty.call(answers, MARRIAGE_INTIMACY_OPT_IN_QUESTION_ID)) {
+    const consents = await store().listSharingConsents(assessment.journeyId, moduleId);
+    const { setSharingConsent } = await import("@/lib/marriage-stage2-sharing-server");
+    for (const consent of consents) {
+      if (consent.userId === viewer.id && consent.granted) {
+        await setSharingConsent(viewer, {
+          journeyId: assessment.journeyId,
+          moduleId,
+          questionId: consent.questionId,
+          granted: false,
+        });
+      }
+    }
+  }
 
   const journey = await store().getJourneyById(assessment.journeyId);
   if (journey && journey.currentModuleId !== moduleId) {
@@ -505,6 +546,7 @@ export async function submitAssessment(viewer: PublicMember, moduleId: string) {
   if (!existing) throw new Error("Save your answers before submitting.");
   if (isAssessmentSubmitted(existing)) throw new Error("Already submitted.");
 
+  assertIntimacyCanSubmit(moduleId, existing.answers);
   validateAnswers(assessment.module.questions, existing.answers, true);
 
   const now = new Date().toISOString();
