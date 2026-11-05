@@ -952,13 +952,15 @@ export function CommunityStoryViewer({
             onError={() => setMediaFailed(true)}
           />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={mediaUrl}
-            alt=""
-            className="community-story-viewer-photo"
-            onError={() => setMediaFailed(true)}
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={mediaUrl}
+              alt=""
+              className="community-story-viewer-photo"
+              onError={() => setMediaFailed(true)}
+            />
+          </>
         )}
 
         {slide.memberStoryAudio?.url?.trim() ? (
@@ -980,24 +982,6 @@ export function CommunityStoryViewer({
             onProgress={(pct) => {
               if (!timelinePaused && soundOn) setProgress(pct);
             }}
-          />
-        ) : slide.music?.trackId?.trim() ? (
-          <CommunityStoryMusicAttach
-            key={`${slide.id}-${slide.music.trackId}`}
-            slideId={slide.id}
-            music={slide.music}
-            slideDurationMs={storySlideDurationMs(slide, memberAudioDurationMs)}
-            musicContinuesOnNextSlide={Boolean(
-              deck?.items[slideIndex + 1]?.music?.trackId === slide.music.trackId,
-            )}
-            paused={timelinePaused}
-            soundOn={soundOn}
-            onToggleSound={() => setSoundOn((current) => !current)}
-            onNativeAudioAvailable={handleNativeMusicAudio}
-            storyPhotoUrl={
-              slide.mediaType === "image" || slide.mediaType === "text" ? mediaUrl : null
-            }
-            onYoutubeViewerActiveChange={setStoryYoutubeViewerActive}
           />
         ) : null}
 
@@ -1038,6 +1022,27 @@ export function CommunityStoryViewer({
           />
         )}
       </div>
+
+      {slide.music?.trackId?.trim() && !slide.memberStoryAudio?.url?.trim() ? (
+        <CommunityStoryMusicAttach
+          key={`${slide.id}-${slide.music.trackId}`}
+          slideId={slide.id}
+          music={slide.music}
+          slideDurationMs={storySlideDurationMs(slide, memberAudioDurationMs)}
+          musicContinuesOnNextSlide={Boolean(
+            deck?.items[slideIndex + 1]?.music?.trackId === slide.music.trackId,
+          )}
+          paused={timelinePaused}
+          soundOn={soundOn}
+          onToggleSound={() => setSoundOn((current) => !current)}
+          onNativeAudioAvailable={handleNativeMusicAudio}
+          storyPhotoUrl={
+            slide.mediaType === "image" || slide.mediaType === "text" ? mediaUrl : null
+          }
+          onYoutubeViewerActiveChange={setStoryYoutubeViewerActive}
+          creditPlacement="belowMedia"
+        />
+      ) : null}
 
       {slide.caption && slide.mediaType !== "text" ? (
         <p className="community-story-viewer-caption">

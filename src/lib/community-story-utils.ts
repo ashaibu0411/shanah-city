@@ -1,5 +1,6 @@
 import { parseGroupStoryAuthorId } from "@/lib/group-community-story-ids";
 import type { CommunityStatus } from "@/lib/member-types";
+import { COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC } from "@/lib/community-media-shared";
 
 export const STORY_IMAGE_MS = 5000;
 /** Photo/text stories with attached worship music (Instagram-style). */
@@ -21,8 +22,9 @@ export function storySlideDurationMs(
       memberAudioDurationMs != null &&
       memberAudioDurationMs > 0
     ) {
+      const memberCapMs = COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC * 1000;
       return Math.min(
-        STORY_IMAGE_WITH_MUSIC_MS,
+        memberCapMs,
         Math.max(STORY_IMAGE_MS, Math.ceil(memberAudioDurationMs)),
       );
     }

@@ -6,7 +6,7 @@ import {
   isStoryVoiceRecordingFileName,
 } from "../src/lib/community-media-shared";
 
-assert.equal(COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC, 20);
+assert.equal(COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC, 60);
 assert.equal(
   isAllowedCommunityMediaUrl("https://example.public.blob.vercel-storage.com/community/audio/x.webm"),
   true,

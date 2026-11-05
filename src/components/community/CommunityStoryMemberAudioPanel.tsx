@@ -4,6 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC, normalizeCommunityFileMime } from "@/lib/community-media-shared";
 import { uploadCommunityMediaClient } from "@/lib/community-media-client";
 import {
+  flushMediaRecorderBeforeStop,
+  measureAudioBlobDurationSec,
+  validateStoryVoiceRecording,
+  waitForRecorderFinalizationMs,
+} from "@/lib/community-story-voice-recording";
+import {
   createAudioMediaRecorder,
   extensionForRecorderMime,
   getWorshipRecordingMediaStream,
@@ -31,6 +37,21 @@ function normalizeRecordingMime(mimeType: string) {
   return mimeType.trim() || "audio/webm";
 }
 
+function recorderErrorMessage(error: unknown) {
+  if (error instanceof DOMException) {
+    if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+      return "Microphone permission is required to record.";
+    }
+    if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
+      return "No microphone was found on this device.";
+    }
+    if (error.name === "NotReadableError") {
+      return "Microphone is in use by another app. Close it and try again.";
+    }
+  }
+  return "Could not start recording. Check microphone access and try again.";
+}
+
 export function CommunityStoryMemberAudioPanel({
   mode,
   audioUrl,
@@ -44,6 +65,7 @@ export function CommunityStoryMemberAudioPanel({
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const [elapsedSec, setElapsedSec] = useState(0);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const recorderMimeRef = useRef("");
   const chunksRef = useRef<BlobPart[]>([]);
   const previewRef = useRef<HTMLAudioElement | null>(null);
@@ -52,6 +74,7 @@ export function CommunityStoryMemberAudioPanel({
   const pendingRecordingRef = useRef<{ blob: Blob; fileName: string; mimeType: string } | null>(null);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
   const [uploadFailed, setUploadFailed] = useState(false);
+  const stoppingRef = useRef(false);
 
   const revokeLocalPreview = useCallback(() => {
     if (localPreviewUrl?.startsWith("blob:")) {
@@ -62,17 +85,40 @@ export function CommunityStoryMemberAudioPanel({
     setUploadFailed(false);
   }, [localPreviewUrl]);
 
+  const releaseStream = useCallback(() => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
   const stopRecording = useCallback(() => {
+    if (stoppingRef.current) return;
+    const recorder = recorderRef.current;
+    if (!recorder || recorder.state === "inactive") {
+      if (timerRef.current != null) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      setRecording(false);
+      return;
+    }
+
+    stoppingRef.current = true;
     if (timerRef.current != null) {
       window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    recorderRef.current?.stop();
-    recorderRef.current = null;
     setRecording(false);
+    flushMediaRecorderBeforeStop(recorder);
+    recorder.stop();
   }, []);
 
-  useEffect(() => () => stopRecording(), [stopRecording]);
+  useEffect(
+    () => () => {
+      stopRecording();
+      releaseStream();
+    },
+    [releaseStream, stopRecording],
+  );
 
   useEffect(() => () => revokeLocalPreview(), [revokeLocalPreview]);
 
@@ -83,13 +129,19 @@ export function CommunityStoryMemberAudioPanel({
       setUploadFailed(false);
       try {
         const normalizedType = normalizeRecordingMime(mimeType || blob.type);
-        const file = new File([blob], fileName, { type: normalizedType });
-        if (file.size < 256) {
-          onError("Recording was too short. Try again and speak for a few seconds.");
+        const durationSec = await measureAudioBlobDurationSec(blob);
+        const validation = validateStoryVoiceRecording({
+          sizeBytes: blob.size,
+          durationSec,
+        });
+        if (!validation.ok) {
+          onError(validation.message);
           onAudioUrlChange(null);
           revokeLocalPreview();
           return;
         }
+
+        const file = new File([blob], fileName, { type: normalizedType });
         pendingRecordingRef.current = { blob, fileName, mimeType: normalizedType };
         if (options?.keepLocalPreview !== false) {
           const preview = URL.createObjectURL(blob);
@@ -128,12 +180,14 @@ export function CommunityStoryMemberAudioPanel({
     onError("");
     onAudioUrlChange(null);
     revokeLocalPreview();
+    stoppingRef.current = false;
     if (!isMediaRecorderSupported()) {
       onError("Recording is not supported in this browser.");
       return;
     }
     try {
       const stream = await getWorshipRecordingMediaStream();
+      streamRef.current = stream;
       const recorder = createAudioMediaRecorder(stream);
       const mimeType = recorder.mimeType || "audio/webm";
       recorderMimeRef.current = mimeType;
@@ -142,28 +196,42 @@ export function CommunityStoryMemberAudioPanel({
         if (event.data.size > 0) chunksRef.current.push(event.data);
       };
       recorder.onstop = () => {
-        stream.getTracks().forEach((track) => track.stop());
-        const blobType = normalizeRecordingMime(recorderMimeRef.current || "audio/webm");
-        const blob = new Blob(chunksRef.current, { type: blobType });
-        const fileName = storyRecordingFileName(recorderMimeRef.current || blobType);
-        void uploadBlob(blob, fileName, blobType);
+        void (async () => {
+          await waitForRecorderFinalizationMs();
+          releaseStream();
+          const blobType = normalizeRecordingMime(recorderMimeRef.current || "audio/webm");
+          const blob = new Blob(chunksRef.current, { type: blobType });
+          const fileName = storyRecordingFileName(recorderMimeRef.current || blobType);
+          recorderRef.current = null;
+          stoppingRef.current = false;
+          await uploadBlob(blob, fileName, blobType);
+        })();
+      };
+      recorder.onerror = () => {
+        stoppingRef.current = false;
+        recorderRef.current = null;
+        releaseStream();
+        onError("Recording was interrupted. Try again.");
+        setRecording(false);
       };
       recorderRef.current = recorder;
-      recorder.start(250);
+      recorder.start(1000);
       setRecording(true);
       setElapsedSec(0);
       timerRef.current = window.setInterval(() => {
         setElapsedSec((value) => {
-          if (value + 1 >= COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC) {
+          const next = value + 1;
+          if (next >= COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC) {
             stopRecording();
           }
-          return value + 1;
+          return next;
         });
       }, 1000);
-    } catch {
-      onError("Microphone permission is required to record.");
+    } catch (error) {
+      releaseStream();
+      onError(recorderErrorMessage(error));
     }
-  }, [onAudioUrlChange, onError, revokeLocalPreview, stopRecording, uploadBlob]);
+  }, [onAudioUrlChange, onError, releaseStream, revokeLocalPreview, stopRecording, uploadBlob]);
 
   const handleFilePick = useCallback(
     async (file: File | null) => {
@@ -212,17 +280,17 @@ export function CommunityStoryMemberAudioPanel({
             stays untouched when you share a video.
           </p>
           {recording ? (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-red-600" aria-hidden />
               <span className="text-sm font-semibold text-red-700 dark:text-red-300">
                 Recording {elapsedSec}s / {COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC}s
               </span>
               <button
                 type="button"
-                className="ml-auto rounded-full bg-night-900 px-3 py-1 text-xs font-semibold text-white dark:bg-sand-100 dark:text-night-900"
+                className="ml-auto rounded-full bg-night-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-sand-100 dark:text-night-900"
                 onClick={stopRecording}
               >
-                Stop
+                Stop recording
               </button>
             </div>
           ) : (

@@ -5107,6 +5107,56 @@ html.dark .community-comment-reaction-btn-active {
   object-position: center;
 }
 
+.community-story-viewer-music-credit-bar {
+  flex-shrink: 0;
+  width: 100%;
+  padding: 0.35rem 1rem 0.45rem;
+  padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0px));
+  background: #000;
+}
+
+.community-story-viewer-music-credit-pill {
+  pointer-events: auto;
+  display: flex;
+  max-width: min(100%, 36rem);
+  margin: 0 auto;
+  align-items: flex-start;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 0.45rem 0.85rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+}
+
+.community-story-viewer-music-credit-trigger {
+  min-width: 0;
+  flex: 1;
+}
+
+.community-story-viewer-music-credit-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.community-story-viewer-music-credit-expanded {
+  pointer-events: auto;
+  max-width: min(100%, 36rem);
+  margin: 0.35rem auto 0;
+  max-height: 8rem;
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.6875rem;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
 .community-story-viewer-tap-layer {
   position: absolute;
   inset: 0;

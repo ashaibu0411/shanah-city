@@ -85,7 +85,8 @@
     "story-music:verify-free-library": "node scripts/story-music-verify-free-library.mjs",
     "test:story-music:import-packets": "node scripts/story-music-import-packets.test.mjs",
     "test:story-music:download-audio": "node scripts/story-music-download-audio.test.mjs",
-    "test:story-music:catalog-integrity": "tsx scripts/story-music-catalog-integrity.test.ts"
+    "test:story-music:catalog-integrity": "tsx scripts/story-music-catalog-integrity.test.ts",
+    "test:community:story-voice-layout": "tsx scripts/community-story-voice-and-music-layout.test.ts"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "^8.0.2",

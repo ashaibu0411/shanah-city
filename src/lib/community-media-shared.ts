@@ -3,7 +3,8 @@ export const COMMUNITY_VIDEO_MAX_BYTES = 100 * 1024 * 1024;
 export const COMMUNITY_VIDEO_MAX_DURATION_SEC = 90;
 export const COMMUNITY_AUDIO_MAX_BYTES = 15 * 1024 * 1024;
 /** Max length for member-recorded story overlay audio (photo/text stories). */
-export const COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC = 20;
+export const COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC = 60;
+export const COMMUNITY_STORY_OVERLAY_AUDIO_MIN_SEC = 0.5;
 export const COMMUNITY_STATUS_HOURS = 24;
 
 export const COMMUNITY_IMAGE_CONTENT_TYPES = [

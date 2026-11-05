@@ -1,0 +1,29 @@
+{
+  "catalogTrackId": "the-god-of-abraham-praise-usaf-band",
+  "artist": "United States Air Force Band",
+  "title": "The God of Abraham Praise",
+  "audioPath": "story-music://blob/story-music/audio/free-library/the-god-of-abraham-praise-usaf-band.mp3",
+  "documentReference": "Wikimedia Commons File:The_God_of_Abraham_Praise_-_Concert_Band_-_United_States_Air_Force_Band.mp3 (extmetadata LicenseShortName: Public domain); hymn tune Leoni (traditional PD).",
+  "recordingOwner": "United States Air Force Band concert band recording marked Public domain on Wikimedia Commons.",
+  "compositionPublishing": "Hymn text Thomas Olivers; tune Leoni (traditional) — public domain composition.",
+  "authorizedUses": "In-app user-generated story background audio (Shanah City Stories)",
+  "streamingPermitted": true,
+  "storagePermitted": true,
+  "territory": "Worldwide (PD composition; U.S. federal band PD recording — curator confirmed app use)",
+  "licenseType": "public-domain",
+  "licenseUrl": "https://www.music.af.mil/Multimedia/Music/Public-Domain-Music/",
+  "attributionText": "Performance: United States Air Force Band (public domain).",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AThe_God_of_Abraham_Praise_-_Concert_Band_-_United_States_Air_Force_Band.mp3",
+  "genres": [
+    "hymns",
+    "worship"
+  ],
+  "tags": [
+    "praise music",
+    "free-library",
+    "hymn"
+  ],
+  "sha256": "58c28a8353cfe7e0aae62cafa5761b6aa1c3df8047fdbf1975f06a39ad374285",
+  "bytes": 3863713,
+  "transcoded": false
+}

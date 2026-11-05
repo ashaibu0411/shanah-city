@@ -1,0 +1,29 @@
+{
+  "catalogTrackId": "gospel-train-us-navy-edwards",
+  "artist": "MU1 William F. Edwards, III (U.S. Navy)",
+  "title": "Gospel Train",
+  "audioPath": "story-music://blob/story-music/audio/free-library/gospel-train-us-navy-edwards.mp3",
+  "documentReference": "Wikimedia Commons File:Gospel_Train.mp3 (extmetadata LicenseShortName: Public domain); U.S. Navy recording.",
+  "recordingOwner": "U.S. Navy recording marked Public domain on Wikimedia Commons.",
+  "compositionPublishing": "Traditional gospel spiritual — public domain.",
+  "authorizedUses": "In-app user-generated story background audio (Shanah City Stories)",
+  "streamingPermitted": true,
+  "storagePermitted": true,
+  "territory": "Worldwide (PD recording and traditional composition — curator confirmed app use)",
+  "licenseType": "public-domain",
+  "licenseUrl": "",
+  "attributionText": "Performance: MU1 William F. Edwards, III (public domain).",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gospel_Train.mp3",
+  "genres": [
+    "gospel",
+    "worship"
+  ],
+  "tags": [
+    "gospel music",
+    "free-library",
+    "gospel"
+  ],
+  "sha256": "d227ee79f45561499bef820feadccc808c5175831f8a9d1a6dabf2025fddee77",
+  "bytes": 3569959,
+  "transcoded": false
+}

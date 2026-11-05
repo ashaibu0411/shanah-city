@@ -20,6 +20,8 @@ type CommunityStoryMusicAttachProps = {
   onNativeAudioAvailable?: (available: boolean) => void;
   storyPhotoUrl?: string | null;
   onYoutubeViewerActiveChange?: (active: boolean) => void;
+  /** belowMedia: credit bar sits under the photo in the black footer strip (default). */
+  creditPlacement?: "belowMedia" | "overlay";
 };
 
 type PlaybackPayload = StoryMusicPlaybackApiResponse;
@@ -56,6 +58,7 @@ export function CommunityStoryMusicAttach({
   onNativeAudioAvailable,
   storyPhotoUrl,
   onYoutubeViewerActiveChange,
+  creditPlacement = "overlay",
 }: CommunityStoryMusicAttachProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const nativeAudioCbRef = useRef(onNativeAudioAvailable);
@@ -304,6 +307,87 @@ export function CommunityStoryMusicAttach({
   const attributionText = playback?.attributionText?.trim();
   const licenseUrl = playback?.licenseUrl?.trim();
   const sourceUrl = playback?.sourceUrl?.trim();
+  const belowMedia = creditPlacement === "belowMedia";
+
+  const creditExpandedPanel =
+    showCredits && engine === "audio" && (attributionText || licenseUrl) ? (
+      <div
+        className={
+          belowMedia
+            ? "community-story-viewer-music-credit-expanded"
+            : "pointer-events-auto absolute inset-x-4 bottom-[7.5rem] z-20 max-h-32 overflow-y-auto rounded-lg bg-black/75 px-3 py-2 text-[11px] text-white shadow-lg"
+        }
+      >
+        <p className="font-semibold">Music credit</p>
+        {attributionText ? <p className="mt-1">{attributionText}</p> : null}
+        {licenseUrl ? (
+          <a href={licenseUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block underline">
+            License
+          </a>
+        ) : null}
+        {sourceUrl ? (
+          <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block underline">
+            Source
+          </a>
+        ) : null}
+        <button type="button" className="mt-2 font-semibold underline" onClick={() => setShowCredits(false)}>
+          Close
+        </button>
+      </div>
+    ) : null;
+
+  const creditBar = (
+    <div
+      className={
+        belowMedia
+          ? "community-story-viewer-music-credit-bar"
+          : "pointer-events-none absolute inset-x-0 bottom-[4.75rem] z-20 flex justify-center px-4"
+      }
+    >
+      <div
+        className={
+          belowMedia
+            ? "community-story-viewer-music-credit-pill"
+            : "pointer-events-auto max-w-full rounded-full bg-black/55 px-3 py-1.5 shadow-lg ring-1 ring-white/15 backdrop-blur-md"
+        }
+      >
+        {engine === "audio" && (attributionText || licenseUrl) ? (
+          <button
+            type="button"
+            className="mr-2 shrink-0 text-[10px] font-semibold text-white/80 underline"
+            onClick={() => setShowCredits((v) => !v)}
+          >
+            Credit
+          </button>
+        ) : null}
+        <button
+          type="button"
+          className="community-story-viewer-music-credit-trigger flex w-full min-w-0 items-start gap-2 text-left"
+          onClick={handleStickerClick}
+          aria-label={
+            loadError || engine === "unavailable"
+              ? "Retry story music"
+              : youtubeVideoMode
+                ? `Watch gospel music video: ${music.title}`
+                : soundOn
+                  ? "Mute story background audio"
+                  : "Play story background audio"
+          }
+        >
+          <span className="shrink-0 text-sm leading-5" aria-hidden>
+            {youtubeVideoMode ? "▶️" : soundOn && !loadError && engine !== "unavailable" ? "🔊" : "🔇"}
+          </span>
+          <span className="community-story-viewer-music-credit-label min-w-0 text-xs font-semibold text-white">
+            {loadError || engine === "unavailable"
+              ? `${music.title} · tap to retry`
+              : youtubeVideoMode
+                ? `${music.title} · Tap for gospel video`
+                : `${music.title} · ${music.artist}`}
+          </span>
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -321,63 +405,8 @@ export function CommunityStoryMusicAttach({
         storyPhotoUrl={storyPhotoUrl}
         embedUnavailable={engine === "unavailable"}
       />
-      {showCredits && engine === "audio" && (attributionText || licenseUrl) ? (
-        <div className="pointer-events-auto absolute inset-x-4 bottom-[7.5rem] z-20 max-h-32 overflow-y-auto rounded-lg bg-black/75 px-3 py-2 text-[11px] text-white shadow-lg">
-          <p className="font-semibold">Music credit</p>
-          {attributionText ? <p className="mt-1">{attributionText}</p> : null}
-          {licenseUrl ? (
-            <a href={licenseUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block underline">
-              License
-            </a>
-          ) : null}
-          {sourceUrl ? (
-            <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block underline">
-              Source
-            </a>
-          ) : null}
-          <button type="button" className="mt-2 font-semibold underline" onClick={() => setShowCredits(false)}>
-            Close
-          </button>
-        </div>
-      ) : null}
-      <div className="pointer-events-none absolute inset-x-0 bottom-[4.75rem] z-20 flex justify-center px-4">
-        <div className="pointer-events-auto max-w-full rounded-full bg-black/55 px-3 py-1.5 shadow-lg ring-1 ring-white/15 backdrop-blur-md">
-          {engine === "audio" && (attributionText || licenseUrl) ? (
-            <button
-              type="button"
-              className="mr-2 text-[10px] font-semibold text-white/80 underline"
-              onClick={() => setShowCredits((v) => !v)}
-            >
-              Credit
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className="flex max-w-[min(100vw-3rem,20rem)] items-center gap-2 text-left"
-            onClick={handleStickerClick}
-            aria-label={
-              loadError || engine === "unavailable"
-                ? "Retry story music"
-                : youtubeVideoMode
-                  ? `Watch gospel music video: ${music.title}`
-                  : soundOn
-                    ? "Mute story background audio"
-                    : "Play story background audio"
-            }
-          >
-            <span className="shrink-0 text-sm" aria-hidden>
-              {youtubeVideoMode ? "▶️" : soundOn && !loadError && engine !== "unavailable" ? "🔊" : "🔇"}
-            </span>
-            <span className="min-w-0 truncate text-xs font-semibold text-white">
-              {loadError || engine === "unavailable"
-                ? `${music.title} · tap to retry`
-                : youtubeVideoMode
-                  ? `${music.title} · Tap for gospel video`
-                  : `${music.title} · ${music.artist}`}
-            </span>
-          </button>
-        </div>
-      </div>
+      {creditExpandedPanel}
+      {creditBar}
     </>
   );
 }
