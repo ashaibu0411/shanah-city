@@ -19,6 +19,8 @@ const previous = { [ids[0]]: "yes", [ids[1]]: "a sensitive response", [ids[2]]: 
 const allQuestions = mod.questions;
 
 assert.equal(mod.id, MARRIAGE_INTIMACY_MODULE_ID);
+assert.equal(mod.questions.find((q) => q.id === MARRIAGE_INTIMACY_OPT_IN_QUESTION_ID)?.allowSkip, false,
+  "the Yes or Not now decision must not offer an ambiguous Skip button");
 assert.equal(intimacyOptInChoice({}), null);
 assert.equal(intimacyOptInChoice({ [ids[0]]: "no" }), "no");
 assert.equal(visibleIntimacyModule(mod, {}).questions.length, 1);
