@@ -7,7 +7,7 @@ export function buildMod06IntimacyModule(): MarriageModuleDefinition {
   const lessons = [
     lesson("m06-l01", "Consent & scope", "Adult-only, educational, pastorally appropriate.", "learn", 1, {
       learnContent:
-        "This module covers emotional and physical intimacy in marriage with respect and boundaries. You may skip any item. Private answers are not shared with your partner automatically. You may request a private counselor conversation at any time.",
+        "This optional educational module is for adults. You may choose Not now and continue with the other learning activities. If you choose Yes, some activities are required and others can be skipped. Private reflections are not automatically shared with your partner. You may request a private pastoral conversation at any time.",
     }),
     lesson("m06-l02", "Emotional connection", "Feeling known before physical closeness.", "reflect", 2),
     lesson("m06-l03", "Affection & touch", "Non-sexual and sexual affection expectations.", "answer", 3),
@@ -20,7 +20,7 @@ export function buildMod06IntimacyModule(): MarriageModuleDefinition {
   const optIn = q(
     MODULE_ID,
     "m06-opt-in",
-    "I opt in to the intimacy learning activities in this module (required to proceed beyond intro).",
+    "I am 18 or older and voluntarily choose whether to participate in the intimacy learning activities.",
     "single_choice",
     "private_reflection",
     {
@@ -156,7 +156,7 @@ export function buildMod06IntimacyModule(): MarriageModuleDefinition {
         "Education about anatomy and pleasure is helpful when respectful.",
         "Shame-based messages from culture still affect me.",
         "I want intimacy to reflect mutual service, not demand.",
-        "Fatigue is a valid reason to pause — not an rejection of love.",
+        "Fatigue is a valid reason to pause — not a rejection of love.",
         "Humor can help unless it belittles.",
         "Past experiences may need healing with professional help.",
         "Trust is rebuilt slowly with consistency.",
