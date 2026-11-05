@@ -26,6 +26,7 @@ export function buildMod06IntimacyModule(): MarriageModuleDefinition {
     {
       lessonId: "m06-l01",
       required: true,
+      allowSkip: false, // Choose Yes or Not now; ambiguous skip is not valid consent.
       options: [
         { id: "yes", label: "Yes — I am an adult and choose to proceed" },
         { id: "no", label: "Not now — I will skip this optional module" },
