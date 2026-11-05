@@ -1,5 +1,5 @@
 /**
- * Phase 2B — six module banks, privacy, budget math, intimacy gate.
+ * Phase 2B — twelve module banks, privacy, budget math, intimacy gate.
  */
 import assert from "node:assert/strict";
 import { allPhase2BModuleDefinitions } from "../src/lib/marriage-stage2-content";
@@ -13,15 +13,29 @@ import { buildTemperamentInsights } from "../src/lib/marriage-stage2-temperament
 import { freezeStage2ModulesIntoSnapshot } from "../src/lib/marriage-curriculum-stage2-merge";
 import { computeModuleSubmissionProgress } from "../src/lib/marriage-module-progress";
 
-const MIN_QUESTIONS = 55;
+const MIN_QUESTIONS_CORE = 55;
+const CORE_PHASE2B_IDS = new Set([
+  "s2-temperament-discovery",
+  "s2-mod-02-family-background",
+  "s2-mod-03-communication",
+  "s2-mod-04-conflict-lab",
+  "s2-financial-workshop",
+  "s2-mod-06-intimacy",
+]);
 
 function run() {
   const modules = allPhase2BModuleDefinitions();
-  assert.equal(modules.length, 6, "six phase-2b modules");
+  assert.equal(modules.length, 12, "twelve Stage 2 learning modules");
 
   for (const mod of modules) {
     assert.ok(mod.lessons?.length, `${mod.id} has lessons`);
-    assert.ok(mod.questions.length >= MIN_QUESTIONS, `${mod.id} question count ${mod.questions.length}`);
+    const isCore = CORE_PHASE2B_IDS.has(mod.id);
+    if (isCore) {
+      assert.ok(mod.questions.length >= MIN_QUESTIONS_CORE, `${mod.id} question count ${mod.questions.length}`);
+    } else {
+      assert.ok(mod.lessons.length >= 3, `${mod.id} growth lessons`);
+      assert.ok(mod.questions.length >= 6, `${mod.id} growth questions ${mod.questions.length}`);
+    }
     const privateQs = mod.questions.filter(
       (q) =>
         q.visibility === "private_reflection" ||
@@ -29,8 +43,13 @@ function run() {
         q.visibility === "counselor_with_consent",
     );
     const shared = mod.questions.filter((q) => q.visibility === "shared_after_both_submit");
-    assert.ok(privateQs.length >= 3, `${mod.id} private items`);
-    assert.ok(shared.length >= 10, `${mod.id} shared items`);
+    if (isCore) {
+      assert.ok(privateQs.length >= 3, `${mod.id} private items`);
+      assert.ok(shared.length >= 10, `${mod.id} shared items`);
+    } else {
+      assert.ok(privateQs.length >= 1, `${mod.id} private reflection`);
+      assert.ok(shared.length >= 2, `${mod.id} shared agreement items`);
+    }
   }
 
   const fin = modules.find((m) => m.id === "s2-financial-workshop")!;
@@ -99,7 +118,7 @@ function run() {
   const frozen = freezeStage2ModulesIntoSnapshot([]);
   assert.ok(frozen.some((m) => m.id === "s2-temperament-discovery"), "publish freeze includes stage2");
   assert.ok(
-    frozen.find((m) => m.id === "s2-temperament-discovery")!.questions.length >= MIN_QUESTIONS,
+    frozen.find((m) => m.id === "s2-temperament-discovery")!.questions.length >= MIN_QUESTIONS_CORE,
     "frozen snapshot has full question bank",
   );
 

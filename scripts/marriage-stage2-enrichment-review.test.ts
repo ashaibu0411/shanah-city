@@ -83,6 +83,8 @@ async function main() {
   const completedAfter = premaritalAfter.filter((s) => s.status === "completed").length;
   assert.equal(completedAfter, completedBefore, "Stage 2 approval must not increment premarital session completion");
 
+  await new Promise((r) => setTimeout(r, 300));
+
   rmSync(dir, { recursive: true, force: true });
   console.log("marriage-stage2-enrichment-review.test.ts: OK");
 }

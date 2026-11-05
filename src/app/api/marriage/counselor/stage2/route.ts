@@ -9,6 +9,7 @@ import { isMarriageStage2Enabled } from "@/lib/marriage-stage2-feature";
 import { counselorAssignStage2EnrichmentReview } from "@/lib/marriage-session-review-workspace";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 import { isStage2EnrichmentSessionKey } from "@/lib/marriage-enrichment-session-keys";
+import type { MarriageSelfPacedSessionReviewRecord } from "@/lib/marriage-self-paced-types";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
 
   try {
     const store = marriageStore();
-    const reviews =
+    const reviews: MarriageSelfPacedSessionReviewRecord[] =
       typeof store.listSelfPacedSessionReviewsForJourney === "function"
         ? await store.listSelfPacedSessionReviewsForJourney(journeyId)
         : [];

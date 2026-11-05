@@ -1,7 +1,7 @@
 # Marriage Prep — Self-Paced Counseling + Stage 2 release preparation
 
-**Branch:** `feature/marriage-self-paced-stage2` (isolated; **not** merged to `main`)  
-**Baseline production main:** `2ea02c535f78aef240c4f9f9e3a576ebf391acc0`  
+**Branch:** `feature/marriage-stage2-integration` (merged from `feature/marriage-self-paced-stage2` onto current `main`)  
+**Baseline production main:** includes PRs #25–#27 (submission status, counselor layout, readability)  
 **Production:** do not deploy from this branch until authorized.
 
 ---
@@ -32,7 +32,7 @@
 | Item | Ready for staging | Production enable |
 |------|-------------------|-------------------|
 | Modules 1–6 content | Yes (Phase 2B) | Requires `MARRIAGE_HUB_STAGE2_ENABLED=1` + `NEXT_PUBLIC_MARRIAGE_STAGE2=1` on **staging** first |
-| Modules 7–12 scaffold | Partial (`mod-07-12-growth.ts`) | Content review |
+| Modules 7–12 | Full growth modules (`mod-07-12-growth.ts`) | Content review optional; not placeholders |
 | Intimacy module `s2-mod-06-intimacy` | Gated in code | Requires **`MARRIAGE_HUB_STAGE2_INTIMACY_APPROVED=1`** + pastoral sign-off ([MARRIAGE_STAGE2_PASTORAL_REVIEW.md](./MARRIAGE_STAGE2_PASTORAL_REVIEW.md)) |
 | Learning center `/marriage/learn` | Yes when flags on | Same flags |
 | Self-paced + Stage 2 | Self-paced uses premarital session keys; Stage 2 uses separate lesson hub | Enable flags together on staging after QA |
@@ -86,7 +86,7 @@
 
 ## Known gaps (follow-up)
 
-- Onboarding UI to pick delivery mode at couple start (API `set_delivery_mode` exists).
+- Onboarding UI to pick delivery mode at couple start — **couple hub panel** (`MarriageCoupleCounselingModePanel`) after consent; counselor can also set via API.
 - Deep integration of Stage 2 lesson completion into self-paced session assignment (premarital session keys today).
 - Staging E2E spec dedicated to self-paced approve path (unit test added).
 - Homework revision loop wired to `homework_review` status (reuse existing homework APIs).

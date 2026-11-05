@@ -17,11 +17,37 @@ import { updatePremaritalSessionStatus } from "@/lib/marriage-premarital-program
 import type {
   MarriageCounselorStructuredFeedback,
   MarriageSelfPacedSessionReviewRecord,
+  MarriageSessionClarificationMessageRecord,
   SelfPacedWorkflowStatus,
 } from "@/lib/marriage-self-paced-types";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
 const store = () => marriageStore();
+
+async function listSelfPacedReviewsForJourney(
+  journeyId: string,
+): Promise<MarriageSelfPacedSessionReviewRecord[]> {
+  const s = store();
+  if (typeof s.listSelfPacedSessionReviewsForJourney !== "function") return [];
+  return s.listSelfPacedSessionReviewsForJourney(journeyId);
+}
+
+async function listSelfPacedReviewsForCounselor(
+  counselorUserId: string,
+): Promise<MarriageSelfPacedSessionReviewRecord[]> {
+  const s = store();
+  if (typeof s.listSelfPacedReviewsForCounselor !== "function") return [];
+  return s.listSelfPacedReviewsForCounselor(counselorUserId);
+}
+
+async function listClarificationMessagesForSession(
+  journeyId: string,
+  sessionKey: string,
+): Promise<MarriageSessionClarificationMessageRecord[]> {
+  const s = store();
+  if (typeof s.listClarificationMessages !== "function") return [];
+  return s.listClarificationMessages(journeyId, sessionKey);
+}
 
 async function auditSession(
   journeyId: string,
@@ -129,8 +155,8 @@ export async function buildCoupleCounselingExperienceView(
     feedbackPublishedAt?: string | null;
     approvedAt?: string | null;
   }> = [];
-  if (journeyUsesSelfPacedCounselingReview(journey) && typeof store().listSelfPacedSessionReviewsForJourney === "function") {
-    const reviews = await store().listSelfPacedSessionReviewsForJourney(journey.id);
+  if (journeyUsesSelfPacedCounselingReview(journey)) {
+    const reviews = await listSelfPacedReviewsForJourney(journey.id);
     for (const r of reviews) {
       selfPacedSessions.push({
         sessionKey: r.sessionKey,
@@ -241,8 +267,9 @@ export async function syncSelfPacedReviewsAfterModuleSubmit(
   if (!journey) return;
   const { isStage2EnrichmentSessionKey } = await import("@/lib/marriage-enrichment-session-keys");
   const usesSelfPaced = journeyUsesSelfPacedCounselingReview(journey);
-  const reviews = (await store().listSelfPacedSessionReviewsForJourney(journeyId)).filter(
-    (review) => usesSelfPaced || isStage2EnrichmentSessionKey(review.sessionKey),
+  const reviews = (await listSelfPacedReviewsForJourney(journeyId)).filter(
+    (review: MarriageSelfPacedSessionReviewRecord) =>
+      usesSelfPaced || isStage2EnrichmentSessionKey(review.sessionKey),
   );
   if (reviews.length === 0) return;
   for (const review of reviews) {
@@ -282,7 +309,7 @@ export async function buildCounselorSelfPacedReviewCenter(viewer: PublicMember) 
   await import("@/lib/marriage-counseling-access").then((m) =>
     m.assertMarriageCounselorRole(viewer),
   );
-  const assigned = await store().listSelfPacedReviewsForCounselor(viewer.id);
+  const assigned = await listSelfPacedReviewsForCounselor(viewer.id);
   const awaitingReview = assigned.filter((r) => r.workflowStatus === "ready_for_review");
   const homeworkReview = assigned.filter((r) => r.workflowStatus === "homework_review");
   const clarification = assigned.filter((r) => r.workflowStatus === "clarification_open");
@@ -303,10 +330,7 @@ export async function getCounselorSessionReviewDetail(
   if (!journey) throw new Error("Journey not found.");
   await assertClinicalCounselorForJourney(viewer, journey);
   const review = await store().getSelfPacedSessionReview(journeyId, sessionKey);
-  const clarifications =
-    typeof store().listClarificationMessages === "function"
-      ? await store().listClarificationMessages(journeyId, sessionKey)
-      : [];
+  const clarifications = await listClarificationMessagesForSession(journeyId, sessionKey);
   return { journey, review, clarifications };
 }
 

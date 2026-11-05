@@ -8,7 +8,10 @@ import {
 } from "@/lib/marriage-enrichment-session-keys";
 import { listReleasedHomeworkForParticipant } from "@/lib/marriage-homework-server";
 import { partnerViewPublishedFeedback } from "@/lib/marriage-self-paced-server";
-import type { SelfPacedWorkflowStatus } from "@/lib/marriage-self-paced-types";
+import type {
+  MarriageSessionClarificationMessageRecord,
+  SelfPacedWorkflowStatus,
+} from "@/lib/marriage-self-paced-types";
 import { getModuleForContentVersion, getActiveContentVersionLabel } from "@/lib/marriage-curriculum-service";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
 
@@ -123,7 +126,7 @@ export async function getCoupleSessionFeedbackDetail(
   await assertJourneyParticipantLoose(journey, viewer.id);
   const review = await store().getSelfPacedSessionReview(journey.id, sessionKey);
   const feedback = await partnerViewPublishedFeedback(viewer, journey.id, sessionKey);
-  const clarifications =
+  const clarifications: MarriageSessionClarificationMessageRecord[] =
     typeof store().listClarificationMessages === "function"
       ? await store().listClarificationMessages(journey.id, sessionKey)
       : [];
