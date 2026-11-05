@@ -61,8 +61,13 @@ export function prepareIntimacyDraftPatch(
   if (hasOptInPatch && requestedChoice !== "yes" && requestedChoice !== "no") {
     throw new Error("Choose Yes or Not now for the intimacy module.");
   }
-  const sensitiveKeys = Object.keys(proposedPatch).filter((key) => key !== optId);
-  if (sensitiveKeys.length > 0 && (hasOptInPatch || intimacyOptInChoice(existingAnswers) !== "yes")) {
+  // A withdrawal generates null-valued cleanup patches for every sensitive field.
+  // Only populated sensitive values require pre-existing, independently saved Yes.
+  const sensitiveKeysWithAnswers = Object.keys(proposedPatch).filter(
+    (key) => key !== optId && proposedPatch[key] !== null,
+  );
+  if (sensitiveKeysWithAnswers.length > 0 &&
+      (hasOptInPatch || intimacyOptInChoice(existingAnswers) !== "yes")) {
     throw new Error("You must opt in and save your choice before answering intimacy questions.");
   }
 
