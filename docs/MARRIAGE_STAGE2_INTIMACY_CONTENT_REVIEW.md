@@ -2,7 +2,7 @@
 
 **Module:** `s2-mod-06-intimacy` — Sex, intimacy & affection
 **Audience:** Adult participants in premarital and marriage enrichment tracks
-**Decision:** **Approval pending**. This document does not approve or activate Module 6.
+**Decision:** **Pastoral content approved on November 5, 2026**, as confirmed by the Senior Pastor in the project conversation. This records content approval only and does not enable or deploy Module 6.
 **Production flag:** `MARRIAGE_HUB_STAGE2_INTIMACY_APPROVED` must remain unset/off until explicit pastoral authorization and staging QA.
 
 ## What the participant sees
@@ -53,9 +53,9 @@ Read the complete prompt bank, not only these examples, before sign-off.
 - iPhone/Android view; direct links with `?lesson=m06-l04` cannot bypass intro
 - Keep the approval feature flag OFF until explicit signed-off release step
 
-## Approval record (not yet signed)
+## Approval record
 
-- Senior Pastor / authorized reviewer: **Pending**
-- Content scope and wording accepted: **Pending**
-- Security / privacy QA: **Pending**
-- Production intimacy enable: **NOT AUTHORIZED**
+- Senior Pastor / authorized reviewer: **Approved in project conversation on November 5, 2026** (content approval; no separate signature represented).
+- Content scope and wording accepted: **Approved** for the Module 6 draft reviewed; changes to sensitive question content require renewed review.
+- Security / privacy QA: **Pending** actual authenticated staging execution. A Vercel preview build passing is not equivalent to end-to-end consent verification.
+- Production intimacy enable: **NOT AUTHORIZED by content approval alone**. Keep the production flag off until consent/privacy tests, staging acceptance, and a separate release go/no-go decision.
