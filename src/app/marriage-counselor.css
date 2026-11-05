@@ -1,0 +1,329 @@
+/* Counselor workspace and couple detail: mobile-first presentation.
+   Scoped to the counselor pages. No changes to assessment, notes, or permissions. */
+
+.marriage-c3m-dashboard {
+  min-width: 0;
+  width: 100%;
+  color: #292219;
+  font-size: 1rem;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+.marriage-c3m-dashboard :where(section, article, aside, header, div, nav) {
+  min-width: 0;
+}
+
+.marriage-c3m-dashboard-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+.marriage-c3m-header,
+.marriage-c3m-panel,
+.marriage-c3m-summary-card,
+.marriage-c3m-attention-banner {
+  min-width: 0;
+  border: 1px solid #e8e2da;
+  border-radius: 1.15rem;
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(41 34 25 / 4%);
+}
+
+.marriage-c3m-header {
+  display: grid;
+  gap: 0.8rem;
+  padding: clamp(1rem, 3vw, 1.75rem);
+}
+
+.marriage-c3m-header-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.marriage-c3m-back-link,
+.marriage-c3m-inline-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  width: fit-content;
+  max-width: 100%;
+  color: #985030;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.marriage-c3m-back-link:hover,
+.marriage-c3m-inline-link:hover { text-decoration: underline; }
+
+.marriage-c3m-title {
+  margin: 0;
+  color: #292219;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.55rem, 4vw, 2.2rem);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.marriage-c3m-subtitle {
+  margin-top: 0.35rem;
+  color: #756b61;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.marriage-c3m-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.marriage-c3m-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  border-radius: 0.75rem;
+  border: 1px solid #e8e2da;
+  background: #f7f4ef;
+  padding: 0.45rem 0.7rem;
+  color: #51463c;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.marriage-c3m-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.marriage-c3m-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: clamp(0.9rem, 2.5vw, 1.4rem);
+}
+
+.marriage-c3m-summary-label {
+  margin: 0;
+  color: #665e55;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.marriage-c3m-summary-value {
+  margin: 0;
+  color: #2d271f;
+  font-size: clamp(1.35rem, 3.5vw, 2rem);
+  font-weight: 750;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.marriage-c3m-summary-hint {
+  margin: 0;
+  color: #766e65;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.marriage-c3m-panel { padding: clamp(1rem, 2.5vw, 1.5rem); }
+.marriage-c3m-section-title {
+  margin: 0;
+  color: #292219;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  line-height: 1.35;
+}
+.marriage-c3m-muted {
+  color: #6f675f;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.marriage-c3m-attention-banner {
+  padding: 1rem 1.2rem;
+  border-color: #e8cf9d;
+  background: #fff9ed;
+}
+
+.marriage-c3m-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+.marriage-c3m-column-main,
+.marriage-c3m-column-side {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.marriage-c3m-module-row,
+.marriage-c3m-response-card {
+  min-width: 0;
+  border: 1px solid #e8e2da;
+  border-radius: 0.9rem;
+  padding: 0.9rem;
+  background: #faf8f5;
+  overflow-wrap: anywhere;
+}
+.marriage-c3m-module-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+.marriage-c3m-status {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  max-width: 100%;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  font-weight: 700;
+  white-space: normal;
+}
+.marriage-c3m-status-done { background: #dff6e9; color: #19663e; }
+.marriage-c3m-status-wait { background: #fff2d5; color: #855513; }
+.marriage-c3m-status-idle { background: #f0ece7; color: #665d52; }
+.marriage-c3m-status-active { background: #e7efff; color: #285c92; }
+
+.marriage-c3m-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.8rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid #e8e2da;
+  border-radius: 0.9rem;
+  background: #faf8f5;
+}
+.marriage-c3m-form :where(label, button, input, select, textarea) { max-width: 100%; }
+.marriage-c3m-input,
+.marriage-c3m-textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  border: 1px solid #cfc7bd;
+  border-radius: 0.7rem;
+  background: #fff;
+  padding: 0.65rem 0.75rem;
+  color: #292219;
+  font-size: 1rem; /* Prevent iOS input focus zoom. */
+  line-height: 1.4;
+}
+.marriage-c3m-textarea { min-height: 7rem; resize: vertical; }
+.marriage-c3m-input:focus-visible,
+.marriage-c3m-textarea:focus-visible {
+  outline: 2px solid #af6c4f;
+  outline-offset: 2px;
+}
+.marriage-c3m-btn-primary,
+.marriage-c3m-btn-secondary,
+.marriage-c3m-btn-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  max-width: 100%;
+  border: 1px solid transparent;
+  border-radius: 0.8rem;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  text-decoration: none;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: normal;
+}
+.marriage-c3m-btn-primary { background: #30271d; color: #fff; }
+.marriage-c3m-btn-secondary { background: #fff; border-color: #cfc7bd; color: #30271d; }
+.marriage-c3m-btn-inline { min-height: 2.5rem; padding: 0.4rem 0.7rem; }
+.marriage-c3m-btn-inline-approve { background: #dff6e9; color: #19663e; }
+.marriage-c3m-btn-inline-deny { background: #fce7e7; color: #9b3333; }
+.marriage-c3m-dashboard :where(button, a):focus-visible {
+  outline: 2px solid #a95d3e;
+  outline-offset: 3px;
+}
+.marriage-c3m-dashboard :where(button:disabled) { cursor: not-allowed; opacity: 0.55; }
+
+/* A single scrollable line of section links is substantially more useful
+   on narrow phones than a sticky toolbar that takes half the viewport. */
+.marriage-c3m-journey-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  padding-block: 0.4rem 0.8rem;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+.marriage-c3m-journey-nav > a { flex-shrink: 0; white-space: nowrap; }
+.marriage-c3m-dashboard :where([id^="premarital-ops-"], #journey-overview, #premarital-program, #journey-sessions, #journey-private-notes) {
+  scroll-margin-top: 6.5rem;
+}
+
+@media (max-width: 359px) {
+  .marriage-c3m-summary-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (min-width: 640px) {
+  .marriage-c3m-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .marriage-c3m-form { padding: 1.2rem; }
+}
+
+@media (min-width: 1024px) {
+  .marriage-c3m-columns { grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr); }
+}
+
+html.dark .marriage-c3m-dashboard { color: #f7eee3; }
+html.dark .marriage-c3m-header,
+html.dark .marriage-c3m-panel,
+html.dark .marriage-c3m-summary-card { border-color: #40382d; background: #24201c; box-shadow: none; }
+html.dark .marriage-c3m-title,
+html.dark .marriage-c3m-section-title,
+html.dark .marriage-c3m-summary-value { color: #f7eee3; }
+html.dark .marriage-c3m-subtitle,
+html.dark .marriage-c3m-muted,
+html.dark .marriage-c3m-summary-label,
+html.dark .marriage-c3m-summary-hint { color: #c6baae; }
+html.dark .marriage-c3m-meta-chip,
+html.dark .marriage-c3m-module-row,
+html.dark .marriage-c3m-response-card,
+html.dark .marriage-c3m-form { color: #f7eee3; border-color: #493f33; background: #302a24; }
+html.dark .marriage-c3m-input,
+html.dark .marriage-c3m-textarea { border-color: #6f6253; background: #211d19; color: #f7eee3; }
+html.dark .marriage-c3m-btn-primary { color: #292219; background: #e4c59d; }
+html.dark .marriage-c3m-btn-secondary { color: #f7eee3; background: #302a24; border-color: #82715e; }
+html.dark .marriage-c3m-attention-banner { background: #3c3021; border-color: #8f713c; }
+html.dark .marriage-c3m-back-link,
+html.dark .marriage-c3m-inline-link { color: #e4b99c; }

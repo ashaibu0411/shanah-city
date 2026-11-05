@@ -103,15 +103,25 @@ export function MarriageCounselorPremaritalProgramPanel({
           </p>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <span className="text-xs font-bold uppercase tracking-wide text-night-500">Session status</span>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <div className="space-y-2">
+          <p className="text-xs font-bold uppercase tracking-wide text-night-500">
+            Counselor-led session status
+          </p>
+          <p className="marriage-c3m-muted text-xs">
+            Meeting status is separate from each partner's submitted assessments and homework.
+          </p>
+          <div className="grid grid-cols-3 gap-2" role="group" aria-label="Counselor-led session status">
             {(["not_started", "in_progress", "completed"] as const).map((status) => (
               <button
                 key={status}
                 type="button"
+                aria-pressed={active.status === status}
                 disabled={busy || active.status === status}
-                className="rounded-full border border-night-900/15 px-4 py-2 text-sm font-semibold capitalize disabled:opacity-60"
+                className={`min-h-[44px] rounded-xl border px-2 py-2 text-xs font-semibold capitalize disabled:opacity-100 sm:text-sm ${
+                  active.status === status
+                    ? "border-night-900 bg-night-900 text-sand-50"
+                    : "border-night-900/15 bg-white text-night-900 dark:border-white/20 dark:bg-white/10 dark:text-sand-100"
+                }`}
                 onClick={() =>
                   void post({
                     action: "update_session_status",
