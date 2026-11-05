@@ -198,12 +198,36 @@ export async function buildCouplePremaritalProgramView(
           }),
       );
 
+      // Coursework is independent from counselor-operated meeting status.
+      // Only recommendedForSession modules are required; optional enrichment is excluded.
+      // Include released homework as the participant's own assigned work, never as proof
+      // of partner completion or a completed counselor appointment.
+      const requiredModules = linkedModules.filter((_, i) => def.linkedModules[i]?.recommendedForSession);
+      const ownWorkStatuses = [
+        ...requiredModules.map((m) => m.myStatus),
+        ...sessionHomework.map((h) =>
+          h.status === "submitted" ? ("submitted" as const) :
+          h.status === "not_started" ? ("not_started" as const) : ("draft" as const),
+        ),
+      ];
+      const hasWork = ownWorkStatuses.length > 0;
+      const myWorkSubmitted = hasWork && ownWorkStatuses.every((status) => status === "submitted");
+      const hasStarted = ownWorkStatuses.some((status) => status !== "not_started");
+      const waitingForPartner = Boolean(
+        partnerId && requiredModules.some((mod) => mod.partnerStatus !== "submitted"),
+      );
+      const courseworkStatus: MarriageCouplePremaritalProgramView["sessions"][number]["courseworkStatus"] =
+        myWorkSubmitted
+          ? waitingForPartner ? "waiting_partner" : "submitted"
+          : hasStarted ? "in_progress" : "not_started";
+
       return {
         sessionKey: def.sessionKey,
         order: def.order,
         title: def.title,
         purpose: def.purpose,
         status: row?.status ?? "not_started",
+        courseworkStatus,
         linkedModules: linkedModules.map((m, i) => ({
           moduleId: m.moduleId,
           title: m.title,
@@ -218,6 +242,12 @@ export async function buildCouplePremaritalProgramView(
   );
 
   const completed = records.filter((r) => r.status === "completed").length;
+  const courseworkSubmittedCount = sessions.filter(
+    (session) => session.courseworkStatus === "submitted" || session.courseworkStatus === "waiting_partner",
+  ).length;
+  const currentCourseworkSessionKey = sessions.find(
+    (session) => session.courseworkStatus !== "submitted" && session.courseworkStatus !== "waiting_partner",
+  )?.sessionKey ?? null;
 
   const allReleasedHomework: MarriageCouplePremaritalProgramView["allReleasedHomework"] = [];
   const seenHw = new Set<string>();
@@ -235,6 +265,8 @@ export async function buildCouplePremaritalProgramView(
     currentSessionKey: deriveCurrentSessionKey(records),
     sessionsCompleted: completed,
     sessionsTotal: PREMARITAL_PROGRAM_SESSIONS.length,
+    courseworkSubmittedCount,
+    currentCourseworkSessionKey,
     sessions,
     allReleasedHomework,
   };
