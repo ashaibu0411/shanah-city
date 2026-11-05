@@ -10,9 +10,16 @@ type Props = {
 };
 
 function statusTone(status: string) {
-  if (status === "completed") return "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100";
+  if (status === "submitted" || status === "waiting_partner") return "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100";
   if (status === "in_progress") return "bg-clay-100 text-clay-900 dark:bg-clay-900/40 dark:text-clay-100";
   return "bg-stone-100 text-stone-700 dark:bg-white/10 dark:text-sand-200";
+}
+
+function courseworkLabel(status: MarriageCouplePremaritalProgramView["sessions"][number]["courseworkStatus"]) {
+  if (status === "waiting_partner") return "Your work submitted · Awaiting partner";
+  if (status === "submitted") return "Coursework submitted";
+  if (status === "in_progress") return "Coursework in progress";
+  return "Coursework not started";
 }
 
 export function MarriageCoupleSessionProgressTracker({ program }: Props) {
@@ -22,8 +29,8 @@ export function MarriageCoupleSessionProgressTracker({ program }: Props) {
         Eight-session journey
       </h2>
       <p className={`${marriagePremium.cardMuted} mt-1 text-sm`}>
-        {program.sessionsCompleted}/{program.sessionsTotal} sessions marked complete with your counselor. Assessment
-        progress does not automatically complete a session.
+        Your coursework submitted: {program.courseworkSubmittedCount}/{program.sessionsTotal} sessions.
+        You can work at your own pace; counselor-led appointments are tracked separately when scheduled.
       </p>
       <ul className="mt-4 space-y-3">
         {program.sessions.map((session) => (
@@ -36,9 +43,14 @@ export function MarriageCoupleSessionProgressTracker({ program }: Props) {
                 <p className="text-sm font-semibold">
                   Session {session.order}: {session.title}
                 </p>
-                <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold capitalize ${statusTone(session.status)}`}>
-                  {session.status.replace(/_/g, " ")}
+                <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold ${statusTone(session.courseworkStatus)}`}>
+                  {courseworkLabel(session.courseworkStatus)}
                 </span>
+                {session.status !== "not_started" ? (
+                  <p className="mt-1 text-xs text-night-600 dark:text-sand-300">
+                    Counselor-led session: {session.status.replace(/_/g, " ")}
+                  </p>
+                ) : null}
               </div>
             </div>
             {session.appointment ? (
