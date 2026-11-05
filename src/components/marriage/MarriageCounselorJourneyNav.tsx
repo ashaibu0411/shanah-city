@@ -17,8 +17,8 @@ export function MarriageCounselorJourneyNav({ journeyId, programType, showReadin
 
   return (
     <nav
-      className="marriage-c3m-journey-nav sticky top-0 z-10 -mx-1 mb-4 flex flex-wrap gap-2 border-b border-[#E8E2DA] bg-[#F7F4EF]/95 pb-3 pt-1 backdrop-blur dark:border-white/10 dark:bg-[#1a1612]/95"
-      aria-label="Couple journey sections"
+      className="marriage-c3m-journey-nav mb-4 flex flex-nowrap gap-2 border-b border-[#E8E2DA] bg-transparent dark:border-white/10"
+      aria-label="Couple journey sections (scroll horizontally for more)"
     >
       <a href={`${base}#journey-overview`} className={linkClass}>
         Overview
