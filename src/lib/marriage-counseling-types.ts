@@ -330,12 +330,19 @@ export type MarriageCouplePremaritalProgramView = {
   currentSessionKey: string | null;
   sessionsCompleted: number;
   sessionsTotal: number;
+  /** Current participant's independently submitted session coursework (not counselor meetings). */
+  courseworkSubmittedCount: number;
+  /** First session where the current participant still has required coursework to submit. */
+  currentCourseworkSessionKey: string | null;
   sessions: Array<{
     sessionKey: string;
     order: number;
     title: string;
     purpose: string;
+    /** Counselor-led meeting progress; never inferred from submissions. */
     status: MarriagePremaritalProgramSessionStatus;
+    /** Participant-facing progress derived from required modules and released homework. */
+    courseworkStatus: "not_started" | "in_progress" | "waiting_partner" | "submitted";
     linkedModules: Array<{
       moduleId: string;
       title: string;
