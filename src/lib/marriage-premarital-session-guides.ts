@@ -40,7 +40,7 @@ export const PREMARITAL_SESSION_TEACHING_GUIDES: Record<
       {
         heading: "Practical in-session exercise",
         paragraphs: [
-          "Have each partner complete this sentence aloud: “When I say ‘I do,’ I am promising God and you that I will __________ even when I do not feel __________.” Allow silence; do not rush.",
+          "Invite each partner to finish this sentence aloud: “When I say ‘I do,’ I promise God and you that I will [name a commitment], even when I do not feel [name an emotion].” Give each person time to think and speak without rushing.",
           "Together write (or say) one sentence describing how church community will know when to intervene gently if they see strain in year one.",
         ],
       },
