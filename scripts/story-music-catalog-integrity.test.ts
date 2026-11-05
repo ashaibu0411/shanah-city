@@ -4,6 +4,7 @@ import path from "node:path";
 import {
   DEFAULT_IMPORT_CANDIDATE_IDS,
   FREE_LIBRARY_IMPORT_CANDIDATES,
+  VOCAL_IMPORT_CANDIDATE_IDS,
 } from "./story-music-rights-packets.mjs";
 import { countActiveFreeWorshipTracks } from "../src/lib/story-music/story-music-free-library";
 import { STORY_MUSIC_PRODUCTION_PILOT_TAG } from "../src/lib/story-music/story-music-config";
@@ -17,11 +18,11 @@ async function main() {
   const catalog = loadJson("data/story-music-authorized-catalog.json");
   const rights = loadJson("data/story-music-rights-records.json");
 
-  const LAUNCH_IDS = [
-    "amazing-grace-usaf-reserve-band",
-    "the-god-of-abraham-praise-usaf-band",
-    "gospel-train-us-navy-edwards",
-  ];
+  const LAUNCH_IDS = (catalog.tracks ?? [])
+    .filter((t: { tags?: string[] }) => t.tags?.includes("free-library"))
+    .map((t: { id: string }) => t.id);
+
+  assert.ok(LAUNCH_IDS.length >= 14, "expected at least 14 free-library tracks after vocal expansion");
 
   for (const id of DEFAULT_IMPORT_CANDIDATE_IDS) {
     const packet = FREE_LIBRARY_IMPORT_CANDIDATES[id as keyof typeof FREE_LIBRARY_IMPORT_CANDIDATES];
@@ -31,6 +32,15 @@ async function main() {
     assert.equal(row.reviewStatus, "published", `${id} must be published after successful import`);
     assert.equal(row.publishedCatalogTrackId, packet.catalogTrackId, `${id} publishedCatalogTrackId`);
     assert.ok(row.rightsEvidenceRef?.trim(), `${id} rightsEvidenceRef`);
+  }
+
+  for (const id of VOCAL_IMPORT_CANDIDATE_IDS) {
+    const packet = FREE_LIBRARY_IMPORT_CANDIDATES[id as keyof typeof FREE_LIBRARY_IMPORT_CANDIDATES];
+    const row = discovery.candidates?.find((c: { id: string }) => c.id === id);
+    assert.ok(row, `vocal discovery row ${id}`);
+    assert.equal(row.reviewStatus, "published", `${id} vocal must be published after import`);
+    assert.equal(row.publishedCatalogTrackId, packet.catalogTrackId, `${id} vocal publishedCatalogTrackId`);
+    assert.equal(row.storagePermitted, true, `${id} storagePermitted after import packet`);
   }
 
   const catalogIds = new Set((catalog.tracks ?? []).map((t: { id: string }) => t.id));
@@ -49,7 +59,7 @@ async function main() {
   assert.equal(
     freeLibraryPublished.length,
     LAUNCH_IDS.length,
-    "three free-library launch tracks must be published in catalog",
+    "free-library launch tracks must be published in catalog",
   );
   for (const id of LAUNCH_IDS) {
     assert.ok(

@@ -1,7 +1,7 @@
 {
   "version": "1",
   "updatedAt": "2026-11-05T00:37:48.189Z",
-  "notes": "Owner listen/approve queue only — no Blob import until explicit approval after this review.",
+  "notes": "Owner approved all 11 vocal candidates for import (2026-11-04). Bulk expansion uses separate manifest; no per-song re-approval required.",
   "candidates": [
     {
       "queueId": "vocal-priority-001",

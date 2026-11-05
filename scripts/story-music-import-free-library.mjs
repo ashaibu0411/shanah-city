@@ -11,13 +11,15 @@
  *   node scripts/story-music-import-free-library.mjs [--dry-run] [--force] [--candidates=id1,id2]
  */
 
-import { readFile, writeFile, mkdir } from "fs/promises";
+import { readFile, writeFile, mkdir, access } from "fs/promises";
 import path from "path";
 import { readFileSync } from "fs";
 import { spawnSync } from "child_process";
 import {
   DEFAULT_IMPORT_CANDIDATE_IDS,
   FREE_LIBRARY_IMPORT_CANDIDATES,
+  VOCAL_IMPORT_CANDIDATE_IDS,
+  loadMergedImportCandidates,
 } from "./story-music-rights-packets.mjs";
 import { shouldSkipVerifiedImport } from "./story-music-free-library-resume.mjs";
 
@@ -50,9 +52,37 @@ loadEnvFile(path.join(ROOT, ".env.production.local"));
 loadEnvFile(path.join(ROOT, ".env"));
 
 function parseCandidateIds(argv) {
+  if (argv.includes("--bulk-expansion")) {
+    try {
+      const manifest = JSON.parse(
+        readFileSync(path.join(ROOT, "data", "story-music-bulk-import-manifest.json"), "utf8"),
+      );
+      return manifest.candidateIds ?? [];
+    } catch {
+      return [];
+    }
+  }
+  if (argv.includes("--vocal-batch")) return VOCAL_IMPORT_CANDIDATE_IDS;
   const fromArg = argv.find((a) => a.startsWith("--candidates="))?.split("=")[1];
   if (fromArg?.trim()) return fromArg.split(",").map((s) => s.trim()).filter(Boolean);
   return DEFAULT_IMPORT_CANDIDATE_IDS;
+}
+
+function packetNeedsTranscode(packet) {
+  return /\.ogg(\?|$)/i.test(packet.recordingUrl ?? "");
+}
+
+async function resolveIntakeJsonPath(outDir, catalogTrackId) {
+  for (const ext of [".mp3", ".ogg", ".oga", ".wav", ".opus"]) {
+    const candidate = path.join(outDir, `${catalogTrackId}${ext}.intake.json`);
+    try {
+      await access(candidate);
+      return candidate;
+    } catch {
+      /* try next */
+    }
+  }
+  return path.join(outDir, `${catalogTrackId}.mp3.intake.json`);
 }
 
 function runNode(script, args, env = process.env) {
@@ -89,6 +119,7 @@ async function main() {
   const dryRun = process.argv.includes("--dry-run");
   const force = process.argv.includes("--force");
   const ids = parseCandidateIds(process.argv.slice(2));
+  const IMPORT_CANDIDATES = loadMergedImportCandidates();
   const curator = process.env.STORY_MUSIC_CURATOR_NAME?.trim();
   const attestation = process.env.STORY_MUSIC_CURATOR_ATTESTATION?.trim();
   const blob =
@@ -108,7 +139,7 @@ async function main() {
   const tempDiscoveryPath = path.join(OUT_DIR, "discovery-import-snapshot.json");
 
   for (const id of ids) {
-    const packet = FREE_LIBRARY_IMPORT_CANDIDATES[id];
+    const packet = IMPORT_CANDIDATES[id];
     const row = discovery.candidates.find((c) => c.id === id);
     if (!packet || !row) {
       results.push({ id, ok: false, error: "unknown candidate or missing rights packet" });
@@ -153,13 +184,13 @@ async function main() {
       continue;
     }
 
-    await writeFile(DISCOVERY_PATH, `${JSON.stringify(discovery, null, 2)}\n`);
-
-    const ingest = runNode("story-music-ingest-approved.mjs", [
-      `--candidate=${id}`,
-      "--upload-blob",
-      `--out-dir=${OUT_DIR}`,
-    ]);
+    const ingestArgs = [`--candidate=${id}`, "--upload-blob", `--out-dir=${OUT_DIR}`];
+    if (packetNeedsTranscode(packet)) ingestArgs.push("--transcode-mp3");
+    await writeFile(tempDiscoveryPath, `${JSON.stringify(discovery, null, 2)}\n`);
+    const ingest = runNode("story-music-ingest-approved.mjs", ingestArgs, {
+      ...process.env,
+      STORY_MUSIC_DISCOVERY_PATH: tempDiscoveryPath,
+    });
     if (ingest.status !== 0) {
       results.push({
         id,
@@ -170,14 +201,11 @@ async function main() {
       continue;
     }
 
-    const intakeFile = path.join(
-      OUT_DIR,
-      `${packet.catalogTrackId}.mp3.intake.json`,
-    );
+    const intakeFile = await resolveIntakeJsonPath(OUT_DIR, packet.catalogTrackId);
     const publish = runNode("story-music-complete-intake-publish.mjs", [
       `--intake=${intakeFile}`,
       `--candidate=${id}`,
-    ]);
+    ], process.env);
     const publishOk = publish.status === 0;
     if (publishOk) {
       row.reviewStatus = "published";
@@ -193,7 +221,7 @@ async function main() {
     });
 
     if (publish.status === 0 && ids.indexOf(id) < ids.length - 1) {
-      await new Promise((r) => setTimeout(r, 3000));
+      await new Promise((r) => setTimeout(r, 5000));
     }
   }
 

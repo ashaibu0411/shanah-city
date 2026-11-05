@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 /**
- * Verify free-library catalog rows have matching Blob objects (head only — no token logged).
- *
- *   npm run story-music:verify-free-library
+ * Verify all free-library catalog rows have matching Blob objects.
  */
-
 import { readFileSync } from "fs";
 import path from "path";
 import { head } from "@vercel/blob";
@@ -36,11 +33,6 @@ const token =
   process.env.STORY_MUSIC_BLOB_READ_WRITE_TOKEN?.trim() || process.env.BLOB_READ_WRITE_TOKEN?.trim();
 
 const CATALOG_PATH = path.join(process.cwd(), "data", "story-music-authorized-catalog.json");
-const EXPECTED_IDS = [
-  "amazing-grace-usaf-reserve-band",
-  "the-god-of-abraham-praise-usaf-band",
-  "gospel-train-us-navy-edwards",
-];
 
 function blobPathFromAudioPath(audioPath) {
   const prefix = "story-music://blob/";
@@ -51,10 +43,9 @@ function blobPathFromAudioPath(audioPath) {
 async function main() {
   const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf8"));
   const tracks = catalog.tracks ?? [];
-  const freeLib = tracks.filter((t) => t.tags?.includes("free-library"));
+  const freeLibraryTracks = tracks.filter((t) => t.tags?.includes("free-library"));
   const report = {
-    freeLibraryCatalogRows: freeLib.length,
-    expectedLaunchTracks: EXPECTED_IDS.length,
+    expectedCatalogIds: freeLibraryTracks.length,
     tracks: [],
     ok: true,
   };
@@ -66,8 +57,8 @@ async function main() {
     process.exit(1);
   }
 
-  for (const id of EXPECTED_IDS) {
-    const row = tracks.find((t) => t.id === id);
+  for (const row of freeLibraryTracks) {
+    const id = row.id;
     const entry = { id, inCatalog: Boolean(row), blobPath: null, blobExists: false, size: null };
     if (!row) {
       report.ok = false;

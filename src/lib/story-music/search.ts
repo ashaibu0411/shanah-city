@@ -29,7 +29,10 @@ export const STORY_MUSIC_DISCOVERY_LANGUAGES: { code: string; label: string }[] 
 export const STORY_MUSIC_PICKER_CATEGORIES: { id: string; label: string }[] = [
   { id: "all", label: "All categories" },
   { id: "gospel_worship_songs", label: "Gospel & Worship Songs" },
+  { id: "contemporary_christian", label: "Contemporary Christian" },
+  { id: "african_gospel", label: "African Gospel" },
   { id: "traditional_gospel", label: "Traditional Gospel" },
+  { id: "gospel_choirs", label: "Gospel Choirs" },
   { id: "instrumentals", label: "Instrumentals" },
 ];
 
@@ -86,6 +89,26 @@ export function matchesStoryMusicPickerCategory(
       tags.some((t) =>
         ["gospel", "worship", "praise", "christian", "contemporary", "free-library"].includes(t),
       )
+    );
+  }
+
+  if (id === "contemporary_christian") {
+    return (
+      tags.includes("gospel_worship_songs") ||
+      genres.includes("contemporary_christian") ||
+      tags.includes("contemporary_christian")
+    );
+  }
+
+  if (id === "african_gospel") {
+    return tags.includes("african_gospel") || tags.includes("african-gospel");
+  }
+
+  if (id === "gospel_choirs") {
+    return (
+      tags.includes("gospel_choirs") ||
+      tags.includes("gospel-choirs") ||
+      /choir|quartet|sergeants|chanters|jubilee singers/i.test(`${track.title} ${track.artist} ${tags.join(" ")}`)
     );
   }
 
