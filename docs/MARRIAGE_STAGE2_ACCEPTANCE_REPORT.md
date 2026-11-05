@@ -124,3 +124,18 @@ This does **not** falsely complete counselor-led appointments when partners only
 | Production deploy | **NOT APPROVED** |
 
 **Overall: FAIL** for Stage 2 production release; **PASS** to continue staging deploy + QA of PR #28.
+
+---
+
+## Update — staging deploy (2026-11-05, PR #28 @ `a568f86`)
+
+| Step | Result |
+|------|--------|
+| `staging` branch → `a568f86` (force-with-lease) | **PASS** — Vercel **shanah-city-staging** production updated |
+| Stable URL serves PR #28 | **PASS** — `/api/marriage/self-paced` → **401** unauthenticated (route exists); hub includes `counselingExperience` |
+| Staging Neon migration | **PASS** — `20261027190000_marriage_self_paced_counseling` present |
+| Stage 2 on / intimacy off | **PASS** — verified via API |
+| Cookie-based synthetic workflow (`scripts/_staging-cookie-closure.mjs`) | **PASS** — all 21 checks |
+| Official `_staging-closure-acceptance.mjs` (password env) | **SKIP** — `STAGING_QA_ROUND1_PASSWORD` not present in local secure env; use cookie script or set env locally and re-run |
+
+**Staging acceptance (stable URL): PASS** for PR #28 code. **Production release: still NOT APPROVED** (no merge, no prod migrate, no prod flags, no intimacy approval).
