@@ -219,7 +219,7 @@ export function MarriageCounselingHub() {
           <h1 className={marriagePremium.heroTitle}>Before We Say &ldquo;I Do&rdquo;</h1>
           <p className={marriagePremium.heroLead}>
             Prepare together at your own pace, with counselor guidance where applicable.
-            Individual answers remain private until each partner has submitted the required work.
+            Shared comparisons unlock once both partners submit; private answers remain protected.
           </p>
         </div>
 
