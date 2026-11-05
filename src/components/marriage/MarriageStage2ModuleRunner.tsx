@@ -211,8 +211,9 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
             </Link>
           </div>
         ) : null}
-        <div className={`${marriagePremium.card} mt-4`}>
-          <p className="text-sm font-semibold">Required: {submission.requiredDone}/{submission.requiredTotal}</p>
+        {intimacyOptedIn ? (
+          <div className={`${marriagePremium.card} mt-4`}>
+            <p className="text-sm font-semibold">Required: {submission.requiredDone}/{submission.requiredTotal}</p>
           <p className={`${marriagePremium.cardMuted} text-xs`}>
             Optional answered: {submission.optionalDone}/{submission.optionalTotal}
           </p>
@@ -221,7 +222,8 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
               All required activities are complete. You can submit now or explore additional questions.
             </p>
           )}
-        </div>
+          </div>
+        ) : null}
         <p className="mt-2 text-xs text-night-500">
           Journey: learn → reflect → answer → compare → discuss → practice → agree → review. Save anytime.
         </p>
