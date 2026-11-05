@@ -86,6 +86,8 @@
     "test:story-music:import-packets": "node scripts/story-music-import-packets.test.mjs",
     "test:story-music:download-audio": "node scripts/story-music-download-audio.test.mjs",
     "test:story-music:catalog-integrity": "tsx scripts/story-music-catalog-integrity.test.ts",
+    "test:story-music:picker-categories": "tsx scripts/story-music-picker-categories.test.ts",
+    "story-music:merge-vocal-queue": "node scripts/story-music-merge-vocal-candidate-queue.mjs",
     "test:community:story-voice-layout": "tsx scripts/community-story-voice-and-music-layout.test.ts"
   },
   "dependencies": {

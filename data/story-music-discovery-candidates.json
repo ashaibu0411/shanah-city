@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updatedAt": "2026-11-04T05:02:58.563Z",
+  "updatedAt": "2026-11-05T00:37:48.186Z",
   "candidates": [
     {
       "id": "smd-fcf40b8954248b34a7e15f57",
@@ -331,141 +331,268 @@
     {
       "id": "smd-58a33b4ddd7c70a444997b90",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The Golden Jubilee Quartet - Oh Jonah.ogg",
-      "dedupeKey": "58a33b4ddd7c70a444997b90",
-      "title": "The Golden Jubilee Quartet - Oh Jonah.ogg",
+      "dedupeKey": "bb6a307da36c1243462afa06",
+      "title": "Oh Jonah!",
       "artist": "Golden Jubilee Quartet",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Golden_Jubilee_Quartet_-_Oh_Jonah.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/65/The_Golden_Jubilee_Quartet_-_Oh_Jonah.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/6/65/The_Golden_Jubilee_Quartet_-_Oh_Jonah.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal"
       ],
-      "searchQuery": "gospel music",
+      "searchQuery": "vocal-candidate-queue",
       "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "Oh Jonah! — Golden Jubilee Quartet (public domain).",
+      "compositionRightsNote": "Traditional spiritual.",
+      "recordingRightsNote": "Commons PD vocal quartet recording.",
+      "rightsEvidenceRef": "Commons File:The Golden Jubilee Quartet - Oh Jonah.ogg",
+      "territory": "Worldwide (PD)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Commons: quartet sings Oh Jonah.",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-006",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "hymn",
+        "gospel"
+      ]
     },
     {
       "id": "smd-1688481f8842a8256a4b58be",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Cochran Field Singers - My Lord Is Writin'.ogg",
-      "dedupeKey": "1688481f8842a8256a4b58be",
-      "title": "Cochran Field Singers - My Lord Is Writin'.ogg",
+      "dedupeKey": "a70426be58b6bbfdab0afd0f",
+      "title": "My Lord Is Writin'",
       "artist": "Cochran Field Singers",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ACochran_Field_Singers_-_My_Lord_Is_Writin'.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Cochran_Field_Singers_-_My_Lord_Is_Writin%27.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Cochran_Field_Singers_-_My_Lord_Is_Writin%27.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal"
       ],
-      "searchQuery": "gospel music",
+      "searchQuery": "vocal-candidate-queue",
       "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "My Lord Is Writin' — Cochran Field Singers (public domain).",
+      "compositionRightsNote": "Traditional spiritual.",
+      "recordingRightsNote": "Commons PD.",
+      "rightsEvidenceRef": "Commons File:Cochran Field Singers - My Lord Is Writin'.ogg",
+      "territory": "Worldwide (PD)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Historic gospel vocal group recording on Commons (PD).",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-008",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "hymn",
+        "gospel"
+      ]
     },
     {
       "id": "smd-ce3bf86313bfae788cac4058",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Middle Georgia Singers - Death is an Awful Thing.ogg",
-      "dedupeKey": "ce3bf86313bfae788cac4058",
-      "title": "Middle Georgia Singers - Death is an Awful Thing.ogg",
+      "dedupeKey": "315db8306bf0b5bcb51873e5",
+      "title": "Death is an Awful Thing",
       "artist": "Middle Georgia Singers",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AMiddle_Georgia_Singers_-_Death_is_an_Awful_Thing.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Middle_Georgia_Singers_-_Death_is_an_Awful_Thing.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Middle_Georgia_Singers_-_Death_is_an_Awful_Thing.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal"
       ],
-      "searchQuery": "gospel music",
+      "searchQuery": "vocal-candidate-queue",
       "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "Death is an Awful Thing — Middle Georgia Singers (public domain).",
+      "compositionRightsNote": "Traditional spiritual.",
+      "recordingRightsNote": "Commons PD.",
+      "rightsEvidenceRef": "Commons File:Middle Georgia Singers - Death is an Awful Thing.ogg",
+      "territory": "Worldwide (PD)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Commons PD field recording — vocal gospel ensemble.",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-009",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "hymn",
+        "gospel"
+      ]
     },
     {
       "id": "smd-56f742baea45ec91aa3e3aea",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:Bertha Houston - We are Americans, Praise the Lord.ogg",
-      "dedupeKey": "56f742baea45ec91aa3e3aea",
-      "title": "Bertha Houston - We are Americans, Praise the Lord.ogg",
+      "dedupeKey": "babef4eb2f0088bef5edb1e8",
+      "title": "We are Americans, Praise the Lord",
       "artist": "Bertha Houston and her congregation",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3ABertha_Houston_-_We_are_Americans%2C_Praise_the_Lord.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Bertha_Houston_-_We_are_Americans%2C_Praise_the_Lord.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Bertha_Houston_-_We_are_Americans%2C_Praise_the_Lord.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music",
-        "praise music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "gospel_worship_songs",
+        "verified-vocal"
       ],
-      "searchQuery": "gospel music",
+      "searchQuery": "vocal-candidate-queue",
       "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "We are Americans, Praise the Lord — Bertha Houston and congregation (public domain).",
+      "compositionRightsNote": "Traditional/praise spiritual — PD.",
+      "recordingRightsNote": "Commons PD.",
+      "rightsEvidenceRef": "Commons File:Bertha Houston - We are Americans, Praise the Lord.ogg",
+      "territory": "Worldwide (PD)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Congregational vocal praise recording (Commons PD).",
+      "pickerCategories": [
+        "traditional_gospel",
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-010",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "gospel",
+        "hymn"
+      ]
     },
     {
       "id": "smd-5f5891377992d1b97e4f5620",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The Four Brothers - Death Come a-Knockin'.ogg",
-      "dedupeKey": "5f5891377992d1b97e4f5620",
-      "title": "The Four Brothers - Death Come a-Knockin'.ogg",
+      "dedupeKey": "7bd5a40a32a119a21b76c082",
+      "title": "Death Come a-Knockin'",
       "artist": "The Four Brothers",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Four_Brothers_-_Death_Come_a-Knockin'.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/95/The_Four_Brothers_-_Death_Come_a-Knockin%27.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/9/95/The_Four_Brothers_-_Death_Come_a-Knockin%27.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal"
       ],
-      "searchQuery": "gospel music",
+      "searchQuery": "vocal-candidate-queue",
       "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "Death Come a-Knockin' — The Four Brothers (public domain).",
+      "compositionRightsNote": "Traditional spiritual.",
+      "recordingRightsNote": "Commons PD.",
+      "rightsEvidenceRef": "Commons File:The Four Brothers - Death Come a-Knockin'.ogg",
+      "territory": "Worldwide (PD)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Quartet vocal spiritual (Commons PD).",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-011",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "hymn",
+        "gospel"
+      ]
     },
     {
       "id": "smd-06d679d532d0c17283a80b55",
       "discoveredAt": "2026-10-29T03:57:56.669Z",
-      "updatedAt": "2026-10-29T03:57:56.669Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
       "source": "wikimedia_commons",
       "sourceStableId": "File:The Spiritual Four Quartet - John the Revelator.ogg",
-      "dedupeKey": "06d679d532d0c17283a80b55",
-      "title": "The Spiritual Four Quartet - John the Revelator.ogg",
-      "artist": "Cochran Field Singers",
+      "dedupeKey": "e14d611a553c7d541aa6408a",
+      "title": "John the Revelator",
+      "artist": "The Spiritual Four Quartet",
       "category": "worship",
       "sourcePageUrl": "https://commons.wikimedia.org/wiki/File%3AThe_Spiritual_Four_Quartet_-_John_the_Revelator.ogg",
-      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2c/The_Spiritual_Four_Quartet_-_John_the_Revelator.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "licenseSlug": "Public domain",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2c/The_Spiritual_Four_Quartet_-_John_the_Revelator.ogg",
+      "licenseSlug": "public-domain",
       "licenseUrl": "",
       "licenseClass": "cc0",
       "fileFormat": "application/ogg",
       "tags": [
-        "gospel music"
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal"
       ],
-      "searchQuery": "gospel music",
+      "searchQuery": "vocal-candidate-queue",
       "reviewStatus": "needs_review",
-      "rejectionReason": "Commons metadata passed filter — human must verify composition/recording on file page."
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob.",
+      "attributionStatement": "John the Revelator — The Spiritual Four Quartet (public domain).",
+      "compositionRightsNote": "Traditional spiritual.",
+      "recordingRightsNote": "Commons PD.",
+      "rightsEvidenceRef": "Commons File:The Spiritual Four Quartet - John the Revelator.ogg",
+      "territory": "Worldwide (PD)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Commons description names singers performing spiritual.",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-007",
+      "reviewerDecision": "pending_owner_listen",
+      "genres": [
+        "hymn",
+        "gospel"
+      ]
     },
     {
       "id": "smd-edc18a1914804e50bce22ec1",
@@ -5121,6 +5248,226 @@
       "redistributionReviewNote": "CC BY (or similar) may allow streaming with attribution but NOT automatic redistribution/hosting — verify recording owner and storage rights before import.",
       "compositionRightsNote": "Unset — verify hymn/spiritual composition is public domain or cleared for app use in target territories.",
       "recordingRightsNote": "Unset — verify performer/label rights on the source page; free streaming elsewhere is not proof of hosting rights."
+    },
+    {
+      "id": "smd-3cea848a8270510e20b0100e",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
+      "source": "fma_archive",
+      "sourceStableId": "fma:lee-wastler/come-to-jesus/in-your-hands",
+      "dedupeKey": "3cea848a8270510e20b0100e",
+      "title": "In Your Hands",
+      "artist": "Lee Wastler",
+      "category": "worship",
+      "sourcePageUrl": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/in-your-hands/",
+      "recordingUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/zx8mvMNNno9s9xcTuoCXuZ5cvgocwvhaaYlrKElH.mp3",
+      "licenseSlug": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "licenseClass": "cc-by",
+      "attributionStatement": "In Your Hands by Lee Wastler — CC BY 4.0. Source: Free Music Archive.",
+      "compositionRightsNote": "Original composition by Lee Wastler (per FMA); CC BY covers composition use with attribution.",
+      "recordingRightsNote": "Recording by Lee Wastler on FMA under CC BY 4.0 — curator must confirm hosting copy in Vercel Blob + story sync is permitted (FMA CC BY allows derivatives/sync with credit; confirm app redistribution policy).",
+      "rightsEvidenceRef": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/in-your-hands/ (Attribution 4.0 International; Instrumental: No)",
+      "territory": "Worldwide (CC BY — pending curator storage/sync attestation)",
+      "streamingPermitted": true,
+      "storagePermitted": false,
+      "syncPermitted": "pending_curator",
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "FMA track page: Instrumental = No; Christian Gospel/Rock with lyrics.",
+      "pickerCategories": [
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-priority-001",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "needs_review",
+      "tags": [
+        "vocal-candidate-queue",
+        "gospel_worship_songs",
+        "verified-vocal"
+      ],
+      "genres": [
+        "gospel",
+        "contemporary_christian",
+        "worship"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob."
+    },
+    {
+      "id": "smd-1bf25ffdf913025b49ab6037",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
+      "source": "fma_archive",
+      "sourceStableId": "fma:lee-wastler/come-to-jesus/a-fathers-love",
+      "dedupeKey": "1bf25ffdf913025b49ab6037",
+      "title": "A Fathers Love",
+      "artist": "Lee Wastler",
+      "category": "worship",
+      "sourcePageUrl": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/a-fathers-love/",
+      "recordingUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/jEODpdJDqlcEp6I04NYYFKLhblUdAIFRCJUVlUIO.mp3",
+      "licenseSlug": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "licenseClass": "cc-by",
+      "attributionStatement": "A Fathers Love by Lee Wastler — CC BY 4.0. Source: Free Music Archive.",
+      "compositionRightsNote": "Original composition by Lee Wastler (per FMA).",
+      "recordingRightsNote": "FMA CC BY 4.0 recording — Blob hosting requires curator attestation (see redistribution note).",
+      "rightsEvidenceRef": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/a-fathers-love/ (CC BY 4.0; Instrumental: No)",
+      "territory": "Worldwide (CC BY — pending curator storage/sync attestation)",
+      "streamingPermitted": true,
+      "storagePermitted": false,
+      "syncPermitted": "pending_curator",
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "FMA track page: Instrumental = No; album Come To Jesus (Christian).",
+      "pickerCategories": [
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-priority-002",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "needs_review",
+      "tags": [
+        "vocal-candidate-queue",
+        "gospel_worship_songs",
+        "verified-vocal"
+      ],
+      "genres": [
+        "gospel",
+        "contemporary_christian",
+        "worship"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob."
+    },
+    {
+      "id": "smd-a4c53b2b5b53e5d3f57b2be3",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
+      "source": "fma_archive",
+      "sourceStableId": "fma:lee-wastler/come-to-jesus/i-wish",
+      "dedupeKey": "a4c53b2b5b53e5d3f57b2be3",
+      "title": "I Wish",
+      "artist": "Lee Wastler",
+      "category": "worship",
+      "sourcePageUrl": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/i-wish/",
+      "recordingUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/NR5cDlXWxcgEylpa2x3A3j3Nylo4RJtcYBQtB1wY.mp3",
+      "licenseSlug": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "licenseClass": "cc-by",
+      "attributionStatement": "I Wish by Lee Wastler — CC BY 4.0. Source: Free Music Archive.",
+      "compositionRightsNote": "Original composition by Lee Wastler (per FMA).",
+      "recordingRightsNote": "FMA CC BY 4.0 — curator attestation required before Blob copy.",
+      "rightsEvidenceRef": "https://freemusicarchive.org/music/lee-wastler/come-to-jesus/i-wish/ (CC BY 4.0; Instrumental: No)",
+      "territory": "Worldwide (CC BY — pending curator storage/sync attestation)",
+      "streamingPermitted": true,
+      "storagePermitted": false,
+      "syncPermitted": "pending_curator",
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "FMA: Instrumental No; description references singer and lyrics theme.",
+      "pickerCategories": [
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-priority-003",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "needs_review",
+      "tags": [
+        "vocal-candidate-queue",
+        "gospel_worship_songs",
+        "verified-vocal"
+      ],
+      "genres": [
+        "gospel",
+        "contemporary_christian",
+        "worship"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob."
+    },
+    {
+      "id": "smd-543533520f6e5cda4dac6f43",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:Swing Low, Sweet Chariot - Fisk Jubilee Singers (1909).mp3",
+      "dedupeKey": "543533520f6e5cda4dac6f43",
+      "title": "Swing Low, Sweet Chariot",
+      "artist": "Fisk Jubilee Singers",
+      "category": "worship",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Swing_Low,_Sweet_Chariot_-_Fisk_Jubilee_Singers_(1909).mp3",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Swing_Low%2C_Sweet_Chariot_-_Fisk_Jubilee_Singers_%281909%29.mp3",
+      "licenseSlug": "public-domain",
+      "licenseUrl": "",
+      "licenseClass": "cc0",
+      "attributionStatement": "Swing Low, Sweet Chariot — Fisk Jubilee Singers (1909). Public domain recording; traditional spiritual.",
+      "compositionRightsNote": "Traditional spiritual (Wallace Willis); public domain.",
+      "recordingRightsNote": "1909 Victor recording; Commons categories PD US record expired / PD-US.",
+      "rightsEvidenceRef": "Commons File:Swing Low, Sweet Chariot - Fisk Jubilee Singers (1909).mp3; credit https://www.loc.gov/item/jukebox-128141/",
+      "territory": "Worldwide (PD US recording + traditional composition — curator confirm sync/storage)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "Commons description: gospel song recording by Fisk Jubilee Singers; LoC National Jukebox source.",
+      "pickerCategories": [
+        "traditional_gospel",
+        "gospel_worship_songs"
+      ],
+      "vocalQueueId": "vocal-priority-004",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "needs_review",
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "gospel_worship_songs",
+        "verified-vocal"
+      ],
+      "genres": [
+        "gospel",
+        "hymn"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob."
+    },
+    {
+      "id": "smd-16d1b08e5db0cdacb35f2428",
+      "discoveredAt": "2026-11-05T00:37:14.713Z",
+      "updatedAt": "2026-11-05T00:37:48.185Z",
+      "source": "wikimedia_commons",
+      "sourceStableId": "File:Golden Slippers (1909, Fisk University Jubilee Singers).mp3",
+      "dedupeKey": "16d1b08e5db0cdacb35f2428",
+      "title": "Golden Slippers",
+      "artist": "Fisk University Jubilee Singers",
+      "category": "worship",
+      "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Golden_Slippers_(1909,_Fisk_University_Jubilee_Singers).mp3",
+      "recordingUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/Golden_Slippers_%281909%2C_Fisk_University_Jubilee_Singers%29.mp3",
+      "licenseSlug": "public-domain",
+      "licenseUrl": "",
+      "licenseClass": "cc0",
+      "attributionStatement": "Golden Slippers — Fisk University Jubilee Singers (1909). Public domain.",
+      "compositionRightsNote": "Traditional spiritual arrangement; PD.",
+      "recordingRightsNote": "1909 recording; Commons LicenseShortName: Public domain.",
+      "rightsEvidenceRef": "Commons File:Golden Slippers (1909, Fisk University Jubilee Singers).mp3",
+      "territory": "Worldwide (PD — curator confirm)",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "syncPermitted": true,
+      "vocalContent": "verified_vocal",
+      "vocalEvidence": "LoC National Jukebox vocal Jubilee Singers recording (Commons PD).",
+      "pickerCategories": [
+        "traditional_gospel"
+      ],
+      "vocalQueueId": "vocal-005",
+      "reviewerDecision": "pending_owner_listen",
+      "reviewStatus": "needs_review",
+      "tags": [
+        "vocal-candidate-queue",
+        "traditional_gospel",
+        "verified-vocal"
+      ],
+      "genres": [
+        "hymn",
+        "gospel"
+      ],
+      "searchQuery": "vocal-candidate-queue",
+      "rejectionReason": "Awaiting owner listen/approve — not imported to Blob."
     }
   ]
 }
