@@ -1,48 +1,7 @@
 {
-  "assessed": 17,
-  "importReady": 5,
-  "rejected": 10,
-  "rejectionSamples": [
-    {
-      "id": "smd-23c5baaa5f92d3c68155aa1d",
-      "reason": "negative-content-filter"
-    },
-    {
-      "id": "smd-dbdec9bd4fd98658de04a40a",
-      "reason": "negative-content-filter"
-    },
-    {
-      "id": "smd-40333e25003b240b5f1a5086",
-      "reason": "negative-content-filter"
-    },
-    {
-      "id": "smd-062d4dfb7ff34d82ef22ef4c",
-      "reason": "negative-content-filter"
-    },
-    {
-      "id": "smd-3ee81dd098884975100d9089",
-      "reason": "negative-content-filter"
-    },
-    {
-      "id": "smd-89b8144dd7dda99b5780307b",
-      "reason": "negative-content-filter"
-    },
-    {
-      "id": "smd-657d3d64701ffb71aec48772",
-      "reason": "negative-content-filter"
-    },
-    {
-      "id": "smd-ba0c3ab6ebb654cae4806efc",
-      "reason": "negative-content-filter"
-    },
-    {
-      "id": "smd-03f963846f205a051302c2ba",
-      "reason": "negative-content-filter"
-    },
-    {
-      "id": "smd-d66d5db7995eacc99c80dbc5",
-      "reason": "duplicate-published-spiritual"
-    }
-  ],
-  "alreadyPublished": 21
+  "assessed": 2,
+  "importReady": 0,
+  "rejected": 0,
+  "rejectionSamples": [],
+  "alreadyPublished": 25
 }

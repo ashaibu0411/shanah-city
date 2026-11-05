@@ -1,0 +1,214 @@
+{
+  "closedAt": "2026-11-05T02:49:54.395Z",
+  "workstreamStatus": "closed",
+  "discoveryCandidatesTotal": 225,
+  "playableFreeLibraryTracks": 25,
+  "ownerApprovedVocal11Published": 11,
+  "originalThreeProtected": 3,
+  "discoveryPublishedRows": 24,
+  "skippedCount": 199,
+  "skippedSamples": [
+    {
+      "id": "smd-043721f961e75d5388a43b7e",
+      "title": "The hymn of free Russia - Гимн свободной России (text and music - 1917).ogg",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-0d04cf2b69e0bfcfbe238d57",
+      "title": "Yorkshire (hymn tune).ogg",
+      "reason": "Expansion assess: instrumental-only signal."
+    },
+    {
+      "id": "smd-7bf4342e4fd2362f261f2aa4",
+      "title": "HWW Majesty Worship His Majesty.ogg",
+      "reason": "Expansion assess: NC/ND/SA or unverified license."
+    },
+    {
+      "id": "smd-7b956750f95458bddb9d4223",
+      "title": "LL-Q1860 (eng)-Vealhurl-worship the porcelain god.wav",
+      "reason": "Expansion assess: NC/ND/SA or unverified license."
+    },
+    {
+      "id": "smd-2c8c0b9bbcb43f0e9a2fecfa",
+      "title": "Samuel Corwin - 02 - Shiva Worship Ceremony Varanasi.ogg",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-9faa9a40a47d3d66d9642a21",
+      "title": "There is a green hill Organ.oga",
+      "reason": "Expansion assess: NC/ND/SA or unverified license."
+    },
+    {
+      "id": "smd-4046e750a40e89229afdc841",
+      "title": "Misamis Oriental Hymn(Instrumental).flac",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-3ec1bba0f728d57b72731bc1",
+      "title": "Hymn-of-the-Azores.oga",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-d8aa138219cb75f7ec8a7f89",
+      "title": "The TWA March.ogg",
+      "reason": "Expansion assess: NC/ND/SA or unverified license."
+    },
+    {
+      "id": "smd-aef99437b4b298cb214c346a",
+      "title": "CREATION GOSPEL.ogg",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-edc18a1914804e50bce22ec1",
+      "title": "01 - Go down Moses (Negro Spiritual).ogg",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-0690bdeee9faf0e9bbb906c3",
+      "title": "Gospel Boogie by Mikees Blues Express.ogg",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-f437aa476eb4acc3c383c299",
+      "title": "WOW Gospel 2000.ogg",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-187ce7036e58f5ca47649b6c",
+      "title": "En-au-Gospel shop.ogg",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-3201d637ed552a4e0ef7b8d6",
+      "title": "Gospel of snoop (v2) (Antti Luode).mp3",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-b898c0fe7a5de719c9ab236d",
+      "title": "Gospel Of Snoop (Antti Luode).mp3",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-54c025ebfde3cfc07c122773",
+      "title": "The Trumpeteers - Little Wooden Church.ogg",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-1038bf5f5686eca71809b07f",
+      "title": "The Tudor Consort - 10 - Gospel - Maria Magdalene et Maria Jacobi.ogg",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-6806e1fe9d06e7397c2630b2",
+      "title": "Gospel Train",
+      "reason": "Quarantined: failed vocal gospel QC / ineligible for member library."
+    },
+    {
+      "id": "smd-e17092ee09f9673333ad64ec",
+      "title": "Timeless Jesus - Joseph LB.ogg",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-77f84ef5c96c638ab1db7894",
+      "title": "LL-Q652 (ita)-XANA000-gospel hip hop.wav",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-9f518f2306494cde3ab6f1c8",
+      "title": "LL-Q652 (ita)-XANA000-gospel rap.wav",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-140015e79083049bd17920d1",
+      "title": "LL-Q652 (ita)-XANA000-gospel reggae.wav",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-9846ffed734305b6285880fa",
+      "title": "Louvor Igreja Nova 13 Agosto 2023.flac",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-3d498ae455f3c554d436eeda",
+      "title": "Louvor Igreja Novsa 13 Agosto 2023 track01.mp3",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-e43319d259ac78d17e855b48",
+      "title": "Anonimo - Good King Wenceslas (Gospel).ogg",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-e396c4cb6b3e63d14869b1f0",
+      "title": "LL-Q7979-Soundguys-Gospel Oak.wav",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-48af40c97edf9e0e2ddd9968",
+      "title": "Battle Hymn of the Republic, Frank C. Stanley, Elise Stevenson.ogg",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-34a6f0bbf7a3827c1d178d38",
+      "title": "Battle Hymn of the Republic, Frank C. Stanley, Elise Stevenson (unrestored).ogg",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-e903fe0aea6a8f2c1c429301",
+      "title": "The Marine's Hymn - U.S. Navy Band",
+      "reason": "Quarantined: failed vocal gospel QC / ineligible for member library."
+    },
+    {
+      "id": "smd-4c2bd398c29c19248e152a99",
+      "title": "Music anthem.mid",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-76eb4acb72c16289d74c3443",
+      "title": "The hymn of free Russia - Гимн свободной России (text and music - 1917).ogg",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-d719e143058f6e8bb7608e9b",
+      "title": "Marines' Hymn (slow) - U.S. Marine Band",
+      "reason": "Quarantined: failed vocal gospel QC / ineligible for member library."
+    },
+    {
+      "id": "smd-ad7048ae73dedfe3cd504638",
+      "title": "Rachie hymn tune played on a classical organ, May 2013, Rachie.ogg",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-8c199575ab28c4894619772f",
+      "title": "Zamboanga Hermosa Hymn 2.oga",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-a6c6051feb6cb46b339d3d34",
+      "title": "Zamboanga Hermosa Hymn (piano of voice+piano accomp.).mid",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-d13edf71f755401d98693343",
+      "title": "Zamboanga Hermosa Hymn (v. 4N).mid",
+      "reason": "Commons license failed strict CC0/CC BY filter."
+    },
+    {
+      "id": "smd-7bc5ab3801ffe0646d078a4d",
+      "title": "Marines' Hymn, USMC Band.ogg",
+      "reason": "Expansion assess: non-worship or ineligible content."
+    },
+    {
+      "id": "smd-420a68ff642ab8be4e7f30ca",
+      "title": "The hymn of free Russia (Oreshkevich, 1917).opus",
+      "reason": "Expansion assess: no verified vocal gospel signal."
+    },
+    {
+      "id": "smd-36967e5e38bede0bf18c1606",
+      "title": "Flight Hymn by Ross Bugden.wav",
+      "reason": "Expansion assess: instrumental-only signal."
+    }
+  ],
+  "importManifestPending": 0,
+  "notes": "No further discovery cycles. Unresolved rights/downloads remain rejected in discovery JSON."
+}

@@ -23,6 +23,8 @@ const PROTECTED_CATALOG_IDS = new Set([
 
 const NEGATIVE =
   /\b(sermon|speech|lecture|podcast|interview|national anthem|language sample|LL-Q|wiktionary|\.mid$|midi|test tone|silence|secular pop|movie soundtrack|agnostic mountain|sunday service|sunday gathering|candlelight service|englewood christian church|no pain, no gain|gospel study|commentary|librivox|read by|quran|bhajan|drunkenjoe|audio sample|celestianpower|cambridgebayweather|negro spiritual\.ogg|en-uk-negro|ad te levavi|latin choral|faruqi|marines['’]? hymn|marine['’]?s hymn|the marines['’]? hymn|usmc band|u\.s\. marine band|offenbach|air force hymn|usna band|hymn to liberty|in praise of death|yun sim|inleiding|king['’]?s singers|instrumental\.oga|without words|bull of heaven|common-father-endlessness)\b/i;
+
+const INSTRUMENTAL_ONLY =
   /\b(instrumental only|piano solo|organ solo|hymn tune\b|stock music|background music|ambient worship|flight hymn by ross bugden)\b/i;
 
 const VOCAL_POSITIVE =
