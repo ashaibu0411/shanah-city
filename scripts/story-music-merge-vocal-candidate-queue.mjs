@@ -90,7 +90,9 @@ async function queueRowToDiscovery(row) {
         ? ["gospel", "hymn"]
         : ["gospel", "contemporary_christian", "worship"],
     searchQuery: "vocal-candidate-queue",
-    rejectionReason: "Awaiting owner listen/approve — not imported to Blob.",
+    rejectionReason: row.reviewerDecision === "owner_approved"
+      ? "Owner selected; curator rights verification and authorized Blob import still pending."
+      : "Awaiting owner listen/approve — not imported to Blob.",
   };
 
   return { skip: false, candidate, row };
@@ -149,7 +151,7 @@ function renderDoc(queue, mergeStats, resolvedPreview) {
   lines.push("");
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push("");
-  lines.push("**No live import yet.** Tracks below are **not** in Vercel Blob until you approve and a curator runs the authorized import pipeline with credentials.");
+  lines.push("**No live import yet.** The owner approved all 11 candidates for consideration on 2026-11-04. This records selection only: rights clearance, genuine curator attestation, and authorized Blob import remain required.");
   lines.push("");
   lines.push("## Existing free library (do not modify)");
   lines.push("");
@@ -157,7 +159,7 @@ function renderDoc(queue, mergeStats, resolvedPreview) {
     lines.push(`- **${row.title}** (\`${row.catalogTrackId}\`) — ${row.note}`);
   }
   lines.push("");
-  lines.push("## Eligible vocal candidates (11) — pending your approval");
+  lines.push(`## Vocal candidates (${(queue.candidates ?? []).length}) — owner approved; rights/import review pending`);
   lines.push("");
   lines.push(
     "| Listen | Title | Artist | Vocal evidence | License | Storage / sync | Preview URL | Decision |",
@@ -198,11 +200,12 @@ function renderDoc(queue, mergeStats, resolvedPreview) {
   lines.push(`- Updated: ${mergeStats.updated}`);
   lines.push(`- Skipped (already published): ${mergeStats.skippedPublished}`);
   lines.push("");
-  lines.push("## After you approve");
+  lines.push("## Next: rights clearance and import");
   lines.push("");
-  lines.push("1. Reply with approved `queueId` values.");
-  lines.push("2. Curator sets review status → approved and runs `story-music-import-free-library` (or successor) with Blob token + attestation.");
-  lines.push("3. Import counts only when Blob upload, rights packet, and playback verification succeed.");
+  lines.push("1. The owner selected all 11 candidates on 2026-11-04; this is not proof of individual listening, a copyright legal opinion, or a fabricated curator attestation.");
+  lines.push("2. Curator verifies composition and recording rights, worldwide scope, story synchronization, source evidence and proper attribution. Do not treat public-domain recordings as CC0 dedications without evidence.");
+  lines.push("3. Complete genuine rights packets and use an authorized vocal import workflow with real credentials. The existing free-library importer supports its configured packet IDs only.");
+  lines.push("4. Publish only after Blob upload, catalog/rights records, compatible playback on iPhone/Samsung and owner acceptance all pass.");
   lines.push("");
   return lines.join("\n");
 }
