@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
+import { prepareIntimacyDraftPatch } from "@/lib/marriage-stage2-intimacy-consent";
 import {
   COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE,
   computeAnswerFingerprint,
@@ -446,7 +447,10 @@ export async function applyAssessmentDraftPatch(input: ApplyAssessmentDraftPatch
     const previousAnswers = row
       ? (JSON.parse(row.answersJson) as Record<string, unknown>)
       : {};
-    const mergedAnswers = { ...previousAnswers, ...patch };
+    // Revalidate under the store lock, so concurrent opt-out and autosave
+  // cannot persist sensitive answers after consent is withdrawn.
+  const gatedPatch = prepareIntimacyDraftPatch(moduleId, previousAnswers, patch, questions);
+  const mergedAnswers = { ...previousAnswers, ...gatedPatch };
     const changedCounselorQuestionIds = getChangedCounselorConsentQuestionIds(
       questions,
       previousAnswers,
