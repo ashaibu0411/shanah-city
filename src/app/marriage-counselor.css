@@ -327,3 +327,48 @@ html.dark .marriage-c3m-btn-secondary { color: #f7eee3; background: #302a24; bor
 html.dark .marriage-c3m-attention-banner { background: #3c3021; border-color: #8f713c; }
 html.dark .marriage-c3m-back-link,
 html.dark .marriage-c3m-inline-link { color: #e4b99c; }
+
+
+/* Teaching guides: keep all eight sessions readable at phone width without
+   changing saved curriculum versions, assessment questions, or counselor notes. */
+.marriage-c3m-teaching-section {
+  min-width: 0;
+  padding-block: 1.1rem;
+  border-top: 1px solid #e8e2da;
+}
+.marriage-c3m-teaching-heading {
+  margin: 0;
+  color: #292219;
+  font-size: 1.05rem;
+  font-weight: 750;
+  line-height: 1.4;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+.marriage-c3m-teaching-copy,
+.marriage-c3m-reading-list {
+  max-width: 70ch;
+  color: #645b52;
+  font-size: 0.975rem;
+  line-height: 1.7;
+  letter-spacing: normal;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+.marriage-c3m-reading-list li { padding-inline-start: 0.1rem; }
+.marriage-c3m-ops-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.65rem;
+}
+.marriage-c3m-ops-nav > a { flex-shrink: 0; white-space: nowrap; }
+html.dark .marriage-c3m-teaching-section { border-top-color: #493f33; }
+html.dark .marriage-c3m-teaching-heading { color: #f7eee3; }
+html.dark .marriage-c3m-teaching-copy,
+html.dark .marriage-c3m-reading-list { color: #d6cabc; }

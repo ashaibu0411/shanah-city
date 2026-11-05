@@ -28,3 +28,47 @@
 .dark .marriage-assessment-sticky-footer {
   background: linear-gradient(to top, var(--color-bg) 70%, transparent);
 }
+
+
+/* Every Marriage Prep route shares this boundary. Keep long teaching text,
+   question labels, and translated content from creating sideways scroll. */
+.marriage-prep-layout {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.marriage-prep-layout :where(section, article, aside, form, fieldset, nav) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.marriage-prep-layout :where(h1, h2, h3, h4) {
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.marriage-prep-layout :where(p, li, dt, dd, label) {
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.marriage-prep-layout :where(input, select, textarea, video, img) {
+  max-width: 100%;
+}
+
+.marriage-prep-layout :where(pre) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.marriage-prep-layout :where(a) {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639px) {
+  .marriage-prep-layout :where(textarea, input, select) {
+    min-width: 0;
+  }
+}

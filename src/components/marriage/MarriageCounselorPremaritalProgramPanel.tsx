@@ -97,7 +97,7 @@ export function MarriageCounselorPremaritalProgramPanel({
       <div className="mt-4 space-y-4">
         <div>
           <h3 className="text-lg font-semibold text-[#292219] dark:text-sand-100">{active.title}</h3>
-          <p className="marriage-c3m-muted mt-1 text-sm">{active.purpose}</p>
+          <p className="marriage-c3m-teaching-copy mt-2">{active.purpose}</p>
           <p className="mt-1 text-xs text-night-500">
             Recommended {active.recommendedMinutesMin}–{active.recommendedMinutesMax} minutes
           </p>
@@ -149,19 +149,21 @@ export function MarriageCounselorPremaritalProgramPanel({
         </div>
 
         {active.teachingSections.map((section) => (
-          <div key={section.heading}>
-            <p className="text-sm font-semibold">{section.heading}</p>
-            {section.paragraphs.map((p, i) => (
-              <p key={i} className="marriage-c3m-muted mt-2 text-sm leading-relaxed">
-                {p}
-              </p>
-            ))}
-          </div>
+          <section key={section.heading} className="marriage-c3m-teaching-section">
+            <h4 className="marriage-c3m-teaching-heading">{section.heading}</h4>
+            <div className="mt-3 space-y-4">
+              {section.paragraphs.map((paragraph, i) => (
+                <p key={i} className="marriage-c3m-teaching-copy">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          </section>
         ))}
 
         <div>
           <p className="text-sm font-semibold">Discussion questions</p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+          <ul className="marriage-c3m-reading-list mt-3 list-disc space-y-3 pl-5">
             {active.discussionQuestions.map((q) => (
               <li key={q}>{q}</li>
             ))}
@@ -170,7 +172,7 @@ export function MarriageCounselorPremaritalProgramPanel({
 
         <div>
           <p className="text-sm font-semibold">Individual reflection prompts (in session or homework)</p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+          <ul className="marriage-c3m-reading-list mt-3 list-disc space-y-3 pl-5">
             {active.reflectionPrompts.map((q) => (
               <li key={q}>{q}</li>
             ))}
