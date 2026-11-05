@@ -7,6 +7,7 @@ import { marriagePremium } from "@/components/marriage/marriage-counseling-premi
 import { computeModuleSubmissionProgress } from "@/lib/marriage-module-progress";
 import type { MarriageModuleDefinition } from "@/lib/marriage-counseling-types";
 import { readJsonResponse } from "@/lib/read-json-response";
+import { MARRIAGE_INTIMACY_MODULE_ID, intimacyOptInChoice } from "@/lib/marriage-stage2-intimacy-consent";
 
 export function MarriageModuleSubmitReview({ moduleId }: { moduleId: string }) {
   const router = useRouter();
@@ -49,9 +50,11 @@ export function MarriageModuleSubmitReview({ moduleId }: { moduleId: string }) {
   if (!module) return <p className={marriagePremium.cardMuted}>Loading review…</p>;
 
   const progress = computeModuleSubmissionProgress(module, answers);
+  const intimateModuleDeclined = moduleId === MARRIAGE_INTIMACY_MODULE_ID && intimacyOptInChoice(answers) !== "yes";
+  const canSubmit = progress.canSubmit && !intimateModuleDeclined;
 
   async function submit() {
-    if (!progress.canSubmit) return;
+    if (!canSubmit) return;
     setSubmitting(true);
     setError("");
     try {
@@ -91,13 +94,15 @@ export function MarriageModuleSubmitReview({ moduleId }: { moduleId: string }) {
             }}
           />
         </div>
-        {progress.canSubmit ? (
+        {canSubmit ? (
           <p className="mt-3 text-sm text-emerald-900 dark:text-emerald-200">
             All required activities are complete. You can submit now or explore additional optional questions.
           </p>
         ) : (
           <p className="mt-3 text-sm text-amber-900 dark:text-amber-200">
-            Finish required lessons marked in the module list before submitting.
+            {intimateModuleDeclined
+              ? "Participation in this module is optional. Return to the introduction if you wish to opt in."
+              : "Finish required lessons marked in the module list before submitting."}
           </p>
         )}
       </div>
@@ -115,7 +120,7 @@ export function MarriageModuleSubmitReview({ moduleId }: { moduleId: string }) {
         type="button"
         data-testid="marriage-module-submit-confirm"
         className={`${marriagePremium.primaryCta} mt-6 w-full`}
-        disabled={!progress.canSubmit || submitting}
+        disabled={!canSubmit || submitting}
         onClick={() => void submit()}
       >
         {submitting ? "Submitting…" : "Submit module for my partner"}
