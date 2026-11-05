@@ -218,8 +218,8 @@ export function MarriageCounselingHub() {
           <p className={marriagePremium.sectionLabel}>Marriage &amp; Relationships</p>
           <h1 className={marriagePremium.heroTitle}>Before We Say &ldquo;I Do&rdquo;</h1>
           <p className={marriagePremium.heroLead}>
-            A private, self-guided journey for you and your partner — with shared comparisons unlocked
-            only after you both submit.
+            Prepare together at your own pace, with counselor guidance where applicable.
+            Shared comparisons unlock once both partners submit; private answers remain protected.
           </p>
         </div>
 
@@ -370,7 +370,7 @@ export function MarriageCounselingHub() {
 
             {hub.upcomingSessions.length === 0 ? (
               <p className={`${marriagePremium.cardMuted} mt-4 text-sm`}>
-                No counseling sessions scheduled yet. Your counselor will add appointments when ready.
+                You can continue your coursework independently. Appointments will appear here if a counselor schedules them.
               </p>
             ) : null}
 

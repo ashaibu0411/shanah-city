@@ -36,6 +36,11 @@ import type {
   MarriageDiscussionMarkRecord,
 } from "@/lib/marriage-counseling-types";
 import { marriageStore } from "@/lib/stores/marriage-counseling-store";
+import {
+  hubModuleStatusFromResponse,
+  hubPartnerModuleStatusFromResponse,
+  isAssessmentSubmitted,
+} from "@/lib/marriage-assessment-participant-status";
 
 const store = () => marriageStore();
 
@@ -44,17 +49,15 @@ async function resolveActiveJourney(viewer: PublicMember) {
 }
 
 function partnerStatus(
-  response: { status: string } | null,
+  response: { status: string; submittedAt?: string | null } | null,
 ): MarriageHubModuleProgress["partnerStatus"] {
-  if (!response) return "not_started";
-  if (response.status === "submitted") return "submitted";
-  return "draft";
+  return hubPartnerModuleStatusFromResponse(response);
 }
 
-function myStatus(response: { status: string } | null): MarriageHubModuleProgress["myStatus"] {
-  if (!response) return "not_started";
-  if (response.status === "submitted") return "submitted";
-  return "draft";
+function myStatus(
+  response: { status: string; submittedAt?: string | null } | null,
+): MarriageHubModuleProgress["myStatus"] {
+  return hubModuleStatusFromResponse(response);
 }
 
 export async function getMarriageHubSummary(viewer: PublicMember): Promise<MarriageHubSummary> {
@@ -380,8 +383,8 @@ export async function getAssessmentForViewer(
   let contentVersion: string;
   let mod: Awaited<ReturnType<typeof getModuleDefinition>>;
 
-  if (myResponse?.status === "submitted") {
-    contentVersion = myResponse.contentVersion;
+  if (isAssessmentSubmitted(myResponse)) {
+    contentVersion = myResponse!.contentVersion;
     mod =
       (await getModuleForContentVersion(moduleId, contentVersion)) ??
       (await getModuleDefinition(moduleId));
@@ -423,12 +426,11 @@ export async function getAssessmentForViewer(
     const { partnerId } = await assertJourneyParticipant(hub.journey, viewer.id);
     const partnerResponse = await store().getResponse(hub.journey.id, moduleId, partnerId);
     partnerProgress = {
-      status:
-        partnerResponse?.status === "submitted"
-          ? "submitted"
-          : partnerResponse
-            ? "in_progress"
-            : "not_started",
+      status: isAssessmentSubmitted(partnerResponse)
+        ? "submitted"
+        : partnerResponse
+          ? "in_progress"
+          : "not_started",
     };
   } catch {
     partnerProgress = { status: "not_started" };
@@ -442,7 +444,7 @@ export async function getAssessmentForViewer(
     journeyId: hub.journey.id,
     myResponse: myResponse
       ? {
-          status: myResponse.status,
+          status: isAssessmentSubmitted(myResponse) ? "submitted" : myResponse.status,
           answers: myResponse.answers,
           lastSavedAt: myResponse.lastSavedAt,
           submittedAt: myResponse.submittedAt,
@@ -460,7 +462,7 @@ export async function saveAssessmentDraft(
   answers: Record<string, unknown>,
 ) {
   const assessment = await getAssessmentForViewer(viewer, moduleId);
-  if (assessment.myResponse?.status === "submitted") {
+  if (isAssessmentSubmitted(assessment.myResponse)) {
     throw new Error("This assessment is submitted. Contact your counselor to revise.");
   }
 
@@ -490,7 +492,7 @@ export async function submitAssessment(viewer: PublicMember, moduleId: string) {
   const assessment = await getAssessmentForViewer(viewer, moduleId);
   const existing = await store().getResponse(assessment.journeyId, moduleId, viewer.id);
   if (!existing) throw new Error("Save your answers before submitting.");
-  if (existing.status === "submitted") throw new Error("Already submitted.");
+  if (isAssessmentSubmitted(existing)) throw new Error("Already submitted.");
 
   validateAnswers(assessment.module.questions, existing.answers, true);
 
@@ -517,7 +519,7 @@ export async function submitAssessment(viewer: PublicMember, moduleId: string) {
   }
 
   const partnerResponse = await store().getResponse(assessment.journeyId, moduleId, partnerId);
-  if (partnerResponse?.status === "submitted") {
+  if (isAssessmentSubmitted(partnerResponse)) {
     await maybeUnlockComparison(
       assessment.journeyId,
       moduleId,

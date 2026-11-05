@@ -28,6 +28,10 @@ import {
 } from "@/lib/marriage-stage2-temperament-scoring-v2";
 import { getActiveContentVersionLabel, getModuleForContentVersion } from "@/lib/marriage-curriculum-service";
 import { MARRIAGE_CONSENT_VERSION } from "@/lib/marriage-counseling-curriculum";
+import {
+  hubModuleStatusFromResponse,
+  hubPartnerModuleStatusFromResponse,
+} from "@/lib/marriage-assessment-participant-status";
 
 const store = () => marriageStore();
 
@@ -50,16 +54,16 @@ async function activeJourneyContext(viewer: PublicMember) {
   return { journey, myConsent, contentVersion, assignmentsOpen };
 }
 
-function statusFromResponse(response: { status: string } | null): MarriageHubModuleProgress["myStatus"] {
-  if (!response) return "not_started";
-  if (response.status === "submitted") return "submitted";
-  return "draft";
+function statusFromResponse(
+  response: { status: string; submittedAt?: string | null } | null,
+): MarriageHubModuleProgress["myStatus"] {
+  return hubModuleStatusFromResponse(response);
 }
 
-function partnerStatusFromResponse(response: { status: string } | null): MarriageHubModuleProgress["partnerStatus"] {
-  if (!response) return "not_started";
-  if (response.status === "submitted") return "submitted";
-  return response ? "draft" : "not_started";
+function partnerStatusFromResponse(
+  response: { status: string; submittedAt?: string | null } | null,
+): MarriageHubModuleProgress["partnerStatus"] {
+  return hubPartnerModuleStatusFromResponse(response);
 }
 
 export async function buildStage2Dashboard(viewer: PublicMember): Promise<MarriageStage2Dashboard | null> {

@@ -15,20 +15,22 @@ function statusLabel(status: string) {
 }
 
 export function MarriageCouplePremaritalProgramSection({ program }: Props) {
+  // Focus on the participant's next unfinished coursework, not the counselor's meeting marker.
   const current =
-    program.sessions.find((s) => s.sessionKey === program.currentSessionKey) ??
-    program.sessions[0];
+    program.sessions.find((s) => s.sessionKey === program.currentCourseworkSessionKey) ??
+    program.sessions[program.sessions.length - 1];
 
   if (!current) return null;
 
   return (
     <section className={`${marriagePremium.card} mt-6`} aria-labelledby="premarital-program-heading">
       <h2 id="premarital-program-heading" className="text-base font-semibold">
-        Counseling sessions
+        Session learning plan
       </h2>
       <p className={`${marriagePremium.cardMuted} mt-1`}>
-        {program.sessionsCompleted}/{program.sessionsTotal} sessions completed with your counselor.
-        {program.paused ? " Your journey is paused — your counselor will resume when ready." : ""}
+        Your coursework submitted for {program.courseworkSubmittedCount}/{program.sessionsTotal} sessions.
+        You can complete lessons independently; counselor-led meetings are tracked separately.
+        {program.paused ? " Counselor-guided appointments are paused." : ""}
       </p>
 
       <div className="mt-4 rounded-xl bg-clay-50/80 px-3 py-3 dark:bg-clay-950/30">
@@ -40,8 +42,14 @@ export function MarriageCouplePremaritalProgramSection({ program }: Props) {
         </p>
         <p className={`${marriagePremium.cardMuted} mt-1 text-sm`}>{current.purpose}</p>
         <p className="mt-2 text-xs capitalize text-night-600 dark:text-sand-400">
-          Status: {statusLabel(current.status)}
+          Your coursework: {current.courseworkStatus === "waiting_partner" ? "submitted · awaiting partner" : statusLabel(current.courseworkStatus)}
         </p>
+        {current.status !== "not_started" ? (
+          <p className="mt-1 text-xs text-night-600 dark:text-sand-400">
+            Counselor-led session: {statusLabel(current.status)}
+          </p>
+        ) : null}
+ 
       </div>
 
       <div className="mt-4">

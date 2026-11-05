@@ -46,7 +46,7 @@ export function MarriageCoupleHubDashboard({ hub, continueModuleHref }: Props) {
             <p className={marriagePremium.sectionLabel}>Your journey</p>
             {hub.premaritalProgram ? (
               <p className="mt-1 font-display text-lg font-semibold">
-                Session {hub.premaritalProgram.sessionsCompleted} of {hub.premaritalProgram.sessionsTotal} complete
+                Your coursework: {hub.premaritalProgram.courseworkSubmittedCount} of {hub.premaritalProgram.sessionsTotal} sessions submitted
               </p>
             ) : (
               <p className="mt-1 font-display text-lg font-semibold capitalize">
