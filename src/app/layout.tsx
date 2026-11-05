@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { APP_THEME_STORAGE_KEY } from "@/lib/theme";
 import { brandLogos, site } from "@/lib/site";
 import "./globals.css";
+import "./marriage-counselor.css";
 
 const bootLogoSrc = `${brandLogos.light}?boot=2`;
 
