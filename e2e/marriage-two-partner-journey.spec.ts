@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { prepareE2eIsolatedData } from "./helpers/e2e-isolated-data";
+import { assignE2eCounselorToJourney } from "./helpers/marriage-e2e-store";
 import { saveAndSubmitModule } from "./helpers/marriage-assessment";
 import { newAuthedRequest, signInPage } from "./helpers/marriage-auth";
 
@@ -42,6 +43,8 @@ test.describe("Marriage counseling two-partner journey", () => {
     await partnerB.post("/api/marriage/journey", {
       data: { action: "consent", journeyId },
     });
+
+    assignE2eCounselorToJourney(journeyId);
 
     const aAssessment = await partnerA.get(`/api/marriage/assessment/${MODULE_ID}`);
     const aData = await aAssessment.json();

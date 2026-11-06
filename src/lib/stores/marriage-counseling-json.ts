@@ -29,6 +29,7 @@ import type {
   MarriagePremaritalProgramMetaRecord,
 } from "@/lib/marriage-counseling-types";
 import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
+import { prepareIntimacyDraftPatch } from "@/lib/marriage-stage2-intimacy-consent";
 import {
   COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE,
   computeAnswerFingerprint,
@@ -279,6 +280,7 @@ export async function updateJourney(
       | "curriculumVersion"
       | "counselorAccessRevokedAt"
       | "deletionRequestedAt"
+      | "counselingDeliveryMode"
     >
   >,
 ) {
@@ -455,7 +457,10 @@ export async function applyAssessmentDraftPatch(input: ApplyAssessmentDraftPatch
   }
 
   const previousAnswers = row?.answers ?? {};
-  const mergedAnswers = { ...previousAnswers, ...patch };
+  // Revalidate under the store lock, so concurrent opt-out and autosave
+  // cannot persist sensitive answers after consent is withdrawn.
+  const gatedPatch = prepareIntimacyDraftPatch(moduleId, previousAnswers, patch, questions);
+  const mergedAnswers = { ...previousAnswers, ...gatedPatch };
   const changedCounselorQuestionIds = getChangedCounselorConsentQuestionIds(
     questions,
     previousAnswers,
@@ -1629,11 +1634,12 @@ export async function tryRecordPremaritalReminderDelivery(input: {
   sentAt: string;
 }) {
   const store = await readStore();
-  const exists = store.premaritalReminderDeliveries!.some(
+  if (!store.premaritalReminderDeliveries) store.premaritalReminderDeliveries = [];
+  const exists = store.premaritalReminderDeliveries.some(
     (d) => d.kind === input.kind && d.referenceKey === input.referenceKey,
   );
   if (exists) return false;
-  store.premaritalReminderDeliveries!.push(input);
+  store.premaritalReminderDeliveries.push(input);
   await writeStore(store);
   return true;
 }

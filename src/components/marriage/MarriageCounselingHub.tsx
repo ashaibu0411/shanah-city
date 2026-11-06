@@ -21,6 +21,7 @@ import { marriageHubShowsCounselorAssignmentsNav } from "@/lib/marriage-counselo
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 import { MarriageCoupleHubDashboard } from "@/components/marriage/MarriageCoupleHubDashboard";
 import { MarriageCoupleOnboardingSteps } from "@/components/marriage/MarriageCoupleOnboardingSteps";
+import { MarriageCoupleCounselingModePanel } from "@/components/marriage/MarriageCoupleCounselingModePanel";
 
 function statusLabel(mod: MarriageHubSummary["modules"][0]) {
   if (mod.comparisonReady) return "Compare ready";
@@ -350,6 +351,14 @@ export function MarriageCounselingHub() {
               continueModuleHref={continueModule ? `/marriage/module/${continueModule.moduleId}` : null}
             />
 
+            {hub.counselingExperience ? (
+              <MarriageCoupleCounselingModePanel
+                journeyId={journey.id}
+                experience={hub.counselingExperience}
+                onUpdated={() => void load()}
+              />
+            ) : null}
+
             {hub.counselorSummary && hub.counselorSummary.status !== "none" && hub.counselorSummary.status !== "assigned" ? (
               <p className={`${marriagePremium.cardMuted} mt-2 px-1 text-sm`}>
                 {hub.counselorSummary.status === "pending_approval" && hub.counselorSummary.displayName
@@ -399,6 +408,9 @@ export function MarriageCounselingHub() {
             </div>
 
             <div className="mt-6 grid gap-2">
+              <Link href="/marriage/feedback" className={marriagePremium.secondaryCta}>
+                My counselor&apos;s feedback
+              </Link>
               <Link href="/marriage/homework" className={marriagePremium.secondaryCta}>
                 My homework
               </Link>

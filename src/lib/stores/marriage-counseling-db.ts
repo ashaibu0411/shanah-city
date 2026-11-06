@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getChangedCounselorConsentQuestionIds } from "@/lib/marriage-assessment-answer-changes";
+import { prepareIntimacyDraftPatch } from "@/lib/marriage-stage2-intimacy-consent";
 import {
   COUNSELOR_CONSENT_ANSWER_CHANGED_MESSAGE,
   computeAnswerFingerprint,
@@ -83,6 +84,7 @@ function mapJourney(row: {
   curriculumVersion?: string | null;
   counselorAccessRevokedAt?: Date | null;
   deletionRequestedAt?: Date | null;
+  counselingDeliveryMode?: string | null;
 }): MarriageCounselingJourneyRecord {
   return {
     id: row.id,
@@ -91,6 +93,9 @@ function mapJourney(row: {
     status: row.status as MarriageCounselingJourneyRecord["status"],
     currentModuleId: row.currentModuleId,
     counselorUserId: row.counselorUserId,
+    counselingDeliveryMode:
+      (row.counselingDeliveryMode as MarriageCounselingJourneyRecord["counselingDeliveryMode"]) ??
+      null,
     createdBy: row.createdBy,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -249,6 +254,7 @@ export async function updateJourney(
     curriculumVersion: string;
     counselorAccessRevokedAt: string | null;
     deletionRequestedAt: string | null;
+    counselingDeliveryMode: string | null;
   }>,
 ) {
   assertNoCounselorFieldsInGenericJourneyPatch(patch);
@@ -257,6 +263,7 @@ export async function updateJourney(
     data: {
       status: patch.status,
       currentModuleId: patch.currentModuleId,
+      counselingDeliveryMode: patch.counselingDeliveryMode,
       completedAt: patch.completedAt ? new Date(patch.completedAt) : undefined,
       participantBId: patch.participantBId,
       guidedModuleIdsJson: patch.guidedModuleIds
@@ -440,7 +447,10 @@ export async function applyAssessmentDraftPatch(input: ApplyAssessmentDraftPatch
     const previousAnswers = row
       ? (JSON.parse(row.answersJson) as Record<string, unknown>)
       : {};
-    const mergedAnswers = { ...previousAnswers, ...patch };
+    // Revalidate under the store lock, so concurrent opt-out and autosave
+  // cannot persist sensitive answers after consent is withdrawn.
+  const gatedPatch = prepareIntimacyDraftPatch(moduleId, previousAnswers, patch, questions);
+  const mergedAnswers = { ...previousAnswers, ...gatedPatch };
     const changedCounselorQuestionIds = getChangedCounselorConsentQuestionIds(
       questions,
       previousAnswers,

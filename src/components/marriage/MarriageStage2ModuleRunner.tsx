@@ -15,6 +15,12 @@ import { MarriageCounselorAnswerConsent } from "@/components/marriage/MarriageCo
 import { MarriageSubmittedReadOnlyNotice } from "@/components/marriage/MarriageSubmittedReadOnlyNotice";
 import { computeModuleSubmissionProgress } from "@/lib/marriage-module-progress";
 import { readJsonResponse } from "@/lib/read-json-response";
+import {
+  MARRIAGE_INTIMACY_MODULE_ID,
+  MARRIAGE_INTIMACY_OPT_IN_QUESTION_ID,
+  MARRIAGE_INTIMACY_INTRO_LESSON_ID,
+  intimacyOptInChoice,
+} from "@/lib/marriage-stage2-intimacy-consent";
 
 type AssessmentPayload = {
   journeyId: string;
@@ -95,7 +101,12 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
     if (lessonParam) setActiveLessonId(lessonParam);
   }, [lessonParam]);
 
-  const lessons = data?.module.lessons ?? [];
+  const isIntimacyModule = moduleId === MARRIAGE_INTIMACY_MODULE_ID;
+  const intimacyChoice = isIntimacyModule ? intimacyOptInChoice(answers) : null;
+  const intimacyOptedIn = !isIntimacyModule || intimacyChoice === "yes";
+  const lessons = (data?.module.lessons ?? []).filter(
+    (lesson) => intimacyOptedIn || lesson.id === MARRIAGE_INTIMACY_INTRO_LESSON_ID,
+  );
   const allQuestions = data?.module.questions ?? [];
   const lessonQuestions = useMemo(() => {
     if (!activeLessonId) return [];
@@ -106,7 +117,7 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
   const locked = data?.myResponse?.status === "submitted";
   const activeLesson = lessons.find((l) => l.id === activeLessonId);
 
-  async function persist(patch: Record<string, unknown>) {
+  async function persist(patch: Record<string, unknown>, reloadAfterSave = false) {
     if (locked) return;
     setSaving(true);
     setError("");
@@ -119,6 +130,7 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
       const body = await readJsonResponse<{ error?: string; lastSavedAt?: string }>(res);
       if (!res.ok) throw new Error(body.error ?? "Save failed.");
       if (body.lastSavedAt) setSavedAt(body.lastSavedAt);
+      if (reloadAfterSave) await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed.");
     } finally {
@@ -128,9 +140,13 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
 
   function setAnswer(value: unknown) {
     if (!question || locked) return;
-    const next = { ...answers, [question.id]: value };
+    const isOptInAnswer = isIntimacyModule && question.id === MARRIAGE_INTIMACY_OPT_IN_QUESTION_ID;
+    const next = isOptInAnswer
+      ? { [MARRIAGE_INTIMACY_OPT_IN_QUESTION_ID]: value }
+      : { ...answers, [question.id]: value };
     setAnswers(next);
-    void persist({ [question.id]: value });
+    // Reload the server-filtered questions after the opt-in is durably saved.
+    void persist({ [question.id]: value }, isOptInAnswer);
   }
 
   async function submitAll() {
@@ -180,8 +196,24 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
         </Link>
         <h1 className="mt-2 font-display text-xl font-semibold">{data.module.title}</h1>
         <p className={marriagePremium.cardMuted}>{data.module.summary}</p>
-        <div className={`${marriagePremium.card} mt-4`}>
-          <p className="text-sm font-semibold">Required: {submission.requiredDone}/{submission.requiredTotal}</p>
+        {isIntimacyModule && !intimacyOptedIn ? (
+          <div className={`${marriagePremium.card} mt-4`} role="status" data-testid="intimacy-opt-in-gate">
+            <p className="font-semibold">
+              {intimacyChoice === "no" ? "You chose not to participate" : "Your participation is optional"}
+            </p>
+            <p className={`${marriagePremium.cardMuted} mt-2`}>
+              {intimacyChoice === "no"
+                ? "Sensitive lessons are hidden. This choice does not block the other Stage 2 lessons or your premarital sessions. You can change your choice in the introduction."
+                : "Begin with Consent & scope. You must be an adult and choose Yes before any sensitive lessons open. You can decline and continue with the rest of Marriage Prep."}
+            </p>
+            <Link href="/marriage/learn" className={`${marriagePremium.secondaryCta} mt-3 inline-flex`}>
+              Return to learning center
+            </Link>
+          </div>
+        ) : null}
+        {intimacyOptedIn ? (
+          <div className={`${marriagePremium.card} mt-4`}>
+            <p className="text-sm font-semibold">Required: {submission.requiredDone}/{submission.requiredTotal}</p>
           <p className={`${marriagePremium.cardMuted} text-xs`}>
             Optional answered: {submission.optionalDone}/{submission.optionalTotal}
           </p>
@@ -190,7 +222,8 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
               All required activities are complete. You can submit now or explore additional questions.
             </p>
           )}
-        </div>
+          </div>
+        ) : null}
         <p className="mt-2 text-xs text-night-500">
           Journey: learn → reflect → answer → compare → discuss → practice → agree → review. Save anytime.
         </p>
@@ -238,7 +271,7 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
             );
           })}
         </ul>
-        {!locked && (
+        {!locked && intimacyOptedIn && (
           <Link
             href={`/marriage/module/${moduleId}/submit`}
             data-testid="marriage-module-review-submit"
@@ -296,6 +329,11 @@ export function MarriageStage2ModuleRunner({ moduleId }: { moduleId: string }) {
       )}
 
       <div className={`${marriagePremium.questionCard} mt-4`}>
+        {isIntimacyModule && question.id === MARRIAGE_INTIMACY_OPT_IN_QUESTION_ID ? (
+          <p className="mb-3 text-sm leading-relaxed text-night-700 dark:text-sand-200">
+            Your choice is personal. Selecting Not now prevents access to sensitive activities; you can return to the rest of the program. Withdrawing before submission clears your saved answers to sensitive questions.
+          </p>
+        ) : null}
         {question.visibility !== "counselor_with_consent" && (
           <p className="text-xs font-semibold uppercase tracking-wide text-clay-700">{visibilityNote(question)}</p>
         )}
