@@ -73,6 +73,7 @@ const unauthenticatedPermissions = {
   canSeeGuestHomeBanner: false,
   canAccessCouplesHub: false,
   canAccessMarriageCounselorAssignments: false,
+  canAccessTemperamentShepherdingHub: false,
 };
 
 function unauthenticatedAuthResponse(clearSessionCookie: boolean) {
