@@ -8,6 +8,7 @@ process.env.NODE_ENV = "test";
 async function main() {
   const {
     buildEphemeralTeamContextCookieValue,
+    fingerprintAskShepherdTranscript,
     mergeEphemeralTeamContextCookie,
     parseEphemeralTeamContextCookie,
   } = await import("../src/lib/ask-shepherd-team-context-cookie");
@@ -62,6 +63,47 @@ async function main() {
   assert.equal(saveWouldRejectTeamContext(clean, userId, dept), false);
   assert.equal(saveWouldRejectTeamContext(merged, userId, dept), true);
   assert.equal(saveWouldRejectTeamContext(forged, userId, dept), false);
+
+  // Stronger proof: HMAC binds an actual generated transcript, not just a
+  // mutable browser-wide "used team" bit. Clearing the cookie cannot make
+  // an old transcript saveable.
+  const protectedTranscript = [
+    { role: "user" as const, content: "How should I encourage this member?" },
+    { role: "assistant" as const, content: "Lead with compassion and clarity." },
+  ];
+  const digest = fingerprintAskShepherdTranscript(protectedTranscript);
+  const protectedReceipt = buildEphemeralTeamContextCookieValue({
+    userId, departmentKey: dept, usedConsentedTeamContext: true, transcriptHash: digest,
+  });
+  const verified = parseEphemeralTeamContextCookie(protectedReceipt, userId, dept);
+  assert.ok(verified.ok);
+  assert.equal(verified.transcriptHash, digest);
+  assert.equal(verified.usedConsentedTeamContext, true);
+  assert.notEqual(digest, fingerprintAskShepherdTranscript([...protectedTranscript, {
+    role: "assistant", content: "Tampered additional content",
+  }]));
+  const forgedCleanReceipt = buildEphemeralTeamContextCookieValue({
+    userId, departmentKey: dept, usedConsentedTeamContext: false,
+    transcriptHash: fingerprintAskShepherdTranscript([
+      { role: "user", content: "New harmless question" },
+      { role: "assistant", content: "General advice" },
+    ]),
+  });
+  const cleanAfterReset = parseEphemeralTeamContextCookie(forgedCleanReceipt, userId, dept);
+  assert.ok(cleanAfterReset.ok);
+  assert.notEqual(cleanAfterReset.transcriptHash, digest);
+  const canSave = (raw: string | undefined, rows: typeof protectedTranscript) => {
+    const parsed = parseEphemeralTeamContextCookie(raw, userId, dept);
+    return parsed.ok && !parsed.usedConsentedTeamContext &&
+      parsed.transcriptHash === fingerprintAskShepherdTranscript(rows);
+  };
+  assert.equal(canSave(undefined, protectedTranscript), false);
+  assert.equal(canSave(protectedReceipt, protectedTranscript), false);
+  assert.equal(canSave(forgedCleanReceipt, protectedTranscript), false);
+  assert.equal(canSave(forgedCleanReceipt, [
+    { role: "user", content: "New harmless question" },
+    { role: "assistant", content: "General advice" },
+  ]), true);
 
   console.log("ask-shepherd-team-context-privacy.test.ts OK");
 }
