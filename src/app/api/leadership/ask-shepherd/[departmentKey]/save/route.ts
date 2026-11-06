@@ -10,6 +10,7 @@ import { saveEphemeralConversationToLibrary } from "@/lib/ask-shepherd-server";
 import {
   ASK_SHEPHERD_TEAM_CTX_COOKIE,
   isAskShepherdTeamContextCookieConfigured,
+  fingerprintAskShepherdTranscript,
   parseEphemeralTeamContextCookie,
 } from "@/lib/ask-shepherd-team-context-cookie";
 
@@ -64,7 +65,15 @@ export async function POST(
     const cookieStore = await cookies();
     const cookieRaw = cookieStore.get(ASK_SHEPHERD_TEAM_CTX_COOKIE)?.value;
     const parsed = parseEphemeralTeamContextCookie(cookieRaw, user.id, def.key);
-    const serverTeamContextUsed = parsed.ok && parsed.usedConsentedTeamContext;
+    // The cookie must prove that this exact client-held transcript came from
+    // authenticated chat turns. Clearing the cookie cannot authorize old text.
+    if (!parsed.ok || parsed.transcriptHash !== fingerprintAskShepherdTranscript(messages)) {
+      return NextResponse.json(
+        { error: "Chat session changed. Start a new chat before saving.", clientErrorCode: "ephemeral_session_mismatch" },
+        { status: 409 },
+      );
+    }
+    const serverTeamContextUsed = parsed.usedConsentedTeamContext;
 
     if (serverTeamContextUsed) {
       return NextResponse.json(
