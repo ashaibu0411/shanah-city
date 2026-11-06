@@ -41,21 +41,27 @@ for (const file of routes) {
   );
 }
 
-// The API previously spread Prisma response objects, unintentionally exposing
-// answersJson even after submission. Ensure every self endpoint uses a strict
-// serializer rather than manually spreading the row.
+// Do not spread Prisma responses into API JSON: submitted records must not
+// expose answersJson, the full snapshot, or private leader reflections.
 const selfRoute = readFileSync(join(apiRoot, "[departmentKey]", "me", "route.ts"), "utf8");
 const consentRoute = readFileSync(join(apiRoot, "[departmentKey]", "me", "consent", "route.ts"), "utf8");
 const server = readFileSync(join(root, "src/lib/temperament-shepherding-server.ts"), "utf8");
-assert.match(selfRoute, /serializeTemperamentSelfView\\(member, "member"\\)/);
-assert.match(selfRoute, /serializeTemperamentSelfView\\(leader, "leader"\\)/);
-assert.match(selfRoute, /serializeTemperamentSelfView\\(view, kind\\)/);
-assert.match(consentRoute, /serializeTemperamentSelfView\\(view, "member"\\)/);
+const client = readFileSync(join(root, "src/components/worship/WorshipShepherdingHubClient.tsx"), "utf8");
+const page = readFileSync(join(root, "src/app/worship/shepherding/page.tsx"), "utf8");
+
+assert.match(selfRoute, /serializeTemperamentSelfView\(member, "member"\)/);
+assert.match(selfRoute, /serializeTemperamentSelfView\(leader, "leader"\)/);
+assert.match(selfRoute, /serializeTemperamentSelfView\(view, kind\)/);
+assert.match(consentRoute, /serializeTemperamentSelfView\(view, "member"\)/);
 assert.match(server, /export function serializeTemperamentSelfView/);
-assert.match(server, /row\\?\\.status === "draft"/);
-assert.doesNotMatch(selfRoute, /\\.\\.\\.member,|\\.\\.\\.leader,|\\.\\.\\.view,/);
-assert.match(server, /assessmentKind: "member",\\s*status: "submitted"/);
-assert.match(server, /leadershipReflectionInsights: \\[\\]/);
-assert.match(server, /r\\.leaderShareConsentAt/);
+assert.match(server, /row\?\.status === "draft"/);
+assert.doesNotMatch(selfRoute, /\.\.\.member,|\.\.\.leader,|\.\.\.view,/);
+assert.match(server, /assessmentKind: "member",\s*status: "submitted"/);
+assert.match(server, /leadershipReflectionInsights: \[\]/);
+assert.match(server, /r\.leaderShareConsentAt/);
+assert.match(client, /checked=\{agreed\}/, "participant must explicitly opt in");
+assert.match(client, /disabled=\{busy \|\| !agreed\}/, "submit must require consent");
+assert.match(page, /getTemperamentShepherdingHubNav/, "pastoral access must be supported");
+assert.doesNotMatch(page, /canAccessWorshipPlanner/, "do not require pastor to join worship group");
 
 console.log(`temperament-shepherding-security.test.mjs: OK (${routes.length} routes)`);
