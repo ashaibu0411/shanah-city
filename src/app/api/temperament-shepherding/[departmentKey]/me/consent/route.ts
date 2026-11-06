@@ -5,7 +5,7 @@ import {
   getTemperamentShepherdingDepartmentAccess,
 } from "@/lib/temperament-shepherding-access-server";
 import { getDepartmentDef } from "@/lib/temperament-shepherding-departments";
-import { appendTemperamentAudit, getMemberView, setLeaderShareConsent } from "@/lib/temperament-shepherding-server";
+import { appendTemperamentAudit, getMemberView, setLeaderShareConsent, serializeTemperamentSelfView } from "@/lib/temperament-shepherding-server";
 
 export async function PUT(
   request: Request,
@@ -56,16 +56,7 @@ export async function PUT(
     });
 
     const view = await getMemberView({ userId: user.id, departmentKey, assessmentKind: "member" });
-    const safe = {
-      ...view,
-      answers: {},
-      snapshot: view.snapshot
-        ? {
-            disclaimer: view.snapshot.disclaimer,
-            highlightsJson: view.snapshot.highlightsJson,
-          }
-        : null,
-    };
+    const safe = serializeTemperamentSelfView(view, "member");
     return NextResponse.json({ ok: true, view: safe });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Error";
