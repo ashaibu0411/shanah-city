@@ -199,6 +199,12 @@ export const adminNavItem = {
   icon: "⚙",
 } as const;
 
+export const askShepherdNavItem = {
+  label: "Ask Shepherd",
+  href: "/leadership/ask-shepherd",
+  icon: "✠",
+} as const;
+
 export type AppNavItem = {
   label: string;
   href: string;

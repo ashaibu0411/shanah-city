@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   adminNavItem,
+  askShepherdNavItem,
   couplesNavItem,
   marriageCounselingNavItem,
   marriageCounselorAssignmentsNavItem,
@@ -28,6 +29,7 @@ type NavPermissions = {
   canAccessCouplesHub: boolean;
   canAccessMarriageCounselorAssignments: boolean;
   canAccessTemperamentShepherdingHub: boolean;
+  canAccessAskShepherd: boolean;
 };
 
 function insertAfterGroups(items: AppNavItem[], ...toInsert: AppNavItem[]): AppNavItem[] {
@@ -94,6 +96,19 @@ export function buildAppNavItems(
     }
   }
 
+  if (user && permissions.canAccessAskShepherd) {
+    const profileIndex = items.findIndex((item) => item.href === "/profile");
+    if (profileIndex === -1) {
+      items = [...items, askShepherdNavItem];
+    } else {
+      items = [
+        ...items.slice(0, profileIndex),
+        askShepherdNavItem,
+        ...items.slice(profileIndex),
+      ];
+    }
+  }
+
   if (permissions.canAccessFrontLiners) {
     const profileIndex = items.findIndex((item) => item.href === "/profile");
     if (profileIndex === -1) {
@@ -155,6 +170,7 @@ export function useAppNavItems(): AppNavItem[] {
       permissions.canAccessCouplesHub,
       permissions.canAccessMarriageCounselorAssignments,
       permissions.canAccessTemperamentShepherdingHub,
+      permissions.canAccessAskShepherd,
     ],
   );
 }
