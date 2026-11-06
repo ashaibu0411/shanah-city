@@ -1,4 +1,4 @@
-# Ask Shepherd Phase 1 — acceptance report (staging hardening)
+# Ask Shepherd Phase 1 — acceptance report (privacy + staging)
 
 **Branch:** `feature/ask-shepherd-phase1`  
 **PR:** [#31](https://github.com/ashaibu0411/shanah-city/pull/31)  
@@ -7,16 +7,21 @@
 
 ---
 
-## Final verdict
+## Final verdict (PASS/FAIL matrix)
 
 | Area | Status |
 | --- | --- |
-| Local: `npm run test:ask-shepherd`, `test:app:nav`, `test:temperament:shepherding`, `npm run build` | **PASS** (run in workspace after hardening) |
-| Staging deploy (isolated) | **Not verified from this workspace** — local repo defines [.github/workflows/vercel-staging.yml](.github/workflows/vercel-staging.yml) (push to `staging` + hook), but **`gh workflow list` on the default branch does not include it**, so automated staging dispatch could not be confirmed. Aligned remote `staging` and `feature/ask-shepherd-phase1` have **diverged**; fast-forwarding staging without a conflict-heavy merge needs an intentional integration strategy. **Hardening commit:** `dfe7574` on `feature/ask-shepherd-phase1` (updates PR #31). |
-| Real OpenAI / live provider end-to-end | **BLOCKED** — no billing or paid enablement from this workspace; verify only when staging secrets exist and are authorized |
-| Synthetic user acceptance on staging | **BLOCKED** pending live deploy URL + test accounts (same constraint as live AI if the script expects a real reply) |
+| **Team-context save enforcement** (server-verifiable; not `hadTeamContextInSession` body) | **PASS** (signed HttpOnly cookie + `POST …/save` verifies; `POST …/session/clear-ephemeral-team-context` on New chat) |
+| **Regression: forged save bypass** | **PASS** (`scripts/ask-shepherd-team-context-privacy.test.ts` in `npm run test:ask-shepherd`) |
+| Local: `npm run test:ask-shepherd`, `npm run build` | **PASS** (this workspace) |
+| Local: `npm run test:app:nav`, `npm run test:temperament:shepherding` | **PASS** (re-run after cookie change) |
+| **Synthetic staging acceptance** (pastoral, worship leader, member, unauthorized) | **FAIL / BLOCKED** — no staging test accounts or browser session from this workspace; cannot execute consolidated role matrix here |
+| **Critical safeguarding without AI key** | **FAIL / BLOCKED** for live staging — design + code path verified locally; not exercised against deployed staging in this run |
+| **Unsaved non-persistence + save + delete** on staging | **FAIL / BLOCKED** — same as above (needs authenticated staging users + DB visibility optional) |
+| **Real AI provider E2E** | **BLOCKED** — credentials not used from this workspace; do not report as PASS |
+| Merge `staging` branch / production / migrations | **N/A** — not performed (per instructions) |
 
-**Overall:** **CONDITIONAL PASS** — code and automated checks **PASS**; full staging smoke and real-provider checks remain **BLOCKED** or **pending** until the staging deployment and credentials are confirmed outside this run.
+**Overall:** **FAIL** for **full staging + synthetic acceptance + real AI** (blocked). **PASS** for **implemented server enforcement + automated tests + build** in this workspace.
 
 ---
 
@@ -28,7 +33,7 @@
 
 - **Ephemeral turns:** `POST …/chat` accepts `ephemeralHistory` (client-held prior user/assistant turns). For unsaved chats the server **does not** write `AskShepherdMessage` or create/update `AskShepherdConversation` rows except where audit/usage already applies.
 - **Explicit save only:** `POST …/save` creates the conversation and messages in one step with `savedToLibrary: true` (`saveEphemeralConversationToLibrary`). The UI uses **Save to library** → this endpoint (not silent PATCH).
-- **Team / temperament context:** Highlights are resolved per request via `buildLeaderHighlightsForUser` and fed into the **system prompt only** — they are **not** persisted in conversation rows or messages. If `hadTeamContextInSession` is true, **save is rejected** (server + UI).
+- **Team / temperament context:** Highlights are resolved per request via `buildLeaderHighlightsForUser` and fed into the **system prompt only** — they are **not** persisted in conversation rows or messages. After any ephemeral turn that successfully used consented team context, the server sets a **signed HttpOnly** cookie (`ask_shepherd_ephemeral_team`, keyed by `ASK_SHEPHERD_PRIVACY_SECRET` or `CRON_SECRET`). **`POST …/save` reads that cookie** — the client cannot forge **`hadTeamContextInSession`** (field removed). **Save is rejected** when the cookie marks team context used. **New chat** calls **`POST …/session/clear-ephemeral-team-context`** to clear the cookie so a fresh ephemeral session can be saved. If neither secret is set, **save returns 503** `privacy_cookie_unconfigured` (fail closed).
 - **Listing / loading:** `GET …/conversations` lists **saved** threads only (`savedToLibrary: true`). `GET …/conversations/[id]` loads **saved** threads only (`savedOnly: true`).
 - **Delete:** `DELETE …/conversations/[id]` removes saved threads for the owner.
 - **Critical safeguarding:** `assessSafeguardingSignals` at **critical** returns static guidance (`criticalSafeguardingResponseWithoutAi`) **without** calling the model and **without** persisting user message text or assistant body (audit records issue/summary only).
@@ -67,6 +72,7 @@ Client-safe strings live in `src/lib/ask-shepherd-errors.ts`.
 | Method | Path | Role |
 | --- | --- | --- |
 | GET | `/api/leadership/ask-shepherd/[departmentKey]/session` | Metadata, `aiConfigured`, categories |
+| POST | `…/session/clear-ephemeral-team-context` | Clears team-context cookie after **New chat** |
 | POST | `…/chat` | Turn; `ephemeralHistory` for unsaved; optional `teamMemberUserId` (consent-checked) |
 | POST | `…/save` | **Explicit** save of ephemeral thread to library |
 | GET | `…/conversations` | Saved library list |
@@ -82,7 +88,7 @@ Client-safe strings live in `src/lib/ask-shepherd-errors.ts`.
 
 Automated scripts cover:
 
-- `test:ask-shepherd` — access matrix, route auth walk (7 Ask Shepherd routes), AI adapter mock
+- `test:ask-shepherd` — access matrix, route auth walk (8 Ask Shepherd `route.ts` files), AI adapter mock, team-context cookie regression
 - `test:app:nav` — nav regression (Ask Shepherd behind flags)
 - `test:temperament:shepherding` — hub + related API routes
 
@@ -111,7 +117,8 @@ Automated scripts cover:
 ## 7. Environment (reference only)
 
 Flags: `ASK_SHEPHERD_ENABLED`, `NEXT_PUBLIC_ASK_SHEPHERD`.  
-AI: `ASK_SHEPHERD_AI_API_KEY` or `OPENAI_API_KEY`, optional URL/model/limits.
+AI: `ASK_SHEPHERD_AI_API_KEY` or `OPENAI_API_KEY`, optional URL/model/limits.  
+Privacy cookie signing: **`ASK_SHEPHERD_PRIVACY_SECRET`** (optional; falls back to **`CRON_SECRET`**). Required for team-context save blocking on `POST …/save`.
 
 Migration was applied on staging per your note; **do not** re-run for this hardening batch.
 

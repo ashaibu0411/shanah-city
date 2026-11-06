@@ -213,8 +213,20 @@ export type ChatTurnResult =
       aiConfigured: boolean;
       /** True when this response used the static critical safeguarding path without AI. */
       usedStaticSafeguarding?: boolean;
+      /**
+       * Ephemeral thread only: whether consented team (temperament) context was used for this turn
+       * (or already applied earlier in the same ephemeral session — tracked via signed cookie).
+       */
+      ephemeralUsedTeamContext?: boolean;
     }
-  | { ok: false; error: string; status: number; retryAfterSeconds?: number; clientErrorCode?: string };
+  | {
+      ok: false;
+      error: string;
+      status: number;
+      retryAfterSeconds?: number;
+      clientErrorCode?: string;
+      ephemeralUsedTeamContext?: boolean;
+    };
 
 function clampUserMessage(text: string) {
   const t = text.trim();
@@ -246,6 +258,9 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
     ? await getConversationForUser(input.conversationId, input.user.id, { savedOnly: true })
     : null;
 
+  const ephemeralTurn = !savedConv;
+  let thisTurnUsedTeamContext = false;
+
   if (input.conversationId && !savedConv) {
     return { ok: false, error: "Conversation not found.", status: 404 };
   }
@@ -276,6 +291,7 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
         status: 400,
       };
     }
+    thisTurnUsedTeamContext = true;
   }
 
   const systemPrompt = buildAskShepherdSystemPrompt({
@@ -305,6 +321,7 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
       safeguarding: sgLevel,
       aiConfigured: isAskShepherdAiConfigured(),
       usedStaticSafeguarding: true,
+      ...(ephemeralTurn ? { ephemeralUsedTeamContext: thisTurnUsedTeamContext } : {}),
     };
   }
 
@@ -337,6 +354,7 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
       error: ASK_SHEPHERD_CLIENT_PROVIDER_NOT_CONFIGURED,
       status: 503,
       clientErrorCode: "ai_not_configured",
+      ...(ephemeralTurn ? { ephemeralUsedTeamContext: thisTurnUsedTeamContext } : {}),
     };
   }
 
@@ -347,6 +365,7 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
       error: "Daily Ask Shepherd limit reached. Try again tomorrow.",
       status: 429,
       retryAfterSeconds: rl.retryAfterSeconds,
+      ...(ephemeralTurn ? { ephemeralUsedTeamContext: thisTurnUsedTeamContext } : {}),
     };
   }
 
@@ -369,6 +388,7 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
       error: ASK_SHEPHERD_CLIENT_PROVIDER_FAILED,
       status: ai.code === "not_configured" ? 503 : 502,
       clientErrorCode: ai.code,
+      ...(ephemeralTurn ? { ephemeralUsedTeamContext: thisTurnUsedTeamContext } : {}),
     };
   }
 
@@ -422,6 +442,7 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
     assistantMessage: assistantText,
     safeguarding: sgLevel,
     aiConfigured: true,
+    ...(ephemeralTurn ? { ephemeralUsedTeamContext: thisTurnUsedTeamContext } : {}),
   };
 }
 
@@ -431,16 +452,9 @@ export type SaveEphemeralInput = {
   title: string;
   category: string;
   messages: { role: "user" | "assistant"; content: string }[];
-  /** Block save if any message was composed with team temperament context. */
-  hadTeamContextInSession: boolean;
 };
 
 export async function saveEphemeralConversationToLibrary(input: SaveEphemeralInput): Promise<{ conversationId: string }> {
-  if (input.hadTeamContextInSession) {
-    throw new Error(
-      "Cannot save a session that used consented team context. Copy guidance you need, then start a new chat without team context to save.",
-    );
-  }
   const msgs = normalizeEphemeralHistory(input.messages);
   if (msgs.length === 0) {
     throw new Error("Nothing to save.");

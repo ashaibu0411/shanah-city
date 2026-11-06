@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { requireAskShepherdApiRequest } from "@/lib/ask-shepherd-route";
 import { parseAskShepherdDepartmentKey } from "@/lib/ask-shepherd-departments";
@@ -6,6 +7,11 @@ import {
   resolveAskShepherdAccess,
 } from "@/lib/ask-shepherd-access-server";
 import { saveEphemeralConversationToLibrary } from "@/lib/ask-shepherd-server";
+import {
+  ASK_SHEPHERD_TEAM_CTX_COOKIE,
+  isAskShepherdTeamContextCookieConfigured,
+  parseEphemeralTeamContextCookie,
+} from "@/lib/ask-shepherd-team-context-cookie";
 
 export async function POST(
   request: Request,
@@ -32,12 +38,10 @@ export async function POST(
       title?: unknown;
       category?: unknown;
       messages?: unknown;
-      hadTeamContextInSession?: unknown;
     };
 
     const title = String(body.title ?? "Saved guidance").trim() || "Saved guidance";
     const category = String(body.category ?? "general").trim() || "general";
-    const hadTeamContextInSession = body.hadTeamContextInSession === true;
     const rawMessages = Array.isArray(body.messages) ? body.messages : [];
 
     const messages = rawMessages
@@ -47,28 +51,40 @@ export async function POST(
       }))
       .filter((m): m is { role: "user" | "assistant"; content: string } => m.role !== null);
 
+    if (!isAskShepherdTeamContextCookieConfigured()) {
+      return NextResponse.json(
+        {
+          error: "Server configuration prevents verifying privacy rules. Saving is temporarily unavailable.",
+          code: "privacy_cookie_unconfigured",
+        },
+        { status: 503 },
+      );
+    }
+
+    const cookieStore = await cookies();
+    const cookieRaw = cookieStore.get(ASK_SHEPHERD_TEAM_CTX_COOKIE)?.value;
+    const parsed = parseEphemeralTeamContextCookie(cookieRaw, user.id, def.key);
+    const serverTeamContextUsed = parsed.ok && parsed.usedConsentedTeamContext;
+
+    if (serverTeamContextUsed) {
+      return NextResponse.json(
+        { error: "Request could not be completed.", clientErrorCode: "team_context_save_blocked" },
+        { status: 400 },
+      );
+    }
+
     const result = await saveEphemeralConversationToLibrary({
       user,
       department: def,
       title,
       category,
       messages,
-      hadTeamContextInSession,
     });
 
     return NextResponse.json({ ok: true, conversationId: result.conversationId });
   } catch (e) {
     if (e instanceof Error && e.message === "Nothing to save.") {
       return NextResponse.json({ error: "Nothing to save." }, { status: 400 });
-    }
-    if (
-      e instanceof Error &&
-      e.message.startsWith("Cannot save a session that used consented team context")
-    ) {
-      return NextResponse.json(
-        { error: "Request could not be completed.", clientErrorCode: "team_context_save_blocked" },
-        { status: 400 },
-      );
     }
     return NextResponse.json({ error: "Request could not be completed." }, { status: 400 });
   }

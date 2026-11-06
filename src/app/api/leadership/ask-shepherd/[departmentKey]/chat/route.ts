@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { requireAskShepherdApiRequest } from "@/lib/ask-shepherd-route";
 import { parseAskShepherdDepartmentKey } from "@/lib/ask-shepherd-departments";
@@ -6,6 +7,13 @@ import {
   resolveAskShepherdAccess,
 } from "@/lib/ask-shepherd-access-server";
 import { runAskShepherdChatTurn } from "@/lib/ask-shepherd-server";
+import {
+  ASK_SHEPHERD_TEAM_CTX_COOKIE,
+  cookieValueIndicatesTeamContextUsed,
+  isAskShepherdTeamContextCookieConfigured,
+  mergeEphemeralTeamContextCookie,
+  setTeamContextCookieOnResponse,
+} from "@/lib/ask-shepherd-team-context-cookie";
 
 export async function POST(
   request: Request,
@@ -68,22 +76,58 @@ export async function POST(
       ephemeralHistory,
     });
 
-    if (!result.ok) {
-      return NextResponse.json(
-        { error: result.error, retryAfterSeconds: result.retryAfterSeconds },
-        { status: result.status },
-      );
+    const cookieStore = await cookies();
+    const existingTeamCookie = cookieStore.get(ASK_SHEPHERD_TEAM_CTX_COOKIE)?.value;
+    const ephemeralTurn = conversationId === null || conversationId === "";
+
+    const usedThisTurn = "ephemeralUsedTeamContext" in result && result.ephemeralUsedTeamContext === true;
+
+    let mergedTeamCookie: string | null = null;
+    if (ephemeralTurn && isAskShepherdTeamContextCookieConfigured()) {
+      try {
+        mergedTeamCookie = mergeEphemeralTeamContextCookie({
+          existingRaw: existingTeamCookie,
+          userId: user.id,
+          departmentKey: def.key,
+          thisTurnUsedConsentedTeamContext: usedThisTurn,
+        });
+      } catch {
+        mergedTeamCookie = null;
+      }
     }
 
-    return NextResponse.json({
-      ok: true,
-      conversationId: result.conversationId,
-      assistantMessage: result.assistantMessage,
-      safeguarding: result.safeguarding,
-      usedStaticSafeguarding: result.usedStaticSafeguarding ?? false,
-    });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Error";
+    const ephemeralLocked =
+      mergedTeamCookie !== null && cookieValueIndicatesTeamContextUsed(mergedTeamCookie, user.id, def.key);
+
+    const buildJson = () => {
+      if (!result.ok) {
+        return {
+          error: result.error,
+          retryAfterSeconds: result.retryAfterSeconds,
+          clientErrorCode: result.clientErrorCode,
+          ...(ephemeralTurn && mergedTeamCookie !== null ? { ephemeralTeamContextLocked: ephemeralLocked } : {}),
+        };
+      }
+      return {
+        ok: true,
+        conversationId: result.conversationId,
+        assistantMessage: result.assistantMessage,
+        safeguarding: result.safeguarding,
+        usedStaticSafeguarding: result.usedStaticSafeguarding ?? false,
+        ...(ephemeralTurn && mergedTeamCookie !== null ? { ephemeralTeamContextLocked: ephemeralLocked } : {}),
+      };
+    };
+
+    if (!ephemeralTurn) {
+      return NextResponse.json(buildJson(), { status: result.ok ? 200 : result.status });
+    }
+
+    const res = NextResponse.json(buildJson(), { status: result.ok ? 200 : result.status });
+    if (mergedTeamCookie !== null) {
+      setTeamContextCookieOnResponse(res, mergedTeamCookie);
+    }
+    return res;
+  } catch {
     return NextResponse.json({ error: "Request could not be completed." }, { status: 400 });
   }
 }

@@ -41,7 +41,8 @@ export function AskShepherdClient() {
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   /** Set only when continuing a **saved** thread (messages persist server-side). */
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [hadTeamContextInSession, setHadTeamContextInSession] = useState(false);
+  /** Server-signed state: ephemeral thread used consented team context — save must stay disabled. */
+  const [teamContextSaveLocked, setTeamContextSaveLocked] = useState(false);
   const [category, setCategory] = useState("general");
   const [teamMemberUserId, setTeamMemberUserId] = useState("");
   const [memberOptions, setMemberOptions] = useState<{ id: string; name: string; hasSharedTemperamentSummary: boolean }[]>([]);
@@ -105,13 +106,11 @@ export function AskShepherdClient() {
     const historyBefore = messages;
     setMessages((m) => [...m, { role: "user", content: msg }]);
     setInput("");
-    if (teamMemberUserId.trim()) {
-      setHadTeamContextInSession(true);
-    }
     try {
       const res = await fetch(`${base}/chat`, {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           message: msg,
           category,
@@ -120,7 +119,15 @@ export function AskShepherdClient() {
           ephemeralHistory: historyBefore,
         }),
       });
-      const data = await res.json().catch(() => ({}));
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        assistantMessage?: string;
+        conversationId?: string | null;
+        ephemeralTeamContextLocked?: boolean;
+      };
+      if (data.ephemeralTeamContextLocked === true) {
+        setTeamContextSaveLocked(true);
+      }
       if (!res.ok) {
         throw new Error(String(data.error ?? "Request failed"));
       }
@@ -152,7 +159,7 @@ export function AskShepherdClient() {
       if (!res.ok) throw new Error(data.error ?? "Could not load conversation");
       const conv = data.conversation!;
       setConversationId(conv.id);
-      setHadTeamContextInSession(false);
+      setTeamContextSaveLocked(false);
       setMessages(
         conv.messages
           .filter((m) => m.role === "user" || m.role === "assistant")
@@ -166,17 +173,23 @@ export function AskShepherdClient() {
   }
 
   async function newChat() {
+    await fetch(`${base}/session/clear-ephemeral-team-context`, {
+      method: "POST",
+      credentials: "include",
+    });
     setConversationId(null);
     setMessages([]);
     setTeamMemberUserId("");
-    setHadTeamContextInSession(false);
+    setTeamContextSaveLocked(false);
     setError(null);
   }
 
   async function saveToLibrary() {
     if (messages.length === 0) return;
-    if (hadTeamContextInSession) {
-      setError("Sessions with consented team context cannot be saved. Copy what you need, start a new chat without team context, then save.");
+    if (teamContextSaveLocked) {
+      setError(
+        "This thread used consented team context and cannot be saved. Copy what you need, tap New chat (clears server tracking), then save.",
+      );
       return;
     }
     if (conversationId) {
@@ -193,14 +206,14 @@ export function AskShepherdClient() {
       const res = await fetch(`${base}/save`, {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           title: title.trim(),
           category,
           messages,
-          hadTeamContextInSession,
         }),
       });
-      const data = await res.json().catch(() => ({}));
+      const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string };
       if (!res.ok) throw new Error(String(data.error ?? "Save failed"));
       void newChat();
       void refreshConversations();
@@ -375,7 +388,7 @@ export function AskShepherdClient() {
                 type="button"
                 className="rounded-xl border border-brand-600 px-3 py-2 text-sm font-medium text-brand-900"
                 onClick={() => void saveToLibrary()}
-                disabled={busy || hadTeamContextInSession}
+                disabled={busy || teamContextSaveLocked}
               >
                 Save to library
               </button>
