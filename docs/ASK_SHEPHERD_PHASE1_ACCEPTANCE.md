@@ -12,7 +12,7 @@
 | Area | Status |
 | --- | --- |
 | Local: `npm run test:ask-shepherd`, `test:app:nav`, `test:temperament:shepherding`, `npm run build` | **PASS** (run in workspace after hardening) |
-| Staging deploy (isolated) | **Pending confirmation** — push to `staging` triggers [Vercel Staging Deploy](.github/workflows/vercel-staging.yml) when `VERCEL_STAGING_DEPLOY_HOOK` is configured |
+| Staging deploy (isolated) | **Not verified from this workspace** — local repo defines [.github/workflows/vercel-staging.yml](.github/workflows/vercel-staging.yml) (push to `staging` + hook), but **`gh workflow list` on the default branch does not include it**, so automated staging dispatch could not be confirmed. Aligned remote `staging` and `feature/ask-shepherd-phase1` have **diverged**; fast-forwarding staging without a conflict-heavy merge needs an intentional integration strategy. **Hardening commit:** `dfe7574` on `feature/ask-shepherd-phase1` (updates PR #31). |
 | Real OpenAI / live provider end-to-end | **BLOCKED** — no billing or paid enablement from this workspace; verify only when staging secrets exist and are authorized |
 | Synthetic user acceptance on staging | **BLOCKED** pending live deploy URL + test accounts (same constraint as live AI if the script expects a real reply) |
 
