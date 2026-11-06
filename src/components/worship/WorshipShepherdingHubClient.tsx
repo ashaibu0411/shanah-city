@@ -495,6 +495,7 @@ function AssessmentSection({
   footerConsent?: ReactNode;
 }) {
   const [local, setLocal] = useState<Record<string, number>>({});
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     setLocal({ ...answers });
@@ -556,18 +557,28 @@ function AssessmentSection({
               </li>
             ))}
           </ol>
+          <label className="flex items-start gap-3 rounded-xl border border-night-900/15 bg-sand-50 p-3 text-sm text-night-800">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              disabled={busy}
+            />
+            <span>
+              I voluntarily consent to the collection and processing of my responses to generate a private
+              temperament and teamwork reflection. This is not a clinical assessment. Sharing my profile
+              with leaders requires separate consent after submission.
+            </span>
+          </label>
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="secondary" disabled={busy} onClick={() => onSave(local)}>
               Save progress
             </Button>
-            <Button type="button" disabled={busy} onClick={() => onSubmit(local)}>
-              Submit (requires data-use consent)
+            <Button type="button" disabled={busy || !agreed} onClick={() => onSubmit(local)}>
+              Submit assessment
             </Button>
           </div>
-          <p className="text-xs text-night-500">
-            Submitting confirms you consent to this in-app reflection for ministry formation. It is not a clinical
-            assessment.
-          </p>
         </>
       ) : (
         <SubmittedProfile snapshot={submittedSnapshot} />
