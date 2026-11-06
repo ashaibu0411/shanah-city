@@ -440,6 +440,8 @@ export async function buildLeaderDashboard(input: { departmentKey: string }) {
     return {
       memberCount: 0,
       participation: [],
+      sharedProfiles: [],
+      leadershipReflectionInsights: [],
       teamDimensionAverages: null,
       teamDimensionNote:
         "No worship group members found in configuration—averages will populate once members join the group.",
