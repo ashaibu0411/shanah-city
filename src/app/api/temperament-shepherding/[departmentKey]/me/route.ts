@@ -10,6 +10,7 @@ import {
   getMemberView,
   saveDraft,
   submitAssessment,
+  serializeTemperamentSelfView,
 } from "@/lib/temperament-shepherding-server";
 import { TEMPERAMENT_SHEPHERDING_CONTENT_VERSION } from "@/lib/temperament-shepherding-content";
 import { questionsForKind } from "@/lib/temperament-shepherding-content";
@@ -47,32 +48,8 @@ export async function GET(
       getMemberView({ userId: user.id, departmentKey, assessmentKind: "leader" }),
     ]);
 
-    const safeMember =
-      member.response && member.response.status === "draft"
-        ? { ...member, answers: member.answers }
-        : {
-            ...member,
-            answers: {},
-            snapshot: member.snapshot
-              ? {
-                  disclaimer: member.snapshot.disclaimer,
-                  highlightsJson: member.snapshot.highlightsJson,
-                }
-              : null,
-          };
-    const safeLeader =
-      leader.response && leader.response.status === "draft"
-        ? { ...leader, answers: leader.answers }
-        : {
-            ...leader,
-            answers: {},
-            snapshot: leader.snapshot
-              ? {
-                  disclaimer: leader.snapshot.disclaimer,
-                  highlightsJson: leader.snapshot.highlightsJson,
-                }
-              : null,
-          };
+    const safeMember = serializeTemperamentSelfView(member, "member");
+    const safeLeader = serializeTemperamentSelfView(leader, "leader");
 
     return NextResponse.json({
       departmentKey,
@@ -141,19 +118,7 @@ export async function PATCH(
     });
 
     const view = await getMemberView({ userId: user.id, departmentKey, assessmentKind: kind });
-    const safe =
-      view.response && view.response.status === "draft"
-        ? { ...view, answers: view.answers }
-        : {
-            ...view,
-            answers: {},
-            snapshot: view.snapshot
-              ? {
-                  disclaimer: view.snapshot.disclaimer,
-                  highlightsJson: view.snapshot.highlightsJson,
-                }
-              : null,
-          };
+    const safe = serializeTemperamentSelfView(view, kind);
 
     return NextResponse.json({ ok: true, view: safe });
   } catch (e) {
@@ -224,16 +189,7 @@ export async function POST(
     });
 
     const view = await getMemberView({ userId: user.id, departmentKey, assessmentKind: kind });
-    const safe = {
-      ...view,
-      answers: {},
-      snapshot: view.snapshot
-        ? {
-            disclaimer: view.snapshot.disclaimer,
-            highlightsJson: view.snapshot.highlightsJson,
-          }
-        : null,
-    };
+    const safe = serializeTemperamentSelfView(view, kind);
     return NextResponse.json({
       ok: true,
       view: safe,
