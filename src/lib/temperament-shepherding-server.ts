@@ -277,6 +277,7 @@ export async function setLeaderShareConsent(input: {
       id: input.responseId,
       userId: input.userId,
       departmentKey: input.departmentKey,
+      assessmentKind: "member",
       status: "submitted",
     },
     include: { snapshot: true },
@@ -315,6 +316,42 @@ export async function getMemberView(input: { userId: string; departmentKey: stri
       }).length,
       total: totalQuestionsForKind(input.assessmentKind),
     },
+  };
+}
+
+/**
+ * Strict allowlist for member-facing API responses. Never spread Prisma response
+ * rows into JSON: they contain answersJson and an eagerly-loaded full snapshot.
+ */
+export function serializeTemperamentSelfView(
+  view: Awaited<ReturnType<typeof getMemberView>>,
+  kind: TemperamentAssessmentKind,
+) {
+  const row = view.response;
+  return {
+    response: row
+      ? {
+          id: row.id,
+          status: row.status,
+          assessmentKind: row.assessmentKind,
+          contentVersion: row.contentVersion,
+          shareSnapshotWithLeader: row.shareSnapshotWithLeader,
+          leaderShareConsentAt: row.leaderShareConsentAt,
+          dataUseConsentAt: row.dataUseConsentAt,
+          submittedAt: row.submittedAt,
+        }
+      : null,
+    snapshot: view.snapshot
+      ? { disclaimer: view.snapshot.disclaimer, highlightsJson: view.snapshot.highlightsJson }
+      : null,
+    answers:
+      row?.status === "draft" && "answers" in view && view.answers
+        ? view.answers
+        : {},
+    progress:
+      "progress" in view && view.progress
+        ? view.progress
+        : { answered: 0, total: totalQuestionsForKind(kind) },
   };
 }
 
@@ -456,6 +493,7 @@ export async function buildLeaderDashboard(input: { departmentKey: string }) {
       r.assessmentKind === "member" &&
       r.status === "submitted" &&
       r.shareSnapshotWithLeader &&
+      r.leaderShareConsentAt &&
       r.snapshot,
   );
   const uniqueShared = new Map<string, (typeof sharedForTeam)[0]>();
@@ -498,42 +536,8 @@ export async function buildLeaderDashboard(input: { departmentKey: string }) {
     if (hi) sharedProfiles.push(hi);
   }
 
-  const leaderUserIds = group
-    ? [...group.adminIds, ...(group.assistantAdminIds ?? [])].filter((id, i, a) => a.indexOf(id) === i)
-    : [];
-  const leaderReflections: { userId: string; name: string; themes: string[]; nextSteps: string[] }[] = [];
-  if (leaderUserIds.length > 0) {
-    const leaderRows = await prisma.temperamentAssessmentResponse.findMany({
-      where: {
-        departmentKey: input.departmentKey,
-        assessmentKind: "leader",
-        userId: { in: leaderUserIds },
-        status: "submitted",
-      },
-      include: { snapshot: true },
-      orderBy: { updatedAt: "desc" },
-    });
-    const seen = new Set<string>();
-    for (const row of leaderRows) {
-      if (seen.has(row.userId)) continue;
-      seen.add(row.userId);
-      if (!row.snapshot) continue;
-      try {
-        const highlights = JSON.parse(row.snapshot.highlightsJson) as {
-          leadershipReflection?: { themes: string[]; nextSteps: string[] };
-        };
-        const u = await getUserById(row.userId);
-        leaderReflections.push({
-          userId: row.userId,
-          name: u?.displayName?.trim() || u?.name || "Leader",
-          themes: highlights.leadershipReflection?.themes ?? [],
-          nextSteps: highlights.leadershipReflection?.nextSteps ?? [],
-        });
-      } catch {
-        /* ignore */
-      }
-    }
-  }
+  // Leadership reflections are private to the leader; do not place them on a
+  // department-wide dashboard without a separate, explicit sharing consent.
 
   return {
     memberCount: memberIds.length,
@@ -545,7 +549,7 @@ export async function buildLeaderDashboard(input: { departmentKey: string }) {
         ? "No team averages yet—averages include only members who completed the assessment and chose to share a summary with leaders."
         :       `Averages from ${dimCount} shared profile${dimCount === 1 ? "" : "s"} (dimension scores 0–100). Not a diagnosis or ranking.`,
     discussionTopics,
-    leadershipReflectionInsights: leaderReflections,
+    leadershipReflectionInsights: [],
     guidance: buildShepherdingGuidance(),
   };
 }
