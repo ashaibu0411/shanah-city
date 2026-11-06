@@ -4,12 +4,12 @@
  * Does not store chat content.
  */
 
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 import type { NextResponse } from "next/server";
 
 export const ASK_SHEPHERD_TEAM_CTX_COOKIE = "ask_shepherd_ephemeral_team";
 
-const COOKIE_VERSION = 1;
+const COOKIE_VERSION = 2;
 const COOKIE_MAX_AGE_SEC = 7 * 24 * 60 * 60;
 
 type PayloadV1 = {
@@ -19,6 +19,8 @@ type PayloadV1 = {
   t: number;
   /** True once any ephemeral turn used consented member highlights in this browser session. */
   x: 0 | 1;
+  /** Digest of the client-held transcript; prevents clearing the cookie then saving old content. */
+  h: string;
 };
 
 function signingSecret(): string {
@@ -64,6 +66,7 @@ export function buildEphemeralTeamContextCookieValue(args: {
   departmentKey: string;
   /** If true, session must not be saveable until reset or cookie expires. */
   usedConsentedTeamContext: boolean;
+  transcriptHash?: string;
 }): string {
   const now = Math.floor(Date.now() / 1000);
   const payload: PayloadV1 = {
@@ -72,6 +75,7 @@ export function buildEphemeralTeamContextCookieValue(args: {
     d: args.departmentKey,
     t: now,
     x: args.usedConsentedTeamContext ? 1 : 0,
+    h: args.transcriptHash ?? "",
   };
   const jsonBytes = Buffer.from(JSON.stringify(payload), "utf8");
   const sig = signPayload(jsonBytes);
@@ -79,7 +83,7 @@ export function buildEphemeralTeamContextCookieValue(args: {
 }
 
 export type ParsedTeamContextCookie =
-  | { ok: true; usedConsentedTeamContext: boolean; userId: string; departmentKey: string }
+  | { ok: true; usedConsentedTeamContext: boolean; userId: string; departmentKey: string; transcriptHash: string }
   | { ok: false };
 
 /** Parse and verify cookie; enforce user + department match and expiry. */
@@ -116,11 +120,11 @@ export function parseEphemeralTeamContextCookie(
   if (o.v !== COOKIE_VERSION || typeof o.u !== "string" || typeof o.d !== "string" || typeof o.t !== "number") {
     return { ok: false };
   }
-  if (o.x !== 0 && o.x !== 1) return { ok: false };
+  if ((o.x !== 0 && o.x !== 1) || typeof o.h !== "string" || !/^([a-f0-9]{64})?$/.test(o.h)) return { ok: false };
   const now = Math.floor(Date.now() / 1000);
   if (now - o.t > COOKIE_MAX_AGE_SEC) return { ok: false };
   if (o.u !== expectedUserId || o.d !== expectedDepartmentKey) return { ok: false };
-  return { ok: true, usedConsentedTeamContext: o.x === 1, userId: o.u, departmentKey: o.d };
+  return { ok: true, usedConsentedTeamContext: o.x === 1, userId: o.u, departmentKey: o.d, transcriptHash: o.h };
 }
 
 export function mergeEphemeralTeamContextCookie(args: {
@@ -128,6 +132,7 @@ export function mergeEphemeralTeamContextCookie(args: {
   userId: string;
   departmentKey: string;
   thisTurnUsedConsentedTeamContext: boolean;
+  transcriptHash?: string;
 }): string {
   let used = args.thisTurnUsedConsentedTeamContext;
   const prev = parseEphemeralTeamContextCookie(args.existingRaw, args.userId, args.departmentKey);
@@ -136,7 +141,24 @@ export function mergeEphemeralTeamContextCookie(args: {
     userId: args.userId,
     departmentKey: args.departmentKey,
     usedConsentedTeamContext: used,
+    transcriptHash: args.transcriptHash,
   });
+}
+
+/**
+ * Hash the exact transcript that a user can later save. The digest contains no
+ * chat content; HMAC-signing it binds save requests to server-issued responses.
+ * Only the last 24 turns are persisted by the existing save pipeline.
+ */
+export function fingerprintAskShepherdTranscript(
+  rows: { role: "user" | "assistant"; content: string }[],
+): string {
+  const normal = rows
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .map((m) => ({ role: m.role, content: String(m.content ?? "").slice(0, 6000) }))
+    .filter((m) => m.content.trim().length > 0)
+    .slice(-24);
+  return createHash("sha256").update(JSON.stringify(normal)).digest("hex");
 }
 
 export function cookieValueIndicatesTeamContextUsed(
