@@ -39,7 +39,9 @@ export function AskShepherdClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConvSummary[]>([]);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  /** Set only when continuing a **saved** thread (messages persist server-side). */
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [hadTeamContextInSession, setHadTeamContextInSession] = useState(false);
   const [category, setCategory] = useState("general");
   const [teamMemberUserId, setTeamMemberUserId] = useState("");
   const [memberOptions, setMemberOptions] = useState<{ id: string; name: string; hasSharedTemperamentSummary: boolean }[]>([]);
@@ -94,10 +96,18 @@ export function AskShepherdClient() {
   async function send() {
     const msg = input.trim();
     if (!msg || busy) return;
+    if (conversationId && teamMemberUserId.trim()) {
+      setError("Clear team context or start a new chat before continuing a saved conversation.");
+      return;
+    }
     setBusy(true);
     setError(null);
+    const historyBefore = messages;
     setMessages((m) => [...m, { role: "user", content: msg }]);
     setInput("");
+    if (teamMemberUserId.trim()) {
+      setHadTeamContextInSession(true);
+    }
     try {
       const res = await fetch(`${base}/chat`, {
         method: "POST",
@@ -107,18 +117,21 @@ export function AskShepherdClient() {
           category,
           conversationId,
           teamMemberUserId: teamMemberUserId.trim() || null,
+          ephemeralHistory: historyBefore,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(String(data.error ?? "Request failed"));
       }
-      setConversationId(String(data.conversationId));
+      if (data.conversationId !== null && data.conversationId !== undefined) {
+        setConversationId(String(data.conversationId));
+      }
       setMessages((m) => [...m, { role: "assistant", content: String(data.assistantMessage) }]);
       void refreshConversations();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
-      setMessages((m) => m.slice(0, -1));
+      setMessages(historyBefore);
     } finally {
       setBusy(false);
     }
@@ -139,6 +152,7 @@ export function AskShepherdClient() {
       if (!res.ok) throw new Error(data.error ?? "Could not load conversation");
       const conv = data.conversation!;
       setConversationId(conv.id);
+      setHadTeamContextInSession(false);
       setMessages(
         conv.messages
           .filter((m) => m.role === "user" || m.role === "assistant")
@@ -155,16 +169,46 @@ export function AskShepherdClient() {
     setConversationId(null);
     setMessages([]);
     setTeamMemberUserId("");
+    setHadTeamContextInSession(false);
     setError(null);
   }
 
-  async function toggleSaved(id: string, next: boolean) {
-    const res = await fetch(`${base}/conversations/${id}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ savedToLibrary: next }),
-    });
-    if (res.ok) void refreshConversations();
+  async function saveToLibrary() {
+    if (messages.length === 0) return;
+    if (hadTeamContextInSession) {
+      setError("Sessions with consented team context cannot be saved. Copy what you need, start a new chat without team context, then save.");
+      return;
+    }
+    if (conversationId) {
+      setError("This is already a saved thread. Use Delete in Saved guidance to remove it.");
+      return;
+    }
+    const title =
+      window.prompt("Title for saved guidance", messages.find((m) => m.role === "user")?.content.slice(0, 60) ?? "Saved guidance") ??
+      "";
+    if (!title.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`${base}/save`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          category,
+          messages,
+          hadTeamContextInSession,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String(data.error ?? "Save failed"));
+      void newChat();
+      void refreshConversations();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function removeConversation(id: string) {
@@ -269,7 +313,12 @@ export function AskShepherdClient() {
         </div>
         <p className="mt-2 text-xs text-night-500">
           Only members who completed the temperament reflection and chose to share a summary with leaders appear here.
-          Nothing is stored in chat titles from their raw answers.
+          Temperament highlights are used only for this request — they are not written into saved library notes (saving is
+          blocked while team context is on).
+        </p>
+        <p className="mt-2 text-xs text-amber-800">
+          Unsaved chats stay in this browser session only — nothing is written to the server until you tap{" "}
+          <strong>Save to library</strong>. Critical safeguarding topics never store your message text on the server.
         </p>
 
         <div className="mt-4 min-h-[220px] max-h-[55vh] overflow-y-auto rounded-xl bg-night-50 p-3">
@@ -321,11 +370,12 @@ export function AskShepherdClient() {
             <button type="button" className="rounded-xl border border-night-300 px-3 py-2 text-sm" onClick={() => void newChat()}>
               New chat
             </button>
-            {conversationId && (
+            {!conversationId && messages.length > 0 && (
               <button
                 type="button"
-                className="rounded-xl border border-night-300 px-3 py-2 text-sm"
-                onClick={() => void toggleSaved(conversationId, true)}
+                className="rounded-xl border border-brand-600 px-3 py-2 text-sm font-medium text-brand-900"
+                onClick={() => void saveToLibrary()}
+                disabled={busy || hadTeamContextInSession}
               >
                 Save to library
               </button>
@@ -361,44 +411,24 @@ export function AskShepherdClient() {
       <section id="saved" className="scroll-mt-24 rounded-2xl border border-night-200 bg-white p-4">
         <h2 className="text-lg font-semibold">Saved guidance</h2>
         <p className="mt-1 text-sm text-night-600">
-          Mark a thread with “Save to library” after reviewing it. Delete when no longer needed.
+          Use <strong>Save to library</strong> after reviewing an unsaved chat. Opening a saved thread continues on the
+          server; delete when you are done.
         </p>
         <ul className="mt-3 space-y-2 text-sm">
-          {conversations
-            .filter((c) => c.savedToLibrary)
-            .map((c) => (
+          {conversations.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-night-50 px-3 py-2">
                 <button type="button" className="text-left font-medium text-night-900" onClick={() => void loadConversation(c.id)}>
                   {c.title}
                 </button>
                 <span className="text-xs text-night-500">{new Date(c.updatedAt).toLocaleString()}</span>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="text-xs text-brand-700"
-                    onClick={() => void toggleSaved(c.id, false)}
-                  >
-                    Unsave
-                  </button>
                   <button type="button" className="text-xs text-rose-700" onClick={() => void removeConversation(c.id)}>
                     Delete
                   </button>
                 </div>
               </li>
             ))}
-          {conversations.filter((c) => c.savedToLibrary).length === 0 && (
-            <li className="text-night-500">No saved conversations yet.</li>
-          )}
-        </ul>
-        <h3 className="mt-6 text-sm font-semibold text-night-800">Recent threads</h3>
-        <ul className="mt-2 space-y-1 text-sm">
-          {conversations.slice(0, 8).map((c) => (
-            <li key={`r-${c.id}`}>
-              <button type="button" className="text-brand-800 underline" onClick={() => void loadConversation(c.id)}>
-                {c.title}
-              </button>
-            </li>
-          ))}
+          {conversations.length === 0 && <li className="text-night-500">No saved conversations yet.</li>}
         </ul>
       </section>
 

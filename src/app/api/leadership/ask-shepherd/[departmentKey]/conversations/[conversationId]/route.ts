@@ -28,7 +28,7 @@ export async function GET(
       return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     }
 
-    const conv = await getConversationForUser(conversationId, user.id);
+    const conv = await getConversationForUser(conversationId, user.id, { savedOnly: true });
     if (!conv || conv.departmentKey !== def.key) {
       return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
     }
@@ -49,9 +49,8 @@ export async function GET(
         })),
       },
     });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Error";
-    return NextResponse.json({ error: msg }, { status: 403 });
+  } catch {
+    return NextResponse.json({ error: "Request could not be completed." }, { status: 400 });
   }
 }
 
@@ -93,9 +92,8 @@ export async function PATCH(
     });
 
     return NextResponse.json({ ok: true });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Error";
-    return NextResponse.json({ error: msg }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: "Request could not be completed." }, { status: 400 });
   }
 }
 
@@ -120,15 +118,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     }
 
-    const conv = await getConversationForUser(conversationId, user.id);
+    const conv = await getConversationForUser(conversationId, user.id, { savedOnly: true });
     if (!conv || conv.departmentKey !== def.key) {
       return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
     }
 
     await deleteConversation(conversationId, user.id);
     return NextResponse.json({ ok: true });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Error";
-    return NextResponse.json({ error: msg }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: "Request could not be completed." }, { status: 400 });
   }
 }

@@ -33,6 +33,7 @@ export async function POST(
       category?: unknown;
       conversationId?: unknown;
       teamMemberUserId?: unknown;
+      ephemeralHistory?: unknown;
     };
 
     const message = String(body.message ?? "").trim();
@@ -48,6 +49,15 @@ export async function POST(
         ? null
         : String(body.teamMemberUserId).trim();
 
+    const ephemeralHistory = Array.isArray(body.ephemeralHistory)
+      ? body.ephemeralHistory
+          .map((row: { role?: unknown; content?: unknown }) => ({
+            role: row.role === "assistant" ? ("assistant" as const) : row.role === "user" ? ("user" as const) : null,
+            content: String(row.content ?? ""),
+          }))
+          .filter((row): row is { role: "user" | "assistant"; content: string } => row.role !== null)
+      : [];
+
     const result = await runAskShepherdChatTurn({
       user,
       department: def,
@@ -55,6 +65,7 @@ export async function POST(
       message,
       category,
       teamMemberUserId,
+      ephemeralHistory,
     });
 
     if (!result.ok) {
@@ -69,9 +80,10 @@ export async function POST(
       conversationId: result.conversationId,
       assistantMessage: result.assistantMessage,
       safeguarding: result.safeguarding,
+      usedStaticSafeguarding: result.usedStaticSafeguarding ?? false,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Error";
-    return NextResponse.json({ error: msg }, { status: 400 });
+    return NextResponse.json({ error: "Request could not be completed." }, { status: 400 });
   }
 }

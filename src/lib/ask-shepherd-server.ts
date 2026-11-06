@@ -11,11 +11,12 @@ import {
   type ChatMessage,
 } from "@/lib/ask-shepherd-ai-server";
 import { buildAskShepherdSystemPrompt } from "@/lib/ask-shepherd-prompt";
+import { assessSafeguardingSignals, type SafeguardingLevel } from "@/lib/ask-shepherd-safeguarding";
+import { criticalSafeguardingResponseWithoutAi } from "@/lib/ask-shepherd-safeguarding-static";
 import {
-  SAFEGUARDING_CRITICAL_NOTICE,
-  assessSafeguardingSignals,
-  type SafeguardingLevel,
-} from "@/lib/ask-shepherd-safeguarding";
+  ASK_SHEPHERD_CLIENT_PROVIDER_FAILED,
+  ASK_SHEPHERD_CLIENT_PROVIDER_NOT_CONFIGURED,
+} from "@/lib/ask-shepherd-errors";
 import type { TemperamentLeaderSharedHighlights } from "@/lib/temperament-shepherding-types";
 
 const MAX_USER_MESSAGE_CHARS = 6000;
@@ -104,7 +105,7 @@ export type SerializedConversation = {
 
 export async function listConversations(userId: string, departmentKey: string) {
   const rows = await prisma.askShepherdConversation.findMany({
-    where: { userId, departmentKey },
+    where: { userId, departmentKey, savedToLibrary: true },
     orderBy: { updatedAt: "desc" },
     take: 100,
     select: {
@@ -128,28 +129,44 @@ export async function listConversations(userId: string, departmentKey: string) {
   }));
 }
 
-export async function createConversation(input: {
+export async function createSavedConversation(input: {
   userId: string;
   department: AskShepherdDepartmentDef;
   title: string;
   category: string;
+  messages: { role: "user" | "assistant"; content: string }[];
 }) {
-  const row = await prisma.askShepherdConversation.create({
+  const conv = await prisma.askShepherdConversation.create({
     data: {
       id: randomUUID(),
       userId: input.userId,
       departmentKey: input.department.key,
       title: input.title.slice(0, 200),
       category: input.category.slice(0, 80),
-      savedToLibrary: false,
+      savedToLibrary: true,
     },
   });
-  return row;
+  for (const m of input.messages) {
+    if (m.role !== "user" && m.role !== "assistant") continue;
+    await prisma.askShepherdMessage.create({
+      data: {
+        id: randomUUID(),
+        conversationId: conv.id,
+        role: m.role,
+        content: m.content.slice(0, 48_000),
+      },
+    });
+  }
+  return conv;
 }
 
-export async function getConversationForUser(conversationId: string, userId: string) {
+export async function getConversationForUser(conversationId: string, userId: string, options?: { savedOnly?: boolean }) {
   return prisma.askShepherdConversation.findFirst({
-    where: { id: conversationId, userId },
+    where: {
+      id: conversationId,
+      userId,
+      ...(options?.savedOnly ? { savedToLibrary: true } : {}),
+    },
     include: {
       messages: { orderBy: { createdAt: "asc" } },
     },
@@ -174,22 +191,30 @@ export async function setConversationSaved(input: {
 export type ChatTurnInput = {
   user: PublicMember;
   department: AskShepherdDepartmentDef;
+  /** Set only for continuing a **saved** thread (persisted). */
   conversationId: string | null;
   message: string;
   category: string;
-  /** When set, load consented temperament summary (verified each request). */
+  /** When set, load consented temperament summary (verified each request) — never persisted. */
   teamMemberUserId: string | null;
+  /**
+   * Client-held history for **unsaved** chats (user/assistant pairs). Not stored server-side until explicit save.
+   */
+  ephemeralHistory: { role: "user" | "assistant"; content: string }[];
 };
 
 export type ChatTurnResult =
   | {
       ok: true;
-      conversationId: string;
+      /** Null while the thread is still ephemeral (not saved). */
+      conversationId: string | null;
       assistantMessage: string;
       safeguarding: SafeguardingLevel;
       aiConfigured: boolean;
+      /** True when this response used the static critical safeguarding path without AI. */
+      usedStaticSafeguarding?: boolean;
     }
-  | { ok: false; error: string; status: number; retryAfterSeconds?: number };
+  | { ok: false; error: string; status: number; retryAfterSeconds?: number; clientErrorCode?: string };
 
 function clampUserMessage(text: string) {
   const t = text.trim();
@@ -200,45 +225,44 @@ function clampUserMessage(text: string) {
   return t;
 }
 
+function normalizeEphemeralHistory(
+  rows: { role: "user" | "assistant"; content: string }[],
+): { role: "user" | "assistant"; content: string }[] {
+  const out: { role: "user" | "assistant"; content: string }[] = [];
+  for (const r of rows) {
+    if (r.role !== "user" && r.role !== "assistant") continue;
+    const c = String(r.content ?? "").slice(0, MAX_USER_MESSAGE_CHARS);
+    if (!c.trim()) continue;
+    out.push({ role: r.role, content: c });
+  }
+  return out.slice(-MAX_CONVERSATION_MESSAGES_FOR_PROMPT);
+}
+
 export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<ChatTurnResult> {
   const userMsg = clampUserMessage(input.message);
   const { level: sgLevel } = assessSafeguardingSignals(userMsg);
 
-  let conv =
-    input.conversationId ?
-      await getConversationForUser(input.conversationId, input.user.id)
+  const savedConv = input.conversationId
+    ? await getConversationForUser(input.conversationId, input.user.id, { savedOnly: true })
     : null;
 
-  if (input.conversationId && !conv) {
+  if (input.conversationId && !savedConv) {
     return { ok: false, error: "Conversation not found.", status: 404 };
   }
-
-  if (conv && conv.departmentKey !== input.department.key) {
+  if (savedConv && savedConv.departmentKey !== input.department.key) {
     return { ok: false, error: "Department mismatch.", status: 400 };
-  }
-
-  if (!conv) {
-    const row = await createConversation({
-      userId: input.user.id,
-      department: input.department,
-      title: userMsg.slice(0, 80) || "Leadership question",
-      category: input.category.slice(0, 80),
-    });
-    await appendAskShepherdAudit({
-      departmentKey: input.department.key,
-      actorUserId: input.user.id,
-      action: "conversation_started",
-      summary: "Started Ask Shepherd conversation",
-      meta: { category: input.category },
-    });
-    conv = await getConversationForUser(row.id, input.user.id);
-  }
-  if (!conv) {
-    return { ok: false, error: "Could not load conversation.", status: 500 };
   }
 
   let memberHighlights: TemperamentLeaderSharedHighlights | null = null;
   if (input.teamMemberUserId) {
+    if (savedConv) {
+      return {
+        ok: false,
+        error: "Remove team context before continuing a saved conversation, or start a new unsaved chat.",
+        status: 400,
+        clientErrorCode: "team_context_saved_thread",
+      };
+    }
     await assertMemberInDepartment(input.department.groupId, input.teamMemberUserId);
     memberHighlights = await loadConsentedTemperamentContext({
       subjectUserId: input.teamMemberUserId,
@@ -259,17 +283,44 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
     memberContext: memberHighlights,
   });
 
-  const priorRows = await prisma.askShepherdMessage.findMany({
-    where: { conversationId: conv.id },
-    orderBy: { createdAt: "desc" },
-    take: MAX_CONVERSATION_MESSAGES_FOR_PROMPT,
-  });
-  priorRows.reverse();
-  const prior = priorRows.filter((m) => m.role === "user" || m.role === "assistant");
+  /** Critical harm: immediate human-led guidance without calling the AI — never persist user allegations. */
+  if (sgLevel === "critical") {
+    const text = criticalSafeguardingResponseWithoutAi();
+    await appendAskShepherdAudit({
+      departmentKey: input.department.key,
+      actorUserId: input.user.id,
+      action: "chat_safeguarding_critical",
+      summary: "Critical safeguarding guidance issued (static, not persisted)",
+      meta: {
+        mode: savedConv ? "saved_thread_open" : "ephemeral",
+        safeguarding: sgLevel,
+        aiInvoked: false,
+        persisted: false,
+      },
+    });
+    return {
+      ok: true,
+      conversationId: savedConv?.id ?? null,
+      assistantMessage: text,
+      safeguarding: sgLevel,
+      aiConfigured: isAskShepherdAiConfigured(),
+      usedStaticSafeguarding: true,
+    };
+  }
+
+  const priorFromDb =
+    savedConv ?
+      savedConv.messages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }))
+    : [];
+
+  const priorEphemeral = savedConv ? [] : normalizeEphemeralHistory(input.ephemeralHistory);
+  const prior = savedConv ? priorFromDb.slice(-MAX_CONVERSATION_MESSAGES_FOR_PROMPT) : priorEphemeral;
 
   const messages: ChatMessage[] = [{ role: "system", content: systemPrompt }];
   for (const m of prior) {
-    messages.push({ role: m.role as "user" | "assistant", content: m.content });
+    messages.push({ role: m.role, content: m.content });
   }
   messages.push({ role: "user", content: userMsg });
 
@@ -279,13 +330,13 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
       actorUserId: input.user.id,
       action: "chat_ai_unconfigured",
       summary: "AI provider not configured",
-      meta: { conversationId: conv.id },
+      meta: { mode: savedConv ? "saved" : "ephemeral", safeguarding: sgLevel },
     });
     return {
       ok: false,
-      error:
-        "AI guidance is not configured on the server. Set ASK_SHEPHERD_AI_API_KEY (or OPENAI_API_KEY) and related options.",
+      error: ASK_SHEPHERD_CLIENT_PROVIDER_NOT_CONFIGURED,
       status: 503,
+      clientErrorCode: "ai_not_configured",
     };
   }
 
@@ -299,68 +350,114 @@ export async function runAskShepherdChatTurn(input: ChatTurnInput): Promise<Chat
     };
   }
 
-  await prisma.askShepherdMessage.create({
-    data: {
-      id: randomUUID(),
-      conversationId: conv.id,
-      role: "user",
-      content: userMsg.slice(0, MAX_USER_MESSAGE_CHARS),
-    },
-  });
-
   const ai = await callAskShepherdChat(messages);
   if (!ai.ok) {
     await appendAskShepherdAudit({
       departmentKey: input.department.key,
       actorUserId: input.user.id,
       action: "chat_ai_error",
-      summary: ai.message.slice(0, 200),
-      meta: { conversationId: conv.id, code: ai.code },
+      summary: "Provider error",
+      meta: {
+        mode: savedConv ? "saved" : "ephemeral",
+        code: ai.code,
+        logHint: ai.logHint,
+        httpStatus: ai.httpStatus,
+      },
     });
-    return { ok: false, error: ai.message, status: ai.code === "not_configured" ? 503 : 502 };
+    return {
+      ok: false,
+      error: ASK_SHEPHERD_CLIENT_PROVIDER_FAILED,
+      status: ai.code === "not_configured" ? 503 : 502,
+      clientErrorCode: ai.code,
+    };
   }
 
   let assistantText = ai.text;
-  if (sgLevel === "critical") {
-    assistantText = `${SAFEGUARDING_CRITICAL_NOTICE}\n\n---\n\n${assistantText}`;
-  } else if (sgLevel === "caution") {
+  if (sgLevel === "caution") {
     assistantText =
       `**Note:** This topic may involve serious harm or safeguarding concerns. Involve designated church leaders and follow proper reporting pathways when appropriate.\n\n---\n\n${assistantText}`;
   }
 
-  await prisma.askShepherdMessage.create({
-    data: {
-      id: randomUUID(),
-      conversationId: conv.id,
-      role: "assistant",
-      content: assistantText.slice(0, 48_000),
-    },
-  });
-
-  await prisma.askShepherdConversation.update({
-    where: { id: conv.id },
-    data: { updatedAt: new Date(), title: conv.title || userMsg.slice(0, 80) },
-  });
+  if (savedConv) {
+    await prisma.askShepherdMessage.create({
+      data: {
+        id: randomUUID(),
+        conversationId: savedConv.id,
+        role: "user",
+        content: userMsg.slice(0, MAX_USER_MESSAGE_CHARS),
+      },
+    });
+    await prisma.askShepherdMessage.create({
+      data: {
+        id: randomUUID(),
+        conversationId: savedConv.id,
+        role: "assistant",
+        content: assistantText.slice(0, 48_000),
+      },
+    });
+    await prisma.askShepherdConversation.update({
+      where: { id: savedConv.id },
+      data: { updatedAt: new Date(), title: savedConv.title || userMsg.slice(0, 80) },
+    });
+  }
 
   await appendAskShepherdAudit({
     departmentKey: input.department.key,
     actorUserId: input.user.id,
     action: "chat_completed",
-    targetUserId: input.teamMemberUserId ?? undefined,
     summary: "Ask Shepherd reply generated",
     meta: {
-      conversationId: conv.id,
+      conversationId: savedConv?.id ?? null,
       safeguarding: sgLevel,
       model: ai.model,
-      usedTeamContext: Boolean(memberHighlights),
+      teamContextUsed: Boolean(memberHighlights),
+      mode: savedConv ? "saved" : "ephemeral",
+      persisted: Boolean(savedConv),
     },
   });
 
   return {
     ok: true,
-    conversationId: conv.id,
+    conversationId: savedConv?.id ?? null,
     assistantMessage: assistantText,
     safeguarding: sgLevel,
     aiConfigured: true,
   };
+}
+
+export type SaveEphemeralInput = {
+  user: PublicMember;
+  department: AskShepherdDepartmentDef;
+  title: string;
+  category: string;
+  messages: { role: "user" | "assistant"; content: string }[];
+  /** Block save if any message was composed with team temperament context. */
+  hadTeamContextInSession: boolean;
+};
+
+export async function saveEphemeralConversationToLibrary(input: SaveEphemeralInput): Promise<{ conversationId: string }> {
+  if (input.hadTeamContextInSession) {
+    throw new Error(
+      "Cannot save a session that used consented team context. Copy guidance you need, then start a new chat without team context to save.",
+    );
+  }
+  const msgs = normalizeEphemeralHistory(input.messages);
+  if (msgs.length === 0) {
+    throw new Error("Nothing to save.");
+  }
+  const conv = await createSavedConversation({
+    userId: input.user.id,
+    department: input.department,
+    title: input.title.slice(0, 200) || "Saved guidance",
+    category: input.category.slice(0, 80),
+    messages: msgs,
+  });
+  await appendAskShepherdAudit({
+    departmentKey: input.department.key,
+    actorUserId: input.user.id,
+    action: "conversation_saved",
+    summary: "User saved Ask Shepherd guidance to library",
+    meta: { conversationId: conv.id, messageCount: msgs.length },
+  });
+  return { conversationId: conv.id };
 }

@@ -7,7 +7,13 @@ export type ChatMessage = { role: "system" | "user" | "assistant"; content: stri
 
 export type AiChatResult =
   | { ok: true; text: string; model: string }
-  | { ok: false; code: "not_configured" | "provider_error"; message: string };
+  | {
+      ok: false;
+      code: "not_configured" | "provider_error" | "empty_response" | "network_error";
+      /** Safe log line only — no raw provider body. */
+      logHint: string;
+      httpStatus?: number;
+    };
 
 function getModel() {
   return process.env.ASK_SHEPHERD_AI_MODEL?.trim() || "gpt-4o-mini";
@@ -37,7 +43,7 @@ export function resetAskShepherdAiFetchForTests() {
 export async function callAskShepherdChat(messages: ChatMessage[]): Promise<AiChatResult> {
   const apiKey = process.env.ASK_SHEPHERD_AI_API_KEY?.trim() || process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
-    return { ok: false, code: "not_configured", message: "AI provider is not configured." };
+    return { ok: false, code: "not_configured", logHint: "missing_api_key" };
   }
 
   const model = getModel();
@@ -69,7 +75,8 @@ export async function callAskShepherdChat(messages: ChatMessage[]): Promise<AiCh
       return {
         ok: false,
         code: "provider_error",
-        message: raw.slice(0, 500) || `HTTP ${res.status}`,
+        logHint: `provider_http_${res.status}`,
+        httpStatus: res.status,
       };
     }
     const data = JSON.parse(raw) as {
@@ -77,12 +84,12 @@ export async function callAskShepherdChat(messages: ChatMessage[]): Promise<AiCh
     };
     const text = data.choices?.[0]?.message?.content?.trim();
     if (!text) {
-      return { ok: false, code: "provider_error", message: "Empty model response." };
+      return { ok: false, code: "empty_response", logHint: "empty_choices" };
     }
     return { ok: true, text: text.slice(0, 24_000), model };
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Request failed";
-    return { ok: false, code: "provider_error", message: msg };
+    const name = e instanceof Error ? e.name : "unknown";
+    return { ok: false, code: "network_error", logHint: name === "AbortError" ? "timeout_or_abort" : "fetch_failed" };
   } finally {
     clearTimeout(timer);
   }
