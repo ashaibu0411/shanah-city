@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { PageHeader } from "@/components/ui";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
-import { canAccessWorshipPlanner } from "@/lib/worship-access-server";
 import { isTemperamentShepherdingHubEnabled } from "@/lib/temperament-shepherding-feature";
 import { getTemperamentShepherdingHubNav } from "@/lib/temperament-shepherding-access-server";
 import { WorshipShepherdingHubClient } from "@/components/worship/WorshipShepherdingHubClient";
@@ -14,9 +13,6 @@ export default async function WorshipShepherdingHubPage() {
 
   if (!user) {
     redirect("/sign-in?next=/worship/shepherding");
-  }
-  if (!(await canAccessWorshipPlanner(user))) {
-    redirect("/groups");
   }
   if (!isTemperamentShepherdingHubEnabled()) {
     redirect("/worship");
