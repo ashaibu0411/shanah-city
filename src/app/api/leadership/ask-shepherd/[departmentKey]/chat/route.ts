@@ -10,6 +10,8 @@ import { runAskShepherdChatTurn } from "@/lib/ask-shepherd-server";
 import {
   ASK_SHEPHERD_TEAM_CTX_COOKIE,
   cookieValueIndicatesTeamContextUsed,
+  fingerprintAskShepherdTranscript,
+  parseEphemeralTeamContextCookie,
   isAskShepherdTeamContextCookieConfigured,
   mergeEphemeralTeamContextCookie,
   setTeamContextCookieOnResponse,
@@ -66,6 +68,24 @@ export async function POST(
           .filter((row): row is { role: "user" | "assistant"; content: string } => row.role !== null)
       : [];
 
+    // A client can clear its cookie but cannot manufacture a signed receipt
+    // matching a prior response. Validate the full supplied history before AI.
+    const ephemeralTurn = conversationId === null || conversationId === "";
+    const cookieStore = await cookies();
+    const existingTeamCookie = cookieStore.get(ASK_SHEPHERD_TEAM_CTX_COOKIE)?.value;
+    const priorReceipt = parseEphemeralTeamContextCookie(existingTeamCookie, user.id, def.key);
+    if (ephemeralTurn && ephemeralHistory.length > 0) {
+      if (
+        !priorReceipt.ok ||
+        priorReceipt.transcriptHash !== fingerprintAskShepherdTranscript(ephemeralHistory)
+      ) {
+        return NextResponse.json(
+          { error: "Chat session changed. Start a new chat before continuing.", clientErrorCode: "ephemeral_session_mismatch" },
+          { status: 409 },
+        );
+      }
+    }
+
     const result = await runAskShepherdChatTurn({
       user,
       department: def,
@@ -76,20 +96,27 @@ export async function POST(
       ephemeralHistory,
     });
 
-    const cookieStore = await cookies();
-    const existingTeamCookie = cookieStore.get(ASK_SHEPHERD_TEAM_CTX_COOKIE)?.value;
-    const ephemeralTurn = conversationId === null || conversationId === "";
-
-    const usedThisTurn = "ephemeralUsedTeamContext" in result && result.ephemeralUsedTeamContext === true;
+    const usedThisTurn =
+      ("ephemeralUsedTeamContext" in result && result.ephemeralUsedTeamContext === true) ||
+      (result.ok && result.safeguarding === "critical");
 
     let mergedTeamCookie: string | null = null;
     if (ephemeralTurn && isAskShepherdTeamContextCookieConfigured()) {
       try {
+        const transcript = result.ok
+          ? [
+              ...ephemeralHistory,
+              { role: "user" as const, content: message },
+              { role: "assistant" as const, content: result.assistantMessage },
+            ]
+          : ephemeralHistory;
         mergedTeamCookie = mergeEphemeralTeamContextCookie({
-          existingRaw: existingTeamCookie,
+          // Empty history starts a new chat; a prior receipt must not taint it.
+          existingRaw: ephemeralHistory.length > 0 ? existingTeamCookie : undefined,
           userId: user.id,
           departmentKey: def.key,
           thisTurnUsedConsentedTeamContext: usedThisTurn,
+          transcriptHash: fingerprintAskShepherdTranscript(transcript),
         });
       } catch {
         mergedTeamCookie = null;
