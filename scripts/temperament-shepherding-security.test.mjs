@@ -41,4 +41,21 @@ for (const file of routes) {
   );
 }
 
+// The API previously spread Prisma response objects, unintentionally exposing
+// answersJson even after submission. Ensure every self endpoint uses a strict
+// serializer rather than manually spreading the row.
+const selfRoute = readFileSync(join(apiRoot, "[departmentKey]", "me", "route.ts"), "utf8");
+const consentRoute = readFileSync(join(apiRoot, "[departmentKey]", "me", "consent", "route.ts"), "utf8");
+const server = readFileSync(join(root, "src/lib/temperament-shepherding-server.ts"), "utf8");
+assert.match(selfRoute, /serializeTemperamentSelfView\\(member, "member"\\)/);
+assert.match(selfRoute, /serializeTemperamentSelfView\\(leader, "leader"\\)/);
+assert.match(selfRoute, /serializeTemperamentSelfView\\(view, kind\\)/);
+assert.match(consentRoute, /serializeTemperamentSelfView\\(view, "member"\\)/);
+assert.match(server, /export function serializeTemperamentSelfView/);
+assert.match(server, /row\\?\\.status === "draft"/);
+assert.doesNotMatch(selfRoute, /\\.\\.\\.member,|\\.\\.\\.leader,|\\.\\.\\.view,/);
+assert.match(server, /assessmentKind: "member",\\s*status: "submitted"/);
+assert.match(server, /leadershipReflectionInsights: \\[\\]/);
+assert.match(server, /r\\.leaderShareConsentAt/);
+
 console.log(`temperament-shepherding-security.test.mjs: OK (${routes.length} routes)`);
