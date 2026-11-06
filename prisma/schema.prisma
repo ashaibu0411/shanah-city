@@ -31,6 +31,11 @@ model User {
   family              FamilyMember[]
   sessions            Session[]
   activities          ActivityLog[]
+  temperamentAssessmentResponses TemperamentAssessmentResponse[]
+  temperamentInvitesSent         TemperamentAssessmentInvitation[] @relation("TemperamentInviteInviter")
+  temperamentInvitesReceived     TemperamentAssessmentInvitation[] @relation("TemperamentInviteInvitee")
+  temperamentShepherdingAuditsAsActor  TemperamentShepherdingAudit[] @relation("TemperamentAuditActor")
+  temperamentShepherdingAuditsAsTarget TemperamentShepherdingAudit[] @relation("TemperamentAuditTarget")
 }
 
 model FamilyMember {
@@ -2144,4 +2149,68 @@ model StoryMusicLegacyMigrationMap {
   notes           String?
   updatedAt       DateTime @updatedAt
   updatedByUserId String?
+}
+
+/// Ministry temperament assessment (not marriage counseling). One row per user/dept/version/kind when submitted or in progress.
+model TemperamentAssessmentResponse {
+  id                    String   @id
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentKey         String
+  contentVersion        String
+  assessmentKind        String
+  status                String
+  answersJson           String   @default("{}")
+  dataUseConsentAt      DateTime?
+  leaderShareConsentAt  DateTime?
+  shareSnapshotWithLeader Boolean @default(false)
+  submittedAt           DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  snapshot              TemperamentAssessmentSnapshot?
+
+  @@unique([userId, departmentKey, contentVersion, assessmentKind])
+  @@index([departmentKey, status])
+  @@index([userId])
+}
+
+model TemperamentAssessmentSnapshot {
+  id           String   @id
+  responseId   String   @unique
+  response     TemperamentAssessmentResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  scoresJson   String
+  highlightsJson String
+  guidanceJson String
+  disclaimer   String
+  createdAt    DateTime @default(now())
+}
+
+model TemperamentAssessmentInvitation {
+  id             String   @id
+  departmentKey  String
+  inviterUserId  String
+  inviteeUserId  String
+  inviter        User     @relation("TemperamentInviteInviter", fields: [inviterUserId], references: [id], onDelete: Cascade)
+  invitee        User     @relation("TemperamentInviteInvitee", fields: [inviteeUserId], references: [id], onDelete: Cascade)
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([departmentKey, inviteeUserId])
+  @@index([departmentKey, status])
+}
+
+model TemperamentShepherdingAudit {
+  id            String   @id
+  departmentKey String
+  actorUserId   String
+  actor         User     @relation("TemperamentAuditActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  action        String
+  targetUserId  String?
+  target        User?    @relation("TemperamentAuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  summary       String
+  metaJson      String?
+  createdAt     DateTime @default(now())
+
+  @@index([departmentKey, createdAt])
 }

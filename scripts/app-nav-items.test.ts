@@ -16,6 +16,7 @@ const basePerms = {
   canAccessFinance: false,
   canAccessCouplesHub: false,
   canAccessMarriageCounselorAssignments: false,
+  canAccessTemperamentShepherdingHub: false,
 };
 
 const guestItems = buildAppNavItems(null, basePerms);

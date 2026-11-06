@@ -27,6 +27,7 @@ type NavPermissions = {
   canAccessFinance: boolean;
   canAccessCouplesHub: boolean;
   canAccessMarriageCounselorAssignments: boolean;
+  canAccessTemperamentShepherdingHub: boolean;
 };
 
 function insertAfterGroups(items: AppNavItem[], ...toInsert: AppNavItem[]): AppNavItem[] {
@@ -153,6 +154,7 @@ export function useAppNavItems(): AppNavItem[] {
       permissions.canAccessFinance,
       permissions.canAccessCouplesHub,
       permissions.canAccessMarriageCounselorAssignments,
+      permissions.canAccessTemperamentShepherdingHub,
     ],
   );
 }

@@ -77,6 +77,7 @@
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
     "test:choir:recordings-access": "tsx scripts/choir-rehearsal-recordings-access.test.ts",
     "test:worship:recording-audio": "tsx scripts/worship-recording-audio.test.ts",
+    "test:temperament:shepherding": "tsx scripts/temperament-shepherding-scoring.test.ts && node scripts/temperament-shepherding-security.test.mjs",
     "test:story-music:free-license": "tsx scripts/story-music-free-license.test.ts",
     "story-music:discover": "node scripts/story-music-discover-sources.mjs",
     "test:story-music:hybrid": "tsx scripts/story-music-hybrid.test.ts",

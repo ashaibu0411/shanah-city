@@ -96,6 +96,7 @@ export function WorshipPlannerPanel({
   const router = useRouter();
   const canManage = permissions.canManageWorshipPlan;
   const canUseLibrary = permissions.canAccessWorshipPlanner;
+  const canAccessShepherdingHub = permissions.canAccessTemperamentShepherdingHub;
   const resolvedInitialTab =
     initialTab === "library" ||
     initialTab === "my-part" ||
@@ -916,6 +917,17 @@ export function WorshipPlannerPanel({
           <p className="mt-2 text-sm text-violet-100/90">
             Setlists, team readiness, and rehearsal notes for each service.
           </p>
+          {canAccessShepherdingHub && (
+            <p className="mt-4 text-sm text-violet-100/90">
+              <Link
+                href="/worship/shepherding"
+                className="font-semibold text-white underline decoration-violet-200 underline-offset-2"
+              >
+                Temperament &amp; Shepherding Hub
+              </Link>{" "}
+              — optional teamwork reflection for Shanah Worship (private by default).
+            </p>
+          )}
         </div>
 
         <div className="space-y-4 p-6">
