@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ASK_SHEPHERD_BUILTIN_RESOURCES } from "@/lib/ask-shepherd-resources-data";
+import { AskShepherdMarkdown } from "@/components/leadership/AskShepherdMarkdown";
 
 const DEPT = "worship";
 
@@ -21,19 +22,6 @@ type ConvSummary = {
   updatedAt: string;
 };
 
-function AssistantMessage({ content }: { content: string }) {
-  const parts = content.split(/(\*\*.+?\*\*)/g);
-  return (
-    <div className="whitespace-pre-wrap break-words text-night-800">
-      {parts.map((part, i) => {
-        const m = part.match(/^\*\*(.+)\*\*$/);
-        if (m) return <strong key={i}>{m[1]}</strong>;
-        return <span key={i}>{part}</span>;
-      })}
-    </div>
-  );
-}
-
 export function AskShepherdClient() {
   const [session, setSession] = useState<SessionPayload | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -43,6 +31,7 @@ export function AskShepherdClient() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   /** Server-signed state: ephemeral thread used consented team context — save must stay disabled. */
   const [teamContextSaveLocked, setTeamContextSaveLocked] = useState(false);
+  const [containsCriticalSafeguarding, setContainsCriticalSafeguarding] = useState(false);
   const [category, setCategory] = useState("general");
   const [teamMemberUserId, setTeamMemberUserId] = useState("");
   const [memberOptions, setMemberOptions] = useState<{ id: string; name: string; hasSharedTemperamentSummary: boolean }[]>([]);
@@ -124,6 +113,8 @@ export function AskShepherdClient() {
         assistantMessage?: string;
         conversationId?: string | null;
         ephemeralTeamContextLocked?: boolean;
+        usedStaticSafeguarding?: boolean;
+        safeguarding?: string;
       };
       if (data.ephemeralTeamContextLocked === true) {
         setTeamContextSaveLocked(true);
@@ -133,6 +124,9 @@ export function AskShepherdClient() {
       }
       if (data.conversationId !== null && data.conversationId !== undefined) {
         setConversationId(String(data.conversationId));
+      }
+      if (data.usedStaticSafeguarding || data.safeguarding === "critical") {
+        setContainsCriticalSafeguarding(true);
       }
       setMessages((m) => [...m, { role: "assistant", content: String(data.assistantMessage) }]);
       void refreshConversations();
@@ -160,6 +154,7 @@ export function AskShepherdClient() {
       const conv = data.conversation!;
       setConversationId(conv.id);
       setTeamContextSaveLocked(false);
+      setContainsCriticalSafeguarding(false);
       setMessages(
         conv.messages
           .filter((m) => m.role === "user" || m.role === "assistant")
@@ -173,19 +168,29 @@ export function AskShepherdClient() {
   }
 
   async function newChat() {
-    await fetch(`${base}/session/clear-ephemeral-team-context`, {
-      method: "POST",
-      credentials: "include",
-    });
-    setConversationId(null);
-    setMessages([]);
-    setTeamMemberUserId("");
-    setTeamContextSaveLocked(false);
-    setError(null);
+    try {
+      const res = await fetch(`${base}/session/clear-ephemeral-team-context`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Could not start a new private chat. Please try again.");
+      setConversationId(null);
+      setMessages([]);
+      setTeamMemberUserId("");
+      setTeamContextSaveLocked(false);
+      setContainsCriticalSafeguarding(false);
+      setError(null);
+    } catch {
+      setError("Could not start a new private chat. Please try again.");
+    }
   }
 
   async function saveToLibrary() {
     if (messages.length === 0) return;
+    if (containsCriticalSafeguarding) {
+      setError("Sensitive safeguarding conversations cannot be saved to the library. Use your church safeguarding process.");
+      return;
+    }
     if (teamContextSaveLocked) {
       setError(
         "This thread used consented team context and cannot be saved. Copy what you need, tap New chat (starts a new server session), then continue without team context if you need to save.",
@@ -276,9 +281,8 @@ export function AskShepherdClient() {
 
       {!session.aiConfigured && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-          AI responses are not configured on this deployment. Add server-side credentials (for example{" "}
-          <code className="rounded bg-amber-100 px-1">ASK_SHEPHERD_AI_API_KEY</code>) and feature flags — the assistant
-          stays disabled until then.
+          Ask Shepherd AI guidance is temporarily unavailable. You can still review ministry resources and receive
+          immediate safeguarding guidance for critical concerns.
         </div>
       )}
 
@@ -334,7 +338,14 @@ export function AskShepherdClient() {
           <strong>Save to library</strong>. Critical safeguarding topics never store your message text on the server.
         </p>
 
-        <div className="mt-4 min-h-[220px] max-h-[55vh] overflow-y-auto rounded-xl bg-night-50 p-3">
+        <div
+          role="log"
+          aria-label="Ask Shepherd conversation"
+          aria-live="polite"
+          className={messages.length === 0
+            ? "mt-4 min-h-[90px] max-h-[64vh] overflow-y-auto rounded-xl bg-night-50 p-3 sm:p-4"
+            : "mt-4 min-h-[180px] max-h-[64vh] overflow-y-auto rounded-xl bg-night-50 p-3 sm:p-4"}
+        >
           {messages.length === 0 && (
             <p className="text-sm text-night-500">
               Ask about correction, conflict, volunteers, or team communication. Follow up as needed.
@@ -343,21 +354,26 @@ export function AskShepherdClient() {
           {messages.map((m, i) => (
             <div
               key={`${i}-${m.role}`}
-              className={`mb-3 rounded-xl px-3 py-2 text-sm ${
+              className={`mb-4 rounded-xl px-3 py-3 text-[15px] leading-relaxed sm:px-4 ${
                 m.role === "user" ? "ml-8 bg-brand-100 text-night-900" : "mr-4 bg-white text-night-800 shadow-sm"
               }`}
             >
-              {m.role === "assistant" ? <AssistantMessage content={m.content} /> : m.content}
+              {m.role === "assistant" ? <AskShepherdMarkdown content={m.content} /> : m.content}
             </div>
           ))}
           <div ref={bottomRef} />
         </div>
 
+        {containsCriticalSafeguarding && !conversationId && (
+          <p className="mt-2 text-sm text-amber-800" role="status">
+            This conversation includes critical safeguarding guidance and cannot be saved to the library.
+          </p>
+        )}
         {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
 
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
           <textarea
-            className="min-h-[88px] flex-1 rounded-xl border border-night-200 px-3 py-2 text-sm"
+            className="min-h-[88px] flex-1 rounded-xl border border-night-200 px-3 py-2 text-[15px]"
             placeholder="Describe the situation. What have you already tried?"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -383,7 +399,7 @@ export function AskShepherdClient() {
             <button type="button" className="rounded-xl border border-night-300 px-3 py-2 text-sm" onClick={() => void newChat()}>
               New chat
             </button>
-            {!conversationId && messages.length > 0 && (
+            {!conversationId && messages.length > 0 && !containsCriticalSafeguarding && (
               <button
                 type="button"
                 className="rounded-xl border border-brand-600 px-3 py-2 text-sm font-medium text-brand-900"
