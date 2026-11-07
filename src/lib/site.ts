@@ -162,6 +162,12 @@ export const worshipNavItem = {
   icon: "♫",
 } as const;
 
+export const temperamentShepherdingNavItem = {
+  label: "My Temperament",
+  href: "/worship/shepherding",
+  icon: "✦",
+} as const;
+
 export const frontlinersNavItem = {
   label: "FrontLiners",
   href: "/frontliners",

@@ -4,6 +4,7 @@ import {
   marriageCounselingNavItem,
   marriageCounselorAssignmentsNavItem,
   couplesNavItem,
+  temperamentShepherdingNavItem,
 } from "../src/lib/site";
 
 const basePerms = {
@@ -64,6 +65,23 @@ assert.ok(
 assert.ok(
   !guestItems.some((i) => i.href === marriageCounselorAssignmentsNavItem.href),
   "guests do not see Counselor Assignments",
+);
+
+const eligibleChoirMemberNav = buildAppNavItems(
+  { id: "choir1", name: "Choir Member", email: "choir@example.test", campusId: "colorado", role: "member" } as never,
+  { ...basePerms, canAccessTemperamentShepherdingHub: true, canAccessWorshipPlanner: true },
+);
+assert.ok(
+  eligibleChoirMemberNav.some((i) => i.href === temperamentShepherdingNavItem.href),
+  "eligible choir members see My Temperament in sidebar and mobile More",
+);
+assert.ok(
+  !signedInNoCouples.some((i) => i.href === temperamentShepherdingNavItem.href),
+  "members without temperament permission do not see the hub link",
+);
+assert.ok(
+  !guestItems.some((i) => i.href === temperamentShepherdingNavItem.href),
+  "signed-out visitors do not see private temperament navigation",
 );
 
 console.log("app-nav-items.test.ts OK");
