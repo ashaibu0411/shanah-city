@@ -2,7 +2,7 @@
 
 **Branch:** `feature/ask-shepherd-phase1`  
 **PR:** [#31](https://github.com/ashaibu0411/shanah-city/pull/31)  
-**Latest commit (this handoff):** *(update after rebase / push — run `git rev-parse HEAD` on `feature/ask-shepherd-phase1`)*  
+**Latest commit (this handoff):** `30dd4eb`  
 **Staging URL:** `https://shanah-city-staging.vercel.app`
 
 ---
