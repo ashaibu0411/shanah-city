@@ -49,6 +49,14 @@ function executeBuildScript(env, { run, failBuild }) {
     }
   }
 
+  // One isolated staging acceptance run; never enabled on the Shanah City production project.
+  // These tests use mocked AI responses and synthetic permission data only.
+  if (env.ASK_SHEPHERD_STAGING_ACCEPTANCE === "1") {
+    trackRun("npm run test:ask-shepherd");
+    trackRun("npm run test:app:nav");
+    trackRun("npm run test:temperament:shepherding");
+  }
+
   trackRun("npx next build");
   return { ok: true, invocations };
 }

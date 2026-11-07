@@ -34,6 +34,7 @@ type AuthPermissions = {
   canAccessCouplesHub: boolean;
   canAccessMarriageCounselorAssignments: boolean;
   canAccessTemperamentShepherdingHub: boolean;
+  canAccessAskShepherd: boolean;
 };
 
 type AuthContextValue = {
@@ -68,6 +69,7 @@ const defaultPermissions: AuthPermissions = {
   canAccessCouplesHub: false,
   canAccessMarriageCounselorAssignments: false,
   canAccessTemperamentShepherdingHub: false,
+  canAccessAskShepherd: false,
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
