@@ -36,6 +36,12 @@ model User {
   temperamentInvitesReceived     TemperamentAssessmentInvitation[] @relation("TemperamentInviteInvitee")
   temperamentShepherdingAuditsAsActor  TemperamentShepherdingAudit[] @relation("TemperamentAuditActor")
   temperamentShepherdingAuditsAsTarget TemperamentShepherdingAudit[] @relation("TemperamentAuditTarget")
+  askShepherdConversations                 AskShepherdConversation[]
+  askShepherdAuditsAsActor                 AskShepherdAudit[] @relation("AskShepherdAuditActor")
+  askShepherdAccessGrants                  AskShepherdAccessGrant[] @relation("AskShepherdGrantSubject")
+  askShepherdAccessGrantsGrantedBy         AskShepherdAccessGrant[] @relation("AskShepherdGrantGranter")
+  askShepherdGuidanceSourcesApprovedBy    AskShepherdGuidanceSource[] @relation("AskShepherdSourceApprover")
+  askShepherdUsageDaily                    AskShepherdUsageDaily[]
 }
 
 model FamilyMember {
@@ -2213,4 +2219,89 @@ model TemperamentShepherdingAudit {
   createdAt     DateTime @default(now())
 
   @@index([departmentKey, createdAt])
+}
+
+/// Explicit revocable Ask Shepherd access (e.g. worship leader not yet in pastoral roles). Phase 1: worship department only.
+model AskShepherdAccessGrant {
+  id              String    @id
+  userId          String
+  user            User      @relation("AskShepherdGrantSubject", fields: [userId], references: [id], onDelete: Cascade)
+  departmentKey   String
+  grantedByUserId String
+  grantedBy       User      @relation("AskShepherdGrantGranter", fields: [grantedByUserId], references: [id], onDelete: Cascade)
+  note            String?
+  createdAt       DateTime  @default(now())
+  revokedAt       DateTime?
+
+  @@index([userId, departmentKey])
+  @@index([departmentKey, revokedAt])
+}
+
+model AskShepherdConversation {
+  id              String               @id
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentKey   String
+  title           String
+  category        String
+  savedToLibrary  Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  messages        AskShepherdMessage[]
+
+  @@index([userId, departmentKey])
+  @@index([userId, updatedAt])
+}
+
+model AskShepherdMessage {
+  id             String                @id
+  conversationId String
+  conversation   AskShepherdConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String
+  createdAt      DateTime              @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model AskShepherdAudit {
+  id            String   @id
+  departmentKey String
+  actorUserId   String
+  actor         User     @relation("AskShepherdAuditActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+  action        String
+  targetUserId  String?
+  summary       String
+  metaJson      String?
+  createdAt     DateTime @default(now())
+
+  @@index([departmentKey, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+/// Daily usage counter for cost / abuse safeguards (one row per user per UTC day).
+model AskShepherdUsageDaily {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dayUtc    String
+  chatCount Int      @default(0)
+
+  @@unique([userId, dayUtc])
+}
+
+/// Approved ministry guidance sources (extensible; empty until church staff add rows).
+model AskShepherdGuidanceSource {
+  id                 String   @id
+  slug               String   @unique
+  title              String
+  category           String
+  summary            String
+  url                String?
+  approvedAt         DateTime?
+  approvedByUserId   String?
+  approvedBy         User?    @relation("AskShepherdSourceApprover", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  createdAt          DateTime @default(now())
+
+  @@index([category])
 }

@@ -13,6 +13,7 @@ import { getMinistryReportPermissions } from "@/lib/ministry-report-access-serve
 import { canAccessCouplesHubNav } from "@/lib/couples-hub-server";
 import { canAccessMarriageCounselorAssignmentsNav } from "@/lib/marriage-counselor-assignment-nav-access";
 import { getTemperamentShepherdingHubPermissions } from "@/lib/temperament-shepherding-access-server";
+import { getAskShepherdSessionPermission } from "@/lib/ask-shepherd-access-server";
 import type { PublicMember } from "@/lib/auth-types";
 
 const defaultPermissions = {
@@ -37,6 +38,7 @@ const defaultPermissions = {
   canAccessCouplesHub: false,
   canAccessMarriageCounselorAssignments: false,
   canAccessTemperamentShepherdingHub: false,
+  canAccessAskShepherd: false,
 };
 
 export async function getSessionPermissions(user: PublicMember | null) {
@@ -58,6 +60,7 @@ export async function getSessionPermissions(user: PublicMember | null) {
     couplesHub,
     marriageCounselorAssignments,
     temperamentHub,
+    askShepherd,
   ] = await Promise.all([
     getGalleryUploadPermissions(user),
     getDevotionWritePermissions(user),
@@ -72,6 +75,7 @@ export async function getSessionPermissions(user: PublicMember | null) {
     canAccessCouplesHubNav(user),
     canAccessMarriageCounselorAssignmentsNav(user),
     getTemperamentShepherdingHubPermissions(user),
+    getAskShepherdSessionPermission(user),
   ]);
 
   return {
@@ -91,5 +95,6 @@ export async function getSessionPermissions(user: PublicMember | null) {
     canAccessCouplesHub: couplesHub,
     canAccessMarriageCounselorAssignments: marriageCounselorAssignments,
     ...temperamentHub,
+    ...askShepherd,
   };
 }
