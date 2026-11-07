@@ -233,14 +233,14 @@ export function WorshipShepherdingHubClient() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-16 pt-2">
-      <div className="mb-6 flex flex-wrap gap-2">
+    <div className="mx-auto w-full min-w-0 max-w-3xl overflow-x-hidden px-4 pb-16 pt-2 [overflow-wrap:anywhere]">
+      <div className="mb-6 flex min-w-0 flex-wrap gap-2">
         {nav.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setSection(item.id)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
+            className={`max-w-full rounded-full px-3 py-2 text-sm font-semibold sm:px-4 ${
               section === item.id
                 ? "bg-night-900 text-white"
                 : "bg-sand-100 text-night-700 hover:bg-sand-200"
@@ -349,9 +349,9 @@ export function WorshipShepherdingHubClient() {
                 {dashboard.participation.map((row) => (
                   <li
                     key={row.userId}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-sand-50 px-3 py-2"
+                    className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-lg bg-sand-50 px-3 py-2"
                   >
-                    <span className="font-medium text-night-900">{row.name}</span>
+                    <span className="min-w-0 break-words font-medium text-night-900">{row.name}</span>
                     <span className="text-night-600">
                       {row.assessmentStatus}
                       {row.sharesWithLeader ? " · shared summary" : ""}
@@ -364,9 +364,9 @@ export function WorshipShepherdingHubClient() {
                   <h3 className="mt-4 font-semibold text-night-900">Volunteers who shared a summary</h3>
                   <ul className="mt-2 space-y-3">
                     {dashboard.sharedProfiles.map((p) => (
-                      <li key={p.userId} className="rounded-xl border border-night-900/10 p-3">
+                      <li key={p.userId} className="min-w-0 rounded-xl border border-night-900/10 p-3">
                         <p className="font-semibold text-night-900">{p.displayName}</p>
-                        <p className="text-xs text-night-500">User id: {p.userId}</p>
+                        <p className="break-all text-xs text-night-500">User id: {p.userId}</p>
                         <p className="mt-2 text-sm text-night-700">
                           Strengths: {p.strengthsTeamwork.slice(0, 2).join(" · ")}
                         </p>
@@ -461,7 +461,7 @@ export function WorshipShepherdingHubClient() {
         />
       )}
 
-      <p className="mt-10 text-xs text-night-500">
+      <p className="mt-10 break-words text-xs text-night-500">
         Signed in as {user?.email}.{" "}
         <Link href="/worship" className="underline">
           Back to worship planner
@@ -709,7 +709,7 @@ function SharedProfileFetchButton({
       </button>
       {open ? (
         <div className="mt-3 rounded-lg bg-sand-100 p-3 text-xs text-night-800">
-          <pre className="max-h-48 overflow-auto whitespace-pre-wrap">{JSON.stringify(payload, null, 2)}</pre>
+          <pre className="max-h-48 max-w-full overflow-auto whitespace-pre-wrap break-all">{JSON.stringify(payload, null, 2)}</pre>
           <button type="button" className="mt-2 font-semibold underline" onClick={() => setOpen(false)}>
             Close
           </button>
@@ -729,22 +729,41 @@ function InvitePanel({
   onInvite: (userId: string) => void;
 }) {
   return (
-    <Card>
+    <Card className="min-w-0 max-w-full">
       <h2 className="font-display text-lg font-semibold text-night-900">Invitations</h2>
-      <p className="mt-2 text-sm text-night-600">
-        Record an invitation for a teammate (push notifications only send in production when{" "}
-        <code className="rounded bg-sand-100 px-1">TEMPERAMENT_SHEPHERDING_SEND_INVITE_PUSH=1</code>).
+      <p className="mt-2 break-words text-sm text-night-600">
+        Invite members of Shanah Worship to complete their optional temperament reflection.
+        Recording an invitation does not guarantee a push notification; delivery depends on
+        the app&apos;s notification settings.
       </p>
-      <ul className="mt-4 space-y-2">
-        {participation.map((row) => (
-          <li key={row.userId} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-sand-50 px-3 py-2">
-            <span className="text-sm font-medium">{row.name}</span>
-            <Button type="button" variant="secondary" disabled={busy} onClick={() => onInvite(row.userId)}>
-              Record invite
-            </Button>
-          </li>
-        ))}
-      </ul>
+      {participation.length === 0 ? (
+        <p className="mt-4 text-sm text-night-600">
+          No eligible teammates are listed yet.
+        </p>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {participation.map((row) => (
+            <li
+              key={row.userId}
+              className="grid min-w-0 grid-cols-1 gap-3 rounded-xl bg-sand-50 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+            >
+              <span className="min-w-0 break-words text-sm font-medium text-night-900">
+                {row.name}
+              </span>
+              <div className="min-w-0">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => onInvite(row.userId)}
+                >
+                  Record invite
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </Card>
   );
 }
