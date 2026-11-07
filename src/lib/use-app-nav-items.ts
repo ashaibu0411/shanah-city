@@ -12,6 +12,7 @@ import {
   kidsMinistryNavItem,
   site,
   worshipNavItem,
+  temperamentShepherdingNavItem,
   writeDevotionsNavItem,
   type AppNavItem,
 } from "@/lib/site";
@@ -91,6 +92,19 @@ export function buildAppNavItems(
       items = [
         ...items.slice(0, profileIndex),
         worshipNavItem,
+        ...items.slice(profileIndex),
+      ];
+    }
+  }
+
+  if (user && permissions.canAccessTemperamentShepherdingHub) {
+    const profileIndex = items.findIndex((item) => item.href === "/profile");
+    if (profileIndex === -1) {
+      items = [...items, temperamentShepherdingNavItem];
+    } else {
+      items = [
+        ...items.slice(0, profileIndex),
+        temperamentShepherdingNavItem,
         ...items.slice(profileIndex),
       ];
     }
