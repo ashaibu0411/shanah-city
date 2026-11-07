@@ -5,11 +5,11 @@ import {
   assertNotAdminBypassingAskShepherd,
   resolveAskShepherdAccess,
 } from "@/lib/ask-shepherd-access-server";
-import { clearTeamContextCookieOnResponse } from "@/lib/ask-shepherd-team-context-cookie";
+import { clearEphemeralPrivacyCookieOnResponse } from "@/lib/ask-shepherd-ephemeral-privacy-cookie";
 
 /**
- * Clears the server-signed "ephemeral team context" cookie after **New chat**
- * so a fresh unsaved session can be saved without carrying over team-context state.
+ * Clears the server-signed ephemeral privacy cookie (session id + receipts) after **New chat**
+ * so pasted transcripts cannot be saved against a cleared session.
  */
 export async function POST(
   _request: Request,
@@ -33,7 +33,7 @@ export async function POST(
     }
 
     const res = NextResponse.json({ ok: true });
-    clearTeamContextCookieOnResponse(res);
+    clearEphemeralPrivacyCookieOnResponse(res);
     return res;
   } catch {
     return NextResponse.json({ error: "Request could not be completed." }, { status: 400 });

@@ -188,7 +188,7 @@ export function AskShepherdClient() {
     if (messages.length === 0) return;
     if (teamContextSaveLocked) {
       setError(
-        "This thread used consented team context and cannot be saved. Copy what you need, tap New chat (clears server tracking), then save.",
+        "This thread used consented team context and cannot be saved. Copy what you need, tap New chat (starts a new server session), then continue without team context if you need to save.",
       );
       return;
     }

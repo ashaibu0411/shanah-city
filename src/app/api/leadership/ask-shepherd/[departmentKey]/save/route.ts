@@ -8,11 +8,9 @@ import {
 } from "@/lib/ask-shepherd-access-server";
 import { saveEphemeralConversationToLibrary } from "@/lib/ask-shepherd-server";
 import {
-  ASK_SHEPHERD_TEAM_CTX_COOKIE,
-  isAskShepherdTeamContextCookieConfigured,
-  fingerprintAskShepherdTranscript,
-  parseEphemeralTeamContextCookie,
-} from "@/lib/ask-shepherd-team-context-cookie";
+  ASK_SHEPHERD_EPHEMERAL_PRIVACY_COOKIE,
+  validateEphemeralSaveMessages,
+} from "@/lib/ask-shepherd-ephemeral-privacy-cookie";
 
 export async function POST(
   request: Request,
@@ -52,33 +50,30 @@ export async function POST(
       }))
       .filter((m): m is { role: "user" | "assistant"; content: string } => m.role !== null);
 
-    if (!isAskShepherdTeamContextCookieConfigured()) {
+    const cookieStore = await cookies();
+    const cookieRaw = cookieStore.get(ASK_SHEPHERD_EPHEMERAL_PRIVACY_COOKIE)?.value;
+
+    const v = validateEphemeralSaveMessages({
+      cookieRaw,
+      userId: user.id,
+      departmentKey: def.key,
+      messages,
+    });
+    if (!v.ok) {
+      const err =
+        v.clientErrorCode === "privacy_verification_unconfigured" ?
+          "Server configuration prevents verifying privacy rules. Saving is temporarily unavailable."
+        : v.clientErrorCode === "nothing_to_save" ? "Nothing to save."
+        : "Request could not be completed.";
       return NextResponse.json(
         {
-          error: "Server configuration prevents verifying privacy rules. Saving is temporarily unavailable.",
-          code: "privacy_cookie_unconfigured",
+          error: err,
+          clientErrorCode: v.clientErrorCode,
+          ...(v.clientErrorCode === "privacy_verification_unconfigured" ?
+            { code: "privacy_verification_unconfigured" }
+          : {}),
         },
-        { status: 503 },
-      );
-    }
-
-    const cookieStore = await cookies();
-    const cookieRaw = cookieStore.get(ASK_SHEPHERD_TEAM_CTX_COOKIE)?.value;
-    const parsed = parseEphemeralTeamContextCookie(cookieRaw, user.id, def.key);
-    // The cookie must prove that this exact client-held transcript came from
-    // authenticated chat turns. Clearing the cookie cannot authorize old text.
-    if (!parsed.ok || parsed.transcriptHash !== fingerprintAskShepherdTranscript(messages)) {
-      return NextResponse.json(
-        { error: "Chat session changed. Start a new chat before saving.", clientErrorCode: "ephemeral_session_mismatch" },
-        { status: 409 },
-      );
-    }
-    const serverTeamContextUsed = parsed.usedConsentedTeamContext;
-
-    if (serverTeamContextUsed) {
-      return NextResponse.json(
-        { error: "Request could not be completed.", clientErrorCode: "team_context_save_blocked" },
-        { status: 400 },
+        { status: v.status },
       );
     }
 

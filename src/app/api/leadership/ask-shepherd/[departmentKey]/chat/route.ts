@@ -8,14 +8,15 @@ import {
 } from "@/lib/ask-shepherd-access-server";
 import { runAskShepherdChatTurn } from "@/lib/ask-shepherd-server";
 import {
-  ASK_SHEPHERD_TEAM_CTX_COOKIE,
-  cookieValueIndicatesTeamContextUsed,
-  fingerprintAskShepherdTranscript,
-  parseEphemeralTeamContextCookie,
-  isAskShepherdTeamContextCookieConfigured,
-  mergeEphemeralTeamContextCookie,
-  setTeamContextCookieOnResponse,
-} from "@/lib/ask-shepherd-team-context-cookie";
+  ASK_SHEPHERD_EPHEMERAL_PRIVACY_COOKIE,
+  appendEphemeralTurnReceipt,
+  ephemeralTeamContextLockedFromPayload,
+  isAskShepherdEphemeralPrivacyConfigured,
+  parseEphemeralPrivacyCookie,
+  setEphemeralPrivacyCookieOnResponse,
+  validateEphemeralHistoryAgainstCookie,
+  validateEphemeralPrivacyBinding,
+} from "@/lib/ask-shepherd-ephemeral-privacy-cookie";
 
 export async function POST(
   request: Request,
@@ -68,20 +69,27 @@ export async function POST(
           .filter((row): row is { role: "user" | "assistant"; content: string } => row.role !== null)
       : [];
 
-    // A client can clear its cookie but cannot manufacture a signed receipt
-    // matching a prior response. Validate the full supplied history before AI.
     const ephemeralTurn = conversationId === null || conversationId === "";
+
     const cookieStore = await cookies();
-    const existingTeamCookie = cookieStore.get(ASK_SHEPHERD_TEAM_CTX_COOKIE)?.value;
-    const priorReceipt = parseEphemeralTeamContextCookie(existingTeamCookie, user.id, def.key);
-    if (ephemeralTurn && ephemeralHistory.length > 0) {
-      if (
-        !priorReceipt.ok ||
-        priorReceipt.transcriptHash !== fingerprintAskShepherdTranscript(ephemeralHistory)
-      ) {
+    const existingPrivacyCookie = cookieStore.get(ASK_SHEPHERD_EPHEMERAL_PRIVACY_COOKIE)?.value;
+
+    if (ephemeralTurn) {
+      const histCheck = validateEphemeralHistoryAgainstCookie({
+        cookieRaw: existingPrivacyCookie,
+        userId: user.id,
+        departmentKey: def.key,
+        ephemeralHistory,
+      });
+      if (!histCheck.ok) {
+        const msg =
+          histCheck.clientErrorCode === "privacy_verification_unconfigured" ?
+            "Server configuration prevents verifying privacy rules."
+          : histCheck.clientErrorCode === "ephemeral_history_malformed" ? "Invalid chat history format."
+          : "Chat session changed. Start a new chat before continuing.";
         return NextResponse.json(
-          { error: "Chat session changed. Start a new chat before continuing.", clientErrorCode: "ephemeral_session_mismatch" },
-          { status: 409 },
+          { error: msg, clientErrorCode: histCheck.clientErrorCode },
+          { status: histCheck.status },
         );
       }
     }
@@ -96,35 +104,35 @@ export async function POST(
       ephemeralHistory,
     });
 
-    const usedThisTurn =
-      ("ephemeralUsedTeamContext" in result && result.ephemeralUsedTeamContext === true) ||
-      (result.ok && result.safeguarding === "critical");
+    const usedThisTurn = "ephemeralUsedTeamContext" in result && result.ephemeralUsedTeamContext === true;
 
-    let mergedTeamCookie: string | null = null;
-    if (ephemeralTurn && isAskShepherdTeamContextCookieConfigured()) {
+    let newPrivacyCookie: string | null = null;
+    if (ephemeralTurn && result.ok && isAskShepherdEphemeralPrivacyConfigured()) {
       try {
-        const transcript = result.ok
-          ? [
-              ...ephemeralHistory,
-              { role: "user" as const, content: message },
-              { role: "assistant" as const, content: result.assistantMessage },
-            ]
-          : ephemeralHistory;
-        mergedTeamCookie = mergeEphemeralTeamContextCookie({
-          // Empty history starts a new chat; a prior receipt must not taint it.
-          existingRaw: ephemeralHistory.length > 0 ? existingTeamCookie : undefined,
+        newPrivacyCookie = appendEphemeralTurnReceipt({
+          existingRaw: existingPrivacyCookie,
           userId: user.id,
           departmentKey: def.key,
-          thisTurnUsedConsentedTeamContext: usedThisTurn,
-          transcriptHash: fingerprintAskShepherdTranscript(transcript),
+          userMessage: message,
+          assistantMessage: result.assistantMessage,
+          teamContextThisTurn: usedThisTurn,
+          kind: result.usedStaticSafeguarding ? "crit" : "ai",
         });
       } catch {
-        mergedTeamCookie = null;
+        newPrivacyCookie = null;
       }
     }
 
-    const ephemeralLocked =
-      mergedTeamCookie !== null && cookieValueIndicatesTeamContextUsed(mergedTeamCookie, user.id, def.key);
+    let ephemeralTeamContextLocked = false;
+    if (ephemeralTurn) {
+      const raw = newPrivacyCookie ?? existingPrivacyCookie;
+      const bound = validateEphemeralPrivacyBinding(
+        parseEphemeralPrivacyCookie(raw),
+        user.id,
+        def.key,
+      );
+      ephemeralTeamContextLocked = bound.ok && ephemeralTeamContextLockedFromPayload(bound.payload);
+    }
 
     const buildJson = () => {
       if (!result.ok) {
@@ -132,7 +140,7 @@ export async function POST(
           error: result.error,
           retryAfterSeconds: result.retryAfterSeconds,
           clientErrorCode: result.clientErrorCode,
-          ...(ephemeralTurn && mergedTeamCookie !== null ? { ephemeralTeamContextLocked: ephemeralLocked } : {}),
+          ...(ephemeralTurn ? { ephemeralTeamContextLocked } : {}),
         };
       }
       return {
@@ -141,7 +149,7 @@ export async function POST(
         assistantMessage: result.assistantMessage,
         safeguarding: result.safeguarding,
         usedStaticSafeguarding: result.usedStaticSafeguarding ?? false,
-        ...(ephemeralTurn && mergedTeamCookie !== null ? { ephemeralTeamContextLocked: ephemeralLocked } : {}),
+        ...(ephemeralTurn ? { ephemeralTeamContextLocked } : {}),
       };
     };
 
@@ -150,8 +158,8 @@ export async function POST(
     }
 
     const res = NextResponse.json(buildJson(), { status: result.ok ? 200 : result.status });
-    if (mergedTeamCookie !== null) {
-      setTeamContextCookieOnResponse(res, mergedTeamCookie);
+    if (newPrivacyCookie !== null) {
+      setEphemeralPrivacyCookieOnResponse(res, newPrivacyCookie);
     }
     return res;
   } catch {
