@@ -2,8 +2,8 @@
 
 **Branch:** `feature/ask-shepherd-phase1`  
 **PR:** [#31](https://github.com/ashaibu0411/shanah-city/pull/31)  
-**Latest commit (this handoff):** `a83408b`  
-**Staging URL:** `https://shanah-city-staging.vercel.app`
+**Staging URL:** `https://shanah-city-staging.vercel.app`  
+**Tip:** After pulling `feature/ask-shepherd-phase1`, run `git log -1 --oneline` for the current SHA (this doc updates with the branch).
 
 ---
 
