@@ -16,8 +16,8 @@ const CRITICAL_PATTERNS: RegExp[] = [
 const CHILD_TERMS = String.raw`(?:child|children|minor|minors|kid|kids|teen|teens|teenager|teenagers)`;
 const CHILD_HARM_TERMS = String.raw`(?:abuse|abused|abusing|molest(?:ation|ed|ing)?|neglect(?:ed|ing)?|assault(?:ed|ing)?|harm(?:ed|ing)?|hurt(?:s|ing)?|violence|exploitation|exploit(?:ed|ing)?|groom(?:ing|ed)?|unsafe|endanger(?:ed|ment)?)`;
 const CHILD_SAFETY_PATTERNS: RegExp[] = [
-  new RegExp(String.raw`\\b${CHILD_TERMS}\\b[\\s\\S]{0,160}?\\b${CHILD_HARM_TERMS}\\b`, "i"),
-  new RegExp(String.raw`\\b${CHILD_HARM_TERMS}\\b[\\s\\S]{0,160}?\\b${CHILD_TERMS}\\b`, "i"),
+  new RegExp(String.raw`\b${CHILD_TERMS}\b[\s\S]{0,160}?\b${CHILD_HARM_TERMS}\b`, "i"),
+  new RegExp(String.raw`\b${CHILD_HARM_TERMS}\b[\s\S]{0,160}?\b${CHILD_TERMS}\b`, "i"),
 ];
 
 const CAUTION_PATTERNS: RegExp[] = [
