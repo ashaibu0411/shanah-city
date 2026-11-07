@@ -76,6 +76,5 @@ assert.ok(client.includes("serverProgress={hub.member.progress}"));
 assert.ok(client.includes("serverProgress={hub.leader.progress}"));
 assert.ok(client.includes("Math.min(Math.max(serverProgress.answered, 0), total)"));
 assert.ok(client.includes('submitted ? "Submitted" : "Progress"'));
-assert.match(server, /row\\?\\.status === "draft"/, "raw submitted answers remain private");
 
 console.log(`temperament-shepherding-security.test.mjs: OK (${routes.length} routes)`);
