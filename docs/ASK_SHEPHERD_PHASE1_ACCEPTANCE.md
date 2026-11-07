@@ -2,7 +2,7 @@
 
 **Branch:** `feature/ask-shepherd-phase1`  
 **PR:** [#31](https://github.com/ashaibu0411/shanah-city/pull/31)  
-**Latest commit (this handoff):** `e6f4b17` (includes privacy implementation `30dd4eb`)  
+**Latest commit (this handoff):** `0580779`  
 **Staging URL:** `https://shanah-city-staging.vercel.app`
 
 ---
@@ -14,7 +14,7 @@
 | Server-verifiable save (no client trust) | **PASS** | HttpOnly signed cookie `ask_shepherd_ephemeral_priv` + `validateEphemeralSaveMessages` |
 | Fail closed: missing / invalid / expired / user-dept mismatch | **PASS** | `privacy_session_invalid` **400**; unconfigured secret **503** `privacy_verification_unconfigured` |
 | Team-context thread cannot be saved | **PASS** | Receipt `tc=1` → `team_context_save_blocked` **400** |
-| Clear cookie cannot unlock paste of old transcript | **PASS** | New sid + empty receipts → `save_provenance_mismatch` **400** |
+| Clear cookie cannot unlock paste / replay | **PASS** | Save: fresh cookie → `save_provenance_mismatch` **400**; chat with stale history → `ephemeral_session_mismatch` **409** (`validateEphemeralHistoryAgainstCookie`) |
 | Each assistant line has provenance (hash receipts) | **PASS** | Only successful ephemeral chat turns append receipts; save matches every pair |
 | Forged / tampered transcript | **PASS** | `save_tampered_transcript` **400** |
 | Regression tests | **PASS** | `npm run test:ask-shepherd` (includes `scripts/ask-shepherd-team-context-privacy.test.ts`) |
