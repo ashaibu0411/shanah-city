@@ -70,4 +70,12 @@ assert.match(client, /max-w-full overflow-auto whitespace-pre-wrap break-all/, "
 assert.ok(client.includes("sm:grid-cols-[minmax(0,1fr)_auto]"), "invitation rows must adapt to narrow screens");
 assert.doesNotMatch(client, /TEMPERAMENT_SHEPHERDING_SEND_INVITE_PUSH=1/, "do not display internal environment flags in the invitation UI");
 
+// Submitted responses intentionally omit raw answers. Progress must use the
+// server-provided count rather than the empty private answer map.
+assert.match(client, /serverProgress=\\{hub\\.member\\.progress\\}/);
+assert.match(client, /serverProgress=\\{hub\\.leader\\.progress\\}/);
+assert.match(client, /submitted\\s*\\? Math\\.min\\(Math\\.max\\(serverProgress\\.answered, 0\\), total\\)/);
+assert.match(client, /submitted \\? "Submitted" : "Progress"/);
+assert.match(server, /row\\?\\.status === "draft"/, "raw submitted answers remain private");
+
 console.log(`temperament-shepherding-security.test.mjs: OK (${routes.length} routes)`);
