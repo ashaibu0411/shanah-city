@@ -9,6 +9,7 @@ import { totalCommentCount } from "@/lib/community-comments";
 import {
   COMMUNITY_SHARE_POST_TYPES,
   formatCommunityTimeAgo,
+  communityPostDisplayParts,
   postTypeLabel,
   reactionEmoji,
 } from "@/lib/community-ui-utils";
@@ -747,16 +748,19 @@ export function CommunityPostCard({
   };
 
   const textFirstFeedLayout = useInstagramLayout && !hasMedia && !editing;
+  const displayParts = communityPostDisplayParts(post.content, post.author, post.type === "announcement");
 
   const captionBlock = (
     <div
       className={`community-post-caption ${textFirstFeedLayout ? "community-post-caption--lead" : ""}`}
     >
-      <p className="community-post-content text-sm text-night-900 dark:text-sand-100">
-        <span className="font-semibold">{post.author}</span>{" "}
-        <span className="whitespace-pre-wrap font-normal">
-          <MentionText text={post.content} />
-        </span>
+      {displayParts.headline ? (
+        <h3 className="community-post-headline">
+          <MentionText text={displayParts.headline} />
+        </h3>
+      ) : null}
+      <p className="community-post-content whitespace-pre-wrap text-sm text-night-900 dark:text-sand-100">
+        <MentionText text={displayParts.body} />
       </p>
     </div>
   );
@@ -1119,7 +1123,7 @@ export function CommunityPostCard({
         <>
           <div className={`community-post-body ${compact ? "community-post-body-compact" : ""}`}>
             <p className="community-post-content whitespace-pre-wrap text-night-900 dark:text-sand-100">
-              <MentionText text={post.content} />
+              <MentionText text={displayParts.body} />
             </p>
           </div>
           {(reactionTotal > 0 || commentCount > 0) && (
