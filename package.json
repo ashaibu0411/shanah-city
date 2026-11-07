@@ -78,7 +78,7 @@
     "test:choir:recordings-access": "tsx scripts/choir-rehearsal-recordings-access.test.ts",
     "test:worship:recording-audio": "tsx scripts/worship-recording-audio.test.ts",
     "test:temperament:shepherding": "tsx scripts/temperament-shepherding-scoring.test.ts && node scripts/temperament-shepherding-security.test.mjs",
-    "test:ask-shepherd": "tsx scripts/ask-shepherd-access.test.ts && node scripts/ask-shepherd-security.test.mjs && tsx scripts/ask-shepherd-ai-mock.test.ts && tsx scripts/ask-shepherd-team-context-privacy.test.ts && tsx scripts/ask-shepherd-safeguarding.test.ts",
+    "test:ask-shepherd": "tsx scripts/ask-shepherd-access.test.ts && node scripts/ask-shepherd-security.test.mjs && tsx scripts/ask-shepherd-ai-mock.test.ts && tsx scripts/ask-shepherd-team-context-privacy.test.ts && tsx scripts/ask-shepherd-safeguarding.test.ts && tsx scripts/ask-shepherd-markdown.test.ts",
     "test:story-music:free-license": "tsx scripts/story-music-free-license.test.ts",
     "story-music:discover": "node scripts/story-music-discover-sources.mjs",
     "test:story-music:hybrid": "tsx scripts/story-music-hybrid.test.ts",
