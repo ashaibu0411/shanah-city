@@ -164,7 +164,8 @@ async function main() {
       { role: "assistant", content: critText },
     ],
   });
-  assert.equal(save.ok, true);
+  assert.equal(save.ok, false);
+  assert.equal(save.ok ? "" : save.clientErrorCode, "critical_safeguarding_save_blocked");
 
   assert.equal(contentHash16("x").length, 16);
 
