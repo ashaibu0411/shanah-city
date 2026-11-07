@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import type { ReactNode } from "react";
 import { parseAskShepherdMarkdown } from "@/lib/ask-shepherd-markdown";
 
@@ -32,7 +33,7 @@ export function AskShepherdMarkdown({ content }: { content: string }) {
         switch (block.type) {
           case "heading":
             return block.level <= 3 ? (
-              <h3 key={i} className="pt-2 text-[16px] font-semibold leading-snug text-night-950">
+              <h3 key={i} className="pt-2 text-[16px] font-semibold leading-snug text-night-900">
                 {renderInline(block.text)}
               </h3>
             ) : (
