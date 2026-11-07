@@ -64,4 +64,10 @@ assert.match(client, /disabled=\{busy \|\| !agreed\}/, "submit must require cons
 assert.match(page, /getTemperamentShepherdingHubNav/, "pastoral access must be supported");
 assert.doesNotMatch(page, /canAccessWorshipPlanner/, "do not require pastor to join worship group");
 
+// Mobile UI regression: keep all hub sections inside the viewport and never expose internal flags.
+assert.match(client, /overflow-x-hidden/, "temperament hub must contain horizontal overflow");
+assert.match(client, /max-w-full overflow-auto whitespace-pre-wrap break-all/, "shared profile text must wrap");
+assert.match(client, /sm:grid-cols-\\[minmax\\(0,1fr\\)_auto\\]/, "invitation rows must adapt to narrow screens");
+assert.doesNotMatch(client, /TEMPERAMENT_SHEPHERDING_SEND_INVITE_PUSH=1/, "do not display internal environment flags in the invitation UI");
+
 console.log(`temperament-shepherding-security.test.mjs: OK (${routes.length} routes)`);
