@@ -1,0 +1,27 @@
+name: Ask Shepherd security and UI checks
+on:
+  push:
+    branches:
+      - feature/ask-shepherd-phase1
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Ask Shepherd access, privacy, AI mocks and Markdown formatting
+        run: npm run test:ask-shepherd
+      - name: Navigation permissions regression
+        run: npm run test:app:nav
+      - name: Temperament Hub regression
+        run: npm run test:temperament:shepherding
