@@ -72,10 +72,10 @@ assert.doesNotMatch(client, /TEMPERAMENT_SHEPHERDING_SEND_INVITE_PUSH=1/, "do no
 
 // Submitted responses intentionally omit raw answers. Progress must use the
 // server-provided count rather than the empty private answer map.
-assert.match(client, /serverProgress=\\{hub\\.member\\.progress\\}/);
-assert.match(client, /serverProgress=\\{hub\\.leader\\.progress\\}/);
-assert.match(client, /submitted\\s*\\? Math\\.min\\(Math\\.max\\(serverProgress\\.answered, 0\\), total\\)/);
-assert.match(client, /submitted \\? "Submitted" : "Progress"/);
+assert.ok(client.includes("serverProgress={hub.member.progress}"));
+assert.ok(client.includes("serverProgress={hub.leader.progress}"));
+assert.ok(client.includes("Math.min(Math.max(serverProgress.answered, 0), total)"));
+assert.ok(client.includes('submitted ? "Submitted" : "Progress"'));
 assert.match(server, /row\\?\\.status === "draft"/, "raw submitted answers remain private");
 
 console.log(`temperament-shepherding-security.test.mjs: OK (${routes.length} routes)`);
