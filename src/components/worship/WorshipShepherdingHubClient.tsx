@@ -290,6 +290,7 @@ export function WorshipShepherdingHubClient() {
           description="About 40 questions on a 1–5 agreement scale. Your responses are private by default."
           questions={hub.questions.member}
           answers={memberAnswers}
+          serverProgress={hub.member.progress}
           response={hub.member.response}
           submittedSnapshot={hub.member.snapshot}
           busy={busy}
@@ -327,6 +328,7 @@ export function WorshipShepherdingHubClient() {
           description="Complete the member questions plus a short leader-only section, then review your personal leadership themes."
           questions={hub.questions.leader}
           answers={leaderAnswers}
+          serverProgress={hub.leader.progress}
           response={hub.leader.response}
           submittedSnapshot={hub.leader.snapshot}
           busy={busy}
@@ -476,6 +478,7 @@ function AssessmentSection({
   description,
   questions,
   answers,
+  serverProgress,
   response,
   submittedSnapshot,
   busy,
@@ -487,6 +490,7 @@ function AssessmentSection({
   description: string;
   questions: TemperamentQuestionDef[];
   answers: Record<string, number>;
+  serverProgress: { answered: number; total: number };
   response: { status: string } | null;
   submittedSnapshot: { disclaimer: string; highlightsJson: string } | null;
   busy: boolean;
@@ -501,17 +505,20 @@ function AssessmentSection({
     setLocal({ ...answers });
   }, [answers]);
 
+  const submitted = response?.status === "submitted";
+  // Submitted answers are intentionally omitted from the client for privacy.
+  // Use the server-provided completion count rather than the empty answer map.
   const progress = useMemo(() => {
     const total = questions.length;
-    const answered = questions.filter((q) => local[q.id] !== undefined).length;
+    const answered = submitted
+      ? Math.min(Math.max(serverProgress.answered, 0), total)
+      : questions.filter((q) => local[q.id] !== undefined).length;
     return { answered, total, pct: total ? Math.round((answered / total) * 100) : 0 };
-  }, [questions, local]);
+  }, [questions, local, serverProgress.answered, submitted]);
 
   function setAnswer(id: string, value: number) {
     setLocal((prev) => ({ ...prev, [id]: value }));
   }
-
-  const submitted = response?.status === "submitted";
 
   return (
     <Card className="space-y-4">
@@ -519,7 +526,7 @@ function AssessmentSection({
         <h2 className="font-display text-lg font-semibold text-night-900">{title}</h2>
         <p className="mt-1 text-sm text-night-600">{description}</p>
         <p className="mt-3 text-sm text-night-700" aria-live="polite">
-          Progress: {progress.answered} / {progress.total} ({progress.pct}%)
+          {submitted ? "Submitted" : "Progress"}: {progress.answered} / {progress.total} ({progress.pct}%)
         </p>
         <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-night-900/10" role="progressbar" aria-valuenow={progress.pct} aria-valuemin={0} aria-valuemax={100}>
           <div className="h-full bg-emerald-500 transition-all" style={{ width: `${progress.pct}%` }} />
