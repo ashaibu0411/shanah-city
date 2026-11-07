@@ -2,7 +2,7 @@
 
 **Branch:** `feature/ask-shepherd-phase1`  
 **PR:** [#31](https://github.com/ashaibu0411/shanah-city/pull/31)  
-**Latest commit (this handoff):** `0580779`  
+**Latest commit (this handoff):** `a83408b`  
 **Staging URL:** `https://shanah-city-staging.vercel.app`
 
 ---
