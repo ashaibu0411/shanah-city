@@ -72,3 +72,31 @@ export function filterCommunityPosts(
   if (filter === "all") return posts;
   return posts.filter((post) => post.type === filter);
 }
+
+/**
+ * Remove a duplicated author prefix on older posts only when it is clearly a
+ * label. Never mutate the persisted message or strip ordinary prose.
+ */
+export function communityPostDisplayText(content: string, author: string): string {
+  const cleanAuthor = author.trim();
+  if (!cleanAuthor) return content;
+  const leading = content.match(/^\s*/)?.[0] ?? "";
+  const rest = content.slice(leading.length);
+  if (rest.slice(0, cleanAuthor.length).toLocaleLowerCase() !== cleanAuthor.toLocaleLowerCase()) {
+    return content;
+  }
+  const suffix = rest.slice(cleanAuthor.length);
+  const separator = suffix.match(/^\s*[:|—–-]\s*/);
+  const announcementPrefix = suffix.match(/^\s+(?=(?:urgent|announcement|news|update|alert)\b)/i);
+  if (!separator && !announcementPrefix) return content;
+  return suffix.slice((separator ?? announcementPrefix)![0].length).trimStart();
+}
+
+/** A short headline is visual emphasis only; the full post remains in place. */
+export function communityPostDisplayParts(content: string, author: string, announcement: boolean) {
+  const display = communityPostDisplayText(content, author);
+  if (!announcement) return { headline: "", body: display };
+  const match = display.match(/^([^\n]{4,85})\n\s*\n([\s\S]+)/);
+  if (!match) return { headline: "", body: display };
+  return { headline: match[1].trim(), body: match[2].trimStart() };
+}
