@@ -317,6 +317,11 @@ export function validateEphemeralSaveMessages(args: {
     if (rec.tc === 1) {
       return { ok: false, clientErrorCode: "team_context_save_blocked", status: 400 };
     }
+    // Critical safeguarding questions and emergency guidance must remain ephemeral:
+    // even an otherwise valid signed transcript cannot be saved to the library.
+    if (rec.k === "crit") {
+      return { ok: false, clientErrorCode: "critical_safeguarding_save_blocked", status: 400 };
+    }
     if (rec.hu !== contentHash16(pairs[i].user) || rec.ha !== contentHash16(pairs[i].assistant)) {
       return { ok: false, clientErrorCode: "save_tampered_transcript", status: 400 };
     }
