@@ -64,15 +64,15 @@ export function AdminStoryMusicDiscoveryPanel() {
     }
   }
 
-  const rows = (data?.candidates ?? []).filter((c) =>
-    filter === "all" ? true : c.reviewStatus === filter,
-  );
+  const rows = (data?.candidates ?? [])
+    .filter((c) => filter === "all" ? true : c.reviewStatus === filter)
+    .sort((a, b) => Number(b.source === "heartfelt_media") - Number(a.source === "heartfelt_media"));
 
   return (
     <section className="rounded-xl border border-night-900/10 bg-white/80 p-4 dark:border-white/10 dark:bg-night-900/40">
       <h2 className="text-sm font-semibold text-night-900 dark:text-sand-100">Free worship discovery queue</h2>
       <p className="mt-1 text-xs text-night-600 dark:text-sand-400">
-        Candidates from Openverse, Wikimedia Commons, and Internet Archive (FMA). Metadata only until rights
+        Candidates from Openverse, Wikimedia Commons, Internet Archive (FMA), and original Christian artists. Metadata only until rights
         verification and audio ingest. Run <code className="text-[10px]">node scripts/story-music-discover-sources.mjs</code>{" "}
         locally to refresh.
       </p>
@@ -111,6 +111,11 @@ export function AdminStoryMusicDiscoveryPanel() {
             <p className="text-night-600 dark:text-sand-400">
               {row.source} · {row.licenseSlug} · {row.reviewStatus}
             </p>
+            {row.source === "heartfelt_media" && row.reviewStatus !== "published" ? (
+              <p className="mt-1 text-amber-800 dark:text-amber-200">
+                Contemporary candidate — audio quality, exact rights and curator sign-off required before import.
+              </p>
+            ) : null}
             <a href={row.sourcePageUrl} target="_blank" rel="noopener noreferrer" className="text-clay-800 underline">
               Source page
             </a>
