@@ -621,6 +621,239 @@
       "licenseUrl": "",
       "attributionText": "Colored quartet.pharaoh's army got drowned EDIS-SRP-0198-12.oga — Guanaco (public domain recording).",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AColored_quartet.pharaoh's_army_got_drowned_EDIS-SRP-0198-12.oga"
+    },
+    {
+      "id": "hmg-the-almighty",
+      "title": "The Almighty",
+      "artist": "Dan Parks",
+      "providerTrackId": "hmg-the-almighty.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/hmg-the-almighty.mp3",
+      "country": "US",
+      "language": "en",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "gospel_worship_songs",
+        "modern-worship",
+        "contemporary_christian",
+        "verified-vocal",
+        "heartfelt-media",
+        "cc-by-4.0"
+      ],
+      "rightsRecordId": "smr-hmg-the-almighty",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "“The Almighty” by Dan Parks / Heartfelt Media Group (heartfeltmg.com). Original recording, unmodified. Licensed CC BY 4.0: https://creativecommons.org/licenses/by/4.0/. Source: https://www.heartfeltmg.com/songs/the-almighty",
+      "sourceUrl": "https://www.heartfeltmg.com/songs/the-almighty"
+    },
+    {
+      "id": "hmg-lord-we-lift",
+      "title": "Lord We Lift",
+      "artist": "Dan Parks",
+      "providerTrackId": "hmg-lord-we-lift.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/hmg-lord-we-lift.mp3",
+      "country": "US",
+      "language": "en",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "gospel_worship_songs",
+        "modern-worship",
+        "contemporary_christian",
+        "verified-vocal",
+        "heartfelt-media",
+        "cc-by-4.0"
+      ],
+      "rightsRecordId": "smr-hmg-lord-we-lift",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "“Lord We Lift” by Dan Parks / Heartfelt Media Group (heartfeltmg.com). Original recording, unmodified. Licensed CC BY 4.0: https://creativecommons.org/licenses/by/4.0/. Source: https://www.heartfeltmg.com/songs/lord-we-lift",
+      "sourceUrl": "https://www.heartfeltmg.com/songs/lord-we-lift"
+    },
+    {
+      "id": "hmg-abundant-life",
+      "title": "Abundant Life",
+      "artist": "Terry Parks",
+      "providerTrackId": "hmg-abundant-life.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/hmg-abundant-life.mp3",
+      "country": "US",
+      "language": "en",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "gospel_worship_songs",
+        "modern-worship",
+        "contemporary_christian",
+        "verified-vocal",
+        "heartfelt-media",
+        "cc-by-4.0"
+      ],
+      "rightsRecordId": "smr-hmg-abundant-life",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "“Abundant Life” by Terry Parks / Heartfelt Media Group (heartfeltmg.com). Original recording, unmodified. Licensed CC BY 4.0: https://creativecommons.org/licenses/by/4.0/. Source: https://www.heartfeltmg.com/songs/abundant-life",
+      "sourceUrl": "https://www.heartfeltmg.com/songs/abundant-life"
+    },
+    {
+      "id": "hmg-chosen-generation",
+      "title": "Chosen Generation",
+      "artist": "Terry Parks",
+      "providerTrackId": "hmg-chosen-generation.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/hmg-chosen-generation.mp3",
+      "country": "US",
+      "language": "en",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "gospel_worship_songs",
+        "modern-worship",
+        "contemporary_christian",
+        "verified-vocal",
+        "heartfelt-media",
+        "cc-by-4.0"
+      ],
+      "rightsRecordId": "smr-hmg-chosen-generation",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "“Chosen Generation” by Terry Parks / Heartfelt Media Group (heartfeltmg.com). Original recording, unmodified. Licensed CC BY 4.0: https://creativecommons.org/licenses/by/4.0/. Source: https://www.heartfeltmg.com/songs/chosen-generation",
+      "sourceUrl": "https://www.heartfeltmg.com/songs/chosen-generation"
+    },
+    {
+      "id": "hmg-daystar",
+      "title": "Daystar",
+      "artist": "Terry Parks",
+      "providerTrackId": "hmg-daystar.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/hmg-daystar.mp3",
+      "country": "US",
+      "language": "en",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "gospel_worship_songs",
+        "modern-worship",
+        "contemporary_christian",
+        "verified-vocal",
+        "heartfelt-media",
+        "cc-by-4.0"
+      ],
+      "rightsRecordId": "smr-hmg-daystar",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "“Daystar” by Terry Parks / Heartfelt Media Group (heartfeltmg.com). Original recording, unmodified. Licensed CC BY 4.0: https://creativecommons.org/licenses/by/4.0/. Source: https://www.heartfeltmg.com/songs/daystar",
+      "sourceUrl": "https://www.heartfeltmg.com/songs/daystar"
+    },
+    {
+      "id": "hmg-every-heart",
+      "title": "Every Heart",
+      "artist": "Dan Parks",
+      "providerTrackId": "hmg-every-heart.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/hmg-every-heart.mp3",
+      "country": "US",
+      "language": "en",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "gospel_worship_songs",
+        "modern-worship",
+        "contemporary_christian",
+        "verified-vocal",
+        "heartfelt-media",
+        "cc-by-4.0"
+      ],
+      "rightsRecordId": "smr-hmg-every-heart",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "“Every Heart” by Dan Parks / Heartfelt Media Group (heartfeltmg.com). Original recording, unmodified. Licensed CC BY 4.0: https://creativecommons.org/licenses/by/4.0/. Source: https://www.heartfeltmg.com/songs/every-heart",
+      "sourceUrl": "https://www.heartfeltmg.com/songs/every-heart"
+    },
+    {
+      "id": "hmg-safe-secure",
+      "title": "Safe & Secure",
+      "artist": "Dan Parks",
+      "providerTrackId": "hmg-safe-secure.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/hmg-safe-secure.mp3",
+      "country": "US",
+      "language": "en",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "gospel_worship_songs",
+        "modern-worship",
+        "contemporary_christian",
+        "verified-vocal",
+        "heartfelt-media",
+        "cc-by-4.0"
+      ],
+      "rightsRecordId": "smr-hmg-safe-secure",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "“Safe & Secure” by Dan Parks / Heartfelt Media Group (heartfeltmg.com). Original recording, unmodified. Licensed CC BY 4.0: https://creativecommons.org/licenses/by/4.0/. Source: https://www.heartfeltmg.com/songs/safe-secure",
+      "sourceUrl": "https://www.heartfeltmg.com/songs/safe-secure"
+    },
+    {
+      "id": "hmg-a-lasting-joy",
+      "title": "A Lasting Joy",
+      "artist": "Terry Parks",
+      "providerTrackId": "hmg-a-lasting-joy.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/hmg-a-lasting-joy.mp3",
+      "country": "US",
+      "language": "en",
+      "genres": [
+        "gospel",
+        "worship",
+        "contemporary_christian"
+      ],
+      "tags": [
+        "free-library",
+        "gospel_worship_songs",
+        "modern-worship",
+        "contemporary_christian",
+        "verified-vocal",
+        "heartfelt-media",
+        "cc-by-4.0",
+        "christmas"
+      ],
+      "rightsRecordId": "smr-hmg-a-lasting-joy",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "“A Lasting Joy” by Terry Parks / Heartfelt Media Group (heartfeltmg.com). Original recording, unmodified. Licensed CC BY 4.0: https://creativecommons.org/licenses/by/4.0/. Source: https://www.heartfeltmg.com/songs/a-lasting-joy",
+      "sourceUrl": "https://www.heartfeltmg.com/songs/a-lasting-joy"
     }
   ]
 }
