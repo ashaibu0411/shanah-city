@@ -12,7 +12,7 @@ import {
 import {
   createAudioMediaRecorder,
   extensionForRecorderMime,
-  getWorshipRecordingMediaStream,
+  getStoryVoiceRecordingMediaStream,
   isMediaRecorderSupported,
 } from "@/lib/worship-audio-shared";
 
@@ -186,7 +186,7 @@ export function CommunityStoryMemberAudioPanel({
       return;
     }
     try {
-      const stream = await getWorshipRecordingMediaStream();
+      const stream = await getStoryVoiceRecordingMediaStream();
       streamRef.current = stream;
       const recorder = createAudioMediaRecorder(stream);
       const mimeType = recorder.mimeType || "audio/webm";
@@ -276,7 +276,7 @@ export function CommunityStoryMemberAudioPanel({
       {mode === "record" ? (
         <div className="space-y-2">
           <p className="text-xs text-night-600 dark:text-sand-400">
-            Record up to {COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC} seconds for your story. Your video&apos;s own sound
+            Record clear spoken audio up to {COMMUNITY_STORY_OVERLAY_AUDIO_MAX_SEC} seconds. For best results, speak near your phone in a quiet room. Your video&apos;s own sound
             stays untouched when you share a video.
           </p>
           {recording ? (

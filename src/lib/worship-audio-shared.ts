@@ -36,6 +36,33 @@ export function worshipRecordingAudioConstraints(): MediaTrackConstraints {
   };
 }
 
+/**
+ * Story narration is spoken close to a phone microphone, unlike worship singing.
+ * Prefer platform speech processing for clearer/steadier speech, without forcing
+ * channel count or sample rate that Safari may reject.
+ */
+export function storyVoiceRecordingAudioConstraints(): MediaTrackConstraints {
+  return {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+  };
+}
+
+/** Dedicated Story voice input; keep rehearsal/singing capture untouched. */
+export async function getStoryVoiceRecordingMediaStream(): Promise<MediaStream> {
+  if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+    throw new Error("Recording is not supported in this browser.");
+  }
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      audio: storyVoiceRecordingAudioConstraints(),
+    });
+  } catch {
+    return navigator.mediaDevices.getUserMedia({ audio: true });
+  }
+}
+
 /** Mic stream for worship/choir in-app recording (shared across hooks and panels). */
 export async function getWorshipRecordingMediaStream(): Promise<MediaStream> {
   if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
@@ -66,9 +93,9 @@ export function pickMediaRecorderMimeType(): string {
 
 function mediaRecorderOptionsForMime(mimeType: string): MediaRecorderOptions {
   const options: MediaRecorderOptions = { mimeType };
-  if (mimeType.includes("opus") && typeof OPUS_AUDIO_BITS_PER_SECOND === "number") {
-    options.audioBitsPerSecond = OPUS_AUDIO_BITS_PER_SECOND;
-  }
+  // Safari AAC/MP4 can otherwise choose a low default encoding rate.
+  // Ask for a consistent quality rate for all audio codecs (browser may adjust).
+  options.audioBitsPerSecond = OPUS_AUDIO_BITS_PER_SECOND;
   return options;
 }
 
@@ -91,6 +118,15 @@ export function createAudioMediaRecorder(stream: MediaStream): MediaRecorder {
       }
       return new MediaRecorder(stream);
     } catch {
+      // Older Safari implementations may support the MIME type but reject
+      // audioBitsPerSecond. Retry the same codec without the bitrate hint.
+      if (mimeType) {
+        try {
+          return new MediaRecorder(stream, { mimeType });
+        } catch {
+          // Try the next supported codec.
+        }
+      }
       continue;
     }
   }
