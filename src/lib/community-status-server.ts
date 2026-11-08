@@ -43,6 +43,8 @@ function mapMusic(record: {
   musicTitle?: string | null;
   musicArtist?: string | null;
   musicYoutubeVideoId?: string | null;
+  musicClipStartSeconds?: number | null;
+  musicClipDurationSec?: number | null;
 }): CommunityStatusMusic | undefined {
   const trackId = record.musicTrackId?.trim();
   if (!trackId) return undefined;
@@ -55,6 +57,9 @@ function mapMusic(record: {
     title: title || "Song",
     artist: record.musicArtist?.trim() || "Artist",
     youtubeVideoId,
+    ...(record.musicClipStartSeconds != null ? { clipStartSeconds: record.musicClipStartSeconds } : {}),
+    ...(record.musicClipDurationSec === 30 || record.musicClipDurationSec === 60
+      ? { clipDurationSec: record.musicClipDurationSec } : {}),
   };
 }
 
@@ -72,6 +77,8 @@ function mapStatus(record: {
   musicTitle?: string | null;
   musicArtist?: string | null;
   musicYoutubeVideoId?: string | null;
+  musicClipStartSeconds?: number | null;
+  musicClipDurationSec?: number | null;
   memberStoryAudioUrl?: string | null;
   createdAt: Date;
   expiresAt: Date;
@@ -135,6 +142,8 @@ export async function addCommunityStatus(input: {
       musicTitle: input.music?.title ?? null,
       musicArtist: input.music?.artist ?? null,
       musicYoutubeVideoId: input.music?.youtubeVideoId ?? null,
+      musicClipStartSeconds: input.music?.clipStartSeconds ?? null,
+      musicClipDurationSec: input.music?.clipDurationSec ?? null,
       memberStoryAudioUrl: input.memberStoryAudioUrl?.trim() || null,
       expiresAt: input.expiresAt ?? communityStatusExpiry(),
     },
