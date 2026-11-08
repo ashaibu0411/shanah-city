@@ -18,6 +18,7 @@ import {
   groupStoryAuthorId,
 } from "@/lib/group-community-story-server";
 import type { CommunityStatusMusic, CommunityStatusStoryKind } from "@/lib/member-types";
+import { normalizeStoryMusicClipDuration, normalizeStoryMusicClipStart } from "@/lib/story-music/story-music-clip";
 import { notifyMemberMentions } from "@/lib/mention-notify-server";
 
 function parseStoryKind(value: unknown): CommunityStatusStoryKind {
@@ -57,6 +58,8 @@ export async function POST(request: Request) {
   let storyKind: CommunityStatusStoryKind = "default";
   let groupId = "";
   let musicTrackId = "";
+  let musicClipStartSeconds: unknown = undefined;
+  let musicClipDurationSec: unknown = undefined;
   let memberStoryAudioUrl = "";
   let memberAudioRightsAck = false;
 
@@ -69,11 +72,15 @@ export async function POST(request: Request) {
       linkUrl?: string;
       groupId?: string;
       musicTrackId?: string;
+      musicClipStartSeconds?: number;
+      musicClipDurationSec?: number;
       memberStoryAudioUrl?: string;
       memberAudioRightsAck?: boolean;
     };
     groupId = String(body.groupId ?? "").trim();
     musicTrackId = String(body.musicTrackId ?? "").trim();
+    musicClipStartSeconds = body.musicClipStartSeconds;
+    musicClipDurationSec = body.musicClipDurationSec;
     memberStoryAudioUrl = String(body.memberStoryAudioUrl ?? "").trim();
     memberAudioRightsAck = Boolean(body.memberAudioRightsAck);
     mediaUrl = String(body.mediaUrl ?? body.linkUrl ?? "").trim();
@@ -122,6 +129,8 @@ export async function POST(request: Request) {
     storyKind = parseStoryKind(formData.get("storyKind"));
     groupId = String(formData.get("groupId") ?? "").trim();
     musicTrackId = String(formData.get("musicTrackId") ?? "").trim();
+    musicClipStartSeconds = formData.get("musicClipStartSeconds");
+    musicClipDurationSec = formData.get("musicClipDurationSec");
     memberStoryAudioUrl = String(formData.get("memberStoryAudioUrl") ?? "").trim();
     memberAudioRightsAck = formData.get("memberAudioRightsAck") === "true";
 
@@ -190,6 +199,10 @@ export async function POST(request: Request) {
         title: track.title,
         artist: track.artist,
         youtubeVideoId: track.youtubeVideoId ?? "",
+        ...(track.youtubeVideoId && !track.audioUrl ? {} : {
+          clipStartSeconds: normalizeStoryMusicClipStart(musicClipStartSeconds, track.startSeconds ?? 0),
+          clipDurationSec: normalizeStoryMusicClipDuration(musicClipDurationSec),
+        }),
       };
     }
 
