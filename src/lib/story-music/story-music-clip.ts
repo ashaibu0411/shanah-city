@@ -96,6 +96,38 @@ export function adjustStoryMusicClipStartForDurationChange(
   return clampStoryMusicClipStartForTrack(startSeconds, nextClipDurationSec, trackDurationSec);
 }
 
+export function clipWindowMaxLeftPx(trackWidth: number, trackDurationSec: number, clipDurationSec: StoryMusicClipDuration) {
+  const windowPx = trackWidth * clipWindowWidthRatio(trackDurationSec, clipDurationSec);
+  return Math.max(0, trackWidth - windowPx);
+}
+
+export function clipWindowLeftPx(
+  startSeconds: number,
+  trackWidth: number,
+  trackDurationSec: number,
+  clipDurationSec: StoryMusicClipDuration,
+): number {
+  if (trackWidth <= 0 || trackDurationSec <= 0) return 0;
+  const start = clampStoryMusicClipStartForTrack(startSeconds, clipDurationSec, trackDurationSec);
+  const maxLeft = clipWindowMaxLeftPx(trackWidth, trackDurationSec, clipDurationSec);
+  const ideal = (start / trackDurationSec) * trackWidth;
+  return Math.min(maxLeft, Math.max(0, ideal));
+}
+
+export function clipStartFromWindowLeftPx(
+  windowLeftPx: number,
+  trackWidth: number,
+  trackDurationSec: number,
+  clipDurationSec: StoryMusicClipDuration,
+): number {
+  if (trackWidth <= 0 || trackDurationSec <= 0) return 0;
+  const maxLeft = clipWindowMaxLeftPx(trackWidth, trackDurationSec, clipDurationSec);
+  const clampedLeft = Math.min(maxLeft, Math.max(0, windowLeftPx));
+  const ratio = maxLeft > 0 ? clampedLeft / maxLeft : 0;
+  return clipStartFromTimelineRatio(ratio, trackDurationSec, clipDurationSec);
+}
+
+/** Tap on rail: place clip window under the pointer (centered). */
 export function pointerXToClipStart(
   clientX: number,
   trackLeft: number,
@@ -108,9 +140,41 @@ export function pointerXToClipStart(
   }
   const windowWidthRatio = clipWindowWidthRatio(trackDurationSec, clipDurationSec);
   const windowPx = trackWidth * windowWidthRatio;
-  const maxLeft = Math.max(0, trackWidth - windowPx);
   const rawLeft = clientX - trackLeft - windowPx / 2;
-  const clampedLeft = Math.min(maxLeft, Math.max(0, rawLeft));
-  const ratio = maxLeft > 0 ? clampedLeft / maxLeft : 0;
-  return clipStartFromTimelineRatio(ratio, trackDurationSec, clipDurationSec);
+  return clipStartFromWindowLeftPx(rawLeft, trackWidth, trackDurationSec, clipDurationSec);
+}
+
+/** Offset from pointer down to the clip window's left edge within the rail (preserves grab point). */
+export function computeDragGrabOffsetPx(
+  clientX: number,
+  trackLeft: number,
+  trackWidth: number,
+  startSeconds: number,
+  trackDurationSec: number,
+  clipDurationSec: StoryMusicClipDuration,
+): number {
+  const windowLeftPx = clipWindowLeftPx(startSeconds, trackWidth, trackDurationSec, clipDurationSec);
+  return clientX - trackLeft - windowLeftPx;
+}
+
+export function pointerDragToClipStart(
+  clientX: number,
+  trackLeft: number,
+  trackWidth: number,
+  grabOffsetPx: number,
+  trackDurationSec: number,
+  clipDurationSec: StoryMusicClipDuration,
+): number {
+  const windowLeftPx = clientX - trackLeft - grabOffsetPx;
+  return clipStartFromWindowLeftPx(windowLeftPx, trackWidth, trackDurationSec, clipDurationSec);
+}
+
+export function storyMusicClipFitsInsideTrack(
+  startSeconds: number,
+  clipDurationSec: StoryMusicClipDuration,
+  trackDurationSec: number,
+): boolean {
+  if (!Number.isFinite(trackDurationSec) || trackDurationSec <= 0) return true;
+  const start = clampStoryMusicClipStartForTrack(startSeconds, clipDurationSec, trackDurationSec);
+  return storyMusicClipEnd(start, clipDurationSec) <= Math.floor(trackDurationSec) + 0.001;
 }

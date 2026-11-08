@@ -4,12 +4,16 @@ import path from "node:path";
 import {
   adjustStoryMusicClipStartForDurationChange,
   clipStartFromTimelineRatio,
+  clipWindowLeftPx,
   clampStoryMusicClipStartForTrack,
+  computeDragGrabOffsetPx,
   maxStoryMusicClipStart,
   normalizeStoryMusicClipDuration,
   normalizeStoryMusicClipStart,
+  pointerDragToClipStart,
   pointerXToClipStart,
   storyMusicClipEnd,
+  storyMusicClipFitsInsideTrack,
 } from "../src/lib/story-music/story-music-clip";
 import { storySlideDurationMs, STORY_IMAGE_WITH_MUSIC_MS } from "../src/lib/community-story-utils";
 
@@ -36,12 +40,43 @@ assert.equal(clipStartFromTimelineRatio(0.5, 200, 30), 85);
 const dragStart = pointerXToClipStart(161, 100, 200, 180, 30);
 assert.ok(dragStart >= 39 && dragStart <= 41, `drag maps to ~40s start, got ${dragStart}`);
 
+const trackLeft = 100;
+const trackWidth = 200;
+const trackDuration = 180;
+const clipDur: 30 | 60 = 30;
+const startAt = 40;
+const fingerX = trackLeft + clipWindowLeftPx(startAt, trackWidth, trackDuration, clipDur) + 12;
+const grab = computeDragGrabOffsetPx(fingerX, trackLeft, trackWidth, startAt, trackDuration, clipDur);
+assert.equal(
+  pointerDragToClipStart(fingerX, trackLeft, trackWidth, grab, trackDuration, clipDur),
+  startAt,
+  "drag preserves grab offset at pointer down",
+);
+assert.equal(clampStoryMusicClipStartForTrack(50, 30, 25), 0);
+assert.equal(storyMusicClipFitsInsideTrack(0, 30, 25), false, "30s label cannot fully fit inside a 25s song");
+assert.equal(storyMusicClipFitsInsideTrack(0, 30, 180), true);
+assert.equal(storyMusicClipFitsInsideTrack(150, 30, 180), true);
+assert.equal(clampStoryMusicClipStartForTrack(151, 30, 180), 150);
+assert.equal(storyMusicClipEnd(150, 30), 180);
+
 const timelineSource = readFileSync(
   path.join(process.cwd(), "src/components/community/StoryMusicClipTimeline.tsx"),
   "utf8",
 );
-assert.match(timelineSource, /pointerXToClipStart/);
-assert.match(timelineSource, /aria-valuenow/);
+assert.match(timelineSource, /pointerDragToClipStart/);
+assert.match(timelineSource, /computeDragGrabOffsetPx/);
+assert.match(timelineSource, /role="slider"/);
+assert.match(timelineSource, /onBlur=\{\(\) => \{\s*commitFallbackDraft/);
+assert.doesNotMatch(
+  timelineSource,
+  /}, \[trackId, catalogDefaultStart, clipDurationSec\]\)/,
+  "duration probe should not refetch when clip length changes",
+);
+assert.doesNotMatch(
+  timelineSource,
+  /addEventListener\("pointermove"/,
+  "avoid duplicate window pointermove handler",
+);
 
 const pickerSource = readFileSync(
   path.join(process.cwd(), "src/components/community/CommunityStoryMusicPicker.tsx"),

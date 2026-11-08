@@ -7475,6 +7475,8 @@ html.dark .couples-hub-page {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .story-music-clip-timeline-window:active { cursor: grabbing; }
 .story-music-clip-timeline-window:focus-visible {

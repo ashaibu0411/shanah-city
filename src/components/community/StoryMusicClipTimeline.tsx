@@ -9,6 +9,8 @@ import {
   clampStoryMusicClipStartForTrack,
   clipWindowLeftRatio,
   clipWindowWidthRatio,
+  computeDragGrabOffsetPx,
+  pointerDragToClipStart,
   pointerXToClipStart,
   storyMusicClipEnd,
 } from "@/lib/story-music/story-music-clip";
@@ -30,16 +32,21 @@ export function StoryMusicClipTimeline({
   catalogDefaultStart = 0,
 }: StoryMusicClipTimelineProps) {
   const labelId = useId();
+  const sliderId = useId();
   const railRef = useRef<HTMLDivElement | null>(null);
-  const dragRef = useRef(false);
+  const dragGrabOffsetRef = useRef(0);
   const clipStartRef = useRef(clipStartSeconds);
   const onStartRef = useRef(onClipStartSeconds);
+  const clipDurationRef = useRef(clipDurationSec);
   const [trackDurationSec, setTrackDurationSec] = useState<number | null>(null);
   const [durationState, setDurationState] = useState<"idle" | "loading" | "ready" | "unknown">("idle");
   const durationProbeRef = useRef<HTMLAudioElement | null>(null);
+  const [fallbackDraft, setFallbackDraft] = useState<string | null>(null);
+  const fallbackDirtyRef = useRef(false);
 
   clipStartRef.current = clipStartSeconds;
   onStartRef.current = onClipStartSeconds;
+  clipDurationRef.current = clipDurationSec;
 
   const clampedStart = clampStoryMusicClipStartForTrack(
     clipStartSeconds,
@@ -61,6 +68,12 @@ export function StoryMusicClipTimeline({
       onStartRef.current(next);
     }
   }, [clipDurationSec, trackDurationSec, catalogDefaultStart]);
+
+  useEffect(() => {
+    if (!fallbackDirtyRef.current) {
+      setFallbackDraft(null);
+    }
+  }, [clampedStart, clipDurationSec]);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,7 +106,7 @@ export function StoryMusicClipTimeline({
             onStartRef.current(
               clampStoryMusicClipStartForTrack(
                 clipStartRef.current,
-                clipDurationSec,
+                clipDurationRef.current,
                 audio.duration,
                 catalogDefaultStart,
               ),
@@ -119,38 +132,26 @@ export function StoryMusicClipTimeline({
     return () => {
       cancelled = true;
     };
-  }, [trackId, catalogDefaultStart, clipDurationSec]);
+  }, [trackId, catalogDefaultStart]);
 
-  const applyPointer = useCallback(
+  const applyDragPointer = useCallback(
     (clientX: number) => {
       const rail = railRef.current;
       if (!rail || trackDurationSec == null || trackDurationSec <= 0) return;
       const rect = rail.getBoundingClientRect();
       onClipStartSeconds(
-        pointerXToClipStart(clientX, rect.left, rect.width, trackDurationSec, clipDurationSec),
+        pointerDragToClipStart(
+          clientX,
+          rect.left,
+          rect.width,
+          dragGrabOffsetRef.current,
+          trackDurationSec,
+          clipDurationSec,
+        ),
       );
     },
     [clipDurationSec, onClipStartSeconds, trackDurationSec],
   );
-
-  useEffect(() => {
-    const onMove = (event: PointerEvent) => {
-      if (!dragRef.current) return;
-      event.preventDefault();
-      applyPointer(event.clientX);
-    };
-    const onUp = () => {
-      dragRef.current = false;
-    };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-    };
-  }, [applyPointer]);
 
   const windowWidthRatio =
     trackDurationSec != null && trackDurationSec > 0
@@ -177,6 +178,18 @@ export function StoryMusicClipTimeline({
       ? Math.max(0, Math.floor(trackDurationSec) - clipDurationSec)
       : STORY_MUSIC_MAX_START_SEC;
 
+  function commitFallbackDraft() {
+    fallbackDirtyRef.current = false;
+    const raw = (fallbackDraft ?? startLabel).trim();
+    setFallbackDraft(null);
+    if (!raw) return;
+    const parsed = parseMediaTimestamp(raw);
+    if (parsed == null) return;
+    onClipStartSeconds(
+      clampStoryMusicClipStartForTrack(parsed, clipDurationSec, trackDurationSec, catalogDefaultStart),
+    );
+  }
+
   return (
     <div className="story-music-clip-timeline" role="group" aria-labelledby={labelId}>
       <audio ref={durationProbeRef} preload="metadata" className="sr-only" aria-hidden tabIndex={-1} />
@@ -198,22 +211,28 @@ export function StoryMusicClipTimeline({
         onPointerDown={(event) => {
           if (trackDurationSec == null || trackDurationSec <= 0) return;
           if ((event.target as HTMLElement).closest(".story-music-clip-timeline-window")) return;
-          applyPointer(event.clientX);
+          const rect = railRef.current?.getBoundingClientRect();
+          if (!rect) return;
+          onClipStartSeconds(
+            pointerXToClipStart(event.clientX, rect.left, rect.width, trackDurationSec, clipDurationSec),
+          );
         }}
       >
         <div className="story-music-clip-timeline-track" aria-hidden />
-        <button
-          type="button"
+        <div
+          id={sliderId}
+          role="slider"
+          tabIndex={0}
           className="story-music-clip-timeline-window"
           style={{
             width: `${windowWidthRatio * 100}%`,
             left: `${windowLeftRatio * 100}%`,
           }}
-          aria-label={`Clip from ${startLabel} to ${endLabel}`}
+          aria-label="Story music clip position"
           aria-valuemin={0}
           aria-valuemax={ariaMax}
           aria-valuenow={clampedStart}
-          aria-valuetext={`${startLabel} to ${endLabel}`}
+          aria-valuetext={`${startLabel} to ${endLabel}, ${clipDurationSec} second clip`}
           onKeyDown={(event) => {
             if (trackDurationSec == null || trackDurationSec <= 0) return;
             let delta = 0;
@@ -244,16 +263,29 @@ export function StoryMusicClipTimeline({
           }}
           onPointerDown={(event) => {
             if (trackDurationSec == null || trackDurationSec <= 0) return;
-            dragRef.current = true;
+            const rect = railRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            dragGrabOffsetRef.current = computeDragGrabOffsetPx(
+              event.clientX,
+              rect.left,
+              rect.width,
+              clampedStart,
+              trackDurationSec,
+              clipDurationSec,
+            );
             event.currentTarget.setPointerCapture(event.pointerId);
             event.preventDefault();
           }}
           onPointerMove={(event) => {
-            if (!dragRef.current) return;
-            applyPointer(event.clientX);
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            applyDragPointer(event.clientX);
           }}
           onPointerUp={(event) => {
-            dragRef.current = false;
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            }
+          }}
+          onPointerCancel={(event) => {
             if (event.currentTarget.hasPointerCapture(event.pointerId)) {
               event.currentTarget.releasePointerCapture(event.pointerId);
             }
@@ -261,7 +293,7 @@ export function StoryMusicClipTimeline({
         >
           <span className="story-music-clip-timeline-window-grip" aria-hidden />
           <span className="story-music-clip-timeline-window-label">{clipDurationSec}s</span>
-        </button>
+        </div>
       </div>
 
       <label className="story-music-clip-timeline-fallback">
@@ -270,18 +302,24 @@ export function StoryMusicClipTimeline({
         <input
           type="text"
           inputMode="numeric"
-          value={startLabel}
+          value={fallbackDraft ?? startLabel}
+          onFocus={() => {
+            fallbackDirtyRef.current = true;
+            setFallbackDraft(startLabel);
+          }}
           onChange={(event) => {
-            const parsed = parseMediaTimestamp(event.target.value);
-            if (parsed == null) return;
-            onClipStartSeconds(
-              clampStoryMusicClipStartForTrack(
-                parsed,
-                clipDurationSec,
-                trackDurationSec,
-                catalogDefaultStart,
-              ),
-            );
+            fallbackDirtyRef.current = true;
+            setFallbackDraft(event.target.value);
+          }}
+          onBlur={() => {
+            commitFallbackDraft();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              commitFallbackDraft();
+              event.currentTarget.blur();
+            }
           }}
           className="story-music-clip-timeline-fallback-input"
           aria-label="Adjust clip start time"
