@@ -72,7 +72,7 @@
     "test:marriage:verify": "node scripts/_run-verify.mjs",
     "test:marriage:staging:phasec": "playwright test -c playwright.staging.phasec.config.ts",
     "test:marriage:staging:api": "node scripts/_staging-marriage-phasec-api.mjs",
-    "test:app:nav": "tsx scripts/app-nav-items.test.ts && tsx scripts/community-display.test.ts && tsx scripts/worship-recording-audio.test.ts && tsx scripts/story-music-picker-categories.test.ts && node scripts/story-music-modern-intake.test.mjs",
+    "test:app:nav": "tsx scripts/app-nav-items.test.ts && tsx scripts/community-display.test.ts && tsx scripts/worship-recording-audio.test.ts && tsx scripts/story-music-picker-categories.test.ts && node scripts/story-music-modern-intake.test.mjs && node scripts/story-music-hmg-upload-manifest.test.mjs",
     "test:auth:session": "tsx scripts/auth-session-resilience.test.ts",
     "test:choir:recordings-links": "tsx scripts/choir-recordings-links.test.ts",
     "test:choir:recordings-access": "tsx scripts/choir-rehearsal-recordings-access.test.ts",
