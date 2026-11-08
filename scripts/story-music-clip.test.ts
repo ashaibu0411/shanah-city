@@ -82,8 +82,8 @@ const timelineSource = readFileSync(
   path.join(process.cwd(), "src/components/community/StoryMusicClipTimeline.tsx"),
   "utf8",
 );
-assert.match(timelineSource, /pointerDragToClipStart/);
-assert.match(timelineSource, /computeDragGrabOffsetPx/);
+assert.match(timelineSource, /storyMusicClipTimelineDragMove/);
+assert.match(timelineSource, /storyMusicClipTimelineDragStart/);
 assert.match(timelineSource, /role="slider"/);
 assert.match(timelineSource, /onBlur=\{\(\) => \{\s*commitFallbackDraft/);
 assert.doesNotMatch(
@@ -91,11 +91,8 @@ assert.doesNotMatch(
   /}, \[trackId, catalogDefaultStart, clipDurationSec\]\)/,
   "duration probe should not refetch when clip length changes",
 );
-assert.doesNotMatch(
-  timelineSource,
-  /addEventListener\("pointermove"/,
-  "avoid duplicate window pointermove handler",
-);
+assert.match(timelineSource, /bindStoryMusicClipTimelineDocumentDrag/);
+assert.match(timelineSource, /hasPlayableAudio/);
 
 const pickerSource = readFileSync(
   path.join(process.cwd(), "src/components/community/CommunityStoryMusicPicker.tsx"),
@@ -103,6 +100,10 @@ const pickerSource = readFileSync(
 );
 assert.match(pickerSource, /StoryMusicClipTimeline/);
 assert.match(pickerSource, /storyMusicClipDurationSelectable/);
+assert.match(
+  readFileSync(path.join(process.cwd(), "src/components/community/CommunityStatusRow.tsx"), "utf8"),
+  /musicClipDurationProbe === "estimated"/,
+);
 assert.doesNotMatch(pickerSource, /Start at[\s\S]{0,80}type="number"/);
 
 const attachSource = readFileSync(
