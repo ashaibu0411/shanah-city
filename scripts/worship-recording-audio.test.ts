@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import {
   worshipRecorderMimeCandidatesForTests,
   worshipRecordingAudioConstraints,
+  storyVoiceRecordingAudioConstraints,
 } from "../src/lib/worship-audio-shared";
 
 function testMicConstraints() {
@@ -16,6 +17,15 @@ function testMicConstraints() {
   assert.equal("channelCount" in c, false);
 }
 
+function testStoryNarrationConstraints() {
+  const c = storyVoiceRecordingAudioConstraints();
+  assert.equal(c.echoCancellation, true, "spoken narration should avoid echo");
+  assert.equal(c.noiseSuppression, true, "spoken narration should suppress room noise");
+  assert.equal(c.autoGainControl, true, "spoken narration should normalize quiet voice capture");
+  assert.equal("sampleRate" in c, false, "do not force Safari sample rate");
+  assert.equal("channelCount" in c, false, "do not force artificial stereo");
+}
+
 function testMimeCandidatesAreAudioOnly() {
   for (const mime of worshipRecorderMimeCandidatesForTests()) {
     assert.equal(mime.startsWith("audio/"), true, `expected audio mime, got ${mime}`);
@@ -25,6 +35,7 @@ function testMimeCandidatesAreAudioOnly() {
 
 function main() {
   testMicConstraints();
+  testStoryNarrationConstraints();
   testMimeCandidatesAreAudioOnly();
   console.log("worship-recording-audio.test.ts: all passed");
 }
