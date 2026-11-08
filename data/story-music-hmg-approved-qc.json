@@ -1,0 +1,97 @@
+{
+  "version": "1",
+  "ownerApproval": "2026-11-07, Shanah City owner approved all eight for final rights/audio verification and publication only on passing; recorded in ChatGPT",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "rightsSource": "https://www.heartfeltmg.com/",
+  "tracks": [
+    {
+      "id": "hmg-the-almighty",
+      "title": "The Almighty",
+      "artist": "Dan Parks",
+      "slug": "the-almighty",
+      "sourcePageUrl": "https://www.heartfeltmg.com/songs/the-almighty",
+      "recordingUrl": "https://www.heartfeltmg.com/music/The%20Almighty.mp3",
+      "audioPath": "story-music/audio/free-library/hmg-the-almighty.mp3",
+      "bytes": 8546722,
+      "sha256": "3a8cb5b9c4c3dc004f8c3fb31182bbc4ea7dc1303695a9241aaca1953ade32fd"
+    },
+    {
+      "id": "hmg-lord-we-lift",
+      "title": "Lord We Lift",
+      "artist": "Dan Parks",
+      "slug": "lord-we-lift",
+      "sourcePageUrl": "https://www.heartfeltmg.com/songs/lord-we-lift",
+      "recordingUrl": "https://www.heartfeltmg.com/music/Lord%20We%20Lift.mp3",
+      "audioPath": "story-music/audio/free-library/hmg-lord-we-lift.mp3",
+      "bytes": 5671435,
+      "sha256": "6a67ae73d81ade62e9c7d640801ccea16335ccddec28a246152dc45d830cad6a"
+    },
+    {
+      "id": "hmg-abundant-life",
+      "title": "Abundant Life",
+      "artist": "Terry Parks",
+      "slug": "abundant-life",
+      "sourcePageUrl": "https://www.heartfeltmg.com/songs/abundant-life",
+      "recordingUrl": "https://www.heartfeltmg.com/music/Abundant%20Life.mp3",
+      "audioPath": "story-music/audio/free-library/hmg-abundant-life.mp3",
+      "bytes": 6756756,
+      "sha256": "5d3c8c1f02195b76531c7681f770eaa7834a380e5da2c672ec0ff0d01c18f9fb"
+    },
+    {
+      "id": "hmg-chosen-generation",
+      "title": "Chosen Generation",
+      "artist": "Terry Parks",
+      "slug": "chosen-generation",
+      "sourcePageUrl": "https://www.heartfeltmg.com/songs/chosen-generation",
+      "recordingUrl": "https://www.heartfeltmg.com/music/Chosen%20Generation.mp3",
+      "audioPath": "story-music/audio/free-library/hmg-chosen-generation.mp3",
+      "bytes": 8538455,
+      "sha256": "bda518b450cfadf19d8a2ed28785b6d4754d6fb87d3816ffd416097558090a56"
+    },
+    {
+      "id": "hmg-daystar",
+      "title": "Daystar",
+      "artist": "Terry Parks",
+      "slug": "daystar",
+      "sourcePageUrl": "https://www.heartfeltmg.com/songs/daystar",
+      "recordingUrl": "https://www.heartfeltmg.com/music/Daystar.mp3",
+      "audioPath": "story-music/audio/free-library/hmg-daystar.mp3",
+      "bytes": 8972787,
+      "sha256": "25c75f62daea95de27401ce6b5a822d1fd8843c8b16c48fe098757a2fcf59716"
+    },
+    {
+      "id": "hmg-every-heart",
+      "title": "Every Heart",
+      "artist": "Dan Parks",
+      "slug": "every-heart",
+      "sourcePageUrl": "https://www.heartfeltmg.com/songs/every-heart",
+      "recordingUrl": "https://www.heartfeltmg.com/music/Every%20Heart.mp3",
+      "audioPath": "story-music/audio/free-library/hmg-every-heart.mp3",
+      "bytes": 9239769,
+      "sha256": "5c624f32a035f31e8ba62158bcf0dbfa039c6e71546c8d115e8423a5533032a1"
+    },
+    {
+      "id": "hmg-safe-secure",
+      "title": "Safe & Secure",
+      "artist": "Dan Parks",
+      "slug": "safe-secure",
+      "sourcePageUrl": "https://www.heartfeltmg.com/songs/safe-secure",
+      "recordingUrl": "https://www.heartfeltmg.com/music/Safe%20%26%20Secure.mp3",
+      "audioPath": "story-music/audio/free-library/hmg-safe-secure.mp3",
+      "bytes": 5823975,
+      "sha256": "8ec8e40210e1dfd6d3d5f81e8729bebbe417d3b3e6a5f8f180ae29b8b6831ac4"
+    },
+    {
+      "id": "hmg-a-lasting-joy",
+      "title": "A Lasting Joy",
+      "artist": "Terry Parks",
+      "slug": "a-lasting-joy",
+      "sourcePageUrl": "https://www.heartfeltmg.com/songs/a-lasting-joy",
+      "recordingUrl": "https://www.heartfeltmg.com/music/A%20Lasting%20Joy.mp3",
+      "audioPath": "story-music/audio/free-library/hmg-a-lasting-joy.mp3",
+      "bytes": 11415513,
+      "sha256": "665d1fc4294ea9a12738806eeb3626491765640d8c3147ed8f6d523dc9718f4b"
+    }
+  ]
+}
