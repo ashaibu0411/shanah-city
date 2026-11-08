@@ -270,7 +270,7 @@ export function CommunityStoryMusicPicker({
                   ) : null}
                   {!query.trim() && pickerCategory === "all" && hybrid && !youtubeMode &&
                    isStoryMusicClassic(track) && (index === 0 || !isStoryMusicClassic(tracks[index - 1])) ? (
-                    <p className="story-music-track-section-label">GOSPEL CLASSICS</p>
+                    <p className="story-music-track-section-label">CLASSIC & TRADITIONAL</p>
                   ) : null}
                   <div className="flex items-center gap-2">
                     <StoryMusicTrackArtwork
