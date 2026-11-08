@@ -12,7 +12,9 @@ import {
   computeDragGrabOffsetPx,
   pointerDragToClipStart,
   pointerXToClipStart,
-  storyMusicClipEnd,
+  storyMusicClipDurationSelectable,
+  storyMusicClipPlaybackDurationSec,
+  storyMusicClipPlaybackEndSeconds,
 } from "@/lib/story-music/story-music-clip";
 import { formatMediaTimestamp, parseMediaTimestamp } from "@/lib/worship-youtube-timestamp-utils";
 
@@ -22,6 +24,7 @@ type StoryMusicClipTimelineProps = {
   clipDurationSec: StoryMusicClipDuration;
   onClipStartSeconds: (seconds: number) => void;
   catalogDefaultStart?: number;
+  onTrackDurationSec?: (seconds: number | null) => void;
 };
 
 export function StoryMusicClipTimeline({
@@ -30,6 +33,7 @@ export function StoryMusicClipTimeline({
   clipDurationSec,
   onClipStartSeconds,
   catalogDefaultStart = 0,
+  onTrackDurationSec,
 }: StoryMusicClipTimelineProps) {
   const labelId = useId();
   const sliderId = useId();
@@ -38,6 +42,7 @@ export function StoryMusicClipTimeline({
   const clipStartRef = useRef(clipStartSeconds);
   const onStartRef = useRef(onClipStartSeconds);
   const clipDurationRef = useRef(clipDurationSec);
+  const onTrackDurationRef = useRef(onTrackDurationSec);
   const [trackDurationSec, setTrackDurationSec] = useState<number | null>(null);
   const [durationState, setDurationState] = useState<"idle" | "loading" | "ready" | "unknown">("idle");
   const durationProbeRef = useRef<HTMLAudioElement | null>(null);
@@ -47,6 +52,7 @@ export function StoryMusicClipTimeline({
   clipStartRef.current = clipStartSeconds;
   onStartRef.current = onClipStartSeconds;
   clipDurationRef.current = clipDurationSec;
+  onTrackDurationRef.current = onTrackDurationSec;
 
   const clampedStart = clampStoryMusicClipStartForTrack(
     clipStartSeconds,
@@ -54,7 +60,11 @@ export function StoryMusicClipTimeline({
     trackDurationSec,
     catalogDefaultStart,
   );
-  const clipEnd = storyMusicClipEnd(clampedStart, clipDurationSec);
+  const clipEnd = storyMusicClipPlaybackEndSeconds(clampedStart, clipDurationSec, trackDurationSec);
+  const playbackDurationSec =
+    trackDurationSec != null && trackDurationSec > 0
+      ? storyMusicClipPlaybackDurationSec(clampedStart, clipDurationSec, trackDurationSec)
+      : clipDurationSec;
 
   useEffect(() => {
     if (trackDurationSec == null || trackDurationSec <= 0) return;
@@ -79,6 +89,7 @@ export function StoryMusicClipTimeline({
     let cancelled = false;
     setDurationState("loading");
     setTrackDurationSec(null);
+    onTrackDurationRef.current?.(null);
 
     void (async () => {
       try {
@@ -103,6 +114,7 @@ export function StoryMusicClipTimeline({
           if (Number.isFinite(audio.duration) && audio.duration > 0) {
             setTrackDurationSec(audio.duration);
             setDurationState("ready");
+            onTrackDurationRef.current?.(audio.duration);
             onStartRef.current(
               clampStoryMusicClipStartForTrack(
                 clipStartRef.current,
@@ -232,7 +244,7 @@ export function StoryMusicClipTimeline({
           aria-valuemin={0}
           aria-valuemax={ariaMax}
           aria-valuenow={clampedStart}
-          aria-valuetext={`${startLabel} to ${endLabel}, ${clipDurationSec} second clip`}
+          aria-valuetext={`${startLabel} to ${endLabel}, ${playbackDurationSec} second clip`}
           onKeyDown={(event) => {
             if (trackDurationSec == null || trackDurationSec <= 0) return;
             let delta = 0;
@@ -292,7 +304,11 @@ export function StoryMusicClipTimeline({
           }}
         >
           <span className="story-music-clip-timeline-window-grip" aria-hidden />
-          <span className="story-music-clip-timeline-window-label">{clipDurationSec}s</span>
+          <span className="story-music-clip-timeline-window-label">
+            {playbackDurationSec < clipDurationSec
+              ? `${playbackDurationSec}s`
+              : `${clipDurationSec}s`}
+          </span>
         </div>
       </div>
 
@@ -326,6 +342,17 @@ export function StoryMusicClipTimeline({
         />
       </label>
 
+      {trackDurationSec != null &&
+      trackDurationSec > 0 &&
+      playbackDurationSec < clipDurationSec ? (
+        <p className="story-music-clip-timeline-hint text-[11px] text-night-600 dark:text-sand-400">
+          Song length is {formatMediaTimestamp(Math.floor(trackDurationSec))}
+          {!storyMusicClipDurationSelectable(60, trackDurationSec)
+            ? " — 60 second clips are not available."
+            : ""}{" "}
+          Stories and preview play {playbackDurationSec}s from your start point.
+        </p>
+      ) : null}
       {durationState === "unknown" ? (
         <p className="story-music-clip-timeline-hint text-[11px] text-night-600 dark:text-sand-400">
           Could not read song length — timeline uses safe limits. Preview confirms your clip.

@@ -13,12 +13,23 @@ export function storySlideDurationMs(
     memberStoryAudio?: unknown;
   },
   memberAudioDurationMs?: number | null,
+  licensedMusicPlaybackDurationMs?: number | null,
 ) {
   if (slide.mediaType === "image" || slide.mediaType === "text") {
     const hasSoundtrack = Boolean(slide.music || slide.memberStoryAudio);
     if (!hasSoundtrack) return STORY_IMAGE_MS;
     if (slide.music?.clipDurationSec === 30 || slide.music?.clipDurationSec === 60) {
-      return slide.music.clipDurationSec * 1000;
+      const nominalMs = slide.music.clipDurationSec * 1000;
+      if (
+        licensedMusicPlaybackDurationMs != null &&
+        licensedMusicPlaybackDurationMs > 0
+      ) {
+        return Math.min(
+          nominalMs,
+          Math.max(STORY_IMAGE_MS, Math.ceil(licensedMusicPlaybackDurationMs)),
+        );
+      }
+      return nominalMs;
     }
     if (
       slide.memberStoryAudio &&

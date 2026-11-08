@@ -12,8 +12,12 @@ import {
   normalizeStoryMusicClipStart,
   pointerDragToClipStart,
   pointerXToClipStart,
+  storyMusicClipDurationSelectable,
   storyMusicClipEnd,
   storyMusicClipFitsInsideTrack,
+  storyMusicClipPlaybackDurationSec,
+  storyMusicClipPlaybackEndSeconds,
+  storyMusicClipPublishable,
 } from "../src/lib/story-music/story-music-clip";
 import { storySlideDurationMs, STORY_IMAGE_WITH_MUSIC_MS } from "../src/lib/community-story-utils";
 
@@ -29,6 +33,19 @@ assert.equal(storyMusicClipEnd(45, 30), 75);
 assert.equal(storyMusicClipEnd(45, 60), 105);
 assert.equal(storySlideDurationMs({ mediaType: "image", music: { clipDurationSec: 30 } }), 30000);
 assert.equal(storySlideDurationMs({ mediaType: "text", music: { clipDurationSec: 60 } }), 60000);
+assert.equal(
+  storySlideDurationMs({ mediaType: "image", music: { clipDurationSec: 30 } }, null, 22_000),
+  22000,
+);
+assert.equal(storyMusicClipPlaybackEndSeconds(0, 30, 25), 25);
+assert.equal(storyMusicClipPlaybackEndSeconds(10, 30, 180), 40);
+assert.equal(storyMusicClipPlaybackDurationSec(5, 30, 25), 20);
+assert.equal(storyMusicClipPlaybackDurationSec(0, 30, 25), 25);
+assert.equal(storyMusicClipDurationSelectable(60, 45), false);
+assert.equal(storyMusicClipDurationSelectable(30, 25), true);
+assert.equal(storyMusicClipDurationSelectable(30, 30), true);
+assert.equal(storyMusicClipPublishable(0, 30, 25), true);
+assert.equal(storyMusicClipPublishable(22, 30, 25), false);
 assert.equal(storySlideDurationMs({ mediaType: "image", music: {} }), STORY_IMAGE_WITH_MUSIC_MS);
 assert.equal(storySlideDurationMs({ mediaType: "image" }), 5000);
 
@@ -83,7 +100,15 @@ const pickerSource = readFileSync(
   "utf8",
 );
 assert.match(pickerSource, /StoryMusicClipTimeline/);
+assert.match(pickerSource, /storyMusicClipDurationSelectable/);
 assert.doesNotMatch(pickerSource, /Start at[\s\S]{0,80}type="number"/);
+
+const attachSource = readFileSync(
+  path.join(process.cwd(), "src/components/community/CommunityStoryMusicAttach.tsx"),
+  "utf8",
+);
+assert.match(attachSource, /storyMusicClipPlaybackEndSeconds/);
+assert.match(attachSource, /onPlaybackDurationKnown/);
 
 const statusesRoute = readFileSync(
   path.join(process.cwd(), "src/app/api/community/statuses/route.ts"),

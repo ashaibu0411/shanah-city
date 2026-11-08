@@ -18,6 +18,55 @@ export function storyMusicClipEnd(startSeconds: number, durationSec: StoryMusicC
   return normalizeStoryMusicClipStart(startSeconds) + normalizeStoryMusicClipDuration(durationSec);
 }
 
+/** Seconds actually played when the track ends before the nominal clip length. */
+export function storyMusicClipPlaybackEndSeconds(
+  startSeconds: number,
+  clipDurationSec: StoryMusicClipDuration,
+  trackDurationSec?: number | null,
+): number {
+  const start = normalizeStoryMusicClipStart(startSeconds);
+  const nominalEnd = storyMusicClipEnd(start, clipDurationSec);
+  if (trackDurationSec == null || !Number.isFinite(trackDurationSec) || trackDurationSec <= 0) {
+    return nominalEnd;
+  }
+  return Math.min(nominalEnd, Math.floor(trackDurationSec));
+}
+
+export function storyMusicClipPlaybackDurationSec(
+  startSeconds: number,
+  clipDurationSec: StoryMusicClipDuration,
+  trackDurationSec?: number | null,
+): number {
+  const start = clampStoryMusicClipStartForTrack(startSeconds, clipDurationSec, trackDurationSec);
+  const end = storyMusicClipPlaybackEndSeconds(start, clipDurationSec, trackDurationSec);
+  return Math.max(0, end - start);
+}
+
+/** Whether the full 30s or 60s window fits anywhere on the track (not required for short-song playback). */
+export function storyMusicClipDurationSelectable(
+  clipDurationSec: StoryMusicClipDuration,
+  trackDurationSec: number,
+): boolean {
+  if (!Number.isFinite(trackDurationSec) || trackDurationSec <= 0) return true;
+  const clip = normalizeStoryMusicClipDuration(clipDurationSec);
+  if (clip === 30) return true;
+  return Math.floor(trackDurationSec) >= clip;
+}
+
+export const STORY_MUSIC_MIN_CLIP_PLAYBACK_SEC = 3;
+
+export function storyMusicClipPublishable(
+  startSeconds: number,
+  clipDurationSec: StoryMusicClipDuration,
+  trackDurationSec: number,
+): boolean {
+  if (!Number.isFinite(trackDurationSec) || trackDurationSec <= 0) return true;
+  return (
+    storyMusicClipPlaybackDurationSec(startSeconds, clipDurationSec, trackDurationSec) >=
+    STORY_MUSIC_MIN_CLIP_PLAYBACK_SEC
+  );
+}
+
 /** Latest second a clip can start while fully inside the track (inclusive). */
 export function maxStoryMusicClipStart(
   trackDurationSec: number | null | undefined,

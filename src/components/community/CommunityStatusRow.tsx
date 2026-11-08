@@ -33,6 +33,10 @@ import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
 import { CommunityStorySoundtrackPicker } from "@/components/community/CommunityStorySoundtrackPicker";
 import { groupStoryAuthorId } from "@/lib/group-community-story-ids";
 import type { CommunityStoryMusicTrack } from "@/lib/community-story-music";
+import {
+  storyMusicClipDurationSelectable,
+  storyMusicClipPublishable,
+} from "@/lib/story-music/story-music-clip";
 import { MentionTextarea } from "@/components/mentions/MentionField";
 import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete";
 
@@ -74,6 +78,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
   );
   const [musicClipStartSeconds, setMusicClipStartSeconds] = useState(0);
   const [musicClipDurationSec, setMusicClipDurationSec] = useState<30 | 60>(30);
+  const [musicTrackDurationSec, setMusicTrackDurationSec] = useState<number | null>(null);
   const [memberStoryAudioUrl, setMemberStoryAudioUrl] = useState<string | null>(null);
   const [memberAudioRightsAck, setMemberAudioRightsAck] = useState(false);
   const [soundtrackError, setSoundtrackError] = useState("");
@@ -226,6 +231,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     setSelectedMusicTrack(null);
     setMusicClipStartSeconds(0);
     setMusicClipDurationSec(30);
+    setMusicTrackDurationSec(null);
     setMemberStoryAudioUrl(null);
     setMemberAudioRightsAck(false);
     setSoundtrackError("");
@@ -237,6 +243,17 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     }
     if (memberStoryAudioUrl && selectedMusicTrack) {
       return "Choose either YouTube gospel music or your own recording.";
+    }
+    if (selectedMusicTrack && musicTrackDurationSec != null && musicTrackDurationSec > 0) {
+      if (!storyMusicClipPublishable(musicClipStartSeconds, musicClipDurationSec, musicTrackDurationSec)) {
+        return "This song is too short to attach as background music. Choose another track.";
+      }
+      if (
+        musicClipDurationSec === 60 &&
+        !storyMusicClipDurationSelectable(60, musicTrackDurationSec)
+      ) {
+        return "This song is shorter than 60 seconds — switch to the 30 second clip option.";
+      }
     }
     return null;
   }
@@ -668,11 +685,13 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                         setSelectedMusicTrack(track);
                         setMusicClipStartSeconds(track?.startSeconds ?? 0);
                         setMusicClipDurationSec(30);
+                        setMusicTrackDurationSec(null);
                       }}
                       musicClipStartSeconds={musicClipStartSeconds}
                       onMusicClipStartSeconds={setMusicClipStartSeconds}
                       musicClipDurationSec={musicClipDurationSec}
                       onMusicClipDurationSec={setMusicClipDurationSec}
+                      onMusicTrackDurationSec={setMusicTrackDurationSec}
                       memberAudioUrl={memberStoryAudioUrl}
                       onMemberAudioUrl={setMemberStoryAudioUrl}
                       memberRightsAck={memberAudioRightsAck}

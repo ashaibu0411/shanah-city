@@ -249,6 +249,7 @@ export function CommunityStoryViewer({
   const [deleting, setDeleting] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
   const [memberAudioDurationMs, setMemberAudioDurationMs] = useState<number | null>(null);
+  const [licensedMusicPlaybackMs, setLicensedMusicPlaybackMs] = useState<number | null>(null);
   const [showInsights, setShowInsights] = useState(false);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsError, setInsightsError] = useState("");
@@ -291,6 +292,7 @@ export function CommunityStoryViewer({
   const [storyYoutubeViewerActive, setStoryYoutubeViewerActive] = useState(false);
   const [storyMusicNativeAudio, setStoryMusicNativeAudio] = useState(false);
   const memberAudioDurationMsRef = useRef<number | null>(null);
+  const licensedMusicPlaybackMsRef = useRef<number | null>(null);
   const playbackPaused = paused || replyFocused || liveStoryUiActive || storyYoutubeViewerActive;
   const timelinePaused = playbackPaused;
   const nextService = useMemo(() => getNextWorshipService(), []);
@@ -364,6 +366,8 @@ export function CommunityStoryViewer({
     setStoryMusicNativeAudio(false);
     setStoryYoutubeViewerActive(false);
     memberAudioDurationMsRef.current = null;
+    setLicensedMusicPlaybackMs(null);
+    licensedMusicPlaybackMsRef.current = null;
     setSoundOn(
       Boolean(slide?.memberStoryAudio?.url?.trim()) || slide?.mediaType === "video",
     );
@@ -480,7 +484,11 @@ export function CommunityStoryViewer({
     setProgress(0);
     setMediaFailed(false);
 
-    const slideDurationMs = storySlideDurationMs(slide, memberAudioDurationMsRef.current);
+    const slideDurationMs = storySlideDurationMs(
+      slide,
+      memberAudioDurationMsRef.current,
+      licensedMusicPlaybackMsRef.current,
+    );
     const memberAudioDrivesProgress = Boolean(slide.memberStoryAudio?.url?.trim());
 
     let frame = 0;
@@ -513,6 +521,8 @@ export function CommunityStoryViewer({
     slide?.memberStoryAudio?.url,
     slide?.music,
     slideIndex,
+    licensedMusicPlaybackMs,
+    memberAudioDurationMs,
   ]);
 
   useEffect(() => {
@@ -1028,13 +1038,21 @@ export function CommunityStoryViewer({
           key={`${slide.id}-${slide.music.trackId}`}
           slideId={slide.id}
           music={slide.music}
-          slideDurationMs={storySlideDurationMs(slide, memberAudioDurationMs)}
+          slideDurationMs={storySlideDurationMs(
+            slide,
+            memberAudioDurationMs,
+            licensedMusicPlaybackMs,
+          )}
           musicContinuesOnNextSlide={Boolean(
             deck?.items[slideIndex + 1]?.music?.trackId === slide.music.trackId,
           )}
           paused={timelinePaused}
           soundOn={soundOn}
           onToggleSound={() => setSoundOn((current) => !current)}
+          onPlaybackDurationKnown={(ms) => {
+            licensedMusicPlaybackMsRef.current = ms;
+            setLicensedMusicPlaybackMs(ms);
+          }}
           onNativeAudioAvailable={handleNativeMusicAudio}
           storyPhotoUrl={
             slide.mediaType === "image" || slide.mediaType === "text" ? mediaUrl : null

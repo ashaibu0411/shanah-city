@@ -8,7 +8,12 @@ import type { StoryMusicPlaybackApiResponse } from "@/lib/story-music/playback-r
 import { storyMusicHybridClientEnabled } from "@/lib/story-music/story-music-config";
 import { CommunityStoryYoutubeVideoViewer } from "@/components/community/CommunityStoryYoutubeVideoViewer";
 import { openExternalUrl } from "@/lib/native-app";
-import { normalizeStoryMusicClipStart, normalizeStoryMusicClipDuration, storyMusicClipEnd } from "@/lib/story-music/story-music-clip";
+import {
+  normalizeStoryMusicClipStart,
+  normalizeStoryMusicClipDuration,
+  storyMusicClipPlaybackDurationSec,
+  storyMusicClipPlaybackEndSeconds,
+} from "@/lib/story-music/story-music-clip";
 
 type CommunityStoryMusicAttachProps = {
   slideId: string;
@@ -21,6 +26,7 @@ type CommunityStoryMusicAttachProps = {
   onNativeAudioAvailable?: (available: boolean) => void;
   storyPhotoUrl?: string | null;
   onYoutubeViewerActiveChange?: (active: boolean) => void;
+  onPlaybackDurationKnown?: (durationMs: number) => void;
   /** belowMedia: credit bar sits under the photo in the black footer strip (default). */
   creditPlacement?: "belowMedia" | "overlay";
 };
@@ -59,6 +65,7 @@ export function CommunityStoryMusicAttach({
   onNativeAudioAvailable,
   storyPhotoUrl,
   onYoutubeViewerActiveChange,
+  onPlaybackDurationKnown,
   creditPlacement = "overlay",
 }: CommunityStoryMusicAttachProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -92,7 +99,16 @@ export function CommunityStoryMusicAttach({
   );
   // Older Stories without explicit segment duration retain their historic slide timing.
   const clipDurationSec = normalizeStoryMusicClipDuration(music.clipDurationSec);
-  const clipEndSeconds = storyMusicClipEnd(startSeconds, clipDurationSec);
+  const [trackDurationSec, setTrackDurationSec] = useState<number | null>(null);
+  const clipEndSeconds = storyMusicClipPlaybackEndSeconds(
+    startSeconds,
+    clipDurationSec,
+    trackDurationSec,
+  );
+
+  useEffect(() => {
+    setTrackDurationSec(null);
+  }, [music.trackId, slideId, startSeconds, clipDurationSec]);
 
   useEffect(() => {
     nativeAudioCbRef.current?.(engine === "audio");
@@ -215,9 +231,22 @@ export function CommunityStoryMusicAttach({
     audio.load();
 
     const applyStart = () => {
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        setTrackDurationSec(audio.duration);
+        const playbackSec = storyMusicClipPlaybackDurationSec(
+          startSeconds,
+          clipDurationSec,
+          audio.duration,
+        );
+        onPlaybackDurationKnown?.(Math.max(0, Math.ceil(playbackSec * 1000)));
+      }
       if (startSeconds > 0) {
         try {
-          audio.currentTime = startSeconds;
+          const maxStart =
+            Number.isFinite(audio.duration) && audio.duration > 0
+              ? Math.max(0, audio.duration - 0.25)
+              : startSeconds;
+          audio.currentTime = Math.min(startSeconds, maxStart);
         } catch {
           // ignore seek before metadata
         }
@@ -255,6 +284,8 @@ export function CommunityStoryMusicAttach({
     soundOn,
     startSeconds,
     clipEndSeconds,
+    clipDurationSec,
+    onPlaybackDurationKnown,
   ]);
 
   useEffect(() => {
