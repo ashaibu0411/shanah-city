@@ -1,0 +1,74 @@
+{
+  "version": "1",
+  "purpose": "Afrogospel artist outreach leads. Do not ingest, embed, redistribute or mark published without separate rights review and artist permission covering the recording, composition, worldwide hosting and Stories use.",
+  "platformNote": "Pixabay content license permits music incorporated into creative videos, but restricts standalone music redistribution. Shanah City Stories includes a selectable music library and standalone audio previews; verify this use explicitly before import.",
+  "leads": [
+    {
+      "title": "Everything I am_Emmy Tunes",
+      "artist": "EmmyTunes",
+      "region": "Nigeria",
+      "sourceUrl": "https://pixabay.com/music/afrobeat-everything-i-am-emmy-tunes-202725/",
+      "license": "Pixabay Content License",
+      "reviewStatus": "hold_for_artist_permission",
+      "genres": [
+        "afrogospel",
+        "gospel"
+      ],
+      "proposedTags": [
+        "afrogospel",
+        "global-worship",
+        "gospel-afrobeats"
+      ]
+    },
+    {
+      "title": "My Season",
+      "artist": "KingMoses",
+      "region": "Africa",
+      "sourceUrl": "https://pixabay.com/music/gospel-my-sesason-king-moses-223871/",
+      "license": "Pixabay Content License",
+      "reviewStatus": "hold_for_artist_permission",
+      "genres": [
+        "afrogospel",
+        "gospel"
+      ],
+      "proposedTags": [
+        "afrogospel",
+        "global-worship",
+        "upbeat"
+      ]
+    },
+    {
+      "title": "Halleluyah",
+      "artist": "Pastor Mercy O Ehanire",
+      "region": "Nigeria",
+      "sourceUrl": "https://pixabay.com/music/afrobeat-halleluyah-pastor-mercy-o-ehanire-173599/",
+      "license": "Pixabay Content License / Content ID registered",
+      "reviewStatus": "hold_for_artist_permission",
+      "genres": [
+        "afrogospel",
+        "gospel"
+      ],
+      "proposedTags": [
+        "afrogospel",
+        "youth-gospel",
+        "upbeat"
+      ]
+    },
+    {
+      "title": "Bisoboka",
+      "artist": "ApostleYosiaK",
+      "region": "Uganda",
+      "sourceUrl": "https://pixabay.com/music/afrobeat-bisoboka-488697/",
+      "license": "Pixabay Content License",
+      "reviewStatus": "hold_for_artist_permission",
+      "genres": [
+        "afrogospel"
+      ],
+      "proposedTags": [
+        "afrogospel",
+        "global-worship",
+        "upbeat"
+      ]
+    }
+  ]
+}
