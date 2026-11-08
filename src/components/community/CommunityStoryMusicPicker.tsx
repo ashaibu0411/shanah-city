@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   COMMUNITY_STORY_MUSIC_REGIONS,
   type CommunityStoryMusicRegion,
@@ -13,9 +13,10 @@ import {
   isStoryMusicClassic,
   isStoryMusicContemporary,
 } from "@/lib/story-music/search";
+import { StoryMusicClipTimeline } from "@/components/community/StoryMusicClipTimeline";
 import { StoryMusicPreviewPlayer } from "@/components/community/StoryMusicPreviewPlayer";
-import { normalizeStoryMusicClipStart } from "@/lib/story-music/story-music-clip";
 import { StoryMusicTrackArtwork } from "@/components/community/StoryMusicTrackArtwork";
+import { storyMusicClipDurationSelectable } from "@/lib/story-music/story-music-clip";
 
 type CommunityStoryMusicPickerProps = {
   selectedTrackId: string | null;
@@ -24,6 +25,7 @@ type CommunityStoryMusicPickerProps = {
   onClipStartSeconds: (seconds: number) => void;
   clipDurationSec: 30 | 60;
   onClipDurationSec: (seconds: 30 | 60) => void;
+  onTrackDurationSec?: (seconds: number | null) => void;
   heading?: string;
   subheading?: string;
   /** Legacy YouTube gospel catalog (not free worship library). */
@@ -43,6 +45,7 @@ export function CommunityStoryMusicPicker({
   onClipStartSeconds,
   clipDurationSec,
   onClipDurationSec,
+  onTrackDurationSec,
   heading = "Background music",
   subheading,
   youtubeMode = false,
@@ -94,6 +97,27 @@ export function CommunityStoryMusicPicker({
   }, [query, expanded, selectedTrackId, region, country, language, pickerCategory]);
 
   const selected = tracks.find((track) => track.id === selectedTrackId) ?? null;
+  const [probeTrackDurationSec, setProbeTrackDurationSec] = useState<number | null>(null);
+
+  useEffect(() => {
+    setProbeTrackDurationSec(null);
+    onTrackDurationSec?.(null);
+  }, [selectedTrackId, onTrackDurationSec]);
+
+  useEffect(() => {
+    if (probeTrackDurationSec == null) return;
+    if (clipDurationSec === 60 && !storyMusicClipDurationSelectable(60, probeTrackDurationSec)) {
+      onClipDurationSec(30);
+    }
+  }, [clipDurationSec, onClipDurationSec, probeTrackDurationSec]);
+
+  const handleTrackDuration = useCallback(
+    (seconds: number | null) => {
+      setProbeTrackDurationSec(seconds);
+      onTrackDurationSec?.(seconds);
+    },
+    [onTrackDurationSec],
+  );
 
   if (!expanded && !selectedTrackId) {
     return (
@@ -166,32 +190,38 @@ export function CommunityStoryMusicPicker({
             <div className="space-y-2 rounded-lg border border-night-900/10 bg-sand-50/80 p-2 dark:border-white/10 dark:bg-night-900/70">
               <p className="text-xs font-semibold text-night-800 dark:text-sand-100">Choose your Story music clip</p>
               <div className="flex items-center gap-2" role="group" aria-label="Music clip duration">
-                {([30, 60] as const).map((seconds) => (
+                {([30, 60] as const).map((seconds) => {
+                  const disabled =
+                    probeTrackDurationSec != null &&
+                    probeTrackDurationSec > 0 &&
+                    !storyMusicClipDurationSelectable(seconds, probeTrackDurationSec);
+                  return (
                   <button
                     key={seconds}
                     type="button"
                     aria-pressed={clipDurationSec === seconds}
+                    disabled={disabled}
+                    title={
+                      disabled
+                        ? `This song is shorter than ${seconds} seconds`
+                        : undefined
+                    }
                     onClick={() => onClipDurationSec(seconds)}
-                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${clipDurationSec === seconds ? "border-clay-600 bg-clay-600 text-white" : "border-night-900/15 bg-white text-night-700 dark:border-white/15 dark:bg-night-800 dark:text-sand-100"}`}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-45 ${clipDurationSec === seconds ? "border-clay-600 bg-clay-600 text-white" : "border-night-900/15 bg-white text-night-700 dark:border-white/15 dark:bg-night-800 dark:text-sand-100"}`}
                   >{seconds} seconds</button>
-                ))}
+                  );
+                })}
               </div>
-              <label className="flex flex-wrap items-center gap-2 text-xs text-night-700 dark:text-sand-200">
-                Start at
-                <input
-                  type="number"
-                  min={0}
-                  max={3600}
-                  step={1}
-                  value={clipStartSeconds}
-                  onChange={(event) => onClipStartSeconds(normalizeStoryMusicClipStart(event.target.value))}
-                  className="w-20 rounded-lg border border-night-900/15 bg-white px-2 py-1.5 text-xs dark:border-white/15 dark:bg-night-800"
-                  aria-label="Clip start time in seconds"
-                />
-                seconds into the song
-              </label>
+              <StoryMusicClipTimeline
+                trackId={selected.id}
+                clipStartSeconds={clipStartSeconds}
+                clipDurationSec={clipDurationSec}
+                onClipStartSeconds={onClipStartSeconds}
+                catalogDefaultStart={selected.startSeconds ?? 0}
+                onTrackDurationSec={handleTrackDuration}
+              />
               <p className="text-[11px] text-night-600 dark:text-sand-400">
-                Preview your chosen section. It begins at {clipStartSeconds}s and is limited to {clipDurationSec}s.
+                Drag the highlighted section or use arrow keys. Preview plays exactly what Stories will use.
               </p>
             </div>
           ) : null}

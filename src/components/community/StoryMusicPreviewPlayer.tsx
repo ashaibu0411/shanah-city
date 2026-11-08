@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { readJsonResponse } from "@/lib/read-json-response";
 import type { StoryMusicPlaybackApiResponse } from "@/lib/story-music/playback-response";
-import { normalizeStoryMusicClipStart, storyMusicClipEnd } from "@/lib/story-music/story-music-clip";
+import {
+  clampStoryMusicClipStartForTrack,
+  normalizeStoryMusicClipStart,
+  storyMusicClipPlaybackEndSeconds,
+} from "@/lib/story-music/story-music-clip";
 
 type StoryMusicPreviewPlayerProps = {
   trackId: string;
@@ -71,17 +75,21 @@ export function StoryMusicPreviewPlayer({ trackId, startSeconds, durationSec = 3
 
       const start = normalizeStoryMusicClipStart(startSeconds, data.startSeconds ?? 0);
       startRef.current = start;
-      endRef.current = storyMusicClipEnd(start, durationSec);
+      const applyClipBounds = () => {
+        const trackDur = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : null;
+        const boundedStart =
+          trackDur != null ? clampStoryMusicClipStartForTrack(start, durationSec, trackDur) : start;
+        startRef.current = boundedStart;
+        endRef.current = storyMusicClipPlaybackEndSeconds(boundedStart, durationSec, trackDur);
+        const maxStart = trackDur != null ? Math.max(0, trackDur - 0.25) : boundedStart;
+        audio.currentTime = Math.min(boundedStart, maxStart);
+      };
+      endRef.current = storyMusicClipPlaybackEndSeconds(start, durationSec, null);
       loadedUrlRef.current = data.audioUrl;
       audio.src = data.audioUrl;
       audio.load();
-      const seekStart = () => {
-        // Browsers sometimes ignore currentTime until metadata is available.
-        const maxStart = Number.isFinite(audio.duration) ? Math.max(0, audio.duration - 0.25) : start;
-        audio.currentTime = Math.min(start, maxStart);
-      };
-      if (audio.readyState >= 1) seekStart();
-      else audio.addEventListener("loadedmetadata", seekStart, { once: true });
+      if (audio.readyState >= 1) applyClipBounds();
+      else audio.addEventListener("loadedmetadata", applyClipBounds, { once: true });
       await audio.play();
       setStatus("playing");
     } catch {
