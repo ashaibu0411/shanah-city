@@ -92,6 +92,7 @@
     "test:community:story-youtube-viewer": "tsx scripts/community-story-youtube-viewer.test.ts",
     "test:community:story-voice-e2e": "playwright test -c playwright.staging.story.config.ts",
     "test:community:blob-access": "tsx scripts/community-blob-access.test.ts",
+    "test:community:post-display": "tsx scripts/community-post-display.test.ts",
     "story-music:poc-audio": "node scripts/generate-story-music-poc-audio.mjs",
     "story-music:import-free-library": "node scripts/story-music-import-free-library.mjs",
     "story-music:import-vocal-batch": "node scripts/story-music-import-free-library.mjs --vocal-batch",

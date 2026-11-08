@@ -6,13 +6,15 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getCampus } from "@/lib/site";
 import type { Comment, CommunityPost } from "@/lib/member-types";
 import { totalCommentCount } from "@/lib/community-comments";
+import { prepareCommunityPostDisplay } from "@/lib/community-post-display";
 import {
   COMMUNITY_SHARE_POST_TYPES,
   formatCommunityTimeAgo,
-  communityPostDisplayParts,
   postTypeLabel,
   reactionEmoji,
 } from "@/lib/community-ui-utils";
+import { CommunityPostActionsRow } from "@/components/community/CommunityPostActionsRow";
+import { CommunityPostTypeBadge } from "@/components/community/CommunityPostTypeBadge";
 import {
   postReactionButtons,
   topPostReactionEmojis,
@@ -30,6 +32,7 @@ import { CommunityAvatar } from "@/components/community/CommunityAvatar";
 import { CommunityMediaCarousel } from "@/components/community/CommunityMediaCarousel";
 import { CommunityPostShareSheet } from "@/components/community/CommunityPostShareSheet";
 import { canManageCommunityPostClient } from "@/lib/community-post-access";
+import { getPublicDisplayName } from "@/lib/member-display-name";
 import { isUrgentAlertCommunityPostId } from "@/lib/urgent-alert-utils";
 import { canManageCommunityComment } from "@/lib/community-comment-access";
 import { MentionText } from "@/components/mentions/MentionText";
@@ -732,7 +735,14 @@ export function CommunityPostCard({
   const mediaItems = communityPostMediaItems(post);
   const hasMedia = !editing && mediaItems.length > 0;
   const heartActive = post.viewerReactions?.includes("heart");
-  const useInstagramLayout = !compact;
+  const useStructuredLayout = !compact && variant === "default";
+  const displayContent = useMemo(
+    () =>
+      prepareCommunityPostDisplay(post.author, post.content, {
+        announcement: post.type === "announcement",
+      }),
+    [post.author, post.content, post.type],
+  );
 
   const commentRowSharedProps = {
     postId: post.id,
@@ -747,21 +757,18 @@ export function CommunityPostCard({
     onDelete: (commentId: string) => void deleteComment(commentId),
   };
 
-  const textFirstFeedLayout = useInstagramLayout && !hasMedia && !editing;
-  const displayParts = communityPostDisplayParts(post.content, post.author, post.type === "announcement");
-
-  const captionBlock = (
-    <div
-      className={`community-post-caption ${textFirstFeedLayout ? "community-post-caption--lead" : ""}`}
-    >
-      {displayParts.headline ? (
-        <h3 className="community-post-headline">
-          <MentionText text={displayParts.headline} />
+  const bodyBlock = (
+    <div className="community-post-structured-body">
+      {displayContent.title ? (
+        <h3 className="community-post-title">
+          <MentionText text={displayContent.title} />
         </h3>
       ) : null}
-      <p className="community-post-content whitespace-pre-wrap text-sm text-night-900 dark:text-sand-100">
-        <MentionText text={displayParts.body} />
-      </p>
+      {displayContent.body ? (
+        <p className="community-post-content whitespace-pre-wrap text-[15px] leading-relaxed text-night-900 dark:text-sand-100">
+          <MentionText text={displayContent.body} />
+        </p>
+      ) : null}
     </div>
   );
 
@@ -891,7 +898,7 @@ export function CommunityPostCard({
   return (
     <article
       id={`post-${post.id}`}
-      className={`community-post-card scroll-mt-24 ${isUrgentNews ? "community-post-card-urgent" : ""} ${textFirstFeedLayout ? "community-post-card--text-first" : ""} ${variant === "couples" ? "community-post-card--couples" : ""}`}
+      className={`community-post-card scroll-mt-24 ${isUrgentNews ? "community-post-card-urgent" : ""} ${useStructuredLayout ? "community-post-card--structured" : ""} ${variant === "couples" ? "community-post-card--couples" : ""}`}
     >
       <header className="community-post-header">
         <CommunityAvatar name={post.author} authorId={post.authorId} size="md" />
@@ -899,11 +906,15 @@ export function CommunityPostCard({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <p className="community-post-author truncate">{post.author}</p>
-              {variant === "couples" && post.type === "announcement" ? (
-                <span className="mt-0.5 inline-flex rounded-full bg-[var(--couples-gold-light,#ead9bf)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--couples-mocha,#744b3a)]">
-                  Leader
-                </span>
-              ) : null}
+              <div className="community-post-header-badges">
+                {variant === "couples" && post.type === "announcement" ? (
+                  <span className="mt-0.5 inline-flex rounded-full bg-[var(--couples-gold-light,#ead9bf)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--couples-mocha,#744b3a)]">
+                    Leader
+                  </span>
+                ) : useStructuredLayout ? (
+                  <CommunityPostTypeBadge post={post} isUrgentAlert={isUrgentNews} />
+                ) : null}
+              </div>
             </div>
             {canManage && !compact && !editing ? (
               <button
@@ -920,13 +931,17 @@ export function CommunityPostCard({
             ) : null}
           </div>
           <p className="community-post-meta" title={`${timeLabel} · ${audienceLabel}`}>
-            <span className="community-post-meta-type">
-              {isUrgentNews ? "Urgent alert · News" : postTypeLabel(post.type)}
-            </span>
-            <span className="community-post-meta-dot" aria-hidden>
-              ·
-            </span>
-            <span>{timeLabel}</span>
+            {!useStructuredLayout ? (
+              <>
+                <span className="community-post-meta-type">
+                  {isUrgentNews ? "Urgent alert · News" : postTypeLabel(post.type)}
+                </span>
+                <span className="community-post-meta-dot" aria-hidden>
+                  ·
+                </span>
+              </>
+            ) : null}
+            <time className="community-post-meta-time">{timeLabel}</time>
             <span className="community-post-meta-dot" aria-hidden>
               ·
             </span>
@@ -935,6 +950,8 @@ export function CommunityPostCard({
           </p>
         </div>
       </header>
+
+      {useStructuredLayout && !editing && !hasMedia ? bodyBlock : null}
 
       {editing ? (
         <div className="community-post-edit-panel space-y-3">
@@ -1014,116 +1031,81 @@ export function CommunityPostCard({
         </div>
       ) : null}
 
-      {useInstagramLayout && !editing ? (
+      {useStructuredLayout && !editing ? (
         <>
-          {textFirstFeedLayout ? captionBlock : null}
-          <div className="community-post-ig-actions">
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                disabled={reactionBusy}
-                onClick={() => void toggleReaction("heart")}
-                className={`inline-flex items-center gap-1.5 p-1 ${heartActive ? "text-red-600" : "text-night-900 dark:text-sand-100"}`}
-                aria-label="Like"
-                aria-pressed={heartActive}
-              >
-                <IgHeartIcon filled={heartActive} />
-              </button>
-              {reactionTotal > 0 ? (
-                <button
-                  type="button"
-                  onClick={openReactionsSheet}
-                  className="inline-flex items-center p-1 text-sm font-semibold tabular-nums text-night-900 dark:text-sand-100"
-                  aria-label={`See who reacted, ${reactionTotal} reactions`}
-                >
-                  {reactionTotal}
-                </button>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => openCommentsSheet(true)}
-                className="inline-flex items-center gap-1.5 p-1 text-night-900 dark:text-sand-100"
-                aria-label="Comment"
-              >
-                <IgCommentIcon />
-                {commentCount > 0 ? (
-                  <span className="text-sm font-semibold tabular-nums">{commentCount}</span>
-                ) : null}
-              </button>
-              {variant === "couples" && onToggleBookmark ? (
-                <button
-                  type="button"
-                  onClick={onToggleBookmark}
-                  className={`p-1 ${bookmarked ? "text-[var(--couples-gold,#b78b54)]" : "text-night-900 dark:text-sand-100"}`}
-                  aria-label={bookmarked ? "Remove bookmark" : "Bookmark"}
-                  aria-pressed={bookmarked}
-                >
-                  <BookmarkIcon filled={bookmarked} />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={sharePost}
-                  className="p-1 text-night-900 dark:text-sand-100"
-                  aria-label="Share"
-                >
-                  <IgShareIcon />
-                </button>
-              )}
-            </div>
-          </div>
+          {hasMedia ? bodyBlock : null}
 
-          {reactionTotal > 0 ? (
-            <button
-              type="button"
-              onClick={openReactionsSheet}
-              className="community-post-ig-likes text-left"
-              aria-label={`See who reacted, ${reactionTotal} reactions`}
-            >
-              {reactionSummaryEmojis.length > 0 ? (
-                <span className="mr-1 inline-flex -space-x-1">
-                  {reactionSummaryEmojis.map((emoji, index) => (
-                    <span key={`${emoji}-${index}`} className="text-xs">
-                      {emoji}
-                    </span>
-                  ))}
-                </span>
-              ) : null}
-              <span className="text-sm font-semibold text-night-900 dark:text-sand-100">
-                {reactionTotal.toLocaleString()} {reactionTotal === 1 ? "reaction" : "reactions"}
-              </span>
-            </button>
-          ) : null}
-
-          {!textFirstFeedLayout ? captionBlock : null}
+          <CommunityPostActionsRow
+            heartActive={Boolean(heartActive)}
+            reactionBusy={reactionBusy}
+            reactionTotal={reactionTotal}
+            reactionSummaryEmojis={reactionSummaryEmojis}
+            commentCount={commentCount}
+            onToggleHeart={() => void toggleReaction("heart")}
+            onOpenReactions={openReactionsSheet}
+            onOpenComments={openCommentsSheet}
+            onShare={sharePost}
+          />
 
           {commentCount > 0 ? (
             <button
               type="button"
               onClick={() => openCommentsSheet(false)}
-              className="community-post-ig-view-comments text-left text-sm text-night-500 hover:text-night-700 dark:text-sand-400"
+              className="community-post-view-comments"
             >
               View all {commentCount} comment{commentCount === 1 ? "" : "s"}
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => openCommentsSheet(true)}
-              className="community-post-ig-view-comments text-left text-sm text-night-500 hover:text-night-700 dark:text-sand-400"
-            >
-              Add a comment…
-            </button>
-          )}
+          ) : null}
 
-          <p className="community-post-ig-time text-[11px] uppercase tracking-wide text-night-500 dark:text-sand-400">
-            {timeLabel}
-          </p>
+          {user ? (
+            <div className="community-post-inline-comment">
+              <CommunityAvatar
+                name={getPublicDisplayName(user)}
+                authorId={user.id}
+                size="sm"
+              />
+              <input
+                type="text"
+                value={commentDraft}
+                onChange={(event) => setCommentDraft(event.target.value)}
+                onFocus={() => openCommentsSheet(true)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void submitComment();
+                  }
+                }}
+                placeholder="Write a comment…"
+                className="community-post-inline-comment-input"
+                aria-label="Write a comment"
+              />
+              <button
+                type="button"
+                disabled={loading || !commentDraft.trim()}
+                onClick={() => void submitComment()}
+                className="community-post-inline-comment-submit"
+              >
+                {loading ? "…" : "Post"}
+              </button>
+            </div>
+          ) : null}
         </>
       ) : !editing ? (
         <>
           <div className={`community-post-body ${compact ? "community-post-body-compact" : ""}`}>
+            {displayContent.title ? (
+              <h3 className="community-post-title text-base font-semibold text-night-900 dark:text-sand-100">
+                <MentionText text={displayContent.title} />
+              </h3>
+            ) : null}
             <p className="community-post-content whitespace-pre-wrap text-night-900 dark:text-sand-100">
-              <MentionText text={displayParts.body} />
+              <MentionText
+                text={
+                  displayContent.title
+                    ? displayContent.body
+                    : displayContent.body || post.content
+                }
+              />
             </p>
           </div>
           {(reactionTotal > 0 || commentCount > 0) && (

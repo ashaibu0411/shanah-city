@@ -99,6 +99,7 @@ export function CommunityComposer({
   const [pendingMedia, setPendingMedia] = useState<PendingMedia[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [shareAsTestimony, setShareAsTestimony] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -146,6 +147,7 @@ export function CommunityComposer({
   function closeComposer() {
     setComposerOpen(false);
     setError("");
+    setShareAsTestimony(false);
     clearPendingMedia();
   }
 
@@ -228,12 +230,17 @@ export function CommunityComposer({
 
     setSubmitting(true);
     setError("");
+    const trimmedDraft = draft.trim();
+    const testimonyPrefix =
+      shareAsTestimony && postType === "praise" && trimmedDraft
+        ? "[testimony] "
+        : "";
     const response = await fetch("/api/community", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         campusId: campus.id,
-        content: draft.trim(),
+        content: `${testimonyPrefix}${trimmedDraft}`,
         type: postType,
         targetGroupId: defaultTargetGroupId || undefined,
         targetGroupName: defaultTargetGroupName || undefined,
@@ -547,25 +554,55 @@ export function CommunityComposer({
             type="button"
             onClick={() => {
               setMode("share");
+              setPostType("general");
+              setShareAsTestimony(false);
+              openComposer();
+            }}
+            className="community-composer-action"
+          >
+            <UpdateIcon />
+            <span className="community-composer-action-label">Share an update</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("share");
               setPostType("prayer");
+              setShareAsTestimony(false);
               openComposer();
             }}
             className="community-composer-action"
           >
             <PrayerIcon />
-            <span>Prayer</span>
+            <span className="community-composer-action-label">Ask for prayer</span>
           </button>
           <button
             type="button"
             onClick={() => {
               setMode("share");
               setPostType("praise");
+              setShareAsTestimony(true);
+              openComposer();
+            }}
+            className="community-composer-action"
+          >
+            <span className="text-lg leading-none" aria-hidden>
+              📖
+            </span>
+            <span className="community-composer-action-label">Share testimony</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("share");
+              setPostType("praise");
+              setShareAsTestimony(false);
               openComposer();
             }}
             className="community-composer-action"
           >
             <PraiseIcon />
-            <span>Praise</span>
+            <span className="community-composer-action-label">Post praise</span>
           </button>
           <button
             type="button"
@@ -573,23 +610,18 @@ export function CommunityComposer({
               setMode("share");
               setPostType("general");
               openComposer();
-            }}
-            className="community-composer-action"
-          >
-            <UpdateIcon />
-            <span>Update</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode("share");
-              setPostType("general");
-              openComposer();
+              window.setTimeout(
+                () =>
+                  openCommunityGalleryPicker(fileRef.current, (files) =>
+                    void addPostMediaFiles(files),
+                  ),
+                120,
+              );
             }}
             className="community-composer-action"
           >
             <PhotoIcon />
-            <span>Photo</span>
+            <span className="community-composer-action-label">Upload photo</span>
           </button>
         </div>
       </div>
