@@ -1,7 +1,7 @@
 import type { StoryMusicGenre } from "@/lib/story-music/types";
 import type { StoryMusicFreeLicenseClass } from "@/lib/story-music/story-music-free-license";
 
-export type StoryMusicDiscoverySource = "openverse" | "fma_archive" | "wikimedia_commons";
+export type StoryMusicDiscoverySource = "openverse" | "fma_archive" | "wikimedia_commons" | "heartfelt_media";
 
 export type StoryMusicDiscoveryReviewStatus =
   | "discovered"
