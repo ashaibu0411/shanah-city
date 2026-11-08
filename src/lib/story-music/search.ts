@@ -27,14 +27,56 @@ export const STORY_MUSIC_DISCOVERY_LANGUAGES: { code: string; label: string }[] 
 
 /** Primary picker filters for hybrid / free worship library search. */
 export const STORY_MUSIC_PICKER_CATEGORIES: { id: string; label: string }[] = [
-  { id: "all", label: "All categories" },
-  { id: "gospel_worship_songs", label: "Gospel & Worship Songs" },
-  { id: "contemporary_christian", label: "Contemporary Christian" },
-  { id: "african_gospel", label: "African Gospel" },
-  { id: "traditional_gospel", label: "Traditional Gospel" },
-  { id: "gospel_choirs", label: "Gospel Choirs" },
+  { id: "all", label: "Discover" },
+  { id: "modern_worship", label: "Modern worship" },
+  { id: "afrogospel", label: "Afrogospel" },
+  { id: "youth_gospel", label: "Youth & upbeat" },
+  { id: "global_worship", label: "Global worship" },
+  { id: "traditional_gospel", label: "Gospel classics" },
   { id: "instrumentals", label: "Instrumentals" },
 ];
+
+/**
+ * Conservative curation: an old hymn recorded by a band is not modern music
+ * merely because legacy import metadata says "contemporary_christian".
+ * This classifies the recordings already authorized for Stories. It never
+ * infers recording permissions or changes what a member can play.
+ */
+export function isStoryMusicClassic(
+  track: Pick<StoryMusicTrackRecord, "title" | "artist" | "genres" | "tags">,
+): boolean {
+  const genres = track.genres ?? [];
+  const tags = (track.tags ?? []).map((tag) => tag.toLowerCase());
+  if (tags.includes("traditional_gospel") || tags.includes("traditional-gospel")) return true;
+  if (genres.includes("hymn") || tags.includes("hymn") || tags.includes("hymns")) return true;
+  return /(?:19[0-9]{2}|18[0-9]{2}|military|air force|u\.?s\.?a\.?f|navy band|coast guard|fisk|jubilee|quartet|battle hymn|thomas tallis|collegium vocale|edison|singing sergeants|rock of ages)/i.test(
+    `${track.title} ${track.artist}`,
+  );
+}
+
+export function isStoryMusicContemporary(
+  track: Pick<StoryMusicTrackRecord, "title" | "artist" | "genres" | "tags">,
+): boolean {
+  if (isStoryMusicClassic(track)) return false;
+  const tags = (track.tags ?? []).map((tag) => tag.toLowerCase());
+  const genres = track.genres ?? [];
+  return (
+    genres.includes("contemporary_christian") ||
+    tags.includes("modern-worship") ||
+    tags.includes("contemporary_christian") ||
+    tags.includes("african_gospel") ||
+    tags.includes("afrogospel") ||
+    tags.includes("youth-gospel")
+  );
+}
+
+/** Modern recordings first; within a group preserve the catalog's order. */
+export function rankStoryMusicForDiscovery<T extends Pick<StoryMusicTrackRecord, "title" | "artist" | "genres" | "tags">>(
+  tracks: T[],
+): T[] {
+  const rank = (t: T) => isStoryMusicContemporary(t) ? 0 : isStoryMusicClassic(t) ? 2 : 1;
+  return [...tracks].sort((a, b) => rank(a) - rank(b));
+}
 
 /** @deprecated Use STORY_MUSIC_PICKER_CATEGORIES in the member picker UI. */
 export const STORY_MUSIC_DISCOVERY_GENRES: { id: string; label: string }[] = [
@@ -65,11 +107,29 @@ export function matchesStoryMusicPickerCategory(
   const instrumentalOnly = trackIsInstrumentalOnly(track);
 
   if (id === "instrumentals") return instrumentalOnly;
+  if (id === "modern_worship" || id === "contemporary_christian") {
+    return !instrumentalOnly && isStoryMusicContemporary(track);
+  }
+  if (id === "afrogospel" || id === "african_gospel") {
+    return !instrumentalOnly &&
+      (tags.includes("afrogospel") || tags.includes("african_gospel") || tags.includes("african-gospel"));
+  }
+  if (id === "youth_gospel") {
+    return !instrumentalOnly && !isStoryMusicClassic(track) &&
+      (tags.includes("youth-gospel") || tags.includes("gospel-hip-hop") || tags.includes("gospel-afrobeats") || tags.includes("upbeat"));
+  }
+  if (id === "global_worship") {
+    return !instrumentalOnly && !isStoryMusicClassic(track) &&
+      (tags.includes("global-worship") || tags.includes("international-worship") ||
+      (Boolean(track.country && track.country !== "US") &&
+      (genres.includes("worship") || genres.includes("contemporary_christian"))));
+  }
 
   if (instrumentalOnly) return false;
 
   if (id === "traditional_gospel") {
     return (
+      isStoryMusicClassic(track) ||
       tags.includes("traditional_gospel") ||
       tags.includes("traditional-gospel") ||
       genres.includes("hymn") ||
@@ -90,18 +150,6 @@ export function matchesStoryMusicPickerCategory(
         ["gospel", "worship", "praise", "christian", "contemporary", "free-library"].includes(t),
       )
     );
-  }
-
-  if (id === "contemporary_christian") {
-    return (
-      tags.includes("gospel_worship_songs") ||
-      genres.includes("contemporary_christian") ||
-      tags.includes("contemporary_christian")
-    );
-  }
-
-  if (id === "african_gospel") {
-    return tags.includes("african_gospel") || tags.includes("african-gospel");
   }
 
   if (id === "gospel_choirs") {
