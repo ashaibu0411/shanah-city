@@ -118,6 +118,15 @@ export function createAudioMediaRecorder(stream: MediaStream): MediaRecorder {
       }
       return new MediaRecorder(stream);
     } catch {
+      // Older Safari implementations may support the MIME type but reject
+      // audioBitsPerSecond. Retry the same codec without the bitrate hint.
+      if (mimeType) {
+        try {
+          return new MediaRecorder(stream, { mimeType });
+        } catch {
+          // Try the next supported codec.
+        }
+      }
       continue;
     }
   }
