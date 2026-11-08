@@ -7412,3 +7412,32 @@ html.dark .couples-hub-page {
     max-width: none !important;
   }
 }
+
+
+/* Modern-first global music discovery for Community Stories. */
+.story-music-global-discovery {
+  margin-top: .9rem;
+  border-radius: 1.15rem;
+  padding: .95rem .8rem .75rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 86%, #ead3a8) 0%, var(--color-surface) 100%);
+}
+.story-music-discovery-heading { display: flex; align-items: flex-start; gap: .7rem; padding: .2rem .15rem .75rem; }
+.story-music-discovery-sparkle { display: grid; place-items: center; flex: 0 0 2rem; height: 2rem; border-radius: .65rem; background: #c99b61; color: #fff; font-size: 1.15rem; }
+.story-music-discovery-eyebrow { color: var(--color-accent-strong); font-size: .62rem; line-height: 1.4; letter-spacing: .13em; font-weight: 800; }
+.story-music-discovery-title { margin: .1rem 0 .14rem; font: 700 1.25rem/1.15 var(--font-display),Georgia,serif; letter-spacing: -.02em; color: var(--color-ink); }
+.story-music-discovery-subtitle { font-size: .74rem; line-height: 1.4; color: var(--color-ink-muted); }
+.story-music-category-scroll { display: flex; gap: .45rem; max-width: 100%; overflow-x: auto; scrollbar-width: none; padding: .35rem .05rem .55rem; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.story-music-category-scroll::-webkit-scrollbar { display: none; }
+.story-music-category-pill { flex: 0 0 auto; scroll-snap-align: start; min-height: 2.2rem; padding: .4rem .8rem; border-radius: 999px; background: var(--color-bg-soft); border: 1px solid var(--color-border); color: var(--color-ink-muted); font-size: .77rem; font-weight: 700; transition: background .15s,color .15s; }
+.story-music-category-pill-active { background: #b65d3a; color: #fff; border-color: #b65d3a; box-shadow: 0 3px 8px #b65d3a20; }
+.story-music-regions-toggle { margin: .4rem 0 .1rem; display: flex; width: 100%; justify-content: space-between; align-items: center; padding: .65rem .3rem .2rem; font-size: .77rem; font-weight: 650; text-align: left; color: var(--color-ink-muted); border-top: 1px solid var(--color-border); }
+.story-music-regions-toggle span { font-size: 1.15rem; }
+.story-music-regions-panel { padding: .45rem 0 .7rem; }
+.story-music-filter-label { margin: .5rem 0 .35rem; color: var(--color-ink-muted); font-size: .65rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+.story-music-region-pill { border-radius: 99px; background: var(--color-bg-soft); border: 1px solid var(--color-border); padding: .3rem .65rem; font-size: .68rem; font-weight: 650; color: var(--color-ink-muted); }
+.story-music-region-pill-active { background: var(--color-ink); color: var(--color-surface); }
+.story-music-track-list { max-height: 18rem; scrollbar-width: thin; }
+.story-music-track-item { border-bottom: 1px solid var(--color-border); }
+.story-music-track-section-label { margin: .55rem 0 .6rem; font-size: .64rem; letter-spacing: .12em; font-weight: 800; color: #a66840; }
+@media (max-width: 420px) { .story-music-global-discovery { padding-inline: .65rem; } .story-music-category-pill { font-size: .73rem; } }
