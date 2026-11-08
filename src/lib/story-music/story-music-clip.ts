@@ -42,6 +42,8 @@ export function storyMusicClipPlaybackDurationSec(
   return Math.max(0, end - start);
 }
 
+export const STORY_MUSIC_MIN_CLIP_PLAYBACK_SEC = 3;
+
 /** Whether the full 30s or 60s window fits anywhere on the track (not required for short-song playback). */
 export function storyMusicClipDurationSelectable(
   clipDurationSec: StoryMusicClipDuration,
@@ -52,8 +54,6 @@ export function storyMusicClipDurationSelectable(
   if (clip === 30) return true;
   return Math.floor(trackDurationSec) >= clip;
 }
-
-export const STORY_MUSIC_MIN_CLIP_PLAYBACK_SEC = 3;
 
 export function storyMusicClipPublishable(
   startSeconds: number,
@@ -67,7 +67,7 @@ export function storyMusicClipPublishable(
   );
 }
 
-/** Latest second a clip can start while fully inside the track (inclusive). */
+/** Latest second a clip may start: full clip inside the track, or short-song tail with minimum playback. */
 export function maxStoryMusicClipStart(
   trackDurationSec: number | null | undefined,
   clipDurationSec: StoryMusicClipDuration,
@@ -76,7 +76,11 @@ export function maxStoryMusicClipStart(
   if (trackDurationSec == null || !Number.isFinite(trackDurationSec) || trackDurationSec <= 0) {
     return Math.max(0, STORY_MUSIC_MAX_START_SEC - clip);
   }
-  return Math.max(0, Math.floor(trackDurationSec) - clip);
+  const floorTrack = Math.floor(trackDurationSec);
+  if (floorTrack < clip) {
+    return Math.max(0, floorTrack - STORY_MUSIC_MIN_CLIP_PLAYBACK_SEC);
+  }
+  return Math.max(0, floorTrack - clip);
 }
 
 export function clampStoryMusicClipStartForTrack(

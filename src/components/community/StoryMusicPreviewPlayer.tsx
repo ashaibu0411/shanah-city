@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { readJsonResponse } from "@/lib/read-json-response";
 import type { StoryMusicPlaybackApiResponse } from "@/lib/story-music/playback-response";
 import {
+  clampStoryMusicClipStartForTrack,
   normalizeStoryMusicClipStart,
   storyMusicClipPlaybackEndSeconds,
 } from "@/lib/story-music/story-music-clip";
@@ -76,9 +77,12 @@ export function StoryMusicPreviewPlayer({ trackId, startSeconds, durationSec = 3
       startRef.current = start;
       const applyClipBounds = () => {
         const trackDur = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : null;
-        endRef.current = storyMusicClipPlaybackEndSeconds(start, durationSec, trackDur);
-        const maxStart = trackDur != null ? Math.max(0, trackDur - 0.25) : start;
-        audio.currentTime = Math.min(start, maxStart);
+        const boundedStart =
+          trackDur != null ? clampStoryMusicClipStartForTrack(start, durationSec, trackDur) : start;
+        startRef.current = boundedStart;
+        endRef.current = storyMusicClipPlaybackEndSeconds(boundedStart, durationSec, trackDur);
+        const maxStart = trackDur != null ? Math.max(0, trackDur - 0.25) : boundedStart;
+        audio.currentTime = Math.min(boundedStart, maxStart);
       };
       endRef.current = storyMusicClipPlaybackEndSeconds(start, durationSec, null);
       loadedUrlRef.current = data.audioUrl;

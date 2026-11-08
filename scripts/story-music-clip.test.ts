@@ -45,12 +45,14 @@ assert.equal(storyMusicClipDurationSelectable(60, 45), false);
 assert.equal(storyMusicClipDurationSelectable(30, 25), true);
 assert.equal(storyMusicClipDurationSelectable(30, 30), true);
 assert.equal(storyMusicClipPublishable(0, 30, 25), true);
-assert.equal(storyMusicClipPublishable(22, 30, 25), false);
+assert.equal(storyMusicClipPublishable(22, 30, 25), true);
+assert.equal(storyMusicClipPublishable(0, 30, 2), false);
 assert.equal(storySlideDurationMs({ mediaType: "image", music: {} }), STORY_IMAGE_WITH_MUSIC_MS);
 assert.equal(storySlideDurationMs({ mediaType: "image" }), 5000);
 
 assert.equal(maxStoryMusicClipStart(180, 30), 150);
-assert.equal(maxStoryMusicClipStart(45, 60), 0);
+assert.equal(maxStoryMusicClipStart(25, 30), 22);
+assert.equal(maxStoryMusicClipStart(45, 60), 42);
 assert.equal(clampStoryMusicClipStartForTrack(200, 30, 180), 150);
 assert.equal(adjustStoryMusicClipStartForDurationChange(140, 60, 180), 120);
 assert.equal(clipStartFromTimelineRatio(0.5, 200, 30), 85);
@@ -69,7 +71,7 @@ assert.equal(
   startAt,
   "drag preserves grab offset at pointer down",
 );
-assert.equal(clampStoryMusicClipStartForTrack(50, 30, 25), 0);
+assert.equal(clampStoryMusicClipStartForTrack(50, 30, 25), 22);
 assert.equal(storyMusicClipFitsInsideTrack(0, 30, 25), false, "30s label cannot fully fit inside a 25s song");
 assert.equal(storyMusicClipFitsInsideTrack(0, 30, 180), true);
 assert.equal(storyMusicClipFitsInsideTrack(150, 30, 180), true);

@@ -10,6 +10,7 @@ import {
   clipWindowLeftRatio,
   clipWindowWidthRatio,
   computeDragGrabOffsetPx,
+  maxStoryMusicClipStart,
   pointerDragToClipStart,
   pointerXToClipStart,
   storyMusicClipDurationSelectable,
@@ -187,7 +188,7 @@ export function StoryMusicClipTimeline({
 
   const ariaMax =
     trackDurationSec != null && trackDurationSec > 0
-      ? Math.max(0, Math.floor(trackDurationSec) - clipDurationSec)
+      ? maxStoryMusicClipStart(trackDurationSec, clipDurationSec)
       : STORY_MUSIC_MAX_START_SEC;
 
   function commitFallbackDraft() {

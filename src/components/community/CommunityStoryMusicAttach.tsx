@@ -9,6 +9,7 @@ import { storyMusicHybridClientEnabled } from "@/lib/story-music/story-music-con
 import { CommunityStoryYoutubeVideoViewer } from "@/components/community/CommunityStoryYoutubeVideoViewer";
 import { openExternalUrl } from "@/lib/native-app";
 import {
+  clampStoryMusicClipStartForTrack,
   normalizeStoryMusicClipStart,
   normalizeStoryMusicClipDuration,
   storyMusicClipPlaybackDurationSec,
@@ -100,8 +101,12 @@ export function CommunityStoryMusicAttach({
   // Older Stories without explicit segment duration retain their historic slide timing.
   const clipDurationSec = normalizeStoryMusicClipDuration(music.clipDurationSec);
   const [trackDurationSec, setTrackDurationSec] = useState<number | null>(null);
+  const playbackStartSeconds =
+    trackDurationSec != null && trackDurationSec > 0
+      ? clampStoryMusicClipStartForTrack(startSeconds, clipDurationSec, trackDurationSec)
+      : startSeconds;
   const clipEndSeconds = storyMusicClipPlaybackEndSeconds(
-    startSeconds,
+    playbackStartSeconds,
     clipDurationSec,
     trackDurationSec,
   );
@@ -233,14 +238,24 @@ export function CommunityStoryMusicAttach({
     const applyStart = () => {
       if (Number.isFinite(audio.duration) && audio.duration > 0) {
         setTrackDurationSec(audio.duration);
-        const playbackSec = storyMusicClipPlaybackDurationSec(
+        const boundedStart = clampStoryMusicClipStartForTrack(
           startSeconds,
           clipDurationSec,
           audio.duration,
         );
+        const playbackSec = storyMusicClipPlaybackDurationSec(
+          boundedStart,
+          clipDurationSec,
+          audio.duration,
+        );
         onPlaybackDurationKnown?.(Math.max(0, Math.ceil(playbackSec * 1000)));
-      }
-      if (startSeconds > 0) {
+        try {
+          const maxStart = Math.max(0, audio.duration - 0.25);
+          audio.currentTime = Math.min(boundedStart, maxStart);
+        } catch {
+          // ignore seek before metadata
+        }
+      } else if (startSeconds > 0) {
         try {
           const maxStart =
             Number.isFinite(audio.duration) && audio.duration > 0
