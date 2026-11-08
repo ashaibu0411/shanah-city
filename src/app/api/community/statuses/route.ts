@@ -199,10 +199,10 @@ export async function POST(request: Request) {
         title: track.title,
         artist: track.artist,
         youtubeVideoId: track.youtubeVideoId ?? "",
-        ...(track.youtubeVideoId && !track.audioUrl ? {} : {
+        ...(track.audioPath ? {
           clipStartSeconds: normalizeStoryMusicClipStart(musicClipStartSeconds, track.startSeconds ?? 0),
           clipDurationSec: normalizeStoryMusicClipDuration(musicClipDurationSec),
-        }),
+        } : {}),
       };
     }
 
