@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import {
   normalizeStoryMusicClipDuration,
   normalizeStoryMusicClipStart,
@@ -20,4 +22,15 @@ assert.equal(storySlideDurationMs({ mediaType: "image", music: { clipDurationSec
 assert.equal(storySlideDurationMs({ mediaType: "text", music: { clipDurationSec: 60 } }), 60000);
 assert.equal(storySlideDurationMs({ mediaType: "image", music: {} }), STORY_IMAGE_WITH_MUSIC_MS);
 assert.equal(storySlideDurationMs({ mediaType: "image" }), 5000);
+
+const statusesRoute = readFileSync(
+  path.join(process.cwd(), "src/app/api/community/statuses/route.ts"),
+  "utf8",
+);
+assert.match(
+  statusesRoute,
+  /clipDurationSec: normalizeStoryMusicClipDuration\(musicClipDurationSec\)/,
+  "persist clip timing whenever an attachable licensed track is selected",
+);
+
 console.log("story-music-clip.test.ts OK");
