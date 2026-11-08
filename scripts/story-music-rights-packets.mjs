@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import path from "path";
 
 const BULK_PACKETS_PATH = path.join(process.cwd(), "data", "story-music-bulk-import-packets.json");
+const MODERN_PACKETS_PATH = path.join(process.cwd(), "data", "story-music-modern-import-packets.json");
 
 export function loadMergedImportCandidates() {
   let bulk = {};
@@ -10,7 +11,13 @@ export function loadMergedImportCandidates() {
   } catch {
     bulk = {};
   }
-  return { ...FREE_LIBRARY_IMPORT_CANDIDATES, ...bulk };
+  let modern = {};
+  try {
+    modern = JSON.parse(readFileSync(MODERN_PACKETS_PATH, "utf8")).packets ?? {};
+  } catch {
+    modern = {};
+  }
+  return { ...FREE_LIBRARY_IMPORT_CANDIDATES, ...bulk, ...modern };
 }
 
 /**
