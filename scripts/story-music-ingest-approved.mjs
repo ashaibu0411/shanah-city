@@ -16,6 +16,7 @@ import path from "path";
 import { createHash } from "crypto";
 import { spawnSync } from "child_process";
 import { fetchAudioWithRetry } from "./story-music-download-audio.mjs";
+import { resolveApprovedStoryMusicAudioUrl } from "./story-music-audio-source-policy.mjs";
 
 const ROOT = process.cwd();
 const DISCOVERY_PATH =
@@ -34,19 +35,7 @@ function parseArgs(argv) {
 }
 
 function resolveDirectAudioUrl(row) {
-  try {
-    const url = new URL(row.recordingUrl ?? "");
-    if (url.protocol !== "https:") return null;
-    const commons =
-      url.hostname === "upload.wikimedia.org" && url.pathname.startsWith("/wikipedia/commons/");
-    const archive = url.hostname === "archive.org" && url.pathname.startsWith("/download/");
-    const fma =
-      url.hostname === "files.freemusicarchive.org" &&
-      url.pathname.includes("/storage-freemusicarchive-org/tracks/");
-    return commons || archive || fma ? url.origin + url.pathname : null;
-  } catch {
-    return null;
-  }
+  return resolveApprovedStoryMusicAudioUrl(row.recordingUrl);
 }
 
 function ffmpegAvailable() {
