@@ -73,6 +73,19 @@ test("matchesStoryMusicSearch applies pickerCategory filter", () => {
   assert.equal(worshipOnly[0]?.id, "lw");
 });
 
+test("newly imported older-style songs do not masquerade as modern worship", () => {
+  const classicStyle = track({
+    id: "hmg-the-almighty",
+    title: "The Almighty",
+    artist: "Terry Parks",
+    genres: ["gospel", "worship"],
+    tags: ["classic-style", "heartfelt-media"],
+  });
+  assert.equal(isStoryMusicClassic(classicStyle), true);
+  assert.equal(matchesStoryMusicPickerCategory(classicStyle, "modern_worship"), false);
+  assert.equal(matchesStoryMusicPickerCategory(classicStyle, "traditional_gospel"), true);
+});
+
 test("modern-first sorting keeps legacy hymns discoverable but out of the lead", () => {
   const oldBand = track({
     id: "old", title: "Battle Hymn of the Republic", artist: "United States Air Force Band",
@@ -104,5 +117,5 @@ test("global, youth and Afrogospel require actual metadata, not made-up inventor
   });
   assert.equal(matchesStoryMusicPickerCategory(classic, "afrogospel"), false);
   assert.equal(matchesStoryMusicPickerCategory(classic, "youth_gospel"), false);
-  assert.equal(STORY_MUSIC_PICKER_CATEGORIES.some((c) => c.id === "traditional_gospel" && c.label === "Gospel classics"), true);
+  assert.equal(STORY_MUSIC_PICKER_CATEGORIES.some((c) => c.id === "traditional_gospel" && c.label === "Classic & traditional"), true);
 });

@@ -32,7 +32,7 @@ export const STORY_MUSIC_PICKER_CATEGORIES: { id: string; label: string }[] = [
   { id: "afrogospel", label: "Afrogospel" },
   { id: "youth_gospel", label: "Youth & upbeat" },
   { id: "global_worship", label: "Global worship" },
-  { id: "traditional_gospel", label: "Gospel classics" },
+  { id: "traditional_gospel", label: "Classic & traditional" },
   { id: "instrumentals", label: "Instrumentals" },
 ];
 
@@ -49,7 +49,7 @@ export function isStoryMusicClassic(
 ): boolean {
   const genres = track.genres ?? [];
   const tags = (track.tags ?? []).map((tag) => tag.toLowerCase());
-  if (tags.includes("traditional_gospel") || tags.includes("traditional-gospel")) return true;
+  if (tags.includes("classic-style") || tags.includes("traditional_gospel") || tags.includes("traditional-gospel")) return true;
   if (genres.includes("hymn") || tags.includes("hymn") || tags.includes("hymns")) return true;
   return /(?:19[0-9]{2}|18[0-9]{2}|military|air force|u\.?s\.?a\.?f|navy band|coast guard|fisk|jubilee|quartet|battle hymn|thomas tallis|collegium vocale|edison|singing sergeants|rock of ages)/i.test(
     `${track.title} ${track.artist}`,
