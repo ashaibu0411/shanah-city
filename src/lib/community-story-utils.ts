@@ -9,7 +9,7 @@ export const STORY_IMAGE_WITH_MUSIC_MS = 20_000;
 export function storySlideDurationMs(
   slide: {
     mediaType: string;
-    music?: unknown;
+    music?: { clipDurationSec?: number } | null;
     memberStoryAudio?: unknown;
   },
   memberAudioDurationMs?: number | null,
@@ -17,6 +17,9 @@ export function storySlideDurationMs(
   if (slide.mediaType === "image" || slide.mediaType === "text") {
     const hasSoundtrack = Boolean(slide.music || slide.memberStoryAudio);
     if (!hasSoundtrack) return STORY_IMAGE_MS;
+    if (slide.music?.clipDurationSec === 30 || slide.music?.clipDurationSec === 60) {
+      return slide.music.clipDurationSec * 1000;
+    }
     if (
       slide.memberStoryAudio &&
       memberAudioDurationMs != null &&
