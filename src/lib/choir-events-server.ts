@@ -44,6 +44,12 @@ import {
 import { site } from "@/lib/site";
 import type { ChurchEvent } from "@/lib/types";
 import { listWorshipPlans } from "@/lib/worship-server";
+import { canManageWorshipPlan } from "@/lib/worship-access-server";
+import {
+  coerceWorshipServiceTime,
+  pickWorshipPlanForServiceDate,
+} from "@/lib/worship-plan-event-resolve";
+import { worshipPlannerPath } from "@/lib/worship-plan-links";
 
 function metaMap(store: Awaited<ReturnType<typeof getChoirWorshipEventsStoreJson>>) {
   return new Map(store.eventMeta.map((row) => [row.eventId, row]));
@@ -236,16 +242,19 @@ export async function buildChoirWorshipEventDetailPayload(
   const rsvp = await getEventRsvpView(event, user);
   const interest = await getChoirEventTeamInterestForUserJson(groupId, eventId, user.id);
 
-  const plans = await listWorshipPlans({ since: churchEventPrimaryDateKey(event) });
-  const matchingPlan = plans.find(
-    (plan) =>
-      plan.status === "published" &&
-      plan.serviceDate === churchEventPrimaryDateKey(event) &&
-      plan.title?.trim().toLowerCase() === event.title.trim().toLowerCase(),
-  );
-
-  const serviceDate = matchingPlan?.serviceDate ?? churchEventPrimaryDateKey(event);
-  const serviceTime = matchingPlan?.serviceTime;
+  const serviceDate = churchEventPrimaryDateKey(event);
+  const plans = await listWorshipPlans({ since: serviceDate });
+  const canManagePlan = await canManageWorshipPlan(user);
+  const matchedPlan = pickWorshipPlanForServiceDate(plans, serviceDate, {
+    eventTimeLabel: event.time,
+    preferPublished: !canManagePlan,
+  });
+  const serviceTime =
+    matchedPlan?.serviceTime ?? coerceWorshipServiceTime(event.time?.trim() || null);
+  const worshipPlanHref =
+    matchedPlan || canManagePlan
+      ? worshipPlannerPath({ serviceDate, serviceTime })
+      : null;
 
   return {
     rsvpEvent: event,
@@ -278,10 +287,7 @@ export async function buildChoirWorshipEventDetailPayload(
     recapSummary: meta?.recapSummary ?? null,
     recapPhotoUrls: meta?.recapPhotoUrls ?? [],
     recapVideoUrls: meta?.recapVideoUrls ?? [],
-    worshipPlanHref:
-      matchingPlan && serviceDate && serviceTime
-        ? `/worship?date=${encodeURIComponent(serviceDate)}&time=${encodeURIComponent(serviceTime)}`
-        : null,
+    worshipPlanHref,
     setlistHref:
       serviceDate && serviceTime
         ? `/groups/${encodeURIComponent(groupId)}/setlists?date=${encodeURIComponent(serviceDate)}&time=${encodeURIComponent(serviceTime)}`

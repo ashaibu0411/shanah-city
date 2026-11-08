@@ -598,7 +598,7 @@ export function GroupCalendarPanel({
                 Setlists, team readiness, and rehearsal notes for each service.
               </p>
             </div>
-            <Button href="/worship">Open planner</Button>
+            <Button href="/worship?tab=schedule">Open planner</Button>
           </div>
         </Card>
       ) : null}
