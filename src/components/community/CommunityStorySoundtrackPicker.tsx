@@ -17,6 +17,10 @@ type CommunityStorySoundtrackPickerProps = {
   allowMemberOverlay: boolean;
   selectedMusicTrackId: string | null;
   onSelectMusic: (track: CommunityStoryMusicTrack | null) => void;
+  musicClipStartSeconds: number;
+  onMusicClipStartSeconds: (seconds: number) => void;
+  musicClipDurationSec: 30 | 60;
+  onMusicClipDurationSec: (seconds: 30 | 60) => void;
   memberAudioUrl: string | null;
   onMemberAudioUrl: (url: string | null) => void;
   memberRightsAck: boolean;
@@ -37,6 +41,10 @@ export function CommunityStorySoundtrackPicker({
   allowMemberOverlay,
   selectedMusicTrackId,
   onSelectMusic,
+  musicClipStartSeconds,
+  onMusicClipStartSeconds,
+  musicClipDurationSec,
+  onMusicClipDurationSec,
   memberAudioUrl,
   onMemberAudioUrl,
   memberRightsAck,
@@ -172,6 +180,10 @@ export function CommunityStorySoundtrackPicker({
         freeLibraryLive ? (
           <CommunityStoryMusicPicker
             selectedTrackId={selectedMusicTrackId}
+            clipStartSeconds={musicClipStartSeconds}
+            onClipStartSeconds={onMusicClipStartSeconds}
+            clipDurationSec={musicClipDurationSec}
+            onClipDurationSec={onMusicClipDurationSec}
             heading="Free Worship Music"
             subheading="Choose a licensed track to play behind your photo story."
             onSelect={(track) => {

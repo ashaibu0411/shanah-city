@@ -14,11 +14,16 @@ import {
   isStoryMusicContemporary,
 } from "@/lib/story-music/search";
 import { StoryMusicPreviewPlayer } from "@/components/community/StoryMusicPreviewPlayer";
+import { normalizeStoryMusicClipStart } from "@/lib/story-music/story-music-clip";
 import { StoryMusicTrackArtwork } from "@/components/community/StoryMusicTrackArtwork";
 
 type CommunityStoryMusicPickerProps = {
   selectedTrackId: string | null;
   onSelect: (track: CommunityStoryMusicTrack | null) => void;
+  clipStartSeconds: number;
+  onClipStartSeconds: (seconds: number) => void;
+  clipDurationSec: 30 | 60;
+  onClipDurationSec: (seconds: 30 | 60) => void;
   heading?: string;
   subheading?: string;
   /** Legacy YouTube gospel catalog (not free worship library). */
@@ -34,6 +39,10 @@ type SearchResponse = {
 export function CommunityStoryMusicPicker({
   selectedTrackId,
   onSelect,
+  clipStartSeconds,
+  onClipStartSeconds,
+  clipDurationSec,
+  onClipDurationSec,
   heading = "Background music",
   subheading,
   youtubeMode = false,
@@ -153,8 +162,41 @@ export function CommunityStoryMusicPicker({
               <p className="truncate text-xs text-night-600 dark:text-sand-400">{selected.artist}</p>
             </div>
           </div>
+          {hybrid && !youtubeMode ? (
+            <div className="space-y-2 rounded-lg border border-night-900/10 bg-sand-50/80 p-2 dark:border-white/10 dark:bg-night-900/70">
+              <p className="text-xs font-semibold text-night-800 dark:text-sand-100">Choose your Story music clip</p>
+              <div className="flex items-center gap-2" role="group" aria-label="Music clip duration">
+                {([30, 60] as const).map((seconds) => (
+                  <button
+                    key={seconds}
+                    type="button"
+                    aria-pressed={clipDurationSec === seconds}
+                    onClick={() => onClipDurationSec(seconds)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${clipDurationSec === seconds ? "border-clay-600 bg-clay-600 text-white" : "border-night-900/15 bg-white text-night-700 dark:border-white/15 dark:bg-night-800 dark:text-sand-100"}`}
+                  >{seconds} seconds</button>
+                ))}
+              </div>
+              <label className="flex flex-wrap items-center gap-2 text-xs text-night-700 dark:text-sand-200">
+                Start at
+                <input
+                  type="number"
+                  min={0}
+                  max={3600}
+                  step={1}
+                  value={clipStartSeconds}
+                  onChange={(event) => onClipStartSeconds(normalizeStoryMusicClipStart(event.target.value))}
+                  className="w-20 rounded-lg border border-night-900/15 bg-white px-2 py-1.5 text-xs dark:border-white/15 dark:bg-night-800"
+                  aria-label="Clip start time in seconds"
+                />
+                seconds into the song
+              </label>
+              <p className="text-[11px] text-night-600 dark:text-sand-400">
+                Preview your chosen section. It begins at {clipStartSeconds}s and is limited to {clipDurationSec}s.
+              </p>
+            </div>
+          ) : null}
           <div className="flex flex-wrap items-center gap-2">
-            <StoryMusicPreviewPlayer trackId={selected.id} label="Preview" />
+            <StoryMusicPreviewPlayer trackId={selected.id} startSeconds={clipStartSeconds} durationSec={clipDurationSec} label="Preview clip" />
             <button
               type="button"
               className="text-[11px] font-semibold text-clay-800 underline dark:text-clay-200"
@@ -257,7 +299,7 @@ export function CommunityStoryMusicPicker({
             ) : tracks.length === 0 ? (
               <li className="px-2 py-1 text-xs text-night-500">
                 {hybrid
-                  ? "No approved recordings in this category yet. Try Discover or Gospel classics while more music is licensed."
+                  ? "No approved recordings in this category yet. Try Discover or Classic & Traditional while more music is licensed."
                   : "No matches — try another title or artist."}
               </li>
             ) : (
