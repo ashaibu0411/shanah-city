@@ -7441,3 +7441,60 @@ html.dark .couples-hub-page {
 .story-music-track-item { border-bottom: 1px solid var(--color-border); }
 .story-music-track-section-label { margin: .55rem 0 .6rem; font-size: .64rem; letter-spacing: .12em; font-weight: 800; color: #a66840; }
 @media (max-width: 420px) { .story-music-global-discovery { padding-inline: .65rem; } .story-music-category-pill { font-size: .73rem; } }
+
+.story-music-clip-timeline { display: grid; gap: 0.65rem; margin-top: 0.35rem; touch-action: pan-y; }
+.story-music-clip-timeline-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.35rem 0.75rem; }
+.story-music-clip-timeline-label { font-size: 0.75rem; font-weight: 650; color: var(--color-ink); }
+.story-music-clip-timeline-range { font-size: 0.75rem; color: var(--color-ink-muted); margin: 0; }
+.story-music-clip-timeline-track-length { opacity: 0.85; }
+.story-music-clip-timeline-rail { position: relative; height: 3.25rem; border-radius: 999px; background: var(--color-bg-soft); border: 1px solid var(--color-border); overflow: hidden; }
+.story-music-clip-timeline-track {
+  position: absolute;
+  inset: 0.55rem 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-border) 80%, transparent) 0%,
+    color-mix(in srgb, var(--color-accent) 20%, var(--color-bg-soft)) 50%,
+    color-mix(in srgb, var(--color-border) 80%, transparent) 100%
+  );
+}
+.story-music-clip-timeline-window {
+  position: absolute;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  min-width: 3.5rem;
+  border: 2px solid #b65d3a;
+  border-radius: 999px;
+  background: color-mix(in srgb, #b65d3a 22%, var(--color-surface));
+  box-shadow: 0 4px 14px color-mix(in srgb, #b65d3a 28%, transparent);
+  touch-action: none;
+  cursor: grab;
+  padding: 0 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+.story-music-clip-timeline-window:active { cursor: grabbing; }
+.story-music-clip-timeline-window:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.story-music-clip-timeline-window-grip {
+  width: 0.2rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #b65d3a 65%, white);
+  box-shadow: 1.4rem 0 0 color-mix(in srgb, #b65d3a 65%, white);
+}
+.story-music-clip-timeline-window-label { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; color: #8a3f24; }
+.story-music-clip-timeline-fallback { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin-top: 0.15rem; }
+.story-music-clip-timeline-fallback-input {
+  min-width: 4.5rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 0.35rem 0.55rem;
+  font-size: 0.75rem;
+}

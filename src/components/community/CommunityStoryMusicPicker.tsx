@@ -13,8 +13,8 @@ import {
   isStoryMusicClassic,
   isStoryMusicContemporary,
 } from "@/lib/story-music/search";
+import { StoryMusicClipTimeline } from "@/components/community/StoryMusicClipTimeline";
 import { StoryMusicPreviewPlayer } from "@/components/community/StoryMusicPreviewPlayer";
-import { normalizeStoryMusicClipStart } from "@/lib/story-music/story-music-clip";
 import { StoryMusicTrackArtwork } from "@/components/community/StoryMusicTrackArtwork";
 
 type CommunityStoryMusicPickerProps = {
@@ -176,22 +176,15 @@ export function CommunityStoryMusicPicker({
                   >{seconds} seconds</button>
                 ))}
               </div>
-              <label className="flex flex-wrap items-center gap-2 text-xs text-night-700 dark:text-sand-200">
-                Start at
-                <input
-                  type="number"
-                  min={0}
-                  max={3600}
-                  step={1}
-                  value={clipStartSeconds}
-                  onChange={(event) => onClipStartSeconds(normalizeStoryMusicClipStart(event.target.value))}
-                  className="w-20 rounded-lg border border-night-900/15 bg-white px-2 py-1.5 text-xs dark:border-white/15 dark:bg-night-800"
-                  aria-label="Clip start time in seconds"
-                />
-                seconds into the song
-              </label>
+              <StoryMusicClipTimeline
+                trackId={selected.id}
+                clipStartSeconds={clipStartSeconds}
+                clipDurationSec={clipDurationSec}
+                onClipStartSeconds={onClipStartSeconds}
+                catalogDefaultStart={selected.startSeconds ?? 0}
+              />
               <p className="text-[11px] text-night-600 dark:text-sand-400">
-                Preview your chosen section. It begins at {clipStartSeconds}s and is limited to {clipDurationSec}s.
+                Drag the highlighted section or use arrow keys. Preview plays exactly what Stories will use.
               </p>
             </div>
           ) : null}
