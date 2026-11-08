@@ -52,6 +52,9 @@ export type CommunityStatusMusic = {
   title: string;
   artist: string;
   youtubeVideoId: string;
+  /** Chosen segment of the authorized recording. Older Stories omit these fields. */
+  clipStartSeconds?: number;
+  clipDurationSec?: 30 | 60;
 };
 
 /** Member-owned overlay audio for a photo/text story (not YouTube catalog). */
