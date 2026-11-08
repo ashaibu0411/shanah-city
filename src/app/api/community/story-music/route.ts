@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { searchCommunityStoryMusic } from "@/lib/community-story-music";
+import { rankStoryMusicForDiscovery } from "@/lib/story-music/search";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
   isStoryMusicHybridActiveForViewer,
@@ -45,6 +46,9 @@ export async function GET(request: Request) {
 
   if (hybrid && !youtubeCatalog) {
     tracks = await filterStoryMusicTracksForViewer(tracks, user);
+  }
+  if (!youtubeCatalog) {
+    tracks = rankStoryMusicForDiscovery(tracks);
   }
 
   const freeLibraryLive = user
