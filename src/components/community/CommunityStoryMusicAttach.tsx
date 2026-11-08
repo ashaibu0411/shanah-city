@@ -8,6 +8,7 @@ import type { StoryMusicPlaybackApiResponse } from "@/lib/story-music/playback-r
 import { storyMusicHybridClientEnabled } from "@/lib/story-music/story-music-config";
 import { CommunityStoryYoutubeVideoViewer } from "@/components/community/CommunityStoryYoutubeVideoViewer";
 import { openExternalUrl } from "@/lib/native-app";
+import { normalizeStoryMusicClipStart, normalizeStoryMusicClipDuration, storyMusicClipEnd } from "@/lib/story-music/story-music-clip";
 
 type CommunityStoryMusicAttachProps = {
   slideId: string;
@@ -85,10 +86,13 @@ export function CommunityStoryMusicAttach({
   const youtubeVideoId =
     playback?.youtubeVideoId?.trim() || music.youtubeVideoId?.trim() || "";
 
-  const startSeconds =
-    typeof playback?.startSeconds === "number" && playback.startSeconds >= 0
-      ? Math.floor(playback.startSeconds)
-      : null;
+  const startSeconds = normalizeStoryMusicClipStart(
+    music.clipStartSeconds ?? playback?.startSeconds,
+    playback?.startSeconds ?? 0,
+  );
+  // Older Stories without explicit segment duration retain their historic slide timing.
+  const clipDurationSec = normalizeStoryMusicClipDuration(music.clipDurationSec);
+  const clipEndSeconds = storyMusicClipEnd(startSeconds, clipDurationSec);
 
   useEffect(() => {
     nativeAudioCbRef.current?.(engine === "audio");
@@ -211,7 +215,7 @@ export function CommunityStoryMusicAttach({
     audio.load();
 
     const applyStart = () => {
-      if (startSeconds != null && startSeconds > 0) {
+      if (startSeconds > 0) {
         try {
           audio.currentTime = startSeconds;
         } catch {
@@ -221,8 +225,14 @@ export function CommunityStoryMusicAttach({
     };
 
     const onError = () => handleAudioFailure();
+    const onTimeUpdate = () => {
+      if (audio.currentTime + 0.05 >= clipEndSeconds) {
+        audio.pause();
+      }
+    };
 
     audio.addEventListener("loadedmetadata", applyStart, { once: true });
+    audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("error", onError);
 
     if (!paused && soundOn) {
@@ -231,6 +241,7 @@ export function CommunityStoryMusicAttach({
 
     return () => {
       audio.removeEventListener("loadedmetadata", applyStart);
+      audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("error", onError);
       audio.pause();
     };
@@ -243,6 +254,7 @@ export function CommunityStoryMusicAttach({
     slideId,
     soundOn,
     startSeconds,
+    clipEndSeconds,
   ]);
 
   useEffect(() => {
