@@ -12,6 +12,7 @@ import {
 import { isUrgentAlertCommunityPostId } from "@/lib/urgent-alert-utils";
 import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete";
 import { CommunityComposer } from "@/components/community/CommunityComposer";
+import { CommunityFeedTabs } from "@/components/community/CommunityFeedTabs";
 import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { SectionTitle } from "@/components/ui";
 
@@ -152,23 +153,11 @@ export function CommunityFeed({
           />
         ) : null}
 
-        {!hideFilterTabs ? (
-          <div className="community-feed-tabs" role="tablist" aria-label="Feed filters">
-            {COMMUNITY_FEED_FILTERS.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                role="tab"
-                aria-selected={activeFilter === entry.id}
-                onClick={() => setFilter(entry.id)}
-                className={`community-feed-tab ${activeFilter === entry.id ? "community-feed-tab-active" : ""}`}
-              >
-                {entry.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
       </div>
+
+      {!hideFilterTabs ? (
+        <CommunityFeedTabs activeFilter={activeFilter} onChange={setFilter} sticky />
+      ) : null}
 
       <div className="community-feed-posts">
         {filteredPosts.length === 0 ? (
