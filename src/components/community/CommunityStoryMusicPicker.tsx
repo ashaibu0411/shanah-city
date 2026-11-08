@@ -10,6 +10,8 @@ import {
   STORY_MUSIC_DISCOVERY_COUNTRIES,
   STORY_MUSIC_DISCOVERY_LANGUAGES,
   STORY_MUSIC_PICKER_CATEGORIES,
+  isStoryMusicClassic,
+  isStoryMusicContemporary,
 } from "@/lib/story-music/search";
 import { StoryMusicPreviewPlayer } from "@/components/community/StoryMusicPreviewPlayer";
 import { StoryMusicTrackArtwork } from "@/components/community/StoryMusicTrackArtwork";
@@ -45,6 +47,7 @@ export function CommunityStoryMusicPicker({
   const [country, setCountry] = useState("all");
   const [language, setLanguage] = useState("all");
   const [pickerCategory, setPickerCategory] = useState("all");
+  const [showRegions, setShowRegions] = useState(false);
 
   useEffect(() => {
     if (!expanded && !selectedTrackId) return;
@@ -166,72 +169,77 @@ export function CommunityStoryMusicPicker({
         </div>
       ) : (
         <>
-          {hybrid ? (
-            <>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {STORY_MUSIC_DISCOVERY_COUNTRIES.map((entry) => (
-                  <button
-                    key={entry.code}
-                    type="button"
-                    className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                      country === entry.code
-                        ? "bg-clay-600 text-white"
-                        : "bg-white text-night-700 ring-1 ring-night-900/10 dark:bg-night-800 dark:text-sand-200 dark:ring-white/10"
-                    }`}
-                    onClick={() => setCountry(entry.code)}
-                  >
-                    {entry.label}
-                  </button>
-                ))}
+          {hybrid && !youtubeMode ? (
+            <div className="story-music-global-discovery">
+              <div className="story-music-discovery-heading">
+                <span className="story-music-discovery-sparkle" aria-hidden>✦</span>
+                <div>
+                  <p className="story-music-discovery-eyebrow">SHANAH CITY MUSIC</p>
+                  <h3 className="story-music-discovery-title">Find your sound</h3>
+                  <p className="story-music-discovery-subtitle">
+                    Worship, praise and gospel from our cleared music collection.
+                  </p>
+                </div>
               </div>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {STORY_MUSIC_DISCOVERY_LANGUAGES.map((entry) => (
-                  <button
-                    key={entry.code}
-                    type="button"
-                    className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                      language === entry.code
-                        ? "bg-night-800 text-white dark:bg-sand-200 dark:text-night-900"
-                        : "bg-white text-night-700 ring-1 ring-night-900/10 dark:bg-night-800 dark:text-sand-200 dark:ring-white/10"
-                    }`}
-                    onClick={() => setLanguage(entry.code)}
-                  >
-                    {entry.label}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
+              <div className="story-music-category-scroll" role="group" aria-label="Choose a music style">
                 {STORY_MUSIC_PICKER_CATEGORIES.map((entry) => (
                   <button
                     key={entry.id}
                     type="button"
-                    className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                      pickerCategory === entry.id
-                        ? "bg-emerald-700 text-white"
-                        : "bg-white text-night-700 ring-1 ring-night-900/10 dark:bg-night-800 dark:text-sand-200 dark:ring-white/10"
-                    }`}
+                    aria-pressed={pickerCategory === entry.id}
+                    className={`story-music-category-pill ${pickerCategory === entry.id ? "story-music-category-pill-active" : ""}`}
                     onClick={() => setPickerCategory(entry.id)}
                   >
                     {entry.label}
                   </button>
                 ))}
               </div>
-            </>
+              <button
+                type="button"
+                aria-expanded={showRegions}
+                className="story-music-regions-toggle"
+                onClick={() => setShowRegions((value) => !value)}
+              >
+                Explore by country or language <span aria-hidden>{showRegions ? "−" : "+"}</span>
+              </button>
+              {showRegions ? (
+                <div className="story-music-regions-panel">
+                  <p className="story-music-filter-label">Country</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {STORY_MUSIC_DISCOVERY_COUNTRIES.map((entry) => (
+                      <button
+                        key={entry.code}
+                        type="button"
+                        aria-pressed={country === entry.code}
+                        className={`story-music-region-pill ${country === entry.code ? "story-music-region-pill-active" : ""}`}
+                        onClick={() => setCountry(entry.code)}
+                      >{entry.label}</button>
+                    ))}
+                  </div>
+                  <p className="story-music-filter-label">Language</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {STORY_MUSIC_DISCOVERY_LANGUAGES.map((entry) => (
+                      <button
+                        key={entry.code}
+                        type="button"
+                        aria-pressed={language === entry.code}
+                        className={`story-music-region-pill ${language === entry.code ? "story-music-region-pill-active" : ""}`}
+                        onClick={() => setLanguage(entry.code)}
+                      >{entry.label}</button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
           ) : (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {COMMUNITY_STORY_MUSIC_REGIONS.map((entry) => (
                 <button
                   key={entry.id}
                   type="button"
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                    region === entry.id
-                      ? "bg-clay-600 text-white"
-                      : "bg-white text-night-700 ring-1 ring-night-900/10 dark:bg-night-800 dark:text-sand-200 dark:ring-white/10"
-                  }`}
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${region === entry.id ? "bg-clay-600 text-white" : "bg-white text-night-700 ring-1 ring-night-900/10 dark:bg-night-800 dark:text-sand-200 dark:ring-white/10"}`}
                   onClick={() => setRegion(entry.id)}
-                >
-                  {entry.label}
-                </button>
+                >{entry.label}</button>
               ))}
             </div>
           )}
@@ -240,21 +248,30 @@ export function CommunityStoryMusicPicker({
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search artist, song, country, language…"
+            placeholder="Search gospel, worship, artists, songs…"
             className="community-story-caption-input mt-2 w-full rounded-lg border border-night-900/12 bg-white px-3 py-2 text-sm dark:border-white/15 dark:bg-night-950"
           />
-          <ul className="mt-2 max-h-44 space-y-1 overflow-y-auto">
+          <ul className="story-music-track-list mt-2 space-y-1 overflow-y-auto">
             {loading ? (
               <li className="px-2 py-1 text-xs text-night-500">Loading songs…</li>
             ) : tracks.length === 0 ? (
               <li className="px-2 py-1 text-xs text-night-500">
                 {hybrid
-                  ? "No authorized songs are available yet — worship staff will add licensed recordings soon."
+                  ? "No approved recordings in this category yet. Try Discover or Gospel classics while more music is licensed."
                   : "No matches — try another title or artist."}
               </li>
             ) : (
-              tracks.map((track) => (
-                <li key={track.id} className="rounded-lg px-2 py-1.5 hover:bg-white/80 dark:hover:bg-night-800">
+              tracks.map((track, index) => (
+                <li key={track.id} className="story-music-track-item rounded-lg px-2 py-1.5 hover:bg-white/80 dark:hover:bg-night-800">
+                  {!query.trim() && pickerCategory === "all" && hybrid && !youtubeMode &&
+                   (index === 0 || isStoryMusicClassic(tracks[index - 1])) &&
+                   isStoryMusicContemporary(track) ? (
+                    <p className="story-music-track-section-label">CONTEMPORARY PICKS</p>
+                  ) : null}
+                  {!query.trim() && pickerCategory === "all" && hybrid && !youtubeMode &&
+                   isStoryMusicClassic(track) && (index === 0 || !isStoryMusicClassic(tracks[index - 1])) ? (
+                    <p className="story-music-track-section-label">GOSPEL CLASSICS</p>
+                  ) : null}
                   <div className="flex items-center gap-2">
                     <StoryMusicTrackArtwork
                       trackId={track.id}
