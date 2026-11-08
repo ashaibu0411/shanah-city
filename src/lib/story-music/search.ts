@@ -36,7 +36,9 @@ export const STORY_MUSIC_PICKER_CATEGORIES: { id: string; label: string }[] = [
   { id: "instrumentals", label: "Instrumentals" },
 ];
 
-type StoryMusicStyleTrack = { title: string; artist: string; genres?: readonly string[]; tags?: readonly string[]; country?: string };\n\n/**
+type StoryMusicStyleTrack = { title: string; artist: string; genres?: readonly string[]; tags?: readonly string[]; country?: string };
+
+/**
  * Conservative curation: an old hymn recorded by a band is not modern music
  * merely because legacy import metadata says "contemporary_christian".
  * This classifies the recordings already authorized for Stories. It never
