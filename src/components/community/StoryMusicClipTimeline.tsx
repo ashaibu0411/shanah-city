@@ -9,14 +9,24 @@ import {
   clampStoryMusicClipStartForTrack,
   clipWindowLeftRatio,
   clipWindowWidthRatio,
-  computeDragGrabOffsetPx,
   maxStoryMusicClipStart,
-  pointerDragToClipStart,
   pointerXToClipStart,
   storyMusicClipDurationSelectable,
   storyMusicClipPlaybackDurationSec,
   storyMusicClipPlaybackEndSeconds,
 } from "@/lib/story-music/story-music-clip";
+import {
+  STORY_MUSIC_CLIP_TIMELINE_FALLBACK_TRACK_SEC,
+  STORY_MUSIC_CLIP_TIMELINE_METADATA_POLL_MS,
+  STORY_MUSIC_CLIP_TIMELINE_METADATA_TIMEOUT_MS,
+  bindStoryMusicClipTimelineDocumentDrag,
+  isUsableStoryMusicAudioDuration,
+  resolveStoryMusicClipTimelineTrackDuration,
+  storyMusicClipTimelineDragMove,
+  storyMusicClipTimelineDragStart,
+  storyMusicClipTimelineProbeState,
+  type StoryMusicClipTimelineProbeState,
+} from "@/lib/story-music/story-music-clip-timeline";
 import { formatMediaTimestamp, parseMediaTimestamp } from "@/lib/worship-youtube-timestamp-utils";
 
 type StoryMusicClipTimelineProps = {
@@ -26,6 +36,7 @@ type StoryMusicClipTimelineProps = {
   onClipStartSeconds: (seconds: number) => void;
   catalogDefaultStart?: number;
   onTrackDurationSec?: (seconds: number | null) => void;
+  onDurationProbeState?: (state: StoryMusicClipTimelineProbeState) => void;
 };
 
 export function StoryMusicClipTimeline({
@@ -35,17 +46,26 @@ export function StoryMusicClipTimeline({
   onClipStartSeconds,
   catalogDefaultStart = 0,
   onTrackDurationSec,
+  onDurationProbeState,
 }: StoryMusicClipTimelineProps) {
   const labelId = useId();
   const sliderId = useId();
   const railRef = useRef<HTMLDivElement | null>(null);
+  const windowRef = useRef<HTMLDivElement | null>(null);
+  const activePointerIdRef = useRef<number | null>(null);
   const dragGrabOffsetRef = useRef(0);
   const clipStartRef = useRef(clipStartSeconds);
   const onStartRef = useRef(onClipStartSeconds);
   const clipDurationRef = useRef(clipDurationSec);
   const onTrackDurationRef = useRef(onTrackDurationSec);
-  const [trackDurationSec, setTrackDurationSec] = useState<number | null>(null);
-  const [durationState, setDurationState] = useState<"idle" | "loading" | "ready" | "unknown">("idle");
+  const onProbeStateRef = useRef(onDurationProbeState);
+  const disposeDocumentDragRef = useRef<(() => void) | null>(null);
+  const interactionDurationRef = useRef<number | null>(null);
+  const measuredDurationRef = useRef<number | null>(null);
+
+  const [measuredTrackDurationSec, setMeasuredTrackDurationSec] = useState<number | null>(null);
+  const [hasPlayableAudio, setHasPlayableAudio] = useState(false);
+  const [fetchSettled, setFetchSettled] = useState(false);
   const durationProbeRef = useRef<HTMLAudioElement | null>(null);
   const [fallbackDraft, setFallbackDraft] = useState<string | null>(null);
   const fallbackDirtyRef = useRef(false);
@@ -54,31 +74,60 @@ export function StoryMusicClipTimeline({
   onStartRef.current = onClipStartSeconds;
   clipDurationRef.current = clipDurationSec;
   onTrackDurationRef.current = onTrackDurationSec;
+  onProbeStateRef.current = onDurationProbeState;
+  measuredDurationRef.current = measuredTrackDurationSec;
+
+  const { durationSec: interactionDurationSec, kind: durationKind } =
+    resolveStoryMusicClipTimelineTrackDuration({
+      measuredSec: measuredTrackDurationSec,
+      hasPlayableAudio,
+    });
+
+  interactionDurationRef.current =
+    interactionDurationSec != null && interactionDurationSec > 0 ? interactionDurationSec : null;
+
+  const probeState = storyMusicClipTimelineProbeState({
+    hasPlayableAudio,
+    measuredSec: measuredTrackDurationSec,
+    fetchSettled,
+  });
+
+  useEffect(() => {
+    onProbeStateRef.current?.(probeState);
+  }, [probeState]);
 
   const clampedStart = clampStoryMusicClipStartForTrack(
     clipStartSeconds,
     clipDurationSec,
-    trackDurationSec,
+    durationKind === "measured" ? measuredTrackDurationSec : interactionDurationSec,
     catalogDefaultStart,
   );
-  const clipEnd = storyMusicClipPlaybackEndSeconds(clampedStart, clipDurationSec, trackDurationSec);
+  const clipEnd = storyMusicClipPlaybackEndSeconds(
+    clampedStart,
+    clipDurationSec,
+    durationKind === "measured" ? measuredTrackDurationSec : interactionDurationSec,
+  );
   const playbackDurationSec =
-    trackDurationSec != null && trackDurationSec > 0
-      ? storyMusicClipPlaybackDurationSec(clampedStart, clipDurationSec, trackDurationSec)
+    interactionDurationSec != null && interactionDurationSec > 0
+      ? storyMusicClipPlaybackDurationSec(
+          clampedStart,
+          clipDurationSec,
+          durationKind === "measured" ? measuredTrackDurationSec : interactionDurationSec,
+        )
       : clipDurationSec;
 
   useEffect(() => {
-    if (trackDurationSec == null || trackDurationSec <= 0) return;
+    if (durationKind !== "measured" || measuredTrackDurationSec == null) return;
     const next = clampStoryMusicClipStartForTrack(
       clipStartRef.current,
       clipDurationSec,
-      trackDurationSec,
+      measuredTrackDurationSec,
       catalogDefaultStart,
     );
     if (next !== clipStartRef.current) {
       onStartRef.current(next);
     }
-  }, [clipDurationSec, trackDurationSec, catalogDefaultStart]);
+  }, [clipDurationSec, measuredTrackDurationSec, durationKind, catalogDefaultStart]);
 
   useEffect(() => {
     if (!fallbackDirtyRef.current) {
@@ -88,9 +137,37 @@ export function StoryMusicClipTimeline({
 
   useEffect(() => {
     let cancelled = false;
-    setDurationState("loading");
-    setTrackDurationSec(null);
+    let pollId = 0;
+    let timeoutId = 0;
+
+    setHasPlayableAudio(false);
+    setFetchSettled(false);
+    setMeasuredTrackDurationSec(null);
     onTrackDurationRef.current?.(null);
+    onProbeStateRef.current?.("loading");
+
+    const commitMeasured = (duration: number) => {
+      if (cancelled || !isUsableStoryMusicAudioDuration(duration)) return false;
+      if (measuredDurationRef.current != null && Math.abs(measuredDurationRef.current - duration) < 0.05) {
+        return true;
+      }
+      measuredDurationRef.current = duration;
+      setMeasuredTrackDurationSec(duration);
+      onTrackDurationRef.current?.(duration);
+      onStartRef.current(
+        clampStoryMusicClipStartForTrack(
+          clipStartRef.current,
+          clipDurationRef.current,
+          duration,
+          catalogDefaultStart,
+        ),
+      );
+      return true;
+    };
+
+    const tryReadDuration = (audio: HTMLAudioElement) => {
+      commitMeasured(audio.duration);
+    };
 
     void (async () => {
       try {
@@ -100,60 +177,78 @@ export function StoryMusicClipTimeline({
         );
         const data = await readJsonResponse<StoryMusicPlaybackApiResponse>(response);
         if (cancelled) return;
+
         if (data.mode !== "audio" || !data.audioUrl) {
-          setDurationState("unknown");
+          setHasPlayableAudio(false);
+          setFetchSettled(true);
+          onProbeStateRef.current?.("unavailable");
           return;
         }
+
+        setHasPlayableAudio(true);
+        setFetchSettled(true);
 
         const audio = durationProbeRef.current ?? new Audio();
         durationProbeRef.current = audio;
         audio.preload = "metadata";
         audio.src = data.audioUrl;
 
-        const onMeta = () => {
-          if (cancelled) return;
-          if (Number.isFinite(audio.duration) && audio.duration > 0) {
-            setTrackDurationSec(audio.duration);
-            setDurationState("ready");
-            onTrackDurationRef.current?.(audio.duration);
-            onStartRef.current(
-              clampStoryMusicClipStartForTrack(
-                clipStartRef.current,
-                clipDurationRef.current,
-                audio.duration,
-                catalogDefaultStart,
-              ),
-            );
-          } else {
-            setDurationState("unknown");
-          }
-        };
-        audio.addEventListener("loadedmetadata", onMeta, { once: true });
+        const onMeta = () => tryReadDuration(audio);
+        audio.addEventListener("loadedmetadata", onMeta);
+        audio.addEventListener("durationchange", onMeta);
+        audio.addEventListener("canplay", onMeta);
         audio.addEventListener(
           "error",
           () => {
-            if (!cancelled) setDurationState("unknown");
+            if (!cancelled && measuredDurationRef.current == null) {
+              onProbeStateRef.current?.("estimated");
+            }
           },
           { once: true },
         );
         audio.load();
+
+        pollId = window.setInterval(() => {
+          if (cancelled) return;
+          tryReadDuration(audio);
+          if (measuredDurationRef.current != null) {
+            window.clearInterval(pollId);
+          }
+        }, STORY_MUSIC_CLIP_TIMELINE_METADATA_POLL_MS);
+
+        timeoutId = window.setTimeout(() => {
+          if (cancelled) return;
+          window.clearInterval(pollId);
+          if (measuredDurationRef.current == null) {
+            onProbeStateRef.current?.("estimated");
+          }
+        }, STORY_MUSIC_CLIP_TIMELINE_METADATA_TIMEOUT_MS);
       } catch {
-        if (!cancelled) setDurationState("unknown");
+        if (!cancelled) {
+          setHasPlayableAudio(false);
+          setFetchSettled(true);
+          onProbeStateRef.current?.("unavailable");
+        }
       }
     })();
 
     return () => {
       cancelled = true;
+      window.clearInterval(pollId);
+      window.clearTimeout(timeoutId);
+      disposeDocumentDragRef.current?.();
+      disposeDocumentDragRef.current = null;
     };
   }, [trackId, catalogDefaultStart]);
 
   const applyDragPointer = useCallback(
     (clientX: number) => {
       const rail = railRef.current;
+      const trackDurationSec = interactionDurationRef.current;
       if (!rail || trackDurationSec == null || trackDurationSec <= 0) return;
       const rect = rail.getBoundingClientRect();
       onClipStartSeconds(
-        pointerDragToClipStart(
+        storyMusicClipTimelineDragMove(
           clientX,
           rect.left,
           rect.width,
@@ -163,32 +258,34 @@ export function StoryMusicClipTimeline({
         ),
       );
     },
-    [clipDurationSec, onClipStartSeconds, trackDurationSec],
+    [clipDurationSec, onClipStartSeconds],
   );
 
   const windowWidthRatio =
-    trackDurationSec != null && trackDurationSec > 0
-      ? clipWindowWidthRatio(trackDurationSec, clipDurationSec)
+    interactionDurationSec != null && interactionDurationSec > 0
+      ? clipWindowWidthRatio(interactionDurationSec, clipDurationSec)
       : clipDurationSec === 60
         ? 0.5
         : 0.25;
   const windowLeftRatio =
-    trackDurationSec != null && trackDurationSec > 0
-      ? clipWindowLeftRatio(clampedStart, trackDurationSec, clipDurationSec)
+    interactionDurationSec != null && interactionDurationSec > 0
+      ? clipWindowLeftRatio(clampedStart, interactionDurationSec, clipDurationSec)
       : 0;
 
   const startLabel = formatMediaTimestamp(clampedStart) || "0:00";
   const endLabel = formatMediaTimestamp(clipEnd) || startLabel;
   const trackLabel =
-    trackDurationSec != null && trackDurationSec > 0
-      ? formatMediaTimestamp(trackDurationSec)
-      : durationState === "loading"
-        ? "Loading…"
-        : "Unknown length";
+    durationKind === "measured" && measuredTrackDurationSec != null
+      ? formatMediaTimestamp(measuredTrackDurationSec)
+      : durationKind === "estimated"
+        ? `~${formatMediaTimestamp(STORY_MUSIC_CLIP_TIMELINE_FALLBACK_TRACK_SEC)} (est.)`
+        : !fetchSettled
+          ? "Loading…"
+          : "Unknown length";
 
   const ariaMax =
-    trackDurationSec != null && trackDurationSec > 0
-      ? maxStoryMusicClipStart(trackDurationSec, clipDurationSec)
+    interactionDurationSec != null && interactionDurationSec > 0
+      ? maxStoryMusicClipStart(interactionDurationSec, clipDurationSec)
       : STORY_MUSIC_MAX_START_SEC;
 
   function commitFallbackDraft() {
@@ -198,13 +295,71 @@ export function StoryMusicClipTimeline({
     if (!raw) return;
     const parsed = parseMediaTimestamp(raw);
     if (parsed == null) return;
+    const trackForClamp =
+      durationKind === "measured" ? measuredTrackDurationSec : interactionDurationSec;
     onClipStartSeconds(
-      clampStoryMusicClipStartForTrack(parsed, clipDurationSec, trackDurationSec, catalogDefaultStart),
+      clampStoryMusicClipStartForTrack(parsed, clipDurationSec, trackForClamp, catalogDefaultStart),
     );
   }
 
+  const timelineCanDrag =
+    interactionDurationRef.current != null && interactionDurationRef.current > 0;
+
+  function beginWindowDrag(event: React.PointerEvent<HTMLDivElement>) {
+    if (!timelineCanDrag) return;
+    const rail = railRef.current;
+    if (!rail) return;
+    const rect = rail.getBoundingClientRect();
+    dragGrabOffsetRef.current = storyMusicClipTimelineDragStart(
+      event.clientX,
+      rect.left,
+      rect.width,
+      clampedStart,
+      interactionDurationRef.current!,
+      clipDurationSec,
+    );
+    activePointerIdRef.current = event.pointerId;
+    disposeDocumentDragRef.current?.();
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Safari may reject capture on some builds; document listeners still apply.
+    }
+    const pointerId = event.pointerId;
+    disposeDocumentDragRef.current = bindStoryMusicClipTimelineDocumentDrag({
+      pointerId,
+      onMove: applyDragPointer,
+      onEnd: () => {
+        disposeDocumentDragRef.current = null;
+        const el = windowRef.current;
+        const pid = activePointerIdRef.current;
+        activePointerIdRef.current = null;
+        try {
+          if (el && pid != null && el.hasPointerCapture(pid)) {
+            el.releasePointerCapture(pid);
+          }
+        } catch {
+          // ignore
+        }
+      },
+    });
+    event.preventDefault();
+  }
+
+  function endWindowDrag(event: React.PointerEvent<HTMLDivElement>) {
+    disposeDocumentDragRef.current?.();
+    disposeDocumentDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
   return (
-    <div className="story-music-clip-timeline" role="group" aria-labelledby={labelId}>
+    <div
+      className={`story-music-clip-timeline${durationKind === "estimated" ? " story-music-clip-timeline--estimated" : ""}`}
+      role="group"
+      aria-labelledby={labelId}
+    >
       <audio ref={durationProbeRef} preload="metadata" className="sr-only" aria-hidden tabIndex={-1} />
       <div className="story-music-clip-timeline-head">
         <p id={labelId} className="story-music-clip-timeline-label">
@@ -222,18 +377,25 @@ export function StoryMusicClipTimeline({
         ref={railRef}
         className="story-music-clip-timeline-rail"
         onPointerDown={(event) => {
-          if (trackDurationSec == null || trackDurationSec <= 0) return;
+          if (!timelineCanDrag) return;
           if ((event.target as HTMLElement).closest(".story-music-clip-timeline-window")) return;
           const rect = railRef.current?.getBoundingClientRect();
           if (!rect) return;
           onClipStartSeconds(
-            pointerXToClipStart(event.clientX, rect.left, rect.width, trackDurationSec, clipDurationSec),
+            pointerXToClipStart(
+              event.clientX,
+              rect.left,
+              rect.width,
+              interactionDurationRef.current!,
+              clipDurationSec,
+            ),
           );
         }}
       >
         <div className="story-music-clip-timeline-track" aria-hidden />
         <div
           id={sliderId}
+          ref={windowRef}
           role="slider"
           tabIndex={0}
           className="story-music-clip-timeline-window"
@@ -246,8 +408,9 @@ export function StoryMusicClipTimeline({
           aria-valuemax={ariaMax}
           aria-valuenow={clampedStart}
           aria-valuetext={`${startLabel} to ${endLabel}, ${playbackDurationSec} second clip`}
+          aria-disabled={!timelineCanDrag}
           onKeyDown={(event) => {
-            if (trackDurationSec == null || trackDurationSec <= 0) return;
+            if (!timelineCanDrag) return;
             let delta = 0;
             if (event.key === "ArrowRight") delta = event.shiftKey ? 5 : 1;
             if (event.key === "ArrowLeft") delta = event.shiftKey ? -5 : -1;
@@ -258,7 +421,11 @@ export function StoryMusicClipTimeline({
             }
             if (event.key === "End") {
               onClipStartSeconds(
-                clampStoryMusicClipStartForTrack(9_999, clipDurationSec, trackDurationSec),
+                clampStoryMusicClipStartForTrack(
+                  9_999,
+                  clipDurationSec,
+                  interactionDurationRef.current,
+                ),
               );
               event.preventDefault();
               return;
@@ -269,40 +436,18 @@ export function StoryMusicClipTimeline({
                 clampStoryMusicClipStartForTrack(
                   clampedStart + delta,
                   clipDurationSec,
-                  trackDurationSec,
+                  interactionDurationRef.current,
                 ),
               );
             }
           }}
-          onPointerDown={(event) => {
-            if (trackDurationSec == null || trackDurationSec <= 0) return;
-            const rect = railRef.current?.getBoundingClientRect();
-            if (!rect) return;
-            dragGrabOffsetRef.current = computeDragGrabOffsetPx(
-              event.clientX,
-              rect.left,
-              rect.width,
-              clampedStart,
-              trackDurationSec,
-              clipDurationSec,
-            );
-            event.currentTarget.setPointerCapture(event.pointerId);
-            event.preventDefault();
-          }}
+          onPointerDown={beginWindowDrag}
           onPointerMove={(event) => {
             if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
             applyDragPointer(event.clientX);
           }}
-          onPointerUp={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              event.currentTarget.releasePointerCapture(event.pointerId);
-            }
-          }}
-          onPointerCancel={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              event.currentTarget.releasePointerCapture(event.pointerId);
-            }
-          }}
+          onPointerUp={endWindowDrag}
+          onPointerCancel={endWindowDrag}
         >
           <span className="story-music-clip-timeline-window-grip" aria-hidden />
           <span className="story-music-clip-timeline-window-label">
@@ -343,20 +488,30 @@ export function StoryMusicClipTimeline({
         />
       </label>
 
-      {trackDurationSec != null &&
-      trackDurationSec > 0 &&
+      {durationKind === "estimated" ? (
+        <p className="story-music-clip-timeline-hint text-[11px] text-night-600 dark:text-sand-400">
+          Song length is still loading on your device — drag uses an estimated{" "}
+          {STORY_MUSIC_CLIP_TIMELINE_FALLBACK_TRACK_SEC}s track until the real length is read. Clip
+          start/end above update as you move the handle; sharing waits for the real length.
+        </p>
+      ) : null}
+
+      {durationKind === "measured" &&
+      measuredTrackDurationSec != null &&
       playbackDurationSec < clipDurationSec ? (
         <p className="story-music-clip-timeline-hint text-[11px] text-night-600 dark:text-sand-400">
-          Song length is {formatMediaTimestamp(Math.floor(trackDurationSec))}
-          {!storyMusicClipDurationSelectable(60, trackDurationSec)
+          Song length is {formatMediaTimestamp(Math.floor(measuredTrackDurationSec))}
+          {!storyMusicClipDurationSelectable(60, measuredTrackDurationSec)
             ? " — 60 second clips are not available."
             : ""}{" "}
           Stories and preview play {playbackDurationSec}s from your start point.
         </p>
       ) : null}
-      {durationState === "unknown" ? (
+
+      {probeState === "unavailable" ? (
         <p className="story-music-clip-timeline-hint text-[11px] text-night-600 dark:text-sand-400">
-          Could not read song length — timeline uses safe limits. Preview confirms your clip.
+          Could not load playable audio for this song — use the start time field. Preview confirms
+          your clip.
         </p>
       ) : null}
     </div>

@@ -17,6 +17,7 @@ import { StoryMusicClipTimeline } from "@/components/community/StoryMusicClipTim
 import { StoryMusicPreviewPlayer } from "@/components/community/StoryMusicPreviewPlayer";
 import { StoryMusicTrackArtwork } from "@/components/community/StoryMusicTrackArtwork";
 import { storyMusicClipDurationSelectable } from "@/lib/story-music/story-music-clip";
+import type { StoryMusicClipTimelineProbeState } from "@/lib/story-music/story-music-clip-timeline";
 
 type CommunityStoryMusicPickerProps = {
   selectedTrackId: string | null;
@@ -26,6 +27,7 @@ type CommunityStoryMusicPickerProps = {
   clipDurationSec: 30 | 60;
   onClipDurationSec: (seconds: 30 | 60) => void;
   onTrackDurationSec?: (seconds: number | null) => void;
+  onDurationProbeState?: (state: StoryMusicClipTimelineProbeState) => void;
   heading?: string;
   subheading?: string;
   /** Legacy YouTube gospel catalog (not free worship library). */
@@ -46,6 +48,7 @@ export function CommunityStoryMusicPicker({
   clipDurationSec,
   onClipDurationSec,
   onTrackDurationSec,
+  onDurationProbeState,
   heading = "Background music",
   subheading,
   youtubeMode = false,
@@ -102,7 +105,8 @@ export function CommunityStoryMusicPicker({
   useEffect(() => {
     setProbeTrackDurationSec(null);
     onTrackDurationSec?.(null);
-  }, [selectedTrackId, onTrackDurationSec]);
+    onDurationProbeState?.("loading");
+  }, [selectedTrackId, onTrackDurationSec, onDurationProbeState]);
 
   useEffect(() => {
     if (probeTrackDurationSec == null) return;
@@ -219,6 +223,7 @@ export function CommunityStoryMusicPicker({
                 onClipStartSeconds={onClipStartSeconds}
                 catalogDefaultStart={selected.startSeconds ?? 0}
                 onTrackDurationSec={handleTrackDuration}
+                onDurationProbeState={onDurationProbeState}
               />
               <p className="text-[11px] text-night-600 dark:text-sand-400">
                 Drag the highlighted section or use arrow keys. Preview plays exactly what Stories will use.

@@ -7442,12 +7442,23 @@ html.dark .couples-hub-page {
 .story-music-track-section-label { margin: .55rem 0 .6rem; font-size: .64rem; letter-spacing: .12em; font-weight: 800; color: #a66840; }
 @media (max-width: 420px) { .story-music-global-discovery { padding-inline: .65rem; } .story-music-category-pill { font-size: .73rem; } }
 
-.story-music-clip-timeline { display: grid; gap: 0.65rem; margin-top: 0.35rem; touch-action: pan-y; }
+.story-music-clip-timeline { display: grid; gap: 0.65rem; margin-top: 0.35rem; touch-action: manipulation; }
+.story-music-clip-timeline--estimated .story-music-clip-timeline-track-length { font-style: italic; }
 .story-music-clip-timeline-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.35rem 0.75rem; }
 .story-music-clip-timeline-label { font-size: 0.75rem; font-weight: 650; color: var(--color-ink); }
 .story-music-clip-timeline-range { font-size: 0.75rem; color: var(--color-ink-muted); margin: 0; }
 .story-music-clip-timeline-track-length { opacity: 0.85; }
-.story-music-clip-timeline-rail { position: relative; height: 3.25rem; border-radius: 999px; background: var(--color-bg-soft); border: 1px solid var(--color-border); overflow: hidden; }
+.story-music-clip-timeline-rail {
+  position: relative;
+  height: 3.25rem;
+  border-radius: 999px;
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
 .story-music-clip-timeline-track {
   position: absolute;
   inset: 0.55rem 0.75rem;
@@ -7477,6 +7488,7 @@ html.dark .couples-hub-page {
   gap: 0.35rem;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 .story-music-clip-timeline-window:active { cursor: grabbing; }
 .story-music-clip-timeline-window:focus-visible {

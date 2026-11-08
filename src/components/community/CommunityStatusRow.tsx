@@ -37,6 +37,7 @@ import {
   storyMusicClipDurationSelectable,
   storyMusicClipPublishable,
 } from "@/lib/story-music/story-music-clip";
+import type { StoryMusicClipTimelineProbeState } from "@/lib/story-music/story-music-clip-timeline";
 import { MentionTextarea } from "@/components/mentions/MentionField";
 import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete";
 
@@ -79,6 +80,8 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
   const [musicClipStartSeconds, setMusicClipStartSeconds] = useState(0);
   const [musicClipDurationSec, setMusicClipDurationSec] = useState<30 | 60>(30);
   const [musicTrackDurationSec, setMusicTrackDurationSec] = useState<number | null>(null);
+  const [musicClipDurationProbe, setMusicClipDurationProbe] =
+    useState<StoryMusicClipTimelineProbeState>("loading");
   const [memberStoryAudioUrl, setMemberStoryAudioUrl] = useState<string | null>(null);
   const [memberAudioRightsAck, setMemberAudioRightsAck] = useState(false);
   const [soundtrackError, setSoundtrackError] = useState("");
@@ -232,6 +235,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     setMusicClipStartSeconds(0);
     setMusicClipDurationSec(30);
     setMusicTrackDurationSec(null);
+    setMusicClipDurationProbe("loading");
     setMemberStoryAudioUrl(null);
     setMemberAudioRightsAck(false);
     setSoundtrackError("");
@@ -244,15 +248,28 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     if (memberStoryAudioUrl && selectedMusicTrack) {
       return "Choose either YouTube gospel music or your own recording.";
     }
-    if (selectedMusicTrack && musicTrackDurationSec != null && musicTrackDurationSec > 0) {
-      if (!storyMusicClipPublishable(musicClipStartSeconds, musicClipDurationSec, musicTrackDurationSec)) {
-        return "This song is too short to attach as background music. Choose another track.";
+    if (selectedMusicTrack) {
+      if (musicClipDurationProbe === "loading") {
+        return "Song length is still loading — wait a moment before sharing.";
       }
-      if (
-        musicClipDurationSec === 60 &&
-        !storyMusicClipDurationSelectable(60, musicTrackDurationSec)
-      ) {
-        return "This song is shorter than 60 seconds — switch to the 30 second clip option.";
+      if (musicClipDurationProbe === "estimated") {
+        return "Still verifying song length on your device — wait for the track time to appear (not estimated) before sharing.";
+      }
+      if (musicClipDurationProbe === "unavailable") {
+        return "Could not verify this song length for clip bounds — remove music or pick another track.";
+      }
+      if (musicTrackDurationSec != null && musicTrackDurationSec > 0) {
+        if (
+          !storyMusicClipPublishable(musicClipStartSeconds, musicClipDurationSec, musicTrackDurationSec)
+        ) {
+          return "This song is too short to attach as background music. Choose another track.";
+        }
+        if (
+          musicClipDurationSec === 60 &&
+          !storyMusicClipDurationSelectable(60, musicTrackDurationSec)
+        ) {
+          return "This song is shorter than 60 seconds — switch to the 30 second clip option.";
+        }
       }
     }
     return null;
@@ -686,12 +703,14 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                         setMusicClipStartSeconds(track?.startSeconds ?? 0);
                         setMusicClipDurationSec(30);
                         setMusicTrackDurationSec(null);
+                        setMusicClipDurationProbe("loading");
                       }}
                       musicClipStartSeconds={musicClipStartSeconds}
                       onMusicClipStartSeconds={setMusicClipStartSeconds}
                       musicClipDurationSec={musicClipDurationSec}
                       onMusicClipDurationSec={setMusicClipDurationSec}
                       onMusicTrackDurationSec={setMusicTrackDurationSec}
+                      onMusicClipDurationProbe={setMusicClipDurationProbe}
                       memberAudioUrl={memberStoryAudioUrl}
                       onMemberAudioUrl={setMemberStoryAudioUrl}
                       memberRightsAck={memberAudioRightsAck}
