@@ -72,6 +72,8 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
   const [selectedMusicTrack, setSelectedMusicTrack] = useState<CommunityStoryMusicTrack | null>(
     null,
   );
+  const [musicClipStartSeconds, setMusicClipStartSeconds] = useState(0);
+  const [musicClipDurationSec, setMusicClipDurationSec] = useState<30 | 60>(30);
   const [memberStoryAudioUrl, setMemberStoryAudioUrl] = useState<string | null>(null);
   const [memberAudioRightsAck, setMemberAudioRightsAck] = useState(false);
   const [soundtrackError, setSoundtrackError] = useState("");
@@ -222,6 +224,8 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     setComposeMode("media");
     setComposeAsGroupId(null);
     setSelectedMusicTrack(null);
+    setMusicClipStartSeconds(0);
+    setMusicClipDurationSec(30);
     setMemberStoryAudioUrl(null);
     setMemberAudioRightsAck(false);
     setSoundtrackError("");
@@ -267,7 +271,11 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     return {
       ...extra,
       ...(composeAsGroupId ? { groupId: composeAsGroupId } : {}),
-      ...(selectedMusicTrack ? { musicTrackId: selectedMusicTrack.id } : {}),
+      ...(selectedMusicTrack ? {
+        musicTrackId: selectedMusicTrack.id,
+        musicClipStartSeconds,
+        musicClipDurationSec,
+      } : {}),
       ...(memberStoryAudioUrl && memberAudioRightsAck
         ? { memberStoryAudioUrl, memberAudioRightsAck: true }
         : {}),
@@ -656,7 +664,15 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
                     <CommunityStorySoundtrackPicker
                       allowMemberOverlay={allowMemberStoryOverlay}
                       selectedMusicTrackId={selectedMusicTrack?.id ?? null}
-                      onSelectMusic={setSelectedMusicTrack}
+                      onSelectMusic={(track) => {
+                        setSelectedMusicTrack(track);
+                        setMusicClipStartSeconds(track?.startSeconds ?? 0);
+                        setMusicClipDurationSec(30);
+                      }}
+                      musicClipStartSeconds={musicClipStartSeconds}
+                      onMusicClipStartSeconds={setMusicClipStartSeconds}
+                      musicClipDurationSec={musicClipDurationSec}
+                      onMusicClipDurationSec={setMusicClipDurationSec}
                       memberAudioUrl={memberStoryAudioUrl}
                       onMemberAudioUrl={setMemberStoryAudioUrl}
                       memberRightsAck={memberAudioRightsAck}
