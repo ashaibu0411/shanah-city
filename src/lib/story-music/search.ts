@@ -36,14 +36,14 @@ export const STORY_MUSIC_PICKER_CATEGORIES: { id: string; label: string }[] = [
   { id: "instrumentals", label: "Instrumentals" },
 ];
 
-/**
+type StoryMusicStyleTrack = { title: string; artist: string; genres?: readonly string[]; tags?: readonly string[]; country?: string };\n\n/**
  * Conservative curation: an old hymn recorded by a band is not modern music
  * merely because legacy import metadata says "contemporary_christian".
  * This classifies the recordings already authorized for Stories. It never
  * infers recording permissions or changes what a member can play.
  */
 export function isStoryMusicClassic(
-  track: Pick<StoryMusicTrackRecord, "title" | "artist" | "genres" | "tags">,
+  track: StoryMusicStyleTrack,
 ): boolean {
   const genres = track.genres ?? [];
   const tags = (track.tags ?? []).map((tag) => tag.toLowerCase());
@@ -55,7 +55,7 @@ export function isStoryMusicClassic(
 }
 
 export function isStoryMusicContemporary(
-  track: Pick<StoryMusicTrackRecord, "title" | "artist" | "genres" | "tags">,
+  track: StoryMusicStyleTrack,
 ): boolean {
   if (isStoryMusicClassic(track)) return false;
   const tags = (track.tags ?? []).map((tag) => tag.toLowerCase());
@@ -71,7 +71,7 @@ export function isStoryMusicContemporary(
 }
 
 /** Modern recordings first; within a group preserve the catalog's order. */
-export function rankStoryMusicForDiscovery<T extends Pick<StoryMusicTrackRecord, "title" | "artist" | "genres" | "tags">>(
+export function rankStoryMusicForDiscovery<T extends StoryMusicStyleTrack>(
   tracks: T[],
 ): T[] {
   const rank = (t: T) => isStoryMusicContemporary(t) ? 0 : isStoryMusicClassic(t) ? 2 : 1;
