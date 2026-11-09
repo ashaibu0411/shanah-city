@@ -18,7 +18,7 @@ import {
 } from "@/lib/rate-limit-server";
 import { processSignupGroupSelections } from "@/lib/group-join-server";
 import { linkGivingRecordsToUser } from "@/lib/giving-server";
-import { syncVerifiedStripeGiftsForMember } from "@/lib/giving-stripe-member-sync";
+import { scheduleVerifiedStripeGiftsForMember } from "@/lib/giving-stripe-member-sync";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { parseMemberParticipationType } from "@/lib/member-participation";
 import { getSessionPermissions } from "@/lib/session-permissions";
@@ -141,7 +141,7 @@ export async function POST(request: Request) {
         );
         const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
         const publicUser = toPublicMember(user);
-        await syncVerifiedStripeGiftsForMember(publicUser);
+        void scheduleVerifiedStripeGiftsForMember(publicUser, "signin");
         const session = await createSession(user.id);
         const permissions = await getSessionPermissions(publicUser);
         const response = NextResponse.json(
@@ -165,7 +165,7 @@ export async function POST(request: Request) {
 
     const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
     const publicUser = toPublicMember(user);
-    await syncVerifiedStripeGiftsForMember(publicUser);
+    void scheduleVerifiedStripeGiftsForMember(publicUser, "signin");
     const session = await createSession(user.id);
     const permissions = await getSessionPermissions(publicUser);
     const response = NextResponse.json({ user: publicUser, permissions, linkedGifts });

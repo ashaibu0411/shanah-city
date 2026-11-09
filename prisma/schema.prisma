@@ -593,6 +593,40 @@ model GivingRecord {
   @@index([fund])
 }
 
+/** Per-member Stripe self-sync attempts (counts only in app logs; Stripe ids in review rows). */
+model GivingStripeMemberSyncRun {
+  id           String    @id
+  userId       String
+  trigger      String
+  status       String
+  recorded     Int       @default(0)
+  linked       Int       @default(0)
+  flagged      Int       @default(0)
+  skipped      Int       @default(0)
+  errorMessage String?
+  startedAt    DateTime
+  finishedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+/** Finance review queue when Stripe metadata owner conflicts with verified customer sync. */
+model GivingStripeMemberSyncReview {
+  id                String    @id
+  userId            String
+  stripeSessionId   String?   @unique
+  stripeInvoiceId   String?   @unique
+  reason            String
+  metadataUserId    String?
+  clientReferenceId String?
+  createdAt         DateTime  @default(now())
+  resolvedAt        DateTime?
+
+  @@index([userId])
+  @@index([resolvedAt])
+}
+
 model FinanceWeeklySheet {
   id              String    @id
   weekEnding      String    @unique

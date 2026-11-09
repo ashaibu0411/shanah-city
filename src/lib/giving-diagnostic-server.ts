@@ -5,6 +5,7 @@ import { normalizeGivingEmail } from "@/lib/giving-types";
 import { redactEmailForLogs, redactStripeId, redactUserIdForLogs } from "@/lib/giving-privacy-redact";
 import { reportMissingStripeGifts } from "@/lib/giving-reconcile-server";
 import { getMemberStripeCustomerId } from "@/lib/giving-stripe-member-sync";
+import { countOpenMemberStripeSyncReviews } from "@/lib/giving-stripe-member-sync-audit";
 
 export type GivingIdentityLinkCandidate = {
   recordId: string;
@@ -201,6 +202,7 @@ export async function buildGivingHistoryIncidentReport(options?: {
 }) {
   const dbBuckets = await buildGivingDatabaseBuckets();
   const identityCandidates = await buildGivingIdentityLinkCandidates(50);
+  const openMemberSyncReviews = await countOpenMemberStripeSyncReviews();
 
   let missingStripe = null as Awaited<ReturnType<typeof reportMissingStripeGifts>> | null;
   if (isStripeGivingConfigured() && useDatabase()) {
@@ -248,7 +250,10 @@ export async function buildGivingHistoryIncidentReport(options?: {
         "Member changed account email; donorEmail on gift no longer matches — use Stripe customer sync.",
       historyApiOrUi: "If DB rows exist for userId but profile is empty, inspect /api/giving/history and client merge.",
     },
-    database: dbBuckets,
+    database: {
+      ...dbBuckets,
+      openMemberSyncReviews,
+    },
     stripeMissing: missingStripe
       ? {
           days: missingStripe.days,
