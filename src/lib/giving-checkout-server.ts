@@ -16,7 +16,6 @@ import {
   markThankYouSent,
 } from "@/lib/giving-server";
 import { sendGivingThankYou } from "@/lib/giving-notify-server";
-import { getZonedDateParts } from "@/lib/denver-time";
 import { formatPersonNameForDisplay, getFormattedAccountName } from "@/lib/member-display-name";
 import {
   getAppBaseUrl,
@@ -36,12 +35,23 @@ import {
   stripeTrialEndForRecurringStart,
   validateRecurringStartDate,
 } from "@/lib/giving-recurring-start";
+import {
+  metadataValue,
+  resolveDonorIdentityFromCheckoutSession,
+  resolveDonorIdentityFromInvoice,
+} from "@/lib/giving-stripe-identity";
+import {
+  checkoutSessionAuthorizedForMember,
+  giftGivenOnFromCheckoutSession,
+  giftGivenOnFromInvoice,
+  isShanahGivingCheckoutSession,
+  isShanahGivingInvoiceMetadata,
+  stripeInvoiceIsFullyRefunded,
+} from "@/lib/giving-stripe-eligibility";
+import { prisma } from "@/lib/db";
+import { useDatabase } from "@/lib/use-database";
 
 export { isStripeGivingConfigured };
-
-function giftDateIso(date = new Date()) {
-  return getZonedDateParts(date).dateKey;
-}
 
 function amountInDollars(cents: number | null | undefined) {
   if (!cents || cents <= 0) return 0;
@@ -51,16 +61,6 @@ function amountInDollars(cents: number | null | undefined) {
 function parseFund(value: string | null | undefined): GivingFund {
   const fund = String(value ?? "offering") as GivingFund;
   return fund;
-}
-
-function metadataUserId(value: string | null | undefined) {
-  const id = value?.trim();
-  return id || undefined;
-}
-
-function metadataValue(value: string | null | undefined) {
-  const trimmed = value?.trim();
-  return trimmed || undefined;
 }
 
 export async function createGivingCheckoutSession(input: {
@@ -261,6 +261,7 @@ async function recordStripeGift(input: {
   notes?: string;
   stripeSessionId?: string;
   stripeInvoiceId?: string;
+  givenOn: string;
 }) {
   if (input.stripeSessionId) {
     const existing = await getGivingRecordByStripeSessionId(input.stripeSessionId);
@@ -280,7 +281,7 @@ async function recordStripeGift(input: {
     currency: input.currency.toUpperCase(),
     fund: input.fund,
     method: "stripe",
-    givenOn: giftDateIso(),
+    givenOn: input.givenOn,
     campusId: input.campusId,
     notes: input.notes,
     source: "stripe",
@@ -306,7 +307,7 @@ async function recordStripeGift(input: {
 export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Session) {
   await linkStripeCustomerFromCheckoutSession(session);
 
-  if (session.mode !== "payment") {
+  if (!isShanahGivingCheckoutSession(session)) {
     return null;
   }
 
@@ -329,15 +330,9 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
     donorEmail?.split("@")[0] ||
     "Online donor";
 
-  let userId = session.client_reference_id || metadataUserId(session.metadata?.userId);
-  let campusId = metadataValue(session.metadata?.campusId);
-  if (!userId && donorEmail) {
-    const member = await getUserByEmail(donorEmail);
-    if (member) {
-      userId = member.id;
-      campusId = campusId ?? member.campusId;
-    }
-  }
+  const identity = await resolveDonorIdentityFromCheckoutSession(session);
+  const userId = identity.userId;
+  const campusId = identity.campusId;
 
   const donorName = await donorNameForGivingRecord({
     userId,
@@ -360,6 +355,7 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
     campusId,
     notes: giftNotesFromMetadata(metadata, baseNote),
     stripeSessionId: session.id,
+    givenOn: giftGivenOnFromCheckoutSession(session),
   });
 }
 
@@ -371,10 +367,17 @@ export async function recordGiftFromInvoice(
     return null;
   }
 
+  if (stripeInvoiceIsFullyRefunded(invoice)) {
+    return null;
+  }
+
   const totalPaid = amountInDollars(invoice.amount_paid);
   if (totalPaid <= 0) return null;
 
   const metadata = { ...(invoice.metadata ?? {}), ...extraMetadata };
+  if (!isShanahGivingInvoiceMetadata(metadata)) {
+    return null;
+  }
   const giftAmount = giftAmountFromMetadata(metadata, totalPaid);
   const fund = parseFund(metadata.fund);
   const donorEmail = normalizeGivingEmail(invoice.customer_email ?? undefined);
@@ -384,7 +387,8 @@ export async function recordGiftFromInvoice(
     donorEmail?.split("@")[0] ||
     "Online donor";
 
-  const userId = metadataUserId(metadata.userId);
+  const identity = await resolveDonorIdentityFromInvoice(invoice, extraMetadata);
+  const userId = identity.userId;
   const donorName = await donorNameForGivingRecord({
     userId,
     donorEmail,
@@ -405,22 +409,64 @@ export async function recordGiftFromInvoice(
     fund,
     donorName,
     donorEmail,
-    userId: metadataUserId(metadata.userId),
-    campusId: metadataValue(metadata.campusId),
+    userId,
+    campusId: identity.campusId ?? metadataValue(metadata.campusId),
     notes: giftNotesFromMetadata(metadata, `${frequencyNote}${startNote}`),
     stripeInvoiceId: invoice.id,
+    givenOn: giftGivenOnFromInvoice(invoice),
   });
 }
 
-export async function getCheckoutSessionForUser(sessionId: string, userId?: string) {
+async function memberStripeCustomerId(userId: string) {
+  if (!useDatabase()) return null;
+  const row = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { stripeCustomerId: true },
+  });
+  return row?.stripeCustomerId ?? null;
+}
+
+export async function getCheckoutSessionForMember(
+  sessionId: string,
+  member: { id: string; email: string },
+) {
   if (!isStripeGivingConfigured()) return null;
 
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-  if (userId && session.client_reference_id && session.client_reference_id !== userId) {
-    return null;
-  }
+  const authorized = checkoutSessionAuthorizedForMember(session, member, {
+    memberStripeCustomerId: await memberStripeCustomerId(member.id),
+  });
+  if (!authorized) return null;
 
   return session;
+}
+
+export async function confirmCheckoutGiftForMember(
+  sessionId: string,
+  user: PublicMember,
+) {
+  const session = await getCheckoutSessionForMember(sessionId, {
+    id: user.id,
+    email: user.email,
+  });
+  if (!session) {
+    return { ok: false as const, error: "forbidden" as const };
+  }
+
+  if (session.mode !== "payment") {
+    return { ok: false as const, error: "not_payment" as const };
+  }
+
+  if (session.payment_status !== "paid") {
+    return {
+      ok: false as const,
+      error: "unpaid" as const,
+      paymentStatus: session.payment_status,
+    };
+  }
+
+  const record = await recordGiftFromCheckoutSession(session);
+  return { ok: true as const, record };
 }

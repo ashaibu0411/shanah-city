@@ -5,6 +5,7 @@ import {
   recordGiftFromInvoice,
 } from "@/lib/giving-checkout-server";
 import { linkStripeCustomerFromCheckoutSession } from "@/lib/giving-billing-server";
+import { resolveStripeInvoiceSubscriptionId } from "@/lib/giving-stripe-invoice";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe-server";
 
 export const runtime = "nodejs";
@@ -52,17 +53,23 @@ export async function POST(request: Request) {
       }
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
-        let extraMetadata: Record<string, string> = {};
+        let extraMetadata: Record<string, string> = { ...(invoice.metadata ?? {}) };
 
-        const subscriptionRef = invoice.parent?.subscription_details?.subscription;
-        const subscriptionId = typeof subscriptionRef === "string" ? subscriptionRef : undefined;
-
+        const subscriptionId = resolveStripeInvoiceSubscriptionId(invoice);
         if (subscriptionId) {
           const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
-          extraMetadata = subscription.metadata ?? {};
+          extraMetadata = { ...subscription.metadata, ...extraMetadata };
         }
 
-        await recordGiftFromInvoice(invoice, extraMetadata);
+        const record = await recordGiftFromInvoice(invoice, extraMetadata);
+        if (!record) {
+          console.warn("Stripe invoice paid but gift was not recorded.", {
+            invoiceId: invoice.id,
+            status: invoice.status,
+            subscriptionId,
+            billingReason: invoice.billing_reason,
+          });
+        }
         break;
       }
       default:

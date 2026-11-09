@@ -85,6 +85,15 @@ export async function createGivingRecord(input: {
   recordedByName: string;
 }) {
   const records = await readRecords();
+  if (input.stripeSessionId) {
+    const existing = records.find((row) => row.stripeSessionId === input.stripeSessionId);
+    if (existing) return existing;
+  }
+  if (input.stripeInvoiceId) {
+    const existing = records.find((row) => row.stripeInvoiceId === input.stripeInvoiceId);
+    if (existing) return existing;
+  }
+
   const now = new Date().toISOString();
   const record: GivingRecord = {
     id: `give-${Date.now()}`,
@@ -189,8 +198,9 @@ export async function linkGivingRecordsToUser(email: string, userId: string) {
   let linked = 0;
 
   for (const record of records) {
-    if (record.userId) continue;
+    if (record.userId && record.userId !== userId) continue;
     if (normalizeGivingEmail(record.donorEmail) !== donorEmail) continue;
+    if (record.userId === userId) continue;
     record.userId = userId;
     record.updatedAt = new Date().toISOString();
     linked += 1;
