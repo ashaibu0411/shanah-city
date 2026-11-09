@@ -604,6 +604,7 @@ model GivingStripeMemberSyncRun {
   flagged      Int       @default(0)
   skipped      Int       @default(0)
   errorMessage String?
+  metrics      Json?
   startedAt    DateTime
   finishedAt   DateTime?
   createdAt    DateTime  @default(now())
@@ -625,6 +626,14 @@ model GivingStripeMemberSyncReview {
 
   @@index([userId])
   @@index([resolvedAt])
+}
+
+/** Pooled-connection-safe Stripe sync lease (TTL), one row per member. */
+model GivingStripeMemberSyncLease {
+  userId    String   @id
+  holderId  String
+  expiresAt DateTime
+  updatedAt DateTime
 }
 
 model FinanceWeeklySheet {

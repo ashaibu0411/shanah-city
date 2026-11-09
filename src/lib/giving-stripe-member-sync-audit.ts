@@ -73,6 +73,7 @@ export async function createMemberStripeSyncRun(input: {
   startedAt: Date;
   finishedAt: Date;
   errorMessage?: string | null;
+  metrics?: Prisma.InputJsonValue | null;
 }) {
   if (!useDatabase()) return;
 
@@ -88,6 +89,7 @@ export async function createMemberStripeSyncRun(input: {
         flagged: input.flagged,
         skipped: input.skipped,
         errorMessage: input.errorMessage ?? null,
+        metrics: input.metrics ?? undefined,
         startedAt: input.startedAt,
         finishedAt: input.finishedAt,
       },

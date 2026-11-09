@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Prisma } from "@prisma/client";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
@@ -10,6 +11,19 @@ import { mergeMemberVisibleGivingRecords } from "../src/lib/giving-member-merge"
 import { resolveStripeInvoiceSubscriptionId, resolveStripeCustomerId } from "../src/lib/giving-stripe-invoice";
 import { metadataUserId } from "../src/lib/giving-stripe-identity";
 import { redactEmailForLogs, redactStripeId } from "../src/lib/giving-privacy-redact";
+import { bumpSkipReason, emptyMemberStripeSyncReport } from "../src/lib/giving-stripe-member-sync-report";
+import {
+  canClaimMemberStripeSyncLease,
+  isMemberStripeSyncLeaseExpired,
+  isMissingLeaseTableError,
+  memberStripeSyncLockAcquireDeniedReason,
+  MEMBER_STRIPE_SYNC_LEASE_MS,
+} from "../src/lib/giving-stripe-member-sync-lock";
+import {
+  GIVING_HISTORY_AFTER_AUTH_POLL_MS,
+  GIVING_HISTORY_REFRESH_MAX_AGE_MS,
+  parseGivingHistoryRefreshStamp,
+} from "../src/lib/giving-history-client";
 import {
   checkoutSessionEligibleForMemberSync,
   shouldAttemptMemberStripeSync,
@@ -515,8 +529,28 @@ const historyServer = readFileSync(
   path.join(process.cwd(), "src/lib/giving-member-history-server.ts"),
   "utf8",
 );
-assert.match(historyServer, /stripeSync/);
-assert.match(historyServer, /catch/);
+assert.match(historyServer, /lastStripeSync/);
+assert.doesNotMatch(historyServer, /scheduleVerifiedStripeGiftsForMember/);
+
+const historyRoute = readFileSync(
+  path.join(process.cwd(), "src/app/api/giving/history/route.ts"),
+  "utf8",
+);
+assert.match(historyRoute, /afterHistoryVerifiedStripeMemberSync/);
+assert.match(historyRoute, /listGivingRecordsForMember/);
+
+const reportSource = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-stripe-member-sync-report.ts"),
+  "utf8",
+);
+assert.match(reportSource, /alreadyRecorded/);
+assert.match(reportSource, /skippedByReason/);
+
+const sampleReport = emptyMemberStripeSyncReport();
+sampleReport.alreadyRecorded = 2;
+bumpSkipReason(sampleReport, "not_shanah_checkout", 3);
+assert.equal(sampleReport.alreadyRecorded, 2);
+assert.equal(sampleReport.skippedByReason.not_shanah_checkout, 3);
 
 const policySource = readFileSync(
   path.join(process.cwd(), "src/lib/giving-stripe-member-sync-policy.ts"),
@@ -532,5 +566,83 @@ const auditMigration = readFileSync(
   "utf8",
 );
 assert.match(auditMigration, /GivingStripeMemberSyncReview/);
+
+const leaseMigration = readFileSync(
+  path.join(process.cwd(), "prisma/migrations/20261109160000_giving_stripe_sync_lease/migration.sql"),
+  "utf8",
+);
+assert.match(leaseMigration, /GivingStripeMemberSyncLease/);
+
+const lockSource = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-stripe-member-sync-lock.ts"),
+  "utf8",
+);
+assert.doesNotMatch(lockSource, /pg_try_advisory_lock/);
+assert.match(lockSource, /ON CONFLICT/);
+assert.doesNotMatch(
+  lockSource,
+  /isMissingLeaseTableError\(error\)[\s\S]{0,200}acquired:\s*true/,
+  "missing lease table must fail closed",
+);
+assert.equal(memberStripeSyncLockAcquireDeniedReason({ databaseEnabled: false }), "database_unavailable");
+assert.equal(
+  memberStripeSyncLockAcquireDeniedReason({ databaseEnabled: true, missingLeaseTable: true }),
+  "lease_table_missing",
+);
+assert.equal(
+  memberStripeSyncLockAcquireDeniedReason({ databaseEnabled: true, missingLeaseTable: false }),
+  null,
+);
+assert.equal(
+  isMissingLeaseTableError(
+    new Prisma.PrismaClientKnownRequestError("table missing", {
+      code: "P2021",
+      clientVersion: "test",
+    }),
+  ),
+  true,
+  "P2021 must deny sync (fail closed)",
+);
+
+const syncSource = readFileSync(path.join(process.cwd(), "src/lib/giving-stripe-member-sync.ts"), "utf8");
+assert.match(syncSource, /lock\.reason/);
+assert.match(syncSource, /if \(!lock\.acquired\)/);
+
+const historyUi = readFileSync(
+  path.join(process.cwd(), "src/components/give/MemberGivingHistory.tsx"),
+  "utf8",
+);
+assert.doesNotMatch(historyUi, /setTimeout\(\(\) => loadHistory\(\), 4000\)/);
+assert.match(historyUi, /fetchInFlight/);
+assert.match(historyUi, /GIVING_HISTORY_AFTER_AUTH_POLL_MS.length - 1/);
+
+const now = Date.now();
+assert.equal(
+  canClaimMemberStripeSyncLease(
+    { holderId: "holder-a", expiresAt: new Date(now + 60_000) },
+    "holder-b",
+    new Date(now),
+  ),
+  false,
+  "active lease blocks concurrent sign-in/history",
+);
+assert.equal(
+  canClaimMemberStripeSyncLease(
+    { holderId: "holder-a", expiresAt: new Date(now - 1) },
+    "holder-b",
+    new Date(now),
+  ),
+  true,
+  "expired lease can be reclaimed",
+);
+assert.equal(isMemberStripeSyncLeaseExpired(new Date(now - 1), new Date(now)), true);
+assert.equal(MEMBER_STRIPE_SYNC_LEASE_MS >= 60_000, true);
+
+assert.equal(GIVING_HISTORY_AFTER_AUTH_POLL_MS.length, 3);
+assert.equal(
+  parseGivingHistoryRefreshStamp(String(now - GIVING_HISTORY_REFRESH_MAX_AGE_MS - 1)).shouldPoll,
+  false,
+);
+assert.equal(parseGivingHistoryRefreshStamp(String(now)).shouldPoll, true);
 
 console.log("giving-stripe-history.test.ts OK");

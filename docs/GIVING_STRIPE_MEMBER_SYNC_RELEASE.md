@@ -20,7 +20,7 @@ If migration is not applied, audit/cooldown queries fail closed: sync still runs
 | Trigger | Mechanism |
 |---------|-----------|
 | Sign-in / sign-up | `after()` (`giving-stripe-member-sync-after.ts`) — bounded 14s; login response is not blocked |
-| Profile → Your giving | `GET /api/giving/history` — inline sync with cooldown; **existing DB records always returned** even when Stripe fails |
+| Profile → Your giving | `GET /api/giving/history` — **DB-first JSON**, then `after()` Stripe recovery; existing records return even when Stripe fails |
 
 ## Post-deploy smoke
 

@@ -27,6 +27,13 @@ import {
   flagStripeMemberSyncForFinanceReview,
   loadMemberStripeSyncState,
 } from "@/lib/giving-stripe-member-sync-audit";
+import { tryAcquireMemberStripeSyncLock } from "@/lib/giving-stripe-member-sync-lock";
+import {
+  bumpSkipReason,
+  emptyMemberStripeSyncReport,
+  reportToSyncResult,
+  type MemberStripeSyncReport,
+} from "@/lib/giving-stripe-member-sync-report";
 import {
   checkoutSessionEligibleForMemberSync,
   MEMBER_STRIPE_SYNC_DAYS,
@@ -61,7 +68,7 @@ async function withStripeMemberSyncTimeout<T>(promise: Promise<T>) {
   ]);
 }
 
-async function invoiceMetadataForSync(invoice: Stripe.Invoice) {
+async function invoiceMetadataForSync(invoice: Stripe.Invoice, report: MemberStripeSyncReport) {
   let extraMetadata: Record<string, string> = { ...(invoice.metadata ?? {}) };
   const subscriptionId = resolveStripeInvoiceSubscriptionId(invoice);
   if (subscriptionId && isStripeGivingConfigured()) {
@@ -71,6 +78,7 @@ async function invoiceMetadataForSync(invoice: Stripe.Invoice) {
       );
       extraMetadata = { ...subscription.metadata, ...extraMetadata };
     } catch {
+      bumpSkipReason(report, "subscription_metadata_unavailable");
       return null;
     }
   }
@@ -85,22 +93,32 @@ function invoiceEligibleForVerifiedMemberSync(
 ) {
   const paymentCustomer = resolveStripeCustomerId(invoice.customer);
   if (!stripeCustomerVerifiedForMember(paymentCustomer, memberStripeCustomerId)) {
-    return { eligible: false as const, conflict: null };
+    return { eligible: false as const, conflict: null, reason: "customer_mismatch" as const };
   }
   const conflict = stripeInvoiceMetadataOwnerConflict(invoice, extraMetadata, member);
   if (conflict.conflict) {
-    return { eligible: false as const, conflict };
+    return { eligible: false as const, conflict, reason: "metadata_owner_conflict" as const };
   }
-  return { eligible: true as const, conflict: null };
+  return { eligible: true as const, conflict: null, reason: null };
 }
 
 async function tryClaimOrphanForMember(
   record: Awaited<ReturnType<typeof getGivingRecordByStripeSessionId>>,
   member: Pick<PublicMember, "id" | "email">,
+  report: MemberStripeSyncReport,
 ) {
-  if (!record || record.userId) return false;
+  if (!record) return false;
+  if (record.userId === member.id) {
+    report.alreadyRecorded += 1;
+    return false;
+  }
+  if (record.userId) {
+    bumpSkipReason(report, "already_recorded");
+    return false;
+  }
   if (!canLinkGivingRecordToMember(record, member)) return false;
   await updateGivingRecord(record.id, { userId: member.id });
+  report.linked += 1;
   return true;
 }
 
@@ -109,33 +127,39 @@ export type MemberStripeSyncResult = {
   linked: number;
   flagged: number;
   skipped: number;
-  status: "ok" | "skipped_cooldown" | "stripe_error" | "timeout" | "partial" | "noop";
+  status:
+    | "ok"
+    | "skipped_cooldown"
+    | "skipped_contention"
+    | "stripe_error"
+    | "timeout"
+    | "partial"
+    | "noop";
   skippedReason?: string;
+  report?: MemberStripeSyncReport;
+  durationMs?: number;
 };
 
 async function runVerifiedStripeGiftSync(
   member: Pick<PublicMember, "id" | "email" | "name" | "campusId">,
-): Promise<MemberStripeSyncResult> {
-  const empty: MemberStripeSyncResult = {
-    recorded: 0,
-    linked: 0,
-    flagged: 0,
-    skipped: 0,
-    status: "noop",
-  };
+): Promise<MemberStripeSyncResult & { report: MemberStripeSyncReport }> {
+  const report = emptyMemberStripeSyncReport();
+  const started = Date.now();
+  let partial = false;
 
-  if (!isStripeGivingConfigured() || !useDatabase()) return empty;
+  if (!isStripeGivingConfigured() || !useDatabase()) {
+    report.durationMs = Date.now() - started;
+    return { ...reportToSyncResult(report, "noop"), report };
+  }
 
   const customerId = await getMemberStripeCustomerId(member.id);
-  if (!customerId) return empty;
+  if (!customerId) {
+    report.durationMs = Date.now() - started;
+    return { ...reportToSyncResult(report, "noop"), report };
+  }
 
   const stripe = getStripe();
   const sinceUnix = Math.floor((Date.now() - MEMBER_STRIPE_SYNC_DAYS * 86_400_000) / 1000);
-  let recorded = 0;
-  let linked = 0;
-  let flagged = 0;
-  let skipped = 0;
-  let partial = false;
 
   let sessionStartingAfter: string | undefined;
   for (let page = 0; page < MEMBER_STRIPE_SYNC_MAX_PAGES; page++) {
@@ -149,19 +173,29 @@ async function runVerifiedStripeGiftSync(
           ...(sessionStartingAfter ? { starting_after: sessionStartingAfter } : {}),
         }),
       );
-    } catch {
+    } catch (error) {
       partial = true;
+      report.errors.push(error instanceof Error ? error.message.slice(0, 120) : "checkout_list_error");
       break;
     }
 
     if (list.data.length === 0) break;
 
     for (const session of list.data) {
-      if (!isPaidCheckoutSession(session) || !isShanahGivingCheckoutSession(session)) continue;
+      report.scannedCheckoutSessions += 1;
+      if (!isPaidCheckoutSession(session)) {
+        bumpSkipReason(report, "not_paid");
+        continue;
+      }
+      report.paidCheckoutSessions += 1;
+      if (!isShanahGivingCheckoutSession(session)) {
+        bumpSkipReason(report, "not_shanah_checkout");
+        continue;
+      }
 
       const ownerConflict = stripeCheckoutMetadataOwnerConflict(session, member);
       if (ownerConflict.conflict) {
-        skipped += 1;
+        bumpSkipReason(report, "metadata_owner_conflict");
         const flaggedRow = await flagStripeMemberSyncForFinanceReview({
           userId: member.id,
           stripeSessionId: session.id,
@@ -169,24 +203,27 @@ async function runVerifiedStripeGiftSync(
           metadataUserId: ownerConflict.metadataUserId,
           clientReferenceId: ownerConflict.clientReferenceId,
         });
-        if (flaggedRow) flagged += 1;
+        if (flaggedRow) report.flagged += 1;
         continue;
       }
 
       if (!checkoutSessionEligibleForMemberSync(session, member, customerId)) {
-        skipped += 1;
+        bumpSkipReason(report, "unauthorized_session");
+        continue;
+      }
+      report.eligibleCheckoutSessions += 1;
+
+      const existing = await getGivingRecordByStripeSessionId(session.id);
+      if (existing) {
+        await tryClaimOrphanForMember(existing, member, report);
         continue;
       }
 
-      const existing = await getGivingRecordByStripeSessionId(session.id);
-      if (!existing) {
-        const created = await recordGiftFromCheckoutSession(session);
-        if (created) recorded += 1;
-        else skipped += 1;
-        continue;
-      }
-      if (await tryClaimOrphanForMember(existing, member)) {
-        linked += 1;
+      const created = await recordGiftFromCheckoutSession(session);
+      if (created) {
+        report.newlyRecorded += 1;
+      } else {
+        bumpSkipReason(report, "record_create_failed");
       }
     }
 
@@ -206,20 +243,31 @@ async function runVerifiedStripeGiftSync(
           ...(invoiceStartingAfter ? { starting_after: invoiceStartingAfter } : {}),
         }),
       );
-    } catch {
+    } catch (error) {
       partial = true;
+      report.errors.push(error instanceof Error ? error.message.slice(0, 120) : "invoice_list_error");
       break;
     }
 
     if (list.data.length === 0) break;
 
     for (const invoice of list.data) {
-      const extraMetadata = await invoiceMetadataForSync(invoice);
-      if (!extraMetadata) {
-        partial = true;
+      report.scannedInvoices += 1;
+      if (invoice.status !== "paid" || (invoice.amount_paid ?? 0) <= 0) {
+        bumpSkipReason(report, "not_paid");
         continue;
       }
-      if (!isEligibleReconcileGiftInvoice(invoice) || !isShanahGivingInvoiceMetadata(extraMetadata)) {
+      report.paidInvoices += 1;
+
+      const extraMetadata = await invoiceMetadataForSync(invoice, report);
+      if (!extraMetadata) continue;
+
+      if (!isEligibleReconcileGiftInvoice(invoice)) {
+        bumpSkipReason(report, "not_eligible_invoice");
+        continue;
+      }
+      if (!isShanahGivingInvoiceMetadata(extraMetadata)) {
+        bumpSkipReason(report, "not_shanah_invoice");
         continue;
       }
 
@@ -230,8 +278,8 @@ async function runVerifiedStripeGiftSync(
         customerId,
       );
       if (!eligibility.eligible) {
+        if (eligibility.reason) bumpSkipReason(report, eligibility.reason);
         if (eligibility.conflict?.conflict) {
-          skipped += 1;
           const flaggedRow = await flagStripeMemberSyncForFinanceReview({
             userId: member.id,
             stripeInvoiceId: invoice.id,
@@ -239,22 +287,23 @@ async function runVerifiedStripeGiftSync(
             metadataUserId: eligibility.conflict.metadataUserId,
             clientReferenceId: eligibility.conflict.clientReferenceId,
           });
-          if (flaggedRow) flagged += 1;
-        } else {
-          skipped += 1;
+          if (flaggedRow) report.flagged += 1;
         }
         continue;
       }
+      report.eligibleInvoices += 1;
 
       const existing = await getGivingRecordByStripeInvoiceId(invoice.id);
-      if (!existing) {
-        const created = await recordGiftFromInvoice(invoice, extraMetadata);
-        if (created) recorded += 1;
-        else skipped += 1;
+      if (existing) {
+        await tryClaimOrphanForMember(existing, member, report);
         continue;
       }
-      if (await tryClaimOrphanForMember(existing, member)) {
-        linked += 1;
+
+      const created = await recordGiftFromInvoice(invoice, extraMetadata);
+      if (created) {
+        report.newlyRecorded += 1;
+      } else {
+        bumpSkipReason(report, "record_create_failed");
       }
     }
 
@@ -262,32 +311,27 @@ async function runVerifiedStripeGiftSync(
     invoiceStartingAfter = list.data[list.data.length - 1]?.id;
   }
 
-  return {
-    recorded,
-    linked,
-    flagged,
-    skipped,
-    status: partial ? "partial" : "ok",
-  };
+  report.durationMs = Date.now() - started;
+  const status = partial ? "partial" : "ok";
+  return { ...reportToSyncResult(report, status), report, durationMs: report.durationMs };
 }
 
-/**
- * Safe entry point for sign-in and history: cooldown, timeout isolation, audit row.
- * Never throws to callers.
- */
 export async function scheduleVerifiedStripeGiftsForMember(
   member: Pick<PublicMember, "id" | "email" | "name" | "campusId">,
   trigger: MemberStripeSyncTrigger,
 ): Promise<MemberStripeSyncResult> {
-  const noop: MemberStripeSyncResult = {
-    recorded: 0,
-    linked: 0,
-    flagged: 0,
-    skipped: 0,
-    status: "noop",
-  };
+  const noop = reportToSyncResult(emptyMemberStripeSyncReport(), "noop");
 
   if (!isStripeGivingConfigured() || !useDatabase()) return noop;
+
+  const lock = await tryAcquireMemberStripeSyncLock(member.id);
+  if (!lock.acquired) {
+    return reportToSyncResult(
+      emptyMemberStripeSyncReport(),
+      "skipped_contention",
+      lock.reason,
+    );
+  }
 
   const startedAt = new Date();
   try {
@@ -301,7 +345,7 @@ export async function scheduleVerifiedStripeGiftsForMember(
     });
 
     if (!decision.run) {
-      return { ...noop, status: "skipped_cooldown", skippedReason: decision.reason };
+      return reportToSyncResult(emptyMemberStripeSyncReport(), "skipped_cooldown", decision.reason);
     }
 
     const outcome = await runVerifiedStripeGiftSync(member);
@@ -318,17 +362,21 @@ export async function scheduleVerifiedStripeGiftsForMember(
       skipped: outcome.skipped,
       startedAt,
       finishedAt,
+      metrics: outcome.report as unknown as import("@prisma/client").Prisma.InputJsonValue,
     });
 
     return outcome;
   } catch (error) {
     const finishedAt = new Date();
+    const report = emptyMemberStripeSyncReport();
+    report.durationMs = finishedAt.getTime() - startedAt.getTime();
     const timeout = isStripeMemberSyncTimeoutError(error);
     const message = timeout
       ? "stripe_member_sync_timeout"
       : error instanceof Error
         ? error.message.slice(0, 240)
         : "stripe_member_sync_error";
+    report.errors.push(message);
 
     await createMemberStripeSyncRun({
       userId: member.id,
@@ -341,13 +389,42 @@ export async function scheduleVerifiedStripeGiftsForMember(
       startedAt,
       finishedAt,
       errorMessage: message,
+      metrics: report as unknown as import("@prisma/client").Prisma.InputJsonValue,
     });
 
-    return { ...noop, status: timeout ? "timeout" : "stripe_error" };
+    return {
+      ...reportToSyncResult(report, timeout ? "timeout" : "stripe_error"),
+      report,
+      durationMs: report.durationMs,
+    };
+  } finally {
+    await lock.release();
   }
 }
 
-/** @deprecated Use scheduleVerifiedStripeGiftsForMember — kept for tests importing direct sync. */
+export async function loadLatestMemberStripeSyncReport(userId: string) {
+  if (!useDatabase()) return null;
+  try {
+    const row = await prisma.givingStripeMemberSyncRun.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        status: true,
+        trigger: true,
+        recorded: true,
+        linked: true,
+        flagged: true,
+        skipped: true,
+        finishedAt: true,
+        metrics: true,
+      },
+    });
+    return row;
+  } catch {
+    return null;
+  }
+}
+
 export async function syncVerifiedStripeGiftsForMember(
   member: Pick<PublicMember, "id" | "email" | "name" | "campusId">,
 ) {
