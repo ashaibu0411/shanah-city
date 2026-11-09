@@ -18,6 +18,7 @@ import {
 } from "@/lib/rate-limit-server";
 import { processSignupGroupSelections } from "@/lib/group-join-server";
 import { linkGivingRecordsToUser } from "@/lib/giving-server";
+import { afterAuthVerifiedStripeMemberSync } from "@/lib/giving-stripe-member-sync-after";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { parseMemberParticipationType } from "@/lib/member-participation";
 import { getSessionPermissions } from "@/lib/session-permissions";
@@ -139,11 +140,18 @@ export async function POST(request: Request) {
           groupIds,
         );
         const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
-        const session = await createSession(user.id);
         const publicUser = toPublicMember(user);
+        afterAuthVerifiedStripeMemberSync(publicUser);
+        const session = await createSession(user.id);
         const permissions = await getSessionPermissions(publicUser);
         const response = NextResponse.json(
-          { user: publicUser, permissions, ministryResults, linkedGifts },
+          {
+            user: publicUser,
+            permissions,
+            ministryResults,
+            linkedGifts,
+            givingStripeSyncAfter: true,
+          },
           { status: 201 },
         );
         response.cookies.set(SESSION_COOKIE, session.token, sessionCookieOptions());
@@ -162,10 +170,16 @@ export async function POST(request: Request) {
     }
 
     const linkedGifts = await linkGivingRecordsToUser(user.email, user.id);
-    const session = await createSession(user.id);
     const publicUser = toPublicMember(user);
+    afterAuthVerifiedStripeMemberSync(publicUser);
+    const session = await createSession(user.id);
     const permissions = await getSessionPermissions(publicUser);
-    const response = NextResponse.json({ user: publicUser, permissions, linkedGifts });
+    const response = NextResponse.json({
+      user: publicUser,
+      permissions,
+      linkedGifts,
+      givingStripeSyncAfter: true,
+    });
     response.cookies.set(SESSION_COOKIE, session.token, sessionCookieOptions());
     return response;
   } catch (error) {

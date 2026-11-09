@@ -9,6 +9,18 @@ import {
 import { mergeMemberVisibleGivingRecords } from "../src/lib/giving-member-merge";
 import { resolveStripeInvoiceSubscriptionId, resolveStripeCustomerId } from "../src/lib/giving-stripe-invoice";
 import { metadataUserId } from "../src/lib/giving-stripe-identity";
+import { redactEmailForLogs, redactStripeId } from "../src/lib/giving-privacy-redact";
+import {
+  checkoutSessionEligibleForMemberSync,
+  shouldAttemptMemberStripeSync,
+  stripeCheckoutMetadataOwnerConflict,
+  stripeInvoiceMetadataOwnerConflict,
+  stripeCustomerVerifiedForMember,
+  memberStripeSyncErrorBackoffMs,
+  summarizeMemberStripeSyncRuns,
+  MEMBER_STRIPE_SYNC_MIN_GAP_MS,
+  MEMBER_STRIPE_SYNC_SUCCESS_COOLDOWN_MS,
+} from "../src/lib/giving-stripe-member-sync-policy";
 import {
   canLinkGivingRecordToMember,
   checkoutSessionAuthorizedForMember,
@@ -34,6 +46,7 @@ function sessionFixture(overrides: Record<string, unknown> = {}) {
     payment_status: "paid",
     metadata: GIVING_META,
     client_reference_id: "member-a",
+    customer: "cus_linked",
     customer_details: { email: "donor@shanah.city" },
     created: 1_700_000_000,
     status_transitions: { paid_at: 1_700_086_400 },
@@ -315,5 +328,209 @@ const reconcileSource = readFileSync(
 );
 assert.match(reconcileSource, /isShanahGivingCheckoutSession/);
 assert.match(reconcileSource, /isShanahGivingInvoiceMetadata/);
+
+assert.equal(redactEmailForLogs("pat@example.com"), "p***@example.com");
+assert.equal(redactStripeId("cs_test_abcdefghij"), "cs_tes…ghij");
+
+assert.equal(
+  checkoutSessionEligibleForMemberSync(
+    sessionFixture(),
+    { id: "member-a", email: "donor@shanah.city" },
+    "cus_linked",
+  ),
+  true,
+);
+assert.equal(
+  checkoutSessionEligibleForMemberSync(
+    sessionFixture({ client_reference_id: "other", customer: "cus_linked" }),
+    { id: "member-a", email: "donor@shanah.city" },
+    "cus_linked",
+  ),
+  false,
+  "unauthorized session rejected for member sync",
+);
+
+assert.equal(
+  stripeCustomerVerifiedForMember("cus_linked", "cus_linked"),
+  true,
+);
+assert.equal(stripeCustomerVerifiedForMember("cus_other", "cus_linked"), false);
+
+assert.deepEqual(
+  stripeCheckoutMetadataOwnerConflict(
+    sessionFixture({ metadata: { ...GIVING_META, userId: "member-b" } }),
+    { id: "member-a" },
+  ),
+  {
+    conflict: true,
+    reason: "metadata_userId_conflict",
+    metadataUserId: "member-b",
+    clientReferenceId: "member-a",
+  },
+);
+
+assert.deepEqual(
+  stripeInvoiceMetadataOwnerConflict(
+    { metadata: {} },
+    { fund: "offering", giftAmount: "25", userId: "member-b" },
+    { id: "member-a" },
+  ),
+  {
+    conflict: true,
+    reason: "invoice_metadata_userId_conflict",
+    metadataUserId: "member-b",
+  },
+);
+
+assert.equal(
+  checkoutSessionEligibleForMemberSync(
+    sessionFixture({
+      client_reference_id: "member-a",
+      metadata: { ...GIVING_META, userId: "member-b" },
+      customer: "cus_linked",
+    }),
+    { id: "member-a", email: "donor@shanah.city" },
+    "cus_linked",
+  ),
+  false,
+  "metadata userId conflict blocks sync even when customer matches",
+);
+
+assert.equal(
+  shouldAttemptMemberStripeSync({
+    nowMs: 1_000_000,
+    lastAttemptAtMs: 999_000,
+    lastSuccessAtMs: null,
+    consecutiveFailures: 0,
+    trigger: "history",
+  }).run,
+  false,
+  "debounce blocks rapid history refresh",
+);
+
+assert.equal(
+  shouldAttemptMemberStripeSync({
+    nowMs: 1_000_000,
+    lastAttemptAtMs: 900_000,
+    lastSuccessAtMs: 950_000,
+    consecutiveFailures: 0,
+    trigger: "history",
+  }).run,
+  false,
+  "success cooldown skips Stripe within 15 minutes",
+);
+
+assert.equal(memberStripeSyncErrorBackoffMs(2), 20 * 60_000);
+
+const profileViewBase = 1_700_000_000_000;
+const runRows = [
+  {
+    status: "ok",
+    createdAt: new Date(profileViewBase),
+    finishedAt: new Date(profileViewBase),
+  },
+  {
+    status: "skipped_cooldown",
+    createdAt: new Date(profileViewBase + 30_000),
+    finishedAt: new Date(profileViewBase + 30_000),
+  },
+  {
+    status: "skipped_cooldown",
+    createdAt: new Date(profileViewBase + 45_000),
+    finishedAt: new Date(profileViewBase + 45_000),
+  },
+];
+const cooldownState = summarizeMemberStripeSyncRuns(runRows);
+assert.equal(
+  cooldownState.lastAttemptAt?.getTime(),
+  profileViewBase,
+  "skipped_cooldown rows must not advance lastAttemptAt",
+);
+assert.equal(
+  shouldAttemptMemberStripeSync({
+    nowMs: profileViewBase + MEMBER_STRIPE_SYNC_MIN_GAP_MS + 1,
+    lastAttemptAtMs: cooldownState.lastAttemptAt?.getTime() ?? null,
+    lastSuccessAtMs: cooldownState.lastSuccessAt?.getTime() ?? null,
+    consecutiveFailures: 0,
+    trigger: "history",
+  }).run,
+  false,
+  "success cooldown still applies after many profile views",
+);
+assert.equal(
+  shouldAttemptMemberStripeSync({
+    nowMs: profileViewBase + MEMBER_STRIPE_SYNC_SUCCESS_COOLDOWN_MS + 60_000,
+    lastAttemptAtMs: cooldownState.lastAttemptAt?.getTime() ?? null,
+    lastSuccessAtMs: cooldownState.lastSuccessAt?.getTime() ?? null,
+    consecutiveFailures: 0,
+    trigger: "history",
+  }).run,
+  true,
+  "real sync allowed after cooldown even if profile was opened repeatedly",
+);
+
+assert.equal(
+  isEligibleReconcileGiftInvoice({
+    status: "paid",
+    amount_paid: 5000,
+    amount_refunded: 5000,
+  }),
+  false,
+  "fully refunded invoice not eligible for recovery",
+);
+
+const diagnosticRoute = readFileSync(
+  path.join(process.cwd(), "src/app/api/admin/giving/diagnostic/route.ts"),
+  "utf8",
+);
+assert.match(diagnosticRoute, /buildGivingHistoryIncidentReport/);
+
+const diagnosticServer = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-diagnostic-server.ts"),
+  "utf8",
+);
+assert.match(diagnosticServer, /readOnly:\s*true/);
+assert.match(diagnosticServer, /identityLinkCandidates/);
+
+const memberSync = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-stripe-member-sync.ts"),
+  "utf8",
+);
+assert.match(memberSync, /scheduleVerifiedStripeGiftsForMember/);
+assert.match(memberSync, /MEMBER_STRIPE_SYNC_TIMEOUT_MS/);
+assert.match(memberSync, /flagStripeMemberSyncForFinanceReview/);
+
+const authRoute = readFileSync(path.join(process.cwd(), "src/app/api/auth/route.ts"), "utf8");
+assert.match(authRoute, /afterAuthVerifiedStripeMemberSync/);
+assert.match(authRoute, /givingStripeSyncAfter/);
+
+const afterSync = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-stripe-member-sync-after.ts"),
+  "utf8",
+);
+assert.match(afterSync, /from "next\/server"/);
+assert.match(afterSync, /\bafter\(/);
+
+const historyServer = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-member-history-server.ts"),
+  "utf8",
+);
+assert.match(historyServer, /stripeSync/);
+assert.match(historyServer, /catch/);
+
+const policySource = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-stripe-member-sync-policy.ts"),
+  "utf8",
+);
+assert.match(policySource, /stripeCheckoutMetadataOwnerConflict/);
+
+const auditMigration = readFileSync(
+  path.join(
+    process.cwd(),
+    "prisma/migrations/20261108200000_giving_stripe_member_sync_audit/migration.sql",
+  ),
+  "utf8",
+);
+assert.match(auditMigration, /GivingStripeMemberSyncReview/);
 
 console.log("giving-stripe-history.test.ts OK");

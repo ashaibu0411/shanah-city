@@ -1,0 +1,30 @@
+# Giving Stripe member sync — production release (PR #51)
+
+## Migration sequencing (required)
+
+Migration: `prisma/migrations/20261108200000_giving_stripe_member_sync_audit`
+
+Tables: `GivingStripeMemberSyncRun`, `GivingStripeMemberSyncReview`
+
+1. **Before or during deploy (not after traffic):** run `npx prisma migrate deploy` against **production** Postgres (direct/unpooled URL recommended).
+2. **Vercel production:** `npm run build` may run `prisma migrate deploy` when `DATABASE_URL` / direct URL is set (see `scripts/build-steps.cjs`). **Do not rely on preview builds** — they never migrate.
+3. **Validate without printing secrets:**
+   - Offline: `node scripts/validate-giving-stripe-sync-migration.cjs`
+   - With DB: `DATABASE_URL=… node scripts/validate-giving-stripe-sync-migration.cjs --check-db`  
+     (logs hostname + database name only)
+
+If migration is not applied, audit/cooldown queries fail closed: sync still runs, audit rows are skipped (missing-table handling).
+
+## Runtime behavior
+
+| Trigger | Mechanism |
+|---------|-----------|
+| Sign-in / sign-up | `after()` (`giving-stripe-member-sync-after.ts`) — bounded 14s; login response is not blocked |
+| Profile → Your giving | `GET /api/giving/history` — inline sync with cooldown; **existing DB records always returned** even when Stripe fails |
+
+## Post-deploy smoke
+
+1. Member sign-in → open Profile → Your giving (polls up to ~25s if post-auth sync is still running).
+2. Finance: `GET /api/admin/giving/diagnostic?days=90` — `openMemberSyncReviews` for metadata conflicts.
+
+No bulk financial backfill in this release.

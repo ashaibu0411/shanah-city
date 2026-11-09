@@ -15,6 +15,7 @@ import {
   readBiometricLoginCredentials,
   type BiometricLoginAvailability,
 } from "@/lib/native-biometric-login";
+import { markGivingHistoryRefreshAfterAuth } from "@/lib/giving-history-client";
 import type { SignupGroupOption } from "@/lib/group-types";
 import { ParticipationTypePicker } from "@/components/profile/ParticipationTypePicker";
 import type { MemberParticipationType } from "@/lib/member-participation";
@@ -137,7 +138,10 @@ export function SignInForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: savedEmail, password: savedPassword }),
         });
-        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        const data = (await response.json().catch(() => ({}))) as {
+          error?: string;
+          givingStripeSyncAfter?: boolean;
+        };
 
         if (!response.ok) {
           await clearBiometricLogin();
@@ -149,6 +153,7 @@ export function SignInForm() {
           return;
         }
 
+        markGivingHistoryRefreshAfterAuth(data);
         await refresh();
         router.push(nextPath);
         router.refresh();
@@ -191,13 +196,17 @@ export function SignInForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        givingStripeSyncAfter?: boolean;
+      };
 
       if (!response.ok) {
         setError(data.error ?? "Sign in failed.");
         return;
       }
 
+      markGivingHistoryRefreshAfterAuth(data);
       await refresh();
 
       if (biometric?.supported) {
@@ -402,6 +411,7 @@ export function SignUpForm() {
       return;
     }
 
+    markGivingHistoryRefreshAfterAuth(data);
     await refresh();
     router.push(nextPath);
     router.refresh();

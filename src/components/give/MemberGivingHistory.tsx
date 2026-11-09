@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
 import { MemberRecurringGivingPanel } from "@/components/give/MemberRecurringGivingPanel";
 import { getDenverWeekRange } from "@/lib/denver-time";
+import { GIVING_HISTORY_AFTER_AUTH_POLL_MS } from "@/lib/giving-history-client";
 import type { GivingRecord } from "@/lib/giving-types";
 
 function formatMoney(amount: number) {
@@ -19,18 +20,35 @@ export function MemberGivingHistory() {
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [fetching, setFetching] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadHistory = useCallback(() => {
     if (!user) return;
 
     setFetching(true);
+    setLoadError(null);
     fetch("/api/giving/history", { cache: "no-store", credentials: "include" })
-      .then((response) => response.json())
-      .then((data) => {
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) {
+          setLoadError(data.error ?? "Could not load giving history.");
+          return;
+        }
         if (data.records) {
           setRecords(data.records);
           setTotal(data.summary?.totalAmount ?? 0);
+          setLoadError(null);
         }
+        const recovered =
+          (data.stripeSync?.recorded ?? 0) + (data.stripeSync?.linked ?? 0);
+        if (recovered > 0) {
+          window.sessionStorage.removeItem("giving-history-refresh");
+        }
+      })
+      .catch(() => {
+        setLoadError(
+          "Could not refresh giving history. Your last loaded records are still shown.",
+        );
       })
       .finally(() => setFetching(false));
   }, [user]);
@@ -56,12 +74,22 @@ export function MemberGivingHistory() {
     const refreshStamp = window.sessionStorage.getItem("giving-history-refresh");
     if (refreshStamp) {
       loadHistory();
-      window.sessionStorage.removeItem("giving-history-refresh");
     }
+
+    const pollTimers = refreshStamp
+      ? GIVING_HISTORY_AFTER_AUTH_POLL_MS.map((delayMs) =>
+          window.setTimeout(() => {
+            if (window.sessionStorage.getItem("giving-history-refresh")) {
+              loadHistory();
+            }
+          }, delayMs),
+        )
+      : [];
 
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", onFocus);
     return () => {
+      pollTimers.forEach((timer) => window.clearTimeout(timer));
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onFocus);
     };
@@ -118,9 +146,13 @@ export function MemberGivingHistory() {
 
       <MemberRecurringGivingPanel />
 
+      {loadError ? (
+        <p className="mt-4 text-sm text-rose-700">{loadError}</p>
+      ) : null}
+
       {fetching ? (
         <p className="mt-4 text-sm text-night-500">Loading giving history…</p>
-      ) : records.length === 0 ? (
+      ) : records.length === 0 && !loadError ? (
         <p className="mt-4 text-sm text-night-600">
           No gifts recorded yet.{" "}
           <Link href="/give" className="font-semibold text-night-900 underline">
