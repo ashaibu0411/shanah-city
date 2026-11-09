@@ -19,18 +19,31 @@ export function MemberGivingHistory() {
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [fetching, setFetching] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadHistory = useCallback(() => {
     if (!user) return;
 
     setFetching(true);
+    setLoadError(null);
     fetch("/api/giving/history", { cache: "no-store", credentials: "include" })
-      .then((response) => response.json())
-      .then((data) => {
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) {
+          setRecords([]);
+          setTotal(0);
+          setLoadError(data.error ?? "Could not load giving history.");
+          return;
+        }
         if (data.records) {
           setRecords(data.records);
           setTotal(data.summary?.totalAmount ?? 0);
         }
+      })
+      .catch(() => {
+        setRecords([]);
+        setTotal(0);
+        setLoadError("Could not load giving history.");
       })
       .finally(() => setFetching(false));
   }, [user]);
@@ -118,9 +131,13 @@ export function MemberGivingHistory() {
 
       <MemberRecurringGivingPanel />
 
+      {loadError ? (
+        <p className="mt-4 text-sm text-rose-700">{loadError}</p>
+      ) : null}
+
       {fetching ? (
         <p className="mt-4 text-sm text-night-500">Loading giving history…</p>
-      ) : records.length === 0 ? (
+      ) : records.length === 0 && !loadError ? (
         <p className="mt-4 text-sm text-night-600">
           No gifts recorded yet.{" "}
           <Link href="/give" className="font-semibold text-night-900 underline">

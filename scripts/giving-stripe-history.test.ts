@@ -9,6 +9,8 @@ import {
 import { mergeMemberVisibleGivingRecords } from "../src/lib/giving-member-merge";
 import { resolveStripeInvoiceSubscriptionId, resolveStripeCustomerId } from "../src/lib/giving-stripe-invoice";
 import { metadataUserId } from "../src/lib/giving-stripe-identity";
+import { redactEmailForLogs, redactStripeId } from "../src/lib/giving-privacy-redact";
+import { checkoutSessionEligibleForMemberSync } from "../src/lib/giving-stripe-member-sync";
 import {
   canLinkGivingRecordToMember,
   checkoutSessionAuthorizedForMember,
@@ -315,5 +317,46 @@ const reconcileSource = readFileSync(
 );
 assert.match(reconcileSource, /isShanahGivingCheckoutSession/);
 assert.match(reconcileSource, /isShanahGivingInvoiceMetadata/);
+
+assert.equal(redactEmailForLogs("pat@example.com"), "p***@example.com");
+assert.equal(redactStripeId("cs_test_abcdefghij"), "cs_tes…ghij");
+
+assert.equal(
+  checkoutSessionEligibleForMemberSync(
+    sessionFixture(),
+    { id: "member-a", email: "donor@shanah.city" },
+    "cus_linked",
+  ),
+  true,
+);
+assert.equal(
+  checkoutSessionEligibleForMemberSync(
+    sessionFixture({ client_reference_id: "other" }),
+    { id: "member-a", email: "donor@shanah.city" },
+    "cus_linked",
+  ),
+  false,
+  "unauthorized session rejected for member sync",
+);
+
+const diagnosticRoute = readFileSync(
+  path.join(process.cwd(), "src/app/api/admin/giving/diagnostic/route.ts"),
+  "utf8",
+);
+assert.match(diagnosticRoute, /buildGivingHistoryIncidentReport/);
+
+const diagnosticServer = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-diagnostic-server.ts"),
+  "utf8",
+);
+assert.match(diagnosticServer, /readOnly:\s*true/);
+assert.match(diagnosticServer, /identityLinkCandidates/);
+
+const memberSync = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-stripe-member-sync.ts"),
+  "utf8",
+);
+assert.match(memberSync, /syncVerifiedStripeGiftsForMember/);
+assert.match(memberSync, /checkoutSessionEligibleForMemberSync/);
 
 console.log("giving-stripe-history.test.ts OK");

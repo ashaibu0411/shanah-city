@@ -13,7 +13,7 @@ export async function GET() {
     return NextResponse.json({ error: "Sign in to view your giving history." }, { status: 401 });
   }
 
-  const records = await listGivingRecordsForMember({ id: user.id, email: user.email });
+  const records = await listGivingRecordsForMember(user);
   const summary = summarizeGivingRecords(records);
 
   return NextResponse.json(

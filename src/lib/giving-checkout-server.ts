@@ -48,8 +48,7 @@ import {
   isShanahGivingInvoiceMetadata,
   stripeInvoiceIsFullyRefunded,
 } from "@/lib/giving-stripe-eligibility";
-import { prisma } from "@/lib/db";
-import { useDatabase } from "@/lib/use-database";
+import { getMemberStripeCustomerId } from "@/lib/giving-stripe-member-sync";
 
 export { isStripeGivingConfigured };
 
@@ -417,15 +416,6 @@ export async function recordGiftFromInvoice(
   });
 }
 
-async function memberStripeCustomerId(userId: string) {
-  if (!useDatabase()) return null;
-  const row = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { stripeCustomerId: true },
-  });
-  return row?.stripeCustomerId ?? null;
-}
-
 export async function getCheckoutSessionForMember(
   sessionId: string,
   member: { id: string; email: string },
@@ -436,7 +426,7 @@ export async function getCheckoutSessionForMember(
   const session = await stripe.checkout.sessions.retrieve(sessionId);
 
   const authorized = checkoutSessionAuthorizedForMember(session, member, {
-    memberStripeCustomerId: await memberStripeCustomerId(member.id),
+    memberStripeCustomerId: await getMemberStripeCustomerId(member.id),
   });
   if (!authorized) return null;
 
