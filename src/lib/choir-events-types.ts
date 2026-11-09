@@ -89,6 +89,8 @@ export type WorshipEventCardView = {
   registrationLabel: string;
   featured: boolean;
   detailHref: string;
+  /** Deep link to worship planner for this service when a plan exists or the viewer can manage plans. */
+  worshipPlanHref: string | null;
   startsAtMs: number;
   rsvpEnabled: boolean;
 };

@@ -1,3 +1,4 @@
+import { worshipPlannerPath } from "@/lib/worship-plan-links";
 import {
   WORSHIP_SERVICE_SCHEDULE,
   WORSHIP_SERVICE_TIMES,
@@ -78,4 +79,32 @@ export function pickWorshipPlanForServiceDate(
   if (defaultSlot) return defaultSlot;
 
   return onDate[0] ?? null;
+}
+
+export function worshipPlannerHrefForService(
+  serviceDate: string,
+  plans: WorshipServicePlan[],
+  options: {
+    eventTimeLabel?: string | null;
+    serviceTime?: string | null;
+    canManagePlan: boolean;
+    preferPublished?: boolean;
+  },
+): string | null {
+  if (!serviceDate.trim()) return null;
+
+  const matchedPlan = pickWorshipPlanForServiceDate(plans, serviceDate, {
+    eventTimeLabel: options.eventTimeLabel,
+    serviceTime: options.serviceTime,
+    preferPublished: options.preferPublished ?? !options.canManagePlan,
+  });
+  const serviceTime =
+    matchedPlan?.serviceTime ??
+    coerceWorshipServiceTime(options.eventTimeLabel?.trim() || options.serviceTime || null);
+
+  if (matchedPlan || options.canManagePlan) {
+    return worshipPlannerPath({ serviceDate, serviceTime });
+  }
+
+  return null;
 }

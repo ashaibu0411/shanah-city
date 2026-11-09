@@ -9,6 +9,10 @@ type WorshipEventCardProps = {
   variant?: "compact" | "featured";
 };
 
+function worshipEventPrimaryHref(event: WorshipEventCardView) {
+  return event.worshipPlanHref ?? event.detailHref;
+}
+
 function registrationBadgeClass(status: WorshipEventCardView["registrationStatus"]) {
   if (status === "open") return "choir-we-reg-open";
   if (status === "registered") return "choir-we-reg-confirmed";
@@ -39,10 +43,14 @@ export function WorshipEventCard({ event, variant = "compact" }: WorshipEventCar
           </span>
           <p className="choir-we-featured-desc">{event.shortDescription}</p>
           <div className="choir-we-featured-actions">
-            <Link href={event.detailHref} className="choir-btn-primary min-h-[44px] flex-1 text-center">
-              View Details
+            <Link href={worshipEventPrimaryHref(event)} className="choir-btn-primary min-h-[44px] flex-1 text-center">
+              {event.worshipPlanHref ? "Open worship planner" : "View Details"}
             </Link>
-            {event.rsvpEnabled && event.registrationStatus === "open" ? (
+            {event.worshipPlanHref ? (
+              <Link href={event.detailHref} className="choir-btn-secondary min-h-[44px] flex-1 text-center">
+                Event details
+              </Link>
+            ) : event.rsvpEnabled && event.registrationStatus === "open" ? (
               <Link href={`${event.detailHref}?register=1`} className="choir-btn-secondary min-h-[44px] flex-1 text-center">
                 Register Now
               </Link>
@@ -54,7 +62,7 @@ export function WorshipEventCard({ event, variant = "compact" }: WorshipEventCar
   }
 
   return (
-    <Link href={event.detailHref} className="choir-we-list-card">
+    <Link href={worshipEventPrimaryHref(event)} className="choir-we-list-card">
       <div className="choir-we-list-date">
         <span className="choir-we-list-month">{event.monthLabel}</span>
         <span className="choir-we-list-day">{event.dayLabel}</span>
