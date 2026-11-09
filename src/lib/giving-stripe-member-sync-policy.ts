@@ -141,3 +141,38 @@ export function shouldAttemptMemberStripeSync(input: {
 export function isStripeMemberSyncTimeoutError(error: unknown) {
   return error instanceof Error && error.message === "stripe_member_sync_timeout";
 }
+
+export const MEMBER_STRIPE_SYNC_ATTEMPT_STATUSES = [
+  "ok",
+  "partial",
+  "stripe_error",
+  "timeout",
+] as const;
+
+export type MemberStripeSyncAttemptStatus = (typeof MEMBER_STRIPE_SYNC_ATTEMPT_STATUSES)[number];
+
+export function isMemberStripeSyncAttemptStatus(
+  status: string,
+): status is MemberStripeSyncAttemptStatus {
+  return (MEMBER_STRIPE_SYNC_ATTEMPT_STATUSES as readonly string[]).includes(status);
+}
+
+/** Cooldown/debounce use real Stripe attempts only — skipped_cooldown rows (if any) are ignored. */
+export function summarizeMemberStripeSyncRuns(
+  runs: Array<{ status: string; createdAt: Date; finishedAt: Date | null }>,
+) {
+  const attempts = runs.filter((row) => isMemberStripeSyncAttemptStatus(row.status));
+  const lastAttemptAt = attempts[0]?.createdAt ?? null;
+  const lastSuccess = attempts.find((row) => row.status === "ok");
+  const lastSuccessAt = lastSuccess?.finishedAt ?? lastSuccess?.createdAt ?? null;
+
+  let consecutiveFailures = 0;
+  for (const row of attempts) {
+    if (row.status === "ok") break;
+    if (row.status === "stripe_error" || row.status === "timeout" || row.status === "partial") {
+      consecutiveFailures += 1;
+    }
+  }
+
+  return { lastAttemptAt, lastSuccessAt, consecutiveFailures };
+}

@@ -17,6 +17,9 @@ import {
   stripeInvoiceMetadataOwnerConflict,
   stripeCustomerVerifiedForMember,
   memberStripeSyncErrorBackoffMs,
+  summarizeMemberStripeSyncRuns,
+  MEMBER_STRIPE_SYNC_MIN_GAP_MS,
+  MEMBER_STRIPE_SYNC_SUCCESS_COOLDOWN_MS,
 } from "../src/lib/giving-stripe-member-sync-policy";
 import {
   canLinkGivingRecordToMember,
@@ -419,6 +422,53 @@ assert.equal(
 
 assert.equal(memberStripeSyncErrorBackoffMs(2), 20 * 60_000);
 
+const profileViewBase = 1_700_000_000_000;
+const runRows = [
+  {
+    status: "ok",
+    createdAt: new Date(profileViewBase),
+    finishedAt: new Date(profileViewBase),
+  },
+  {
+    status: "skipped_cooldown",
+    createdAt: new Date(profileViewBase + 30_000),
+    finishedAt: new Date(profileViewBase + 30_000),
+  },
+  {
+    status: "skipped_cooldown",
+    createdAt: new Date(profileViewBase + 45_000),
+    finishedAt: new Date(profileViewBase + 45_000),
+  },
+];
+const cooldownState = summarizeMemberStripeSyncRuns(runRows);
+assert.equal(
+  cooldownState.lastAttemptAt?.getTime(),
+  profileViewBase,
+  "skipped_cooldown rows must not advance lastAttemptAt",
+);
+assert.equal(
+  shouldAttemptMemberStripeSync({
+    nowMs: profileViewBase + MEMBER_STRIPE_SYNC_MIN_GAP_MS + 1,
+    lastAttemptAtMs: cooldownState.lastAttemptAt?.getTime() ?? null,
+    lastSuccessAtMs: cooldownState.lastSuccessAt?.getTime() ?? null,
+    consecutiveFailures: 0,
+    trigger: "history",
+  }).run,
+  false,
+  "success cooldown still applies after many profile views",
+);
+assert.equal(
+  shouldAttemptMemberStripeSync({
+    nowMs: profileViewBase + MEMBER_STRIPE_SYNC_SUCCESS_COOLDOWN_MS + 60_000,
+    lastAttemptAtMs: cooldownState.lastAttemptAt?.getTime() ?? null,
+    lastSuccessAtMs: cooldownState.lastSuccessAt?.getTime() ?? null,
+    consecutiveFailures: 0,
+    trigger: "history",
+  }).run,
+  true,
+  "real sync allowed after cooldown even if profile was opened repeatedly",
+);
+
 assert.equal(
   isEligibleReconcileGiftInvoice({
     status: "paid",
@@ -451,7 +501,22 @@ assert.match(memberSync, /MEMBER_STRIPE_SYNC_TIMEOUT_MS/);
 assert.match(memberSync, /flagStripeMemberSyncForFinanceReview/);
 
 const authRoute = readFileSync(path.join(process.cwd(), "src/app/api/auth/route.ts"), "utf8");
-assert.match(authRoute, /void scheduleVerifiedStripeGiftsForMember/);
+assert.match(authRoute, /afterAuthVerifiedStripeMemberSync/);
+assert.match(authRoute, /givingStripeSyncAfter/);
+
+const afterSync = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-stripe-member-sync-after.ts"),
+  "utf8",
+);
+assert.match(afterSync, /from "next\/server"/);
+assert.match(afterSync, /\bafter\(/);
+
+const historyServer = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-member-history-server.ts"),
+  "utf8",
+);
+assert.match(historyServer, /stripeSync/);
+assert.match(historyServer, /catch/);
 
 const policySource = readFileSync(
   path.join(process.cwd(), "src/lib/giving-stripe-member-sync-policy.ts"),

@@ -1,7 +1,11 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { useDatabase } from "@/lib/use-database";
 import { redactStripeId, redactUserIdForLogs } from "@/lib/giving-privacy-redact";
-import type { MemberStripeSyncTrigger } from "@/lib/giving-stripe-member-sync-policy";
+import {
+  summarizeMemberStripeSyncRuns,
+  type MemberStripeSyncTrigger,
+} from "@/lib/giving-stripe-member-sync-policy";
 
 function newAuditId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -14,39 +18,48 @@ export type MemberStripeSyncRunStatus =
   | "timeout"
   | "partial";
 
+function isMissingAuditTableError(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    (error.code === "P2021" || error.code === "P2022")
+  );
+}
+
 export async function loadMemberStripeSyncState(userId: string) {
   if (!useDatabase()) {
     return {
       lastAttemptAt: null as Date | null,
       lastSuccessAt: null as Date | null,
       consecutiveFailures: 0,
+      auditTablesReady: true,
     };
   }
 
-  const recent = await prisma.givingStripeMemberSyncRun.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: 12,
-    select: {
-      status: true,
-      createdAt: true,
-      finishedAt: true,
-    },
-  });
+  try {
+    const recent = await prisma.givingStripeMemberSyncRun.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 24,
+      select: {
+        status: true,
+        createdAt: true,
+        finishedAt: true,
+      },
+    });
 
-  const lastAttemptAt = recent[0]?.createdAt ?? null;
-  const lastSuccess = recent.find((row) => row.status === "ok");
-  const lastSuccessAt = lastSuccess?.finishedAt ?? lastSuccess?.createdAt ?? null;
-
-  let consecutiveFailures = 0;
-  for (const row of recent) {
-    if (row.status === "ok" || row.status === "skipped_cooldown") break;
-    if (row.status === "stripe_error" || row.status === "timeout" || row.status === "partial") {
-      consecutiveFailures += 1;
+    const summary = summarizeMemberStripeSyncRuns(recent);
+    return { ...summary, auditTablesReady: true };
+  } catch (error) {
+    if (isMissingAuditTableError(error)) {
+      return {
+        lastAttemptAt: null,
+        lastSuccessAt: null,
+        consecutiveFailures: 0,
+        auditTablesReady: false,
+      };
     }
+    throw error;
   }
-
-  return { lastAttemptAt, lastSuccessAt, consecutiveFailures };
 }
 
 export async function createMemberStripeSyncRun(input: {
@@ -63,21 +76,26 @@ export async function createMemberStripeSyncRun(input: {
 }) {
   if (!useDatabase()) return;
 
-  await prisma.givingStripeMemberSyncRun.create({
-    data: {
-      id: newAuditId("gssrun"),
-      userId: input.userId,
-      trigger: input.trigger,
-      status: input.status,
-      recorded: input.recorded,
-      linked: input.linked,
-      flagged: input.flagged,
-      skipped: input.skipped,
-      errorMessage: input.errorMessage ?? null,
-      startedAt: input.startedAt,
-      finishedAt: input.finishedAt,
-    },
-  });
+  try {
+    await prisma.givingStripeMemberSyncRun.create({
+      data: {
+        id: newAuditId("gssrun"),
+        userId: input.userId,
+        trigger: input.trigger,
+        status: input.status,
+        recorded: input.recorded,
+        linked: input.linked,
+        flagged: input.flagged,
+        skipped: input.skipped,
+        errorMessage: input.errorMessage ?? null,
+        startedAt: input.startedAt,
+        finishedAt: input.finishedAt,
+      },
+    });
+  } catch (error) {
+    if (isMissingAuditTableError(error)) return;
+    throw error;
+  }
 
   console.info("[giving-stripe-member-sync]", {
     member: redactUserIdForLogs(input.userId),
@@ -124,14 +142,25 @@ export async function flagStripeMemberSyncForFinanceReview(input: {
       reason: input.reason,
     });
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2002" || error.code === "P2021" || error.code === "P2022")
+    ) {
+      return false;
+    }
+    throw error;
   }
 }
 
 export async function countOpenMemberStripeSyncReviews() {
   if (!useDatabase()) return 0;
-  return prisma.givingStripeMemberSyncReview.count({
-    where: { resolvedAt: null },
-  });
+  try {
+    return await prisma.givingStripeMemberSyncReview.count({
+      where: { resolvedAt: null },
+    });
+  } catch (error) {
+    if (isMissingAuditTableError(error)) return 0;
+    throw error;
+  }
 }

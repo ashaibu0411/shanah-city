@@ -110,6 +110,7 @@ export type MemberStripeSyncResult = {
   flagged: number;
   skipped: number;
   status: "ok" | "skipped_cooldown" | "stripe_error" | "timeout" | "partial" | "noop";
+  skippedReason?: string;
 };
 
 async function runVerifiedStripeGiftSync(
@@ -300,20 +301,7 @@ export async function scheduleVerifiedStripeGiftsForMember(
     });
 
     if (!decision.run) {
-      const finishedAt = new Date();
-      await createMemberStripeSyncRun({
-        userId: member.id,
-        trigger,
-        status: "skipped_cooldown",
-        recorded: 0,
-        linked: 0,
-        flagged: 0,
-        skipped: 0,
-        startedAt,
-        finishedAt,
-        errorMessage: decision.reason,
-      });
-      return { ...noop, status: "skipped_cooldown" };
+      return { ...noop, status: "skipped_cooldown", skippedReason: decision.reason };
     }
 
     const outcome = await runVerifiedStripeGiftSync(member);

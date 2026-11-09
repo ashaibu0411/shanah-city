@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
 import { MemberRecurringGivingPanel } from "@/components/give/MemberRecurringGivingPanel";
 import { getDenverWeekRange } from "@/lib/denver-time";
+import { GIVING_HISTORY_AFTER_AUTH_POLL_MS } from "@/lib/giving-history-client";
 import type { GivingRecord } from "@/lib/giving-types";
 
 function formatMoney(amount: number) {
@@ -30,20 +31,24 @@ export function MemberGivingHistory() {
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) {
-          setRecords([]);
-          setTotal(0);
           setLoadError(data.error ?? "Could not load giving history.");
           return;
         }
         if (data.records) {
           setRecords(data.records);
           setTotal(data.summary?.totalAmount ?? 0);
+          setLoadError(null);
+        }
+        const recovered =
+          (data.stripeSync?.recorded ?? 0) + (data.stripeSync?.linked ?? 0);
+        if (recovered > 0) {
+          window.sessionStorage.removeItem("giving-history-refresh");
         }
       })
       .catch(() => {
-        setRecords([]);
-        setTotal(0);
-        setLoadError("Could not load giving history.");
+        setLoadError(
+          "Could not refresh giving history. Your last loaded records are still shown.",
+        );
       })
       .finally(() => setFetching(false));
   }, [user]);
@@ -69,12 +74,22 @@ export function MemberGivingHistory() {
     const refreshStamp = window.sessionStorage.getItem("giving-history-refresh");
     if (refreshStamp) {
       loadHistory();
-      window.sessionStorage.removeItem("giving-history-refresh");
     }
+
+    const pollTimers = refreshStamp
+      ? GIVING_HISTORY_AFTER_AUTH_POLL_MS.map((delayMs) =>
+          window.setTimeout(() => {
+            if (window.sessionStorage.getItem("giving-history-refresh")) {
+              loadHistory();
+            }
+          }, delayMs),
+        )
+      : [];
 
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", onFocus);
     return () => {
+      pollTimers.forEach((timer) => window.clearTimeout(timer));
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onFocus);
     };
