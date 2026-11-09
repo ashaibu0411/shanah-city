@@ -2,7 +2,9 @@ import { prisma } from "@/lib/db";
 import {
   WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT,
   clampWorshipScheduleWeeksAhead,
+  coalesceWorshipRotationConfig,
   defaultRotationConfig,
+  normalizeWorshipRotationIndex,
   type WorshipRotationPoolMember,
   type WorshipScheduleRotationConfig,
 } from "@/lib/worship-types";
@@ -47,7 +49,7 @@ function mapRotation(record: {
     pool: parsePool(record.pool),
     serviceTime: record.serviceTime,
     serviceKind: record.serviceKind === "friday" ? "friday" : "sunday",
-    rotationIndex: record.rotationIndex,
+    rotationIndex: normalizeWorshipRotationIndex(record.rotationIndex),
     skipDates: parseSkipDates(record.skipDates),
     weeksAhead: record.weeksAhead,
     uploadDutyLeadDays: record.uploadDutyLeadDays,
@@ -72,7 +74,9 @@ export async function getWorshipRotationConfig() {
   const record = await prisma.worshipScheduleRotation.findUnique({
     where: { id: ROTATION_ID },
   });
-  return withPlanningHorizon(record ? mapRotation(record) : defaultRotationConfig());
+  return withPlanningHorizon(
+    record ? coalesceWorshipRotationConfig(mapRotation(record)) : defaultRotationConfig(),
+  );
 }
 
 export async function saveWorshipRotationConfig(input: {

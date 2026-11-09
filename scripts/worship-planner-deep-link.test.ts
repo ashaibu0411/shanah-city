@@ -6,12 +6,24 @@ import {
   pickWorshipPlanForServiceDate,
   worshipPlannerHrefForService,
 } from "../src/lib/worship-plan-event-resolve";
-import type { WorshipServicePlan } from "../src/lib/worship-types";
+import {
+  coalesceWorshipRotationConfig,
+  normalizeWorshipRotationIndex,
+  type WorshipServicePlan,
+} from "../src/lib/worship-types";
 
 assert.equal(coerceWorshipServiceTime("10:00"), "10:00");
 assert.equal(coerceWorshipServiceTime("10:00 AM"), "10:00");
 assert.equal(coerceWorshipServiceTime("11:30 AM"), "11:30");
 assert.equal(coerceWorshipServiceTime(undefined), "10:00");
+
+assert.equal(normalizeWorshipRotationIndex(undefined), 0);
+assert.equal(normalizeWorshipRotationIndex("3"), 3);
+assert.equal(normalizeWorshipRotationIndex(Number.NaN), 0);
+assert.equal(
+  coalesceWorshipRotationConfig({ id: "default", rotationIndex: undefined } as never).rotationIndex,
+  0,
+);
 
 const plans = [
   {

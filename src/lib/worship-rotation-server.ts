@@ -9,6 +9,7 @@ import {
 import {
   clampWorshipScheduleWeeksAhead,
   listServiceDatesInRange,
+  normalizeWorshipRotationIndex,
   normalizeTeam,
   serviceTypeForTime,
   suggestedRehearsalDate,
@@ -42,7 +43,7 @@ export async function generateWorshipSchedule(input: {
     (date) => !config.skipDates.includes(date),
   );
 
-  let rotationIndex = config.rotationIndex;
+  let rotationIndex = normalizeWorshipRotationIndex(config.rotationIndex);
   const created: WorshipServicePlan[] = [];
   const skipped: string[] = [];
 

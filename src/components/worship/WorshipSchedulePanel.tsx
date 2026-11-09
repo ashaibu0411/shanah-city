@@ -10,6 +10,7 @@ import {
   WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT,
   WORSHIP_SCHEDULE_WEEKS_AHEAD_MAX,
   WORSHIP_SERVICE_TIMES,
+  normalizeWorshipRotationIndex,
   serviceDateTimeLabel,
   type WorshipRotationPoolMember,
   type WorshipScheduleRotationConfig,
@@ -386,7 +387,8 @@ export function WorshipSchedulePanel({
 
       {config && (
         <p className="text-xs text-night-500">
-          Next rotation index: {config.rotationIndex + 1} (continues where the last generate left off).
+          Next rotation index: {normalizeWorshipRotationIndex(config.rotationIndex) + 1} (continues where
+          the last generate left off).
         </p>
       )}
 
