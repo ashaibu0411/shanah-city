@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { fundLabel, summarizeGivingRecords } from "@/lib/giving-types";
-import { listGivingRecords } from "@/lib/giving-server";
+import { listGivingRecordsForMember } from "@/lib/giving-member-history-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 
 export async function GET() {
@@ -13,14 +13,21 @@ export async function GET() {
     return NextResponse.json({ error: "Sign in to view your giving history." }, { status: 401 });
   }
 
-  const records = await listGivingRecords({ userId: user.id });
+  const records = await listGivingRecordsForMember({ id: user.id, email: user.email });
   const summary = summarizeGivingRecords(records);
 
-  return NextResponse.json({
-    records: records.map((record) => ({
-      ...record,
-      fundLabel: fundLabel(record.fund),
-    })),
-    summary,
-  });
+  return NextResponse.json(
+    {
+      records: records.map((record) => ({
+        ...record,
+        fundLabel: fundLabel(record.fund),
+      })),
+      summary,
+    },
+    {
+      headers: {
+        "Cache-Control": "private, no-store, max-age=0",
+      },
+    },
+  );
 }

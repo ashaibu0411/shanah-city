@@ -1,5 +1,6 @@
-import Link from "next/link";
-import { Button, PageHeader } from "@/components/ui";
+import { Suspense } from "react";
+import { PageHeader } from "@/components/ui";
+import { GiveSuccessClient } from "@/components/give/GiveSuccessClient";
 
 export default function GiveSuccessPage() {
   return (
@@ -11,25 +12,16 @@ export default function GiveSuccessPage() {
       />
       <div className="rounded-2xl bg-white p-8 ring-1 ring-night-900/5">
         <p className="text-night-700">
-          Your payment was submitted successfully. If you signed in before giving, your gift will
-          appear on your profile shortly.
+          Your payment was submitted successfully. Signed-in gifts sync to{" "}
+          <strong>Profile → Your giving</strong> automatically (webhook and return confirmation).
         </p>
         <p className="mt-3 text-sm text-night-600">
-          For <strong>recurring</strong> gifts: open{" "}
-          <Link href="/profile" className="font-semibold text-night-900 underline">
-            Profile → Your giving
-          </Link>{" "}
-          and tap <strong>Manage or cancel in Stripe</strong> to change amount, card, or cancel.
+          For <strong>recurring</strong> gifts: open Profile → Your giving and tap{" "}
+          <strong>Manage or cancel in Stripe</strong> to change amount, card, or cancel.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button href="/profile">View profile</Button>
-          <Button href="/give" variant="secondary">
-            Back to giving
-          </Button>
-          <Link href="/" className="self-center text-sm font-semibold text-night-700 underline">
-            Home
-          </Link>
-        </div>
+        <Suspense fallback={<p className="mt-4 text-sm text-night-500">Loading…</p>}>
+          <GiveSuccessClient />
+        </Suspense>
       </div>
     </>
   );

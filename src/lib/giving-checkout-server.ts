@@ -36,6 +36,11 @@ import {
   stripeTrialEndForRecurringStart,
   validateRecurringStartDate,
 } from "@/lib/giving-recurring-start";
+import {
+  metadataValue,
+  resolveDonorIdentityFromCheckoutSession,
+  resolveDonorIdentityFromInvoice,
+} from "@/lib/giving-stripe-identity";
 
 export { isStripeGivingConfigured };
 
@@ -51,16 +56,6 @@ function amountInDollars(cents: number | null | undefined) {
 function parseFund(value: string | null | undefined): GivingFund {
   const fund = String(value ?? "offering") as GivingFund;
   return fund;
-}
-
-function metadataUserId(value: string | null | undefined) {
-  const id = value?.trim();
-  return id || undefined;
-}
-
-function metadataValue(value: string | null | undefined) {
-  const trimmed = value?.trim();
-  return trimmed || undefined;
 }
 
 export async function createGivingCheckoutSession(input: {
@@ -329,15 +324,9 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
     donorEmail?.split("@")[0] ||
     "Online donor";
 
-  let userId = session.client_reference_id || metadataUserId(session.metadata?.userId);
-  let campusId = metadataValue(session.metadata?.campusId);
-  if (!userId && donorEmail) {
-    const member = await getUserByEmail(donorEmail);
-    if (member) {
-      userId = member.id;
-      campusId = campusId ?? member.campusId;
-    }
-  }
+  const identity = await resolveDonorIdentityFromCheckoutSession(session);
+  const userId = identity.userId;
+  const campusId = identity.campusId;
 
   const donorName = await donorNameForGivingRecord({
     userId,
@@ -384,7 +373,8 @@ export async function recordGiftFromInvoice(
     donorEmail?.split("@")[0] ||
     "Online donor";
 
-  const userId = metadataUserId(metadata.userId);
+  const identity = await resolveDonorIdentityFromInvoice(invoice, extraMetadata);
+  const userId = identity.userId;
   const donorName = await donorNameForGivingRecord({
     userId,
     donorEmail,
@@ -405,22 +395,64 @@ export async function recordGiftFromInvoice(
     fund,
     donorName,
     donorEmail,
-    userId: metadataUserId(metadata.userId),
-    campusId: metadataValue(metadata.campusId),
+    userId,
+    campusId: identity.campusId ?? metadataValue(metadata.campusId),
     notes: giftNotesFromMetadata(metadata, `${frequencyNote}${startNote}`),
     stripeInvoiceId: invoice.id,
   });
 }
 
-export async function getCheckoutSessionForUser(sessionId: string, userId?: string) {
+export async function getCheckoutSessionForUser(
+  sessionId: string,
+  user?: { id: string; email: string },
+) {
   if (!isStripeGivingConfigured()) return null;
 
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-  if (userId && session.client_reference_id && session.client_reference_id !== userId) {
-    return null;
+  if (user) {
+    if (session.client_reference_id && session.client_reference_id !== user.id) {
+      return null;
+    }
+    if (!session.client_reference_id) {
+      const sessionEmail = normalizeGivingEmail(
+        session.customer_details?.email ?? session.customer_email ?? undefined,
+      );
+      const userEmail = normalizeGivingEmail(user.email);
+      if (sessionEmail && userEmail && sessionEmail !== userEmail) {
+        return null;
+      }
+    }
   }
 
   return session;
+}
+
+export async function confirmCheckoutGiftForMember(
+  sessionId: string,
+  user: PublicMember,
+) {
+  const session = await getCheckoutSessionForUser(sessionId, {
+    id: user.id,
+    email: user.email,
+  });
+  if (!session) {
+    return { ok: false as const, error: "forbidden" as const };
+  }
+
+  if (session.mode !== "payment") {
+    return { ok: false as const, error: "not_payment" as const };
+  }
+
+  if (session.payment_status !== "paid") {
+    return {
+      ok: false as const,
+      error: "unpaid" as const,
+      paymentStatus: session.payment_status,
+    };
+  }
+
+  const record = await recordGiftFromCheckoutSession(session);
+  return { ok: true as const, record };
 }

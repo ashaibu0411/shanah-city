@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
@@ -20,11 +20,11 @@ export function MemberGivingHistory() {
   const [total, setTotal] = useState(0);
   const [fetching, setFetching] = useState(false);
 
-  useEffect(() => {
-    if (loading || !user) return;
+  const loadHistory = useCallback(() => {
+    if (!user) return;
 
     setFetching(true);
-    fetch("/api/giving/history")
+    fetch("/api/giving/history", { cache: "no-store", credentials: "include" })
       .then((response) => response.json())
       .then((data) => {
         if (data.records) {
@@ -33,7 +33,39 @@ export function MemberGivingHistory() {
         }
       })
       .finally(() => setFetching(false));
-  }, [user, loading]);
+  }, [user]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    loadHistory();
+  }, [user, loading, loadHistory]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    function onVisible() {
+      if (document.visibilityState === "visible") {
+        loadHistory();
+      }
+    }
+
+    function onFocus() {
+      loadHistory();
+    }
+
+    const refreshStamp = window.sessionStorage.getItem("giving-history-refresh");
+    if (refreshStamp) {
+      loadHistory();
+      window.sessionStorage.removeItem("giving-history-refresh");
+    }
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [user, loadHistory]);
 
   const { since: weekSince, until: weekUntil } = getDenverWeekRange();
   const weekTotal = useMemo(
