@@ -8,6 +8,11 @@ import {
   getGivingRecordByStripeSessionId,
 } from "@/lib/giving-server";
 import { resolveStripeInvoiceSubscriptionId } from "@/lib/giving-stripe-invoice";
+import {
+  isShanahGivingCheckoutSession,
+  isShanahGivingInvoiceMetadata,
+  stripeInvoiceIsFullyRefunded,
+} from "@/lib/giving-stripe-eligibility";
 import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 import { useDatabase } from "@/lib/use-database";
 
@@ -26,6 +31,14 @@ export function isPaidCheckoutSession(session: Pick<Stripe.Checkout.Session, "mo
 
 export function isPaidStripeInvoice(invoice: Pick<Stripe.Invoice, "status" | "amount_paid">) {
   return invoice.status === "paid" && (invoice.amount_paid ?? 0) > 0;
+}
+
+export function isEligibleReconcileGiftInvoice(
+  invoice: Pick<Stripe.Invoice, "status" | "amount_paid"> & {
+    amount_refunded?: number | null;
+  },
+) {
+  return isPaidStripeInvoice(invoice) && !stripeInvoiceIsFullyRefunded(invoice);
 }
 
 export async function reportMissingStripeGifts(options?: { days?: number; limit?: number }) {
@@ -57,6 +70,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
     for (const session of page.data) {
       scannedSessions += 1;
       if (!isPaidCheckoutSession(session)) continue;
+      if (!isShanahGivingCheckoutSession(session)) continue;
       const existing = await getGivingRecordByStripeSessionId(session.id);
       if (existing) continue;
 
@@ -86,7 +100,9 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
 
     for (const invoice of page.data) {
       scannedInvoices += 1;
-      if (!isPaidStripeInvoice(invoice)) continue;
+      if (!isEligibleReconcileGiftInvoice(invoice)) continue;
+      const extraMetadata = await invoiceMetadataForReconcile(invoice);
+      if (!isShanahGivingInvoiceMetadata(extraMetadata)) continue;
       const existing = await getGivingRecordByStripeInvoiceId(invoice.id);
       if (existing) continue;
 
@@ -140,7 +156,7 @@ export async function applyMissingStripeGifts(input: {
 
   for (const sessionId of sessionIds) {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    if (!isPaidCheckoutSession(session)) {
+    if (!isPaidCheckoutSession(session) || !isShanahGivingCheckoutSession(session)) {
       applied.push({ stripeId: sessionId, kind: "checkout_session", recorded: false });
       continue;
     }
@@ -155,7 +171,8 @@ export async function applyMissingStripeGifts(input: {
 
   for (const invoiceId of invoiceIds) {
     const invoice = await stripe.invoices.retrieve(invoiceId);
-    if (!isPaidStripeInvoice(invoice)) {
+    const extraMetadata = await invoiceMetadataForReconcile(invoice);
+    if (!isEligibleReconcileGiftInvoice(invoice) || !isShanahGivingInvoiceMetadata(extraMetadata)) {
       applied.push({ stripeId: invoiceId, kind: "invoice", recorded: false });
       continue;
     }
@@ -164,7 +181,6 @@ export async function applyMissingStripeGifts(input: {
       applied.push({ stripeId: invoiceId, kind: "invoice", recorded: true });
       continue;
     }
-    const extraMetadata = await invoiceMetadataForReconcile(invoice);
     const record = await recordGiftFromInvoice(invoice, extraMetadata);
     applied.push({ stripeId: invoiceId, kind: "invoice", recorded: Boolean(record) });
   }

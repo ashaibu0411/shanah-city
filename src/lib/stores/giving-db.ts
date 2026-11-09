@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import type { GivingFund, GivingMethod, GivingRecord } from "@/lib/giving-types";
 import { normalizeGivingEmail } from "@/lib/giving-types";
@@ -110,30 +111,47 @@ export async function createGivingRecord(input: {
   recordedByName: string;
 }) {
   const now = new Date();
-  const record = await prisma.givingRecord.create({
-    data: {
-      id: `give-${Date.now()}`,
-      userId: input.userId ?? null,
-      donorName: input.donorName,
-      donorEmail: normalizeGivingEmail(input.donorEmail) ?? null,
-      amount: input.amount,
-      currency: input.currency ?? "USD",
-      fund: input.fund,
-      method: input.method,
-      givenOn: input.givenOn,
-      campusId: input.campusId ?? null,
-      notes: input.notes ?? null,
-      source: input.source ?? "manual",
-      stripeSessionId: input.stripeSessionId ?? null,
-      stripeInvoiceId: input.stripeInvoiceId ?? null,
-      recordedBy: input.recordedBy,
-      recordedByName: input.recordedByName,
-      createdAt: now,
-      updatedAt: now,
-    },
-  });
+  try {
+    const record = await prisma.givingRecord.create({
+      data: {
+        id: `give-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        userId: input.userId ?? null,
+        donorName: input.donorName,
+        donorEmail: normalizeGivingEmail(input.donorEmail) ?? null,
+        amount: input.amount,
+        currency: input.currency ?? "USD",
+        fund: input.fund,
+        method: input.method,
+        givenOn: input.givenOn,
+        campusId: input.campusId ?? null,
+        notes: input.notes ?? null,
+        source: input.source ?? "manual",
+        stripeSessionId: input.stripeSessionId ?? null,
+        stripeInvoiceId: input.stripeInvoiceId ?? null,
+        recordedBy: input.recordedBy,
+        recordedByName: input.recordedByName,
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
 
-  return mapRecord(record);
+    return mapRecord(record);
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      if (input.stripeSessionId) {
+        const existing = await getGivingRecordByStripeSessionId(input.stripeSessionId);
+        if (existing) return existing;
+      }
+      if (input.stripeInvoiceId) {
+        const existing = await getGivingRecordByStripeInvoiceId(input.stripeInvoiceId);
+        if (existing) return existing;
+      }
+    }
+    throw error;
+  }
 }
 
 export async function updateGivingRecord(
