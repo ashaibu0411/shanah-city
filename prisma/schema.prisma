@@ -628,6 +628,14 @@ model GivingStripeMemberSyncReview {
   @@index([resolvedAt])
 }
 
+/** Pooled-connection-safe Stripe sync lease (TTL), one row per member. */
+model GivingStripeMemberSyncLease {
+  userId    String   @id
+  holderId  String
+  expiresAt DateTime
+  updatedAt DateTime
+}
+
 model FinanceWeeklySheet {
   id              String    @id
   weekEnding      String    @unique

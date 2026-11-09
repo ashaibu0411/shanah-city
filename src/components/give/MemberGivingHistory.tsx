@@ -1,12 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, Card } from "@/components/ui";
 import { MemberRecurringGivingPanel } from "@/components/give/MemberRecurringGivingPanel";
 import { getDenverWeekRange } from "@/lib/denver-time";
-import { GIVING_HISTORY_AFTER_AUTH_POLL_MS } from "@/lib/giving-history-client";
+import {
+  clearGivingHistoryRefreshMarker,
+  GIVING_HISTORY_AFTER_AUTH_POLL_MS,
+  GIVING_HISTORY_REFRESH_STORAGE_KEY,
+  parseGivingHistoryRefreshStamp,
+} from "@/lib/giving-history-client";
 import type { GivingRecord } from "@/lib/giving-types";
 
 function formatMoney(amount: number) {
@@ -21,12 +26,15 @@ export function MemberGivingHistory() {
   const [total, setTotal] = useState(0);
   const [fetching, setFetching] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const fetchInFlight = useRef(false);
 
   const loadHistory = useCallback(() => {
-    if (!user) return;
+    if (!user || fetchInFlight.current) return;
 
+    fetchInFlight.current = true;
     setFetching(true);
     setLoadError(null);
+
     fetch("/api/giving/history", { cache: "no-store", credentials: "include" })
       .then(async (response) => {
         const data = await response.json();
@@ -42,10 +50,7 @@ export function MemberGivingHistory() {
         const recovered =
           (data.stripeSync?.lastRun?.recorded ?? 0) + (data.stripeSync?.lastRun?.linked ?? 0);
         if (recovered > 0) {
-          window.sessionStorage.removeItem("giving-history-refresh");
-        }
-        if (data.stripeSync?.mode === "deferred" && window.sessionStorage.getItem("giving-history-refresh")) {
-          window.setTimeout(() => loadHistory(), 4000);
+          clearGivingHistoryRefreshMarker();
         }
       })
       .catch(() => {
@@ -56,7 +61,10 @@ export function MemberGivingHistory() {
           return current;
         });
       })
-      .finally(() => setFetching(false));
+      .finally(() => {
+        fetchInFlight.current = false;
+        setFetching(false);
+      });
   }, [user]);
 
   useEffect(() => {
@@ -67,30 +75,37 @@ export function MemberGivingHistory() {
   useEffect(() => {
     if (!user) return;
 
+    const stamp = window.sessionStorage.getItem(GIVING_HISTORY_REFRESH_STORAGE_KEY);
+    const parsed = parseGivingHistoryRefreshStamp(stamp);
+    if (parsed.expired || parsed.invalid) {
+      clearGivingHistoryRefreshMarker();
+    }
+
+    const pollTimers: number[] = [];
+    if (parsed.shouldPoll) {
+      GIVING_HISTORY_AFTER_AUTH_POLL_MS.forEach((delayMs, index) => {
+        const timer = window.setTimeout(() => {
+          if (!window.sessionStorage.getItem(GIVING_HISTORY_REFRESH_STORAGE_KEY)) return;
+          loadHistory();
+          if (index === GIVING_HISTORY_AFTER_AUTH_POLL_MS.length - 1) {
+            clearGivingHistoryRefreshMarker();
+          }
+        }, delayMs);
+        pollTimers.push(timer);
+      });
+    }
+
     function onVisible() {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && !fetchInFlight.current) {
         loadHistory();
       }
     }
 
     function onFocus() {
-      loadHistory();
+      if (!fetchInFlight.current) {
+        loadHistory();
+      }
     }
-
-    const refreshStamp = window.sessionStorage.getItem("giving-history-refresh");
-    if (refreshStamp) {
-      loadHistory();
-    }
-
-    const pollTimers = refreshStamp
-      ? GIVING_HISTORY_AFTER_AUTH_POLL_MS.map((delayMs) =>
-          window.setTimeout(() => {
-            if (window.sessionStorage.getItem("giving-history-refresh")) {
-              loadHistory();
-            }
-          }, delayMs),
-        )
-      : [];
 
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", onFocus);
