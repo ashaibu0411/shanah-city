@@ -326,7 +326,11 @@ export async function scheduleVerifiedStripeGiftsForMember(
 
   const lock = await tryAcquireMemberStripeSyncLock(member.id);
   if (!lock.acquired) {
-    return reportToSyncResult(emptyMemberStripeSyncReport(), "skipped_contention", "stripe_sync_in_progress");
+    return reportToSyncResult(
+      emptyMemberStripeSyncReport(),
+      "skipped_contention",
+      lock.reason,
+    );
   }
 
   const startedAt = new Date();

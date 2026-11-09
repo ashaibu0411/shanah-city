@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Prisma } from "@prisma/client";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
@@ -14,6 +15,8 @@ import { bumpSkipReason, emptyMemberStripeSyncReport } from "../src/lib/giving-s
 import {
   canClaimMemberStripeSyncLease,
   isMemberStripeSyncLeaseExpired,
+  isMissingLeaseTableError,
+  memberStripeSyncLockAcquireDeniedReason,
   MEMBER_STRIPE_SYNC_LEASE_MS,
 } from "../src/lib/giving-stripe-member-sync-lock";
 import {
@@ -576,6 +579,34 @@ const lockSource = readFileSync(
 );
 assert.doesNotMatch(lockSource, /pg_try_advisory_lock/);
 assert.match(lockSource, /ON CONFLICT/);
+assert.doesNotMatch(
+  lockSource,
+  /isMissingLeaseTableError\(error\)[\s\S]{0,200}acquired:\s*true/,
+  "missing lease table must fail closed",
+);
+assert.equal(memberStripeSyncLockAcquireDeniedReason({ databaseEnabled: false }), "database_unavailable");
+assert.equal(
+  memberStripeSyncLockAcquireDeniedReason({ databaseEnabled: true, missingLeaseTable: true }),
+  "lease_table_missing",
+);
+assert.equal(
+  memberStripeSyncLockAcquireDeniedReason({ databaseEnabled: true, missingLeaseTable: false }),
+  null,
+);
+assert.equal(
+  isMissingLeaseTableError(
+    new Prisma.PrismaClientKnownRequestError("table missing", {
+      code: "P2021",
+      clientVersion: "test",
+    }),
+  ),
+  true,
+  "P2021 must deny sync (fail closed)",
+);
+
+const syncSource = readFileSync(path.join(process.cwd(), "src/lib/giving-stripe-member-sync.ts"), "utf8");
+assert.match(syncSource, /lock\.reason/);
+assert.match(syncSource, /if \(!lock\.acquired\)/);
 
 const historyUi = readFileSync(
   path.join(process.cwd(), "src/components/give/MemberGivingHistory.tsx"),

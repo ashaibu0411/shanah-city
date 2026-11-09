@@ -1,9 +1,15 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { useDatabase } from "@/lib/use-database";
+import { redactUserIdForLogs } from "@/lib/giving-privacy-redact";
 
 /** Stripe member sync may hold this lease while listing Stripe (well under serverless bounds). */
 export const MEMBER_STRIPE_SYNC_LEASE_MS = 120_000;
+
+export type MemberStripeSyncLockDenyReason =
+  | "database_unavailable"
+  | "lease_table_missing"
+  | "stripe_sync_in_progress";
 
 function newLeaseHolderId() {
   return `lease-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -24,19 +30,40 @@ export function canClaimMemberStripeSyncLease(
   return existing.holderId === holderId;
 }
 
-function isMissingLeaseTableError(error: unknown) {
+export function isMissingLeaseTableError(error: unknown) {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     (error.code === "P2021" || error.code === "P2022")
   );
 }
 
+/** Fail-closed: never run parallel Stripe recovery without a lease row when DB is required. */
+export function memberStripeSyncLockAcquireDeniedReason(options: {
+  databaseEnabled: boolean;
+  missingLeaseTable?: boolean;
+}): MemberStripeSyncLockDenyReason | null {
+  if (!options.databaseEnabled) return "database_unavailable";
+  if (options.missingLeaseTable) return "lease_table_missing";
+  return null;
+}
+
+export type MemberStripeSyncLockResult =
+  | { acquired: true; release: () => Promise<void> }
+  | { acquired: false; reason: MemberStripeSyncLockDenyReason; release: () => Promise<void> };
+
 /**
  * Acquire a TTL lease via atomic INSERT … ON CONFLICT (works across pooled Prisma connections).
  * Returns acquired: false when another holder still holds a non-expired lease.
  */
-export async function tryAcquireMemberStripeSyncLock(userId: string) {
-  if (!useDatabase()) return { acquired: true as const, release: async () => {} };
+export async function tryAcquireMemberStripeSyncLock(userId: string): Promise<MemberStripeSyncLockResult> {
+  const noopRelease = async () => {};
+
+  const preflight = memberStripeSyncLockAcquireDeniedReason({
+    databaseEnabled: useDatabase(),
+  });
+  if (preflight) {
+    return { acquired: false, reason: preflight, release: noopRelease };
+  }
 
   const holderId = newLeaseHolderId();
   const now = new Date();
@@ -57,11 +84,11 @@ export async function tryAcquireMemberStripeSyncLock(userId: string) {
 
     const acquired = rows.length > 0 && rows[0]?.holderId === holderId;
     if (!acquired) {
-      return { acquired: false as const, release: async () => {} };
+      return { acquired: false, reason: "stripe_sync_in_progress", release: noopRelease };
     }
 
     return {
-      acquired: true as const,
+      acquired: true,
       release: async () => {
         try {
           await prisma.givingStripeMemberSyncLease.updateMany({
@@ -75,7 +102,14 @@ export async function tryAcquireMemberStripeSyncLock(userId: string) {
     };
   } catch (error) {
     if (isMissingLeaseTableError(error)) {
-      return { acquired: true as const, release: async () => {} };
+      console.warn("[giving-stripe-member-sync] lease_table_missing", {
+        member: redactUserIdForLogs(userId),
+      });
+      return {
+        acquired: false,
+        reason: "lease_table_missing",
+        release: noopRelease,
+      };
     }
     throw error;
   }
