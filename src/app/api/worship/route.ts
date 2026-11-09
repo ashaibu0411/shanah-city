@@ -39,6 +39,7 @@ import {
 import { getEvents } from "@/lib/event-server";
 import { getGroupDetail } from "@/lib/group-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { coerceWorshipServiceTime } from "@/lib/worship-plan-event-resolve";
 
 async function requireWorshipAccess() {
   const cookieStore = await cookies();
@@ -123,7 +124,11 @@ export async function GET(request: Request) {
   }
 
   if (serviceDate && serviceTime) {
-    const plan = await getWorshipPlan(serviceDate, serviceTime);
+    const normalizedTime = coerceWorshipServiceTime(serviceTime);
+    let plan = await getWorshipPlan(serviceDate, normalizedTime);
+    if (!plan && normalizedTime !== serviceTime) {
+      plan = await getWorshipPlan(serviceDate, serviceTime);
+    }
     if (!plan) {
       return NextResponse.json({ plan: null, canManage });
     }

@@ -44,6 +44,13 @@ import {
 import { site } from "@/lib/site";
 import type { ChurchEvent } from "@/lib/types";
 import { listWorshipPlans } from "@/lib/worship-server";
+import { canManageWorshipPlan } from "@/lib/worship-access-server";
+import {
+  coerceWorshipServiceTime,
+  pickWorshipPlanForServiceDate,
+  worshipPlannerHrefForService,
+} from "@/lib/worship-plan-event-resolve";
+import type { WorshipServicePlan } from "@/lib/worship-types";
 
 function metaMap(store: Awaited<ReturnType<typeof getChoirWorshipEventsStoreJson>>) {
   return new Map(store.eventMeta.map((row) => [row.eventId, row]));
@@ -80,11 +87,37 @@ async function loadEligibleEvents(groupId: string) {
   return { events: [...byId.values()], store, metaById };
 }
 
+type WorshipEventCardContext = {
+  plans: WorshipServicePlan[];
+  canManagePlan: boolean;
+};
+
+async function loadWorshipPlansForEvents(events: ChurchEvent[]) {
+  const keys = events
+    .map((event) => churchEventPrimaryDateKey(event))
+    .filter((key): key is string => Boolean(key))
+    .sort();
+  if (keys.length === 0) return [];
+  return listWorshipPlans({ since: keys[0]! });
+}
+
+async function worshipEventCardContext(
+  user: PublicMember,
+  events: ChurchEvent[],
+): Promise<WorshipEventCardContext> {
+  const [plans, canManagePlan] = await Promise.all([
+    loadWorshipPlansForEvents(events),
+    canManageWorshipPlan(user),
+  ]);
+  return { plans, canManagePlan };
+}
+
 async function toCardView(
   event: ChurchEvent,
   groupId: string,
   metaById: Map<string, ChoirWorshipEventMeta>,
   viewer: PublicMember,
+  worshipContext?: WorshipEventCardContext,
 ): Promise<WorshipEventCardView> {
   const meta = metaById.get(event.id);
   const dateKey = churchEventPrimaryDateKey(event);
@@ -119,6 +152,13 @@ async function toCardView(
     registrationLabel: registration.label,
     featured: typeof meta?.featuredOrder === "number",
     detailHref: choirWorshipEventDetailHref(groupId, event.id),
+    worshipPlanHref: worshipContext
+      ? worshipPlannerHrefForService(dateKey, worshipContext.plans, {
+          eventTimeLabel: event.time,
+          canManagePlan: worshipContext.canManagePlan,
+          preferPublished: !worshipContext.canManagePlan,
+        })
+      : null,
     startsAtMs: worshipEventStartsAtMs(event, dateKey),
     rsvpEnabled: Boolean(event.rsvpEnabled),
   };
@@ -155,7 +195,10 @@ export async function buildChoirWorshipEventsHomePayload(
   if (!group) return null;
 
   const { events, metaById } = await loadEligibleEvents(groupId);
-  const cards = await Promise.all(events.map((event) => toCardView(event, groupId, metaById, user)));
+  const worshipContext = await worshipEventCardContext(user, events);
+  const cards = await Promise.all(
+    events.map((event) => toCardView(event, groupId, metaById, user, worshipContext)),
+  );
   const { upcoming } = splitUpcomingPast(cards, Date.now());
   const featured = pickFeatured(upcoming, metaById);
   const featuredCount = upcoming.filter((card) => metaById.get(card.id)?.featuredOrder != null).length;
@@ -186,7 +229,10 @@ export async function listChoirWorshipEventCards(
   if (!group) return null;
 
   const { events, metaById } = await loadEligibleEvents(groupId);
-  let cards = await Promise.all(events.map((event) => toCardView(event, groupId, metaById, user)));
+  const worshipContext = await worshipEventCardContext(user, events);
+  let cards = await Promise.all(
+    events.map((event) => toCardView(event, groupId, metaById, user, worshipContext)),
+  );
   const { upcoming, past } = splitUpcomingPast(cards, Date.now());
 
   if (options?.mode === "past") cards = past;
@@ -232,20 +278,27 @@ export async function buildChoirWorshipEventDetailPayload(
   const meta = metaById.get(eventId);
   if (!isWorshipEventsEligible(event, groupId, meta)) return null;
 
-  const card = await toCardView(event, groupId, metaById, user);
+  const serviceDate = churchEventPrimaryDateKey(event);
+  const plans = await listWorshipPlans({ since: serviceDate });
+  const canManagePlan = await canManageWorshipPlan(user);
+  const worshipContext: WorshipEventCardContext = { plans, canManagePlan };
+  const card = await toCardView(event, groupId, metaById, user, worshipContext);
   const rsvp = await getEventRsvpView(event, user);
   const interest = await getChoirEventTeamInterestForUserJson(groupId, eventId, user.id);
 
-  const plans = await listWorshipPlans({ since: churchEventPrimaryDateKey(event) });
-  const matchingPlan = plans.find(
-    (plan) =>
-      plan.status === "published" &&
-      plan.serviceDate === churchEventPrimaryDateKey(event) &&
-      plan.title?.trim().toLowerCase() === event.title.trim().toLowerCase(),
-  );
-
-  const serviceDate = matchingPlan?.serviceDate ?? churchEventPrimaryDateKey(event);
-  const serviceTime = matchingPlan?.serviceTime;
+  const worshipPlanHref =
+    card.worshipPlanHref ??
+    worshipPlannerHrefForService(serviceDate, plans, {
+      eventTimeLabel: event.time,
+      canManagePlan,
+      preferPublished: !canManagePlan,
+    });
+  const matchedPlan = pickWorshipPlanForServiceDate(plans, serviceDate, {
+    eventTimeLabel: event.time,
+    preferPublished: !canManagePlan,
+  });
+  const serviceTime =
+    matchedPlan?.serviceTime ?? coerceWorshipServiceTime(event.time?.trim() || null);
 
   return {
     rsvpEvent: event,
@@ -278,10 +331,7 @@ export async function buildChoirWorshipEventDetailPayload(
     recapSummary: meta?.recapSummary ?? null,
     recapPhotoUrls: meta?.recapPhotoUrls ?? [],
     recapVideoUrls: meta?.recapVideoUrls ?? [],
-    worshipPlanHref:
-      matchingPlan && serviceDate && serviceTime
-        ? `/worship?date=${encodeURIComponent(serviceDate)}&time=${encodeURIComponent(serviceTime)}`
-        : null,
+    worshipPlanHref,
     setlistHref:
       serviceDate && serviceTime
         ? `/groups/${encodeURIComponent(groupId)}/setlists?date=${encodeURIComponent(serviceDate)}&time=${encodeURIComponent(serviceTime)}`

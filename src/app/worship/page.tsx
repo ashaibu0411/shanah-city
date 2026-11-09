@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { WorshipPlannerPanel } from "@/components/worship/WorshipPlannerPanel";
@@ -47,12 +48,14 @@ export default async function WorshipPlannerPage({
         accentWord="planner"
       />
       <MarkFeedRead feed="worship" />
-      <WorshipPlannerPanel
-        initialDate={params.date}
-        initialTime={params.time}
-        initialSongId={params.song}
-        initialTab={params.tab}
-      />
+      <Suspense fallback={<p className="text-sm text-night-500">Loading worship planner…</p>}>
+        <WorshipPlannerPanel
+          initialDate={params.date}
+          initialTime={params.time}
+          initialSongId={params.song}
+          initialTab={params.tab}
+        />
+      </Suspense>
     </>
   );
 }

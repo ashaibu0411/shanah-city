@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { premiumTabPill } from "@/components/app/mobile-premium";
 import { Button, Card } from "@/components/ui";
@@ -10,7 +10,8 @@ import { WorshipSongLibraryPanel } from "@/components/worship/WorshipSongLibrary
 import { WorshipMyPartPanel } from "@/components/worship/WorshipMyPartPanel";
 import { WorshipRehearsalNotesEditor } from "@/components/worship/WorshipRehearsalNotesEditor";
 import { WorshipServicePlanPickerButton } from "@/components/worship/WorshipServicePlanPickerButton";
-import { worshipMemberServicePath } from "@/lib/worship-plan-links";
+import { worshipMemberServicePath, worshipPlannerPath } from "@/lib/worship-plan-links";
+import { coerceWorshipServiceTime } from "@/lib/worship-plan-event-resolve";
 import { WorshipRehearsalRecordings } from "@/components/worship/WorshipRehearsalRecordings";
 import { WorshipSchedulePanel } from "@/components/worship/WorshipSchedulePanel";
 import { WorshipTeamCalendarPanel } from "@/components/worship/WorshipTeamCalendarPanel";
@@ -94,6 +95,10 @@ export function WorshipPlannerPanel({
 } = {}) {
   const { user, permissions } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlDate = searchParams.get("date")?.trim() || undefined;
+  const urlTime = searchParams.get("time")?.trim() || undefined;
+  const urlTab = searchParams.get("tab")?.trim() || undefined;
   const canManage = permissions.canManageWorshipPlan;
   const canUseLibrary = permissions.canAccessWorshipPlanner;
   const canAccessShepherdingHub = permissions.canAccessTemperamentShepherdingHub;
@@ -239,6 +244,32 @@ export function WorshipPlannerPanel({
   }, []);
 
   useEffect(() => {
+    if (urlDate && urlDate !== serviceDate) {
+      setServiceDate(urlDate);
+    }
+    if (urlTime) {
+      const nextTime = coerceWorshipServiceTime(urlTime);
+      if (nextTime !== serviceTime) {
+        setServiceTime(nextTime);
+      }
+    }
+  }, [urlDate, urlTime, serviceDate, serviceTime]);
+
+  useEffect(() => {
+    if (!urlTab) return;
+    if (
+      urlTab === "library" ||
+      urlTab === "my-part" ||
+      urlTab === "rehearsals" ||
+      urlTab === "team-calendar" ||
+      urlTab === "schedule" ||
+      urlTab === "plan"
+    ) {
+      setTab(urlTab === "plan" ? "plan" : urlTab);
+    }
+  }, [urlTab]);
+
+  useEffect(() => {
     loadPlan();
   }, [serviceDate, serviceTime]);
 
@@ -264,7 +295,7 @@ export function WorshipPlannerPanel({
 
   useEffect(() => {
     if (canManage || loading || autoPickedServiceRef.current) return;
-    if (initialDate || initialTime) return;
+    if (initialDate || initialTime || urlDate || urlTime) return;
 
     const published = upcomingPlans.filter((entry) => entry.status === "published");
     if (published.length === 0) return;
@@ -293,6 +324,8 @@ export function WorshipPlannerPanel({
     serviceTime,
     initialDate,
     initialTime,
+    urlDate,
+    urlTime,
   ]);
 
   async function savePlan(action: "save" | "publish" | "unpublish" | "delete") {
@@ -663,7 +696,11 @@ export function WorshipPlannerPanel({
               type="date"
               value={serviceDate}
               max={maxServiceDate}
-              onChange={(event) => setServiceDate(event.target.value)}
+              onChange={(event) => {
+                const next = event.target.value;
+                setServiceDate(next);
+                syncWorshipPlannerUrl({ date: next });
+              }}
               className="mt-1 block rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm outline-none ring-night-900/5 focus:ring-2"
             />
           </label>
@@ -674,7 +711,10 @@ export function WorshipPlannerPanel({
                 <button
                   key={slot.value}
                   type="button"
-                  onClick={() => setServiceTime(slot.value)}
+                  onClick={() => {
+                    setServiceTime(slot.value);
+                    syncWorshipPlannerUrl({ time: slot.value });
+                  }}
                   className={premiumTabPill(serviceTime === slot.value, "px-4 py-2")}
                 >
                   {slot.label}
@@ -745,10 +785,32 @@ export function WorshipPlannerPanel({
     setTeam((current) => current.filter((member) => member.userId !== userId));
   }
 
+  function syncWorshipPlannerUrl(next: {
+    date?: string;
+    time?: string;
+    tab?: typeof tab;
+    songId?: string | null;
+  }) {
+    const params = new URLSearchParams(searchParams.toString());
+    const date = next.date ?? serviceDate;
+    const time = coerceWorshipServiceTime(next.time ?? serviceTime);
+    const activeTab = next.tab ?? tab;
+    params.set("date", date);
+    params.set("time", time);
+    if (activeTab === "plan") params.delete("tab");
+    else params.set("tab", activeTab);
+    if (next.songId) params.set("song", next.songId);
+    else params.delete("song");
+    const query = params.toString();
+    router.replace(query ? `/worship?${query}` : "/worship", { scroll: false });
+  }
+
   function selectServiceDateTime(date: string, time: string) {
+    const coerced = coerceWorshipServiceTime(time);
     setServiceDate(date);
-    setServiceTime(time);
+    setServiceTime(coerced);
     setTab("plan");
+    syncWorshipPlannerUrl({ date, time: coerced, tab: "plan", songId: null });
   }
 
   function openUpcomingPlan(entry: WorshipServicePlan) {

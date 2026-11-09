@@ -241,6 +241,17 @@ export function ChoirWorshipCalendarPage({
   }
 
   function openEvent(event: ChoirCalendarEvent) {
+    if (
+      payload?.canManageWorship &&
+      event.category === "service" &&
+      event.serviceDate &&
+      event.serviceTime
+    ) {
+      router.push(
+        worshipPlannerPath({ serviceDate: event.serviceDate, serviceTime: event.serviceTime }),
+      );
+      return;
+    }
     setSelectedEventId(event.id);
     setSelectedDateKey(event.dateKey);
     const params = new URLSearchParams(searchParams.toString());
