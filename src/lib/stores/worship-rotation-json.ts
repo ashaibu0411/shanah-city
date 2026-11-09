@@ -3,7 +3,8 @@ import path from "path";
 import {
   WORSHIP_SCHEDULE_WEEKS_AHEAD_DEFAULT,
   clampWorshipScheduleWeeksAhead,
-  defaultRotationConfig,
+  coalesceWorshipRotationConfig,
+  normalizeWorshipRotationIndex,
   type WorshipRotationPoolMember,
   type WorshipScheduleRotationConfig,
 } from "@/lib/worship-types";
@@ -34,7 +35,7 @@ function withPlanningHorizon(config: WorshipScheduleRotationConfig): WorshipSche
 
 export async function getWorshipRotationConfig() {
   const config = await readJson<WorshipScheduleRotationConfig | null>(ROTATION_FILE, null);
-  return withPlanningHorizon(config ?? defaultRotationConfig());
+  return withPlanningHorizon(coalesceWorshipRotationConfig(config));
 }
 
 export async function saveWorshipRotationConfig(input: {
@@ -58,7 +59,9 @@ export async function saveWorshipRotationConfig(input: {
     pool: input.pool,
     serviceTime: input.serviceTime,
     serviceKind: input.serviceKind,
-    rotationIndex: input.rotationIndex ?? existing.rotationIndex,
+    rotationIndex: normalizeWorshipRotationIndex(
+      input.rotationIndex ?? existing.rotationIndex,
+    ),
     skipDates: input.skipDates ?? existing.skipDates,
     weeksAhead:
       input.weeksAhead !== undefined

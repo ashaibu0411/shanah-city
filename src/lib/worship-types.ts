@@ -728,6 +728,38 @@ export function listServiceDatesInRange(
   return dates;
 }
 
+export function normalizeWorshipRotationIndex(value: unknown): number {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.floor(n);
+}
+
+/** Merge legacy or partial stored config with defaults (fixes missing rotationIndex, etc.). */
+export function coalesceWorshipRotationConfig(
+  partial: WorshipScheduleRotationConfig | null | undefined,
+): WorshipScheduleRotationConfig {
+  const base = defaultRotationConfig();
+  if (!partial) return base;
+
+  return {
+    ...base,
+    ...partial,
+    pool: Array.isArray(partial.pool) ? partial.pool : base.pool,
+    serviceTime: partial.serviceTime?.trim() || base.serviceTime,
+    serviceKind: partial.serviceKind === "friday" ? "friday" : "sunday",
+    rotationIndex: normalizeWorshipRotationIndex(partial.rotationIndex),
+    skipDates: Array.isArray(partial.skipDates) ? partial.skipDates : base.skipDates,
+    weeksAhead: clampWorshipScheduleWeeksAhead(partial.weeksAhead ?? base.weeksAhead),
+    uploadDutyLeadDays:
+      typeof partial.uploadDutyLeadDays === "number" && partial.uploadDutyLeadDays > 0
+        ? partial.uploadDutyLeadDays
+        : base.uploadDutyLeadDays,
+    status: partial.status === "published" ? "published" : "draft",
+    createdAt: partial.createdAt?.trim() || base.createdAt,
+    updatedAt: partial.updatedAt?.trim() || base.updatedAt,
+  };
+}
+
 export function defaultRotationConfig(): WorshipScheduleRotationConfig {
   const now = new Date().toISOString();
   return {
