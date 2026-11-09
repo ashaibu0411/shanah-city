@@ -4,7 +4,8 @@ import { useDatabase } from "@/lib/use-database";
 import { normalizeGivingEmail } from "@/lib/giving-types";
 import { redactEmailForLogs, redactStripeId, redactUserIdForLogs } from "@/lib/giving-privacy-redact";
 import { reportMissingStripeGifts } from "@/lib/giving-reconcile-server";
-import { getMemberStripeCustomerId } from "@/lib/giving-stripe-member-sync";
+import { getMemberStripeCustomerId, loadLatestMemberStripeSyncReport } from "@/lib/giving-stripe-member-sync";
+import type { MemberStripeSyncReport } from "@/lib/giving-stripe-member-sync-report";
 import { countOpenMemberStripeSyncReviews } from "@/lib/giving-stripe-member-sync-audit";
 
 export type GivingIdentityLinkCandidate = {
@@ -181,6 +182,9 @@ export async function buildMemberGivingVisibilityDiagnostic(member: {
       })
     : 0;
 
+  const lastSync = await loadLatestMemberStripeSyncReport(member.id);
+  const syncReport = (lastSync?.metrics as MemberStripeSyncReport | null) ?? null;
+
   return {
     memberRedacted: redactUserIdForLogs(member.id),
     emailDomain: normalizeGivingEmail(member.email)?.split("@")[1] ?? null,
@@ -188,10 +192,22 @@ export async function buildMemberGivingVisibilityDiagnostic(member: {
     stripeCustomerIdRedacted: customerId ? redactStripeId(customerId) : null,
     stripeGiftsOwned: stripeGiftsForUser,
     stripeGiftsByDonorEmail: emailGifts,
+    lastMemberSync: lastSync
+      ? {
+          status: lastSync.status,
+          trigger: lastSync.trigger,
+          recorded: lastSync.recorded,
+          linked: lastSync.linked,
+          finishedAt: lastSync.finishedAt?.toISOString() ?? null,
+          report: syncReport,
+        }
+      : null,
     likelyMissingInDb:
       Boolean(customerId) && stripeGiftsForUser === 0
         ? "Stripe customer linked but zero stripe GivingRecord rows for this userId — category (1) likely; run Stripe customer sync or finance backfill."
         : null,
+    interpretationNote:
+      "Active recurring subscriptions in Stripe are not donations until a paid invoice is recorded. sync status ok with zero newlyRecorded may mean already_recorded in DB or no eligible paid Shanah metadata in the 90-day window.",
   };
 }
 

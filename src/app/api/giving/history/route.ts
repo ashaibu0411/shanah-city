@@ -2,7 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { fundLabel, summarizeGivingRecords } from "@/lib/giving-types";
 import { listGivingRecordsForMember } from "@/lib/giving-member-history-server";
+import { afterHistoryVerifiedStripeMemberSync } from "@/lib/giving-history-after";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+
+export const runtime = "nodejs";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -13,8 +16,10 @@ export async function GET() {
     return NextResponse.json({ error: "Sign in to view your giving history." }, { status: 401 });
   }
 
-  const { records, stripeSync } = await listGivingRecordsForMember(user);
+  const { records, lastStripeSync } = await listGivingRecordsForMember(user);
   const summary = summarizeGivingRecords(records);
+
+  afterHistoryVerifiedStripeMemberSync(user);
 
   return NextResponse.json(
     {
@@ -24,10 +29,8 @@ export async function GET() {
       })),
       summary,
       stripeSync: {
-        status: stripeSync.status,
-        recorded: stripeSync.recorded,
-        linked: stripeSync.linked,
-        skippedReason: stripeSync.skippedReason,
+        mode: "deferred",
+        lastRun: lastStripeSync,
       },
     },
     {

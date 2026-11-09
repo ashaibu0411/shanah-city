@@ -40,15 +40,21 @@ export function MemberGivingHistory() {
           setLoadError(null);
         }
         const recovered =
-          (data.stripeSync?.recorded ?? 0) + (data.stripeSync?.linked ?? 0);
+          (data.stripeSync?.lastRun?.recorded ?? 0) + (data.stripeSync?.lastRun?.linked ?? 0);
         if (recovered > 0) {
           window.sessionStorage.removeItem("giving-history-refresh");
         }
+        if (data.stripeSync?.mode === "deferred" && window.sessionStorage.getItem("giving-history-refresh")) {
+          window.setTimeout(() => loadHistory(), 4000);
+        }
       })
       .catch(() => {
-        setLoadError(
-          "Could not refresh giving history. Your last loaded records are still shown.",
-        );
+        setRecords((current) => {
+          if (current.length === 0) {
+            setLoadError("Could not load giving history. Try again in a moment.");
+          }
+          return current;
+        });
       })
       .finally(() => setFetching(false));
   }, [user]);

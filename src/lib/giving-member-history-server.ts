@@ -2,47 +2,53 @@ import type { PublicMember } from "@/lib/auth-types";
 import { normalizeGivingEmail } from "@/lib/giving-types";
 import { linkGivingRecordsToUser, listGivingRecords } from "@/lib/giving-server";
 import { mergeMemberVisibleGivingRecords } from "@/lib/giving-member-merge";
-import {
-  scheduleVerifiedStripeGiftsForMember,
-  type MemberStripeSyncResult,
-} from "@/lib/giving-stripe-member-sync";
+import { loadLatestMemberStripeSyncReport } from "@/lib/giving-stripe-member-sync";
+import type { MemberStripeSyncReport } from "@/lib/giving-stripe-member-sync-report";
 
 export type MemberGivingHistoryLoad = {
   records: Awaited<ReturnType<typeof mergeMemberVisibleGivingRecords>>;
-  stripeSync: MemberStripeSyncResult;
+  lastStripeSync: {
+    status: string;
+    trigger: string;
+    recorded: number;
+    linked: number;
+    flagged: number;
+    skipped: number;
+    finishedAt: string | null;
+    report: MemberStripeSyncReport | null;
+  } | null;
 };
 
 /**
- * Member-visible giving history: link guest gifts by verified email, then return
- * records owned by this user (never another member's userId). Stripe sync failures
- * never prevent returning existing DB records.
+ * DB-first member history. Stripe recovery runs outside the request (after auth/history).
  */
 export async function listGivingRecordsForMember(
   member: Pick<PublicMember, "id" | "email" | "name" | "campusId">,
 ): Promise<MemberGivingHistoryLoad> {
   await linkGivingRecordsToUser(member.email, member.id).catch(() => {
-    /* email link is best-effort; DB rows still load */
+    /* email link is best-effort */
   });
-
-  let stripeSync: MemberStripeSyncResult = {
-    recorded: 0,
-    linked: 0,
-    flagged: 0,
-    skipped: 0,
-    status: "noop",
-  };
-  try {
-    stripeSync = await scheduleVerifiedStripeGiftsForMember(member, "history");
-  } catch {
-    stripeSync = { recorded: 0, linked: 0, flagged: 0, skipped: 0, status: "stripe_error" };
-  }
 
   const byUserId = await listGivingRecords({ userId: member.id });
   const email = normalizeGivingEmail(member.email);
   const byEmail = email ? await listGivingRecords({ donorEmail: email }) : [];
 
+  const lastRun = await loadLatestMemberStripeSyncReport(member.id);
+  const lastStripeSync = lastRun
+    ? {
+        status: lastRun.status,
+        trigger: lastRun.trigger,
+        recorded: lastRun.recorded,
+        linked: lastRun.linked,
+        flagged: lastRun.flagged,
+        skipped: lastRun.skipped,
+        finishedAt: lastRun.finishedAt?.toISOString() ?? null,
+        report: (lastRun.metrics as MemberStripeSyncReport | null) ?? null,
+      }
+    : null;
+
   return {
     records: mergeMemberVisibleGivingRecords(member.id, byUserId, byEmail),
-    stripeSync,
+    lastStripeSync,
   };
 }

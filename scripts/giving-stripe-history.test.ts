@@ -10,6 +10,7 @@ import { mergeMemberVisibleGivingRecords } from "../src/lib/giving-member-merge"
 import { resolveStripeInvoiceSubscriptionId, resolveStripeCustomerId } from "../src/lib/giving-stripe-invoice";
 import { metadataUserId } from "../src/lib/giving-stripe-identity";
 import { redactEmailForLogs, redactStripeId } from "../src/lib/giving-privacy-redact";
+import { bumpSkipReason, emptyMemberStripeSyncReport } from "../src/lib/giving-stripe-member-sync-report";
 import {
   checkoutSessionEligibleForMemberSync,
   shouldAttemptMemberStripeSync,
@@ -515,8 +516,28 @@ const historyServer = readFileSync(
   path.join(process.cwd(), "src/lib/giving-member-history-server.ts"),
   "utf8",
 );
-assert.match(historyServer, /stripeSync/);
-assert.match(historyServer, /catch/);
+assert.match(historyServer, /lastStripeSync/);
+assert.doesNotMatch(historyServer, /scheduleVerifiedStripeGiftsForMember/);
+
+const historyRoute = readFileSync(
+  path.join(process.cwd(), "src/app/api/giving/history/route.ts"),
+  "utf8",
+);
+assert.match(historyRoute, /afterHistoryVerifiedStripeMemberSync/);
+assert.match(historyRoute, /listGivingRecordsForMember/);
+
+const reportSource = readFileSync(
+  path.join(process.cwd(), "src/lib/giving-stripe-member-sync-report.ts"),
+  "utf8",
+);
+assert.match(reportSource, /alreadyRecorded/);
+assert.match(reportSource, /skippedByReason/);
+
+const sampleReport = emptyMemberStripeSyncReport();
+sampleReport.alreadyRecorded = 2;
+bumpSkipReason(sampleReport, "not_shanah_checkout", 3);
+assert.equal(sampleReport.alreadyRecorded, 2);
+assert.equal(sampleReport.skippedByReason.not_shanah_checkout, 3);
 
 const policySource = readFileSync(
   path.join(process.cwd(), "src/lib/giving-stripe-member-sync-policy.ts"),

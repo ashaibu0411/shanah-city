@@ -604,6 +604,7 @@ model GivingStripeMemberSyncRun {
   flagged      Int       @default(0)
   skipped      Int       @default(0)
   errorMessage String?
+  metrics      Json?
   startedAt    DateTime
   finishedAt   DateTime?
   createdAt    DateTime  @default(now())
