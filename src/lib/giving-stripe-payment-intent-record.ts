@@ -4,7 +4,9 @@ import { checkoutSessionHasCorroboratedMemberIdentity } from "@/lib/giving-strip
 import { isShanahGivingCheckoutSession } from "@/lib/giving-stripe-eligibility";
 import { listCheckoutSessionsForPaymentIntent } from "@/lib/giving-stripe-checkout-session-lookup";
 import { isPaidCheckoutSession } from "@/lib/giving-reconcile-server";
+import type { TrustedStripeWebhookSettlement } from "@/lib/giving-stripe-checkout-paid-at";
 import type { MemberReconcileEventScope } from "@/lib/giving-stripe-reconcile-event-scope";
+import type { RecordGiftFromCheckoutSessionOptions } from "@/lib/giving-checkout-server";
 
 /**
  * Checkout-mode one-time gifts: record via Session metadata (PI metadata is often empty).
@@ -13,7 +15,9 @@ import type { MemberReconcileEventScope } from "@/lib/giving-stripe-reconcile-ev
 export async function recordGiftFromPaymentIntentSucceeded(
   stripe: Stripe,
   paymentIntent: Pick<Stripe.PaymentIntent, "id" | "status">,
-  options?: { eventScope?: MemberReconcileEventScope },
+  options?: RecordGiftFromCheckoutSessionOptions & {
+    trustedWebhookSettlement?: TrustedStripeWebhookSettlement;
+  },
 ) {
   if (paymentIntent.status !== "succeeded") return null;
 
@@ -28,7 +32,10 @@ export async function recordGiftFromPaymentIntentSucceeded(
     if (!isPaidCheckoutSession(session)) continue;
     if (!isShanahGivingCheckoutSession(session)) continue;
     if (!checkoutSessionHasCorroboratedMemberIdentity(session)) continue;
-    const gift = await recordGiftFromCheckoutSession(session, options);
+    const gift = await recordGiftFromCheckoutSession(session, {
+      ...options,
+      trustedWebhookSettlement: options?.trustedWebhookSettlement,
+    });
     if (gift) recorded = gift;
   }
   return recorded;

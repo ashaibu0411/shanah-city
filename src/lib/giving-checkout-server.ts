@@ -46,18 +46,21 @@ import {
   giftGivenOnFromCheckoutSession,
   giftGivenOnFromInvoice,
   isShanahGivingCheckoutSession,
-  isShanahGivingInvoiceMetadata,
   stripeInvoiceIsFullyRefunded,
 } from "@/lib/giving-stripe-eligibility";
 import { getMemberStripeCustomerId } from "@/lib/giving-stripe-member-sync";
 import {
-  checkoutSettlementPaidAtUnix,
-  resolveCheckoutSessionSettlement,
-} from "@/lib/giving-stripe-checkout-settlement";
-import {
   createMemberReconcileEventScope,
   type MemberReconcileEventScope,
 } from "@/lib/giving-stripe-reconcile-event-scope";
+import {
+  resolveCheckoutGiftPaidAtUnix,
+  type CheckoutGiftPaidAtOptions,
+} from "@/lib/giving-stripe-checkout-paid-at";
+import {
+  isShanahGivingInvoiceEligible,
+  resolveVerifiedInvoiceGiftAmounts,
+} from "@/lib/giving-stripe-invoice-amounts";
 import { resolveVerifiedCheckoutGiftAmounts } from "@/lib/giving-stripe-recovery-amounts";
 import { checkoutSessionHasCorroboratedMemberIdentity } from "@/lib/giving-stripe-checkout-ownership";
 
@@ -308,9 +311,13 @@ async function recordStripeGift(input: {
   return record;
 }
 
+export type RecordGiftFromCheckoutSessionOptions = CheckoutGiftPaidAtOptions & {
+  eventScope?: MemberReconcileEventScope;
+};
+
 export async function recordGiftFromCheckoutSession(
   session: Stripe.Checkout.Session,
-  options?: { eventScope?: MemberReconcileEventScope },
+  options?: RecordGiftFromCheckoutSessionOptions,
 ) {
   await linkStripeCustomerFromCheckoutSession(session);
 
@@ -362,12 +369,11 @@ export async function recordGiftFromCheckoutSession(
 
   const stripe = getStripe();
   const eventScope = options?.eventScope ?? createMemberReconcileEventScope();
-  const settlement = await resolveCheckoutSessionSettlement(stripe, session, eventScope);
-  const verifiedPaidAt = checkoutSettlementPaidAtUnix(settlement);
-  if (!verifiedPaidAt) {
+  const paidAtUnix = await resolveCheckoutGiftPaidAtUnix(stripe, session, eventScope, options);
+  if (!paidAtUnix) {
     return null;
   }
-  const givenOn = giftDateKeyFromUnixSeconds(verifiedPaidAt);
+  const givenOn = giftDateKeyFromUnixSeconds(paidAtUnix);
 
   return recordStripeGift({
     amount: giftAmount,
@@ -399,12 +405,14 @@ export async function recordGiftFromInvoice(
   if (totalPaid <= 0) return null;
 
   const metadata = { ...(invoice.metadata ?? {}), ...extraMetadata };
-  if (!isShanahGivingInvoiceMetadata(metadata)) {
+  if (!isShanahGivingInvoiceEligible(metadata, invoice)) {
     return null;
   }
-  const gift = Number(metadata?.giftAmount);
-  if (!Number.isFinite(gift) || gift <= 0) return null;
-  const giftAmount = Math.round(gift * 100) / 100;
+  const amounts = resolveVerifiedInvoiceGiftAmounts(invoice, metadata);
+  if (!amounts.ok) {
+    return null;
+  }
+  const giftAmount = amounts.giftAmount;
   const fund = parseFund(metadata.fund);
   const donorEmail = normalizeGivingEmail(invoice.customer_email ?? undefined);
   const stripeName =

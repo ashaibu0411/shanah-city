@@ -5,7 +5,7 @@ import { resolveVerifiedCheckoutGiftAmounts } from "../src/lib/giving-stripe-rec
 import { checkoutSessionHasCorroboratedMemberIdentity } from "../src/lib/giving-stripe-checkout-ownership";
 
 const metaSession = {
-  metadata: { fund: "offering", giftAmount: "75", userId: "u1" },
+  metadata: { fund: "offering", giftAmount: "75", feeAmount: "0.60", userId: "u1" },
   client_reference_id: "u1",
   amount_total: 7560,
 } as never;
@@ -20,6 +20,7 @@ const webhookRoute = readFileSync(
 );
 assert.match(webhookRoute, /payment_intent\.succeeded/);
 assert.match(webhookRoute, /recordGiftFromPaymentIntentSucceeded/);
+assert.match(webhookRoute, /trustedWebhookSettlement/);
 
 const lookupLib = readFileSync(
   path.join(process.cwd(), "src/lib/giving-stripe-checkout-session-lookup.ts"),

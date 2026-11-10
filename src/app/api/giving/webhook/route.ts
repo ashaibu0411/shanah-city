@@ -39,9 +39,20 @@ export async function POST(request: Request) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const fullSession = await getStripe().checkout.sessions.retrieve(session.id);
+        const fullSession = await getStripe().checkout.sessions.retrieve(session.id, {
+          expand: ["line_items.data.price.product"],
+        });
         await linkStripeCustomerFromCheckoutSession(fullSession);
-        const record = await recordGiftFromCheckoutSession(fullSession);
+        const record =
+          fullSession.payment_status === "paid"
+            ? await recordGiftFromCheckoutSession(fullSession, {
+                trustedWebhookSettlement: {
+                  paidAtUnix: event.created,
+                  eventType: event.type,
+                  eventId: event.id,
+                },
+              })
+            : null;
         if (!record) {
           console.warn("Stripe checkout completed but gift was not recorded.", {
             sessionId: session.id,
@@ -54,7 +65,13 @@ export async function POST(request: Request) {
       }
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        const record = await recordGiftFromPaymentIntentSucceeded(getStripe(), paymentIntent);
+        const record = await recordGiftFromPaymentIntentSucceeded(getStripe(), paymentIntent, {
+          trustedWebhookSettlement: {
+            paidAtUnix: event.created,
+            eventType: event.type,
+            eventId: event.id,
+          },
+        });
         if (!record) {
           console.warn("Stripe payment_intent.succeeded but no Checkout gift was recorded.", {
             paymentIntentId: paymentIntent.id,

@@ -34,6 +34,12 @@ Ops command: `PAYMENT_INTENT_ID=pi_3URO4jLmBWhgE7VM1r0q61Kx npx tsx scripts/givi
 
 5. **Return-path UX** — `/give/success` calls `/api/giving/confirm` once; ACH returns **409** while processing and is **not retried** when the bank settles days later.
 
+## PR #54 review fixes
+
+- Live webhooks use signed `event.created` when Events.list is unavailable; Events.list timestamps still preferred when listable.
+- Finance recovery still requires Events.list success date (no Checkout.created, no webhook fallback).
+- **October $75 gift:** no automated recovery/backfill in this PR.
+
 ## Safeguards (follow-up PR)
 
 - Corroborated `client_reference_id` / `metadata.userId` required (not customer-only).

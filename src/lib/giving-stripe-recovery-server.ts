@@ -24,6 +24,7 @@ import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 import { prisma } from "@/lib/db";
 import { useDatabase } from "@/lib/use-database";
 import { resolveVerifiedCheckoutGiftAmounts } from "@/lib/giving-stripe-recovery-amounts";
+import { recoveryRecordWithAuditInTransaction } from "@/lib/giving-stripe-recovery-write";
 import { formatPersonNameForDisplay } from "@/lib/member-display-name";
 
 export type VerifiedCheckoutOwnershipBasis = CorroboratedOwnershipBasis;
@@ -294,88 +295,47 @@ export async function applyTargetedCheckoutGiftRecovery(input: {
   const baseNote = "Finance-targeted Checkout recovery.";
   const notes = giftNotesFromMetadata(metadata, baseNote);
 
-  const txResult = await prisma.$transaction(async (tx) => {
-    const existing = await tx.givingRecord.findUnique({
-      where: { stripeSessionId: session.id },
-    });
+  const recordId = `give-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const recoveryAuditId = `grecover-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-    if (existing) {
-      if (existing.userId && existing.userId !== member.id) {
-        const auditId = await writeAuditInTx(tx, {
-          memberUserId: member.id,
-          stripeSessionId: session.id,
-          stripePaymentIntentId: piId,
-          actor: input.actor,
-          ownershipBasis: verified.ownershipBasis,
-          giftAmount: existing.amount,
-          feeAmount: amounts.feeAmount,
-          givenOn: existing.givenOn,
-          successAtVerified: true,
-          outcome: "rejected_other_member_record",
-          details: { existingRecordId: existing.id, existingUserId: existing.userId },
-        });
-        return { kind: "other_member" as const, auditId, existing };
-      }
-      const auditId = await writeAuditInTx(tx, {
+  const txResult = await prisma.$transaction(async (tx) =>
+    recoveryRecordWithAuditInTransaction(tx, {
+      memberUserId: member.id,
+      record: {
+        recordId,
         memberUserId: member.id,
-        stripeSessionId: session.id,
-        stripePaymentIntentId: piId,
-        actor: input.actor,
-        ownershipBasis: verified.ownershipBasis,
-        giftAmount: existing.amount,
-        feeAmount: amounts.feeAmount,
-        givenOn: existing.givenOn,
-        successAtVerified: true,
-        outcome: "already_recorded_for_member",
-        details: { recordId: existing.id },
-      });
-      return { kind: "already" as const, auditId, existing };
-    }
-
-    const now = new Date();
-    const record = await tx.givingRecord.create({
-      data: {
-        id: `give-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        userId: member.id,
         donorName,
         donorEmail: donorEmail ?? null,
-        amount: amounts.giftAmount,
+        giftAmount: amounts.giftAmount,
         currency: (session.currency ?? "usd").toUpperCase(),
         fund: parseFund(metadata.fund),
-        method: "stripe",
         givenOn,
         campusId: metadata.campusId?.trim() || memberRow.campusId || null,
         notes,
-        source: "stripe",
         stripeSessionId: session.id,
-        stripeInvoiceId: null,
-        recordedBy: input.actor.id,
+        recordedByUserId: input.actor.id,
         recordedByName: input.actor.name,
-        createdAt: now,
-        updatedAt: now,
       },
-    });
-
-    const auditId = await writeAuditInTx(tx, {
-      memberUserId: member.id,
-      stripeSessionId: session.id,
-      stripePaymentIntentId: piId,
-      actor: input.actor,
-      ownershipBasis: verified.ownershipBasis,
-      giftAmount: amounts.giftAmount,
-      feeAmount: amounts.feeAmount,
-      givenOn,
-      successAtVerified: true,
-      outcome: "recorded",
-      details: {
-        recordId: record.id,
-        amountSource: amounts.source,
-        fundLabel: fundLabel(parseFund(metadata.fund)),
+      audit: {
+        auditId: recoveryAuditId,
+        memberUserId: member.id,
+        stripeSessionId: session.id,
+        stripePaymentIntentId: piId,
+        requestedByUserId: input.actor.id,
+        requestedByName: input.actor.name,
+        ownershipBasis: verified.ownershipBasis,
+        giftAmount: amounts.giftAmount,
+        feeAmount: amounts.feeAmount,
+        givenOn,
+        successAtVerified: true,
+        outcome: "recorded",
+        details: {
+          amountSource: amounts.source,
+          fundLabel: fundLabel(parseFund(metadata.fund)),
+        },
       },
-    });
-
-    return { kind: "recorded" as const, auditId, record };
-  });
+    }),
+  );
 
   if (txResult.kind === "other_member") {
     return {
@@ -386,13 +346,13 @@ export async function applyTargetedCheckoutGiftRecovery(input: {
     };
   }
 
-  if (txResult.kind === "already") {
+  if (txResult.kind === "already_recorded") {
     return {
       ok: true,
       outcome: "already_recorded_for_member",
-      recordId: txResult.existing.id,
-      givenOn: txResult.existing.givenOn,
-      giftAmount: txResult.existing.amount,
+      recordId: txResult.recordId,
+      givenOn: txResult.givenOn,
+      giftAmount: txResult.giftAmount,
       successAtVerified: true,
       ownershipBasis: verified.ownershipBasis,
       auditId: txResult.auditId,
@@ -402,37 +362,11 @@ export async function applyTargetedCheckoutGiftRecovery(input: {
   return {
     ok: true,
     outcome: "recorded",
-    recordId: txResult.record.id,
-    givenOn: txResult.record.givenOn,
-    giftAmount: txResult.record.amount,
+    recordId: txResult.recordId,
+    givenOn,
+    giftAmount: amounts.giftAmount,
     successAtVerified: true,
     ownershipBasis: verified.ownershipBasis,
     auditId: txResult.auditId,
   };
-}
-
-async function writeAuditInTx(
-  tx: Prisma.TransactionClient,
-  row: RecoveryAuditInput,
-) {
-  const id = `grecover-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  await tx.givingStripeGiftRecoveryAudit.create({
-    data: {
-      id,
-      memberUserId: row.memberUserId,
-      stripeSessionId: row.stripeSessionId,
-      stripePaymentIntentId: row.stripePaymentIntentId,
-      requestedByUserId: row.actor.id,
-      requestedByName: row.actor.name,
-      ownershipBasis: row.ownershipBasis,
-      giftAmount: row.giftAmount,
-      feeAmount: row.feeAmount,
-      givenOn: row.givenOn,
-      successAtVerified: row.successAtVerified,
-      outcome: row.outcome,
-      details: row.details as Prisma.InputJsonValue,
-      createdAt: new Date(),
-    },
-  });
-  return id;
 }

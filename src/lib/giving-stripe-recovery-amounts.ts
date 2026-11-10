@@ -20,6 +20,13 @@ function isFeeLineItem(item: Stripe.LineItem) {
   return FEE_NAME_HINTS.some((hint) => label.includes(hint));
 }
 
+/** Stripe Checkout LineItem total in cents (amount_total is already line gross). */
+export function checkoutLineItemCents(item: Stripe.LineItem) {
+  if (item.amount_total != null) return item.amount_total;
+  const unit = item.price?.unit_amount ?? 0;
+  return unit * (item.quantity ?? 1);
+}
+
 export type VerifiedCheckoutGiftAmounts =
   | {
       ok: true;
@@ -38,8 +45,19 @@ export function resolveVerifiedCheckoutGiftAmounts(
   const metadata = session.metadata ?? {};
   const metaGift = Number(metadata.giftAmount);
   const metaFee = Number(metadata.feeAmount);
+  const gross = session.amount_total ?? 0;
 
   if (Number.isFinite(metaGift) && metaGift > 0) {
+    const giftCents = Math.round(metaGift * 100);
+    const feeCents = Number.isFinite(metaFee) && metaFee >= 0 ? Math.round(metaFee * 100) : 0;
+    if (gross > 0) {
+      if (feeCents > 0 && giftCents + feeCents !== gross) {
+        return { ok: false, reason: "amount_mismatch" };
+      }
+      if (feeCents === 0 && giftCents !== gross) {
+        return { ok: false, reason: "amount_mismatch" };
+      }
+    }
     return {
       ok: true,
       giftAmount: roundMoney(metaGift),
@@ -59,7 +77,7 @@ export function resolveVerifiedCheckoutGiftAmounts(
   let feeLines = 0;
 
   for (const item of items) {
-    const cents = (item.amount_total ?? item.price?.unit_amount ?? 0) * (item.quantity ?? 1);
+    const cents = checkoutLineItemCents(item);
     if (cents <= 0) continue;
     if (isFeeLineItem(item)) {
       feeCents += cents;
@@ -74,7 +92,6 @@ export function resolveVerifiedCheckoutGiftAmounts(
     return { ok: false, reason: "line_items_ambiguous" };
   }
 
-  const gross = session.amount_total ?? 0;
   if (gross > 0 && giftCents + feeCents !== gross) {
     return { ok: false, reason: "amount_mismatch" };
   }

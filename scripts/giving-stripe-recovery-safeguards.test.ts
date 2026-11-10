@@ -81,12 +81,22 @@ if (amounts.ok) {
   assert.equal(amounts.feeAmount, 0.6);
 }
 
-const noMetaGift = resolveVerifiedCheckoutGiftAmounts(
-  sessionFixture({
-    metadata: { fund: "offering" },
-    amount_total: 7560,
-  }),
-);
+  const noMetaGift = resolveVerifiedCheckoutGiftAmounts(
+    sessionFixture({
+      metadata: { fund: "offering" },
+      amount_total: 7500,
+      line_items: {
+        data: [
+          {
+            amount_total: 7500,
+            quantity: 1,
+            description: "Shanah City Offering",
+            price: { product: { name: "Shanah City Offering" } },
+          },
+        ],
+      },
+    }),
+  );
 assert.equal(noMetaGift.ok, true);
 if (noMetaGift.ok) {
   assert.equal(noMetaGift.giftAmount, 75);
