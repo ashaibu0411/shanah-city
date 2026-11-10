@@ -17,6 +17,7 @@ export type MemberStripeSyncSkipReason =
 export type MemberStripeSyncReport = {
   durationMs: number;
   scannedCheckoutSessions: number;
+  scannedCustomerlessCheckoutSessions?: number;
   scannedPaymentIntents?: number;
   recordedPaymentIntents?: number;
   scannedInvoices: number;

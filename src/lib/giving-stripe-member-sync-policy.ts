@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { checkoutSessionDualCorroboratedForMember } from "@/lib/giving-stripe-checkout-ownership";
 import { metadataUserId } from "@/lib/giving-stripe-identity";
 import { resolveStripeCustomerId } from "@/lib/giving-stripe-invoice";
 import { checkoutSessionAuthorizedForMember } from "@/lib/giving-stripe-eligibility";
@@ -6,6 +7,8 @@ import { checkoutSessionAuthorizedForMember } from "@/lib/giving-stripe-eligibil
 export const MEMBER_STRIPE_SYNC_DAYS = 90;
 export const MEMBER_STRIPE_SYNC_PAGE_LIMIT = 100;
 export const MEMBER_STRIPE_SYNC_MAX_PAGES = 5;
+export const MEMBER_STRIPE_SYNC_CUSTOMERLESS_SEARCH_MAX_PAGES = 2;
+export const MEMBER_STRIPE_SYNC_CUSTOMERLESS_PAGE_LIMIT = 25;
 export const MEMBER_STRIPE_SYNC_TIMEOUT_MS = 12_000;
 export const MEMBER_STRIPE_SYNC_MIN_GAP_MS = 60_000;
 export const MEMBER_STRIPE_SYNC_SUCCESS_COOLDOWN_MS = 15 * 60_000;
@@ -30,6 +33,22 @@ export function stripeCustomerVerifiedForMember(
   const memberCustomer = memberStripeCustomerId?.trim();
   const paymentCustomer = stripeCustomerOnPayment?.trim();
   return Boolean(memberCustomer && paymentCustomer && memberCustomer === paymentCustomer);
+}
+
+/**
+ * Linked Stripe customer must match when present. When Checkout.customer is null, only
+ * dual-corroborated client_reference_id + metadata.userId may satisfy customer proof (fail-closed).
+ */
+export function stripeCheckoutCustomerVerifiedForMember(
+  session: Pick<Stripe.Checkout.Session, "customer" | "client_reference_id" | "metadata">,
+  member: { id: string },
+  memberStripeCustomerId: string | null | undefined,
+) {
+  const paymentCustomer = resolveStripeCustomerId(session.customer);
+  if (paymentCustomer) {
+    return stripeCustomerVerifiedForMember(paymentCustomer, memberStripeCustomerId);
+  }
+  return checkoutSessionDualCorroboratedForMember(session, member.id);
 }
 
 export function stripeCheckoutMetadataOwnerConflict(
@@ -90,8 +109,7 @@ export function checkoutSessionEligibleForMemberSync(
   member: { id: string; email: string },
   memberStripeCustomerId: string | null | undefined,
 ) {
-  const paymentCustomer = resolveStripeCustomerId(session.customer);
-  if (!stripeCustomerVerifiedForMember(paymentCustomer, memberStripeCustomerId)) {
+  if (!stripeCheckoutCustomerVerifiedForMember(session, member, memberStripeCustomerId)) {
     return false;
   }
   if (stripeCheckoutMetadataOwnerConflict(session, member).conflict) {
