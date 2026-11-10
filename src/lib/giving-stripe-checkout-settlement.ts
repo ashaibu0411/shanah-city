@@ -1,6 +1,12 @@
 import type Stripe from "stripe";
 import { lookupStripeSuccessEventCreated } from "@/lib/giving-stripe-success-event";
 
+export type StripeSettlementDateUnknownReason =
+  | "stripe_event_retention_out_of_coverage"
+  | "no_matching_stripe_success_event"
+  | "event_lookup_budget_exhausted"
+  | "event_lookup_pagination_limited";
+
 export type StripeSettlementResolution =
   | {
       status: "verified";
@@ -10,13 +16,15 @@ export type StripeSettlementResolution =
       paymentSucceededVerified: true;
       successAtVerified: true;
       chargeCreatedAtUnix: number | null;
+      financeManualDateReviewRecommended: false;
     }
   | {
       status: "success_date_unknown";
-      reason: string;
+      reason: StripeSettlementDateUnknownReason;
       paymentSucceededVerified: true;
       successAtVerified: false;
       chargeCreatedAtUnix: number | null;
+      financeManualDateReviewRecommended: true;
     }
   | {
       status: "not_paid";
@@ -24,6 +32,7 @@ export type StripeSettlementResolution =
       paymentSucceededVerified: false;
       successAtVerified: false;
       chargeCreatedAtUnix: number | null;
+      financeManualDateReviewRecommended: false;
     }
   | {
       status: "unknown";
@@ -31,6 +40,7 @@ export type StripeSettlementResolution =
       paymentSucceededVerified: false;
       successAtVerified: false;
       chargeCreatedAtUnix: number | null;
+      financeManualDateReviewRecommended: false;
     };
 
 function chargeFromLatest(latest: string | Stripe.Charge | null | undefined) {
@@ -40,6 +50,21 @@ function chargeFromLatest(latest: string | Stripe.Charge | null | undefined) {
 
 function chargeCreatedUnix(charge: Pick<Stripe.Charge, "created"> | null) {
   return charge?.created ?? null;
+}
+
+function mapEventLookupToReason(
+  outcome: Awaited<ReturnType<typeof lookupStripeSuccessEventCreated>>["outcome"],
+): StripeSettlementDateUnknownReason {
+  switch (outcome) {
+    case "out_of_coverage":
+      return "stripe_event_retention_out_of_coverage";
+    case "budget_exhausted":
+      return "event_lookup_budget_exhausted";
+    case "pagination_limited":
+      return "event_lookup_pagination_limited";
+    default:
+      return "no_matching_stripe_success_event";
+  }
 }
 
 export async function resolvePaymentIntentSettlement(
@@ -57,6 +82,7 @@ export async function resolvePaymentIntentSettlement(
       paymentSucceededVerified: false,
       successAtVerified: false,
       chargeCreatedAtUnix,
+      financeManualDateReviewRecommended: false,
     };
   }
   if (charge?.status !== "succeeded") {
@@ -66,35 +92,38 @@ export async function resolvePaymentIntentSettlement(
       paymentSucceededVerified: false,
       successAtVerified: false,
       chargeCreatedAtUnix,
+      financeManualDateReviewRecommended: false,
     };
   }
 
   const chargeId = charge.id;
-  const successEvent = await lookupStripeSuccessEventCreated(stripe, {
+  const eventLookup = await lookupStripeSuccessEventCreated(stripe, {
     chargeId,
     paymentIntentId: pi.id,
     sessionId: extraContext?.sessionId,
     chargeCreatedAtUnix,
   });
 
-  if (!successEvent) {
+  if (eventLookup.outcome === "found") {
     return {
-      status: "success_date_unknown",
-      reason: "no_matching_stripe_success_event",
+      status: "verified",
+      paidAtUnix: eventLookup.match.paidAtUnix,
+      source: "stripe_success_event",
+      eventType: eventLookup.match.eventType,
       paymentSucceededVerified: true,
-      successAtVerified: false,
+      successAtVerified: true,
       chargeCreatedAtUnix,
+      financeManualDateReviewRecommended: false,
     };
   }
 
   return {
-    status: "verified",
-    paidAtUnix: successEvent.paidAtUnix,
-    source: "stripe_success_event",
-    eventType: successEvent.eventType,
+    status: "success_date_unknown",
+    reason: mapEventLookupToReason(eventLookup.outcome),
     paymentSucceededVerified: true,
-    successAtVerified: true,
+    successAtVerified: false,
     chargeCreatedAtUnix,
+    financeManualDateReviewRecommended: true,
   };
 }
 
@@ -109,6 +138,7 @@ export async function resolveCheckoutSessionSettlement(
       paymentSucceededVerified: false,
       successAtVerified: false,
       chargeCreatedAtUnix: null,
+      financeManualDateReviewRecommended: false,
     };
   }
   const piRef = session.payment_intent;
@@ -119,6 +149,7 @@ export async function resolveCheckoutSessionSettlement(
       paymentSucceededVerified: false,
       successAtVerified: false,
       chargeCreatedAtUnix: null,
+      financeManualDateReviewRecommended: false,
     };
   }
   try {
@@ -139,6 +170,7 @@ export async function resolveCheckoutSessionSettlement(
       paymentSucceededVerified: false,
       successAtVerified: false,
       chargeCreatedAtUnix: null,
+      financeManualDateReviewRecommended: false,
     };
   }
 }
@@ -153,4 +185,18 @@ export function stripeSettlementPaymentSucceeded(resolution: StripeSettlementRes
     (resolution.status === "verified" || resolution.status === "success_date_unknown") &&
     resolution.paymentSucceededVerified
   );
+}
+
+export function settlementUnknownMapsToSkipReason(
+  reason: StripeSettlementDateUnknownReason,
+): string {
+  switch (reason) {
+    case "stripe_event_retention_out_of_coverage":
+      return "success_date_event_retention_expired";
+    case "event_lookup_budget_exhausted":
+    case "event_lookup_pagination_limited":
+      return "success_date_lookup_inconclusive";
+    default:
+      return "paid_at_unknown";
+  }
 }

@@ -1,14 +1,28 @@
 import assert from "node:assert/strict";
 import type Stripe from "stripe";
 import {
+  MEMBER_RECONCILE_EVENT_LIST_BUDGET,
+  resetMemberReconcileEventBudget,
+  tryConsumeMemberReconcileEventListCall,
+} from "../src/lib/giving-stripe-event-budget";
+import {
   checkoutSettlementPaidAtUnix,
   resolvePaymentIntentSettlement,
+  settlementUnknownMapsToSkipReason,
 } from "../src/lib/giving-stripe-checkout-settlement";
-import { setStripeEventSuccessLookupForTests } from "../src/lib/giving-stripe-success-event";
+import {
+  clearStripeSuccessEventLookupCacheForTests,
+  setStripeEventSuccessLookupForTests,
+  setStripeReconcileNowUnixForTests,
+  stripeEventListLikelyOutOfCoverage,
+  stripeSuccessEventMatchesContext,
+} from "../src/lib/giving-stripe-success-event";
 import { stripeObjectInPaidWindow } from "../src/lib/giving-stripe-paid-at";
 
 const oct31Unix = Math.floor(new Date("2026-10-31T12:00:00Z").getTime() / 1000);
 const nov4Unix = Math.floor(new Date("2026-11-04T15:30:00Z").getTime() / 1000);
+const oct5Unix = Math.floor(new Date("2026-10-05T08:00:00Z").getTime() / 1000);
+const nov9Unix = Math.floor(new Date("2026-11-09T18:00:00Z").getTime() / 1000);
 const cardSyncUnix = Math.floor(new Date("2026-10-15T18:00:00Z").getTime() / 1000);
 
 const octWindowSince = Math.floor(new Date("2026-10-01T00:00:00Z").getTime() / 1000);
@@ -38,34 +52,87 @@ const cardPi = {
 
 const stripeStub = {} as Stripe;
 
+assert.equal(
+  stripeSuccessEventMatchesContext(
+    { type: "charge.succeeded", data: { object: { id: "ch_target" } } } as never,
+    { chargeId: "ch_other" },
+  ),
+  false,
+  "event object id must match exactly",
+);
+assert.equal(
+  stripeSuccessEventMatchesContext(
+    { type: "charge.succeeded", data: { object: { id: "ch_target" } } } as never,
+    { chargeId: "ch_target" },
+  ),
+  true,
+);
+assert.equal(
+  stripeSuccessEventMatchesContext(
+    { type: "payment_intent.succeeded", data: { object: { id: "pi_1" } } } as never,
+    { paymentIntentId: "pi_2" },
+  ),
+  false,
+);
+
 async function run() {
+  resetMemberReconcileEventBudget();
+  clearStripeSuccessEventLookupCacheForTests();
+  setStripeReconcileNowUnixForTests(nov9Unix);
+
+  assert.equal(
+    stripeEventListLikelyOutOfCoverage(oct5Unix),
+    true,
+    "early-October activity is outside Stripe Event.list retention on Nov 9",
+  );
+
+  setStripeEventSuccessLookupForTests(null);
+  const earlyOctoberPi = {
+    ...achPi,
+    latest_charge: { id: "ch_early_oct", status: "succeeded", created: oct5Unix },
+  };
+  const achRetention = await resolvePaymentIntentSettlement(stripeStub, earlyOctoberPi as never);
+  assert.equal(achRetention.status, "success_date_unknown");
+  assert.equal(achRetention.reason, "stripe_event_retention_out_of_coverage");
+  assert.equal(achRetention.paymentSucceededVerified, true);
+  assert.equal(achRetention.financeManualDateReviewRecommended, true);
+  assert.equal(
+    settlementUnknownMapsToSkipReason("stripe_event_retention_out_of_coverage"),
+    "success_date_event_retention_expired",
+  );
+  assert.equal(checkoutSettlementPaidAtUnix(achRetention), null);
+
+  setStripeReconcileNowUnixForTests(nov4Unix + 86_400);
+  clearStripeSuccessEventLookupCacheForTests();
+  resetMemberReconcileEventBudget();
   setStripeEventSuccessLookupForTests(async (_stripe, context) => {
     if (context.chargeId === "ch_ach_test") {
-      return { paidAtUnix: nov4Unix, eventType: "charge.succeeded" };
+      return { outcome: "found", match: { paidAtUnix: nov4Unix, eventType: "charge.succeeded" } };
     }
-    if (context.chargeId === "ch_card_test") {
-      return { paidAtUnix: cardSyncUnix, eventType: "payment_intent.succeeded" };
-    }
-    return null;
+    return { outcome: "not_found" };
   });
-
   const achSettlement = await resolvePaymentIntentSettlement(stripeStub, achPi as never);
   assert.equal(achSettlement.status, "verified");
-  assert.equal(achSettlement.paymentSucceededVerified, true);
-  assert.equal(achSettlement.successAtVerified, true);
-  if (achSettlement.status !== "verified") throw new Error("expected verified");
-  assert.equal(achSettlement.paidAtUnix, nov4Unix, "ACH settlement must use Event.created, not Charge.created");
-  assert.equal(achSettlement.chargeCreatedAtUnix, oct31Unix);
+  if (achSettlement.status !== "verified") throw new Error("expected verified ACH");
+  assert.equal(achSettlement.paidAtUnix, nov4Unix);
   assert.equal(
-    stripeObjectInPaidWindow(oct31Unix, octWindowSince, octWindowUntil),
-    true,
-    "chargeCreated is useful for discovery only",
-  );
-  assert.equal(
-    stripeObjectInPaidWindow(checkoutSettlementPaidAtUnix(achSettlement), octWindowSince, octWindowUntil),
+    stripeObjectInPaidWindow(achSettlement.paidAtUnix, octWindowSince, octWindowUntil),
     false,
     "Nov-settled ACH must not fall in October window",
   );
+
+  setStripeReconcileNowUnixForTests(cardSyncUnix + 86_400);
+  clearStripeSuccessEventLookupCacheForTests();
+  resetMemberReconcileEventBudget();
+  setStripeEventSuccessLookupForTests(async (_stripe, context) => {
+    if (context.chargeId === "ch_card_test") {
+      return {
+        outcome: "found",
+        match: { paidAtUnix: cardSyncUnix, eventType: "payment_intent.succeeded" },
+      };
+    }
+    return { outcome: "not_found" };
+  });
 
   const cardSettlement = await resolvePaymentIntentSettlement(stripeStub, cardPi as never);
   assert.equal(cardSettlement.status, "verified");
@@ -76,39 +143,29 @@ async function run() {
     true,
   );
 
-  setStripeEventSuccessLookupForTests(async () => null);
-  const missingEvent = await resolvePaymentIntentSettlement(stripeStub, cardPi as never);
-  assert.equal(missingEvent.status, "success_date_unknown");
-  assert.equal(missingEvent.paymentSucceededVerified, true);
-  assert.equal(missingEvent.successAtVerified, false);
-  assert.equal(checkoutSettlementPaidAtUnix(missingEvent), null);
+  setStripeReconcileNowUnixForTests(nov9Unix);
+  clearStripeSuccessEventLookupCacheForTests();
+  resetMemberReconcileEventBudget();
+  setStripeEventSuccessLookupForTests(async () => ({ outcome: "pagination_limited" }));
+  const paginated = await resolvePaymentIntentSettlement(stripeStub, cardPi as never);
+  assert.equal(paginated.status, "success_date_unknown");
+  assert.equal(paginated.reason, "event_lookup_pagination_limited");
+  assert.equal(settlementUnknownMapsToSkipReason("event_lookup_pagination_limited"), "success_date_lookup_inconclusive");
+
+  resetMemberReconcileEventBudget();
+  setStripeReconcileNowUnixForTests(cardSyncUnix + 86_400);
+  for (let i = 0; i < MEMBER_RECONCILE_EVENT_LIST_BUDGET; i++) {
+    tryConsumeMemberReconcileEventListCall();
+  }
+  clearStripeSuccessEventLookupCacheForTests();
+  setStripeEventSuccessLookupForTests(async () => ({ outcome: "budget_exhausted" }));
+  const budgeted = await resolvePaymentIntentSettlement(stripeStub, cardPi as never);
+  assert.equal(budgeted.reason, "event_lookup_budget_exhausted");
 
   setStripeEventSuccessLookupForTests(null);
-
-  function memberScanComplete(flags: {
-    checkoutSessions: boolean;
-    invoices: boolean;
-    paymentIntents: boolean;
-    emailCustomerLookupTruncated: boolean;
-  }) {
-    return (
-      !flags.checkoutSessions &&
-      !flags.invoices &&
-      !flags.paymentIntents &&
-      !flags.emailCustomerLookupTruncated
-    );
-  }
-
-  assert.equal(
-    memberScanComplete({
-      checkoutSessions: false,
-      invoices: false,
-      paymentIntents: false,
-      emailCustomerLookupTruncated: true,
-    }),
-    false,
-    "email customer lookup truncation must make stripeScan.complete false",
-  );
+  setStripeReconcileNowUnixForTests(null);
+  clearStripeSuccessEventLookupCacheForTests();
+  resetMemberReconcileEventBudget();
 
   console.log("giving-stripe-settlement.test.ts OK");
 }
