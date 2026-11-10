@@ -13,6 +13,17 @@ import {
   isShanahGivingInvoiceMetadata,
   stripeInvoiceIsFullyRefunded,
 } from "@/lib/giving-stripe-eligibility";
+import {
+  checkoutSettlementPaidAtUnix,
+  resolveCheckoutSessionSettlement,
+} from "@/lib/giving-stripe-checkout-settlement";
+import { createMemberReconcileEventScope } from "@/lib/giving-stripe-reconcile-event-scope";
+import {
+  stripeInvoicePaidAtUnknown,
+  stripeInvoiceSettlementPaidAtUnix,
+  stripeListCreatedGteWithPaidAtLookback,
+  stripeObjectInPaidWindow,
+} from "@/lib/giving-stripe-paid-at";
 import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 import { useDatabase } from "@/lib/use-database";
 
@@ -53,6 +64,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
   const limit = Math.min(Math.max(options?.limit ?? 100, 1), 250);
   const sinceUnix = Math.floor((Date.now() - days * 86_400_000) / 1000);
   const stripe = getStripe();
+  const eventScope = createMemberReconcileEventScope();
 
   const missing: GivingReconcileMissingItem[] = [];
   let scannedSessions = 0;
@@ -70,6 +82,12 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
     for (const session of page.data) {
       scannedSessions += 1;
       if (!isPaidCheckoutSession(session)) continue;
+      const checkoutSettlement = await resolveCheckoutSessionSettlement(stripe, session, eventScope);
+      const checkoutPaidAt = checkoutSettlementPaidAtUnix(checkoutSettlement);
+      if (checkoutSettlement.status === "unknown" || checkoutSettlement.status === "success_date_unknown") {
+        continue;
+      }
+      if (!stripeObjectInPaidWindow(checkoutPaidAt, sinceUnix)) continue;
       if (!isShanahGivingCheckoutSession(session)) continue;
       const existing = await getGivingRecordByStripeSessionId(session.id);
       if (existing) continue;
@@ -78,7 +96,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
         kind: "checkout_session",
         stripeId: session.id,
         amountUsd: Math.round(session.amount_total ?? 0) / 100,
-        paidAtIso: new Date((session.created ?? 0) * 1000).toISOString(),
+        paidAtIso: new Date((checkoutPaidAt ?? 0) * 1000).toISOString(),
         donorEmail: session.customer_details?.email ?? session.customer_email ?? undefined,
         userId: session.client_reference_id ?? session.metadata?.userId,
       });
@@ -93,7 +111,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
   while (missing.length < limit) {
     const page = await stripe.invoices.list({
       limit: 100,
-      created: { gte: sinceUnix },
+      created: { gte: stripeListCreatedGteWithPaidAtLookback(sinceUnix) },
       ...(invoiceStartingAfter ? { starting_after: invoiceStartingAfter } : {}),
     });
     if (page.data.length === 0) break;
@@ -101,6 +119,9 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
     for (const invoice of page.data) {
       scannedInvoices += 1;
       if (!isEligibleReconcileGiftInvoice(invoice)) continue;
+      if (stripeInvoicePaidAtUnknown(invoice)) continue;
+      const paidAtUnix = stripeInvoiceSettlementPaidAtUnix(invoice);
+      if (!stripeObjectInPaidWindow(paidAtUnix, sinceUnix)) continue;
       const extraMetadata = await invoiceMetadataForReconcile(invoice);
       if (!isShanahGivingInvoiceMetadata(extraMetadata)) continue;
       const existing = await getGivingRecordByStripeInvoiceId(invoice.id);
@@ -110,7 +131,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
         kind: "invoice",
         stripeId: invoice.id,
         amountUsd: Math.round(invoice.amount_paid ?? 0) / 100,
-        paidAtIso: new Date((invoice.created ?? 0) * 1000).toISOString(),
+        paidAtIso: new Date((paidAtUnix ?? 0) * 1000).toISOString(),
         donorEmail: invoice.customer_email ?? undefined,
         userId: invoice.metadata?.userId,
       });

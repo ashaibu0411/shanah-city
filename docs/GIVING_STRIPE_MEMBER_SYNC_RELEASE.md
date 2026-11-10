@@ -28,3 +28,18 @@ If migration is not applied, audit/cooldown queries fail closed: sync still runs
 2. Finance: `GET /api/admin/giving/diagnostic?days=90` — `openMemberSyncReviews` for metadata conflicts.
 
 No bulk financial backfill in this release.
+
+## October 2026 missing-history incident (read-only)
+
+**Symptoms:** Paid Stripe activity not appearing on Profile → Your giving while other members’ October `GivingRecord` rows exist church-wide.
+
+**Root causes addressed (code, not data):**
+
+1. **Subscription checkout** — `mode: subscription` sessions are not one-time gifts; paid amounts belong on **`invoice.payment_succeeded`** / paid invoices. Member sync now reports `subscription_checkout_use_invoice` instead of lumping into `not_paid`.
+2. **Invoice discovery window** — Stripe `invoices.list` filters on `created`, not `paid_at`. Sync and global reconcile widen the `created` lookback and filter on **paid-at** so subscription cycle invoices paid in-window are eligible.
+
+**Finance review (no automatic writes):**
+
+- `GET /api/admin/giving/reconcile/member?memberUserId=…&since=2026-10-01&until=2026-10-31` — redacted per-payment report (skip reason, DB state, proposed secure linkage, `stripeScan.truncated` if page caps hit). Requires valid `since`/`until` (≤366 days). Paid windows use Stripe `paid_at` only — `paid_at_unknown` → manual review.
+- After deploy: confirm eligible rows, then apply only via existing `POST /api/admin/giving/reconcile` with explicit `sessionIds` / `invoiceIds` and `APPLY_STRIPE_GIVING_BACKFILL`.
+- Local CLI: `node scripts/load-env-and-probe.cjs` (requires valid production `DATABASE_URL` + `STRIPE_SECRET_KEY`).

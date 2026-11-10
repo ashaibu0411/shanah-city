@@ -8,7 +8,11 @@ export type MemberStripeSyncSkipReason =
   | "already_recorded"
   | "record_create_failed"
   | "subscription_metadata_unavailable"
-  | "unauthorized_session";
+  | "unauthorized_session"
+  | "subscription_checkout_use_invoice"
+  | "checkout_mode_unsupported"
+  | "outside_paid_window"
+  | "paid_at_unknown";
 
 export type MemberStripeSyncReport = {
   durationMs: number;
