@@ -30,7 +30,6 @@ import {
 import { checkoutSessionHasCorroboratedMemberIdentity } from "@/lib/giving-stripe-checkout-ownership";
 import {
   listCheckoutSessionsForPaymentIntent,
-  listCustomerlessDualCorroboratedCheckoutSessionsForMember,
   listSucceededPaymentIntentsForCustomer,
 } from "@/lib/giving-stripe-checkout-session-lookup";
 import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
@@ -172,7 +171,6 @@ async function runVerifiedStripeGiftSync(
 
   const stripe = getStripe();
   const sinceUnix = Math.floor((Date.now() - MEMBER_STRIPE_SYNC_DAYS * 86_400_000) / 1000);
-  const memberSyncCheckoutSessionIds = new Set<string>();
 
   let sessionStartingAfter: string | undefined;
   for (let page = 0; page < MEMBER_STRIPE_SYNC_MAX_PAGES; page++) {
@@ -195,7 +193,6 @@ async function runVerifiedStripeGiftSync(
     if (list.data.length === 0) break;
 
     for (const session of list.data) {
-      memberSyncCheckoutSessionIds.add(session.id);
       report.scannedCheckoutSessions += 1;
       if (session.mode === "subscription") {
         bumpSkipReason(report, "subscription_checkout_use_invoice");
@@ -255,78 +252,6 @@ async function runVerifiedStripeGiftSync(
 
     if (!list.has_more) break;
     sessionStartingAfter = list.data[list.data.length - 1]?.id;
-  }
-
-  try {
-    const customerless = await withStripeMemberSyncTimeout(
-      listCustomerlessDualCorroboratedCheckoutSessionsForMember(stripe, member.id, sinceUnix),
-    );
-    for (const session of customerless) {
-      if (memberSyncCheckoutSessionIds.has(session.id)) continue;
-      memberSyncCheckoutSessionIds.add(session.id);
-      report.scannedCheckoutSessions += 1;
-      report.scannedCustomerlessCheckoutSessions =
-        (report.scannedCustomerlessCheckoutSessions ?? 0) + 1;
-      if (session.mode === "subscription") {
-        bumpSkipReason(report, "subscription_checkout_use_invoice");
-        continue;
-      }
-      if (session.mode !== "payment") {
-        bumpSkipReason(report, "checkout_mode_unsupported");
-        continue;
-      }
-      if (!isPaidCheckoutSession(session)) {
-        bumpSkipReason(report, "not_paid");
-        continue;
-      }
-      report.paidCheckoutSessions += 1;
-      if (!isShanahGivingCheckoutSession(session)) {
-        bumpSkipReason(report, "not_shanah_checkout");
-        continue;
-      }
-
-      const ownerConflict = stripeCheckoutMetadataOwnerConflict(session, member);
-      if (ownerConflict.conflict) {
-        bumpSkipReason(report, "metadata_owner_conflict");
-        const flaggedRow = await flagStripeMemberSyncForFinanceReview({
-          userId: member.id,
-          stripeSessionId: session.id,
-          reason: ownerConflict.reason,
-          metadataUserId: ownerConflict.metadataUserId,
-          clientReferenceId: ownerConflict.clientReferenceId,
-        });
-        if (flaggedRow) report.flagged += 1;
-        continue;
-      }
-
-      if (!checkoutSessionEligibleForMemberSync(session, member, customerId)) {
-        bumpSkipReason(report, "unauthorized_session");
-        continue;
-      }
-      if (!checkoutSessionHasCorroboratedMemberIdentity(session)) {
-        bumpSkipReason(report, "unauthorized_session");
-        continue;
-      }
-      report.eligibleCheckoutSessions += 1;
-
-      const existing = await getGivingRecordByStripeSessionId(session.id);
-      if (existing) {
-        await tryClaimOrphanForMember(existing, member, report);
-        continue;
-      }
-
-      const created = await recordGiftFromCheckoutSession(session);
-      if (created) {
-        report.newlyRecorded += 1;
-      } else {
-        bumpSkipReason(report, "record_create_failed");
-      }
-    }
-  } catch (error) {
-    partial = true;
-    report.errors.push(
-      error instanceof Error ? error.message.slice(0, 120) : "customerless_checkout_search_error",
-    );
   }
 
   let piStartingAfter: string | undefined;

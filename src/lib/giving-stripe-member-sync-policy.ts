@@ -7,8 +7,6 @@ import { checkoutSessionAuthorizedForMember } from "@/lib/giving-stripe-eligibil
 export const MEMBER_STRIPE_SYNC_DAYS = 90;
 export const MEMBER_STRIPE_SYNC_PAGE_LIMIT = 100;
 export const MEMBER_STRIPE_SYNC_MAX_PAGES = 5;
-export const MEMBER_STRIPE_SYNC_CUSTOMERLESS_SEARCH_MAX_PAGES = 2;
-export const MEMBER_STRIPE_SYNC_CUSTOMERLESS_PAGE_LIMIT = 25;
 export const MEMBER_STRIPE_SYNC_TIMEOUT_MS = 12_000;
 export const MEMBER_STRIPE_SYNC_MIN_GAP_MS = 60_000;
 export const MEMBER_STRIPE_SYNC_SUCCESS_COOLDOWN_MS = 15 * 60_000;

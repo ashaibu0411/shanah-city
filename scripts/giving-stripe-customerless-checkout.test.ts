@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   checkoutSessionDualCorroboratedForMember,
   corroboratedOwnershipBasis,
 } from "../src/lib/giving-stripe-checkout-ownership";
-import {
-  checkoutSessionEligibleForMemberSync,
-  stripeCheckoutCustomerVerifiedForMember,
-} from "../src/lib/giving-stripe-member-sync-policy";
+import { stripeCheckoutCustomerVerifiedForMember } from "../src/lib/giving-stripe-member-sync-policy";
 import { resolveVerifiedCheckoutGiftAmounts } from "../src/lib/giving-stripe-recovery-amounts";
 import { verifyTargetedCheckoutRecovery } from "../src/lib/giving-stripe-recovery-server";
 import { checkoutSettlementPaidAtUnix } from "../src/lib/giving-stripe-checkout-settlement";
@@ -99,14 +98,12 @@ const verifiedEventSettlement = {
 };
 assert.equal(checkoutSettlementPaidAtUnix(verifiedEventSettlement), INCIDENT_SUCCESS_UNIX);
 
-assert.equal(
-  checkoutSessionEligibleForMemberSync(
-    oct2026IncidentSession(),
-    { id: MEMBER, email: "zaqnombre@yahoo.com" },
-    "cus_VR8r4k73xPRJp5",
-  ),
-  true,
+const memberSyncSource = readFileSync(
+  join(process.cwd(), "src/lib/giving-stripe-member-sync.ts"),
+  "utf8",
 );
+assert.doesNotMatch(memberSyncSource, /listCustomerless/i);
+assert.doesNotMatch(memberSyncSource, /CustomerlessDualCorroborated/i);
 
 async function run() {
   const recovery = await verifyTargetedCheckoutRecovery({

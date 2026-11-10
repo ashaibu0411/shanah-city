@@ -48,18 +48,19 @@ Ops command: `PAYMENT_INTENT_ID=pi_3URO4jLmBWhgE7VM1r0q61Kx npx tsx scripts/givi
 - Recovery API returns **503** until `GivingStripeGiftRecoveryAudit` migration is applied.
 - Recovery record + audit in a single DB transaction.
 
-## Targeted recovery (design — not auto-run)
+## Targeted recovery (Finance POST only — not auto-run)
 
 Use **Finance** `POST /api/admin/giving/recover/checkout` with:
 
 - `confirm: "RECOVER_VERIFIED_CHECKOUT_GIFT"`
-- `memberUserId` + `stripeSessionId` (`cs_…`) from Stripe (resolve via PI list filter or reconcile report `verifiedStripePaymentRefs.checkoutSessionId`)
+- `memberUserId` + `stripeSessionId` (`cs_…`) from Stripe (resolve via `checkout.sessions.list({ payment_intent })` when needed)
 
 **Ownership checks (fail-closed):**
 
 - Session `payment_status === paid`, Shanah metadata (`fund` + `giftAmount`)
-- Linked Stripe customer matches member `stripeCustomerId`
-- `client_reference_id` or `metadata.userId` matches member (or authorized customer link — **not** bank last4 alone)
+- When `session.customer` is set: must match member `stripeCustomerId` plus corroborated `client_reference_id` or `metadata.userId`
+- When `session.customer` is null: **both** `client_reference_id` and `metadata.userId` must match the member (no customer-only assignment)
+- Member history sync does **not** scan or auto-record customerless checkouts
 
 **Amounts:** persist **$75** gift from `metadata.giftAmount`; fee remains in notes (`feeAmount` / `coverFees`).
 
