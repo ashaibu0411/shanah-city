@@ -1,18 +1,16 @@
+import type { Prisma } from "@prisma/client";
 import type Stripe from "stripe";
 import { getUserById } from "@/lib/auth-server";
 import type { PublicMember } from "@/lib/auth-types";
-import { recordGiftFromCheckoutSession } from "@/lib/giving-checkout-server";
+import { fundLabel, normalizeGivingEmail, recurringGiftNote, type GivingFund } from "@/lib/giving-types";
 import {
-  checkoutSessionAuthorizedForMember,
-  isShanahGivingCheckoutSession,
-} from "@/lib/giving-stripe-eligibility";
+  corroboratedOwnershipBasis,
+  checkoutSessionCorroboratedForMember,
+  type CorroboratedOwnershipBasis,
+} from "@/lib/giving-stripe-checkout-ownership";
+import { isShanahGivingCheckoutSession } from "@/lib/giving-stripe-eligibility";
 import { getMemberStripeCustomerId } from "@/lib/giving-stripe-member-sync";
-import {
-  checkoutSessionEligibleForMemberSync,
-  stripeCheckoutMetadataOwnerConflict,
-  stripeCustomerVerifiedForMember,
-} from "@/lib/giving-stripe-member-sync-policy";
-import { getGivingRecordByStripeSessionId } from "@/lib/giving-server";
+import { stripeCheckoutMetadataOwnerConflict, stripeCustomerVerifiedForMember } from "@/lib/giving-stripe-member-sync-policy";
 import { resolveStripeCustomerId } from "@/lib/giving-stripe-invoice";
 import { isPaidCheckoutSession } from "@/lib/giving-reconcile-server";
 import {
@@ -25,12 +23,10 @@ import { giftDateKeyFromUnixSeconds } from "@/lib/giving-stripe-eligibility";
 import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 import { prisma } from "@/lib/db";
 import { useDatabase } from "@/lib/use-database";
-import { giftAmountFromMetadata } from "@/lib/giving-stripe-recovery-amounts";
+import { resolveVerifiedCheckoutGiftAmounts } from "@/lib/giving-stripe-recovery-amounts";
+import { formatPersonNameForDisplay } from "@/lib/member-display-name";
 
-export type VerifiedCheckoutOwnershipBasis =
-  | "verified_customer_and_client_reference"
-  | "verified_customer_and_metadata_userId"
-  | "verified_customer_and_linked_customer";
+export type VerifiedCheckoutOwnershipBasis = CorroboratedOwnershipBasis;
 
 export type TargetedCheckoutRecoveryResult =
   | {
@@ -41,6 +37,7 @@ export type TargetedCheckoutRecoveryResult =
       giftAmount: number;
       successAtVerified: boolean;
       ownershipBasis: VerifiedCheckoutOwnershipBasis;
+      auditId: string;
     }
   | {
       ok: false;
@@ -51,26 +48,20 @@ export type TargetedCheckoutRecoveryResult =
         | "rejected_owner_conflict"
         | "rejected_other_member_record"
         | "rejected_payment_not_verified"
+        | "rejected_success_date_unverified"
+        | "rejected_amount_not_verified"
         | "record_failed";
       message: string;
+      auditId?: string;
     };
-
-function ownershipBasisForSession(
-  session: Stripe.Checkout.Session,
-  memberId: string,
-): VerifiedCheckoutOwnershipBasis | null {
-  const ref = session.client_reference_id?.trim();
-  if (ref === memberId) return "verified_customer_and_client_reference";
-  const metaUser = session.metadata?.userId?.trim();
-  if (metaUser === memberId) return "verified_customer_and_metadata_userId";
-  return "verified_customer_and_linked_customer";
-}
 
 export async function verifyTargetedCheckoutRecovery(input: {
   session: Stripe.Checkout.Session;
   member: Pick<PublicMember, "id" | "email">;
   memberStripeCustomerId: string;
-}): Promise<{ ok: true; ownershipBasis: VerifiedCheckoutOwnershipBasis } | { ok: false; message: string }> {
+}): Promise<
+  { ok: true; ownershipBasis: VerifiedCheckoutOwnershipBasis } | { ok: false; message: string }
+> {
   const { session, member, memberStripeCustomerId } = input;
 
   if (!isPaidCheckoutSession(session)) {
@@ -90,26 +81,53 @@ export async function verifyTargetedCheckoutRecovery(input: {
     return { ok: false, message: `Metadata owner conflict: ${ownerConflict.reason}` };
   }
 
-  if (!checkoutSessionAuthorizedForMember(session, member, { memberStripeCustomerId })) {
-    return { ok: false, message: "Session failed checkout authorization for this member." };
-  }
-  if (!checkoutSessionEligibleForMemberSync(session, member, memberStripeCustomerId)) {
-    return { ok: false, message: "Session is not eligible for verified member sync." };
+  if (!checkoutSessionCorroboratedForMember(session, member.id)) {
+    return {
+      ok: false,
+      message:
+        "Recovery requires corroborated client_reference_id or metadata.userId matching the member (customer link alone is insufficient).",
+    };
   }
 
-  const basis = ownershipBasisForSession(session, member.id);
+  const basis = corroboratedOwnershipBasis(session, member.id);
   if (!basis) {
-    return { ok: false, message: "Could not derive verified ownership basis." };
+    return { ok: false, message: "Could not derive corroborated ownership basis." };
   }
 
   return { ok: true, ownershipBasis: basis };
+}
+
+type RecoveryAuditInput = {
+  memberUserId: string;
+  stripeSessionId: string;
+  stripePaymentIntentId: string | null;
+  actor: Pick<PublicMember, "id" | "name">;
+  ownershipBasis: VerifiedCheckoutOwnershipBasis | null;
+  giftAmount: number;
+  feeAmount: number | null;
+  givenOn: string;
+  successAtVerified: boolean;
+  outcome: string;
+  details: Record<string, unknown>;
+};
+
+function parseFund(value: string | null | undefined): GivingFund {
+  return String(value ?? "offering") as GivingFund;
+}
+
+function giftNotesFromMetadata(metadata: Record<string, string>, baseNote: string) {
+  const fee = Number(metadata.feeAmount);
+  if (metadata.coverFees === "true" && Number.isFinite(fee) && fee > 0) {
+    return `${baseNote} Donor added $${fee.toFixed(2)} to cover processing fees.`;
+  }
+  return baseNote;
 }
 
 export async function applyTargetedCheckoutGiftRecovery(input: {
   memberUserId: string;
   stripeSessionId: string;
   actor: Pick<PublicMember, "id" | "name" | "email">;
-}) {
+}): Promise<TargetedCheckoutRecoveryResult> {
   if (!isStripeGivingConfigured() || !useDatabase()) {
     throw new Error("Recovery requires Stripe and database.");
   }
@@ -127,16 +145,47 @@ export async function applyTargetedCheckoutGiftRecovery(input: {
 
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(input.stripeSessionId, {
-    expand: ["line_items"],
+    expand: ["line_items.data.price.product"],
   });
 
   const eventScope = createMemberReconcileEventScope();
   const settlement = await resolveCheckoutSessionSettlement(stripe, session, eventScope);
+  const paidAtUnix = checkoutSettlementPaidAtUnix(settlement);
+  const successAtVerified = Boolean(paidAtUnix);
+
+  const auditOnly = async (row: RecoveryAuditInput) => {
+    const id = `grecover-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const created = await prisma.givingStripeGiftRecoveryAudit.create({
+      data: {
+        id,
+        memberUserId: row.memberUserId,
+        stripeSessionId: row.stripeSessionId,
+        stripePaymentIntentId: row.stripePaymentIntentId,
+        requestedByUserId: row.actor.id,
+        requestedByName: row.actor.name,
+        ownershipBasis: row.ownershipBasis,
+        giftAmount: row.giftAmount,
+        feeAmount: row.feeAmount,
+        givenOn: row.givenOn,
+        successAtVerified: row.successAtVerified,
+        outcome: row.outcome,
+        details: row.details as Prisma.InputJsonValue,
+        createdAt: new Date(),
+      },
+    });
+    return created.id;
+  };
+
+  const piId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id ?? null;
+
   if (!stripeSettlementPaymentSucceeded(settlement)) {
-    const audit = await writeRecoveryAudit({
+    const auditId = await auditOnly({
       memberUserId: member.id,
       stripeSessionId: session.id,
-      stripePaymentIntentId: null,
+      stripePaymentIntentId: piId,
       actor: input.actor,
       ownershipBasis: null,
       giftAmount: 0,
@@ -144,13 +193,38 @@ export async function applyTargetedCheckoutGiftRecovery(input: {
       givenOn: "rejected",
       successAtVerified: false,
       outcome: "rejected_payment_not_verified",
-      details: { reason: settlement.status === "not_paid" ? settlement.reason : settlement },
+      details: { reason: settlement.status === "not_paid" ? settlement.reason : settlement.status },
     });
     return {
-      ok: false as const,
-      outcome: "rejected_payment_not_verified" as const,
+      ok: false,
+      outcome: "rejected_payment_not_verified",
       message: "Payment success is not verified for this checkout.",
-      auditId: audit.id,
+      auditId,
+    };
+  }
+
+  if (!paidAtUnix) {
+    const auditId = await auditOnly({
+      memberUserId: member.id,
+      stripeSessionId: session.id,
+      stripePaymentIntentId: piId,
+      actor: input.actor,
+      ownershipBasis: null,
+      giftAmount: 0,
+      feeAmount: null,
+      givenOn: "rejected",
+      successAtVerified: false,
+      outcome: "rejected_success_date_unverified",
+      details: {
+        reason: settlement.status === "success_date_unknown" ? settlement.reason : "no_verified_paid_at",
+      },
+    });
+    return {
+      ok: false,
+      outcome: "rejected_success_date_unverified",
+      message:
+        "Verified Stripe success timestamp required before recovery (do not use Checkout created date for ACH).",
+      auditId,
     };
   }
 
@@ -160,13 +234,10 @@ export async function applyTargetedCheckoutGiftRecovery(input: {
     memberStripeCustomerId,
   });
   if (!verified.ok) {
-    const audit = await writeRecoveryAudit({
+    const auditId = await auditOnly({
       memberUserId: member.id,
       stripeSessionId: session.id,
-      stripePaymentIntentId:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : session.payment_intent?.id ?? null,
+      stripePaymentIntentId: piId,
       actor: input.actor,
       ownershipBasis: null,
       giftAmount: 0,
@@ -179,154 +250,189 @@ export async function applyTargetedCheckoutGiftRecovery(input: {
       details: { message: verified.message },
     });
     return {
-      ok: false as const,
+      ok: false,
       outcome: verified.message.includes("conflict")
-        ? ("rejected_owner_conflict" as const)
-        : ("rejected_ownership" as const),
+        ? "rejected_owner_conflict"
+        : "rejected_ownership",
       message: verified.message,
-      auditId: audit.id,
+      auditId,
     };
   }
 
-  const existing = await getGivingRecordByStripeSessionId(session.id);
-  if (existing) {
-    if (existing.userId && existing.userId !== member.id) {
-      const audit = await writeRecoveryAudit({
+  const amounts = resolveVerifiedCheckoutGiftAmounts(session);
+  if (!amounts.ok) {
+    const auditId = await auditOnly({
+      memberUserId: member.id,
+      stripeSessionId: session.id,
+      stripePaymentIntentId: piId,
+      actor: input.actor,
+      ownershipBasis: verified.ownershipBasis,
+      giftAmount: 0,
+      feeAmount: null,
+      givenOn: "rejected",
+      successAtVerified: true,
+      outcome: "rejected_amount_not_verified",
+      details: { reason: amounts.reason },
+    });
+    return {
+      ok: false,
+      outcome: "rejected_amount_not_verified",
+      message: "Gift and fee amounts must be verified from metadata or line items.",
+      auditId,
+    };
+  }
+
+  const givenOn = giftDateKeyFromUnixSeconds(paidAtUnix);
+  const metadata = session.metadata ?? {};
+  const donorEmail = normalizeGivingEmail(
+    session.customer_details?.email ?? session.customer_email ?? undefined,
+  );
+  const donorName =
+    formatPersonNameForDisplay(memberRow.name) ||
+    session.customer_details?.name?.trim() ||
+    "Online donor";
+  const baseNote = "Finance-targeted Checkout recovery.";
+  const notes = giftNotesFromMetadata(metadata, baseNote);
+
+  const txResult = await prisma.$transaction(async (tx) => {
+    const existing = await tx.givingRecord.findUnique({
+      where: { stripeSessionId: session.id },
+    });
+
+    if (existing) {
+      if (existing.userId && existing.userId !== member.id) {
+        const auditId = await writeAuditInTx(tx, {
+          memberUserId: member.id,
+          stripeSessionId: session.id,
+          stripePaymentIntentId: piId,
+          actor: input.actor,
+          ownershipBasis: verified.ownershipBasis,
+          giftAmount: existing.amount,
+          feeAmount: amounts.feeAmount,
+          givenOn: existing.givenOn,
+          successAtVerified: true,
+          outcome: "rejected_other_member_record",
+          details: { existingRecordId: existing.id, existingUserId: existing.userId },
+        });
+        return { kind: "other_member" as const, auditId, existing };
+      }
+      const auditId = await writeAuditInTx(tx, {
         memberUserId: member.id,
         stripeSessionId: session.id,
-        stripePaymentIntentId: null,
+        stripePaymentIntentId: piId,
         actor: input.actor,
         ownershipBasis: verified.ownershipBasis,
         giftAmount: existing.amount,
-        feeAmount: null,
+        feeAmount: amounts.feeAmount,
         givenOn: existing.givenOn,
-        successAtVerified: settlement.status === "verified",
-        outcome: "rejected_other_member_record",
-        details: { existingRecordId: existing.id, existingUserId: existing.userId },
+        successAtVerified: true,
+        outcome: "already_recorded_for_member",
+        details: { recordId: existing.id },
       });
-      return {
-        ok: false as const,
-        outcome: "rejected_other_member_record" as const,
-        message: "A giving record for this session belongs to another member.",
-        auditId: audit.id,
-      };
+      return { kind: "already" as const, auditId, existing };
     }
-    const audit = await writeRecoveryAudit({
-      memberUserId: member.id,
-      stripeSessionId: session.id,
-      stripePaymentIntentId: null,
-      actor: input.actor,
-      ownershipBasis: verified.ownershipBasis,
-      giftAmount: existing.amount,
-      feeAmount: null,
-      givenOn: existing.givenOn,
-      successAtVerified: settlement.status === "verified",
-      outcome: "already_recorded_for_member",
-      details: { recordId: existing.id },
+
+    const now = new Date();
+    const record = await tx.givingRecord.create({
+      data: {
+        id: `give-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        userId: member.id,
+        donorName,
+        donorEmail: donorEmail ?? null,
+        amount: amounts.giftAmount,
+        currency: (session.currency ?? "usd").toUpperCase(),
+        fund: parseFund(metadata.fund),
+        method: "stripe",
+        givenOn,
+        campusId: metadata.campusId?.trim() || memberRow.campusId || null,
+        notes,
+        source: "stripe",
+        stripeSessionId: session.id,
+        stripeInvoiceId: null,
+        recordedBy: input.actor.id,
+        recordedByName: input.actor.name,
+        createdAt: now,
+        updatedAt: now,
+      },
     });
-    return {
-      ok: true as const,
-      outcome: "already_recorded_for_member" as const,
-      recordId: existing.id,
-      givenOn: existing.givenOn,
-      giftAmount: existing.amount,
-      successAtVerified: settlement.status === "verified",
-      ownershipBasis: verified.ownershipBasis,
-      auditId: audit.id,
-    };
-  }
 
-  const metadata = session.metadata ?? {};
-  const totalPaid = Math.round(session.amount_total ?? 0) / 100;
-  const giftAmount = giftAmountFromMetadata(metadata, totalPaid);
-  const feeAmount = Number(metadata.feeAmount);
-  const paidAtUnix = checkoutSettlementPaidAtUnix(settlement);
-  const givenOn = paidAtUnix
-    ? giftDateKeyFromUnixSeconds(paidAtUnix)
-    : giftDateKeyFromUnixSeconds(session.created ?? undefined);
-
-  const record = await recordGiftFromCheckoutSession(session, { eventScope });
-  if (!record) {
-    const audit = await writeRecoveryAudit({
+    const auditId = await writeAuditInTx(tx, {
       memberUserId: member.id,
       stripeSessionId: session.id,
-      stripePaymentIntentId: null,
+      stripePaymentIntentId: piId,
       actor: input.actor,
       ownershipBasis: verified.ownershipBasis,
-      giftAmount,
-      feeAmount: Number.isFinite(feeAmount) ? feeAmount : null,
+      giftAmount: amounts.giftAmount,
+      feeAmount: amounts.feeAmount,
       givenOn,
-      successAtVerified: Boolean(paidAtUnix),
-      outcome: "record_failed",
-      details: {},
+      successAtVerified: true,
+      outcome: "recorded",
+      details: {
+        recordId: record.id,
+        amountSource: amounts.source,
+        fundLabel: fundLabel(parseFund(metadata.fund)),
+      },
     });
-    return {
-      ok: false as const,
-      outcome: "record_failed" as const,
-      message: "Stripe session verified but record creation failed.",
-      auditId: audit.id,
-    };
-  }
 
-  const audit = await writeRecoveryAudit({
-    memberUserId: member.id,
-    stripeSessionId: session.id,
-    stripePaymentIntentId:
-      typeof session.payment_intent === "string"
-        ? session.payment_intent
-        : session.payment_intent?.id ?? null,
-    actor: input.actor,
-    ownershipBasis: verified.ownershipBasis,
-    giftAmount: record.amount,
-    feeAmount: Number.isFinite(feeAmount) ? feeAmount : null,
-    givenOn: record.givenOn,
-    successAtVerified: Boolean(paidAtUnix),
-    outcome: "recorded",
-    details: { recordId: record.id },
+    return { kind: "recorded" as const, auditId, record };
   });
 
+  if (txResult.kind === "other_member") {
+    return {
+      ok: false,
+      outcome: "rejected_other_member_record",
+      message: "A giving record for this session belongs to another member.",
+      auditId: txResult.auditId,
+    };
+  }
+
+  if (txResult.kind === "already") {
+    return {
+      ok: true,
+      outcome: "already_recorded_for_member",
+      recordId: txResult.existing.id,
+      givenOn: txResult.existing.givenOn,
+      giftAmount: txResult.existing.amount,
+      successAtVerified: true,
+      ownershipBasis: verified.ownershipBasis,
+      auditId: txResult.auditId,
+    };
+  }
+
   return {
-    ok: true as const,
-    outcome: "recorded" as const,
-    recordId: record.id,
-    givenOn: record.givenOn,
-    giftAmount: record.amount,
-    successAtVerified: Boolean(paidAtUnix),
+    ok: true,
+    outcome: "recorded",
+    recordId: txResult.record.id,
+    givenOn: txResult.record.givenOn,
+    giftAmount: txResult.record.amount,
+    successAtVerified: true,
     ownershipBasis: verified.ownershipBasis,
-    auditId: audit.id,
+    auditId: txResult.auditId,
   };
 }
 
-async function writeRecoveryAudit(input: {
-  memberUserId: string;
-  stripeSessionId: string;
-  stripePaymentIntentId: string | null;
-  actor: Pick<PublicMember, "id" | "name">;
-  ownershipBasis: VerifiedCheckoutOwnershipBasis | null;
-  giftAmount: number;
-  feeAmount: number | null;
-  givenOn: string;
-  successAtVerified: boolean;
-  outcome: string;
-  details: Record<string, unknown>;
-}) {
+async function writeAuditInTx(
+  tx: Prisma.TransactionClient,
+  row: RecoveryAuditInput,
+) {
   const id = `grecover-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  return prisma.givingStripeGiftRecoveryAudit.create({
+  await tx.givingStripeGiftRecoveryAudit.create({
     data: {
       id,
-      memberUserId: input.memberUserId,
-      stripeSessionId: input.stripeSessionId,
-      stripePaymentIntentId: input.stripePaymentIntentId,
-      requestedByUserId: input.actor.id,
-      requestedByName: input.actor.name,
-      ownershipBasis: input.ownershipBasis,
-      giftAmount: input.giftAmount,
-      feeAmount: input.feeAmount,
-      givenOn: input.givenOn,
-      successAtVerified: input.successAtVerified,
-      outcome: input.outcome,
-      details: input.details as object,
+      memberUserId: row.memberUserId,
+      stripeSessionId: row.stripeSessionId,
+      stripePaymentIntentId: row.stripePaymentIntentId,
+      requestedByUserId: row.actor.id,
+      requestedByName: row.actor.name,
+      ownershipBasis: row.ownershipBasis,
+      giftAmount: row.giftAmount,
+      feeAmount: row.feeAmount,
+      givenOn: row.givenOn,
+      successAtVerified: row.successAtVerified,
+      outcome: row.outcome,
+      details: row.details as Prisma.InputJsonValue,
       createdAt: new Date(),
     },
   });
+  return id;
 }

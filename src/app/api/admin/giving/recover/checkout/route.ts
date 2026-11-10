@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canManageGivingRecords } from "@/lib/giving-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { applyTargetedCheckoutGiftRecovery } from "@/lib/giving-stripe-recovery-server";
+import { isGivingGiftRecoveryAuditTableReady } from "@/lib/giving-stripe-recovery-migration-guard";
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
@@ -17,6 +18,16 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Finance Team or Admin Group access required." },
       { status: 403 },
+    );
+  }
+
+  if (!(await isGivingGiftRecoveryAuditTableReady())) {
+    return NextResponse.json(
+      {
+        error:
+          "Gift recovery is disabled until migration 20261110020000_giving_stripe_gift_recovery_audit is applied on production.",
+      },
+      { status: 503 },
     );
   }
 

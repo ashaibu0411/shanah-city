@@ -1,11 +1,14 @@
 import type Stripe from "stripe";
 import { recordGiftFromCheckoutSession } from "@/lib/giving-checkout-server";
+import { checkoutSessionHasCorroboratedMemberIdentity } from "@/lib/giving-stripe-checkout-ownership";
+import { isShanahGivingCheckoutSession } from "@/lib/giving-stripe-eligibility";
 import { listCheckoutSessionsForPaymentIntent } from "@/lib/giving-stripe-checkout-session-lookup";
+import { isPaidCheckoutSession } from "@/lib/giving-reconcile-server";
 import type { MemberReconcileEventScope } from "@/lib/giving-stripe-reconcile-event-scope";
 
 /**
  * Checkout-mode one-time gifts: record via Session metadata (PI metadata is often empty).
- * Idempotent on stripeSessionId unique index.
+ * Idempotent on stripeSessionId unique index. Requires corroborated member identity on Session.
  */
 export async function recordGiftFromPaymentIntentSucceeded(
   stripe: Stripe,
@@ -19,7 +22,12 @@ export async function recordGiftFromPaymentIntentSucceeded(
 
   let recorded: Awaited<ReturnType<typeof recordGiftFromCheckoutSession>> = null;
   for (const row of sessions) {
-    const session = await stripe.checkout.sessions.retrieve(row.id);
+    const session = await stripe.checkout.sessions.retrieve(row.id, {
+      expand: ["line_items.data.price.product"],
+    });
+    if (!isPaidCheckoutSession(session)) continue;
+    if (!isShanahGivingCheckoutSession(session)) continue;
+    if (!checkoutSessionHasCorroboratedMemberIdentity(session)) continue;
     const gift = await recordGiftFromCheckoutSession(session, options);
     if (gift) recorded = gift;
   }

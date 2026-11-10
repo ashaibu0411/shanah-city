@@ -27,6 +27,7 @@ import {
   stripeListCreatedGteWithPaidAtLookback,
   stripeObjectInPaidWindow,
 } from "@/lib/giving-stripe-paid-at";
+import { checkoutSessionHasCorroboratedMemberIdentity } from "@/lib/giving-stripe-checkout-ownership";
 import {
   listCheckoutSessionsForPaymentIntent,
   listSucceededPaymentIntentsForCustomer,
@@ -229,6 +230,10 @@ async function runVerifiedStripeGiftSync(
         bumpSkipReason(report, "unauthorized_session");
         continue;
       }
+      if (!checkoutSessionHasCorroboratedMemberIdentity(session)) {
+        bumpSkipReason(report, "unauthorized_session");
+        continue;
+      }
       report.eligibleCheckoutSessions += 1;
 
       const existing = await getGivingRecordByStripeSessionId(session.id);
@@ -286,6 +291,7 @@ async function runVerifiedStripeGiftSync(
         if (!isPaidCheckoutSession(session) || !isShanahGivingCheckoutSession(session)) continue;
         if (stripeCheckoutMetadataOwnerConflict(session, member).conflict) continue;
         if (!checkoutSessionEligibleForMemberSync(session, member, customerId)) continue;
+        if (!checkoutSessionHasCorroboratedMemberIdentity(session)) continue;
 
         const existing = await getGivingRecordByStripeSessionId(session.id);
         if (existing) {

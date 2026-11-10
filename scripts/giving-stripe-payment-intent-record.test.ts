@@ -1,10 +1,18 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { giftAmountFromMetadata } from "../src/lib/giving-stripe-recovery-amounts";
+import { resolveVerifiedCheckoutGiftAmounts } from "../src/lib/giving-stripe-recovery-amounts";
+import { checkoutSessionHasCorroboratedMemberIdentity } from "../src/lib/giving-stripe-checkout-ownership";
 
-assert.equal(giftAmountFromMetadata({ giftAmount: "75", feeAmount: "0.60" }, 75.6), 75);
-assert.equal(giftAmountFromMetadata({}, 75.6), 75.6);
+const metaSession = {
+  metadata: { fund: "offering", giftAmount: "75", userId: "u1" },
+  client_reference_id: "u1",
+  amount_total: 7560,
+} as never;
+assert.equal(checkoutSessionHasCorroboratedMemberIdentity(metaSession), true);
+const amounts = resolveVerifiedCheckoutGiftAmounts(metaSession);
+assert.equal(amounts.ok && amounts.giftAmount === 75, true);
+assert.equal(resolveVerifiedCheckoutGiftAmounts({ metadata: {}, amount_total: 7560 } as never).ok, false);
 
 const webhookRoute = readFileSync(
   path.join(process.cwd(), "src/app/api/giving/webhook/route.ts"),

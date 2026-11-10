@@ -45,6 +45,10 @@ import {
 } from "@/lib/giving-stripe-paid-at";
 import { redactEmailForLogs, redactStripeId, redactUserIdForLogs } from "@/lib/giving-privacy-redact";
 import { listCheckoutSessionsForPaymentIntent } from "@/lib/giving-stripe-checkout-session-lookup";
+import {
+  checkoutSessionCorroboratedForMember,
+  corroboratedOwnershipBasis,
+} from "@/lib/giving-stripe-checkout-ownership";
 import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 import { useDatabase } from "@/lib/use-database";
 
@@ -59,6 +63,7 @@ export type MemberReconcileSecureLinkage =
   | "none"
   | "verified_customer_and_client_reference"
   | "verified_customer_and_metadata_userId"
+  | "verified_customer_and_corroborated_reference_and_metadata"
   | "record_via_checkout_or_invoice_pipeline_only"
   | "finance_review_required"
   | "do_not_reassign_other_member_record";
@@ -667,8 +672,12 @@ async function scanCustomerStripeActivity(options: {
       proposedSecureLinkage:
         customerSource === "email_lookup"
           ? "finance_review_required"
-          : linkedCheckoutSessionId
-            ? "verified_customer_and_client_reference"
+          : linkedCheckoutSessionId && linkedSessions[0]
+            ? corroboratedOwnershipBasis(linkedSessions[0], member.id)
+              ? (corroboratedOwnershipBasis(linkedSessions[0], member.id) as MemberReconcileSecureLinkage)
+              : checkoutSessionCorroboratedForMember(linkedSessions[0], member.id)
+                ? "record_via_checkout_or_invoice_pipeline_only"
+                : "finance_review_required"
             : "record_via_checkout_or_invoice_pipeline_only",
       settlementSource: piSettlement.status === "verified" ? piSettlement.source : null,
       customerInvestigationSource: customerSource,

@@ -8,7 +8,19 @@
 | **GivingRecord** | Only two owned Stripe gifts (Aug/Sep 2026, $25 each). **No** October 2026 row. |
 | **Stripe (dashboard)** | `pi_3URO4jLmBWhgE7VM1r0q61Kx` **succeeded** 2026-10-22 ~07:24 (ACH); initiated 2026-10-16; gross **$75.60** ($75 offering + $0.60 fee); donor name/email match member; **PaymentIntent.metadata empty** (Checkout metadata lives on **Session**, not PI). |
 
-Local live Stripe API probe failed here (invalid dev API key); use production `STRIPE_SECRET_KEY` with `scripts/giving-incident-pi-probe.ts` for redacted Session fields and webhook event types.
+### PI → Checkout linkage (read-only)
+
+Production dashboard review (not yet re-fetched in this workspace — local env lacks live `STRIPE_SECRET_KEY`):
+
+| Field | Expected |
+|-------|-----------|
+| PaymentIntent | `pi_3URO4jLmBWhgE7VM1r0q61Kx` — `succeeded`, $75.60, ACH ···5257, **PI metadata empty** |
+| Settlement | Success **2026-10-22** (not Checkout **created** 2026-10-16) |
+| Checkout Session | Resolve with `checkout.sessions.list({ payment_intent: "pi_3URO4jLmBWhgE7VM1r0q61Kx" })` — should return the one `cs_live_…` row for this gift |
+| Ownership pointers | `client_reference_id` / `metadata.userId` = `user-1786578251521`, customer = `cus_VR8r4k73xPRJp5` |
+| Amounts | Session metadata `giftAmount=75`, `feeAmount=0.60` (or matching line items) |
+
+Ops command: `PAYMENT_INTENT_ID=pi_3URO4jLmBWhgE7VM1r0q61Kx npx tsx scripts/giving-incident-pi-probe.ts` (production key only).
 
 ## Root cause (code + sync metrics)
 
@@ -21,6 +33,14 @@ Local live Stripe API probe failed here (invalid dev API key); use production `S
 4. **Church-wide dry-run blind spot** — `reportMissingStripeGifts` **skipped** paid checkouts with `success_date_unknown` (common for ACH without a listable Event), so finance backfill lists could omit this gift even when Session metadata was valid.
 
 5. **Return-path UX** — `/give/success` calls `/api/giving/confirm` once; ACH returns **409** while processing and is **not retried** when the bank settles days later.
+
+## Safeguards (follow-up PR)
+
+- Corroborated `client_reference_id` / `metadata.userId` required (not customer-only).
+- Gift amount from metadata or itemized line items — never gross $75.60 as gift.
+- No `session.created` as `givenOn` when success timestamp unverified.
+- Recovery API returns **503** until `GivingStripeGiftRecoveryAudit` migration is applied.
+- Recovery record + audit in a single DB transaction.
 
 ## Targeted recovery (design — not auto-run)
 

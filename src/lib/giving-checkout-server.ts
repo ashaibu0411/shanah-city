@@ -58,7 +58,8 @@ import {
   createMemberReconcileEventScope,
   type MemberReconcileEventScope,
 } from "@/lib/giving-stripe-reconcile-event-scope";
-import { giftAmountFromMetadata } from "@/lib/giving-stripe-recovery-amounts";
+import { resolveVerifiedCheckoutGiftAmounts } from "@/lib/giving-stripe-recovery-amounts";
+import { checkoutSessionHasCorroboratedMemberIdentity } from "@/lib/giving-stripe-checkout-ownership";
 
 export { isStripeGivingConfigured };
 
@@ -324,8 +325,16 @@ export async function recordGiftFromCheckoutSession(
   const totalPaid = amountInDollars(session.amount_total);
   if (totalPaid <= 0) return null;
 
+  if (!checkoutSessionHasCorroboratedMemberIdentity(session)) {
+    return null;
+  }
+
   const metadata = session.metadata ?? {};
-  const giftAmount = giftAmountFromMetadata(metadata, totalPaid);
+  const amounts = resolveVerifiedCheckoutGiftAmounts(session);
+  if (!amounts.ok) {
+    return null;
+  }
+  const giftAmount = amounts.giftAmount;
   const fund = parseFund(metadata.fund);
   const donorEmail = normalizeGivingEmail(
     session.customer_details?.email ?? session.customer_email ?? undefined,
@@ -351,16 +360,14 @@ export async function recordGiftFromCheckoutSession(
       ? `${recurringGiftNote(metadata.frequency)} (first payment via checkout)`
       : "One-time online gift";
 
-  let givenOn = giftGivenOnFromCheckoutSession(session);
   const stripe = getStripe();
   const eventScope = options?.eventScope ?? createMemberReconcileEventScope();
   const settlement = await resolveCheckoutSessionSettlement(stripe, session, eventScope);
   const verifiedPaidAt = checkoutSettlementPaidAtUnix(settlement);
-  if (verifiedPaidAt) {
-    givenOn = giftDateKeyFromUnixSeconds(verifiedPaidAt);
-  } else if (settlement.status === "success_date_unknown") {
-    baseNote = `${baseNote} Settlement date unverified; finance may reconcile using Stripe events.`;
+  if (!verifiedPaidAt) {
+    return null;
   }
+  const givenOn = giftDateKeyFromUnixSeconds(verifiedPaidAt);
 
   return recordStripeGift({
     amount: giftAmount,
@@ -395,7 +402,9 @@ export async function recordGiftFromInvoice(
   if (!isShanahGivingInvoiceMetadata(metadata)) {
     return null;
   }
-  const giftAmount = giftAmountFromMetadata(metadata, totalPaid);
+  const gift = Number(metadata?.giftAmount);
+  if (!Number.isFinite(gift) || gift <= 0) return null;
+  const giftAmount = Math.round(gift * 100) / 100;
   const fund = parseFund(metadata.fund);
   const donorEmail = normalizeGivingEmail(invoice.customer_email ?? undefined);
   const stripeName =
