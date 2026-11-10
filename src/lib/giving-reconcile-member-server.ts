@@ -24,9 +24,10 @@ import {
 } from "@/lib/giving-reconcile-server";
 import { parseGivingReconcileDateWindow } from "@/lib/giving-reconcile-window";
 import {
-  getMemberReconcileEventBudgetStats,
-  resetMemberReconcileEventBudget,
-} from "@/lib/giving-stripe-event-budget";
+  createMemberReconcileEventScope,
+  getMemberReconcileEventScopeStats,
+  type MemberReconcileEventScope,
+} from "@/lib/giving-stripe-reconcile-event-scope";
 import {
   checkoutSettlementPaidAtUnix,
   resolveCheckoutSessionSettlement,
@@ -106,7 +107,7 @@ export type MemberStripeReconciliationReport = {
     /** True only when source listing is complete and event timestamp lookups were not budget-capped. */
     diagnosticConclusive: boolean;
     complete: boolean;
-    successEventLookups: ReturnType<typeof getMemberReconcileEventBudgetStats>;
+    successEventLookups: ReturnType<typeof getMemberReconcileEventScopeStats>;
     truncated: {
       checkoutSessions: boolean;
       invoices: boolean;
@@ -128,7 +129,7 @@ export type MemberStripeReconciliationReport = {
     stripeAlreadyInDbForMember: number;
     skippedNotEligible: number;
     paidAtUnknownCount: number;
-    eventRetentionExpiredCount: number;
+    successDateNotInListableEventsCount: number;
     financeReviewSucceededWithoutVerifiedDate: number;
     verifiedPaidInWindowOnLinkedCustomer: number;
   };
@@ -157,7 +158,7 @@ function verifiedStripeRefsFromCheckoutSession(session: Stripe.Checkout.Session)
 
 const FINANCE_VISIBLE_SKIP_REASONS = new Set([
   "paid_at_unknown",
-  "success_date_event_retention_expired",
+  "success_date_not_in_listable_events",
   "success_date_lookup_inconclusive",
 ]);
 
@@ -441,6 +442,7 @@ async function discoverStripeCustomerIds(member: { email: string }, linkedCustom
 }
 
 async function scanCustomerStripeActivity(options: {
+  eventScope: MemberReconcileEventScope;
   stripeCustomerId: string;
   customerRedacted: string;
   customerSource: "linked" | "email_lookup";
@@ -470,6 +472,7 @@ async function scanCustomerStripeActivity(options: {
     items,
     pageStats,
     truncated,
+    eventScope,
   } = options;
 
   const sessions = await paginateStripe<Stripe.Checkout.Session>(
@@ -486,7 +489,7 @@ async function scanCustomerStripeActivity(options: {
   truncated.checkoutSessions ||= sessions.truncated;
 
   for (const session of sessions.rows) {
-    const settlement = await resolveCheckoutSessionSettlement(stripe, session);
+    const settlement = await resolveCheckoutSessionSettlement(stripe, session, eventScope);
     const paidCtx = checkoutPaidContextFromSettlement(session, settlement);
     const inWindow =
       paidCtx.paidAtKnown && inDateKeyWindow(paidCtx.givenOn, since, until);
@@ -622,7 +625,7 @@ async function scanCustomerStripeActivity(options: {
   truncated.paymentIntents ||= intents.truncated;
 
   for (const pi of intents.rows) {
-    const piSettlement = await resolvePaymentIntentSettlement(stripe, pi);
+    const piSettlement = await resolvePaymentIntentSettlement(stripe, pi, eventScope);
     const verifiedPaidAt =
       piSettlement.status === "verified" ? piSettlement.paidAtUnix : null;
     const givenOn = verifiedPaidAt
@@ -688,7 +691,7 @@ export async function buildMemberStripeReconciliationReport(input: {
     throw new Error("Member has no linked stripeCustomerId.");
   }
 
-  resetMemberReconcileEventBudget();
+  const eventScope = createMemberReconcileEventScope();
   const discovered = await discoverStripeCustomerIds(member, memberCustomerId);
   const listCreatedGte = stripeListCreatedGteWithPaidAtLookback(sinceUnix);
   const items: MemberStripeReconciliationItem[] = [];
@@ -697,6 +700,7 @@ export async function buildMemberStripeReconciliationReport(input: {
 
   for (const customer of discovered.customers) {
     await scanCustomerStripeActivity({
+      eventScope,
       stripeCustomerId: customer.id,
       customerRedacted: customer.redacted,
       customerSource: customer.source,
@@ -747,7 +751,7 @@ export async function buildMemberStripeReconciliationReport(input: {
     verifiedPaidInWindowOnLinked === 0 && discovered.customers.length > 1
       ? "No verified paid-at gifts in window on linked customer; additional Stripe customers matched member email (read-only scan). Root-cause statements remain hypotheses until finance confirms Stripe line items."
       : verifiedPaidInWindowOnLinked === 0
-        ? "No verified event-based success timestamps in window. Succeeded payments may still appear with success_date_event_retention_expired (Stripe Events API ~30-day list limit); use verifiedStripePaymentRefs for manual finance verification — not proof of non-payment."
+        ? "No verified event-based success timestamps in window. Succeeded payments may appear with success_date_not_in_listable_events after searching Stripe's ~30-day Event.list window (old Charge.created does not skip lookup). Use verifiedStripePaymentRefs for manual finance verification — not proof of non-payment."
         : "Verified paid-at activity found in window; compare skipReason and dbState per line item before any backfill.";
 
   const stripePaidEligibleMissingFromMember = visibleItems.filter(
@@ -758,7 +762,7 @@ export async function buildMemberStripeReconciliationReport(input: {
       !row.skipReason,
   ).length;
 
-  const eventStats = getMemberReconcileEventBudgetStats();
+  const eventStats = getMemberReconcileEventScopeStats(eventScope);
   const sourceListingComplete =
     !truncated.checkoutSessions &&
     !truncated.invoices &&
@@ -806,8 +810,8 @@ export async function buildMemberStripeReconciliationReport(input: {
         (row) => row.inWindow && row.skipReason && row.dbState === "missing",
       ).length,
       paidAtUnknownCount: visibleItems.filter((row) => row.skipReason === "paid_at_unknown").length,
-      eventRetentionExpiredCount: visibleItems.filter(
-        (row) => row.skipReason === "success_date_event_retention_expired",
+      successDateNotInListableEventsCount: visibleItems.filter(
+        (row) => row.skipReason === "success_date_not_in_listable_events",
       ).length,
       financeReviewSucceededWithoutVerifiedDate,
       verifiedPaidInWindowOnLinkedCustomer: verifiedPaidInWindowOnLinked,

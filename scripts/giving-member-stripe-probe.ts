@@ -12,6 +12,7 @@ import { isPaidCheckoutSession, isEligibleReconcileGiftInvoice } from "../src/li
 import { resolveStripeInvoiceSubscriptionId } from "../src/lib/giving-stripe-invoice";
 import { giftGivenOnFromCheckoutSession, giftGivenOnFromInvoice } from "../src/lib/giving-stripe-eligibility";
 import { resolveCheckoutSessionSettlement } from "../src/lib/giving-stripe-checkout-settlement";
+import { createMemberReconcileEventScope } from "../src/lib/giving-stripe-reconcile-event-scope";
 import {
   stripeInvoicePaidAtUnknown,
   stripeInvoiceSettlementPaidAtUnix,
@@ -171,8 +172,9 @@ async function main() {
     ),
   );
 
+  const eventScope = createMemberReconcileEventScope();
   for (const session of sessions) {
-    const checkoutSettlement = await resolveCheckoutSessionSettlement(stripe, session);
+    const checkoutSettlement = await resolveCheckoutSessionSettlement(stripe, session, eventScope);
     const paidAtUnix =
     checkoutSettlement.status === "verified" ? checkoutSettlement.paidAtUnix : null;
     const givenOn =

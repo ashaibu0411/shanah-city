@@ -1,8 +1,11 @@
 import type Stripe from "stripe";
-import { lookupStripeSuccessEventCreated } from "@/lib/giving-stripe-success-event";
+import {
+  lookupStripeSuccessEventCreated,
+  type MemberReconcileEventScope,
+} from "@/lib/giving-stripe-reconcile-event-scope";
+import type { StripeSuccessEventLookupResult } from "@/lib/giving-stripe-success-event";
 
 export type StripeSettlementDateUnknownReason =
-  | "stripe_event_retention_out_of_coverage"
   | "no_matching_stripe_success_event"
   | "event_lookup_budget_exhausted"
   | "event_lookup_pagination_limited";
@@ -53,11 +56,9 @@ function chargeCreatedUnix(charge: Pick<Stripe.Charge, "created"> | null) {
 }
 
 function mapEventLookupToReason(
-  outcome: Awaited<ReturnType<typeof lookupStripeSuccessEventCreated>>["outcome"],
+  outcome: StripeSuccessEventLookupResult["outcome"],
 ): StripeSettlementDateUnknownReason {
   switch (outcome) {
-    case "out_of_coverage":
-      return "stripe_event_retention_out_of_coverage";
     case "budget_exhausted":
       return "event_lookup_budget_exhausted";
     case "pagination_limited":
@@ -70,6 +71,7 @@ function mapEventLookupToReason(
 export async function resolvePaymentIntentSettlement(
   stripe: Stripe,
   pi: Pick<Stripe.PaymentIntent, "id" | "status" | "latest_charge" | "created">,
+  eventScope: MemberReconcileEventScope,
   extraContext?: { sessionId?: string },
 ): Promise<StripeSettlementResolution> {
   const charge = chargeFromLatest(pi.latest_charge);
@@ -97,12 +99,16 @@ export async function resolvePaymentIntentSettlement(
   }
 
   const chargeId = charge.id;
-  const eventLookup = await lookupStripeSuccessEventCreated(stripe, {
-    chargeId,
-    paymentIntentId: pi.id,
-    sessionId: extraContext?.sessionId,
-    chargeCreatedAtUnix,
-  });
+  const eventLookup = await lookupStripeSuccessEventCreated(
+    stripe,
+    {
+      chargeId,
+      paymentIntentId: pi.id,
+      sessionId: extraContext?.sessionId,
+      chargeCreatedAtUnix,
+    },
+    eventScope,
+  );
 
   if (eventLookup.outcome === "found") {
     return {
@@ -130,6 +136,7 @@ export async function resolvePaymentIntentSettlement(
 export async function resolveCheckoutSessionSettlement(
   stripe: Stripe,
   session: Pick<Stripe.Checkout.Session, "id" | "mode" | "payment_status" | "payment_intent">,
+  eventScope: MemberReconcileEventScope,
 ): Promise<StripeSettlementResolution> {
   if (session.mode !== "payment" || session.payment_status !== "paid") {
     return {
@@ -161,6 +168,7 @@ export async function resolveCheckoutSessionSettlement(
     return resolvePaymentIntentSettlement(
       stripe,
       { ...pi, id: pi.id ?? piId ?? "unknown_pi" },
+      eventScope,
       { sessionId: session.id },
     );
   } catch {
@@ -191,11 +199,11 @@ export function settlementUnknownMapsToSkipReason(
   reason: StripeSettlementDateUnknownReason,
 ): string {
   switch (reason) {
-    case "stripe_event_retention_out_of_coverage":
-      return "success_date_event_retention_expired";
     case "event_lookup_budget_exhausted":
     case "event_lookup_pagination_limited":
       return "success_date_lookup_inconclusive";
+    case "no_matching_stripe_success_event":
+      return "success_date_not_in_listable_events";
     default:
       return "paid_at_unknown";
   }

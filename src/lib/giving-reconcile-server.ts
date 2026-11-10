@@ -17,6 +17,7 @@ import {
   checkoutSettlementPaidAtUnix,
   resolveCheckoutSessionSettlement,
 } from "@/lib/giving-stripe-checkout-settlement";
+import { createMemberReconcileEventScope } from "@/lib/giving-stripe-reconcile-event-scope";
 import {
   stripeInvoicePaidAtUnknown,
   stripeInvoiceSettlementPaidAtUnix,
@@ -63,6 +64,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
   const limit = Math.min(Math.max(options?.limit ?? 100, 1), 250);
   const sinceUnix = Math.floor((Date.now() - days * 86_400_000) / 1000);
   const stripe = getStripe();
+  const eventScope = createMemberReconcileEventScope();
 
   const missing: GivingReconcileMissingItem[] = [];
   let scannedSessions = 0;
@@ -80,7 +82,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
     for (const session of page.data) {
       scannedSessions += 1;
       if (!isPaidCheckoutSession(session)) continue;
-      const checkoutSettlement = await resolveCheckoutSessionSettlement(stripe, session);
+      const checkoutSettlement = await resolveCheckoutSessionSettlement(stripe, session, eventScope);
       const checkoutPaidAt = checkoutSettlementPaidAtUnix(checkoutSettlement);
       if (checkoutSettlement.status === "unknown" || checkoutSettlement.status === "success_date_unknown") {
         continue;
