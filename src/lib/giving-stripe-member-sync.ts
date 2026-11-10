@@ -22,7 +22,8 @@ import {
   isPaidCheckoutSession,
 } from "@/lib/giving-reconcile-server";
 import {
-  stripeInvoicePaidAtUnix,
+  stripeInvoicePaidAtUnknown,
+  stripeInvoiceSettlementPaidAtUnix,
   stripeListCreatedGteWithPaidAtLookback,
   stripeObjectInPaidWindow,
 } from "@/lib/giving-stripe-paid-at";
@@ -266,13 +267,17 @@ async function runVerifiedStripeGiftSync(
 
     for (const invoice of list.data) {
       report.scannedInvoices += 1;
-      const paidAtUnix = stripeInvoicePaidAtUnix(invoice);
-      if (!stripeObjectInPaidWindow(paidAtUnix, sinceUnix)) {
-        bumpSkipReason(report, "outside_paid_window");
-        continue;
-      }
       if (invoice.status !== "paid" || (invoice.amount_paid ?? 0) <= 0) {
         bumpSkipReason(report, "not_paid");
+        continue;
+      }
+      if (stripeInvoicePaidAtUnknown(invoice)) {
+        bumpSkipReason(report, "paid_at_unknown");
+        continue;
+      }
+      const paidAtUnix = stripeInvoiceSettlementPaidAtUnix(invoice);
+      if (!stripeObjectInPaidWindow(paidAtUnix, sinceUnix)) {
+        bumpSkipReason(report, "outside_paid_window");
         continue;
       }
       report.paidInvoices += 1;

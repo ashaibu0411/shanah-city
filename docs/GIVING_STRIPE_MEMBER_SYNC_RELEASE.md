@@ -40,6 +40,6 @@ No bulk financial backfill in this release.
 
 **Finance review (no automatic writes):**
 
-- `GET /api/admin/giving/reconcile/member?memberUserId=…&since=2026-10-01&until=2026-10-31` — redacted per-payment report (skip reason, DB state, proposed secure linkage).
+- `GET /api/admin/giving/reconcile/member?memberUserId=…&since=2026-10-01&until=2026-10-31` — redacted per-payment report (skip reason, DB state, proposed secure linkage, `stripeScan.truncated` if page caps hit). Requires valid `since`/`until` (≤366 days). Paid windows use Stripe `paid_at` only — `paid_at_unknown` → manual review.
 - After deploy: confirm eligible rows, then apply only via existing `POST /api/admin/giving/reconcile` with explicit `sessionIds` / `invoiceIds` and `APPLY_STRIPE_GIVING_BACKFILL`.
 - Local CLI: `node scripts/load-env-and-probe.cjs` (requires valid production `DATABASE_URL` + `STRIPE_SECRET_KEY`).

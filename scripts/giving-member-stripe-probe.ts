@@ -12,10 +12,14 @@ import { isPaidCheckoutSession, isEligibleReconcileGiftInvoice } from "../src/li
 import { resolveStripeInvoiceSubscriptionId } from "../src/lib/giving-stripe-invoice";
 import { giftGivenOnFromCheckoutSession, giftGivenOnFromInvoice } from "../src/lib/giving-stripe-eligibility";
 import {
-  stripeInvoicePaidAtUnix,
+  stripeCheckoutPaidAtUnknown,
+  stripeCheckoutSettlementPaidAtUnix,
+  stripeInvoicePaidAtUnknown,
+  stripeInvoiceSettlementPaidAtUnix,
   stripeListCreatedGteWithPaidAtLookback,
   stripeObjectInPaidWindow,
 } from "../src/lib/giving-stripe-paid-at";
+import { giftDateKeyFromUnixSeconds } from "../src/lib/giving-stripe-eligibility";
 
 const userId = process.env.MEMBER_USER_ID?.trim();
 const customerOverride = process.env.STRIPE_CUSTOMER_ID?.trim();
@@ -169,7 +173,12 @@ async function main() {
   );
 
   for (const session of sessions) {
-    const givenOn = giftGivenOnFromCheckoutSession(session);
+    const paidAtUnix = stripeCheckoutSettlementPaidAtUnix(session);
+    const givenOn = stripeCheckoutPaidAtUnknown(session)
+      ? "unknown_paid_at"
+      : paidAtUnix
+        ? giftDateKeyFromUnixSeconds(paidAtUnix)
+        : giftGivenOnFromCheckoutSession(session);
     const skip = classifyCheckoutSkip(session);
     const existing =
       session.id && dbRecords.length
@@ -186,7 +195,8 @@ async function main() {
         status: session.status,
         amountUsd: (session.amount_total ?? 0) / 100,
         givenOn,
-        inWindow: inRange(givenOn),
+        inWindow: givenOn !== "unknown_paid_at" && inRange(givenOn),
+        paidAtKnown: Boolean(paidAtUnix) && !stripeCheckoutPaidAtUnknown(session),
         skipReason: skip ?? (existing ? "already_in_db" : null),
         dbUserId: existing?.userId ? redactUserIdForLogs(existing.userId) : null,
         dbOwnedByMember: existing?.userId === user.id,
@@ -201,14 +211,19 @@ async function main() {
 
   for (const invoice of invoices) {
     const extra = await invoiceMeta(invoice);
-    const givenOn = giftGivenOnFromInvoice(invoice);
+    const invPaidUnix = stripeInvoiceSettlementPaidAtUnix(invoice);
+    const givenOn = stripeInvoicePaidAtUnknown(invoice)
+      ? "unknown_paid_at"
+      : invPaidUnix
+        ? giftDateKeyFromUnixSeconds(invPaidUnix)
+        : giftGivenOnFromInvoice(invoice);
     const existing =
       dbRecords.length > 0
         ? dbRecords.find((row) => row.stripeInvoiceId === invoice.id) ?? null
         : await prisma.givingRecord.findUnique({ where: { stripeInvoiceId: invoice.id } }).catch(() => null);
     let skip: string | null = null;
-    const paidAtUnix = stripeInvoicePaidAtUnix(invoice);
-    if (!stripeObjectInPaidWindow(paidAtUnix, sinceUnix, untilUnix)) {
+    if (stripeInvoicePaidAtUnknown(invoice)) skip = "paid_at_unknown";
+    else if (!stripeObjectInPaidWindow(invPaidUnix, sinceUnix, untilUnix)) {
       skip = "outside_paid_window";
     } else if (invoice.status !== "paid") skip = `invoice_status_${invoice.status}`;
     else if (!isEligibleReconcileGiftInvoice(invoice)) skip = "invoice_not_eligible_refund";
@@ -223,7 +238,8 @@ async function main() {
         billing_reason: invoice.billing_reason,
         amountPaidUsd: (invoice.amount_paid ?? 0) / 100,
         givenOn,
-        inWindow: inRange(givenOn),
+        inWindow: givenOn !== "unknown_paid_at" && inRange(givenOn),
+        paidAtKnown: Boolean(invPaidUnix) && !stripeInvoicePaidAtUnknown(invoice),
         skipReason: skip,
         dbUserId: existing?.userId ? redactUserIdForLogs(existing.userId) : null,
         dbOwnedByMember: existing?.userId === user.id,

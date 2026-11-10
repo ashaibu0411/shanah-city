@@ -14,7 +14,10 @@ import {
   stripeInvoiceIsFullyRefunded,
 } from "@/lib/giving-stripe-eligibility";
 import {
-  stripeInvoicePaidAtUnix,
+  stripeCheckoutPaidAtUnknown,
+  stripeCheckoutSettlementPaidAtUnix,
+  stripeInvoicePaidAtUnknown,
+  stripeInvoiceSettlementPaidAtUnix,
   stripeListCreatedGteWithPaidAtLookback,
   stripeObjectInPaidWindow,
 } from "@/lib/giving-stripe-paid-at";
@@ -75,6 +78,9 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
     for (const session of page.data) {
       scannedSessions += 1;
       if (!isPaidCheckoutSession(session)) continue;
+      if (stripeCheckoutPaidAtUnknown(session)) continue;
+      const checkoutPaidAt = stripeCheckoutSettlementPaidAtUnix(session);
+      if (!stripeObjectInPaidWindow(checkoutPaidAt, sinceUnix)) continue;
       if (!isShanahGivingCheckoutSession(session)) continue;
       const existing = await getGivingRecordByStripeSessionId(session.id);
       if (existing) continue;
@@ -83,9 +89,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
         kind: "checkout_session",
         stripeId: session.id,
         amountUsd: Math.round(session.amount_total ?? 0) / 100,
-        paidAtIso: new Date(
-          (session.status_transitions?.paid_at ?? session.created ?? 0) * 1000,
-        ).toISOString(),
+        paidAtIso: new Date((checkoutPaidAt ?? 0) * 1000).toISOString(),
         donorEmail: session.customer_details?.email ?? session.customer_email ?? undefined,
         userId: session.client_reference_id ?? session.metadata?.userId,
       });
@@ -107,9 +111,10 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
 
     for (const invoice of page.data) {
       scannedInvoices += 1;
-      const paidAtUnix = stripeInvoicePaidAtUnix(invoice);
-      if (!stripeObjectInPaidWindow(paidAtUnix, sinceUnix)) continue;
       if (!isEligibleReconcileGiftInvoice(invoice)) continue;
+      if (stripeInvoicePaidAtUnknown(invoice)) continue;
+      const paidAtUnix = stripeInvoiceSettlementPaidAtUnix(invoice);
+      if (!stripeObjectInPaidWindow(paidAtUnix, sinceUnix)) continue;
       const extraMetadata = await invoiceMetadataForReconcile(invoice);
       if (!isShanahGivingInvoiceMetadata(extraMetadata)) continue;
       const existing = await getGivingRecordByStripeInvoiceId(invoice.id);
@@ -119,7 +124,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
         kind: "invoice",
         stripeId: invoice.id,
         amountUsd: Math.round(invoice.amount_paid ?? 0) / 100,
-        paidAtIso: new Date(paidAtUnix * 1000).toISOString(),
+        paidAtIso: new Date((paidAtUnix ?? 0) * 1000).toISOString(),
         donorEmail: invoice.customer_email ?? undefined,
         userId: invoice.metadata?.userId,
       });
