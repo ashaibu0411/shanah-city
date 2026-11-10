@@ -27,6 +27,11 @@ import {
   stripeListCreatedGteWithPaidAtLookback,
   stripeObjectInPaidWindow,
 } from "@/lib/giving-stripe-paid-at";
+import { checkoutSessionHasCorroboratedMemberIdentity } from "@/lib/giving-stripe-checkout-ownership";
+import {
+  listCheckoutSessionsForPaymentIntent,
+  listSucceededPaymentIntentsForCustomer,
+} from "@/lib/giving-stripe-checkout-session-lookup";
 import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 import {
   createMemberStripeSyncRun,
@@ -225,6 +230,10 @@ async function runVerifiedStripeGiftSync(
         bumpSkipReason(report, "unauthorized_session");
         continue;
       }
+      if (!checkoutSessionHasCorroboratedMemberIdentity(session)) {
+        bumpSkipReason(report, "unauthorized_session");
+        continue;
+      }
       report.eligibleCheckoutSessions += 1;
 
       const existing = await getGivingRecordByStripeSessionId(session.id);
@@ -243,6 +252,63 @@ async function runVerifiedStripeGiftSync(
 
     if (!list.has_more) break;
     sessionStartingAfter = list.data[list.data.length - 1]?.id;
+  }
+
+  let piStartingAfter: string | undefined;
+  for (let page = 0; page < MEMBER_STRIPE_SYNC_MAX_PAGES; page++) {
+    let list: Stripe.ApiList<Stripe.PaymentIntent>;
+    try {
+      list = await withStripeMemberSyncTimeout(
+        listSucceededPaymentIntentsForCustomer(stripe, customerId, sinceUnix, {
+          limit: MEMBER_STRIPE_SYNC_PAGE_LIMIT,
+          startingAfter: piStartingAfter,
+        }),
+      );
+    } catch (error) {
+      partial = true;
+      report.errors.push(error instanceof Error ? error.message.slice(0, 120) : "payment_intent_list_error");
+      break;
+    }
+
+    if (list.data.length === 0) break;
+
+    for (const pi of list.data) {
+      if (pi.status !== "succeeded") continue;
+      report.scannedPaymentIntents = (report.scannedPaymentIntents ?? 0) + 1;
+      let sessions: Stripe.Checkout.Session[];
+      try {
+        sessions = await withStripeMemberSyncTimeout(
+          listCheckoutSessionsForPaymentIntent(stripe, pi.id),
+        );
+      } catch {
+        bumpSkipReason(report, "record_create_failed");
+        continue;
+      }
+      if (sessions.length === 0) continue;
+
+      for (const row of sessions) {
+        const session = await stripe.checkout.sessions.retrieve(row.id);
+        if (!isPaidCheckoutSession(session) || !isShanahGivingCheckoutSession(session)) continue;
+        if (stripeCheckoutMetadataOwnerConflict(session, member).conflict) continue;
+        if (!checkoutSessionEligibleForMemberSync(session, member, customerId)) continue;
+        if (!checkoutSessionHasCorroboratedMemberIdentity(session)) continue;
+
+        const existing = await getGivingRecordByStripeSessionId(session.id);
+        if (existing) {
+          await tryClaimOrphanForMember(existing, member, report);
+          continue;
+        }
+
+        const created = await recordGiftFromCheckoutSession(session);
+        if (created) {
+          report.newlyRecorded += 1;
+          report.recordedPaymentIntents = (report.recordedPaymentIntents ?? 0) + 1;
+        }
+      }
+    }
+
+    if (!list.has_more) break;
+    piStartingAfter = list.data[list.data.length - 1]?.id;
   }
 
   let invoiceStartingAfter: string | undefined;

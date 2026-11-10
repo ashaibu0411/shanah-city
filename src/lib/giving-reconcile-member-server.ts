@@ -44,6 +44,11 @@ import {
   stripePaidAtIsoFromUnix,
 } from "@/lib/giving-stripe-paid-at";
 import { redactEmailForLogs, redactStripeId, redactUserIdForLogs } from "@/lib/giving-privacy-redact";
+import { listCheckoutSessionsForPaymentIntent } from "@/lib/giving-stripe-checkout-session-lookup";
+import {
+  checkoutSessionCorroboratedForMember,
+  corroboratedOwnershipBasis,
+} from "@/lib/giving-stripe-checkout-ownership";
 import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 import { useDatabase } from "@/lib/use-database";
 
@@ -58,6 +63,7 @@ export type MemberReconcileSecureLinkage =
   | "none"
   | "verified_customer_and_client_reference"
   | "verified_customer_and_metadata_userId"
+  | "verified_customer_and_corroborated_reference_and_metadata"
   | "record_via_checkout_or_invoice_pipeline_only"
   | "finance_review_required"
   | "do_not_reassign_other_member_record";
@@ -625,7 +631,11 @@ async function scanCustomerStripeActivity(options: {
   truncated.paymentIntents ||= intents.truncated;
 
   for (const pi of intents.rows) {
-    const piSettlement = await resolvePaymentIntentSettlement(stripe, pi, eventScope);
+    const linkedSessions = await listCheckoutSessionsForPaymentIntent(stripe, pi.id, 3);
+    const linkedCheckoutSessionId = linkedSessions[0]?.id ?? null;
+    const piSettlement = await resolvePaymentIntentSettlement(stripe, pi, eventScope, {
+      sessionId: linkedCheckoutSessionId ?? undefined,
+    });
     const verifiedPaidAt =
       piSettlement.status === "verified" ? piSettlement.paidAtUnix : null;
     const givenOn = verifiedPaidAt
@@ -633,6 +643,16 @@ async function scanCustomerStripeActivity(options: {
       : pi.status === "succeeded"
         ? "settlement_unverified"
         : "not_succeeded";
+    const refs = {
+      checkoutSessionId: linkedCheckoutSessionId ? redactStripeId(linkedCheckoutSessionId) : null,
+      paymentIntentId: redactStripeId(pi.id),
+      chargeId: null as string | null,
+    };
+    if (typeof pi.latest_charge === "object" && pi.latest_charge?.id) {
+      refs.chargeId = redactStripeId(pi.latest_charge.id);
+    } else if (typeof pi.latest_charge === "string") {
+      refs.chargeId = redactStripeId(pi.latest_charge);
+    }
     items.push({
       kind: "payment_intent",
       stripeId: redactStripeId(pi.id) ?? "redacted",
@@ -646,15 +666,24 @@ async function scanCustomerStripeActivity(options: {
       stripeStatus: pi.status,
       inWindow: verifiedPaidAt ? inDateKeyWindow(givenOn, since, until) : false,
       dbState: "missing",
-      skipReason: "payment_intent_requires_session_or_invoice_match",
+      skipReason: linkedCheckoutSessionId
+        ? "checkout_session_exists_record_missing"
+        : "payment_intent_requires_session_or_invoice_match",
       proposedSecureLinkage:
         customerSource === "email_lookup"
           ? "finance_review_required"
-          : "record_via_checkout_or_invoice_pipeline_only",
+          : linkedCheckoutSessionId && linkedSessions[0]
+            ? corroboratedOwnershipBasis(linkedSessions[0], member.id)
+              ? (corroboratedOwnershipBasis(linkedSessions[0], member.id) as MemberReconcileSecureLinkage)
+              : checkoutSessionCorroboratedForMember(linkedSessions[0], member.id)
+                ? "record_via_checkout_or_invoice_pipeline_only"
+                : "finance_review_required"
+            : "record_via_checkout_or_invoice_pipeline_only",
       settlementSource: piSettlement.status === "verified" ? piSettlement.source : null,
       customerInvestigationSource: customerSource,
       paymentSucceededVerified: piSettlement.paymentSucceededVerified,
       successAtVerified: piSettlement.successAtVerified,
+      verifiedStripePaymentRefs: refs,
     });
   }
 }
