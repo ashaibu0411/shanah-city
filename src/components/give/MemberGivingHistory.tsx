@@ -20,9 +20,19 @@ function formatMoney(amount: number) {
 
 type HistoryRecord = GivingRecord & { fundLabel: string };
 
+type OffPlatformIntent = {
+  id: string;
+  methodKey: string;
+  amount: number;
+  fund: string;
+  status: string;
+  createdAt: string;
+};
+
 export function MemberGivingHistory() {
   const { user, loading } = useAuth();
   const [records, setRecords] = useState<HistoryRecord[]>([]);
+  const [offPlatform, setOffPlatform] = useState<OffPlatformIntent[]>([]);
   const [total, setTotal] = useState(0);
   const [fetching, setFetching] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -45,6 +55,7 @@ export function MemberGivingHistory() {
         if (data.records) {
           setRecords(data.records);
           setTotal(data.summary?.totalAmount ?? 0);
+          setOffPlatform(Array.isArray(data.offPlatformIntents) ? data.offPlatformIntents : []);
           setLoadError(null);
         }
         const recovered =
@@ -166,6 +177,23 @@ export function MemberGivingHistory() {
       </div>
 
       <MemberRecurringGivingPanel />
+
+      {offPlatform.length > 0 ? (
+        <div className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/70 p-4 dark:border-amber-500/30 dark:bg-amber-950/20">
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-900 dark:text-amber-200">
+            Pending Finance match (Zelle / Cash App)
+          </p>
+          <ul className="mt-2 space-y-1 text-sm text-night-700 dark:text-sand-200">
+            {offPlatform
+              .filter((row) => row.status === "pending_finance" || row.status === "acknowledged")
+              .map((row) => (
+                <li key={row.id}>
+                  {formatMoney(row.amount)} via {row.methodKey} · {row.status.replace(/_/g, " ")}
+                </li>
+              ))}
+          </ul>
+        </div>
+      ) : null}
 
       {loadError ? (
         <p className="mt-4 text-sm text-rose-700">{loadError}</p>

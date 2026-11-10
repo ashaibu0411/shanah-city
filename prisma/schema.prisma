@@ -658,6 +658,49 @@ model GivingStripeGiftRecoveryAudit {
   @@index([outcome])
 }
 
+/// Admin-configurable giving hub payment methods (Zelle, Cash App, etc.). Published only after Finance verification.
+model GivingHubPaymentMethod {
+  id               String    @id
+  methodKey        String    @unique
+  displayName      String
+  description      String
+  action           String
+  recipientValue   String?
+  copyHint         String?
+  externalUrl      String?
+  tone             String?
+  sortOrder        Int       @default(0)
+  enabled          Boolean   @default(false)
+  published        Boolean   @default(false)
+  verifiedAt       DateTime?
+  verifiedByUserId String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([published, enabled, sortOrder])
+}
+
+/** Member-reported Zelle/Cash App gifts pending Finance match — never auto-writes GivingRecord. */
+model GivingHubOffPlatformIntent {
+  id            String    @id
+  userId        String
+  methodKey     String
+  amount        Float
+  fund          String
+  donorNote     String?
+  status        String    @default("pending_finance")
+  financeNote   String?
+  matchedRecordId String?
+  reviewedByUserId String?
+  reviewedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([methodKey])
+}
+
 model FinanceWeeklySheet {
   id              String    @id
   weekEnding      String    @unique

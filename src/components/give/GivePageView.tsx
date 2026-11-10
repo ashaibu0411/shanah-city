@@ -1,24 +1,30 @@
 "use client";
 
 import { GiveCheckoutPanel } from "@/components/give/GiveCheckoutPanel";
-import { ManageRecurringGivingCallout } from "@/components/give/ManageRecurringGivingCallout";
+import { DonorRecurringGivingGuide } from "@/components/give/DonorRecurringGivingGuide";
+import { GivingHubOffPlatformPanel } from "@/components/give/GivingHubOffPlatformPanel";
 import { GivePlatformGrid } from "@/components/give/GivePlatformGrid";
 import { TextToGivePanel } from "@/components/give/TextToGivePanel";
 import { editorialPremium } from "@/components/app/editorial-premium";
 import type { TextToGiveConfig } from "@/lib/giving-text";
-import type { GivingPlatform } from "@/lib/types";
+import type { PublicGivingHubMethod } from "@/lib/giving-hub-types";
 import { site } from "@/lib/site";
 
 type GivePageViewProps = {
   textToGive: TextToGiveConfig | null;
-  platforms: GivingPlatform[];
+  hubMethods: PublicGivingHubMethod[];
+  stripeCheckoutAvailable: boolean;
 };
 
-export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
+export function GivePageView({
+  textToGive,
+  hubMethods,
+  stripeCheckoutAvailable,
+}: GivePageViewProps) {
   return (
     <div className="give-page-premium pb-4">
       <header className={`${editorialPremium.pageHeader} mb-5`}>
-        <p className={editorialPremium.pageEyebrow}>Giving</p>
+        <p className={editorialPremium.pageEyebrow}>Giving Hub</p>
         <h1 className={editorialPremium.pageTitle}>Give</h1>
       </header>
 
@@ -31,9 +37,9 @@ export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
         </footer>
       </blockquote>
 
-      <ManageRecurringGivingCallout />
+      <DonorRecurringGivingGuide />
 
-      <GiveCheckoutPanel />
+      {stripeCheckoutAvailable ? <GiveCheckoutPanel /> : null}
 
       {textToGive ? (
         <div className="mb-10">
@@ -42,13 +48,27 @@ export function GivePageView({ textToGive, platforms }: GivePageViewProps) {
         </div>
       ) : null}
 
-      <section className="mb-10">
-        <p className={`${editorialPremium.sectionLabel} mb-3`}>Other online options</p>
-        <p className="mb-5 max-w-2xl text-sm leading-relaxed text-night-600 dark:text-sand-300">
-          PayPal, Cash App, and Venmo open in their apps on mobile when installed.
-        </p>
-        <GivePlatformGrid platforms={platforms} />
-      </section>
+      {hubMethods.length > 0 ? (
+        <section className="mb-10">
+          <p className={`${editorialPremium.sectionLabel} mb-3`}>Verified church apps</p>
+          <p className="mb-5 max-w-2xl text-sm leading-relaxed text-night-600 dark:text-sand-300">
+            These options appear only after Finance verifies the church recipient for each app.
+          </p>
+          <GivePlatformGrid
+            platforms={hubMethods.map((m) => ({
+              id: m.methodKey,
+              name: m.displayName,
+              description: m.description,
+              action: m.action,
+              url: m.url,
+              copyValue: m.copyValue,
+              copyHint: m.copyHint,
+              tone: m.tone ?? "from-night-700 to-night-900",
+            }))}
+          />
+          <GivingHubOffPlatformPanel methods={hubMethods} />
+        </section>
+      ) : null}
 
       <section className={`${editorialPremium.section} mb-8`}>
         <p className={editorialPremium.sectionLabel}>In person & other ways</p>

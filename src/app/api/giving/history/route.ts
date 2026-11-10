@@ -4,6 +4,7 @@ import { fundLabel, summarizeGivingRecords } from "@/lib/giving-types";
 import { listGivingRecordsForMember } from "@/lib/giving-member-history-server";
 import { afterHistoryVerifiedStripeMemberSync } from "@/lib/giving-history-after";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { listOffPlatformIntentsForMember } from "@/lib/giving-hub-offplatform-server";
 
 export const runtime = "nodejs";
 
@@ -18,6 +19,7 @@ export async function GET() {
 
   const { records, lastStripeSync } = await listGivingRecordsForMember(user);
   const summary = summarizeGivingRecords(records);
+  const offPlatform = await listOffPlatformIntentsForMember(user.id);
 
   afterHistoryVerifiedStripeMemberSync(user);
 
@@ -28,6 +30,14 @@ export async function GET() {
         fundLabel: fundLabel(record.fund),
       })),
       summary,
+      offPlatformIntents: offPlatform.map((row) => ({
+        id: row.id,
+        methodKey: row.methodKey,
+        amount: row.amount,
+        fund: row.fund,
+        status: row.status,
+        createdAt: row.createdAt.toISOString(),
+      })),
       stripeSync: {
         mode: "deferred",
         lastRun: lastStripeSync,
