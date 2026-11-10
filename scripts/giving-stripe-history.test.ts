@@ -70,7 +70,6 @@ function sessionFixture(overrides: Record<string, unknown> = {}) {
     customer: "cus_linked",
     customer_details: { email: "donor@shanah.city" },
     created: 1_700_000_000,
-    status_transitions: { paid_at: 1_700_086_400 },
     ...overrides,
   } as never;
 }

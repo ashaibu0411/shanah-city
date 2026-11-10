@@ -24,12 +24,17 @@ import {
 } from "@/lib/giving-reconcile-server";
 import { parseGivingReconcileDateWindow } from "@/lib/giving-reconcile-window";
 import {
-  stripeCheckoutPaidAtUnknown,
-  stripeCheckoutSettlementPaidAtUnix,
+  checkoutSettlementPaidAtUnix,
+  resolveCheckoutSessionSettlement,
+  settlementFromSucceededPaymentIntent,
+  type StripeSettlementResolution,
+} from "@/lib/giving-stripe-checkout-settlement";
+import {
   stripeInvoicePaidAtUnknown,
   stripeInvoiceSettlementPaidAtUnix,
   stripeListCreatedGteWithPaidAtLookback,
   stripeObjectInPaidWindow,
+  stripeCreatedAtIsoFromUnix,
   stripePaidAtIsoFromUnix,
 } from "@/lib/giving-stripe-paid-at";
 import { redactEmailForLogs, redactStripeId, redactUserIdForLogs } from "@/lib/giving-privacy-redact";
@@ -38,6 +43,8 @@ import { useDatabase } from "@/lib/use-database";
 
 export const MEMBER_RECONCILE_MAX_STRIPE_PAGES = 15;
 export const MEMBER_RECONCILE_STRIPE_PAGE_LIMIT = 100;
+export const EMAIL_CUSTOMER_LOOKUP_MAX_PAGES = 5;
+export const EMAIL_CUSTOMER_LOOKUP_PAGE_LIMIT = 100;
 
 export type MemberReconcileDbState = "missing" | "owned_by_member" | "owned_by_other" | "orphan";
 
@@ -65,6 +72,9 @@ export type MemberStripeReconciliationItem = {
   fund?: string;
   mode?: string;
   billingReason?: string;
+  stripeCreatedAtIso?: string | null;
+  settlementSource?: string | null;
+  customerInvestigationSource?: "linked" | "email_lookup";
 };
 
 export type MemberStripeReconciliationReport = {
@@ -89,6 +99,8 @@ export type MemberStripeReconciliationReport = {
     };
     stripeListCreatedGteUnix: number;
     stripeListCreatedLteUnix: number;
+    emailCustomerLookupTruncated: boolean;
+    emailCustomerLookupPages: number;
   };
   items: MemberStripeReconciliationItem[];
   summary: {
@@ -133,7 +145,9 @@ function proposedLinkageForCheckout(
   ownerConflict: ReturnType<typeof stripeCheckoutMetadataOwnerConflict>,
   skipReason: string | null,
   dbState: MemberReconcileDbState,
+  customerSource: "linked" | "email_lookup",
 ): MemberReconcileSecureLinkage {
+  if (customerSource === "email_lookup") return "finance_review_required";
   if (dbState === "owned_by_other") return "do_not_reassign_other_member_record";
   if (ownerConflict.conflict) return "finance_review_required";
   if (skipReason) return "none";
@@ -156,7 +170,9 @@ function proposedLinkageForInvoice(
   ownerConflict: ReturnType<typeof stripeInvoiceMetadataOwnerConflict>,
   skipReason: string | null,
   dbState: MemberReconcileDbState,
+  customerSource: "linked" | "email_lookup",
 ): MemberReconcileSecureLinkage {
+  if (customerSource === "email_lookup") return "finance_review_required";
   if (dbState === "owned_by_other") return "do_not_reassign_other_member_record";
   if (ownerConflict.conflict) return "finance_review_required";
   if (skipReason) return "none";
@@ -165,15 +181,27 @@ function proposedLinkageForInvoice(
   return "record_via_checkout_or_invoice_pipeline_only";
 }
 
-function checkoutPaidAtContext(session: Stripe.Checkout.Session) {
-  if (stripeCheckoutPaidAtUnknown(session)) {
-    return { paidAtKnown: false, paidAtUnix: null, givenOn: "unknown_paid_at" as const };
+function checkoutPaidContextFromSettlement(
+  session: Stripe.Checkout.Session,
+  settlement: StripeSettlementResolution,
+) {
+  if (settlement.status === "verified") {
+    return {
+      paidAtKnown: true,
+      paidAtUnix: settlement.paidAtUnix,
+      givenOn: giftDateKeyFromUnixSeconds(settlement.paidAtUnix),
+      settlementSource: settlement.source,
+    };
   }
-  const paidAtUnix = stripeCheckoutSettlementPaidAtUnix(session);
-  if (paidAtUnix) {
-    return { paidAtKnown: true, paidAtUnix, givenOn: giftDateKeyFromUnixSeconds(paidAtUnix) };
+  if (session.mode === "payment" && session.payment_status === "paid" && settlement.status === "unknown") {
+    return {
+      paidAtKnown: false,
+      paidAtUnix: null,
+      givenOn: "unknown_paid_at" as const,
+      settlementSource: null,
+    };
   }
-  return { paidAtKnown: false, paidAtUnix: null, givenOn: "not_paid" as const };
+  return { paidAtKnown: false, paidAtUnix: null, givenOn: "not_paid" as const, settlementSource: null };
 }
 
 function invoicePaidAtContext(invoice: Stripe.Invoice) {
@@ -193,10 +221,18 @@ function classifyCheckoutSession(
   memberCustomerId: string | null,
   sinceUnix: number,
   untilUnix: number,
+  settlement: StripeSettlementResolution,
+  customerSource: "linked" | "email_lookup",
 ) {
   const ownerConflict = stripeCheckoutMetadataOwnerConflict(session, member);
   if (ownerConflict.conflict) {
     return { skipReason: ownerConflict.reason, ownerConflict };
+  }
+  if (customerSource === "email_lookup") {
+    return {
+      skipReason: "secondary_customer_email_lookup_non_authoritative",
+      ownerConflict,
+    };
   }
   if (session.mode === "subscription") {
     return { skipReason: "subscription_checkout_use_invoice", ownerConflict };
@@ -204,14 +240,14 @@ function classifyCheckoutSession(
   if (session.mode !== "payment") {
     return { skipReason: `checkout_mode_${session.mode ?? "unknown"}`, ownerConflict };
   }
-  if (stripeCheckoutPaidAtUnknown(session)) {
-    return { skipReason: "paid_at_unknown", ownerConflict };
-  }
   if (!isPaidCheckoutSession(session)) {
     return { skipReason: `payment_status_${session.payment_status}`, ownerConflict };
   }
-  const settlement = stripeCheckoutSettlementPaidAtUnix(session);
-  if (!stripeObjectInPaidWindow(settlement, sinceUnix, untilUnix)) {
+  if (settlement.status === "unknown") {
+    return { skipReason: "paid_at_unknown", ownerConflict };
+  }
+  const paidAtUnix = checkoutSettlementPaidAtUnix(settlement);
+  if (!stripeObjectInPaidWindow(paidAtUnix, sinceUnix, untilUnix)) {
     return { skipReason: "outside_paid_window", ownerConflict };
   }
   if (!isShanahGivingCheckoutSession(session)) {
@@ -230,10 +266,17 @@ function classifyInvoice(
   memberCustomerId: string | null,
   sinceUnix: number,
   untilUnix: number,
+  customerSource: "linked" | "email_lookup",
 ) {
   const ownerConflict = stripeInvoiceMetadataOwnerConflict(invoice, extra, member);
   if (ownerConflict.conflict) {
     return { skipReason: ownerConflict.reason, ownerConflict };
+  }
+  if (customerSource === "email_lookup") {
+    return {
+      skipReason: "secondary_customer_email_lookup_non_authoritative",
+      ownerConflict,
+    };
   }
   if (invoice.status !== "paid" || (invoice.amount_paid ?? 0) <= 0) {
     return { skipReason: `invoice_status_${invoice.status ?? "unknown"}`, ownerConflict };
@@ -286,25 +329,46 @@ async function discoverStripeCustomerIds(member: { email: string }, linkedCustom
   const discovered = new Map<string, "linked" | "email_lookup">();
   discovered.set(linkedCustomerId, "linked");
 
+  let emailLookupTruncated = false;
+  let emailLookupPages = 0;
   const email = normalizeGivingEmail(member.email);
   if (email) {
-    const byEmail = await stripe.customers.list({ email, limit: 10 });
-    for (const customer of byEmail.data) {
-      if (!customer.id || customer.id === linkedCustomerId) continue;
-      discovered.set(customer.id, "email_lookup");
+    let startingAfter: string | undefined;
+    for (let page = 0; page < EMAIL_CUSTOMER_LOOKUP_MAX_PAGES; page++) {
+      const byEmail = await stripe.customers.list({
+        email,
+        limit: EMAIL_CUSTOMER_LOOKUP_PAGE_LIMIT,
+        ...(startingAfter ? { starting_after: startingAfter } : {}),
+      });
+      emailLookupPages += 1;
+      for (const customer of byEmail.data) {
+        if (!customer.id || customer.id === linkedCustomerId) continue;
+        discovered.set(customer.id, "email_lookup");
+      }
+      if (!byEmail.has_more) break;
+      if (page === EMAIL_CUSTOMER_LOOKUP_MAX_PAGES - 1) {
+        emailLookupTruncated = true;
+        break;
+      }
+      startingAfter = byEmail.data[byEmail.data.length - 1]?.id;
     }
   }
 
-  return [...discovered.entries()].map(([id, source]) => ({
-    id,
-    source,
-    redacted: redactStripeId(id) ?? "redacted",
-  }));
+  return {
+    customers: [...discovered.entries()].map(([id, source]) => ({
+      id,
+      source,
+      redacted: redactStripeId(id) ?? "redacted",
+    })),
+    emailLookupTruncated,
+    emailLookupPages,
+  };
 }
 
 async function scanCustomerStripeActivity(options: {
   stripeCustomerId: string;
   customerRedacted: string;
+  customerSource: "linked" | "email_lookup";
   member: { id: string; email: string };
   memberCustomerId: string;
   since: string;
@@ -320,6 +384,7 @@ async function scanCustomerStripeActivity(options: {
   const {
     stripeCustomerId,
     customerRedacted,
+    customerSource,
     member,
     memberCustomerId,
     since,
@@ -346,7 +411,8 @@ async function scanCustomerStripeActivity(options: {
   truncated.checkoutSessions ||= sessions.truncated;
 
   for (const session of sessions.rows) {
-    const paidCtx = checkoutPaidAtContext(session);
+    const settlement = await resolveCheckoutSessionSettlement(stripe, session);
+    const paidCtx = checkoutPaidContextFromSettlement(session, settlement);
     const inWindow =
       paidCtx.paidAtKnown && inDateKeyWindow(paidCtx.givenOn, since, until);
     const { skipReason, ownerConflict } = classifyCheckoutSession(
@@ -355,6 +421,8 @@ async function scanCustomerStripeActivity(options: {
       memberCustomerId,
       sinceUnix,
       untilUnix,
+      settlement,
+      customerSource,
     );
     const existing = await getGivingRecordByStripeSessionId(session.id);
     const dbState = dbStateForRecord(existing, member.id);
@@ -384,9 +452,13 @@ async function scanCustomerStripeActivity(options: {
         ownerConflict,
         finalSkip,
         dbState,
+        customerSource,
       ),
       fund: session.metadata?.fund,
       mode: session.mode ?? undefined,
+      stripeCreatedAtIso: stripeCreatedAtIsoFromUnix(session.created ?? null),
+      settlementSource: paidCtx.settlementSource ?? null,
+      customerInvestigationSource: customerSource,
     });
   }
 
@@ -412,6 +484,7 @@ async function scanCustomerStripeActivity(options: {
       memberCustomerId,
       sinceUnix,
       untilUnix,
+      customerSource,
     );
     const existing = await getGivingRecordByStripeInvoiceId(invoice.id);
     const dbState = dbStateForRecord(existing, member.id);
@@ -434,9 +507,19 @@ async function scanCustomerStripeActivity(options: {
       inWindow,
       dbState,
       skipReason: finalSkip,
-      proposedSecureLinkage: proposedLinkageForInvoice(extra, member, ownerConflict, finalSkip, dbState),
+      proposedSecureLinkage: proposedLinkageForInvoice(
+        extra,
+        member,
+        ownerConflict,
+        finalSkip,
+        dbState,
+        customerSource,
+      ),
       fund: extra.fund,
       billingReason: invoice.billing_reason ?? undefined,
+      stripeCreatedAtIso: stripeCreatedAtIsoFromUnix(invoice.created ?? null),
+      settlementSource: paidCtx.paidAtKnown ? "invoice_paid_at" : null,
+      customerInvestigationSource: customerSource,
     });
   }
 
@@ -445,6 +528,7 @@ async function scanCustomerStripeActivity(options: {
       customer: stripeCustomerId,
       limit: MEMBER_RECONCILE_STRIPE_PAGE_LIMIT,
       created: { gte: sinceUnix, lte: untilUnix },
+      expand: ["data.latest_charge"],
       ...(startingAfter ? { starting_after: startingAfter } : {}),
     }),
   );
@@ -452,22 +536,33 @@ async function scanCustomerStripeActivity(options: {
   truncated.paymentIntents ||= intents.truncated;
 
   for (const pi of intents.rows) {
-    const succeeded = pi.status === "succeeded";
-    const paidAtUnix = succeeded ? pi.created ?? null : null;
-    const givenOn = paidAtUnix ? giftDateKeyFromUnixSeconds(paidAtUnix) : "not_succeeded";
+    const piSettlement = settlementFromSucceededPaymentIntent(pi);
+    const verifiedPaidAt =
+      piSettlement.status === "verified" ? piSettlement.paidAtUnix : null;
+    const givenOn = verifiedPaidAt
+      ? giftDateKeyFromUnixSeconds(verifiedPaidAt)
+      : pi.status === "succeeded"
+        ? "settlement_unverified"
+        : "not_succeeded";
     items.push({
       kind: "payment_intent",
       stripeId: redactStripeId(pi.id) ?? "redacted",
       stripeCustomerId: customerRedacted,
-      paidAtIso: stripePaidAtIsoFromUnix(paidAtUnix),
-      paidAtKnown: Boolean(succeeded && paidAtUnix),
+      paidAtIso: stripePaidAtIsoFromUnix(verifiedPaidAt),
+      paidAtKnown: verifiedPaidAt != null,
+      stripeCreatedAtIso: stripeCreatedAtIsoFromUnix(pi.created ?? null),
       givenOn,
       amountUsd: Math.round(pi.amount ?? 0) / 100,
       stripeStatus: pi.status,
-      inWindow: succeeded && paidAtUnix ? inDateKeyWindow(givenOn, since, until) : false,
+      inWindow: verifiedPaidAt ? inDateKeyWindow(givenOn, since, until) : false,
       dbState: "missing",
       skipReason: "payment_intent_requires_session_or_invoice_match",
-      proposedSecureLinkage: "record_via_checkout_or_invoice_pipeline_only",
+      proposedSecureLinkage:
+        customerSource === "email_lookup"
+          ? "finance_review_required"
+          : "record_via_checkout_or_invoice_pipeline_only",
+      settlementSource: piSettlement.status === "verified" ? piSettlement.source : null,
+      customerInvestigationSource: customerSource,
     });
   }
 }
@@ -504,16 +599,17 @@ export async function buildMemberStripeReconciliationReport(input: {
     throw new Error("Member has no linked stripeCustomerId.");
   }
 
-  const customers = await discoverStripeCustomerIds(member, memberCustomerId);
+  const discovered = await discoverStripeCustomerIds(member, memberCustomerId);
   const listCreatedGte = stripeListCreatedGteWithPaidAtLookback(sinceUnix);
   const items: MemberStripeReconciliationItem[] = [];
   const pageStats = { checkoutSessions: 0, invoices: 0, paymentIntents: 0 };
   const truncated = { checkoutSessions: false, invoices: false, paymentIntents: false };
 
-  for (const customer of customers) {
+  for (const customer of discovered.customers) {
     await scanCustomerStripeActivity({
       stripeCustomerId: customer.id,
       customerRedacted: customer.redacted,
+      customerSource: customer.source,
       member,
       memberCustomerId,
       since,
@@ -554,7 +650,7 @@ export async function buildMemberStripeReconciliationReport(input: {
   ).length;
 
   const investigationNote =
-    verifiedPaidInWindowOnLinked === 0 && customers.length > 1
+    verifiedPaidInWindowOnLinked === 0 && discovered.customers.length > 1
       ? "No verified paid-at gifts in window on linked customer; additional Stripe customers matched member email (read-only scan). Root-cause statements remain hypotheses until finance confirms Stripe line items."
       : verifiedPaidInWindowOnLinked === 0
         ? "No verified paid-at Shanah gifts in window on investigated Stripe customer(s). Confirm donations used another Stripe customer or missing settlement timestamps (paid_at_unknown)."
@@ -568,13 +664,17 @@ export async function buildMemberStripeReconciliationReport(input: {
       !row.skipReason,
   ).length;
 
-  const scanComplete = !truncated.checkoutSessions && !truncated.invoices && !truncated.paymentIntents;
+  const scanComplete =
+    !truncated.checkoutSessions &&
+    !truncated.invoices &&
+    !truncated.paymentIntents &&
+    !discovered.emailLookupTruncated;
 
   return {
     dryRun: true as const,
     memberUserId: redactUserIdForLogs(member.id) ?? "redacted",
     memberEmail: redactEmailForLogs(member.email) ?? "redacted",
-    stripeCustomerIdsInvestigated: customers.map((row) => ({
+    stripeCustomerIdsInvestigated: discovered.customers.map((row) => ({
       stripeCustomerId: row.redacted,
       source: row.source,
     })),
@@ -587,6 +687,8 @@ export async function buildMemberStripeReconciliationReport(input: {
       pagesFetched: pageStats,
       stripeListCreatedGteUnix: listCreatedGte,
       stripeListCreatedLteUnix: untilUnix,
+      emailCustomerLookupTruncated: discovered.emailLookupTruncated,
+      emailCustomerLookupPages: discovered.emailLookupPages,
     },
     items: visibleItems,
     summary: {

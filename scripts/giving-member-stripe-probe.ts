@@ -11,9 +11,8 @@ import { isShanahGivingCheckoutSession, isShanahGivingInvoiceMetadata } from "..
 import { isPaidCheckoutSession, isEligibleReconcileGiftInvoice } from "../src/lib/giving-reconcile-server";
 import { resolveStripeInvoiceSubscriptionId } from "../src/lib/giving-stripe-invoice";
 import { giftGivenOnFromCheckoutSession, giftGivenOnFromInvoice } from "../src/lib/giving-stripe-eligibility";
+import { resolveCheckoutSessionSettlement } from "../src/lib/giving-stripe-checkout-settlement";
 import {
-  stripeCheckoutPaidAtUnknown,
-  stripeCheckoutSettlementPaidAtUnix,
   stripeInvoicePaidAtUnknown,
   stripeInvoiceSettlementPaidAtUnix,
   stripeListCreatedGteWithPaidAtLookback,
@@ -173,12 +172,15 @@ async function main() {
   );
 
   for (const session of sessions) {
-    const paidAtUnix = stripeCheckoutSettlementPaidAtUnix(session);
-    const givenOn = stripeCheckoutPaidAtUnknown(session)
-      ? "unknown_paid_at"
-      : paidAtUnix
-        ? giftDateKeyFromUnixSeconds(paidAtUnix)
-        : giftGivenOnFromCheckoutSession(session);
+    const checkoutSettlement = await resolveCheckoutSessionSettlement(stripe, session);
+    const paidAtUnix =
+    checkoutSettlement.status === "verified" ? checkoutSettlement.paidAtUnix : null;
+    const givenOn =
+      checkoutSettlement.status === "verified"
+        ? giftDateKeyFromUnixSeconds(checkoutSettlement.paidAtUnix)
+        : session.mode === "payment" && session.payment_status === "paid"
+          ? "unknown_paid_at"
+          : giftGivenOnFromCheckoutSession(session);
     const skip = classifyCheckoutSkip(session);
     const existing =
       session.id && dbRecords.length
@@ -196,7 +198,8 @@ async function main() {
         amountUsd: (session.amount_total ?? 0) / 100,
         givenOn,
         inWindow: givenOn !== "unknown_paid_at" && inRange(givenOn),
-        paidAtKnown: Boolean(paidAtUnix) && !stripeCheckoutPaidAtUnknown(session),
+        paidAtKnown: Boolean(paidAtUnix),
+        settlementSource: checkoutSettlement.status === "verified" ? checkoutSettlement.source : null,
         skipReason: skip ?? (existing ? "already_in_db" : null),
         dbUserId: existing?.userId ? redactUserIdForLogs(existing.userId) : null,
         dbOwnedByMember: existing?.userId === user.id,

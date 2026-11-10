@@ -14,8 +14,10 @@ import {
   stripeInvoiceIsFullyRefunded,
 } from "@/lib/giving-stripe-eligibility";
 import {
-  stripeCheckoutPaidAtUnknown,
-  stripeCheckoutSettlementPaidAtUnix,
+  checkoutSettlementPaidAtUnix,
+  resolveCheckoutSessionSettlement,
+} from "@/lib/giving-stripe-checkout-settlement";
+import {
   stripeInvoicePaidAtUnknown,
   stripeInvoiceSettlementPaidAtUnix,
   stripeListCreatedGteWithPaidAtLookback,
@@ -78,8 +80,9 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
     for (const session of page.data) {
       scannedSessions += 1;
       if (!isPaidCheckoutSession(session)) continue;
-      if (stripeCheckoutPaidAtUnknown(session)) continue;
-      const checkoutPaidAt = stripeCheckoutSettlementPaidAtUnix(session);
+      const checkoutSettlement = await resolveCheckoutSessionSettlement(stripe, session);
+      const checkoutPaidAt = checkoutSettlementPaidAtUnix(checkoutSettlement);
+      if (checkoutSettlement.status === "unknown") continue;
       if (!stripeObjectInPaidWindow(checkoutPaidAt, sinceUnix)) continue;
       if (!isShanahGivingCheckoutSession(session)) continue;
       const existing = await getGivingRecordByStripeSessionId(session.id);
