@@ -10,7 +10,10 @@ import {
 } from "@/lib/giving-stripe-checkout-ownership";
 import { isShanahGivingCheckoutSession } from "@/lib/giving-stripe-eligibility";
 import { getMemberStripeCustomerId } from "@/lib/giving-stripe-member-sync";
-import { stripeCheckoutMetadataOwnerConflict, stripeCustomerVerifiedForMember } from "@/lib/giving-stripe-member-sync-policy";
+import {
+  stripeCheckoutCustomerVerifiedForMember,
+  stripeCheckoutMetadataOwnerConflict,
+} from "@/lib/giving-stripe-member-sync-policy";
 import { resolveStripeCustomerId } from "@/lib/giving-stripe-invoice";
 import { isPaidCheckoutSession } from "@/lib/giving-reconcile-server";
 import {
@@ -72,9 +75,14 @@ export async function verifyTargetedCheckoutRecovery(input: {
     return { ok: false, message: "Checkout session is not a Shanah giving checkout." };
   }
 
-  const paymentCustomer = resolveStripeCustomerId(session.customer);
-  if (!stripeCustomerVerifiedForMember(paymentCustomer, memberStripeCustomerId)) {
-    return { ok: false, message: "Stripe customer on session does not match member linked customer." };
+  if (!stripeCheckoutCustomerVerifiedForMember(session, member, memberStripeCustomerId)) {
+    const paymentCustomer = resolveStripeCustomerId(session.customer);
+    return {
+      ok: false,
+      message: paymentCustomer
+        ? "Stripe customer on session does not match member linked customer."
+        : "Checkout has no Stripe customer; recovery requires both client_reference_id and metadata.userId to match the member.",
+    };
   }
 
   const ownerConflict = stripeCheckoutMetadataOwnerConflict(session, member);

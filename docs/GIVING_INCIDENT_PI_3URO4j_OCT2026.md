@@ -8,17 +8,15 @@
 | **GivingRecord** | Only two owned Stripe gifts (Aug/Sep 2026, $25 each). **No** October 2026 row. |
 | **Stripe (dashboard)** | `pi_3URO4jLmBWhgE7VM1r0q61Kx` **succeeded** 2026-10-22 ~07:24 (ACH); initiated 2026-10-16; gross **$75.60** ($75 offering + $0.60 fee); donor name/email match member; **PaymentIntent.metadata empty** (Checkout metadata lives on **Session**, not PI). |
 
-### PI → Checkout linkage (read-only)
+### PI → Checkout linkage (live Stripe proof — PR #54 review, read-only)
 
-Production dashboard review (not yet re-fetched in this workspace — local env lacks live `STRIPE_SECRET_KEY`):
-
-| Field | Expected |
-|-------|-----------|
-| PaymentIntent | `pi_3URO4jLmBWhgE7VM1r0q61Kx` — `succeeded`, $75.60, ACH ···5257, **PI metadata empty** |
-| Settlement | Success **2026-10-22** (not Checkout **created** 2026-10-16) |
-| Checkout Session | Resolve with `checkout.sessions.list({ payment_intent: "pi_3URO4jLmBWhgE7VM1r0q61Kx" })` — should return the one `cs_live_…` row for this gift |
-| Ownership pointers | `client_reference_id` / `metadata.userId` = `user-1786578251521`, customer = `cus_VR8r4k73xPRJp5` |
-| Amounts | Session metadata `giftAmount=75`, `feeAmount=0.60` (or matching line items) |
+| Field | Verified (live) |
+|-------|-----------------|
+| PaymentIntent | `pi_3URO4jLmBWhgE7VM1r0q61Kx` — `succeeded`, 7560 USD cents, `customer=null`, ACH |
+| Checkout Session | `cs_live_b11H0HstqRpM0Y75dQGBXSFsnfAuaitgjeImefYHljAc2TKfCn02v72ZGX` — `payment_status=paid`, `customer=null` |
+| Ownership pointers | **Both** `client_reference_id` and `metadata.userId` = `user-1786578251521` (member linked customer `cus_VR8r4k73xPRJp5` not on Session/PI) |
+| Amounts | `metadata.giftAmount=75`, `metadata.feeAmount=0.6`, `amount_total=7560` |
+| Success events | `payment_intent.succeeded` Unix **1792675443**; `checkout.session.async_payment_succeeded` Unix **1792675444** (2026-10-22 UTC) |
 
 Ops command: `PAYMENT_INTENT_ID=pi_3URO4jLmBWhgE7VM1r0q61Kx npx tsx scripts/giving-incident-pi-probe.ts` (production key only).
 
@@ -50,18 +48,19 @@ Ops command: `PAYMENT_INTENT_ID=pi_3URO4jLmBWhgE7VM1r0q61Kx npx tsx scripts/givi
 - Recovery API returns **503** until `GivingStripeGiftRecoveryAudit` migration is applied.
 - Recovery record + audit in a single DB transaction.
 
-## Targeted recovery (design — not auto-run)
+## Targeted recovery (Finance POST only — not auto-run)
 
 Use **Finance** `POST /api/admin/giving/recover/checkout` with:
 
 - `confirm: "RECOVER_VERIFIED_CHECKOUT_GIFT"`
-- `memberUserId` + `stripeSessionId` (`cs_…`) from Stripe (resolve via PI list filter or reconcile report `verifiedStripePaymentRefs.checkoutSessionId`)
+- `memberUserId` + `stripeSessionId` (`cs_…`) from Stripe (resolve via `checkout.sessions.list({ payment_intent })` when needed)
 
 **Ownership checks (fail-closed):**
 
 - Session `payment_status === paid`, Shanah metadata (`fund` + `giftAmount`)
-- Linked Stripe customer matches member `stripeCustomerId`
-- `client_reference_id` or `metadata.userId` matches member (or authorized customer link — **not** bank last4 alone)
+- When `session.customer` is set: must match member `stripeCustomerId` plus corroborated `client_reference_id` or `metadata.userId`
+- When `session.customer` is null: **both** `client_reference_id` and `metadata.userId` must match the member (no customer-only assignment)
+- Member history sync does **not** scan or auto-record customerless checkouts
 
 **Amounts:** persist **$75** gift from `metadata.giftAmount`; fee remains in notes (`feeAmount` / `coverFees`).
 

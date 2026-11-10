@@ -124,6 +124,24 @@ async function run() {
   });
   assert.equal(customerOnly.ok, false);
 
+  const customerlessDual = await verifyTargetedCheckoutRecovery({
+    session: sessionFixture({ customer: null }),
+    member: { id: MEMBER, email: "donor@example.com" },
+    memberStripeCustomerId: "cus_linked",
+  });
+  assert.equal(customerlessDual.ok, true);
+
+  const customerlessSingle = await verifyTargetedCheckoutRecovery({
+    session: sessionFixture({
+      customer: null,
+      client_reference_id: "",
+      metadata: { fund: "offering", giftAmount: "75", userId: MEMBER },
+    }),
+    member: { id: MEMBER, email: "donor@example.com" },
+    memberStripeCustomerId: "cus_linked",
+  });
+  assert.equal(customerlessSingle.ok, false);
+
   console.log("giving-stripe-recovery-safeguards.test.ts OK");
 }
 
