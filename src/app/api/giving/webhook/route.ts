@@ -6,6 +6,7 @@ import {
 } from "@/lib/giving-checkout-server";
 import { linkStripeCustomerFromCheckoutSession } from "@/lib/giving-billing-server";
 import { resolveStripeInvoiceSubscriptionId } from "@/lib/giving-stripe-invoice";
+import { recordGiftFromPaymentIntentSucceeded } from "@/lib/giving-stripe-payment-intent-record";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe-server";
 
 export const runtime = "nodejs";
@@ -46,6 +47,17 @@ export async function POST(request: Request) {
             sessionId: session.id,
             mode: fullSession.mode,
             paymentStatus: fullSession.payment_status,
+            eventType: event.type,
+          });
+        }
+        break;
+      }
+      case "payment_intent.succeeded": {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const record = await recordGiftFromPaymentIntentSucceeded(getStripe(), paymentIntent);
+        if (!record) {
+          console.warn("Stripe payment_intent.succeeded but no Checkout gift was recorded.", {
+            paymentIntentId: paymentIntent.id,
             eventType: event.type,
           });
         }

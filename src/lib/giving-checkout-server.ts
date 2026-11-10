@@ -42,6 +42,7 @@ import {
 } from "@/lib/giving-stripe-identity";
 import {
   checkoutSessionAuthorizedForMember,
+  giftDateKeyFromUnixSeconds,
   giftGivenOnFromCheckoutSession,
   giftGivenOnFromInvoice,
   isShanahGivingCheckoutSession,
@@ -49,6 +50,15 @@ import {
   stripeInvoiceIsFullyRefunded,
 } from "@/lib/giving-stripe-eligibility";
 import { getMemberStripeCustomerId } from "@/lib/giving-stripe-member-sync";
+import {
+  checkoutSettlementPaidAtUnix,
+  resolveCheckoutSessionSettlement,
+} from "@/lib/giving-stripe-checkout-settlement";
+import {
+  createMemberReconcileEventScope,
+  type MemberReconcileEventScope,
+} from "@/lib/giving-stripe-reconcile-event-scope";
+import { giftAmountFromMetadata } from "@/lib/giving-stripe-recovery-amounts";
 
 export { isStripeGivingConfigured };
 
@@ -232,12 +242,6 @@ async function donorNameForGivingRecord(input: {
   return formatPersonNameForDisplay(fallback) || fallback;
 }
 
-function giftAmountFromMetadata(metadata: Record<string, string> | null | undefined, fallbackTotal: number) {
-  const gift = Number(metadata?.giftAmount);
-  if (Number.isFinite(gift) && gift > 0) return roundMoney(gift);
-  return roundMoney(fallbackTotal);
-}
-
 function giftNotesFromMetadata(
   metadata: Record<string, string> | null | undefined,
   baseNote: string,
@@ -303,7 +307,10 @@ async function recordStripeGift(input: {
   return record;
 }
 
-export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Session) {
+export async function recordGiftFromCheckoutSession(
+  session: Stripe.Checkout.Session,
+  options?: { eventScope?: MemberReconcileEventScope },
+) {
   await linkStripeCustomerFromCheckoutSession(session);
 
   if (!isShanahGivingCheckoutSession(session)) {
@@ -339,10 +346,21 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
     fallbackName: stripeName,
   });
 
-  const baseNote =
+  let baseNote =
     metadata.frequency && metadata.frequency !== "once"
       ? `${recurringGiftNote(metadata.frequency)} (first payment via checkout)`
       : "One-time online gift";
+
+  let givenOn = giftGivenOnFromCheckoutSession(session);
+  const stripe = getStripe();
+  const eventScope = options?.eventScope ?? createMemberReconcileEventScope();
+  const settlement = await resolveCheckoutSessionSettlement(stripe, session, eventScope);
+  const verifiedPaidAt = checkoutSettlementPaidAtUnix(settlement);
+  if (verifiedPaidAt) {
+    givenOn = giftDateKeyFromUnixSeconds(verifiedPaidAt);
+  } else if (settlement.status === "success_date_unknown") {
+    baseNote = `${baseNote} Settlement date unverified; finance may reconcile using Stripe events.`;
+  }
 
   return recordStripeGift({
     amount: giftAmount,
@@ -354,7 +372,7 @@ export async function recordGiftFromCheckoutSession(session: Stripe.Checkout.Ses
     campusId,
     notes: giftNotesFromMetadata(metadata, baseNote),
     stripeSessionId: session.id,
-    givenOn: giftGivenOnFromCheckoutSession(session),
+    givenOn,
   });
 }
 
