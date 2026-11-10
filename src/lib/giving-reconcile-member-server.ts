@@ -26,7 +26,7 @@ import { parseGivingReconcileDateWindow } from "@/lib/giving-reconcile-window";
 import {
   checkoutSettlementPaidAtUnix,
   resolveCheckoutSessionSettlement,
-  settlementFromSucceededPaymentIntent,
+  resolvePaymentIntentSettlement,
   type StripeSettlementResolution,
 } from "@/lib/giving-stripe-checkout-settlement";
 import {
@@ -73,8 +73,11 @@ export type MemberStripeReconciliationItem = {
   mode?: string;
   billingReason?: string;
   stripeCreatedAtIso?: string | null;
+  chargeCreatedAtIso?: string | null;
   settlementSource?: string | null;
   customerInvestigationSource?: "linked" | "email_lookup";
+  paymentSucceededVerified?: boolean;
+  successAtVerified?: boolean;
 };
 
 export type MemberStripeReconciliationReport = {
@@ -191,6 +194,20 @@ function checkoutPaidContextFromSettlement(
       paidAtUnix: settlement.paidAtUnix,
       givenOn: giftDateKeyFromUnixSeconds(settlement.paidAtUnix),
       settlementSource: settlement.source,
+      paymentSucceededVerified: true,
+      successAtVerified: true,
+      chargeCreatedAtUnix: settlement.chargeCreatedAtUnix,
+    };
+  }
+  if (settlement.status === "success_date_unknown") {
+    return {
+      paidAtKnown: false,
+      paidAtUnix: null,
+      givenOn: "unknown_paid_at" as const,
+      settlementSource: null,
+      paymentSucceededVerified: true,
+      successAtVerified: false,
+      chargeCreatedAtUnix: settlement.chargeCreatedAtUnix,
     };
   }
   if (session.mode === "payment" && session.payment_status === "paid" && settlement.status === "unknown") {
@@ -199,9 +216,20 @@ function checkoutPaidContextFromSettlement(
       paidAtUnix: null,
       givenOn: "unknown_paid_at" as const,
       settlementSource: null,
+      paymentSucceededVerified: false,
+      successAtVerified: false,
+      chargeCreatedAtUnix: settlement.chargeCreatedAtUnix,
     };
   }
-  return { paidAtKnown: false, paidAtUnix: null, givenOn: "not_paid" as const, settlementSource: null };
+  return {
+    paidAtKnown: false,
+    paidAtUnix: null,
+    givenOn: "not_paid" as const,
+    settlementSource: null,
+    paymentSucceededVerified: false,
+    successAtVerified: false,
+    chargeCreatedAtUnix: settlement.chargeCreatedAtUnix ?? null,
+  };
 }
 
 function invoicePaidAtContext(invoice: Stripe.Invoice) {
@@ -243,7 +271,7 @@ function classifyCheckoutSession(
   if (!isPaidCheckoutSession(session)) {
     return { skipReason: `payment_status_${session.payment_status}`, ownerConflict };
   }
-  if (settlement.status === "unknown") {
+  if (settlement.status === "unknown" || settlement.status === "success_date_unknown") {
     return { skipReason: "paid_at_unknown", ownerConflict };
   }
   const paidAtUnix = checkoutSettlementPaidAtUnix(settlement);
@@ -457,8 +485,11 @@ async function scanCustomerStripeActivity(options: {
       fund: session.metadata?.fund,
       mode: session.mode ?? undefined,
       stripeCreatedAtIso: stripeCreatedAtIsoFromUnix(session.created ?? null),
+      chargeCreatedAtIso: stripeCreatedAtIsoFromUnix(paidCtx.chargeCreatedAtUnix),
       settlementSource: paidCtx.settlementSource ?? null,
       customerInvestigationSource: customerSource,
+      paymentSucceededVerified: paidCtx.paymentSucceededVerified,
+      successAtVerified: paidCtx.successAtVerified,
     });
   }
 
@@ -536,7 +567,7 @@ async function scanCustomerStripeActivity(options: {
   truncated.paymentIntents ||= intents.truncated;
 
   for (const pi of intents.rows) {
-    const piSettlement = settlementFromSucceededPaymentIntent(pi);
+    const piSettlement = await resolvePaymentIntentSettlement(stripe, pi);
     const verifiedPaidAt =
       piSettlement.status === "verified" ? piSettlement.paidAtUnix : null;
     const givenOn = verifiedPaidAt
@@ -551,6 +582,7 @@ async function scanCustomerStripeActivity(options: {
       paidAtIso: stripePaidAtIsoFromUnix(verifiedPaidAt),
       paidAtKnown: verifiedPaidAt != null,
       stripeCreatedAtIso: stripeCreatedAtIsoFromUnix(pi.created ?? null),
+      chargeCreatedAtIso: stripeCreatedAtIsoFromUnix(piSettlement.chargeCreatedAtUnix),
       givenOn,
       amountUsd: Math.round(pi.amount ?? 0) / 100,
       stripeStatus: pi.status,
@@ -563,6 +595,8 @@ async function scanCustomerStripeActivity(options: {
           : "record_via_checkout_or_invoice_pipeline_only",
       settlementSource: piSettlement.status === "verified" ? piSettlement.source : null,
       customerInvestigationSource: customerSource,
+      paymentSucceededVerified: piSettlement.paymentSucceededVerified,
+      successAtVerified: piSettlement.successAtVerified,
     });
   }
 }

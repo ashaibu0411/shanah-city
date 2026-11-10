@@ -82,7 +82,9 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
       if (!isPaidCheckoutSession(session)) continue;
       const checkoutSettlement = await resolveCheckoutSessionSettlement(stripe, session);
       const checkoutPaidAt = checkoutSettlementPaidAtUnix(checkoutSettlement);
-      if (checkoutSettlement.status === "unknown") continue;
+      if (checkoutSettlement.status === "unknown" || checkoutSettlement.status === "success_date_unknown") {
+        continue;
+      }
       if (!stripeObjectInPaidWindow(checkoutPaidAt, sinceUnix)) continue;
       if (!isShanahGivingCheckoutSession(session)) continue;
       const existing = await getGivingRecordByStripeSessionId(session.id);
