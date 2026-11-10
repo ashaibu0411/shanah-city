@@ -7,6 +7,11 @@ import {
   isPaidCheckoutSession,
   isPaidStripeInvoice,
 } from "../src/lib/giving-reconcile-server";
+import {
+  stripeInvoicePaidAtUnix,
+  stripeListCreatedGteWithPaidAtLookback,
+  stripeObjectInPaidWindow,
+} from "../src/lib/giving-stripe-paid-at";
 import { mergeMemberVisibleGivingRecords } from "../src/lib/giving-member-merge";
 import { resolveStripeInvoiceSubscriptionId, resolveStripeCustomerId } from "../src/lib/giving-stripe-invoice";
 import { metadataUserId } from "../src/lib/giving-stripe-identity";
@@ -644,5 +649,28 @@ assert.equal(
   false,
 );
 assert.equal(parseGivingHistoryRefreshStamp(String(now)).shouldPoll, true);
+
+const sinceUnix = 1_761_000_000; // ~2025-10-21
+assert.equal(stripeListCreatedGteWithPaidAtLookback(sinceUnix) < sinceUnix, true);
+assert.equal(
+  stripeObjectInPaidWindow(stripeInvoicePaidAtUnix({
+    status: "paid",
+    created: sinceUnix - 86400 * 60,
+    status_transitions: { paid_at: sinceUnix + 100 },
+  } as never), sinceUnix),
+  true,
+);
+assert.equal(
+  stripeObjectInPaidWindow(stripeInvoicePaidAtUnix({
+    status: "open",
+    created: sinceUnix - 100,
+    status_transitions: {},
+  } as never), sinceUnix),
+  false,
+);
+
+const syncTs = readFileSync(path.join(process.cwd(), "src/lib/giving-stripe-member-sync.ts"), "utf8");
+assert.match(syncTs, /subscription_checkout_use_invoice/);
+assert.match(syncTs, /stripeListCreatedGteWithPaidAtLookback/);
 
 console.log("giving-stripe-history.test.ts OK");

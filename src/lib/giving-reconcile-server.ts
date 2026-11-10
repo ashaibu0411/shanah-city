@@ -13,6 +13,11 @@ import {
   isShanahGivingInvoiceMetadata,
   stripeInvoiceIsFullyRefunded,
 } from "@/lib/giving-stripe-eligibility";
+import {
+  stripeInvoicePaidAtUnix,
+  stripeListCreatedGteWithPaidAtLookback,
+  stripeObjectInPaidWindow,
+} from "@/lib/giving-stripe-paid-at";
 import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 import { useDatabase } from "@/lib/use-database";
 
@@ -78,7 +83,9 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
         kind: "checkout_session",
         stripeId: session.id,
         amountUsd: Math.round(session.amount_total ?? 0) / 100,
-        paidAtIso: new Date((session.created ?? 0) * 1000).toISOString(),
+        paidAtIso: new Date(
+          (session.status_transitions?.paid_at ?? session.created ?? 0) * 1000,
+        ).toISOString(),
         donorEmail: session.customer_details?.email ?? session.customer_email ?? undefined,
         userId: session.client_reference_id ?? session.metadata?.userId,
       });
@@ -93,13 +100,15 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
   while (missing.length < limit) {
     const page = await stripe.invoices.list({
       limit: 100,
-      created: { gte: sinceUnix },
+      created: { gte: stripeListCreatedGteWithPaidAtLookback(sinceUnix) },
       ...(invoiceStartingAfter ? { starting_after: invoiceStartingAfter } : {}),
     });
     if (page.data.length === 0) break;
 
     for (const invoice of page.data) {
       scannedInvoices += 1;
+      const paidAtUnix = stripeInvoicePaidAtUnix(invoice);
+      if (!stripeObjectInPaidWindow(paidAtUnix, sinceUnix)) continue;
       if (!isEligibleReconcileGiftInvoice(invoice)) continue;
       const extraMetadata = await invoiceMetadataForReconcile(invoice);
       if (!isShanahGivingInvoiceMetadata(extraMetadata)) continue;
@@ -110,7 +119,7 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
         kind: "invoice",
         stripeId: invoice.id,
         amountUsd: Math.round(invoice.amount_paid ?? 0) / 100,
-        paidAtIso: new Date((invoice.created ?? 0) * 1000).toISOString(),
+        paidAtIso: new Date(paidAtUnix * 1000).toISOString(),
         donorEmail: invoice.customer_email ?? undefined,
         userId: invoice.metadata?.userId,
       });

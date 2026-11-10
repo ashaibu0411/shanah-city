@@ -21,6 +21,11 @@ import {
   isEligibleReconcileGiftInvoice,
   isPaidCheckoutSession,
 } from "@/lib/giving-reconcile-server";
+import {
+  stripeInvoicePaidAtUnix,
+  stripeListCreatedGteWithPaidAtLookback,
+  stripeObjectInPaidWindow,
+} from "@/lib/giving-stripe-paid-at";
 import { getStripe, isStripeGivingConfigured } from "@/lib/stripe-server";
 import {
   createMemberStripeSyncRun,
@@ -183,6 +188,14 @@ async function runVerifiedStripeGiftSync(
 
     for (const session of list.data) {
       report.scannedCheckoutSessions += 1;
+      if (session.mode === "subscription") {
+        bumpSkipReason(report, "subscription_checkout_use_invoice");
+        continue;
+      }
+      if (session.mode !== "payment") {
+        bumpSkipReason(report, "checkout_mode_unsupported");
+        continue;
+      }
       if (!isPaidCheckoutSession(session)) {
         bumpSkipReason(report, "not_paid");
         continue;
@@ -239,7 +252,7 @@ async function runVerifiedStripeGiftSync(
         stripe.invoices.list({
           customer: customerId,
           limit: MEMBER_STRIPE_SYNC_PAGE_LIMIT,
-          created: { gte: sinceUnix },
+          created: { gte: stripeListCreatedGteWithPaidAtLookback(sinceUnix) },
           ...(invoiceStartingAfter ? { starting_after: invoiceStartingAfter } : {}),
         }),
       );
@@ -253,6 +266,11 @@ async function runVerifiedStripeGiftSync(
 
     for (const invoice of list.data) {
       report.scannedInvoices += 1;
+      const paidAtUnix = stripeInvoicePaidAtUnix(invoice);
+      if (!stripeObjectInPaidWindow(paidAtUnix, sinceUnix)) {
+        bumpSkipReason(report, "outside_paid_window");
+        continue;
+      }
       if (invoice.status !== "paid" || (invoice.amount_paid ?? 0) <= 0) {
         bumpSkipReason(report, "not_paid");
         continue;
