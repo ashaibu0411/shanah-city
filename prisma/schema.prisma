@@ -636,6 +636,28 @@ model GivingStripeMemberSyncLease {
   updatedAt DateTime
 }
 
+/** Immutable audit for finance-targeted Checkout gift recovery (idempotent by stripeSessionId on GivingRecord). */
+model GivingStripeGiftRecoveryAudit {
+  id                    String   @id
+  memberUserId          String
+  stripeSessionId       String
+  stripePaymentIntentId String?
+  requestedByUserId     String
+  requestedByName       String
+  ownershipBasis        String?
+  giftAmount            Float
+  feeAmount             Float?
+  givenOn               String
+  successAtVerified     Boolean
+  outcome               String
+  details               Json?
+  createdAt             DateTime @default(now())
+
+  @@index([memberUserId, createdAt(sort: Desc)])
+  @@index([stripeSessionId])
+  @@index([outcome])
+}
+
 model FinanceWeeklySheet {
   id              String    @id
   weekEnding      String    @unique

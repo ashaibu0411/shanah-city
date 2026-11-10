@@ -16,6 +16,7 @@ import {
 import {
   checkoutSettlementPaidAtUnix,
   resolveCheckoutSessionSettlement,
+  stripeSettlementPaymentSucceeded,
 } from "@/lib/giving-stripe-checkout-settlement";
 import { createMemberReconcileEventScope } from "@/lib/giving-stripe-reconcile-event-scope";
 import {
@@ -34,6 +35,8 @@ export type GivingReconcileMissingItem = {
   paidAtIso: string;
   donorEmail?: string;
   userId?: string;
+  successAtVerified?: boolean;
+  giftAmountUsd?: number;
 };
 
 export function isPaidCheckoutSession(session: Pick<Stripe.Checkout.Session, "mode" | "payment_status">) {
@@ -84,21 +87,33 @@ export async function reportMissingStripeGifts(options?: { days?: number; limit?
       if (!isPaidCheckoutSession(session)) continue;
       const checkoutSettlement = await resolveCheckoutSessionSettlement(stripe, session, eventScope);
       const checkoutPaidAt = checkoutSettlementPaidAtUnix(checkoutSettlement);
-      if (checkoutSettlement.status === "unknown" || checkoutSettlement.status === "success_date_unknown") {
+      if (checkoutSettlement.status === "unknown") continue;
+      if (checkoutSettlement.status === "success_date_unknown") {
+        if (!stripeSettlementPaymentSucceeded(checkoutSettlement)) continue;
+        if (!stripeObjectInPaidWindow(checkoutPaidAt ?? session.created ?? null, sinceUnix)) continue;
+      } else if (!stripeObjectInPaidWindow(checkoutPaidAt, sinceUnix)) {
         continue;
       }
-      if (!stripeObjectInPaidWindow(checkoutPaidAt, sinceUnix)) continue;
       if (!isShanahGivingCheckoutSession(session)) continue;
       const existing = await getGivingRecordByStripeSessionId(session.id);
       if (existing) continue;
 
+      const metadata = session.metadata ?? {};
+      const giftAmount = Number(metadata.giftAmount);
       missing.push({
         kind: "checkout_session",
         stripeId: session.id,
         amountUsd: Math.round(session.amount_total ?? 0) / 100,
-        paidAtIso: new Date((checkoutPaidAt ?? 0) * 1000).toISOString(),
+        giftAmountUsd:
+          Number.isFinite(giftAmount) && giftAmount > 0
+            ? giftAmount
+            : Math.round(session.amount_total ?? 0) / 100,
+        paidAtIso: new Date(
+          (checkoutPaidAt ?? session.created ?? 0) * 1000,
+        ).toISOString(),
         donorEmail: session.customer_details?.email ?? session.customer_email ?? undefined,
         userId: session.client_reference_id ?? session.metadata?.userId,
+        successAtVerified: checkoutSettlement.status === "verified",
       });
       if (missing.length >= limit) break;
     }
