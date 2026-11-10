@@ -300,6 +300,7 @@ async function runPaidAtTests() {
       retrieve: async () => ({
         id: "pi_1",
         status: "succeeded",
+        payment_method_types: ["us_bank_account"],
         latest_charge: { id: "ch_1", status: "succeeded", created: 1_000 },
         created: 1_000,
       }),
@@ -308,15 +309,35 @@ async function runPaidAtTests() {
   } as never;
 
   const withWebhook = await resolveCheckoutGiftPaidAtUnix(stripe, session, scope, {
-    trustedWebhookSettlement: { paidAtUnix: 1_762_920_000, eventType: "payment_intent.succeeded", eventId: "evt_1" },
+    trustedWebhookSettlement: {
+      paidAtUnix: 1_762_920_000,
+      eventType: "payment_intent.succeeded",
+      eventId: "evt_1",
+      paymentIntentId: "pi_1",
+    },
   });
   assert.equal(withWebhook, 1_762_920_000);
 
   const strict = await resolveCheckoutGiftPaidAtUnix(stripe, session, scope, {
     requireEventListSuccessDate: true,
-    trustedWebhookSettlement: { paidAtUnix: 1_762_920_000, eventType: "payment_intent.succeeded", eventId: "evt_1" },
+    trustedWebhookSettlement: {
+      paidAtUnix: 1_762_920_000,
+      eventType: "payment_intent.succeeded",
+      eventId: "evt_1",
+      paymentIntentId: "pi_1",
+    },
   });
   assert.equal(strict, null);
+
+  const achReplay = await resolveCheckoutGiftPaidAtUnix(stripe, session, scope, {
+    trustedWebhookSettlement: {
+      paidAtUnix: 1_760_601_600,
+      eventType: "checkout.session.completed",
+      eventId: "evt_old",
+      checkoutSessionId: "cs_1",
+    },
+  });
+  assert.equal(achReplay, null);
 }
 
 function runAmountTests() {

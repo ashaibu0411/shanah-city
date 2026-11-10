@@ -37,6 +37,8 @@ Ops command: `PAYMENT_INTENT_ID=pi_3URO4jLmBWhgE7VM1r0q61Kx npx tsx scripts/givi
 ## PR #54 review fixes
 
 - Live webhooks use signed `event.created` when Events.list is unavailable; Events.list timestamps still preferred when listable.
+- Guest Checkout gifts record with `userId=null` (no email-only member assignment).
+- ACH trusted dates only from `payment_intent.succeeded` / `checkout.session.async_payment_succeeded` (not replayed `checkout.session.completed`).
 - Finance recovery still requires Events.list success date (no Checkout.created, no webhook fallback).
 - **October $75 gift:** no automated recovery/backfill in this PR.
 

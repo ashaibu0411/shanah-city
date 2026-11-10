@@ -1,6 +1,5 @@
 import type Stripe from "stripe";
 import { recordGiftFromCheckoutSession } from "@/lib/giving-checkout-server";
-import { checkoutSessionHasCorroboratedMemberIdentity } from "@/lib/giving-stripe-checkout-ownership";
 import { isShanahGivingCheckoutSession } from "@/lib/giving-stripe-eligibility";
 import { listCheckoutSessionsForPaymentIntent } from "@/lib/giving-stripe-checkout-session-lookup";
 import { isPaidCheckoutSession } from "@/lib/giving-reconcile-server";
@@ -10,7 +9,7 @@ import type { RecordGiftFromCheckoutSessionOptions } from "@/lib/giving-checkout
 
 /**
  * Checkout-mode one-time gifts: record via Session metadata (PI metadata is often empty).
- * Idempotent on stripeSessionId unique index. Requires corroborated member identity on Session.
+ * Idempotent on stripeSessionId unique index. Guest and member gifts use metadata-verified amounts.
  */
 export async function recordGiftFromPaymentIntentSucceeded(
   stripe: Stripe,
@@ -31,10 +30,15 @@ export async function recordGiftFromPaymentIntentSucceeded(
     });
     if (!isPaidCheckoutSession(session)) continue;
     if (!isShanahGivingCheckoutSession(session)) continue;
-    if (!checkoutSessionHasCorroboratedMemberIdentity(session)) continue;
     const gift = await recordGiftFromCheckoutSession(session, {
       ...options,
-      trustedWebhookSettlement: options?.trustedWebhookSettlement,
+      trustedWebhookSettlement: options?.trustedWebhookSettlement
+        ? {
+            ...options.trustedWebhookSettlement,
+            checkoutSessionId: session.id,
+            paymentIntentId: paymentIntent.id,
+          }
+        : undefined,
     });
     if (gift) recorded = gift;
   }

@@ -5,11 +5,17 @@ import {
   stripeSettlementPaymentSucceeded,
 } from "@/lib/giving-stripe-checkout-settlement";
 import type { MemberReconcileEventScope } from "@/lib/giving-stripe-reconcile-event-scope";
+import {
+  paymentIntentIdFromCheckoutSession,
+  trustedWebhookQualifiesForPaidAt,
+} from "@/lib/giving-stripe-webhook-settlement";
 
 export type TrustedStripeWebhookSettlement = {
   paidAtUnix: number;
   eventType: string;
   eventId: string;
+  checkoutSessionId?: string;
+  paymentIntentId?: string;
 };
 
 export type CheckoutGiftPaidAtOptions = {
@@ -41,15 +47,31 @@ export async function resolveCheckoutGiftPaidAtUnix(
   }
 
   const trusted = options?.trustedWebhookSettlement;
+  if (!trusted?.paidAtUnix) return null;
+
   const settlementStatus = settlement.status;
-  if (
-    trusted?.paidAtUnix &&
-    (stripeSettlementPaymentSucceeded(settlement) ||
-      settlementStatus === "success_date_unknown" ||
-      settlementStatus === "unknown")
-  ) {
-    return trusted.paidAtUnix;
+  const paymentLooksSucceeded =
+    stripeSettlementPaymentSucceeded(settlement) ||
+    settlementStatus === "success_date_unknown" ||
+    settlementStatus === "unknown";
+
+  if (!paymentLooksSucceeded && session.payment_status !== "paid") {
+    return null;
   }
 
-  return null;
+  let paymentIntent: Stripe.PaymentIntent | null = null;
+  const piId = paymentIntentIdFromCheckoutSession(session);
+  if (piId) {
+    try {
+      paymentIntent = await stripe.paymentIntents.retrieve(piId);
+    } catch {
+      paymentIntent = null;
+    }
+  }
+
+  if (!trustedWebhookQualifiesForPaidAt(trusted, session, paymentIntent)) {
+    return null;
+  }
+
+  return trusted.paidAtUnix;
 }

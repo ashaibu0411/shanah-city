@@ -50,6 +50,11 @@ export async function POST(request: Request) {
                   paidAtUnix: event.created,
                   eventType: event.type,
                   eventId: event.id,
+                  checkoutSessionId: fullSession.id,
+                  paymentIntentId:
+                    typeof fullSession.payment_intent === "string"
+                      ? fullSession.payment_intent
+                      : fullSession.payment_intent?.id,
                 },
               })
             : null;
@@ -70,6 +75,7 @@ export async function POST(request: Request) {
             paidAtUnix: event.created,
             eventType: event.type,
             eventId: event.id,
+            paymentIntentId: paymentIntent.id,
           },
         });
         if (!record) {

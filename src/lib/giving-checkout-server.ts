@@ -37,7 +37,6 @@ import {
 } from "@/lib/giving-recurring-start";
 import {
   metadataValue,
-  resolveDonorIdentityFromCheckoutSession,
   resolveDonorIdentityFromInvoice,
 } from "@/lib/giving-stripe-identity";
 import {
@@ -62,7 +61,11 @@ import {
   resolveVerifiedInvoiceGiftAmounts,
 } from "@/lib/giving-stripe-invoice-amounts";
 import { resolveVerifiedCheckoutGiftAmounts } from "@/lib/giving-stripe-recovery-amounts";
-import { checkoutSessionHasCorroboratedMemberIdentity } from "@/lib/giving-stripe-checkout-ownership";
+import {
+  checkoutMetadataOwnerConflictBlocksRecording,
+  givingRecordUserIdFromCheckoutSession,
+} from "@/lib/giving-stripe-checkout-ownership";
+import { listAllInvoiceLineItems } from "@/lib/giving-stripe-invoice-lines";
 
 export { isStripeGivingConfigured };
 
@@ -332,7 +335,7 @@ export async function recordGiftFromCheckoutSession(
   const totalPaid = amountInDollars(session.amount_total);
   if (totalPaid <= 0) return null;
 
-  if (!checkoutSessionHasCorroboratedMemberIdentity(session)) {
+  if (checkoutMetadataOwnerConflictBlocksRecording(session)) {
     return null;
   }
 
@@ -352,9 +355,12 @@ export async function recordGiftFromCheckoutSession(
     donorEmail?.split("@")[0] ||
     "Online donor";
 
-  const identity = await resolveDonorIdentityFromCheckoutSession(session);
-  const userId = identity.userId;
-  const campusId = identity.campusId;
+  const userId = givingRecordUserIdFromCheckoutSession(session);
+  let campusId = metadata.campusId?.trim() || undefined;
+  if (userId && !campusId) {
+    const member = await getUserById(userId);
+    campusId = member?.campusId;
+  }
 
   const donorName = await donorNameForGivingRecord({
     userId,
@@ -362,10 +368,11 @@ export async function recordGiftFromCheckoutSession(
     fallbackName: stripeName,
   });
 
+  const guestSuffix = userId ? "" : " Guest checkout (unassigned).";
   let baseNote =
     metadata.frequency && metadata.frequency !== "once"
-      ? `${recurringGiftNote(metadata.frequency)} (first payment via checkout)`
-      : "One-time online gift";
+      ? `${recurringGiftNote(metadata.frequency)} (first payment via checkout)${guestSuffix}`
+      : `One-time online gift${guestSuffix}`;
 
   const stripe = getStripe();
   const eventScope = options?.eventScope ?? createMemberReconcileEventScope();
@@ -392,6 +399,7 @@ export async function recordGiftFromCheckoutSession(
 export async function recordGiftFromInvoice(
   invoice: Stripe.Invoice,
   extraMetadata: Record<string, string> = {},
+  options?: { lineItems?: Stripe.InvoiceLineItem[]; linesPaginationComplete?: boolean },
 ) {
   if (invoice.status !== "paid") {
     return null;
@@ -405,10 +413,30 @@ export async function recordGiftFromInvoice(
   if (totalPaid <= 0) return null;
 
   const metadata = { ...(invoice.metadata ?? {}), ...extraMetadata };
-  if (!isShanahGivingInvoiceEligible(metadata, invoice)) {
+
+  let lineItems = options?.lineItems;
+  let linesPaginationComplete = options?.linesPaginationComplete;
+  if (lineItems === undefined && isStripeGivingConfigured()) {
+    const listed = await listAllInvoiceLineItems(getStripe(), invoice.id);
+    lineItems = listed.lines;
+    linesPaginationComplete = listed.paginationComplete;
+  }
+
+  const invoiceForAmounts: Pick<Stripe.Invoice, "amount_paid" | "lines"> = {
+    amount_paid: invoice.amount_paid,
+    lines: { data: lineItems ?? invoice.lines?.data ?? [] } as Stripe.Invoice["lines"],
+  };
+
+  if (
+    !isShanahGivingInvoiceEligible(metadata, invoiceForAmounts, {
+      linesPaginationComplete: linesPaginationComplete ?? true,
+    })
+  ) {
     return null;
   }
-  const amounts = resolveVerifiedInvoiceGiftAmounts(invoice, metadata);
+  const amounts = resolveVerifiedInvoiceGiftAmounts(invoiceForAmounts, metadata, {
+    linesPaginationComplete: linesPaginationComplete ?? true,
+  });
   if (!amounts.ok) {
     return null;
   }

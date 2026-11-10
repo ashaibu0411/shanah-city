@@ -32,15 +32,25 @@ export type VerifiedInvoiceGiftAmounts =
       feeAmount: number | null;
       source: "metadata" | "invoice_lines";
     }
-  | { ok: false; reason: "missing_gift_amount" | "lines_ambiguous" | "amount_mismatch" | "missing_fund" };
+  | {
+      ok: false;
+      reason:
+        | "missing_gift_amount"
+        | "lines_ambiguous"
+        | "amount_mismatch"
+        | "missing_fund"
+        | "lines_pagination_incomplete";
+    };
 
 export function isShanahGivingInvoiceEligible(
   metadata: Record<string, string>,
   invoice: Pick<Stripe.Invoice, "lines" | "amount_paid">,
+  options?: { linesPaginationComplete?: boolean },
 ) {
   if (!isKnownGivingFund(metadata.fund)) return false;
   const metaGift = Number(metadata.giftAmount);
   if (Number.isFinite(metaGift) && metaGift > 0) return true;
+  if (options?.linesPaginationComplete === false) return false;
   const lines = invoice.lines?.data ?? [];
   return lines.some((line) => invoiceLineCents(line) > 0);
 }
@@ -48,6 +58,7 @@ export function isShanahGivingInvoiceEligible(
 export function resolveVerifiedInvoiceGiftAmounts(
   invoice: Pick<Stripe.Invoice, "amount_paid" | "lines">,
   metadata: Record<string, string>,
+  options?: { linesPaginationComplete?: boolean },
 ): VerifiedInvoiceGiftAmounts {
   if (!isKnownGivingFund(metadata.fund)) {
     return { ok: false, reason: "missing_fund" };
@@ -74,6 +85,10 @@ export function resolveVerifiedInvoiceGiftAmounts(
       feeAmount: Number.isFinite(metaFee) && metaFee >= 0 ? roundMoney(metaFee) : null,
       source: "metadata",
     };
+  }
+
+  if (options?.linesPaginationComplete === false) {
+    return { ok: false, reason: "lines_pagination_incomplete" };
   }
 
   const lines = invoice.lines?.data ?? [];

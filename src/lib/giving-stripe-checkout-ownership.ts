@@ -17,6 +17,22 @@ export function checkoutSessionHasCorroboratedMemberIdentity(
   return Boolean(checkoutSessionCorroboratedMemberId(session));
 }
 
+/** Member attribution for GivingRecord — corroborated IDs only (never email-only). */
+export function givingRecordUserIdFromCheckoutSession(
+  session: Pick<Stripe.Checkout.Session, "client_reference_id" | "metadata">,
+): string | undefined {
+  const id = checkoutSessionCorroboratedMemberId(session);
+  return id ?? undefined;
+}
+
+export function checkoutMetadataOwnerConflictBlocksRecording(
+  session: Pick<Stripe.Checkout.Session, "client_reference_id" | "metadata">,
+): boolean {
+  const ref = session.client_reference_id?.trim() || null;
+  const meta = metadataUserId(session.metadata?.userId) ?? null;
+  return Boolean(ref && meta && ref !== meta);
+}
+
 export function checkoutSessionCorroboratedForMember(
   session: Pick<Stripe.Checkout.Session, "client_reference_id" | "metadata">,
   memberId: string,
