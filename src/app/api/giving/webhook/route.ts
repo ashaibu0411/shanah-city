@@ -43,20 +43,22 @@ export async function POST(request: Request) {
           expand: ["line_items.data.price.product"],
         });
         await linkStripeCustomerFromCheckoutSession(fullSession);
+        const eventPiId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id;
+        const trustedWebhookSettlement = {
+          paidAtUnix: event.created,
+          eventType: event.type,
+          eventId: event.id,
+          checkoutSessionId: session.id,
+          ...(event.type === "checkout.session.completed" && eventPiId
+            ? { paymentIntentId: eventPiId }
+            : {}),
+        };
         const record =
           fullSession.payment_status === "paid"
-            ? await recordGiftFromCheckoutSession(fullSession, {
-                trustedWebhookSettlement: {
-                  paidAtUnix: event.created,
-                  eventType: event.type,
-                  eventId: event.id,
-                  checkoutSessionId: fullSession.id,
-                  paymentIntentId:
-                    typeof fullSession.payment_intent === "string"
-                      ? fullSession.payment_intent
-                      : fullSession.payment_intent?.id,
-                },
-              })
+            ? await recordGiftFromCheckoutSession(fullSession, { trustedWebhookSettlement })
             : null;
         if (!record) {
           console.warn("Stripe checkout completed but gift was not recorded.", {

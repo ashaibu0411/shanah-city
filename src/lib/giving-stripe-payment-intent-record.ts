@@ -30,16 +30,7 @@ export async function recordGiftFromPaymentIntentSucceeded(
     });
     if (!isPaidCheckoutSession(session)) continue;
     if (!isShanahGivingCheckoutSession(session)) continue;
-    const gift = await recordGiftFromCheckoutSession(session, {
-      ...options,
-      trustedWebhookSettlement: options?.trustedWebhookSettlement
-        ? {
-            ...options.trustedWebhookSettlement,
-            checkoutSessionId: session.id,
-            paymentIntentId: paymentIntent.id,
-          }
-        : undefined,
-    });
+    const gift = await recordGiftFromCheckoutSession(session, options);
     if (gift) recorded = gift;
   }
   return recorded;
