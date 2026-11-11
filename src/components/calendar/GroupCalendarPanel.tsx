@@ -28,6 +28,10 @@ import {
 import type { UnavailabilityRequest } from "@/lib/member-types";
 import type { ChurchEvent } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
+import {
+  worshipPlanningUntilIso,
+  type WorshipServicePlan,
+} from "@/lib/worship-types";
 
 function formatDate(date: string) {
   return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
@@ -280,11 +284,17 @@ export function GroupEventsSection({
   groupLabel,
   signInNextUrl,
   reloadKey = 0,
+  worshipPlans,
+  canManageWorship = false,
+  linkWorshipPlanner = false,
 }: {
   groupId: string;
   groupLabel: string;
   signInNextUrl: string;
   reloadKey?: number;
+  worshipPlans?: WorshipServicePlan[];
+  canManageWorship?: boolean;
+  linkWorshipPlanner?: boolean;
 }) {
   const scheduleConfig = getGroupServiceScheduleConfig(groupId);
   const usesServiceSchedule = groupHasServiceSchedule(groupId);
@@ -483,6 +493,9 @@ export function GroupEventsSection({
       <CalendarMonthView
         items={calendarItems}
         emptyDayLabel={`No ${groupLabel.toLowerCase()} events on this day.`}
+        worshipPlans={linkWorshipPlanner ? worshipPlans : undefined}
+        canManageWorship={canManageWorship}
+        containInParent={linkWorshipPlanner}
         renderItem={(event) => (
           <EventDetailCard
             event={event}
@@ -568,6 +581,12 @@ export function UnavailabilitySection({
   );
 }
 
+function worshipCalendarSinceIso() {
+  const cursor = new Date();
+  cursor.setMonth(cursor.getMonth() - 12);
+  return cursor.toISOString().slice(0, 10);
+}
+
 export function GroupCalendarPanel({
   groupId,
   groupLabel,
@@ -581,9 +600,45 @@ export function GroupCalendarPanel({
   showWorshipPlanner?: boolean;
   unavailabilityGroup?: "choir" | "pastors" | null;
 }) {
+  const { user } = useAuth();
   const [scheduleReload, setScheduleReload] = useState(0);
+  const [worshipPlans, setWorshipPlans] = useState<WorshipServicePlan[]>([]);
+  const [canManageWorship, setCanManageWorship] = useState(false);
   const isChoirGroup = groupId === CALENDAR_GROUP_TABS.choir;
   const usesServiceSchedule = groupHasServiceSchedule(groupId);
+  const linkWorshipPlanner = showWorshipPlanner && isChoirGroup;
+  const choirScheduleSplit = linkWorshipPlanner && usesServiceSchedule;
+
+  useEffect(() => {
+    if (!linkWorshipPlanner || !user) {
+      setWorshipPlans([]);
+      setCanManageWorship(false);
+      return;
+    }
+
+    let cancelled = false;
+    async function loadWorshipPlans() {
+      const since = worshipCalendarSinceIso();
+      const until = worshipPlanningUntilIso();
+      const response = await fetch(
+        `/api/worship?since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}`,
+      );
+      const data = await response.json();
+      if (cancelled) return;
+      if (response.ok) {
+        setWorshipPlans(data.plans ?? []);
+        setCanManageWorship(Boolean(data.canManage));
+      } else {
+        setWorshipPlans([]);
+        setCanManageWorship(false);
+      }
+    }
+
+    void loadWorshipPlans();
+    return () => {
+      cancelled = true;
+    };
+  }, [linkWorshipPlanner, user, scheduleReload]);
 
   return (
     <div className="mt-4">
@@ -595,7 +650,8 @@ export function GroupCalendarPanel({
                 Worship planner
               </h3>
               <p className="mt-1 text-sm text-night-600">
-                Setlists, team readiness, and rehearsal notes for each service.
+                Setlists, team readiness, and rehearsal notes for each service. Tap a gold-dot day on
+                the calendar to jump straight to that service plan.
               </p>
             </div>
             <Button href="/worship?tab=schedule">Open planner</Button>
@@ -607,6 +663,9 @@ export function GroupCalendarPanel({
         <GroupServiceSchedulePanel
           groupId={groupId}
           groupLabel={groupLabel}
+          layout={choirScheduleSplit ? "editor" : "full"}
+          worshipPlans={worshipPlans}
+          canManageWorship={canManageWorship}
           onChanged={() => setScheduleReload((n) => n + 1)}
         />
       ) : null}
@@ -616,7 +675,21 @@ export function GroupCalendarPanel({
         groupLabel={groupLabel}
         signInNextUrl={signInNextUrl}
         reloadKey={scheduleReload}
+        worshipPlans={worshipPlans}
+        canManageWorship={canManageWorship}
+        linkWorshipPlanner={linkWorshipPlanner}
       />
+
+      {choirScheduleSplit ? (
+        <GroupServiceSchedulePanel
+          groupId={groupId}
+          groupLabel={groupLabel}
+          layout="upcoming"
+          worshipPlans={worshipPlans}
+          canManageWorship={canManageWorship}
+          onChanged={() => setScheduleReload((n) => n + 1)}
+        />
+      ) : null}
 
       {unavailabilityGroup ? (
         <div className="mt-6 space-y-6">

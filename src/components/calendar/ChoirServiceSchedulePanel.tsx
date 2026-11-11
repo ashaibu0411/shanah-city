@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui";
+import { worshipPlannerHrefForService } from "@/lib/worship-plan-event-resolve";
+import type { WorshipServicePlan } from "@/lib/worship-types";
 import {
   formatGroupSchedulePreview,
   scheduleAttireNotesLabel,
@@ -33,14 +36,22 @@ function defaultForm(config: ScheduleConfig) {
   };
 }
 
+export type GroupServiceScheduleLayout = "full" | "editor" | "upcoming";
+
 export function GroupServiceSchedulePanel({
   groupId,
   groupLabel,
   onChanged,
+  layout = "full",
+  worshipPlans,
+  canManageWorship = false,
 }: {
   groupId: string;
   groupLabel: string;
   onChanged?: () => void;
+  layout?: GroupServiceScheduleLayout;
+  worshipPlans?: WorshipServicePlan[];
+  canManageWorship?: boolean;
 }) {
   const [config, setConfig] = useState<ScheduleConfig>({ programs: [], roles: [] });
   const [entries, setEntries] = useState<GroupServiceScheduleEntry[]>([]);
@@ -202,7 +213,17 @@ export function GroupServiceSchedulePanel({
     setMessage(data.error ?? "Could not remove.");
   }
 
+  const showEditor = layout === "full" || layout === "editor";
+  const showUpcoming = layout === "full" || layout === "upcoming";
+
   if (loading) {
+    if (layout === "upcoming") {
+      return (
+        <Card className="mb-6">
+          <p className="text-sm text-night-500">Loading upcoming services…</p>
+        </Card>
+      );
+    }
     return (
       <Card className="mb-6">
         <p className="text-sm text-night-500">Loading service schedule…</p>
@@ -214,9 +235,87 @@ export function GroupServiceSchedulePanel({
     return null;
   }
 
+  const upcomingCard = (
+    <Card>
+      <h3 className="font-display text-lg font-semibold text-night-900">Upcoming services</h3>
+      {upcoming.length === 0 ? (
+        <p className="mt-3 text-sm text-night-500">No upcoming entries yet.</p>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {upcoming.map((entry) => {
+            const plannerHref =
+              worshipPlans && worshipPlans.length > 0
+                ? worshipPlannerHrefForService(entry.serviceDate, worshipPlans, {
+                    serviceTime: entry.serviceTime,
+                    canManagePlan: canManageWorship || canManage,
+                  })
+                : null;
+
+            const body = (
+              <>
+                <p className="font-semibold text-night-900">
+                  {new Date(`${entry.serviceDate}T12:00:00`).toLocaleDateString(undefined, {
+                    weekday: "long",
+                    month: "short",
+                    day: "numeric",
+                  })}{" "}
+                  · {programLabel(config, entry.program)}
+                </p>
+                <pre className="mt-2 whitespace-pre-wrap font-sans text-night-700">
+                  {formatGroupSchedulePreview(entry, config)}
+                </pre>
+                {canManage ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-violet-700 hover:underline"
+                      onClick={() => startEdit(entry)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-red-700 hover:underline"
+                      onClick={() => void removeEntry(entry.id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            );
+
+            return (
+              <li
+                key={entry.id}
+                className="rounded-xl border border-night-900/8 bg-sand-50/80 px-4 py-3 text-sm"
+              >
+                {plannerHref ? (
+                  <Link
+                    href={plannerHref}
+                    className="block rounded-lg outline-none ring-violet-400 transition hover:bg-violet-50/80 focus-visible:ring-2"
+                  >
+                    {body}
+                    <p className="mt-2 text-xs font-semibold text-violet-700">Open worship plan →</p>
+                  </Link>
+                ) : (
+                  body
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
+  );
+
+  if (layout === "upcoming") {
+    return <div className="mb-6 space-y-6">{upcomingCard}</div>;
+  }
+
   return (
     <div className="mb-6 space-y-6">
-      {canManage ? (
+      {showEditor && canManage ? (
         <Card>
           <h3 className="font-display text-lg font-semibold text-night-900">Service schedule</h3>
           <p className="mt-1 text-sm text-night-600">
@@ -356,60 +455,16 @@ export function GroupServiceSchedulePanel({
             ) : null}
           </div>
         </Card>
-      ) : (
+      ) : showEditor && layout === "full" ? (
         <Card className="mb-6">
           <p className="text-sm text-night-600">
             Upcoming {groupLabel} assignments. Only leaders, assistants, and church admins can
             change the schedule.
           </p>
         </Card>
-      )}
+      ) : null}
 
-      <Card>
-        <h3 className="font-display text-lg font-semibold text-night-900">Upcoming services</h3>
-        {upcoming.length === 0 ? (
-          <p className="mt-3 text-sm text-night-500">No upcoming entries yet.</p>
-        ) : (
-          <ul className="mt-4 space-y-3">
-            {upcoming.map((entry) => (
-              <li
-                key={entry.id}
-                className="rounded-xl border border-night-900/8 bg-sand-50/80 px-4 py-3 text-sm"
-              >
-                <p className="font-semibold text-night-900">
-                  {new Date(`${entry.serviceDate}T12:00:00`).toLocaleDateString(undefined, {
-                    weekday: "long",
-                    month: "short",
-                    day: "numeric",
-                  })}{" "}
-                  · {programLabel(config, entry.program)}
-                </p>
-                <pre className="mt-2 whitespace-pre-wrap font-sans text-night-700">
-                  {formatGroupSchedulePreview(entry, config)}
-                </pre>
-                {canManage ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="text-sm font-semibold text-violet-700 hover:underline"
-                      onClick={() => startEdit(entry)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="text-sm font-semibold text-red-700 hover:underline"
-                      onClick={() => void removeEntry(entry.id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+      {showUpcoming ? upcomingCard : null}
 
       {message ? (
         <p className="rounded-xl bg-sand-100 px-4 py-3 text-sm text-night-700">{message}</p>

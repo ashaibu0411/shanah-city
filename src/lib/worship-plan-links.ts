@@ -8,6 +8,15 @@ import {
   type WorshipSong,
 } from "@/lib/worship-types";
 
+/** Full planner for leaders; member setlist view for everyone else. */
+export function worshipServiceDetailPath(
+  plan: Pick<WorshipServicePlan, "serviceDate" | "serviceTime">,
+  canManagePlanner: boolean,
+  songId?: string,
+) {
+  return canManagePlanner ? worshipPlannerPath(plan, songId) : worshipMemberServicePath(plan, songId);
+}
+
 export function worshipPlannerPath(
   plan: Pick<WorshipServicePlan, "serviceDate" | "serviceTime">,
   songId?: string,
