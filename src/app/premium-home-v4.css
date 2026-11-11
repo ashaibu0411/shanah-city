@@ -230,7 +230,10 @@ body.premium-home-v4-active .premium-home-v4 > .urgent-news-home-strip--embedded
 }
 
 .ph4-section {
-  width: 100%;
+  /* A 100% width plus the parent layout's 1rem side margins overflows the viewport.
+     Let flex items shrink to the available width so cards and View all links stay visible. */
+  width: auto;
+  min-width: 0;
 }
 
 .ph4-section__head {
