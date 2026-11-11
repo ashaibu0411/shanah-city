@@ -26,6 +26,7 @@ import {
   isGroupSyncedCalendarEventId,
 } from "@/lib/choir-calendar-utils";
 import type { UnavailabilityRequest } from "@/lib/member-types";
+import { activeApprovedAvailability, denverTodayDateKey } from "@/lib/unavailability-display";
 import type { ChurchEvent } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
 import {
@@ -543,12 +544,44 @@ export function UnavailabilitySection({
     loadRequests();
   }, [group]);
 
-  const approved = useMemo(
-    () => requests.filter((item) => item.status === "approved"),
-    [requests],
-  );
-
+  const todayKey = denverTodayDateKey();
+  const approved = activeApprovedAvailability(requests, todayKey);
+  const current = approved.filter((item) => item.startDate <= todayKey);
+  const upcoming = approved.filter((item) => item.startDate > todayKey);
   const availabilityLabel = group === "choir" ? "Choir availability" : "Pastor availability";
+
+  function renderAbsence(item: UnavailabilityRequest) {
+    const isCurrent = item.startDate <= todayKey;
+    return (
+      <li
+        key={item.id}
+        className="rounded-2xl border border-night-900/10 bg-white/90 px-4 py-4 shadow-sm dark:border-white/10 dark:bg-white/5"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="min-w-0 break-words text-base font-semibold text-night-900 dark:text-sand-100">
+            {item.personName}
+          </p>
+          <span
+            className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+              isCurrent
+                ? "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-100"
+                : "bg-sky-100 text-sky-900 dark:bg-sky-900/30 dark:text-sky-100"
+            }`}
+          >
+            {isCurrent ? "Away now" : "Upcoming"}
+          </span>
+        </div>
+        <p className="mt-2 text-sm font-medium leading-relaxed text-night-700 dark:text-sand-200">
+          {formatDate(item.startDate)} – {formatDate(item.endDate)}
+        </p>
+        {item.reason?.trim() ? (
+          <p className="mt-1 break-words text-sm leading-relaxed text-night-500 dark:text-sand-400">
+            {item.reason}
+          </p>
+        ) : null}
+      </li>
+    );
+  }
 
   return (
     <>
@@ -558,24 +591,49 @@ export function UnavailabilitySection({
         canReview={canReview}
         onReviewed={loadRequests}
       />
-      <Card>
-        <h3 className="font-display text-lg font-semibold text-night-900">{availabilityLabel}</h3>
-        <p className="mt-1 text-sm text-night-600">
-          Approved requests also appear on the calendar above.
-        </p>
-        <ul className="mt-4 space-y-3">
-          {approved.length === 0 ? (
-            <li className="text-sm text-night-500">No approved absences yet.</li>
-          ) : (
-            approved.map((item) => (
-              <li key={item.id} className="rounded-xl bg-rose-50 px-4 py-3 text-sm">
-                <span className="font-semibold text-night-900">{item.personName}</span>{" "}
-                unavailable {formatDate(item.startDate)} – {formatDate(item.endDate)}
-                <span className="block text-night-500">{item.reason}</span>
-              </li>
-            ))
-          )}
-        </ul>
+      <Card className="overflow-hidden">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="font-display text-xl font-semibold text-night-900 dark:text-sand-100">
+              {availabilityLabel}
+            </h3>
+            <p className="mt-1 max-w-prose text-sm leading-relaxed text-night-600 dark:text-sand-300">
+              Approved time away happening now or coming up. Past requests leave this view automatically.
+            </p>
+          </div>
+          {approved.length > 0 ? (
+            <span className="rounded-full bg-sand-100 px-3 py-1 text-xs font-semibold text-night-700 dark:bg-white/10 dark:text-sand-200">
+              {approved.length} active / upcoming
+            </span>
+          ) : null}
+        </div>
+        {approved.length === 0 ? (
+          <div className="mt-5 rounded-2xl border border-dashed border-night-900/15 bg-sand-50/70 px-5 py-7 text-center dark:border-white/15 dark:bg-white/5">
+            <p className="font-semibold text-night-800 dark:text-sand-100">Everyone is currently available</p>
+            <p className="mt-1 text-sm text-night-500 dark:text-sand-400">
+              No current or upcoming approved time-away requests.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-5 space-y-6">
+            {current.length > 0 ? (
+              <section aria-label="Currently away">
+                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-night-600 dark:text-sand-300">
+                  Away now · {current.length}
+                </h4>
+                <ul className="grid gap-3 md:grid-cols-2">{current.map(renderAbsence)}</ul>
+              </section>
+            ) : null}
+            {upcoming.length > 0 ? (
+              <section aria-label="Upcoming time away">
+                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-night-600 dark:text-sand-300">
+                  Upcoming time away · {upcoming.length}
+                </h4>
+                <ul className="grid gap-3 md:grid-cols-2">{upcoming.map(renderAbsence)}</ul>
+              </section>
+            ) : null}
+          </div>
+        )}
       </Card>
     </>
   );
