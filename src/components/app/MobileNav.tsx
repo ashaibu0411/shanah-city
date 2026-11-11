@@ -30,12 +30,12 @@ export function MobileNav() {
               <Link
                 href={item.href}
                 className={`mobile-nav-link flex flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition active:scale-95 ${
-                  active ? "text-night-900" : "text-night-700"
+                  active ? "is-active text-night-900" : "text-night-700"
                 }`}
               >
                 <span
                   className={`mobile-nav-icon-shell flex items-center justify-center transition ${
-                    active ? premiumTeal.navActive : premiumTeal.navIdle
+                    active ? `${premiumTeal.navActive} is-active` : premiumTeal.navIdle
                   }`}
                 >
                   {iconName ? (
@@ -55,12 +55,12 @@ export function MobileNav() {
             type="button"
             onClick={() => setMoreMenuOpen(true)}
             className={`mobile-nav-link flex w-full flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition active:scale-95 ${
-              moreActive ? "text-night-900" : "text-night-700"
+              moreActive ? "is-active text-night-900" : "text-night-700"
             }`}
           >
             <span
               className={`mobile-nav-icon-shell flex items-center justify-center transition ${
-                moreActive ? premiumTeal.navActive : premiumTeal.navIdle
+                moreActive ? `${premiumTeal.navActive} is-active` : premiumTeal.navIdle
               }`}
             >
               <MobileTabIcon name="more" className="mobile-nav-icon h-5 w-5" />
