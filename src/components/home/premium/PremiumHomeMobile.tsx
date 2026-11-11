@@ -42,9 +42,7 @@ export function PremiumHomeMobile({
     siteServiceTime();
 
   return (
-    <div className="premium-home premium-home--mobile animate-fade-in">
-      <PremiumEngagementRail variant="mobile" />
-
+    <div className="premium-home premium-home--mobile premium-home--flyer animate-fade-in">
       <DarkHomeWelcome
         firstName={firstName}
         campusLabel={campus.city}
@@ -55,6 +53,8 @@ export function PremiumHomeMobile({
         <UrgentNewsHomeStrip alerts={urgentAlerts} variant="mobile" highlightAlertId={highlightAlertId} />
       ) : null}
 
+
+      <PremiumEngagementRail variant="mobile" />
 
       <PremiumUpcomingEvents rows={upcomingEventRows} variant="mobile" />
 

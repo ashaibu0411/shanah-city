@@ -1021,3 +1021,73 @@ html.dark .premium-icon-well--more { background: rgba(55, 65, 81, 0.35); color: 
     animation: none !important;
   }
 }
+
+
+/* Shanah City app: flyer-faithful navy & gold visual identity on the mobile home route.
+   Scoped with :has so other app screens and desktop layout retain their chosen theme. */
+body:has(.premium-home--flyer) {
+  background: #08152d !important;
+  background-image: linear-gradient(180deg, #071329 0%, #0b1a35 58%, #0c1830 100%) !important;
+}
+body:has(.premium-home--flyer) main.app-main {
+  background: transparent !important;
+}
+body:has(.premium-home--flyer) .mobile-app-header {
+  background: linear-gradient(180deg, #071329 0%, #0c1b36 100%) !important;
+  border-bottom-color: rgba(236, 193, 110, .18) !important;
+  box-shadow: 0 1px 0 rgba(236, 193, 110, .12) !important;
+  color: #f2d28e !important;
+}
+body:has(.premium-home--flyer) .mobile-app-header :is(h1, h2, span, a) {
+  color: #f2d28e;
+}
+body:has(.premium-home--flyer) .mobile-bottom-nav,
+body:has(.premium-home--flyer) .mobile-bottom-nav-premium {
+  background: linear-gradient(180deg, #10213d 0%, #07142c 100%) !important;
+  border-top-color: rgba(236, 193, 110, .22) !important;
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, .32) !important;
+}
+body:has(.premium-home--flyer) .mobile-bottom-nav::after {
+  background: #07142c !important;
+}
+body:has(.premium-home--flyer) .mobile-bottom-nav .mobile-nav-link,
+body:has(.premium-home--flyer) .mobile-bottom-nav .mobile-nav-label {
+  color: #e5e0d4 !important;
+}
+body:has(.premium-home--flyer) .mobile-bottom-nav .mobile-nav-link[aria-current="page"],
+body:has(.premium-home--flyer) .mobile-bottom-nav .mobile-nav-link[aria-current="page"] .mobile-nav-label {
+  color: #f4d28d !important;
+}
+.premium-home--flyer {
+  --premium-navy: #f4d28d;
+  --premium-gold: #e5bb72;
+  gap: 1.35rem;
+}
+.premium-home--flyer .flyer-home-hero {
+  margin: -1rem -1rem .15rem;
+  border: 0;
+  border-radius: 0 0 1.65rem 1.65rem;
+  box-shadow: 0 18px 40px rgba(2, 9, 26, .38);
+}
+.premium-home--flyer .premium-section__title,
+.premium-home--flyer .premium-section__eyebrow {
+  color: #f6e8c9;
+}
+.premium-home--flyer .premium-section__link {
+  color: #eac178;
+}
+.premium-home--flyer .premium-guest-cta {
+  background: #142744;
+  border-color: rgba(237, 193, 113, .25);
+  color: #f7e7c8;
+}
+.premium-home--flyer .premium-guest-cta__pill {
+  background: #a47637;
+  color: #fff9eb;
+}
+@media (min-width: 768px) {
+  .premium-home--flyer .flyer-home-hero {
+    margin-inline: 0;
+    border-radius: 1.65rem;
+  }
+}
