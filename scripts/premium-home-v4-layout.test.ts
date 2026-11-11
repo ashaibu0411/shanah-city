@@ -37,6 +37,7 @@ assert.match(css, /#061329/);
 assert.match(css, /#512d83/i);
 assert.match(css, /#e9bc72/i);
 assert.match(css, /premium-home-v4-active/);
+assert.match(css, /\.ph4-section\s*\{[^}]*width:\s*auto;/s, "V4 sections must shrink inside the parent side margins");
 
 const header = readFileSync(
   path.join(process.cwd(), "src/components/app/MobileAppHeader.tsx"),
