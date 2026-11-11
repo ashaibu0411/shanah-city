@@ -65,7 +65,7 @@ body.premium-home-v4-active .mobile-nav-link:not(.is-active) .mobile-nav-icon-sh
   display: flex;
   flex-direction: column;
   gap: 1.15rem;
-  padding: 0 1rem 1rem;
+  padding: 0 1rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
   color: #f6ebd5;
 }
 
@@ -553,4 +553,70 @@ body.premium-home-v4-active .premium-home-v4 .premium-guest-cta {
 body.premium-home-v4-active .premium-home-v4 .premium-guest-cta__pill {
   background: #512d83;
   color: #fff;
+}
+
+/* Secondary sections — no white/light cards on V4 home */
+body.premium-home-v4-active .premium-home-v4 .premium-section__title,
+body.premium-home-v4-active .premium-home-v4 .premium-section__link {
+  color: #f6ebd5;
+}
+
+body.premium-home-v4-active .premium-home-v4 .premium-section__link {
+  color: #e9bc72;
+}
+
+body.premium-home-v4-active .premium-home-v4 .premium-stories__guest {
+  background: rgba(27, 45, 75, 0.88);
+  border: 1px solid rgba(233, 188, 114, 0.24);
+  color: #f6ebd5;
+}
+
+body.premium-home-v4-active .premium-home-v4 .premium-stories__guest-title {
+  color: #fff;
+}
+
+body.premium-home-v4-active .premium-home-v4 .premium-stories__guest-copy {
+  color: #f6ebd5cc;
+}
+
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail a.theme-light-surface,
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail .mobile-card,
+body.premium-home-v4-active .premium-home-v4 > .mobile-card,
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail > article,
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail > div:not(.premium-engagement-rail) {
+  background: rgba(27, 45, 75, 0.92) !important;
+  border-color: rgba(233, 188, 114, 0.28) !important;
+  box-shadow: none !important;
+  color: #f6ebd5 !important;
+  --tw-ring-color: rgba(233, 188, 114, 0.18) !important;
+}
+
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail p,
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail span {
+  color: inherit;
+}
+
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail .text-night-900,
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail .text-night-600,
+body.premium-home-v4-active .premium-home-v4 > .mobile-card .text-night-900,
+body.premium-home-v4-active .premium-home-v4 > .mobile-card .text-night-600 {
+  color: #f6ebd5 !important;
+}
+
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail .text-sand-100,
+body.premium-home-v4-active .premium-home-v4 .premium-engagement-rail .text-sand-400 {
+  color: #f6ebd5 !important;
+}
+
+body.premium-home-v4-active .premium-home-v4 .urgent-news-home-strip {
+  margin: 0 -1rem;
+  border-radius: 0;
+  box-shadow: 0 6px 28px rgba(127, 29, 29, 0.35);
+}
+
+body.premium-home-v4-active .premium-home-v4 .urgent-news-home-strip--embedded {
+  border-bottom: none;
+  border: 2px solid rgba(248, 113, 113, 0.55);
+  border-radius: 0.85rem;
+  margin: 0;
 }

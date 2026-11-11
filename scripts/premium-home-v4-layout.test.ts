@@ -12,6 +12,26 @@ assert.match(mobile, /PremiumHomeV4GiveBar/);
 assert.match(mobile, /premium-home-v4/);
 assert.doesNotMatch(mobile, /PremiumMobileLauncher/);
 
+const bodyStart = mobile.indexOf("premium-home-v4 animate-fade-in");
+assert.ok(bodyStart >= 0, "premium-home-v4 shell missing");
+const body = mobile.slice(bodyStart);
+const heroIdx = body.indexOf("PremiumHomeV4Hero");
+const tilesIdx = body.indexOf("PremiumHomeV4QuickTiles");
+const giveIdx = body.indexOf("PremiumHomeV4GiveBar");
+const eventsIdx = body.indexOf("PremiumHomeV4UpcomingEvents");
+const sermonIdx = body.indexOf("PremiumHomeV4LatestSermon");
+const communityIdx = body.indexOf("PremiumHomeV4Community");
+const engagementIdx = body.indexOf("PremiumEngagementRail");
+assert.ok(
+  heroIdx < tilesIdx &&
+    tilesIdx < giveIdx &&
+    giveIdx < eventsIdx &&
+    eventsIdx < sermonIdx &&
+    sermonIdx < communityIdx &&
+    communityIdx < engagementIdx,
+  "V4 sections must follow hero → tiles → give → events → sermon → community → secondary rails",
+);
+
 const css = readFileSync(path.join(process.cwd(), "src/app/premium-home-v4.css"), "utf8");
 assert.match(css, /#061329/);
 assert.match(css, /#512d83/i);
