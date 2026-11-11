@@ -54,6 +54,27 @@ test.describe("Premium Home V4 mobile screenshots", () => {
       [...pageErrors, ...consoleErrors].join("\n"),
     ).toEqual([]);
 
+    await page.waitForFunction(() => {
+      const doc = document.documentElement;
+      return doc.scrollWidth <= doc.clientWidth + 1;
+    });
+
+    await expect(
+      page.locator('img[src*="shanah-city-logo-dark"]'),
+    ).toBeVisible();
+
+    for (const tile of await page.locator(".ph4-tile").all()) {
+      const box = await tile.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.x + box!.width).toBeLessThanOrEqual(390.5);
+    }
+
+    const viewAll = page.locator(".ph4-section__link", { hasText: "View all" });
+    await expect(viewAll.first()).toBeVisible();
+    const viewAllBox = await viewAll.first().boundingBox();
+    expect(viewAllBox).not.toBeNull();
+    expect(viewAllBox!.x + viewAllBox!.width).toBeLessThanOrEqual(390.5);
+
     await page.screenshot({
       path: path.join(artifactDir, "premium-home-v4-390x844-viewport.png"),
       fullPage: false,
@@ -66,6 +87,10 @@ test.describe("Premium Home V4 mobile screenshots", () => {
     await page.setViewportSize({ width: 430, height: 932 });
     await page.goto("/", { waitUntil: "networkidle" });
     await page.waitForSelector(".premium-home-v4");
+    await page.waitForFunction(() => {
+      const doc = document.documentElement;
+      return doc.scrollWidth <= doc.clientWidth + 1;
+    });
     await page.waitForFunction(
       () => {
         const imgs = Array.from(
@@ -79,6 +104,17 @@ test.describe("Premium Home V4 mobile screenshots", () => {
       undefined,
       { timeout: 60_000 },
     );
+
+    for (const tile of await page.locator(".ph4-tile").all()) {
+      const box = await tile.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.x + box!.width).toBeLessThanOrEqual(430.5);
+    }
+
+    const viewAll430 = page.locator(".ph4-section__link", { hasText: "View all" });
+    const viewAll430Box = await viewAll430.first().boundingBox();
+    expect(viewAll430Box).not.toBeNull();
+    expect(viewAll430Box!.x + viewAll430Box!.width).toBeLessThanOrEqual(430.5);
 
     await page.screenshot({
       path: path.join(artifactDir, "premium-home-v4-430x932-viewport.png"),
