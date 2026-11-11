@@ -1,10 +1,25 @@
 import { worshipPlannerPath, worshipServiceDetailPath } from "@/lib/worship-plan-links";
+import { isGroupScheduleCalendarEventId } from "@/lib/choir-service-schedule-types";
 import {
   WORSHIP_SERVICE_SCHEDULE,
   WORSHIP_SERVICE_TIMES,
+  serviceDateTimeLabel,
   worshipTimeLabel,
   type WorshipServicePlan,
 } from "@/lib/worship-types";
+
+export type WorshipPlannerDayTarget = {
+  serviceDate: string;
+  serviceTime: string;
+  label: string;
+};
+
+type CalendarDayItem = {
+  id: string;
+  title: string;
+  startsOn?: string | null;
+  time?: string | null;
+};
 
 /** Map planner storage times (09:00) or labels (9:00 AM) to canonical slot values. */
 export function coerceWorshipServiceTime(raw?: string | null): string {
@@ -130,4 +145,82 @@ export function worshipAutoOpenHrefForDate(
   const onDate = worshipPlansOnDate(plans, isoDate);
   if (onDate.length !== 1) return null;
   return worshipDetailHrefForPlan(onDate[0]!, canManagePlan);
+}
+
+/** Worship plans and synced service-schedule calendar events on one day. */
+export function worshipPlannerDayTargets(
+  isoDate: string,
+  plans: WorshipServicePlan[],
+  calendarItems: CalendarDayItem[] = [],
+): WorshipPlannerDayTarget[] {
+  if (!isoDate.trim()) return [];
+
+  const targets: WorshipPlannerDayTarget[] = [];
+  const seen = new Set<string>();
+
+  const addTarget = (serviceDate: string, serviceTime: string, label: string) => {
+    const key = `${serviceDate}|${serviceTime}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    targets.push({ serviceDate, serviceTime, label });
+  };
+
+  for (const plan of worshipPlansOnDate(plans, isoDate)) {
+    addTarget(
+      plan.serviceDate,
+      plan.serviceTime,
+      plan.title?.trim() || serviceDateTimeLabel(plan.serviceDate, plan.serviceTime),
+    );
+  }
+
+  for (const item of calendarItems) {
+    if (!isGroupScheduleCalendarEventId(item.id)) continue;
+    const serviceDate = item.startsOn?.trim();
+    if (!serviceDate || serviceDate !== isoDate) continue;
+    const serviceTime = coerceWorshipServiceTime(item.time);
+    addTarget(
+      serviceDate,
+      serviceTime,
+      item.title.trim() || serviceDateTimeLabel(serviceDate, serviceTime),
+    );
+  }
+
+  return targets.sort((left, right) => left.serviceTime.localeCompare(right.serviceTime));
+}
+
+export function worshipPlannerHrefForDayTarget(
+  target: WorshipPlannerDayTarget,
+  plans: WorshipServicePlan[],
+  canManagePlan: boolean,
+) {
+  const href = worshipPlannerHrefForService(target.serviceDate, plans, {
+    serviceTime: target.serviceTime,
+    eventTimeLabel: worshipTimeLabel(target.serviceTime),
+    canManagePlan,
+  });
+  if (href) return href;
+  if (canManagePlan) {
+    return worshipServiceDetailPath(target, canManagePlan);
+  }
+  return null;
+}
+
+/** One linked service on this day → open planner; otherwise null (picker or normal day panel). */
+export function worshipAutoOpenHrefForCalendarDay(
+  isoDate: string,
+  plans: WorshipServicePlan[],
+  calendarItems: CalendarDayItem[],
+  canManagePlan: boolean,
+) {
+  const targets = worshipPlannerDayTargets(isoDate, plans, calendarItems);
+  if (targets.length !== 1) return null;
+  return worshipPlannerHrefForDayTarget(targets[0]!, plans, canManagePlan);
+}
+
+export function dayHasWorshipPlannerLink(
+  isoDate: string,
+  plans: WorshipServicePlan[],
+  calendarItems: CalendarDayItem[],
+) {
+  return worshipPlannerDayTargets(isoDate, plans, calendarItems).length > 0;
 }

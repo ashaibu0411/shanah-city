@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { WorshipPlanDayPicker } from "@/components/calendar/WorshipPlanDayPicker";
 import {
-  worshipAutoOpenHrefForDate,
-  worshipPlansOnDate,
+  dayHasWorshipPlannerLink,
+  worshipAutoOpenHrefForCalendarDay,
+  worshipPlannerDayTargets,
 } from "@/lib/worship-plan-event-resolve";
 import type { WorshipServicePlan } from "@/lib/worship-types";
 import {
@@ -402,16 +403,27 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     setViewMode(mode);
   }
 
+  function dayItemsFor(isoDate: string) {
+    if (viewMode === "week") return itemsByWeek.get(isoDate) ?? [];
+    return itemsByDate.get(isoDate) ?? [];
+  }
+
   function selectCalendarDate(isoDate: string) {
     if (worshipLinked) {
-      const onDate = worshipPlansOnDate(linkedPlans, isoDate);
-      const autoHref = worshipAutoOpenHrefForDate(linkedPlans, isoDate, canManageWorship);
+      const dayItems = dayItemsFor(isoDate);
+      const targets = worshipPlannerDayTargets(isoDate, linkedPlans, dayItems);
+      const autoHref = worshipAutoOpenHrefForCalendarDay(
+        isoDate,
+        linkedPlans,
+        dayItems,
+        canManageWorship,
+      );
       if (autoHref) {
         setMultiPlanDate(null);
         router.push(autoHref);
         return;
       }
-      if (onDate.length > 1) {
+      if (targets.length > 1) {
         setSelectedDate(isoDate);
         setMultiPlanDate(isoDate);
         return;
@@ -419,11 +431,6 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     }
     setMultiPlanDate(null);
     setSelectedDate(isoDate);
-  }
-
-  function selectedDayPlans() {
-    if (!worshipLinked || !selectedDate || multiPlanDate !== selectedDate) return [];
-    return worshipPlansOnDate(linkedPlans, selectedDate);
   }
 
   function renderDesktopDayColumn(
@@ -435,7 +442,8 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     const isSelected = selectedDate === isoDate;
     const isToday = isoDate === todayKey;
     const maxVisible = weekColumn ? 6 : 4;
-    const hasWorshipPlan = worshipLinked && worshipPlansOnDate(linkedPlans, isoDate).length > 0;
+    const hasWorshipPlan =
+      worshipLinked && dayHasWorshipPlannerLink(isoDate, linkedPlans, dayItems);
 
     return (
       <div
@@ -598,7 +606,8 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                   const isSelected = selectedDate === cell.isoDate;
                   const isToday = cell.isoDate === todayKey;
                   const hasWorshipPlan =
-                    worshipLinked && worshipPlansOnDate(linkedPlans, cell.isoDate).length > 0;
+                    worshipLinked &&
+                    dayHasWorshipPlannerLink(cell.isoDate, linkedPlans, itemsByDate.get(cell.isoDate) ?? []);
                   return (
                     <MobileMonthDayCell
                       key={cell.isoDate}
@@ -618,7 +627,8 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                   const isSelected = selectedDate === isoDate;
                   const isToday = isoDate === todayKey;
                   const hasWorshipPlan =
-                    worshipLinked && worshipPlansOnDate(linkedPlans, isoDate).length > 0;
+                    worshipLinked &&
+                    dayHasWorshipPlannerLink(isoDate, linkedPlans, itemsByWeek.get(isoDate) ?? []);
                   return (
                     <MobileMonthDayCell
                       key={isoDate}
@@ -636,10 +646,14 @@ export function CalendarMonthView<T extends CalendarPlannable>({
 
           {selectedDate ? (
             <>
-              <WorshipPlanDayPicker
-                plans={selectedDayPlans()}
-                canManageWorship={canManageWorship}
-              />
+              {selectedDate && multiPlanDate === selectedDate ? (
+                <WorshipPlanDayPicker
+                  selectedDate={selectedDate}
+                  plans={linkedPlans}
+                  calendarItems={selectedItems}
+                  canManageWorship={canManageWorship}
+                />
+              ) : null}
               <SelectedDayPanel
                 selectedDate={selectedDate}
                 selectedItems={selectedItems}
@@ -740,7 +754,14 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           <h3 className="font-display text-lg font-semibold text-night-900">
             {formatSelectedDay(selectedDate)}
           </h3>
-          <WorshipPlanDayPicker plans={selectedDayPlans()} canManageWorship={canManageWorship} />
+          {multiPlanDate === selectedDate ? (
+            <WorshipPlanDayPicker
+              selectedDate={selectedDate}
+              plans={linkedPlans}
+              calendarItems={selectedItems}
+              canManageWorship={canManageWorship}
+            />
+          ) : null}
           {selectedItems.length === 0 ? (
             <p className="mt-3 text-sm text-night-500">{emptyDayLabel}</p>
           ) : (

@@ -4,7 +4,9 @@ import path from "node:path";
 import {
   coerceWorshipServiceTime,
   pickWorshipPlanForServiceDate,
+  worshipAutoOpenHrefForCalendarDay,
   worshipAutoOpenHrefForDate,
+  worshipPlannerDayTargets,
   worshipPlansOnDate,
   worshipPlannerHrefForService,
 } from "../src/lib/worship-plan-event-resolve";
@@ -96,6 +98,18 @@ assert.equal(
   "/worship?date=2026-04-01&time=10%3A00",
 );
 
+const scheduleEvent = {
+  id: "group-schedule-group-choir-entry-1",
+  title: "Glory Encounter",
+  startsOn: "2026-11-10",
+  time: "7:00 PM",
+};
+assert.equal(worshipPlannerDayTargets("2026-11-10", [], [scheduleEvent]).length, 1);
+assert.equal(
+  worshipAutoOpenHrefForCalendarDay("2026-11-10", [], [scheduleEvent], true),
+  "/worship?date=2026-11-10&time=19%3A00",
+);
+
 const panelSource = readFileSync(
   path.join(process.cwd(), "src/components/worship/WorshipPlannerPanel.tsx"),
   "utf8",
@@ -131,7 +145,8 @@ const calendarMonth = readFileSync(
   path.join(process.cwd(), "src/components/calendar/CalendarMonthView.tsx"),
   "utf8",
 );
-assert.match(calendarMonth, /worshipAutoOpenHrefForDate/);
+assert.match(calendarMonth, /worshipAutoOpenHrefForCalendarDay/);
+assert.match(calendarMonth, /worshipPlannerDayTargets/);
 assert.match(calendarMonth, /WorshipPlanDayPicker/);
 
 console.log("worship-planner-deep-link.test.ts OK");
