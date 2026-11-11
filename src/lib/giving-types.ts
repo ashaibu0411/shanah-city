@@ -1,3 +1,5 @@
+import { givingRecordEffectiveAmount, givingRecordCountsTowardTotals } from "@/lib/giving-effective-amount";
+
 export type GivingFund =
   | "tithe"
   | "offering"
@@ -28,6 +30,9 @@ export type GivingRecord = {
   donorName: string;
   donorEmail?: string | null;
   amount: number;
+  /** Remaining tax-countable amount after partial Anedot reversals; defaults to amount. */
+  effectiveAmount?: number | null;
+  anedotReversalStatus?: "none" | "partial" | "full" | null;
   currency: string;
   fund: GivingFund;
   method: GivingMethod;
@@ -133,15 +138,19 @@ export function summarizeGivingRecords(records: GivingRecord[]): GivingReportSum
   const byMethod: Record<string, number> = {};
   let totalAmount = 0;
 
+  let count = 0;
   for (const record of records) {
-    totalAmount += record.amount;
-    byFund[record.fund] = (byFund[record.fund] ?? 0) + record.amount;
-    byMethod[record.method] = (byMethod[record.method] ?? 0) + record.amount;
+    const effective = givingRecordEffectiveAmount(record);
+    if (!givingRecordCountsTowardTotals(record)) continue;
+    count += 1;
+    totalAmount += effective;
+    byFund[record.fund] = (byFund[record.fund] ?? 0) + effective;
+    byMethod[record.method] = (byMethod[record.method] ?? 0) + effective;
   }
 
   return {
     totalAmount: Math.round(totalAmount * 100) / 100,
-    count: records.length,
+    count,
     byFund,
     byMethod,
   };

@@ -46,8 +46,11 @@ const intentOk = reconcileAnedotIntent({
     expiresAt: new Date(Date.now() + 60_000),
     consumedAt: null,
   },
+  existingLedger: null,
   webhookAmount: 50,
   webhookFund: "tithe",
+  bindNewDonation: true,
+  requireVerifiedAmount: true,
 });
 assert.equal(intentOk.ok, true);
 
@@ -60,15 +63,21 @@ const conflict = reconcileAnedotIntent({
     expiresAt: new Date(Date.now() + 60_000),
     consumedAt: null,
   },
+  existingLedger: null,
   webhookAmount: 50,
   webhookFund: "missions",
+  bindNewDonation: true,
+  requireVerifiedAmount: true,
 });
 assert.equal(conflict.ok, false);
 
 const guestNoMap = reconcileAnedotIntent({
   intent: null,
+  existingLedger: null,
   webhookAmount: 25,
   webhookFund: null,
+  bindNewDonation: true,
+  requireVerifiedAmount: true,
 });
 assert.equal(guestNoMap.ok, false);
 

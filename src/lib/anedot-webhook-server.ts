@@ -1,18 +1,26 @@
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { useDatabase } from "@/lib/use-database";
-import { parseAnedotFundAllowlist, anedotAccountUid } from "@/lib/anedot-env";
+import {
+  anedotActionPageId,
+  anedotAccountUid,
+  parseAnedotFundAllowlist,
+} from "@/lib/anedot-env";
 import { resolveAnedotFundToGivingFund, resolveIntentFundOrNull } from "@/lib/anedot-fund-map";
-import { recordAnedotGift, reverseAnedotGiftByDonationId } from "@/lib/anedot-giving-record-server";
-import { findAnedotIntentByReference } from "@/lib/anedot-intent-server";
+import {
+  anedotGiftMutationForEvent,
+  anedotLifecycleRank,
+  anedotShouldApplyLifecycleTransition,
+} from "@/lib/anedot-lifecycle";
 import { reconcileAnedotIntent } from "@/lib/anedot-intent-reconcile";
 import {
   anedotAccountUid as uidFromPayload,
-  anedotConfirmPolicyForEvent,
+  anedotActionPageIdFromPayload,
+  anedotCurrencyCode,
   anedotDonationFromPayload,
   anedotDonationIdFromEnvelope,
   anedotDonorEmail,
   anedotDonorName,
+  anedotEventAtMs,
   anedotEventType,
   anedotFeeAmountDollars,
   anedotGivenOnDateKey,
@@ -25,6 +33,17 @@ import {
   parseAnedotWebhookJson,
   type AnedotWebhookEnvelope,
 } from "@/lib/anedot-payload";
+import {
+  queueAnedotThankYou,
+  txApplyAnedotFullReversal,
+  txApplyAnedotPartialReversal,
+  txCreateAnedotGivingRecord,
+  txFindGivingRecordByAnedotDonationId,
+  txFindIntentByReference,
+  txFinalizeAnedotWebhookDelivery,
+  txReserveAnedotWebhookDelivery,
+  txUpsertAnedotLedger,
+} from "@/lib/anedot-tx-server";
 import { verifyAnedotWebhookSignature } from "@/lib/anedot-webhook-signature";
 
 export type AnedotWebhookProcessResult = {
@@ -33,12 +52,22 @@ export type AnedotWebhookProcessResult = {
   anedotDonationId?: string;
 };
 
+function bindNewDonationEvent(eventType: string): boolean {
+  return eventType === "donation_completed" || eventType === "donation_settled";
+}
+
+function requiresVerifiedAmount(eventType: string, existingRecordId: string | null): boolean {
+  if (eventType === "donation_completed" || eventType === "donation_settled") {
+    return !existingRecordId;
+  }
+  return false;
+}
+
 export async function processAnedotWebhook(input: {
   rawBody: string;
   signature: string | null;
   requestId: string | null;
   secret: string;
-  expectedAccountUid?: string | null;
 }): Promise<AnedotWebhookProcessResult> {
   if (!useDatabase()) {
     return { status: 503, outcome: "database_unavailable" };
@@ -58,176 +87,243 @@ export async function processAnedotWebhook(input: {
     return { status: 400, outcome: "missing_event" };
   }
 
-  if (input.requestId) {
-    const prior = await prisma.givingAnedotWebhookEvent.findUnique({
-      where: { requestId: input.requestId },
-    });
-    if (prior) {
-      return { status: 200, outcome: "duplicate_request", anedotDonationId: prior.anedotDonationId ?? undefined };
-    }
+  if (!input.requestId?.trim()) {
+    return { status: 400, outcome: "missing_request_id" };
+  }
+  const requestId = input.requestId.trim();
+
+  const configuredUid = anedotAccountUid();
+  if (!configuredUid) {
+    return { status: 503, outcome: "account_uid_not_configured" };
+  }
+
+  const payloadUid = uidFromPayload(envelope);
+  if (!payloadUid || payloadUid !== configuredUid) {
+    return { status: 403, outcome: "account_mismatch" };
+  }
+
+  const configuredPageId = anedotActionPageId();
+  const payloadPageId = anedotActionPageIdFromPayload(envelope);
+  if (configuredPageId && payloadPageId && configuredPageId !== payloadPageId) {
+    return { status: 403, outcome: "action_page_mismatch" };
   }
 
   if (!isKnownAnedotDonationEvent(eventType)) {
-    await logWebhookEvent({
-      requestId: input.requestId,
-      eventType,
-      anedotDonationId: anedotDonationIdFromEnvelope(envelope),
-      outcome: "ignored_unknown_event",
-    });
     return { status: 200, outcome: "ignored_unknown_event" };
-  }
-
-  const configuredUid = input.expectedAccountUid ?? anedotAccountUid();
-  const payloadUid = uidFromPayload(envelope);
-  if (configuredUid && payloadUid && configuredUid !== payloadUid) {
-    await logWebhookEvent({
-      requestId: input.requestId,
-      eventType,
-      anedotDonationId: anedotDonationIdFromEnvelope(envelope),
-      outcome: "rejected_account_mismatch",
-    });
-    return { status: 403, outcome: "account_mismatch" };
   }
 
   const donationId = anedotDonationIdFromEnvelope(envelope);
   if (!donationId) {
-    await logWebhookEvent({
-      requestId: input.requestId,
-      eventType,
-      anedotDonationId: null,
-      outcome: "missing_donation_id",
-    });
     return { status: 422, outcome: "missing_donation_id" };
   }
 
-  const existingLedger = await prisma.givingAnedotDonationLedger.findUnique({
-    where: { anedotDonationId: donationId },
-  });
-
-  let gross = anedotGrossAmountDollars(envelope) ?? existingLedger?.grossAmount ?? null;
-  const donation = anedotDonationFromPayload(envelope);
-  const fundSlug =
-    resolveAnedotFundToGivingFund(donation?.fund, parseAnedotFundAllowlist()) ??
-  (existingLedger?.fund ? resolveIntentFundOrNull(existingLedger.fund) : null);
-  const intentRef = anedotIntentReferenceFromPayload(envelope);
-  const intentRow = intentRef ? await findAnedotIntentByReference(intentRef) : null;
-  const reconciled = reconcileAnedotIntent({
-    intent: intentRow
-      ? {
-          id: intentRow.id,
-          userId: intentRow.userId,
-          amount: intentRow.amount,
-          fund: intentRow.fund,
-          expiresAt: intentRow.expiresAt,
-          consumedAt: intentRow.consumedAt,
-        }
-      : null,
-    webhookAmount: gross,
-    webhookFund: fundSlug,
-  });
-
-  if (!reconciled.ok) {
-    await logWebhookEvent({
-      requestId: input.requestId,
-      eventType,
-      anedotDonationId: donationId,
-      outcome: `rejected_${reconciled.reason}`,
-    });
-    return { status: 422, outcome: reconciled.reason };
+  const currency = anedotCurrencyCode(envelope);
+  if (currency !== "USD") {
+    return { status: 422, outcome: "unsupported_currency" };
   }
 
-  const ownerUserId = reconciled.userId ?? existingLedger?.userId ?? null;
-
-  const paymentSource = anedotPaymentSource(envelope) ?? existingLedger?.paymentSource ?? null;
-  const policy = anedotConfirmPolicyForEvent(eventType, paymentSource);
-  const lifecycle = anedotLifecycleStatusForEvent(eventType);
-  const feeAmount = anedotFeeAmountDollars(donation);
-  const netAmount = anedotNetAmountDollars(envelope);
-  const settlementAt = donation?.settlement_date ? new Date(donation.settlement_date) : null;
-  const recurring =
-    envelope.payload && typeof envelope.payload.recurring === "string"
-      ? envelope.payload.recurring === "true"
-      : Boolean(envelope.payload && envelope.payload.frequency && envelope.payload.frequency !== "once");
-
-  let givingRecordId: string | null = null;
+  let thankYouRecordId: string | null = null;
   let outcome = "ledger_updated";
 
   try {
-    const ledger = await prisma.$transaction(async (tx) => {
-      const existing = existingLedger;
-      givingRecordId = existing?.givingRecordId ?? null;
+    const result = await prisma.$transaction(async (tx) => {
+      const reserved = await txReserveAnedotWebhookDelivery(tx, {
+        requestId,
+        eventType,
+        anedotDonationId: donationId,
+        outcome: "processing",
+      });
+      if (reserved.duplicate) {
+        return { status: 200, outcome: "duplicate_request" as const };
+      }
 
-      if (policy === "reverse") {
-        if (existing?.givingRecordId) {
-          await reverseAnedotGiftByDonationId(donationId);
-          givingRecordId = null;
+      const existingLedger = await tx.givingAnedotDonationLedger.findUnique({
+        where: { anedotDonationId: donationId },
+      });
+
+      const paymentSource =
+        anedotPaymentSource(envelope) ?? existingLedger?.paymentSource ?? null;
+      const nextLifecycle = anedotLifecycleStatusForEvent(eventType, paymentSource);
+      const nextRank = anedotLifecycleRank(nextLifecycle);
+      const eventAtMs = anedotEventAtMs(envelope);
+
+      if (existingLedger) {
+        const stale = anedotShouldApplyLifecycleTransition({
+          currentStatus: existingLedger.lifecycleStatus,
+          currentRank: existingLedger.lifecycleRank,
+          nextStatus: nextLifecycle,
+          nextRank,
+          eventType,
+          eventAtMs,
+          lastEventAtMs: existingLedger.lastEventAt.getTime(),
+        });
+        if (!stale.apply) {
+          await txFinalizeAnedotWebhookDelivery(tx, requestId, `rejected_${stale.reason}`);
+          return { status: 200, outcome: stale.reason as string };
         }
-      } else if (policy === "confirm_now" && gross !== null) {
-        const confirmedFund = resolveIntentFundOrNull(reconciled.fund);
-        if (!confirmedFund) {
-          outcome = "rejected_invalid_fund";
-        } else {
-        const shouldCreate = !existing?.givingRecordId;
-        const achUnsettled =
-          existing?.lifecycleStatus === "completed" &&
-          paymentSource === "bank_account" &&
-          eventType === "donation_settled";
-        if (shouldCreate || achUnsettled) {
-          const record = await recordAnedotGift({
-            anedotDonationId: donationId,
-            amount: gross,
-            fund: confirmedFund,
-            donorName: anedotDonorName(envelope),
-            donorEmail: anedotDonorEmail(envelope),
-            userId: ownerUserId ?? undefined,
-            givenOn: anedotGivenOnDateKey(envelope),
-            feeAmount,
-            netAmount,
-            recurring,
-          });
-          givingRecordId = record.id;
-          outcome = "gift_confirmed";
-        }
-        }
-      } else if (policy === "wait_settlement") {
+      }
+
+      const donation = anedotDonationFromPayload(envelope);
+      let gross = anedotGrossAmountDollars(envelope) ?? existingLedger?.grossAmount ?? null;
+      const netAmount = anedotNetAmountDollars(envelope);
+      const feeAmount = anedotFeeAmountDollars(donation);
+      const fundSlug =
+        resolveAnedotFundToGivingFund(donation?.fund, parseAnedotFundAllowlist()) ??
+        (existingLedger?.fund ? resolveIntentFundOrNull(existingLedger.fund) : null);
+
+      const existingRecord = existingLedger?.givingRecordId
+        ? await tx.givingRecord.findUnique({ where: { id: existingLedger.givingRecordId } })
+        : await txFindGivingRecordByAnedotDonationId(tx, donationId);
+
+      const existingRecordId = existingRecord?.id ?? null;
+      const bindNew = bindNewDonationEvent(eventType) && !existingRecordId;
+      const verifyAmount = requiresVerifiedAmount(eventType, existingRecordId);
+
+      const intentRef = anedotIntentReferenceFromPayload(envelope);
+      const intentRow =
+        bindNew && intentRef ? await txFindIntentByReference(tx, intentRef) : null;
+
+      const reconciled = reconcileAnedotIntent({
+        intent: intentRow
+          ? {
+              id: intentRow.id,
+              userId: intentRow.userId,
+              amount: intentRow.amount,
+              fund: intentRow.fund,
+              expiresAt: intentRow.expiresAt,
+              consumedAt: intentRow.consumedAt,
+            }
+          : null,
+        existingLedger: existingLedger
+          ? {
+              userId: existingLedger.userId,
+              fund: existingLedger.fund,
+              grossAmount: existingLedger.grossAmount,
+              currency: existingLedger.currency,
+            }
+          : null,
+        webhookAmount: gross,
+        webhookFund: fundSlug,
+        bindNewDonation: bindNew,
+        requireVerifiedAmount: verifyAmount,
+      });
+
+      if (!reconciled.ok) {
+        await txFinalizeAnedotWebhookDelivery(tx, requestId, `rejected_${reconciled.reason}`);
+        return { status: 422, outcome: reconciled.reason };
+      }
+
+      const ownerUserId =
+        reconciled.userId ?? existingLedger?.userId ?? intentRow?.userId ?? null;
+      const confirmedFund = resolveIntentFundOrNull(reconciled.fund);
+      if (bindNew && !confirmedFund) {
+        await txFinalizeAnedotWebhookDelivery(tx, requestId, "rejected_invalid_fund");
+        return { status: 422, outcome: "invalid_fund" };
+      }
+
+      if (verifyAmount && (gross === null || gross <= 0)) {
+        await txFinalizeAnedotWebhookDelivery(tx, requestId, "rejected_missing_amount");
+        return { status: 422, outcome: "missing_amount" };
+      }
+
+      const existingEffective =
+        existingRecord?.effectiveAmount ?? existingRecord?.amount ?? gross ?? 0;
+
+      const mutation = anedotGiftMutationForEvent({
+        eventType,
+        paymentSource,
+        grossAmount: gross,
+        netAmount,
+        existingGivingRecordId: existingRecordId,
+        existingEffectiveAmount: existingEffective,
+      });
+
+      let givingRecordId = existingRecordId;
+      let ledgerEffective = existingLedger?.effectiveAmount ?? (existingRecord ? existingEffective : null);
+      let ledgerReversed = existingLedger?.reversedAmount ?? 0;
+
+      const reversalNote = (detail: string) =>
+        `${existingRecord?.notes ?? "Anedot hosted checkout."} ${detail}`.trim();
+
+      if (mutation.kind === "create" && confirmedFund) {
+        const record = await txCreateAnedotGivingRecord(tx, {
+          anedotDonationId: donationId,
+          grossAmount: mutation.grossAmount,
+          effectiveAmount: mutation.effectiveAmount,
+          currency,
+          fund: confirmedFund,
+          donorName: anedotDonorName(envelope),
+          donorEmail: anedotDonorEmail(envelope),
+          userId: ownerUserId ?? undefined,
+          givenOn: anedotGivenOnDateKey(envelope),
+          notes: reversalNote(
+            feeAmount ? `Processing fees withheld: $${feeAmount.toFixed(2)}.` : "",
+          ),
+        });
+        givingRecordId = record.id;
+        ledgerEffective = mutation.effectiveAmount;
+        thankYouRecordId = record.id;
+        outcome = "gift_confirmed";
+      } else if (mutation.kind === "confirm_settlement" && givingRecordId) {
+        outcome = "gift_already_confirmed";
+      } else if (mutation.kind === "full_reversal" && givingRecordId) {
+        const prior = existingEffective;
+        await txApplyAnedotFullReversal(tx, {
+          givingRecordId,
+          anedotDonationId: donationId,
+          eventType,
+          requestId,
+          priorEffective: prior,
+          note: reversalNote(`Reversed (${eventType.replace("donation_", "")}). Original gift retained for audit.`),
+        });
+        ledgerEffective = 0;
+        ledgerReversed = (existingLedger?.reversedAmount ?? 0) + prior;
+        outcome = "gift_reversed";
+      } else if (mutation.kind === "partial_reversal" && givingRecordId) {
+        await txApplyAnedotPartialReversal(tx, {
+          givingRecordId,
+          anedotDonationId: donationId,
+          eventType,
+          requestId,
+          nextEffective: mutation.effectiveAmount,
+          reversedDelta: mutation.reversedDelta,
+          note: reversalNote(
+            `Adjusted (${eventType.replace("donation_", "")}). Effective amount $${mutation.effectiveAmount.toFixed(2)}.`,
+          ),
+        });
+        ledgerEffective = mutation.effectiveAmount;
+        ledgerReversed = (existingLedger?.reversedAmount ?? 0) + mutation.reversedDelta;
+        outcome = "gift_adjusted";
+      } else if (eventType === "donation_completed" && paymentSource === "bank_account") {
         outcome = "awaiting_settlement";
       }
 
-      await tx.givingAnedotDonationLedger.upsert({
-        where: { anedotDonationId: donationId },
-        create: {
-          anedotDonationId: donationId,
-          intentId: reconciled.intentId || null,
-          userId: ownerUserId,
-          fund: reconciled.fund,
-          grossAmount: gross,
-          netAmount,
-          feeAmount,
-          paymentSource,
-          lifecycleStatus: lifecycle,
-          givingRecordId,
-          commitmentUid:
-            typeof envelope.payload?.commitment_uid === "string"
-              ? envelope.payload.commitment_uid
-              : null,
-          settlementAt,
-          lastEventType: eventType,
-          lastEventAt: new Date(),
-        },
-        update: {
-          intentId: reconciled.intentId || undefined,
-          userId: ownerUserId,
-          fund: reconciled.fund,
-          grossAmount: gross ?? undefined,
-          netAmount: netAmount ?? undefined,
-          feeAmount: feeAmount ?? undefined,
-          paymentSource: paymentSource ?? undefined,
-          lifecycleStatus: lifecycle,
-          givingRecordId,
-          settlementAt: settlementAt ?? undefined,
-          lastEventType: eventType,
-          lastEventAt: new Date(),
-        },
+      const settlementAt = donation?.settlement_date ? new Date(donation.settlement_date) : null;
+      const commitmentUid =
+        typeof envelope.payload?.commitment_uid === "string"
+          ? envelope.payload.commitment_uid
+          : existingLedger?.commitmentUid ?? null;
+
+      await txUpsertAnedotLedger(tx, {
+        anedotDonationId: donationId,
+        intentId: reconciled.intentId || existingLedger?.intentId || null,
+        userId: ownerUserId,
+        fund: reconciled.fund,
+        grossAmount: gross,
+        netAmount,
+        feeAmount,
+        effectiveAmount: ledgerEffective,
+        reversedAmount: ledgerReversed,
+        currency,
+        paymentSource,
+        lifecycleStatus: nextLifecycle,
+        lifecycleRank: nextRank,
+        givingRecordId,
+        commitmentUid,
+        actionPageId: payloadPageId ?? existingLedger?.actionPageId ?? null,
+        settlementAt,
+        lastEventType: eventType,
+        lastEventAt: new Date(eventAtMs),
       });
 
       if (intentRow && reconciled.intentId && !intentRow.consumedAt) {
@@ -237,55 +333,18 @@ export async function processAnedotWebhook(input: {
         });
       }
 
-      return true;
+      await txFinalizeAnedotWebhookDelivery(tx, requestId, outcome);
+      return { status: 200, outcome };
     });
 
-    if (!ledger) {
-      return { status: 500, outcome: "ledger_failed" };
+    if (thankYouRecordId) {
+      void queueAnedotThankYou(prisma, thankYouRecordId);
     }
+
+    return { ...result, anedotDonationId: donationId };
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      return { status: 200, outcome: "duplicate_record", anedotDonationId: donationId };
-    }
     console.error("Anedot webhook ledger error:", error);
     return { status: 500, outcome: "ledger_error" };
-  }
-
-  await logWebhookEvent({
-    requestId: input.requestId,
-    eventType,
-    anedotDonationId: donationId,
-    outcome,
-  });
-
-  return { status: 200, outcome, anedotDonationId: donationId };
-}
-
-async function logWebhookEvent(input: {
-  requestId: string | null;
-  eventType: string;
-  anedotDonationId: string | null;
-  outcome: string;
-}) {
-  const id = `anedot-wh-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  try {
-    await prisma.givingAnedotWebhookEvent.create({
-      data: {
-        id,
-        requestId: input.requestId,
-        anedotDonationId: input.anedotDonationId,
-        eventType: input.eventType,
-        outcome: input.outcome,
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return;
-    }
-    console.error("Anedot webhook audit log failed:", error);
   }
 }
 
@@ -297,6 +356,7 @@ export function anedotSampleDonationCompletedEnvelope(
     event: "donation_completed",
     payload: {
       account_uid: "test-account",
+      action_page_id: "test-page",
       source: "credit_card",
       amount_in_dollars: "50.0",
       net_amount: "46.70",

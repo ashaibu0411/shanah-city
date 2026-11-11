@@ -52,10 +52,20 @@ export function anedotPublicCheckoutAvailable(): boolean {
 }
 
 /** Accept verified webhooks once ledger integration is ready (UI may still be off). */
+export function anedotActionPageId(): string | null {
+  const id = env().ANEDOT_ACTION_PAGE_ID?.trim();
+  return id || null;
+}
+
 export function anedotWebhookAccepting(): boolean {
   return (
     env().ANEDOT_ACCOUNT_APPROVED === "true" &&
     env().ANEDOT_LEDGER_INTEGRATION_READY === "true" &&
-    Boolean(anedotWebhookSecret())
+    Boolean(anedotWebhookSecret()) &&
+    Boolean(anedotAccountUid())
   );
+}
+
+export function anedotActivationRequiresAccountUid(): boolean {
+  return anedotWebhookAccepting() || env().ANEDOT_GIVING_ENABLED === "true";
 }

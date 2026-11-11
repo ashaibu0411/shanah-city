@@ -11,8 +11,10 @@ export type BuildAnedotCheckoutUrlInput = {
 };
 
 /**
- * Builds a hosted Anedot checkout URL (no iframe). Query params follow Anedot URL-parameter support;
- * Finance must align hidden/custom field + fund identifiers on the Action Page.
+ * Builds a hosted Anedot checkout URL (no iframe).
+ * Provider docs show `amount` and UTM params in live Action Page URLs; fund/frequency echo in webhooks
+ * must be validated on each Action Page — do not treat query params as proof of payment (webhook only).
+ * @see https://help.anedot.com/knowledge/url-parameter
  */
 export function buildAnedotHostedCheckoutUrl(input: BuildAnedotCheckoutUrlInput): string {
   const base = new URL(input.actionPageUrl);

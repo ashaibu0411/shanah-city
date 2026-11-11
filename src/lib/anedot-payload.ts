@@ -147,6 +147,34 @@ export function anedotGivenOnDateKey(envelope: AnedotWebhookEnvelope): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+export function anedotActionPageIdFromPayload(envelope: AnedotWebhookEnvelope): string | null {
+  const payload = envelope.payload;
+  if (!payload || typeof payload !== "object") return null;
+  const id = payload.action_page_id;
+  return typeof id === "string" && id.trim() ? id.trim() : null;
+}
+
+export function anedotCurrencyCode(envelope: AnedotWebhookEnvelope): string | null {
+  const payload = envelope.payload;
+  if (!payload || typeof payload !== "object") return null;
+  const raw = payload.currency ?? payload.currency_code;
+  if (typeof raw === "string" && raw.trim()) return raw.trim().toUpperCase();
+  return "USD";
+}
+
+export function anedotEventAtMs(envelope: AnedotWebhookEnvelope): number {
+  const payload = envelope.payload;
+  if (!payload || typeof payload !== "object") return Date.now();
+  for (const key of ["date_iso8601", "date", "created_at", "processed_date"] as const) {
+    const raw = payload[key];
+    if (typeof raw === "string") {
+      const parsed = Date.parse(raw);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+  }
+  return Date.now();
+}
+
 export function anedotAccountUid(envelope: AnedotWebhookEnvelope): string | null {
   const payload = envelope.payload;
   if (!payload || typeof payload !== "object") return null;
@@ -183,9 +211,13 @@ export function anedotConfirmPolicyForEvent(
   }
 }
 
-export function anedotLifecycleStatusForEvent(eventType: string): string {
+export function anedotLifecycleStatusForEvent(
+  eventType: string,
+  paymentSource?: string | null,
+): string {
   switch (eventType) {
     case "donation_completed":
+      if (paymentSource === "bank_account") return "processing";
       return "completed";
     case "donation_settled":
       return "settled";

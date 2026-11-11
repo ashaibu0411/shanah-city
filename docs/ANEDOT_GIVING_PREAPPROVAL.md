@@ -29,9 +29,11 @@ Code on `feature/anedot-giving-preapproval` includes:
 - **Webhooks** — `POST /api/giving/webhook/anedot` verifies `X-Request-Signature` (HMAC-SHA256 hex over raw body), durable ledger tables, idempotency via `X-Request-Id`, fund allowlist, ACH settle-before-confirm policy, returns/refunds/chargebacks/voids removing confirmed gifts from history.
 - **Member history** — confirmed gifts write `GivingRecord` with `source: "anedot"` and unique `anedotDonationId` (Stripe / Zelle / Cash App / October recovery unchanged).
 
-Automated tests: `npm run test:giving:anedot`.
+Automated tests: `npm run test:giving:anedot` (signature, lifecycle state machine, transactional webhook invariants).
 
-**Live activation still requires Anedot underwriting approval, Finance-verified Action Page URL, webhook secret in Vercel, `ANEDOT_FUND_MAP`, and flipping env flags in order (see `.env.example`).**
+Financial integrity: GivingRecords are never deleted on refund/return; `effectiveAmount` and `GivingAnedotAdjustment` rows preserve audit. Webhook delivery, ledger, gifts, and adjustments commit in one Prisma transaction. `ANEDOT_ACCOUNT_UID` is required before webhooks or live UI.
+
+**Live activation still requires Anedot underwriting approval, Finance-verified Action Page URL, webhook secret + account UID in Vercel, `ANEDOT_FUND_MAP`, and flipping env flags in order (see `.env.example`).**
 
 Provider references:
 - https://www.anedot.com/anedot-answers

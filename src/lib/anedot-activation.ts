@@ -24,12 +24,14 @@ export function anedotActivationReady(env: {
   ANEDOT_ACTION_PAGE_URL?: string;
   ANEDOT_WEBHOOK_SECRET?: string;
   ANEDOT_LEDGER_INTEGRATION_READY?: string;
+  ANEDOT_ACCOUNT_UID?: string;
 }): boolean {
   return (
     env.ANEDOT_ACCOUNT_APPROVED === "true" &&
     env.ANEDOT_GIVING_ENABLED === "true" &&
     env.ANEDOT_LEDGER_INTEGRATION_READY === "true" &&
     Boolean(env.ANEDOT_WEBHOOK_SECRET?.trim()) &&
+    Boolean(env.ANEDOT_ACCOUNT_UID?.trim()) &&
     Boolean(anedotHostedPageUrl(env.ANEDOT_ACTION_PAGE_URL))
   );
 }

@@ -21,6 +21,7 @@ const ready = {
   ANEDOT_LEDGER_INTEGRATION_READY: "true",
   ANEDOT_ACTION_PAGE_URL: good,
   ANEDOT_WEBHOOK_SECRET: "a-placeholder-used-only-for-a-unit-test",
+  ANEDOT_ACCOUNT_UID: "approved-account-uid",
 };
 assert.equal(anedotActivationReady(ready), true);
 for (const key of Object.keys(ready) as (keyof typeof ready)[]) {

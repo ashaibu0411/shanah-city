@@ -19,6 +19,8 @@ function mapRecord(record: {
   stripeSessionId: string | null;
   stripeInvoiceId: string | null;
   anedotDonationId: string | null;
+  effectiveAmount: number | null;
+  anedotReversalStatus: string;
   recordedBy: string;
   recordedByName: string;
   thankYouSentAt?: Date | null;
@@ -31,6 +33,9 @@ function mapRecord(record: {
     donorName: record.donorName,
     donorEmail: record.donorEmail ?? undefined,
     amount: record.amount,
+    effectiveAmount: record.effectiveAmount ?? undefined,
+    anedotReversalStatus:
+      (record.anedotReversalStatus as GivingRecord["anedotReversalStatus"]) ?? "none",
     currency: record.currency,
     fund: record.fund as GivingFund,
     method: record.method as GivingMethod,
