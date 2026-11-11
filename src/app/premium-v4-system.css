@@ -1,0 +1,114 @@
+/*
+ * Shanah City Premium V4 — opt-in design primitives.
+ * Never target html, body, .app-main, or generic app controls globally.
+ * Components adopt this system explicitly through .sc-v4 and data-sc-theme.
+ */
+.sc-v4 {
+  --sc-v4-navy: #061329;
+  --sc-v4-deep-blue: #152744;
+  --sc-v4-card: #1b2d4b;
+  --sc-v4-purple: #512d83;
+  --sc-v4-violet: #8b4dd8;
+  --sc-v4-gold: #e9bc72;
+  --sc-v4-cream: #f6ebd5;
+  --sc-v4-white: #fff;
+  --sc-v4-radius: 1rem;
+  --sc-v4-bg: #061329;
+  --sc-v4-surface: #1b2d4b;
+  --sc-v4-text: #f6ebd5;
+  --sc-v4-muted: #c7c8d4;
+  --sc-v4-border: rgba(233, 188, 114, .28);
+  --sc-v4-focus: #e9bc72;
+  color: var(--sc-v4-text);
+  background-color: var(--sc-v4-bg);
+  min-width: 0;
+}
+
+.sc-v4[data-sc-theme="cinematic"] {
+  --sc-v4-bg: #061329;
+  --sc-v4-surface: #1b2d4b;
+  --sc-v4-text: #f6ebd5;
+  --sc-v4-muted: #d4d0db;
+  --sc-v4-border: rgba(233, 188, 114, .3);
+  background-image: linear-gradient(170deg, #061329 0%, #152744 52%, #0b1630 100%);
+}
+.sc-v4[data-sc-theme="reading"] {
+  --sc-v4-bg: #fffcf5;
+  --sc-v4-surface: #fff;
+  --sc-v4-text: #252233;
+  --sc-v4-muted: #535464;
+  --sc-v4-border: #d8c5a6;
+  --sc-v4-focus: #512d83;
+}
+.sc-v4[data-sc-theme="workspace"] {
+  --sc-v4-bg: #f6f7fa;
+  --sc-v4-surface: #fff;
+  --sc-v4-text: #20273a;
+  --sc-v4-muted: #596579;
+  --sc-v4-border: #cbd4e4;
+  --sc-v4-focus: #512d83;
+}
+.sc-v4 .sc-v4__header {
+  background: linear-gradient(105deg, #061329, #152744 70%, #512d83);
+  border: 1px solid rgba(233, 188, 114, .25);
+  color: #f6ebd5;
+  border-radius: var(--sc-v4-radius);
+  padding: clamp(1rem, 4vw, 1.5rem);
+}
+.sc-v4 .sc-v4__eyebrow {
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #e9bc72;
+}
+.sc-v4 .sc-v4__title {
+  margin-top: .35rem;
+  font-size: clamp(1.35rem, 4.5vw, 2rem);
+  line-height: 1.18;
+  letter-spacing: -.02em;
+  color: inherit;
+}
+.sc-v4 .sc-v4__card {
+  border-radius: var(--sc-v4-radius);
+  border: 1px solid var(--sc-v4-border);
+  background: var(--sc-v4-surface);
+  color: var(--sc-v4-text);
+  min-width: 0;
+}
+.sc-v4 .sc-v4__muted { color: var(--sc-v4-muted); }
+.sc-v4 .sc-v4__link { color: var(--sc-v4-focus); text-decoration: underline; text-underline-offset: .2em; }
+.sc-v4[data-sc-theme="cinematic"] .sc-v4__link { color: #e9bc72; }
+.sc-v4 .sc-v4__button {
+  border: 1px solid var(--sc-v4-border);
+  border-radius: .85rem;
+  background: var(--sc-v4-purple);
+  color: #fff;
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: .65rem 1rem;
+  font-weight: 700;
+}
+.sc-v4 .sc-v4__button--gold {
+  background: linear-gradient(105deg, #e9bc72, #8e623c 50%, #512d83);
+  color: #fff;
+  border-color: rgba(233,188,114,.58);
+}
+.sc-v4 :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--sc-v4-focus);
+  outline-offset: 3px;
+}
+.sc-v4[data-sc-theme="reading"] :is(input, textarea, select),
+.sc-v4[data-sc-theme="workspace"] :is(input, textarea, select) {
+  background: #fff;
+  color: #20273a;
+  border-color: #b4bbca;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-v4 *, .sc-v4 *::before, .sc-v4 *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
