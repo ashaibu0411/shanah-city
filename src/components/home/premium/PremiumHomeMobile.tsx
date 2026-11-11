@@ -61,7 +61,7 @@ export function PremiumHomeMobile({
 
         <PremiumEngagementRail variant="mobile" />
 
-        <PremiumStoriesSection />
+        <PremiumStoriesSection sectionTitle="Stories" />
 
         <CheckInHomeBanner />
 

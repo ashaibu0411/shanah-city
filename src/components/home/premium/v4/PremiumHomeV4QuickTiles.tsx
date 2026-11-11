@@ -14,8 +14,9 @@ export function PremiumHomeV4QuickTiles() {
             <ChurchFlyerImage
               src={tile.image}
               alt=""
+              priority
               sizes="(max-width: 512px) 45vw, 220px"
-              className="ph4-tile__image"
+              className={`ph4-tile__image ${tile.imageClass ?? ""}`.trim()}
             />
             <TileScrim />
             <span className="ph4-tile__icon">

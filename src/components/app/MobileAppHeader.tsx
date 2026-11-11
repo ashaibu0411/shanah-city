@@ -70,7 +70,7 @@ export function MobileAppHeader() {
         <div className="min-w-0 flex-1">
           {isHome ? (
             <div className="flex items-center gap-2.5">
-              <BrandLogo size="sm" variant="dark" priority />
+              <BrandLogo size="sm" variant="dark" priority className="ph4-brand-logo" />
               <p className="ph4-header-wordmark hidden min-[360px]:block">Shanah City</p>
               {anyLive && (
                 <Link href="/live">

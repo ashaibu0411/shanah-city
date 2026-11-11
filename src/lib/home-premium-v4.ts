@@ -1,4 +1,3 @@
-import { homeExploreTileImages } from "@/lib/home-explore-tile-images";
 import { site } from "@/lib/site";
 
 /** Approved Premium Home V4 palette */
@@ -15,6 +14,11 @@ export const premiumHomeV4Colors = {
 
 export const premiumV4HeroMountainImage = "/home/premium-v4-mountain-hero.jpg";
 
+/** Photo tiles only — no baked-in flyer graphics with embedded text. */
+export const premiumV4CommunityFeatureImage = "/home/home-gallery-15.jpg";
+
+export const premiumV4DevotionsBibleImage = "/home/premium-v4-devotions-bible.jpg";
+
 export type PremiumHomeV4TileId = "live" | "devotions" | "community" | "events";
 
 export type PremiumHomeV4Tile = {
@@ -22,6 +26,7 @@ export type PremiumHomeV4Tile = {
   label: string;
   href: string;
   image: string;
+  imageClass?: string;
 };
 
 export const premiumHomeV4QuickTiles: PremiumHomeV4Tile[] = [
@@ -30,24 +35,28 @@ export const premiumHomeV4QuickTiles: PremiumHomeV4Tile[] = [
     label: "Worship Live",
     href: "/live",
     image: "/home/home-gallery-88.jpg",
+    imageClass: "object-[center_28%]",
   },
   {
     id: "devotions",
     label: "Daily Devotions",
     href: "/devotions",
-    image: "/devotions/daily-word-portrait.jpg",
+    image: premiumV4DevotionsBibleImage,
+    imageClass: "object-center",
   },
   {
     id: "community",
     label: "Community",
     href: "/community",
-    image: homeExploreTileImages.community,
+    image: "/home/home-gallery-20.jpg",
+    imageClass: "object-[center_40%]",
   },
   {
     id: "events",
     label: "Events",
     href: "/calendar",
-    image: homeExploreTileImages.calendar,
+    image: "/home/home-gallery-21.jpg",
+    imageClass: "object-center",
   },
 ];
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { site } from "@/lib/site";
 import {
@@ -14,7 +15,11 @@ type PremiumHomeV4HeroProps = {
 };
 
 export function PremiumHomeV4Hero({ firstName, campusLabel }: PremiumHomeV4HeroProps) {
-  const greeting = premiumV4HomeGreeting(firstName);
+  const [greeting, setGreeting] = useState<string | null>(null);
+
+  useEffect(() => {
+    setGreeting(premiumV4HomeGreeting(firstName));
+  }, [firstName]);
 
   return (
     <section className="ph4-hero" aria-label="Welcome">

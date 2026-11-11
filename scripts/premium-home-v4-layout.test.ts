@@ -50,7 +50,9 @@ const tiles = readFileSync(
 );
 assert.match(tiles, /Worship Live/);
 assert.match(tiles, /premium-v4-mountain-hero/);
+assert.match(tiles, /premium-v4-devotions-bible/);
 assert.match(tiles, /label: "Daily Devotions"/);
 assert.match(tiles, /label: "Events"/);
+assert.doesNotMatch(tiles, /home-gallery-.*-tile/);
 
 console.log("premium-home-v4-layout.test.ts OK");

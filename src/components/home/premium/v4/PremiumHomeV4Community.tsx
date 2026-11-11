@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
-import { premiumStayConnectedImage } from "@/lib/home-premium";
+import { premiumV4CommunityFeatureImage } from "@/lib/home-premium-v4";
 import { PremiumHomeV4Chevron } from "@/components/home/premium/v4/PremiumHomeV4Icons";
 
 export function PremiumHomeV4Community() {
@@ -8,10 +8,10 @@ export function PremiumHomeV4Community() {
     <section className="ph4-section" aria-label="Community">
       <Link href="/community" className="ph4-community">
         <ChurchFlyerImage
-          src={premiumStayConnectedImage}
+          src={premiumV4CommunityFeatureImage}
           alt=""
           sizes="100vw"
-          className="ph4-community__image"
+          className="ph4-community__image object-[center_35%]"
         />
         <div className="ph4-community__scrim" aria-hidden />
         <div className="ph4-community__content">

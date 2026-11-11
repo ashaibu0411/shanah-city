@@ -4,13 +4,19 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CommunityStatusRow } from "@/components/community/CommunityStatusRow";
 
-export function PremiumStoriesSection() {
+type PremiumStoriesSectionProps = {
+  sectionTitle?: string;
+};
+
+export function PremiumStoriesSection({
+  sectionTitle = "Community",
+}: PremiumStoriesSectionProps) {
   const { user, loading } = useAuth();
 
   return (
     <section className="premium-section premium-stories" aria-label="Community stories">
       <div className="premium-section__head">
-        <h2 className="premium-section__title">Community</h2>
+        <h2 className="premium-section__title">{sectionTitle}</h2>
         <Link href="/community" className="premium-section__link">
           View all →
         </Link>
