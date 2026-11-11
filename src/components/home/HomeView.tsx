@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { PremiumHomeDesktop } from "@/components/home/premium/PremiumHomeDesktop";
 import { PremiumHomeMobile } from "@/components/home/premium/PremiumHomeMobile";
@@ -24,7 +25,12 @@ export function HomeView({
   upcomingEventRows = [],
 }: HomeViewProps) {
   const { isMobileApp } = useAppShell();
+  const [layoutReady, setLayoutReady] = useState(false);
   const highlightAlertId = useUrgentAlertHighlight(urgentAlerts);
+
+  useEffect(() => {
+    setLayoutReady(true);
+  }, []);
 
   const shared = {
     urgentAlerts,
@@ -33,6 +39,16 @@ export function HomeView({
     latestSermon,
     upcomingEventRows,
   };
+
+  if (!layoutReady) {
+    return (
+      <div
+        className="min-h-[40vh] bg-[#061329]"
+        aria-busy="true"
+        aria-label="Loading home"
+      />
+    );
+  }
 
   if (isMobileApp) {
     return <PremiumHomeMobile {...shared} latestSermon={latestSermon} />;

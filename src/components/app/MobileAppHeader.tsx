@@ -69,8 +69,9 @@ export function MobileAppHeader() {
       <div className="relative mx-auto flex app-mobile-inner w-full items-center justify-between gap-3 px-3.5 pb-2.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
           {isHome ? (
-            <div className="flex items-center gap-2">
-              <BrandLogo size="sm" priority />
+            <div className="flex items-center gap-2.5">
+              <BrandLogo size="sm" variant="dark" priority className="ph4-brand-logo" />
+              <p className="ph4-header-wordmark hidden min-[360px]:block">Shanah City</p>
               {anyLive && (
                 <Link href="/live">
                   <Badge variant="live">
@@ -98,7 +99,7 @@ export function MobileAppHeader() {
 
         <div className="flex shrink-0 items-center gap-1">
           {!loading && user ? (
-            <NotificationBell variant={isDark ? "light" : "dark"} />
+            <NotificationBell variant={isHome || isDark ? "light" : "dark"} />
           ) : null}
           <MemberAvatarLink user={user} loading={loading} />
         </div>
