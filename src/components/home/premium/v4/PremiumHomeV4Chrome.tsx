@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 
@@ -12,7 +12,7 @@ export function PremiumHomeV4Chrome() {
   const { isMobileApp } = useAppShell();
   const active = isMobileApp && pathname === "/";
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof document === "undefined") return;
     document.body.classList.toggle(BODY_CLASS, active);
     return () => {

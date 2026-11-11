@@ -13,6 +13,9 @@ test.describe("Premium Home V4 mobile screenshots", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "networkidle" });
     await page.waitForSelector(".premium-home-v4", { timeout: 90_000 });
+    await page.waitForFunction(() =>
+      document.body.classList.contains("premium-home-v4-active"),
+    );
     await expect(page.locator(".ph4-hero__title")).toHaveText("Shanah City");
     await expect(page.locator(".ph4-tile-grid")).toBeVisible();
 
