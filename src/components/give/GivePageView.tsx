@@ -1,5 +1,6 @@
 "use client";
 
+import { GiveAnedotPanel } from "@/components/give/GiveAnedotPanel";
 import { GiveCheckoutPanel } from "@/components/give/GiveCheckoutPanel";
 import { DonorRecurringGivingGuide } from "@/components/give/DonorRecurringGivingGuide";
 import { GivingHubOffPlatformPanel } from "@/components/give/GivingHubOffPlatformPanel";
@@ -14,12 +15,14 @@ type GivePageViewProps = {
   textToGive: TextToGiveConfig | null;
   hubMethods: PublicGivingHubMethod[];
   stripeCheckoutAvailable: boolean;
+  anedotCheckoutAvailable?: boolean;
 };
 
 export function GivePageView({
   textToGive,
   hubMethods,
   stripeCheckoutAvailable,
+  anedotCheckoutAvailable = false,
 }: GivePageViewProps) {
   return (
     <div className="give-page-premium pb-4">
@@ -38,6 +41,8 @@ export function GivePageView({
       </blockquote>
 
       <DonorRecurringGivingGuide />
+
+      {anedotCheckoutAvailable ? <GiveAnedotPanel /> : null}
 
       {stripeCheckoutAvailable ? <GiveCheckoutPanel /> : null}
 

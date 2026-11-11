@@ -1,3 +1,4 @@
+import { givingRecordEffectiveAmount } from "@/lib/giving-effective-amount";
 import { useDatabase } from "@/lib/use-database";
 import * as givingDb from "@/lib/stores/giving-db";
 import * as givingJson from "@/lib/stores/giving-json";
@@ -26,7 +27,7 @@ export async function getDonorYearToDateTotal(record: {
       ? await listGivingRecords({ donorEmail: record.donorEmail, since, until })
       : [];
 
-  return records.reduce((sum, entry) => sum + entry.amount, 0);
+  return records.reduce((sum, entry) => sum + givingRecordEffectiveAmount(entry), 0);
 }
 export const createGivingRecord = (input: Parameters<typeof givingJson.createGivingRecord>[0]) =>
   store().createGivingRecord(input);
@@ -41,3 +42,5 @@ export const getGivingRecordByStripeSessionId = (stripeSessionId: string) =>
   store().getGivingRecordByStripeSessionId(stripeSessionId);
 export const getGivingRecordByStripeInvoiceId = (stripeInvoiceId: string) =>
   store().getGivingRecordByStripeInvoiceId(stripeInvoiceId);
+export const getGivingRecordByAnedotDonationId = (anedotDonationId: string) =>
+  store().getGivingRecordByAnedotDonationId(anedotDonationId);
