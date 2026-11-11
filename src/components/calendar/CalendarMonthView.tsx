@@ -1,6 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { WorshipPlanDayPicker } from "@/components/calendar/WorshipPlanDayPicker";
+import {
+  worshipAutoOpenHrefForDate,
+  worshipPlansOnDate,
+} from "@/lib/worship-plan-event-resolve";
+import type { WorshipServicePlan } from "@/lib/worship-types";
 import {
   formatMonthLabel,
   formatSelectedDay,
@@ -21,6 +28,11 @@ type CalendarMonthViewProps<T extends CalendarPlannable> = {
   renderItem: (item: T) => React.ReactNode;
   emptyDayLabel?: string;
   emptyMonthLabel?: string;
+  /** When set, dates with worship plans open the planner (or a picker when several exist). */
+  worshipPlans?: WorshipServicePlan[];
+  canManageWorship?: boolean;
+  /** Avoid forcing a wide month grid — keeps the calendar inside its parent. */
+  containInParent?: boolean;
 };
 
 const WEEKDAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -216,6 +228,7 @@ function MobileMonthDayCell({
   day,
   isoDate,
   count,
+  hasWorshipPlan,
   isSelected,
   isToday,
   onSelect,
@@ -223,6 +236,7 @@ function MobileMonthDayCell({
   day: number;
   isoDate: string;
   count: number;
+  hasWorshipPlan: boolean;
   isSelected: boolean;
   isToday: boolean;
   onSelect: () => void;
@@ -234,23 +248,35 @@ function MobileMonthDayCell({
       type="button"
       onClick={onSelect}
       aria-label={
-        count > 0
-          ? `${day}, ${count} event${count === 1 ? "" : "s"}`
-          : `${day}, no events`
+        hasWorshipPlan
+          ? `${day}, worship plan available`
+          : count > 0
+            ? `${day}, ${count} event${count === 1 ? "" : "s"}`
+            : `${day}, no events`
       }
-      className={`flex h-11 w-full flex-col items-center justify-center rounded-lg ring-1 ring-night-900/5 ${
+      className={`flex h-11 w-full flex-col items-center justify-center rounded-lg ring-1 ${
         isSelected
           ? "bg-night-900 text-white ring-night-900"
           : isToday
             ? "bg-amber-50 text-amber-950 ring-amber-200"
-            : count > 0
-              ? "bg-violet-50/90 text-night-900"
-              : "bg-white text-night-700"
+            : hasWorshipPlan
+              ? "cursor-pointer bg-violet-100/90 text-night-900 ring-violet-300"
+              : count > 0
+                ? "bg-violet-50/90 text-night-900 ring-night-900/5"
+                : "bg-white text-night-700 ring-night-900/5"
       }`}
     >
       <span className="text-sm font-semibold leading-none">{day}</span>
+      {hasWorshipPlan ? (
+        <span
+          className={`mt-1 h-1.5 w-1.5 rounded-full ${
+            isSelected ? "bg-gold-300" : "bg-gold-500"
+          }`}
+          aria-hidden
+        />
+      ) : null}
       {count > 0 ? (
-        <div className="mt-1 flex items-center gap-0.5">
+        <div className="mt-0.5 flex items-center gap-0.5">
           {Array.from({ length: dotCount }).map((_, index) => (
             <span
               key={`dot-${isoDate}-${index}`}
@@ -277,7 +303,13 @@ export function CalendarMonthView<T extends CalendarPlannable>({
   renderItem,
   emptyDayLabel = "No events on this day.",
   emptyMonthLabel = "No events this month.",
+  worshipPlans,
+  canManageWorship = false,
+  containInParent = false,
 }: CalendarMonthViewProps<T>) {
+  const router = useRouter();
+  const worshipLinked = worshipPlans !== undefined;
+  const linkedPlans = worshipPlans ?? [];
   const denverToday = denverMonthCursor();
   const todayKey = denverToday.dateKey;
   const [monthCursor, setMonthCursor] = useState({
@@ -287,6 +319,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
   const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
   const [weekStart, setWeekStart] = useState(() => startOfWeekSunday(todayKey));
   const [selectedDate, setSelectedDate] = useState<string | null>(todayKey);
+  const [multiPlanDate, setMultiPlanDate] = useState<string | null>(null);
 
   const itemsByDate = useMemo(
     () => groupItemsByDate(items, monthCursor.year, monthCursor.month),
@@ -369,6 +402,30 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     setViewMode(mode);
   }
 
+  function selectCalendarDate(isoDate: string) {
+    if (worshipLinked) {
+      const onDate = worshipPlansOnDate(linkedPlans, isoDate);
+      const autoHref = worshipAutoOpenHrefForDate(linkedPlans, isoDate, canManageWorship);
+      if (autoHref) {
+        setMultiPlanDate(null);
+        router.push(autoHref);
+        return;
+      }
+      if (onDate.length > 1) {
+        setSelectedDate(isoDate);
+        setMultiPlanDate(isoDate);
+        return;
+      }
+    }
+    setMultiPlanDate(null);
+    setSelectedDate(isoDate);
+  }
+
+  function selectedDayPlans() {
+    if (!worshipLinked || !selectedDate || multiPlanDate !== selectedDate) return [];
+    return worshipPlansOnDate(linkedPlans, selectedDate);
+  }
+
   function renderDesktopDayColumn(
     isoDate: string,
     dayNumber: number,
@@ -378,17 +435,18 @@ export function CalendarMonthView<T extends CalendarPlannable>({
     const isSelected = selectedDate === isoDate;
     const isToday = isoDate === todayKey;
     const maxVisible = weekColumn ? 6 : 4;
+    const hasWorshipPlan = worshipLinked && worshipPlansOnDate(linkedPlans, isoDate).length > 0;
 
     return (
       <div
         key={isoDate}
         role="button"
         tabIndex={0}
-        onClick={() => setSelectedDate(isoDate)}
+        onClick={() => selectCalendarDate(isoDate)}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            setSelectedDate(isoDate);
+            selectCalendarDate(isoDate);
           }
         }}
         className={`flex ${
@@ -396,16 +454,27 @@ export function CalendarMonthView<T extends CalendarPlannable>({
         } max-lg:landscape:h-auto max-lg:landscape:min-h-[7rem] max-lg:landscape:max-h-none flex-col overflow-hidden rounded-xl border p-1.5 text-left transition sm:p-2 ${
           isSelected
             ? "border-night-900 bg-night-900 text-sand-50 max-lg:landscape:ring-1 max-lg:landscape:ring-night-900"
-            : "border-night-900/10 bg-white hover:bg-sand-50"
+            : hasWorshipPlan
+              ? "cursor-pointer border-violet-300/80 bg-violet-50/40 hover:bg-violet-50"
+              : "border-night-900/10 bg-white hover:bg-sand-50"
         }`}
       >
-        <span
-          className={`shrink-0 text-sm font-semibold ${
-            isToday && !isSelected ? "text-amber-700" : ""
-          }`}
-        >
-          {dayNumber}
-        </span>
+        <div className="flex shrink-0 items-center gap-1">
+          <span
+            className={`text-sm font-semibold ${
+              isToday && !isSelected ? "text-amber-700" : ""
+            }`}
+          >
+            {dayNumber}
+          </span>
+          {hasWorshipPlan ? (
+            <span
+              className={`h-2 w-2 rounded-full ${isSelected ? "bg-gold-300" : "bg-gold-500"}`}
+              title="Worship plan"
+              aria-hidden
+            />
+          ) : null}
+        </div>
         <div className="mt-1 hidden min-h-0 flex-1 flex-col overflow-hidden lg:flex">
           <div className="min-h-0 flex-1 space-y-1 overflow-hidden">
             {dayItems.slice(0, maxVisible).map((item) =>
@@ -463,7 +532,11 @@ export function CalendarMonthView<T extends CalendarPlannable>({
         </div>
 
         <div className="mt-4 hidden lg:block max-lg:landscape:block">
-          <div className={viewMode === "month" ? "lg:min-w-[64rem] lg:overflow-x-auto" : ""}>
+          <div
+            className={
+              viewMode === "month" && !containInParent ? "lg:min-w-[64rem] lg:overflow-x-auto" : "max-w-full"
+            }
+          >
             <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-semibold uppercase tracking-wide text-night-500">
               {WEEKDAY_HEADERS.map((label) => (
                 <div key={label} className="py-2">
@@ -524,15 +597,18 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                   const count = itemsByDate.get(cell.isoDate)?.length ?? 0;
                   const isSelected = selectedDate === cell.isoDate;
                   const isToday = cell.isoDate === todayKey;
+                  const hasWorshipPlan =
+                    worshipLinked && worshipPlansOnDate(linkedPlans, cell.isoDate).length > 0;
                   return (
                     <MobileMonthDayCell
                       key={cell.isoDate}
                       day={cell.day}
                       isoDate={cell.isoDate}
                       count={count}
+                      hasWorshipPlan={hasWorshipPlan}
                       isSelected={isSelected}
                       isToday={isToday}
-                      onSelect={() => setSelectedDate(cell.isoDate!)}
+                      onSelect={() => selectCalendarDate(cell.isoDate!)}
                     />
                   );
                 })
@@ -541,27 +617,36 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                   const count = itemsByWeek.get(isoDate)?.length ?? 0;
                   const isSelected = selectedDate === isoDate;
                   const isToday = isoDate === todayKey;
+                  const hasWorshipPlan =
+                    worshipLinked && worshipPlansOnDate(linkedPlans, isoDate).length > 0;
                   return (
                     <MobileMonthDayCell
                       key={isoDate}
                       day={dayNumber}
                       isoDate={isoDate}
                       count={count}
+                      hasWorshipPlan={hasWorshipPlan}
                       isSelected={isSelected}
                       isToday={isToday}
-                      onSelect={() => setSelectedDate(isoDate)}
+                      onSelect={() => selectCalendarDate(isoDate)}
                     />
                   );
                 })}
           </div>
 
           {selectedDate ? (
-            <SelectedDayPanel
-              selectedDate={selectedDate}
-              selectedItems={selectedItems}
-              emptyDayLabel={emptyDayLabel}
-              renderItem={renderItem}
-            />
+            <>
+              <WorshipPlanDayPicker
+                plans={selectedDayPlans()}
+                canManageWorship={canManageWorship}
+              />
+              <SelectedDayPanel
+                selectedDate={selectedDate}
+                selectedItems={selectedItems}
+                emptyDayLabel={emptyDayLabel}
+                renderItem={renderItem}
+              />
+            </>
           ) : null}
 
           {viewMode === "week" ? (
@@ -581,7 +666,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                   >
                     <button
                       type="button"
-                      onClick={() => setSelectedDate(isoDate)}
+                      onClick={() => selectCalendarDate(isoDate)}
                       className="mb-2 text-left"
                     >
                       <h4
@@ -623,7 +708,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
                     <section key={day.isoDate}>
                       <button
                         type="button"
-                        onClick={() => setSelectedDate(day.isoDate)}
+                        onClick={() => selectCalendarDate(day.isoDate)}
                         className="mb-2 text-left"
                       >
                         <h4
@@ -655,6 +740,7 @@ export function CalendarMonthView<T extends CalendarPlannable>({
           <h3 className="font-display text-lg font-semibold text-night-900">
             {formatSelectedDay(selectedDate)}
           </h3>
+          <WorshipPlanDayPicker plans={selectedDayPlans()} canManageWorship={canManageWorship} />
           {selectedItems.length === 0 ? (
             <p className="mt-3 text-sm text-night-500">{emptyDayLabel}</p>
           ) : (

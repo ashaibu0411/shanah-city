@@ -1,4 +1,4 @@
-import { worshipPlannerPath } from "@/lib/worship-plan-links";
+import { worshipPlannerPath, worshipServiceDetailPath } from "@/lib/worship-plan-links";
 import {
   WORSHIP_SERVICE_SCHEDULE,
   WORSHIP_SERVICE_TIMES,
@@ -107,4 +107,27 @@ export function worshipPlannerHrefForService(
   }
 
   return null;
+}
+
+export function worshipPlansOnDate(plans: WorshipServicePlan[], isoDate: string) {
+  if (!isoDate.trim()) return [];
+  return plans.filter((plan) => plan.serviceDate === isoDate);
+}
+
+export function worshipDetailHrefForPlan(
+  plan: WorshipServicePlan,
+  canManagePlan: boolean,
+) {
+  return worshipServiceDetailPath(plan, canManagePlan);
+}
+
+/** When exactly one visible plan exists on a date, open it; otherwise return null. */
+export function worshipAutoOpenHrefForDate(
+  plans: WorshipServicePlan[],
+  isoDate: string,
+  canManagePlan: boolean,
+) {
+  const onDate = worshipPlansOnDate(plans, isoDate);
+  if (onDate.length !== 1) return null;
+  return worshipDetailHrefForPlan(onDate[0]!, canManagePlan);
 }

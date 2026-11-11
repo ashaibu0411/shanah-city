@@ -4,6 +4,8 @@ import path from "node:path";
 import {
   coerceWorshipServiceTime,
   pickWorshipPlanForServiceDate,
+  worshipAutoOpenHrefForDate,
+  worshipPlansOnDate,
   worshipPlannerHrefForService,
 } from "../src/lib/worship-plan-event-resolve";
 import {
@@ -71,6 +73,29 @@ assert.equal(
   "/worship?date=2026-12-01&time=10%3A00",
 );
 
+assert.equal(worshipPlansOnDate(plans, "2026-03-08").length, 2);
+assert.equal(worshipPlansOnDate(plans, "2026-01-01").length, 0);
+assert.equal(
+  worshipAutoOpenHrefForDate(plans, "2026-03-08", true),
+  null,
+);
+assert.equal(
+  worshipAutoOpenHrefForDate(
+    [{ serviceDate: "2026-04-01", serviceTime: "10:00", status: "published", songs: [], team: [] }] as WorshipServicePlan[],
+    "2026-04-01",
+    false,
+  ),
+  "/worship/service?date=2026-04-01&time=10%3A00",
+);
+assert.equal(
+  worshipAutoOpenHrefForDate(
+    [{ serviceDate: "2026-04-01", serviceTime: "10:00", status: "published", songs: [], team: [] }] as WorshipServicePlan[],
+    "2026-04-01",
+    true,
+  ),
+  "/worship?date=2026-04-01&time=10%3A00",
+);
+
 const panelSource = readFileSync(
   path.join(process.cwd(), "src/components/worship/WorshipPlannerPanel.tsx"),
   "utf8",
@@ -92,5 +117,21 @@ const cardSource = readFileSync(
 );
 assert.match(cardSource, /worshipPlanHref/);
 assert.match(cardSource, /worshipEventPrimaryHref/);
+
+const groupCalendarPanel = readFileSync(
+  path.join(process.cwd(), "src/components/calendar/GroupCalendarPanel.tsx"),
+  "utf8",
+);
+assert.match(groupCalendarPanel, /Worship planner/);
+assert.match(groupCalendarPanel, /layout=\{choirScheduleSplit \? "editor" : "full"\}/);
+assert.match(groupCalendarPanel, /layout="upcoming"/);
+assert.match(groupCalendarPanel, /linkWorshipPlanner/);
+
+const calendarMonth = readFileSync(
+  path.join(process.cwd(), "src/components/calendar/CalendarMonthView.tsx"),
+  "utf8",
+);
+assert.match(calendarMonth, /worshipAutoOpenHrefForDate/);
+assert.match(calendarMonth, /WorshipPlanDayPicker/);
 
 console.log("worship-planner-deep-link.test.ts OK");
