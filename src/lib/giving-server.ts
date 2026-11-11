@@ -41,3 +41,5 @@ export const getGivingRecordByStripeSessionId = (stripeSessionId: string) =>
   store().getGivingRecordByStripeSessionId(stripeSessionId);
 export const getGivingRecordByStripeInvoiceId = (stripeInvoiceId: string) =>
   store().getGivingRecordByStripeInvoiceId(stripeInvoiceId);
+export const getGivingRecordByAnedotDonationId = (anedotDonationId: string) =>
+  store().getGivingRecordByAnedotDonationId(anedotDonationId);

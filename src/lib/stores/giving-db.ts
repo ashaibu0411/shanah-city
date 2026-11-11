@@ -18,6 +18,7 @@ function mapRecord(record: {
   source: string;
   stripeSessionId: string | null;
   stripeInvoiceId: string | null;
+  anedotDonationId: string | null;
   recordedBy: string;
   recordedByName: string;
   thankYouSentAt?: Date | null;
@@ -39,6 +40,7 @@ function mapRecord(record: {
     source: (record.source as GivingRecord["source"]) ?? "manual",
     stripeSessionId: record.stripeSessionId ?? undefined,
     stripeInvoiceId: record.stripeInvoiceId ?? undefined,
+    anedotDonationId: record.anedotDonationId ?? undefined,
     recordedBy: record.recordedBy,
     recordedByName: record.recordedByName,
     thankYouSentAt: record.thankYouSentAt?.toISOString(),
@@ -107,6 +109,7 @@ export async function createGivingRecord(input: {
   source?: GivingRecord["source"];
   stripeSessionId?: string;
   stripeInvoiceId?: string;
+  anedotDonationId?: string;
   recordedBy: string;
   recordedByName: string;
 }) {
@@ -128,6 +131,7 @@ export async function createGivingRecord(input: {
         source: input.source ?? "manual",
         stripeSessionId: input.stripeSessionId ?? null,
         stripeInvoiceId: input.stripeInvoiceId ?? null,
+        anedotDonationId: input.anedotDonationId ?? null,
         recordedBy: input.recordedBy,
         recordedByName: input.recordedByName,
         createdAt: now,
@@ -147,6 +151,10 @@ export async function createGivingRecord(input: {
       }
       if (input.stripeInvoiceId) {
         const existing = await getGivingRecordByStripeInvoiceId(input.stripeInvoiceId);
+        if (existing) return existing;
+      }
+      if (input.anedotDonationId) {
+        const existing = await getGivingRecordByAnedotDonationId(input.anedotDonationId);
         if (existing) return existing;
       }
     }
@@ -232,6 +240,11 @@ export async function getGivingRecordByStripeSessionId(stripeSessionId: string) 
 
 export async function getGivingRecordByStripeInvoiceId(stripeInvoiceId: string) {
   const record = await prisma.givingRecord.findUnique({ where: { stripeInvoiceId } });
+  return record ? mapRecord(record) : null;
+}
+
+export async function getGivingRecordByAnedotDonationId(anedotDonationId: string) {
+  const record = await prisma.givingRecord.findUnique({ where: { anedotDonationId } });
   return record ? mapRecord(record) : null;
 }
 

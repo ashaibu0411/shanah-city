@@ -81,6 +81,7 @@ export async function createGivingRecord(input: {
   source?: GivingRecord["source"];
   stripeSessionId?: string;
   stripeInvoiceId?: string;
+  anedotDonationId?: string;
   recordedBy: string;
   recordedByName: string;
 }) {
@@ -91,6 +92,10 @@ export async function createGivingRecord(input: {
   }
   if (input.stripeInvoiceId) {
     const existing = records.find((row) => row.stripeInvoiceId === input.stripeInvoiceId);
+    if (existing) return existing;
+  }
+  if (input.anedotDonationId) {
+    const existing = records.find((row) => row.anedotDonationId === input.anedotDonationId);
     if (existing) return existing;
   }
 
@@ -110,6 +115,7 @@ export async function createGivingRecord(input: {
     source: input.source ?? "manual",
     stripeSessionId: input.stripeSessionId,
     stripeInvoiceId: input.stripeInvoiceId,
+    anedotDonationId: input.anedotDonationId,
     recordedBy: input.recordedBy,
     recordedByName: input.recordedByName,
     thankYouSentAt: undefined,
@@ -188,6 +194,11 @@ export async function getGivingRecordByStripeSessionId(stripeSessionId: string) 
 export async function getGivingRecordByStripeInvoiceId(stripeInvoiceId: string) {
   const records = await readRecords();
   return records.find((record) => record.stripeInvoiceId === stripeInvoiceId) ?? null;
+}
+
+export async function getGivingRecordByAnedotDonationId(anedotDonationId: string) {
+  const records = await readRecords();
+  return records.find((record) => record.anedotDonationId === anedotDonationId) ?? null;
 }
 
 export async function linkGivingRecordsToUser(email: string, userId: string) {

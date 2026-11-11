@@ -19,6 +19,7 @@ export type GivingMethod =
   | "in-person"
   | "website"
   | "stripe"
+  | "anedot"
   | "other";
 
 export type GivingRecord = {
@@ -33,9 +34,10 @@ export type GivingRecord = {
   givenOn: string;
   campusId?: string | null;
   notes?: string | null;
-  source?: "manual" | "stripe";
+  source?: "manual" | "stripe" | "anedot";
   stripeSessionId?: string | null;
   stripeInvoiceId?: string | null;
+  anedotDonationId?: string | null;
   recordedBy: string;
   recordedByName: string;
   thankYouSentAt?: string | null;
@@ -72,6 +74,7 @@ export const GIVING_METHOD_OPTIONS: { value: GivingMethod; label: string }[] = [
   { value: "in-person", label: "In person" },
   { value: "website", label: "Website" },
   { value: "stripe", label: "Stripe (online)" },
+  { value: "anedot", label: "Anedot (hosted)" },
   { value: "other", label: "Other" },
 ];
 

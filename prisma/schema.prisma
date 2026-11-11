@@ -582,6 +582,7 @@ model GivingRecord {
   source         String   @default("manual")
   stripeSessionId String? @unique
   stripeInvoiceId String? @unique
+  anedotDonationId String? @unique
   recordedBy     String
   recordedByName String
   thankYouSentAt DateTime?
@@ -591,6 +592,57 @@ model GivingRecord {
   @@index([givenOn])
   @@index([userId])
   @@index([fund])
+}
+
+/** Signed redirect to hosted Anedot Action Page (opaque token in URL hidden field / utm). */
+model GivingAnedotIntent {
+  id               String    @id
+  intentToken      String    @unique
+  userId           String?
+  amount           Float
+  fund             String
+  frequency        String
+  coverFees        Boolean   @default(false)
+  expiresAt        DateTime
+  consumedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+/** Durable Anedot donation lifecycle — idempotent by provider donation id. */
+model GivingAnedotDonationLedger {
+  anedotDonationId String    @id
+  intentId         String?
+  userId           String?
+  fund             String?
+  grossAmount      Float?
+  netAmount        Float?
+  feeAmount        Float?
+  paymentSource    String?
+  lifecycleStatus  String
+  givingRecordId   String?   @unique
+  commitmentUid    String?
+  settlementAt     DateTime?
+  lastEventType    String
+  lastEventAt      DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([lifecycleStatus])
+}
+
+/** Idempotent webhook delivery log (replay-safe by X-Request-Id). */
+model GivingAnedotWebhookEvent {
+  id               String   @id
+  requestId        String?  @unique
+  anedotDonationId String?
+  eventType        String
+  outcome          String
+  createdAt        DateTime @default(now())
+
+  @@index([anedotDonationId, createdAt(sort: Desc)])
 }
 
 /** Per-member Stripe self-sync attempts (counts only in app logs; Stripe ids in review rows). */

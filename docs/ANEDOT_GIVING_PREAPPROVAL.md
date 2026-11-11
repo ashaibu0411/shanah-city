@@ -20,8 +20,18 @@ Status: **PRE-APPROVAL PREPARATION, NOT LIVE**. Shanah City's Anedot application
 8. Automated tests: invalid/empty HMAC, replay/duplicate delivery, conflicting owner/fund, ACH processing-to-settled-to-returned, refund/chargeback, split fees, duplicate recurring callbacks, and guest donations. Run build and existing giving suite without manual staging rounds.
 9. After signing/ledger verification and underwriting approval, set approved Vercel secrets: `ANEDOT_ACTION_PAGE_URL`, `ANEDOT_WEBHOOK_SECRET`, `ANEDOT_ACCOUNT_APPROVED=true`, `ANEDOT_LEDGER_INTEGRATION_READY=true`; set `ANEDOT_GIVING_ENABLED=true` only after all previous checks. Do not print secrets in logs.
 
-## Current commit scope
-`src/lib/anedot-activation.ts` is a **fail-closed, standalone preparation helper**. It is not wired into `/give`, does not process webhooks, and is not sufficient to activate payments. The production Anedot integration is not complete.
+## Implementation (PR #58 — still gated off by default)
+
+Code on `feature/anedot-giving-preapproval` includes:
+
+- **Activation gate** — `src/lib/anedot-activation.ts` + `src/lib/anedot-env.ts` (fail closed until all env flags and secrets are set).
+- **Hosted checkout** — `POST /api/giving/anedot/intent` builds a signed intent and redirects to the approved Anedot Action Page (`GiveAnedotPanel` on `/give`; hidden until `ANEDOT_GIVING_ENABLED=true`).
+- **Webhooks** — `POST /api/giving/webhook/anedot` verifies `X-Request-Signature` (HMAC-SHA256 hex over raw body), durable ledger tables, idempotency via `X-Request-Id`, fund allowlist, ACH settle-before-confirm policy, returns/refunds/chargebacks/voids removing confirmed gifts from history.
+- **Member history** — confirmed gifts write `GivingRecord` with `source: "anedot"` and unique `anedotDonationId` (Stripe / Zelle / Cash App / October recovery unchanged).
+
+Automated tests: `npm run test:giving:anedot`.
+
+**Live activation still requires Anedot underwriting approval, Finance-verified Action Page URL, webhook secret in Vercel, `ANEDOT_FUND_MAP`, and flipping env flags in order (see `.env.example`).**
 
 Provider references:
 - https://www.anedot.com/anedot-answers
