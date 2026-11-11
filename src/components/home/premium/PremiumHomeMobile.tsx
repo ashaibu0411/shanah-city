@@ -6,8 +6,7 @@ import { site } from "@/lib/site";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
 import { PremiumEngagementRail } from "@/components/home/premium/PremiumEngagementRail";
-import { PremiumHomeHero } from "@/components/home/premium/PremiumHomeHero";
-import { PremiumMobileLauncher } from "@/components/home/premium/PremiumQuickActions";
+import { DarkHomeWelcome } from "@/components/home/premium/DarkHomeWelcome";
 import { PremiumUpcomingEvents } from "@/components/home/premium/PremiumUpcomingEvents";
 import { PremiumMobileLiveCinema } from "@/components/home/premium/PremiumMobileLiveCinema";
 import { PremiumStoriesSection } from "@/components/home/premium/PremiumStoriesSection";
@@ -46,8 +45,7 @@ export function PremiumHomeMobile({
     <div className="premium-home premium-home--mobile animate-fade-in">
       <PremiumEngagementRail variant="mobile" />
 
-      <PremiumHomeHero
-        variant="mobile"
+      <DarkHomeWelcome
         firstName={firstName}
         campusLabel={campus.city}
         nextServiceLabel={nextService}
@@ -57,7 +55,6 @@ export function PremiumHomeMobile({
         <UrgentNewsHomeStrip alerts={urgentAlerts} variant="mobile" highlightAlertId={highlightAlertId} />
       ) : null}
 
-      <PremiumMobileLauncher />
 
       <PremiumUpcomingEvents rows={upcomingEventRows} variant="mobile" />
 
