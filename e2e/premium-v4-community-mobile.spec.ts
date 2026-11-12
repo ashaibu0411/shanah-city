@@ -7,6 +7,7 @@ import {
   assertNoRuntimeErrors,
   waitForImages,
 } from "./premium-v4-screenshot-helpers";
+import { signInForCommunityScreenshots } from "./helpers/community-screenshot-auth";
 
 const artifactDir = path.join(
   process.cwd(),
@@ -28,7 +29,19 @@ test.describe("Premium V4 community mobile screenshots", () => {
       const { pageErrors, consoleErrors } = attachErrorCollectors(page);
       await page.setViewportSize({ width: vp.width, height: vp.height });
 
+      const signedIn = await signInForCommunityScreenshots(page);
+      if (!signedIn) {
+        test.info().annotations.push({
+          type: "note",
+          description:
+            "Guest capture — set PLAYWRIGHT_COMMUNITY_EMAIL and PLAYWRIGHT_COMMUNITY_PASSWORD for signed-in feed/stories.",
+        });
+      }
+
       await page.goto("/community", { waitUntil: "networkidle" });
+      await page.waitForFunction(() =>
+        document.body.classList.contains("premium-v4-cinematic-active"),
+      );
       await page.waitForSelector(".sc-v4-community", { timeout: 90_000 });
       await page.waitForSelector("#community-refresh-title", { timeout: 30_000 });
       await page.waitForSelector(".community-page-stories", { timeout: 30_000 });
