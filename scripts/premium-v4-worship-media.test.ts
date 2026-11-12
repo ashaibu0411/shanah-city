@@ -31,6 +31,6 @@ assert.match(sermons, /<SermonsArchiveSection initialVideos=\{videos\}/);
 assert.match(archive, /<SermonsGrid videos=\{moreVideos\}/);
 assert.match(archive, /<SermonCard video=\{latest\}/);
 assert.doesNotMatch(offline, /<StreamPreviewImage/, "offline view cannot ghost preview text into messaging");
-assert.match(offline, /min-h-\\[17rem\\]/, "offline stage has room for CTA");
+assert.ok(offline.includes("min-h-[17rem]"), "offline stage has room for CTA");
 assert.match(live, /!showBrandedOffline/, "offline stage must suppress overlay badges");
 console.log("premium V4 worship/media visual-only guard OK");
