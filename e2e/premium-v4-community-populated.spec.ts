@@ -125,6 +125,13 @@ for (const vp of [
     await storyRing.click();
     const viewer = page.locator(".community-story-viewer");
     await expect(viewer).toBeVisible({ timeout: 30_000 });
+    // Wait for the viewer entrance fade before capturing; otherwise screenshots
+    // record a partially transparent frame over the Community feed.
+    await viewer.evaluate(async (element) => {
+      await Promise.all(element.getAnimations().map((animation) => animation.finished.catch(() => undefined)));
+    });
+    await expect.poll(() => viewer.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
+    await expect.poll(() => viewer.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe("rgb(0, 0, 0)");
     await page.screenshot({
       path: path.join(dir, `community-story-viewer-${vp.tag}-viewport.png`),
     });
