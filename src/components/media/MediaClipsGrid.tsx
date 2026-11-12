@@ -130,12 +130,12 @@ export function MediaClipsGrid({
   if (clips.length === 0) {
     return (
       <div className="space-y-3">
-        <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-night-950 via-night-900 to-night-800 p-5 text-white shadow-app-lg ring-1 ring-night-900/10">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-sand-300/80">
+        <div className="media-clips-v4-empty overflow-hidden rounded-2xl p-5 shadow-app-lg ring-1 ring-[#e9bc72]/28">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#e9bc72]/90">
             Shorts
           </p>
-          <h3 className="mt-1.5 font-display text-xl font-semibold">Clips are on the way</h3>
-          <p className="mt-2 text-sm leading-snug text-white/65">
+          <h3 className="mt-1.5 font-display text-xl font-semibold text-[#f6ebd5]">Clips are on the way</h3>
+          <p className="mt-2 text-sm leading-snug text-[#f6ebd5]/75">
             Worship moments and highlights will land here. Until then, catch new shorts on YouTube
             and Instagram.
           </p>
@@ -145,13 +145,15 @@ export function MediaClipsGrid({
             <ExternalLink
               key={link.id}
               href={link.url}
-              className="rounded-2xl bg-night-900 p-4 text-white shadow-app-md transition active:scale-[0.98]"
+              className="media-clips-v4-browse-link rounded-2xl p-4 shadow-app-md transition active:scale-[0.98]"
             >
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/50">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#e9bc72]/80">
                 {link.platform}
               </p>
-              <p className="mt-1.5 font-display text-base font-semibold leading-tight">{link.label}</p>
-              <p className="mt-2 text-xs font-semibold text-sand-300">Open ↗</p>
+              <p className="mt-1.5 font-display text-base font-semibold leading-tight text-[#f6ebd5]">
+                {link.label}
+              </p>
+              <p className="mt-2 text-xs font-semibold text-[#e9bc72]">Open ↗</p>
             </ExternalLink>
           ))}
         </div>
@@ -182,7 +184,7 @@ export function MediaClipsGrid({
       ) : null}
 
       <div>
-        <p className="mb-2 px-0.5 text-[11px] font-bold uppercase tracking-[0.22em] text-night-500">
+        <p className="media-clips-v4-more-label mb-2 px-0.5 text-[11px] font-bold uppercase tracking-[0.22em] text-night-500">
           More shorts
         </p>
         <div className={`grid gap-2.5 ${isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"}`}>

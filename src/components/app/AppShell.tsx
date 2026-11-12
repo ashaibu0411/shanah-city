@@ -28,6 +28,7 @@ import { BackgroundPlaybackProvider } from "@/components/app/BackgroundPlaybackP
 import { DevotionPlayerProvider } from "@/components/devotions/DevotionPlayerProvider";
 import { SermonPlayerProvider } from "@/components/sermons/SermonPlayerProvider";
 import { TopBar } from "@/components/app/TopBar";
+import { PremiumV4CinematicChrome } from "@/components/design/PremiumV4CinematicChrome";
 
 
 
@@ -49,6 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <BackgroundPlaybackProvider>
 
           <NativeAppBoot />
+          <PremiumV4CinematicChrome />
           <AppRefreshBridge />
           <AppNotificationBadgeSync />
 

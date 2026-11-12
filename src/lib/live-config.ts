@@ -34,6 +34,28 @@ export function canPlayInApp(preview: {
   return false;
 }
 
+/** Avoid channel live embeds when offline — they show “This video is unavailable.” */
+export function shouldUseInAppEmbed(
+  preview: {
+    id: string;
+    platform: string;
+    videoId?: string;
+    embedUrl?: string;
+  },
+  options?: { streamLive?: boolean },
+) {
+  if (!canPlayInApp(preview)) return false;
+  const streamLive = options?.streamLive ?? true;
+  if (preview.videoId) return true;
+  if (preview.platform === "YouTube" && liveVideoConfig.youtubeChannelId) {
+    return streamLive;
+  }
+  if (preview.platform === "Facebook" && preview.embedUrl) {
+    return streamLive;
+  }
+  return Boolean(getInAppEmbedUrl(preview));
+}
+
 export function getInAppEmbedUrl(preview: {
   id: string;
   platform: string;
