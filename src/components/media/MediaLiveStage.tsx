@@ -116,7 +116,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
         <div
           className={
             isMobile
-              ? "border-t border-night-900/8 bg-white px-3.5 py-3.5 text-night-900"
+              ? "media-live-v4-metadata border-t border-night-900/8 bg-white px-3.5 py-3.5 text-night-900"
               : "border-t border-white/8 bg-gradient-to-r from-night-950 via-night-900 to-night-800 px-3.5 py-3.5 text-white"
           }
         >
@@ -142,7 +142,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
       </div>
 
       <div>
-        <p className="mb-2 px-0.5 text-[11px] font-bold uppercase tracking-[0.22em] text-night-500">
+        <p className="media-live-v4-channels-label mb-2 px-0.5 text-[11px] font-bold uppercase tracking-[0.22em] text-night-500">
           Channels
         </p>
         <div className="flex gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -170,7 +170,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
                     />
                   </span>
                 </span>
-                <span className="max-w-[4.5rem] truncate text-[10px] font-semibold text-night-700">
+                <span className="media-live-v4-channel-name max-w-[4.5rem] truncate text-[10px] font-semibold text-night-700">
                   {preview.label.split(" ")[0]}
                 </span>
               </button>
@@ -181,12 +181,12 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
 
       <ExternalLink
         href={active.url}
-        className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-night-900 via-night-800 to-night-900 px-4 py-3 text-sm font-bold tracking-tight text-white shadow-app-md transition active:scale-[0.99]"
+        className="media-live-v4-channel-link flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-night-900 via-night-800 to-night-900 px-4 py-3 text-sm font-bold tracking-tight text-white shadow-app-md transition active:scale-[0.99]"
       >
         Open on {active.platform} ↗
       </ExternalLink>
 
-      <div className="mobile-surface !p-3">
+      <div className="media-live-v4-follow mobile-surface !p-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-night-500">
           Follow us
         </p>
