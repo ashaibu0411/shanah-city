@@ -39,8 +39,17 @@
 }
 .sc-v4-media .mobile-tab-pills button[aria-selected="true"],
 .sc-v4-media .mobile-tab-pills button[data-state="active"] {
-  color: #061329;
-  background: linear-gradient(110deg, #e9bc72, #c18bda);
+  color: #061329 !important;
+  background: #e9bc72 !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+.sc-v4-media .mobile-tab-pills button[aria-selected="false"] {
+  color: #f6ebd5 !important;
+  background: #1b2d4b !important;
+  background-image: none !important;
+  border: 1px solid rgba(233, 188, 114, 0.4) !important;
+  opacity: 1 !important;
 }
 /* Mobile player metadata is a deliberate navy surface instead of the old white strip. */
 .sc-v4-media .media-live-v4-metadata {

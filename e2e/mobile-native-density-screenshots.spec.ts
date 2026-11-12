@@ -7,6 +7,7 @@ import {
   assertNoRuntimeErrors,
   waitForImages,
 } from "./premium-v4-screenshot-helpers";
+import { assertOpaqueMobileChrome } from "./helpers/mobile-opaque-chrome";
 
 const artifactDir = path.join(process.cwd(), "docs/mobile-native-density-screenshots");
 
@@ -31,6 +32,7 @@ test.describe("Mobile native density screenshots", () => {
       await page.waitForSelector(".premium-home-v4, .app-main", { timeout: 90_000 });
       await page.waitForFunction(() => document.body.dataset.shell === "mobile");
       await assertNoHorizontalOverflow(page);
+      await assertOpaqueMobileChrome(page);
       await page.screenshot({
         path: path.join(artifactDir, `home-${vp.tag}-viewport.png`),
         fullPage: false,
@@ -38,6 +40,7 @@ test.describe("Mobile native density screenshots", () => {
       await page.evaluate(() => window.scrollTo(0, Math.min(720, document.body.scrollHeight * 0.45)));
       await page.waitForTimeout(200);
       await assertNoHorizontalOverflow(page);
+      await assertOpaqueMobileChrome(page);
       await page.screenshot({
         path: path.join(artifactDir, `home-${vp.tag}-scrolled.png`),
         fullPage: false,
@@ -46,6 +49,11 @@ test.describe("Mobile native density screenshots", () => {
       await page.goto("/live", { waitUntil: "networkidle" });
       await page.waitForSelector(".sc-v4-media, .mobile-media-hub, .app-main", { timeout: 90_000 });
       await assertNoHorizontalOverflow(page);
+      await assertOpaqueMobileChrome(page);
+      await expect(page.locator(".mobile-tab-pills button", { hasText: /^Live/i })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
       await page.screenshot({
         path: path.join(artifactDir, `live-${vp.tag}-viewport.png`),
         fullPage: false,
@@ -53,19 +61,29 @@ test.describe("Mobile native density screenshots", () => {
       await page.evaluate(() => window.scrollTo(0, Math.min(640, document.body.scrollHeight * 0.4)));
       await page.waitForTimeout(200);
       await assertNoHorizontalOverflow(page);
+      await assertOpaqueMobileChrome(page);
       await page.screenshot({
         path: path.join(artifactDir, `live-${vp.tag}-scrolled.png`),
         fullPage: false,
       });
 
-      await page.getByRole("button", { name: /Shorts/i }).click();
+      await page.locator(".mobile-tab-pills button", { hasText: /^Shorts/i }).click();
       await page
         .locator(".sc-v4-media, .mobile-media-hub")
         .getByText(/Shorts|Clips are on the way|Upload a vertical clip/i)
         .first()
         .waitFor({ state: "visible", timeout: 30_000 });
+      await expect(page.locator(".mobile-tab-pills button", { hasText: /^Shorts/i })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await expect(page.locator(".mobile-tab-pills button", { hasText: /^Live/i })).toHaveAttribute(
+        "aria-selected",
+        "false",
+      );
       await waitForImages(page, ".sc-v4-media, .mobile-media-hub", 0);
       await assertNoHorizontalOverflow(page);
+      await assertOpaqueMobileChrome(page);
       await page.screenshot({
         path: path.join(artifactDir, `shorts-${vp.tag}-viewport.png`),
         fullPage: false,
@@ -80,6 +98,7 @@ test.describe("Mobile native density screenshots", () => {
       await page.goto("/sermons", { waitUntil: "networkidle" });
       await page.waitForSelector(".sc-v4-sermons", { timeout: 90_000 });
       await assertNoHorizontalOverflow(page);
+      await assertOpaqueMobileChrome(page);
       await page.screenshot({
         path: path.join(artifactDir, `sermons-${vp.tag}-viewport.png`),
         fullPage: false,
@@ -87,6 +106,7 @@ test.describe("Mobile native density screenshots", () => {
       await page.evaluate(() => window.scrollTo(0, Math.min(800, document.body.scrollHeight * 0.55)));
       await page.waitForTimeout(200);
       await assertNoHorizontalOverflow(page);
+      await assertOpaqueMobileChrome(page);
       await page.screenshot({
         path: path.join(artifactDir, `sermons-${vp.tag}-scrolled.png`),
         fullPage: false,

@@ -23,4 +23,7 @@ assert.match(header, /sticky top-0/);
 assert.match(nav, /fixed bottom-0/);
 assert.doesNotMatch(css, /display:\s*none\s*!important/, "do not hide navigation or cards");
 assert.match(css, /padding-top:\s*\.75rem/);
+assert.match(css, /opacity:\s*1\s*!important/);
+assert.match(css, /aria-selected="false"/);
+assert.match(css, /backdrop-filter:\s*none\s*!important/);
 console.log("mobile native density/scroll layout guards OK");

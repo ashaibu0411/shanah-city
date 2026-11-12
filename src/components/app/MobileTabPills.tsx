@@ -13,6 +13,8 @@ type MobileTabPillsProps = {
   activeId: string;
   onChange: (id: string) => void;
   className?: string;
+  /** Cinematic media hub: pill look is driven by premium V4 CSS, not editorial Tailwind tokens. */
+  variant?: "default" | "cinematic";
 };
 
 export function MobileTabPills({
@@ -20,17 +22,29 @@ export function MobileTabPills({
   activeId,
   onChange,
   className = "",
+  variant = "default",
 }: MobileTabPillsProps) {
   return (
-    <div className={`mobile-tab-pill-bar flex flex-wrap gap-2 ${className}`}>
+    <div
+      className={`mobile-tab-pills mobile-tab-pill-bar flex flex-wrap gap-2 ${className}`}
+      role="tablist"
+    >
       {tabs.map((tab) => {
         const active = activeId === tab.id;
         return (
           <button
             key={tab.id}
             type="button"
+            role="tab"
+            aria-selected={active}
             onClick={() => onChange(tab.id)}
-            className={active ? editorialPremium.tabActive : editorialPremium.tabIdle}
+            className={
+              variant === "cinematic"
+                ? "mobile-tab-pill-cinematic rounded-full px-4 py-1.5 text-sm font-semibold transition active:scale-[0.98]"
+                : active
+                  ? editorialPremium.tabActive
+                  : editorialPremium.tabIdle
+            }
           >
             {tab.label}
             {tab.badge && tab.badge > 0 ? (

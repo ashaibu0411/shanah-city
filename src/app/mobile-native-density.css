@@ -175,7 +175,8 @@
   body.premium-v4-cinematic-active .sc-v4-media .mobile-tab-pills button[aria-selected="false"] {
     color: #f6ebd5 !important;
     background: #1b2d4b !important;
-    border: 1px solid rgba(233,188,114,.4);
+    background-image: none !important;
+    border: 1px solid rgba(233,188,114,.4) !important;
     opacity: 1 !important;
   }
 }
