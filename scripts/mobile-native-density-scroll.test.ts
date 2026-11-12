@@ -22,4 +22,5 @@ assert.match(main, /pb-\[calc\(6\.5rem\+env\(safe-area-inset-bottom\)\)\]/);
 assert.match(header, /sticky top-0/);
 assert.match(nav, /fixed bottom-0/);
 assert.doesNotMatch(css, /display:\s*none\s*!important/, "do not hide navigation or cards");
+assert.match(css, /padding-top:\s*\.75rem/);
 console.log("mobile native density/scroll layout guards OK");

@@ -25,6 +25,9 @@
   .app-main {
     /* Mobile nav is fixed; reserve its full height and the iOS safe area. */
     padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
+    padding-top: .75rem;
+    padding-left: max(.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(.75rem, env(safe-area-inset-right, 0px));
   }
   .app-main :is(img, video, iframe, canvas, svg) {
     max-width: 100%;
