@@ -69,6 +69,7 @@ for (const vp of [
     fs.mkdirSync(dir, { recursive: true });
     await page.screenshot({
       path: path.join(dir, `community-stories-populated-${vp.tag}-viewport.png`),
+      clip: { x: 0, y: 0, width: vp.width, height: Math.min(vp.height, 220) },
     });
     await page.screenshot({
       path: path.join(dir, `community-populated-${vp.tag}-viewport.png`),
@@ -110,6 +111,15 @@ for (const vp of [
       path: path.join(dir, `community-comments-${vp.tag}-viewport.png`),
     });
     await page.keyboard.press("Escape");
+
+    const filterRail = page.locator(".community-feed-tabs");
+    await filterRail.evaluate((el) => {
+      el.scrollLeft = Math.min(140, el.scrollWidth);
+    });
+    await page.waitForTimeout(150);
+    await page.screenshot({
+      path: path.join(dir, `community-filter-tabs-populated-${vp.tag}-viewport.png`),
+    });
 
     await page.evaluate(() => window.scrollTo({ top: 900, behavior: "instant" }));
     await page.waitForTimeout(200);

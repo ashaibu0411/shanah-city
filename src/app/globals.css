@@ -5229,9 +5229,9 @@ html.dark .community-comment-reaction-btn-active {
   display: block;
   height: 100%;
   width: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  background: #0a0a0a;
+  background: #061329;
 }
 
 .community-story-ring-unseen {
