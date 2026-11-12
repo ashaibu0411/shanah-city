@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
@@ -73,7 +73,7 @@ export function MediaHub({ clips, browseLinks, churchImages }: MediaHubProps) {
     setTab(deepLink.tab);
   }, [deepLink.tab]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setLayoutReady(true);
   }, []);
 

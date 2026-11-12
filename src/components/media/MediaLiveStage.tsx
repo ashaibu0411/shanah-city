@@ -88,7 +88,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
               />
             </div>
           ) : (
-            <LiveStreamPlayer preview={stagePreview} compact />
+            <LiveStreamPlayer preview={stagePreview} compact streamLive={showAsLive} />
           )}
           {!showStageCountdown ? (
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/50 via-transparent to-night-950/25" />

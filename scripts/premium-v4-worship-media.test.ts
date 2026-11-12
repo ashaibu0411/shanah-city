@@ -11,6 +11,8 @@ const sermons = read("src/app/sermons/page.tsx");
 const archive = read("src/components/sermons/SermonsArchiveSection.tsx");
 
 assert.match(globals, /@import "\.\/premium-v4-media\.css";/);
+assert.match(globals, /@import "\.\/premium-v4-cinematic-chrome\.css";/);
+assert.match(read("src/components/media/MediaLiveStage.tsx"), /streamLive=\{showAsLive\}/);
 assert.match(css, /\.sc-v4-media/);
 assert.match(css, /\.sc-v4-sermons/);
 assert.doesNotMatch(css, /^\s*(?:body|html|\.app-main)\s*\{/m, "no app-wide override");
