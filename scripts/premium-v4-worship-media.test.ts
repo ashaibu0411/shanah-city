@@ -9,6 +9,7 @@ const desktop = read("src/components/media/MediaHub.tsx");
 const live = read("src/components/media/MediaLiveStage.tsx");
 const sermons = read("src/app/sermons/page.tsx");
 const archive = read("src/components/sermons/SermonsArchiveSection.tsx");
+const offline = read("src/components/live/LiveStreamBrandedOffline.tsx");
 
 assert.match(globals, /@import "\.\/premium-v4-media\.css";/);
 assert.match(globals, /@import "\.\/premium-v4-cinematic-chrome\.css";/);
@@ -29,4 +30,7 @@ assert.match(sermons, /<PremiumV4Page theme="cinematic"/);
 assert.match(sermons, /<SermonsArchiveSection initialVideos=\{videos\}/);
 assert.match(archive, /<SermonsGrid videos=\{moreVideos\}/);
 assert.match(archive, /<SermonCard video=\{latest\}/);
+assert.doesNotMatch(offline, /<StreamPreviewImage/, "offline view cannot ghost preview text into messaging");
+assert.match(offline, /min-h-\\[17rem\\]/, "offline stage has room for CTA");
+assert.match(live, /!showBrandedOffline/, "offline stage must suppress overlay badges");
 console.log("premium V4 worship/media visual-only guard OK");
