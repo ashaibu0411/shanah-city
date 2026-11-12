@@ -69,11 +69,14 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
     }
   }, [scheduledLive, schedule]);
 
+  const showBrandedOffline = !showAsLive && !showStageCountdown && stagePreview.platform !== "Instagram";
   const stageFrameClass = showStageCountdown
     ? "relative w-full min-h-[10.5rem] overflow-hidden sm:min-h-[12rem]"
-    : isMobile
-      ? "relative w-full aspect-[16/10] bg-black"
-      : "relative w-full aspect-video bg-black";
+    : showBrandedOffline
+      ? "relative w-full min-h-[17rem] overflow-hidden bg-[#061329]"
+      : isMobile
+        ? "relative w-full aspect-[16/10] bg-black"
+        : "relative w-full aspect-video bg-black";
 
   return (
     <div className={isMobile ? "space-y-2.5" : "space-y-3"}>
@@ -90,9 +93,10 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
           ) : (
             <LiveStreamPlayer preview={stagePreview} compact streamLive={showAsLive} />
           )}
-          {!showStageCountdown ? (
+          {!showStageCountdown && !showBrandedOffline ? (
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/50 via-transparent to-night-950/25" />
           ) : null}
+          {!showBrandedOffline ? (
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
             {showAsLive ? (
               <Badge variant="live">
@@ -112,6 +116,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
               {stagePlatformLabel}
             </span>
           </div>
+          ) : null}
         </div>
         <div
           className={
