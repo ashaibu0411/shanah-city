@@ -1,0 +1,182 @@
+/*
+ * Mobile-native density and scroll safety pass.
+ * Single document-level vertical scroll. Horizontal overflow is allowed only
+ * inside explicit shelves (stories, tabs, channels), never on the whole page.
+ * Scope visual density to approved Premium V4 surfaces, not forms or workflows.
+ */
+@media (max-width: 767px) {
+  html {
+    width: 100%;
+    max-width: 100%;
+    scroll-padding-top: calc(3.75rem + env(safe-area-inset-top, 0px));
+    scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+  .app-shell-layout,
+  .app-main {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .app-main {
+    /* Mobile nav is fixed; reserve its full height and the iOS safe area. */
+    padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
+    padding-top: .75rem;
+    padding-left: max(.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(.75rem, env(safe-area-inset-right, 0px));
+  }
+  .app-main :is(img, video, iframe, canvas, svg) {
+    max-width: 100%;
+  }
+  .app-main :is(article, section, main, .community-feed, .community-feed-posts) {
+    min-width: 0;
+  }
+  .app-main :is(p, h1, h2, h3, h4, blockquote) {
+    overflow-wrap: break-word;
+  }
+  .app-main :is([id], .community-post-card) {
+    scroll-margin-top: calc(4rem + env(safe-area-inset-top, 0px));
+  }
+  .mobile-app-header {
+    /* An opaque header prevents posts visibly shining through it on scroll. */
+    position: sticky;
+    top: 0;
+    isolation: isolate;
+    z-index: 60;
+    background-clip: padding-box;
+  }
+  .app-mobile-bottom-nav {
+    z-index: 60;
+    isolation: isolate;
+  }
+
+  /* Eliminate "card inside card" proportions on cinematic sections. */
+  body.premium-v4-cinematic-active .sc-v4-media,
+  body.premium-v4-cinematic-active .sc-v4-sermons {
+    padding: .625rem;
+    border-radius: .75rem;
+  }
+  body.premium-v4-cinematic-active .mobile-media-hub {
+    gap: .55rem;
+  }
+  body.premium-v4-cinematic-active .mobile-media-hero {
+    min-height: 9rem;
+    border-radius: .875rem;
+    box-shadow: none;
+  }
+  body.premium-v4-cinematic-active .mobile-media-hero > div {
+    min-height: 9rem;
+  }
+  body.premium-v4-cinematic-active .sc-v4__header {
+    border-radius: .85rem;
+    padding: .875rem 1rem;
+    margin-bottom: .625rem;
+  }
+  body.premium-v4-cinematic-active .sc-v4__title {
+    font-size: clamp(1.25rem, 5vw, 1.5rem);
+  }
+  body.premium-v4-cinematic-active .sc-v4-sermon-feature {
+    border-radius: .85rem;
+    box-shadow: none;
+  }
+  body.premium-v4-cinematic-active .sc-v4-sermon-feature > div > div:last-child {
+    padding: 1rem;
+  }
+  body.premium-v4-cinematic-active .sc-v4-sermon-feature h2 {
+    font-size: clamp(1.06rem, 4.4vw, 1.35rem) !important;
+    line-height: 1.28;
+  }
+  body.premium-v4-cinematic-active .sc-v4-sermon-feature :is(p, h2) {
+    overflow-wrap: anywhere;
+  }
+  body.premium-v4-cinematic-active .media-live-v4-metadata {
+    padding: .75rem 1rem;
+  }
+  body.premium-v4-cinematic-active .media-live-v4-metadata h2 {
+    font-size: 1.08rem;
+  }
+
+  /* Home continues to show a true two-column, non-overflowing grid. */
+  body.premium-home-v4-active .premium-home-v4 {
+    gap: .85rem;
+    min-width: 0;
+    max-width: 100%;
+  }
+  body.premium-home-v4-active .ph4-tile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+    min-width: 0;
+  }
+  body.premium-home-v4-active .ph4-tile {
+    min-width: 0;
+  }
+  body.premium-home-v4-active .ph4-section {
+    min-width: 0;
+  }
+  /* Large backgrounds remain premium without oversized blocks of dead space. */
+  body.premium-home-v4-active .ph4-section__head {
+    margin-bottom: .5rem;
+  }
+  body.premium-home-v4-active .ph4-section__title {
+    font-size: 1.05rem;
+  }
+}
+@media (max-width: 767px) {
+  body.premium-home-v4-active .mobile-app-header,
+  body.premium-v4-cinematic-active .mobile-app-header {
+    background: #061329 !important;
+    backdrop-filter: none;
+    box-shadow: 0 1px 0 rgba(233,188,114,.18) !important;
+  }
+  body.premium-home-v4-active .app-mobile-bottom-nav,
+  body.premium-v4-cinematic-active .app-mobile-bottom-nav {
+    background: #061329 !important;
+    backdrop-filter: none;
+    box-shadow: 0 -1px 0 rgba(233,188,114,.18) !important;
+  }
+}
+
+/* Higher specificity than legacy mobile shell rules defined later in globals.css.
+ * Opaque chrome is required: scrolled cards must never be legible through tabs. */
+@media (max-width: 767px) {
+  body[data-shell="mobile"].premium-home-v4-active nav.app-mobile-bottom-nav.mobile-bottom-nav,
+  body[data-shell="mobile"].premium-v4-cinematic-active nav.app-mobile-bottom-nav.mobile-bottom-nav {
+    background: #061329 !important;
+    background-color: #061329 !important;
+    background-image: none !important;
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 -1px 0 rgba(233,188,114,.2) !important;
+  }
+  body[data-shell="mobile"].premium-home-v4-active nav.app-mobile-bottom-nav.mobile-bottom-nav::after,
+  body[data-shell="mobile"].premium-v4-cinematic-active nav.app-mobile-bottom-nav.mobile-bottom-nav::after {
+    background: #061329 !important;
+  }
+  body[data-shell="mobile"].premium-home-v4-active header.app-mobile-header.mobile-app-header,
+  body[data-shell="mobile"].premium-v4-cinematic-active header.app-mobile-header.mobile-app-header {
+    background: #061329 !important;
+    background-color: #061329 !important;
+    background-image: none !important;
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  /* Keep active/inactive media tabs visibly distinct in either mobile appearance. */
+  body.premium-v4-cinematic-active .sc-v4-media .mobile-tab-pills button[aria-selected="true"] {
+    color: #061329 !important;
+    background: #e9bc72 !important;
+    opacity: 1 !important;
+  }
+  body.premium-v4-cinematic-active .sc-v4-media .mobile-tab-pills button[aria-selected="false"] {
+    color: #f6ebd5 !important;
+    background: #1b2d4b !important;
+    background-image: none !important;
+    border: 1px solid rgba(233,188,114,.4) !important;
+    opacity: 1 !important;
+  }
+}

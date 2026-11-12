@@ -53,6 +53,7 @@ export function MobileMediaHub({
 
       <MobileTabPills
         className="mb-0.5"
+        variant="cinematic"
         tabs={[
           { id: "live", label: "Live" },
           { id: "clips", label: clips.length > 0 ? `Shorts · ${clips.length}` : "Shorts" },
