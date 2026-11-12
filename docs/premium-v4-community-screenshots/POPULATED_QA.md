@@ -4,11 +4,15 @@ The guest/empty screenshots in this folder do **not** validate populated Stories
 
 ## Prepare the test data
 
-For repeatable local QA (isolated `@shanah-city-qa.invalid` accounts only), after `npm run build && npm run start`:
+For repeatable local QA (isolated `@shanah-city-qa.invalid` accounts only), **confirm the application's `DATABASE_URL` is an isolated, disposable QA database rather than the connected shared staging or production database**, then start the app and explicitly opt in:
 
 ```sh
+PREMIUM_V4_FIXTURE_TEST_DATABASE_CONFIRMED=YES \\
+PLAYWRIGHT_BASE_URL='http://127.0.0.1:3000' \\
 node scripts/premium-v4-community-populated-fixture.mjs
 ```
+
+The script refuses public URLs and generates random test-account passwords. **Do not blindly set the opt-in flag without checking which database the local server is connected to.** Previously seeded synthetic staging accounts should be identified and cleaned up by an authorized administrator after verifying they are QA-only.
 
 Then export the printed `PLAYWRIGHT_COMMUNITY_EMAIL` / `PLAYWRIGHT_COMMUNITY_PASSWORD` and run the Playwright config below.
 
