@@ -206,3 +206,136 @@ html.dark .community-refresh-subtitle { color: #f6ede0; }
 html.dark .community-refresh-eyebrow,
 html.dark .community-refresh-kicker { color: #d7b37a; }
 html.dark .community-refresh .community-post-meta-type { color: #dfb186; }
+
+/*
+ * Premium V4 Community / Stories
+ * Scoped to the church-wide /community route only. Preserve warm, high-contrast
+ * feed/composer/form surfaces so long prayers and testimony text remain legible.
+ * Not applied to ministry feeds, couples discussions or modal portals.
+ */
+.community-refresh.sc-v4-community {
+  --sc-community-navy: #061329;
+  --sc-community-deep: #152744;
+  --sc-community-purple: #512d83;
+  --sc-community-violet: #8b4dd8;
+  --sc-community-gold: #e9bc72;
+  --sc-community-cream: #f6ebd5;
+  background:
+    radial-gradient(ellipse 85% 26rem at 100% 0%, rgba(81,45,131,.22), transparent),
+    linear-gradient(180deg, #061329 0%, #102340 27rem, #101c34 100%);
+  color: var(--sc-community-cream);
+  padding-block: .5rem 2rem;
+  border-radius: 1.25rem;
+  min-width: 0;
+}
+.community-refresh.sc-v4-community .community-refresh-hero,
+html.dark .community-refresh.sc-v4-community .community-refresh-hero {
+  background:
+    radial-gradient(ellipse 55% 90% at 110% 0%, rgba(139,77,216,.42), transparent 70%),
+    radial-gradient(ellipse 55% 85% at -10% 90%, rgba(233,188,114,.18), transparent 76%),
+    linear-gradient(115deg, #061329 10%, #152744 60%, #512d83 150%);
+  border: 1px solid rgba(233,188,114,.43);
+  box-shadow: 0 18px 42px rgba(0,0,0,.28), 0 0 26px rgba(81,45,131,.1);
+}
+.community-refresh.sc-v4-community .community-refresh-hero::after {
+  border-color: rgba(233,188,114,.16);
+}
+.community-refresh.sc-v4-community .community-refresh-eyebrow,
+html.dark .community-refresh.sc-v4-community .community-refresh-eyebrow {
+  color: #e9bc72;
+}
+.community-refresh.sc-v4-community .community-refresh-title,
+html.dark .community-refresh.sc-v4-community .community-refresh-title {
+  color: #fff;
+  max-width: 19ch;
+}
+.community-refresh.sc-v4-community .community-refresh-title span {
+  color: #e9bc72;
+}
+.community-refresh.sc-v4-community .community-refresh-subtitle,
+html.dark .community-refresh.sc-v4-community .community-refresh-subtitle {
+  color: #f6ebd5;
+}
+.community-refresh.sc-v4-community .community-refresh-kicker,
+html.dark .community-refresh.sc-v4-community .community-refresh-kicker {
+  border-top-color: rgba(233,188,114,.28);
+  color: #e9bc72;
+}
+.community-refresh.sc-v4-community .community-refresh-feed-eyebrow {
+  color: #e9bc72;
+}
+.community-refresh.sc-v4-community .community-refresh-feed-heading h2 {
+  color: #fff;
+}
+.community-refresh.sc-v4-community .community-refresh-feed-decoration {
+  color: #e9bc72;
+}
+.community-refresh.sc-v4-community .community-page-stories {
+  border-radius: 1rem;
+  margin-inline: .75rem;
+  padding: .25rem 0;
+}
+.community-refresh.sc-v4-community .community-feed-header {
+  border: 1px solid rgba(233,188,114,.32);
+  background: #fffcf5;
+  color: #252233;
+  box-shadow: 0 12px 28px rgba(0,0,0,.18);
+}
+.community-refresh.sc-v4-community .community-composer-trigger {
+  background: #fff;
+  border-color: #d8c5a6;
+  color: #252233;
+}
+.community-refresh.sc-v4-community .community-composer-actions {
+  border-top-color: #e6dac7;
+}
+.community-refresh.sc-v4-community .community-feed-tab {
+  background: #1b2d4b;
+  border: 1px solid rgba(233,188,114,.2);
+  color: #f6ebd5;
+}
+.community-refresh.sc-v4-community .community-feed-tab-active {
+  background: linear-gradient(105deg, #512d83, #7644ac);
+  border-color: rgba(233,188,114,.52);
+  color: #fff;
+  box-shadow: 0 5px 16px rgba(81,45,131,.34);
+}
+.community-refresh.sc-v4-community .community-feed-solid .community-post-card,
+body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-solid .community-post-card {
+  border-color: rgba(233,188,114,.35);
+  background: #fffcf5;
+  color: #252233;
+  box-shadow: 0 8px 28px rgba(0,0,0,.21);
+}
+.community-refresh.sc-v4-community .community-feed-solid .community-post-card-urgent {
+  border-color: #a95b3f;
+}
+.community-refresh.sc-v4-community .community-post-headline {
+  color: #252233;
+}
+.community-refresh.sc-v4-community .community-post-meta-type,
+html.dark .community-refresh.sc-v4-community .community-post-meta-type {
+  color: #512d83;
+}
+.community-refresh.sc-v4-community .community-post-ig-actions,
+.community-refresh.sc-v4-community .community-post-card--text-first .community-post-ig-actions {
+  border-top-color: #e6dac7;
+}
+.community-refresh.sc-v4-community .community-feed-empty {
+  background: #fffcf5;
+  color: #252233;
+  border: 1px solid #d8c5a6;
+}
+.community-refresh.sc-v4-community :is(a, button, textarea, input, select, [tabindex]):focus-visible {
+  outline: 3px solid #e9bc72;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .community-refresh.sc-v4-community { border-radius: 0; }
+  .community-refresh.sc-v4-community .community-refresh-hero { margin-inline: .75rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .community-refresh.sc-v4-community *, 
+  .community-refresh.sc-v4-community *::before,
+  .community-refresh.sc-v4-community *::after { transition-duration: .01ms !important; }
+}
