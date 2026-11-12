@@ -67,10 +67,25 @@ export function MediaHub({ clips, browseLinks, churchImages }: MediaHubProps) {
     [clips, searchParams],
   );
   const [tab, setTab] = useState<MediaTab>(deepLink.tab);
+  const [layoutReady, setLayoutReady] = useState(false);
 
   useEffect(() => {
     setTab(deepLink.tab);
   }, [deepLink.tab]);
+
+  useEffect(() => {
+    setLayoutReady(true);
+  }, []);
+
+  if (!layoutReady) {
+    return (
+      <div
+        className="min-h-[40vh] bg-[#061329]"
+        aria-busy="true"
+        aria-label="Loading media"
+      />
+    );
+  }
 
   if (isMobileApp) {
     return (
