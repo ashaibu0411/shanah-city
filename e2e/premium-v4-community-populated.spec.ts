@@ -29,12 +29,6 @@ function attachPopulatedErrorCollectors(page: Page) {
   return { pageErrors, consoleErrors };
 }
 
-/**
- * Opt-in validation with approved, synthetic staging data only.
- * DO NOT use real member credentials or capture private member information.
- * The test deliberately fails on empty data: an empty guest feed is NOT proof
- * that the populated Community and Stories design works.
- */
 const dir = path.join(process.cwd(), "docs/premium-v4-community-screenshots");
 const enabled = process.env.PLAYWRIGHT_COMMUNITY_SAFE_FIXTURES === "1";
 test.skip(!enabled, "Requires a staging test member and approved synthetic stories/posts");
@@ -57,52 +51,104 @@ for (const vp of [
     await expect.poll(async () => page.locator(".community-feed-posts .community-post-card").count()).toBeGreaterThanOrEqual(2);
     const imagePost = page.locator(".community-post-card img").first();
     await imagePost.scrollIntoViewIfNeeded();
-    await expect(imagePost).toBeAttached();
     await expect
       .poll(async () => imagePost.evaluate((img) => (img as HTMLImageElement).naturalWidth > 0))
       .toBeTruthy();
     await waitForImages(page, ".sc-v4-community", 0);
     await assertNoHorizontalOverflow(page);
     await assertOpaqueMobileChrome(page);
-    await assertNoRuntimeErrors(page, pageErrors, consoleErrors);
 
     fs.mkdirSync(dir, { recursive: true });
     await page.screenshot({
       path: path.join(dir, `community-stories-populated-${vp.tag}-viewport.png`),
-      clip: { x: 0, y: 0, width: vp.width, height: Math.min(vp.height, 220) },
+      clip: { x: 0, y: 0, width: vp.width, height: Math.min(vp.height, 230) },
     });
     await page.screenshot({
       path: path.join(dir, `community-populated-${vp.tag}-viewport.png`),
     });
+
+    const composerActions = page.locator(".community-composer-actions");
+    await composerActions.evaluate((el) => {
+      el.scrollLeft = Math.min(260, el.scrollWidth);
+    });
+    await page.waitForTimeout(150);
+    await assertNoHorizontalOverflow(page);
     await page.screenshot({
-      path: path.join(dir, `community-populated-${vp.tag}-full.png`),
-      fullPage: true,
+      path: path.join(dir, `community-composer-actions-${vp.tag}-viewport.png`),
+    });
+    await composerActions.evaluate((el) => {
+      el.scrollLeft = 0;
     });
 
-    // Open the actual member composer UI without submitting a post.
+    await page.getByRole("tab", { name: /^Praise$/i }).click();
+    await page.waitForTimeout(200);
+    await assertNoHorizontalOverflow(page);
+    await page.screenshot({
+      path: path.join(dir, `community-filter-selected-${vp.tag}-viewport.png`),
+    });
+
+    const filterRail = page.locator(".community-feed-tabs");
+    await filterRail.evaluate((el) => {
+      el.scrollLeft = Math.min(160, el.scrollWidth);
+    });
+    await page.waitForTimeout(150);
+    await page.screenshot({
+      path: path.join(dir, `community-filter-tabs-populated-${vp.tag}-viewport.png`),
+    });
+
+    await page.evaluate(() => window.scrollTo({ top: 720, behavior: "instant" }));
+    await page.waitForTimeout(200);
+    await assertOpaqueMobileChrome(page);
+    await page.screenshot({
+      path: path.join(dir, `community-populated-${vp.tag}-scrolled.png`),
+    });
+    await page.evaluate(() => window.scrollTo(0, 0));
+
     const trigger = page.locator(".community-composer-trigger").first();
-    await expect(trigger).toBeVisible();
     await trigger.click();
-    await expect(page.getByRole("dialog", { name: "Create post" })).toBeVisible();
+    const dialog = page.getByRole("dialog", { name: "Create post" });
+    await expect(dialog).toBeVisible();
     await page.screenshot({
       path: path.join(dir, `community-composer-${vp.tag}-viewport.png`),
     });
-    await page.keyboard.press("Escape");
+    const composerField = dialog.locator("textarea").first();
+    await composerField.click();
+    await composerField.fill("Synthetic QA draft — not submitted.");
     await page.waitForTimeout(200);
+    await page.screenshot({
+      path: path.join(dir, `community-composer-keyboard-${vp.tag}-viewport.png`),
+    });
+    await dialog.getByRole("button", { name: /Close composer/i }).click();
+    await expect(dialog).toBeHidden({ timeout: 15_000 });
 
     const storyRing = page.locator(".community-story-ring-unseen, .community-story-ring-seen").first();
     await storyRing.click();
-    await expect(page.locator(".community-story-viewer")).toBeVisible({ timeout: 30_000 });
+    const viewer = page.locator(".community-story-viewer");
+    await expect(viewer).toBeVisible({ timeout: 30_000 });
     await page.screenshot({
       path: path.join(dir, `community-story-viewer-${vp.tag}-viewport.png`),
     });
+    const nextStory = page.getByRole("button", { name: "Next story" });
+    if (await nextStory.isVisible().catch(() => false)) {
+      await nextStory.click();
+      await page.waitForTimeout(250);
+      await page.screenshot({
+        path: path.join(dir, `community-story-viewer-slide-${vp.tag}-viewport.png`),
+      });
+    }
     await page.keyboard.press("Escape");
-    await expect(page.locator(".community-story-viewer")).toBeHidden({ timeout: 15_000 });
+    await expect(viewer).toBeHidden({ timeout: 15_000 });
+
+    const likeBtn = page.locator(".community-feed-posts .community-post-card").first().getByRole("button", { name: /^Like$/i });
+    if (await likeBtn.isVisible().catch(() => false)) {
+      await likeBtn.click();
+      await page.waitForTimeout(150);
+    }
 
     const commentControl = page
       .locator(".community-feed-posts .community-post-card")
       .first()
-      .getByRole("button", { name: /comment/i });
+      .getByRole("button", { name: /^Comment$/i });
     await commentControl.click();
     await expect(page.getByRole("dialog").filter({ hasText: /comment/i })).toBeVisible({
       timeout: 30_000,
@@ -110,24 +156,17 @@ for (const vp of [
     await page.screenshot({
       path: path.join(dir, `community-comments-${vp.tag}-viewport.png`),
     });
+    const replyToggle = page.getByRole("button", { name: /reply/i }).first();
+    if (await replyToggle.isVisible().catch(() => false)) {
+      await replyToggle.click();
+      await page.waitForTimeout(150);
+    }
+    await page.screenshot({
+      path: path.join(dir, `community-replies-${vp.tag}-viewport.png`),
+    });
     await page.keyboard.press("Escape");
 
-    const filterRail = page.locator(".community-feed-tabs");
-    await filterRail.evaluate((el) => {
-      el.scrollLeft = Math.min(140, el.scrollWidth);
-    });
-    await page.waitForTimeout(150);
-    await page.screenshot({
-      path: path.join(dir, `community-filter-tabs-populated-${vp.tag}-viewport.png`),
-    });
-
-    await page.evaluate(() => window.scrollTo({ top: 900, behavior: "instant" }));
-    await page.waitForTimeout(200);
     await assertNoHorizontalOverflow(page);
-    await assertOpaqueMobileChrome(page);
-    await page.screenshot({
-      path: path.join(dir, `community-populated-${vp.tag}-scrolled.png`),
-    });
     await assertNoRuntimeErrors(page, pageErrors, consoleErrors);
   });
 }

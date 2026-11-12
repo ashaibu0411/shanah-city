@@ -36,6 +36,14 @@ PLAYWRIGHT_BASE_URL='http://127.0.0.1:3000' \
 npx playwright test -c playwright.premium-v4-community-populated.config.ts
 ```
 
-The test **fails deliberately** if the feed has fewer than two post cards, lacks a visible image, or has fewer than two story rings. It captures the signed-in Community viewport, full page and opened composer at 390×844 and 430×932. These results are additional evidence alongside the existing guest/empty screenshots, not a replacement.
+The test **fails deliberately** if the feed has fewer than two post cards, lacks a visible image, or has fewer than two story rings. It captures populated feed, stories row, composer (including focused field), story viewer slides, comments/replies, filter selection, horizontal composer/filter rails, and scrolled chrome at 390×844 and 430×932.
+
+## Cleanup synthetic QA users
+
+After verifying screenshots, remove only `@shanah-city-qa.invalid` accounts from the **same disposable database**:
+
+```sh
+PREMIUM_V4_QA_CLEANUP_CONFIRMED=YES npx tsx scripts/premium-v4-community-qa-cleanup.ts
+```
 
 Save only **synthetic-data** screenshots in this PR. Screenshots must be manually reviewed for unintended private content before committing. Never commit login credentials.

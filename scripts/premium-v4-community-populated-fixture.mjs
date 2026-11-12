@@ -80,21 +80,30 @@ async function signup(name, email) {
   });
 }
 
-function localSampleImageUrl() {
-  const sample = path.join(process.cwd(), "public", "uploads", "community", "images", "qa-premium-v4-sample.png");
-  if (!fs.existsSync(sample)) {
-    throw new Error("Missing public/uploads/community/images/qa-premium-v4-sample.png — run before npm run build.");
+function localFixtureImageUrl() {
+  const imageDir = path.join(process.cwd(), "public", "uploads", "community", "images");
+  const preferred = fs
+    .readdirSync(imageDir)
+    .filter((name) => name.startsWith("qa-premium-v4-") && name.endsWith(".png") && name !== "qa-premium-v4-sample.png")
+    .sort();
+  const pick = preferred[0] ?? "qa-premium-v4-sample.png";
+  const file = path.join(imageDir, pick);
+  if (!fs.existsSync(file)) {
+    throw new Error("Missing QA community image under public/uploads/community/images/");
   }
-  return "/uploads/community/images/qa-premium-v4-sample.png";
+  return `/uploads/community/images/${pick}`;
 }
 
 async function main() {
   await signup("QA Member A", emailA);
-  const mediaUrl = localSampleImageUrl();
-  await api("POST", "/api/community", {
+  const mediaUrl = localFixtureImageUrl();
+  const praisePost = await api("POST", "/api/community", {
     content: "Synthetic testimony — grateful for how God is moving in our church family.",
     type: "praise",
   });
+  const postId = praisePost.post?.id;
+  if (!postId) throw new Error("Fixture could not create praise post.");
+
   await api("POST", "/api/community", {
     content: "Worship night snapshot (synthetic QA asset).",
     type: "general",
@@ -102,9 +111,29 @@ async function main() {
   });
 
   await signup("QA Member B", emailB);
+  const withComment = await api("POST", "/api/community", {
+    action: "comment",
+    postId,
+    content: "Synthetic QA comment — praying with you!",
+  });
+  const parentCommentId = withComment.post?.comments?.[0]?.id;
+  if (parentCommentId) {
+    await api("POST", "/api/community", {
+      action: "reply",
+      postId,
+      parentCommentId,
+      content: "Synthetic QA reply — amen!",
+    });
+  }
+
   await api("POST", "/api/community/statuses", {
     mediaType: "text",
     caption: "Synthetic QA story — celebrating community this week.",
+  });
+  await api("POST", "/api/community/statuses", {
+    mediaType: "image",
+    mediaUrl,
+    caption: "Synthetic QA photo story.",
   });
 
   console.log(`PLAYWRIGHT_COMMUNITY_EMAIL=${emailA}`);
