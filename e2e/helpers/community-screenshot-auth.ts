@@ -6,6 +6,7 @@ export async function signInForCommunityScreenshots(page: Page) {
   const password = process.env.PLAYWRIGHT_COMMUNITY_PASSWORD;
   if (!email || !password) return false;
 
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   const res = await page.request.post("/api/auth", {
     data: { action: "signin", email, password },
   });

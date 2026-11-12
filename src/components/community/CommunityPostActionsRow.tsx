@@ -19,6 +19,8 @@ type CommunityPostActionsRowProps = {
   extraEnd?: ReactNode;
   /** When engagement stats render above the action row. */
   hideReactionSummary?: boolean;
+  /** Equal-width single row (Facebook-style feed). */
+  layout?: "default" | "social";
 };
 
 export function CommunityPostActionsRow({
@@ -34,9 +36,11 @@ export function CommunityPostActionsRow({
   shareLabel = "Share",
   extraEnd,
   hideReactionSummary = false,
+  layout = "default",
 }: CommunityPostActionsRowProps) {
+  const social = layout === "social";
   return (
-    <div className="community-post-actions-row">
+    <div className={`community-post-actions-row${social ? " community-post-actions-row--social" : ""}`}>
       <div className="community-post-actions-row__main">
         <button
           type="button"

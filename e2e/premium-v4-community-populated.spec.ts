@@ -44,7 +44,7 @@ for (const vp of [
     const { pageErrors, consoleErrors } = attachPopulatedErrorCollectors(page);
     await page.setViewportSize({ width: vp.width, height: vp.height });
     expect(await signInForCommunityScreenshots(page)).toBe(true);
-    await page.goto("/community", { waitUntil: "networkidle" });
+    await page.goto("/community", { waitUntil: "domcontentloaded" });
     await expect(page.locator(".sc-v4-community")).toBeVisible();
     await expect(page.locator(".community-stories-strip--portrait, .community-stories-strip")).toBeVisible();
     await expect

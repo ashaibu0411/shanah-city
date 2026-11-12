@@ -1078,6 +1078,7 @@ export function CommunityPostCard({
             onOpenComments={openCommentsSheet}
             onShare={sharePost}
             hideReactionSummary={socialFeed}
+            layout={socialFeed ? "social" : "default"}
           />
 
           {commentCount > 0 ? (

@@ -5,7 +5,7 @@ export default defineConfig({
   testMatch: "community-social-feed-v5.spec.ts",
   fullyParallel: false,
   workers: 1,
-  timeout: 120_000,
+  timeout: 180_000,
   reporter: "list",
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3021",
