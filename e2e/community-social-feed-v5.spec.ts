@@ -58,25 +58,26 @@ for (const vp of [
 
     await page.screenshot({
       path: path.join(dir, `community-v5-top-${vp.tag}.png`),
-      clip: { x: 0, y: 0, width: vp.width, height: Math.min(vp.height, 320) },
     });
 
     await expect.poll(() => page.locator(".community-portrait-story-card").count()).toBeGreaterThan(2);
 
     const storiesTrack = page.locator(".community-stories-row");
+    await storiesTrack.scrollIntoViewIfNeeded();
     await storiesTrack.evaluate((el) => {
       el.scrollLeft = Math.min(220, el.scrollWidth);
     });
     await page.waitForTimeout(200);
     await page.screenshot({
       path: path.join(dir, `community-v5-stories-scrolled-${vp.tag}.png`),
-      clip: { x: 0, y: 0, width: vp.width, height: Math.min(vp.height, 320) },
     });
 
-    await expect(page.locator(".community-v5-highlights")).toBeVisible({ timeout: 30_000 });
+    const highlights = page.locator(".community-v5-highlights");
+    await expect(highlights).toBeVisible({ timeout: 30_000 });
+    await highlights.scrollIntoViewIfNeeded();
+    await expect(highlights.locator(".community-v5-highlight-card").first()).toBeVisible();
     await page.screenshot({
       path: path.join(dir, `community-v5-highlights-${vp.tag}.png`),
-      clip: { x: 0, y: 0, width: vp.width, height: Math.min(vp.height, 360) },
     });
 
     await expect.poll(() => page.locator(".community-feed-posts .community-post-card").count()).toBeGreaterThanOrEqual(2);
