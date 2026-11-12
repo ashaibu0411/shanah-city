@@ -4,7 +4,15 @@ The guest/empty screenshots in this folder do **not** validate populated Stories
 
 ## Prepare the test data
 
-In your local development or isolated staging environment, use existing normal UI/API actions with a dedicated test account to create:
+For repeatable local QA (isolated `@shanah-city-qa.invalid` accounts only), after `npm run build && npm run start`:
+
+```sh
+node scripts/premium-v4-community-populated-fixture.mjs
+```
+
+Then export the printed `PLAYWRIGHT_COMMUNITY_EMAIL` / `PLAYWRIGHT_COMMUNITY_PASSWORD` and run the Playwright config below.
+
+Alternatively, use existing normal UI/API actions with a dedicated test account to create:
 - Two or more public church-wide Community posts: one with a licensed/owned sample image and one text testimony.
 - At least one active public Story from a *different* synthetic test account (so the story row contains more than the personal Add Story ring).
 - Optionally a second image and one non-sensitive reaction/comment.
