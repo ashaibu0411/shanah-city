@@ -139,3 +139,43 @@
     box-shadow: 0 -1px 0 rgba(233,188,114,.18) !important;
   }
 }
+
+/* Higher specificity than legacy mobile shell rules defined later in globals.css.
+ * Opaque chrome is required: scrolled cards must never be legible through tabs. */
+@media (max-width: 767px) {
+  body[data-shell="mobile"].premium-home-v4-active nav.app-mobile-bottom-nav.mobile-bottom-nav,
+  body[data-shell="mobile"].premium-v4-cinematic-active nav.app-mobile-bottom-nav.mobile-bottom-nav {
+    background: #061329 !important;
+    background-color: #061329 !important;
+    background-image: none !important;
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 -1px 0 rgba(233,188,114,.2) !important;
+  }
+  body[data-shell="mobile"].premium-home-v4-active nav.app-mobile-bottom-nav.mobile-bottom-nav::after,
+  body[data-shell="mobile"].premium-v4-cinematic-active nav.app-mobile-bottom-nav.mobile-bottom-nav::after {
+    background: #061329 !important;
+  }
+  body[data-shell="mobile"].premium-home-v4-active header.app-mobile-header.mobile-app-header,
+  body[data-shell="mobile"].premium-v4-cinematic-active header.app-mobile-header.mobile-app-header {
+    background: #061329 !important;
+    background-color: #061329 !important;
+    background-image: none !important;
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  /* Keep active/inactive media tabs visibly distinct in either mobile appearance. */
+  body.premium-v4-cinematic-active .sc-v4-media .mobile-tab-pills button[aria-selected="true"] {
+    color: #061329 !important;
+    background: #e9bc72 !important;
+    opacity: 1 !important;
+  }
+  body.premium-v4-cinematic-active .sc-v4-media .mobile-tab-pills button[aria-selected="false"] {
+    color: #f6ebd5 !important;
+    background: #1b2d4b !important;
+    border: 1px solid rgba(233,188,114,.4);
+    opacity: 1 !important;
+  }
+}
