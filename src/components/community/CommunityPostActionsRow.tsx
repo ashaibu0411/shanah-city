@@ -17,6 +17,8 @@ type CommunityPostActionsRowProps = {
   onShare?: () => void;
   shareLabel?: string;
   extraEnd?: ReactNode;
+  /** When engagement stats render above the action row. */
+  hideReactionSummary?: boolean;
 };
 
 export function CommunityPostActionsRow({
@@ -31,6 +33,7 @@ export function CommunityPostActionsRow({
   onShare,
   shareLabel = "Share",
   extraEnd,
+  hideReactionSummary = false,
 }: CommunityPostActionsRowProps) {
   return (
     <div className="community-post-actions-row">
@@ -75,7 +78,7 @@ export function CommunityPostActionsRow({
         {extraEnd}
       </div>
 
-      {reactionTotal > 0 ? (
+      {!hideReactionSummary && reactionTotal > 0 ? (
         <button
           type="button"
           onClick={onOpenReactions}

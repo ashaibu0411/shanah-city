@@ -46,8 +46,12 @@ for (const vp of [
     expect(await signInForCommunityScreenshots(page)).toBe(true);
     await page.goto("/community", { waitUntil: "networkidle" });
     await expect(page.locator(".sc-v4-community")).toBeVisible();
-    await expect(page.locator(".community-stories-strip")).toBeVisible();
-    await expect.poll(async () => page.locator(".community-story-ring").count()).toBeGreaterThan(1);
+    await expect(page.locator(".community-stories-strip--portrait, .community-stories-strip")).toBeVisible();
+    await expect
+      .poll(async () =>
+        (await page.locator(".community-portrait-story-card, .community-story-ring").count()),
+      )
+      .toBeGreaterThan(1);
     await expect.poll(async () => page.locator(".community-feed-posts .community-post-card").count()).toBeGreaterThanOrEqual(2);
     const mediaImage = page.locator(".community-post-media img").first();
     await expect(mediaImage).toBeVisible({ timeout: 30_000 });
@@ -120,7 +124,11 @@ for (const vp of [
     await dialog.getByRole("button", { name: /Close composer/i }).click();
     await expect(dialog).toBeHidden({ timeout: 15_000 });
 
-    const storyRing = page.locator(".community-story-ring-unseen, .community-story-ring-seen").first();
+    const storyRing = page
+      .locator(
+        ".community-portrait-story-card--unseen, .community-portrait-story-card--seen, .community-story-ring-unseen, .community-story-ring-seen",
+      )
+      .first();
     await storyRing.click();
     const viewer = page.locator(".community-story-viewer");
     await expect(viewer).toBeVisible({ timeout: 30_000 });

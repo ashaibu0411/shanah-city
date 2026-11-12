@@ -1,8 +1,8 @@
 import { CommunityFeed } from "@/components/community/CommunityFeed";
-import { CommunityStatusRow } from "@/components/community/CommunityStatusRow";
 import { PollsSection } from "@/components/polls/PollsSection";
 import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
 import "./community-refresh.css";
+import "./community-social-feed-v5.css";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { attachCanManageToPosts } from "@/lib/community-post-access";
@@ -54,21 +54,8 @@ export default async function CommunityPage({
       : undefined;
 
   return (
-    <div className="community-page community-refresh sc-v4-community min-w-0 max-w-full overflow-x-clip">
-      <div className="community-page-solid">
-        <section className="community-refresh-hero" aria-labelledby="community-refresh-title">
-          <p className="community-refresh-eyebrow">SHANAH CITY / TOGETHER</p>
-          <h1 id="community-refresh-title" className="community-refresh-title">
-            Our community<span>.</span> Our stories<span>.</span>
-          </h1>
-          <p className="community-refresh-subtitle">
-            Share what God is doing, stand with one another in prayer, and stay close to your church family.
-          </p>
-          <p className="community-refresh-kicker">A place to belong, encourage, and celebrate.</p>
-        </section>
-        <div className="community-page-stories">
-          <CommunityStatusRow />
-        </div>
+    <div className="community-page community-refresh sc-v4-community sc-v5-social-feed min-w-0 max-w-full overflow-x-clip">
+      <div className="community-page-solid community-v5-solid">
         <MarkFeedRead feed="community" />
         <PollsSection
           initialPolls={polls.filter((poll) => !poll.targetGroupId)}
@@ -76,18 +63,12 @@ export default async function CommunityPage({
           compact
           hideWhenEmpty
         />
-        <div className="community-refresh-feed-heading">
-          <div>
-            <p className="community-refresh-feed-eyebrow">THE LATEST</p>
-            <h2>From our church family</h2>
-          </div>
-          <span className="community-refresh-feed-decoration" aria-hidden>✦</span>
-        </div>
         <CommunityFeed
           initialPosts={postsWithCommentAccess}
           initialFilter={initialFilter}
           initialGroupId={groupId || undefined}
           groupFilterLabel={groupFilterLabel}
+          stackedLayout="v5"
         />
       </div>
     </div>
