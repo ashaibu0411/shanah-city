@@ -561,7 +561,12 @@ export function CommunityComposer({
             className="community-composer-action"
           >
             <UpdateIcon />
-            <span className="community-composer-action-label">Share an update</span>
+            <span className="community-composer-action-label community-composer-action-label--long">
+              Share an update
+            </span>
+            <span className="community-composer-action-label community-composer-action-label--short">
+              Update
+            </span>
           </button>
           <button
             type="button"
@@ -574,7 +579,12 @@ export function CommunityComposer({
             className="community-composer-action"
           >
             <PrayerIcon />
-            <span className="community-composer-action-label">Ask for prayer</span>
+            <span className="community-composer-action-label community-composer-action-label--long">
+              Ask for prayer
+            </span>
+            <span className="community-composer-action-label community-composer-action-label--short">
+              Prayer
+            </span>
           </button>
           <button
             type="button"
@@ -589,7 +599,12 @@ export function CommunityComposer({
             <span className="text-lg leading-none" aria-hidden>
               📖
             </span>
-            <span className="community-composer-action-label">Share testimony</span>
+            <span className="community-composer-action-label community-composer-action-label--long">
+              Share testimony
+            </span>
+            <span className="community-composer-action-label community-composer-action-label--short">
+              Testimony
+            </span>
           </button>
           <button
             type="button"
@@ -602,7 +617,12 @@ export function CommunityComposer({
             className="community-composer-action"
           >
             <PraiseIcon />
-            <span className="community-composer-action-label">Post praise</span>
+            <span className="community-composer-action-label community-composer-action-label--long">
+              Post praise
+            </span>
+            <span className="community-composer-action-label community-composer-action-label--short">
+              Praise
+            </span>
           </button>
           <button
             type="button"
@@ -621,7 +641,12 @@ export function CommunityComposer({
             className="community-composer-action"
           >
             <PhotoIcon />
-            <span className="community-composer-action-label">Upload photo</span>
+            <span className="community-composer-action-label community-composer-action-label--long">
+              Upload photo
+            </span>
+            <span className="community-composer-action-label community-composer-action-label--short">
+              Photo
+            </span>
           </button>
         </div>
       </div>

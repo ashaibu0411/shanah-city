@@ -1,0 +1,20 @@
+import { defineConfig, devices } from "@playwright/test";
+
+export default defineConfig({
+  testDir: "e2e",
+  testMatch: "premium-v4-community-mobile.spec.ts",
+  fullyParallel: false,
+  workers: 1,
+  timeout: 180_000,
+  reporter: "list",
+  use: {
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000",
+    trace: "off",
+    extraHTTPHeaders: process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      ? {
+          "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+        }
+      : undefined,
+  },
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+});

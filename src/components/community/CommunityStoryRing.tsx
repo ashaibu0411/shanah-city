@@ -76,7 +76,7 @@ export function CommunityStoryRing({
               <img
                 src={previewUrl}
                 alt=""
-                className="community-story-ring-photo"
+                className="community-story-ring-photo object-cover"
                 onError={() => setPreviewFailed(true)}
               />
             ) : showPreview && preview.mediaType === "video" ? (
@@ -90,7 +90,10 @@ export function CommunityStoryRing({
               />
             ) : isTextPreview && textPreview ? (
               <div className="community-story-ring-text-preview">
-                <span>{textPreview.slice(0, 48)}{textPreview.length > 48 ? "…" : ""}</span>
+                <span className="community-story-ring-text-preview-copy">
+                  {textPreview.slice(0, 56)}
+                  {textPreview.length > 56 ? "…" : ""}
+                </span>
               </div>
             ) : isAudioPreview ? (
               <div className="community-story-ring-audio-preview" aria-hidden>

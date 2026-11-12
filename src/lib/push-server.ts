@@ -77,12 +77,16 @@ function shouldDropWebPushSubscription(error: unknown) {
 
 function configureWebPush() {
   if (!isWebPushConfigured()) return false;
-  webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT!,
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!,
-  );
-  return true;
+  try {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT!,
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+      process.env.VAPID_PRIVATE_KEY!,
+    );
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function sendTestPushToUser(
