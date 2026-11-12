@@ -1,0 +1,30 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const read = (path: string) => readFileSync(path, "utf8");
+const css = read("src/app/premium-v4-media.css");
+const globals = read("src/app/globals.css");
+const mobile = read("src/components/media/MobileMediaHub.tsx");
+const desktop = read("src/components/media/MediaHub.tsx");
+const live = read("src/components/media/MediaLiveStage.tsx");
+const sermons = read("src/app/sermons/page.tsx");
+const archive = read("src/components/sermons/SermonsArchiveSection.tsx");
+
+assert.match(globals, /@import "\.\/premium-v4-media\.css";/);
+assert.match(css, /\.sc-v4-media/);
+assert.match(css, /\.sc-v4-sermons/);
+assert.doesNotMatch(css, /^\s*(?:body|html|\.app-main)\s*\{/m, "no app-wide override");
+assert.match(mobile, /data-sc-theme="cinematic"/);
+assert.match(desktop, /data-sc-theme="cinematic"/);
+assert.match(mobile, /<MediaLiveStage layout="mobile"\s*\/>/, "keep live stage");
+assert.match(mobile, /<MediaClipUploadPanel compact\s*\/>/, "keep uploads");
+assert.match(mobile, /<MediaClipsGrid/, "keep shorts");
+assert.match(desktop, /mediaDeepLinkFromSearch/, "keep deep links");
+assert.match(live, /<LiveStreamPlayer/, "keep live playback");
+assert.match(live, /<LiveStreamNotifyPanel/, "keep live notifications");
+assert.match(live, /<LiveStreamSchedulePanel/, "keep live schedule");
+assert.match(sermons, /<PremiumV4Page theme="cinematic"/);
+assert.match(sermons, /<SermonsArchiveSection initialVideos=\{videos\}/);
+assert.match(archive, /<SermonsGrid videos=\{moreVideos\}/);
+assert.match(archive, /<SermonCard video=\{latest\}/);
+console.log("premium V4 worship/media visual-only guard OK");
