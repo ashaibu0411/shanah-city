@@ -54,7 +54,7 @@ export default async function CommunityPage({
       : undefined;
 
   return (
-    <div className="community-page community-refresh min-w-0 max-w-full overflow-x-clip">
+    <div className="community-page community-refresh sc-v4-community min-w-0 max-w-full overflow-x-clip">
       <div className="community-page-solid">
         <section className="community-refresh-hero" aria-labelledby="community-refresh-title">
           <p className="community-refresh-eyebrow">SHANAH CITY / TOGETHER</p>
