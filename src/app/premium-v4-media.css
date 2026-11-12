@@ -1,0 +1,148 @@
+/*
+ * Premium V4 Worship & Media — opt-in presentation only.
+ * No stream/player/upload logic or shared app shell behavior is changed.
+ */
+.sc-v4-media,
+.sc-v4-sermons {
+  --sc-v4-bg: #061329;
+  --sc-v4-surface: #1b2d4b;
+  --sc-v4-text: #f6ebd5;
+  --sc-v4-focus: #e9bc72;
+  position: relative;
+  padding: 1rem;
+  border-radius: 1.25rem;
+  min-width: 0;
+  overflow-x: clip;
+}
+.sc-v4-media {
+  background:
+    radial-gradient(ellipse at 90% 0%, rgba(139, 77, 216, .20), transparent 48%),
+    radial-gradient(ellipse at 0% 55%, rgba(233, 188, 114, .10), transparent 48%),
+    linear-gradient(180deg, #061329, #152744 55%, #061329);
+}
+.sc-v4-sermons {
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(81, 45, 131, .23), transparent 55%),
+    linear-gradient(160deg, #061329, #152744 65%, #061329);
+}
+.sc-v4-media .mobile-media-hero {
+  border: 1px solid rgba(233, 188, 114, .42);
+  border-radius: 1.1rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .3), 0 0 24px rgba(81, 45, 131, .16);
+}
+.sc-v4-media .mobile-media-hero h1 {
+  color: #fff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, .6);
+}
+.sc-v4-media .mobile-media-hero p {
+  color: #f6ebd5;
+}
+.sc-v4-media .mobile-tab-pills button[aria-selected="true"],
+.sc-v4-media .mobile-tab-pills button[data-state="active"] {
+  color: #061329 !important;
+  background: #e9bc72 !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+.sc-v4-media .mobile-tab-pills button[aria-selected="false"] {
+  color: #f6ebd5 !important;
+  background: #1b2d4b !important;
+  background-image: none !important;
+  border: 1px solid rgba(233, 188, 114, 0.4) !important;
+  opacity: 1 !important;
+}
+/* Mobile player metadata is a deliberate navy surface instead of the old white strip. */
+.sc-v4-media .media-live-v4-metadata {
+  background: linear-gradient(115deg, #1b2d4b, #512d83 160%) !important;
+  color: #f6ebd5 !important;
+  border-top: 1px solid rgba(233, 188, 114, .28) !important;
+}
+.sc-v4-media .media-live-v4-metadata :is(h2, p) {
+  color: #f6ebd5 !important;
+}
+.sc-v4-media .media-live-v4-channels-label,
+.sc-v4-media .media-live-v4-channel-name {
+  color: #f6ebd5 !important;
+}
+.sc-v4-media .media-live-v4-follow {
+  background: #1b2d4b !important;
+  border: 1px solid rgba(233, 188, 114, .28);
+  color: #f6ebd5;
+}
+.sc-v4-media .media-live-v4-follow p {
+  color: #e9bc72 !important;
+}
+.sc-v4-media .media-live-v4-channel-link {
+  border: 1px solid rgba(233, 188, 114, .38);
+  background: linear-gradient(100deg, #512d83, #152744) !important;
+  color: #fff !important;
+}
+/* Video archive retains watch/listen controls and their live state. */
+.sc-v4-sermons .sc-v4__header {
+  margin-bottom: 1rem;
+}
+.sc-v4-sermons .sc-v4-sermon-feature {
+  border: 1px solid rgba(233, 188, 114, .34);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .25);
+}
+.sc-v4-sermons .sc-v4-sermon-feature :is(h2, p) {
+  color: #f6ebd5;
+}
+.sc-v4-sermons .sc-v4-sermon-archive-title,
+.sc-v4-sermons .sc-v4-sermon-archive-label {
+  color: #f6ebd5 !important;
+}
+.sc-v4-sermons .sc-v4-sermon-archive-label {
+  color: #e9bc72 !important;
+}
+.sc-v4-sermons .sc-v4-sermon-channel-link {
+  color: #e9bc72 !important;
+}
+.sc-v4-sermons .sc-v4-sermon-empty {
+  background: #1b2d4b !important;
+  color: #f6ebd5 !important;
+  border: 1px solid rgba(233, 188, 114, .25);
+}
+.sc-v4-sermons .sc-v4-sermon-feature > div {
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(139, 77, 216, .22), transparent 50%),
+  linear-gradient(145deg, #1b2d4b, #512d83 55%, #061329) !important;
+  color: #f6ebd5 !important;
+  border: 1px solid rgba(233, 188, 114, .32);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, .32);
+}
+.sc-v4-sermons .sc-v4-sermon-feature h2 {
+  font-size: clamp(1.125rem, 4.6vw, 1.625rem) !important;
+  line-height: 1.25;
+  color: #f6ebd5 !important;
+}
+.sc-v4-sermons .sc-v4-sermon-feature .text-sand-400,
+.sc-v4-sermons .sc-v4-sermon-feature .text-sand-100,
+.sc-v4-sermons .sc-v4-sermon-feature .text-sand-300 {
+  color: #f6ebd5 !important;
+}
+.sc-v4-sermons .sc-v4-sermon-feature .text-sand-300 {
+  opacity: .82;
+}
+.sc-v4-sermons .sc-v4-sermon-feature a.rounded-xl.bg-sand-100 {
+  background: linear-gradient(110deg, #e9bc72, #c18bda) !important;
+  color: #061329 !important;
+}
+.sc-v4-media .media-clips-v4-empty {
+  background:
+    radial-gradient(ellipse at 90% 0%, rgba(139, 77, 216, .22), transparent 48%),
+    linear-gradient(155deg, #1b2d4b, #512d83 45%, #061329);
+}
+.sc-v4-media .media-clips-v4-browse-link {
+  background: linear-gradient(145deg, #152744, #1b2d4b);
+  border: 1px solid rgba(233, 188, 114, .28);
+  color: #f6ebd5;
+}
+.sc-v4-media .media-clips-v4-more-label {
+  color: #f6ebd5 !important;
+}
+@media (min-width: 768px) {
+  .sc-v4-media, .sc-v4-sermons { padding: 1.5rem; border-radius: 1.5rem; }
+}

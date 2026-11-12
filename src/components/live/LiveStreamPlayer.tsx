@@ -3,18 +3,48 @@
 import type { StreamPreview } from "@/lib/types";
 import { LiveVideoPlayer } from "@/components/live/LiveVideoPlayer";
 import { StreamPreviewImage } from "@/components/live/StreamPreviewImage";
-import { canPlayInApp } from "@/lib/live-config";
+import { LiveStreamBrandedOffline } from "@/components/live/LiveStreamBrandedOffline";
+import { canPlayInApp, shouldUseInAppEmbed } from "@/lib/live-config";
 import { ExternalLink } from "@/components/ui";
 
 type LiveStreamPlayerProps = {
   preview: StreamPreview;
   subtitle?: string;
   compact?: boolean;
+  /** When false, channel-level embeds are replaced with a branded offline stage. */
+  streamLive?: boolean;
 };
 
-export function LiveStreamPlayer({ preview, subtitle, compact }: LiveStreamPlayerProps) {
-  const player = canPlayInApp(preview) ? (
+export function LiveStreamPlayer({
+  preview,
+  subtitle,
+  compact,
+  streamLive = true,
+}: LiveStreamPlayerProps) {
+  const useEmbed = shouldUseInAppEmbed(preview, { streamLive });
+
+  const player = useEmbed ? (
     <LiveVideoPlayer preview={preview} />
+  ) : preview.platform === "Instagram" ? (
+    <div className="relative aspect-video bg-night-900">
+      <StreamPreviewImage preview={preview} alt={preview.label} />
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-night-950/55 px-6 text-center text-white">
+        <p className={`font-display font-semibold ${compact ? "text-xl" : "text-2xl"}`}>
+          {preview.label}
+        </p>
+        <p className="mt-2 max-w-sm text-sm text-white/80">
+          Catch highlights and stories on Instagram — best in the app.
+        </p>
+        <ExternalLink
+          href={preview.url}
+          className="mt-5 inline-flex rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-night-900 transition hover:bg-sand-100"
+        >
+          Open Instagram
+        </ExternalLink>
+      </div>
+    </div>
+  ) : canPlayInApp(preview) ? (
+    <LiveStreamBrandedOffline preview={preview} compact={compact} />
   ) : (
     <div className="relative aspect-video bg-night-900">
       <StreamPreviewImage preview={preview} alt={preview.label} />

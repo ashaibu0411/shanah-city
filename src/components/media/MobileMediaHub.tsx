@@ -43,7 +43,7 @@ export function MobileMediaHub({
     liveStream.facebook.isLive;
 
   return (
-    <div className="mobile-media-hub space-y-3">
+    <div className="mobile-media-hub sc-v4 sc-v4-media space-y-3" data-sc-theme="cinematic">
       <MobileMediaHero
         tab={tab}
         anyLive={anyLive}
@@ -53,6 +53,7 @@ export function MobileMediaHub({
 
       <MobileTabPills
         className="mb-0.5"
+        variant="cinematic"
         tabs={[
           { id: "live", label: "Live" },
           { id: "clips", label: clips.length > 0 ? `Shorts · ${clips.length}` : "Shorts" },

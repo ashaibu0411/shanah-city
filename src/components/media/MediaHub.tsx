@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
@@ -67,10 +67,25 @@ export function MediaHub({ clips, browseLinks, churchImages }: MediaHubProps) {
     [clips, searchParams],
   );
   const [tab, setTab] = useState<MediaTab>(deepLink.tab);
+  const [layoutReady, setLayoutReady] = useState(false);
 
   useEffect(() => {
     setTab(deepLink.tab);
   }, [deepLink.tab]);
+
+  useLayoutEffect(() => {
+    setLayoutReady(true);
+  }, []);
+
+  if (!layoutReady) {
+    return (
+      <div
+        className="min-h-[40vh] bg-[#061329]"
+        aria-busy="true"
+        aria-label="Loading media"
+      />
+    );
+  }
 
   if (isMobileApp) {
     return (
@@ -86,7 +101,7 @@ export function MediaHub({ clips, browseLinks, churchImages }: MediaHubProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="sc-v4 sc-v4-media space-y-2" data-sc-theme="cinematic">
       <section className="relative mb-5 overflow-hidden rounded-[2rem] bg-night-950 px-6 py-8 text-white shadow-2xl shadow-indigo-950/30">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(251,191,36,0.28),transparent_42%),radial-gradient(circle_at_85%_10%,rgba(244,114,182,0.28),transparent_40%),radial-gradient(circle_at_70%_90%,rgba(99,102,241,0.35),transparent_45%)]" />
         <div className="relative">
