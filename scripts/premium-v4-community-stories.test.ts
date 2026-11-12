@@ -7,6 +7,8 @@ const css = readFileSync("src/app/community/community-refresh.css", "utf8");
 const feed = readFileSync("src/components/community/CommunityFeed.tsx", "utf8");
 
 assert.match(globals, /@import "\.\/premium-v4-cinematic-chrome\.css";/);
+assert.match(globals, /@import "\.\/mobile-native-density\.css";/, "keep mobile scroll/chrome from main");
+assert.match(css, /Native mobile social density/, "native mobile Community density pass");
 assert.match(page, /community-refresh sc-v4-community/, "V4 is opt-in on church-wide Community");
 assert.match(css, /community-refresh-feed-heading[\s\S]*margin.*1rem/);
 assert.match(css, /\.community-refresh\.sc-v4-community/, "V4 CSS remains route-scoped");

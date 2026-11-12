@@ -9,6 +9,7 @@ import {
   waitForImages,
   IGNORABLE_CONSOLE,
 } from "./premium-v4-screenshot-helpers";
+import { assertOpaqueMobileChrome } from "./helpers/mobile-opaque-chrome";
 
 /** Local/staging QA often lacks Vercel Blob; avatar fetches may 500 without affecting Community UI. */
 const POPULATED_IGNORE = new RegExp(
@@ -62,9 +63,13 @@ for (const vp of [
       .toBeTruthy();
     await waitForImages(page, ".sc-v4-community", 0);
     await assertNoHorizontalOverflow(page);
+    await assertOpaqueMobileChrome(page);
     await assertNoRuntimeErrors(page, pageErrors, consoleErrors);
 
     fs.mkdirSync(dir, { recursive: true });
+    await page.screenshot({
+      path: path.join(dir, `community-stories-populated-${vp.tag}-viewport.png`),
+    });
     await page.screenshot({
       path: path.join(dir, `community-populated-${vp.tag}-viewport.png`),
     });
@@ -80,6 +85,38 @@ for (const vp of [
     await expect(page.getByRole("dialog", { name: "Create post" })).toBeVisible();
     await page.screenshot({
       path: path.join(dir, `community-composer-${vp.tag}-viewport.png`),
+    });
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(200);
+
+    const storyRing = page.locator(".community-story-ring-unseen, .community-story-ring-seen").first();
+    await storyRing.click();
+    await expect(page.locator(".community-story-viewer")).toBeVisible({ timeout: 30_000 });
+    await page.screenshot({
+      path: path.join(dir, `community-story-viewer-${vp.tag}-viewport.png`),
+    });
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".community-story-viewer")).toBeHidden({ timeout: 15_000 });
+
+    const commentControl = page
+      .locator(".community-feed-posts .community-post-card")
+      .first()
+      .getByRole("button", { name: /comment/i });
+    await commentControl.click();
+    await expect(page.getByRole("dialog").filter({ hasText: /comment/i })).toBeVisible({
+      timeout: 30_000,
+    });
+    await page.screenshot({
+      path: path.join(dir, `community-comments-${vp.tag}-viewport.png`),
+    });
+    await page.keyboard.press("Escape");
+
+    await page.evaluate(() => window.scrollTo({ top: 900, behavior: "instant" }));
+    await page.waitForTimeout(200);
+    await assertNoHorizontalOverflow(page);
+    await assertOpaqueMobileChrome(page);
+    await page.screenshot({
+      path: path.join(dir, `community-populated-${vp.tag}-scrolled.png`),
     });
     await assertNoRuntimeErrors(page, pageErrors, consoleErrors);
   });

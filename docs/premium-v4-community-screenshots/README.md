@@ -5,11 +5,17 @@ npm run build
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3021 npx playwright test -c playwright.premium-v4-community.config.ts
 ```
 
-Optional signed-in captures (member with stories/posts in the connected database):
+Guest captures: main viewport, stories row, feed, filter tabs, scrolled chrome, and full-page at **390×844** and **430×932**. Also smoke-checks Devotions, Giving, Marriage Prep, and Admin for horizontal overflow.
+
+## Populated / signed-in captures (synthetic QA only)
+
+See [POPULATED_QA.md](./POPULATED_QA.md). Requires isolated fixture DB + `PLAYWRIGHT_COMMUNITY_SAFE_FIXTURES=1`:
 
 ```bash
-PLAYWRIGHT_COMMUNITY_EMAIL=you@example.com PLAYWRIGHT_COMMUNITY_PASSWORD=... ^
-  PLAYWRIGHT_BASE_URL=http://127.0.0.1:3021 npx playwright test -c playwright.premium-v4-community.config.ts
+PLAYWRIGHT_COMMUNITY_SAFE_FIXTURES=1 ^
+PLAYWRIGHT_COMMUNITY_EMAIL=... PLAYWRIGHT_COMMUNITY_PASSWORD=... ^
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3021 ^
+npx playwright test -c playwright.premium-v4-community-populated.config.ts
 ```
 
-Captures `/community` hero + Stories, scrolled feed, and full-page at 390×844 and 430×932.
+Populated artifacts: feed, stories, story viewer, composer, comments/replies sheet, and scrolled feed.

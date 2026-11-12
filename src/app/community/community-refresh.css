@@ -371,3 +371,179 @@ html.dark .community-refresh.sc-v4-community .community-post-meta-type {
   .community-refresh.sc-v4-community *::before,
   .community-refresh.sc-v4-community *::after { transition-duration: .01ms !important; }
 }
+
+/* Native mobile social density — church-wide V4 Community only (not couples/ministry feeds). */
+@media (max-width: 767px) {
+  body[data-shell="mobile"] .community-refresh.sc-v4-community {
+    --community-feed-bleed: 0.75rem;
+    padding-block: 0 0.5rem;
+    border-radius: 0;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-refresh-hero {
+    margin: 0 0 0.35rem;
+    padding: 0.85rem 1rem 0.9rem;
+    border-radius: 0;
+    border-inline: 0;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-refresh-hero::after {
+    display: none;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-refresh-title {
+    margin: 0.35rem 0 0.45rem;
+    font-size: 1.35rem;
+    max-width: 100%;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-refresh-subtitle {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    max-width: 100%;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-refresh-kicker {
+    display: none;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-refresh-feed-heading {
+    margin: 0.45rem 0.75rem 0.3rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-refresh-feed-eyebrow,
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-refresh-feed-decoration {
+    display: none;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-refresh-feed-heading h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-page-stories {
+    margin-inline: 0;
+    max-width: 100%;
+    padding: 0;
+    border-bottom: 1px solid rgba(233, 188, 114, 0.16);
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-stories-strip {
+    background: transparent;
+    border-bottom: none;
+    padding: 0.3rem 0 0.4rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-story-ring {
+    height: 3.65rem;
+    width: 3.65rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-story-ring-unseen {
+    background: linear-gradient(45deg, #e9bc72 0%, #8b4dd8 55%, #512d83 100%);
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-story-ring-seen {
+    background: rgba(233, 188, 114, 0.38);
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-story-label {
+    font-size: 0.625rem;
+    max-width: 3.75rem;
+    color: #f6ebd5;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-solid {
+    margin-inline: 0;
+    max-width: 100%;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-header {
+    margin-inline: 0;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(233, 188, 114, 0.22);
+    box-shadow: none;
+    background: #fffcf5;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-composer-bar {
+    padding: 0.6rem 0.75rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-composer-actions {
+    margin-top: 0.5rem;
+    padding-top: 0.55rem;
+    gap: 0.25rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-tabs-sticky {
+    margin-inline: 0.75rem;
+    max-width: calc(100% - 1.5rem);
+    top: calc(env(safe-area-inset-top, 0px) + var(--app-sticky-offset, 3.5rem));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: #061329;
+    border-color: rgba(233, 188, 114, 0.28);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-tabs {
+    min-height: 0;
+    padding: 0.35rem 0.5rem;
+    gap: 0.35rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-tab {
+    min-height: 2.1rem;
+    padding: 0.38rem 0.85rem;
+    font-size: 0.8125rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-solid .community-feed-posts {
+    gap: 0;
+    padding-inline: 0;
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+    background: transparent;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-solid .community-post-card {
+    --community-card-pad: 0.75rem;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(233, 188, 114, 0.16);
+    box-shadow: none;
+    margin-inline: 0;
+    background: #fffcf5;
+    max-width: 100%;
+    min-width: 0;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-post-header {
+    padding-top: 0.6rem;
+    padding-bottom: 0.3rem;
+    gap: 0.5rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-post-meta {
+    font-size: 0.6875rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-post-headline {
+    margin: 0.1rem 0 0.4rem;
+    font-size: 1rem;
+    line-height: 1.32;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-post-content {
+    font-size: 0.9375rem;
+    line-height: 1.52;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-post-ig-actions {
+    margin: 0;
+    padding: 0.35rem 0 0.45rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-post-ig-time {
+    padding-bottom: 0.6rem;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-page-solid,
+  body[data-shell="mobile"] .community-refresh.sc-v4-community {
+    overflow-x: clip;
+    max-width: 100%;
+    min-width: 0;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community :is(
+      .community-post-content,
+      .community-post-caption,
+      .community-post-author,
+      .community-post-meta,
+      .community-story-label
+    ) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-solid .community-media-carousel {
+    margin-inline: calc(var(--community-card-pad) * -1);
+    width: calc(100% + 2 * var(--community-card-pad));
+    max-width: none;
+  }
+  body[data-shell="mobile"] .community-refresh.sc-v4-community .community-feed-solid .community-post-card > .border-y {
+    margin-inline: calc(var(--community-card-pad) * -1);
+    width: calc(100% + 2 * var(--community-card-pad));
+    max-width: none;
+  }
+}

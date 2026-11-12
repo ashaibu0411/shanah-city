@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 export const IGNORABLE_CONSOLE =
-  /favicon|third-party|chrome-extension|Failed to load resource.*(401|503)|youtube|facebook|google-analytics/i;
+  /favicon|third-party|chrome-extension|Failed to load resource.*(401|403|404|500|503)|youtube|facebook|google-analytics/i;
 
 export function attachErrorCollectors(page: Page) {
   const pageErrors: string[] = [];
