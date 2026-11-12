@@ -5,12 +5,24 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { randomBytes } from "node:crypto";
 
 const base = (process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3021").replace(/\/$/, "");
 const ts = Date.now();
-const password = "PremiumV4Qa!2026";
+const password = `Qa!${randomBytes(18).toString("base64url")}9`;
 const emailA = `premium-v4-qa-a-${ts}@shanah-city-qa.invalid`;
 const emailB = `premium-v4-qa-b-${ts}@shanah-city-qa.invalid`;
+
+// An explicit opt-in is required because localhost can still point to a shared
+// staging/production DB through DATABASE_URL. Never run against the live site.
+const allowedHosts = new Set(["localhost", "127.0.0.1", "::1"]);
+const baseUrl = new URL(base);
+if (!allowedHosts.has(baseUrl.hostname)) {
+  throw new Error("Fixture seeding is local-only. Never run this script against a public/staging/production URL.");
+}
+if (process.env.PREMIUM_V4_FIXTURE_TEST_DATABASE_CONFIRMED !== "YES") {
+  throw new Error("Refusing fixture seed: first verify DATABASE_URL points to a disposable QA database, then set PREMIUM_V4_FIXTURE_TEST_DATABASE_CONFIRMED=YES.");
+}
 
 const jar = new Map();
 
