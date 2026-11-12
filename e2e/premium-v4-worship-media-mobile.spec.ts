@@ -33,6 +33,28 @@ test.describe("Premium V4 worship & media mobile screenshots", () => {
       await page.waitForSelector(".sc-v4-media", { timeout: 30_000 });
       await waitForImages(page, ".sc-v4-media", 0);
       await assertNoHorizontalOverflow(page);
+      await expect(page.getByText("We're between broadcasts")).toBeVisible();
+      await expect(page.getByRole("link", { name: /Watch on (YouTube|Facebook)/i })).toBeVisible();
+      const badgesOverlap = await page.evaluate(() => {
+        const badges = Array.from(
+          document.querySelectorAll(".media-live-v4-metadata, .overflow-hidden.rounded-2xl span.rounded-full"),
+        )
+          .filter((el) => el.getBoundingClientRect().width > 0)
+          .map((el) => el.getBoundingClientRect());
+        for (let i = 0; i < badges.length; i++) {
+          for (let j = i + 1; j < badges.length; j++) {
+            const a = badges[i];
+            const b = badges[j];
+            const overlap =
+              a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+            const area = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+            const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+            if (overlap && area > 8 && height > 8) return true;
+          }
+        }
+        return false;
+      });
+      expect(badgesOverlap, "live stage badges must not overlap").toBe(false);
       await assertNoRuntimeErrors(page, pageErrors, consoleErrors);
 
       await page.screenshot({
