@@ -49,11 +49,10 @@ for (const vp of [
     await expect(page.locator(".community-stories-strip")).toBeVisible();
     await expect.poll(async () => page.locator(".community-story-ring").count()).toBeGreaterThan(1);
     await expect.poll(async () => page.locator(".community-feed-posts .community-post-card").count()).toBeGreaterThanOrEqual(2);
-    const imagePost = page.locator(".community-post-card img").first();
-    await imagePost.scrollIntoViewIfNeeded();
-    await expect
-      .poll(async () => imagePost.evaluate((img) => (img as HTMLImageElement).naturalWidth > 0))
-      .toBeTruthy();
+    const mediaImage = page.locator(".community-post-media img").first();
+    await expect(mediaImage).toBeVisible({ timeout: 30_000 });
+    await mediaImage.scrollIntoViewIfNeeded();
+    await waitForImages(page, ".community-post-media", 1);
     await waitForImages(page, ".sc-v4-community", 0);
     await assertNoHorizontalOverflow(page);
     await assertOpaqueMobileChrome(page);
@@ -132,6 +131,13 @@ for (const vp of [
     });
     await expect.poll(() => viewer.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
     await expect.poll(() => viewer.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe("rgb(0, 0, 0)");
+    await expect.poll(() =>
+      page.evaluate(() => {
+        const viewerEl = document.querySelector(".community-story-viewer");
+        const hit = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+        return Boolean(viewerEl && hit && viewerEl.contains(hit));
+      }),
+    ).toBe(true);
     await page.screenshot({
       path: path.join(dir, `community-story-viewer-${vp.tag}-viewport.png`),
     });

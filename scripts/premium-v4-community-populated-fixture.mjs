@@ -81,13 +81,8 @@ async function signup(name, email) {
 }
 
 function localFixtureImageUrl() {
-  const imageDir = path.join(process.cwd(), "public", "uploads", "community", "images");
-  const preferred = fs
-    .readdirSync(imageDir)
-    .filter((name) => name.startsWith("qa-premium-v4-") && name.endsWith(".png") && name !== "qa-premium-v4-sample.png")
-    .sort();
-  const pick = preferred[0] ?? "qa-premium-v4-sample.png";
-  const file = path.join(imageDir, pick);
+  const pick = "qa-premium-v4-sample.png";
+  const file = path.join(process.cwd(), "public", "uploads", "community", "images", pick);
   if (!fs.existsSync(file)) {
     throw new Error("Missing QA community image under public/uploads/community/images/");
   }
