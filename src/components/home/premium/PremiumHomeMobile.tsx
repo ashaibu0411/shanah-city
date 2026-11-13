@@ -47,7 +47,7 @@ export function PremiumHomeMobile({
           homeV3
         />
 
-        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} editorial />
+        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} editorial heroV3 />
 
         <PremiumHomeV3QuickTiles />
         <PremiumHomeV4GiveBar />

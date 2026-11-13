@@ -1,32 +1,33 @@
-# Premium Home V3 — visual comparison notes
+# Premium Home V3 — visual comparison (fidelity pass)
 
-**Reference:** owner-approved mobile mockup (deep midnight-indigo, violet gradients, warm gold accents).
+**Approved reference (side-by-side):** [approved-reference-mockup.jpg](./approved-reference-mockup.jpg)
 
-## Implemented to match reference
+Compare captured PNGs in this folder against that mockup at **390×844** and **430×932**.
 
-| Area | Status |
-|------|--------|
-| Section order (Stories → Welcome → tiles → Give → Events → Sermon → Check-in → visitor CTA) | Matches |
-| V3 color tokens (`--home-v3-*`) on body chrome | Matches spec tokens |
-| Stories above hero, V6 portrait rail | Matches |
-| Quick tiles: Worship Live, Daily Devotions, Events, **Get Connected** (no Community promo card) | Matches |
-| Bottom nav: Home · Devotions · Media · More (Community in More sheet) | Matches |
-| Hero mountain asset | Reuses `public/home/premium-v4-mountain-hero.jpg` (church-approved synthetic mountain still) |
+## Pass 2 corrections (`visual fidelity` commit)
 
-## Known remaining differences (owner tuning)
+| Area | Mockup target | Implementation after pass |
+|------|----------------|---------------------------|
+| Page background | Midnight indigo + soft violet blooms | Layered gradient + fixed radial ambient (`app-main::before`); overrides V4 navy chrome |
+| Header / bottom nav | Indigo/violet glass, gold active Home | V3-specific overrides on shared chrome; violet top edge on nav |
+| Hero | Sunset mountains, violet/gold grade, gold greeting, pill CTA | `ph4-hero--v3` crop, image filter, violet scrim, gold-outline service pill, serif title |
+| Quick tiles | Photo-forward, purple overlay, gold rim | Violet scrims, gold border, image saturation, chevrons |
+| Give | Violet panel + gold light streak | Gradient panel, heart emblem, subtitle line |
+| Events / Sermon | Compact violet panels, date badges | Panel surfaces, purple date chips |
+| Check-in / Connect | Violet strip + gold Open / outline Connect | `mobile-card` + guest pill styling |
+| Stories (signed-in) | Rings + Create Story/Reel + scroll | Synthetic QA Playwright captures + viewer |
 
-1. **Background depth** — Live gradient is tuned to spec tokens; mockup has stronger diagonal violet light streaks on Give and global ambience. Further pass may add a subtle fixed background layer.
-2. **Typography** — Section titles use existing `font-display` (project serif); mockup lettering may appear slightly larger or tighter on “Upcoming Events” / “Give”.
-3. **Story ring colors** — Community V6 gradient rings are shared with `/community`; home rail inherits V6 (gold/magenta/violet) without a separate home-only ring shader.
-4. **Tile arrows** — Gold chevrons added on V3 tiles; mockup arrows are very subtle on some tiles.
-5. **Header wordmark** — Uses production `MobileAppHeader` + dark logo; spacing matches V4 compact header, not a pixel-perfect PSD export.
+## Remaining differences (owner tuning)
 
-## Functional risks (regression watch)
+1. **Hero photograph** — Still uses production `premium-v4-mountain-hero.jpg`, color-graded in CSS. Not a byte-identical export of the mockup PSD still.
+2. **Global violet streak** — Give bar has a localized gold streak; mockup shows a slightly stronger diagonal across the full page width.
+3. **Story ring shader** — Shared Community V6 ring CSS; not duplicated for home-only cosmetics.
+4. **Status bar / device chrome** — Playwright captures omit iOS status-bar styling from the design comp.
 
-- **Bottom nav:** Community removed from primary tabs only; route still in More menu via `useAppNavItems`.
-- **Get Connected** tile links to `/community` (same entry as former Community tile).
-- **No schema / payment / Community V6 page CSS changes** on this branch.
+## Signed-in evidence required for release
 
-## Hero asset note
+- `premium-home-v3-full-mobile-signed-in-*.png`
+- `premium-home-v3-stories-signed-in-*.png`
+- `premium-home-v3-story-viewer-signed-in-*.png`
 
-No separate new mountain master file was added in this branch. If the owner supplies a higher-resolution master matching the mockup exactly, swap `premiumV4HeroMountainImage` in `home-premium-v4.ts` or override in `home-premium-v3.ts`.
+Guest captures alone are not sufficient for final approval.

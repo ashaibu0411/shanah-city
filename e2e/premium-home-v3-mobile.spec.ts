@@ -128,18 +128,73 @@ const needsFixture = process.env.PLAYWRIGHT_COMMUNITY_SAFE_FIXTURES === "1";
 test.describe("Premium Home V3 mobile screenshots (signed-in)", () => {
   test.skip(!needsFixture, "Requires synthetic QA fixture (PLAYWRIGHT_COMMUNITY_SAFE_FIXTURES=1)");
 
-  test("signed-in stories rail 390x844", async ({ page }) => {
-    if (!process.env.PLAYWRIGHT_COMMUNITY_EMAIL || !process.env.PLAYWRIGHT_COMMUNITY_PASSWORD) {
-      throw new Error("Provide synthetic QA credentials.");
-    }
-    await page.setViewportSize({ width: 390, height: 844 });
-    expect(await signInForCommunityScreenshots(page)).toBe(true);
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".premium-home-v3", { timeout: 90_000 });
-    await expect(page.locator(".community-portrait-story-card--reel")).toBeVisible();
-    await expect(page.locator(".community-portrait-story-card--create")).toBeVisible();
-    await page.locator(".premium-stories--home-v3").first().screenshot({
-      path: path.join(artifactDir, "premium-home-v3-stories-signed-in-390x844.png"),
+  for (const vp of [
+    { width: 390, height: 844, tag: "390x844" },
+    { width: 430, height: 932, tag: "430x932" },
+  ]) {
+    test(`home premium v3 signed-in ${vp.tag}`, async ({ page }) => {
+      if (!process.env.PLAYWRIGHT_COMMUNITY_EMAIL || !process.env.PLAYWRIGHT_COMMUNITY_PASSWORD) {
+        throw new Error("Provide synthetic QA credentials.");
+      }
+
+      const pageErrors: string[] = [];
+      page.on("pageerror", (error) => pageErrors.push(error.message));
+
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      expect(await signInForCommunityScreenshots(page)).toBe(true);
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+      await page.waitForSelector(".premium-home-v3", { timeout: 90_000 });
+      await page.waitForFunction(() => document.body.classList.contains("premium-home-v3-active"));
+
+      const stories = page.locator(".premium-stories--home-v3").first();
+      await stories.scrollIntoViewIfNeeded();
+      await page.waitForResponse(
+        (res) => res.url().includes("/api/community/statuses") && res.ok(),
+        { timeout: 90_000 },
+      );
+      await expect
+        .poll(() => page.locator(".community-portrait-story-card--story").count(), { timeout: 90_000 })
+        .toBeGreaterThan(0);
+      await expect(page.locator(".community-portrait-story-card--reel")).toBeVisible();
+      await expect(page.locator(".community-portrait-story-card--create")).toBeVisible();
+
+      const imageStory = page
+        .locator(
+          ".premium-stories--home-v3 .community-portrait-story-card--story:has(.community-portrait-story-card__media img)",
+        )
+        .first();
+      await expect(imageStory).toBeVisible({ timeout: 90_000 });
+      const storyImg = imageStory.locator(".community-portrait-story-card__media img").first();
+      await expect
+        .poll(async () => storyImg.evaluate((img: HTMLImageElement) => img.naturalWidth), { timeout: 30_000 })
+        .toBeGreaterThan(48);
+
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+      await page.screenshot({
+        path: path.join(artifactDir, `premium-home-v3-full-mobile-signed-in-${vp.tag}.png`),
+        fullPage: true,
+      });
+      await page.screenshot({
+        path: path.join(artifactDir, `premium-home-v3-viewport-signed-in-${vp.tag}.png`),
+        fullPage: false,
+      });
+      await stories.screenshot({
+        path: path.join(artifactDir, `premium-home-v3-stories-signed-in-${vp.tag}.png`),
+      });
+
+      expect(
+        await page.locator(".premium-stories--home-v3 .community-portrait-story-card").count(),
+      ).toBeGreaterThanOrEqual(3);
+
+      await imageStory.click();
+      await expect(page.locator(".community-story-viewer").first()).toBeVisible({ timeout: 20_000 });
+      await page.screenshot({
+        path: path.join(artifactDir, `premium-home-v3-story-viewer-signed-in-${vp.tag}.png`),
+        fullPage: false,
+      });
+      await page.keyboard.press("Escape");
+
+      expect(pageErrors).toEqual([]);
     });
-  });
+  }
 });
