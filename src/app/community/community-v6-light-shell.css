@@ -1,0 +1,70 @@
+/* Mobile shell — light header/nav on /community only (body.community-v6-light-shell) */
+
+body.community-v6-light-shell {
+  background: #ffffff !important;
+}
+
+body.community-v6-light-shell .min-h-screen.bg-\[var\(--color-bg\)\] {
+  background: #ffffff !important;
+}
+
+body.community-v6-light-shell .app-main {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+  background: #ffffff !important;
+}
+
+body.community-v6-light-shell .mobile-app-header,
+body.community-v6-light-shell[data-shell="mobile"] .mobile-app-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e4e6eb !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.community-v6-light-shell .mobile-app-header .text-night-900,
+body.community-v6-light-shell .mobile-app-header .text-night-700,
+body.community-v6-light-shell .mobile-app-header .text-night-600 {
+  color: #1c1e21 !important;
+}
+
+body.community-v6-light-shell .app-mobile-bottom-nav,
+body.community-v6-light-shell[data-shell="mobile"] .mobile-bottom-nav {
+  background: #ffffff !important;
+  border-top: 1px solid #e4e6eb !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.community-v6-light-shell[data-shell="mobile"] .mobile-bottom-nav::after {
+  background: #ffffff !important;
+}
+
+body.community-v6-light-shell[data-shell="mobile"] .mobile-bottom-nav .mobile-nav-link {
+  color: #65676b !important;
+}
+
+body.community-v6-light-shell[data-shell="mobile"] .mobile-bottom-nav .mobile-nav-link.is-active {
+  color: #1877f2 !important;
+}
+
+body.community-v6-light-shell[data-shell="mobile"] .mobile-nav-link.is-active .mobile-nav-icon-shell {
+  background: rgba(24, 119, 242, 0.12) !important;
+  color: #1877f2 !important;
+  box-shadow: none !important;
+}
+
+body.community-v6-light-shell[data-shell="mobile"] .mobile-nav-link:not(.is-active) .mobile-nav-icon-shell {
+  background: transparent !important;
+  color: #65676b !important;
+}
+
+body.community-v6-light-shell[data-shell="mobile"] .community-page-solid {
+  margin-inline: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  --community-feed-bleed: 0 !important;
+}

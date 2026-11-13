@@ -1,8 +1,9 @@
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { PollsSection } from "@/components/polls/PollsSection";
 import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
+import { CommunityV6LightShell } from "@/components/community/CommunityV6LightShell";
 import "./community-refresh.css";
-import "./community-social-feed-v5.css";
+import "./community-social-feed-v6.css";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { attachCanManageToPosts } from "@/lib/community-post-access";
@@ -54,8 +55,9 @@ export default async function CommunityPage({
       : undefined;
 
   return (
-    <div className="community-page community-refresh sc-v4-community sc-v5-social-feed min-w-0 max-w-full overflow-x-clip">
-      <div className="community-page-solid community-v5-solid">
+    <div className="community-page community-refresh sc-v6-social-feed min-w-0 max-w-full overflow-x-clip">
+      <CommunityV6LightShell />
+      <div className="community-page-solid community-v6-shell">
         <MarkFeedRead feed="community" />
         <PollsSection
           initialPolls={polls.filter((poll) => !poll.targetGroupId)}
@@ -68,7 +70,7 @@ export default async function CommunityPage({
           initialFilter={initialFilter}
           initialGroupId={groupId || undefined}
           groupFilterLabel={groupFilterLabel}
-          stackedLayout="v5"
+          stackedLayout="v6"
         />
       </div>
     </div>

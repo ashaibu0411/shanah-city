@@ -45,7 +45,7 @@ import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete"
 type CommunityStatusRowProps = {
   variant?: "feed" | "home";
   /** Circle rings (legacy) or Facebook-style portrait cards. */
-  presentation?: "rings" | "portrait";
+  presentation?: "rings" | "portrait" | "v6";
 };
 
 type ComposeMode = "media" | "text" | "service" | "link";
@@ -549,6 +549,7 @@ export function CommunityStatusRow({
       ? "community-stories-strip community-stories-strip-home"
       : "community-stories-strip",
     presentation === "portrait" ? "community-stories-strip--portrait" : "",
+    presentation === "v6" ? "community-stories-strip--v6" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -834,7 +835,7 @@ export function CommunityStatusRow({
         {error ? <p className="community-stories-status text-xs text-rose-600">{error}</p> : null}
         {notice ? <p className="community-stories-status text-xs text-emerald-700">{notice}</p> : null}
         <div className="community-stories-row">
-          {presentation === "portrait" ? (
+          {presentation === "portrait" || presentation === "v6" ? (
             <>
               <CommunityPortraitStoryCard
                 authorName={getPublicDisplayName(user)}

@@ -40,6 +40,7 @@ type CommunityComposerProps = {
   composeOpen?: boolean;
   onComposeOpenChange?: (open: boolean) => void;
   composerPreset?: "default" | "couples";
+  barVariant?: "default" | "v6";
 };
 
 function PhotoIcon() {
@@ -71,6 +72,7 @@ export function CommunityComposer({
   composeOpen,
   onComposeOpenChange,
   composerPreset = "default",
+  barVariant = "default",
 }: CommunityComposerProps) {
   const { campus } = useApp();
   const { user, permissions } = useAuth();
@@ -533,6 +535,87 @@ export function CommunityComposer({
   if (hideInlineBar) {
     return (
       <>
+        {modal}
+        {fileInput}
+      </>
+    );
+  }
+
+  const openStoryStripShortcut = () => {
+    const reel = document.querySelector<HTMLButtonElement>(".community-portrait-story-card--reel");
+    if (reel) {
+      reel.click();
+      return;
+    }
+    document.querySelector<HTMLButtonElement>(".community-portrait-story-card--create")?.click();
+  };
+
+  if (barVariant === "v6") {
+    return (
+      <>
+        <div className="community-v6-composer">
+          <div className="community-feed-card community-composer-bar">
+            <button type="button" onClick={openComposer} className="community-composer-trigger">
+              <CommunityAvatar name={composerName} authorId={user.id} size="md" />
+              <span className="community-composer-placeholder community-composer-placeholder--v6">
+                What&apos;s on your mind?
+              </span>
+            </button>
+          </div>
+          <div className="community-v6-composer__quick" aria-label="Quick share">
+            <button
+              type="button"
+              className="community-v6-composer__icon-btn"
+              aria-label="Add photo"
+              onClick={() => {
+                setMode("share");
+                setPostType("general");
+                openComposer();
+                window.setTimeout(
+                  () =>
+                    openCommunityGalleryPicker(fileRef.current, (files) =>
+                      void addPostMediaFiles(files),
+                    ),
+                  120,
+                );
+              }}
+            >
+              <PhotoIcon />
+            </button>
+            <button
+              type="button"
+              className="community-v6-composer__icon-btn"
+              aria-label="Add video"
+              onClick={() => {
+                setMode("share");
+                setPostType("general");
+                openComposer();
+                window.setTimeout(() => {
+                  if (fileRef.current) {
+                    fileRef.current.accept = "video/*,.mp4,.mov,.webm";
+                    fileRef.current.click();
+                  }
+                }, 120);
+              }}
+            >
+              <svg viewBox="0 0 24 24" className="stroke-current fill-none" aria-hidden>
+                <rect x="3" y="6" width="18" height="13" rx="2.5" strokeWidth="1.75" />
+                <path d="M10 10l5 3-5 3v-6Z" fill="currentColor" stroke="none" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="community-v6-composer__icon-btn"
+              aria-label="Story or live"
+              onClick={openStoryStripShortcut}
+            >
+              <svg viewBox="0 0 24 24" className="stroke-current fill-none" aria-hidden>
+                <circle cx="12" cy="12" r="8.5" strokeWidth="1.75" />
+                <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />
+              </svg>
+            </button>
+          </div>
+        </div>
         {modal}
         {fileInput}
       </>

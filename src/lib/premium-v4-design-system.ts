@@ -21,7 +21,7 @@ export const premiumV4Tokens = {
 export const premiumV4PageThemes = {
   "/live": "cinematic",
   "/sermons": "cinematic",
-  "/community": "cinematic",
+  /* /community — V6 light social feed (no cinematic navy shell) */
   "/calendar": "reading",
   "/devotions": "reading",
   "/give": "reading",
