@@ -40,7 +40,7 @@ export function CommunityFeed({
   hideFilterTabs?: boolean;
   hideComposer?: boolean;
   /** Mobile social feed: composer → portrait stories → highlights → posts */
-  stackedLayout?: "v5";
+  stackedLayout?: "v5" | "v6";
   /** When set, feed tabs are hidden and this filter is always applied. */
   lockedFilter?: CommunityFeedFilter;
   excludePostTypes?: CommunityPost["type"][];
@@ -160,7 +160,7 @@ export function CommunityFeed({
             onDelete={removePost}
             mentionMembers={mentionMembers}
             variant={postCardVariant}
-            feedLayout={stackedLayout === "v5" ? "social" : "default"}
+            feedLayout={stackedLayout === "v5" || stackedLayout === "v6" ? "social" : "default"}
             bookmarked={bookmarkedIds?.has(post.id)}
             onToggleBookmark={
               onToggleBookmark ? () => onToggleBookmark(post.id) : undefined
@@ -173,7 +173,9 @@ export function CommunityFeed({
 
   return (
     <div
-      className={`community-feed community-feed-solid min-w-0 max-w-full${stackedLayout === "v5" ? " community-feed-v5" : ""}`}
+      className={`community-feed community-feed-solid min-w-0 max-w-full${
+        stackedLayout === "v6" ? " community-feed-v6" : stackedLayout === "v5" ? " community-feed-v5" : ""
+      }`}
     >
       {groupFilterLabel && groupId && !hideFilterTabs ? (
         <p className="mb-4 rounded-2xl border border-violet-200/80 bg-violet-50/70 px-4 py-3 text-sm text-night-800">
@@ -188,12 +190,18 @@ export function CommunityFeed({
             mentionMembers={mentionMembers}
             defaultTargetGroupId={groupId}
             defaultTargetGroupName={groupFilterLabel}
+            barVariant={stackedLayout === "v6" ? "v6" : "default"}
           />
         ) : null}
 
       </div>
 
-      {stackedLayout === "v5" ? (
+      {stackedLayout === "v6" ? (
+        <>
+          <CommunityStatusRow variant="feed" presentation="v6" />
+          <CommunityVideoHighlights posts={posts} layout="v6" />
+        </>
+      ) : stackedLayout === "v5" ? (
         <>
           <CommunityStatusRow variant="feed" presentation="portrait" />
           <CommunityVideoHighlights posts={posts} />
@@ -201,7 +209,12 @@ export function CommunityFeed({
       ) : null}
 
       {!hideFilterTabs ? (
-        <CommunityFeedTabs activeFilter={activeFilter} onChange={setFilter} sticky />
+        <CommunityFeedTabs
+          activeFilter={activeFilter}
+          onChange={setFilter}
+          sticky
+          variant={stackedLayout === "v6" ? "v6" : "default"}
+        />
       ) : null}
 
       <div className="community-feed-posts">

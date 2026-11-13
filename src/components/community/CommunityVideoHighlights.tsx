@@ -25,7 +25,13 @@ function resolveMediaUrl(url: string) {
   return url;
 }
 
-export function CommunityVideoHighlights({ posts }: { posts: CommunityPost[] }) {
+export function CommunityVideoHighlights({
+  posts,
+  layout = "default",
+}: {
+  posts: CommunityPost[];
+  layout?: "default" | "v6";
+}) {
   const clips = useMemo(() => {
     const list: HighlightClip[] = [];
     for (const post of posts) {
@@ -46,28 +52,41 @@ export function CommunityVideoHighlights({ posts }: { posts: CommunityPost[] }) 
   if (clips.length === 0) return null;
 
   return (
-    <section className="community-v5-highlights" aria-labelledby="community-v5-highlights-title">
-      <div className="community-v5-highlights__head">
-        <h2 id="community-v5-highlights-title" className="community-v5-highlights__title">
-          Community highlights
+    <section
+      className={layout === "v6" ? "community-v6-reels" : "community-v5-highlights"}
+      aria-labelledby={layout === "v6" ? "community-v6-reels-title" : "community-v5-highlights-title"}
+    >
+      <div className={layout === "v6" ? "community-v6-reels__head" : "community-v5-highlights__head"}>
+        <h2
+          id={layout === "v6" ? "community-v6-reels-title" : "community-v5-highlights-title"}
+          className={layout === "v6" ? "community-v6-reels__title" : "community-v5-highlights__title"}
+        >
+          {layout === "v6" ? "Reels" : "Community highlights"}
         </h2>
       </div>
-      <div className="community-v5-highlights__track" role="list">
+      <div
+        className={layout === "v6" ? "community-v6-reels__track" : "community-v5-highlights__track"}
+        role="list"
+      >
         {clips.map((clip) => (
           <a
             key={`${clip.postId}-${clip.url}`}
             href={`#post-${clip.postId}`}
-            className="community-v5-highlight-card"
+            className={
+              layout === "v6" ? "community-v6-reel-card community-v5-highlight-card" : "community-v5-highlight-card"
+            }
             role="listitem"
           >
             <HighlightVideoThumb url={clip.url} />
             <span className="community-v5-highlight-card__play" aria-hidden>
               ▶
             </span>
-            <div className="community-v5-highlight-card__meta">
-              <p className="community-v5-highlight-card__caption">{clip.caption}</p>
-              <p className="community-v5-highlight-card__author">{clip.author}</p>
-            </div>
+            {layout === "v6" ? null : (
+              <div className="community-v5-highlight-card__meta">
+                <p className="community-v5-highlight-card__caption">{clip.caption}</p>
+                <p className="community-v5-highlight-card__author">{clip.author}</p>
+              </div>
+            )}
           </a>
         ))}
       </div>
