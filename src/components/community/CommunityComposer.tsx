@@ -557,7 +557,9 @@ export function CommunityComposer({
           <div className="community-feed-card community-composer-bar">
             <button type="button" onClick={openComposer} className="community-composer-trigger">
               <CommunityAvatar name={composerName} authorId={user.id} size="md" />
-              <span className="community-composer-placeholder">What&apos;s on your mind?</span>
+              <span className="community-composer-placeholder community-composer-placeholder--v6">
+                What&apos;s on your mind?
+              </span>
             </button>
           </div>
           <div className="community-v6-composer__quick" aria-label="Quick share">

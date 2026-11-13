@@ -52,6 +52,7 @@ export function CommunityPortraitStoryCard({
     "community-portrait-story-card",
     variant === "create" ? "community-portrait-story-card--create" : "",
     variant === "reel" ? "community-portrait-story-card--reel" : "",
+    variant === "story" ? "community-portrait-story-card--story" : "",
     variant === "story" && hasUnseen ? "community-portrait-story-card--unseen" : "",
     variant === "story" && preview && !hasUnseen ? "community-portrait-story-card--seen" : "",
   ]
@@ -76,7 +77,7 @@ export function CommunityPortraitStoryCard({
         <span className="community-portrait-story-card__create-icon" aria-hidden>
           +
         </span>
-        <span className="community-portrait-story-card__create-label">Create story</span>
+        <span className="community-portrait-story-card__create-label">Create Story</span>
       </button>
     );
   }

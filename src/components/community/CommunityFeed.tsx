@@ -199,7 +199,6 @@ export function CommunityFeed({
       {stackedLayout === "v6" ? (
         <>
           <CommunityStatusRow variant="feed" presentation="v6" />
-          <CommunityVideoHighlights posts={posts} layout="v6" />
         </>
       ) : stackedLayout === "v5" ? (
         <>
@@ -216,6 +215,8 @@ export function CommunityFeed({
           variant={stackedLayout === "v6" ? "v6" : "default"}
         />
       ) : null}
+
+      {stackedLayout === "v6" ? <CommunityVideoHighlights posts={posts} layout="v6" /> : null}
 
       <div className="community-feed-posts">
         {postCards}

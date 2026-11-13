@@ -1,6 +1,7 @@
 import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { PollsSection } from "@/components/polls/PollsSection";
 import { MarkFeedRead } from "@/components/notifications/MarkFeedRead";
+import { CommunityV6LightShell } from "@/components/community/CommunityV6LightShell";
 import "./community-refresh.css";
 import "./community-social-feed-v6.css";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
@@ -55,6 +56,7 @@ export default async function CommunityPage({
 
   return (
     <div className="community-page community-refresh sc-v6-social-feed min-w-0 max-w-full overflow-x-clip">
+      <CommunityV6LightShell />
       <div className="community-page-solid community-v6-shell">
         <MarkFeedRead feed="community" />
         <PollsSection

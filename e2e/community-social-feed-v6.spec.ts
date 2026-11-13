@@ -8,7 +8,7 @@ import {
   assertNoRuntimeErrors,
   IGNORABLE_CONSOLE,
 } from "./premium-v4-screenshot-helpers";
-import { assertOpaqueMobileChrome } from "./helpers/mobile-opaque-chrome";
+import { assertCommunityV6LightChrome } from "./helpers/mobile-v6-light-chrome";
 
 const POPULATED_IGNORE = new RegExp(
   `${IGNORABLE_CONSOLE.source}|Failed to load resource.*(404|500)|graph\\.facebook\\.com`,
@@ -51,10 +51,11 @@ for (const vp of [
       .not.toMatch(/Sign in to share/i);
 
     await assertNoHorizontalOverflow(page);
-    await assertOpaqueMobileChrome(page);
+    await assertCommunityV6LightChrome(page);
     fs.mkdirSync(dir, { recursive: true });
 
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.screenshot({ path: path.join(dir, `community-v6-full-mobile-${vp.tag}.png`) });
     await page.screenshot({ path: path.join(dir, `community-v6-top-${vp.tag}.png`) });
 
     const storiesTrack = page.locator(".community-stories-strip--v6 .community-stories-row");
@@ -83,6 +84,10 @@ for (const vp of [
     await expect
       .poll(() => page.locator(".community-feed-posts .community-post-card").count())
       .toBeGreaterThanOrEqual(1);
+    const firstPostHeader = page.locator(".community-post-card--social-feed .community-post-header").first();
+    await expect(firstPostHeader).toBeVisible();
+    await page.screenshot({ path: path.join(dir, `community-v6-first-post-${vp.tag}.png`) });
+
     await actionsMain.evaluate((el) => el.scrollIntoView({ block: "center" }));
     await page.waitForTimeout(200);
     await page.screenshot({ path: path.join(dir, `community-v6-post-actions-${vp.tag}.png`) });

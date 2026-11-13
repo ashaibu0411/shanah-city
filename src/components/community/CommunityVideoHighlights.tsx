@@ -50,6 +50,7 @@ export function CommunityVideoHighlights({
   }, [posts]);
 
   if (clips.length === 0) return null;
+  if (layout === "v6" && clips.length < 2) return null;
 
   return (
     <section
