@@ -63,7 +63,7 @@ export function PremiumHomeMobile({
 
         <PremiumStoriesSection
           sectionTitle="Stories"
-          storiesPresentation="portrait"
+          storiesPresentation="v6"
           homeV2
         />
 

@@ -25,3 +25,15 @@ export function mergeHomeSermonVideo(primary: SermonVideo | null | undefined): S
   if (primary?.id) return primary;
   return buildHomeSermonFallback();
 }
+
+/** Sharper YouTube still for small home sermon thumbs (mqdefault ≈ 320×180). */
+export function homeSermonInlineThumbnail(url: string): string {
+  if (!url) return url;
+  if (url.includes("img.youtube.com/vi/") && url.includes("/hqdefault.")) {
+    return url.replace("/hqdefault.", "/mqdefault.");
+  }
+  if (url.includes("img.youtube.com/vi/") && url.includes("/default.")) {
+    return url.replace("/default.", "/mqdefault.");
+  }
+  return url;
+}

@@ -7,7 +7,7 @@ import { CommunityStatusRow } from "@/components/community/CommunityStatusRow";
 type PremiumStoriesSectionProps = {
   sectionTitle?: string;
   /** Portrait rings on premium mobile home (V2). */
-  storiesPresentation?: "rings" | "portrait";
+  storiesPresentation?: "rings" | "portrait" | "v6";
   homeV2?: boolean;
 };
 

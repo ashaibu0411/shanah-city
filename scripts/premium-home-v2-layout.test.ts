@@ -9,7 +9,7 @@ const mobile = readFileSync(
 assert.match(mobile, /PremiumHomeV2Chrome/);
 assert.match(mobile, /premium-home-v2/);
 assert.match(mobile, /PremiumHomeV4Hero/);
-assert.match(mobile, /storiesPresentation="portrait"/);
+assert.match(mobile, /storiesPresentation="v6"/);
 assert.match(mobile, /homeV2/);
 assert.match(mobile, /editorial/);
 

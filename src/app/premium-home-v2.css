@@ -232,31 +232,41 @@ body.premium-home-v2-active .ph4-tile__label {
 
 /* Give — utility strip, not a heavy card */
 body.premium-home-v2-active .ph4-give {
-  gap: 0.55rem;
+  gap: 0.5rem;
   border: none;
   border-radius: var(--ph2-radius);
-  background: rgba(242, 203, 136, 0.14);
-  padding: 0.52rem 0.62rem;
-  box-shadow: inset 0 0 0 1px rgba(242, 203, 136, 0.18);
+  background: rgba(242, 203, 136, 0.11);
+  padding: 0.48rem 0.58rem;
+  box-shadow: inset 0 0 0 1px rgba(242, 203, 136, 0.22);
 }
 
 body.premium-home-v2-active .ph4-give__icon {
-  padding: 0.22rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: 999px;
   border: none;
-  background: rgba(255, 255, 255, 0.22);
-  color: #0c2852;
+  background: rgba(242, 203, 136, 0.28);
+  color: #0a2245;
+}
+
+body.premium-home-v2-active .ph4-give__icon svg {
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 body.premium-home-v2-active .ph4-give__title {
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--ph2-cream);
-  text-shadow: none;
 }
 
 body.premium-home-v2-active .ph4-give__arrow {
   color: var(--ph2-gold);
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 /* Events — list rows, no card chrome */
@@ -338,9 +348,13 @@ body.premium-home-v2-active .ph4-sermon__thumb {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.32);
 }
 
+body.premium-home-v2-active .ph4-sermon__thumb img {
+  object-fit: cover;
+  object-position: center;
+}
+
 body.premium-home-v2-active .ph4-sermon__play {
-  background: rgba(12, 40, 82, 0.42);
-  backdrop-filter: blur(4px);
+  background: rgba(12, 40, 82, 0.48);
 }
 
 body.premium-home-v2-active .ph4-sermon__play svg {
@@ -398,13 +412,14 @@ body.premium-home-v2-active .ph4-community__lead {
   opacity: 0.92;
 }
 
-/* Stories — circular rail (signed-in) */
+/* Stories — V6 proportions on navy home (signed-in rail) */
 body.premium-home-v2-active .premium-stories--home-v2 {
-  margin-top: 0.1rem;
+  --ph2-story: 4.25rem;
+  margin-top: 0.08rem;
 }
 
 body.premium-home-v2-active .premium-stories--home-v2 .premium-section__head {
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.28rem;
 }
 
 body.premium-home-v2-active .premium-stories--home-v2 .premium-stories__row {
@@ -412,106 +427,223 @@ body.premium-home-v2-active .premium-stories--home-v2 .premium-stories__row {
   padding: 0 var(--ph2-pad-x);
 }
 
-body.premium-home-v2-active .premium-stories--home-v2 .community-stories-strip--portrait {
+body.premium-home-v2-active .premium-stories--home-v2 .community-stories-strip--v6 {
   background: transparent;
   border: none;
   padding: 0;
 }
 
-body.premium-home-v2-active .premium-stories--home-v2 .community-stories-row {
+body.premium-home-v2-active .premium-stories--home-v2 .community-stories-strip--v6 .community-stories-row {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0.85rem;
+  align-items: flex-start;
+  gap: 0.55rem;
   overflow-x: auto;
-  overflow-y: hidden;
-  padding: 0.2rem 0 0.35rem;
+  overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.15rem 0 0.3rem;
 }
 
-body.premium-home-v2-active .premium-stories--home-v2 .community-stories-row::-webkit-scrollbar {
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-stories-row::-webkit-scrollbar {
   display: none;
 }
 
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card {
-  flex: 0 0 4.5rem;
-  width: 4.5rem;
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card {
+  position: relative;
+  flex: 0 0 var(--ph2-story);
+  width: var(--ph2-story);
+  min-height: 0;
   height: auto;
+  padding: 0;
+  border: 0;
   border-radius: 0;
   background: transparent;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.28rem;
   scroll-snap-align: start;
+  overflow: visible;
+  color: var(--ph2-cream-muted);
 }
 
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card--create,
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card--reel {
+/* Create Story — compact circle (home navy, not Community V6 tile) */
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card--create {
+  flex: 0 0 var(--ph2-story);
+  width: var(--ph2-story);
+  min-height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  justify-content: flex-start;
+}
+
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card--create
+  .community-portrait-story-card__create-icon {
+  width: var(--ph2-story);
+  height: var(--ph2-story);
+  margin: 0;
+  border-radius: 999px;
+  border: 2px dashed rgba(242, 203, 136, 0.42);
+  background: rgba(18, 48, 92, 0.85);
+  color: var(--ph2-gold);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__create-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--ph2-cream-muted);
+  text-transform: none;
+  text-shadow: none;
+}
+
+/* Create Reel — matching circle + play affordance */
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card--reel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
   background: transparent;
   border: none;
-  box-shadow: none;
 }
 
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card__media,
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card--story {
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card--reel
+  .community-portrait-story-card__reel-icon {
+  width: var(--ph2-story);
+  height: var(--ph2-story);
+  margin: 0;
+  border-radius: 999px;
+  border: 2px solid rgba(242, 203, 136, 0.32);
+  background: rgba(28, 52, 88, 0.92);
+  font-size: 0.95rem;
+  color: var(--ph2-gold);
+}
+
+/* Story rings — same geometry as Community V6 */
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card--story
+  .community-portrait-story-card__media {
   position: relative;
-  width: 4.25rem;
-  height: 4.25rem;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: none;
-}
-
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card--story .community-portrait-story-card__media {
   inset: auto;
-  position: relative;
-  width: 4.25rem;
-  height: 4.25rem;
-  border-radius: 50%;
+  flex: 0 0 var(--ph2-story);
+  width: var(--ph2-story);
+  height: var(--ph2-story);
+  margin: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  padding: 3px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #4c68d7);
+}
+
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card--story.community-portrait-story-card--seen
+  .community-portrait-story-card__media {
+  background: rgba(196, 200, 204, 0.85);
   padding: 2px;
-  background: linear-gradient(145deg, #f2cb88, #6b4a9e);
 }
 
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card--seen .community-portrait-story-card__media {
-  background: rgba(250, 244, 234, 0.22);
-}
-
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card__media img,
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card__media video {
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__media
+  img,
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__media
+  video {
+  display: block;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  aspect-ratio: 1;
   object-fit: cover;
+  border-radius: 999px;
   border: 2px solid var(--ph2-bg);
+  box-sizing: border-box;
 }
 
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card__create-icon {
-  width: 4.25rem;
-  height: 4.25rem;
-  border-radius: 50%;
-  border: 2px dashed rgba(242, 203, 136, 0.45);
-  background: rgba(12, 40, 82, 0.6);
-  font-size: 1.5rem;
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__fallback,
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__text-preview,
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__live {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background: rgba(228, 230, 235, 0.9);
+  color: #1c1e21;
 }
 
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card__name,
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card__create-label,
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card__label {
-  max-width: 4.5rem;
-  font-size: 0.58rem;
-  font-weight: 600;
-  text-align: center;
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__scrim,
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__avatar {
+  display: none !important;
+}
+
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__name,
+body.premium-home-v2-active
+  .premium-stories--home-v2
+  .community-stories-strip--v6
+  .community-portrait-story-card__label {
+  position: static;
+  max-width: var(--ph2-story);
+  margin: 0;
+  padding: 0;
+  font-size: 0.65rem;
+  font-weight: 500;
+  line-height: 1.2;
   color: var(--ph2-cream-muted);
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card__scrim,
-body.premium-home-v2-active .premium-stories--home-v2 .community-portrait-story-card__avatar {
-  display: none;
 }
 
 /* Secondary — minimal framing */

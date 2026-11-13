@@ -51,7 +51,9 @@ test.describe("Premium Home V2 mobile screenshots (signed-in)", () => {
         { timeout: 60_000 },
       );
 
-      const storiesRail = page.locator(".premium-stories--home-v2 .community-portrait-story-card");
+      const storiesRail = page.locator(
+        ".premium-stories--home-v2 .community-stories-strip--v6 .community-portrait-story-card",
+      );
       await expect
         .poll(() => storiesRail.count(), { timeout: 90_000 })
         .toBeGreaterThanOrEqual(1);
