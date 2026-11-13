@@ -197,9 +197,7 @@ export function CommunityFeed({
       </div>
 
       {stackedLayout === "v6" ? (
-        <>
-          <CommunityStatusRow variant="feed" presentation="v6" />
-        </>
+        <CommunityStatusRow variant="feed" presentation="v6" />
       ) : stackedLayout === "v5" ? (
         <>
           <CommunityStatusRow variant="feed" presentation="portrait" />

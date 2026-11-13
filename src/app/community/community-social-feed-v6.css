@@ -408,7 +408,7 @@
 
 .sc-v6-social-feed .community-post-card--social-feed .community-post-structured-body,
 .sc-v6-social-feed .community-post-card--social-feed .community-post-content {
-  padding: 0 var(--community-v6-pad) 0.5rem;
+  padding: 0 var(--community-v6-pad) 0.35rem;
   font-size: 0.9375rem;
   line-height: 1.45;
   color: var(--community-v6-ink);

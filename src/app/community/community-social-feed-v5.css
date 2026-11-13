@@ -9,7 +9,20 @@
   --community-v5-purple: #512d83;
   --community-v5-gold: #e9bc72;
   background: var(--community-v5-surface);
+  /* A social feed should not have the V4 purple-gradient outer frame. */
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding-top: 0;
 }
+
+/* Override the inherited V4 decorative backdrop on this route only. */
+.community-refresh.sc-v4-community.sc-v5-social-feed {
+  background: var(--community-v5-surface);
+  border-radius: 0;
+  box-shadow: none;
+}
+
 
 .sc-v5-social-feed .community-v5-solid {
   padding-inline: var(--community-v5-pad);
@@ -408,14 +421,32 @@
 }
 
 .sc-v5-social-feed .community-feed-tab-active {
-  background: #512d83 !important;
-  color: #e9bc72 !important;
-  border-color: rgba(233, 188, 114, 0.55) !important;
+  background: #152744 !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: inset 0 -3px 0 #e9bc72;
 }
 
 @media (min-width: 768px) {
   .sc-v5-social-feed .community-v5-solid {
     max-width: 40rem;
     margin-inline: auto;
+  }
+}
+
+/* Mobile: eliminate decorative side gutters and keep the feed flat. */
+@media (max-width: 767px) {
+  body[data-shell="mobile"] .community-refresh.sc-v4-community.sc-v5-social-feed {
+    margin-inline: 0;
+    padding-inline: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--community-v5-surface);
+  }
+
+  body[data-shell="mobile"] .sc-v5-social-feed .community-v5-solid {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
   }
 }
