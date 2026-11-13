@@ -4,6 +4,13 @@
 
 Compare captured PNGs in this folder against that mockup at **390×844** and **430×932**.
 
+## Pass 3 — finishing (`final finishing pass`)
+
+- **Give:** diagonal metallic-gold beam (`::before`), violet base wash, higher-contrast heart emblem.
+- **Bottom nav (home only):** indigo/violet gradient bar, violet top highlight, gold active Home icon (no teal shell).
+- **Create Story / Reel:** transparent midnight circles, gold outlines (no flat navy fill).
+- **Hero:** slightly warmer sunset grading + deeper violet scrim (image asset unchanged).
+
 ## Pass 2 corrections (`visual fidelity` commit)
 
 | Area | Mockup target | Implementation after pass |
