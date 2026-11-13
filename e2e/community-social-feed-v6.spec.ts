@@ -119,8 +119,8 @@ for (const vp of [
       await page.waitForTimeout(300);
       await page.screenshot({ path: path.join(dir, `community-v6-post-video-${vp.tag}.png`) });
 
-      // Exercise actual portrait video metadata, not just a mocked CSS class.
-      // A short browser-generated WebM is held in memory and never uploaded or posted.
+      // Browser-generated 9:16 moving-image video; no member media or uploads.
+      // Verify decoded dimensions, actual playback progression, and no cropping.
       const video = videoPost.locator("video").first();
       await video.evaluate(async (element: HTMLVideoElement) => {
         const canvas = document.createElement("canvas");
@@ -128,10 +128,6 @@ for (const vp of [
         canvas.height = 320;
         const context = canvas.getContext("2d");
         if (!context) throw new Error("2D canvas unavailable");
-        context.fillStyle = "#205fae";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.fillStyle = "#fff";
-        context.fillRect(55, 35, 70, 250);
         const stream = canvas.captureStream(15);
         const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
         const chunks: BlobPart[] = [];
@@ -141,7 +137,16 @@ for (const vp of [
           recorder.onstop = () => resolve(new Blob(chunks, { type: "video/webm" }));
         });
         recorder.start();
-        await new Promise((resolve) => setTimeout(resolve, 450));
+        // Record visible motion for 2 seconds so playback duration/progression is testable.
+        for (let frame = 0; frame < 36; frame++) {
+          context.fillStyle = "#205fae";
+          context.fillRect(0, 0, 180, 320);
+          context.fillStyle = "#fff";
+          context.fillRect(18 + frame * 3, 50 + frame * 3, 40, 75);
+          context.fillStyle = "#f6b348";
+          context.fillRect(15, 265, 150, 18);
+          await new Promise((resolve) => setTimeout(resolve, 65));
+        }
         recorder.stop();
         const blob = await completed;
         stream.getTracks().forEach((track) => track.stop());
@@ -156,18 +161,19 @@ for (const vp of [
       await expect.poll(() => video.evaluate((el: HTMLVideoElement) =>
         el.videoWidth / el.videoHeight
       )).toBeLessThan(0.8);
-      await expect.poll(async () => {
-        const frame = videoPost.locator(".community-media-social-video-frame").first();
-        return frame.evaluate((el) => {
-          const ratio = Number.parseFloat(getComputedStyle(el).aspectRatio);
-          return Number.isFinite(ratio) ? ratio : 0;
-        });
-      }).toBeLessThan(0.8);
+      await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.duration), { timeout: 15_000 }).toBeGreaterThan(1);
+      await expect.poll(async () => videoPost.locator(".community-media-social-video-frame").first()
+        .evaluate((el) => Number.parseFloat(getComputedStyle(el).aspectRatio))
+      ).toBeLessThan(0.8);
       expect(await video.evaluate((el: HTMLVideoElement) => getComputedStyle(el).objectFit)).toBe("contain");
       const portraitFrame = await videoPost.locator(".community-media-social-video-frame").first().boundingBox();
       expect(portraitFrame).not.toBeNull();
       expect(portraitFrame!.height).toBeGreaterThan(portraitFrame!.width);
-      await page.screenshot({ path: path.join(dir, `community-v6-post-portrait-${vp.tag}.png`) });
+      await video.evaluate((el: HTMLVideoElement) => { el.currentTime = 0; return el.play(); });
+      await expect.poll(() => video.evaluate((el: HTMLVideoElement) => el.currentTime), { timeout: 15_000 })
+        .toBeGreaterThan(0.3);
+      expect(await video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(false);
+      await page.screenshot({ path: path.join(dir, `community-v6-post-portrait-playing-${vp.tag}.png`) });
     }
 
     await assertNoHorizontalOverflow(page);
