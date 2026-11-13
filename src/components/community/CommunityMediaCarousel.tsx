@@ -41,11 +41,13 @@ function CarouselSlide({
   active,
   imageFit = "cover",
   videoFit = "contain",
+  onVideoMetadata,
 }: {
   item: CommunityPostMediaItem;
   active: boolean;
   imageFit?: "cover" | "contain";
   videoFit?: "cover" | "contain";
+  onVideoMetadata?: (ratio: number) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaUrl = resolveMediaUrl(item.url);
@@ -69,6 +71,12 @@ function CarouselSlide({
         controls
         playsInline
         preload="metadata"
+        onLoadedMetadata={(event) => {
+          const video = event.currentTarget;
+          if (video.videoWidth > 0 && video.videoHeight > 0) {
+            onVideoMetadata?.(video.videoWidth / video.videoHeight);
+          }
+        }}
         className={`community-media-slide-video h-full w-full ${
           videoFit === "cover" ? "object-cover" : "object-contain"
         }`}
@@ -113,9 +121,16 @@ export function CommunityMediaCarousel({
 }: CommunityMediaCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [mediaRatios, setMediaRatios] = useState<Record<number, number>>({});
+
+  function recordVideoRatio(index: number, ratio: number) {
+    if (!Number.isFinite(ratio) || ratio <= 0) return;
+    setMediaRatios((current) => current[index] === ratio ? current : { ...current, [index]: ratio });
+  }
 
   useEffect(() => {
     setActiveIndex(0);
+    setMediaRatios({});
   }, [items]);
 
   useEffect(() => {
@@ -171,12 +186,20 @@ export function CommunityMediaCarousel({
             : `border-y border-night-900/10 bg-black ${compact ? "" : carouselShellClass}`
         }
       >
-        <div className={socialFeedMedia ? socialFrame : singleFrameClass}>
+        <div
+          className={socialFeedMedia ? socialFrame : singleFrameClass}
+          style={socialFeedMedia && item.type === "video" && mediaRatios[0]
+            ? { aspectRatio: String(mediaRatios[0]) }
+            : undefined}
+        >
           <CarouselSlide
             item={items[0]}
             active
             imageFit={imageFit}
-            videoFit={socialFeedMedia && item.type === "video" ? "cover" : "contain"}
+            videoFit="contain"
+            onVideoMetadata={socialFeedMedia && item.type === "video"
+              ? (ratio) => recordVideoRatio(0, ratio)
+              : undefined}
           />
         </div>
       </div>
@@ -193,12 +216,21 @@ export function CommunityMediaCarousel({
         aria-label="Post media slides"
       >
         {items.map((item, index) => (
-          <div key={`${item.url}-${index}`} className="community-media-carousel-slide">
+          <div
+            key={`${item.url}-${index}`}
+            className="community-media-carousel-slide"
+            style={socialFeedMedia && item.type === "video" && mediaRatios[index]
+              ? { aspectRatio: String(mediaRatios[index]) }
+              : undefined}
+          >
             <CarouselSlide
               item={item}
               active={index === activeIndex}
               imageFit={imageFit}
-              videoFit={socialFeedMedia && item.type === "video" ? "cover" : "contain"}
+              videoFit="contain"
+              onVideoMetadata={socialFeedMedia && item.type === "video"
+                ? (ratio) => recordVideoRatio(index, ratio)
+                : undefined}
             />
           </div>
         ))}
