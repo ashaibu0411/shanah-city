@@ -128,6 +128,49 @@ test.describe("Premium Home V2 mobile screenshots (signed-in)", () => {
 
       const stories = page.locator(".premium-stories--home-v2").first();
       await stories.scrollIntoViewIfNeeded();
+
+      await page.waitForResponse(
+        (res) => res.url().includes("/api/community/statuses") && res.ok(),
+        { timeout: 90_000 },
+      );
+      await expect
+        .poll(() => page.locator(".community-portrait-story-card--story").count(), { timeout: 90_000 })
+        .toBeGreaterThan(0);
+
+      await expect(page.locator(".community-portrait-story-card--reel")).toBeVisible();
+      await expect(page.locator(".community-portrait-story-card--create")).toBeVisible();
+
+      const imageStory = page
+        .locator(
+          ".premium-stories--home-v2 .community-portrait-story-card--story:has(.community-portrait-story-card__media img)",
+        )
+        .first();
+      await expect(imageStory).toBeVisible({ timeout: 90_000 });
+      const storyImg = imageStory.locator(".community-portrait-story-card__media img").first();
+      await expect
+        .poll(async () => storyImg.evaluate((img: HTMLImageElement) => img.naturalWidth), { timeout: 30_000 })
+        .toBeGreaterThan(48);
+      await expect(imageStory.locator(".community-portrait-story-card__fallback")).toHaveCount(0);
+      const mediaRing = imageStory.locator(".community-portrait-story-card__media").first();
+      await expect.poll(async () => {
+        const box = await mediaRing.boundingBox();
+        if (!box) return 999;
+        return Math.abs(box.width - box.height);
+      }).toBeLessThan(6);
+
+      await imageStory.screenshot({
+        path: path.join(artifactDir, `premium-home-v2-story-photo-ring-${vp.tag}.png`),
+      });
+
+      await imageStory.click();
+      await expect(page.locator(".community-story-viewer").first()).toBeVisible({ timeout: 20_000 });
+      await page.screenshot({
+        path: path.join(artifactDir, `premium-home-v2-story-photo-viewer-${vp.tag}.png`),
+        fullPage: false,
+      });
+      await page.keyboard.press("Escape");
+      await expect(page.locator(".community-story-viewer")).toHaveCount(0, { timeout: 10_000 });
+
       await stories.screenshot({
         path: path.join(artifactDir, `premium-home-v2-stories-signed-in-${vp.tag}.png`),
       });

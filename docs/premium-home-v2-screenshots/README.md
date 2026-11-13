@@ -12,6 +12,6 @@ PREMIUM_V4_QA_CLEANUP_CONFIRMED=YES npx tsx scripts/premium-v4-community-qa-clea
 
 See [VISUAL_REVIEW.md](./VISUAL_REVIEW.md) for baseline comparison notes.
 
-Artifacts: full mobile, header, hero, tiles, events, stories, sermon, and viewport captures.
+Artifacts: full mobile, header, hero, tiles, events, stories (including `premium-home-v2-story-photo-ring-*` and `premium-home-v2-story-photo-viewer-*`), sermon, and viewport captures.
 
 Do not merge or deploy from this folder alone — owner visual review required.
