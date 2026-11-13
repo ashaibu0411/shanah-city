@@ -6,15 +6,23 @@ import { CommunityStatusRow } from "@/components/community/CommunityStatusRow";
 
 type PremiumStoriesSectionProps = {
   sectionTitle?: string;
+  /** Portrait rings on premium mobile home (V2). */
+  storiesPresentation?: "rings" | "portrait" | "v6";
+  homeV2?: boolean;
 };
 
 export function PremiumStoriesSection({
   sectionTitle = "Community",
+  storiesPresentation = "rings",
+  homeV2 = false,
 }: PremiumStoriesSectionProps) {
   const { user, loading } = useAuth();
 
   return (
-    <section className="premium-section premium-stories" aria-label="Community stories">
+    <section
+      className={`premium-section premium-stories${homeV2 ? " premium-stories--home-v2" : ""}`}
+      aria-label="Community stories"
+    >
       <div className="premium-section__head">
         <h2 className="premium-section__title">{sectionTitle}</h2>
         <Link href="/community" className="premium-section__link">
@@ -34,7 +42,7 @@ export function PremiumStoriesSection({
         </div>
       ) : (
         <div className="premium-stories__row">
-          <CommunityStatusRow variant="home" />
+          <CommunityStatusRow variant="home" presentation={storiesPresentation} />
         </div>
       )}
     </section>

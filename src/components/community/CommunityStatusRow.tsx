@@ -29,6 +29,7 @@ import {
   findDeckIndex,
   loadSeenStoryIds,
   markStoriesSeen,
+  storyDeckRingPreview,
 } from "@/lib/community-story-utils";
 import { normalizeStorySocialLink } from "@/lib/community-story-link-shared";
 import { CommunityStorySoundtrackPicker } from "@/components/community/CommunityStorySoundtrackPicker";
@@ -865,12 +866,16 @@ export function CommunityStatusRow({
               />
               {otherDecks.map((deck) => {
                 const deckIndex = findDeckIndex(decks, deck.authorId);
+                const ringPreview =
+                  presentation === "portrait" || presentation === "v6"
+                    ? storyDeckRingPreview(deck)
+                    : deck.previewItem;
                 return (
                   <CommunityPortraitStoryCard
                     key={deck.authorId}
                     authorName={deck.authorName}
                     authorId={deck.authorId}
-                    preview={deck.previewItem}
+                    preview={ringPreview}
                     hasUnseen={deck.hasUnseen}
                     label={deck.authorName.split(" ")[0] ?? deck.authorName}
                     variant="story"

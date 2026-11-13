@@ -12,9 +12,11 @@ import {
 type PremiumHomeV4HeroProps = {
   firstName?: string | null;
   campusLabel?: string;
+  /** Premium Home V2 — editorial type hierarchy (mobile home only). */
+  editorial?: boolean;
 };
 
-export function PremiumHomeV4Hero({ firstName, campusLabel }: PremiumHomeV4HeroProps) {
+export function PremiumHomeV4Hero({ firstName, campusLabel, editorial = false }: PremiumHomeV4HeroProps) {
   const [greeting, setGreeting] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,7 +24,10 @@ export function PremiumHomeV4Hero({ firstName, campusLabel }: PremiumHomeV4HeroP
   }, [firstName]);
 
   return (
-    <section className="ph4-hero" aria-label="Welcome">
+    <section
+      className={`ph4-hero${editorial ? " ph4-hero--editorial" : ""}`}
+      aria-label="Welcome"
+    >
       <div className="ph4-hero__media">
         <ChurchFlyerImage
           src={premiumV4HeroMountainImage}
@@ -37,8 +42,10 @@ export function PremiumHomeV4Hero({ firstName, campusLabel }: PremiumHomeV4HeroP
       </div>
       <div className="ph4-hero__content">
         {greeting ? <p className="ph4-hero__greeting">{greeting}</p> : null}
-        <p className="ph4-hero__welcome">Welcome to</p>
-        <h1 className="ph4-hero__title">Shanah City</h1>
+        <div className="ph4-hero__title-block">
+          <p className="ph4-hero__welcome">Welcome to</p>
+          <h1 className="ph4-hero__title">Shanah City</h1>
+        </div>
         <p className="ph4-hero__tagline">{site.tagline}</p>
         <p className="ph4-hero__service">{premiumV4ServiceChip(campusLabel)}</p>
       </div>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { mergeHomeSermonVideo } from "@/lib/home-sermon-display";
+import { homeSermonInlineThumbnail, mergeHomeSermonVideo } from "@/lib/home-sermon-display";
 import { latestSermon, site } from "@/lib/site";
 import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-shared";
 import { PremiumHomeV4Chevron, PremiumHomeV4Play } from "@/components/home/premium/v4/PremiumHomeV4Icons";
@@ -39,7 +39,9 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
 
   const playback = resolved?.id ? resolved : null;
   const title = playback?.title ?? video?.title ?? latestSermon.title;
-  const thumbnail = playback?.thumbnailUrl ?? video?.thumbnailUrl ?? "/sermons/latest-message.svg";
+  const thumbnail = homeSermonInlineThumbnail(
+    playback?.thumbnailUrl ?? video?.thumbnailUrl ?? "/sermons/latest-message.svg",
+  );
   const dateLabel = playback
     ? formatSermonDate(playback.publishedAt)
     : video?.publishedAt
@@ -73,7 +75,8 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
             fill
             unoptimized={thumbnail.startsWith("http")}
             className="object-cover"
-            sizes="96px"
+            sizes="(max-width: 430px) 7rem, 8rem"
+            quality={92}
           />
           <span className="ph4-sermon__play">
             <PremiumHomeV4Play className="h-8 w-8" />

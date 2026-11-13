@@ -164,3 +164,11 @@ export function buildStoryDecks(
 export function findDeckIndex(decks: StoryDeck[], authorId: string) {
   return decks.findIndex((deck) => deck.authorId === authorId);
 }
+
+/** Ring thumbnails prefer the newest image slide when a deck also has video/text. */
+export function storyDeckRingPreview(deck: StoryDeck): CommunityStatus {
+  const imageItem = [...deck.items]
+    .reverse()
+    .find((item) => item.mediaType === "image" && item.mediaUrl?.trim());
+  return imageItem ?? deck.previewItem;
+}

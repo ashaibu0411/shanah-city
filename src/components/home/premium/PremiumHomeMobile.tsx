@@ -7,7 +7,7 @@ import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
 import { PremiumEngagementRail } from "@/components/home/premium/PremiumEngagementRail";
 import { PremiumStoriesSection } from "@/components/home/premium/PremiumStoriesSection";
 import { CheckInHomeBanner } from "@/components/home/DailyEngagementBanners";
-import { PremiumHomeV4Chrome } from "@/components/home/premium/v4/PremiumHomeV4Chrome";
+import { PremiumHomeV2Chrome } from "@/components/home/premium/v2/PremiumHomeV2Chrome";
 import { PremiumHomeV4Hero } from "@/components/home/premium/v4/PremiumHomeV4Hero";
 import { PremiumHomeV4QuickTiles } from "@/components/home/premium/v4/PremiumHomeV4QuickTiles";
 import { PremiumHomeV4GiveBar } from "@/components/home/premium/v4/PremiumHomeV4GiveBar";
@@ -41,9 +41,9 @@ export function PremiumHomeMobile({
 
   return (
     <>
-      <PremiumHomeV4Chrome />
-      <div className="premium-home-v4 animate-fade-in">
-        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} />
+      <PremiumHomeV2Chrome />
+      <div className="premium-home-v2 premium-home-v4 animate-fade-in">
+        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} editorial />
 
         <PremiumHomeV4QuickTiles />
         <PremiumHomeV4GiveBar />
@@ -61,7 +61,11 @@ export function PremiumHomeMobile({
 
         <PremiumEngagementRail variant="mobile" />
 
-        <PremiumStoriesSection sectionTitle="Stories" />
+        <PremiumStoriesSection
+          sectionTitle="Stories"
+          storiesPresentation="v6"
+          homeV2
+        />
 
         <CheckInHomeBanner />
 

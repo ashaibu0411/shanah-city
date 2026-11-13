@@ -116,6 +116,11 @@ async function main() {
   });
 
   await signup("QA Member B", emailB);
+  await api("POST", "/api/community/statuses", {
+    mediaType: "image",
+    mediaUrl,
+    caption: "Synthetic QA peer photo story for home story ring.",
+  });
   const withComment = await api("POST", "/api/community", {
     action: "comment",
     postId,
