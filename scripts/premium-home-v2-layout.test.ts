@@ -10,6 +10,14 @@ assert.match(mobile, /PremiumHomeV2Chrome/);
 assert.match(mobile, /premium-home-v2/);
 assert.match(mobile, /PremiumHomeV4Hero/);
 assert.match(mobile, /storiesPresentation="portrait"/);
+assert.match(mobile, /homeV2/);
+assert.match(mobile, /editorial/);
+
+const hero = readFileSync(
+  path.join(process.cwd(), "src/components/home/premium/v4/PremiumHomeV4Hero.tsx"),
+  "utf8",
+);
+assert.match(hero, /ph4-hero--editorial/);
 
 const v2css = readFileSync(path.join(process.cwd(), "src/app/premium-home-v2.css"), "utf8");
 assert.match(v2css, /premium-home-v2-active/);

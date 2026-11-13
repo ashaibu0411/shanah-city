@@ -43,7 +43,7 @@ export function PremiumHomeMobile({
     <>
       <PremiumHomeV2Chrome />
       <div className="premium-home-v2 premium-home-v4 animate-fade-in">
-        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} />
+        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} editorial />
 
         <PremiumHomeV4QuickTiles />
         <PremiumHomeV4GiveBar />
@@ -61,7 +61,11 @@ export function PremiumHomeMobile({
 
         <PremiumEngagementRail variant="mobile" />
 
-        <PremiumStoriesSection sectionTitle="Stories" storiesPresentation="portrait" />
+        <PremiumStoriesSection
+          sectionTitle="Stories"
+          storiesPresentation="portrait"
+          homeV2
+        />
 
         <CheckInHomeBanner />
 
