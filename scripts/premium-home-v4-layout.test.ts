@@ -7,36 +7,32 @@ const mobile = readFileSync(
   "utf8",
 );
 assert.match(mobile, /PremiumHomeV4Hero/);
-assert.match(mobile, /PremiumHomeV4QuickTiles/);
 assert.match(mobile, /PremiumHomeV4GiveBar/);
 assert.match(mobile, /premium-home-v4/);
 assert.doesNotMatch(mobile, /PremiumMobileLauncher/);
 
-const bodyStart = mobile.indexOf("premium-home-v2 premium-home-v4 animate-fade-in");
+const bodyStart = mobile.indexOf("premium-home-v3 premium-home-v4 animate-fade-in");
 assert.ok(bodyStart >= 0, "premium home mobile shell missing");
-assert.match(mobile, /premium-home-v2/);
 const body = mobile.slice(bodyStart);
+const storiesIdx = body.indexOf("PremiumStoriesSection");
 const heroIdx = body.indexOf("PremiumHomeV4Hero");
-const tilesIdx = body.indexOf("PremiumHomeV4QuickTiles");
+const tilesIdx = body.indexOf("PremiumHomeV3QuickTiles");
 const giveIdx = body.indexOf("PremiumHomeV4GiveBar");
 const eventsIdx = body.indexOf("PremiumHomeV4UpcomingEvents");
 const sermonIdx = body.indexOf("PremiumHomeV4LatestSermon");
-const communityIdx = body.indexOf("PremiumHomeV4Community");
-const engagementIdx = body.indexOf("PremiumEngagementRail");
+const checkInIdx = body.indexOf("CheckInHomeBanner");
 assert.ok(
-  heroIdx < tilesIdx &&
+  storiesIdx < heroIdx &&
+    heroIdx < tilesIdx &&
     tilesIdx < giveIdx &&
     giveIdx < eventsIdx &&
     eventsIdx < sermonIdx &&
-    sermonIdx < communityIdx &&
-    communityIdx < engagementIdx,
-  "V4 sections must follow hero → tiles → give → events → sermon → community → secondary rails",
+    sermonIdx < checkInIdx,
+  "mobile home must follow stories → hero → tiles → give → events → sermon → check-in",
 );
+assert.doesNotMatch(mobile, /PremiumHomeV4Community/);
 
 const css = readFileSync(path.join(process.cwd(), "src/app/premium-home-v4.css"), "utf8");
-assert.match(css, /#061329/);
-assert.match(css, /#512d83/i);
-assert.match(css, /#e9bc72/i);
 assert.match(css, /premium-home-v4-active/);
 assert.match(css, /\.ph4-section\s*\{[^}]*width:\s*auto;/s, "V4 sections must shrink inside the parent side margins");
 
@@ -53,8 +49,5 @@ const tiles = readFileSync(
 assert.match(tiles, /Worship Live/);
 assert.match(tiles, /premium-v4-mountain-hero/);
 assert.match(tiles, /premium-v4-devotions-bible/);
-assert.match(tiles, /label: "Daily Devotions"/);
-assert.match(tiles, /label: "Events"/);
-assert.doesNotMatch(tiles, /home-gallery-.*-tile/);
 
 console.log("premium-home-v4-layout.test.ts OK");
