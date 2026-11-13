@@ -429,8 +429,8 @@
 .sc-v6-social-feed .community-media-social-video-frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: min(52vh, 26rem);
+  aspect-ratio: 16 / 9; /* fallback until video metadata supplies its native ratio */
+  max-height: min(72vh, 40rem);
   overflow: hidden;
   background: #0a0a0a;
   line-height: 0;
@@ -440,7 +440,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* never crop portrait or landscape member recordings */
   object-position: center;
 }
 
@@ -462,11 +462,17 @@
 }
 
 .sc-v6-social-feed .community-media-social-shell .community-media-carousel-slide {
-  aspect-ratio: 16 / 9;
-  max-height: min(52vh, 26rem);
+  aspect-ratio: 16 / 9; /* fallback until video metadata supplies its native ratio */
+  max-height: min(72vh, 40rem);
   min-height: 0;
   background: #0a0a0a;
   align-items: stretch;
+}
+
+.sc-v6-social-feed .community-media-social-shell .community-media-carousel-slide video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .sc-v6-social-feed .community-media-social-shell .community-media-carousel-slide:has(img) {
