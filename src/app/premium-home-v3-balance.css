@@ -1,0 +1,123 @@
+/* Premium Home V3 — mobile vertical balance (layout only, body.premium-home-v3-active) */
+
+body.premium-home-v3-active .app-main:has(.premium-home-v3) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  min-height: 100svh;
+}
+
+body.premium-home-v3-active .app-main:has(.premium-home-v3) > .premium-home-v3.premium-home-v4 {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.premium-home-v3.premium-home-v4 {
+  gap: clamp(0.52rem, 1.6vh, 0.72rem);
+  padding-bottom: clamp(0.45rem, 1.2vh, 0.75rem);
+}
+
+.premium-home-v3.premium-home-v4 > .premium-home-v3__balance-lower {
+  margin-left: var(--ph2-pad-x);
+  margin-right: var(--ph2-pad-x);
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.45rem, 1.4vh, 0.65rem);
+  padding-top: clamp(0.35rem, 2.8vh, 1.35rem);
+  padding-bottom: clamp(0.25rem, 1vh, 0.55rem);
+}
+
+/* Welcome hero — ~15–20% taller, stronger type hierarchy */
+body.premium-home-v3-active .ph4-hero--v3.ph4-hero--editorial {
+  min-height: clamp(13.85rem, 50vw, 18.65rem);
+}
+
+body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__content {
+  min-height: clamp(13.85rem, 50vw, 18.65rem);
+  padding-bottom: clamp(1rem, 2.5vh, 1.25rem);
+}
+
+body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__greeting {
+  font-size: clamp(0.7rem, 2.8vw, 0.78rem);
+  margin-bottom: 0.42rem;
+}
+
+body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__welcome {
+  font-size: clamp(0.78rem, 3.2vw, 0.88rem);
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--home-v3-text-primary) 92%, transparent);
+}
+
+body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__title {
+  font-size: clamp(1.92rem, 8.2vw, 2.55rem);
+  line-height: 1.04;
+}
+
+body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__title-block {
+  max-width: 18rem;
+}
+
+/* Latest sermon — taller panel, larger thumb, wrap-friendly title */
+body.premium-home-v3-active .ph4-section:has(.ph4-sermon) {
+  padding: clamp(0.62rem, 2vh, 0.78rem) clamp(0.62rem, 2.5vw, 0.72rem);
+}
+
+body.premium-home-v3-active .ph4-sermon {
+  gap: clamp(0.65rem, 2.2vw, 0.82rem);
+  align-items: stretch;
+  min-height: clamp(5.25rem, 22vw, 6.75rem);
+}
+
+body.premium-home-v3-active .ph4-sermon__thumb {
+  width: clamp(7.5rem, 24vw, 8.75rem);
+  align-self: center;
+  flex-shrink: 0;
+  aspect-ratio: 16 / 9;
+}
+
+body.premium-home-v3-active .ph4-sermon__body {
+  gap: clamp(0.18rem, 0.8vh, 0.28rem);
+  justify-content: center;
+  text-align: left;
+}
+
+body.premium-home-v3-active .ph4-sermon__date {
+  font-size: clamp(0.58rem, 2.4vw, 0.64rem);
+}
+
+body.premium-home-v3-active .ph4-sermon__title {
+  font-size: clamp(0.86rem, 3.6vw, 0.96rem);
+  line-height: 1.32;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+}
+
+body.premium-home-v3-active .ph4-sermon__speaker {
+  font-size: clamp(0.64rem, 2.6vw, 0.7rem);
+  margin-top: 0.05rem;
+}
+
+/* Shorter phones — avoid crowding the nav */
+@media (max-height: 740px) {
+  body.premium-home-v3-active .ph4-hero--v3.ph4-hero--editorial,
+  body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__content {
+    min-height: clamp(12.5rem, 48vw, 16.25rem);
+  }
+
+  .premium-home-v3.premium-home-v4 > .premium-home-v3__balance-lower {
+    padding-top: 0.35rem;
+  }
+}
+
+/* Tall screens — gently seat footer above bottom nav */
+@media (min-height: 860px) {
+  .premium-home-v3.premium-home-v4 > .premium-home-v3__balance-lower {
+    padding-top: clamp(0.75rem, 4vh, 2rem);
+  }
+}

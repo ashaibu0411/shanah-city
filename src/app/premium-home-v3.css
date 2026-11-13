@@ -1010,7 +1010,8 @@ body.premium-home-v3-active .ph4-give__title {
 }
 
 /* Check-in compact violet panel */
-body.premium-home-v3-active .premium-home-v3 > a.mobile-card {
+body.premium-home-v3-active .premium-home-v3 > a.mobile-card,
+body.premium-home-v3-active .premium-home-v3__balance-lower > a.mobile-card {
   border: 1px solid color-mix(in srgb, var(--home-v3-border) 85%, transparent) !important;
   border-radius: var(--home-v3-radius-panel) !important;
   background: linear-gradient(160deg, rgba(48, 16, 96, 0.62), rgba(29, 2, 72, 0.88)) !important;
@@ -1018,15 +1019,18 @@ body.premium-home-v3-active .premium-home-v3 > a.mobile-card {
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
 }
 
-body.premium-home-v3-active .premium-home-v3 > a.mobile-card p {
+body.premium-home-v3-active .premium-home-v3 > a.mobile-card p,
+body.premium-home-v3-active .premium-home-v3__balance-lower > a.mobile-card p {
   color: var(--home-v3-text-primary) !important;
 }
 
-body.premium-home-v3-active .premium-home-v3 > a.mobile-card p.text-xs {
+body.premium-home-v3-active .premium-home-v3 > a.mobile-card p.text-xs,
+body.premium-home-v3-active .premium-home-v3__balance-lower > a.mobile-card p.text-xs {
   color: var(--home-v3-text-secondary) !important;
 }
 
-body.premium-home-v3-active .premium-home-v3 > a.mobile-card > span:last-child {
+body.premium-home-v3-active .premium-home-v3 > a.mobile-card > span:last-child,
+body.premium-home-v3-active .premium-home-v3__balance-lower > a.mobile-card > span:last-child {
   background: linear-gradient(145deg, var(--home-v3-gold-bright), var(--home-v3-gold)) !important;
   color: var(--home-v3-midnight) !important;
   font-weight: 800 !important;

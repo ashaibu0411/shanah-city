@@ -62,12 +62,14 @@ export function PremiumHomeMobile({
           />
         ) : null}
 
-        <CheckInHomeBanner />
+        <div className="premium-home-v3__balance-lower">
+          <CheckInHomeBanner />
 
-        <Link href="/guest" className="premium-guest-cta">
-          <span>First time here?</span>
-          <span className="premium-guest-cta__pill">Connect</span>
-        </Link>
+          <Link href="/guest" className="premium-guest-cta">
+            <span>First time here?</span>
+            <span className="premium-guest-cta__pill">Connect</span>
+          </Link>
+        </div>
       </div>
     </>
   );
