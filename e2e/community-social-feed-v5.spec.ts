@@ -27,6 +27,10 @@ function attachErrorCollectors(page: Page) {
   return { pageErrors, consoleErrors };
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 const dir = path.join(process.cwd(), "docs/community-social-feed-v5-screenshots");
 const enabled = process.env.PLAYWRIGHT_COMMUNITY_SAFE_FIXTURES === "1";
 test.skip(!enabled, "Requires synthetic QA fixture (PLAYWRIGHT_COMMUNITY_SAFE_FIXTURES=1)");
@@ -56,6 +60,7 @@ for (const vp of [
 
     fs.mkdirSync(dir, { recursive: true });
 
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     await page.screenshot({
       path: path.join(dir, `community-v5-top-${vp.tag}.png`),
     });
@@ -63,6 +68,7 @@ for (const vp of [
     await expect.poll(() => page.locator(".community-portrait-story-card").count()).toBeGreaterThan(2);
 
     const storiesTrack = page.locator(".community-stories-row");
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     await storiesTrack.scrollIntoViewIfNeeded();
     await storiesTrack.evaluate((el) => {
       el.scrollLeft = Math.min(220, el.scrollWidth);
@@ -74,11 +80,34 @@ for (const vp of [
 
     const highlights = page.locator(".community-v5-highlights");
     await expect(highlights).toBeVisible({ timeout: 30_000 });
-    await highlights.scrollIntoViewIfNeeded();
+    await highlights.evaluate((el) => el.scrollIntoView({ block: "start" }));
+    await page.waitForTimeout(250);
     await expect(highlights.locator(".community-v5-highlight-card").first()).toBeVisible();
     await page.screenshot({
       path: path.join(dir, `community-v5-highlights-${vp.tag}.png`),
     });
+
+    const feedFilters = page.locator(".community-feed-tabs-sticky").first();
+    await feedFilters.evaluate((el) => el.scrollIntoView({ block: "start" }));
+    await page.waitForTimeout(250);
+    await expect(feedFilters).toBeVisible();
+    await page.screenshot({
+      path: path.join(dir, `community-v5-feed-filters-${vp.tag}.png`),
+    });
+
+    const highlightCard = highlights.locator(".community-v5-highlight-card").first();
+    const highlightHref = await highlightCard.getAttribute("href");
+    expect(highlightHref).toMatch(/^#post-/);
+    const highlightPostId = highlightHref!.slice("#post-".length);
+    await highlightCard.click();
+    await expect(page).toHaveURL(new RegExp(`#post-${escapeRegExp(highlightPostId)}$`));
+    const targetPost = page.locator(`#post-${highlightPostId}`);
+    await expect(targetPost).toBeVisible({ timeout: 30_000 });
+    const highlightVideo = targetPost.locator(
+      'video[src*="qa-v5-synthetic-clip"], source[src*="qa-v5-synthetic-clip"]',
+    );
+    await expect(highlightVideo.first()).toBeVisible({ timeout: 30_000 });
+    await assertNoHorizontalOverflow(page);
 
     await expect.poll(() => page.locator(".community-feed-posts .community-post-card").count()).toBeGreaterThanOrEqual(2);
       const mediaImage = page.locator(".community-post-media img").first();
@@ -96,7 +125,8 @@ for (const vp of [
     });
 
     const actionsMain = page.locator(".community-post-actions-row--social .community-post-actions-row__main").first();
-    await actionsMain.scrollIntoViewIfNeeded();
+    await actionsMain.evaluate((el) => el.scrollIntoView({ block: "center" }));
+    await page.waitForTimeout(200);
   const actionButtons = actionsMain.locator(".community-post-action-btn");
     await expect(actionButtons).toHaveCount(3);
     const tops = await actionButtons.evaluateAll((els) =>
@@ -105,7 +135,6 @@ for (const vp of [
     expect(Math.max(...tops) - Math.min(...tops)).toBeLessThan(2);
     await page.screenshot({
       path: path.join(dir, `community-v5-post-actions-${vp.tag}.png`),
-      clip: { x: 0, y: Math.max(0, (await actionsMain.boundingBox())!.y - 24), width: vp.width, height: 200 },
     });
 
     const header = page.locator(".community-post-card--social-feed .community-post-header").first();

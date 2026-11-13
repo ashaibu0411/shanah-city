@@ -6,6 +6,10 @@ Synthetic media (committed for local QA only):
 - `public/uploads/community/images/qa-v5-synthetic-worship-photo.jpg` — generated worship still (not a logo).
 - `public/uploads/community/videos/qa-v5-synthetic-clip.mp4` — CC0 sample clip ([MDN flower video](https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4)).
 
+Full-viewport captures (390×844 / 430×932): `community-v5-top-*`, `community-v5-stories-scrolled-*`, `community-v5-highlights-*`, `community-v5-feed-filters-*`, `community-v5-post-actions-*`.
+
+Ephemeral Playwright session storage lives only on disk as `e2e/.community-qa-auth.json` (gitignored); E2E signs in via `e2e/helpers/community-screenshot-auth.ts`.
+
 ```bash
 PREMIUM_V4_FIXTURE_TEST_DATABASE_CONFIRMED=YES PLAYWRIGHT_BASE_URL=http://127.0.0.1:3021 node scripts/premium-v4-community-populated-fixture.mjs
 PLAYWRIGHT_COMMUNITY_SAFE_FIXTURES=1 PLAYWRIGHT_COMMUNITY_EMAIL=... PLAYWRIGHT_COMMUNITY_PASSWORD=... npx playwright test -c playwright.community-social-feed-v5.config.ts
