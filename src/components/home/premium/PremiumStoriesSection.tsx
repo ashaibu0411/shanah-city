@@ -6,10 +6,13 @@ import { CommunityStatusRow } from "@/components/community/CommunityStatusRow";
 
 type PremiumStoriesSectionProps = {
   sectionTitle?: string;
+  /** Portrait rings on premium mobile home (V2). */
+  storiesPresentation?: "rings" | "portrait";
 };
 
 export function PremiumStoriesSection({
   sectionTitle = "Community",
+  storiesPresentation = "rings",
 }: PremiumStoriesSectionProps) {
   const { user, loading } = useAuth();
 
@@ -34,7 +37,7 @@ export function PremiumStoriesSection({
         </div>
       ) : (
         <div className="premium-stories__row">
-          <CommunityStatusRow variant="home" />
+          <CommunityStatusRow variant="home" presentation={storiesPresentation} />
         </div>
       )}
     </section>
