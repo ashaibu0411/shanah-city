@@ -118,6 +118,56 @@ for (const vp of [
         .toBeGreaterThan(120);
       await page.waitForTimeout(300);
       await page.screenshot({ path: path.join(dir, `community-v6-post-video-${vp.tag}.png`) });
+
+      // Exercise actual portrait video metadata, not just a mocked CSS class.
+      // A short browser-generated WebM is held in memory and never uploaded or posted.
+      const video = videoPost.locator("video").first();
+      await video.evaluate(async (element: HTMLVideoElement) => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 180;
+        canvas.height = 320;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("2D canvas unavailable");
+        context.fillStyle = "#205fae";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = "#fff";
+        context.fillRect(55, 35, 70, 250);
+        const stream = canvas.captureStream(15);
+        const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+        const chunks: BlobPart[] = [];
+        recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
+        const completed = new Promise<Blob>((resolve, reject) => {
+          recorder.onerror = () => reject(new Error("Portrait fixture recording failed"));
+          recorder.onstop = () => resolve(new Blob(chunks, { type: "video/webm" }));
+        });
+        recorder.start();
+        await new Promise((resolve) => setTimeout(resolve, 450));
+        recorder.stop();
+        const blob = await completed;
+        stream.getTracks().forEach((track) => track.stop());
+        if (!blob.size) throw new Error("Portrait fixture is empty");
+        element.pause();
+        element.src = URL.createObjectURL(blob);
+        element.load();
+      });
+      await expect.poll(() => video.evaluate((el: HTMLVideoElement) =>
+        el.videoWidth > 0 && el.videoHeight > 0 ? el.videoWidth / el.videoHeight : 0
+      )).toBeGreaterThan(0.5);
+      await expect.poll(() => video.evaluate((el: HTMLVideoElement) =>
+        el.videoWidth / el.videoHeight
+      )).toBeLessThan(0.8);
+      await expect.poll(async () => {
+        const frame = videoPost.locator(".community-media-social-video-frame").first();
+        return frame.evaluate((el) => {
+          const ratio = Number.parseFloat(getComputedStyle(el).aspectRatio);
+          return Number.isFinite(ratio) ? ratio : 0;
+        });
+      }).toBeLessThan(0.8);
+      expect(await video.evaluate((el: HTMLVideoElement) => getComputedStyle(el).objectFit)).toBe("contain");
+      const portraitFrame = await videoPost.locator(".community-media-social-video-frame").first().boundingBox();
+      expect(portraitFrame).not.toBeNull();
+      expect(portraitFrame!.height).toBeGreaterThan(portraitFrame!.width);
+      await page.screenshot({ path: path.join(dir, `community-v6-post-portrait-${vp.tag}.png`) });
     }
 
     await assertNoHorizontalOverflow(page);
