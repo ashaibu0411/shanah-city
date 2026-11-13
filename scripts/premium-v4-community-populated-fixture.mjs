@@ -80,18 +80,22 @@ async function signup(name, email) {
   });
 }
 
-function localFixtureImageUrl() {
-  const pick = "qa-premium-v4-sample.png";
-  const file = path.join(process.cwd(), "public", "uploads", "community", "images", pick);
+function localFixtureMediaUrl(kind) {
+  const imagePick = "qa-v5-synthetic-worship-photo.jpg";
+  const videoPick = "qa-v5-synthetic-clip.mp4";
+  const pick = kind === "video" ? videoPick : imagePick;
+  const subdir = kind === "video" ? "videos" : "images";
+  const file = path.join(process.cwd(), "public", "uploads", "community", subdir, pick);
   if (!fs.existsSync(file)) {
-    throw new Error("Missing QA community image under public/uploads/community/images/");
+    throw new Error(`Missing QA community ${kind} under public/uploads/community/${subdir}/`);
   }
-  return `/uploads/community/images/${pick}`;
+  return `/uploads/community/${subdir}/${pick}`;
 }
 
 async function main() {
   await signup("QA Member A", emailA);
-  const mediaUrl = localFixtureImageUrl();
+  const mediaUrl = localFixtureMediaUrl("image");
+  const videoUrl = localFixtureMediaUrl("video");
   const praisePost = await api("POST", "/api/community", {
     content: "Synthetic testimony — grateful for how God is moving in our church family.",
     type: "praise",
@@ -103,6 +107,12 @@ async function main() {
     content: "Worship night snapshot (synthetic QA asset).",
     type: "general",
     mediaItems: [{ url: mediaUrl, type: "image" }],
+  });
+
+  await api("POST", "/api/community", {
+    content: "Synthetic worship clip for Community highlights (QA only).",
+    type: "praise",
+    mediaItems: [{ url: videoUrl, type: "video" }],
   });
 
   await signup("QA Member B", emailB);
@@ -129,6 +139,12 @@ async function main() {
     mediaType: "image",
     mediaUrl,
     caption: "Synthetic QA photo story.",
+  });
+
+  await api("POST", "/api/community/statuses", {
+    mediaType: "video",
+    mediaUrl: videoUrl,
+    caption: "Synthetic QA video story.",
   });
 
   console.log(`PLAYWRIGHT_COMMUNITY_EMAIL=${emailA}`);

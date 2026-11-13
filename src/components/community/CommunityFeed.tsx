@@ -14,6 +14,8 @@ import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete"
 import { CommunityComposer } from "@/components/community/CommunityComposer";
 import { CommunityFeedTabs } from "@/components/community/CommunityFeedTabs";
 import { CommunityPostCard } from "@/components/community/CommunityPostCard";
+import { CommunityStatusRow } from "@/components/community/CommunityStatusRow";
+import { CommunityVideoHighlights } from "@/components/community/CommunityVideoHighlights";
 import { SectionTitle } from "@/components/ui";
 
 export function CommunityFeed({
@@ -29,6 +31,7 @@ export function CommunityFeed({
   postCardVariant = "default",
   bookmarkedIds,
   onToggleBookmark,
+  stackedLayout,
 }: {
   initialPosts: CommunityPost[];
   initialFilter?: CommunityFeedFilter;
@@ -36,6 +39,8 @@ export function CommunityFeed({
   groupFilterLabel?: string;
   hideFilterTabs?: boolean;
   hideComposer?: boolean;
+  /** Mobile social feed: composer → portrait stories → highlights → posts */
+  stackedLayout?: "v5";
   /** When set, feed tabs are hidden and this filter is always applied. */
   lockedFilter?: CommunityFeedFilter;
   excludePostTypes?: CommunityPost["type"][];
@@ -135,8 +140,41 @@ export function CommunityFeed({
     return () => window.clearInterval(retry);
   }, [filteredPosts.length]);
 
+  const postCards = (
+    <>
+      {filteredPosts.length === 0 ? (
+        <div className="community-feed-card community-feed-empty">
+          <p className="text-[15px] font-semibold text-night-900 font-display">No posts yet</p>
+          <p className="mt-1 text-sm text-night-600">
+            {activeFilter === "all"
+              ? "Be the first to share a prayer, praise, or update with the community."
+              : `No ${entryLabel(activeFilter)} posts yet.`}
+          </p>
+        </div>
+      ) : (
+        filteredPosts.map((post) => (
+          <CommunityPostCard
+            key={post.id}
+            post={post}
+            onUpdate={updatePost}
+            onDelete={removePost}
+            mentionMembers={mentionMembers}
+            variant={postCardVariant}
+            feedLayout={stackedLayout === "v5" ? "social" : "default"}
+            bookmarked={bookmarkedIds?.has(post.id)}
+            onToggleBookmark={
+              onToggleBookmark ? () => onToggleBookmark(post.id) : undefined
+            }
+          />
+        ))
+      )}
+    </>
+  );
+
   return (
-    <div className="community-feed community-feed-solid min-w-0 max-w-full">
+    <div
+      className={`community-feed community-feed-solid min-w-0 max-w-full${stackedLayout === "v5" ? " community-feed-v5" : ""}`}
+    >
       {groupFilterLabel && groupId && !hideFilterTabs ? (
         <p className="mb-4 rounded-2xl border border-violet-200/80 bg-violet-50/70 px-4 py-3 text-sm text-night-800">
           Showing <strong>{groupFilterLabel}</strong> prayer &amp; praise on Community. Only members
@@ -155,36 +193,19 @@ export function CommunityFeed({
 
       </div>
 
+      {stackedLayout === "v5" ? (
+        <>
+          <CommunityStatusRow variant="feed" presentation="portrait" />
+          <CommunityVideoHighlights posts={posts} />
+        </>
+      ) : null}
+
       {!hideFilterTabs ? (
         <CommunityFeedTabs activeFilter={activeFilter} onChange={setFilter} sticky />
       ) : null}
 
       <div className="community-feed-posts">
-        {filteredPosts.length === 0 ? (
-          <div className="community-feed-card community-feed-empty">
-            <p className="text-[15px] font-semibold text-night-900 font-display">No posts yet</p>
-            <p className="mt-1 text-sm text-night-600">
-              {activeFilter === "all"
-                ? "Be the first to share a prayer, praise, or update with the community."
-                : `No ${entryLabel(activeFilter)} posts yet.`}
-            </p>
-          </div>
-        ) : (
-          filteredPosts.map((post) => (
-            <CommunityPostCard
-              key={post.id}
-              post={post}
-              onUpdate={updatePost}
-              onDelete={removePost}
-              mentionMembers={mentionMembers}
-              variant={postCardVariant}
-              bookmarked={bookmarkedIds?.has(post.id)}
-              onToggleBookmark={
-                onToggleBookmark ? () => onToggleBookmark(post.id) : undefined
-              }
-            />
-          ))
-        )}
+        {postCards}
       </div>
     </div>
   );

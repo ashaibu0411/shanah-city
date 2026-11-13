@@ -97,6 +97,7 @@ type CommunityPostCardProps = {
   variant?: "default" | "couples";
   bookmarked?: boolean;
   onToggleBookmark?: () => void;
+  feedLayout?: "default" | "social";
 };
 
 type PostCommentRowProps = {
@@ -387,6 +388,7 @@ export function CommunityPostCard({
   variant = "default",
   bookmarked = false,
   onToggleBookmark,
+  feedLayout = "default",
 }: CommunityPostCardProps) {
   const { user, permissions } = useAuth();
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -736,6 +738,7 @@ export function CommunityPostCard({
   const hasMedia = !editing && mediaItems.length > 0;
   const heartActive = post.viewerReactions?.includes("heart");
   const useStructuredLayout = !compact && variant === "default";
+  const socialFeed = feedLayout === "social" && useStructuredLayout;
   const displayContent = useMemo(
     () =>
       prepareCommunityPostDisplay(post.author, post.content, {
@@ -898,7 +901,7 @@ export function CommunityPostCard({
   return (
     <article
       id={`post-${post.id}`}
-      className={`community-post-card scroll-mt-24 ${isUrgentNews ? "community-post-card-urgent" : ""} ${useStructuredLayout ? "community-post-card--structured" : ""} ${variant === "couples" ? "community-post-card--couples" : ""}`}
+      className={`community-post-card scroll-mt-24 ${isUrgentNews ? "community-post-card-urgent" : ""} ${useStructuredLayout ? "community-post-card--structured" : ""} ${socialFeed ? "community-post-card--social-feed" : ""} ${variant === "couples" ? "community-post-card--couples" : ""}`}
     >
       <header className="community-post-header">
         <CommunityAvatar name={post.author} authorId={post.authorId} size="md" />
@@ -951,7 +954,7 @@ export function CommunityPostCard({
         </div>
       </header>
 
-      {useStructuredLayout && !editing && !hasMedia ? bodyBlock : null}
+      {useStructuredLayout && !editing && (!hasMedia || socialFeed) ? bodyBlock : null}
 
       {editing ? (
         <div className="community-post-edit-panel space-y-3">
@@ -1014,7 +1017,7 @@ export function CommunityPostCard({
         <div className="community-post-media">
           <CommunityMediaCarousel
             items={mediaItems}
-            imageFit="contain"
+            imageFit={socialFeed && !isUrgentNews && post.type !== "announcement" ? "cover" : "contain"}
             flyerLayout={isUrgentNews || post.type === "announcement"}
           />
           {!editing && mediaItems.some((item) => item.type === "image") ? (
@@ -1033,7 +1036,36 @@ export function CommunityPostCard({
 
       {useStructuredLayout && !editing ? (
         <>
-          {hasMedia ? bodyBlock : null}
+          {hasMedia && !socialFeed ? bodyBlock : null}
+
+          {socialFeed && (reactionTotal > 0 || commentCount > 0) ? (
+            <div className="community-post-engagement-stats">
+              {reactionTotal > 0 ? (
+                <button
+                  type="button"
+                  onClick={openReactionsSheet}
+                  className="community-post-engagement-stats__reactions"
+                  aria-label={`${reactionTotal} reactions`}
+                >
+                  {reactionSummaryEmojis.length > 0 ? (
+                    <span className="community-post-engagement-stats__emojis" aria-hidden>
+                      {reactionSummaryEmojis.slice(0, 3).join("")}
+                    </span>
+                  ) : null}
+                  <span className="tabular-nums">{reactionTotal.toLocaleString()}</span>
+                </button>
+              ) : (
+                <span />
+              )}
+              <div className="community-post-engagement-stats__counts">
+                {commentCount > 0 ? (
+                  <button type="button" onClick={() => openCommentsSheet(false)}>
+                    {commentCount.toLocaleString()} comment{commentCount === 1 ? "" : "s"}
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
 
           <CommunityPostActionsRow
             heartActive={Boolean(heartActive)}
@@ -1045,6 +1077,8 @@ export function CommunityPostCard({
             onOpenReactions={openReactionsSheet}
             onOpenComments={openCommentsSheet}
             onShare={sharePost}
+            hideReactionSummary={socialFeed}
+            layout={socialFeed ? "social" : "default"}
           />
 
           {commentCount > 0 ? (

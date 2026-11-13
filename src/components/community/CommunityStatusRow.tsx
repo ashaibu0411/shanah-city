@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getPublicDisplayName } from "@/lib/member-display-name";
 import { CommunityStoryRing } from "@/components/community/CommunityStoryRing";
+import { CommunityPortraitStoryCard } from "@/components/community/CommunityPortraitStoryCard";
 import { CommunityStoryViewer } from "@/components/community/CommunityStoryViewer";
 import { CommunityStoryViewerBoundary } from "@/components/community/CommunityStoryViewerBoundary";
 import type { CommunityStatus, CommunityStatusStoryKind } from "@/lib/member-types";
@@ -43,11 +44,16 @@ import { useMentionMembers } from "@/components/mentions/useMentionAutocomplete"
 
 type CommunityStatusRowProps = {
   variant?: "feed" | "home";
+  /** Circle rings (legacy) or Facebook-style portrait cards. */
+  presentation?: "rings" | "portrait";
 };
 
 type ComposeMode = "media" | "text" | "service" | "link";
 
-export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps) {
+export function CommunityStatusRow({
+  variant = "feed",
+  presentation = "rings",
+}: CommunityStatusRowProps) {
   const { user } = useAuth();
   const { members: mentionMembers } = useMentionMembers();
   const router = useRouter();
@@ -176,19 +182,24 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
     setShareMenuOpen(false);
   }
 
-  function openMediaPicker() {
+  function openMediaPicker(options?: { videoOnly?: boolean }) {
     closeShareMenu();
     setComposeAsGroupId(null);
+    const videoOnly = options?.videoOnly ?? false;
     openCommunityGalleryPicker(
       fileRef.current,
       (files) => {
-        if (files.length === 0) return;
+        let picked = files;
+        if (videoOnly) {
+          picked = files.filter((file) => isCommunityVideoFile(file));
+        }
+        if (picked.length === 0) return;
         setComposeMode("media");
-        setPendingFiles(files);
+        setPendingFiles(picked);
         setCaptionDraft("");
         setCaptionOpen(true);
       },
-      { preferNativePhotoPicker: true },
+      { preferNativePhotoPicker: !videoOnly },
     );
   }
 
@@ -533,10 +544,14 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
       ? `Uploading ${uploadProgress.current} of ${uploadProgress.total}…`
       : "Uploading…";
 
-  const cardClass =
+  const cardClass = [
     variant === "home"
       ? "community-stories-strip community-stories-strip-home"
-      : "community-stories-strip";
+      : "community-stories-strip",
+    presentation === "portrait" ? "community-stories-strip--portrait" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const composeDialogOpen =
     captionOpen &&
@@ -573,7 +588,7 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
               <div className="flex flex-col gap-2 px-4 py-3">
                 <button
                   type="button"
-                  onClick={openMediaPicker}
+                  onClick={() => openMediaPicker()}
                   className="rounded-xl border border-night-900/10 px-4 py-3 text-left hover:bg-sand-50 dark:border-white/10 dark:hover:bg-white/5"
                 >
                   <p className="font-semibold text-night-900 dark:text-sand-100">Photo, video, or audio</p>
@@ -819,38 +834,86 @@ export function CommunityStatusRow({ variant = "feed" }: CommunityStatusRowProps
         {error ? <p className="community-stories-status text-xs text-rose-600">{error}</p> : null}
         {notice ? <p className="community-stories-status text-xs text-emerald-700">{notice}</p> : null}
         <div className="community-stories-row">
-          <CommunityStoryRing
-            authorName={getPublicDisplayName(user)}
-            authorId={user.id}
-            preview={myDeck?.previewItem ?? null}
-            hasUnseen={myDeck?.hasUnseen ?? false}
-            showAddBadge
-            disabled={uploading}
-            label="Your story"
-            onPress={() => {
-              if (myDeck) {
-                openViewer(findDeckIndex(decks, user.id));
-              } else {
-                openShareMenu();
-              }
-            }}
-            onAddPress={openShareMenu}
-          />
-
-          {otherDecks.map((deck) => {
-            const deckIndex = findDeckIndex(decks, deck.authorId);
-            return (
-              <CommunityStoryRing
-                key={deck.authorId}
-                authorName={deck.authorName}
-                authorId={deck.authorId}
-                preview={deck.previewItem}
-                hasUnseen={deck.hasUnseen}
-                label={deck.authorName.split(" ")[0] ?? deck.authorName}
-                onPress={() => openViewer(deckIndex)}
+          {presentation === "portrait" ? (
+            <>
+              <CommunityPortraitStoryCard
+                authorName={getPublicDisplayName(user)}
+                authorId={user.id}
+                preview={myDeck?.previewItem ?? null}
+                hasUnseen={myDeck?.hasUnseen ?? false}
+                showAddBadge
+                disabled={uploading}
+                label="Your story"
+                variant="create"
+                onPress={() => {
+                  if (myDeck) {
+                    openViewer(findDeckIndex(decks, user.id));
+                  } else {
+                    openShareMenu();
+                  }
+                }}
+                onAddPress={openShareMenu}
               />
-            );
-          })}
+              <CommunityPortraitStoryCard
+                authorName={getPublicDisplayName(user)}
+                authorId={user.id}
+                label="Create reel"
+                variant="reel"
+                disabled={uploading}
+                onPress={() => openMediaPicker({ videoOnly: true })}
+              />
+              {otherDecks.map((deck) => {
+                const deckIndex = findDeckIndex(decks, deck.authorId);
+                return (
+                  <CommunityPortraitStoryCard
+                    key={deck.authorId}
+                    authorName={deck.authorName}
+                    authorId={deck.authorId}
+                    preview={deck.previewItem}
+                    hasUnseen={deck.hasUnseen}
+                    label={deck.authorName.split(" ")[0] ?? deck.authorName}
+                    variant="story"
+                    onPress={() => openViewer(deckIndex)}
+                  />
+                );
+              })}
+            </>
+          ) : (
+            <>
+              <CommunityStoryRing
+                authorName={getPublicDisplayName(user)}
+                authorId={user.id}
+                preview={myDeck?.previewItem ?? null}
+                hasUnseen={myDeck?.hasUnseen ?? false}
+                showAddBadge
+                disabled={uploading}
+                label="Your story"
+                onPress={() => {
+                  if (myDeck) {
+                    openViewer(findDeckIndex(decks, user.id));
+                  } else {
+                    openShareMenu();
+                  }
+                }}
+                onAddPress={openShareMenu}
+              />
+
+              {otherDecks.map((deck) => {
+                const deckIndex = findDeckIndex(decks, deck.authorId);
+                return (
+                  <CommunityStoryRing
+                    key={deck.authorId}
+                    authorName={deck.authorName}
+                    authorId={deck.authorId}
+                    preview={deck.previewItem}
+                    hasUnseen={deck.hasUnseen}
+                    label={deck.authorName.split(" ")[0] ?? deck.authorName}
+                    onPress={() => openViewer(deckIndex)}
+                  />
+                );
+              })}
+            </>
+          )}
         </div>
         <input
           ref={fileRef}
