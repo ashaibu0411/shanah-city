@@ -8,7 +8,10 @@ export function PremiumHomeV4GiveBar() {
         <span className="ph4-give__icon">
           <PremiumHomeV4Heart />
         </span>
-        <span className="ph4-give__title">Give</span>
+        <span className="ph4-give__text">
+          <span className="ph4-give__title">Give</span>
+          <span className="ph4-give__copy">Support the vision and ministry</span>
+        </span>
         <span className="ph4-give__arrow">
           <PremiumHomeV4Chevron />
         </span>

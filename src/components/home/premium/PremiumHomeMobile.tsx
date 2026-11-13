@@ -4,16 +4,14 @@ import Link from "next/link";
 import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
-import { PremiumEngagementRail } from "@/components/home/premium/PremiumEngagementRail";
 import { PremiumStoriesSection } from "@/components/home/premium/PremiumStoriesSection";
 import { CheckInHomeBanner } from "@/components/home/DailyEngagementBanners";
-import { PremiumHomeV2Chrome } from "@/components/home/premium/v2/PremiumHomeV2Chrome";
+import { PremiumHomeV3Chrome } from "@/components/home/premium/v3/PremiumHomeV3Chrome";
 import { PremiumHomeV4Hero } from "@/components/home/premium/v4/PremiumHomeV4Hero";
-import { PremiumHomeV4QuickTiles } from "@/components/home/premium/v4/PremiumHomeV4QuickTiles";
+import { PremiumHomeV3QuickTiles } from "@/components/home/premium/v3/PremiumHomeV3QuickTiles";
 import { PremiumHomeV4GiveBar } from "@/components/home/premium/v4/PremiumHomeV4GiveBar";
 import { PremiumHomeV4UpcomingEvents } from "@/components/home/premium/v4/PremiumHomeV4UpcomingEvents";
 import { PremiumHomeV4LatestSermon } from "@/components/home/premium/v4/PremiumHomeV4LatestSermon";
-import { PremiumHomeV4Community } from "@/components/home/premium/v4/PremiumHomeV4Community";
 import { getPublicDisplayFirstName } from "@/lib/member-display-name";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
@@ -41,15 +39,20 @@ export function PremiumHomeMobile({
 
   return (
     <>
-      <PremiumHomeV2Chrome />
-      <div className="premium-home-v2 premium-home-v4 animate-fade-in">
-        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} editorial />
+      <PremiumHomeV3Chrome />
+      <div className="premium-home-v3 premium-home-v4 animate-fade-in">
+        <PremiumStoriesSection
+          sectionTitle="Stories"
+          storiesPresentation="v6"
+          homeV3
+        />
 
-        <PremiumHomeV4QuickTiles />
+        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} editorial heroV3 />
+
+        <PremiumHomeV3QuickTiles />
         <PremiumHomeV4GiveBar />
         <PremiumHomeV4UpcomingEvents rows={upcomingEventRows} />
         <PremiumHomeV4LatestSermon video={latestSermon} />
-        <PremiumHomeV4Community />
 
         {urgentAlerts.length > 0 ? (
           <UrgentNewsHomeStrip
@@ -58,14 +61,6 @@ export function PremiumHomeMobile({
             highlightAlertId={highlightAlertId}
           />
         ) : null}
-
-        <PremiumEngagementRail variant="mobile" />
-
-        <PremiumStoriesSection
-          sectionTitle="Stories"
-          storiesPresentation="v6"
-          homeV2
-        />
 
         <CheckInHomeBanner />
 

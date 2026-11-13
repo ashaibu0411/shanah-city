@@ -12,11 +12,18 @@ import {
 type PremiumHomeV4HeroProps = {
   firstName?: string | null;
   campusLabel?: string;
-  /** Premium Home V2 — editorial type hierarchy (mobile home only). */
+  /** Premium Home V2/V3 — editorial type hierarchy (mobile home only). */
   editorial?: boolean;
+  /** V3 mockup hero grading and compact ratio. */
+  heroV3?: boolean;
 };
 
-export function PremiumHomeV4Hero({ firstName, campusLabel, editorial = false }: PremiumHomeV4HeroProps) {
+export function PremiumHomeV4Hero({
+  firstName,
+  campusLabel,
+  editorial = false,
+  heroV3 = false,
+}: PremiumHomeV4HeroProps) {
   const [greeting, setGreeting] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,7 +32,7 @@ export function PremiumHomeV4Hero({ firstName, campusLabel, editorial = false }:
 
   return (
     <section
-      className={`ph4-hero${editorial ? " ph4-hero--editorial" : ""}`}
+      className={`ph4-hero${editorial ? " ph4-hero--editorial" : ""}${heroV3 ? " ph4-hero--v3" : ""}`}
       aria-label="Welcome"
     >
       <div className="ph4-hero__media">
