@@ -1019,6 +1019,7 @@ export function CommunityPostCard({
             items={mediaItems}
             imageFit={socialFeed && !isUrgentNews && post.type !== "announcement" ? "cover" : "contain"}
             flyerLayout={isUrgentNews || post.type === "announcement"}
+            socialFeedMedia={socialFeed && !isUrgentNews && post.type !== "announcement"}
           />
           {!editing && mediaItems.some((item) => item.type === "image") ? (
             <div className="flex flex-wrap gap-2 border-t border-night-900/8 px-3 py-2 dark:border-white/10">

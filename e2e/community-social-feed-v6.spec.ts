@@ -94,6 +94,32 @@ for (const vp of [
 
     await page.screenshot({ path: path.join(dir, `community-v6-feed-${vp.tag}.png`) });
 
+    const photoPost = page
+      .locator(".community-post-card--social-feed")
+      .filter({ has: page.locator(".community-media-social-photo-frame img, .community-post-media img") })
+      .first();
+    if (await photoPost.count()) {
+      await photoPost.evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await page.waitForTimeout(200);
+      await page.screenshot({ path: path.join(dir, `community-v6-post-photo-${vp.tag}.png`) });
+    }
+
+    const videoPost = page
+      .locator(".community-post-card--social-feed")
+      .filter({ has: page.locator(".community-media-social-video-frame video, .community-media-slide-video") })
+      .first();
+    if (await videoPost.count()) {
+      await videoPost.evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await expect
+        .poll(async () => {
+          const box = await videoPost.locator("video").first().boundingBox();
+          return box ? box.height : 0;
+        })
+        .toBeGreaterThan(120);
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: path.join(dir, `community-v6-post-video-${vp.tag}.png`) });
+    }
+
     await assertNoHorizontalOverflow(page);
     await assertNoRuntimeErrors(page, pageErrors, consoleErrors);
   });

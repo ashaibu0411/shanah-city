@@ -40,10 +40,12 @@ function CarouselSlide({
   item,
   active,
   imageFit = "cover",
+  videoFit = "contain",
 }: {
   item: CommunityPostMediaItem;
   active: boolean;
   imageFit?: "cover" | "contain";
+  videoFit?: "cover" | "contain";
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaUrl = resolveMediaUrl(item.url);
@@ -67,7 +69,9 @@ function CarouselSlide({
         controls
         playsInline
         preload="metadata"
-        className="h-full w-full object-contain"
+        className={`community-media-slide-video h-full w-full ${
+          videoFit === "cover" ? "object-cover" : "object-contain"
+        }`}
       >
         <source src={mediaUrl} type={inferCommunityVideoContentType(item.url)} />
       </video>
@@ -96,6 +100,8 @@ type CommunityMediaCarouselProps = {
   imageFit?: "cover" | "contain";
   /** Use urgent-alert flyer sizing (portrait vs landscape). */
   flyerLayout?: boolean;
+  /** Edge-to-edge social feed (16:9 video, full-width photos). */
+  socialFeedMedia?: boolean;
 };
 
 export function CommunityMediaCarousel({
@@ -103,6 +109,7 @@ export function CommunityMediaCarousel({
   compact,
   imageFit = "cover",
   flyerLayout = false,
+  socialFeedMedia = false,
 }: CommunityMediaCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -149,17 +156,37 @@ export function CommunityMediaCarousel({
   }
 
   if (items.length === 1) {
+    const item = items[0];
+    const socialFrame =
+      socialFeedMedia && item.type === "video"
+        ? "community-media-social-video-frame"
+        : socialFeedMedia && item.type === "image"
+          ? "community-media-social-photo-frame"
+          : singleFrameClass;
     return (
-      <div className={`border-y border-night-900/10 bg-black ${compact ? "" : carouselShellClass}`}>
-        <div className={singleFrameClass}>
-          <CarouselSlide item={items[0]} active imageFit={imageFit} />
+      <div
+        className={
+          socialFeedMedia
+            ? "community-media-social-shell"
+            : `border-y border-night-900/10 bg-black ${compact ? "" : carouselShellClass}`
+        }
+      >
+        <div className={socialFeedMedia ? socialFrame : singleFrameClass}>
+          <CarouselSlide
+            item={items[0]}
+            active
+            imageFit={imageFit}
+            videoFit={socialFeedMedia && item.type === "video" ? "cover" : "contain"}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`relative border-y border-night-900/10 bg-black ${compact ? "" : carouselShellClass}`}>
+    <div
+      className={`relative ${socialFeedMedia ? "community-media-social-shell border-0 bg-transparent" : "border-y border-night-900/10 bg-black"} ${compact ? "" : carouselShellClass}`}
+    >
       <div
         ref={scrollerRef}
         className="community-media-carousel-track"
@@ -167,7 +194,12 @@ export function CommunityMediaCarousel({
       >
         {items.map((item, index) => (
           <div key={`${item.url}-${index}`} className="community-media-carousel-slide">
-            <CarouselSlide item={item} active={index === activeIndex} imageFit={imageFit} />
+            <CarouselSlide
+              item={item}
+              active={index === activeIndex}
+              imageFit={imageFit}
+              videoFit={socialFeedMedia && item.type === "video" ? "cover" : "contain"}
+            />
           </div>
         ))}
       </div>
