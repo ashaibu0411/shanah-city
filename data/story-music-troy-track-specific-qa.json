@@ -6,7 +6,7 @@
   "reviewDate": "2026-11-14",
   "rightsVerification": "Individual track page CC BY 4.0 links confirmed for all nine.",
   "audioVerification": "Nine actual MP3 files downloaded, SHA-256 matched, 320-kbps encoding / >60s duration confirmed, and FFmpeg peak checks passed. FMA marks Instrumental: No on each track. No subjective human listening assessment has been performed.",
-  "publicationStatus": "PUBLISH_ONLY_AFTER_PRODUCTION_BLOB_UPLOAD_SUCCEEDS",
+  "publicationStatus": "PUBLISHED_AND_PRODUCTION_STREAM_VERIFIED",
   "tracks": [
     {
       "title": "Lord You're Amazing",
@@ -20,7 +20,7 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/dwYvSTQLfJtCOeymn8fUubD7lYu3XC1YEj56MsSd.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-lord-youre-amazing",
-      "status": "source_and_technical_qa_passed_pending_blob",
+      "status": "published_stream_verified",
       "licenseVerification": "per-track CC BY 4.0 page",
       "minClipSeconds": 60,
       "instrumental": "No (per individual FMA track page)"
@@ -37,7 +37,7 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/IU7eAlWeZ4DBs1s0PCBzZ6aecwFrKM6kcOgj5DcJ.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-ready-for-the-king",
-      "status": "source_and_technical_qa_passed_pending_blob",
+      "status": "published_stream_verified",
       "licenseVerification": "per-track CC BY 4.0 page",
       "minClipSeconds": 60,
       "instrumental": "No (per individual FMA track page)"
@@ -54,7 +54,7 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/wuFfapQbGCHMBtFe8ZBjJVConJRd8Tt88rAEoAjZ.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-youre-here-with-me",
-      "status": "source_and_technical_qa_passed_pending_blob",
+      "status": "published_stream_verified",
       "licenseVerification": "per-track CC BY 4.0 page",
       "minClipSeconds": 60,
       "instrumental": "No (per individual FMA track page)"
@@ -71,7 +71,7 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/CB0ysOPwysCiyVdCeUSPB8GCthtSOVdbRRYufxBB.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-like-an-ocean",
-      "status": "source_and_technical_qa_passed_pending_blob",
+      "status": "published_stream_verified",
       "licenseVerification": "per-track CC BY 4.0 page",
       "minClipSeconds": 60,
       "instrumental": "No (per individual FMA track page)"
@@ -88,7 +88,7 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/PDSkBQ3UnPWcyMwBnkWI4k3yvQChIHpPGPr4msGB.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-offering-of-praise",
-      "status": "source_and_technical_qa_passed_pending_blob",
+      "status": "published_stream_verified",
       "licenseVerification": "per-track CC BY 4.0 page",
       "minClipSeconds": 60,
       "instrumental": "No (per individual FMA track page)"
@@ -105,7 +105,7 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/Hxz7RKEMiMfeQTqb3eWZvBJk65JYBPpjPXL1yYO9.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-alive-in-me",
-      "status": "source_and_technical_qa_passed_pending_blob",
+      "status": "published_stream_verified",
       "licenseVerification": "per-track CC BY 4.0 page",
       "minClipSeconds": 60,
       "instrumental": "No (per individual FMA track page)"
@@ -122,7 +122,7 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/KK2iRMFrScjgI6E8kJpiZYgHoRC5QEE29wHia8Qi.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-shout-of-praise",
-      "status": "source_and_technical_qa_passed_pending_blob",
+      "status": "published_stream_verified",
       "licenseVerification": "per-track CC BY 4.0 page",
       "minClipSeconds": 60,
       "instrumental": "No (per individual FMA track page)"
@@ -139,7 +139,7 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/ZeSiPmHmWsvg24lBNgXBfsjOIgCa2BLgXR6tzSgb.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-all-i-am",
-      "status": "source_and_technical_qa_passed_pending_blob",
+      "status": "published_stream_verified",
       "licenseVerification": "per-track CC BY 4.0 page",
       "minClipSeconds": 60,
       "instrumental": "No (per individual FMA track page)"
@@ -156,10 +156,17 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/zgBu1V4pnRYeZLmUrFsWJnANkcj1rTfDwuqHjCwf.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-christ-the-king",
-      "status": "source_and_technical_qa_passed_pending_blob",
+      "status": "published_stream_verified",
       "licenseVerification": "per-track CC BY 4.0 page",
       "minClipSeconds": 60,
       "instrumental": "No (per individual FMA track page)"
     }
-  ]
+  ],
+  "productionVerification": {
+    "deploymentId": "dpl_A5RqGWJRP1PWv1kFgV6E1UuTTuoP",
+    "mergeSha": "7393ce52d6d0a851f2a70f9a37f2dd77646d8ae0",
+    "results": "9/9 uploaded with SHA256 matching source and 9/9 playback API mode audio + 9/9 audio/mpeg production streams returned HTTP 200",
+    "verifiedOn": "2026-11-14",
+    "note": "Production download and codec proof only; device listening and user taste assessment remain outside automated coverage."
+  }
 }
