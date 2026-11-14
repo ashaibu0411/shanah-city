@@ -257,9 +257,33 @@ function TeamConnectHomeView({
         </div>
         {payload.chatPreview ? (
           <div className="choir-card p-4">
-            <p className="text-xs font-bold text-[var(--choir-gold-dark)]">Choir group chat</p>
-            <p className="mt-1 font-bold text-[var(--choir-heading)]">{payload.chatPreview.senderName}</p>
-            <p className="mt-1 text-sm text-[var(--choir-body)]">{payload.chatPreview.body}</p>
+            {payload.chatPreview.timeAway ? (
+              <>
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--choir-gold-dark)]">
+                  <span aria-hidden="true">🕊️</span>
+                  <span>Time away approved</span>
+                </div>
+                <p className="mt-2 text-base font-bold text-[var(--choir-heading)]">
+                  {payload.chatPreview.timeAway.personName}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-[var(--choir-heading)]">
+                  {payload.chatPreview.timeAway.dates}
+                </p>
+                {payload.chatPreview.timeAway.reason ? (
+                  <p className="mt-1 break-words text-sm leading-relaxed text-[var(--choir-body)]">
+                    {payload.chatPreview.timeAway.reason}
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-bold text-[var(--choir-gold-dark)]">Choir group chat</p>
+                <p className="mt-1 font-bold text-[var(--choir-heading)]">{payload.chatPreview.senderName}</p>
+                <p className="mt-1 break-words text-sm leading-relaxed text-[var(--choir-body)]">
+                  {payload.chatPreview.body}
+                </p>
+              </>
+            )}
             <p className="mt-1 text-xs text-[var(--choir-muted)]">
               {formatRelative(payload.chatPreview.createdAt)}
               {payload.chatPreview.unreadCount > 0
