@@ -1,6 +1,7 @@
 "use client";
 
 import { setNativeBackgroundAudioActive } from "@/lib/native-webview-bridge";
+import { Capacitor } from "@capacitor/core";
 
 const KEEP_ALIVE_SRC = "/silence.wav";
 
@@ -12,6 +13,10 @@ export function setBackgroundPlaybackKeepAliveElement(element: HTMLAudioElement 
 }
 
 function startKeepAlive() {
+  // iOS plays the actual audio using AVAudioSession(.playback). A second silent
+  // media element can compete for Control Center / lock-screen ownership.
+  // The keep-alive workaround is only needed for the Android WebView path.
+  if (Capacitor.getPlatform() !== "android") return;
   setNativeBackgroundAudioActive(true);
   const el = keepAliveElement;
   if (!el) return;
