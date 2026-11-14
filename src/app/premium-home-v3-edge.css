@@ -1,0 +1,161 @@
+/* Premium Home V3 — edge-to-edge structural layout (no color changes) */
+
+body.premium-home-v3-active {
+  --home-v3-gutter: 10px;
+  --ph2-pad-x: var(--home-v3-gutter);
+}
+
+/* Shell: drop double horizontal inset from app-main + child margins */
+body.premium-home-v3-active .app-main:has(.premium-home-v3) {
+  display: block;
+  min-height: 0;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0;
+  padding-bottom: calc(2.1rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.premium-home-v3.premium-home-v4 {
+  width: 100%;
+  max-width: none;
+  padding-inline: var(--home-v3-gutter);
+  padding-bottom: 0.15rem;
+  box-sizing: border-box;
+}
+
+.premium-home-v3.premium-home-v4 > * {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: 100%;
+}
+
+.premium-home-v3.premium-home-v4 > .premium-home-v3__balance-lower {
+  margin-top: 0;
+  padding-top: 0.45rem;
+}
+
+body.premium-home-v3-active .ph4-section {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 0;
+}
+
+/* Panels: one inset only (shell gutter), lighter inner padding */
+body.premium-home-v3-active .ph4-section:has(.ph4-events),
+body.premium-home-v3-active .ph4-section:has(.ph4-sermon) {
+  padding: 0.48rem 0.5rem;
+}
+
+/* Welcome hero — full content width within gutter */
+body.premium-home-v3-active .ph4-hero--v3.ph4-hero--editorial {
+  margin-inline: 0;
+  width: 100%;
+  max-width: none;
+  min-height: clamp(14.25rem, 54vw, 19.75rem);
+  border-radius: 14px;
+}
+
+body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__content {
+  min-height: clamp(14.25rem, 54vw, 19.75rem);
+  padding-inline: 0.85rem;
+}
+
+body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__title-block {
+  max-width: none;
+}
+
+body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__tagline {
+  max-width: none;
+}
+
+/* Quick tiles — use full inner width */
+body.premium-home-v3-active .ph4-tile-grid {
+  gap: 0.45rem;
+}
+
+/* Events — readable titles */
+body.premium-home-v3-active .ph4-event-row {
+  padding-inline: 0.45rem;
+  gap: 0.5rem;
+}
+
+body.premium-home-v3-active .ph4-event-row__body {
+  min-width: 0;
+  flex: 1;
+}
+
+body.premium-home-v3-active .ph4-event-row__title {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.3;
+}
+
+/* Latest sermon — stacked full-width media (mobile home) */
+body.premium-home-v3-active .ph4-sermon--stack {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "thumb thumb"
+    "body chevron";
+  align-items: stretch;
+  gap: 0.55rem 0.4rem;
+  min-height: 0;
+}
+
+body.premium-home-v3-active .ph4-sermon--stack .ph4-sermon__thumb {
+  grid-area: thumb;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  min-height: 0;
+  border-radius: 10px;
+}
+
+body.premium-home-v3-active .ph4-sermon--stack .ph4-sermon__body {
+  grid-area: body;
+  width: 100%;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.22rem;
+  padding: 0;
+}
+
+body.premium-home-v3-active .ph4-sermon--stack .ph4-sermon__title {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: normal;
+  line-height: 1.34;
+}
+
+body.premium-home-v3-active .ph4-sermon--stack .ph4-sermon__all {
+  grid-area: chevron;
+  align-self: end;
+  padding-bottom: 0.15rem;
+}
+
+@media (min-width: 1024px) {
+  body.premium-home-v3-active .ph4-sermon--stack {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  body.premium-home-v3-active .ph4-sermon--stack .ph4-sermon__thumb {
+    width: 8.75rem;
+  }
+}
+
+@media (min-width: 400px) and (min-height: 880px) {
+  body.premium-home-v3-active .app-main:has(.premium-home-v3) {
+    padding-bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
