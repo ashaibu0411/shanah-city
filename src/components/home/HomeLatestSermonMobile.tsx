@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { SermonMediaPanel } from "@/components/sermons/SermonMediaPanel";
 import { latestSermon } from "@/lib/site";
 import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-shared";
+import { pickLatestEligibleSermon } from "@/lib/youtube-sermons-select";
 
 export function HomeLatestSermonMobile({ video }: { video: SermonVideo | null }) {
   const [resolved, setResolved] = useState<SermonVideo | null>(video);

@@ -6,6 +6,7 @@ import { SermonsGrid } from "@/components/sermons/SermonsGrid";
 import { ExternalLink } from "@/components/ui";
 import type { SermonVideo } from "@/lib/youtube-sermons-shared";
 import { getShanahCityYouTubeChannelUrl } from "@/lib/youtube-sermons-shared";
+import { pickLatestEligibleSermon } from "@/lib/youtube-sermons-select";
 
 type SermonsArchiveSectionProps = {
   initialVideos: SermonVideo[];
@@ -30,8 +31,8 @@ export function SermonsArchiveSection({ initialVideos }: SermonsArchiveSectionPr
       .catch(() => undefined);
   }, [initialVideos.length]);
 
-  const latest = videos[0] ?? null;
-  const moreVideos = latest ? videos.slice(1) : videos;
+  const latest = pickLatestEligibleSermon(videos);
+  const moreVideos = latest ? videos.filter((v) => v.id !== latest.id) : videos;
 
   return (
     <>

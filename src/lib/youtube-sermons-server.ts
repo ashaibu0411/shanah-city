@@ -1,8 +1,10 @@
+import { unstable_cache } from "next/cache";
 import { liveVideoConfig } from "@/lib/live-config";
 import { getYouTubeVideoWatchUrl } from "@/lib/media-clips-utils";
 import { getYouTubeThumbnail } from "@/lib/streams";
 import { fetchYouTubeOEmbed } from "@/lib/worship-youtube-utils";
 import type { SermonVideo } from "@/lib/youtube-sermons-shared";
+import { normalizeChannelSermonList } from "@/lib/youtube-sermons-select";
 
 export type { SermonVideo } from "@/lib/youtube-sermons-shared";
 export { formatSermonDate } from "@/lib/youtube-sermons-shared";
@@ -10,6 +12,8 @@ export { formatSermonDate } from "@/lib/youtube-sermons-shared";
 const DEFAULT_CHANNEL_ID = "UC4q0d9NgxRREu8kr1kUMDxw";
 const SHANAH_YOUTUBE_HANDLE = "ShanahCity";
 const MIN_SERMON_SECONDS = 120;
+/** Owner-supplied November 13, 2026 completed-service URL: checked against YouTube API before use, never forced to be latest. */
+const KNOWN_LIVE_ARCHIVE_IDS = ["-RGc46zoSoo"] as const;
 
 export function getShanahCityYouTubeChannelId() {
   return liveVideoConfig.youtubeChannelId.trim() || DEFAULT_CHANNEL_ID;
@@ -229,6 +233,91 @@ async function fetchSermonsViaSearchApi(
   return filterLongFormVideos(videos, apiKey);
 }
 
+/**
+ * YouTube's uploads playlist can lag behind a finished livestream archive.
+ * Discover finished public live recordings separately, then verify their status,
+ * actual end time and duration through videos.list. Never label an active stream
+ * as a completed sermon or assign an invented publication timestamp.
+ *
+ * search.list costs 100 YouTube API quota units, so cache this lookup across
+ * requests. Ordinary uploaded videos still refresh independently.
+ */
+async function fetchCompletedLivestreamSermons(
+  channelId: string,
+  apiKey: string,
+): Promise<SermonVideo[]> {
+  const url = new URL("https://www.googleapis.com/youtube/v3/search");
+  url.searchParams.set("part", "snippet");
+  url.searchParams.set("channelId", channelId);
+  url.searchParams.set("type", "video");
+  url.searchParams.set("eventType", "completed");
+  url.searchParams.set("order", "date");
+  url.searchParams.set("maxResults", "12");
+  url.searchParams.set("key", apiKey);
+
+  try {
+    // Completed livestreams can take time to appear in search results.
+    // The owner-provided archive is only a discovery seed: videos.list still
+    // must confirm channel ownership, public status, actual end, and duration.
+    let searchedIds: string[] = [];
+    try {
+      const searchResponse = await fetch(url.toString(), { cache: "no-store" });
+      if (searchResponse.ok) {
+        const searchData = (await searchResponse.json()) as {
+          items?: Array<{ id?: { videoId?: string } }>;
+        };
+        searchedIds = (searchData.items ?? []).map((item) => item.id?.videoId).filter(
+          (id): id is string => Boolean(id),
+        );
+      }
+    } catch {
+      // Search can fail independently; still verify the owner's archive by ID.
+    }
+    const ids = [...new Set([...KNOWN_LIVE_ARCHIVE_IDS, ...searchedIds])];
+    if (ids.length === 0) return [];
+
+    const detailsUrl = new URL("https://www.googleapis.com/youtube/v3/videos");
+    detailsUrl.searchParams.set("part", "snippet,contentDetails,liveStreamingDetails,status");
+    detailsUrl.searchParams.set("id", ids.join(","));
+    detailsUrl.searchParams.set("key", apiKey);
+    const detailsResponse = await fetch(detailsUrl.toString(), { cache: "no-store" });
+    if (!detailsResponse.ok) return [];
+    const details = (await detailsResponse.json()) as {
+      items?: Array<{
+        id?: string;
+        snippet?: { channelId?: string; title?: string };
+        contentDetails?: { duration?: string };
+        liveStreamingDetails?: { actualEndTime?: string };
+        status?: { privacyStatus?: string };
+      }>;
+    };
+
+    return (details.items ?? []).flatMap((item) => {
+      const id = item.id?.trim();
+      const title = item.snippet?.title?.trim();
+      const endedAt = item.liveStreamingDetails?.actualEndTime;
+      const duration = item.contentDetails?.duration;
+      const seconds = duration ? parseIso8601DurationSeconds(duration) : null;
+      if (
+        !id || !title || !endedAt || !Number.isFinite(Date.parse(endedAt)) ||
+        item.snippet?.channelId !== channelId ||
+        item.status?.privacyStatus !== "public" ||
+        seconds == null || seconds < MIN_SERMON_SECONDS
+      ) return [];
+      return [toSermonVideo(id, title, endedAt)];
+    });
+  } catch {
+    return [];
+  }
+}
+
+// Keep the expensive YouTube search quota bounded across server requests.
+const cachedCompletedLivestreamSermons = unstable_cache(
+  fetchCompletedLivestreamSermons,
+  ["shanah-completed-live-sermons-v1"],
+  { revalidate: 1800 },
+);
+
 const YOUTUBE_BROWSER_HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -282,7 +371,7 @@ async function fetchSermonsViaChannelScrape(
         const title = oEmbed?.title?.trim() || "Latest message";
         if (/^#?\s*shorts?\b/i.test(title)) continue;
 
-        videos.push(toSermonVideo(id, title, new Date().toISOString()));
+        videos.push(toSermonVideo(id, title, ""));
         if (videos.length >= limit) return videos;
       }
 
@@ -312,28 +401,40 @@ async function fetchSermonsViaRss(channelId: string, limit: number): Promise<Ser
   return parseYouTubeChannelFeed(xml).slice(0, limit);
 }
 
+function finalizeSermonList(videos: SermonVideo[], limit: number): SermonVideo[] {
+  return normalizeChannelSermonList(videos).slice(0, limit);
+}
+
 export async function loadChannelSermons(limit = 50): Promise<SermonVideo[]> {
   const channelId = await resolveSermonChannelId();
   const apiKey = process.env.YOUTUBE_API_KEY?.trim();
 
   if (apiKey) {
-    const fromUploads = await fetchSermonsViaUploadsPlaylist(channelId, apiKey, limit);
-    if (fromUploads.length > 0) return fromUploads.slice(0, limit);
+    const [fromUploads, fromCompletedLives] = await Promise.all([
+      fetchSermonsViaUploadsPlaylist(channelId, apiKey, limit),
+      cachedCompletedLivestreamSermons(channelId, apiKey),
+    ]);
+    // Prefer metadata from the completed-live lookup on duplicate IDs: actual
+    // end time reflects when that service finished, not when it was scheduled.
+    const byId = new Map<string, SermonVideo>();
+    for (const video of fromUploads) byId.set(video.id, video);
+    for (const video of fromCompletedLives) byId.set(video.id, video);
+    if (byId.size > 0) return finalizeSermonList([...byId.values()], limit);
 
     const fromSearch = await fetchSermonsViaSearchApi(channelId, apiKey, limit);
-    if (fromSearch.length > 0) return fromSearch.slice(0, limit);
+    if (fromSearch.length > 0) return finalizeSermonList(fromSearch, limit);
   }
 
   const fromRss = await fetchSermonsViaRss(channelId, limit);
-  if (fromRss.length > 0) return fromRss;
+  if (fromRss.length > 0) return finalizeSermonList(fromRss, limit);
 
   if (channelId !== DEFAULT_CHANNEL_ID) {
     const fallbackRss = await fetchSermonsViaRss(DEFAULT_CHANNEL_ID, limit);
-    if (fallbackRss.length > 0) return fallbackRss;
+    if (fallbackRss.length > 0) return finalizeSermonList(fallbackRss, limit);
   }
 
   const fromScrape = await fetchSermonsViaChannelScrape(SHANAH_YOUTUBE_HANDLE, channelId, limit);
-  if (fromScrape.length > 0) return fromScrape;
+  if (fromScrape.length > 0) return finalizeSermonList(fromScrape, limit);
 
   return [];
 }

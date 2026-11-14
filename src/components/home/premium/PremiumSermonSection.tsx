@@ -8,6 +8,7 @@ import { SermonCardMedia } from "@/components/sermons/SermonCardMedia";
 import { mergeHomeSermonVideo } from "@/lib/home-sermon-display";
 import { latestSermon, site } from "@/lib/site";
 import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-shared";
+import { pickLatestEligibleSermon } from "@/lib/youtube-sermons-select";
 
 type PremiumSermonSectionProps = {
   video: SermonVideo | null;

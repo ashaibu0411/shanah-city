@@ -1,7 +1,7 @@
-import { latestSermon } from "@/lib/site";
 import { getYouTubeThumbnail } from "@/lib/streams";
 import { getYouTubeVideoWatchUrl } from "@/lib/media-clips-utils";
 import type { SermonVideo } from "@/lib/youtube-sermons-shared";
+import { pickLatestEligibleSermon } from "@/lib/youtube-sermons-select";
 
 /** Optional override when YouTube API/RSS is unavailable (set in Vercel env). */
 export function homeSermonVideoIdOverride() {
@@ -14,15 +14,21 @@ export function buildHomeSermonFallback(): SermonVideo | null {
 
   return {
     id,
-    title: latestSermon.title,
-    publishedAt: new Date().toISOString(),
+    title: "Latest message",
+    publishedAt: "",
     watchUrl: getYouTubeVideoWatchUrl(id),
     thumbnailUrl: getYouTubeThumbnail(id),
   };
 }
 
-export function mergeHomeSermonVideo(primary: SermonVideo | null | undefined): SermonVideo | null {
-  if (primary?.id) return primary;
+/** Picks newest eligible sermon from the channel list, or env override only when the feed is empty. */
+export function mergeHomeSermonVideo(
+  primary: SermonVideo | null | undefined,
+  candidates?: SermonVideo[],
+): SermonVideo | null {
+  const list = candidates?.length ? candidates : primary?.id ? [primary] : [];
+  const picked = pickLatestEligibleSermon(list);
+  if (picked) return picked;
   return buildHomeSermonFallback();
 }
 
