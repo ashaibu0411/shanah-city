@@ -2543,6 +2543,10 @@ model VisionComment {
   sectionKey String   @default("general")
   body       String
   kind       String   @default("question")
+  decision   String   @default("pending")
+  decisionNote String?
+  decidedById  String?
+  decidedAt    DateTime?
   createdAt  DateTime @default(now())
 
   @@index([planId, createdAt])
