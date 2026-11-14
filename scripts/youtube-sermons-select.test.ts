@@ -68,5 +68,8 @@ assert.match(server, /eventType", "completed"/);
 assert.match(server, /actualEndTime/);
 assert.match(server, /privacyStatus !== "public"/);
 assert.match(server, /unstable_cache/);
+assert.match(server, /KNOWN_LIVE_ARCHIVE_IDS = \["-RGc46zoSoo"\]/);
+assert.match(server, /\[\.\.\.KNOWN_LIVE_ARCHIVE_IDS, \.\.\.searchedIds\]/);
+assert.match(server, /privacyStatus !== "public"/);
 
 console.log("youtube-sermons-select.test.ts OK");
