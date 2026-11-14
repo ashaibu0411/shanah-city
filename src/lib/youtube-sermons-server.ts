@@ -3,6 +3,7 @@ import { getYouTubeVideoWatchUrl } from "@/lib/media-clips-utils";
 import { getYouTubeThumbnail } from "@/lib/streams";
 import { fetchYouTubeOEmbed } from "@/lib/worship-youtube-utils";
 import type { SermonVideo } from "@/lib/youtube-sermons-shared";
+import { normalizeChannelSermonList } from "@/lib/youtube-sermons-select";
 
 export type { SermonVideo } from "@/lib/youtube-sermons-shared";
 export { formatSermonDate } from "@/lib/youtube-sermons-shared";
@@ -282,7 +283,7 @@ async function fetchSermonsViaChannelScrape(
         const title = oEmbed?.title?.trim() || "Latest message";
         if (/^#?\s*shorts?\b/i.test(title)) continue;
 
-        videos.push(toSermonVideo(id, title, new Date().toISOString()));
+        videos.push(toSermonVideo(id, title, ""));
         if (videos.length >= limit) return videos;
       }
 
@@ -312,28 +313,32 @@ async function fetchSermonsViaRss(channelId: string, limit: number): Promise<Ser
   return parseYouTubeChannelFeed(xml).slice(0, limit);
 }
 
+function finalizeSermonList(videos: SermonVideo[], limit: number): SermonVideo[] {
+  return normalizeChannelSermonList(videos).slice(0, limit);
+}
+
 export async function loadChannelSermons(limit = 50): Promise<SermonVideo[]> {
   const channelId = await resolveSermonChannelId();
   const apiKey = process.env.YOUTUBE_API_KEY?.trim();
 
   if (apiKey) {
     const fromUploads = await fetchSermonsViaUploadsPlaylist(channelId, apiKey, limit);
-    if (fromUploads.length > 0) return fromUploads.slice(0, limit);
+    if (fromUploads.length > 0) return finalizeSermonList(fromUploads, limit);
 
     const fromSearch = await fetchSermonsViaSearchApi(channelId, apiKey, limit);
-    if (fromSearch.length > 0) return fromSearch.slice(0, limit);
+    if (fromSearch.length > 0) return finalizeSermonList(fromSearch, limit);
   }
 
   const fromRss = await fetchSermonsViaRss(channelId, limit);
-  if (fromRss.length > 0) return fromRss;
+  if (fromRss.length > 0) return finalizeSermonList(fromRss, limit);
 
   if (channelId !== DEFAULT_CHANNEL_ID) {
     const fallbackRss = await fetchSermonsViaRss(DEFAULT_CHANNEL_ID, limit);
-    if (fallbackRss.length > 0) return fallbackRss;
+    if (fallbackRss.length > 0) return finalizeSermonList(fallbackRss, limit);
   }
 
   const fromScrape = await fetchSermonsViaChannelScrape(SHANAH_YOUTUBE_HANDLE, channelId, limit);
-  if (fromScrape.length > 0) return fromScrape;
+  if (fromScrape.length > 0) return finalizeSermonList(fromScrape, limit);
 
   return [];
 }

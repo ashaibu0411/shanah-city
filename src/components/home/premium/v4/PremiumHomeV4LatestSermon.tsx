@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { homeSermonInlineThumbnail, mergeHomeSermonVideo } from "@/lib/home-sermon-display";
+import { pickLatestEligibleSermon } from "@/lib/youtube-sermons-select";
 import { latestSermon, site } from "@/lib/site";
 import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-shared";
 import { PremiumHomeV4Chevron, PremiumHomeV4Play } from "@/components/home/premium/v4/PremiumHomeV4Icons";
@@ -25,11 +26,12 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
   useEffect(() => {
     if (resolved?.id) return;
     let cancelled = false;
-    fetch("/api/sermons?limit=1", { cache: "no-store" })
+    fetch("/api/sermons?limit=50", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
-        const first = Array.isArray(data.videos) ? (data.videos[0] as SermonVideo | undefined) : undefined;
-        if (!cancelled && first?.id) setResolved(first);
+        const list = Array.isArray(data.videos) ? (data.videos as SermonVideo[]) : [];
+        const latest = pickLatestEligibleSermon(list);
+        if (!cancelled && latest?.id) setResolved(latest);
       })
       .catch(() => undefined);
     return () => {

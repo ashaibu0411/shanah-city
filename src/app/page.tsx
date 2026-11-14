@@ -33,7 +33,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <HomeView
         urgentAlerts={urgentAlerts}
         churchImages={churchImages}
-        latestSermon={mergeHomeSermonVideo(sermonVideos[0] ?? null)}
+        latestSermon={mergeHomeSermonVideo(null, sermonVideos)}
         upcomingEventRows={upcomingEventRows}
       />
     </Suspense>
