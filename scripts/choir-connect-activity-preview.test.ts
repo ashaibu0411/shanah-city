@@ -17,7 +17,7 @@ assert.deepEqual(parseChoirTimeAwayChatPreview(truncated), {
 
 assert.deepEqual(parseChoirTimeAwayChatPreview("🕊️ Approved time away: Tina (2026-11-29 – 2026-12-01)"), {
   personName: "Tina",
-  dates: "Sunday, Nov 29, 2026 – Tuesday, Dec 2, 2026".replace("Tuesday, Dec 2", "Monday, Dec 1"),
+  dates: "Sunday, Nov 29, 2026 – Tuesday, Dec 1, 2026",
   reason: "",
 });
 assert.equal(parseChoirTimeAwayChatPreview("We will rehearse at 7 PM"), null);
