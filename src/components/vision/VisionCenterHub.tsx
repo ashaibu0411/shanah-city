@@ -68,7 +68,7 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
     }
   }, []);
 
-  useEffect(() => { void refresh().catch(e => setError(String(e))); }, [refresh]);
+  useEffect(() => { const planId = new URLSearchParams(window.location.search).get("plan"); void refresh(planId || undefined).catch(e => setError(String(e))); }, [refresh]);
 
   async function run(method: string, data: Record<string, unknown>, reloadId?: string) {
     setBusy(true); setError(""); setNotice("");
