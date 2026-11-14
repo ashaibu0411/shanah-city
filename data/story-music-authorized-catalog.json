@@ -1063,6 +1063,31 @@
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
       "attributionText": "Christ The King by Troy Sustarsic — CC BY 4.0. Source: https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing/christ-the-king/; License: https://creativecommons.org/licenses/by/4.0/",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing/christ-the-king/"
+    },
+    {
+      "id": "audiodollar-gospel",
+      "title": "Gospel",
+      "artist": "AudioDollar",
+      "providerTrackId": "audiodollar-gospel.mp3",
+      "audioPath": "story-music://blob/story-music/audio/free-library/audiodollar-gospel.mp3",
+      "genres": [
+        "gospel",
+        "instrumental",
+        "worship"
+      ],
+      "tags": [
+        "free-library",
+        "instrumental-only",
+        "gospel-instrumental",
+        "modern-instrumental",
+        "audiodollar-cc-by-2026"
+      ],
+      "rightsRecordId": "smr-audiodollar-gospel",
+      "status": "active",
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "Gospel by AudioDollar — CC BY 4.0. Source: https://freemusicarchive.org/music/audiodollar/cinematic-music-1/gospel/; License: https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://freemusicarchive.org/music/audiodollar/cinematic-music-1/gospel/"
     }
   ]
 }
