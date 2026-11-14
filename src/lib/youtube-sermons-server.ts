@@ -12,6 +12,8 @@ export { formatSermonDate } from "@/lib/youtube-sermons-shared";
 const DEFAULT_CHANNEL_ID = "UC4q0d9NgxRREu8kr1kUMDxw";
 const SHANAH_YOUTUBE_HANDLE = "ShanahCity";
 const MIN_SERMON_SECONDS = 120;
+/** Owner-supplied November 13, 2026 completed-service URL: checked against YouTube API before use, never forced to be latest. */
+const KNOWN_LIVE_ARCHIVE_IDS = ["-RGc46zoSoo"] as const;
 
 export function getShanahCityYouTubeChannelId() {
   return liveVideoConfig.youtubeChannelId.trim() || DEFAULT_CHANNEL_ID;
@@ -254,14 +256,20 @@ async function fetchCompletedLivestreamSermons(
   url.searchParams.set("key", apiKey);
 
   try {
+    // Completed livestreams can take time to appear in search results.
+    // The owner-provided archive is only a discovery seed: videos.list still
+    // must confirm channel ownership, public status, actual end, and duration.
     const searchResponse = await fetch(url.toString(), { cache: "no-store" });
-    if (!searchResponse.ok) return [];
-    const searchData = (await searchResponse.json()) as {
-      items?: Array<{ id?: { videoId?: string } }>;
-    };
-    const ids = [...new Set((searchData.items ?? []).map((item) => item.id?.videoId).filter(
-      (id): id is string => Boolean(id),
-    ))];
+    let searchedIds: string[] = [];
+    if (searchResponse.ok) {
+      const searchData = (await searchResponse.json()) as {
+        items?: Array<{ id?: { videoId?: string } }>;
+      };
+      searchedIds = (searchData.items ?? []).map((item) => item.id?.videoId).filter(
+        (id): id is string => Boolean(id),
+      );
+    }
+    const ids = [...new Set([...KNOWN_LIVE_ARCHIVE_IDS, ...searchedIds])];
     if (ids.length === 0) return [];
 
     const detailsUrl = new URL("https://www.googleapis.com/youtube/v3/videos");
