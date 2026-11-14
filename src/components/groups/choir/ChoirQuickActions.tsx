@@ -81,16 +81,23 @@ export function ChoirQuickActions({
   ];
 
   return (
-    <section aria-label="Quick access">
-      <div className="grid grid-cols-3 gap-2.5">
+    <section aria-labelledby="choir-quick-actions-title" className="choir-quick-actions">
+      <div className="choir-quick-actions-heading">
+        <div>
+          <p className="choir-quick-actions-eyebrow">WORSHIP ESSENTIALS</p>
+          <h2 id="choir-quick-actions-title" className="choir-quick-actions-title">Your worship space</h2>
+        </div>
+        <span className="choir-quick-actions-count">7 tools</span>
+      </div>
+      <div className="choir-quick-actions-grid">
         {tiles.map((tile) => {
-          const className = `choir-tile ${tile.disabled ? "opacity-55" : ""}`;
+          const className = `choir-tile ${tile.key === "connect" ? "choir-tile-featured" : ""} ${tile.disabled ? "opacity-55" : ""}`;
           if (tile.href && !tile.disabled) {
             return (
               <Link key={tile.key} href={tile.href} className={className}>
-                <span className="choir-tile-icon">{tile.icon}</span>
-                <span className="choir-tile-title">{tile.title}</span>
-                <span className="choir-tile-sub">{tile.subtitle}</span>
+                <span className="choir-tile-icon" aria-hidden="true">{tile.icon}</span>
+                <span className="choir-tile-copy"><span className="choir-tile-title">{tile.title}</span><span className="choir-tile-sub">{tile.subtitle}</span></span>
+                <span className="choir-tile-arrow" aria-hidden="true">›</span>
               </Link>
             );
           }
@@ -101,9 +108,8 @@ export function ChoirQuickActions({
               className={className}
               disabled={tile.disabled}
             >
-              <span className="choir-tile-icon">{tile.icon}</span>
-              <span className="choir-tile-title">{tile.title}</span>
-              <span className="choir-tile-sub">{tile.subtitle}</span>
+              <span className="choir-tile-icon" aria-hidden="true">{tile.icon}</span>
+              <span className="choir-tile-copy"><span className="choir-tile-title">{tile.title}</span><span className="choir-tile-sub">{tile.subtitle}</span></span>
             </button>
           );
         })}

@@ -247,41 +247,127 @@
   transform: scale(0.98);
 }
 
-.choir-group-home .choir-tile {
+/* Compact, editorial worship shortcuts: two readable columns on phones. */
+.choir-group-home .choir-quick-actions-heading {
   display: flex;
-  min-height: 108px;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+.choir-group-home .choir-quick-actions-eyebrow {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--choir-gold-dark);
+}
+.choir-group-home .choir-quick-actions-title {
+  margin-top: 2px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.3rem, 5vw, 1.65rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--choir-heading);
+}
+.choir-group-home .choir-quick-actions-count {
+  flex: none;
+  padding: 4px 9px;
+  border: 1px solid var(--choir-border);
+  border-radius: 100px;
+  color: var(--choir-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+.choir-group-home .choir-quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+.choir-group-home .choir-tile {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 132px;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
-  border-radius: 14px;
+  gap: 10px;
+  border-radius: 18px;
   border: 1px solid var(--choir-border);
   background: var(--choir-surface);
-  padding: 12px 10px;
+  padding: 15px 14px 13px;
   text-align: left;
-  transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 3px 12px rgb(33 24 23 / 3%);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
-
+.choir-group-home .choir-tile:hover {
+  background: #fffdf9;
+  box-shadow: 0 7px 20px rgb(33 24 23 / 7%);
+}
+.choir-group-home .choir-tile:focus-visible {
+  outline: 3px solid var(--choir-gold);
+  outline-offset: 3px;
+}
 .choir-group-home .choir-tile:active {
-  transform: scale(0.98);
+  transform: scale(0.985);
   background: var(--choir-surface-soft);
 }
-
 .choir-group-home .choir-tile-icon {
   display: flex;
-  height: 32px;
-  width: 32px;
+  height: 39px;
+  width: 39px;
+  flex: none;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 13px;
   background: var(--choir-gold-soft);
   color: var(--choir-gold-dark);
 }
-
+.choir-group-home .choir-tile-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
 .choir-group-home .choir-tile-title {
-  font-size: 0.9rem;
-  font-weight: 700;
+  overflow-wrap: break-word;
+  font-size: clamp(0.88rem, 3.55vw, 1.03rem);
+  font-weight: 750;
   color: var(--choir-heading);
   line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+.choir-group-home .choir-tile-arrow {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  color: var(--choir-gold-dark);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.choir-group-home .choir-tile-featured {
+  grid-column: 1 / -1;
+  min-height: 90px;
+  flex-direction: row;
+  align-items: center;
+  gap: 13px;
+  border-color: #e6d4b2;
+  background: linear-gradient(105deg, #fff9ed, #fffefd);
+  padding: 16px;
+}
+.choir-group-home .choir-tile-featured .choir-tile-title {
+  font-size: 1.05rem;
+}
+.choir-group-home .choir-tile-featured .choir-tile-arrow {
+  position: static;
+  margin-left: auto;
+}
+@media (min-width: 720px) {
+  .choir-group-home .choir-quick-actions-grid { gap: 14px; }
+  .choir-group-home .choir-tile { min-height: 122px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .choir-group-home .choir-tile { transition: none; }
 }
 
 .choir-group-home .choir-assignment-card {
@@ -441,8 +527,8 @@
 }
 
 .choir-group-home .choir-tile-sub {
-  font-size: 0.68rem;
-  line-height: 1.35;
+  font-size: 0.76rem;
+  line-height: 1.3;
   color: var(--choir-muted);
 }
 
