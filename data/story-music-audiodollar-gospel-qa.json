@@ -18,5 +18,17 @@
     "sampleRate": 44100,
     "channels": 2
   },
-  "status": "pending_production_upload_and_stream_verification"
+  "status": "published_production_audio_verified",
+  "productionVerification": {
+    "deployedCommit": "27c353b8bd9773695135e3e66bf0697f9ae96720",
+    "deploymentId": "dpl_4wigJwf6Rr5pw1J3BeGuAWpnb2Uf",
+    "verifiedDate": "2026-11-14",
+    "tests": [
+      "Vercel production READY",
+      "SHA256-matched Blob upload",
+      "instrumentals picker returned track",
+      "playback API mode audio playable and attribution",
+      "production MP3 stream HTTP 200, valid MP3 header"
+    ]
+  }
 }

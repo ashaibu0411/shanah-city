@@ -22,6 +22,6 @@ assert.equal(matchesStoryMusicPickerCategory({...track,provider:"church_authoriz
 assert.equal(track.licenseType,"CC BY 4.0");
 assert.equal(record.streamingPermitted,true);
 assert.equal(record.storagePermitted,true);
-assert.match(build,/story-music-audiodollar-one-time-upload.mjs/);
+assert.doesNotMatch(build,/story-music-audiodollar-one-time-upload.mjs/);
 assert.match(script,/sha !== row.audio.sha256/);
 console.log("story-music-audiodollar.test.ts OK");
