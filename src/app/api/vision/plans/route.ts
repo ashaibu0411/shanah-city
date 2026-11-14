@@ -129,6 +129,20 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ assignment: result });
   }
   if (!isOwner) return deny();
+  if (action === "decide-comment") {
+    if (plan.status === "approved") return invalid("Approved plans are read-only.");
+    const commentId = safeVisionString(body.commentId, 100);
+    const decision = safeVisionString(body.decision, 20);
+    if (!["accepted", "declined", "deferred"].includes(decision)) return invalid("Invalid decision.");
+    const current = await prisma.visionComment.findFirst({ where: { id: commentId, planId } });
+    if (!current || current.kind !== "idea") return invalid("This suggestion cannot be reviewed.");
+    const updated = await prisma.visionComment.update({
+      where: { id: commentId },
+      data: { decision, decisionNote: safeVisionString(body.note, 1000), decidedById: user.id, decidedAt: new Date() },
+    });
+    await audit(planId, user.id, "idea-" + decision, commentId);
+    return NextResponse.json({ comment: updated });
+  }
   if (action === "update-plan") {
     if (plan.status === "approved") return invalid("An approved plan cannot be overwritten.");
     const content = safeVisionString(body.content, 20000);
@@ -147,7 +161,13 @@ export async function PATCH(request: Request) {
       where: { id: planId },
       data: action === "approve" ? { status: "approved", approvedAt: new Date(), approvedById: user.id } : { status: "in_review" },
     });
-    if (action === "request-revision") await prisma.visionAssignment.updateMany({ where: { planId, status: "submitted" }, data: { status: "revision_requested" } });
+    if (action === "request-revision") {
+      await prisma.visionAssignment.updateMany({ where: { planId, status: "submitted" }, data: { status: "revision_requested" } });
+      const note = safeVisionString(body.note, 1000);
+      if (note) await prisma.visionComment.create({
+        data: { planId, authorId: user.id, authorName: user.name, sectionKey: "pastoral-review", kind: "review", body: note },
+      });
+    }
     await audit(planId, user.id, action, safeVisionString(body.note, 1000));
     return NextResponse.json({ plan: updated });
   }
