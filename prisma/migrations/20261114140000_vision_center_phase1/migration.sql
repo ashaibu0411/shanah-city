@@ -42,6 +42,10 @@ CREATE TABLE "VisionComment" (
   "sectionKey" TEXT NOT NULL DEFAULT 'general',
   "body" TEXT NOT NULL,
   "kind" TEXT NOT NULL DEFAULT 'question',
+  "decision" TEXT NOT NULL DEFAULT 'pending',
+  "decisionNote" TEXT,
+  "decidedById" TEXT,
+  "decidedAt" TIMESTAMP(3),
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "VisionComment_pkey" PRIMARY KEY ("id")
 );
