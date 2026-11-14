@@ -52,3 +52,12 @@ The exact November 13 video ID/title has **not** been independently obtained fro
 **Expected recording video ID:** pending direct YouTube confirmation.  
 **API-selected video ID:** pending preview/production API confirmation.  
 **Merge/deploy:** hold pending matching IDs and owner approval.
+
+
+## Owner-supplied source video (November 13, 2026)
+
+- URL: https://www.youtube.com/live/-RGc46zoSoo?si=ghtkC40738Urmns5
+- YouTube ID: `-RGc46zoSoo`
+- The supplied link identifies the **expected** Friday evening message; video title, channel ownership, actual livestream end time and public availability have not been independently verified from YouTube in this environment.
+- This ID is included as a **discovery seed**, not a permanently pinned top sermon. YouTube `videos.list` must verify it belongs to the configured channel, is public, has actually ended and meets the minimum duration. Its verified actual end time competes normally with future services; Sunday's newer service can supersede it.
+- **Before merging:** request `/api/sermons?limit=50` in an authenticated preview that can reach YouTube Data API and confirm the selected video ID is `-RGc46zoSoo`, title/thumbnail match YouTube, and playback opens this ID. If it does not match, record the actual API-selected ID and why. Production is not changed by this branch.
