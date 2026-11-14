@@ -62,7 +62,7 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
           View all →
         </Link>
       </div>
-      <div className="ph4-sermon">
+      <div className="ph4-sermon ph4-sermon--stack">
         <button
           type="button"
           className="ph4-sermon__thumb"
@@ -75,7 +75,7 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
             fill
             unoptimized={thumbnail.startsWith("http")}
             className="object-cover"
-            sizes="(max-width: 430px) 7rem, 8rem"
+            sizes="(max-width: 512px) 92vw, 400px"
             quality={92}
           />
           <span className="ph4-sermon__play">
