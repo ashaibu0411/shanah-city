@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "artist": "AudioDollar",
+  "title": "Gospel",
+  "id": "audiodollar-gospel",
+  "sourceUrl": "https://freemusicarchive.org/music/audiodollar/cinematic-music-1/gospel/",
+  "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/z9fIVlNiv8ea8T2DwNTapauqHBtLwTe7zJz2uPkf.mp3",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "sourceStatesInstrumental": true,
+  "sourceStatesAiGenerated": false,
+  "sourceReleaseDate": "2026-10-07",
+  "audio": {
+    "bytes": 3143053,
+    "sha256": "46c262bc445c8f045340a81340a7614568fc8dee3a686ddb6d410ddb21661630",
+    "durationSeconds": 98.22,
+    "bitrate": 256000,
+    "sampleRate": 44100,
+    "channels": 2
+  },
+  "status": "pending_production_upload_and_stream_verification"
+}

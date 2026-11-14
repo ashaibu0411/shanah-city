@@ -1530,6 +1530,37 @@
       "verifiedAt": "2026-11-14T17:00:00.000Z",
       "publishedAt": "2026-11-14T17:00:00.000Z",
       "notes": "MP3 SHA256 ef9598be78ab86d28c7872054aa51f0ddcb52f64d70a89b3be789f15b6622d80; 9130952 bytes; 228.3s at 320000bps. Publication requires successful production Blob upload."
+    },
+    {
+      "id": "smr-audiodollar-gospel",
+      "status": "published",
+      "artist": "AudioDollar",
+      "title": "Gospel",
+      "recordingOwner": "AudioDollar, as attributed on individual Free Music Archive song page and track CC BY 4.0 statement",
+      "compositionPublishing": "Source page identifies track and CC BY 4.0 licensing; no third-party composition credit identified in reviewed page metadata.",
+      "documentReference": "Individual FMA song license: https://freemusicarchive.org/music/audiodollar/cinematic-music-1/gospel/; https://creativecommons.org/licenses/by/4.0/. 2026-10-07 release; instrumental=yes; AI generated=no. Source MP3 SHA256 46c262bc445c8f045340a81340a7614568fc8dee3a686ddb6d410ddb21661630",
+      "authorizedUses": "In-app Shanah City Stories background music, storage, member audiovisual synchronization and 30–60-second clips with CC BY 4.0 attribution",
+      "streamingPermitted": true,
+      "storagePermitted": true,
+      "territory": "Worldwide per CC BY 4.0",
+      "catalogTrackId": "audiodollar-gospel",
+      "audioPath": "story-music://blob/story-music/audio/free-library/audiodollar-gospel.mp3",
+      "genres": [
+        "gospel",
+        "instrumental",
+        "worship"
+      ],
+      "tags": [
+        "free-library",
+        "instrumental-only",
+        "gospel-instrumental",
+        "modern-instrumental"
+      ],
+      "licenseType": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "Gospel by AudioDollar — CC BY 4.0. Source: https://freemusicarchive.org/music/audiodollar/cinematic-music-1/gospel/; License: https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://freemusicarchive.org/music/audiodollar/cinematic-music-1/gospel/",
+      "notes": "98.22-second 256-kbps MP3, 44.1-kHz stereo, 3,143,053 bytes, SHA256 pinned. Production publish gated on Blob upload."
     }
   ]
 }
