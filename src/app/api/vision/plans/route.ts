@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { VISION_2027_DRAFTS } from "@/lib/vision-2027-drafts";
 import { getUserById } from "@/lib/auth-server";
+import { getGroups } from "@/lib/group-server";
 import { getVisionActor, canReadVision, safeVisionString, VISION_MINISTRIES } from "@/lib/vision-center-access-server";
 
 function deny(code = 403) { return NextResponse.json({ error: code === 401 ? "Sign in required." : "Not authorized." }, { status: code }); }
@@ -27,7 +28,15 @@ export async function GET(request: Request) {
     include: { assignments: isOwner ? true : { where: { userId: user.id } }, _count: { select: { comments: true } } },
     orderBy: { title: "asc" },
   });
-  return NextResponse.json({ plans, isOwner, ministries: isOwner ? VISION_MINISTRIES : [] });
+  const leaders = isOwner ? await (async () => {
+    const groups = await getGroups();
+    const ids = [...new Set(groups.flatMap(g => [...g.adminIds, ...(g.assistantAdminIds || [])]))];
+    const users = await Promise.all(ids.map(getUserById));
+    return users.filter((u): u is NonNullable<typeof u> => Boolean(u))
+      .map(u => ({ id: u.id, name: u.name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  })() : [];
+  return NextResponse.json({ plans, isOwner, ministries: isOwner ? VISION_MINISTRIES : [], leaders });
 }
 
 export async function POST(request: Request) {
