@@ -53,9 +53,18 @@ export async function POST(request: Request) {
     if (!currentPlan || currentPlan.status === "approved") return invalid("Discussion is closed for approved plans.");
     const text = safeVisionString(body.body, 3000);
     if (!text) return invalid("Enter a question or suggestion.");
-    const kind = body.kind === "idea" ? "idea" : "question";
+    const kind = body.kind === "idea" || body.kind === "design" ? "idea" : "question";
     const sectionKey = safeVisionString(body.sectionKey, 100) || "general";
-    const comment = await prisma.visionComment.create({ data: { planId, authorId: user.id, authorName: user.name, body: text, kind, sectionKey } });
+    const rawUrl = safeVisionString(body.referenceUrl, 1000);
+    let referenceUrl: string | null = null;
+    if (rawUrl) {
+      try {
+        const parsed = new URL(rawUrl);
+        if (parsed.protocol !== "https:" || parsed.username || parsed.password) return invalid("Use a valid HTTPS reference link.");
+        referenceUrl = parsed.href;
+      } catch { return invalid("Use a valid HTTPS reference link."); }
+    }
+    const comment = await prisma.visionComment.create({ data: { planId, authorId: user.id, authorName: user.name, body: text, kind, sectionKey, referenceUrl } });
     await audit(planId, user.id, "comment", kind);
     if (isOwner) {
       const assigned = await prisma.visionAssignment.findMany({ where: { planId }, select: { userId: true } });
