@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { VISION_2027_DRAFTS } from "@/lib/vision-2027-drafts";
 import { getUserById } from "@/lib/auth-server";
 import { getVisionActor, canReadVision, safeVisionString, VISION_MINISTRIES } from "@/lib/vision-center-access-server";
 
@@ -38,6 +39,8 @@ export async function POST(request: Request) {
   if (action === "comment") {
     const planId = safeVisionString(body.planId, 100);
     if (!(await canReadVision(planId, user.id, isOwner))) return deny();
+    const currentPlan = await prisma.visionPlan.findUnique({ where: { id: planId }, select: { status: true } });
+    if (!currentPlan || currentPlan.status === "approved") return invalid("Discussion is closed for approved plans.");
     const text = safeVisionString(body.body, 3000);
     if (!text) return invalid("Enter a question or suggestion.");
     const kind = body.kind === "idea" ? "idea" : "question";
@@ -47,6 +50,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ comment }, { status: 201 });
   }
   if (!isOwner) return deny();
+  if (action === "initialize-2027") {
+    let created = 0;
+    for (const draft of VISION_2027_DRAFTS) {
+      const existing = await prisma.visionPlan.findUnique({ where: { year_ministryKey: { year: 2027, ministryKey: draft.ministryKey } } });
+      if (existing) continue;
+      const plan = await prisma.visionPlan.create({
+        data: { year: 2027, ministryKey: draft.ministryKey, title: draft.title, summary: draft.summary, content: draft.content, createdById: user.id },
+      });
+      await audit(plan.id, user.id, "initialized-working-draft");
+      created++;
+    }
+    return NextResponse.json({ created });
+  }
   if (action === "create") {
     const ministryKey = safeVisionString(body.ministryKey, 50);
     const ministry = VISION_MINISTRIES.find(x => x.key === ministryKey);
