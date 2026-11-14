@@ -153,5 +153,21 @@
         "30-60s clip QA"
       ]
     }
+  ],
+  "additionalLeads": [
+    {
+      "title": "New Creation",
+      "artist": "Gabby Inza",
+      "style": "Christian hip-hop / rap vocals",
+      "sourceUrl": "https://freemusicarchive.org/music/gabby-inza/single/new-creation-prodby-45-limits-beats-teazytalent/",
+      "licenseClaim": "CC0 1.0 shown on track page",
+      "reviewStatus": "hold_pending_beat_producer_rights_and_audio_qc",
+      "rightsConcern": "Produced by 45 Limits beats and TeazyTalent; verify uploader may license composition and beat/sound recording before use in app.",
+      "durationSeconds": 71,
+      "clipCandidateSeconds": [
+        30,
+        60
+      ]
+    }
   ]
 }
