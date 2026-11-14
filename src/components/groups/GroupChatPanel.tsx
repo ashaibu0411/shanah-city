@@ -90,6 +90,24 @@ export function GroupChatPanel({
 }: GroupChatPanelProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<GroupChatMessage[]>([]);
+  // Collapse repeated, identical choir approval notifications in the view only.
+  // Keep the underlying chat records untouched for audit/history and preserve any
+  // notification with replies or reactions.
+  const displayMessages = useMemo(() => {
+    const recent = new Map<string, number>();
+    return messages.filter((message) => {
+      if (!message.content.startsWith("🕊️ Approved time away:") || message.deletedAt ||
+          message.reply || (message.reactions?.length ?? 0) > 0) return true;
+      const canonical = message.content
+        .replace(/\s*💬 This update is in Shanah Worship group chat so nothing is missed\.\s*$/u, "")
+        .trim();
+      const when = Date.parse(message.createdAt);
+      const previous = recent.get(canonical);
+      if (Number.isFinite(when)) recent.set(canonical, when);
+      return previous == null || !Number.isFinite(when) || when - previous > 15 * 60 * 1000;
+    });
+  }, [messages]);
+
   const [typingUsers, setTypingUsers] = useState<ChatTypingUser[]>([]);
   const [blocks, setBlocks] = useState<UserBlock[]>([]);
   const [draft, setDraft] = useState("");
@@ -566,7 +584,7 @@ export function GroupChatPanel({
       >
         {loading ? (
           <p className="px-4 py-8 text-center text-sm text-night-500">Loading messages…</p>
-        ) : messages.length === 0 ? (
+        ) : displayMessages.length === 0 ? (
           <div className="flex h-full min-h-[240px] flex-col items-center justify-center px-6 text-center">
             <div className={chatPremium.emptyCard}>
               <span className={`${groupsPremium.iconTile} mx-auto h-16 w-16 rounded-2xl`}>
@@ -580,10 +598,10 @@ export function GroupChatPanel({
             </div>
           </div>
         ) : (
-          messages.map((message, index) => {
+          displayMessages.map((message, index) => {
             const mine = message.senderId === userId;
-            const group = messageGroupMeta(messages, index);
-            const previous = messages[index - 1];
+            const group = messageGroupMeta(displayMessages, index);
+            const previous = displayMessages[index - 1];
             const showDate = shouldShowDateSeparator(previous?.createdAt, message.createdAt);
 
             return (

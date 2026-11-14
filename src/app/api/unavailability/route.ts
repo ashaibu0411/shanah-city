@@ -102,6 +102,11 @@ export async function POST(request: Request) {
     }
 
     const status = body.status === "rejected" ? "rejected" : "approved";
+    // A repeated review of the same status is a no-op. Avoid posting multiple
+    // identical choir chat announcements when a leader taps Approve again.
+    if (target.status === status) {
+      return NextResponse.json({ request: target, unchanged: true });
+    }
     const updated = await updateUnavailabilityRequest(target.id, {
       status,
       reviewedAt: new Date().toISOString(),

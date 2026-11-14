@@ -31,6 +31,7 @@ import { buildChatMessageReply } from "@/lib/chat-reply-utils";
 import type { ChatMessageReply } from "@/lib/chat-reply-types";
 import { senderAccentColor } from "@/lib/chat-ui-utils";
 import { chatPremium } from "@/components/chat/chat-premium";
+import { formatAmericanDateRange } from "@/lib/unavailability-dates";
 import { messagingUi } from "@/lib/messaging-ui";
 import { ChatYouTubeEmbed } from "@/components/chat/ChatYouTubeEmbed";
 import { extractYouTubeVideoIdsFromText } from "@/lib/media-clips-utils";
@@ -143,6 +144,20 @@ export function ChatMessageBubble({
     if (embeddedStoryId) text = stripStoryMarkerFromChatContent(text);
     return text.trim();
   }, [displayContent, embeddedPollId, embeddedStoryId]);
+  // Present choir time-away announcements as compact status notices, including
+  // historical messages that still contain the old redundant chat footer.
+  const choirTimeAway = useMemo(() => {
+    if (!groupId || unsent) return null;
+    const match = visibleText.match(
+      /^🕊️ Approved time away:\s*(.+?)\s+\((\d{4}-\d{2}-\d{2})\s*[–-]\s*(\d{4}-\d{2}-\d{2})\)(?:\s*—\s*([^\n]*))?/u,
+    );
+    if (!match) return null;
+    return {
+      name: match[1].trim(),
+      dates: formatAmericanDateRange(match[2], match[3], "long"),
+      reason: match[4]?.trim() || "",
+    };
+  }, [groupId, unsent, visibleText]);
   const worshipChatAction = useMemo(
     () =>
       unsent || !visibleText || embeddedPollId || embeddedStoryId
@@ -422,6 +437,27 @@ export function ChatMessageBubble({
         className="pointer-events-none h-0 scroll-mt-24 overflow-hidden"
         aria-hidden
       />
+    );
+  }
+
+  if (choirTimeAway) {
+    return (
+      <div id={`chat-msg-${messageId}`} className="flex w-full justify-center px-3 py-1.5 scroll-mt-24">
+        <div className="w-full max-w-md rounded-2xl border border-violet-200 bg-violet-50/90 px-3.5 py-3 text-left shadow-sm dark:border-violet-500/25 dark:bg-violet-950/35">
+          <div className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-200">
+            <span aria-hidden="true">🕊️</span>
+            <span>Time away approved</span>
+          </div>
+          <p className="text-sm font-semibold leading-snug text-night-900 dark:text-white">{choirTimeAway.name}</p>
+          <p className="mt-1 text-[13px] font-medium leading-snug text-violet-900 dark:text-violet-100">
+            {choirTimeAway.dates}
+          </p>
+          {choirTimeAway.reason ? (
+            <p className="mt-1 text-[12px] leading-relaxed text-night-600 dark:text-sand-300">{choirTimeAway.reason}</p>
+          ) : null}
+          <p className="mt-2 text-right text-[10px] text-night-500 dark:text-sand-400">{createdAtLabel}</p>
+        </div>
+      </div>
     );
   }
 

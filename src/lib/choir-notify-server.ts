@@ -1,3 +1,4 @@
+import { formatAmericanDateRange } from "@/lib/unavailability-dates";
 import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
 import { getGroups } from "@/lib/group-server";
 import { sendGroupChatMessage } from "@/lib/group-chat-server";
@@ -80,7 +81,7 @@ async function broadcastChoirUpdate(input: {
   /** When true, the person who triggered the update still receives a push (e.g. worship plan publish). */
   includeActorInPush?: boolean;
 }) {
-  const chatMessage = `${input.chatBody.trim()}\n\n💬 This update is in Shanah Worship group chat so nothing is missed.`;
+  const chatMessage = input.chatBody.trim();
 
   const chat = await postChoirGroupChatAnnouncement({
     senderId: input.actor.id,
@@ -233,7 +234,7 @@ export async function notifyChoirUnavailabilityApproved(input: {
   return broadcastChoirUpdate({
     actor: input.actor,
     pushTitle: "Choir availability updated",
-    pushBody: `${input.personName} away ${input.startDate} – ${input.endDate}`,
+    pushBody: `${input.personName} · ${formatAmericanDateRange(input.startDate, input.endDate)}`,
     chatBody: `🕊️ Approved time away: ${input.personName} (${input.startDate} – ${input.endDate})${input.reason ? ` — ${input.reason}` : ""}`,
     pushUrl: choirCalendarUrl(),
   });
