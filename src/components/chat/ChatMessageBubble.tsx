@@ -154,7 +154,7 @@ export function ChatMessageBubble({
     if (!match) return null;
     return {
       name: match[1].trim(),
-      dates: formatAmericanDateRange(match[2], match[3]),
+      dates: formatAmericanDateRange(match[2], match[3], "long"),
       reason: match[4]?.trim() || "",
     };
   }, [groupId, unsent, visibleText]);
