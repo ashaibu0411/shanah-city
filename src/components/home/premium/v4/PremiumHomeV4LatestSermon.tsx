@@ -15,7 +15,7 @@ type PremiumHomeV4LatestSermonProps = {
 };
 
 export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonProps) {
-  const { playWatch } = useSermonPlayer();
+  const { playWatch, playAudio, loading, error, sermon } = useSermonPlayer();
   const seed = mergeHomeSermonVideo(video);
   const [resolved, setResolved] = useState<SermonVideo | null>(seed);
 
@@ -84,6 +84,10 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
     if (playback) void playWatch(playback);
   }
 
+  function listenToSermon() {
+    if (playback) void playAudio(playback);
+  }
+
   return (
     <section className="ph4-section" aria-labelledby="ph4-sermon-heading">
       <div className="ph4-section__head">
@@ -115,6 +119,22 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
           </span>
         </button>
         <SermonBody title={title} dateLabel={dateLabel} speaker={site.leadPastor} onPlay={openSermon} />
+        {playback ? (
+          <div className="flex flex-wrap items-center gap-2 px-3 pb-3">
+            <button type="button" onClick={listenToSermon}
+              disabled={loading && sermon?.id === playback.id}
+              className="min-h-11 rounded-full bg-[#123a67] px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-60">
+              {loading && sermon?.id === playback.id ? "Preparing audio…" : "Listen in background"}
+            </button>
+            <button type="button" onClick={openSermon}
+              className="min-h-11 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800">
+              Watch video
+            </button>
+            {error && sermon?.id === playback.id ? (
+              <p role="status" className="w-full text-xs text-red-700">{error}</p>
+            ) : null}
+          </div>
+        ) : null}
         <Link href="/sermons" className="ph4-sermon__all" aria-label="All sermons">
           <PremiumHomeV4Chevron />
         </Link>
