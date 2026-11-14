@@ -9,9 +9,9 @@ const build = readFileSync("scripts/build.cjs", "utf8");
 
 assert.equal(qa.tracks.length, 9);
 assert.equal(qa.sourceLicense, "CC BY 4.0");
-assert.equal(qa.publicationStatus, "PUBLISH_ONLY_AFTER_PRODUCTION_BLOB_UPLOAD_SUCCEEDS");
-assert.match(build, /VERCEL_ENV === "production"/);
-assert.match(build, /story-music-troy-one-time-upload\.mjs/);
+assert.equal(qa.publicationStatus, "PUBLISHED_AND_PRODUCTION_STREAM_VERIFIED");
+assert.doesNotMatch(build, /story-music-troy-one-time-upload/);
+assert.match(uploader, /VERCEL_ENV !== "production"/);
 assert.match(uploader, /sha !== track\.sha256/);
 assert.match(uploader, /audio\.length !== track\.size/);
 assert.match(uploader, /Blob token missing/);

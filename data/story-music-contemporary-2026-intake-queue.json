@@ -7,151 +7,88 @@
   "album": "Lord You're Amazing",
   "genre": "Contemporary Christian worship / classic-rock-influenced",
   "releaseYear": 2024,
-  "reviewStatus": "rights_and_audio_intake_required",
+  "reviewStatus": "nine_troy_tracks_published_gabby_rights_hold",
   "tracks": [
     {
       "title": "Ready For the King",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-ready-for-the-king",
-      "status": "not_published",
+      "status": "published_verified_production_audio",
       "licenseClaim": "CC BY (album-level; verify per track)",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
-      "checksRequired": [
-        "track license",
-        "composition and recording",
-        "audio download/quality",
-        "Blob upload",
-        "attribution",
-        "30-60s clip QA"
-      ]
+      "checksRequired": []
     },
     {
       "title": "Lord You're Amazing",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-lord-youre-amazing",
-      "status": "not_published",
+      "status": "published_verified_production_audio",
       "licenseClaim": "CC BY (album-level; verify per track)",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
-      "checksRequired": [
-        "track license",
-        "composition and recording",
-        "audio download/quality",
-        "Blob upload",
-        "attribution",
-        "30-60s clip QA"
-      ]
+      "checksRequired": []
     },
     {
       "title": "You're Here With Me",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-youre-here-with-me",
-      "status": "not_published",
+      "status": "published_verified_production_audio",
       "licenseClaim": "CC BY (album-level; verify per track)",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
-      "checksRequired": [
-        "track license",
-        "composition and recording",
-        "audio download/quality",
-        "Blob upload",
-        "attribution",
-        "30-60s clip QA"
-      ]
+      "checksRequired": []
     },
     {
       "title": "Like An Ocean",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-like-an-ocean",
-      "status": "not_published",
+      "status": "published_verified_production_audio",
       "licenseClaim": "CC BY (album-level; verify per track)",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
-      "checksRequired": [
-        "track license",
-        "composition and recording",
-        "audio download/quality",
-        "Blob upload",
-        "attribution",
-        "30-60s clip QA"
-      ]
+      "checksRequired": []
     },
     {
       "title": "Offering Of Praise",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-offering-of-praise",
-      "status": "not_published",
+      "status": "published_verified_production_audio",
       "licenseClaim": "CC BY (album-level; verify per track)",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
-      "checksRequired": [
-        "track license",
-        "composition and recording",
-        "audio download/quality",
-        "Blob upload",
-        "attribution",
-        "30-60s clip QA"
-      ]
+      "checksRequired": []
     },
     {
       "title": "Alive In Me",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-alive-in-me",
-      "status": "not_published",
+      "status": "published_verified_production_audio",
       "licenseClaim": "CC BY (album-level; verify per track)",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
-      "checksRequired": [
-        "track license",
-        "composition and recording",
-        "audio download/quality",
-        "Blob upload",
-        "attribution",
-        "30-60s clip QA"
-      ]
+      "checksRequired": []
     },
     {
       "title": "Shout Of Praise",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-shout-of-praise",
-      "status": "not_published",
+      "status": "published_verified_production_audio",
       "licenseClaim": "CC BY (album-level; verify per track)",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
-      "checksRequired": [
-        "track license",
-        "composition and recording",
-        "audio download/quality",
-        "Blob upload",
-        "attribution",
-        "30-60s clip QA"
-      ]
+      "checksRequired": []
     },
     {
       "title": "All I Am",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-all-i-am",
-      "status": "not_published",
+      "status": "published_verified_production_audio",
       "licenseClaim": "CC BY (album-level; verify per track)",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
-      "checksRequired": [
-        "track license",
-        "composition and recording",
-        "audio download/quality",
-        "Blob upload",
-        "attribution",
-        "30-60s clip QA"
-      ]
+      "checksRequired": []
     },
     {
       "title": "Christ The King",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-christ-the-king",
-      "status": "not_published",
+      "status": "published_verified_production_audio",
       "licenseClaim": "CC BY (album-level; verify per track)",
       "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
-      "checksRequired": [
-        "track license",
-        "composition and recording",
-        "audio download/quality",
-        "Blob upload",
-        "attribution",
-        "30-60s clip QA"
-      ]
+      "checksRequired": []
     }
   ],
   "additionalLeads": [
@@ -169,5 +106,6 @@
         60
       ]
     }
-  ]
+  ],
+  "reviewPolicy": "Troy tracks: individually checked CC BY 4.0, MP3 audio and production streaming verified. Additional artist leads remain blocked until verified."
 }
