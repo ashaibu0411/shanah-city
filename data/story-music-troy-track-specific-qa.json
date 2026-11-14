@@ -5,8 +5,8 @@
   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
   "reviewDate": "2026-11-14",
   "rightsVerification": "Individual track page CC BY 4.0 links confirmed for all nine.",
-  "audioVerification": "Downloaded MP3s and checked SHA256, duration, bitrate and peak volume with MP3 parser + FFmpeg. Auditory genre/vocal review and curator sign-off pending.",
-  "publicationStatus": "HOLD_FOR_CURATOR_AND_BLOB_UPLOAD",
+  "audioVerification": "Nine actual MP3 files downloaded, SHA-256 matched, 320-kbps encoding / >60s duration confirmed, and FFmpeg peak checks passed. FMA marks Instrumental: No on each track. No subjective human listening assessment has been performed.",
+  "publicationStatus": "PUBLISH_ONLY_AFTER_PRODUCTION_BLOB_UPLOAD_SUCCEEDS",
   "tracks": [
     {
       "title": "Lord You're Amazing",
@@ -20,9 +20,10 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/dwYvSTQLfJtCOeymn8fUubD7lYu3XC1YEj56MsSd.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-lord-youre-amazing",
-      "status": "hold_for_vocal_content_review",
+      "status": "source_and_technical_qa_passed_pending_blob",
       "licenseVerification": "per-track CC BY 4.0 page",
-      "minClipSeconds": 60
+      "minClipSeconds": 60,
+      "instrumental": "No (per individual FMA track page)"
     },
     {
       "title": "Ready For the King",
@@ -36,9 +37,10 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/IU7eAlWeZ4DBs1s0PCBzZ6aecwFrKM6kcOgj5DcJ.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-ready-for-the-king",
-      "status": "hold_for_vocal_content_review",
+      "status": "source_and_technical_qa_passed_pending_blob",
       "licenseVerification": "per-track CC BY 4.0 page",
-      "minClipSeconds": 60
+      "minClipSeconds": 60,
+      "instrumental": "No (per individual FMA track page)"
     },
     {
       "title": "You're Here With Me",
@@ -52,9 +54,10 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/wuFfapQbGCHMBtFe8ZBjJVConJRd8Tt88rAEoAjZ.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-youre-here-with-me",
-      "status": "hold_for_vocal_content_review",
+      "status": "source_and_technical_qa_passed_pending_blob",
       "licenseVerification": "per-track CC BY 4.0 page",
-      "minClipSeconds": 60
+      "minClipSeconds": 60,
+      "instrumental": "No (per individual FMA track page)"
     },
     {
       "title": "Like An Ocean",
@@ -68,9 +71,10 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/CB0ysOPwysCiyVdCeUSPB8GCthtSOVdbRRYufxBB.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-like-an-ocean",
-      "status": "hold_for_vocal_content_review",
+      "status": "source_and_technical_qa_passed_pending_blob",
       "licenseVerification": "per-track CC BY 4.0 page",
-      "minClipSeconds": 60
+      "minClipSeconds": 60,
+      "instrumental": "No (per individual FMA track page)"
     },
     {
       "title": "Offering Of Praise",
@@ -84,9 +88,10 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/PDSkBQ3UnPWcyMwBnkWI4k3yvQChIHpPGPr4msGB.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-offering-of-praise",
-      "status": "hold_for_vocal_content_review",
+      "status": "source_and_technical_qa_passed_pending_blob",
       "licenseVerification": "per-track CC BY 4.0 page",
-      "minClipSeconds": 60
+      "minClipSeconds": 60,
+      "instrumental": "No (per individual FMA track page)"
     },
     {
       "title": "Alive In Me",
@@ -100,9 +105,10 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/Hxz7RKEMiMfeQTqb3eWZvBJk65JYBPpjPXL1yYO9.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-alive-in-me",
-      "status": "hold_for_vocal_content_review",
+      "status": "source_and_technical_qa_passed_pending_blob",
       "licenseVerification": "per-track CC BY 4.0 page",
-      "minClipSeconds": 60
+      "minClipSeconds": 60,
+      "instrumental": "No (per individual FMA track page)"
     },
     {
       "title": "Shout Of Praise",
@@ -116,9 +122,10 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/KK2iRMFrScjgI6E8kJpiZYgHoRC5QEE29wHia8Qi.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-shout-of-praise",
-      "status": "hold_for_vocal_content_review",
+      "status": "source_and_technical_qa_passed_pending_blob",
       "licenseVerification": "per-track CC BY 4.0 page",
-      "minClipSeconds": 60
+      "minClipSeconds": 60,
+      "instrumental": "No (per individual FMA track page)"
     },
     {
       "title": "All I Am",
@@ -132,9 +139,10 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/ZeSiPmHmWsvg24lBNgXBfsjOIgCa2BLgXR6tzSgb.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-all-i-am",
-      "status": "hold_for_vocal_content_review",
+      "status": "source_and_technical_qa_passed_pending_blob",
       "licenseVerification": "per-track CC BY 4.0 page",
-      "minClipSeconds": 60
+      "minClipSeconds": 60,
+      "instrumental": "No (per individual FMA track page)"
     },
     {
       "title": "Christ The King",
@@ -148,9 +156,10 @@
       "sourceAudioUrl": "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/zgBu1V4pnRYeZLmUrFsWJnANkcj1rTfDwuqHjCwf.mp3",
       "artist": "Troy Sustarsic",
       "catalogTrackId": "troy-sustarsic-christ-the-king",
-      "status": "hold_for_vocal_content_review",
+      "status": "source_and_technical_qa_passed_pending_blob",
       "licenseVerification": "per-track CC BY 4.0 page",
-      "minClipSeconds": 60
+      "minClipSeconds": 60,
+      "instrumental": "No (per individual FMA track page)"
     }
   ]
 }
