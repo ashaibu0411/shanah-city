@@ -61,7 +61,7 @@ export function CommunityStoryMusicPicker({
   const [region, setRegion] = useState<CommunityStoryMusicRegion | "all">("all");
   const [country, setCountry] = useState("all");
   const [language, setLanguage] = useState("all");
-  const [pickerCategory, setPickerCategory] = useState("modern_worship");
+  const [pickerCategory, setPickerCategory] = useState(() => selectedTrackId ? "all" : "modern_worship");
   const [showRegions, setShowRegions] = useState(false);
 
   useEffect(() => {
