@@ -38,7 +38,7 @@ export async function GET(request: Request) {
           language,
           genre,
           pickerCategory,
-          limit: 56,
+          limit: 200,
         },
         null,
         user,
