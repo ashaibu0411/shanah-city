@@ -6,7 +6,10 @@ import {
 } from "../src/lib/story-music/search.ts";
 
 const picker = readFileSync("src/components/community/CommunityStoryMusicPicker.tsx", "utf8");
-assert.match(picker, /useState\(\(\) => selectedTrackId \? "all" : "modern_worship"\)/);
+assert.match(picker, /pickerCategory: "all"/);
+assert.doesNotMatch(picker, /story-music-category-scroll/);
+assert.doesNotMatch(picker, /setPickerCategory/);
+assert.match(picker, /All songs/);
 
 const classic = {
   id: "old",
