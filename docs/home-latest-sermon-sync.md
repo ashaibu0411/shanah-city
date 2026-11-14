@@ -38,3 +38,17 @@ From this workstation YouTube RSS returned HTTP 404 (bot block); use the YouTube
 ## Tests
 
 `npx tsx scripts/youtube-sermons-select.test.ts` — out-of-order list, Short exclusion, undated scrape entries, merge consistency.
+
+## Completed-service livestream coverage (follow-up)
+
+The owner clarified that **Friday, November 13, 2026 evening service ended**, and its public archived livestream should become Latest Sermon. The server now checks YouTube `search.list` with `eventType=completed` and validates each candidate using `videos.list` (`actualEndTime`, public status, matching channel, and minimum long-form duration). The validated end time is used as the chronological sort key for a completed broadcast. The expensive search is cached for **30 minutes** to protect YouTube API quota, so fresh recordings may take that long to surface. The uploads playlist remains an additional source.
+
+The mobile home card refreshes on mount, focus, returning to a visible tab, and every five minutes while visible; it retains the last available sermon when requests fail.
+
+### Content verification gate (not yet passed)
+
+The exact November 13 video ID/title has **not** been independently obtained from YouTube. Verify the expected public recording by opening the channel's Live tab, then compare its ID to the newest eligible entry in the PR preview `/api/sermons?limit=50` and the homepage playback ID. A 404 or blocked public feed is **not** evidence that no recording exists. Do not merge based only on sorting tests.
+
+**Expected recording video ID:** pending direct YouTube confirmation.  
+**API-selected video ID:** pending preview/production API confirmation.  
+**Merge/deploy:** hold pending matching IDs and owner approval.
