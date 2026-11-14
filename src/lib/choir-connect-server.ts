@@ -1,3 +1,4 @@
+import { parseChoirTimeAwayChatPreview } from "@/lib/choir-time-away-chat-preview";
 import type { PublicMember } from "@/lib/auth-types";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { SHANAH_WORSHIP_GROUP_ID, CHOIR_HERO_IMAGE_PATH } from "@/lib/choir-group-constants";
@@ -60,7 +61,8 @@ async function buildChatPreview(user: PublicMember, groupId: string, openChatHre
     const body = colon > 0 ? entry.lastMessage.slice(colon + 2) : entry.lastMessage;
     return {
       senderName,
-      body,
+      body: body.slice(0, 120),
+      timeAway: parseChoirTimeAwayChatPreview(body),
       createdAt: entry.lastMessageAt,
       unreadCount: entry.unreadCount,
       openChatHref,
@@ -78,6 +80,7 @@ async function buildChatPreview(user: PublicMember, groupId: string, openChatHre
   return {
     senderName: latest.senderId === user.id ? "You" : latest.senderName,
     body: previewChatMessage(latest),
+    timeAway: latest.deletedAt ? null : parseChoirTimeAwayChatPreview(latest.content),
     createdAt: latest.createdAt,
     unreadCount: 0,
     openChatHref,
