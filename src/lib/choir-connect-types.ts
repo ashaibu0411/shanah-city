@@ -1,3 +1,4 @@
+import type { ChoirTimeAwayChatPreview } from "@/lib/choir-time-away-chat-preview";
 import type { ChoirAnnouncementFeedItem } from "@/lib/choir-announcements-types";
 import type { PollView } from "@/lib/poll-types";
 import type { GroupCategory } from "@/lib/group-types";
@@ -10,6 +11,7 @@ export type ChoirConnectChatPreview = {
   createdAt: string;
   unreadCount: number;
   openChatHref: string;
+  timeAway?: ChoirTimeAwayChatPreview | null;
 };
 
 export type ChoirConnectPinnedItem = {
