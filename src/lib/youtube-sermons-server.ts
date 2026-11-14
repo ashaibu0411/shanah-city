@@ -259,15 +259,19 @@ async function fetchCompletedLivestreamSermons(
     // Completed livestreams can take time to appear in search results.
     // The owner-provided archive is only a discovery seed: videos.list still
     // must confirm channel ownership, public status, actual end, and duration.
-    const searchResponse = await fetch(url.toString(), { cache: "no-store" });
     let searchedIds: string[] = [];
-    if (searchResponse.ok) {
-      const searchData = (await searchResponse.json()) as {
-        items?: Array<{ id?: { videoId?: string } }>;
-      };
-      searchedIds = (searchData.items ?? []).map((item) => item.id?.videoId).filter(
-        (id): id is string => Boolean(id),
-      );
+    try {
+      const searchResponse = await fetch(url.toString(), { cache: "no-store" });
+      if (searchResponse.ok) {
+        const searchData = (await searchResponse.json()) as {
+          items?: Array<{ id?: { videoId?: string } }>;
+        };
+        searchedIds = (searchData.items ?? []).map((item) => item.id?.videoId).filter(
+          (id): id is string => Boolean(id),
+        );
+      }
+    } catch {
+      // Search can fail independently; still verify the owner's archive by ID.
     }
     const ids = [...new Set([...KNOWN_LIVE_ARCHIVE_IDS, ...searchedIds])];
     if (ids.length === 0) return [];
