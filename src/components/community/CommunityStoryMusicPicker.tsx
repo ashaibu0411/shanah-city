@@ -61,7 +61,7 @@ export function CommunityStoryMusicPicker({
   const [region, setRegion] = useState<CommunityStoryMusicRegion | "all">("all");
   const [country, setCountry] = useState("all");
   const [language, setLanguage] = useState("all");
-  const [pickerCategory, setPickerCategory] = useState("all");
+  const [pickerCategory, setPickerCategory] = useState("modern_worship");
   const [showRegions, setShowRegions] = useState(false);
 
   useEffect(() => {
@@ -254,7 +254,7 @@ export function CommunityStoryMusicPicker({
                   <p className="story-music-discovery-eyebrow">SHANAH CITY MUSIC</p>
                   <h3 className="story-music-discovery-title">Find your sound</h3>
                   <p className="story-music-discovery-subtitle">
-                    Worship, praise and gospel from our cleared music collection.
+                    Modern Christian and gospel vocals first. Classics and instrumentals are optional.
                   </p>
                 </div>
               </div>
@@ -334,7 +334,7 @@ export function CommunityStoryMusicPicker({
             ) : tracks.length === 0 ? (
               <li className="px-2 py-1 text-xs text-night-500">
                 {hybrid
-                  ? "No approved recordings in this category yet. Try Discover or Classic & Traditional while more music is licensed."
+                  ? "No cleared modern vocals match yet. Try another style, or browse Classic & traditional separately."
                   : "No matches — try another title or artist."}
               </li>
             ) : (
