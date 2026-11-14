@@ -2542,6 +2542,7 @@ model VisionComment {
   authorName String
   sectionKey String   @default("general")
   body       String
+  referenceUrl String?
   kind       String   @default("question")
   decision   String   @default("pending")
   decisionNote String?
