@@ -7,6 +7,12 @@ export type AdminPortalPermissions = {
 
 export const ADMIN_PORTAL_LINKS = [
   {
+    href: "/leadership/vision",
+    label: "2027 Vision Center",
+    description: "Private pastoral vision, ministry assignments and leadership review",
+    ministryManagementAllowed: true,
+  },
+  {
     href: "/admin/overview",
     label: "Overview",
     description: "Pastor dashboard",
