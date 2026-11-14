@@ -20,24 +20,54 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
   const [resolved, setResolved] = useState<SermonVideo | null>(seed);
 
   useEffect(() => {
-    setResolved(mergeHomeSermonVideo(video));
+    const incoming = mergeHomeSermonVideo(video);
+    if (!incoming) return;
+    setResolved((current) => {
+      const newest = pickLatestEligibleSermon([current, incoming].filter(
+        (item): item is SermonVideo => Boolean(item),
+      ));
+      return newest?.id === incoming.id ? incoming : newest;
+    });
   }, [video]);
 
   useEffect(() => {
-    if (resolved?.id) return;
     let cancelled = false;
-    fetch("/api/sermons?limit=50", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
+    let loading = false;
+    const refresh = async () => {
+      if (cancelled || loading || document.visibilityState !== "visible") return;
+      loading = true;
+      try {
+        const response = await fetch("/api/sermons?limit=50", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
         const list = Array.isArray(data.videos) ? (data.videos as SermonVideo[]) : [];
         const latest = pickLatestEligibleSermon(list);
-        if (!cancelled && latest?.id) setResolved(latest);
-      })
-      .catch(() => undefined);
+        if (cancelled || !latest) return;
+        setResolved((current) => {
+          const newest = pickLatestEligibleSermon([current, latest].filter(
+            (item): item is SermonVideo => Boolean(item),
+          ));
+          // Use the fresh metadata if both candidates refer to the same video.
+          return newest?.id === latest.id ? latest : newest;
+        });
+      } catch {
+        // Keep the last playable sermon if a feed refresh fails.
+      } finally {
+        loading = false;
+      }
+    };
+    const onResume = () => { void refresh(); };
+    void refresh();
+    const interval = window.setInterval(onResume, 5 * 60 * 1000);
+    window.addEventListener("focus", onResume);
+    document.addEventListener("visibilitychange", onResume);
     return () => {
       cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onResume);
+      document.removeEventListener("visibilitychange", onResume);
     };
-  }, [resolved?.id, video?.id]);
+  }, []);
 
   const playback = resolved?.id ? resolved : null;
   const title = playback?.title ?? video?.title ?? latestSermon.title;
