@@ -24,23 +24,23 @@ export function eachIsoDateKeyInRange(startDate: string, endDate: string) {
   return keys;
 }
 
-export function formatAmericanDate(isoDateKey: string, timeZone = CHOIR_TIME_ZONE) {
+export function formatAmericanDate(isoDateKey: string, timeZone = CHOIR_TIME_ZONE, weekday: "short" | "long" = "short") {
   const normalized = normalizeIsoDateKey(isoDateKey);
   if (!normalized) return isoDateKey;
   const [year, month, day] = normalized.split("-").map(Number);
   const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
   return date.toLocaleDateString("en-US", {
     timeZone,
-    weekday: "short",
+    weekday,
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-export function formatAmericanDateRange(startDate: string, endDate: string) {
-  if (startDate === endDate) return formatAmericanDate(startDate);
-  return `${formatAmericanDate(startDate)} – ${formatAmericanDate(endDate)}`;
+export function formatAmericanDateRange(startDate: string, endDate: string, weekday: "short" | "long" = "short") {
+  if (startDate === endDate) return formatAmericanDate(startDate, CHOIR_TIME_ZONE, weekday);
+  return `${formatAmericanDate(startDate, CHOIR_TIME_ZONE, weekday)} – ${formatAmericanDate(endDate, CHOIR_TIME_ZONE, weekday)}`;
 }
 
 export function validateUnavailabilityRange(startDate: string, endDate: string): string | null {
