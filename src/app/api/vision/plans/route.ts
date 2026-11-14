@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { VISION_2027_DRAFTS } from "@/lib/vision-2027-drafts";
+import { notifyVisionLeader, notifyVisionPastor } from "@/lib/vision-center-notify-server";
 import { getUserById } from "@/lib/auth-server";
 import { getGroups } from "@/lib/group-server";
 import { getVisionActor, canReadVision, safeVisionString, VISION_MINISTRIES } from "@/lib/vision-center-access-server";
@@ -56,6 +57,12 @@ export async function POST(request: Request) {
     const sectionKey = safeVisionString(body.sectionKey, 100) || "general";
     const comment = await prisma.visionComment.create({ data: { planId, authorId: user.id, authorName: user.name, body: text, kind, sectionKey } });
     await audit(planId, user.id, "comment", kind);
+    if (isOwner) {
+      const assigned = await prisma.visionAssignment.findMany({ where: { planId }, select: { userId: true } });
+      await Promise.all(assigned.filter(a => a.userId !== user.id).map(a => notifyVisionLeader(a.userId, planId, "comment")));
+    } else {
+      await notifyVisionPastor(planId, "comment");
+    }
     return NextResponse.json({ comment }, { status: 201 });
   }
   if (!isOwner) return deny();
@@ -100,6 +107,7 @@ export async function POST(request: Request) {
       update: { deadline },
     });
     await audit(planId, user.id, "assigned", userId);
+    await notifyVisionLeader(userId, planId, "assigned");
     return NextResponse.json({ assignment });
   }
   return invalid("Unknown action.");
@@ -126,6 +134,7 @@ export async function PATCH(request: Request) {
     if (action === "submit" && !safeVisionString(body.proposal, 12000)) return invalid("Enter your proposed contribution before submitting.");
     const result = await prisma.visionAssignment.update({ where: { id: assignment.id }, data: update });
     await audit(planId, user.id, action);
+    if (action === "submit") await notifyVisionPastor(planId, "submitted");
     return NextResponse.json({ assignment: result });
   }
   if (!isOwner) return deny();
@@ -141,6 +150,7 @@ export async function PATCH(request: Request) {
       data: { decision, decisionNote: safeVisionString(body.note, 1000), decidedById: user.id, decidedAt: new Date() },
     });
     await audit(planId, user.id, "idea-" + decision, commentId);
+    if (updated.authorId !== user.id) await notifyVisionLeader(updated.authorId, planId, "decision");
     return NextResponse.json({ comment: updated });
   }
   if (action === "update-plan") {
@@ -169,6 +179,8 @@ export async function PATCH(request: Request) {
       });
     }
     await audit(planId, user.id, action, safeVisionString(body.note, 1000));
+    const assigned = await prisma.visionAssignment.findMany({ where: { planId }, select: { userId: true } });
+    await Promise.all(assigned.map(a => notifyVisionLeader(a.userId, planId, action === "request-revision" ? "revision" : "decision")));
     return NextResponse.json({ plan: updated });
   }
   return invalid("Unknown action.");
