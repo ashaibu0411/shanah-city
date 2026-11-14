@@ -10,7 +10,8 @@ type Assignment = {
 type Comment = { id: string; authorName: string; kind: string; sectionKey: string; body: string; createdAt: string };
 type Plan = { id: string; title: string; ministryKey: string; summary: string; content: string; status: string; version: number; assignments: Assignment[]; comments?: Comment[]; _count?: { comments: number } };
 type Ministry = { key: string; title: string };
-type Result = { error?: string; plan?: Plan; plans?: Plan[]; ministries?: Ministry[]; isOwner?: boolean };
+type Leader = { id: string; name: string };
+type Result = { error?: string; plan?: Plan; plans?: Plan[]; ministries?: Ministry[]; isOwner?: boolean; leaders?: Leader[] };
 
 const field = "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 const button = "rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50";
@@ -27,6 +28,7 @@ async function request(method: string, data: Record<string, unknown>): Promise<R
 export function VisionCenterHub({ owner }: { owner: boolean }) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [ministries, setMinistries] = useState<Ministry[]>([]);
+  const [leaders, setLeaders] = useState<Leader[]>([]);
   const [selected, setSelected] = useState<Plan | null>(null);
   const [ministryKey, setMinistryKey] = useState("churchwide");
   const [summary, setSummary] = useState("");
@@ -50,6 +52,7 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
     const data = (await response.json()) as Result;
     setPlans(data.plans || []);
     setMinistries(data.ministries || []);
+    setLeaders(data.leaders || []);
     if (id) {
       const detail = await fetch("/api/vision/plans?planId=" + encodeURIComponent(id), { cache: "no-store" });
       if (!detail.ok) throw new Error("Unable to open this assignment.");
@@ -108,6 +111,7 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
           {owner && <p className="border-t pt-3 text-xs text-slate-500">New plans are private drafts, never public calendar events.</p>}
         </aside>
         <div className="space-y-5">
+          {owner && !selected && plans.length === 0 && <button type="button" className={button} disabled={busy} onClick={() => void run("POST", { action: "initialize-2027" })}>Load nine private 2027 working drafts</button>}
           {owner && !selected && (
             <form className={panel + " space-y-4"} onSubmit={(event: FormEvent) => { event.preventDefault(); void run("POST", { action: "create", ministryKey, summary, content }); }}>
               <h2 className="text-lg font-semibold">Create ministry vision</h2>
@@ -143,7 +147,7 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
                   {selected.assignments.length === 0 && <p className="text-sm text-slate-500">No leaders assigned yet.</p>}
                   {selected.assignments.map(a => (
                     <div key={a.id} className="space-y-1 rounded-xl border border-slate-200 p-3 text-sm">
-                      <p className="font-semibold">Member ID: {a.userId}</p>
+                      <p className="font-semibold">{leaders.find(l => l.id === a.userId)?.name || "Assigned member"}</p>
                       <p className="text-xs capitalize text-slate-500">{a.status.replaceAll("_"," ")} · {a.deadline ? "Due " + new Date(a.deadline).toLocaleDateString() : "No deadline"}</p>
                       {a.proposal && <p className="whitespace-pre-wrap pt-2"><strong>Proposal: </strong>{a.proposal}</p>}
                       {a.capacity && <p><strong>Capacity: </strong>{a.capacity}</p>}
@@ -151,7 +155,12 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
                     </div>
                   ))}
                   {selected.status !== "approved" && <form className="space-y-3" onSubmit={e => { e.preventDefault(); void run("POST", { action: "assign", planId: selected.id, userId: assignUserId, deadline }, selected.id); }}>
-                    <label className="block text-sm font-medium">Existing member user ID<input className={field + " mt-1"} value={assignUserId} onChange={e => setAssignUserId(e.target.value)} required placeholder="Use an existing member's account ID"/></label>
+                    <label className="block text-sm font-medium">Assign a ministry leader
+                      <select className={field + " mt-1"} value={assignUserId} onChange={e => setAssignUserId(e.target.value)} required>
+                        <option value="">Select a leader</option>
+                        {leaders.map(l => <option value={l.id} key={l.id}>{l.name}</option>)}
+                      </select>
+                    </label>
                     <label className="block text-sm font-medium">Review deadline<input type="date" className={field + " mt-1"} value={deadline} onChange={e => setDeadline(e.target.value)}/></label>
                     <button className={button} disabled={busy}>Assign privately</button>
                   </form>}
