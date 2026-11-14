@@ -7,7 +7,7 @@ type Assignment = {
   acknowledgedAt?: string | null; capacity?: string | null;
   proposal?: string | null; supportNeeds?: string | null; submittedAt?: string | null;
 };
-type Comment = { id: string; authorName: string; kind: string; sectionKey: string; body: string; decision: string; decisionNote?: string | null; createdAt: string };
+type Comment = { id: string; authorName: string; kind: string; sectionKey: string; body: string; referenceUrl?: string | null; decision: string; decisionNote?: string | null; createdAt: string };
 type Plan = { id: string; title: string; ministryKey: string; summary: string; content: string; status: string; version: number; assignments: Assignment[]; comments?: Comment[]; _count?: { comments: number } };
 type Ministry = { key: string; title: string };
 type Leader = { id: string; name: string };
@@ -40,6 +40,7 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
   const [supportNeeds, setSupportNeeds] = useState("");
   const [commentKind, setCommentKind] = useState("question");
   const [commentText, setCommentText] = useState("");
+  const [designLink, setDesignLink] = useState("");
   const [sectionKey, setSectionKey] = useState("general");
   const [feedbackNote, setFeedbackNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -192,6 +193,7 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
                 {selected.comments?.map(c => <article key={c.id} className="rounded-xl bg-slate-50 p-3">
                   <p className="text-xs font-semibold text-slate-600">{c.authorName} · {c.kind} · {c.sectionKey}</p>
                   <p className="mt-2 whitespace-pre-wrap text-sm">{c.body}</p>
+                  {c.referenceUrl && <a href={c.referenceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 block break-all text-xs font-semibold text-blue-700 underline">Open creative reference</a>}
                   {c.kind === "idea" && <p className="mt-2 text-xs font-semibold capitalize text-blue-800">Pastoral decision: {c.decision}{c.decisionNote ? " — " + c.decisionNote : ""}</p>}
                   {owner && c.kind === "idea" && selected.status !== "approved" && <div className="mt-3 flex flex-wrap gap-2">
                     {(["accepted", "deferred", "declined"] as const).map(decision => (
@@ -200,12 +202,13 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
                     ))}
                   </div>}
                 </article>)}
-                {selected.status !== "approved" && <form className="space-y-3" onSubmit={e => { e.preventDefault(); void run("POST", { action: "comment", planId: selected.id, body: commentText, kind: commentKind, sectionKey }, selected.id).then(() => setCommentText("")); }}>
+                {selected.status !== "approved" && <form className="space-y-3" onSubmit={e => { e.preventDefault(); void run("POST", { action: "comment", planId: selected.id, body: commentText, kind: commentKind, sectionKey, referenceUrl: designLink }, selected.id).then(() => { setCommentText(""); setDesignLink(""); }); }}>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <select className={field} value={commentKind} onChange={e => setCommentKind(e.target.value)}><option value="question">Question</option><option value="idea">Suggestion / creative idea</option></select>
                     <input className={field} value={sectionKey} onChange={e => setSectionKey(e.target.value)} maxLength={100} placeholder="Section name"/>
                   </div>
                   <textarea className={field} value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Ask a question or suggest a change..." required maxLength={3000}/>
+                  <input type="url" className={field} value={designLink} onChange={e => setDesignLink(e.target.value)} placeholder="Optional HTTPS design link (Canva, Figma, mood board...)" maxLength={1000}/>
                   <button className={button} disabled={busy}>Post to vision discussion</button>
                 </form>}
               </section>
