@@ -119,6 +119,7 @@ export async function PATCH(request: Request) {
     const assignment = await prisma.visionAssignment.findUnique({ where: { planId_userId: { planId, userId: user.id } } });
     if (!assignment) return deny();
     if (plan.status === "approved") return invalid("Approved plans are read-only.");
+    if (action === "submit" && !assignment.acknowledgedAt) return invalid("Acknowledge the vision before submitting your response.");
     const update = action === "acknowledge"
       ? { acknowledgedAt: new Date(), status: "acknowledged" }
       : { capacity: safeVisionString(body.capacity, 100), proposal: safeVisionString(body.proposal, 12000), supportNeeds: safeVisionString(body.supportNeeds, 5000), status: action === "submit" ? "submitted" : "in_review", ...(action === "submit" ? { submittedAt: new Date() } : {}) };
