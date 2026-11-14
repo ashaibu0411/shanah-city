@@ -41,6 +41,7 @@ CREATE TABLE "VisionComment" (
   "authorName" TEXT NOT NULL,
   "sectionKey" TEXT NOT NULL DEFAULT 'general',
   "body" TEXT NOT NULL,
+  "referenceUrl" TEXT,
   "kind" TEXT NOT NULL DEFAULT 'question',
   "decision" TEXT NOT NULL DEFAULT 'pending',
   "decisionNote" TEXT,
