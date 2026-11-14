@@ -7,7 +7,7 @@ type Assignment = {
   acknowledgedAt?: string | null; capacity?: string | null;
   proposal?: string | null; supportNeeds?: string | null; submittedAt?: string | null;
 };
-type Comment = { id: string; authorName: string; kind: string; sectionKey: string; body: string; createdAt: string };
+type Comment = { id: string; authorName: string; kind: string; sectionKey: string; body: string; decision: string; decisionNote?: string | null; createdAt: string };
 type Plan = { id: string; title: string; ministryKey: string; summary: string; content: string; status: string; version: number; assignments: Assignment[]; comments?: Comment[]; _count?: { comments: number } };
 type Ministry = { key: string; title: string };
 type Leader = { id: string; name: string };
@@ -189,7 +189,17 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
               <section className={panel + " space-y-4"}>
                 <h3 className="text-lg font-semibold">Questions & ideas</h3>
                 {selected.comments?.length === 0 && <p className="text-sm text-slate-500">No discussion yet.</p>}
-                {selected.comments?.map(c => <article key={c.id} className="rounded-xl bg-slate-50 p-3"><p className="text-xs font-semibold text-slate-600">{c.authorName} · {c.kind} · {c.sectionKey}</p><p className="mt-2 whitespace-pre-wrap text-sm">{c.body}</p></article>)}
+                {selected.comments?.map(c => <article key={c.id} className="rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs font-semibold text-slate-600">{c.authorName} · {c.kind} · {c.sectionKey}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm">{c.body}</p>
+                  {c.kind === "idea" && <p className="mt-2 text-xs font-semibold capitalize text-blue-800">Pastoral decision: {c.decision}{c.decisionNote ? " — " + c.decisionNote : ""}</p>}
+                  {owner && c.kind === "idea" && selected.status !== "approved" && <div className="mt-3 flex flex-wrap gap-2">
+                    {(["accepted", "deferred", "declined"] as const).map(decision => (
+                      <button key={decision} type="button" disabled={busy} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold capitalize"
+                        onClick={() => void run("PATCH", { action: "decide-comment", planId: selected.id, commentId: c.id, decision, note: feedbackNote }, selected.id)}>{decision}</button>
+                    ))}
+                  </div>}
+                </article>)}
                 {selected.status !== "approved" && <form className="space-y-3" onSubmit={e => { e.preventDefault(); void run("POST", { action: "comment", planId: selected.id, body: commentText, kind: commentKind, sectionKey }, selected.id).then(() => setCommentText("")); }}>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <select className={field} value={commentKind} onChange={e => setCommentKind(e.target.value)}><option value="question">Question</option><option value="idea">Suggestion / creative idea</option></select>
