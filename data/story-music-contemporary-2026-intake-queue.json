@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "source": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+  "sourceReviewedAt": "2026-11-14",
+  "licenseEvidence": "Album page states CC BY; individual song licenses, file download, composition and recording ownership must be checked before publication.",
+  "artist": "Troy Sustarsic",
+  "album": "Lord You're Amazing",
+  "genre": "Contemporary Christian worship / classic-rock-influenced",
+  "releaseYear": 2024,
+  "reviewStatus": "rights_and_audio_intake_required",
+  "tracks": [
+    {
+      "title": "Ready For the King",
+      "artist": "Troy Sustarsic",
+      "catalogTrackId": "troy-sustarsic-ready-for-the-king",
+      "status": "not_published",
+      "licenseClaim": "CC BY (album-level; verify per track)",
+      "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+      "checksRequired": [
+        "track license",
+        "composition and recording",
+        "audio download/quality",
+        "Blob upload",
+        "attribution",
+        "30-60s clip QA"
+      ]
+    },
+    {
+      "title": "Lord You're Amazing",
+      "artist": "Troy Sustarsic",
+      "catalogTrackId": "troy-sustarsic-lord-youre-amazing",
+      "status": "not_published",
+      "licenseClaim": "CC BY (album-level; verify per track)",
+      "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+      "checksRequired": [
+        "track license",
+        "composition and recording",
+        "audio download/quality",
+        "Blob upload",
+        "attribution",
+        "30-60s clip QA"
+      ]
+    },
+    {
+      "title": "You're Here With Me",
+      "artist": "Troy Sustarsic",
+      "catalogTrackId": "troy-sustarsic-youre-here-with-me",
+      "status": "not_published",
+      "licenseClaim": "CC BY (album-level; verify per track)",
+      "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+      "checksRequired": [
+        "track license",
+        "composition and recording",
+        "audio download/quality",
+        "Blob upload",
+        "attribution",
+        "30-60s clip QA"
+      ]
+    },
+    {
+      "title": "Like An Ocean",
+      "artist": "Troy Sustarsic",
+      "catalogTrackId": "troy-sustarsic-like-an-ocean",
+      "status": "not_published",
+      "licenseClaim": "CC BY (album-level; verify per track)",
+      "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+      "checksRequired": [
+        "track license",
+        "composition and recording",
+        "audio download/quality",
+        "Blob upload",
+        "attribution",
+        "30-60s clip QA"
+      ]
+    },
+    {
+      "title": "Offering Of Praise",
+      "artist": "Troy Sustarsic",
+      "catalogTrackId": "troy-sustarsic-offering-of-praise",
+      "status": "not_published",
+      "licenseClaim": "CC BY (album-level; verify per track)",
+      "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+      "checksRequired": [
+        "track license",
+        "composition and recording",
+        "audio download/quality",
+        "Blob upload",
+        "attribution",
+        "30-60s clip QA"
+      ]
+    },
+    {
+      "title": "Alive In Me",
+      "artist": "Troy Sustarsic",
+      "catalogTrackId": "troy-sustarsic-alive-in-me",
+      "status": "not_published",
+      "licenseClaim": "CC BY (album-level; verify per track)",
+      "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+      "checksRequired": [
+        "track license",
+        "composition and recording",
+        "audio download/quality",
+        "Blob upload",
+        "attribution",
+        "30-60s clip QA"
+      ]
+    },
+    {
+      "title": "Shout Of Praise",
+      "artist": "Troy Sustarsic",
+      "catalogTrackId": "troy-sustarsic-shout-of-praise",
+      "status": "not_published",
+      "licenseClaim": "CC BY (album-level; verify per track)",
+      "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+      "checksRequired": [
+        "track license",
+        "composition and recording",
+        "audio download/quality",
+        "Blob upload",
+        "attribution",
+        "30-60s clip QA"
+      ]
+    },
+    {
+      "title": "All I Am",
+      "artist": "Troy Sustarsic",
+      "catalogTrackId": "troy-sustarsic-all-i-am",
+      "status": "not_published",
+      "licenseClaim": "CC BY (album-level; verify per track)",
+      "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+      "checksRequired": [
+        "track license",
+        "composition and recording",
+        "audio download/quality",
+        "Blob upload",
+        "attribution",
+        "30-60s clip QA"
+      ]
+    },
+    {
+      "title": "Christ The King",
+      "artist": "Troy Sustarsic",
+      "catalogTrackId": "troy-sustarsic-christ-the-king",
+      "status": "not_published",
+      "licenseClaim": "CC BY (album-level; verify per track)",
+      "sourceUrl": "https://freemusicarchive.org/music/troy-sustarsic/lord-youre-amazing",
+      "checksRequired": [
+        "track license",
+        "composition and recording",
+        "audio download/quality",
+        "Blob upload",
+        "attribution",
+        "30-60s clip QA"
+      ]
+    }
+  ]
+}
