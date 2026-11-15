@@ -80,7 +80,7 @@ export async function processVisionReminders(now = new Date()) {
     for (const key of keys) {
       const body = key.startsWith("fathers-day")
         ? "Father's Day leadership planning checkpoint: " + days + " days remaining."
-        : (days === 7 ? "Coming up this week: " : "Due tomorrow: ") + task.title;
+        : days === 7 ? "You have an upcoming private ministry leadership deadline this week." : "A private ministry leadership deadline is due tomorrow.";
       if (await notifyOnce(task.id, task.assigneeId, key, body, task.planId)) claimed++;
     }
   }
