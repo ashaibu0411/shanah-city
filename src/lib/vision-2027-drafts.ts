@@ -42,41 +42,114 @@ Evaluate capacity, timing, funding, volunteers, discipleship outcomes, neighborh
   },
   {
     ministryKey: "worship",
-    title: "Shanah Worship — Worship at the Well",
-    summary: "Four proposed quarterly worship experiences with an expanded fourth-quarter finale.",
-    content: `PASTORAL DIRECTION
-Build a spiritually focused, excellent worship culture through approximately 90–120 minute worship nights, intentional musical flow, prayer, good sound and concise announcements.
+    title: "2027 Shanah Worship Ministry Vision & Leadership Plan",
+    summary: "Build a spiritually strong and excellent worship culture, serve Sunday worship faithfully, train the choir and host four proposed quarterly Worship at the Well gatherings.",
+    content: `2027 SHANAH WORSHIP — ANNUAL MINISTRY VISION & LEADERSHIP PLAN
+INTERNAL WORKING DRAFT — PROGRAM THEMES, DATES AND BUDGETS REQUIRE PASTORAL APPROVAL
+Raise worshippers rooted in prayer, Scripture, unity and spiritual maturity who lead Shanah City into deeper encounters with God and support the Year of Expansion. Excellence is both spiritual preparation and dependable execution; the ministry must produce disciples and develop future worship leaders.
 
-PROPOSED EDITIONS — DATES AND THEMES NOT APPROVED
-Q1 Friday February 26: The Altar — Worship & Consecration. Lean in-house production.
-Q2 Friday May 21: The Outpouring — Worship & Revival. Lean in-house production.
-Q3 Friday August 20: The Encounter — Worship & Prayer. Collaborative guest worship.
-Q4 Friday November 19: The Overflow — Thanksgiving & Worship. Expanded finale.
+01 · ANNUAL VISION & SPIRITUAL FORMATION
+Cultivate a choir of spiritually grounded, disciplined and dependable worshippers. Establish regular prayer, devotion, Scripture, team unity, personal character and servant leadership. Build a culture of growth and accountability that is bigger than performance or special events.
 
-WORKING GOALS
-Initial attendance 75–100; longer-term 150 (stretch goal). Estimated combined 2027 budget $2,000–$4,000, not approved.
+02 · SUNDAY WORSHIP & WEEKLY READINESS — RECURRING
+Prepare worship for regular church services with adequate advance setlists, rehearsals, musicians, sound, lyrics and backup coverage. Track services supported, attendance, punctuality, preparation and quality improvements. Coordinate with the existing Worship Leader Studio, schedules and production tools instead of duplicating them.
 
-LEADER CONTRIBUTIONS REQUESTED
-Recommend themes and worship arrangements, rehearsal schedules, musicians, singers, sound/AV requirements, invited guests, volunteer needs, promotion and production ideas. Identify which editions can be delivered with existing capacity and where support is necessary.
+03 · MONTHLY REHEARSAL, DISCIPLESHIP & TRAINING
+Maintain at least twelve monthly training/devotional checkpoints in 2027, while keeping the actual rehearsal frequency aligned with weekly worship responsibilities. Develop vocal and musical skill, ministry discipline, prayer leadership and volunteer succession. Monthly reports should include rehearsals and preparation gaps.
 
-RHYTHM
-Monthly rehearsal, devotion and training; four editions; fourth-quarter finale review.`
+04 · WORSHIP AT THE WELL — QUARTERLY FLAGSHIP
+Plan four Worship at the Well experiences for 2027, one each quarter. The existing proposal suggests February 26 — The Altar; May 21 — The Outpouring; August 20 — The Encounter; and November 19 — The Overflow. All are PROPOSED, not calendar approvals.
+Design 90–120 minutes of prayerful worship with musical excellence, thoughtful flow, intercession, sound/AV readiness and well-managed hospitality. The fourth quarter may be an expanded finale. The earlier 75–100 initial attendance and 150 longer-term stretch goals and $2,000–$4,000 illustrative yearly budget must be reviewed before adoption.
+
+05 · EXPANSION & COMMUNITY REACH
+Grow worship participation through intentional invitations, creative collaboration with other ministry teams and welcoming new worshippers from the community, without promising guest artists or spending before approval. Track first-time visitors to worship gatherings and follow-up. Encourage interested musicians and singers to join the approved volunteer onboarding pathway.
+
+06 · WORSHIP LEADER DEVELOPMENT & ACCOUNTABILITY
+The leader must mentor emerging singers and musicians, reinforce attendance and punctuality, identify coverage gaps, maintain unity and submit existing monthly choir reports. Hold four quarterly pastoral performance reviews with concrete actions for preparation, participation and spiritual growth.
+
+07 · 2027 SCORECARD & EVIDENCE
+Quarterly Worship at the Well editions: four planned, subject to approved dates and themes.
+Monthly prayer/training checkpoints: twelve.
+Worship services supported, rehearsals, team attendance and volunteer coverage: measured through current reporting.
+New choir participants, community invitations, invited visitors and follow-ups: reported monthly.
+Quarterly leadership reviews: four.
+Growth percentages require a verified baseline and pastoral agreement. A target is not an achievement; missing evidence must read Not yet reported.
+
+PASTORAL OVERSIGHT & YOUR INPUT
+This is an editable pastoral direction. The leader should propose the detailed 2027 schedule, goals, setlist-development process, team training, Worship at the Well concepts, budget, volunteers and outreach strategy. After assignment, questions and suggestions remain open; approved vision text changes remain under Senior Pastor authority. Do not automatically publish events or alter the existing ministry scheduling tools.`
   },
   {
     ministryKey: "young-adults",
-    title: "Young Adults — Remnant Experience",
-    summary: "Proposed March flagship, continuing Bible study, mentoring and connections.",
-    content: `PASTORAL DIRECTION
-Strengthen Young Adults spiritual growth, community, faith, purpose and leadership.
+    title: "2027 Young Adults Ministry Vision & Leadership Plan",
+    summary: "Grow a spiritually grounded young adult community through monthly Bible study, mentoring, quarterly connection opportunities, Sunday commitment and a proposed Remnant Experience.",
+    content: `2027 YOUNG ADULTS — ANNUAL MINISTRY VISION & LEADERSHIP PLAN
+INTERNAL WORKING DRAFT — FLAGSHIP DATE, FORMAT AND BUDGET ARE NOT APPROVED
+Raise young adults who are established in Christ, connected in authentic community, growing in purpose and responsibility, and contributing actively to Shanah City's Year of Expansion. Build spiritually mature disciples who serve, lead, invite friends and remain committed to church beyond special events.
 
-FLAGSHIP PROPOSAL — NOT APPROVED
-A March Remnant Experience gathering combining worship, faith, relationships, purpose, career/life conversations and mentoring. Working stretch target: 100–150 participants, subject to capacity. Invite nearby campuses, young professionals and neighboring churches where appropriate. The name and month remain proposals.
+01 · ANNUAL VISION & DISCIPLESHIP
+Develop biblical identity, prayer, consistent Bible study, healthy friendships, practical faith, relationships, purpose and career/life discernment. Build a safe and encouraging ministry where young adults grow into leaders and help one another through mentoring and accountability.
 
-ONGOING RHYTHM
-Monthly Bible study or fellowship; quarterly social or service connection; consistent mentoring.
+02 · MONTHLY BIBLE STUDY & FELLOWSHIP — RECURRING
+Plan at least twelve monthly discipleship/connection touchpoints with Scripture, interactive discussion, prayer and fellowship. Retain existing Bible study routines and the actual group scheduling system; this is the monthly accountability target, not a cap on meetings. Report participation, new young adults, attendance barriers and follow-up.
 
-LEADER CONTRIBUTIONS REQUESTED
-Propose the final event title, agenda, worship collaborators, discussion formats, guest speakers, campus outreach, mentoring approach, volunteer team, cost estimates, follow-up and measurable young adult engagement.`
+03 · QUARTERLY COMMUNITY, SOCIAL OR SERVICE CONNECTION
+Host four thoughtfully structured opportunities across 2027 for friendship, invitations, service or practical young-adult growth. Coordinate community service with Shanah Cares and proposals with existing Calendar workflows. Encourage members to invite friends beyond Shanah City.
+
+04 · REMNANT EXPERIENCE — PROPOSED ANNUAL FLAGSHIP
+The existing ministry draft suggests a March Remnant Experience gathering combining worship, faith, purpose, relationships, career conversations and mentorship. The proposed 100–150 participation stretch goal is unapproved and depends on venue, resources and outreach. The ministry leader should recommend an exact date, refined name, agenda, budget, campus/community invitations, speaker support and guest follow-up before pastoral approval.
+
+05 · SUNDAY WORSHIP PARTICIPATION & COMMUNITY EXPANSION
+Intentionally welcome inconsistent and first-time young adults into Sunday worship, group belonging and service. Reach nearby campuses, students and young professionals through respectful invitations and authentic relationships. Count new guests and distinct sustained connections separately; do not substitute event registrations for actual participation.
+
+06 · MENTORSHIP & NEXT-GENERATION LEADERSHIP
+Identify emerging prayer leaders, Bible study facilitators, hosts and volunteers. Encourage accountability, leadership development and responsible involvement in church. Follow up appropriately with young adults who are disengaged and discuss barriers with the pastoral team.
+
+07 · QUARTERLY LEADERSHIP REVIEW & SCORECARD
+Monthly Bible study/connection checkpoints: twelve.
+Quarterly social/service/connection gatherings: four.
+Remnant Experience: one proposed flagship subject to pastoral approval.
+Quarterly reviews: four.
+Track actual gatherings, average attendance, new young adults, guest follow-up, mentoring and verified Sunday connection.
+Where percentage growth is proposed later, first agree on baseline counts and measurement period. Missing submissions must read Not yet reported.
+
+PASTORAL OVERSIGHT & YOUR INPUT
+The Senior Pastor owns direction and final approvals; the assigned leader contributes a detailed ministry proposal, final event recommendations, resources, mentoring structure, outreach ideas and realistic growth targets. Continue questions, suggestions and monthly reports after approval. This vision never auto-publishes events or authorizes spending.`
+  },
+  {
+    ministryKey: "kids",
+    title: "2027 Shanah Kids Ministry Vision & Leadership Plan",
+    summary: "Grow a safe, Christ-centered children's ministry through dependable Sunday teaching, parent communication, volunteer development, family connection and quarterly leadership review.",
+    content: `2027 SHANAH KIDS — ANNUAL MINISTRY VISION & LEADERSHIP PLAN
+INTERNAL WORKING DRAFT — SPECIFIC PROGRAMS, DATES AND GOALS FOR PASTORAL REVIEW
+Raise children who know Jesus, discover Scripture, experience God's love and grow within a safe, excellent and family-connected church environment. Equip parents and volunteers to nurture the next generation while supporting Shanah City's Year of Expansion.
+
+01 · CHILDREN'S SPIRITUAL FORMATION & SUNDAY DISCIPLESHIP
+Provide consistent, age-appropriate biblical teaching, prayer, worship and activities during Sunday services. Coordinate lesson readiness, age-group coverage and classroom schedules through existing Shanah Kids tools. This is ongoing weekly ministry work, not a requirement to create a separate Sunday event listing.
+
+02 · SAFEGUARDING & FAMILY TRUST — NONNEGOTIABLE
+Follow the church's child-safety, check-in/check-out, authorized-pickup, supervision, volunteer suitability and incident/escalation policies. Never place child-identifying information, health concerns, safeguarding incidents or private family notes in Vision Center scorecards, comments or push notifications. Track only approved aggregate metrics; raise urgent concerns through the established safeguarding channel, not routine monthly reporting.
+
+03 · MONTHLY CURRICULUM & VOLUNTEER CHECKPOINTS
+Hold twelve monthly leadership checkpoints to review Bible lessons, volunteer coverage, safety readiness, classroom materials and parent communication. Actual Sunday teaching remains weekly. Identify gaps and arrange relief or mentoring early.
+
+04 · FAMILY CONNECTION, WELCOME & EXPANSION
+Warmly welcome new families, help parents know their children's ministry team, support appropriate family discipleship and coordinate invitations with church hospitality. Track aggregate new-family connections and follow-up without identifying individual children. Provide clear parent communication for special activities and age transitions.
+
+05 · VOLUNTEER DEVELOPMENT & SERVICE EXCELLENCE
+Train and mentor reliable teachers, assistants and check-in volunteers. Monitor staffing sufficiency, punctuality, preparation and safety readiness. Plan special family or children's programs through the existing Calendar with pastoral and safeguarding review, not through automatic Vision Center event creation.
+
+06 · QUARTERLY LEADERSHIP ACCOUNTABILITY
+Complete four pastoral check-ins to review Sunday service support, curriculum readiness, staffing, aggregate participation, family welcome, training and improvement priorities. Report monthly through the existing Shanah Kids Ministry Reports framework.
+
+07 · SCORECARD & EVIDENCE
+Monthly curriculum/volunteer checkpoints: twelve.
+Quarterly pastoral reviews: four.
+Sunday classroom/service coverage, lesson readiness, aggregate children served and new-family connections: monitor through existing monthly reports.
+Volunteer training and staffing improvement actions: summarize quarterly.
+No invented attendance increase or growth percentage. Targets may be refined by the Senior Pastor when a safe, reliable baseline exists. Sensitive child or family records must never be exposed as metrics.
+
+PASTORAL DIRECTION & FUTURE REVISIONS
+The Senior Pastor may add or refine special events, curriculum emphasis, family initiatives, age groups, volunteer plans and measurable goals. The assigned Kids Ministry Leader acknowledges, submits an implementation proposal, asks questions and offers suggestions through the private Vision Center. Public scheduling stays in existing app modules; confidential safeguarding uses authorized dedicated channels.`
   },
   {
     ministryKey: "men",
