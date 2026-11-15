@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     } });
     const reports = await listMinistryReports({ since: "2027-01", until: "2027-12" });
     const groupByMinistry: Record<string, string> = {
-      men: "group-men-legacy", worship: "group-choir", "young-adults": "group-young-adults",
+      men: "group-men-legacy", women: "group-shanah-ladies", worship: "group-choir", "young-adults": "group-young-adults",
     };
     const overviewPlans = plans.map(plan => {
       const groupId = groupByMinistry[plan.ministryKey];
