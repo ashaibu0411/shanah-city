@@ -733,6 +733,7 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
       { id: "fathersDayGuests", label: "Father's Day guests attending this month (if applicable)", type: "number", min: 0 },
       { id: "menSundayActions", label: "Actions taken to strengthen men's Sunday church attendance", type: "textarea", required: true },
       { id: "menParticipationBarriers", label: "Barriers identified and next actions for prayer, breakfast or Sunday attendance", type: "textarea", required: true },
+      { id: "quarterlyReviewCompleted", label: "Was a formal quarterly ministry review completed this month?", type: "select", options: ["Yes — completed", "No — not completed"] },
       { id: "quarterlyActions", label: "Quarterly leadership review, development commitments and corrective actions (when applicable)", type: "textarea" },
     ],
     { shepherding: FELLOWSHIP_SHEPHERDING, closing: FELLOWSHIP_CLOSING },
