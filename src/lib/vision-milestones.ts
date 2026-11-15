@@ -26,7 +26,7 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
         title: "Transformed Women: strengthen Sunday worship engagement",
         description: "Connect with inconsistent and new women, listen for participation barriers, coordinate appropriate follow-up and encourage Sunday commitment. Record verified Sunday attendance when available.",
       });
-      if (month % 2 === 1) {
+      if (month % 2 === 0) {
         tasks.push({
           kind: "women-bible-brunch", period, dueOn: end,
           title: "Transformed Women: in-person Bible & Brunch",
