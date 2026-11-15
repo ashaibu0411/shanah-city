@@ -5,8 +5,8 @@ import { VISION_2027_DRAFTS } from "../src/lib/vision-2027-drafts";
 import { VISION_MINISTRIES } from "../src/lib/vision-center-access-server";
 import { normalizeVisionReferenceUrl } from "../src/lib/vision-center-reference-url";
 
-assert.equal(VISION_2027_DRAFTS.length, 9, "nine private 2027 ministry drafts");
-assert.equal(VISION_MINISTRIES.length, 9);
+assert.equal(VISION_2027_DRAFTS.length, 10, "ten private 2027 ministry drafts including Shanah Kids");
+assert.equal(VISION_MINISTRIES.length, 10);
 for (const draft of VISION_2027_DRAFTS) {
   assert.match(draft.content, /NOT APPROVED|not approved|proposed|Proposed/i, `${draft.ministryKey} must stay draft-only`);
 }
