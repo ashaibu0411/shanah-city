@@ -23,8 +23,9 @@ export async function canReadVision(planId: string, userId: string, isOwner: boo
 
 export const VISION_MINISTRIES = [
   { key: "churchwide", title: "2027 Master Vision" },
-  { key: "worship", title: "Shanah Worship — Worship at the Well" },
-  { key: "young-adults", title: "Young Adults — Remnant Experience" },
+  { key: "worship", title: "2027 Shanah Worship Ministry Vision & Leadership Plan" },
+  { key: "young-adults", title: "2027 Young Adults Ministry Vision & Leadership Plan" },
+  { key: "kids", title: "2027 Shanah Kids Ministry Vision & Leadership Plan" },
   { key: "men", title: "2027 Men of Legacy Ministry Vision & Leadership Plan" },
   { key: "women", title: "2027 Transformed Women Ministry Vision & Leadership Plan" },
   { key: "shift", title: "SHIFT Conference" },
