@@ -77,7 +77,7 @@ export function buildTransformedWomenScorecard(allReports: MinistryLeaderReport[
       bibleBrunch: metric(sum(rows, "bibleBrunchHeld"), 6, "in-person gatherings", "bibleBrunchHeld"),
       firstTimeBrunchGuests: metric(sum(rows, "bibleBrunchFirstTimeCommunity"), 12, "first-time brunch participants", "bibleBrunchFirstTimeCommunity"),
       newWomenConnected: metric(sum(rows, "newWomenConnected"), 12, "distinct new connections", "newWomenConnected"),
-      annualFlagship: metric(rows.length ? rows.some(row => row.responses.annualFlagshipHeld === "Yes — completed") ? 1 : 0 : null, 1, "flagship", "annualFlagshipHeld"),
+      annualFlagship: metric(rows.some(row => row.responses.annualFlagshipHeld === "Yes — completed") ? 1 : rows.some(row => row.responses.annualFlagshipHeld === "No") ? 0 : null, 1, "conference", "annualFlagshipHeld"),
       quarterlyReviews: metric(rows.length ? quarters.filter(q => q.reviewed).length : null, 4, "reviews", "quarterlyReviewCompleted"),
       engagedWomen: metric(average(rows, "membersEngaged"), null, "average engaged women", "membersEngaged"),
       sundayAttendance: metric(sunday, null, "average verified Sunday attendance", "womensSundayAverage"),
