@@ -29,7 +29,7 @@ assert.match(notify, /private 2027 ministry vision/i);
 
 const hub = readFileSync(join(process.cwd(), "src/components/vision/VisionCenterHub.tsx"), "utf8");
 assert.match(hub, /md:grid-cols-2 xl:grid-cols-3/, "responsive ministry cards");
-assert.match(hub, /max-w-\\[1440px\\]/, "full-width reading canvas");
+assert.match(hub, /max-w-\[1440px\]/, "full-width reading canvas");
 assert.match(hub, /VisionDocument/, "formatted vision reading view");
 assert.match(hub, /ApprovalHistoryPanel|Approval & review history/);
 assert.match(hub, /noopener noreferrer/);
