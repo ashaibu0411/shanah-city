@@ -15,6 +15,37 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
       title: "Review and act on " + period + " ministry priorities",
       description: "Review your approved vision, coordinate the month's priorities and record outcomes using existing ministry reports. This is a leadership checkpoint, not a published event.",
     });
+    if (ministryKey === "worship") {
+      tasks.push({
+        kind: "worship-monthly", period, dueOn: end,
+        title: "Shanah Worship: prayer, rehearsal and leadership preparation",
+        description: "Review choir devotion and rehearsal preparation, team coverage, Sunday readiness and emerging worship leaders. Track evidence through the existing Worship & Choir monthly report.",
+      });
+      if (month % 3 === 2) tasks.push({
+        kind: "worship-at-the-well", period, dueOn: end,
+        title: "Shanah Worship: quarterly Worship at the Well planning",
+        description: "Plan the proposed quarterly worship night with pastoral oversight; verify exact date, theme, budget and production through the existing Calendar and Worship tools. This month-end checkpoint is not an actual event date.",
+      });
+    }
+    if (ministryKey === "young-adults") {
+      tasks.push({
+        kind: "young-monthly", period, dueOn: end,
+        title: "Young Adults: Bible study, mentoring and fellowship accountability",
+        description: "Review Bible study, spiritual growth, attendance, personal follow-up and mentoring. Record actual participation in the existing Young Adults monthly ministry report.",
+      });
+      if (month % 3 === 1) tasks.push({
+        kind: "young-quarterly-connection", period, dueOn: end,
+        title: "Young Adults: quarterly fellowship or service connection",
+        description: "Prepare a community, social or service opportunity for this quarter; dates and publication require existing church Calendar approval.",
+      });
+    }
+    if (ministryKey === "kids") {
+      tasks.push({
+        kind: "kids-monthly", period, dueOn: end,
+        title: "Shanah Kids: curriculum, volunteer coverage and safeguarding readiness",
+        description: "Review Sunday lesson readiness, adequate adult supervision, authorized pickup processes, volunteer development and aggregate family engagement. Report only nonidentifying metrics; handle child-safety concerns in the established safeguarding process.",
+      });
+    }
     if (ministryKey === "women") {
       tasks.push({
         kind: "women-monthly", period, dueOn: end,
@@ -65,6 +96,13 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
       kind: "quarterly-review", period: "2027-Q" + quarter, dueOn: monthEnd(2027, month),
       title: "Q" + quarter + " ministry leadership performance review",
       description: "Review attendance, participation, actions, challenges and development needs with pastoral leadership. Document next-quarter priorities in the existing monthly report and Vision Center discussion.",
+    });
+  }
+  if (ministryKey === "young-adults") {
+    tasks.push({
+      kind: "young-remnant-proposal", period: "2027-remnant-proposal", dueOn: "2027-01-31",
+      title: "Young Adults: submit proposed Remnant Experience plans",
+      description: "Prepare proposed March flagship date, name, agenda, venue, cost, invitations and mentoring/follow-up, all subject to Senior Pastor approval. This date is an internal planning checkpoint, not a public event.",
     });
   }
   if (ministryKey === "women") {

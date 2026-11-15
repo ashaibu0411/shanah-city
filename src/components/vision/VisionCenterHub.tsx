@@ -5,6 +5,7 @@ import { VisionDocument } from "@/components/vision/VisionDocument";
 import { VisionAccountabilityOverview, VisionMilestonePanel, VisionMyUpcoming } from "@/components/vision/VisionMilestonePanel";
 import { MenLegacyScorecard } from "@/components/vision/MenLegacyScorecard";
 import { TransformedWomenScorecard } from "@/components/vision/TransformedWomenScorecard";
+import { MinistryGrowthScorecard } from "@/components/vision/MinistryGrowthScorecard";
 import Link from "next/link";
 
 type Assignment = {
@@ -170,6 +171,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
               </section>
               {selected.ministryKey === "men" && <MenLegacyScorecard />}
               {selected.ministryKey === "women" && <TransformedWomenScorecard />}
+              {(["worship", "young-adults", "kids"] as const).includes(selected.ministryKey as "worship" | "young-adults" | "kids") && <MinistryGrowthScorecard ministry={selected.ministryKey as "worship" | "young-adults" | "kids"} />}
               {selected.status === "approved" && <VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} />}
               {owner ? (
                 <section className={panel + " space-y-4"}>

@@ -465,6 +465,12 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
       "Ensure every service has sound, slides, and musicians covered.",
     ],
     [
+      { id: "worshipAtWellHeld", label: "Worship at the Well editions actually held this month", type: "number", min: 0 },
+      { id: "worshipMonthlyTraining", label: "Monthly worship devotion or leadership-training checkpoints held", type: "number", min: 0 },
+      { id: "newWorshipParticipants", label: "New worship team volunteers connected or trained this month", type: "number", min: 0 },
+      { id: "worshipCommunityGuests", label: "First-time community guests at worship experiences this month (aggregate)", type: "number", min: 0 },
+      { id: "worshipQuarterlyReviewed", label: "Was the quarterly worship leadership review completed?", type: "select", options: ["Yes — completed", "No — not completed"] },
+      { id: "worshipQuarterlyActions", label: "Quarterly worship improvement and leadership-development actions", type: "textarea" },
       {
         id: "servicesLed",
         label: "Worship services you led or supported",
@@ -501,6 +507,11 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
       "Volunteers briefed on safety and classroom flow.",
     ],
     [
+      { id: "kidsMonthlyCheckpoint", label: "Curriculum, volunteer and safety readiness monthly checkpoint completed", type: "select", options: ["Yes — completed", "No — not completed"] },
+      { id: "kidsServicesCovered", label: "Sunday children's ministry services with adequate classroom coverage", type: "number", min: 0 },
+      { id: "kidsVolunteersTrained", label: "Teachers or volunteers trained/mentored this month (aggregate only)", type: "number", min: 0 },
+      { id: "kidsQuarterlyReviewed", label: "Was quarterly Shanah Kids leadership review completed?", type: "select", options: ["Yes — completed", "No — not completed"] },
+      { id: "kidsQuarterlyActions", label: "Quarterly aggregate readiness and improvement actions; no identifiable child or family information", type: "textarea" },
       {
         id: "childrenServed",
         label: "Average children per service/week",
@@ -583,6 +594,13 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
       "Plan regular fellowship that fosters accountability and joy.",
     ],
     [
+      { id: "youngMonthlyTouchpoints", label: "Monthly young-adult Bible study, fellowship or discipleship checkpoints held", type: "number", min: 0 },
+      { id: "youngQuarterlyConnections", label: "Quarterly social, service or community connection gatherings held this month", type: "number", min: 0 },
+      { id: "youngFlagshipHeld", label: "Remnant Experience annual gathering held this month", type: "select", options: ["Yes — completed", "No — not completed"] },
+      { id: "youngMentored", label: "Young adults intentionally mentored or developed as emerging leaders (count)", type: "number", min: 0 },
+      { id: "youngGuestFollowUps", label: "Follow-up conversations with new young adults this month", type: "number", min: 0 },
+      { id: "youngQuarterlyReviewed", label: "Was quarterly young-adult leadership review completed?", type: "select", options: ["Yes — completed", "No — not completed"] },
+      { id: "youngQuarterlyActions", label: "Quarterly young-adult ministry challenges and next-quarter actions", type: "textarea" },
       {
         id: "gatheringsHeld",
         label: "Young adult gatherings or Bible studies held",
