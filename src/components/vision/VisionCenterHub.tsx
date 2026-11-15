@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { VisionDocument } from "@/components/vision/VisionDocument";
+import Link from "next/link";
 
 type Assignment = {
   id: string; userId: string; status: string; deadline?: string | null;
@@ -45,7 +46,7 @@ async function request(method: string, data: Record<string, unknown>): Promise<R
   return json;
 }
 
-export function VisionCenterHub({ owner }: { owner: boolean }) {
+export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: string }) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [ministries, setMinistries] = useState<Ministry[]>([]);
   const [leaders, setLeaders] = useState<Leader[]>([]);
@@ -91,7 +92,7 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
     }
   }, []);
 
-  useEffect(() => { const planId = new URLSearchParams(window.location.search).get("plan"); void refresh(planId || undefined).catch(e => setError(String(e))); }, [refresh]);
+  useEffect(() => { void refresh(planId).catch(e => setError(e instanceof Error ? e.message : String(e))); }, [refresh, planId]);
 
   async function run(method: string, data: Record<string, unknown>, reloadId?: string) {
     setBusy(true); setError(""); setNotice("");
@@ -103,41 +104,37 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
     finally { setBusy(false); }
   }
 
-  async function open(id: string) {
-    setError(""); setNotice("");
-    await refresh(id).catch(e => setError(String(e)));
-  }
-
   const myAssignment = selected?.assignments?.[0];
   return (
     <div className="mx-auto w-full max-w-[1440px] min-w-0 space-y-8 px-1 pb-24 text-slate-900 sm:px-3 lg:px-6">
       <header className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 p-7 text-white shadow-lg sm:p-10 lg:p-12">
         <p className="text-sm font-extrabold uppercase tracking-[.1em] text-blue-100">Shanah City · Private leadership</p>
-        <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">2027 Vision Center</h1>
+        <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">{planId ? "Ministry Vision" : "2027 Vision Center"}</h1>
         <p className="mt-4 max-w-3xl text-lg font-medium leading-relaxed text-slate-100">Expansion · Establishment · Excellence · Community Impact</p>
         <p className="mt-4 text-base font-semibold text-blue-100">{owner ? "Senior Pastor workspace" : "My assigned ministry visions"}</p>
       </header>
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
       {notice && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">{notice}</p>}
       <div className="space-y-8">
-        <section aria-label="Ministry vision directory" className={panel + " space-y-5"}>
+        {!planId && <section aria-label="Ministry vision directory" className={panel + " space-y-5"}>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Ministry visions</h2>
-          <p className="text-base font-medium text-slate-600">{plans.length} accessible plans · Select a ministry to read its complete vision below.</p>
+          <p className="text-base font-medium text-slate-600">{plans.length} accessible plans · Select a ministry to open its full page.</p>
           {plans.length === 0 && <p className="text-base font-medium text-slate-600">No visions assigned yet.</p>}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {plans.map(plan => (
-            <button type="button" key={plan.id} onClick={() => void open(plan.id)}
+            <Link href={"/leadership/vision/" + encodeURIComponent(plan.id)} key={plan.id}
               className={"min-w-0 w-full rounded-2xl border-2 p-5 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 " + (selected?.id === plan.id ? "border-blue-700 bg-blue-50" : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50")}>
               <span className="block break-words text-lg font-extrabold leading-snug text-slate-950">{plan.title}</span>
               <span className="mt-3 block text-sm font-semibold capitalize text-slate-600">{plan.status.replaceAll("_", " ")} · Version {plan.version}</span>
-            </button>
+            </Link>
           ))}
           </div>
           {owner && <p className="border-t pt-4 text-sm font-medium text-slate-600">New plans are private drafts, never public calendar events.</p>}
-        </section>
+        </section>}
         <div className="min-w-0 space-y-8">
-          {owner && !selected && plans.length === 0 && <button type="button" className={button} disabled={busy} onClick={() => void run("POST", { action: "initialize-2027" })}>Load nine private 2027 working drafts</button>}
-          {owner && !selected && (
+          {planId && !selected && !error && <div role="status" className={panel + " text-lg font-semibold text-slate-700"}>Opening ministry vision…</div>}
+          {owner && !planId && !selected && plans.length === 0 && <button type="button" className={button} disabled={busy} onClick={() => void run("POST", { action: "initialize-2027" })}>Load nine private 2027 working drafts</button>}
+          {owner && !planId && !selected && (
             <form className={panel + " space-y-4"} onSubmit={(event: FormEvent) => { event.preventDefault(); void run("POST", { action: "create", ministryKey, summary, content }); }}>
               <h2 className="text-2xl font-extrabold text-slate-950">Create ministry vision</h2>
               <select className={field} value={ministryKey} onChange={e => setMinistryKey(e.target.value)}>
@@ -148,10 +145,10 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
               <button className={button} disabled={busy}>Create private draft</button>
             </form>
           )}
-          {selected && (
+          {planId && selected && (
             <>
               <section className={panel + " space-y-7"}>
-                <button type="button" className="text-base font-bold text-blue-700 underline-offset-4 hover:underline" onClick={() => setSelected(null)}>← All visions</button>
+                <Link href="/leadership/vision" className="inline-flex items-center gap-2 text-base font-bold text-blue-700 underline-offset-4 hover:underline">← Back to all ministry visions</Link>
                 <div className="flex min-w-0 flex-wrap items-start justify-between gap-5">
                   <h2 className="min-w-0 break-words text-3xl font-extrabold leading-tight tracking-tight text-slate-950 sm:text-4xl">{selected.title}</h2>
                   <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold capitalize text-slate-700">{selected.status.replaceAll("_", " ")}</span>
