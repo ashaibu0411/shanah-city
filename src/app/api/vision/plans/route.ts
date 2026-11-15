@@ -7,6 +7,7 @@ import { getGroups } from "@/lib/group-server";
 import { getVisionActor, canReadVision, safeVisionString, VISION_MINISTRIES } from "@/lib/vision-center-access-server";
 import { getPastoralRoleAssignments } from "@/lib/pastoral-roles-server";
 import { normalizeVisionReferenceUrl } from "@/lib/vision-center-reference-url";
+import { provisionVisionMilestones } from "@/lib/vision-milestones";
 
 function deny(code = 403) { return NextResponse.json({ error: code === 401 ? "Sign in required." : "Not authorized." }, { status: code }); }
 function invalid(message: string) { return NextResponse.json({ error: message }, { status: 400 }); }
@@ -57,7 +58,8 @@ export async function POST(request: Request) {
     const planId = safeVisionString(body.planId, 100);
     if (!(await canReadVision(planId, user.id, isOwner))) return deny();
     const currentPlan = await prisma.visionPlan.findUnique({ where: { id: planId }, select: { status: true } });
-    if (!currentPlan || currentPlan.status === "approved") return invalid("Discussion is closed for approved plans.");
+    if (!currentPlan) return invalid("Vision plan not found.");
+    // Discussion remains open after approval; approved pastoral content stays immutable.
     const text = safeVisionString(body.body, 3000);
     if (!text) return invalid("Enter a question or suggestion.");
     const kind = body.kind === "idea" || body.kind === "design" ? "idea" : "question";
@@ -149,7 +151,7 @@ export async function PATCH(request: Request) {
   }
   if (!isOwner) return deny();
   if (action === "decide-comment") {
-    if (plan.status === "approved") return invalid("Approved plans are read-only.");
+    // Pastors can continue reviewing implementation suggestions after approval.
     const commentId = safeVisionString(body.commentId, 100);
     const decision = safeVisionString(body.decision, 20);
     if (!["accepted", "declined", "deferred"].includes(decision)) return invalid("Invalid decision.");
@@ -189,6 +191,7 @@ export async function PATCH(request: Request) {
       });
     }
     await audit(planId, user.id, action, safeVisionString(body.note, 1000));
+    if (action === "approve") await provisionVisionMilestones(planId);
     const assigned = await prisma.visionAssignment.findMany({ where: { planId }, select: { userId: true } });
     await Promise.all(assigned.map(a => notifyVisionLeader(a.userId, planId, action === "request-revision" ? "revision" : "decision")));
     return NextResponse.json({ plan: updated });

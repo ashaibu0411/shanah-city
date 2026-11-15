@@ -2510,6 +2510,7 @@ model VisionPlan {
   assignments  VisionAssignment[]
   comments     VisionComment[]
   audits       VisionAuditEvent[]
+  milestones   VisionMilestone[]
 
   @@unique([year, ministryKey])
   @@index([status, year])
@@ -2551,6 +2552,39 @@ model VisionComment {
   createdAt  DateTime @default(now())
 
   @@index([planId, createdAt])
+}
+
+model VisionMilestone {
+  id            String   @id @default(cuid())
+  planId        String
+  plan          VisionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  assigneeId    String
+  kind          String
+  period        String
+  title         String
+  description   String
+  dueOn         String
+  status        String   @default("pending")
+  completedAt   DateTime?
+  completedById String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deliveries    VisionReminderDelivery[]
+
+  @@unique([planId, assigneeId, kind, period])
+  @@index([assigneeId, status, dueOn])
+  @@index([planId, dueOn])
+}
+
+model VisionReminderDelivery {
+  id          String @id @default(cuid())
+  milestoneId String
+  milestone   VisionMilestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  recipientId String
+  key         String
+  createdAt   DateTime @default(now())
+
+  @@unique([milestoneId, recipientId, key])
 }
 
 model VisionAuditEvent {
