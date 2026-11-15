@@ -123,7 +123,7 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
         <section aria-label="Ministry vision directory" className={panel + " space-y-5"}>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Ministry visions</h2>
           <p className="text-base font-medium text-slate-600">{plans.length} accessible plans · Select a ministry to read its complete vision below.</p>
-          {plans.length === 0 && <p className="text-sm text-slate-600">No visions assigned yet.</p>}
+          {plans.length === 0 && <p className="text-base font-medium text-slate-600">No visions assigned yet.</p>}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {plans.map(plan => (
             <button type="button" key={plan.id} onClick={() => void open(plan.id)}
@@ -139,12 +139,12 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
           {owner && !selected && plans.length === 0 && <button type="button" className={button} disabled={busy} onClick={() => void run("POST", { action: "initialize-2027" })}>Load nine private 2027 working drafts</button>}
           {owner && !selected && (
             <form className={panel + " space-y-4"} onSubmit={(event: FormEvent) => { event.preventDefault(); void run("POST", { action: "create", ministryKey, summary, content }); }}>
-              <h2 className="text-lg font-semibold">Create ministry vision</h2>
+              <h2 className="text-2xl font-extrabold text-slate-950">Create ministry vision</h2>
               <select className={field} value={ministryKey} onChange={e => setMinistryKey(e.target.value)}>
                 {ministries.map(m => <option value={m.key} key={m.key}>{m.title}</option>)}
               </select>
-              <label className="block text-sm font-medium">Vision summary<input className={field + " mt-2"} value={summary} onChange={e => setSummary(e.target.value)} maxLength={1000}/></label>
-              <label className="block text-sm font-medium">Pastoral direction<textarea className={field + " mt-2 min-h-48"} value={content} onChange={e => setContent(e.target.value)} required maxLength={20000}/></label>
+              <label className="block text-base font-bold">Vision summary<input className={field + " mt-2"} value={summary} onChange={e => setSummary(e.target.value)} maxLength={1000}/></label>
+              <label className="block text-base font-bold">Pastoral direction<textarea className={field + " mt-2 min-h-[320px] font-normal leading-[1.8]"} value={content} onChange={e => setContent(e.target.value)} required maxLength={20000}/></label>
               <button className={button} disabled={busy}>Create private draft</button>
             </form>
           )}
@@ -152,7 +152,7 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
             <>
               <section className={panel + " space-y-7"}>
                 <button type="button" className="text-base font-bold text-blue-700 underline-offset-4 hover:underline" onClick={() => setSelected(null)}>← All visions</button>
-                <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex min-w-0 flex-wrap items-start justify-between gap-5">
                   <h2 className="min-w-0 break-words text-3xl font-extrabold leading-tight tracking-tight text-slate-950 sm:text-4xl">{selected.title}</h2>
                   <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold capitalize text-slate-700">{selected.status.replaceAll("_", " ")}</span>
                 </div>
@@ -169,29 +169,29 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
               </section>
               {owner ? (
                 <section className={panel + " space-y-4"}>
-                  <h3 className="text-lg font-semibold">Assigned leaders</h3>
-                  {selected.assignments.length === 0 && <p className="text-sm text-slate-500">No leaders assigned yet.</p>}
+                  <h3 className="text-2xl font-extrabold text-slate-950">Assigned leaders</h3>
+                  {selected.assignments.length === 0 && <p className="text-base font-medium text-slate-600">No leaders assigned yet.</p>}
                   {selected.assignments.map(a => (
-                    <div key={a.id} className="space-y-1 rounded-xl border border-slate-200 p-3 text-sm">
-                      <p className="font-semibold">{leaders.find(l => l.id === a.userId)?.name || "Assigned member"}</p>
-                      <p className="text-xs capitalize text-slate-500">{a.status.replaceAll("_"," ")} · {a.deadline ? "Due " + new Date(a.deadline).toLocaleDateString() : "No deadline"}</p>
-                      {a.proposal && <p className="whitespace-pre-wrap pt-2"><strong>Proposal: </strong>{a.proposal}</p>}
+                    <div key={a.id} className="min-w-0 space-y-3 break-words rounded-2xl border border-slate-200 bg-slate-50 p-5 text-base leading-relaxed">
+                      <p className="text-lg font-extrabold text-slate-950">{leaders.find(l => l.id === a.userId)?.name || "Assigned member"}</p>
+                      <p className="text-sm font-semibold capitalize text-slate-600">{a.status.replaceAll("_"," ")} · {a.deadline ? "Due " + new Date(a.deadline).toLocaleDateString() : "No deadline"}</p>
+                      {a.proposal && <p className="whitespace-pre-wrap break-words pt-2 leading-[1.8]"><strong>Proposal: </strong>{a.proposal}</p>}
                       {a.capacity && <p><strong>Capacity: </strong>{a.capacity}</p>}
                       {a.supportNeeds && <p><strong>Support needed: </strong>{a.supportNeeds}</p>}
                     </div>
                   ))}
-                  {selected.status !== "approved" && <form className="space-y-3" onSubmit={e => { e.preventDefault(); void run("POST", { action: "assign", planId: selected.id, userId: assignUserId, deadline }, selected.id); }}>
-                    <label className="block text-sm font-medium">Assign a ministry leader
+                  {selected.status !== "approved" && <form className="space-y-5" onSubmit={e => { e.preventDefault(); void run("POST", { action: "assign", planId: selected.id, userId: assignUserId, deadline }, selected.id); }}>
+                    <label className="block text-base font-bold text-slate-900">Assign a ministry leader
                       <select className={field + " mt-1"} value={assignUserId} onChange={e => setAssignUserId(e.target.value)} required>
                         <option value="">Select a leader</option>
                         {leaders.map(l => <option value={l.id} key={l.id}>{l.name}</option>)}
                       </select>
                     </label>
-                    <label className="block text-sm font-medium">Review deadline<input type="date" className={field + " mt-1"} value={deadline} onChange={e => setDeadline(e.target.value)}/></label>
+                    <label className="block text-base font-bold text-slate-900">Review deadline<input type="date" className={field + " mt-1"} value={deadline} onChange={e => setDeadline(e.target.value)}/></label>
                     <button className={button} disabled={busy}>Assign privately</button>
                   </form>}
-                  <div className="border-t pt-4">
-                    <label className="block text-sm font-medium">Pastoral review note<textarea className={field + " mt-2"} value={feedbackNote} onChange={e => setFeedbackNote(e.target.value)} maxLength={1000}/></label>
+                  <div className="border-t border-slate-200 pt-7">
+                    <label className="block text-base font-bold text-slate-900">Pastoral review note<textarea className={field + " mt-2"} value={feedbackNote} onChange={e => setFeedbackNote(e.target.value)} maxLength={1000}/></label>
                     {selected.status !== "approved" && <div className="mt-3 flex flex-wrap gap-2">
                       <button className={secondary} type="button" disabled={busy} onClick={() => void run("PATCH", { action: "request-revision", planId: selected.id, note: feedbackNote }, selected.id)}>Request revision</button>
                       <button className={button} type="button" disabled={busy} onClick={() => void run("PATCH", { action: "approve", planId: selected.id, note: feedbackNote }, selected.id)}>Approve plan</button>
@@ -203,12 +203,12 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
                 </section>
               ) : myAssignment && selected.status !== "approved" ? (
                 <section className={panel + " space-y-4"}>
-                  <h3 className="text-lg font-semibold">My response</h3>
-                  <p className="text-xs capitalize text-slate-600">{myAssignment.status.replaceAll("_", " ")}</p>
+                  <h3 className="text-2xl font-extrabold text-slate-950">My response</h3>
+                  <p className="text-base font-bold capitalize text-slate-700">{myAssignment.status.replaceAll("_", " ")}</p>
                   {!myAssignment.acknowledgedAt && <button type="button" className={secondary} disabled={busy} onClick={() => void run("PATCH", { action: "acknowledge", planId: selected.id }, selected.id)}>I have read the vision</button>}
-                  <label className="block text-sm font-medium">Delivery capacity<select className={field + " mt-2"} value={capacity} onChange={e => setCapacity(e.target.value)}><option value="full">Can deliver</option><option value="with_support">Can deliver with support</option><option value="revised">Recommend revised approach</option></select></label>
-                  <label className="block text-sm font-medium">My proposal and creative ideas<textarea className={field + " mt-2 min-h-40"} value={proposal} onChange={e => setProposal(e.target.value)} maxLength={12000}/></label>
-                  <label className="block text-sm font-medium">Resources or help needed<textarea className={field + " mt-2"} value={supportNeeds} onChange={e => setSupportNeeds(e.target.value)} maxLength={5000}/></label>
+                  <label className="block text-base font-bold text-slate-900">Delivery capacity<select className={field + " mt-2"} value={capacity} onChange={e => setCapacity(e.target.value)}><option value="full">Can deliver</option><option value="with_support">Can deliver with support</option><option value="revised">Recommend revised approach</option></select></label>
+                  <label className="block text-base font-bold text-slate-900">My proposal and creative ideas<textarea className={field + " mt-2 min-h-40"} value={proposal} onChange={e => setProposal(e.target.value)} maxLength={12000}/></label>
+                  <label className="block text-base font-bold text-slate-900">Resources or help needed<textarea className={field + " mt-2"} value={supportNeeds} onChange={e => setSupportNeeds(e.target.value)} maxLength={5000}/></label>
                   <div className="flex flex-wrap gap-2">
                     <button type="button" className={secondary} disabled={busy} onClick={() => void run("PATCH", { action: "save-response", planId: selected.id, capacity, proposal, supportNeeds }, selected.id)}>Save draft</button>
                     <button type="button" className={button} disabled={busy || !proposal.trim()} onClick={() => void run("PATCH", { action: "submit", planId: selected.id, capacity, proposal, supportNeeds }, selected.id)}>Submit for pastoral review</button>
@@ -216,22 +216,22 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
                 </section>
               ) : null}
               <section className={panel + " space-y-4"}>
-                <h3 className="text-lg font-semibold">Questions & ideas</h3>
-                {selected.comments?.length === 0 && <p className="text-sm text-slate-500">No discussion yet.</p>}
-                {selected.comments?.map(c => <article key={c.id} className="rounded-xl bg-slate-50 p-3">
-                  <p className="text-xs font-semibold text-slate-600">{c.authorName} · {c.kind} · {c.sectionKey}</p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm">{c.body}</p>
-                  {c.referenceUrl && <a href={c.referenceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 block break-all text-xs font-semibold text-blue-700 underline">Open creative reference</a>}
-                  {c.kind === "idea" && <p className="mt-2 text-xs font-semibold capitalize text-blue-800">Pastoral decision: {c.decision}{c.decisionNote ? " — " + c.decisionNote : ""}</p>}
+                <h3 className="text-2xl font-extrabold text-slate-950">Questions & ideas</h3>
+                {selected.comments?.length === 0 && <p className="text-base font-medium text-slate-600">No discussion yet.</p>}
+                {selected.comments?.map(c => <article key={c.id} className="min-w-0 space-y-3 break-words rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-7">
+                  <p className="text-sm font-bold text-slate-600">{c.authorName} · {c.kind} · {c.sectionKey}</p>
+                  <p className="mt-3 whitespace-pre-wrap break-words text-[17px] leading-[1.8] text-slate-900">{c.body}</p>
+                  {c.referenceUrl && <a href={c.referenceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 block break-all text-base font-bold text-blue-700 underline">Open creative reference</a>}
+                  {c.kind === "idea" && <p className="mt-3 break-words text-base font-bold capitalize text-blue-800">Pastoral decision: {c.decision}{c.decisionNote ? " — " + c.decisionNote : ""}</p>}
                   {owner && c.kind === "idea" && selected.status !== "approved" && <div className="mt-3 flex flex-wrap gap-2">
                     {(["accepted", "deferred", "declined"] as const).map(decision => (
-                      <button key={decision} type="button" disabled={busy} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold capitalize"
+                      <button key={decision} type="button" disabled={busy} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold capitalize"
                         onClick={() => void run("PATCH", { action: "decide-comment", planId: selected.id, commentId: c.id, decision, note: feedbackNote }, selected.id)}>{decision}</button>
                     ))}
                   </div>}
                 </article>)}
-                {selected.status !== "approved" && <form className="space-y-3" onSubmit={e => { e.preventDefault(); void run("POST", { action: "comment", planId: selected.id, body: commentText, kind: commentKind, sectionKey, referenceUrl: designLink }, selected.id).then(() => { setCommentText(""); setDesignLink(""); }); }}>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                {selected.status !== "approved" && <form className="space-y-5 border-t border-slate-200 pt-7" onSubmit={e => { e.preventDefault(); void run("POST", { action: "comment", planId: selected.id, body: commentText, kind: commentKind, sectionKey, referenceUrl: designLink }, selected.id).then(() => { setCommentText(""); setDesignLink(""); }); }}>
+                  <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
                     <select className={field} value={commentKind} onChange={e => setCommentKind(e.target.value)}><option value="question">Question</option><option value="idea">Suggestion / creative idea</option></select>
                     <input className={field} value={sectionKey} onChange={e => setSectionKey(e.target.value)} maxLength={100} placeholder="Section name"/>
                   </div>
