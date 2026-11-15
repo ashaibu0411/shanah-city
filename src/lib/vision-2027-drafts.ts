@@ -80,25 +80,49 @@ Propose the final event title, agenda, worship collaborators, discussion formats
   },
   {
     ministryKey: "men",
-    title: "Men of Legacy — Father's Day",
-    summary: "Established Father's Day weekend tradition; proposed June 18–20, 2027 program.",
-    content: `PASTORAL DIRECTION
-Grow responsible spiritual leadership, fatherhood, healthy marriage, mentoring and financial stewardship among men.
+    title: "2027 Men of Legacy Ministry Vision & Leadership Plan",
+    summary: "Raise spiritually strong, committed and responsible men through monthly prayer, six breakfasts, stronger Sunday participation and quarterly accountability.",
+    content: `2027 MEN OF LEGACY — ANNUAL MINISTRY VISION
+Raise spiritually strong, committed, responsible and actively involved men who contribute meaningfully to Shanah City's Year of Expansion. This is a year-round leadership mandate, not only a Father's Day program.
 
-ESTABLISHED TRADITION
-Men of Legacy holds its annual signature event every Father's Day weekend. In 2027 Father's Day is Sunday June 20; June 18–20 is the suggested event window.
+01 · SPIRITUAL FORMATION & LEADERSHIP
+Develop consistent prayer, biblical manhood, spiritual responsibility, family leadership, service and mentoring. The leader must know the men, model participation, encourage those who are disengaged, identify emerging leaders and build a culture of personal accountability.
 
-THREE-PART PROPOSAL — NOT APPROVED
-Friday: worship and exhortation.
-Saturday: breakfast, mentorship, leadership discussions.
-Sunday: recognition and encouragement of fathers.
-Working stretch attendance target: 75–120, dependent on venue and capacity.
+02 · MONTHLY MEN'S PRAYER — RECURRING ACTIVITY
+Hold 12 monthly prayer gatherings (one every month). Give each meeting a clear Scripture focus, relevant intercession, shared prayer responsibilities and practical follow-up. Track number held, attendance and engagement every month.
+2027 participation target: at least 30% average prayer-attendance growth against an explicitly documented comparison baseline, with improvement actions for months that fall behind.
+Leader expectations: timely communication, direct invitations, follow-up with absentees, rotating prayer facilitators and quarterly evaluation of participation.
 
-ONGOING RHYTHM
-Monthly prayer, mentoring and fellowship; quarterly breakfasts or service opportunities.
+03 · BI-MONTHLY MEN'S BREAKFAST — RECURRING ACTIVITY
+Hold six structured in-person breakfasts during 2027, approximately every other month. Each gathering should include relevant teaching, fellowship, accountability, an intentional invitation opportunity and a clear follow-up plan. Build a small organizing team rather than relying on one person.
+2027 participation target: at least 25% average breakfast-attendance growth against an agreed baseline. Report the number held and actual participants, not just planned events.
 
-LEADER CONTRIBUTIONS REQUESTED
-Propose a compelling weekend theme, teaching focus, activities, men's outreach, mentoring, venue, speaker plan, volunteer roles and practical budget. Consider a June community service initiative if capacity permits.`
+04 · MEN'S SUNDAY WORSHIP ATTENDANCE — YEAR-ROUND PRIORITY
+Increase average men's Sunday church attendance by 20–30% relative to an agreed baseline. The Men's Ministry Leader must actively lead this effort, not simply wait for attendance to improve.
+Actions: personal contact with inconsistent men; relationship-building; inviting and accompanying men to Sunday worship; listening for barriers such as schedules, transportation and family responsibilities; connecting new men; and coordinating appropriate pastoral follow-up.
+Report monthly aggregated Sunday participation trends and practical actions taken. Do not confuse RSVP counts, prayer-line clicks or volunteer arrivals with verified Sunday worship attendance.
+
+05 · FATHER'S DAY MEN'S CELEBRATION — ANNUAL FLAGSHIP
+Established Shanah City tradition: Father's Day weekend, June 18–20, 2027 (Friday–Sunday). Lead planning for excellent worship, meaningful teaching, fellowship, fatherhood recognition, men-led Sunday participation, intentional community invitations and guest follow-up.
+Suggested planning flow: Friday prayer/worship and exhortation; Saturday structured men's gathering, breakfast or mentoring; Sunday celebration and recognition. Confirm program, costs, speakers, volunteers and outreach with pastoral leadership before publication. The annual event supports, but does not replace, ongoing ministry growth.
+
+06 · LEADERSHIP ACCOUNTABILITY & QUARTERLY REVIEWS
+Hold four quarterly performance reviews (Q1–Q4) with the Senior Pastor or authorized reviewer. Assess prayer consistency, breakfast quality, Sunday attendance, men's engagement, follow-up, leadership development, barriers, resource needs and corrective action plans.
+The ministry leader should report monthly results through the existing Ministry Reports feature, take responsibility for underperforming areas and develop other men who can lead.
+Quarterly reviews must result in specific next-quarter priorities, owners and follow-up actions, not merely a verbal update.
+
+07 · MINISTRY SCORECARD & EVIDENCE
+Prayer meetings held: target 12.
+Prayer participation: target +30% against a documented attendance baseline.
+Men's breakfasts held: target 6.
+Breakfast participation: target +25% against a documented baseline.
+Men's average Sunday worship attendance: target +20–30% against a documented verified baseline.
+Father's Day weekend: June 18–20, 2027; measure participation, invitations and guest follow-up.
+Quarterly reviews: target 4, including progress summaries and documented next steps.
+Track activity counts separately from attendance growth. A target is not an achieved result. Mark missing baselines or reports as "Not yet reported"; do not manufacture percentages.
+
+PASTORAL OVERSIGHT & APPROVAL
+The Senior Pastor sets and approves vision direction; the assigned leader acknowledges, implements, submits monthly accountability and proposes improvements. This internal document does not create public ChurchEvents, authorize spending, or approve the final Father's Day schedule.`
   },
   {
     ministryKey: "women",
