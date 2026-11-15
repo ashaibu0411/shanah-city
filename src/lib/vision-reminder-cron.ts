@@ -50,16 +50,20 @@ export async function processVisionReminders(now = new Date()) {
     take: 3000,
   });
   let claimed = 0;
-  // One consolidated monthly preview per leader per plan, not one alert for every responsibility.
-  if (dayOfMonth === 1) {
+  // One concise preview one week before the next month begins, plus a first-day reminder.
+  if (dayOfMonth === 25 || dayOfMonth === 1) {
     // Anchor the claim to the same monthly-direction milestone even if other tasks were completed.
+    const targetMonth = dayOfMonth === 25
+      ? new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 1)).toISOString().slice(0, 7)
+      : month;
     const anchors = await prisma.visionMilestone.findMany({
-      where: { kind: "monthly-direction", period: month, plan: { year: 2027, status: "approved" } },
+      where: { kind: "monthly-direction", period: targetMonth, plan: { year: 2027, status: "approved" } },
       select: { id: true, assigneeId: true, planId: true },
     });
     for (const task of anchors) {
-      if (await notifyOnce(task.id, task.assigneeId, "month-start:" + month,
-        "Your " + month + " ministry responsibilities are ready. Review your leadership checklist.", task.planId)) claimed++;
+      const key = (dayOfMonth === 25 ? "month-ahead:" : "month-start:") + targetMonth;
+      if (await notifyOnce(task.id, task.assigneeId, key,
+        "Review your " + targetMonth + " ministry responsibilities and plan your next steps.", task.planId)) claimed++;
     }
   }
   for (const task of milestones) {
