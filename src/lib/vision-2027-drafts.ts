@@ -127,19 +127,49 @@ The Senior Pastor sets and approves vision direction; the assigned leader acknow
   },
   {
     ministryKey: "women",
-    title: "Women's Ministry — Annual Flagship",
-    summary: "Proposed May flagship with ongoing prayer, connection, and growth.",
-    content: `PASTORAL DIRECTION
-Develop a strong women's ministry centered on worship, teaching, testimony, connection, leadership and family development.
+    title: "2027 Transformed Women Ministry Vision & Leadership Plan",
+    summary: "Raise spiritually mature, connected and actively involved women through monthly discipleship, prayer, fellowship, care, community invitations, leadership development and quarterly accountability.",
+    content: `2027 TRANSFORMED WOMEN — ANNUAL MINISTRY VISION
+INTERNAL WORKING DRAFT — NOT APPROVED FOR PUBLIC EVENTS
+Raise women who are growing in Christ, spiritually strong, established in their identity, connected to one another, responsible in service, and active contributors to Shanah City's Year of Expansion. Transformation must be visible in discipleship, committed Sunday participation, healthy relationships, leadership and community influence. This ministry is a year-round calling, not merely an annual event.
 
-PROPOSED FLAGSHIP — NOT APPROVED
-A May annual gathering tentatively called Women of Influence. Both name and timing require leadership approval. Working stretch attendance target: 100–150 based on resources.
+01 · SPIRITUAL GROWTH & DISCIPLESHIP — ANNUAL VISION
+Build a Christ-centered community of prayer, Bible teaching, authentic friendships, testimony, mentoring and practical Christian living. Encourage women of different ages and backgrounds to grow spiritually and take ownership of their faith and families. Develop emerging leaders who can lead prayer, teaching, hospitality, care and follow-up.
 
-ONGOING RHYTHM
-Monthly prayer and connection; quarterly focused gatherings; one annual flagship.
+02 · MONTHLY PRAYER & CONNECTION — RECURRING ACTIVITY
+Maintain at least one intentional women's prayer, discipleship or connection gathering in each month of 2027: 12 monthly touchpoints in total. Include worship, Scripture, intercession, mutual encouragement and follow-up. Make the gatherings accessible and plan meaningful opportunities for women to participate instead of relying only on the leader. Record gatherings held, actual attendance, newcomers and participation barriers each month.
+Accountability target: 12 monthly touchpoints, with participation trends reported against an agreed 2026 baseline where reliable counts exist. No attendance-growth percentage is imposed before pastoral approval.
 
-LEADER CONTRIBUTIONS REQUESTED
-Recommend a final name and event identity, programme structure, guest speakers, worship segments, fellowship experiences, invitations, partnership ideas, design/branding, volunteers and a cost estimate. Identify resources required and anticipated ministry outcomes.`
+03 · QUARTERLY FOCUSED FELLOWSHIP & DEVELOPMENT — RECURRING ACTIVITY
+Organize four substantial focused gatherings across 2027, approximately one per quarter. Possible areas: identity and purpose in Christ; prayer and emotional/spiritual resilience; family, relationships and healthy communication; leadership, entrepreneurship, service and personal growth. Keep biblical teaching and fellowship central. Present themes, dates, guest contributors, budgets and invitations for pastoral review before publishing anything.
+Accountability target: four quarterly gatherings, with participation, usefulness and follow-up documented.
+
+04 · SUNDAY WORSHIP PARTICIPATION & WOMEN'S ENGAGEMENT — YEAR-ROUND PRIORITY
+The Women's Ministry Leader must intentionally strengthen women's Sunday participation and connection to the church. Reach women who have been inconsistent, engage newer women, identify practical barriers, promote discipleship, and encourage sustained commitment to Sunday worship and service. Work with the pastoral team on appropriate follow-up and protection of private member information.
+Measure an agreed, verified monthly average of women's Sunday attendance where the church can support it. Record contact and invitation activity. Proposed growth goals require a documented baseline and Senior Pastor agreement; do not invent current attendance or treat RSVPs as attendance.
+
+05 · SISTERHOOD, CARE & COMMUNITY CONNECTION — YEAR-ROUND PRIORITY
+Strengthen meaningful fellowship and practical support through mentorship, prayer partnerships, thoughtful outreach, visits and care when members face hardship. Coordinate with Shanah Cares for community service without duplicating that ministry. Encourage invitations and follow-up for new women, and maintain confidentiality for sensitive pastoral needs.
+
+06 · TRANSFORMED WOMEN ANNUAL FLAGSHIP — PROPOSED EVENT
+Plan one high-quality annual Transformed Women gathering, tentatively in May 2027. Proposed event emphasis: spiritual transformation, identity, purpose and influence in Christ. Suggest a clear event theme, conference/retreat/fellowship format, teaching, worship, testimonies, intentional guest invitations, practical support, follow-up and appropriate budget.
+The earlier "Women of Influence" title and 100–150 attendance idea were only preliminary concepts, not commitments. Present final date, format, attendance capacity, guests, budget and venue for pastoral approval. The annual flagship supports, but never replaces, regular monthly ministry life.
+
+07 · LEADERSHIP ACCOUNTABILITY & QUARTERLY REVIEWS
+The Women's Ministry Leader is responsible for improving participation, strengthening follow-up, training other women, organizing recurring ministry experiences and reporting progress. Submit existing monthly ministry reports for leadership oversight. Complete four quarterly ministry reviews with the Senior Pastor or authorized reviewer, including results, challenges, support needs, women mentored and next-quarter action plans.
+The leader must show intentional actions when participation is poor rather than simply recording low turnout.
+
+08 · TRANSFORMED WOMEN MINISTRY SCORECARD & EVIDENCE
+Monthly prayer/discipleship/connection touchpoints: 12 across 2027.
+Quarterly focused gatherings: four.
+Annual Transformed Women flagship: one, with final date and program subject to approval.
+Quarterly ministry performance reviews: four.
+Engaged women, new participants, pastoral follow-up and developing women leaders: report monthly counts.
+Women's Sunday attendance trend: use verified attendance and an agreed historical baseline where available. Growth percentages remain "Not yet reported" until a baseline and approved target are recorded.
+Record attendance separately from meeting completion. Missing data must read "Not yet reported" rather than zero. Do not assume a successful event means genuine spiritual or churchwide growth.
+
+PASTORAL AUTHORITY & MINISTRY COLLABORATION
+The Senior Pastor approves the annual vision, changes and proposed flagship. The assigned ministry leader acknowledges, contributes an implementation proposal, asks questions, reports measurable progress, provides creative suggestions and requests support. After approval, the vision remains controlled, but ongoing discussions, responsibilities and progress reporting continue. This document does not publish public events or authorize spending.`
   },
   {
     ministryKey: "shift",
