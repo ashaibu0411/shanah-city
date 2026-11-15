@@ -15,6 +15,30 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
       title: "Review and act on " + period + " ministry priorities",
       description: "Review your approved vision, coordinate the month's priorities and record outcomes using existing ministry reports. This is a leadership checkpoint, not a published event.",
     });
+    if (ministryKey === "women") {
+      tasks.push({
+        kind: "women-monthly", period, dueOn: end,
+        title: "Transformed Women: monthly prayer and discipleship connection",
+        description: "Plan and facilitate an intentional gathering for prayer, Bible teaching, encouragement or fellowship; invite and follow up with women. Report verified participation through the existing monthly ministry report. This is an accountability deadline, not a confirmed event date.",
+      });
+      tasks.push({
+        kind: "women-sunday", period, dueOn: end,
+        title: "Transformed Women: strengthen Sunday worship engagement",
+        description: "Connect with inconsistent and new women, listen for participation barriers, coordinate appropriate follow-up and encourage Sunday commitment. Record verified Sunday attendance when available.",
+      });
+      if (month % 2 === 0) {
+        tasks.push({
+          kind: "women-bible-brunch", period, dueOn: end,
+          title: "Transformed Women: in-person Bible & Brunch",
+          description: "Plan the every-other-month Bible & Brunch experience with biblical teaching, community invitations and first-time guest follow-up. Confirm exact gathering dates in the existing Calendar; the end-of-month date is a reporting checkpoint only.",
+        });
+      }
+      tasks.push({
+        kind: "women-community-expansion", period, dueOn: end,
+        title: "Transformed Women: community outreach and connection",
+        description: "Invite women beyond Shanah City, follow up with first-time guests, encourage Bible & Brunch and Sunday participation, and report distinct new connections and emerging women leaders.",
+      });
+    }
     if (ministryKey === "men") {
       tasks.push({
         kind: "men-prayer", period, dueOn: end,
@@ -41,6 +65,20 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
       kind: "quarterly-review", period: "2027-Q" + quarter, dueOn: monthEnd(2027, month),
       title: "Q" + quarter + " ministry leadership performance review",
       description: "Review attendance, participation, actions, challenges and development needs with pastoral leadership. Document next-quarter priorities in the existing monthly report and Vision Center discussion.",
+    });
+  }
+  if (ministryKey === "women") {
+    tasks.push({
+      kind: "women-conference-proposal", period: "2027-conference-proposal", dueOn: "2027-02-28",
+      title: "Transformed Women: submit Mother's Day conference proposal",
+      description: "Present the May 7–9, 2027 conference schedule, proposed speakers, volunteers, community invitation strategy, budget and follow-up plan for pastoral approval. February 28 is a proposal deadline, not an event date.",
+    });
+  }
+  if (ministryKey === "women") {
+    tasks.push({
+      kind: "women-mothers-day-conference", period: "2027-mothers-day-conference", dueOn: "2027-05-07",
+      title: "Transformed Women Conference — Mother's Day Weekend",
+      description: "Conference weekend May 7–9, 2027. Confirm event sessions and budget with pastoral oversight, mobilize community invitations and create a post-conference guest follow-up plan. This is the established weekend, not a public calendar listing.",
     });
   }
   if (ministryKey === "men") {

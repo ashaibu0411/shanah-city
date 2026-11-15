@@ -655,56 +655,40 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
   ),
   ladies: template(
     "ladies",
-    "Women's Ministry Report",
+    "Transformed Women — 2027 Monthly Accountability",
     [
-      "Create safe spaces for women to grow in faith and friendship.",
-      "Follow up with women who miss two gatherings in a row.",
-      "Plan at least one fellowship or discipleship touchpoint each month.",
+      "Sustain 12 monthly prayer/disciple touchpoints and six in-person Bible & Brunch gatherings every other month.",
+      "Strengthen women's Sunday worship participation, personal follow-up, mentorship and service.",
+      "Prepare the Transformed Women Conference for Mother’s Day weekend, May 7–9, 2027, with meaningful outreach and guest follow-up.",
+      "Extend the ministry to women beyond Shanah City and track distinct new connections, mentoring and growth.",
+      "Submit monthly outcomes and complete four quarterly pastoral progress reviews.",
     ],
     [
-      {
-        id: "meetingsHeld",
-        label: "Women's gatherings held (Bible study, prayer, fellowship)",
-        type: "number",
-        required: true,
-        min: 0,
-      },
-      {
-        id: "membersEngaged",
-        label: "Women who participated this month",
-        type: "number",
-        required: true,
-        min: 0,
-      },
-      {
-        id: "gatheringFormat",
-        label: "Primary gathering format this month",
-        type: "select",
-        required: true,
-        options: [
-          "In-person Bible study",
-          "Prayer circle",
-          "Fellowship meal or outing",
-          "Hybrid or online",
-          "Mix of formats",
-        ],
-      },
-      {
-        id: "discipleshipHighlights",
-        label: "Stories of growth, prayer, or breakthrough among the women",
-        type: "textarea",
-        required: true,
-      },
-      {
-        id: "careMoments",
-        label: "Practical care given (meals, rides, childcare help, check-ins)",
-        type: "textarea",
-      },
-      {
-        id: "outreachPlans",
-        label: "Invites or outreach to new women next month",
-        type: "textarea",
-      },
+      { id: "meetingsHeld", label: "All women's gatherings held (Bible study, prayer, fellowship)", type: "number", required: true, min: 0 },
+      { id: "membersEngaged", label: "Women who participated this month", type: "number", required: true, min: 0 },
+      { id: "gatheringFormat", label: "Primary gathering format this month", type: "select", required: true,
+        options: ["In-person Bible study", "Prayer circle", "Fellowship meal or outing", "Hybrid or online", "Mix of formats"] },
+      { id: "monthlyTouchpointsHeld", label: "Monthly prayer, discipleship or connection touchpoints actually held", hint: "Do not count a meeting more than once across categories.", type: "number", min: 0 },
+      { id: "bibleBrunchHeld", label: "In-person Bible & Brunch meetings held this month", type: "number", min: 0 },
+      { id: "bibleBrunchAttendance", label: "Total Bible & Brunch attendance this month", type: "number", min: 0 },
+      { id: "bibleBrunchFirstTimeCommunity", label: "First-time community women who attended Bible & Brunch this month", hint: "Count people who are first-time guests to Bible & Brunch, not repeat visits.", type: "number", min: 0 },
+      { id: "annualFlagshipHeld", label: "Mother’s Day weekend Transformed Women Conference held this month", type: "select", options: ["No", "Yes — completed"] },
+      { id: "womensSundayAverage", label: "Average verified women's Sunday worship attendance this month", hint: "Use an actual verified Sunday headcount; do not substitute RSVPs.", type: "number", min: 0 },
+      { id: "womensSunday2026Baseline", label: "Agreed 2026 baseline of verified women's Sunday attendance (if available)", type: "number", min: 0 },
+      { id: "baselineEvidence", label: "Source and comparison period for the verified 2026 baseline", type: "textarea" },
+      { id: "newWomenConnected", label: "Distinct new women meaningfully connected with Transformed Women this month", hint: "Count each new woman only once across the year. Follow-up should confirm an actual connection, not just an RSVP.", type: "number", min: 0 },
+      { id: "communityInvitations", label: "Personal invitations extended to women outside Shanah City this month", type: "number", min: 0 },
+      { id: "communityFollowUps", label: "Follow-ups with first-time community women this month", type: "number", min: 0 },
+      { id: "womenFollowUpsCount", label: "Personal check-ins and follow-up conversations this month", type: "number", min: 0 },
+      { id: "womenMentoredCount", label: "Women intentionally mentored or developed for leadership this month", type: "number", min: 0 },
+      { id: "flagshipInvitations", label: "Annual flagship invitations made (where applicable)", type: "number", min: 0 },
+      { id: "flagshipGuests", label: "Annual flagship guests attending (where applicable)", type: "number", min: 0 },
+      { id: "discipleshipHighlights", label: "Spiritual growth, prayer and discipleship highlights", type: "textarea", required: true },
+      { id: "careMoments", label: "Practical care provided (without private pastoral details)", type: "textarea" },
+      { id: "outreachPlans", label: "Community connection and invitations planned next month", type: "textarea" },
+      { id: "womenSundayActions", label: "Actions to strengthen women's Sunday participation and address barriers", type: "textarea" },
+      { id: "quarterlyReviewCompleted", label: "Was a formal quarterly ministry review completed this month?", type: "select", options: ["Yes — completed", "No — not completed"] },
+      { id: "quarterlyActions", label: "Quarterly progress, challenges and next-quarter corrective actions", type: "textarea" },
     ],
     { shepherding: FELLOWSHIP_SHEPHERDING, closing: FELLOWSHIP_CLOSING },
   ),
@@ -1076,6 +1060,21 @@ export function validateReportResponses(
       if (question.max !== undefined && numeric > question.max) {
         missing.push(question.label);
       }
+    }
+  }
+
+  if (template.key === "ladies") {
+    if (responses.womensSunday2026Baseline !== undefined && responses.womensSunday2026Baseline !== "" && !String(responses.baselineEvidence ?? "").trim()) {
+      missing.push("Source and comparison period for the verified 2026 baseline");
+    }
+    if (Number(responses.bibleBrunchHeld ?? 0) > Number(responses.meetingsHeld ?? 0)) {
+      missing.push("Bible & Brunch meetings cannot exceed all gatherings held");
+    }
+    if (Number(responses.bibleBrunchFirstTimeCommunity ?? 0) > Number(responses.bibleBrunchAttendance ?? 0)) {
+      missing.push("First-time brunch guests cannot exceed brunch attendance");
+    }
+    if (Number(responses.monthlyTouchpointsHeld ?? 0) > Number(responses.meetingsHeld ?? 0)) {
+      missing.push("Monthly touchpoints cannot exceed all gatherings held");
     }
   }
 
