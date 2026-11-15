@@ -129,7 +129,7 @@ export function VisionMilestonePanel({ planId, owner, leaders }: {
 }
 
 export function VisionAccountabilityOverview() {
-  const [plans, setPlans] = useState<Array<{ id: string; title: string; status: string; assignments: Array<{userId:string;status:string;acknowledgedAt:string|null;submittedAt:string|null}>; milestones: Array<{status:string;dueOn:string}> }>>([]);
+  const [plans, setPlans] = useState<Array<{ id: string; title: string; status: string; assignments: Array<{userId:string;status:string;acknowledgedAt:string|null;submittedAt:string|null}>; milestones: Array<{status:string;dueOn:string}>; latestReport?: { month: string; status: string } | null; submittedReports?: number; reportIntegrated?: boolean }>>([]);
   const [error, setError] = useState("");
   useEffect(() => {
     fetch("/api/vision/milestones?overview=1", { cache: "no-store" })
@@ -150,6 +150,7 @@ export function VisionAccountabilityOverview() {
           <p className="text-base font-semibold capitalize text-slate-600">{plan.status.replaceAll("_"," ")} · {plan.assignments.length} assigned leaders</p>
           <p className="text-base text-slate-700">{plan.assignments.filter(a => a.acknowledgedAt).length} acknowledged · {plan.assignments.filter(a => a.submittedAt).length} proposals submitted</p>
           <p className="text-base font-bold text-slate-800">{done} tasks complete · {late} overdue · {plan.milestones.length} total</p>
+          {plan.reportIntegrated && <p className="text-sm font-semibold text-slate-700">Monthly ministry reports: {plan.submittedReports ?? 0} submitted/reviewed in 2027 · Latest: {plan.latestReport ? plan.latestReport.month + " (" + plan.latestReport.status + ")" : "Not yet reported"}</p>}
         </Link>;
       })}
     </div>
