@@ -15,6 +15,25 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
       title: "Review and act on " + period + " ministry priorities",
       description: "Review your approved vision, coordinate the month's priorities and record outcomes using existing ministry reports. This is a leadership checkpoint, not a published event.",
     });
+    if (ministryKey === "women") {
+      tasks.push({
+        kind: "women-monthly", period, dueOn: end,
+        title: "Transformed Women: monthly prayer and discipleship connection",
+        description: "Plan and facilitate an intentional gathering for prayer, Bible teaching, encouragement or fellowship; invite and follow up with women. Report verified participation through the existing monthly ministry report. This is an accountability deadline, not a confirmed event date.",
+      });
+      tasks.push({
+        kind: "women-sunday", period, dueOn: end,
+        title: "Transformed Women: strengthen Sunday worship engagement",
+        description: "Connect with inconsistent and new women, listen for participation barriers, coordinate appropriate follow-up and encourage Sunday commitment. Record verified Sunday attendance when available.",
+      });
+      if (month % 3 === 1) {
+        tasks.push({
+          kind: "women-quarterly-gathering", period, dueOn: end,
+          title: "Transformed Women: quarterly focused fellowship and development",
+          description: "Propose a focused teaching, fellowship or spiritual development gathering this quarter. Confirm event details through the existing Calendar after pastoral approval; report outcomes in monthly ministry reports.",
+        });
+      }
+    }
     if (ministryKey === "men") {
       tasks.push({
         kind: "men-prayer", period, dueOn: end,
@@ -41,6 +60,13 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
       kind: "quarterly-review", period: "2027-Q" + quarter, dueOn: monthEnd(2027, month),
       title: "Q" + quarter + " ministry leadership performance review",
       description: "Review attendance, participation, actions, challenges and development needs with pastoral leadership. Document next-quarter priorities in the existing monthly report and Vision Center discussion.",
+    });
+  }
+  if (ministryKey === "women") {
+    tasks.push({
+      kind: "women-annual-flagship", period: "2027-flagship-proposal", dueOn: "2027-02-28",
+      title: "Transformed Women: submit annual flagship proposal",
+      description: "Present the proposed May 2027 annual gathering theme, format, date options, speaker/team needs, outreach plan and budget for pastoral approval. This February deadline is for the proposal, not a confirmed event date.",
     });
   }
   if (ministryKey === "men") {
