@@ -1,0 +1,45 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { makeVisionMilestoneTemplates } from "../src/lib/vision-milestones";
+
+const men = makeVisionMilestoneTemplates("men");
+assert.equal(men.length, 47, "Men's annual checklist covers year-round goals");
+assert.equal(men.filter(t => t.kind === "men-prayer").length, 12);
+assert.equal(men.filter(t => t.kind === "men-breakfast").length, 6);
+assert.equal(men.filter(t => t.kind === "men-sunday").length, 12);
+assert.equal(men.filter(t => t.kind === "quarterly-review").length, 4);
+assert.equal(men.filter(t => t.kind === "men-fathers-day").length, 1);
+assert.equal(men.find(t => t.kind === "men-fathers-day")?.dueOn, "2027-06-18");
+assert.ok(men.every(t => /^2027-\d{2}-\d{2}$/.test(t.dueOn)), "Milestone dates must be valid YYYY-MM-DD");
+assert.ok(men.filter(t => t.kind === "men-breakfast").every(t => Number(t.period.slice(-2)) % 2 === 1));
+assert.equal(makeVisionMilestoneTemplates("worship").length, 16);
+assert.ok(men.every(t => !/published event/i.test(t.title)));
+
+const api = readFileSync("src/app/api/vision/plans/route.ts", "utf8");
+assert.match(api, /provisionVisionMilestones\(planId\)/);
+assert.doesNotMatch(api, /Discussion is closed for approved plans/);
+assert.doesNotMatch(api, /Pastors can continue reviewing implementation suggestions after approval[\s\S]{0,200}Approved plans are read-only/);
+assert.match(api, /An approved plan cannot be overwritten/);
+
+const tasks = readFileSync("src/app/api/vision/milestones/route.ts", "utf8");
+assert.match(tasks, /canReadVision/);
+assert.match(tasks, /if \(!isOwner\) return deny\(\)/);
+assert.match(tasks, /milestone\.assigneeId !== user\.id/);
+assert.match(tasks, /plan\.status !== "approved"/);
+
+const cron = readFileSync("src/app/api/cron/vision-reminders/route.ts", "utf8");
+assert.match(cron, /authorizeCronRequest/);
+const dispatch = readFileSync("src/lib/vision-reminder-cron.ts", "utf8");
+assert.match(dispatch, /"month-ahead:"/);
+assert.match(dispatch, /"month-start:"/);
+assert.match(dispatch, /"week-before"/);
+assert.match(dispatch, /"day-before"/);
+assert.match(dispatch, /"fathers-day-"/);
+assert.match(dispatch, /visionReminderDelivery\.create/);
+const config = JSON.parse(readFileSync("vercel.json", "utf8"));
+assert.ok(config.crons.some((entry: {path: string; schedule: string}) => entry.path === "/api/cron/vision-reminders" && entry.schedule === "0 15 * * *"));
+const ui = readFileSync("src/components/vision/VisionCenterHub.tsx", "utf8");
+assert.match(ui, /VisionAccountabilityOverview/);
+assert.match(ui, /VisionMyUpcoming/);
+assert.match(ui, /VisionMilestonePanel/);
+console.log("Vision Center leadership accountability and reminder checks passed.");
