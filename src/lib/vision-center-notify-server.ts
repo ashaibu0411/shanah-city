@@ -16,7 +16,7 @@ export async function notifyVisionLeader(userId: string, planId: string, kind: "
     await sendPushToUsers([userId], {
       title: "2027 Vision Center",
       body: messages[kind],
-      url: "/leadership/vision?plan=" + encodeURIComponent(planId),
+      url: "/leadership/vision/" + encodeURIComponent(planId),
     }, "announcements");
   } catch (error) {
     console.warn("[vision] push notification unavailable", error instanceof Error ? error.message : "unknown");
@@ -30,7 +30,7 @@ export async function notifyVisionPastor(planId: string, kind: "submitted" | "co
     await sendPushToUsers([roles.seniorPastorUserId], {
       title: "2027 Vision Center",
       body: kind === "submitted" ? "A leader submitted a ministry vision response." : "A leader posted a private vision comment.",
-      url: "/leadership/vision?plan=" + encodeURIComponent(planId),
+      url: "/leadership/vision/" + encodeURIComponent(planId),
     }, "announcements");
   } catch (error) {
     console.warn("[vision] pastoral notification unavailable", error instanceof Error ? error.message : "unknown");
