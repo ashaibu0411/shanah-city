@@ -26,13 +26,18 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
         title: "Transformed Women: strengthen Sunday worship engagement",
         description: "Connect with inconsistent and new women, listen for participation barriers, coordinate appropriate follow-up and encourage Sunday commitment. Record verified Sunday attendance when available.",
       });
-      if (month % 3 === 1) {
+      if (month % 2 === 1) {
         tasks.push({
-          kind: "women-quarterly-gathering", period, dueOn: end,
-          title: "Transformed Women: quarterly focused fellowship and development",
-          description: "Propose a focused teaching, fellowship or spiritual development gathering this quarter. Confirm event details through the existing Calendar after pastoral approval; report outcomes in monthly ministry reports.",
+          kind: "women-bible-brunch", period, dueOn: end,
+          title: "Transformed Women: in-person Bible & Brunch",
+          description: "Plan the every-other-month Bible & Brunch experience with biblical teaching, community invitations and first-time guest follow-up. Confirm exact gathering dates in the existing Calendar; the end-of-month date is a reporting checkpoint only.",
         });
       }
+      tasks.push({
+        kind: "women-community-expansion", period, dueOn: end,
+        title: "Transformed Women: community outreach and connection",
+        description: "Invite women beyond Shanah City, follow up with first-time guests, encourage Bible & Brunch and Sunday participation, and report distinct new connections and emerging women leaders.",
+      });
     }
     if (ministryKey === "men") {
       tasks.push({
@@ -64,9 +69,16 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
   }
   if (ministryKey === "women") {
     tasks.push({
-      kind: "women-annual-flagship", period: "2027-flagship-proposal", dueOn: "2027-02-28",
-      title: "Transformed Women: submit annual flagship proposal",
-      description: "Present the proposed May 2027 annual gathering theme, format, date options, speaker/team needs, outreach plan and budget for pastoral approval. This February deadline is for the proposal, not a confirmed event date.",
+      kind: "women-conference-proposal", period: "2027-conference-proposal", dueOn: "2027-02-28",
+      title: "Transformed Women: submit Mother's Day conference proposal",
+      description: "Present the May 7–9, 2027 conference schedule, proposed speakers, volunteers, community invitation strategy, budget and follow-up plan for pastoral approval. February 28 is a proposal deadline, not an event date.",
+    });
+  }
+  if (ministryKey === "women") {
+    tasks.push({
+      kind: "women-mothers-day-conference", period: "2027-mothers-day-conference", dueOn: "2027-05-07",
+      title: "Transformed Women Conference — Mother's Day Weekend",
+      description: "Conference weekend May 7–9, 2027. Confirm event sessions and budget with pastoral oversight, mobilize community invitations and create a post-conference guest follow-up plan. This is the established weekend, not a public calendar listing.",
     });
   }
   if (ministryKey === "men") {
