@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { VisionDocument } from "@/components/vision/VisionDocument";
+import { MenLegacyScorecard } from "@/components/vision/MenLegacyScorecard";
 import Link from "next/link";
 
 type Assignment = {
@@ -164,6 +165,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                 ) : <div className="w-full min-w-0 border-t border-slate-200 pt-8"><VisionDocument content={selected.content} /></div>}
                 <p className="border-t border-slate-100 pt-5 text-sm font-semibold text-slate-500">Version {selected.version} · Private leadership material</p>
               </section>
+              {selected.ministryKey === "men" && <MenLegacyScorecard />}
               {owner ? (
                 <section className={panel + " space-y-4"}>
                   <h3 className="text-2xl font-extrabold text-slate-950">Assigned leaders</h3>

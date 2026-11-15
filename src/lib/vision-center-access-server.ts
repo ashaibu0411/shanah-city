@@ -25,7 +25,7 @@ export const VISION_MINISTRIES = [
   { key: "churchwide", title: "2027 Master Vision" },
   { key: "worship", title: "Shanah Worship — Worship at the Well" },
   { key: "young-adults", title: "Young Adults — Remnant Experience" },
-  { key: "men", title: "Men of Legacy — Father's Day" },
+  { key: "men", title: "2027 Men of Legacy Ministry Vision & Leadership Plan" },
   { key: "women", title: "Women's Ministry — Annual Flagship" },
   { key: "shift", title: "SHIFT Conference" },
   { key: "hail-the-king", title: "Hail the King" },
