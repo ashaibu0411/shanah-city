@@ -1,0 +1,413 @@
+{
+  "base": "http://127.0.0.1:3010",
+  "at": "2026-11-15T05:28:49.018Z",
+  "migrationVerifiedSeparately": true,
+  "steps": {
+    "seniorPastorList": {
+      "status": 200,
+      "isOwner": true,
+      "planCount": 0
+    },
+    "initialize2027": {
+      "status": 200,
+      "json": {
+        "created": 9
+      }
+    },
+    "worshipPlanId": "cmwhe9n290002l8m4vbv2upv8",
+    "strangerBlockedPlan": {
+      "status": 403,
+      "error": "Not authorized."
+    },
+    "assignLeader": {
+      "status": 200,
+      "userId": "user-1792510533080",
+      "leaderKey": "counselor"
+    },
+    "leaderSeesAssigned": {
+      "status": 200,
+      "count": 1,
+      "ministries": [
+        "worship"
+      ]
+    },
+    "leaderBlockedOtherMinistry": {
+      "status": 403,
+      "error": "Not authorized."
+    },
+    "acknowledge": {
+      "status": 200,
+      "json": {
+        "assignment": {
+          "id": "cmwhe9ze5000il8m4io1gn89b",
+          "planId": "cmwhe9n290002l8m4vbv2upv8",
+          "userId": "user-1792510533080",
+          "status": "acknowledged",
+          "deadline": "2026-12-15T23:59:59.000Z",
+          "acknowledgedAt": "2026-11-15T05:29:18.838Z",
+          "capacity": null,
+          "proposal": null,
+          "supportNeeds": null,
+          "submittedAt": null,
+          "createdAt": "2026-11-15T05:29:10.253Z",
+          "updatedAt": "2026-11-15T05:29:18.840Z"
+        }
+      }
+    },
+    "commentWithHttpsLink": {
+      "status": 201,
+      "commentId": "cmwhea71s000ll8m4vx1cso0h"
+    },
+    "rejectInsecureReferenceUrl": {
+      "status": 400,
+      "error": "Use a valid HTTPS reference link."
+    },
+    "leaderSubmit": {
+      "save": {
+        "status": 200,
+        "json": {
+          "assignment": {
+            "id": "cmwhe9ze5000il8m4io1gn89b",
+            "planId": "cmwhe9n290002l8m4vbv2upv8",
+            "userId": "user-1792510533080",
+            "status": "in_review",
+            "deadline": "2026-12-15T23:59:59.000Z",
+            "acknowledgedAt": "2026-11-15T05:29:18.838Z",
+            "capacity": "with_support",
+            "proposal": "Staging QA worship proposal for 2027 review.",
+            "supportNeeds": "AV volunteer support",
+            "submittedAt": null,
+            "createdAt": "2026-11-15T05:29:10.253Z",
+            "updatedAt": "2026-11-15T05:29:27.580Z"
+          }
+        }
+      },
+      "submit": {
+        "status": 200,
+        "json": {
+          "assignment": {
+            "id": "cmwhe9ze5000il8m4io1gn89b",
+            "planId": "cmwhe9n290002l8m4vbv2upv8",
+            "userId": "user-1792510533080",
+            "status": "submitted",
+            "deadline": "2026-12-15T23:59:59.000Z",
+            "acknowledgedAt": "2026-11-15T05:29:18.838Z",
+            "capacity": "with_support",
+            "proposal": "Staging QA worship proposal for 2027 review.",
+            "supportNeeds": "AV volunteer support",
+            "submittedAt": "2026-11-15T05:29:28.519Z",
+            "createdAt": "2026-11-15T05:29:10.253Z",
+            "updatedAt": "2026-11-15T05:29:28.520Z"
+          }
+        }
+      }
+    },
+    "ideaDecision": {
+      "status": 200,
+      "json": {
+        "comment": {
+          "id": "cmwhea71s000ll8m4vx1cso0h",
+          "planId": "cmwhe9n290002l8m4vbv2upv8",
+          "authorId": "user-1792510533080",
+          "authorName": "test counselor",
+          "sectionKey": "branding",
+          "body": "Staging QA: Worship staging question",
+          "referenceUrl": "https://www.figma.com/file/staging-qa-placeholder",
+          "kind": "idea",
+          "decision": "accepted",
+          "decisionNote": "Staging acceptance",
+          "decidedById": "user-1792541244421",
+          "decidedAt": "2026-11-15T05:29:34.954Z",
+          "createdAt": "2026-11-15T05:29:20.176Z"
+        }
+      }
+    },
+    "auditCount": 6,
+    "approve": {
+      "status": 200,
+      "planStatus": "approved"
+    },
+    "mobileLayoutHints": {
+      "hasViewport": true,
+      "hasVisionCenterTitle": true,
+      "hasMaxWidthLayout": true
+    }
+  },
+  "regression": {
+    "groups": {
+      "status": 200,
+      "json": {
+        "groups": [
+          {
+            "id": "group-young-adults",
+            "name": "Young Adults Ministry",
+            "description": "Young adult fellowship and growth.",
+            "category": "youth",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.280Z",
+            "updatedAt": "2026-11-15T05:29:52.270Z",
+            "visibility": "public",
+            "memberIds": [],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 0,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          },
+          {
+            "id": "group-choir",
+            "name": "Shanah Worship (Choir)",
+            "description": "Worship team and choir — access the worship planner, setlists, and schedules.",
+            "category": "choir",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.274Z",
+            "updatedAt": "2026-11-15T05:29:52.170Z",
+            "visibility": "public",
+            "memberIds": [
+              "user-1792877771492",
+              "user-1792877765922",
+              "user-1792877769794"
+            ],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 3,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          },
+          {
+            "id": "group-kids",
+            "name": "Shanah Kids Ministry",
+            "description": "Children's ministry volunteers and helpers.",
+            "category": "youth",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.270Z",
+            "updatedAt": "2026-11-15T05:29:52.070Z",
+            "visibility": "public",
+            "memberIds": [],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 0,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          },
+          {
+            "id": "group-teens",
+            "name": "Teens",
+            "description": "Teen ministry and youth gatherings.",
+            "category": "youth",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.265Z",
+            "updatedAt": "2026-11-15T05:29:51.971Z",
+            "visibility": "public",
+            "memberIds": [],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 0,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          },
+          {
+            "id": "group-shanah-power-couples",
+            "name": "Shanah Power Couples",
+            "description": "Married couples growing together in faith, prayer, and unity — monthly gatherings and fellowship.",
+            "category": "ministry",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.261Z",
+            "updatedAt": "2026-11-15T05:29:51.871Z",
+            "visibility": "public",
+            "memberIds": [],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 0,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          },
+          {
+            "id": "group-men-legacy",
+            "name": "Men of Legacy",
+            "description": "Men's ministry and discipleship.",
+            "category": "ministry",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.256Z",
+            "updatedAt": "2026-11-15T05:29:51.769Z",
+            "visibility": "public",
+            "memberIds": [],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 0,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          },
+          {
+            "id": "group-shanah-ladies",
+            "name": "Shanah Ladies",
+            "description": "Women's ministry fellowship and events.",
+            "category": "ministry",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.251Z",
+            "updatedAt": "2026-11-15T05:29:51.671Z",
+            "visibility": "public",
+            "memberIds": [],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 0,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          },
+          {
+            "id": "group-prayer",
+            "name": "Prayer Ministry",
+            "description": "Intercessors and prayer team.",
+            "category": "ministry",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.245Z",
+            "updatedAt": "2026-11-15T05:29:51.569Z",
+            "visibility": "public",
+            "memberIds": [],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 0,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          },
+          {
+            "id": "group-ushering",
+            "name": "Ushering Ministry",
+            "description": "Ushers and greeters who welcome guests and serve during worship.",
+            "category": "ministry",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.234Z",
+            "updatedAt": "2026-11-15T05:29:51.369Z",
+            "visibility": "public",
+            "memberIds": [],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 0,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          },
+          {
+            "id": "group-frontliners",
+            "name": "FrontLiners",
+            "description": "Sunday service teams — ushers, greeters, and door volunteers.",
+            "category": "ministry",
+            "createdBy": "system",
+            "creatorName": "Shanah City",
+            "createdAt": "2026-10-16T04:55:23.227Z",
+            "updatedAt": "2026-11-15T05:29:51.270Z",
+            "visibility": "public",
+            "memberIds": [],
+            "adminIds": [],
+            "assistantAdminIds": [],
+            "requiresApproval": false,
+            "isSystem": true,
+            "signupVisible": true,
+            "memberCount": 0,
+            "isMember": false,
+            "isAdmin": false,
+            "isAssistantLeader": false,
+            "trainingPending": false
+          }
+        ],
+        "user": {
+          "id": "user-1792611024132",
+          "name": "Grace Test",
+          "email": "diasporaapp.app@gmail.com",
+          "phone": "",
+          "campusId": "colorado",
+          "role": "member",
+          "participationType": "member",
+          "notificationPrefs": {
+            "pushEnabled": true,
+            "devotions": true,
+            "messages": true,
+            "groupChat": true,
+            "announcements": true,
+            "worship": true,
+            "kids": true
+          },
+          "family": [],
+          "createdAt": "2026-10-21T19:30:24.132Z",
+          "updatedAt": "2026-10-21T19:30:24.132Z"
+        }
+      }
+    },
+    "commsCalendar": {
+      "status": 200,
+      "json": {
+        "items": [],
+        "weekStart": "2026-11-09T07:00:00.000Z"
+      }
+    },
+    "adminReports": {
+      "status": 404,
+      "json": {
+        "raw": "<!DOCTYPE html><!--l5HO9oqNZldhLHomN1oAQ--><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover, user-scalable=yes\"/><link rel=\"preload\" as=\"image\" href=\"/shanah-city-logo-light.png?boot=2\" fetchPriority=\"high\"/><link rel=\"preload\" as=\"image\" imageSrcSet=\"/_next/image?url=%2Fshanah-city-logo-light.png&a"
+      }
+    },
+    "visionApiStranger": {
+      "status": 200,
+      "json": {
+        "plans": [],
+        "isOwner": false,
+        "ministries": [],
+        "leaders": []
+      }
+    }
+  },
+  "pass": true
+}

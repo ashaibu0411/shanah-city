@@ -85,6 +85,7 @@
     "test:temperament:shepherding": "tsx scripts/temperament-shepherding-scoring.test.ts && node scripts/temperament-shepherding-security.test.mjs",
     "test:ask-shepherd": "tsx scripts/ask-shepherd-access.test.ts && node scripts/ask-shepherd-security.test.mjs && tsx scripts/ask-shepherd-ai-mock.test.ts && tsx scripts/ask-shepherd-team-context-privacy.test.ts && tsx scripts/ask-shepherd-safeguarding.test.ts && tsx scripts/ask-shepherd-markdown.test.ts",
     "test:vision:phase1": "tsx scripts/vision-center-phase1.test.ts",
+    "test:vision:staging": "node scripts/_staging-vision-center-phase1-acceptance.mjs",
     "test:story-music:free-license": "tsx scripts/story-music-free-license.test.ts",
     "story-music:discover": "node scripts/story-music-discover-sources.mjs",
     "test:story-music:hybrid": "tsx scripts/story-music-hybrid.test.ts",
