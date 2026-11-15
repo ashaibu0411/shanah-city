@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { sendPushToUsers } from "@/lib/push-server";
+import { provisionVisionMilestones } from "@/lib/vision-milestones";
 
 function denverDay(now: Date): string {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -37,6 +38,9 @@ async function notifyOnce(milestoneId: string, recipientId: string, key: string,
 
 export async function processVisionReminders(now = new Date()) {
   const today = denverDay(now);
+  // Backfill safely for plans approved before this feature was deployed.
+  const approved = await prisma.visionPlan.findMany({ where: { year: 2027, status: "approved" }, select: { id: true } });
+  for (const plan of approved) await provisionVisionMilestones(plan.id);
   const month = today.slice(0, 7);
   const dayOfMonth = Number(today.slice(8, 10));
   const milestones = await prisma.visionMilestone.findMany({
@@ -46,21 +50,16 @@ export async function processVisionReminders(now = new Date()) {
     take: 3000,
   });
   let claimed = 0;
-  const byLeaderPlan = new Map<string, typeof milestones>();
-  for (const task of milestones) {
-    const key = task.planId + ":" + task.assigneeId;
-    const group = byLeaderPlan.get(key) ?? [];
-    group.push(task);
-    byLeaderPlan.set(key, group);
-  }
   // One consolidated monthly preview per leader per plan, not one alert for every responsibility.
   if (dayOfMonth === 1) {
-    for (const tasks of byLeaderPlan.values()) {
-      const upcoming = tasks.filter(t => t.dueOn.startsWith(month));
-      if (!upcoming.length) continue;
-      if (await notifyOnce(upcoming[0].id, upcoming[0].assigneeId, "month-start:" + month,
-        "Your " + month + " ministry responsibilities are ready. Review your leadership checklist.",
-        upcoming[0].planId)) claimed++;
+    // Anchor the claim to the same monthly-direction milestone even if other tasks were completed.
+    const anchors = await prisma.visionMilestone.findMany({
+      where: { kind: "monthly-direction", period: month, plan: { year: 2027, status: "approved" } },
+      select: { id: true, assigneeId: true, planId: true },
+    });
+    for (const task of anchors) {
+      if (await notifyOnce(task.id, task.assigneeId, "month-start:" + month,
+        "Your " + month + " ministry responsibilities are ready. Review your leadership checklist.", task.planId)) claimed++;
     }
   }
   for (const task of milestones) {
