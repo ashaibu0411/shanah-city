@@ -2490,3 +2490,77 @@ model AskShepherdGuidanceSource {
 
   @@index([category])
 }
+
+ 
+// Private 2027 Vision Center. Plans are not public ChurchEvent records.
+model VisionPlan {
+  id           String   @id @default(cuid())
+  year         Int
+  ministryKey  String
+  title        String
+  summary      String
+  content      String
+  status       String   @default("draft")
+  version      Int      @default(1)
+  createdById  String
+  approvedById String?
+  approvedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  assignments  VisionAssignment[]
+  comments     VisionComment[]
+  audits       VisionAuditEvent[]
+
+  @@unique([year, ministryKey])
+  @@index([status, year])
+}
+
+model VisionAssignment {
+  id             String   @id @default(cuid())
+  planId         String
+  plan           VisionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userId         String
+  status         String   @default("assigned")
+  deadline       DateTime?
+  acknowledgedAt DateTime?
+  capacity       String?
+  proposal       String?
+  supportNeeds   String?
+  submittedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([planId, userId])
+  @@index([userId, status])
+}
+
+model VisionComment {
+  id         String   @id @default(cuid())
+  planId     String
+  plan       VisionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  authorId   String
+  authorName String
+  sectionKey String   @default("general")
+  body       String
+  referenceUrl String?
+  kind       String   @default("question")
+  decision   String   @default("pending")
+  decisionNote String?
+  decidedById  String?
+  decidedAt    DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([planId, createdAt])
+}
+
+model VisionAuditEvent {
+  id         String   @id @default(cuid())
+  planId     String
+  plan       VisionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  actorId    String
+  action     String
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@index([planId, createdAt])
+}

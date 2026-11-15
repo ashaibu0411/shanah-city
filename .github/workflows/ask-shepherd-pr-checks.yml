@@ -25,3 +25,5 @@ jobs:
         run: npm run test:app:nav
       - name: Temperament Hub regression
         run: npm run test:temperament:shepherding
+      - name: 2027 Vision Center Phase 1 regression
+        run: npm run test:vision:phase1
