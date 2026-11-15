@@ -70,16 +70,21 @@ export async function processVisionReminders(now = new Date()) {
     const days = dayDelta(today, task.dueOn);
     // Near-term reminders apply only to explicitly scheduled deadlines and quarterly reviews.
     // Monthly prayer and breakfast dates are NOT fixed by these month-end checkpoints.
-    if (!["custom", "quarterly-review", "men-fathers-day"].includes(task.kind)) continue;
+    if (!["custom", "quarterly-review", "men-fathers-day", "women-conference-proposal", "women-mothers-day-conference"].includes(task.kind)) continue;
     const keys: string[] = [];
     if (days === 7) keys.push("week-before");
     if (days === 1) keys.push("day-before");
     if (task.kind === "men-fathers-day") {
       if ([90, 60, 30].includes(days)) keys.push("fathers-day-" + days);
     }
+    if (task.kind === "women-mothers-day-conference") {
+      if ([90, 60, 30].includes(days)) keys.push("mothers-day-conference-" + days);
+    }
     for (const key of keys) {
       const body = key.startsWith("fathers-day")
         ? "Father's Day leadership planning checkpoint: " + days + " days remaining."
+        : key.startsWith("mothers-day-conference")
+        ? "Mother's Day conference preparation checkpoint: " + days + " days remaining."
         : days === 7 ? "You have an upcoming private ministry leadership deadline this week." : "A private ministry leadership deadline is due tomorrow.";
       if (await notifyOnce(task.id, task.assigneeId, key, body, task.planId)) claimed++;
     }
