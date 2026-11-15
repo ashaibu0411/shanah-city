@@ -37,8 +37,10 @@ export function TransformedWomenScorecard() {
     {data && <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <MetricCard label="Monthly prayer & connection touchpoints" metric={data.metrics.monthlyTouchpoints}/>
-        <MetricCard label="Quarterly development gatherings" metric={data.metrics.focusedGatherings}/>
-        <MetricCard label="Annual Transformed Women flagship" metric={data.metrics.annualFlagship}/>
+        <MetricCard label="Bible & Brunch in-person meetings" metric={data.metrics.bibleBrunch}/>
+        <MetricCard label="First-time Bible & Brunch guests" metric={data.metrics.firstTimeBrunchGuests}/>
+        <MetricCard label="Distinct new women connected" metric={data.metrics.newWomenConnected}/>
+        <MetricCard label="Mother’s Day Transformed Women Conference" metric={data.metrics.annualFlagship}/>
         <MetricCard label="Quarterly leadership reviews" metric={data.metrics.quarterlyReviews}/>
         <MetricCard label="Women engaged per month" metric={data.metrics.engagedWomen}/>
         <MetricCard label="Verified Sunday participation" metric={data.metrics.sundayAttendance}/>
@@ -50,14 +52,16 @@ export function TransformedWomenScorecard() {
       </p>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="min-w-0 space-y-3 rounded-2xl border border-slate-200 p-5">
-          <h3 className="text-xl font-extrabold text-slate-950">Sisterhood, Care & Leadership</h3>
+          <h3 className="text-xl font-extrabold text-slate-950">Expansion, Sisterhood & Leadership</h3>
           <p className="text-base text-slate-700">New women connected: <strong>{data.engagement.newcomers ?? "Not yet reported"}</strong></p>
           <p className="text-base text-slate-700">Follow-up conversations: <strong>{data.engagement.followUps ?? "Not yet reported"}</strong></p>
           <p className="text-base text-slate-700">Women mentored: <strong>{data.engagement.mentored ?? "Not yet reported"}</strong></p>
+          <p className="text-base text-slate-700">Community invitations: <strong>{data.engagement.communityInvitations ?? "Not yet reported"}</strong></p>
+          <p className="text-base text-slate-700">New community guest follow-ups: <strong>{data.engagement.communityFollowUps ?? "Not yet reported"}</strong></p>
         </div>
         <div className="min-w-0 space-y-3 rounded-2xl border border-slate-200 p-5">
-          <h3 className="text-xl font-extrabold text-slate-950">Annual Transformed Women Gathering</h3>
-          <p className="text-base text-slate-700">Tentative: May 2027. Final date, format, and budget require pastoral approval.</p>
+          <h3 className="text-xl font-extrabold text-slate-950">Transformed Women Conference</h3>
+          <p className="text-base text-slate-700">Mother’s Day weekend: May 7–9, 2027. Individual sessions, program, speakers and budget require pastoral approval.</p>
           <p className="text-base text-slate-700">Invitations: <strong>{data.engagement.flagshipInvites ?? "Not yet reported"}</strong></p>
           <p className="text-base text-slate-700">Guests attended: <strong>{data.engagement.flagshipGuests ?? "Not yet reported"}</strong></p>
         </div>
@@ -67,7 +71,7 @@ export function TransformedWomenScorecard() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{data.quarters.map(q => <article key={q.quarter} className="min-w-0 space-y-2 break-words rounded-2xl border border-slate-200 p-5">
           <h4 className="text-lg font-extrabold text-slate-950">Q{q.quarter} · 2027</h4>
           <p className="text-base text-slate-700">Reports: {q.reportedMonths}/3 · Reviewed: {q.reviewedReports}</p>
-          <p className="text-base text-slate-700">Monthly touchpoints: {q.touchpoints ?? "Not yet reported"} · Focused gatherings: {q.focusedGatherings ?? "Not yet reported"}</p>
+          <p className="text-base text-slate-700">Monthly touchpoints: {q.touchpoints ?? "Not yet reported"} · Bible & Brunch: {q.bibleBrunch ?? "Not yet reported"}</p>
           <p className="text-base font-semibold text-slate-700">Leadership review: {q.reviewed ? "Completed" : "Not yet confirmed"}</p>
           {q.actions && <p className="whitespace-pre-wrap break-words text-base leading-relaxed text-slate-700">{q.actions}</p>}
         </article>)}</div>
