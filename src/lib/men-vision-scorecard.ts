@@ -6,6 +6,7 @@ export type MenVisionScorecard = {
   metrics: { prayer: Metric; breakfast: Metric; sunday: Metric; prayerMeetings: Metric; breakfasts: Metric; quarterlyReviews: Metric };
   quarters: Quarter[];
   baselineEvidence: string | null;
+  engagement: { followUps: number | null; emergingLeaders: number | null; fathersDayInvitations: number | null; fathersDayGuests: number | null };
   reportedMonths: number;
   missingMonths: string[];
   asOf: string;
@@ -80,6 +81,7 @@ export function buildMenVisionScorecard(allReports: MinistryLeaderReport[]): Men
     },
     quarters,
     baselineEvidence: baselineSource ? String(baselineSource.responses.baselineEvidence) : null,
+    engagement: { followUps: sumOrNull(unique, "menFollowUpsCount"), emergingLeaders: sumOrNull(unique, "leadershipDevelopmentCount"), fathersDayInvitations: sumOrNull(unique, "fathersDayInvitations"), fathersDayGuests: sumOrNull(unique, "fathersDayGuests") },
     reportedMonths: unique.length,
     missingMonths: months.filter(month => !unique.some(r => r.reportMonth === month)),
     asOf: new Date().toISOString(),
