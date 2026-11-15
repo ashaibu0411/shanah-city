@@ -48,7 +48,7 @@ Summary: **`pass: true`**
 
 1. **Hosted staging browser pass** on PR preview (protection bypass or owner sign-in) once alias or `staging` branch tracks this feature.  
 2. **Push notifications** — not asserted in automation (staging is non-prod; notify calls are best-effort).  
-3. **Pastoral role slot** on staging temporarily pointed Senior Pastor at `admin` for QA; restore to real pastoral assignments before production pastoral QA if needed.
+3. **Pastoral role slot** on staging: `senior_pastor` → `ribonbishop@yahoo.com` (`user-1792126579919`) for Senior Pastor review; QA worship approval and assignments removed. Production pastoral roles unchanged.
 
 ## Release readiness
 
