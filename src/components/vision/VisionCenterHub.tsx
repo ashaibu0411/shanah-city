@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { VisionDocument } from "@/components/vision/VisionDocument";
+import { VisionAccountabilityOverview, VisionMilestonePanel, VisionMyUpcoming } from "@/components/vision/VisionMilestonePanel";
 import { MenLegacyScorecard } from "@/components/vision/MenLegacyScorecard";
 import Link from "next/link";
 
@@ -117,6 +118,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
       {notice && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">{notice}</p>}
       <div className="space-y-8">
+        {!planId && (owner ? <VisionAccountabilityOverview /> : <VisionMyUpcoming />)}
         {!planId && <section aria-label="Ministry vision directory" className={panel + " space-y-5"}>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Ministry visions</h2>
           <p className="text-base font-medium text-slate-600">{plans.length} accessible plans · Select a ministry to open its full page.</p>
@@ -166,6 +168,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                 <p className="border-t border-slate-100 pt-5 text-sm font-semibold text-slate-500">Version {selected.version} · Private leadership material</p>
               </section>
               {selected.ministryKey === "men" && <MenLegacyScorecard />}
+              {selected.status === "approved" && <VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} />}
               {owner ? (
                 <section className={panel + " space-y-4"}>
                   <h3 className="text-2xl font-extrabold text-slate-950">Assigned leaders</h3>
@@ -222,14 +225,14 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                   <p className="mt-3 whitespace-pre-wrap break-words text-[17px] leading-[1.8] text-slate-900">{c.body}</p>
                   {c.referenceUrl && <a href={c.referenceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 block break-all text-base font-bold text-blue-700 underline">Open creative reference</a>}
                   {c.kind === "idea" && <p className="mt-3 break-words text-base font-bold capitalize text-blue-800">Pastoral decision: {c.decision}{c.decisionNote ? " — " + c.decisionNote : ""}</p>}
-                  {owner && c.kind === "idea" && selected.status !== "approved" && <div className="mt-3 flex flex-wrap gap-2">
+                  {owner && c.kind === "idea" && <div className="mt-3 flex flex-wrap gap-2">
                     {(["accepted", "deferred", "declined"] as const).map(decision => (
                       <button key={decision} type="button" disabled={busy} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold capitalize"
                         onClick={() => void run("PATCH", { action: "decide-comment", planId: selected.id, commentId: c.id, decision, note: feedbackNote }, selected.id)}>{decision}</button>
                     ))}
                   </div>}
                 </article>)}
-                {selected.status !== "approved" && <form className="space-y-5 border-t border-slate-200 pt-7" onSubmit={e => { e.preventDefault(); void run("POST", { action: "comment", planId: selected.id, body: commentText, kind: commentKind, sectionKey, referenceUrl: designLink }, selected.id).then(() => { setCommentText(""); setDesignLink(""); }); }}>
+                <form className="space-y-5 border-t border-slate-200 pt-7" onSubmit={e => { e.preventDefault(); void run("POST", { action: "comment", planId: selected.id, body: commentText, kind: commentKind, sectionKey, referenceUrl: designLink }, selected.id).then(() => { setCommentText(""); setDesignLink(""); }); }}>
                   <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
                     <select className={field} value={commentKind} onChange={e => setCommentKind(e.target.value)}><option value="question">Question</option><option value="idea">Suggestion / creative idea</option></select>
                     <input className={field} value={sectionKey} onChange={e => setSectionKey(e.target.value)} maxLength={100} placeholder="Section name"/>
@@ -237,7 +240,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                   <textarea className={field} value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Ask a question or suggest a change..." required maxLength={3000}/>
                   <input type="url" className={field} value={designLink} onChange={e => setDesignLink(e.target.value)} placeholder="Optional HTTPS design link (Canva, Figma, mood board...)" maxLength={1000}/>
                   <button className={button} disabled={busy}>Post to vision discussion</button>
-                </form>}
+                </form>
               </section>
             </>
           )}
