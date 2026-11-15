@@ -5,6 +5,8 @@ import { notifyVisionLeader, notifyVisionPastor } from "@/lib/vision-center-noti
 import { getUserById } from "@/lib/auth-server";
 import { getGroups } from "@/lib/group-server";
 import { getVisionActor, canReadVision, safeVisionString, VISION_MINISTRIES } from "@/lib/vision-center-access-server";
+import { getPastoralRoleAssignments } from "@/lib/pastoral-roles-server";
+import { normalizeVisionReferenceUrl } from "@/lib/vision-center-reference-url";
 
 function deny(code = 403) { return NextResponse.json({ error: code === 401 ? "Sign in required." : "Not authorized." }, { status: code }); }
 function invalid(message: string) { return NextResponse.json({ error: message }, { status: 400 }); }
@@ -20,7 +22,11 @@ export async function GET(request: Request) {
     if (!(await canReadVision(planId, user.id, isOwner))) return deny();
     const plan = await prisma.visionPlan.findUnique({
       where: { id: planId },
-      include: { assignments: isOwner ? true : { where: { userId: user.id } }, comments: { orderBy: { createdAt: "asc" }, take: 250 } },
+      include: {
+        assignments: isOwner ? true : { where: { userId: user.id } },
+        comments: { orderBy: { createdAt: "asc" }, take: 250 },
+        audits: isOwner ? { orderBy: { createdAt: "desc" }, take: 120 } : false,
+      },
     });
     return plan ? NextResponse.json({ plan, isOwner }) : NextResponse.json({ error: "Not found." }, { status: 404 });
   }
@@ -31,7 +37,8 @@ export async function GET(request: Request) {
   });
   const leaders = isOwner ? await (async () => {
     const groups = await getGroups();
-    const ids = [...new Set(groups.flatMap(g => [...g.adminIds, ...(g.assistantAdminIds || [])]))];
+    const roles = await getPastoralRoleAssignments();
+    const ids = [...new Set([roles.seniorPastorUserId, ...groups.flatMap(g => [...g.adminIds, ...(g.assistantAdminIds || [])])].filter(Boolean) as string[])];
     const users = await Promise.all(ids.map(getUserById));
     return users.filter((u): u is NonNullable<typeof u> => Boolean(u))
       .map(u => ({ id: u.id, name: u.name }))
@@ -55,15 +62,9 @@ export async function POST(request: Request) {
     if (!text) return invalid("Enter a question or suggestion.");
     const kind = body.kind === "idea" || body.kind === "design" ? "idea" : "question";
     const sectionKey = safeVisionString(body.sectionKey, 100) || "general";
-    const rawUrl = safeVisionString(body.referenceUrl, 1000);
-    let referenceUrl: string | null = null;
-    if (rawUrl) {
-      try {
-        const parsed = new URL(rawUrl);
-        if (parsed.protocol !== "https:" || parsed.username || parsed.password) return invalid("Use a valid HTTPS reference link.");
-        referenceUrl = parsed.href;
-      } catch { return invalid("Use a valid HTTPS reference link."); }
-    }
+    const reference = normalizeVisionReferenceUrl(body.referenceUrl);
+    if (reference.error) return invalid(reference.error);
+    const referenceUrl = reference.url;
     const comment = await prisma.visionComment.create({ data: { planId, authorId: user.id, authorName: user.name, body: text, kind, sectionKey, referenceUrl } });
     await audit(planId, user.id, "comment", kind);
     if (isOwner) {

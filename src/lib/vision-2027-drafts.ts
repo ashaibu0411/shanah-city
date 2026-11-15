@@ -186,7 +186,9 @@ Identify partner opportunities, donation sources, volunteers, logistics, specifi
     ministryKey: "operations",
     title: "Operations & Creative",
     summary: "Cross-ministry event excellence, communications, volunteers and accountability.",
-    content: `PASTORAL DIRECTION
+    content: `INTERNAL WORKING DRAFT — not approved for public events or calendar publication.
+
+PASTORAL DIRECTION
 Bring excellent planning standards to every ministry while keeping costs sustainable and volunteer workloads realistic.
 
 SHARED FUNCTIONS

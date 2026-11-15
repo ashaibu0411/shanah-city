@@ -8,7 +8,8 @@ type Assignment = {
   proposal?: string | null; supportNeeds?: string | null; submittedAt?: string | null;
 };
 type Comment = { id: string; authorName: string; kind: string; sectionKey: string; body: string; referenceUrl?: string | null; decision: string; decisionNote?: string | null; createdAt: string };
-type Plan = { id: string; title: string; ministryKey: string; summary: string; content: string; status: string; version: number; assignments: Assignment[]; comments?: Comment[]; _count?: { comments: number } };
+type AuditEvent = { id: string; actorId: string; action: string; detail?: string | null; createdAt: string };
+type Plan = { id: string; title: string; ministryKey: string; summary: string; content: string; status: string; version: number; assignments: Assignment[]; comments?: Comment[]; audits?: AuditEvent[]; _count?: { comments: number } };
 type Ministry = { key: string; title: string };
 type Leader = { id: string; name: string };
 type Result = { error?: string; plan?: Plan; plans?: Plan[]; ministries?: Ministry[]; isOwner?: boolean; leaders?: Leader[] };
@@ -17,6 +18,24 @@ const field = "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 te
 const button = "rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50";
 const secondary = "rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800";
 const panel = "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm";
+
+function ApprovalHistoryPanel({ audits, leaders }: { audits: AuditEvent[]; leaders: Leader[] }) {
+  const labelFor = (actorId: string) => leaders.find(l => l.id === actorId)?.name ?? "Leadership";
+  return (
+    <div className="border-t pt-4">
+      <h4 className="text-sm font-semibold text-slate-800">Approval & review history</h4>
+      <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
+        {audits.map(entry => (
+          <li key={entry.id} className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+            <p className="font-semibold capitalize text-slate-900">{entry.action.replaceAll("_", " ")}</p>
+            <p className="mt-0.5 text-slate-500">{labelFor(entry.actorId)} · {new Date(entry.createdAt).toLocaleString()}</p>
+            {entry.detail ? <p className="mt-1 text-slate-600">{entry.detail}</p> : null}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 async function request(method: string, data: Record<string, unknown>): Promise<Result> {
   const response = await fetch("/api/vision/plans", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
@@ -172,6 +191,9 @@ export function VisionCenterHub({ owner }: { owner: boolean }) {
                       <button className={button} type="button" disabled={busy} onClick={() => void run("PATCH", { action: "approve", planId: selected.id, note: feedbackNote }, selected.id)}>Approve plan</button>
                     </div>}
                   </div>
+                  {(selected.audits?.length ?? 0) > 0 && (
+                    <ApprovalHistoryPanel audits={selected.audits ?? []} leaders={leaders} />
+                  )}
                 </section>
               ) : myAssignment && selected.status !== "approved" ? (
                 <section className={panel + " space-y-4"}>
