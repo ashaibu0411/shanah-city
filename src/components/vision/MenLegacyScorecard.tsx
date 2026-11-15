@@ -56,6 +56,19 @@ export function MenLegacyScorecard() {
             <Measurement title="Quarterly ministry reviews" metric={data.metrics.quarterlyReviews} />
           </div>
           <p className="text-sm font-medium leading-relaxed text-slate-600">{data.reportedMonths} of 12 monthly reports submitted. {data.baselineEvidence ? `Baseline source: ${data.baselineEvidence}` : "2026 attendance baselines have not yet been documented in an accepted monthly report."} Sunday's target is 20–30% growth.</p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="min-w-0 rounded-2xl border border-slate-200 p-5 sm:p-6">
+              <h3 className="text-xl font-extrabold text-slate-950">Father's Day Men's Celebration</h3>
+              <p className="mt-2 text-base font-bold text-blue-800">June 18–20, 2027</p>
+              <p className="mt-2 text-base leading-relaxed text-slate-700">Annual flagship. Final scheduling and public event publication require pastoral approval.</p>
+              <p className="mt-3 text-base font-semibold text-slate-700">Invitations: {data.engagement.fathersDayInvitations ?? "Not yet reported"} · Guests attending: {data.engagement.fathersDayGuests ?? "Not yet reported"}</p>
+            </div>
+            <div className="min-w-0 rounded-2xl border border-slate-200 p-5 sm:p-6">
+              <h3 className="text-xl font-extrabold text-slate-950">Men's Engagement & Leadership</h3>
+              <p className="mt-2 text-base leading-relaxed text-slate-700">Follow-up conversations: <strong>{data.engagement.followUps ?? "Not yet reported"}</strong></p>
+              <p className="mt-2 text-base leading-relaxed text-slate-700">Emerging leaders mentored: <strong>{data.engagement.emergingLeaders ?? "Not yet reported"}</strong></p>
+            </div>
+          </div>
           <div className="space-y-4">
             <h3 className="text-xl font-extrabold text-slate-950">Quarterly performance</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
