@@ -83,6 +83,7 @@ Propose the final event title, agenda, worship collaborators, discussion formats
     title: "2027 Men of Legacy Ministry Vision & Leadership Plan",
     summary: "Raise spiritually strong, committed and responsible men through monthly prayer, six breakfasts, stronger Sunday participation and quarterly accountability.",
     content: `2027 MEN OF LEGACY — ANNUAL MINISTRY VISION
+INTERNAL WORKING DRAFT — NOT APPROVED FOR PUBLIC EVENTS
 Raise spiritually strong, committed, responsible and actively involved men who contribute meaningfully to Shanah City's Year of Expansion. This is a year-round leadership mandate, not only a Father's Day program.
 
 01 · SPIRITUAL FORMATION & LEADERSHIP
