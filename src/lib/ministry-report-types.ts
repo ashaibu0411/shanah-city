@@ -1079,6 +1079,22 @@ export function validateReportResponses(
     }
   }
 
+  if (template.key === "men") {
+    const baselineKeys = ["prayer2026Baseline", "breakfast2026Baseline", "sunday2026Baseline"] as const;
+    const hasBaseline = baselineKeys.some(key => responses[key] !== undefined && responses[key] !== "");
+    if (hasBaseline && !String(responses.baselineEvidence ?? "").trim()) {
+      missing.push("Source and comparison period for baseline counts");
+    }
+    const hasPrayer = Number(responses.prayerMeetingsHeld) > 0;
+    const hasBreakfast = Number(responses.breakfastMeetingsHeld) > 0;
+    if (hasPrayer && !(Number(responses.prayerTotalAttendance) >= Number(responses.prayerMeetingsHeld))) {
+      missing.push("Prayer total attendance must cover all prayer gatherings");
+    }
+    if (hasBreakfast && !(Number(responses.breakfastTotalAttendance) >= Number(responses.breakfastMeetingsHeld))) {
+      missing.push("Breakfast total attendance must cover all breakfasts");
+    }
+  }
+
   if (missing.length > 0) {
     throw new Error(`Please complete required fields: ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? "…" : ""}`);
   }
