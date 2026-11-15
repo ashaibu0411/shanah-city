@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getVisionActor, canReadVision, safeVisionString } from "@/lib/vision-center-access-server";
+import { listMinistryReports } from "@/lib/ministry-report-server";
 
 function deny(code = 403) { return NextResponse.json({ error: code === 401 ? "Sign in required." : "Not authorized." }, { status: code }); }
 function validDay(day: string) {
@@ -22,7 +23,22 @@ export async function GET(request: Request) {
       assignments: { select: { userId: true, status: true, acknowledgedAt: true, submittedAt: true } },
       milestones: { select: { status: true, dueOn: true, assigneeId: true, kind: true } },
     } });
-    return NextResponse.json({ plans }, { headers: { "Cache-Control": "private, no-store" } });
+    const reports = await listMinistryReports({ since: "2027-01", until: "2027-12" });
+    const groupByMinistry: Record<string, string> = {
+      men: "group-men-legacy", worship: "group-choir", "young-adults": "group-young-adults",
+    };
+    const overviewPlans = plans.map(plan => {
+      const groupId = groupByMinistry[plan.ministryKey];
+      const relevant = groupId ? reports.filter(report => report.groupId === groupId) : [];
+      const latest = relevant.sort((a, b) => b.reportMonth.localeCompare(a.reportMonth))[0] ?? null;
+      return {
+        ...plan,
+        latestReport: latest ? { month: latest.reportMonth, status: latest.status } : null,
+        submittedReports: relevant.filter(report => report.status === "submitted" || report.status === "reviewed").length,
+        reportIntegrated: Boolean(groupId),
+      };
+    });
+    return NextResponse.json({ plans: overviewPlans }, { headers: { "Cache-Control": "private, no-store" } });
   }
 
   if (planId) {
