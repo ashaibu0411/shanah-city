@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  // Reduce peak memory used by webpack during Next.js 15 Vercel builds.
+  // Does not skip lint, TypeScript validation or affect runtime behavior.
+  experimental: {
+    webpackMemoryOptimizations: true,
+  },
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [
