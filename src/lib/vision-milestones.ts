@@ -57,18 +57,11 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
 export async function provisionVisionMilestones(planId: string) {
   const plan = await prisma.visionPlan.findUnique({ where: { id: planId }, include: { assignments: true } });
   if (!plan || plan.status !== "approved" || plan.year !== 2027) return 0;
-  let created = 0;
-  for (const assignment of plan.assignments) {
-    for (const template of makeVisionMilestoneTemplates(plan.ministryKey)) {
-      const task = await prisma.visionMilestone.upsert({
-        where: { planId_assigneeId_kind_period: {
-          planId, assigneeId: assignment.userId, kind: template.kind, period: template.period,
-        } },
-        create: { planId, assigneeId: assignment.userId, ...template },
-        update: {},
-      });
-      if (task.status === "pending") created++;
-    }
-  }
-  return created;
+  const templates = makeVisionMilestoneTemplates(plan.ministryKey);
+  const data = plan.assignments.flatMap(assignment => templates.map(template => ({
+    planId, assigneeId: assignment.userId, ...template,
+  })));
+  if (!data.length) return 0;
+  const created = await prisma.visionMilestone.createMany({ data, skipDuplicates: true });
+  return created.count;
 }
