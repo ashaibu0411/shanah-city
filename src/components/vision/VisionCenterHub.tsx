@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { VisionDocument } from "@/components/vision/VisionDocument";
 import { VisionAccountabilityOverview, VisionMilestonePanel, VisionMyUpcoming } from "@/components/vision/VisionMilestonePanel";
 import { MenLegacyScorecard } from "@/components/vision/MenLegacyScorecard";
+import { TransformedWomenScorecard } from "@/components/vision/TransformedWomenScorecard";
 import Link from "next/link";
 
 type Assignment = {
@@ -168,6 +169,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                 <p className="border-t border-slate-100 pt-5 text-sm font-semibold text-slate-500">Version {selected.version} · Private leadership material</p>
               </section>
               {selected.ministryKey === "men" && <MenLegacyScorecard />}
+              {selected.ministryKey === "women" && <TransformedWomenScorecard />}
               {selected.status === "approved" && <VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} />}
               {owner ? (
                 <section className={panel + " space-y-4"}>
