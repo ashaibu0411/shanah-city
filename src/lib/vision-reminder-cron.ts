@@ -68,8 +68,9 @@ export async function processVisionReminders(now = new Date()) {
   }
   for (const task of milestones) {
     const days = dayDelta(today, task.dueOn);
-    // Monthly checkpoints have the consolidated month preview; don't spam for them.
-    if (task.kind === "monthly-direction" || task.kind === "men-sunday") continue;
+    // Near-term reminders apply only to explicitly scheduled deadlines and quarterly reviews.
+    // Monthly prayer and breakfast dates are NOT fixed by these month-end checkpoints.
+    if (!["custom", "quarterly-review", "men-fathers-day"].includes(task.kind)) continue;
     const keys: string[] = [];
     if (days === 7) keys.push("week-before");
     if (days === 1) keys.push("day-before");
