@@ -1,18 +1,20 @@
 import type { MinistryLeaderReport } from "@/lib/ministry-report-types";
 
 type Metric = { actual: number | null; target: number | null; unit: string; reportedMonths: number };
-type Quarter = { quarter: number; reportedMonths: number; reviewedReports: number; touchpoints: number | null; focusedGatherings: number | null; reviewed: boolean; actions: string | null };
+type Quarter = { quarter: number; reportedMonths: number; reviewedReports: number; touchpoints: number | null; bibleBrunch: number | null; reviewed: boolean; actions: string | null };
 export type TransformedWomenScorecard = {
   metrics: {
     monthlyTouchpoints: Metric;
-    focusedGatherings: Metric;
+    bibleBrunch: Metric;
+    firstTimeBrunchGuests: Metric;
+    newWomenConnected: Metric;
     annualFlagship: Metric;
     quarterlyReviews: Metric;
     engagedWomen: Metric;
     sundayAttendance: Metric;
   };
   quarters: Quarter[];
-  engagement: { newcomers: number | null; followUps: number | null; mentored: number | null; flagshipInvites: number | null; flagshipGuests: number | null };
+  engagement: { newcomers: number | null; followUps: number | null; mentored: number | null; flagshipInvites: number | null; flagshipGuests: number | null; communityInvitations: number | null; communityFollowUps: number | null };
   baseline: number | null;
   baselineEvidence: string | null;
   sundayGrowthPercent: number | null;
@@ -61,7 +63,7 @@ export function buildTransformedWomenScorecard(allReports: MinistryLeaderReport[
       reportedMonths: qrows.length,
       reviewedReports: qrows.filter(row => row.status === "reviewed").length,
       touchpoints: sum(qrows, "monthlyTouchpointsHeld"),
-      focusedGatherings: sum(qrows, "quarterlyFocusedHeld"),
+      bibleBrunch: sum(qrows, "bibleBrunchHeld"),
       reviewed: Boolean(reviewed),
       actions: reviewed ? String(reviewed.responses.quarterlyActions) : null,
     };
@@ -72,7 +74,9 @@ export function buildTransformedWomenScorecard(allReports: MinistryLeaderReport[
   return {
     metrics: {
       monthlyTouchpoints: metric(sum(rows, "monthlyTouchpointsHeld"), 12, "touchpoints", "monthlyTouchpointsHeld"),
-      focusedGatherings: metric(sum(rows, "quarterlyFocusedHeld"), 4, "gatherings", "quarterlyFocusedHeld"),
+      bibleBrunch: metric(sum(rows, "bibleBrunchHeld"), 6, "in-person gatherings", "bibleBrunchHeld"),
+      firstTimeBrunchGuests: metric(sum(rows, "bibleBrunchFirstTimeCommunity"), 12, "first-time brunch participants", "bibleBrunchFirstTimeCommunity"),
+      newWomenConnected: metric(sum(rows, "newWomenConnected"), 12, "distinct new connections", "newWomenConnected"),
       annualFlagship: metric(rows.length ? rows.some(row => row.responses.annualFlagshipHeld === "Yes — completed") ? 1 : 0 : null, 1, "flagship", "annualFlagshipHeld"),
       quarterlyReviews: metric(rows.length ? quarters.filter(q => q.reviewed).length : null, 4, "reviews", "quarterlyReviewCompleted"),
       engagedWomen: metric(average(rows, "membersEngaged"), null, "average engaged women", "membersEngaged"),
@@ -85,6 +89,8 @@ export function buildTransformedWomenScorecard(allReports: MinistryLeaderReport[
       mentored: sum(rows, "womenMentoredCount"),
       flagshipInvites: sum(rows, "flagshipInvitations"),
       flagshipGuests: sum(rows, "flagshipGuests"),
+      communityInvitations: sum(rows, "communityInvitations"),
+      communityFollowUps: sum(rows, "communityFollowUps"),
     },
     baseline,
     baselineEvidence,
