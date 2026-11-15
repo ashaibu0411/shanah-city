@@ -20,6 +20,7 @@ for (const key of ["bibleBrunchHeld","bibleBrunchAttendance","bibleBrunchFirstTi
 }
 const tasks = makeVisionMilestoneTemplates("women");
 assert.equal(tasks.filter(t => t.kind === "women-bible-brunch").length, 6);
+assert.ok(tasks.filter(t => t.kind === "women-bible-brunch").every(t => Number(t.period.slice(-2)) % 2 === 0));
 assert.equal(tasks.filter(t => t.kind === "women-monthly").length, 12);
 assert.equal(tasks.filter(t => t.kind === "women-community-expansion").length, 12);
 assert.equal(tasks.filter(t => t.kind === "women-sunday").length, 12);
