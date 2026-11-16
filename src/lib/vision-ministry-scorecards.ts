@@ -48,6 +48,11 @@ export const VISION_SCORE_CONFIG: Record<MinistryKey, Configuration> = {
       { key: "children", label: "Average children served", target: null, type: "mean", field: "childrenServed", unit: "children" },
       { key: "families", label: "New families connected", target: null, type: "sum", field: "newFamilies", unit: "families" },
       { key: "trained", label: "Volunteers trained or mentored", target: null, type: "sum", field: "kidsVolunteersTrained", unit: "volunteers" },
+      { key: "vbs", label: "June Vacation Bible School completed", target: 1, type: "yes", field: "kidsVbsHeld", unit: "annual VBS" },
+      { key: "kidsSunday", label: "Kids Sunday Celebration completed", target: 1, type: "yes", field: "kidsSundayCelebrationHeld", unit: "Sunday finale" },
+      { key: "vbsAttendance", label: "Aggregate VBS session attendance", target: null, type: "sum", field: "kidsVbsAggregateAttendance", unit: "session attendances" },
+      { key: "vbsNewFamilies", label: "New families connected through VBS", target: null, type: "sum", field: "kidsVbsNewFamilies", unit: "families" },
+      { key: "vbsVolunteers", label: "VBS volunteers who served", target: null, type: "sum", field: "kidsVbsVolunteers", unit: "volunteers" },
     ],
   },
 };
