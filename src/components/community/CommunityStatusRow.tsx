@@ -176,6 +176,7 @@ export function CommunityStatusRow({
   );
 
   function openShareMenu() {
+    setError("");
     setShareMenuOpen(true);
   }
 
@@ -251,6 +252,7 @@ export function CommunityStatusRow({
     setMemberStoryAudioUrl(null);
     setMemberAudioRightsAck(false);
     setSoundtrackError("");
+    setError("");
   }
 
   function validateSoundtrackBeforeShare() {
@@ -264,10 +266,10 @@ export function CommunityStatusRow({
       if (musicClipDurationProbe === "loading") {
         return "Song length is still loading — wait a moment before sharing.";
       }
-      if (musicClipDurationProbe === "estimated") {
-        return "Still verifying song length on your device — wait for the track time to appear (not estimated) before sharing.";
+      if (musicClipDurationProbe === "estimated" && (musicClipStartSeconds > 0 || musicClipDurationSec !== 30)) {
+        return "This device cannot confirm the song length. For now, use a 30-second clip from the beginning, or select another track.";
       }
-      if (musicClipDurationProbe === "unavailable") {
+      if (musicClipDurationProbe === "unavailable" && !selectedMusicTrack.youtubeVideoId?.trim()) {
         return "Could not verify this song length for clip bounds — remove music or pick another track.";
       }
       if (musicTrackDurationSec != null && musicTrackDurationSec > 0) {
@@ -329,17 +331,22 @@ export function CommunityStatusRow({
   }
 
   function confirmComposeAndShare() {
+    if (uploading) return;
+    setError("");
     const soundtrackValidation = validateSoundtrackBeforeShare();
     if (soundtrackValidation) {
       setError(soundtrackValidation);
       return;
     }
 
+    // Snapshot before closeComposeDialog resets the selected soundtrack and group.
+    // Every async upload/post must use this immutable payload rather than cleared React state.
+    const attachment = storyPostPayload();
     if (composeMode === "media") {
       const files = pendingFiles;
       const caption = captionDraft.trim();
       closeComposeDialog();
-      void uploadStatuses(files, caption || undefined);
+      void uploadStatuses(files, caption || undefined, attachment);
       return;
     }
 
@@ -357,11 +364,12 @@ export function CommunityStatusRow({
       }
       const note = captionDraft.trim();
       closeComposeDialog();
-      void postLinkMoment({ linkUrl: rawLink, caption: note || undefined });
+      void postLinkMoment({ linkUrl: rawLink, caption: note || undefined }, attachment);
       return;
     }
 
-    const caption = captionDraft.trim();
+    const caption = captionDraft.trim() || (composeMode === "text" && selectedMusicTrack
+      ? `🎵 ${selectedMusicTrack.title}` : "");
     if (!caption) {
       setError(composeMode === "text" ? "Write something for your moment." : "Add a note for your invite.");
       return;
@@ -370,7 +378,7 @@ export function CommunityStatusRow({
     const storyKind: CommunityStatusStoryKind =
       composeMode === "service" ? "service_invite" : "default";
     closeComposeDialog();
-    void postWrittenMoment({ caption, storyKind });
+    void postWrittenMoment({ caption, storyKind }, attachment);
   }
 
   function openViewer(deckIndex: number, slideIndex = 0) {
@@ -378,7 +386,7 @@ export function CommunityStatusRow({
     setViewerOpen(true);
   }
 
-  async function postLinkMoment(input: { linkUrl: string; caption?: string }) {
+  async function postLinkMoment(input: { linkUrl: string; caption?: string }, attachment: Record<string, unknown>) {
     if (!user) return;
 
     setUploading(true);
@@ -390,11 +398,12 @@ export function CommunityStatusRow({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          storyPostPayload({
+          {
+            ...attachment,
             mediaType: "link",
             linkUrl: input.linkUrl,
             caption: input.caption,
-          }),
+          },
         ),
       });
       const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
@@ -413,7 +422,7 @@ export function CommunityStatusRow({
   async function postWrittenMoment(input: {
     caption: string;
     storyKind?: CommunityStatusStoryKind;
-  }) {
+  }, attachment: Record<string, unknown>) {
     if (!user) return;
 
     setUploading(true);
@@ -425,11 +434,12 @@ export function CommunityStatusRow({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          storyPostPayload({
+          {
+            ...attachment,
             mediaType: "text",
             caption: input.caption,
             storyKind: input.storyKind ?? "default",
-          }),
+          },
         ),
       });
       const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
@@ -463,7 +473,7 @@ export function CommunityStatusRow({
     setViewerOpen(true);
   }
 
-  async function uploadStatuses(fileList: File[], caption?: string) {
+  async function uploadStatuses(fileList: File[], caption?: string, attachment: Record<string, unknown> = {}) {
     if (!user || fileList.length === 0) return;
 
     const files = fileList.slice(0, COMMUNITY_STORY_MAX_MEDIA);
@@ -500,7 +510,7 @@ export function CommunityStatusRow({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(
-            storyPostPayload({ mediaUrl, mediaType, caption: statusCaption }),
+            { ...attachment, mediaUrl, mediaType, caption: statusCaption },
           ),
         });
         const data = await readJsonResponse<{ status?: CommunityStatus; error?: string }>(response);
@@ -579,10 +589,11 @@ export function CommunityStatusRow({
               aria-label="Close"
             />
             <div className="community-composer-dialog community-story-share-menu">
-              <div className="border-b border-night-900/10 px-4 py-3 dark:border-white/10">
+              <div className="relative border-b border-night-900/10 px-4 py-3 pr-16 dark:border-white/10">
                 <h2 className="text-center font-display text-[17px] font-bold text-night-900 dark:text-sand-100">
                   Share a moment
                 </h2>
+                <button type="button" onClick={closeShareMenu} aria-label="Close Share a moment" className="absolute right-3 top-2 flex min-h-11 min-w-11 items-center justify-center rounded-full border border-night-900/15 bg-white text-xl font-semibold text-night-900 hover:bg-sand-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600 dark:border-white/20 dark:bg-night-900 dark:text-sand-100">×</button>
                 <p className="mt-1 text-center text-xs text-night-600 dark:text-sand-300">
                   Visible to the whole church family · gone in 24 hours
                 </p>
@@ -668,6 +679,9 @@ export function CommunityStatusRow({
                     ))}
                   </div>
                 ) : null}
+                <div className="border-t border-night-900/10 px-4 py-3 dark:border-white/10">
+                  <button type="button" onClick={closeShareMenu} className="w-full rounded-xl border border-night-900/15 px-4 py-3 text-sm font-bold text-night-900 dark:border-white/15 dark:text-sand-100">Cancel · Back to Community</button>
+                </div>
               </div>
             </div>
           </div>,
@@ -802,6 +816,7 @@ export function CommunityStatusRow({
                     · visible on the community stories row
                   </p>
                 ) : null}
+                {error ? <p role="alert" className="mt-3 rounded-xl border border-rose-300 bg-rose-50 px-3 py-3 text-sm font-semibold leading-relaxed text-rose-800 dark:border-rose-700 dark:bg-rose-950/60 dark:text-rose-200">{error}</p> : null}
                 <div className="mt-4 flex gap-2">
                   <button
                     type="button"
@@ -813,7 +828,8 @@ export function CommunityStatusRow({
                   <button
                     type="button"
                     onClick={confirmComposeAndShare}
-                    className="flex-1 rounded-xl bg-clay-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-clay-700"
+                    disabled={uploading}
+                    className="flex-1 rounded-xl bg-clay-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-clay-700 disabled:cursor-wait disabled:opacity-60"
                   >
                     Share
                   </button>
