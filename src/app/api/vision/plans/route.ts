@@ -5,7 +5,7 @@ import { notifyVisionLeader, notifyVisionPastor } from "@/lib/vision-center-noti
 import { getUserById } from "@/lib/auth-server";
 import { getGroups } from "@/lib/group-server";
 import { getVisionActor, canReadVision, safeVisionString, VISION_MINISTRIES } from "@/lib/vision-center-access-server";
-import { getPastoralRoleAssignments } from "@/lib/pastoral-roles-server";
+import { getPastoralRoleAssignments, getPastoralReviewerUserIds } from "@/lib/pastoral-roles-server";
 import { normalizeVisionReferenceUrl } from "@/lib/vision-center-reference-url";
 import { provisionVisionMilestones } from "@/lib/vision-milestones";
 
@@ -39,13 +39,15 @@ export async function GET(request: Request) {
   const leaders = isOwner ? await (async () => {
     const groups = await getGroups();
     const roles = await getPastoralRoleAssignments();
-    const ids = [...new Set([roles.seniorPastorUserId, ...groups.flatMap(g => [...g.adminIds, ...(g.assistantAdminIds || [])])].filter(Boolean) as string[])];
+    const ids = [...new Set([roles.seniorPastorUserId, roles.associatePastorUserId, ...groups.flatMap(g => [...g.adminIds, ...(g.assistantAdminIds || [])])].filter(Boolean) as string[])];
     const users = await Promise.all(ids.map(getUserById));
     return users.filter((u): u is NonNullable<typeof u> => Boolean(u))
       .map(u => ({ id: u.id, name: u.name }))
       .sort((a, b) => a.name.localeCompare(b.name));
   })() : [];
-  return NextResponse.json({ plans, isOwner, ministries: isOwner ? VISION_MINISTRIES : [], leaders });
+  const pastoralIds = isOwner ? await getPastoralReviewerUserIds() : [];
+  const pastoralReviewers = leaders.filter(leader => pastoralIds.includes(leader.id) && leader.id !== user.id);
+  return NextResponse.json({ plans, isOwner, ministries: isOwner ? VISION_MINISTRIES : [], leaders, pastoralReviewers });
 }
 
 export async function POST(request: Request) {
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
     const currentPlan = await prisma.visionPlan.findUnique({ where: { id: planId }, select: { status: true } });
     if (!currentPlan) return invalid("Vision plan not found.");
     // Discussion remains open after approval; approved pastoral content stays immutable.
-    const text = safeVisionString(body.body, 3000);
+    const text = safeVisionString(body.body, 8000);
     if (!text) return invalid("Enter a question or suggestion.");
     const kind = body.kind === "idea" || body.kind === "design" ? "idea" : "question";
     const sectionKey = safeVisionString(body.sectionKey, 100) || "general";
@@ -104,6 +106,27 @@ export async function POST(request: Request) {
     if (!plan) return invalid("A plan for this ministry may already exist.");
     await audit(plan.id, user.id, "created");
     return NextResponse.json({ plan }, { status: 201 });
+  }
+  if (action === "assign-pastoral-team") {
+    const planId = safeVisionString(body.planId, 100);
+    const plan = await prisma.visionPlan.findUnique({ where: { id: planId } });
+    if (!plan || plan.ministryKey !== "churchwide" || plan.year !== 2027 || plan.status === "approved") {
+      return invalid("Pastoral sharing is available for the unapproved 2027 Master Vision only.");
+    }
+    const pastoralIds = (await getPastoralReviewerUserIds()).filter(id => id !== user.id);
+    let assignedCount = 0;
+    for (const reviewerId of [...new Set(pastoralIds)]) {
+      if (!(await getUserById(reviewerId))) continue;
+      const existing = await prisma.visionAssignment.findUnique({
+        where: { planId_userId: { planId, userId: reviewerId } }, select: { id: true },
+      });
+      if (existing) continue;
+      await prisma.visionAssignment.create({ data: { planId, userId: reviewerId } });
+      await audit(planId, user.id, "pastoral-review-invited", reviewerId);
+      await notifyVisionLeader(reviewerId, planId, "assigned");
+      assignedCount++;
+    }
+    return NextResponse.json({ assignedCount });
   }
   if (action === "assign") {
     const planId = safeVisionString(body.planId, 100);
