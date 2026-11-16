@@ -15,6 +15,7 @@ import { getGroups } from "@/lib/group-server";
 import { groupHasMinistryHub } from "@/lib/group-ministry-hub-types";
 import type { CommunityFeedFilter } from "@/lib/community-ui-utils";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 function parseFeedFilter(value?: string): CommunityFeedFilter | undefined {
   if (value === "prayer" || value === "praise" || value === "general" || value === "announcement") {
@@ -26,7 +27,7 @@ function parseFeedFilter(value?: string): CommunityFeedFilter | undefined {
 export default async function CommunityPage({
   searchParams,
 }: {
-  searchParams: Promise<{ group?: string; filter?: string }>;
+  searchParams: Promise<{ group?: string; filter?: string; story?: string }>;
 }) {
   const params = await searchParams;
   const groupId = params.group?.trim() || "";
@@ -35,6 +36,8 @@ export default async function CommunityPage({
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
+  // A WhatsApp recipient must sign in before following a private story link.
+  if (params.story && !user) redirect("/sign-in?next=" + encodeURIComponent("/community?story=" + encodeURIComponent(params.story)));
   const [posts, polls, isAdmin, groups] = await Promise.all([
     getCommunityPostsForViewer(user?.id),
     getPollsForViewer(user),
