@@ -11,6 +11,12 @@ assert.match(share, /https:\/\/wa\.me\/\?text=/, "WhatsApp chats/groups must use
 assert.match(share, /navigator\.clipboard\.writeText/, "Copy link fallback is required");
 assert.match(share, /navigator\.canShare/, "Status media share must detect native capability");
 assert.match(share, /navigator\.share/, "Status media must use platform share sheet");
+assert.match(share, /useEffect\(\(\) => \{[\s\S]*fetch\(resolveStoryMediaUrl\(slide\.mediaUrl\)\)/, "Media must be prepared as the share panel opens");
+assert.match(share, /if \(!eligibleMedia \|\| busy \|\| !preparedFile\) return/, "Share requires preloaded original media");
+const shareAction = share.slice(share.indexOf("async function nativeMediaShare()"), share.indexOf("\n  return (", share.indexOf("async function nativeMediaShare()")));
+assert.doesNotMatch(shareAction, /await fetch\(/, "No async media fetch before share gesture");
+assert.match(shareAction, /await navigator\.share\(\{ files: \[preparedFile\] \}\)/);
+
 assert.match(share, /mayExport\s*&&/, "Only owner may export original uploaded media");
 assert.match(share, /slide\.mediaType === "image" \|\| slide\.mediaType === "video"/);
 assert.doesNotMatch(share, /slide\.music\./, "Licensed music must never be included in external exports");
