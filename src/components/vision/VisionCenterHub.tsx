@@ -26,9 +26,9 @@ function GrowingVisionTextarea({ value, className = "", ...props }: TextareaHTML
     const element = ref.current;
     if (!element) return;
     element.style.height = "auto";
-    element.style.height = Math.max(260, element.scrollHeight + 2) + "px";
+    element.style.height = Math.max(360, element.scrollHeight + 2) + "px";
   }, [value]);
-  return <textarea {...props} ref={ref} value={value} rows={10} className={className + " resize-y overflow-hidden"} style={{ ...props.style, overflowY: "hidden", minHeight: "260px" }}/>;
+  return <textarea {...props} ref={ref} value={value} rows={10} className={className + " resize-y overflow-hidden"} style={{ ...props.style, overflowY: "hidden", minHeight: "360px" }}/>;
 }
 
 const field = "w-full min-w-0 rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base font-medium leading-relaxed text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100";
@@ -242,7 +242,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                 </section>
               ) : myAssignment && selected.status !== "approved" ? (
                 <section className={panel + " space-y-4"}>
-                  <h3 className="text-2xl font-extrabold text-slate-950">My response</h3>
+                  <h3 className="text-2xl font-extrabold text-slate-950">{selected.ministryKey === "churchwide" ? "Your pastoral assessment of this proposal" : "My response"}</h3>
                   <p className="text-base font-bold capitalize text-slate-700">{myAssignment.status.replaceAll("_", " ")}</p>
                   {!myAssignment.acknowledgedAt && <button type="button" className={secondary} disabled={busy} onClick={() => void run("PATCH", { action: "acknowledge", planId: selected.id }, selected.id)}>I have read the vision</button>}
                   <label className="block text-base font-bold text-slate-900">Delivery capacity<select className={field + " mt-2"} value={capacity} onChange={e => setCapacity(e.target.value)}><option value="full">Can deliver</option><option value="with_support">Can deliver with support</option><option value="revised">Recommend revised approach</option></select></label>
