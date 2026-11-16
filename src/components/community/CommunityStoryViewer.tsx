@@ -810,7 +810,7 @@ export function CommunityStoryViewer({
           <p className="truncate text-sm font-semibold text-white">{deck.authorName}</p>
           <p className="text-xs text-white/70">{formatCommunityTimeAgo(slide.createdAt)}</p>
         </div>
-        {slide.mediaType !== "live" && !slide.groupId ? (
+        {slide.mediaType !== "live" && !slide.groupId && !deck.groupId ? (
           <button
             type="button"
             onClick={() => setShareOpen(current => !current)}
@@ -887,7 +887,7 @@ export function CommunityStoryViewer({
         </button>
       </div>
 
-      {shareOpen && slide.mediaType !== "live" && !slide.groupId && (
+      {shareOpen && slide.mediaType !== "live" && !slide.groupId && !deck.groupId && (
         <CommunityStoryExternalShare
           key={slide.id}
           slide={slide}
