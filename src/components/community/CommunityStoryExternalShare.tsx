@@ -5,7 +5,7 @@ import type { CommunityStatus } from "@/lib/member-types";
 import { resolveStoryMediaUrl } from "@/lib/community-story-utils";
 
 function storyUrl(id: string) {
-  return new URL("/community?story=" + encodeURIComponent(id), window.location.origin).toString();
+  return "https://shanah-city.vercel.app/community?story=" + encodeURIComponent(id);
 }
 
 /**

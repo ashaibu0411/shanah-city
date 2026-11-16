@@ -1,0 +1,18 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appID": "S4MRT53FN9.org.shanahcity.app",
+        "components": [
+          {
+            "/": "/community",
+            "?": {
+              "story": "*"
+            },
+            "comment": "Only direct active story links"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -19,6 +19,7 @@ import { AppMain } from "@/components/app/AppMain";
 import { AppRefreshBridge } from "@/components/app/AppRefreshBridge";
 import { AppNotificationBadgeSync } from "@/components/app/AppNotificationBadgeSync";
 import { NativeAppBoot } from "@/components/app/NativeAppBoot";
+import { NativeStoryLinkHandler } from "@/components/app/NativeStoryLinkHandler";
 import { DevotionMiniPlayer } from "@/components/devotions/DevotionMiniPlayer";
 import { ShanahMediaFullPlayer } from "@/components/media/ShanahMediaFullPlayer";
 import { ShanahMediaMiniPlayer } from "@/components/media/ShanahMediaMiniPlayer";
@@ -50,6 +51,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <BackgroundPlaybackProvider>
 
           <NativeAppBoot />
+          <NativeStoryLinkHandler />
           <PremiumV4CinematicChrome />
           <AppRefreshBridge />
           <AppNotificationBadgeSync />
