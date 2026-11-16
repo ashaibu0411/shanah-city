@@ -17,9 +17,18 @@ assert.match(edgeCss, /ph4-event-row__body/);
 
 const globals = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
 assert.match(globals, /premium-home-v3-edge\.css/);
+assert.match(globals, /premium-home-v3-mobile-spacing-v3\.css/);
 assert.ok(
   globals.indexOf("premium-home-v3-balance.css") < globals.indexOf("premium-home-v3-edge.css"),
   "edge layout CSS must load after balance CSS",
 );
+assert.ok(
+  globals.indexOf("premium-home-v3-edge.css") < globals.indexOf("premium-home-v3-mobile-spacing-v3.css"),
+  "spacing V3 CSS must load after edge CSS",
+);
+
+const spacingCss = readFileSync(path.join(process.cwd(), "src/app/premium-home-v3-mobile-spacing-v3.css"), "utf8");
+assert.match(spacingCss, /--home-v3-gutter:\s*16px/);
+assert.match(spacingCss, /premium-home-v3\.premium-home-v4 > \.ph4-hero/);
 
 console.log("premium-home-v3-edge-layout.test.ts OK");

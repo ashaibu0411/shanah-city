@@ -68,11 +68,11 @@ test.describe("Premium Home V3 edge-to-edge geometry", () => {
       console.info(`EDGE_LAYOUT_${vp.tag}`, JSON.stringify(m));
 
       expect(m.scrollWidth).toBeLessThanOrEqual(m.clientWidth + 1);
-      expect(m.gutters?.left ?? 99).toBeGreaterThanOrEqual(8);
-      expect(m.gutters?.left ?? 0).toBeLessThanOrEqual(14);
-      expect(m.gutters?.right ?? 99).toBeGreaterThanOrEqual(8);
-      expect(m.gutters?.right ?? 0).toBeLessThanOrEqual(14);
-      expect(m.contentWidth).toBeGreaterThanOrEqual(vp.width - 28);
+      expect(m.gutters?.left ?? 99).toBeGreaterThanOrEqual(14);
+      expect(m.gutters?.left ?? 0).toBeLessThanOrEqual(18);
+      expect(m.gutters?.right ?? 99).toBeGreaterThanOrEqual(14);
+      expect(m.gutters?.right ?? 0).toBeLessThanOrEqual(18);
+      expect(m.contentWidth).toBeGreaterThanOrEqual(vp.width - 36);
       expect(m.hero?.width ?? 0).toBe(vp.width - (m.gutters?.left ?? 0) - (m.gutters?.right ?? 0));
       expect(m.hero?.height ?? 0).toBeGreaterThan(vp.height * 0.14);
       expect(m.sermonThumb?.width ?? 0).toBeGreaterThanOrEqual(m.sermonPanelWidth * 0.92);
