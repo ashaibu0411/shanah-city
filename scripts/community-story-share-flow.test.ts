@@ -19,6 +19,9 @@ assert.match(component, /\{\s*\.\.\.attachment,\s*mediaType: "link"/);
 assert.match(component, /musicTrackId: selectedMusicTrack\.id/);
 assert.match(component, /musicClipStartSeconds,/);
 assert.match(component, /musicClipDurationSec,/);
+assert.match(component, /musicClipDurationProbe === "loading" \|\| musicClipDurationProbe === "estimated"/);
+assert.match(component, /musicClipStartSeconds > 0 \|\| musicClipDurationSec !== 30/);
+assert.match(component, /storyMusicClipPublishable\(/);
 
 // A selected music track can be posted as a text moment without a manually written caption.
 assert.match(component, /composeMode === "text" && selectedMusicTrack/);
