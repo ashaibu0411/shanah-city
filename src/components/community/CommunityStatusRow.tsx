@@ -263,11 +263,16 @@ export function CommunityStatusRow({
       return "Choose either YouTube gospel music or your own recording.";
     }
     if (selectedMusicTrack) {
-      if (musicClipDurationProbe === "loading" && !selectedMusicTrack.youtubeVideoId?.trim()) {
-        return "Song length is still loading — wait a moment before sharing.";
-      }
-      if (musicClipDurationProbe === "estimated" && (musicClipStartSeconds > 0 || musicClipDurationSec !== 30)) {
-        return "This device cannot confirm the song length. For now, use a 30-second clip from the beginning, or select another track.";
+      // iPhone Safari can remain in "loading" without reporting audio.duration.
+      // A conservative opening 30-second clip can still be submitted; the server
+      // verifies track authorization, and native playback ends if the song is shorter.
+      // Keep explicit clip-bound checks when the real duration is known.
+      if (
+        (musicClipDurationProbe === "loading" || musicClipDurationProbe === "estimated") &&
+        !selectedMusicTrack.youtubeVideoId?.trim() &&
+        (musicClipStartSeconds > 0 || musicClipDurationSec !== 30)
+      ) {
+        return "This device hasn't confirmed the song length. Try a 30-second clip starting at 0:00, or wait for the duration to load.";
       }
       if (musicClipDurationProbe === "unavailable" && !selectedMusicTrack.youtubeVideoId?.trim()) {
         return "Could not verify this song length for clip bounds — remove music or pick another track.";
