@@ -5,44 +5,117 @@
 export const VISION_2027_DRAFTS = [
   {
     ministryKey: "churchwide",
-    title: "2027 Master Vision",
-    summary: "Expansion Through Establishment, Excellence, and Community Impact (proposed emphasis).",
-    content: `2027 OVERARCHING THEME: EXPANSION
+    title: "2027 Master Vision — Pastoral Review Proposal",
+    summary: "From the Senior Pastor: what I am believing God for in our Year of Expansion, proposed priorities and 2027 calendar, and an invitation to every pastor to assess, correct, strengthen and help shape a realistic shared direction.",
+    content: `2027 MASTER VISION — A PROPOSAL TO MY PASTORAL TEAM
 
-PROPOSED VISION
-Establish Shanah City as a spiritually vibrant, culturally diverse, community-centered church where lives are transformed, leaders are developed, families are strengthened, and every generation encounters God through excellence in ministry.
+OUR YEAR OF EXPANSION — A SHARED SEASON OF PRAYER, WISDOM AND RESPONSIBILITY
+Dear Pastors,
 
-STRATEGIC PRIORITIES
-1. Spiritual encounters: Sunday worship, Glory Encounter, Worship at the Well and SHIFT.
-2. Membership growth and discipleship: guest follow-up, belonging, foundation classes, serving and retention.
-3. Ministry development: Young Adults, Shanah Worship, Men of Legacy, Women, Kids/Teens and leadership pipeline.
-4. Community impact: Shanah Cares outreach initiatives.
-5. Financial and facility expansion: sustainable budgets, stewardship and readiness for a permanent home.
+I am putting before you what I believe God is calling Shanah City to pursue in 2027. Our theme remains EXPANSION because we have not yet seen the fullness of the growth, permanent church home, financial strength and community reach that we have been praying and working toward. I do not want us to change the vision simply because a calendar year changes. I want us to establish the spiritual, relational and practical foundation to carry the expansion when it comes.
 
-2027 PROPOSED CALENDAR
-January: Vision Sunday, leadership summit and ministry launch.
-Dream Team: three in-person discipleship trainings across 2027, with specific dates and learning objectives submitted for pastoral approval.
-February: Worship at the Well Q1, optional marriage experience.
-March: Young Adults flagship; Community Compassion Day.
-April: Easter celebration and community connections.
-May: Women's flagship; Worship at the Well Q2.
-June: Men of Legacy Father's Day weekend; Shanah Kids Vacation Bible School during school break, culminating in a Kids Sunday Celebration at the end of VBS week (exact dates subject to school calendars and pastoral approval).
-July: Community Family Fun Day.
-August: Worship at the Well Q3; Back-to-School Blessing; Dream Team discipleship development.
-September: International Friends & Family Sunday.
-October: SHIFT Conference.
-November: Worship at the Well Q4.
-December: Hail the King; Christmas of Hope.
+This document is my proposal for our pastoral team to review and improve together. It is NOT a final event schedule, a demand that every idea be funded, or a promise that every attendance figure will be reached. I am asking you to read carefully, pray, be candid and help me turn a vision into a wise, measurable and achievable church plan. You may agree, challenge assumptions, recommend different dates, remove an activity, add a missing opportunity or suggest a better way of accomplishing the objective. I welcome your voice.
 
-2027 DREAM TEAM DISCIPLESHIP — THREE IN-PERSON TRAININGS
-Hold three substantial in-person discipleship trainings for Dream Team/FrontLiners during 2027, in addition to ordinary meetings or brief service huddles. Spread sessions through the year, with exact dates, facilitators, budgets and location approved by pastoral leadership. Themes for refinement: (1) Christlike character, service and being a light; (2) prayer, faithfulness, excellence, unity and responsibility; (3) disciple-making, leadership multiplication, hospitality and caring for new people. Each session should include Scripture, ministry-specific practical application, group discussion and a measurable next action. Record attendance, first-time trainees, completion, follow-up and observable improvement in serving. No sessions or attendance results should be presumed before delivery.
+01 · THE CHURCH I AM BELIEVING GOD WE CAN BECOME
+My heart is to see Shanah City become a spiritually vibrant, prayerful and welcoming church where the presence of God is central, believers are discipled, families are strengthened and people grow into their calling. I want more than large gatherings; I want lasting transformation and consistent Christian lives. Our vision remains changing lives to higher levels in God (2 Corinthians 3:18).
 
-PROPOSED WORKING TARGETS — NOT APPROVED
-Average Sunday attendance 150–175 by year-end; 40–60 meaningfully connected new members; 35–45 active trained volunteers; four principal community initiatives; four leadership development sessions.
-Total preliminary annual program envelope: $13,000–$26,500 (illustrative, subject to finance review).
+I am believing for genuine growth in Sunday attendance and membership, a strong and committed Dream Team, flourishing Men of Legacy, Transformed Women, Young Adults, Shanah Worship and Shanah Kids, measurable community impact, healthier finances and a clear pathway toward our own church building. The building matters, but our people and the presence of God matter first. I also want our pastors to carry the vision together, with defined ownership rather than everything depending on one person.
 
-LEADERSHIP REVIEW
-Evaluate capacity, timing, funding, volunteers, discipleship outcomes, neighborhood relationships, guest retention and permanent facility priorities. Nothing here authorizes public event publication.`
+02 · FIVE PRIORITIES FOR OUR YEAR OF EXPANSION
+Priority 1 — Spiritual life and discipleship: Strengthen Sunday worship, Glory Encounter, prayer, biblical teaching, foundation classes, worship encounters and our culture of personal spiritual maturity. We must move people from attending meetings to belonging, growing, praying and serving.
+
+Priority 2 — Membership growth and retention: Welcome guests intentionally; follow up respectfully; connect newcomers to foundations, small groups, pastoral care and opportunities to serve. Give serious attention to people who drift away. Measure actual Sunday participation, new meaningful connections and retention, not only event registrations.
+
+Priority 3 — Strong ministries and new leaders: Give every ministry a 2027 plan, responsible leader, measurable responsibilities and quarterly pastoral reviews. Our Men, Women, Young Adults, Worship, Kids/Teens and Dream Team must become more effective and more welcoming. Raise and mentor emerging leaders instead of overworking the same few people.
+
+Priority 4 — Reaching our community: Become known in Aurora and surrounding neighborhoods as a church that cares. Through Shanah Cares, partnerships, family-focused events, invitations and follow-up, build genuine relationships beyond our existing membership. Community outreach must have owners, capacity, realistic budgets and outcomes.
+
+Priority 5 — Financial and facility expansion: Improve stewardship, consistent generosity, transparent financial reporting, budget discipline and readiness for a permanent church home. Keep the building vision alive without making every meeting a financial appeal or placing undue pressure on members. We need faith with practical planning, reliable information and sustainable decisions.
+
+03 · PROPOSED 2027 GROWTH MEASURES — FOR DISCUSSION, NOT APPROVAL YET
+I would like us to examine whether average Sunday attendance of approximately 150–175 by the end of 2027 is achievable, and whether we can meaningfully connect 40–60 new members during the year. These were preliminary working ranges, not figures we should announce as promises. We need verified current attendance, membership and follow-up baselines before finalizing any percentage or numerical target.
+
+Our preliminary working ideas also include 35–45 active trained volunteers, four principal community initiatives and three in-person Dream Team discipleship trainings, alongside ministry-specific activities. The earlier four leadership-development-session concept should not be confused with the now established three Dream Team discipleship gatherings; any additional leadership training should be separately scoped.
+
+A previous illustrative program-cost envelope of $13,000–$26,500 needs a fresh, ministry-by-ministry financial review. It is not an approved budget. We should distinguish existing recurring expenses, new program costs, possible sponsorship and available cash before making commitments.
+
+For each priority, please tell me: What is feasible? What baseline evidence do we have? What would we need to do differently? What might we stop doing? Who could own it? How much would it cost? What spiritual fruit and practical outcomes would prove progress? If any target is unrealistic, propose a credible alternative.
+
+04 · DREAM TEAM DISCIPLESHIP — THREE IN-PERSON TRAININGS
+I would like us to hold three substantial in-person Dream Team/FrontLiners discipleship trainings in 2027, in addition to normal team meetings. I am proposing these themes for pastoral refinement:
+Training One — A Disciple Before a Volunteer: Our Christian character, love, consistency, spiritual disciplines and example.
+Training Two — Faithful Stewards of God's House: Prayer, service, punctuality, unity, responsibility and excellence.
+Training Three — Disciples Who Multiply: Mentoring new volunteers, caring for guests, building leaders and supporting church growth.
+
+Please recommend the teaching team, dates, format, venue, expected attendance, follow-up assignments and the strongest practical way to know that the training changed how we serve. The Operations & Creative leadership vision will coordinate these responsibilities with my oversight.
+
+05 · 2027 MONTH-BY-MONTH CALENDAR — PASTORAL INPUT REQUESTED
+These are working ministry priorities for each month, NOT confirmed dates or authorized public events. Please review every month for feasibility, seasonal conflicts, costs, volunteers, attendance opportunities and improvements. Use the "Suggest change" control beside any month to send a specific recommendation.
+
+January: Vision Sunday, leadership alignment and ministry launch. Confirm annual leadership direction, baseline attendance and outreach plans. Review whether Dream Team Training One should occur in the first quarter.
+
+February: Proposed Worship at the Well Q1. Consider a marriage/relationship enrichment opportunity only if ownership, capacity and funding support it. Assess timing around other ministry commitments.
+
+March: Proposed Young Adults flagship / Remnant Experience and a Shanah Cares community compassion initiative. Evaluate school and work calendars, leaders, outreach and event capacity.
+
+April: Easter season worship, prayer, evangelism, hospitality and intentional guest follow-up. Decide what will help visitors remain connected after Easter.
+
+May: The Transformed Women Conference on Mother's Day weekend (May 7–9, 2027), plus proposed Worship at the Well Q2. Review calendar spacing, volunteer capacity, budgets and the effectiveness of community invitations.
+
+June: Shanah Kids Vacation Bible School during summer break, ending with a Kids Sunday Celebration at the end of that VBS week. Men of Legacy Father's Day celebration remains on Father's Day weekend (June 18–20, 2027). Confirm school vacation dates and protect both ministries from schedule and volunteer conflicts.
+
+July: Proposed community-focused Family Fun Day or a suitably scoped alternative, alongside summer connection and follow-up. Review weather, venue, safety and outreach capacity. Consider a second Dream Team discipleship training during the middle part of the year.
+
+August: Proposed Worship at the Well Q3 and a Back-to-School Blessing/community service opportunity. Coordinate parents, children, schools and existing volunteers. Confirm whether Dream Team training would fit better here instead of July.
+
+September: International Friends & Family Sunday as a strong community invitation and member-connection opportunity. Build a realistic invitation and follow-up strategy, not simply a large one-day attendance target.
+
+October: SHIFT Conference as Shanah City's major annual conference. Evaluate its purpose, audience, spiritual emphasis, speakers, registration, community reach, venue, budget, staffing and post-event discipleship before confirming the schedule.
+
+November: Proposed Worship at the Well Q4; a possible third Dream Team discipleship training and year-end reflection. Confirm dates that do not overburden worship, operations or family schedules.
+
+December: Hail the King, our established Christmas celebration, and an appropriate Christmas of Hope/community care initiative if resources permit. Prioritize excellent worship, family connection, generous service and manageable costs.
+
+06 · EVERY MINISTRY MUST HELP FULFILL THE MASTER VISION
+Men of Legacy: Strengthen monthly prayer, every-other-month breakfasts, men's Sunday attendance and Father's Day weekend engagement.
+
+Transformed Women: Grow discipleship, Bible & Brunch every other month, the Mother's Day weekend conference and relationships with women outside our church.
+
+Young Adults: Strengthen Bible study, spiritual consistency, fellowship, leadership development, Sunday engagement and community invitations.
+
+Shanah Worship: Grow an excellent and spiritually prepared team, support Sunday worship and propose four quarterly Worship at the Well gatherings with sustainable production resources.
+
+Shanah Kids and Teens: Strengthen safe discipleship, family partnership, volunteer readiness and June Vacation Bible School concluding with Kids Sunday Celebration.
+
+Shanah Cares: Plan meaningful, measurable community service and collaboration with our ministry leaders.
+
+Operations & Dream Team: Help ministries execute well, develop volunteers and coordinate three in-person discipleship trainings without losing our spiritual purpose.
+
+Each ministry has or will have a separate leadership plan for the detailed implementation. This Master Vision is the shared direction, not a replacement for those ministry plans.
+
+07 · HOW I WANT US TO REVIEW THIS PROPOSAL
+Please review this as partners in the vision, not merely as recipients of announcements. For each priority or calendar month, tell me what you affirm, what you question, what you would revise, what you would add or remove, and why.
+
+Where you suggest an event or goal, please include a proposed month/date, objective, responsible leader or team, anticipated audience, rough cost or resources, attendance/participation assumptions and a realistic measure of success. If a proposal needs more preparation time, say so.
+
+You can use the suggestion buttons beside individual headings and months to respond item by item. You can also submit one full pastoral review using the larger response area: your overall assessment, realistic capacity, corrections, potential risks, support needed and your most important recommended changes.
+
+I will review every contribution, ask for clarification if necessary and consolidate accepted changes into the next draft. A submitted suggestion does not automatically change the vision or publish any event. Final direction, budget authorization and calendar approval remain with the Senior Pastor.
+
+08 · OUR NEXT STEPS AFTER PASTORAL FEEDBACK
+First: receive each pastor's written comments, amendments and realistic expectations.
+Second: compare recommendations with verified attendance, existing programs, volunteer availability, calendar clashes and financial capacity.
+Third: determine what is essential, what is aspirational and what must wait. Identify specific ministry owners and milestones.
+Fourth: revise the draft and present the consolidated 2027 direction for final pastoral alignment and approval.
+Fifth: translate the approved priorities into ministry leadership responsibilities, quarterly reviews and church calendar submissions.
+
+MY CLOSING APPEAL TO MY PASTORAL TEAM
+I am believing God for a church that grows in numbers and in spiritual depth; a church that has a home of its own, is financially healthy, develops strong leaders and genuinely touches our community. I do not believe we will get there by enthusiasm alone. I believe we need prayer, unity, wisdom, courageous decisions, accountability and faithful execution.
+
+I am asking each of you to help me make this vision stronger, clearer and more achievable. Please give me your thoughtful feedback. Let us build what we can truly carry, remain open to what God can do beyond our present capacity, and pursue Expansion together.
+
+— Senior Pastor, Shanah City
+PRIVATE PASTORAL PROPOSAL — OPEN FOR REVIEW AND REVISION. NOT A PUBLISHED EVENT CALENDAR.`
   },
   {
     ministryKey: "worship",
