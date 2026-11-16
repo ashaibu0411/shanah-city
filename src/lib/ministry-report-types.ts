@@ -510,6 +510,12 @@ export const MINISTRY_REPORT_TEMPLATES: Record<string, MinistryReportTemplate> =
       { id: "kidsMonthlyCheckpoint", label: "Curriculum, volunteer and safety readiness monthly checkpoint completed", type: "select", options: ["Yes — completed", "No — not completed"] },
       { id: "kidsServicesCovered", label: "Sunday children's ministry services with adequate classroom coverage", type: "number", min: 0 },
       { id: "kidsVolunteersTrained", label: "Teachers or volunteers trained/mentored this month (aggregate only)", type: "number", min: 0 },
+      { id: "kidsVbsHeld", label: "June Vacation Bible School delivered this month?", type: "select", options: ["Yes — completed", "No — not completed"] },
+      { id: "kidsVbsAggregateAttendance", label: "Total VBS attendance across sessions (aggregate only; if held)", type: "number", min: 0 },
+      { id: "kidsVbsNewFamilies", label: "New families connected through VBS (aggregate only)", type: "number", min: 0 },
+      { id: "kidsVbsVolunteers", label: "VBS volunteers who served (aggregate only)", type: "number", min: 0 },
+      { id: "kidsSundayCelebrationHeld", label: "Kids Sunday Celebration concluding VBS completed?", type: "select", options: ["Yes — completed", "No — not completed"] },
+      { id: "kidsVbsFollowUp", label: "VBS and Kids Sunday outcome, family follow-up and improvements — no names or child-sensitive data", type: "textarea" },
       { id: "kidsQuarterlyReviewed", label: "Was quarterly Shanah Kids leadership review completed?", type: "select", options: ["Yes — completed", "No — not completed"] },
       { id: "kidsQuarterlyActions", label: "Quarterly aggregate readiness and improvement actions; no identifiable child or family information", type: "textarea" },
       {
