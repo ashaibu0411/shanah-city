@@ -18,7 +18,8 @@ type AuditEvent = { id: string; actorId: string; action: string; detail?: string
 type Plan = { id: string; title: string; ministryKey: string; summary: string; content: string; status: string; version: number; assignments: Assignment[]; comments?: Comment[]; audits?: AuditEvent[]; _count?: { comments: number } };
 type Ministry = { key: string; title: string };
 type Leader = { id: string; name: string };
-type Result = { error?: string; plan?: Plan; plans?: Plan[]; ministries?: Ministry[]; isOwner?: boolean; leaders?: Leader[]; pastoralReviewers?: Leader[]; assignedCount?: number };
+type SearchMember = Leader & { email: string };
+type Result = { error?: string; plan?: Plan; plans?: Plan[]; ministries?: Ministry[]; isOwner?: boolean; leaders?: Leader[]; pastoralReviewers?: Leader[]; memberResults?: SearchMember[]; assignedCount?: number };
 
 function GrowingVisionTextarea({ value, className = "", ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -71,6 +72,11 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
   const [summary, setSummary] = useState("");
   const [content, setContent] = useState("");
   const [assignUserId, setAssignUserId] = useState("");
+  const [memberQuery, setMemberQuery] = useState("");
+  const [memberResults, setMemberResults] = useState<SearchMember[]>([]);
+  const [selectedMember, setSelectedMember] = useState<SearchMember | null>(null);
+  const [memberSearchError, setMemberSearchError] = useState("");
+  const [memberSearching, setMemberSearching] = useState(false);
   const [deadline, setDeadline] = useState("");
   const [capacity, setCapacity] = useState("with_support");
   const [proposal, setProposal] = useState("");
@@ -111,6 +117,32 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
   }, []);
 
   useEffect(() => { void refresh(planId).catch(e => setError(e instanceof Error ? e.message : String(e))); }, [refresh, planId]);
+
+  useEffect(() => {
+    if (!owner || !planId || memberQuery.trim().length < 2 || selectedMember) {
+      setMemberResults([]);
+      setMemberSearching(false);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setMemberSearching(true);
+      setMemberSearchError("");
+      try {
+        const response = await fetch("/api/vision/plans?memberSearch=" + encodeURIComponent(memberQuery.trim()), {
+          signal: controller.signal, cache: "no-store",
+        });
+        if (!response.ok) throw new Error("Member directory search is unavailable.");
+        const data = (await response.json()) as Result;
+        if (!controller.signal.aborted) setMemberResults(data.memberResults || []);
+      } catch (e) {
+        if (!controller.signal.aborted) setMemberSearchError(e instanceof Error ? e.message : "Search failed.");
+      } finally {
+        if (!controller.signal.aborted) setMemberSearching(false);
+      }
+    }, 250);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [owner, planId, memberQuery, selectedMember]);
 
   async function run(method: string, data: Record<string, unknown>, reloadId?: string): Promise<boolean> {
     setBusy(true); setError(""); setNotice("");
@@ -219,15 +251,36 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                       {a.supportNeeds && <p><strong>Support needed: </strong>{a.supportNeeds}</p>}
                     </div>
                   ))}
-                  {selected.status !== "approved" && <form className="space-y-5" onSubmit={e => { e.preventDefault(); void run("POST", { action: "assign", planId: selected.id, userId: assignUserId, deadline }, selected.id); }}>
-                    <label className="block text-base font-bold text-slate-900">Assign a ministry leader
-                      <select className={field + " mt-1"} value={assignUserId} onChange={e => setAssignUserId(e.target.value)} required>
-                        <option value="">Select a leader</option>
-                        {leaders.map(l => <option value={l.id} key={l.id}>{l.name}</option>)}
-                      </select>
-                    </label>
+                  {selected.status !== "approved" && <form className="space-y-5" onSubmit={async e => {
+                    e.preventDefault();
+                    if (!assignUserId) return;
+                    const saved = await run("POST", { action: "assign", planId: selected.id, userId: assignUserId, deadline }, selected.id);
+                    if (saved) { setAssignUserId(""); setSelectedMember(null); setMemberQuery(""); setMemberResults([]); }
+                  }}>
+                    <div className="space-y-2">
+                      <label htmlFor="vision-member-search" className="block text-base font-bold text-slate-900">Search all registered church members</label>
+                      <p className="text-sm leading-relaxed text-slate-600">Find any pastor or ministry leader by name or email. Review access is private and given only to people you invite.</p>
+                      <input id="vision-member-search" type="search" autoComplete="off" className={field} value={memberQuery}
+                        onChange={e => { setMemberQuery(e.target.value); setAssignUserId(""); setSelectedMember(null); setMemberResults([]); }}
+                        placeholder="Type at least 2 letters of a name or email…" />
+                      {memberSearching && <p role="status" className="text-sm text-slate-600">Searching registered members…</p>}
+                      {memberSearchError && <p role="alert" className="text-sm font-semibold text-red-700">{memberSearchError}</p>}
+                      {selectedMember ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-300 bg-blue-50 p-4">
+                        <p className="min-w-0 break-words font-bold text-blue-950">Selected: {selectedMember.name} <span className="block text-sm font-normal">{selectedMember.email}</span></p>
+                        <button type="button" className={secondary} onClick={() => { setAssignUserId(""); setSelectedMember(null); setMemberQuery(""); }}>Change</button>
+                      </div> : memberQuery.trim().length >= 2 && !memberSearching && !memberSearchError && memberResults.length === 0
+                        ? <p className="text-sm text-slate-600">No matching registered members. Try another name or email.</p> : null}
+                      {!selectedMember && memberResults.length > 0 && <div role="listbox" aria-label="Matching church members" className="max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1">
+                        {memberResults.map(member => <button key={member.id} type="button" role="option" aria-selected={false}
+                          className="flex w-full min-w-0 flex-col gap-1 rounded-lg px-4 py-3 text-left hover:bg-blue-50 focus-visible:bg-blue-50"
+                          onClick={() => { setSelectedMember(member); setAssignUserId(member.id); setMemberQuery(member.name); setMemberResults([]); }}>
+                          <span className="break-words text-base font-bold text-slate-950">{member.name}</span>
+                          <span className="break-all text-sm text-slate-600">{member.email}</span>
+                        </button>)}
+                      </div>}
+                    </div>
                     <label className="block text-base font-bold text-slate-900">Review deadline<input type="date" className={field + " mt-1"} value={deadline} onChange={e => setDeadline(e.target.value)}/></label>
-                    <button className={button} disabled={busy}>Assign privately</button>
+                    <button className={button} disabled={busy || !assignUserId}>Invite selected member privately</button>
                   </form>}
                   <div className="border-t border-slate-200 pt-7">
                     <label className="block text-base font-bold text-slate-900">Pastoral review note<textarea className={field + " mt-2"} value={feedbackNote} onChange={e => setFeedbackNote(e.target.value)} maxLength={1000}/></label>

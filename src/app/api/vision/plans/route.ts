@@ -18,7 +18,32 @@ function audit(planId: string, actorId: string, action: string, detail?: string)
 export async function GET(request: Request) {
   const { user, isOwner } = await getVisionActor();
   if (!user) return deny(401);
-  const planId = new URL(request.url).searchParams.get("planId");
+  const params = new URL(request.url).searchParams;
+  // Owners can locate any registered member, not only group admins/role-holders.
+  // Keep this private; never expose member directory through public vision links.
+  if (params.has("memberSearch")) {
+    if (!isOwner) return deny();
+    const query = safeVisionString(params.get("memberSearch"), 120);
+    if (query.length < 2) return NextResponse.json({ memberResults: [] });
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { email: { contains: query, mode: "insensitive" } },
+          { displayName: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      orderBy: [{ name: "asc" }, { id: "asc" }],
+      select: { id: true, name: true, displayName: true, email: true },
+      take: 40,
+    });
+    return NextResponse.json({
+      memberResults: users.map(u => ({
+        id: u.id, name: u.displayName || u.name, email: u.email,
+      })),
+    }, { headers: { "Cache-Control": "private, no-store" } });
+  }
+  const planId = params.get("planId");
   if (planId) {
     if (!(await canReadVision(planId, user.id, isOwner))) return deny();
     const plan = await prisma.visionPlan.findUnique({
