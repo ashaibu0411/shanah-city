@@ -21,17 +21,21 @@ STRATEGIC PRIORITIES
 
 2027 PROPOSED CALENDAR
 January: Vision Sunday, leadership summit and ministry launch.
+Dream Team: three in-person discipleship trainings across 2027, with specific dates and learning objectives submitted for pastoral approval.
 February: Worship at the Well Q1, optional marriage experience.
 March: Young Adults flagship; Community Compassion Day.
 April: Easter celebration and community connections.
 May: Women's flagship; Worship at the Well Q2.
-June: Men of Legacy Father's Day weekend.
+June: Men of Legacy Father's Day weekend; Shanah Kids Vacation Bible School during school break, culminating in a Kids Sunday Celebration at the end of VBS week (exact dates subject to school calendars and pastoral approval).
 July: Community Family Fun Day.
-August: Worship at the Well Q3; Back-to-School Blessing; Dream Team development.
+August: Worship at the Well Q3; Back-to-School Blessing; Dream Team discipleship development.
 September: International Friends & Family Sunday.
 October: SHIFT Conference.
 November: Worship at the Well Q4.
 December: Hail the King; Christmas of Hope.
+
+2027 DREAM TEAM DISCIPLESHIP — THREE IN-PERSON TRAININGS
+Hold three substantial in-person discipleship trainings for Dream Team/FrontLiners during 2027, in addition to ordinary meetings or brief service huddles. Spread sessions through the year, with exact dates, facilitators, budgets and location approved by pastoral leadership. Themes for refinement: (1) Christlike character, service and being a light; (2) prayer, faithfulness, excellence, unity and responsibility; (3) disciple-making, leadership multiplication, hospitality and caring for new people. Each session should include Scripture, ministry-specific practical application, group discussion and a measurable next action. Record attendance, first-time trainees, completion, follow-up and observable improvement in serving. No sessions or attendance results should be presumed before delivery.
 
 PROPOSED WORKING TARGETS — NOT APPROVED
 Average Sunday attendance 150–175 by year-end; 40–60 meaningfully connected new members; 35–45 active trained volunteers; four principal community initiatives; four leadership development sessions.
@@ -118,7 +122,7 @@ The Senior Pastor owns direction and final approvals; the assigned leader contri
   {
     ministryKey: "kids",
     title: "2027 Shanah Kids Ministry Vision & Leadership Plan",
-    summary: "Grow a safe, Christ-centered children's ministry through dependable Sunday teaching, parent communication, volunteer development, family connection and quarterly leadership review.",
+    summary: "Grow a safe, Christ-centered Shanah Kids ministry with Sunday teaching, June Vacation Bible School culminating in Kids Sunday Celebration, parent partnerships and volunteer development.",
     content: `2027 SHANAH KIDS — ANNUAL MINISTRY VISION & LEADERSHIP PLAN
 INTERNAL WORKING DRAFT — SPECIFIC PROGRAMS, DATES AND GOALS FOR PASTORAL REVIEW
 Raise children who know Jesus, discover Scripture, experience God's love and grow within a safe, excellent and family-connected church environment. Equip parents and volunteers to nurture the next generation while supporting Shanah City's Year of Expansion.
@@ -138,11 +142,19 @@ Warmly welcome new families, help parents know their children's ministry team, s
 05 · VOLUNTEER DEVELOPMENT & SERVICE EXCELLENCE
 Train and mentor reliable teachers, assistants and check-in volunteers. Monitor staffing sufficiency, punctuality, preparation and safety readiness. Plan special family or children's programs through the existing Calendar with pastoral and safeguarding review, not through automatic Vision Center event creation.
 
-06 · QUARTERLY LEADERSHIP ACCOUNTABILITY
+06 · JUNE VACATION BIBLE SCHOOL & KIDS SUNDAY CELEBRATION — 2027 SIGNATURE PROGRAM
+Organize one Shanah Kids Vacation Bible School (VBS) in June 2027 during the local school summer break. Complete the week or scheduled VBS program with a dedicated Kids Sunday Celebration at the end of that same week, where Shanah Kids helps lead or take over the agreed Sunday service elements, subject to Senior Pastor approval and age-appropriate supervision.
+The children's leader must propose the VBS Bible theme, age groups, number of days, tentative school-break dates, venue, family registration, materials, budget, volunteer staffing, check-in/check-out, authorized-pickup arrangements, safeguarding and emergency processes. Coordinate with Shanah Worship, hospitality and production for children's worship, short Scripture recitations, testimonies or presentations, and a meaningful family-focused service. Any children appearing in photos/videos or on stage must follow church safeguarding and parent/guardian consent procedures.
+EXPANSION GOAL: Open VBS invitations beyond current Shanah City families, use appropriate community and school-break outreach, welcome first-time families and follow up meaningfully after Kids Sunday. Collect only aggregate VBS participation counts, aggregate new-family connections, total volunteers trained and an actual Kids Sunday completion result. No identifiable child or sensitive family information belongs in the Vision Center.
+The exact June dates and Sunday remain TO BE CONFIRMED against school calendars and the church service schedule, then submitted through normal church Calendar and pastoral approval. This planning vision does not publish the program.
+
+07 · QUARTERLY LEADERSHIP ACCOUNTABILITY
 Complete four pastoral check-ins to review Sunday service support, curriculum readiness, staffing, aggregate participation, family welcome, training and improvement priorities. Report monthly through the existing Shanah Kids Ministry Reports framework.
 
-07 · SCORECARD & EVIDENCE
+08 · SCORECARD & EVIDENCE
 Monthly curriculum/volunteer checkpoints: twelve.
+June 2027 Vacation Bible School: one event series planned, completed status and aggregate participation recorded when held.
+Kids Sunday Celebration: one Sunday finale connected to the June VBS, completion and family involvement reported when held.
 Quarterly pastoral reviews: four.
 Sunday classroom/service coverage, lesson readiness, aggregate children served and new-family connections: monitor through existing monthly reports.
 Volunteer training and staffing improvement actions: summarize quarterly.
@@ -323,11 +335,19 @@ Identify partner opportunities, donation sources, volunteers, logistics, specifi
   {
     ministryKey: "operations",
     title: "Operations & Creative",
-    summary: "Cross-ministry event excellence, communications, volunteers and accountability.",
+    summary: "Cross-ministry event excellence, communications, volunteer accountability and three in-person Dream Team discipleship trainings in 2027.",
     content: `INTERNAL WORKING DRAFT — not approved for public events or calendar publication.
 
 PASTORAL DIRECTION
-Bring excellent planning standards to every ministry while keeping costs sustainable and volunteer workloads realistic.
+Bring excellent planning standards to every ministry while keeping costs sustainable and volunteer workloads realistic. Build the spiritual depth of Dream Team/FrontLiners, not only event execution.
+
+THREE IN-PERSON DREAM TEAM DISCIPLESHIP TRAININGS — 2027 CORE PRIORITY
+Coordinate three in-person discipleship training gatherings throughout 2027, not merely online meetings. Dates will be selected around the annual church calendar and pastoral availability; the three sessions are not yet published events.
+Training One: A Disciple Before a Volunteer — identity in Christ, integrity, holiness, love, example, and spiritual responsibility.
+Training Two: Faithful Stewards of God's House — prayer, consistency, punctuality, honoring commitments, teamwork, service excellence and caring for people.
+Training Three: Disciples Who Multiply — leadership development, welcoming and following up with guests, mentoring new volunteers, and helping the church fulfill Expansion.
+Each session should have prayer, biblical teaching, practical ministry scenarios, attendance records, and a follow-up assignment. Establish a clear trainer, owner, checklist, venue, promotion process, and attendee invitation plan. Track three sessions delivered, unique frontliners trained, participation trends and post-training application, with actuals entered only after completion.
+Work with the Senior Pastor and ministry leaders to agree on content and leadership expectations. Training is discipleship first and volunteer development second. The leader's duty includes encouraging inconsistent team members to participate, not simply announcing dates.
 
 SHARED FUNCTIONS
 Event Director, Ministry Lead, Operations, Creative/Media, Worship/Production, Guest Experience and Finance. These functions may be held by 3–4 coordinated leaders rather than seven paid staff.
@@ -342,6 +362,9 @@ T+7: thank-yous, guest follow-up, attendance, costs and retrospective.
 
 ATTENDANCE CHANNELS
 Member invitations, neighboring churches, digital communications, community partners and consent-based guest follow-up.
+
+DREAM TEAM DISCIPLESHIP ACCOUNTABILITY
+Submit a proposed 2027 training schedule, teaching outline, assigned facilitators, participation goal, attendance tracking, and follow-up approach for all three in-person meetings for pastoral approval. Review outcomes after each session and recommend improvements for subsequent trainings.
 
 LEADER CONTRIBUTIONS REQUESTED
 Recommend templates, task division, venue requirements, volunteer staffing, production checklists, shared assets, safety standards and an achievable yearwide calendar. Highlight conflicts and financial constraints, especially the permanent church building priority.`
