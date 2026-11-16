@@ -54,9 +54,11 @@ export function VisionDocument({ content, onSuggest }: { content: string; onSugg
           </div>
         );
         const calendarMonth = part.text.match(months)?.[1];
-        return <div key={index} className={calendarMonth && onSuggest ? "min-w-0 space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4" : "min-w-0"}>
+        const priority = part.text.match(/^(Priority [1-5]|Training (?:One|Two|Three))\s*[—–:-]/)?.[1];
+        const subject = calendarMonth ? "calendar:" + calendarMonth : priority || null;
+        return <div key={index} className={subject && onSuggest ? "min-w-0 space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4" : "min-w-0"}>
           <p className="min-w-0 break-words">{renderInline(part.text)}</p>
-          {calendarMonth && onSuggest && <button type="button" className="inline-flex rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-sm font-bold text-blue-800" onClick={() => onSuggest("calendar:" + calendarMonth)}>Suggest a change for {calendarMonth}</button>}
+          {subject && onSuggest && <button type="button" className="inline-flex rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-sm font-bold text-blue-800" onClick={() => onSuggest(subject)}>{calendarMonth ? "Suggest a change for " + calendarMonth : "Suggest a change to " + priority}</button>}
         </div>;
       })}
     </article>
