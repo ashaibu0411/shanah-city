@@ -60,6 +60,8 @@ export function CommunityStatusRow({
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [statuses, setStatuses] = useState<CommunityStatus[]>([]);
+  const [statusesLoaded, setStatusesLoaded] = useState(false);
+  const deepLinkHandled = useRef(false);
   const [priorityAuthorIds, setPriorityAuthorIds] = useState<string[]>([]);
   const [seenIds, setSeenIds] = useState<Set<string>>(() => loadSeenStoryIds());
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -117,16 +119,19 @@ export function CommunityStatusRow({
         setError(data.error);
         setStatuses([]);
         setPriorityAuthorIds([]);
+        setStatusesLoaded(true);
         return;
       }
       setError("");
       setStatuses(data.statuses ?? []);
       setPriorityAuthorIds(data.priorityAuthorIds ?? []);
+      setStatusesLoaded(true);
     } catch (loadError) {
       setError(
         loadError instanceof Error ? loadError.message : "Stories are unavailable right now.",
       );
       setStatuses([]);
+      setStatusesLoaded(true);
     }
   }, []);
 
@@ -164,6 +169,21 @@ export function CommunityStatusRow({
     () => buildStoryDecks(statuses, seenIds, user?.id, priorityAuthorIds),
     [seenIds, statuses, user?.id, priorityAuthorIds],
   );
+
+  useEffect(() => {
+    if (!statusesLoaded || !user || deepLinkHandled.current) return;
+    const storyId = new URLSearchParams(window.location.search).get("story");
+    if (!storyId) return;
+    deepLinkHandled.current = true;
+    const deckIndex = decks.findIndex(deck => deck.items.some(item => item.id === storyId));
+    if (deckIndex === -1) {
+      setError("This story has expired or is no longer available.");
+      return;
+    }
+    const slideIndex = decks[deckIndex].items.findIndex(item => item.id === storyId);
+    setViewerStart({ deckIndex, slideIndex });
+    setViewerOpen(true);
+  }, [decks, statusesLoaded, user]);
 
   const myDeck = useMemo(
     () => (user ? decks.find((deck) => deck.authorId === user.id) ?? null : null),

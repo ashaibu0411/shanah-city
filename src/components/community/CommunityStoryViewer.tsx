@@ -25,6 +25,7 @@ import {
 import { parseStoryLinkFromStatus } from "@/lib/community-story-link-shared";
 import { storyReplyPresetsForKind } from "@/lib/community-story-reply-presets";
 import { CommunityStoryMusicAttach } from "@/components/community/CommunityStoryMusicAttach";
+import { CommunityStoryExternalShare } from "@/components/community/CommunityStoryExternalShare";
 import { CommunityStoryMemberAudioAttach } from "@/components/community/CommunityStoryMemberAudioAttach";
 import { StorySlideLink } from "@/components/community/StorySlideLink";
 import { CommunityLivePlayer } from "@/components/community/CommunityLivePlayer";
@@ -251,6 +252,7 @@ export function CommunityStoryViewer({
   const [memberAudioDurationMs, setMemberAudioDurationMs] = useState<number | null>(null);
   const [licensedMusicPlaybackMs, setLicensedMusicPlaybackMs] = useState<number | null>(null);
   const [showInsights, setShowInsights] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsError, setInsightsError] = useState("");
   const [insightsData, setInsightsData] = useState<StoryInsightsPayload | null>(null);
@@ -285,6 +287,7 @@ export function CommunityStoryViewer({
   );
   const deck = deckIndex >= 0 ? navigationDecks[deckIndex] : undefined;
   const slide = deck?.items[slideIndex];
+  useEffect(() => { setShareOpen(false); }, [slide?.id]);
   const mediaUrl = slide ? resolveStoryMediaUrl(slide.mediaUrl) : "";
   const isOwnStory =
     deck?.authorId === currentUserId || slide?.postedByUserId === currentUserId;
@@ -293,7 +296,7 @@ export function CommunityStoryViewer({
   const [storyMusicNativeAudio, setStoryMusicNativeAudio] = useState(false);
   const memberAudioDurationMsRef = useRef<number | null>(null);
   const licensedMusicPlaybackMsRef = useRef<number | null>(null);
-  const playbackPaused = paused || replyFocused || liveStoryUiActive || storyYoutubeViewerActive;
+  const playbackPaused = paused || replyFocused || liveStoryUiActive || storyYoutubeViewerActive || shareOpen;
   const timelinePaused = playbackPaused;
   const nextService = useMemo(() => getNextWorshipService(), []);
   const reactionButtons = slide ? reactionButtonsForStory(slide.storyKind) : [];
@@ -807,6 +810,17 @@ export function CommunityStoryViewer({
           <p className="truncate text-sm font-semibold text-white">{deck.authorName}</p>
           <p className="text-xs text-white/70">{formatCommunityTimeAgo(slide.createdAt)}</p>
         </div>
+        {slide.mediaType !== "live" && !slide.groupId && !deck.groupId ? (
+          <button
+            type="button"
+            onClick={() => setShareOpen(current => !current)}
+            aria-label="Share story to WhatsApp or other apps"
+            aria-expanded={shareOpen}
+            className="rounded-full bg-white/10 px-3 py-2 text-sm font-bold text-white hover:bg-white/20"
+          >
+            Share
+          </button>
+        ) : null}
         {isOwnStory ? (
           <>
             <button
@@ -872,6 +886,15 @@ export function CommunityStoryViewer({
           </svg>
         </button>
       </div>
+
+      {shareOpen && slide.mediaType !== "live" && !slide.groupId && !deck.groupId && (
+        <CommunityStoryExternalShare
+          key={slide.id}
+          slide={slide}
+          mayExport={Boolean(isOwnStory)}
+          onDismiss={() => setShareOpen(false)}
+        />
+      )}
 
       <div className="community-story-viewer-media">
         {mediaFailed ? (
