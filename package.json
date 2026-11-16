@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:home:watch-video-contrast": "tsx scripts/home-watch-video-contrast.test.ts",
     "dev": "next dev",
     "build": "node scripts/build.cjs",
     "start": "next start",
