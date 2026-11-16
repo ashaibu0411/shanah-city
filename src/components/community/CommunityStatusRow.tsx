@@ -263,7 +263,7 @@ export function CommunityStatusRow({
       return "Choose either YouTube gospel music or your own recording.";
     }
     if (selectedMusicTrack) {
-      if (musicClipDurationProbe === "loading") {
+      if (musicClipDurationProbe === "loading" && !selectedMusicTrack.youtubeVideoId?.trim()) {
         return "Song length is still loading — wait a moment before sharing.";
       }
       if (musicClipDurationProbe === "estimated" && (musicClipStartSeconds > 0 || musicClipDurationSec !== 30)) {
@@ -679,9 +679,7 @@ export function CommunityStatusRow({
                     ))}
                   </div>
                 ) : null}
-                <div className="border-t border-night-900/10 px-4 py-3 dark:border-white/10">
-                  <button type="button" onClick={closeShareMenu} className="w-full rounded-xl border border-night-900/15 px-4 py-3 text-sm font-bold text-night-900 dark:border-white/15 dark:text-sand-100">Cancel · Back to Community</button>
-                </div>
+                <button type="button" onClick={closeShareMenu} className="w-full rounded-xl border border-night-900/15 bg-white px-4 py-3 text-sm font-bold text-night-900 hover:bg-sand-50 dark:border-white/15 dark:bg-night-900 dark:text-sand-100">Cancel · Back to Community</button>
               </div>
             </div>
           </div>,
