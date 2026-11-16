@@ -127,7 +127,8 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
               {loading && sermon?.id === playback.id ? "Preparing audio…" : "Listen in background"}
             </button>
             <button type="button" onClick={openSermon}
-              className="min-h-11 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800">
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[#123a67] bg-white px-5 py-2 text-sm font-extrabold text-[#123a67] shadow-sm transition-colors hover:bg-[#e8f1fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#123a67] active:bg-[#d9e8fa]">
+              <PremiumHomeV4Play className="h-4 w-4" />
               Watch video
             </button>
             {error && sermon?.id === playback.id ? (
