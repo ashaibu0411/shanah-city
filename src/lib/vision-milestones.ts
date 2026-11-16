@@ -98,6 +98,54 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
       description: "Review attendance, participation, actions, challenges and development needs with pastoral leadership. Document next-quarter priorities in the existing monthly report and Vision Center discussion.",
     });
   }
+  if (ministryKey === "kids") {
+    tasks.push(
+      {
+        kind: "kids-vbs-proposal", period: "2027-vbs-proposal", dueOn: "2027-03-31",
+        title: "Shanah Kids: submit June VBS and Kids Sunday proposal",
+        description: "Present Bible theme, days, age groups, school-break date options, budget, family outreach, safeguarding, authorized pickup, volunteer plan and proposed Kids Sunday service responsibilities for pastoral approval. March 31 is a proposal checkpoint, not an event date.",
+      },
+      {
+        kind: "kids-vbs-readiness", period: "2027-vbs-readiness", dueOn: "2027-05-31",
+        title: "Shanah Kids: confirm VBS readiness and Kids Sunday plan",
+        description: "Confirm approved June school-break dates, curriculum, volunteers, child safety procedures, registrations, parent consent, service rehearsal and cross-ministry handoffs. May 31 is a readiness checkpoint only.",
+      },
+      {
+        kind: "kids-vbs-june", period: "2027-06", dueOn: "2027-06-30",
+        title: "Shanah Kids: June Vacation Bible School and Kids Sunday Celebration",
+        description: "Deliver the approved VBS in June during school vacation and conclude with the agreed Kids Sunday Celebration at the end of that VBS week. Log only aggregate attendance, new families, volunteer participation, completion and appropriate follow-up. June 30 is the reporting deadline, not the specific Sunday date.",
+      },
+      {
+        kind: "kids-vbs-followup", period: "2027-vbs-followup", dueOn: "2027-07-31",
+        title: "Shanah Kids: VBS family follow-up and ministry review",
+        description: "Review outcomes with pastoral leadership, thank volunteers, connect first-time families and capture improvement actions for the next year without exposing child-identifying data.",
+      },
+    );
+  }
+  if (ministryKey === "operations") {
+    const sessions = [
+      { number: 1, period: "2027-dream-team-1", dueOn: "2027-03-31",
+        title: "Dream Team Discipleship 1 — A Disciple Before a Volunteer",
+        description: "Host the first in-person Dream Team discipleship training: character, spiritual maturity, Christian example and servant leadership. Submit the actual date and program for pastoral approval. March 31 is an accountability checkpoint, not a published event date." },
+      { number: 2, period: "2027-dream-team-2", dueOn: "2027-07-31",
+        title: "Dream Team Discipleship 2 — Faithful Stewards of God's House",
+        description: "Host the second in-person Dream Team training: prayer, faithfulness, consistency, punctuality, team unity, excellence and caring for people. July 31 is an accountability checkpoint, not a published event date." },
+      { number: 3, period: "2027-dream-team-3", dueOn: "2027-11-30",
+        title: "Dream Team Discipleship 3 — Disciples Who Multiply",
+        description: "Host the third in-person Dream Team training: welcoming guests, follow-up, mentoring volunteers and multiplying leaders. November 30 is an accountability checkpoint, not a published event date." },
+    ];
+    for (const session of sessions) {
+      tasks.push({
+        kind: "dream-team-discipleship", period: session.period, dueOn: session.dueOn,
+        title: session.title, description: session.description,
+      });
+    }
+    tasks.push({
+      kind: "dream-team-discipleship-proposal", period: "2027-dream-team-planning", dueOn: "2027-01-31",
+      title: "Dream Team: submit three in-person discipleship training plans",
+      description: "Propose the dates, biblical outlines, teaching leaders, participation plan, venue, resources and follow-up actions for all three sessions. Exact dates remain subject to pastoral approval.",
+    });
+  }
   if (ministryKey === "young-adults") {
     tasks.push({
       kind: "young-remnant-proposal", period: "2027-remnant-proposal", dueOn: "2027-01-31",
