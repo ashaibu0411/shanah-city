@@ -202,6 +202,11 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                       <p className="text-base leading-relaxed text-slate-800">Invite every pastor registered in Shanah City's pastoral-role directory to review this proposal privately, submit corrections and comment on specific calendar months. You can also assign additional pastors individually below if they aren't in that directory.</p>
                       <p className="text-sm font-semibold text-slate-700">Registered pastoral reviewers: {pastoralReviewers.length ? pastoralReviewers.map(p => p.name).join(", ") : "No additional pastoral reviewers found in the role directory."}</p>
                       <button type="button" className={button} disabled={busy || !pastoralReviewers.length} onClick={() => void run("POST", { action: "assign-pastoral-team", planId: selected.id }, selected.id)}>Share privately with registered pastoral team</button>
+                      <button type="button" className={secondary} onClick={() => {
+                        void navigator.clipboard.writeText(window.location.origin + "/leadership/vision/" + encodeURIComponent(selected.id))
+                          .then(() => setNotice("Private review link copied. Only assigned pastors can open it."))
+                          .catch(() => setError("Unable to copy the private review link on this device."));
+                      }}>Copy private review link</button>
                     </div>
                   )}
                   {selected.assignments.length === 0 && <p className="text-base font-medium text-slate-600">No leaders assigned yet.</p>}
@@ -273,7 +278,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                         <option value="general">General / whole vision</option>
                         {Array.from(new Set(selected.content.split("\n").map(line => line.trim()).filter(line => /^[A-Z][A-Z0-9 ·—–&:,'()\/\-]+$/.test(line) && line.length < 100))).map(s => <option key={s} value={s}>{s}</option>)}
                         {selected.ministryKey === "churchwide" && ["January","February","March","April","May","June","July","August","September","October","November","December"].map(month => <option key={month} value={"calendar:" + month}>{month} 2027 calendar</option>)}
-                        {!selected.content.includes(sectionKey) && sectionKey !== "general" && !sectionKey.startsWith("calendar:") && <option value={sectionKey}>{sectionKey}</option>}
+                        {!selected.content.split("\n").some(line => line.trim() === sectionKey) && sectionKey !== "general" && !sectionKey.startsWith("calendar:") && <option value={sectionKey}>{sectionKey}</option>}
                       </select>
                     </label>
                   </div>
