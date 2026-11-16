@@ -6260,6 +6260,21 @@ html.dark .community-story-viewer-reply-input {
 
 .community-story-share-menu {
   max-width: 22rem;
+  max-height: calc(100dvh - max(1rem, env(safe-area-inset-top)) - 1rem - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.community-story-share-menu > div:first-child {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-surface);
+}
+
+.community-story-caption-dialog-body {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
 
 .community-stories-card-home .community-stories-row {
