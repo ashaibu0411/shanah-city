@@ -11,7 +11,7 @@ assert.match(mobile, /PremiumHomeV4GiveBar/);
 assert.match(mobile, /premium-home-v4/);
 assert.doesNotMatch(mobile, /PremiumMobileLauncher/);
 
-const bodyStart = mobile.indexOf("premium-home-v3 premium-home-v4 animate-fade-in");
+const bodyStart = mobile.indexOf("premium-home-v3 premium-home-v4");
 assert.ok(bodyStart >= 0, "premium home mobile shell missing");
 const body = mobile.slice(bodyStart);
 const storiesIdx = body.indexOf("PremiumStoriesSection");

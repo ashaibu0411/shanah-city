@@ -17,7 +17,7 @@ assert.doesNotMatch(mobile, /PremiumHomeV4Community/);
 assert.doesNotMatch(mobile, /PremiumEngagementRail/);
 assert.doesNotMatch(mobile, /PremiumHomeV2Chrome/);
 
-const bodyStart = mobile.indexOf("premium-home-v3 premium-home-v4 animate-fade-in");
+const bodyStart = mobile.indexOf("premium-home-v3 premium-home-v4");
 assert.ok(bodyStart >= 0, "premium home v3 shell missing");
 const body = mobile.slice(bodyStart);
 const storiesIdx = body.indexOf("PremiumStoriesSection");
