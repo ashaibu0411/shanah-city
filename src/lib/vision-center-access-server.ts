@@ -22,7 +22,7 @@ export async function canReadVision(planId: string, userId: string, isOwner: boo
 }
 
 export const VISION_MINISTRIES = [
-  { key: "churchwide", title: "2027 Master Vision" },
+  { key: "churchwide", title: "2027 Master Vision — Pastoral Review Proposal" },
   { key: "worship", title: "2027 Shanah Worship Ministry Vision & Leadership Plan" },
   { key: "young-adults", title: "2027 Young Adults Ministry Vision & Leadership Plan" },
   { key: "kids", title: "2027 Shanah Kids Ministry Vision & Leadership Plan" },
