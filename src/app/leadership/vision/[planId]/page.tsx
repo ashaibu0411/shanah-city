@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { getVisionActor, canReadVision } from "@/lib/vision-center-access-server";
 import { VisionCenterHub } from "@/components/vision/VisionCenterHub";
+import { VisionAccessGate } from "@/components/vision/VisionAccessGate";
+import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,9 @@ export default async function VisionPlanPage({
   const { planId } = await params;
   const { user, isOwner } = await getVisionActor();
   if (!user) redirect("/sign-in?next=" + encodeURIComponent("/leadership/vision/" + planId));
-  if (!planId || !(await canReadVision(planId, user.id, isOwner))) notFound();
+  if (!planId) notFound();
+  const exists = await prisma.visionPlan.findUnique({ where: { id: planId }, select: { id: true } });
+  if (!exists) notFound();
+  if (!(await canReadVision(planId, user.id, isOwner))) return <VisionAccessGate />;
   return <VisionCenterHub owner={isOwner} planId={planId} />;
 }
