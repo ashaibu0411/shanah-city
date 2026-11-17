@@ -12,6 +12,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @CapacitorPlugin(
   name = "ShanahNativeRecorder",
@@ -21,6 +23,13 @@ import java.io.File;
 )
 public class ShanahNativeRecorderPlugin extends Plugin {
   static final String PERM_MIC = "microphone";
+  private final ExecutorService recordingExecutor = Executors.newSingleThreadExecutor();
+
+  @Override
+  protected void handleOnDestroy() {
+    recordingExecutor.shutdownNow();
+    super.handleOnDestroy();
+  }
 
   @PluginMethod
   public void isAvailable(PluginCall call) {
@@ -50,9 +59,7 @@ public class ShanahNativeRecorderPlugin extends Plugin {
   }
 
   private void startInternal(PluginCall call) {
-    bridge
-      .getExecutor()
-      .execute(
+    recordingExecutor.execute(
         () -> {
           String recordingId = call.getString("recordingId");
           if (recordingId == null || recordingId.isEmpty()) {
@@ -97,9 +104,7 @@ public class ShanahNativeRecorderPlugin extends Plugin {
 
   @PluginMethod
   public void stop(PluginCall call) {
-    bridge
-      .getExecutor()
-      .execute(
+    recordingExecutor.execute(
         () -> {
           sendAction(ShanahAudioRecordingService.ACTION_STOP);
           waitForState(ShanahRecordingSession.State.STOPPED, 8_000);
@@ -122,9 +127,7 @@ public class ShanahNativeRecorderPlugin extends Plugin {
 
   @PluginMethod
   public void listLocalRecordings(PluginCall call) {
-    bridge
-      .getExecutor()
-      .execute(
+    recordingExecutor.execute(
         () -> {
           JSArray recordings = new JSArray();
           File dir = new File(getContext().getFilesDir(), "rehearsal-recordings");

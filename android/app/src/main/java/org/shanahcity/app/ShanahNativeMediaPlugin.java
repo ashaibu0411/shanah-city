@@ -25,6 +25,11 @@ public class ShanahNativeMediaPlugin extends Plugin {
     super.handleOnDestroy();
   }
 
+  /** Public relay entry point; Capacitor Plugin.notifyListeners is protected. */
+  public void emitPlaybackState(JSObject data) {
+    notifyListeners("state", data);
+  }
+
   @PluginMethod
   public void isAvailable(PluginCall call) {
     JSObject ret = new JSObject();
