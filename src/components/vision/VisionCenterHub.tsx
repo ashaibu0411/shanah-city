@@ -7,6 +7,7 @@ import { MenLegacyScorecard } from "@/components/vision/MenLegacyScorecard";
 import { TransformedWomenScorecard } from "@/components/vision/TransformedWomenScorecard";
 import { MinistryGrowthScorecard } from "@/components/vision/MinistryGrowthScorecard";
 import Link from "next/link";
+import { VisionShareButton } from "@/components/vision/VisionShareButton";
 
 type Assignment = {
   id: string; userId: string; status: string; deadline?: string | null;
@@ -212,6 +213,12 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                   <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold capitalize text-slate-700">{selected.status.replaceAll("_", " ")}</span>
                 </div>
                 <p className="max-w-5xl text-lg font-semibold leading-relaxed text-slate-700 sm:text-xl">{selected.summary}</p>
+                <VisionShareButton
+                  planId={selected.id}
+                  planTitle={selected.title}
+                  onNotice={setNotice}
+                  onError={setError}
+                />
                 {owner && selected.status !== "approved" && !editingVision ? <button type="button" className={secondary} onClick={() => setEditingVision(true)}>Edit pastoral direction</button> : null}
                 {owner && selected.status !== "approved" && editingVision ? (
                   <form className="space-y-5 rounded-2xl border border-blue-100 bg-blue-50/40 p-5 sm:p-7" onSubmit={e => { e.preventDefault(); void run("PATCH", { action: "update-plan", planId: selected.id, summary, content }, selected.id); }}>
@@ -234,11 +241,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                       <p className="text-base leading-relaxed text-slate-800">Invite every pastor registered in Shanah City's pastoral-role directory to review this proposal privately, submit corrections and comment on specific calendar months. You can also assign additional pastors individually below if they aren't in that directory.</p>
                       <p className="text-sm font-semibold text-slate-700">Registered pastoral reviewers: {pastoralReviewers.length ? pastoralReviewers.map(p => p.name).join(", ") : "No additional pastoral reviewers found in the role directory."}</p>
                       <button type="button" className={button} disabled={busy || !pastoralReviewers.length} onClick={() => void run("POST", { action: "assign-pastoral-team", planId: selected.id }, selected.id)}>Share privately with registered pastoral team</button>
-                      <button type="button" className={secondary} onClick={() => {
-                        void navigator.clipboard.writeText(window.location.origin + "/leadership/vision/" + encodeURIComponent(selected.id))
-                          .then(() => setNotice("Private review link copied. Only assigned pastors can open it."))
-                          .catch(() => setError("Unable to copy the private review link on this device."));
-                      }}>Copy private review link</button>
+                      <p className="text-sm font-semibold text-slate-700">Use <strong>Share Vision</strong> above to send the canonical review link after pastors are assigned.</p>
                     </div>
                   )}
                   {selected.assignments.length === 0 && <p className="text-base font-medium text-slate-600">No leaders assigned yet.</p>}
