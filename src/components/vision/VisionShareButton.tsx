@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   buildVisionShareInvitation,
+  buildVisionShareInvitationBody,
   visionPlanCanonicalPath,
   visionPlanShareUrl,
   visionShareDocumentTitle,
@@ -37,6 +38,7 @@ export function VisionShareButton({
     return visionPlanShareUrl(window.location.origin, planId);
   }, [planId]);
 
+  const invitationBody = useMemo(() => buildVisionShareInvitationBody(planTitle), [planTitle]);
   const invitation = useMemo(
     () => buildVisionShareInvitation(planTitle, shareUrl),
     [planTitle, shareUrl],
@@ -73,7 +75,7 @@ export function VisionShareButton({
       if (navigator.share) {
         await navigator.share({
           title: shareTitle,
-          text: invitation,
+          text: invitationBody,
           url: shareUrl,
         });
         onNotice?.("Share sheet opened.");
@@ -97,8 +99,8 @@ export function VisionShareButton({
     >
       <h3 className="text-xl font-extrabold text-slate-950">Share Vision</h3>
       <p className="mt-2 text-sm font-medium leading-relaxed text-slate-700">
-        Send a private link through WhatsApp, Messenger, SMS, email, or any app on your phone. Access
-        still requires a Vision Center invitation after sign-in.
+        Assign pastors and ministry leaders in Vision Center first, then share through WhatsApp, Messenger,
+        SMS, email, or any app. The link only works for people who already have an assignment after sign-in.
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
         <button type="button" className={primary} disabled={busy} onClick={() => void shareNative()}>
