@@ -20,3 +20,11 @@ When a leader taps a private Vision Center proposal link in WhatsApp, Messenger,
 8. On devices / messaging apps that decline to open installed apps, retain browser fallback; OS and messaging app policies cannot be overridden.
 
 **Do not expose draft proposal content or bypass existing Vision Center access restrictions.**
+
+## Release readiness findings (2026-11-16)
+
+- Production Vercel project `shanah-city`: `ANDROID_APP_LINK_SHA256_CERT_FINGERPRINTS` **is not configured**. Retrieve the real SHA-256 from Google Play Console → App integrity → App signing key certificate and set the production environment variable before verifying Android App Links.
+- Apple repository entitlement declares `applinks:shanah-city.vercel.app` and hosted association file declares `S4MRT53FN9.org.shanahcity.app`; verify the actual shipped signing team/profile and live HTTP response (200, correct JSON, no redirects) on an iPhone.
+- GitHub Actions workflows `.github/workflows/android-play-store.yml` (push to main → internal testing) and `.github/workflows/ios-testflight.yml` (push to main → TestFlight) exist, but this branch is not merged; no store binaries have been released from this change.
+- Native app link activation needs real installed-app tests (iOS and Android; WhatsApp and Messenger; signed-in/out/assigned). OS/messenger-controlled in-app browsers may still require fallback.
+- Do not promote Android to Play production or iOS to App Store until release acceptance passes.
