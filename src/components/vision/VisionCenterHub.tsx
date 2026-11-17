@@ -241,6 +241,15 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                       <p className="text-base leading-relaxed text-slate-800">Invite every pastor registered in Shanah City's pastoral-role directory to review this proposal privately, submit corrections and comment on specific calendar months. You can also assign additional pastors individually below if they aren't in that directory.</p>
                       <p className="text-sm font-semibold text-slate-700">Registered pastoral reviewers: {pastoralReviewers.length ? pastoralReviewers.map(p => p.name).join(", ") : "No additional pastoral reviewers found in the role directory."}</p>
                       <button type="button" className={button} disabled={busy || !pastoralReviewers.length} onClick={() => void run("POST", { action: "assign-pastoral-team", planId: selected.id }, selected.id)}>Share privately with registered pastoral team</button>
+                      <button type="button" className={secondary} disabled={busy || selected.assignments.length === 0} onClick={async () => {
+                        if (!window.confirm("Send another 2027 Master Vision push notification to all currently assigned reviewers?")) return;
+                        setBusy(true); setError(""); setNotice("");
+                        try {
+                          const result = await request("POST", { action: "resend-master-pastoral-notification", planId: selected.id }) as { notifiedCount?: number };
+                          setNotice(`Reminder requested for ${result.notifiedCount || 0} assigned reviewers. Phone delivery depends on notification permissions and device connectivity.`);
+                        } catch (e) { setError(e instanceof Error ? e.message : "Could not resend reminders."); }
+                        finally { setBusy(false); }
+                      }}>Resend Master Vision notification to pastors</button>
                       <p className="text-sm font-semibold text-slate-700">Use <strong>Share Vision</strong> above to send the canonical review link after pastors are assigned.</p>
                     </div>
                   )}
