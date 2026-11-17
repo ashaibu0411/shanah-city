@@ -132,6 +132,25 @@ export async function POST(request: Request) {
     await audit(plan.id, user.id, "created");
     return NextResponse.json({ plan }, { status: 201 });
   }
+  if (action === "resend-master-pastoral-notification") {
+    const planId = safeVisionString(body.planId, 100);
+    const plan = await prisma.visionPlan.findUnique({ where: { id: planId }, select: { id: true, year: true, ministryKey: true } });
+    if (!plan || plan.year !== 2027 || plan.ministryKey !== "churchwide") {
+      return invalid("Only the 2027 Master Vision can be resent to pastors.");
+    }
+    // Avoid accidental repeated notification blasts. Existing invitations and review data remain unchanged.
+    const recentlySent = await prisma.visionAuditEvent.findFirst({
+      where: { planId, action: "pastoral-notification-resent", createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) } },
+      select: { id: true },
+    });
+    if (recentlySent) return NextResponse.json({ error: "A reminder was already sent recently. Try again in 15 minutes." }, { status: 429 });
+    const assignments = await prisma.visionAssignment.findMany({ where: { planId }, select: { userId: true } });
+    const recipients = [...new Set(assignments.map(item => item.userId).filter(id => id !== user.id))];
+    if (!recipients.length) return invalid("No pastors are assigned to the Master Vision yet.");
+    await audit(planId, user.id, "pastoral-notification-resent", String(recipients.length));
+    await Promise.all(recipients.map(userId => notifyVisionLeader(userId, planId, "assigned")));
+    return NextResponse.json({ notifiedCount: recipients.length });
+  }
   if (action === "assign-pastoral-team") {
     const planId = safeVisionString(body.planId, 100);
     const plan = await prisma.visionPlan.findUnique({ where: { id: planId } });
