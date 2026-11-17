@@ -23,7 +23,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Verified Play Store App Links for individual church-wide Stories only. -->
+            <!-- Verified Play Store App Links for Stories and invited Vision Center plans. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -31,6 +31,14 @@
                 <data android:scheme="https"
                     android:host="shanah-city.vercel.app"
                     android:path="/community" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                    android:host="shanah-city.vercel.app"
+                    android:pathPrefix="/leadership/vision/" />
             </intent-filter>
 
         </activity>

@@ -7,9 +7,8 @@ import { Capacitor } from "@capacitor/core";
 const APP_LINK_HOST = "shanah-city.vercel.app";
 
 /**
- * Only handle authenticated Shanah City story URLs, leaving all other
- * universal/app links to the OS or existing navigation. The server decides
- * whether the member is signed in; the story viewer checks availability.
+ * Route verified Story and Vision Center URLs into the installed app.
+ * The server still enforces sign-in and Vision Center assignments.
  */
 export function nativeStoryPath(rawUrl: string): string | null {
   let url: URL;
@@ -25,6 +24,19 @@ export function nativeStoryPath(rawUrl: string): string | null {
   return "/community?story=" + encodeURIComponent(storyId);
 }
 
+/** A plan ID is an opaque server identifier; never accept arbitrary target paths. */
+export function nativeVisionPath(rawUrl: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:" || url.hostname !== APP_LINK_HOST || url.port || url.search || url.hash) return null;
+  const match = /^\/leadership\/vision\/([A-Za-z0-9_-]{1,120})\/?$/.exec(url.pathname);
+  return match ? "/leadership/vision/" + match[1] : null;
+}
+
 export function NativeStoryLinkHandler() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -32,11 +44,11 @@ export function NativeStoryLinkHandler() {
     let lastHandled = "";
 
     function handleLink(rawUrl: string) {
-      const path = nativeStoryPath(rawUrl);
+      const path = nativeStoryPath(rawUrl) ?? nativeVisionPath(rawUrl);
       if (!path || !active || path === lastHandled) return;
       lastHandled = path;
-      // A full same-origin navigation guarantees that the existing
-      // Community status row reads ?story on both cold and warm app launches.
+      // Navigate inside the Capacitor WebView, preserving app-session auth.
+      // For signed-out recipients, the existing page redirects to sign-in?next=plan.
       if (window.location.pathname + window.location.search === path) return;
       window.location.assign(path);
     }
