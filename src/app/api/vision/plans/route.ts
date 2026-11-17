@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { VISION_2027_DRAFTS } from "@/lib/vision-2027-drafts";
 import { notifyVisionLeader, notifyVisionPastor } from "@/lib/vision-center-notify-server";
+import { sendPushToUsers } from "@/lib/push-server";
 import { getUserById } from "@/lib/auth-server";
 import { getGroups } from "@/lib/group-server";
 import { getVisionActor, canReadVision, safeVisionString, VISION_MINISTRIES } from "@/lib/vision-center-access-server";
@@ -138,18 +139,36 @@ export async function POST(request: Request) {
     if (!plan || plan.year !== 2027 || plan.ministryKey !== "churchwide") {
       return invalid("Only the 2027 Master Vision can be resent to pastors.");
     }
-    // Avoid accidental repeated notification blasts. Existing invitations and review data remain unchanged.
     const recentlySent = await prisma.visionAuditEvent.findFirst({
       where: { planId, action: "pastoral-notification-resent", createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) } },
       select: { id: true },
     });
-    if (recentlySent) return NextResponse.json({ error: "A reminder was already sent recently. Try again in 15 minutes." }, { status: 429 });
+    if (recentlySent) return NextResponse.json({ error: "A reminder was already attempted recently. Try again in 15 minutes." }, { status: 429 });
     const assignments = await prisma.visionAssignment.findMany({ where: { planId }, select: { userId: true } });
     const recipients = [...new Set(assignments.map(item => item.userId).filter(id => id !== user.id))];
-    if (!recipients.length) return invalid("No pastors are assigned to the Master Vision yet.");
-    await audit(planId, user.id, "pastoral-notification-resent", String(recipients.length));
-    await Promise.all(recipients.map(userId => notifyVisionLeader(userId, planId, "assigned")));
-    return NextResponse.json({ notifiedCount: recipients.length });
+    if (!recipients.length) return invalid("No other reviewers are assigned to the Master Vision yet.");
+    const delivery = await sendPushToUsers(recipients, {
+      title: "2027 Vision Center",
+      body: "Reminder: please review the private 2027 Master Vision and share your feedback.",
+      url: "/leadership/vision/" + encodeURIComponent(planId),
+    }, "announcements");
+    await audit(planId, user.id, "pastoral-notification-resent", JSON.stringify({
+      targeted: recipients.length, acceptedByPushProviders: delivery.sent,
+      deliveredUsers: delivery.deliveredUsers, skippedNoDeviceUsers: delivery.skippedNoDeviceUsers,
+      skippedPrefUsers: delivery.skippedPrefUsers, failedUsers: delivery.failedUsers,
+    }));
+    return NextResponse.json({
+      targeted: recipients.length,
+      acceptedByPushProviders: delivery.sent,
+      deliveredUsers: delivery.deliveredUsers,
+      nativeSent: delivery.nativeSent,
+      webSent: delivery.webSent,
+      skippedNoDeviceUsers: delivery.skippedNoDeviceUsers,
+      skippedPrefUsers: delivery.skippedPrefUsers,
+      failedUsers: delivery.failedUsers,
+      configured: delivery.configured,
+      errors: delivery.errors,
+    });
   }
   if (action === "assign-pastoral-team") {
     const planId = safeVisionString(body.planId, 100);
