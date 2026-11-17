@@ -245,8 +245,17 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                         if (!window.confirm("Send another 2027 Master Vision push notification to all currently assigned reviewers?")) return;
                         setBusy(true); setError(""); setNotice("");
                         try {
-                          const result = await request("POST", { action: "resend-master-pastoral-notification", planId: selected.id }) as { notifiedCount?: number };
-                          setNotice(`Reminder requested for ${result.notifiedCount || 0} assigned reviewers. Phone delivery depends on notification permissions and device connectivity.`);
+                          const result = await request("POST", { action: "resend-master-pastoral-notification", planId: selected.id }) as Result & {
+                            targeted?: number; acceptedByPushProviders?: number; deliveredUsers?: number;
+                            nativeSent?: number; webSent?: number; skippedNoDeviceUsers?: number;
+                            skippedPrefUsers?: number; failedUsers?: number; configured?: boolean; errors?: string[];
+                          };
+                          const summary = `Targeted ${result.targeted ?? 0} reviewers · Push-service accepted ${result.acceptedByPushProviders ?? 0} sends (${result.nativeSent ?? 0} phone, ${result.webSent ?? 0} browser) · No device: ${result.skippedNoDeviceUsers ?? 0} · Notifications off: ${result.skippedPrefUsers ?? 0} · Failed: ${result.failedUsers ?? 0}.`;
+                          if (!result.configured || !(result.acceptedByPushProviders ?? 0)) {
+                            setError(summary + (result.errors?.length ? " " + result.errors.join(" · ") : " Check Push notifications in each reviewer's Profile."));
+                          } else {
+                            setNotice(summary + " Provider acceptance does not guarantee a visible phone alert.");
+                          }
                         } catch (e) { setError(e instanceof Error ? e.message : "Could not resend reminders."); }
                         finally { setBusy(false); }
                       }}>Resend Master Vision notification to pastors</button>
