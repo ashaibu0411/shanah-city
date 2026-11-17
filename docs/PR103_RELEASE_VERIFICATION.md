@@ -30,8 +30,8 @@ Same as [PR102_VISION_CI_PREEXISTING.md](./PR102_VISION_CI_PREEXISTING.md): `vis
 
 ## Release record
 
-_Filled after merge/deploy._
+_Recorded from the PR #103 production release report._
 
-- **Merge commit:** _TBD_
-- **Vercel deployment ID:** _TBD_
-- **Production spot-check:** _TBD_
+- **Merge commit:** `972b776cb9e85318221af74d88f9f16a9b6f9296`
+- **Vercel deployment ID:** `8PvgApnqSzaN7imNNUFBB8bfENQZ`
+- **Production spot-check:** Manual real-device recipient/share/feedback checks remain outstanding; see checklist above.
