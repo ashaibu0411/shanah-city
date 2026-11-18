@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { applyHeaderBold, applyRichTextFormat, type RichTextFormat } from "@/lib/rich-text";
 import { FormTextarea } from "@/components/ui/form-fields";
 
@@ -13,6 +13,8 @@ type RichTextAreaProps = {
   hint?: string;
   /** header = B bolds the current line only (section titles). inline = wrap selection. none = hide B. */
   boldMode?: "header" | "inline" | "none";
+  expandToFit?: boolean;
+  className?: string;
 };
 
 export function RichTextArea({
@@ -23,8 +25,17 @@ export function RichTextArea({
   rows = 4,
   hint,
   boldMode = "inline",
+  expandToFit = false,
+  className = "",
 }: RichTextAreaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!expandToFit || !textareaRef.current) return;
+    const node = textareaRef.current;
+    node.style.height = "auto";
+    node.style.height = `${Math.max(420, node.scrollHeight + 4)}px`;
+  }, [value, expandToFit]);
 
   function applyFormat(format: RichTextFormat) {
     const field = textareaRef.current;
@@ -83,6 +94,8 @@ export function RichTextArea({
         value={value}
         onValueChange={onValueChange}
         rows={rows}
+        className={className}
+        style={expandToFit ? { overflowY: "hidden", minHeight: 420, resize: "vertical" } : undefined}
       />
       <p className="mt-1 text-xs text-night-500">
         {hint ??
