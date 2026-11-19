@@ -26,6 +26,7 @@ function parseEventBody(body: Record<string, unknown>) {
   const groupId = body.groupId ? String(body.groupId).trim() : undefined;
   const groupName = body.groupName ? String(body.groupName).trim() : undefined;
   const recurringWeekdayRaw = body.recurringWeekday;
+  const recurringMonthDayRaw = body.recurringMonthDay;
 
   return {
     title: String(body.title ?? "").trim(),
@@ -41,6 +42,10 @@ function parseEventBody(body: Record<string, unknown>) {
       recurringWeekdayRaw === "" || recurringWeekdayRaw == null
         ? undefined
         : Number(recurringWeekdayRaw),
+    recurringMonthDay:
+      recurringMonthDayRaw === "" || recurringMonthDayRaw == null
+        ? undefined
+        : Number(recurringMonthDayRaw),
     published: body.published === false ? false : true,
   };
 }
@@ -203,6 +208,17 @@ export async function POST(request: Request) {
     input.groupName = group.name;
   }
 
+  if (input.recurringMonthDay != null) {
+    const start = input.startsOn;
+    if (!start || !/^\d{4}-\d{2}-\d{2}$/.test(start) ||
+        !Number.isInteger(input.recurringMonthDay) ||
+        input.recurringMonthDay < 1 || input.recurringMonthDay > 31 ||
+        Number(start.slice(8, 10)) !== input.recurringMonthDay ||
+        input.recurringWeekday != null ||
+        (input.endsOn && input.endsOn < start)) {
+      return NextResponse.json({ error: "Monthly repeat needs a valid start date and matching day of month. End date must not precede start." }, { status: 400 });
+    }
+  }
   const rsvpFields = await normalizeRsvpFields(body, input.groupId ?? null);
   const event = await createEvent({ ...input, ...rsvpFields });
   const notifyResult = await maybeNotifyRsvpAudience(event, undefined, user!, body);
@@ -263,6 +279,8 @@ export async function PATCH(request: Request) {
         : body.recurringWeekday != null
           ? Number(body.recurringWeekday)
           : undefined,
+    recurringMonthDay:
+      body.recurringMonthDay === null ? null : body.recurringMonthDay != null ? Number(body.recurringMonthDay) : undefined,
     published: body.published === false ? false : body.published === true ? true : undefined,
     ...rsvpFields,
   });
