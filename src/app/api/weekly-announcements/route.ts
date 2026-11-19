@@ -41,7 +41,8 @@ function churchEventsForWeek(events: Awaited<ReturnType<typeof getEvents>>, sinc
 export async function GET(request: NextRequest) {
   const offset = request.nextUrl.searchParams.get("offset") === "1" ? 1 : 0;
   const { since, until } = selectedWeek(offset);
-  const [canManage, events, bulletin] = await Promise.all([
+  const publicWebsite = ["shanahcity.org", "www.shanahcity.org"].includes(request.nextUrl.hostname.toLowerCase());
+  const [adminAuthorized, events, bulletin] = await Promise.all([
     canEdit(),
     getEvents({ groupId: null }),
     useDatabase() ? prisma.weeklyBulletin.findUnique({ where: { weekStart: since } }) : Promise.resolve(null),
@@ -49,8 +50,8 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     weekStart: since,
     weekEnd: until,
-    canManage,
-    bulletin: bulletin && (bulletin.published || canManage)
+    canManage: !publicWebsite && adminAuthorized,
+    bulletin: bulletin && (bulletin.published || (!publicWebsite && adminAuthorized))
       ? { title: bulletin.title, body: bulletin.body, published: bulletin.published }
       : null,
     events: churchEventsForWeek(events, since, until),
@@ -58,6 +59,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+  // Public church website is read-only; all bulletin changes originate from the member app.
+  if (["shanahcity.org", "www.shanahcity.org"].includes(new URL(request.url).hostname.toLowerCase())) {
+    return NextResponse.json({ error: "Edit announcements from the Shanah City member app." }, { status: 403 });
+  }
   if (!(await canEdit())) return NextResponse.json({ error: "Admin access required." }, { status: 403 });
   if (!useDatabase()) return NextResponse.json({ error: "Bulletin storage is not configured." }, { status: 503 });
   const body = await request.json().catch(() => ({}));
