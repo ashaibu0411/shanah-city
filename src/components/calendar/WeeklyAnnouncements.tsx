@@ -84,8 +84,8 @@ export function WeeklyAnnouncements({ website = false }: { website?: boolean }) 
         {loading ? <p className="mt-4 text-slate-600">Loading announcements…</p> : data?.bulletin?.published ? (
           <div className="mt-4"><h3 className="font-display text-2xl font-semibold text-[#142d49]">{data.bulletin.title}</h3><p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-700">{data.bulletin.body}</p></div>
         ) : <p className="mt-4 text-sm leading-7 text-slate-600">No weekly bulletin has been published yet. Check the upcoming events for this week.</p>}
-        {data?.canManage && !editing ? <button type="button" onClick={() => setEditing(true)} className="mt-6 rounded-full border border-[#0b6899] px-5 py-2.5 text-xs font-bold text-[#0b6899]">Edit this week's announcements</button> : null}
-        {data?.canManage && editing ? <div className="mt-6 space-y-3 rounded-2xl bg-[#f0f6fa] p-5">
+        {!website && data?.canManage && !editing ? <button type="button" onClick={() => setEditing(true)} className="mt-6 rounded-full border border-[#0b6899] px-5 py-2.5 text-xs font-bold text-[#0b6899]">Edit this week's announcements</button> : null}
+        {!website && data?.canManage && editing ? <div className="mt-6 space-y-3 rounded-2xl bg-[#f0f6fa] p-5">
           <label className="block text-sm font-bold text-[#142d49]">Bulletin headline
             <input value={title} onChange={e=>setTitle(e.target.value)} maxLength={180} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-normal" placeholder="Announcements for this week"/>
           </label>
