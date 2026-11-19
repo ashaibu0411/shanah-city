@@ -62,6 +62,16 @@ function EventDetailCard({
         </div>
         {needsRsvp ? <EventRsvpBadge /> : null}
       </div>
+      {(event.artworkWideUrl || event.artworkBannerUrl || event.artworkSquareUrl) ? (
+        <div className="mt-4 overflow-hidden rounded-2xl border border-night-900/10 bg-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={event.artworkWideUrl || event.artworkBannerUrl || event.artworkSquareUrl}
+            alt={`${event.title} event flyer`}
+            className="aspect-video w-full object-contain"
+          />
+        </div>
+      ) : null}
       {event.rsvpEnabled && !needsRsvp ? (
         <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-teal-800">
           RSVP requested
