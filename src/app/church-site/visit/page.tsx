@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {title:"Plan Your Visit | Shanah City Church",description:"Plan your first Sunday at Shanah City in Aurora. Service times, location, children's ministry, worship, and welcome information.",alternates:{canonical:"https://shanahcity.org/visit"}};
 
 export default function VisitPage(){
-  return <main><ChurchPageIntro eyebrow="Your first Sunday" title="Come as you are. Leave encouraged." description="New to Shanah City? From the moment you arrive, our church family would love to make you feel at home." image="/home/home-gallery-15.jpg"/>
+  return <main><ChurchPageIntro eyebrow="Your first Sunday" title="Come as you are. Leave encouraged." description="New to Shanah City? From the moment you arrive, our church family would love to make you feel at home." image="/home/home-gallery-15.jpg" imagePosition="center 12%"/>
     <section className="mx-auto grid max-w-[1210px] gap-12 px-6 py-20 lg:grid-cols-[1.05fr_.95fr] lg:gap-20">
       <div><ChurchSectionHeading eyebrow="What to expect" title="A Sunday made for everyone." description="Join a diverse church family for heartfelt worship, prayer, biblical teaching, and opportunities to connect."/>
         <div className="mt-9 grid gap-5">
