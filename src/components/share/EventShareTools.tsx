@@ -9,9 +9,10 @@ import type { ChurchEvent } from "@/lib/types";
 type EventShareToolsProps = {
   event: ChurchEvent;
   onArtworkChange: (artwork: ArtworkFields) => void;
+  showArtwork?: boolean;
 };
 
-export function EventShareTools({ event, onArtworkChange }: EventShareToolsProps) {
+export function EventShareTools({ event, onArtworkChange, showArtwork = true }: EventShareToolsProps) {
   const artwork: ArtworkFields = {
     artworkSquareUrl: event.artworkSquareUrl,
     artworkWideUrl: event.artworkWideUrl,
@@ -20,12 +21,14 @@ export function EventShareTools({ event, onArtworkChange }: EventShareToolsProps
 
   return (
     <div className="mt-4 space-y-4 border-t border-night-900/10 pt-4">
-      <ContentArtworkPanel
-        contentKind="event"
-        contentId={event.id}
-        artwork={artwork}
-        onChange={onArtworkChange}
-      />
+      {showArtwork ? (
+        <ContentArtworkPanel
+          contentKind="event"
+          contentId={event.id}
+          artwork={artwork}
+          onChange={onArtworkChange}
+        />
+      ) : null}
       <div className="rounded-2xl border border-night-900/10 bg-white p-4">
         <ShareActions
           shareUrl={eventShareUrl(event.id)}
