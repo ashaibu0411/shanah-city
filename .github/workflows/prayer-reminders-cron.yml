@@ -9,8 +9,8 @@ on:
     - cron: "*/5 * * * *"
     # Shift Your Morning ~7:52–8:17 AM Denver (MST/MDT via 13–15 UTC)
     - cron: "52,57,2,7,12,17 13,14,15 * * 1-5"
-    # Shift Your Evening ~7:52–8:40 PM Denver Tue–Thu (01–03 UTC)
-    - cron: "52,57,0,5,10,15,20,25,30,35,40 1,2,3 * * 2-4"
+    # Shift Your Evening ~7:52–8:40 PM Denver Tue–Thu (UTC day Wed–Fri)
+    - cron: "52,57,0,5,10,15,20,25,30,35,40 1,2,3 * * 3-5"
   workflow_dispatch:
 
 concurrency:

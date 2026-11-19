@@ -6,7 +6,8 @@ export type FeedReadKey =
   | "media"
   | "worship"
   | "meetings"
-  | "kids";
+  | "kids"
+  | "vision";
 
 export type AppNotificationItemType =
   | "direct_message"
@@ -17,7 +18,8 @@ export type AppNotificationItemType =
   | "worship"
   | "meeting"
   | "kids"
-  | "ministry_report";
+  | "ministry_report"
+  | "vision";
 
 export type AppNotificationItem = {
   id: string;
@@ -43,6 +45,7 @@ export type AppNotificationsSummary = {
   worship: number;
   meetings: number;
   kids: number;
+  vision: number;
   items: AppNotificationItem[];
 };
 
@@ -53,4 +56,5 @@ export const FEED_READ_KEYS: FeedReadKey[] = [
   "worship",
   "meetings",
   "kids",
+  "vision",
 ];

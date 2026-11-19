@@ -44,6 +44,8 @@ function notificationIcon(type: AppNotificationItemType) {
       return "🧒";
     case "ministry_report":
       return "📋";
+    case "vision":
+      return "📜";
     default:
       return "✉";
   }
@@ -98,6 +100,8 @@ function notificationTone(type: AppNotificationItemType) {
       return "bg-orange-500/15 text-orange-600";
     case "ministry_report":
       return "bg-amber-500/15 text-amber-700";
+    case "vision":
+      return "bg-blue-500/15 text-blue-700";
     default:
       return "bg-fuchsia-500/15 text-fuchsia-500";
   }
@@ -114,6 +118,7 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
     worship,
     meetings,
     kids,
+    vision,
   } = useNotifications();
   const [open, setOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -206,7 +211,7 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
   }
 
   const feedBadgeTotal =
-    community + devotions + media + worship + meetings + kids;
+    community + devotions + media + worship + meetings + kids + vision;
 
   return (
     <div ref={rootRef} className="relative">

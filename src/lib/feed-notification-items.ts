@@ -1,4 +1,5 @@
 import { getUserById } from "@/lib/auth-server";
+import { getVisionNotificationItems } from "@/lib/vision-notification-items";
 import { getDevotions } from "@/lib/devotion-server";
 import { getFeedLastReads } from "@/lib/feed-read-server";
 import { userIsInKidsMinistryGroup } from "@/lib/kids-access-server";
@@ -54,6 +55,7 @@ export async function getFeedNotificationItems(
     worshipItems,
     meetingItems,
     kidsItems,
+    visionItems,
   ] = await Promise.all([
     getCommunityItems(userId, sinceDate("community", lastReads, userCreatedAt)),
     getDevotionItems(userId, sinceDate("devotions", lastReads, userCreatedAt)),
@@ -61,6 +63,7 @@ export async function getFeedNotificationItems(
     getWorshipItems(userId, sinceDate("worship", lastReads, userCreatedAt)),
     getMeetingItems(sinceDate("meetings", lastReads, userCreatedAt)),
     getKidsItems(userId, sinceDate("kids", lastReads, userCreatedAt)),
+    getVisionNotificationItems(userId, sinceDate("vision", lastReads, userCreatedAt)),
   ]);
 
   return [
@@ -70,6 +73,7 @@ export async function getFeedNotificationItems(
     ...worshipItems,
     ...meetingItems,
     ...kidsItems,
+    ...visionItems,
   ]
     .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
     .slice(0, 40);

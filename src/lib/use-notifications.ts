@@ -15,6 +15,7 @@ const EMPTY: AppNotificationsSummary = {
   worship: 0,
   meetings: 0,
   kids: 0,
+  vision: 0,
   items: [],
 };
 
@@ -134,6 +135,7 @@ export function useNotifications() {
     worship: summary.worship,
     meetings: summary.meetings,
     kids: summary.kids,
+    vision: summary.vision,
     fetching,
     refresh,
   };
