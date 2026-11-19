@@ -30,8 +30,8 @@ export default async function ChurchSitePage() {
   return (
           <main>
         <section className="relative isolate min-h-[610px] overflow-hidden bg-[#103456] text-white lg:min-h-[690px]">
-          <div className="absolute inset-0 bg-[url('/home/home-gallery-01.jpg')] bg-cover bg-center" role="img" aria-label="Shanah City church community" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#051c32]/95 via-[#07233a]/80 to-[#092d46]/25" />
+          <div className="absolute inset-0 bg-[url('/home/home-gallery-08.jpg')] bg-cover bg-[position:50%_38%] sm:bg-[position:50%_35%]" role="img" aria-label="Shanah City church family gathered for worship" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#051c32]/95 via-[#07233a]/75 to-[#092d46]/15" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#051a2b]/60 via-transparent to-transparent" />
           <div className="relative mx-auto flex min-h-[610px] max-w-[1320px] items-center px-6 py-20 sm:px-10 lg:min-h-[690px] lg:px-16">
             <div className="max-w-[760px]">
