@@ -3,7 +3,6 @@ import Link from "next/link";
 import { site } from "@/lib/site";
 import { getEvents } from "@/lib/event-server";
 import { pickUpcomingHomeEventRows, formatHomeEventMeta } from "@/lib/home-upcoming-events";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Shanah City Church | Welcome Home",
