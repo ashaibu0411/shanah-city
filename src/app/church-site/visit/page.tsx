@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { GuestCaptureForm } from "@/components/guest/GuestCaptureForm";
 import { ChurchPageIntro, ChurchSectionHeading } from "@/components/church-site/ChurchSiteFrame";
 import { site } from "@/lib/site";
@@ -24,6 +23,6 @@ export default function VisitPage(){
       </div>
     </section>
     <section className="bg-white px-6 py-20 sm:px-10"><div className="mx-auto grid max-w-[1210px] gap-10 lg:grid-cols-[.9fr_1.1fr]"><div><ChurchSectionHeading eyebrow="Let us know you're coming" title="We're excited to meet you." description="If you're planning your first visit, share your details with our welcome team. No church account is required."/></div><div className="rounded-[26px] border border-slate-200 bg-[#fbfcfd] p-5 sm:p-8"><GuestCaptureForm embedded /></div></div></section>
-    <section className="bg-[#082d4c] px-6 py-14 text-center text-white"><h2 className="font-display text-3xl">Questions before Sunday?</h2><p className="mt-3 text-blue-100">Our team is ready to help.</p><Link href="/contact" className="mt-6 inline-flex rounded-full bg-[#efd1a1] px-6 py-3 font-extrabold text-[#072843]">Contact Us ↗</Link></section>
+    <section className="bg-[#082d4c] px-6 py-14 text-center text-white"><h2 className="font-display text-3xl">Questions before Sunday?</h2><p className="mt-3 text-blue-100">Our team is ready to help.</p><a href="/contact" className="mt-6 inline-flex rounded-full bg-[#efd1a1] px-6 py-3 font-extrabold text-[#072843]">Contact Us ↗</a></section>
   </main>;
 }

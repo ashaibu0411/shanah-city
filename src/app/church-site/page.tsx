@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { site } from "@/lib/site";
 import { getEvents } from "@/lib/event-server";
 import { pickUpcomingHomeEventRows, formatHomeEventMeta } from "@/lib/home-upcoming-events";
@@ -41,7 +40,7 @@ export default async function ChurchSitePage() {
               <p className="mt-7 max-w-xl text-base leading-8 text-white/90 sm:text-lg">Encounter God. Find your people. Discover the life you were created for. We would love to welcome you this Sunday.</p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <a href="/visit" className="inline-flex items-center justify-center rounded-full bg-[#f9d49a] px-7 py-4 text-sm font-extrabold text-[#082a43] transition hover:bg-white">Plan Your First Visit <span className="ml-3" aria-hidden="true">↗</span></a>
-                <Link href="/messages" className="inline-flex items-center justify-center rounded-full border border-white/50 bg-white/10 px-7 py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">Watch a Service <span className="ml-3" aria-hidden="true">▶</span></Link>
+                <a href="/messages" className="inline-flex items-center justify-center rounded-full border border-white/50 bg-white/10 px-7 py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">Watch a Service <span className="ml-3" aria-hidden="true">▶</span></a>
               </div>
               <div className="mt-11 flex flex-wrap gap-x-8 gap-y-3 border-t border-white/25 pt-5 text-xs font-semibold tracking-wide text-white/80">
                 <span>Sunday Worship · 10:00 AM</span>
@@ -59,7 +58,7 @@ export default async function ChurchSitePage() {
               <div className="my-7 h-[3px] w-16 rounded-full bg-[#e4ad58]" />
               <p className="max-w-xl text-[16px] leading-8 text-slate-600">Shanah City is a diverse, family-oriented, non-denominational charismatic church in Colorado. We are a community where people can meet Jesus, grow in God's Word, and experience life-giving relationships.</p>
               <p className="mt-5 max-w-xl text-[16px] leading-8 text-slate-600">Our vision is simple and enduring: <strong className="text-[#0b365c]">Changing lives to higher levels in God.</strong></p>
-              <Link href="/about" className="mt-8 inline-flex items-center gap-2 border-b-2 border-[#0a6398] pb-2 text-sm font-extrabold text-[#0b527f]">Discover our story <span aria-hidden="true">↗</span></Link>
+              <a href="/about" className="mt-8 inline-flex items-center gap-2 border-b-2 border-[#0a6398] pb-2 text-sm font-extrabold text-[#0b527f]">Discover our story <span aria-hidden="true">↗</span></a>
             </div>
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,12 +89,12 @@ export default async function ChurchSitePage() {
         <section id="ministries" className="scroll-mt-16 bg-white px-6 py-20 sm:px-10 lg:py-28">
           <div className="mx-auto max-w-[1210px]">
             <p className="text-xs font-extrabold uppercase tracking-[0.23em] text-[#0074aa]">Life happens together</p>
-            <div className="mt-3 flex flex-wrap items-end justify-between gap-4"><h2 className="font-display text-[clamp(2.6rem,5vw,4.6rem)] font-semibold leading-tight tracking-[-0.045em]">Find your community.</h2><Link href="/ministries" className="border-b-2 border-[#0a6398] pb-1 text-sm font-extrabold text-[#0b527f]">Explore groups ↗</Link></div>
+            <div className="mt-3 flex flex-wrap items-end justify-between gap-4"><h2 className="font-display text-[clamp(2.6rem,5vw,4.6rem)] font-semibold leading-tight tracking-[-0.045em]">Find your community.</h2><a href="/ministries" className="border-b-2 border-[#0a6398] pb-1 text-sm font-extrabold text-[#0b527f]">Explore groups ↗</a></div>
             <div className="mt-10 grid overflow-hidden rounded-[26px] border border-slate-200 md:grid-cols-2">
-              {ministries.map((item, i) => <Link key={item.number} href="/ministries" className={`group flex min-h-[205px] gap-5 border-slate-200 p-7 transition hover:bg-[#f4f9fc] sm:p-9 ${i % 2 === 0 ? "md:border-r" : ""} ${i < 2 ? "border-b" : ""} ${i === 2 ? "max-md:border-b" : ""}`}>
+              {ministries.map((item, i) => <a key={item.number} href="/ministries" className={`group flex min-h-[205px] gap-5 border-slate-200 p-7 transition hover:bg-[#f4f9fc] sm:p-9 ${i % 2 === 0 ? "md:border-r" : ""} ${i < 2 ? "border-b" : ""} ${i === 2 ? "max-md:border-b" : ""}`}>
                 <span className="pt-1 text-xs font-extrabold tracking-widest text-[#0b83bd]">{item.number}</span>
                 <div><h3 className="font-display text-2xl font-bold text-[#17304c]">{item.title} <span className="ml-2 inline-block text-sm text-[#0b83bd] transition group-hover:translate-x-1">↗</span></h3><p className="mt-3 max-w-xs text-sm leading-7 text-slate-600">{item.caption}</p></div>
-              </Link>)}
+              </a>)}
             </div>
           </div>
         </section>
@@ -104,7 +103,7 @@ export default async function ChurchSitePage() {
           <div className="mx-auto max-w-[1210px]">
             <div className="flex flex-wrap items-end justify-between gap-5">
               <div><p className="text-xs font-extrabold uppercase tracking-[0.23em] text-[#0876a9]">Life at Shanah City</p><h2 className="mt-3 font-display text-[clamp(2.5rem,5vw,4.3rem)] font-semibold tracking-[-0.05em]">What's happening.</h2></div>
-              <Link href="/events" className="rounded-full border border-[#116c99] px-5 py-3 text-sm font-extrabold text-[#07527d]">View All Events ↗</Link>
+              <a href="/events" className="rounded-full border border-[#116c99] px-5 py-3 text-sm font-extrabold text-[#07527d]">View All Events ↗</a>
             </div>
             <div className="mt-10 grid gap-5 md:grid-cols-3">
               {upcomingEvents.length ? upcomingEvents.map(({event,occurrenceDate}) => (
@@ -113,7 +112,7 @@ export default async function ChurchSitePage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={event.artworkWideUrl || event.artworkBannerUrl || event.artworkSquareUrl || "/home/home-gallery-16.jpg"} alt="" className="h-full w-full object-cover"/>
                   </div>
-                  <div className="p-6"><p className="text-xs font-extrabold uppercase tracking-wider text-[#0a78a8]">{formatHomeEventMeta(event, occurrenceDate).meta}</p><h3 className="mt-3 font-display text-2xl font-bold leading-snug">{event.title}</h3><p className="mt-2 text-sm text-slate-600">{event.location}</p><Link href="/events" className="mt-5 inline-block border-b-2 border-[#0c719c] pb-1 text-sm font-bold text-[#0a5d85]">Learn more ↗</Link></div>
+                  <div className="p-6"><p className="text-xs font-extrabold uppercase tracking-wider text-[#0a78a8]">{formatHomeEventMeta(event, occurrenceDate).meta}</p><h3 className="mt-3 font-display text-2xl font-bold leading-snug">{event.title}</h3><p className="mt-2 text-sm text-slate-600">{event.location}</p><a href="/events" className="mt-5 inline-block border-b-2 border-[#0c719c] pb-1 text-sm font-bold text-[#0a5d85]">Learn more ↗</a></div>
                 </article>
               )) : <div className="rounded-2xl bg-white p-8 text-slate-700 md:col-span-3">Check back for upcoming services and special gatherings. Join us Sunday at 10 AM.</div>}
             </div>
@@ -126,16 +125,16 @@ export default async function ChurchSitePage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/home/home-gallery-12.jpg" alt="Church worship and teaching" className="aspect-video w-full object-cover opacity-90" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#092d4b]/65 to-transparent" />
-              <Link href="/messages" className="absolute bottom-5 left-5 inline-flex items-center gap-3 rounded-full bg-white px-5 py-3 text-sm font-extrabold text-[#092d4b]">Watch Messages <span aria-hidden="true">▶</span></Link>
+              <a href="/messages" className="absolute bottom-5 left-5 inline-flex items-center gap-3 rounded-full bg-white px-5 py-3 text-sm font-extrabold text-[#092d4b]">Watch Messages <span aria-hidden="true">▶</span></a>
             </div>
-            <div><p className="text-xs font-extrabold uppercase tracking-[0.23em] text-[#ffcf8a]">Faith for every day</p><h2 className="mt-4 font-display text-[clamp(2.6rem,5vw,4.4rem)] font-semibold leading-[1.08] tracking-[-0.04em]">A word that moves you forward.</h2><p className="mt-6 max-w-lg text-base leading-8 text-blue-100">Carry the message beyond Sunday. Explore sermons, daily devotions, and meaningful ways to grow in faith throughout the week.</p><div className="mt-8 flex flex-wrap gap-3"><Link href="/messages" className="rounded-full bg-[#fbd69d] px-6 py-3.5 text-sm font-extrabold text-[#092d4b]">Explore Sermons ↗</Link><Link href="/devotions" className="rounded-full border border-white/50 px-6 py-3.5 text-sm font-bold text-white">Daily Devotions</Link></div></div>
+            <div><p className="text-xs font-extrabold uppercase tracking-[0.23em] text-[#ffcf8a]">Faith for every day</p><h2 className="mt-4 font-display text-[clamp(2.6rem,5vw,4.4rem)] font-semibold leading-[1.08] tracking-[-0.04em]">A word that moves you forward.</h2><p className="mt-6 max-w-lg text-base leading-8 text-blue-100">Carry the message beyond Sunday. Explore sermons, daily devotions, and meaningful ways to grow in faith throughout the week.</p><div className="mt-8 flex flex-wrap gap-3"><a href="/messages" className="rounded-full bg-[#fbd69d] px-6 py-3.5 text-sm font-extrabold text-[#092d4b]">Explore Sermons ↗</a><a href="/devotions" className="rounded-full border border-white/50 px-6 py-3.5 text-sm font-bold text-white">Daily Devotions</a></div></div>
           </div>
         </section>
 
         <section className="bg-[#fbfaf7] px-6 py-20 sm:px-10 lg:py-24">
           <div className="mx-auto grid max-w-[1210px] items-center gap-8 rounded-[28px] bg-white p-7 shadow-[0_12px_45px_rgba(5,40,72,.07)] sm:p-12 lg:grid-cols-[1fr_auto]">
             <div><p className="text-xs font-extrabold uppercase tracking-[0.23em] text-[#0d7cac]">Make a difference</p><h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-[#142d49] sm:text-5xl">Generosity changes lives.</h2><p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">Your giving helps support the mission of Shanah City, ministry to families, and reaching our community with the love of Christ.</p></div>
-            <Link href="/giving" className="inline-flex justify-center rounded-full bg-[#0b6699] px-8 py-4 text-sm font-extrabold text-white hover:bg-[#084b77]">Give Online ↗</Link>
+            <a href="/giving" className="inline-flex justify-center rounded-full bg-[#0b6699] px-8 py-4 text-sm font-extrabold text-white hover:bg-[#084b77]">Give Online ↗</a>
           </div>
         </section>
       </main>
