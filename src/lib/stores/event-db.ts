@@ -14,6 +14,7 @@ type EventRecord = {
   startsOn: string | null;
   endsOn: string | null;
   recurringWeekday: number | null;
+  recurringMonthDay: number | null;
   artworkSquareUrl: string | null;
   artworkWideUrl: string | null;
   artworkBannerUrl: string | null;
@@ -43,6 +44,7 @@ function mapEvent(record: EventRecord): ChurchEvent {
     startsOn: record.startsOn ?? undefined,
     endsOn: record.endsOn ?? undefined,
     recurringWeekday: record.recurringWeekday ?? undefined,
+    recurringMonthDay: record.recurringMonthDay ?? undefined,
     artworkSquareUrl: record.artworkSquareUrl ?? undefined,
     artworkWideUrl: record.artworkWideUrl ?? undefined,
     artworkBannerUrl: record.artworkBannerUrl ?? undefined,
@@ -129,6 +131,7 @@ async function ensureDefaultEvents() {
       startsOn: event.startsOn ?? null,
       endsOn: event.endsOn ?? null,
       recurringWeekday: event.recurringWeekday ?? null,
+      recurringMonthDay: event.recurringMonthDay ?? null,
       published: event.published ?? true,
       sortOrder: event.sortOrder ?? 0,
       createdAt: now,
@@ -189,6 +192,7 @@ export async function createEvent(
       startsOn: input.startsOn ?? null,
       endsOn: input.endsOn ?? null,
       recurringWeekday: input.recurringWeekday ?? null,
+      recurringMonthDay: input.recurringMonthDay ?? null,
       published: input.published ?? true,
       sortOrder: input.sortOrder ?? events.length,
       ...rsvp,
@@ -220,6 +224,10 @@ export async function updateEvent(id: string, update: Partial<Omit<ChurchEvent, 
         update.recurringWeekday === undefined
           ? undefined
           : update.recurringWeekday ?? null,
+      recurringMonthDay:
+        update.recurringMonthDay === undefined
+          ? undefined
+          : update.recurringMonthDay ?? null,
       artworkSquareUrl:
         update.artworkSquareUrl === undefined
           ? undefined
@@ -267,6 +275,7 @@ export async function upsertEvent(event: ChurchEvent) {
       startsOn: event.startsOn ?? null,
       endsOn: event.endsOn ?? null,
       recurringWeekday: event.recurringWeekday ?? null,
+      recurringMonthDay: event.recurringMonthDay ?? null,
       artworkSquareUrl: event.artworkSquareUrl ?? null,
       artworkWideUrl: event.artworkWideUrl ?? null,
       artworkBannerUrl: event.artworkBannerUrl ?? null,
@@ -287,6 +296,7 @@ export async function upsertEvent(event: ChurchEvent) {
       startsOn: event.startsOn ?? null,
       endsOn: event.endsOn ?? null,
       recurringWeekday: event.recurringWeekday ?? null,
+      recurringMonthDay: event.recurringMonthDay ?? null,
       artworkSquareUrl: event.artworkSquareUrl ?? null,
       artworkWideUrl: event.artworkWideUrl ?? null,
       artworkBannerUrl: event.artworkBannerUrl ?? null,
