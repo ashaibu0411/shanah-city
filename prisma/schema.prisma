@@ -2599,3 +2599,14 @@ model VisionAuditEvent {
 
   @@index([planId, createdAt])
 }
+
+/** Public weekly church bulletin, authored by church calendar administrators. */
+model WeeklyBulletin {
+  id        String   @id @default(cuid())
+  weekStart String   @unique
+  title     String
+  body      String   @db.Text
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
