@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
+import { WeeklyAnnouncements } from "@/components/calendar/WeeklyAnnouncements";
 import { EventCalendarFields } from "@/components/calendar/EventCalendarFields";
 import {
   defaultEventRsvpFormState,
@@ -226,6 +227,7 @@ export function CalendarHub() {
 
   return (
     <div className="space-y-5">
+      <WeeklyAnnouncements />
       <Card className="border-sand-200/80 bg-sand-50/50 p-4 sm:p-5">
         <p className="text-sm text-night-700">
           Worship services, outreach, and church-wide events. Tap a day for times, location, and RSVP.
