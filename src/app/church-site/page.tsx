@@ -131,6 +131,21 @@ export default async function ChurchSitePage() {
           </div>
         </section>
 
+        <section className="bg-[#edf5f9] px-6 py-20 sm:px-10 lg:py-24">
+          <div className="mx-auto grid max-w-[1210px] items-center gap-10 overflow-hidden rounded-[28px] bg-[#083453] px-7 py-10 text-white shadow-xl sm:px-12 lg:grid-cols-[1fr_290px] lg:py-14">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-[#f3cb8b]">Stay connected all week</p>
+              <h2 className="mt-5 max-w-[700px] font-display text-[clamp(2.5rem,5vw,4.6rem)] font-semibold leading-[1.07] tracking-[-0.04em]">Your church family.<br/><em className="text-[#f6d39a]">In your pocket.</em></h2>
+              <p className="mt-6 max-w-xl text-base leading-8 text-blue-100">Sermons, daily devotions, upcoming events, prayer, and community—anytime, anywhere. Download the official Shanah City mobile app.</p>
+              <a href="/app" className="mt-8 inline-flex rounded-full bg-[#f8d49a] px-7 py-4 text-sm font-extrabold text-[#072c48] transition hover:bg-white">Get the Free App ↗</a>
+            </div>
+            <div className="mx-auto w-[190px] rounded-[34px] border-[7px] border-[#122337] bg-[#122337] p-1 shadow-2xl sm:w-[210px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/app-store-screenshots/01-home-1242x2688.png" alt="Shanah City mobile app home preview" className="w-full rounded-[24px] object-cover"/>
+            </div>
+          </div>
+        </section>
+
         <section className="bg-[#fbfaf7] px-6 py-20 sm:px-10 lg:py-24">
           <div className="mx-auto grid max-w-[1210px] items-center gap-8 rounded-[28px] bg-white p-7 shadow-[0_12px_45px_rgba(5,40,72,.07)] sm:p-12 lg:grid-cols-[1fr_auto]">
             <div><p className="text-xs font-extrabold uppercase tracking-[0.23em] text-[#0d7cac]">Make a difference</p><h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-[#142d49] sm:text-5xl">Generosity changes lives.</h2><p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">Your giving helps support the mission of Shanah City, ministry to families, and reaching our community with the love of Christ.</p></div>
