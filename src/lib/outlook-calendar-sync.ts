@@ -188,6 +188,11 @@ export async function syncOutlookChurchCalendar() {
       groupId: null,
       groupName: null,
       sortOrder: previous?.sortOrder ?? event.sortOrder,
+      // Outlook controls the schedule, but event artwork is edited locally.
+      // Keep it when the same Outlook event is synced again.
+      artworkSquareUrl: previous?.artworkSquareUrl ?? event.artworkSquareUrl,
+      artworkWideUrl: previous?.artworkWideUrl ?? event.artworkWideUrl,
+      artworkBannerUrl: previous?.artworkBannerUrl ?? event.artworkBannerUrl,
     });
     if (previous) updated += 1;
     else created += 1;
