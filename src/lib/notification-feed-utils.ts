@@ -16,6 +16,8 @@ export function feedKeyForNotificationType(
       return "meetings";
     case "kids":
       return "kids";
+    case "vision":
+      return "vision";
     default:
       return null;
   }
