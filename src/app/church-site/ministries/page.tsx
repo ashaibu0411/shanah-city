@@ -1,0 +1,17 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ChurchPageIntro, ChurchSectionHeading } from "@/components/church-site/ChurchSiteFrame";
+
+export const metadata: Metadata={title:"Ministries | Shanah City Church",description:"Find your place at Shanah City through worship, children and teens, young adults, men's and women's ministries, prayer and serving.",alternates:{canonical:"https://shanahcity.org/ministries"}};
+const ministries=[
+{title:"Shanah Worship",subtitle:"Worship & creative ministry",body:"Worship, prayer, and creating space to encounter God's presence.",image:"/home/home-gallery-07.jpg"},
+{title:"Shanah Kids & Teens",subtitle:"Next generation",body:"Helping children and teenagers develop faith, friendships, and a strong foundation.",image:"/home/home-gallery-17.jpg"},
+{title:"Men of Legacy",subtitle:"Men's ministry",body:"Building men of faith, responsibility, prayer, and meaningful relationships.",image:"/home/home-gallery-25.jpg"},
+{title:"Women's Ministry",subtitle:"Women growing together",body:"Encouragement, discipleship, fellowship, and opportunities to serve.",image:"/home/home-gallery-29.jpg"},
+{title:"Young Adults",subtitle:"Next-generation community",body:"Friendships, spiritual growth, and a place to discover purpose.",image:"/home/home-gallery-32.jpg"},
+{title:"Prayer & Outreach",subtitle:"A church beyond the walls",body:"Standing in prayer and sharing God's love with our wider community.",image:"/home/home-gallery-37.jpg"},
+];
+export default function MinistriesWebsite(){return <main><ChurchPageIntro eyebrow="Belong. Grow. Serve." title="There's a place for you." description="Life is better together. Whether you're new to church or ready to take your next step, there's a community waiting to welcome you." image="/home/home-gallery-22.jpg"/>
+<section className="mx-auto max-w-[1210px] px-6 py-20"><ChurchSectionHeading eyebrow="Get connected" title="Find your community." description="Our ministries create opportunities for people of all ages to grow in faith and serve with purpose."/><div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{ministries.map(m=><article key={m.title} className="overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-sm"><div className="h-48 bg-[#0b3354]">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={m.image} alt="" className="h-full w-full object-cover"/></div><div className="p-7"><p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#0a77ad]">{m.subtitle}</p><h3 className="mt-3 font-display text-2xl font-semibold">{m.title}</h3><p className="mt-3 min-h-[72px] text-sm leading-7 text-slate-600">{m.body}</p><Link href="/contact" className="mt-6 inline-flex border-b-2 border-[#106c9a] pb-1 text-sm font-bold text-[#096392]">Ask about joining ↗</Link></div></article>)}</div></section>
+<section className="bg-[#0b3554] px-6 py-16 text-center text-white"><h2 className="font-display text-3xl font-semibold">Ready to get connected?</h2><p className="mt-4 text-blue-100">Tell our team which ministry interests you.</p><Link href="/contact" className="mt-7 inline-flex rounded-full bg-[#f2d19a] px-7 py-3.5 text-sm font-extrabold text-[#0b3554]">Connect With Us ↗</Link></section>
+</main>}

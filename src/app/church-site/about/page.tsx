@@ -1,0 +1,13 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ChurchPageIntro, ChurchSectionHeading } from "@/components/church-site/ChurchSiteFrame";
+import { site, leadership } from "@/lib/site";
+
+export const metadata:Metadata={title:"About Us | Shanah City Church",description:"Learn about Shanah City Church, our vision, community and leadership in Aurora, Colorado.",alternates:{canonical:"https://shanahcity.org/about"}};
+export default function AboutWebsite(){
+ return <main><ChurchPageIntro eyebrow="Who we are" title="A church becoming more like Christ." description="We believe church is more than a gathering. It is a family, a place to grow, and a community where lives are transformed." image="/home/home-gallery-18.jpg"/>
+ <section className="mx-auto grid max-w-[1210px] items-center gap-14 px-6 py-20 lg:grid-cols-2 lg:py-28"><div><ChurchSectionHeading eyebrow="Our vision" title="Changing lives to higher levels in God." description={site.description}/><p className="mt-6 text-lg font-bold text-[#0b628f]">2 Corinthians 3:18</p><Link href="/visit" className="mt-8 inline-flex rounded-full bg-[#095f91] px-7 py-4 text-sm font-extrabold text-white">Visit Us This Sunday ↗</Link></div><div className="overflow-hidden rounded-[28px] shadow-xl">{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/home/home-gallery-21.jpg" alt="Shanah City community gathered for worship" className="aspect-[5/4] w-full object-cover"/></div></section>
+ <section className="bg-[#eff6fa] px-6 py-20 sm:px-10"><div className="mx-auto max-w-[1210px]"><ChurchSectionHeading eyebrow="Our values" title="People. Faith. Purpose. Community."/><div className="mt-9 grid gap-5 md:grid-cols-3">{[["Encounter God","We make room for worship, prayer, and God's Word."],["Grow together","Real relationships encourage us to mature in faith and love."],["Make an impact","We serve families, the next generation, and our community."]].map(([title,body])=><div key={title} className="rounded-3xl bg-white p-8"><h3 className="font-display text-2xl font-bold">{title}</h3><p className="mt-4 leading-7 text-slate-600">{body}</p></div>)}</div></div></section>
+ <section className="mx-auto max-w-[1210px] px-6 py-20"><ChurchSectionHeading eyebrow="Meet our leadership" title="Serving with heart."/><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{leadership.map(person=><div key={person.name} className="rounded-2xl border border-slate-200 bg-white p-6"><p className="font-display text-xl font-semibold">{person.name}</p><p className="mt-2 text-sm text-slate-600">{person.role}</p></div>)}</div></section>
+ </main>;
+}
