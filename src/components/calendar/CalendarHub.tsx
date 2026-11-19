@@ -154,6 +154,14 @@ export function CalendarHub() {
   }
 
   async function addEvent() {
+    if (recurringWeekday === "monthly" && !/^\d{4}-\d{2}-\d{2}$/.test(startsOn)) {
+      setMessage("Choose a Start date for monthly events.");
+      return;
+    }
+    if (endsOn && (startsOn || recurringWeekday === "monthly") && endsOn < startsOn) {
+      setMessage("End date cannot be before Start date.");
+      return;
+    }
     const response = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -164,7 +172,8 @@ export function CalendarHub() {
         location,
         startsOn: startsOn || undefined,
         endsOn: endsOn || undefined,
-        recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
+        recurringWeekday: recurringWeekday === "" || recurringWeekday === "monthly" ? undefined : Number(recurringWeekday),
+        recurringMonthDay: recurringWeekday === "monthly" ? Number((eventDay || startsOn).slice(8, 10)) : undefined,
         ...eventRsvpFormToPayload(rsvpForm),
         notifyAudience: rsvpForm.notifyMembers,
       }),
