@@ -29,13 +29,13 @@ export function ChurchSiteHeader() {
             {publicNav.map(item => <a key={item.href} href={item.href} className="text-[13px] font-bold text-slate-700 transition hover:text-[#0574ae]">{item.label}</a>)}
           </nav>
           <div className="flex items-center gap-2">
-            <a href="/giving" className="hidden rounded-full px-4 py-3 text-sm font-bold text-[#08466f] hover:bg-blue-50 md:block">Give</a>
+            <a href="/give" className="hidden rounded-full px-4 py-3 text-sm font-bold text-[#08466f] hover:bg-blue-50 md:block">Give</a>
             <a href="/visit" className="rounded-full bg-[#0b689c] px-4 py-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#08507c] sm:px-6 sm:text-sm">Plan a Visit ↗</a>
             <details className="group relative xl:hidden">
               <summary aria-label="Open navigation" className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-xl border border-slate-200 text-2xl text-slate-800 marker:hidden [&::-webkit-details-marker]:hidden">☰</summary>
               <nav aria-label="Mobile church website" className="absolute right-0 top-14 z-50 w-[min(86vw,320px)] rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl">
                 {publicNav.map(item => <a key={item.href} href={item.href} className="block rounded-lg px-4 py-3 text-sm font-bold text-slate-800 hover:bg-sky-50">{item.label}</a>)}
-                <a href="/giving" className="block rounded-lg bg-[#e9f4fb] px-4 py-3 text-sm font-bold text-[#064b76]">Give Online</a>
+                <a href="/give" className="block rounded-lg bg-[#e9f4fb] px-4 py-3 text-sm font-bold text-[#064b76]">Give Online</a>
               </nav>
             </details>
           </div>
@@ -50,7 +50,7 @@ export function ChurchSiteFooter() {
     <footer className="bg-[#061f35] px-6 pb-9 pt-16 text-white sm:px-10">
       <div className="mx-auto grid max-w-[1210px] gap-12 border-b border-white/15 pb-12 lg:grid-cols-[1.4fr_1fr_1fr]">
         <div><p className="font-display text-3xl font-bold">Shanah City <span className="text-base text-[#f3c47c]">CHURCH</span></p><p className="mt-4 max-w-sm text-sm leading-7 text-blue-100">Changing Lives to Higher Levels in God.<br/>A welcoming, multicultural church family in Aurora, Colorado.</p><a href="/visit" className="mt-5 inline-flex rounded-full bg-[#eec98c] px-5 py-3 text-sm font-extrabold text-[#072d4b]">Join Us This Sunday ↗</a></div>
-        <div><h3 className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#f3c47c]">Explore</h3><div className="mt-5 grid grid-cols-2 gap-3 text-sm text-blue-100">{publicNav.map(item=><a key={item.href} href={item.href} className="hover:text-white">{item.label}</a>)}<a href="/giving">Give</a><a href="/app">Download Our App</a><a href="https://shanah-city.vercel.app">Member Sign In</a></div></div>
+        <div><h3 className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#f3c47c]">Explore</h3><div className="mt-5 grid grid-cols-2 gap-3 text-sm text-blue-100">{publicNav.map(item=><a key={item.href} href={item.href} className="hover:text-white">{item.label}</a>)}<a href="/give">Give</a><a href="/app">Download Our App</a><a href="https://shanah-city.vercel.app">Member Sign In</a></div></div>
         <div><h3 className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#f3c47c]">Visit & connect</h3><div className="mt-5 space-y-3 text-sm leading-7 text-blue-100"><p>Sunday Worship · 10:00 AM</p><p>{site.address}</p><a href={`mailto:${site.email}`} className="block underline underline-offset-4">{site.email}</a><a href={site.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-block underline underline-offset-4">Get Directions ↗</a></div></div>
       </div>
       <div className="mx-auto flex max-w-[1210px] flex-wrap items-center justify-between gap-4 pt-7 text-xs text-white/65"><span>© {new Date().getFullYear()} Shanah City Church. All rights reserved.</span><div className="flex gap-5"><a href={site.social.facebook[0].url} target="_blank" rel="noopener noreferrer">Facebook</a><a href={site.social.instagram[0].url} target="_blank" rel="noopener noreferrer">Instagram</a><a href={site.social.youtube} target="_blank" rel="noopener noreferrer">YouTube</a></div></div>

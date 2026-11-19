@@ -8,6 +8,11 @@ const publicPages = new Set(["/", "/visit", "/about", "/ministries", "/messages"
 export function middleware(request: NextRequest) {
   const host = (request.headers.get("host") || "").toLowerCase().split(":")[0];
   const path = request.nextUrl.pathname.replace(/\/$/, "") || "/";
+  if ((host === "shanahcity.org" || host === "www.shanahcity.org") && path === "/giving") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/give";
+    return NextResponse.redirect(url, 308);
+  }
   if ((host === "shanahcity.org" || host === "www.shanahcity.org") && publicPages.has(path)) {
     const headers = new Headers(request.headers);
     headers.set("x-shanah-public-home", "1");
