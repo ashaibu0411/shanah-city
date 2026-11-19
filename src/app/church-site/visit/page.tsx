@@ -16,7 +16,7 @@ export default function VisitPage(){
       <div className="rounded-[28px] bg-[#edf6f9] p-7 sm:p-10">
         <p className="text-xs font-extrabold uppercase tracking-[0.19em] text-[#0b6f9c]">Service & location</p>
         <h2 className="mt-4 font-display text-4xl font-bold">We saved you a seat.</h2>
-        {site.serviceTimes.map(s=><div key={s.day} className="mt-6 border-b border-[#c8dce7] pb-5"><p className="font-extrabold">{s.day}</p><p className="mt-1 text-lg text-[#0d668f]">{s.time}</p></div>)}
+        {site.serviceTimes.map(s=><div key={s.day} className="mt-6 border-b border-[#c8dce7] pb-5"><p className="font-extrabold">{s.day === "Friday Evenings" ? "Glory Encounter Service" : s.day}</p><p className="mt-1 text-lg text-[#0d668f]">{s.time}</p></div>)}
         <p className="mt-6 font-bold">{site.address}</p>
         <p className="mt-2 text-sm leading-6 text-slate-600">{site.visitInfo.duration}</p>
         <a href={site.mapsUrl} target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex rounded-full bg-[#075f91] px-6 py-3.5 text-sm font-extrabold text-white">Get Directions ↗</a>
