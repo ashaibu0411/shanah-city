@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { DM_Sans, Fraunces, Inter, Playfair_Display } from "next/font/google";
 import { AppShell } from "@/components/app/AppShell";
 import { APP_THEME_STORAGE_KEY } from "@/lib/theme";
@@ -60,11 +61,12 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const publicHome = (await headers()).get("x-shanah-public-home") === "1";
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -100,7 +102,7 @@ export default function RootLayout({
             fetchPriority="high"
           />
         </div>
-        <AppShell>{children}</AppShell>
+        {publicHome ? children : <AppShell>{children}</AppShell>}
       </body>
     </html>
   );
