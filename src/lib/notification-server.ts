@@ -38,8 +38,9 @@ export async function getAppNotifications(userId: string): Promise<AppNotificati
   const worship = countByType(feedItems, "worship");
   const meetings = countByType(feedItems, "meeting");
   const kids = countByType(feedItems, "kids");
+  const vision = countByType(feedItems, "vision");
   const ministryReports = ministryReportItems.reduce((sum, item) => sum + item.count, 0);
-  const feedTotal = community + devotions + media + worship + meetings + kids;
+  const feedTotal = community + devotions + media + worship + meetings + kids + vision;
 
   return {
     total: directMessages + groupChat + feedTotal + ministryReports,
@@ -51,6 +52,7 @@ export async function getAppNotifications(userId: string): Promise<AppNotificati
     worship,
     meetings,
     kids,
+    vision,
     items,
   };
 }
