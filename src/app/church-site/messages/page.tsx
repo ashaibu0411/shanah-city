@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ChurchPageIntro, ChurchSectionHeading } from "@/components/church-site/ChurchSiteFrame";
 import { getChannelSermons } from "@/lib/youtube-sermons-server";
 import { site } from "@/lib/site";
@@ -18,5 +17,5 @@ export default async function MessagesWebsite(){
       <div className="p-6"><p className="text-xs font-extrabold uppercase tracking-[0.13em] text-[#08729f]">Shanah City Sermon</p><h3 className="mt-3 font-display text-xl font-bold leading-snug group-hover:text-[#0a6b9b]">{video.title}</h3></div>
     </a>;
   }):<div className="rounded-2xl bg-[#eaf2f7] p-9 text-slate-700 md:col-span-3">Our message library is available on YouTube. <a className="font-extrabold text-[#0878a5] underline" href={site.social.youtube} target="_blank" rel="noopener noreferrer">Watch Shanah City ↗</a></div>}
-  </div><div className="mt-10 flex flex-wrap gap-4"><a href={site.social.youtube} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#09679b] px-7 py-3.5 text-sm font-extrabold text-white">More on YouTube ↗</a><Link href="/devotions" className="rounded-full border border-[#0b6a9b] px-7 py-3.5 text-sm font-extrabold text-[#075c88]">Read Devotions ↗</Link></div></section></main>;
+  </div><div className="mt-10 flex flex-wrap gap-4"><a href={site.social.youtube} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#09679b] px-7 py-3.5 text-sm font-extrabold text-white">More on YouTube ↗</a><a href="/devotions" className="rounded-full border border-[#0b6a9b] px-7 py-3.5 text-sm font-extrabold text-[#075c88]">Read Devotions ↗</a></div></section></main>;
 }
