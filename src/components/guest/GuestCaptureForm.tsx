@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, Card } from "@/components/ui";
 import { USHER_SERVICE_TIMES } from "@/lib/frontliners-types";
 
-export function GuestCaptureForm({ embedded = false }: { embedded?: boolean }) {
+export function GuestCaptureForm({ embedded = false, standalone = false }: { embedded?: boolean; standalone?: boolean }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -68,9 +68,15 @@ export function GuestCaptureForm({ embedded = false }: { embedded?: boolean }) {
         <p className="mt-3 text-sm text-night-600">
           Someone from our welcome team will be glad to meet you. No account needed.
         </p>
-        <Button className="mt-6" variant="secondary" onClick={() => setSubmitted(false)}>
-          Submit another guest
-        </Button>
+        {standalone ? (
+          <button type="button" className="mt-6 rounded-xl border border-[#0b6c99] px-5 py-3 text-sm font-bold text-[#075b83]" onClick={() => setSubmitted(false)}>
+            Submit another guest
+          </button>
+        ) : (
+          <Button className="mt-6" variant="secondary" onClick={() => setSubmitted(false)}>
+            Submit another guest
+          </Button>
+        )}
       </div>
     );
     return embedded ? success : <Card>{success}</Card>;
@@ -179,9 +185,15 @@ export function GuestCaptureForm({ embedded = false }: { embedded?: boolean }) {
           <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
         )}
 
-        <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-          {loading ? "Sending…" : "Connect with us"}
-        </Button>
+        {standalone ? (
+          <button type="submit" disabled={loading} className="w-full rounded-xl bg-[#086a9c] px-7 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#08527a] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+            {loading ? "Sending…" : "Connect with us"}
+          </button>
+        ) : (
+          <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+            {loading ? "Sending…" : "Connect with us"}
+          </Button>
+        )
 
         <p className="text-xs text-night-500">
           No account required. Email and phone help our welcome team follow up with you.
