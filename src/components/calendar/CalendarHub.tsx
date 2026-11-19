@@ -173,7 +173,7 @@ export function CalendarHub() {
         startsOn: startsOn || undefined,
         endsOn: endsOn || undefined,
         recurringWeekday: recurringWeekday === "" || recurringWeekday === "monthly" ? undefined : Number(recurringWeekday),
-        recurringMonthDay: recurringWeekday === "monthly" ? Number((eventDay || startsOn).slice(8, 10)) : undefined,
+        recurringMonthDay: recurringWeekday === "monthly" ? Number(startsOn.slice(8, 10)) : undefined,
         ...eventRsvpFormToPayload(rsvpForm),
         notifyAudience: rsvpForm.notifyMembers,
       }),
