@@ -360,6 +360,14 @@ export function GroupEventsSection({
   }, [highlightEventId, events]);
 
   async function addEvent() {
+    if (recurringWeekday === "monthly" && !/^\d{4}-\d{2}-\d{2}$/.test(eventDay || startsOn)) {
+      setMessage("Choose an Event date or Start date for monthly events.");
+      return;
+    }
+    if (endsOn && (eventDay || startsOn) && endsOn < (eventDay || startsOn)) {
+      setMessage("End date cannot be before Start date.");
+      return;
+    }
     const day = eventDay.trim();
     const dateLabel = day
       ? new Date(`${day}T12:00:00`).toLocaleDateString(undefined, {
@@ -379,8 +387,9 @@ export function GroupEventsSection({
         location: location.trim() || "Shanah City",
         groupId,
         startsOn: day || startsOn || undefined,
-        endsOn: day || endsOn || undefined,
-        recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
+        endsOn: endsOn || (recurringWeekday === "" ? day : undefined),
+        recurringWeekday: recurringWeekday === "" || recurringWeekday === "monthly" ? undefined : Number(recurringWeekday),
+        recurringMonthDay: recurringWeekday === "monthly" ? Number((eventDay || startsOn).slice(8, 10)) : undefined,
         ...eventRsvpFormToPayload(rsvpForm),
         rsvpGroupId: rsvpForm.rsvpAudience === "group" ? groupId : null,
         notifyAudience: rsvpForm.notifyMembers,
