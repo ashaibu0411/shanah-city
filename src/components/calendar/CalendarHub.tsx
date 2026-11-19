@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
+import { WeeklyAnnouncements } from "@/components/calendar/WeeklyAnnouncements";
 import { EventCalendarFields } from "@/components/calendar/EventCalendarFields";
 import {
   defaultEventRsvpFormState,
@@ -61,6 +62,16 @@ function EventDetailCard({
         </div>
         {needsRsvp ? <EventRsvpBadge /> : null}
       </div>
+      {(event.artworkWideUrl || event.artworkBannerUrl || event.artworkSquareUrl) ? (
+        <div className="mt-4 overflow-hidden rounded-2xl border border-night-900/10 bg-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={event.artworkWideUrl || event.artworkBannerUrl || event.artworkSquareUrl}
+            alt={`${event.title} event flyer`}
+            className="aspect-video w-full object-contain"
+          />
+        </div>
+      ) : null}
       {event.rsvpEnabled && !needsRsvp ? (
         <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-teal-800">
           RSVP requested
@@ -154,6 +165,14 @@ export function CalendarHub() {
   }
 
   async function addEvent() {
+    if (recurringWeekday === "monthly" && !/^\d{4}-\d{2}-\d{2}$/.test(startsOn)) {
+      setMessage("Choose a Start date for monthly events.");
+      return;
+    }
+    if (endsOn && (startsOn || recurringWeekday === "monthly") && endsOn < startsOn) {
+      setMessage("End date cannot be before Start date.");
+      return;
+    }
     const response = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -164,7 +183,8 @@ export function CalendarHub() {
         location,
         startsOn: startsOn || undefined,
         endsOn: endsOn || undefined,
-        recurringWeekday: recurringWeekday === "" ? undefined : Number(recurringWeekday),
+        recurringWeekday: recurringWeekday === "" || recurringWeekday === "monthly" ? undefined : Number(recurringWeekday),
+        recurringMonthDay: recurringWeekday === "monthly" ? Number(startsOn.slice(8, 10)) : undefined,
         ...eventRsvpFormToPayload(rsvpForm),
         notifyAudience: rsvpForm.notifyMembers,
       }),
@@ -217,6 +237,7 @@ export function CalendarHub() {
 
   return (
     <div className="space-y-5">
+      <WeeklyAnnouncements />
       <Card className="border-sand-200/80 bg-sand-50/50 p-4 sm:p-5">
         <p className="text-sm text-night-700">
           Worship services, outreach, and church-wide events. Tap a day for times, location, and RSVP.

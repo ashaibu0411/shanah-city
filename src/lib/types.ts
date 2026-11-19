@@ -117,6 +117,7 @@ export type ChurchEvent = {
   startsOn?: string | null;
   endsOn?: string | null;
   recurringWeekday?: number | null;
+  recurringMonthDay?: number | null;
   artworkSquareUrl?: string;
   artworkWideUrl?: string;
   artworkBannerUrl?: string;
