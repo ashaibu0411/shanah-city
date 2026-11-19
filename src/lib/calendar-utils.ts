@@ -25,6 +25,7 @@ export type CalendarPlannable = {
   startsOn?: string | null;
   endsOn?: string | null;
   recurringWeekday?: number | null;
+  recurringMonthDay?: number | null;
   recurringWeekdays?: number[] | null;
 };
 
@@ -123,6 +124,18 @@ export function getDatesInMonth(
 ): string[] {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const dates: string[] = [];
+
+  // Calendar-day monthly recurrence: every 1st–31st, starting on its
+  // chosen date. Months without the chosen day are intentionally skipped.
+  const monthDay = item.recurringMonthDay;
+  if (typeof monthDay === "number" && Number.isInteger(monthDay) && monthDay >= 1 && monthDay <= 31) {
+    if (monthDay > daysInMonth) return dates;
+    const occurrence = toIsoDate(year, month, monthDay);
+    if (item.startsOn && occurrence < item.startsOn) return dates;
+    if (item.endsOn && occurrence > item.endsOn) return dates;
+    return [occurrence];
+  }
+
   const monthlyWeekday = inferMonthlyWeekday(item);
 
   if (monthlyWeekday != null && !item.startsOn) {
@@ -139,10 +152,10 @@ export function getDatesInMonth(
 
   if (item.startsOn) {
     const rangeStart = parseIsoDate(item.startsOn);
-    const rangeEnd = parseIsoDate(item.endsOn ?? item.startsOn);
+    const rangeEnd = item.endsOn ? parseIsoDate(item.endsOn) : weekdays.length ? null : rangeStart;
     for (let day = 1; day <= daysInMonth; day += 1) {
       const current = new Date(year, month, day);
-      if (current >= rangeStart && current <= rangeEnd) {
+      if (current >= rangeStart && (!rangeEnd || current <= rangeEnd)) {
         if (weekdays.length === 0 || weekdays.includes(current.getDay())) {
           dates.push(toIsoDate(year, month, day));
         }
