@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import QRCode from "qrcode";
-import { ChurchPageIntro } from "@/components/church-site/ChurchSiteFrame";
 
 const APPLE_URL = "https://apps.apple.com/us/app/shana-city/id6802737530";
 const ANDROID_URL = "https://play.google.com/store/apps/details?id=org.shanahcity.app";
@@ -42,10 +41,10 @@ export default async function ChurchDownloadAppPage() {
           <p className="mt-7 max-w-xl text-base leading-8 text-blue-100 sm:text-lg">Worship, devotionals, sermons, events, weekly announcements and your church family—all in one place. Get the official Shanah City app for free.</p>
           <div className="mt-9 flex flex-wrap gap-3">
             <a href={APPLE_URL} target="_blank" rel="noopener noreferrer" className="flex min-h-[64px] items-center gap-3 rounded-2xl bg-white px-6 py-3 text-[#092f50] shadow-lg transition hover:bg-[#e8f5fa]" aria-label="Download the official Shanah City app from the Apple App Store">
-              <span className="text-3xl" aria-hidden="true">●</span><span><span className="block text-[11px] font-bold">Download on the</span><span className="block text-lg font-extrabold leading-5">App Store</span></span>
+              <span className="rounded-lg bg-[#d8ebf6] px-2 py-1 text-xs font-extrabold" aria-hidden="true">iOS</span><span><span className="block text-[11px] font-bold">Download on the</span><span className="block text-lg font-extrabold leading-5">App Store</span></span>
             </a>
             <a href={ANDROID_URL} target="_blank" rel="noopener noreferrer" className="flex min-h-[64px] items-center gap-3 rounded-2xl border border-white/40 bg-[#12446a] px-6 py-3 text-white transition hover:bg-[#1b577e]" aria-label="Get the official Shanah City app on Google Play">
-              <span className="text-2xl" aria-hidden="true">▶</span><span><span className="block text-[11px] font-bold">GET IT ON</span><span className="block text-lg font-extrabold leading-5">Google Play</span></span>
+              <span className="rounded-lg bg-white/15 px-2 py-1 text-xs font-extrabold" aria-hidden="true">ANDROID</span><span><span className="block text-[11px] font-bold">GET IT ON</span><span className="block text-lg font-extrabold leading-5">Google Play</span></span>
             </a>
           </div>
           <p className="mt-5 text-sm text-blue-100">Available for iPhone and Android. No cost to download.</p>
