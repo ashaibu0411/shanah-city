@@ -74,6 +74,7 @@ function EventDetailCard({
       {canManage && onArtworkChange ? (
         <EventShareTools
           event={event}
+          showArtwork={false}
           onArtworkChange={(artwork) => onArtworkChange(event.id, artwork)}
         />
       ) : null}
