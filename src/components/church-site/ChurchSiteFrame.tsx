@@ -61,9 +61,9 @@ export function ChurchSiteFrame({children}:{children:ReactNode}) {
   return <div className="min-h-screen bg-[#f8f8f5] font-sans text-[#14233a] antialiased"><ChurchSiteHeader/>{children}<ChurchSiteFooter/></div>;
 }
 
-export function ChurchPageIntro({eyebrow,title,description,image}:{eyebrow:string;title:string;description:string;image:string}) {
+export function ChurchPageIntro({eyebrow,title,description,image,imagePosition = "center"}:{eyebrow:string;title:string;description:string;image:string;imagePosition?:string}) {
   return <section className="relative isolate overflow-hidden bg-[#072d4c] px-6 py-24 text-white sm:px-10 lg:py-32">
-    <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url('${image}')`}} aria-hidden="true"/>
+    <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url('${image}')`,backgroundPosition:imagePosition}} aria-hidden="true"/>
     <div className="absolute inset-0 bg-gradient-to-r from-[#041a2f]/95 via-[#06243e]/90 to-[#06243e]/45"/>
     <div className="relative mx-auto max-w-[1210px]"><p className="text-xs font-extrabold uppercase tracking-[0.23em] text-[#f7ce90]">{eyebrow}</p><h1 className="mt-5 max-w-4xl font-display text-[clamp(3.2rem,7vw,6rem)] font-semibold leading-[1.04] tracking-[-0.055em]">{title}</h1><p className="mt-6 max-w-2xl text-base leading-8 text-white/85 sm:text-lg">{description}</p></div>
   </section>;
