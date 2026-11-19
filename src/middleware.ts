@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
  * Public church pages use their own visitor-facing layout on the custom
  * church domain. All routes on the original app domain remain unchanged.
  */
-const publicPages = new Set(["/", "/visit", "/about", "/ministries", "/messages", "/events", "/contact", "/giving"]);
+const publicPages = new Set(["/", "/visit", "/about", "/ministries", "/messages", "/events", "/contact", "/giving", "/app"]);
 export function middleware(request: NextRequest) {
   const host = (request.headers.get("host") || "").toLowerCase().split(":")[0];
   const path = request.nextUrl.pathname.replace(/\/$/, "") || "/";
@@ -18,4 +18,4 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/", "/visit", "/about", "/ministries", "/messages", "/events", "/contact", "/giving"] };
+export const config = { matcher: ["/", "/visit", "/about", "/ministries", "/messages", "/events", "/contact", "/giving", "/app"] };
