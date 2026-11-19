@@ -149,7 +149,7 @@ export default async function ChurchSitePage() {
         <section className="bg-[#fbfaf7] px-6 py-20 sm:px-10 lg:py-24">
           <div className="mx-auto grid max-w-[1210px] items-center gap-8 rounded-[28px] bg-white p-7 shadow-[0_12px_45px_rgba(5,40,72,.07)] sm:p-12 lg:grid-cols-[1fr_auto]">
             <div><p className="text-xs font-extrabold uppercase tracking-[0.23em] text-[#0d7cac]">Make a difference</p><h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-[#142d49] sm:text-5xl">Generosity changes lives.</h2><p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">Your giving helps support the mission of Shanah City, ministry to families, and reaching our community with the love of Christ.</p></div>
-            <a href="/giving" className="inline-flex justify-center rounded-full bg-[#0b6699] px-8 py-4 text-sm font-extrabold text-white hover:bg-[#084b77]">Give Online ↗</a>
+            <a href="/give" className="inline-flex justify-center rounded-full bg-[#0b6699] px-8 py-4 text-sm font-extrabold text-white hover:bg-[#084b77]">Give Online ↗</a>
           </div>
         </section>
       </main>
