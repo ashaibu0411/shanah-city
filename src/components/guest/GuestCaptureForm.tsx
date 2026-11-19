@@ -193,7 +193,7 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
           <Button type="submit" disabled={loading} className="w-full sm:w-auto">
             {loading ? "Sending…" : "Connect with us"}
           </Button>
-        )
+        )}
 
         <p className="text-xs text-night-500">
           No account required. Email and phone help our welcome team follow up with you.
