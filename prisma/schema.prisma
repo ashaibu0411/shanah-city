@@ -344,6 +344,7 @@ model ChurchEvent {
   startsOn         String?
   endsOn           String?
   recurringWeekday Int?
+  recurringMonthDay Int?
   artworkSquareUrl String?
   artworkWideUrl   String?
   artworkBannerUrl String?
