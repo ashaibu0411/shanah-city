@@ -56,6 +56,13 @@ export function MyLeadershipDashboard({ plans }: { plans: Plan[] }) {
       try {
         const response = await fetch("/api/ministry-reports?reportMonth=" + encodeURIComponent(month), { cache: "no-store" });
         const json = await response.json() as ReportResponse;
+        // Vision reviewers may have no separate monthly-report role.
+        // Treat the reporting API's explicit 403 as no reporting access,
+        // without revealing other groups' private reports.
+        if (response.status === 403) {
+          if (active) { setReports([]); setGroups([]); }
+          return;
+        }
         if (!response.ok) throw new Error(json.error || "Reports are unavailable.");
         if (active) { setReports(json.reports ?? []); setGroups(json.leaderGroups ?? []); }
       } catch (e) {
