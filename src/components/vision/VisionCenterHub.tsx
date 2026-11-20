@@ -165,7 +165,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
     (visionStatus === "all" || plan.status === visionStatus) &&
     `${plan.title} ${plan.summary} ${plan.ministryKey}`.toLowerCase().includes(visionSearch.trim().toLowerCase())
   );
-  const awaitingResponse = plans.filter(plan => plan.assignments.some(a => !a.submittedAt)).length;
+  const awaitingResponse = plans.filter(plan => plan.status !== "approved" && plan.assignments.some(a => !a.submittedAt)).length;
   const approvedPlans = plans.filter(plan => plan.status === "approved").length;
   const selectedSubmitted = selected?.assignments.filter(a => Boolean(a.submittedAt)).length ?? 0;
   const selectedPending = (selected?.assignments.length ?? 0) - selectedSubmitted;
@@ -267,12 +267,13 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                     <p className="mt-1 text-2xl font-extrabold text-emerald-950">{selectedSubmitted}</p>
                   </div>
                   <div className="col-span-2 rounded-2xl bg-amber-50 p-4 sm:col-span-1">
-                    <p className="text-sm font-bold text-amber-900">{owner ? "Pending responses" : "Pending suggestions"}</p>
-                    <p className="mt-1 text-2xl font-extrabold text-amber-950">{owner ? selectedPending : selectedFeedback}</p>
+                    <p className="text-sm font-bold text-amber-900">{owner ? selected.status === "approved" ? "Implementation readiness" : "Pending responses" : "Pending suggestions"}</p>
+                    <p className="mt-1 text-2xl font-extrabold text-amber-950">{owner ? selected.status === "approved" ? selected.assignments.filter(a => !a.acknowledgedAt).length : selectedPending : selectedFeedback}</p>
                   </div>
                 </div>
                 <nav aria-label="On this vision page" className="flex flex-wrap gap-2 border-t border-slate-100 pt-5">
                   <a href="#vision-direction" className="inline-flex min-h-[44px] items-center rounded-full border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-800 hover:bg-blue-100">Read vision</a>
+                  {selected.status === "approved" && <a href="#vision-response" className="inline-flex min-h-[44px] items-center rounded-full border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-800">Acknowledge vision</a>}
                   {selected.status === "approved" && <a href="#vision-accountability" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">2027 tasks</a>}
                   <a href="#vision-reporting" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">Monthly reports</a>
                   <a href="#vision-response" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">{owner ? "Leader submissions" : "My response"}</a>
@@ -297,15 +298,15 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
               {selected.ministryKey === "men" && <MenLegacyScorecard />}
               {selected.ministryKey === "women" && <TransformedWomenScorecard />}
               {(["worship", "young-adults", "kids"] as const).includes(selected.ministryKey as "worship" | "young-adults" | "kids") && <MinistryGrowthScorecard ministry={selected.ministryKey as "worship" | "young-adults" | "kids"} />}
-              {selected.status === "approved" && <div id="vision-accountability" className="scroll-mt-24"><VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} /></div>}
+              {selected.status === "approved" && <div id="vision-accountability" className="scroll-mt-24"><VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} assignedLeaderIds={selected.assignments.map(a => a.userId)} /></div>}
               <div id="vision-reporting" className="scroll-mt-24"><VisionMinistryReporting owner={owner} ministryKey={selected.ministryKey} /></div>
               {owner ? (
                 <section id="vision-response" className={panel + " scroll-mt-24 space-y-4"}>
-                  <h3 className="text-2xl font-extrabold text-slate-950">{selected.ministryKey === "churchwide" ? "Pastoral review invitations" : "Assigned leaders"}</h3>
+                  <h3 className="text-2xl font-extrabold text-slate-950">{selected.ministryKey === "churchwide" ? "Pastoral review invitations" : selected.status === "approved" ? "Implementation leaders" : "Assigned leaders"}</h3>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div className="rounded-xl bg-slate-50 p-4"><p className="text-sm font-semibold text-slate-600">Assigned</p><p className="text-2xl font-extrabold text-slate-950">{selected.assignments.length}</p></div>
                     <div className="rounded-xl bg-emerald-50 p-4"><p className="text-sm font-semibold text-emerald-800">Responded</p><p className="text-2xl font-extrabold text-emerald-950">{selectedSubmitted}</p></div>
-                    <div className="rounded-xl bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-900">Awaiting response</p><p className="text-2xl font-extrabold text-amber-950">{selectedPending}</p></div>
+                    <div className="rounded-xl bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-900">{selected.status === "approved" ? "Awaiting acknowledgement" : "Awaiting response"}</p><p className="text-2xl font-extrabold text-amber-950">{selected.status === "approved" ? selected.assignments.filter(a => !a.acknowledgedAt).length : selectedPending}</p></div>
                   </div>
                   {selected.ministryKey === "churchwide" && selected.status !== "approved" && (
                     <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-5">
@@ -347,7 +348,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                       {a.supportNeeds && <p><strong>Support needed: </strong>{a.supportNeeds}</p>}
                     </div>
                   ))}
-                  {selected.status !== "approved" && <form className="space-y-5" onSubmit={async e => {
+                  <form className="space-y-5" onSubmit={async e => {
                     e.preventDefault();
                     if (!assignUserId) return;
                     const saved = await run("POST", { action: "assign", planId: selected.id, userId: assignUserId, deadline }, selected.id);
@@ -375,9 +376,10 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                         </button>)}
                       </div>}
                     </div>
-                    <label className="block text-base font-bold text-slate-900">Review deadline<input type="date" className={field + " mt-1"} value={deadline} onChange={e => setDeadline(e.target.value)}/></label>
-                    <button className={button} disabled={busy || !assignUserId}>Invite selected member privately</button>
-                  </form>}
+                    <label className="block text-base font-bold text-slate-900">{selected.status === "approved" ? "Implementation check-in deadline (optional)" : "Review deadline"}<input type="date" className={field + " mt-1"} value={deadline} onChange={e => setDeadline(e.target.value)}/></label>
+                    <p className="text-sm leading-relaxed text-slate-600">{selected.status === "approved" ? "Assign an implementation leader without reopening the approved plan. Then assign specific tasks and deadlines in Monthly responsibilities & reminders." : "Invite this leader to review the working vision and submit their proposed contribution."}</p>
+                    <button className={button} disabled={busy || !assignUserId}>{selected.status === "approved" ? "Assign implementation leader" : "Invite selected member privately"}</button>
+                  </form>
                   <div className="border-t border-slate-200 pt-7">
                     <label className="block text-base font-bold text-slate-900">Pastoral review note<textarea className={field + " mt-2 min-h-[160px] resize-y"} value={feedbackNote} onChange={e => setFeedbackNote(e.target.value)} maxLength={1000}/></label>
                     {selected.status !== "approved" && <div className="mt-3 flex flex-wrap gap-2">
@@ -388,6 +390,15 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                   {(selected.audits?.length ?? 0) > 0 && (
                     <ApprovalHistoryPanel audits={selected.audits ?? []} leaders={leaders} />
                   )}
+                </section>
+              ) : myAssignment && selected.status === "approved" ? (
+                <section id="vision-response" className={panel + " scroll-mt-24 space-y-5"}>
+                  <h3 className="text-2xl font-extrabold text-slate-950">My implementation commitment</h3>
+                  <p className="text-base leading-relaxed text-slate-700">This annual vision has been approved by pastoral leadership. Read the direction above and acknowledge your responsibility for helping implement it. There is no new proposal required.</p>
+                  <p className={"text-base font-bold " + (myAssignment.acknowledgedAt ? "text-emerald-800" : "text-amber-900")}>{myAssignment.acknowledgedAt ? "Vision acknowledged — ready for implementation" : "Awaiting your acknowledgement"}</p>
+                  {!myAssignment.acknowledgedAt && <button type="button" className={button} disabled={busy} onClick={() => void run("PATCH", { action: "acknowledge", planId: selected.id }, selected.id)}>I have read and accept this vision</button>}
+                  <p className="text-sm text-slate-600">Your assigned implementation tasks appear in Monthly responsibilities & reminders. Submit progress through your ministry monthly report.</p>
+                  <a href="#vision-accountability" className={secondary}>View my implementation responsibilities</a>
                 </section>
               ) : myAssignment && selected.status !== "approved" ? (
                 <section id="vision-response" className={panel + " scroll-mt-24 space-y-5"}>

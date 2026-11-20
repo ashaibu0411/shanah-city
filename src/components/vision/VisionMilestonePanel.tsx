@@ -18,8 +18,8 @@ function denverToday() {
   return part("year") + "-" + part("month") + "-" + part("day");
 }
 
-export function VisionMilestonePanel({ planId, owner, leaders }: {
-  planId: string; owner: boolean; leaders: Leader[];
+export function VisionMilestonePanel({ planId, owner, leaders, assignedLeaderIds }: {
+  planId: string; owner: boolean; leaders: Leader[]; assignedLeaderIds: string[];
 }) {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [error, setError] = useState("");
@@ -103,7 +103,7 @@ export function VisionMilestonePanel({ planId, owner, leaders }: {
           })}
         </select>
       </label>
-      {milestones.length === 0 && <p className="text-base font-medium text-slate-600">Accountability tasks appear when a leader is assigned and the annual vision is approved.</p>}
+      {milestones.length === 0 && <p className="text-base font-medium text-slate-600">No implementation tasks have been assigned yet. The Senior Pastor can add objectives and deadlines below.</p>}
       {milestones.length > 0 && shown.length === 0 && <p role="status" className="rounded-xl bg-slate-50 p-5 text-base font-medium text-slate-600">No matching tasks for this month. Try All tasks or choose another month.</p>}
       <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
         {shown.map(task => <article key={task.id} className="min-w-0 space-y-3 break-words rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
@@ -122,12 +122,12 @@ export function VisionMilestonePanel({ planId, owner, leaders }: {
       </div>
       {owner && <form className="space-y-4 border-t border-slate-200 pt-7" onSubmit={e => { e.preventDefault(); void submit({ action: "create", assigneeId, title, description, dueOn }); }}>
         <h3 className="text-xl font-extrabold text-slate-950">Schedule a specific leadership deadline</h3>
-        <p className="text-base text-slate-600">Use this for confirmed planning milestones; it does not create or publish a church event.</p>
+        <p className="text-base text-slate-600">Choose any leader assigned to this approved vision, including newly appointed leaders. Create clear implementation objectives with specific deadlines. This does not publish a church event.</p>
         <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
           <label className="block space-y-2 text-base font-bold">Assigned leader
             <select className={field} required value={assigneeId} onChange={e => setAssigneeId(e.target.value)}>
               <option value="">Choose assigned leader</option>
-              {leaders.filter(l => milestones.some(m => m.assigneeId === l.id)).map(l => <option value={l.id} key={l.id}>{l.name}</option>)}
+              {assignedLeaderIds.map(id => <option value={id} key={id}>{leaders.find(l => l.id === id)?.name ?? "Assigned leader (" + id.slice(0, 8) + "…)"} </option>)}
             </select>
           </label>
           <label className="block space-y-2 text-base font-bold">Due date
