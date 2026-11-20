@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   devIndicators: false,
   // Reduce Webpack peak memory on Vercel for the growing Shanah City app.
-  experimental: { webpackMemoryOptimizations: true, cpus: 2 },
+  experimental: { webpackMemoryOptimizations: true, cpus: 1 },
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [
