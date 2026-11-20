@@ -591,11 +591,19 @@ export async function submitParticipantHomework(viewer: PublicMember, homeworkId
   });
   const { notifyCounselorHomeworkSubmitted, notifyCounselorHomeworkReviewPending, notifyCounselorHomeworkResubmitted } =
     await import("@/lib/marriage-prep-notification-triggers");
-  if (isResubmit) {
-    void notifyCounselorHomeworkResubmitted(journey, homeworkId, viewer.id);
-  } else {
-    void notifyCounselorHomeworkSubmitted(journey, homeworkId, viewer.id);
-    void notifyCounselorHomeworkReviewPending(journey, homeworkId, viewer.id);
+  try {
+    // Complete in-app and device notification attempts before returning from the request.
+    // Do not roll back submitted work if a notification service fails.
+    if (isResubmit) {
+      await notifyCounselorHomeworkResubmitted(journey, homeworkId, viewer.id);
+    } else {
+      await notifyCounselorHomeworkSubmitted(journey, homeworkId, viewer.id);
+      await notifyCounselorHomeworkReviewPending(journey, homeworkId, viewer.id);
+    }
+  } catch (error) {
+    console.error("[marriage-prep] counselor homework alert failed", {
+      journeyId: journey.id, homeworkId, error,
+    });
   }
   return { submittedAt: now, reviewStatus: nextReviewStatus };
 }
