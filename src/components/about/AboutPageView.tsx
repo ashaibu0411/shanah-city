@@ -48,6 +48,7 @@ export function AboutPageView() {
           <p className="mt-3 max-w-2xl text-[15px] leading-7 text-white/85 sm:text-base sm:leading-8">A Christ-centered, Spirit-empowered church family being transformed by His glory and called to make His love visible in our communities and beyond.</p>
           <nav aria-label="Explore About Shanah City" className="-mx-1 mt-6 flex snap-x gap-2 overflow-x-auto px-1 pb-2 sm:mt-8 sm:flex-wrap sm:overflow-visible sm:pb-0">
             <a className={anchorClass} href="#our-story">Our story</a>
+            <a className={anchorClass} href="#meaning-of-shanah">The word Shanah</a>
             <a className={anchorClass} href="#mission-vision">Mission & vision</a>
             <a className={anchorClass} href="#core-values">Core values</a>
             <a className={anchorClass} href="#beliefs">What we believe</a>
