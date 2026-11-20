@@ -267,8 +267,8 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                     <p className="mt-1 text-2xl font-extrabold text-emerald-950">{selectedSubmitted}</p>
                   </div>
                   <div className="col-span-2 rounded-2xl bg-amber-50 p-4 sm:col-span-1">
-                    <p className="text-sm font-bold text-amber-900">{owner ? "Pending responses" : "Pending suggestions"}</p>
-                    <p className="mt-1 text-2xl font-extrabold text-amber-950">{owner ? selectedPending : selectedFeedback}</p>
+                    <p className="text-sm font-bold text-amber-900">{owner ? selected.status === "approved" ? "Implementation readiness" : "Pending responses" : "Pending suggestions"}</p>
+                    <p className="mt-1 text-2xl font-extrabold text-amber-950">{owner ? selected.status === "approved" ? selected.assignments.filter(a => !a.acknowledgedAt).length : selectedPending : selectedFeedback}</p>
                   </div>
                 </div>
                 <nav aria-label="On this vision page" className="flex flex-wrap gap-2 border-t border-slate-100 pt-5">
@@ -298,15 +298,15 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
               {selected.ministryKey === "men" && <MenLegacyScorecard />}
               {selected.ministryKey === "women" && <TransformedWomenScorecard />}
               {(["worship", "young-adults", "kids"] as const).includes(selected.ministryKey as "worship" | "young-adults" | "kids") && <MinistryGrowthScorecard ministry={selected.ministryKey as "worship" | "young-adults" | "kids"} />}
-              {selected.status === "approved" && <div id="vision-accountability" className="scroll-mt-24"><VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} /></div>}
+              {selected.status === "approved" && <div id="vision-accountability" className="scroll-mt-24"><VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} assignedLeaderIds={selected.assignments.map(a => a.userId)} /></div>}
               <div id="vision-reporting" className="scroll-mt-24"><VisionMinistryReporting owner={owner} ministryKey={selected.ministryKey} /></div>
               {owner ? (
                 <section id="vision-response" className={panel + " scroll-mt-24 space-y-4"}>
-                  <h3 className="text-2xl font-extrabold text-slate-950">{selected.ministryKey === "churchwide" ? "Pastoral review invitations" : "Assigned leaders"}</h3>
+                  <h3 className="text-2xl font-extrabold text-slate-950">{selected.ministryKey === "churchwide" ? "Pastoral review invitations" : selected.status === "approved" ? "Implementation leaders" : "Assigned leaders"}</h3>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div className="rounded-xl bg-slate-50 p-4"><p className="text-sm font-semibold text-slate-600">Assigned</p><p className="text-2xl font-extrabold text-slate-950">{selected.assignments.length}</p></div>
                     <div className="rounded-xl bg-emerald-50 p-4"><p className="text-sm font-semibold text-emerald-800">Responded</p><p className="text-2xl font-extrabold text-emerald-950">{selectedSubmitted}</p></div>
-                    <div className="rounded-xl bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-900">Awaiting response</p><p className="text-2xl font-extrabold text-amber-950">{selectedPending}</p></div>
+                    <div className="rounded-xl bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-900">{selected.status === "approved" ? "Awaiting acknowledgement" : "Awaiting response"}</p><p className="text-2xl font-extrabold text-amber-950">{selected.status === "approved" ? selected.assignments.filter(a => !a.acknowledgedAt).length : selectedPending}</p></div>
                   </div>
                   {selected.ministryKey === "churchwide" && selected.status !== "approved" && (
                     <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-5">
