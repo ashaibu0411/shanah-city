@@ -1,42 +1,42 @@
-/* Shanah City homepage palette — Porcelain & Imperial Blue.
+/* Shanah City APP homepage only — Rich Cream & Imperial Blue.
    The member's existing html.dark preference remains authoritative.
    Scoped to home; do not recolor other app pages or replace live content. */
 
-/* LIGHT · porcelain, imperial blue, and restrained champagne */
-html:not(.dark) body.premium-home-v3-active.premium-home-v4-active {
-  --home-v3-midnight: #f7f8f6;
-  --home-v3-background: #f7f8f6;
-  --home-v3-deep-violet: #edf3f9;
-  --home-v3-indigo: #f7f8f6;
-  --home-v3-purple-surface: #fff;
+/* LIGHT · rich cream, imperial blue and champagne; member-controlled html.dark remains authoritative */
+html:not(.dark) body.premium-home-v3-active.premium-home-v4-active:has(.shanah-porcelain-home) {
+  --home-v3-midnight: #f5f0e6;
+  --home-v3-background: #f5f0e6;
+  --home-v3-deep-violet: #efe7d8;
+  --home-v3-indigo: #f5f0e6;
+  --home-v3-purple-surface: #fbf7ef;
   --home-v3-electric-violet: #123b70;
-  --home-v3-magenta: #dce8f3;
-  --home-v3-gold: #a58045;
-  --home-v3-gold-bright: #b89a66;
+  --home-v3-magenta: #e2d5bf;
+  --home-v3-gold: #b7925a;
+  --home-v3-gold-bright: #b7925a;
   --home-v3-text-primary: #102b4e;
   --home-v3-text-secondary: #49647c;
-  --home-v3-border: #dce8f3;
-  --ph2-gold: #9c7135;
+  --home-v3-border: #e2d5bf;
+  --ph2-gold: #926a35;
   --ph2-cream: #102b4e;
   --ph2-cream-muted: #49647c;
-  --ph2-border: #dce8f3;
-  --ph2-surface: #fff;
-  background: #f7f8f6 !important;
+  --ph2-border: #e2d5bf;
+  --ph2-surface: #fbf7ef;
+  background: #f5f0e6 !important;
   color: #102b4e;
 }
 html:not(.dark) body.premium-home-v3-active.premium-home-v4-active .app-main {
-  background: linear-gradient(180deg, #f7f8f6, #edf3f9 48%, #f7f8f6) !important;
+  background: linear-gradient(180deg, #f5f0e6, #efe7d8 52%, #f5f0e6) !important;
 }
 html:not(.dark) body.premium-home-v3-active.premium-home-v4-active .app-main::before {
-  background: radial-gradient(ellipse 110% 28% at 70% 0%, rgba(220,232,243,.65),transparent 65%) !important;
+  background: radial-gradient(ellipse 110% 28% at 70% 0%, rgba(226,213,191,.4),transparent 65%) !important;
 }
 html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home {
   color: #102b4e;
 }
 html:not(.dark) body.premium-home-v3-active.premium-home-v4-active .mobile-app-header,
 html:not(.dark) body.premium-home-v3-active.premium-home-v4-active[data-shell="mobile"] .mobile-app-header {
-  background: rgba(247,248,246,.96) !important;
-  border-color: #dce8f3 !important;
+  background: rgba(245,240,230,.97) !important;
+  border-color: #e2d5bf !important;
   box-shadow: 0 5px 20px rgba(18,59,112,.06) !important;
 }
 html:not(.dark) body.premium-home-v3-active.premium-home-v4-active .ph4-header-wordmark,
@@ -46,8 +46,8 @@ html:not(.dark) body.premium-home-v3-active .mobile-app-header :is(button, a) {
 html:not(.dark) body.premium-home-v3-active.premium-home-v4-active .app-mobile-bottom-nav,
 html:not(.dark) body.premium-home-v3-active.premium-home-v4-active[data-shell="mobile"] .mobile-bottom-nav,
 html:not(.dark) body.premium-home-v3-active.premium-home-v4-active[data-shell="mobile"] .mobile-bottom-nav::after {
-  background: rgba(255,255,255,.98) !important;
-  border-color: #dce8f3 !important;
+  background: rgba(251,247,239,.98) !important;
+  border-color: #e2d5bf !important;
   box-shadow: 0 -5px 24px rgba(18,59,112,.07) !important;
 }
 html:not(.dark) body.premium-home-v3-active.premium-home-v4-active[data-shell="mobile"] .mobile-bottom-nav::before {
@@ -64,7 +64,7 @@ html:not(.dark) body.premium-home-v3-active.premium-home-v4-active[data-shell="m
   text-shadow: none !important;
 }
 html:not(.dark) body.premium-home-v3-active .ph4-hero--v3.ph4-hero--editorial {
-  border: 1px solid #dce8f3;
+  border: 1px solid #e2d5bf;
   box-shadow: 0 12px 30px rgba(18,59,112,.14);
 }
 html:not(.dark) body.premium-home-v3-active .ph4-hero--v3 .ph4-hero__scrim {
@@ -96,19 +96,19 @@ html:not(.dark) body.premium-home-v3-active .premium-section__link {
 }
 html:not(.dark) body.premium-home-v3-active .ph4-section:has(.ph4-events),
 html:not(.dark) body.premium-home-v3-active .ph4-section:has(.ph4-sermon) {
-  background: #fff;
-  border: 1px solid #dce8f3;
+  background: #fbf7ef;
+  border: 1px solid #e2d5bf;
   box-shadow: 0 7px 22px rgba(18,59,112,.055);
 }
 html:not(.dark) body.premium-home-v3-active .ph4-event-row,
 html:not(.dark) body.premium-home-v3-active .ph4-sermon {
-  background: #fff !important;
-  border-color: #dce8f3 !important;
+  background: #fbf7ef !important;
+  border-color: #e2d5bf !important;
   box-shadow: none !important;
 }
 html:not(.dark) body.premium-home-v3-active .ph4-event-row__date {
-  background: #edf3f9 !important;
-  border-color: #dce8f3 !important;
+  background: #efe7d8 !important;
+  border-color: #e2d5bf !important;
 }
 html:not(.dark) body.premium-home-v3-active :is(.ph4-event-row__day,.ph4-event-row__title,.ph4-sermon__title) { color: #123b70 !important; }
 html:not(.dark) body.premium-home-v3-active :is(.ph4-event-row__month,.ph4-event-row__chevron,.ph4-sermon__date,.ph4-sermon__all) { color: #926b35 !important; }
@@ -121,14 +121,14 @@ html:not(.dark) body.premium-home-v3-active .ph4-give {
 html:not(.dark) body.premium-home-v3-active .ph4-give__title,
 html:not(.dark) body.premium-home-v3-active .ph4-give__copy { color: #fff !important; }
 html:not(.dark) body.premium-home-v3-active .ph4-give__icon { color: #d9bd86 !important; border-color: #d9bd86 !important; }
-html:not(.dark) body.premium-home-v3-active .ph4-tile { border-color: #dce8f3 !important; box-shadow: 0 7px 18px rgba(18,59,112,.12) !important; }
+html:not(.dark) body.premium-home-v3-active .ph4-tile { border-color: #e2d5bf !important; box-shadow: 0 7px 18px rgba(18,59,112,.12) !important; }
 html:not(.dark) body.premium-home-v3-active .ph4-tile__scrim { background: linear-gradient(180deg,transparent,rgba(12,37,72,.84)) !important; }
 html:not(.dark) body.premium-home-v3-active .ph4-tile__icon { color: #dfbe80 !important; }
 html:not(.dark) body.premium-home-v3-active .premium-stories__guest,
 html:not(.dark) body.premium-home-v3-active .premium-guest-cta,
 html:not(.dark) body.premium-home-v3-active .premium-engagement-rail > * {
-  background: #fff !important;
-  border: 1px solid #dce8f3 !important;
+  background: #fbf7ef !important;
+  border: 1px solid #e2d5bf !important;
   color: #102b4e !important;
   box-shadow: 0 6px 17px rgba(18,59,112,.06) !important;
 }
@@ -138,23 +138,8 @@ html:not(.dark) body.premium-home-v3-active .premium-guest-cta__pill { backgroun
 html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home .premium-engagement-rail :is(.text-night-900,.text-night-600) { color: #102b4e !important; }
 html:not(.dark) .shanah-porcelain-home .premium-stories__guest-copy { color: #536a84 !important; }
 
-/* Desktop: preserve layout and real media, apply palette to surfaces. */
-html:not(.dark) .premium-home--desktop.shanah-porcelain-home {
-  --premium-navy: #123b70;
-  --premium-gold: #b89a66;
-  --color-ink: #102b4e;
-  --color-ink-muted: #536a84;
-  --color-ink-soft: #65809b;
-  --color-surface: #fff;
-  --color-border: #dce8f3;
-  color: #102b4e;
-}
-html:not(.dark) body:has(.premium-home--desktop.shanah-porcelain-home) .app-main { background: #f7f8f6; }
-html:not(.dark) .premium-home--desktop.shanah-porcelain-home :is(.premium-section__title,.premium-section__link) { color: #123b70; }
-html:not(.dark) .premium-home--desktop.shanah-porcelain-home .premium-btn--secondary { background: #123b70; color: #fff; }
-
 /* DARK · honor member's saved preference. Midnight imperial, not inverted porcelain. */
-html.dark body.premium-home-v3-active.premium-home-v4-active {
+html.dark body.premium-home-v3-active.premium-home-v4-active:has(.shanah-porcelain-home) {
   --home-v3-midnight: #071629;
   --home-v3-background: #0d2440;
   --home-v3-deep-violet: #102e51;
@@ -205,8 +190,6 @@ html.dark body.premium-home-v3-active .premium-stories__guest :is(p,span),
 html.dark body.premium-home-v3-active .premium-guest-cta :is(p,span) { color: #f5f8fc !important; }
 html.dark body.premium-home-v3-active .premium-guest-cta__pill { background: #234e7a !important; color: #fff !important; }
 html.dark body.premium-home-v3-active .ph4-tile__scrim { background: linear-gradient(180deg,transparent,rgba(7,22,41,.92)); }
-html.dark .premium-home--desktop.shanah-porcelain-home { --premium-navy: #739bcc; --premium-gold: #dfbd84; }
-html.dark .premium-home--desktop.shanah-porcelain-home .premium-btn--secondary { background: #234e7a; color: #fff; }
 
 /* The About feature has explicit dark styles already; keep both schemes legible. */
-html:not(.dark) .shanah-porcelain-home a[href="/about"] { border-color: #dce8f3; }
+html:not(.dark) .shanah-porcelain-home a[href="/about"] { border-color: #e2d5bf; }
