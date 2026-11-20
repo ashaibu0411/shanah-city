@@ -7537,3 +7537,59 @@ html.dark .couples-hub-page {
   padding: 0.35rem 0.55rem;
   font-size: 0.75rem;
 }
+
+
+/* 2027 Vision Center: consistent, high-legibility typography on every ministry
+   vision, pastoral dashboard, form, feedback thread, and accountability panel.
+   Scoped so other Shanah City screens retain their existing design. */
+.vision-center-readable {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, Helvetica, sans-serif !important;
+  font-kerning: normal;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: normal;
+  line-height: 1.65;
+}
+.vision-center-readable :where(h1, h2, h3, h4, h5, h6, p, span, a, button, label, li, input, select, textarea) {
+  font-family: inherit !important;
+  overflow-wrap: anywhere;
+}
+.vision-center-readable :where(h1, h2, h3, h4, h5, h6) {
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+}
+.vision-center-readable :where(p, li) {
+  line-height: 1.7;
+}
+.vision-center-readable :where(label, input, select, textarea) {
+  font-size: max(16px, 1rem);
+  line-height: 1.6;
+}
+.vision-center-readable :where(input, select, textarea) {
+  color: #0f172a;
+  background-color: #fff;
+  caret-color: #1d4ed8;
+}
+.vision-center-readable :where(input, textarea)::placeholder {
+  color: #475569;
+  opacity: 1;
+}
+.vision-center-readable :where(button, a) {
+  line-height: 1.45;
+}
+.vision-center-readable :where(.text-slate-500) {
+  color: #475569;
+}
+.vision-center-readable :where(.text-slate-600) {
+  color: #334155;
+}
+@media (max-width: 640px) {
+  .vision-center-readable :where(p, li) {
+    font-size: max(16px, 1em);
+    line-height: 1.72;
+  }
+  .vision-center-readable :where(button, a) {
+    min-height: 40px;
+  }
+}
