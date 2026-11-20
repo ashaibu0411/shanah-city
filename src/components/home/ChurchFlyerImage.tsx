@@ -6,6 +6,7 @@ type ChurchFlyerImageProps = {
   className?: string;
   priority?: boolean;
   sizes?: string;
+  quality?: number;
 };
 
 function isLocalImage(src: string) {
@@ -18,6 +19,7 @@ export function ChurchFlyerImage({
   className = "",
   priority = false,
   sizes = "(max-width: 512px) 50vw, 240px",
+  quality,
 }: ChurchFlyerImageProps) {
   if (isLocalImage(src)) {
     return (
@@ -26,6 +28,7 @@ export function ChurchFlyerImage({
         alt={alt}
         fill
         sizes={sizes}
+        quality={quality}
         priority={priority}
         className={className}
       />

@@ -15,8 +15,8 @@ export function PremiumHomeV3QuickTiles() {
             <ChurchFlyerImage
               src={tile.image}
               alt=""
-              priority
-              sizes="(max-width: 512px) 45vw, 220px"
+              sizes="(max-width: 512px) 50vw, 320px"
+              quality={92}
               className={`ph4-tile__image ${tile.imageClass ?? ""}`.trim()}
             />
             <div className="ph4-tile__scrim" aria-hidden />

@@ -310,3 +310,255 @@ html.dark body.premium-home-v3-active.premium-home-v4-active .mobile-app-header 
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+
+/* 2026 cinematic home polish — premium visual depth without rasterized text.
+   Keep member greetings, dynamic event data, and sermon controls interactive. */
+body.premium-home-v3-active .shanah-porcelain-home {
+  --home-cinematic-radius: 19px;
+  --home-cinematic-ink: #123b70;
+  --home-cinematic-gold: #c49b58;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+body.premium-home-v3-active .shanah-porcelain-home > .ph4-hero--v3.ph4-hero--editorial {
+  min-height: clamp(19rem, 79vw, 24rem) !important;
+  border-radius: var(--home-cinematic-radius) !important;
+  box-shadow: 0 16px 38px rgba(9,29,56,.18), 0 1px 0 rgba(255,255,255,.4) inset !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__content {
+  min-height: clamp(19rem, 79vw, 24rem) !important;
+  justify-content: flex-end;
+  padding: 1.3rem clamp(1rem,4.3vw,1.4rem) 1.35rem !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__image {
+  object-fit: cover;
+  object-position: 46% 38%;
+  filter: saturate(1.08) contrast(1.07) brightness(1.03) !important;
+  transform: none !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__scrim {
+  background: linear-gradient(180deg,rgba(6,25,52,0.02) 0%,rgba(8,29,57,.12) 29%,rgba(7,27,57,.5) 64%,rgba(6,24,49,.92) 100%) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__glow {
+  opacity: .14 !important;
+  filter: blur(30px);
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__greeting {
+  color: #ffdc97 !important;
+  font-size: clamp(.73rem,2.8vw,.9rem);
+  line-height: 1.35;
+  letter-spacing: .18em;
+  font-weight: 850;
+  text-transform: uppercase;
+  margin-bottom: .85rem !important;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-shadow: 0 2px 8px rgba(0,0,0,.45);
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__greeting::after {
+  content: "";
+  display: block;
+  width: min(48%, 10rem);
+  height: 2px;
+  background: linear-gradient(90deg,#ffcf7d,#d2a359,transparent);
+  margin-top: .5rem;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__title-block {
+  max-width: 100%;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__welcome {
+  font-size: clamp(.73rem,3vw,.92rem);
+  font-weight: 650;
+  letter-spacing: .16em;
+  line-height: 1.4;
+  color: #fff !important;
+  margin-bottom: .3rem;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__title {
+  margin: 0 !important;
+  font-size: clamp(2.25rem,10.5vw,3.6rem) !important;
+  font-weight: 740;
+  line-height: 1.08;
+  letter-spacing: -.025em;
+  color: #fff !important;
+  text-shadow: 0 3px 14px rgba(0,0,0,.36);
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__tagline {
+  margin-top: .65rem !important;
+  font-size: clamp(.85rem,3.1vw,1.05rem) !important;
+  font-style: italic;
+  line-height: 1.5;
+  color: #f7faff !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,.5);
+  max-width: 25rem;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__service {
+  margin-top: .9rem !important;
+  padding: .56rem 1.05rem !important;
+  min-height: 2.65rem;
+  align-items: center;
+  border-radius: 999px;
+  border: 1.5px solid #e1b66f !important;
+  color: #f5cc88 !important;
+  background: rgba(6,25,52,.82) !important;
+  font-size: clamp(.66rem,2.4vw,.76rem) !important;
+  line-height: 1.3;
+  font-weight: 850;
+  letter-spacing: .07em !important;
+  white-space: normal;
+  box-shadow: 0 5px 14px rgba(0,0,0,.14) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile-grid {
+  gap: clamp(.65rem, 2.5vw, .9rem) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile {
+  min-height: clamp(6.5rem, 30vw, 8rem) !important;
+  border-radius: 16px !important;
+  isolation: isolate;
+  box-shadow: 0 9px 25px rgba(8,32,59,.16), inset 0 1px 0 rgba(255,255,255,.12) !important;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__image {
+  filter: saturate(1.06) contrast(1.06) brightness(1.04) !important;
+  object-fit: cover;
+  transform: none;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__scrim {
+  background: linear-gradient(180deg,rgba(4,22,44,.02) 5%,rgba(4,22,44,.28) 48%,rgba(4,22,44,.9) 100%) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__label {
+  font-size: clamp(.82rem,3.1vw,.95rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.23;
+  letter-spacing: -.005em;
+  text-shadow: 0 2px 9px rgba(0,0,0,.7);
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__icon,
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__chevron {
+  color: #ffd391 !important;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.45));
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-section__head,
+body.premium-home-v3-active .shanah-porcelain-home .premium-section__head {
+  align-items: baseline;
+  gap: .5rem;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-section__title,
+body.premium-home-v3-active .shanah-porcelain-home .premium-section__title {
+  font-size: clamp(1.15rem,4.3vw,1.36rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.26;
+  letter-spacing: -.03em;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-section__link,
+body.premium-home-v3-active .shanah-porcelain-home .premium-section__link {
+  font-size: .8rem !important;
+  font-weight: 750 !important;
+  white-space: nowrap;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-section:has(.ph4-events),
+body.premium-home-v3-active .shanah-porcelain-home .ph4-section:has(.ph4-sermon) {
+  border-radius: var(--home-cinematic-radius) !important;
+  padding: clamp(.9rem,3vw,1.25rem) !important;
+  box-shadow: 0 10px 30px rgba(13,42,72,.09) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-event-row {
+  min-height: 4.3rem;
+  align-items: center;
+  gap: .85rem;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-event-row__date {
+  border-radius: .8rem;
+  min-width: 3.25rem;
+  min-height: 3.55rem;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-event-row__title {
+  font-size: clamp(.84rem,3.15vw,.98rem) !important;
+  line-height: 1.32;
+  font-weight: 750 !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-event-row__meta,
+body.premium-home-v3-active .shanah-porcelain-home .ph4-event-row__location {
+  font-size: clamp(.72rem,2.5vw,.82rem) !important;
+  line-height: 1.4;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__thumb {
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(13,42,72,.16) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__thumb img {
+  filter: saturate(1.07) contrast(1.04) brightness(1.025);
+  object-fit: cover;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__play {
+  background: rgba(7,25,53,.16) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__play svg {
+  width: 2.2rem;
+  height: 2.2rem;
+  color: #f1c57d;
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,.4));
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__title {
+  font-size: clamp(1rem,3.75vw,1.22rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.4 !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__date {
+  font-size: .7rem !important;
+  font-weight: 800;
+  letter-spacing: .095em;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__speaker {
+  font-size: .82rem !important;
+  line-height: 1.4;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-give {
+  border-radius: 17px !important;
+  min-height: 4.35rem;
+  padding: .9rem 1.05rem !important;
+  box-shadow: 0 9px 24px rgba(11,40,79,.17) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-give__title {
+  font-size: 1.22rem !important;
+  font-weight: 800;
+  line-height: 1.2;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-give__copy {
+  font-size: .8rem !important;
+  line-height: 1.4;
+}
+body.premium-home-v3-active .shanah-porcelain-home .premium-stories--home-v3 .premium-section__head {
+  margin-bottom: .65rem;
+}
+body.premium-home-v3-active .shanah-porcelain-home .premium-stories--home-v3 .community-stories-row {
+  padding-bottom: .45rem;
+}
+body.premium-home-v3-active .shanah-porcelain-home a[href="/about"] {
+  border-radius: var(--home-cinematic-radius);
+  box-shadow: 0 10px 30px rgba(13,42,72,.09) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .premium-home-v3__balance-lower > a.mobile-card[href="/check-in"] {
+  border-radius: 17px !important;
+  min-height: 4.6rem;
+}
+html.dark body.premium-home-v3-active .shanah-porcelain-home .ph4-section:has(.ph4-events),
+html.dark body.premium-home-v3-active .shanah-porcelain-home .ph4-section:has(.ph4-sermon) {
+  background: #0c2543 !important;
+  border-color: rgba(173,200,230,.22) !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.25) !important;
+}
+@media (max-width: 360px) {
+  body.premium-home-v3-active .shanah-porcelain-home > .ph4-hero--v3.ph4-hero--editorial,
+  body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__content {
+    min-height: 19.25rem !important;
+  }
+  body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__title {
+    font-size: 2.15rem !important;
+  }
+  body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__greeting {
+    font-size: .7rem;
+  }
+}
