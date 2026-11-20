@@ -12,7 +12,7 @@ permissions:
   contents: read
 jobs:
   profile:
-    if: github.head_ref == 'chore/profile-build-memory-run-20261119' || github.ref == 'refs/heads/chore/profile-build-memory-run-20261119'
+    if: false # First profiler run completed successfully; compare normal build below.
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -34,3 +34,24 @@ jobs:
         run: npx prisma generate
       - name: Profile Next.js build memory (no production environment or secrets)
         run: npm run diagnose:build-memory
+  baseline:
+    if: github.head_ref == 'chore/profile-build-memory-run-20261119' || github.ref == 'refs/heads/chore/profile-build-memory-run-20261119'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NODE_OPTIONS: "--max-old-space-size=4096"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Record runner resource limits
+        run: free -h
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: Measure normal Next.js build process-tree RSS
+        run: node scripts/build-memory-baseline.cjs
