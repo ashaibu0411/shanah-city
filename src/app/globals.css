@@ -7553,11 +7553,17 @@ html.dark .couples-hub-page {
 }
 .vision-center-readable :where(h1, h2, h3, h4, h5, h6, p, span, a, button, label, li, input, select, textarea) {
   font-family: inherit !important;
-  overflow-wrap: anywhere;
+}
+.vision-center-readable :where(p, span, a, button, label, li) {
+  overflow-wrap: break-word;
 }
 .vision-center-readable :where(h1, h2, h3, h4, h5, h6) {
-  line-height: 1.3;
-  letter-spacing: -0.012em;
+  line-height: 1.35;
+  letter-spacing: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: normal;
+  hyphens: none;
 }
 .vision-center-readable :where(p, li) {
   line-height: 1.7;
