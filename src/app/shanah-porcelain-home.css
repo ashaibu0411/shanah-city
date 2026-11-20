@@ -607,3 +607,81 @@ html.dark body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-
     animation: none !important;
   }
 }
+
+
+/* Premium deep-blue mobile home treatment. Real photographs remain live assets;
+   this adds depth and contrast without pretending a low-res source is native 4K. */
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__image {
+  filter: saturate(1.28) contrast(1.19) brightness(.95) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__sunrise {
+  opacity: .74 !important;
+  mix-blend-mode: soft-light !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__sunrise::before {
+  opacity: .22 !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__scrim {
+  background: linear-gradient(180deg,rgba(4,18,43,0) 0%,rgba(4,18,43,.04) 26%,rgba(4,22,52,.43) 60%,rgba(3,18,43,.95) 100%) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile {
+  border: 1px solid rgba(194,153,83,.36) !important;
+  background-color: #061d40 !important;
+  box-shadow: 0 12px 26px rgba(6,26,55,.22), inset 0 1px rgba(255,255,255,.14) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__image {
+  filter: saturate(1.22) contrast(1.17) brightness(.98) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__scrim {
+  background: linear-gradient(180deg,rgba(3,17,41,0) 5%,rgba(3,17,41,.16) 38%,rgba(3,17,41,.93) 100%) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__label {
+  color: #fff !important;
+  font-weight: 850 !important;
+  text-shadow: 0 2px 7px rgba(0,0,0,.68) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__icon,
+body.premium-home-v3-active .shanah-porcelain-home .ph4-tile__chevron {
+  color: #f5bf67 !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-give {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(125deg,#061b3a 0%,#0c3975 42%,#064f98 68%,#041a39 100%) !important;
+  border: 1px solid rgba(231,181,98,.85) !important;
+  box-shadow: 0 13px 30px rgba(7,33,72,.22), inset 0 1px rgba(255,255,255,.18) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-give::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 70% at 67% -15%,rgba(89,168,240,.45),transparent 75%),
+    linear-gradient(158deg,transparent 51%,rgba(255,255,255,.085) 52%,transparent 59%),
+    linear-gradient(164deg,transparent 66%,rgba(237,184,91,.42) 67%,transparent 68.2%),
+    linear-gradient(163deg,transparent 75%,rgba(75,155,234,.18) 76%,transparent 83%);
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-give__title,
+body.premium-home-v3-active .shanah-porcelain-home .ph4-give__copy {
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-give__icon {
+  background: radial-gradient(circle at 35% 25%,#ffe4a0,#eab34f 55%,#b9781c 100%) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.55) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__thumb img {
+  filter: saturate(1.18) contrast(1.15) brightness(.98) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__thumb {
+  background: #071e42;
+  box-shadow: 0 10px 24px rgba(4,27,58,.22) !important;
+}
+@media (prefers-reduced-motion: no-preference) {
+  body.premium-home-v3-active .shanah-porcelain-home .ph4-tile:active {
+    transform: scale(.985);
+  }
+}
