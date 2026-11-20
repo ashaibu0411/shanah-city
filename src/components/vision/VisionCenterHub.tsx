@@ -178,7 +178,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
     commentFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   return (
-    <div className="mx-auto w-full max-w-[1440px] min-w-0 space-y-8 px-1 pb-24 text-slate-900 sm:px-3 lg:px-6">
+    <div className="vision-center-readable mx-auto w-full max-w-[1440px] min-w-0 space-y-8 px-1 pb-24 text-slate-900 sm:px-3 lg:px-6">
       <header className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 p-7 text-white shadow-lg sm:p-10 lg:p-12">
         <p className="text-sm font-extrabold uppercase tracking-[.1em] text-blue-100">Shanah City · Private leadership</p>
         <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">{planId ? "Ministry Vision" : "2027 Vision Center"}</h1>
