@@ -379,7 +379,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                     <label className="block text-base font-bold text-slate-900">{selected.status === "approved" ? "Implementation check-in deadline (optional)" : "Review deadline"}<input type="date" className={field + " mt-1"} value={deadline} onChange={e => setDeadline(e.target.value)}/></label>
                     <p className="text-sm leading-relaxed text-slate-600">{selected.status === "approved" ? "Assign an implementation leader without reopening the approved plan. Then assign specific tasks and deadlines in Monthly responsibilities & reminders." : "Invite this leader to review the working vision and submit their proposed contribution."}</p>
                     <button className={button} disabled={busy || !assignUserId}>{selected.status === "approved" ? "Assign implementation leader" : "Invite selected member privately"}</button>
-                  </form>}
+                  </form>
                   <div className="border-t border-slate-200 pt-7">
                     <label className="block text-base font-bold text-slate-900">Pastoral review note<textarea className={field + " mt-2 min-h-[160px] resize-y"} value={feedbackNote} onChange={e => setFeedbackNote(e.target.value)} maxLength={1000}/></label>
                     {selected.status !== "approved" && <div className="mt-3 flex flex-wrap gap-2">
