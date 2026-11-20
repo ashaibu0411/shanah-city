@@ -196,7 +196,8 @@ export async function POST(request: Request) {
     const userId = safeVisionString(body.userId, 120);
     if (!userId || !(await getUserById(userId))) return invalid("Choose a valid Shanah City member account.");
     const plan = await prisma.visionPlan.findUnique({ where: { id: planId } });
-    if (!plan || plan.status === "approved") return invalid("Assignment is unavailable.");
+    if (!plan) return invalid("Vision plan not found.");
+    // Appointing an implementation leader after approval does not reopen the approved vision.
     const deadline = body.deadline && /^\d{4}-\d{2}-\d{2}$/.test(body.deadline)
       ? new Date(body.deadline + "T23:59:59.000Z") : null;
     const assignment = await prisma.visionAssignment.upsert({
@@ -204,7 +205,7 @@ export async function POST(request: Request) {
       create: { planId, userId, deadline },
       update: { deadline },
     });
-    await audit(planId, user.id, "assigned", userId);
+    await audit(planId, user.id, plan.status === "approved" ? "implementation-leader-assigned" : "assigned", userId);
     await notifyVisionLeader(userId, planId, "assigned");
     return NextResponse.json({ assignment });
   }
@@ -224,7 +225,10 @@ export async function PATCH(request: Request) {
   if (action === "acknowledge" || action === "save-response" || action === "submit") {
     const assignment = await prisma.visionAssignment.findUnique({ where: { planId_userId: { planId, userId: user.id } } });
     if (!assignment) return deny();
-    if (plan.status === "approved") return invalid("Approved plans are read-only.");
+    // Approved vision content stays immutable, but a newly appointed leader must
+    // still be able to confirm reading and accepting the implementation direction.
+    if (plan.status === "approved" && action !== "acknowledge") return invalid("Approved vision proposals are closed. Track implementation through assigned tasks and monthly reports.");
+    if (action === "acknowledge" && assignment.acknowledgedAt) return NextResponse.json({ assignment });
     if (action === "submit" && !assignment.acknowledgedAt) return invalid("Acknowledge the vision before submitting your response.");
     const update = action === "acknowledge"
       ? { acknowledgedAt: new Date(), status: "acknowledged" }
