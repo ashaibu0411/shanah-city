@@ -42,7 +42,7 @@ export function PremiumHomeMobile({
   return (
     <>
       <PremiumHomeV3Chrome />
-      <div className="premium-home-v3 premium-home-v4 premium-home-v3--spacing-v3 animate-fade-in">
+      <div className="premium-home-v3 premium-home-v4 premium-home-v3--spacing-v3 shanah-porcelain-home animate-fade-in">
         <PremiumStoriesSection
           sectionTitle="Stories"
           storiesPresentation="v6"
