@@ -1,5 +1,6 @@
-import { AboutShanahHomeLink } from "@/components/home/premium/AboutShanahHomeLink";
 "use client";
+
+import { AboutShanahHomeLink } from "@/components/home/premium/AboutShanahHomeLink";
 
 import Link from "next/link";
 import { useApp } from "@/components/app/AppProvider";
