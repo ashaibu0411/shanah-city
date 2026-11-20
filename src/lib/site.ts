@@ -73,6 +73,7 @@ export const site = {
   },
   nav: [
     { label: "Home", href: "/", icon: "⌂" },
+    { label: "About Us", href: "/about", icon: "✦" },
     { label: "Media", href: "/live", icon: "▶" },
     { label: "Devotions", href: "/devotions", icon: "✦" },
     { label: "Meetings", href: "/meetings", icon: "▣" },

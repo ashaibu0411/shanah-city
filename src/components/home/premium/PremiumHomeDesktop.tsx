@@ -1,3 +1,4 @@
+import { AboutShanahHomeLink } from "@/components/home/premium/AboutShanahHomeLink";
 "use client";
 
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
@@ -74,6 +75,8 @@ export function PremiumHomeDesktop({
           <PremiumPrayerGive />
         </div>
       </div>
+
+      <AboutShanahHomeLink />
 
       <PremiumCampusSection />
 
