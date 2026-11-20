@@ -41,9 +41,9 @@ export function VisionDocument({ content, onSuggest }: { content: string; onSugg
     <article className="w-full min-w-0 space-y-5 text-[17px] leading-[1.85] tracking-normal text-slate-800 sm:text-[18px] sm:leading-[1.9]">
       {sections.map((part, index) => {
         if (part.kind === "heading") {
-          return <div key={index} className="!mt-9 flex min-w-0 flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-3 first:!mt-0">
-            <h3 className="min-w-0 flex-1 break-words text-xl font-extrabold leading-snug tracking-tight text-slate-950 sm:text-2xl">{part.text}</h3>
-            {onSuggest && <button type="button" className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-800" onClick={() => onSuggest(part.text)}>Suggest change</button>}
+          return <div key={index} className="!mt-9 min-w-0 space-y-3 border-b border-slate-200 pb-4 first:!mt-0">
+            <h3 className="w-full min-w-0 whitespace-normal break-normal text-[19px] font-bold leading-[1.35] tracking-normal text-slate-950 sm:text-2xl">{part.text}</h3>
+            {onSuggest && <button type="button" className="inline-flex min-h-[44px] max-w-full items-center justify-center whitespace-normal rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-bold text-blue-800" onClick={() => onSuggest(part.text)}>Suggest change</button>}
           </div>;
         }
         const item = listLine(part.text);
