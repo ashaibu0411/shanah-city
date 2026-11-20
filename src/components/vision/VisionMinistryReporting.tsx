@@ -78,6 +78,7 @@ export function VisionMinistryReporting({ owner, ministryKey }: { owner: boolean
   const [reviewNote, setReviewNote] = useState("");
   const [actionSteps, setActionSteps] = useState("");
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -86,6 +87,7 @@ export function VisionMinistryReporting({ owner, ministryKey }: { owner: boolean
   const reload = useCallback(async () => {
     setLoading(true);
     setError("");
+    setAccessDenied(false);
     try {
       const data = await getJson("/api/ministry-reports?reportMonth=" + encodeURIComponent(month));
       setReports(data.reports ?? []);
@@ -98,7 +100,10 @@ export function VisionMinistryReporting({ owner, ministryKey }: { owner: boolean
         setSummary(null);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to load reports.");
+      const message = e instanceof Error ? e.message : "Unable to load reports.";
+      const denied = message.includes("Ministry leader or pastoral review access required") || message.includes("Sign in required");
+      setAccessDenied(denied);
+      setError(denied ? "" : message);
       setReports([]); setSummary(null);
     } finally { setLoading(false); }
   }, [month, owner]);
@@ -161,7 +166,8 @@ export function VisionMinistryReporting({ owner, ministryKey }: { owner: boolean
     {error && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-base font-semibold text-rose-900">{error}</p>}
     {notice && <p role="status" className="rounded-xl bg-emerald-50 p-4 text-base font-semibold text-emerald-900">{notice}</p>}
     {loading && <p role="status" className="text-base text-slate-700">Loading ministry reports…</p>}
-    {!loading && !error && <>
+    {!loading && accessDenied && <p className="rounded-xl bg-slate-50 p-4 text-base leading-relaxed text-slate-700">Monthly report details are available to authorized ministry leaders and pastoral reviewers. You can still review this ministry's vision and submit suggestions using the sections below.</p>}
+    {!loading && !error && !accessDenied && <>
       <div className="grid grid-cols-3 gap-2 sm:gap-3" aria-label="Monthly reports overview">
         <div className="rounded-xl bg-amber-50 p-3 sm:p-4"><p className="text-xs font-semibold text-amber-900">Awaiting review</p><p className="mt-1 text-2xl font-extrabold text-amber-950">{submitted}</p></div>
         <div className="rounded-xl bg-emerald-50 p-3 sm:p-4"><p className="text-xs font-semibold text-emerald-900">Reviewed</p><p className="mt-1 text-2xl font-extrabold text-emerald-950">{reviewed}</p></div>
