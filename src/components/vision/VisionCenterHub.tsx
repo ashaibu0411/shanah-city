@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent, type TextareaHTMLAttributes } from "react";
 import { VisionDocument } from "@/components/vision/VisionDocument";
-import { VisionAccountabilityOverview, VisionMilestonePanel, VisionMyUpcoming } from "@/components/vision/VisionMilestonePanel";
+import { VisionAccountabilityOverview, VisionMilestonePanel } from "@/components/vision/VisionMilestonePanel";
+import { MyLeadershipDashboard } from "@/components/vision/MyLeadershipDashboard";
 import { MenLegacyScorecard } from "@/components/vision/MenLegacyScorecard";
 import { TransformedWomenScorecard } from "@/components/vision/TransformedWomenScorecard";
 import { MinistryGrowthScorecard } from "@/components/vision/MinistryGrowthScorecard";
@@ -193,9 +194,9 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
       {notice && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">{notice}</p>}
       <div className="space-y-8">
-        {!planId && (owner ? <VisionAccountabilityOverview /> : <VisionMyUpcoming />)}
+        {!planId && (owner ? <VisionAccountabilityOverview /> : <MyLeadershipDashboard plans={plans} />)}
         {!planId && <div id="vision-reporting" className="scroll-mt-24"><VisionMinistryReporting owner={owner} /></div>}
-        {!planId && <section aria-label="Ministry vision directory" className={panel + " space-y-5"}>
+        {!planId && <section id="vision-directory" aria-label="Ministry vision directory" className={panel + " scroll-mt-24 space-y-5"}>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Ministry visions</h2>
           <p className="text-base font-medium text-slate-600">Open a ministry to review its vision, submit feedback, and see next steps. Your work stays private to authorized leadership.</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Vision center overview">
