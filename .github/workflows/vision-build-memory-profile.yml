@@ -1,13 +1,10 @@
 name: Next.js build memory comparison (manual)
 on:
-  push:
-    branches: [fix/post-approval-leader-onboarding-mobile-20261119]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   profile:
-    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -30,7 +27,6 @@ jobs:
       - name: Profile Next.js build memory (no production environment or secrets)
         run: npm run diagnose:build-memory
   baseline:
-    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -50,19 +46,3 @@ jobs:
         run: npx prisma generate
       - name: Measure normal Next.js build process-tree RSS
         run: node scripts/build-memory-baseline.cjs
-
-  typecheck:
-    if: github.ref == 'refs/heads/fix/post-approval-leader-onboarding-mobile-20261119'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      NEXT_TELEMETRY_DISABLED: "1"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: npm
-      - run: npm ci
-      - run: npx prisma generate
-      - run: npx tsc --noEmit
