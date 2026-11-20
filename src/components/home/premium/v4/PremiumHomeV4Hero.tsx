@@ -40,7 +40,8 @@ export function PremiumHomeV4Hero({
           src={premiumV4HeroMountainImage}
           alt=""
           priority
-          sizes="100vw"
+          sizes="(max-width: 512px) 100vw, 768px"
+          quality={95}
           className="ph4-hero__image"
         />
         <div className="ph4-hero__glow ph4-hero__glow--violet" aria-hidden />
