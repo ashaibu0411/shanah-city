@@ -8,6 +8,7 @@ import { TransformedWomenScorecard } from "@/components/vision/TransformedWomenS
 import { MinistryGrowthScorecard } from "@/components/vision/MinistryGrowthScorecard";
 import Link from "next/link";
 import { VisionShareButton } from "@/components/vision/VisionShareButton";
+import { VisionMinistryReporting } from "@/components/vision/VisionMinistryReporting";
 
 type Assignment = {
   id: string; userId: string; status: string; deadline?: string | null;
@@ -193,6 +194,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
       {notice && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">{notice}</p>}
       <div className="space-y-8">
         {!planId && (owner ? <VisionAccountabilityOverview /> : <VisionMyUpcoming />)}
+        {!planId && <div id="vision-reporting" className="scroll-mt-24"><VisionMinistryReporting owner={owner} /></div>}
         {!planId && <section aria-label="Ministry vision directory" className={panel + " space-y-5"}>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Ministry visions</h2>
           <p className="text-base font-medium text-slate-600">Open a ministry to review its vision, submit feedback, and see next steps. Your work stays private to authorized leadership.</p>
@@ -271,6 +273,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                 <nav aria-label="On this vision page" className="flex flex-wrap gap-2 border-t border-slate-100 pt-5">
                   <a href="#vision-direction" className="inline-flex min-h-[44px] items-center rounded-full border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-800 hover:bg-blue-100">Read vision</a>
                   {selected.status === "approved" && <a href="#vision-accountability" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">2027 tasks</a>}
+                  <a href="#vision-reporting" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">Monthly reports</a>
                   <a href="#vision-response" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">{owner ? "Leader submissions" : "My response"}</a>
                   <a href="#vision-feedback" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">Questions & feedback</a>
                 </nav>
@@ -294,6 +297,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
               {selected.ministryKey === "women" && <TransformedWomenScorecard />}
               {(["worship", "young-adults", "kids"] as const).includes(selected.ministryKey as "worship" | "young-adults" | "kids") && <MinistryGrowthScorecard ministry={selected.ministryKey as "worship" | "young-adults" | "kids"} />}
               {selected.status === "approved" && <div id="vision-accountability" className="scroll-mt-24"><VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} /></div>}
+              <div id="vision-reporting" className="scroll-mt-24"><VisionMinistryReporting owner={owner} ministryKey={selected.ministryKey} /></div>
               {owner ? (
                 <section id="vision-response" className={panel + " scroll-mt-24 space-y-4"}>
                   <h3 className="text-2xl font-extrabold text-slate-950">{selected.ministryKey === "churchwide" ? "Pastoral review invitations" : "Assigned leaders"}</h3>
