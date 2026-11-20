@@ -562,3 +562,48 @@ html.dark body.premium-home-v3-active .shanah-porcelain-home .ph4-section:has(.p
     font-size: .7rem;
   }
 }
+
+
+/* Visible sunrise enhancement for the APP home hero only.
+   A dedicated sun layer is used instead of the previous faint generic gold glow.
+   All text remains live, accessible, and personalized. */
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__media {
+  isolation: isolate;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__sunrise {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 86% 33%, rgba(255,255,236,.98) 0%, rgba(255,243,191,.98) 1.15%, rgba(255,201,92,.86) 2.2%, rgba(255,164,51,.53) 4.7%, rgba(255,164,51,.16) 11%, transparent 27%),
+    radial-gradient(ellipse 76% 30% at 83% 43%, rgba(255,189,84,.31), transparent 80%),
+    linear-gradient(110deg, transparent 35%, rgba(255,188,86,.05) 57%, rgba(255,208,130,.18) 83%, transparent 100%);
+  mix-blend-mode: screen;
+  opacity: .97;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__sunrise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(from 8deg at 86% 33%, rgba(255,223,148,.26) 0deg 2.5deg, transparent 3deg 18deg);
+  -webkit-mask-image: radial-gradient(ellipse 49% 38% at 86% 33%, black 1%, transparent 82%);
+  mask-image: radial-gradient(ellipse 49% 38% at 86% 33%, black 1%, transparent 82%);
+  opacity: .85;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__scrim {
+  z-index: 2;
+  background: linear-gradient(180deg,rgba(7,26,54,.03) 0%,rgba(7,26,54,.04) 30%,rgba(7,26,54,.37) 59%,rgba(5,23,49,.88) 100%) !important;
+}
+body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__content {
+  position: relative;
+  z-index: 3;
+}
+html.dark body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__sunrise {
+  opacity: .83;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__sunrise {
+    animation: none !important;
+  }
+}
