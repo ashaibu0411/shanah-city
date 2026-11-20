@@ -193,3 +193,120 @@ html.dark body.premium-home-v3-active .ph4-tile__scrim { background: linear-grad
 
 /* The About feature has explicit dark styles already; keep both schemes legible. */
 html:not(.dark) .shanah-porcelain-home a[href="/about"] { border-color: #e2d5bf; }
+
+
+/* iPhone QA: make cream chrome fully opaque. The legacy cinematic shell
+   previously let scrolled Give / Watch buttons ghost behind the header. */
+html:not(.dark) body.premium-home-v3-active.premium-home-v4-active .mobile-app-header,
+html:not(.dark) body.premium-home-v3-active.premium-home-v4-active[data-shell="mobile"] .mobile-app-header {
+  background: #f5f0e6 !important;
+  background-color: #f5f0e6 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  isolation: isolate;
+  z-index: 80;
+  border-bottom: 1px solid #d9c8ae !important;
+  box-shadow: 0 3px 14px rgba(18,59,112,.07) !important;
+}
+html:not(.dark) body.premium-home-v3-active .mobile-app-header .app-mobile-inner {
+  min-height: 3.8rem;
+  align-items: center;
+}
+html:not(.dark) body.premium-home-v3-active .ph4-brand-logo {
+  flex: 0 0 auto;
+  max-width: 5rem;
+  opacity: 1 !important;
+  filter: none !important;
+}
+html:not(.dark) body.premium-home-v3-active .ph4-brand-logo img {
+  height: 2.15rem !important;
+  max-width: 4.4rem;
+  width: auto;
+  object-fit: contain;
+  opacity: 1 !important;
+  filter: none !important;
+}
+html:not(.dark) body.premium-home-v3-active .ph4-header-wordmark {
+  color: #123b70 !important;
+  font-weight: 800 !important;
+  letter-spacing: .15em;
+  -webkit-font-smoothing: antialiased;
+  text-shadow: none !important;
+}
+
+/* Readable typography: crisp, high-contrast text across light surfaces. */
+html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home :is(.ph4-section__title,.premium-section__title) {
+  font-weight: 800 !important;
+  letter-spacing: -.025em;
+  color: #102b4e !important;
+  text-shadow: none !important;
+}
+html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home :is(.ph4-event-row__title,.ph4-sermon__title) {
+  font-weight: 750 !important;
+  line-height: 1.35;
+}
+html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home :is(.ph4-event-row__meta,.ph4-event-row__location,.ph4-sermon__speaker) {
+  color: #445c76 !important;
+}
+
+/* Fix purple legacy check-in panel and washed-out labels in Light mode. */
+html:not(.dark) body.premium-home-v3-active .premium-home-v3__balance-lower > a.mobile-card[href="/check-in"] {
+  background: #fbf7ef !important;
+  background-image: none !important;
+  border: 1px solid #d7c5a7 !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 8px 22px rgba(18,59,112,.07) !important;
+  color: #102b4e !important;
+  padding: .95rem 1rem !important;
+  min-height: 4.25rem;
+}
+html:not(.dark) body.premium-home-v3-active .premium-home-v3__balance-lower > a.mobile-card[href="/check-in"] p,
+html:not(.dark) body.premium-home-v3-active .premium-home-v3__balance-lower > a.mobile-card[href="/check-in"] p.text-sm {
+  color: #102b4e !important;
+  opacity: 1 !important;
+  font-size: .98rem;
+  font-weight: 750;
+  text-shadow: none !important;
+}
+html:not(.dark) body.premium-home-v3-active .premium-home-v3__balance-lower > a.mobile-card[href="/check-in"] p.text-xs {
+  color: #4b6279 !important;
+  opacity: 1 !important;
+  font-size: .78rem;
+  line-height: 1.45;
+  font-weight: 500;
+}
+html:not(.dark) body.premium-home-v3-active .premium-home-v3__balance-lower > a.mobile-card[href="/check-in"] > span:last-child {
+  background: #123b70 !important;
+  background-image: none !important;
+  color: #fff !important;
+  border-radius: 999px;
+  font-weight: 750 !important;
+  padding: .55rem .9rem !important;
+}
+/* About tile: use warm cream, not a pure-white interruption. */
+html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home a[href="/about"] {
+  background: #fbf7ef !important;
+  border-color: #e2d5bf !important;
+}
+html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home a[href="/about"] h2 {
+  color: #102b4e !important;
+}
+html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home a[href="/about"] p {
+  color: #465b70 !important;
+}
+html:not(.dark) body.premium-home-v3-active .shanah-porcelain-home a[href="/about"] span[class*="bg-"] {
+  background: #123b70 !important;
+  color: #fff !important;
+}
+
+/* Ensure dark preference remains a clear dark canvas, not translucent cream. */
+html.dark body.premium-home-v3-active.premium-home-v4-active .mobile-app-header {
+  background: #081c34 !important;
+  background-color: #081c34 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
