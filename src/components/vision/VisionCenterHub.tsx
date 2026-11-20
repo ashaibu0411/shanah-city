@@ -65,6 +65,8 @@ async function request(method: string, data: Record<string, unknown>): Promise<R
 
 export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: string }) {
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [visionSearch, setVisionSearch] = useState("");
+  const [visionStatus, setVisionStatus] = useState("all");
   const [ministries, setMinistries] = useState<Ministry[]>([]);
   const [leaders, setLeaders] = useState<Leader[]>([]);
   const [pastoralReviewers, setPastoralReviewers] = useState<Leader[]>([]);
@@ -157,6 +159,12 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
   }
 
   const myAssignment = selected?.assignments?.[0];
+  const visiblePlans = plans.filter(plan =>
+    (visionStatus === "all" || plan.status === visionStatus) &&
+    `${plan.title} ${plan.summary} ${plan.ministryKey}`.toLowerCase().includes(visionSearch.trim().toLowerCase())
+  );
+  const awaitingResponse = plans.filter(plan => plan.assignments.some(a => !a.submittedAt)).length;
+  const approvedPlans = plans.filter(plan => plan.status === "approved").length;
   function suggestFor(section: string) {
     setSectionKey(section.slice(0, 100));
     setCommentKind("idea");
@@ -177,14 +185,36 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
         {!planId && (owner ? <VisionAccountabilityOverview /> : <VisionMyUpcoming />)}
         {!planId && <section aria-label="Ministry vision directory" className={panel + " space-y-5"}>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Ministry visions</h2>
-          <p className="text-base font-medium text-slate-600">{plans.length} accessible plans · Select a ministry to open its full page.</p>
+          <p className="text-base font-medium text-slate-600">Open a ministry to review its vision, submit feedback, and see next steps. Your work stays private to authorized leadership.</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Vision center overview">
+            <div className="rounded-xl bg-blue-50 p-4"><p className="text-sm font-semibold text-blue-800">Available visions</p><p className="mt-1 text-2xl font-extrabold text-blue-950">{plans.length}</p></div>
+            <div className="rounded-xl bg-emerald-50 p-4"><p className="text-sm font-semibold text-emerald-800">Approved</p><p className="mt-1 text-2xl font-extrabold text-emerald-950">{approvedPlans}</p></div>
+            <div className="col-span-2 rounded-xl bg-amber-50 p-4 sm:col-span-1"><p className="text-sm font-semibold text-amber-900">With pending leader responses</p><p className="mt-1 text-2xl font-extrabold text-amber-950">{awaitingResponse}</p></div>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <label className="flex-1 text-sm font-bold text-slate-700">Find a ministry
+              <input type="search" className={field + " mt-2"} placeholder="Search visions or ministries" value={visionSearch} onChange={e => setVisionSearch(e.target.value)} />
+            </label>
+            <label className="text-sm font-bold text-slate-700 sm:w-52">Filter by status
+              <select className={field + " mt-2"} value={visionStatus} onChange={e => setVisionStatus(e.target.value)}>
+                <option value="all">All statuses</option>
+                <option value="draft">Draft</option>
+                <option value="assigned">Assigned</option>
+                <option value="submitted">Submitted</option>
+                <option value="approved">Approved</option>
+              </select>
+            </label>
+          </div>
+          {visiblePlans.length === 0 && plans.length > 0 && <p role="status" className="rounded-xl bg-slate-50 p-5 text-base font-semibold text-slate-700">No visions match your search. Clear the search or select All statuses.</p>}
           {plans.length === 0 && <p className="text-base font-medium text-slate-600">No visions assigned yet.</p>}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {plans.map(plan => (
+          {visiblePlans.map(plan => (
             <Link href={"/leadership/vision/" + encodeURIComponent(plan.id)} key={plan.id}
               className={"min-w-0 w-full rounded-2xl border-2 p-5 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 " + (selected?.id === plan.id ? "border-blue-700 bg-blue-50" : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50")}>
               <span className="block break-words text-lg font-extrabold leading-snug text-slate-950">{plan.title}</span>
-              <span className="mt-3 block text-sm font-semibold capitalize text-slate-600">{plan.status.replaceAll("_", " ")} · Version {plan.version}</span>
+              <span className="mt-3 inline-block rounded-full bg-blue-50 px-3 py-1.5 text-sm font-bold capitalize text-blue-800">{plan.status.replaceAll("_", " ")}</span>
+              <span className="mt-3 block text-sm leading-relaxed text-slate-600">{plan.summary.length > 145 ? plan.summary.slice(0, 142) + "…" : plan.summary}</span>
+              <span className="mt-4 inline-flex items-center text-sm font-extrabold text-blue-700">Open vision and next steps →</span>
             </Link>
           ))}
           </div>
