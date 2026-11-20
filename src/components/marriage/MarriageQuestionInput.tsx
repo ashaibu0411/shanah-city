@@ -1,9 +1,45 @@
 "use client";
 
+import { useLayoutEffect, useRef } from "react";
 import type { MarriageQuestionDefinition } from "@/lib/marriage-counseling-types";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import { MarriageBudgetWorksheet } from "@/components/marriage/MarriageBudgetWorksheet";
 import { MarriageWrittenQuestionGuidance } from "@/components/marriage/MarriageWrittenQuestionGuidance";
+
+/**
+ * All written answers use a native textarea on both iOS and Android.
+ * A text input cannot accept Return/newline characters in iOS Safari.
+ * Keep the stored response as a plain string, including line breaks.
+ */
+function MarriageWrittenAnswerField({
+  value, onChange, disabled, long,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  long: boolean;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    element.style.height = "auto";
+    element.style.height = Math.max(long ? 176 : 144, element.scrollHeight) + "px";
+  }, [value, long]);
+
+  return (
+    <textarea
+      ref={ref}
+      rows={long ? 6 : 4}
+      className="mt-2 block min-h-36 w-full min-w-0 resize-y overflow-hidden whitespace-pre-wrap break-words rounded-xl border border-night-900/10 bg-white px-4 py-3 text-base leading-7 text-night-900 placeholder:text-night-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-white/12 dark:bg-[var(--color-bg-muted)] dark:text-sand-50 dark:placeholder:text-sand-400"
+      value={value}
+      disabled={disabled}
+      aria-label="Your written answer; press Return for a new line"
+      placeholder="Share in your own words…"
+      onChange={(event) => onChange(event.target.value)}
+    />
+  );
+}
 
 export function MarriageQuestionInput({
   question,
@@ -55,23 +91,15 @@ export function MarriageQuestionInput({
         <p className="mt-4 text-xs font-bold uppercase tracking-wide text-night-500 dark:text-sand-400">
           Your answer
         </p>
-        {multiline ? (
-          <textarea
-            className="mt-2 min-h-[120px] w-full rounded-xl border border-night-900/10 px-3 py-3 text-sm dark:border-white/12 dark:bg-[var(--color-bg-muted)]"
-            value={typeof value === "string" ? value : ""}
-            disabled={disabled}
-            placeholder="Share in your own words…"
-            onChange={(e) => onChange(e.target.value)}
-          />
-        ) : (
-          <input
-            className="mt-2 min-h-[44px] w-full rounded-xl border border-night-900/10 px-3 py-3 text-sm dark:border-white/12 dark:bg-[var(--color-bg-muted)]"
-            value={typeof value === "string" ? value : ""}
-            disabled={disabled}
-            placeholder="Share in your own words…"
-            onChange={(e) => onChange(e.target.value)}
-          />
-        )}
+        <MarriageWrittenAnswerField
+          value={typeof value === "string" ? value : ""}
+          onChange={onChange}
+          disabled={disabled}
+          long={multiline}
+        />
+        <p className="mt-2 text-xs leading-relaxed text-night-500 dark:text-sand-400">
+          Write as much as you need. Use Return to add a new line or paragraph.
+        </p>
       </>
     );
   }
