@@ -79,8 +79,9 @@ export function MyLeadershipDashboard({ plans }: { plans: Plan[] }) {
   const overdue = openTasks.filter(task => task.dueOn < today);
   const finished = tasks.filter(task => task.status === "complete").length;
   const completePercent = tasks.length ? Math.round(finished / tasks.length * 100) : 0;
-  const reviewPending = plans.filter(plan => plan.assignments.some(a => !a.submittedAt));
+  const reviewPending = plans.filter(plan => plan.status !== "approved" && plan.assignments.some(a => !a.submittedAt));
   const unread = plans.filter(plan => plan.assignments.some(a => !a.acknowledgedAt));
+  const implementationPending = plans.filter(plan => plan.status === "approved" && plan.assignments.some(a => !a.acknowledgedAt));
   const byGroup = new Map(reports.map(report => [report.groupId, report]));
   const waitingReports = groups.filter(group => !byGroup.get(group.id) || byGroup.get(group.id)?.status === "draft" || byGroup.get(group.id)?.status === "returned");
   const withFeedback = reports.filter(report => (report.reviewerNotes?.trim() || report.actionSteps?.trim()) && (report.status === "reviewed" || report.status === "returned"));
@@ -92,11 +93,11 @@ export function MyLeadershipDashboard({ plans }: { plans: Plan[] }) {
       <h2 className="text-2xl font-extrabold leading-snug text-slate-950 sm:text-3xl">My Leadership Dashboard</h2>
       <p className="max-w-3xl text-base leading-relaxed text-slate-700">Your assigned visions, responsibilities, monthly reports, and pastoral direction together. All information remains private to your authorized ministry role.</p>
     </div>
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <div className="rounded-xl border border-blue-100 bg-blue-50 p-4"><p className="text-sm font-semibold text-blue-900">My visions</p><p className="mt-1 text-3xl font-extrabold text-blue-950">{plans.length}</p></div>
-      <div className="rounded-xl border border-amber-100 bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-950">Vision responses due</p><p className="mt-1 text-3xl font-extrabold text-amber-950">{reviewPending.length}</p></div>
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4"><p className="text-sm font-semibold text-slate-700">Open responsibilities</p><p className="mt-1 text-3xl font-extrabold text-slate-950">{loadingTasks ? "—" : tasksError ? "!" : openTasks.length}</p></div>
-      <div className="rounded-xl border border-rose-100 bg-rose-50 p-4"><p className="text-sm font-semibold text-rose-950">Overdue tasks</p><p className="mt-1 text-3xl font-extrabold text-rose-950">{loadingTasks ? "—" : tasksError ? "!" : overdue.length}</p></div>
+    <div className="grid grid-cols-1 gap-3 min-[390px]:grid-cols-2 lg:grid-cols-4">
+      <div className="min-w-0 rounded-xl border border-blue-100 bg-blue-50 p-4"><p className="break-normal text-sm font-semibold leading-relaxed text-blue-900">My visions</p><p className="mt-1 text-3xl font-extrabold text-blue-950">{plans.length}</p></div>
+      <div className="min-w-0 rounded-xl border border-amber-100 bg-amber-50 p-4"><p className="break-normal text-sm font-semibold leading-relaxed text-amber-950">Leadership actions due</p><p className="mt-1 text-3xl font-extrabold text-amber-950">{reviewPending.length + implementationPending.length}</p></div>
+      <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-4"><p className="break-normal text-sm font-semibold leading-relaxed text-slate-700">Open tasks</p><p className="mt-1 text-3xl font-extrabold text-slate-950">{loadingTasks ? "—" : tasksError ? "!" : openTasks.length}</p></div>
+      <div className="min-w-0 rounded-xl border border-rose-100 bg-rose-50 p-4"><p className="break-normal text-sm font-semibold leading-relaxed text-rose-950">Overdue tasks</p><p className="mt-1 text-3xl font-extrabold text-rose-950">{loadingTasks ? "—" : tasksError ? "!" : overdue.length}</p></div>
     </div>
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
       <section className={card + " space-y-4"} aria-label="My next actions">
@@ -104,7 +105,7 @@ export function MyLeadershipDashboard({ plans }: { plans: Plan[] }) {
         <p className="text-sm text-slate-600">Start with the items needing your attention.</p>
         <div className="space-y-2">
           {unread.slice(0, 4).map(plan => <Link key={"read-" + plan.id} href={"/leadership/vision/" + encodeURIComponent(plan.id) + "#vision-response"} className="block rounded-xl border border-blue-100 bg-blue-50 p-3">
-            <p className="text-sm font-bold text-blue-900">Read and acknowledge vision</p><p className="mt-1 break-words text-base font-semibold text-slate-950">{plan.title}</p>
+            <p className="text-sm font-bold text-blue-900">{plan.status === "approved" ? "Acknowledge approved vision" : "Read and acknowledge vision"}</p><p className="mt-1 break-words text-base font-semibold text-slate-950">{plan.title}</p>
           </Link>)}
           {reviewPending.slice(0, 4).map(plan => <Link key={"respond-" + plan.id} href={"/leadership/vision/" + encodeURIComponent(plan.id) + "#vision-response"} className="block rounded-xl border border-slate-200 p-3">
             <p className="text-sm font-bold text-amber-900">Complete leadership response</p><p className="mt-1 break-words text-base font-semibold text-slate-950">{plan.title}</p>
@@ -132,9 +133,9 @@ export function MyLeadershipDashboard({ plans }: { plans: Plan[] }) {
             <p className="break-words text-lg font-extrabold leading-snug text-slate-950">{plan.title}</p>
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full bg-white px-3 py-1 text-xs font-bold capitalize text-slate-800">{plan.status}</span>
-              <span className={"rounded-full px-3 py-1 text-xs font-bold " + (assignment?.submittedAt ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950")}>{assignment?.submittedAt ? "Response submitted" : "Response pending"}</span>
+              <span className={"rounded-full px-3 py-1 text-xs font-bold " + (plan.status === "approved" ? assignment?.acknowledgedAt ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950" : assignment?.submittedAt ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950")}>{plan.status === "approved" ? assignment?.acknowledgedAt ? "Implementation acknowledged" : "Acknowledge to begin" : assignment?.submittedAt ? "Response submitted" : "Response pending"}</span>
             </div>
-            <p className="text-sm text-slate-700">{assignment?.acknowledgedAt ? "Vision acknowledged" : "Awaiting acknowledgement"}{assignment?.deadline ? " · Response deadline " + niceDate(assignment.deadline) : ""}</p>
+            <p className="text-sm text-slate-700">{assignment?.acknowledgedAt ? "Vision acknowledged" : "Awaiting acknowledgement"}{assignment?.deadline ? " · " + (plan.status === "approved" ? "Check-in" : "Response") + " deadline " + niceDate(assignment.deadline) : ""}</p>
           </Link>;
         })}
         <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
