@@ -12,6 +12,7 @@ import type {
 import { formatMarriageSessionScheduledAt } from "@/lib/marriage-session-scheduling";
 import { MarriagePrepNotificationCenter } from "@/components/marriage/MarriagePrepNotificationCenter";
 import { MarriageCounselorReviewCenterPanel } from "@/components/marriage/MarriageCounselorReviewCenterPanel";
+import { MarriageCounselorSubmissionInbox } from "@/components/marriage/MarriageCounselorSubmissionInbox";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { useEffect } from "react";
 
@@ -75,7 +76,7 @@ export function MarriageCounselorCommandCenter() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
-  const [section, setSection] = useState<"overview" | "couples" | "schedule" | "actions">("overview");
+  const [section, setSection] = useState<"overview" | "couples" | "schedule" | "actions" | "alerts">("overview");
 
   useEffect(() => {
     void (async () => {
@@ -208,6 +209,7 @@ export function MarriageCounselorCommandCenter() {
             ["couples", "My couples"],
             ["schedule", "Today & upcoming"],
             ["actions", "Action center"],
+            ["alerts", "Submission alerts"],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -230,6 +232,8 @@ export function MarriageCounselorCommandCenter() {
         ))}
       </div>
 
+      {section === "alerts" && <MarriageCounselorSubmissionInbox />}
+
       {section === "overview" && (
         <div className="space-y-6">
           <div className="marriage-c3m-summary-grid">
@@ -241,6 +245,11 @@ export function MarriageCounselorCommandCenter() {
             <OverviewStat label="Paused journeys" value={o.pausedJourneys} />
           </div>
           <MarriageCounselorReviewCenterPanel />
+          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5 dark:border-blue-900 dark:bg-blue-950/20">
+            <h2 className="text-lg font-extrabold text-blue-950 dark:text-blue-100">Couple assignments submitted?</h2>
+            <p className="mt-2 text-sm leading-relaxed text-blue-900 dark:text-blue-200">Open your submission alerts to see recorded assessment and homework submissions, even when you missed a device notification.</p>
+            <button type="button" onClick={() => setSection("alerts")} className="mt-4 min-h-[44px] rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-bold text-white">View counselor submission inbox</button>
+          </div>
           {data.actions.length > 0 && (
             <div className="marriage-c3m-panel">
               <h2 className="marriage-c3m-section-title">Priority actions</h2>
