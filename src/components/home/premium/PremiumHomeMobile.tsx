@@ -1,3 +1,4 @@
+import { AboutShanahHomeLink } from "@/components/home/premium/AboutShanahHomeLink";
 "use client";
 
 import Link from "next/link";
@@ -61,6 +62,8 @@ export function PremiumHomeMobile({
             highlightAlertId={highlightAlertId}
           />
         ) : null}
+
+        <AboutShanahHomeLink compact />
 
         <div className="premium-home-v3__balance-lower">
           <CheckInHomeBanner />
