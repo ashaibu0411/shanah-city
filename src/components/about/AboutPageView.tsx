@@ -48,6 +48,7 @@ export function AboutPageView() {
           <p className="mt-3 max-w-2xl text-[15px] leading-7 text-white/85 sm:text-base sm:leading-8">A Christ-centered, Spirit-empowered church family being transformed by His glory and called to make His love visible in our communities and beyond.</p>
           <nav aria-label="Explore About Shanah City" className="-mx-1 mt-6 flex snap-x gap-2 overflow-x-auto px-1 pb-2 sm:mt-8 sm:flex-wrap sm:overflow-visible sm:pb-0">
             <a className={anchorClass} href="#our-story">Our story</a>
+            <a className={anchorClass} href="#meaning-of-shanah">The word Shanah</a>
             <a className={anchorClass} href="#mission-vision">Mission & vision</a>
             <a className={anchorClass} href="#core-values">Core values</a>
             <a className={anchorClass} href="#beliefs">What we believe</a>
@@ -58,18 +59,32 @@ export function AboutPageView() {
       <section id="our-story" className={sectionClass}>
         <p className="text-sm font-extrabold uppercase tracking-[0.15em] text-blue-700">Established October 1, 2017 · Denver, Colorado</p>
         <h2 className="mt-2 font-display text-[1.55rem] font-extrabold leading-tight tracking-tight sm:mt-3 leading-tight sm:text-4xl">A calling that became a city</h2>
-        <div className="mt-4 grid min-w-0 gap-5 text-[15px] leading-7 text-slate-700 sm:mt-6 sm:gap-7 sm:text-base sm:leading-8 lg:grid-cols-[1.5fr_1fr]">
+        <div className="mt-4 grid min-w-0 gap-5 text-[15px] leading-7 text-slate-700 sm:mt-6 sm:gap-7 sm:text-base sm:leading-8 ">
           <div className="space-y-4 sm:space-y-5">
             <p>Shanah City began on October 1, 2017, in Denver, Colorado, through what its founders, <strong>Apostle Zaq Nombre and Lady Nayram Nombre</strong>, believe was a divine call to establish a Christ-centered ministry. The church was originally known as <strong>Shanah International Center</strong>.</p>
             <p>During a worship service, the ministry received a defining prophetic word: <strong>“Out of you shall come a city.”</strong> That word enlarged the vision beyond a gathering or a building. It spoke of people being raised, families being strengthened, disciples being equipped, and a spiritual community whose influence would extend beyond its walls. In response, the ministry became known as <strong>Shanah City</strong>.</p>
             <p>What began as an act of faith continues as a commitment to introduce people to Jesus Christ, help believers mature in Him, cultivate authentic fellowship, and serve our neighbors with compassion. Shanah City is a diverse, family-oriented, non-denominational charismatic church rooted in the Word of God and dependent on the Holy Spirit.</p>
           </div>
-          <aside className="min-w-0 self-start rounded-xl bg-[#eef4ff] p-4 sm:rounded-2xl sm:p-6">
-            <p className="text-xs font-extrabold uppercase tracking-widest text-blue-800">The word Shanah</p>
-            <p className="mt-3 font-display text-4xl font-bold text-[#0c2855]" lang="he" dir="rtl">שָׁנָה</p>
-            <p className="mt-3 text-base leading-7 text-slate-700"><strong>Shanah</strong> is a Hebrew word meaning <strong>“year.”</strong> For our church, it also speaks to the journey through God's appointed seasons—times to grow, be renewed, bear fruit, and become more like Christ.</p>
-            <p className="mt-4 border-t border-blue-200 pt-4 text-sm font-semibold leading-6 text-blue-900">“We all … are being transformed into the same image from glory to glory.” — 2 Corinthians 3:18</p>
-          </aside>
+
+        </div>
+      </section>
+
+      <section id="meaning-of-shanah" className={sectionClass}>
+        <div className="rounded-2xl bg-[#eef4ff] px-4 py-6 min-[380px]:px-5 sm:px-9 sm:py-10">
+          <p className="text-xs font-extrabold uppercase tracking-[0.15em] text-blue-800">The word Shanah</p>
+          <p className="mt-3 font-display text-4xl font-bold text-[#0c2855] sm:text-5xl" lang="he" dir="rtl">שָׁנָה</p>
+          <h2 className="mt-3 font-display text-[1.55rem] font-extrabold leading-tight text-[#0c2855] sm:text-3xl">Every Season Must Produce Transformation</h2>
+          <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-7 text-slate-700 sm:space-y-5 sm:text-base sm:leading-8">
+            <p>The name <strong>Shanah</strong> comes from the Hebrew word <span lang="he">שָׁנָה</span> (<em>shanah</em>), meaning <strong>“year.”</strong> Beyond its reference to a period of time, the word carries profound spiritual significance for our ministry—one rooted in the principles of cycles, renewal, repetition, and change.</p>
+            <p>A year represents a complete cycle, a journey from its beginning to its end. Yet at Shanah City, we believe that a year is more than the passing of twelve months. It is an opportunity for divine transformation.</p>
+            <p>The Hebrew word <em>shanah</em> is associated with the idea of repetition, while a related Hebrew verb expresses the idea of change. Together, these concepts beautifully illustrate the spiritual conviction behind our name: <strong>although seasons may repeat, our lives should not remain the same.</strong></p>
+            <p>We believe that when a person walks with God through a complete season, that journey should produce growth, maturity, renewal, and transformation. What begins at one level should not end at the same level. Every encounter with God's presence, every revelation of His Word, and every experience of His grace should move us closer to the image and likeness of Jesus Christ.</p>
+            <p className="rounded-xl border-l-4 border-amber-500 bg-white px-4 py-4 text-base font-bold leading-7 text-[#0c2855] sm:px-6 sm:text-lg">We may go through another cycle, but we must not remain at the same level.</p>
+            <p>Our journey is not simply from one year to another, but from one level of glory to another. We believe God calls His people to continual transformation—spiritually, personally, and in the impact they make upon their families, communities, and nations.</p>
+            <p>This conviction is anchored in <strong>2 Corinthians 3:18</strong>, which declares that we are being transformed into the image of Christ <em>“from glory to glory.”</em></p>
+            <p className="font-semibold text-[#0c2855]">At Shanah City, we do not merely count the years; we believe every season with God should count toward our transformation.</p>
+          </div>
+          <p className="mt-6 border-t border-blue-200 pt-5 text-base font-extrabold leading-7 text-[#0c2855]">Our vision: “Changing Lives to Higher Levels in God.”</p>
         </div>
       </section>
 
