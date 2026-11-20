@@ -165,6 +165,12 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
   );
   const awaitingResponse = plans.filter(plan => plan.assignments.some(a => !a.submittedAt)).length;
   const approvedPlans = plans.filter(plan => plan.status === "approved").length;
+  const selectedSubmitted = selected?.assignments.filter(a => Boolean(a.submittedAt)).length ?? 0;
+  const selectedPending = (selected?.assignments.length ?? 0) - selectedSubmitted;
+  const selectedFeedback = selected?.comments?.filter(c => c.kind === "idea" && c.decision === "pending").length ?? 0;
+  const formatDeadline = (value?: string | null) => value
+    ? new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    : "Not set";
   function suggestFor(section: string) {
     setSectionKey(section.slice(0, 100));
     setCommentKind("idea");
@@ -178,6 +184,10 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
         <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">{planId ? "Ministry Vision" : "2027 Vision Center"}</h1>
         <p className="mt-4 max-w-3xl text-lg font-medium leading-relaxed text-slate-100">Expansion · Establishment · Excellence · Community Impact</p>
         <p className="mt-4 text-base font-semibold text-blue-100">{owner ? "Senior Pastor workspace" : "My assigned ministry visions"}</p>
+        <div className="mt-7 flex flex-wrap gap-3">
+          <span className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white">Private leadership workspace</span>
+          <span className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white">2027 · Year of Expansion</span>
+        </div>
       </header>
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
       {notice && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">{notice}</p>}
@@ -214,6 +224,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
               <span className="block break-words text-lg font-extrabold leading-snug text-slate-950">{plan.title}</span>
               <span className="mt-3 inline-block rounded-full bg-blue-50 px-3 py-1.5 text-sm font-bold capitalize text-blue-800">{plan.status.replaceAll("_", " ")}</span>
               <span className="mt-3 block text-sm leading-relaxed text-slate-600">{plan.summary.length > 145 ? plan.summary.slice(0, 142) + "…" : plan.summary}</span>
+              <span className="mt-3 block text-sm font-semibold text-slate-700">{plan.assignments.length} leader {plan.assignments.length === 1 ? "assignment" : "assignments"} · {plan.assignments.filter(a => a.submittedAt).length} responses submitted</span>
               <span className="mt-4 inline-flex items-center text-sm font-extrabold text-blue-700">Open vision and next steps →</span>
             </Link>
           ))}
@@ -243,6 +254,26 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                   <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold capitalize text-slate-700">{selected.status.replaceAll("_", " ")}</span>
                 </div>
                 <p className="max-w-5xl text-lg font-semibold leading-relaxed text-slate-700 sm:text-xl">{selected.summary}</p>
+                <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-6 sm:grid-cols-3" aria-label="This vision at a glance">
+                  <div className="rounded-2xl bg-blue-50 p-4">
+                    <p className="text-sm font-bold text-blue-900">Assigned reviewers</p>
+                    <p className="mt-1 text-2xl font-extrabold text-blue-950">{selected.assignments.length}</p>
+                  </div>
+                  <div className="rounded-2xl bg-emerald-50 p-4">
+                    <p className="text-sm font-bold text-emerald-900">Submitted responses</p>
+                    <p className="mt-1 text-2xl font-extrabold text-emerald-950">{selectedSubmitted}</p>
+                  </div>
+                  <div className="col-span-2 rounded-2xl bg-amber-50 p-4 sm:col-span-1">
+                    <p className="text-sm font-bold text-amber-900">{owner ? "Pending responses" : "Pending suggestions"}</p>
+                    <p className="mt-1 text-2xl font-extrabold text-amber-950">{owner ? selectedPending : selectedFeedback}</p>
+                  </div>
+                </div>
+                <nav aria-label="On this vision page" className="flex flex-wrap gap-2 border-t border-slate-100 pt-5">
+                  <a href="#vision-direction" className="inline-flex min-h-[44px] items-center rounded-full border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-800 hover:bg-blue-100">Read vision</a>
+                  {selected.status === "approved" && <a href="#vision-accountability" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">2027 tasks</a>}
+                  <a href="#vision-response" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">{owner ? "Leader submissions" : "My response"}</a>
+                  <a href="#vision-feedback" className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-800 hover:bg-slate-50">Questions & feedback</a>
+                </nav>
                 <VisionShareButton
                   planId={selected.id}
                   planTitle={selected.title}
@@ -256,16 +287,21 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                     <label className="block text-base font-bold">Detailed direction<GrowingVisionTextarea className={field + " mt-2 font-normal leading-[1.8]"} value={content} onChange={e => setContent(e.target.value)} maxLength={20000}/></label>
                     <div className="flex flex-wrap gap-3"><button className={button} disabled={busy}>Save vision revision</button><button type="button" className={secondary} onClick={() => setEditingVision(false)}>Cancel editing</button></div>
                   </form>
-                ) : <div className="w-full min-w-0 border-t border-slate-200 pt-8"><VisionDocument content={selected.content} onSuggest={suggestFor} /></div>}
+                ) : <div id="vision-direction" className="w-full min-w-0 scroll-mt-24 border-t border-slate-200 pt-8"><VisionDocument content={selected.content} onSuggest={suggestFor} /></div>}
                 <p className="border-t border-slate-100 pt-5 text-sm font-semibold text-slate-500">Version {selected.version} · Private leadership material</p>
               </section>
               {selected.ministryKey === "men" && <MenLegacyScorecard />}
               {selected.ministryKey === "women" && <TransformedWomenScorecard />}
               {(["worship", "young-adults", "kids"] as const).includes(selected.ministryKey as "worship" | "young-adults" | "kids") && <MinistryGrowthScorecard ministry={selected.ministryKey as "worship" | "young-adults" | "kids"} />}
-              {selected.status === "approved" && <VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} />}
+              {selected.status === "approved" && <div id="vision-accountability" className="scroll-mt-24"><VisionMilestonePanel planId={selected.id} owner={owner} leaders={leaders} /></div>}
               {owner ? (
-                <section className={panel + " space-y-4"}>
+                <section id="vision-response" className={panel + " scroll-mt-24 space-y-4"}>
                   <h3 className="text-2xl font-extrabold text-slate-950">{selected.ministryKey === "churchwide" ? "Pastoral review invitations" : "Assigned leaders"}</h3>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl bg-slate-50 p-4"><p className="text-sm font-semibold text-slate-600">Assigned</p><p className="text-2xl font-extrabold text-slate-950">{selected.assignments.length}</p></div>
+                    <div className="rounded-xl bg-emerald-50 p-4"><p className="text-sm font-semibold text-emerald-800">Responded</p><p className="text-2xl font-extrabold text-emerald-950">{selectedSubmitted}</p></div>
+                    <div className="rounded-xl bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-900">Awaiting response</p><p className="text-2xl font-extrabold text-amber-950">{selectedPending}</p></div>
+                  </div>
                   {selected.ministryKey === "churchwide" && selected.status !== "approved" && (
                     <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-5">
                       <p className="text-base leading-relaxed text-slate-800">Invite every pastor registered in Shanah City's pastoral-role directory to review this proposal privately, submit corrections and comment on specific calendar months. You can also assign additional pastors individually below if they aren't in that directory.</p>
@@ -296,7 +332,11 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                   {selected.assignments.map(a => (
                     <div key={a.id} className="min-w-0 space-y-3 break-words rounded-2xl border border-slate-200 bg-slate-50 p-5 text-base leading-relaxed">
                       <p className="text-lg font-extrabold text-slate-950">{leaders.find(l => l.id === a.userId)?.name || "Assigned member"}</p>
-                      <p className="text-sm font-semibold capitalize text-slate-600">{a.status.replaceAll("_"," ")} · {a.deadline ? "Due " + new Date(a.deadline).toLocaleDateString() : "No deadline"}</p>
+                      <p className="text-sm font-semibold capitalize text-slate-600">{a.status.replaceAll("_"," ")} · {a.deadline ? "Due " + formatDeadline(a.deadline) : "No deadline set"}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className={"rounded-full px-3 py-1 text-xs font-bold " + (a.acknowledgedAt ? "bg-blue-100 text-blue-900" : "bg-slate-200 text-slate-800")}>{a.acknowledgedAt ? "Vision read" : "Awaiting acknowledgement"}</span>
+                        <span className={"rounded-full px-3 py-1 text-xs font-bold " + (a.submittedAt ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950")}>{a.submittedAt ? "Review submitted" : "Awaiting proposal"}</span>
+                      </div>
                       {a.proposal && <p className="whitespace-pre-wrap break-words pt-2 leading-[1.8]"><strong>Proposal: </strong>{a.proposal}</p>}
                       {a.capacity && <p><strong>Capacity: </strong>{a.capacity}</p>}
                       {a.supportNeeds && <p><strong>Support needed: </strong>{a.supportNeeds}</p>}
@@ -334,7 +374,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                     <button className={button} disabled={busy || !assignUserId}>Invite selected member privately</button>
                   </form>}
                   <div className="border-t border-slate-200 pt-7">
-                    <label className="block text-base font-bold text-slate-900">Pastoral review note<textarea className={field + " mt-2"} value={feedbackNote} onChange={e => setFeedbackNote(e.target.value)} maxLength={1000}/></label>
+                    <label className="block text-base font-bold text-slate-900">Pastoral review note<textarea className={field + " mt-2 min-h-[160px] resize-y"} value={feedbackNote} onChange={e => setFeedbackNote(e.target.value)} maxLength={1000}/></label>
                     {selected.status !== "approved" && <div className="mt-3 flex flex-wrap gap-2">
                       <button className={secondary} type="button" disabled={busy} onClick={() => void run("PATCH", { action: "request-revision", planId: selected.id, note: feedbackNote }, selected.id)}>Request revision</button>
                       <button className={button} type="button" disabled={busy} onClick={() => void run("PATCH", { action: "approve", planId: selected.id, note: feedbackNote }, selected.id)}>Approve plan</button>
@@ -345,8 +385,23 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                   )}
                 </section>
               ) : myAssignment && selected.status !== "approved" ? (
-                <section className={panel + " space-y-4"}>
+                <section id="vision-response" className={panel + " scroll-mt-24 space-y-5"}>
                   <h3 className="text-2xl font-extrabold text-slate-950">{selected.ministryKey === "churchwide" ? "Your pastoral assessment of this proposal" : "My response"}</h3>
+                  <div className="grid gap-3 sm:grid-cols-3" aria-label="Your review progress">
+                    <div className="rounded-xl bg-slate-50 p-4">
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Step 1 · Read</p>
+                      <p className="mt-1 font-bold text-slate-900">{myAssignment.acknowledgedAt ? "Acknowledged" : "Not yet acknowledged"}</p>
+                    </div>
+                    <div className="rounded-xl bg-slate-50 p-4">
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Step 2 · Respond</p>
+                      <p className="mt-1 font-bold text-slate-900">{myAssignment.proposal?.trim() ? "Draft available" : "Write your response"}</p>
+                    </div>
+                    <div className="rounded-xl bg-slate-50 p-4">
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Step 3 · Submit</p>
+                      <p className="mt-1 font-bold text-slate-900">{myAssignment.submittedAt ? "Submitted" : "Awaiting submission"}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-600">Review deadline: {formatDeadline(myAssignment.deadline)}. Save your draft as often as needed before submitting.</p>
                   <p className="text-base font-bold capitalize text-slate-700">{myAssignment.status.replaceAll("_", " ")}</p>
                   {!myAssignment.acknowledgedAt && <button type="button" className={secondary} disabled={busy} onClick={() => void run("PATCH", { action: "acknowledge", planId: selected.id }, selected.id)}>I have read the vision</button>}
                   <label className="block text-base font-bold text-slate-900">Delivery capacity<select className={field + " mt-2"} value={capacity} onChange={e => setCapacity(e.target.value)}><option value="full">Can deliver</option><option value="with_support">Can deliver with support</option><option value="revised">Recommend revised approach</option></select></label>
@@ -358,7 +413,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                   </div>
                 </section>
               ) : null}
-              <section className={panel + " space-y-4"}>
+              <section id="vision-feedback" className={panel + " scroll-mt-24 space-y-4"}>
                 <h3 className="text-2xl font-extrabold text-slate-950">{selected.ministryKey === "churchwide" ? "Pastoral corrections, additions & calendar feedback" : "Questions, suggestions & corrections"}</h3>
                 <p className="text-base leading-relaxed text-slate-700">Select a specific section or calendar month, explain what should change and why, and submit your recommendation. You can comment as many times as needed. The Senior Pastor reviews every suggestion before revising the vision.</p>
                 {selected.comments?.length === 0 && <p className="text-base font-medium text-slate-600">No discussion yet.</p>}
