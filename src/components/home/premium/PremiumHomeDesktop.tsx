@@ -40,7 +40,7 @@ export function PremiumHomeDesktop({
   const firstName = user ? getPublicDisplayFirstName(user) : null;
 
   return (
-    <div className="premium-home premium-home--desktop shanah-porcelain-home">
+    <div className="premium-home premium-home--desktop">
       {urgentAlerts.length > 0 ? (
         <UrgentNewsHomeStrip
           alerts={urgentAlerts}
