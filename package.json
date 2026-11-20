@@ -6,6 +6,7 @@
     "test:home:watch-video-contrast": "tsx scripts/home-watch-video-contrast.test.ts",
     "dev": "next dev",
     "build": "node scripts/build.cjs",
+    "diagnose:build-memory": "node scripts/build-memory-diagnostics.cjs",
     "start": "next start",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
