@@ -568,7 +568,14 @@ export async function submitAssessment(viewer: PublicMember, moduleId: string) {
     const { notifyCounselorAssessmentSubmitted } = await import(
       "@/lib/marriage-prep-notification-triggers"
     );
-    void notifyCounselorAssessmentSubmitted(journeyForNotify, moduleId, viewer.id);
+    try {
+      await notifyCounselorAssessmentSubmitted(journeyForNotify, moduleId, viewer.id);
+    } catch (error) {
+      // Preserve the couple's committed submission; record notification failures for follow-up.
+      console.error("[marriage-prep] counselor assessment alert failed", {
+        journeyId: journeyForNotify.id, moduleId, error,
+      });
+    }
   }
 
   const partnerResponse = await store().getResponse(assessment.journeyId, moduleId, partnerId);
