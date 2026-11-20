@@ -1,18 +1,10 @@
-name: One-off Next build memory profile
+name: Next.js build memory comparison (manual)
 on:
-  push:
-    branches: [chore/profile-build-memory-run-20261119]
-  pull_request:
-    branches: [main]
-    paths:
-      - "scripts/build-memory-diagnostics.cjs"
-      - ".github/workflows/vision-build-memory-profile.yml"
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   profile:
-    if: false # First profiler run completed successfully; compare normal build below.
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -35,7 +27,6 @@ jobs:
       - name: Profile Next.js build memory (no production environment or secrets)
         run: npm run diagnose:build-memory
   baseline:
-    if: github.head_ref == 'chore/profile-build-memory-run-20261119' || github.ref == 'refs/heads/chore/profile-build-memory-run-20261119'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
