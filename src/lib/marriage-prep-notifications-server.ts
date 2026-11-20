@@ -176,11 +176,32 @@ export async function deliverMarriagePrepNotifications(input: {
         sentAt: now,
       });
       if (pushRecorded) {
-        void sendPushToUsersWithPushEnabled([userId], {
-          title: input.pushTitle ?? input.title,
-          body: input.pushBody ?? input.body,
-          url: input.actionPath,
-        });
+        try {
+          // Await provider acceptance before the serverless request finishes.
+          // In-app notifications remain durable even if device delivery fails.
+          const delivery = await sendPushToUsersWithPushEnabled([userId], {
+            title: input.pushTitle ?? input.title,
+            body: input.pushBody ?? input.body,
+            url: input.actionPath,
+          });
+          if (delivery.sent === 0) {
+            console.warn("[marriage-prep] push not accepted", {
+              kind: input.kind,
+              journeyId: input.journey.id,
+              recipientId: userId,
+              configured: delivery.configured,
+              failedUsers: delivery.failedUsers,
+              skipped: delivery.skipped,
+            });
+          }
+        } catch (error) {
+          console.error("[marriage-prep] push delivery error", {
+            kind: input.kind,
+            journeyId: input.journey.id,
+            recipientId: userId,
+            error,
+          });
+        }
       }
     }
   }
