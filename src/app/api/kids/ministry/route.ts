@@ -100,6 +100,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ delivery });
   }
 
+  if (action === "escalate-to-lead") {
+    const id = String(body.id ?? "").trim();
+    const entry = (await getKidCheckIns()).find((item) => item.id === id && !item.checkedOutAt);
+    if (!entry) return NextResponse.json({ error: "Active check-in not found." }, { status: 404 });
+    const { getGroups } = await import("@/lib/group-server");
+    const { isKidsMinistryGroup } = await import("@/lib/kids-types");
+    const { isGroupAdmin } = await import("@/lib/group-admin-utils");
+    const groups = await getGroups();
+    const leaders = new Set<string>();
+    for (const group of groups) {
+      if (!isKidsMinistryGroup(group)) continue;
+      for (const memberId of group.memberIds) {
+        if (memberId !== user.id && isGroupAdmin(group, memberId)) leaders.add(memberId);
+      }
+    }
+    if (leaders.size === 0) return NextResponse.json({ error: "No Kids Ministry leader is configured for private alerts. Contact church leadership directly." }, { status: 409 });
+    const { sendPushToUsers } = await import("@/lib/push-server");
+    const delivery = await sendPushToUsers([...leaders], {
+      title: "Shanah Kids — staff assistance requested",
+      body: "A teacher needs immediate assistance at the Kids Ministry check-in desk. Please contact the teacher directly.",
+      url: "/kids-ministry",
+    }, "kids");
+    return NextResponse.json({ delivery });
+  }
+
   if (action === "teacher-checkin") {
     const childName = String(body.childName ?? "").trim().slice(0, 100);
     const parentName = String(body.parentName ?? "").trim().slice(0, 100);
