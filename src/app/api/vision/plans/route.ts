@@ -170,12 +170,35 @@ export async function POST(request: Request) {
       errors: delivery.errors,
     });
   }
+  if (action === "set-review-deadline") {
+    const planId = safeVisionString(body.planId, 100);
+    const plan = await prisma.visionPlan.findUnique({ where: { id: planId }, select: { id: true, status: true } });
+    if (!plan || plan.status === "approved") return invalid("Review deadlines apply to working proposals only.");
+    const dateText = safeVisionString(body.deadline, 10);
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateText) || Number.isNaN(Date.parse(dateText + "T23:59:59Z"))) {
+      return invalid("Choose a valid review deadline.");
+    }
+    const due = new Date(dateText + "T23:59:59.000Z");
+    if (due.getTime() < Date.now()) return invalid("Choose a future review deadline.");
+    const assignmentIds = Array.isArray(body.assignmentIds)
+      ? body.assignmentIds.filter((id: unknown): id is string => typeof id === "string" && id.length < 120).slice(0, 200)
+      : null;
+    const result = await prisma.visionAssignment.updateMany({
+      where: { planId, ...(assignmentIds ? { id: { in: assignmentIds } } : {}) },
+      data: { deadline: due },
+    });
+    await audit(planId, user.id, "review-deadline-updated", JSON.stringify({ deadline: dateText, count: result.count }));
+    return NextResponse.json({ updatedCount: result.count });
+  }
   if (action === "assign-pastoral-team") {
     const planId = safeVisionString(body.planId, 100);
     const plan = await prisma.visionPlan.findUnique({ where: { id: planId } });
     if (!plan || plan.ministryKey !== "churchwide" || plan.year !== 2027 || plan.status === "approved") {
       return invalid("Pastoral sharing is available for the unapproved 2027 Master Vision only.");
     }
+    const pastoralDeadlineText = safeVisionString(body.deadline, 10);
+    const pastoralDeadline = /^\\d{4}-\\d{2}-\\d{2}$/.test(pastoralDeadlineText) && !Number.isNaN(Date.parse(pastoralDeadlineText + "T23:59:59Z")) ? new Date(pastoralDeadlineText + "T23:59:59.000Z") : null;
+    if (pastoralDeadline && pastoralDeadline.getTime() < Date.now()) return invalid("Choose a future deadline.");
     const pastoralIds = (await getPastoralReviewerUserIds()).filter(id => id !== user.id);
     let assignedCount = 0;
     for (const reviewerId of [...new Set(pastoralIds)]) {
@@ -183,8 +206,8 @@ export async function POST(request: Request) {
       const existing = await prisma.visionAssignment.findUnique({
         where: { planId_userId: { planId, userId: reviewerId } }, select: { id: true },
       });
-      if (existing) continue;
-      await prisma.visionAssignment.create({ data: { planId, userId: reviewerId } });
+      if (existing) { if (pastoralDeadline) await prisma.visionAssignment.update({ where: { id: existing.id }, data: { deadline: pastoralDeadline } }); continue; }
+      await prisma.visionAssignment.create({ data: { planId, userId: reviewerId, deadline: pastoralDeadline } });
       await audit(planId, user.id, "pastoral-review-invited", reviewerId);
       await notifyVisionLeader(reviewerId, planId, "assigned");
       assignedCount++;
