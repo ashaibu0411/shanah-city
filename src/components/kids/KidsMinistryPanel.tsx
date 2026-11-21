@@ -96,6 +96,9 @@ export function KidsMinistryPanel({
   const [lastCheckin, setLastCheckin] = useState<{ childName: string; securityCode: string } | null>(null);
   const [pickupId, setPickupId] = useState("");
   const [securityCode, setSecurityCode] = useState("");
+  const [pickupAdultConfirmed, setPickupAdultConfirmed] = useState(false);
+  const [pickupBusy, setPickupBusy] = useState(false);
+  const [checkinMode, setCheckinMode] = useState<"returning" | "guest">("returning");
 
   const [lessonAgeGroup, setLessonAgeGroup] = useState("");
   const [lessonTitle, setLessonTitle] = useState("");
@@ -246,26 +249,31 @@ export function KidsMinistryPanel({
   }
 
   async function verifyPickup() {
+    if (pickupBusy || !pickupAdultConfirmed || !pickupId || !securityCode.trim()) return;
+    setPickupBusy(true);
     setMessage(null);
     setError(null);
-    const response = await fetch("/api/kids/ministry", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "verify-checkout",
-        id: pickupId,
-        securityCode,
-      }),
-    });
-    const payload = await response.json();
-    if (!response.ok) {
-      setError(payload.error ?? "Pickup verification failed.");
-      return;
+    try {
+      const response = await fetch("/api/kids/ministry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "verify-checkout", id: pickupId, securityCode }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setError(payload.error ?? "Pickup verification failed.");
+        return;
+      }
+      setMessage(`${payload.checkin.childName} checked out. Confirm the child is released only to the adult you verified in person.`);
+      setPickupId("");
+      setSecurityCode("");
+      setPickupAdultConfirmed(false);
+      await load({ silent: true });
+    } catch {
+      setError("Could not complete pickup. Keep the child in the classroom and contact the ministry lead.");
+    } finally {
+      setPickupBusy(false);
     }
-    setMessage(`${payload.checkin.childName} checked out with verified pickup code.`);
-    setPickupId("");
-    setSecurityCode("");
-    load();
   }
 
   async function saveLesson(publish: boolean) {
@@ -462,6 +470,8 @@ export function KidsMinistryPanel({
 
   function prefillPickup(entry: KidsRosterEntry) {
     setPickupId(entry.id);
+    setSecurityCode("");
+    setPickupAdultConfirmed(false);
     setTab("pickup");
   }
 
@@ -587,6 +597,11 @@ export function KidsMinistryPanel({
               </Card>
               <Card>
                 <h3 className="text-lg font-bold text-night-900 dark:text-white">1. Find a child</h3>
+                <div className="mt-3 grid grid-cols-2 gap-2" role="group" aria-label="Check-in type">
+                  <button type="button" aria-pressed={checkinMode === "returning"} onClick={() => setCheckinMode("returning")} className={`min-h-12 rounded-xl border px-3 py-3 text-sm font-bold ${checkinMode === "returning" ? "border-blue-700 bg-blue-700 text-white" : "border-slate-300 bg-white text-night-900 dark:bg-slate-800 dark:text-white"}`}>Returning child</button>
+                  <button type="button" aria-pressed={checkinMode === "guest"} onClick={() => { setCheckinMode("guest"); setChildSearch(""); setLinkedParentUserId(""); setFamilyMemberId(""); setChildName(""); setGuardianName(""); setPickupName(""); setPickupPhone(""); setAllergies(""); setMedicalNotes(""); }} className={`min-h-12 rounded-xl border px-3 py-3 text-sm font-bold ${checkinMode === "guest" ? "border-blue-700 bg-blue-700 text-white" : "border-slate-300 bg-white text-night-900 dark:bg-slate-800 dark:text-white"}`}>New / guest child</button>
+                </div>
+                {checkinMode === "returning" && (<>
                 <label className="mt-3 block text-sm font-semibold text-night-700 dark:text-slate-200">Search returning children</label>
                 <input value={childSearch} onChange={(event) => setChildSearch(event.target.value)} placeholder="Type first letter of child's name" className="mt-1 w-full rounded-xl border border-night-900/20 bg-white px-4 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
                 <KidsRegisteredChildPicker
@@ -595,6 +610,7 @@ export function KidsMinistryPanel({
                     entry.childName.toLowerCase().startsWith(childSearch.trim().toLowerCase()),
                   )}
                   onSelect={(entry) => {
+                    setCheckinMode("returning");
                     setChildName(entry.childName);
                     setGuardianName(entry.parentName);
                     if (entry.suggestedAgeGroup) setRoom(entry.suggestedAgeGroup);
@@ -639,6 +655,7 @@ export function KidsMinistryPanel({
                       ))}
                   </div>
                 )}
+                </>)}
                 <h3 className="mt-5 text-lg font-bold text-night-900 dark:text-white">2. Confirm check-in details</h3>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Child's full name<input value={childName} onChange={(e) => setChildName(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
@@ -804,9 +821,8 @@ export function KidsMinistryPanel({
 
           {tab === "pickup" && (
             <Card>
-              <h2 className="font-display text-xl font-semibold text-night-900">
-                Pickup verification
-              </h2>
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-sky-300">Shanah Kids · Secure release</p>
+              <h2 className="mt-2 font-display text-2xl font-bold text-night-900 dark:text-white">Pickup verification</h2>
               <p className="mt-2 text-sm text-night-600">
                 Enter the security code from the parent label before releasing a child. Match the adult to the parent
                 name and authorized pickup list on the roster — code alone is not enough if you do not recognize them.
@@ -814,26 +830,44 @@ export function KidsMinistryPanel({
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <select
                   value={pickupId}
-                  onChange={(event) => setPickupId(event.target.value)}
-                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
+                  onChange={(event) => { setPickupId(event.target.value); setPickupAdultConfirmed(false); setSecurityCode(""); }}
+                  aria-label="Select checked-in child"
+                  className="min-h-12 rounded-xl border border-night-900/20 bg-sand-50 px-4 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                 >
                   <option value="">Select checked-in child</option>
                   {data.roster.map((entry) => (
                     <option key={entry.id} value={entry.id}>
-                      {entry.childName} · Code {entry.securityCode}
+                      {entry.childName} · {entry.ageGroup}
                     </option>
                   ))}
                 </select>
                 <input
                   value={securityCode}
                   onChange={(event) => setSecurityCode(event.target.value)}
-                  placeholder="Security code"
-                  className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
+                  placeholder="Enter guardian pickup code"
+                  autoComplete="off"
+                  aria-label="Guardian pickup code"
+                  className="min-h-12 rounded-xl border border-night-900/20 bg-sand-50 px-4 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                 />
               </div>
-              <Button className="mt-4" onClick={verifyPickup} disabled={!pickupId || !securityCode.trim()}>
-                Verify & check out
+              {pickupId && (() => {
+                const selected = data.roster.find((entry) => entry.id === pickupId);
+                return selected ? (
+                  <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+                    <p className="font-bold">Check the adult against approved pickup contacts</p>
+                    <p className="mt-2">Guardian: {selected.parentName}</p>
+                    <p className="mt-1">Authorized pickup: {selected.authorizedPickup?.length ? selected.authorizedPickup.map((person) => person.name).join(", ") : "No authorized pickup contacts listed — contact ministry leadership."}</p>
+                    <label className="mt-4 flex min-h-12 items-start gap-3 rounded-xl bg-white/80 p-3 dark:bg-slate-900">
+                      <input type="checkbox" checked={pickupAdultConfirmed} onChange={(event) => setPickupAdultConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0" />
+                      <span className="font-semibold">I checked this adult's identity in person and confirmed they are authorized to collect this child.</span>
+                    </label>
+                  </div>
+                ) : null;
+              })()}
+              <Button className="mt-4 min-h-12 w-full" onClick={verifyPickup} disabled={pickupBusy || !pickupId || !securityCode.trim() || !pickupAdultConfirmed || !(data.roster.find((entry) => entry.id === pickupId)?.authorizedPickup?.length)}>
+                {pickupBusy ? "Verifying pickup…" : "Verify and complete pickup"}
               </Button>
+              <p className="mt-3 text-xs leading-5 text-night-600 dark:text-slate-300">If the adult is not on the authorized pickup list, stop the release and contact the ministry leader. Never rely on the code alone.</p>
             </Card>
           )}
 
