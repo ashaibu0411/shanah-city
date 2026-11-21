@@ -111,18 +111,28 @@ export function KidsMinistryPanel({
     return () => window.clearInterval(id);
   }, [load]);
 
-  async function messageParent(entry: KidsRosterEntry) {
+  async function messageParent(entry: KidsRosterEntry, message: string) {
     if (!entry.parentUserId) { setError("No linked guardian app account. Please call the verified pickup contact."); return; }
-    const message = window.prompt("Message to guardian (avoid sensitive medical details):", "Please contact the Shanah Kids teacher at the check-in desk.");
-    if (!message?.trim()) return;
     setAlertingId(entry.id);
     setError(null);
     try {
       const response = await fetch("/api/kids/ministry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "message-parent", id: entry.id, message }) });
       const result = await response.json();
       if (!response.ok) setError(result.error ?? "Unable to send notification.");
-      else setMessage(result.delivery?.sent ? "App notification sent. If urgent, call the guardian directly." : "Notification requested but delivery is not confirmed. Call the guardian directly.");
+      else setMessage(result.delivery?.sent ? "Parent alert sent to the app. Not a read receipt — call if urgent." : "Push delivery not confirmed. Please call the guardian.");
     } catch { setError("Notification failed. Call the guardian directly."); }
+    finally { setAlertingId(""); }
+  }
+
+  async function escalateToLead(entry: KidsRosterEntry) {
+    setAlertingId(entry.id);
+    setError(null);
+    try {
+      const response = await fetch("/api/kids/ministry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "escalate-to-lead", id: entry.id }) });
+      const result = await response.json();
+      if (!response.ok) setError(result.error ?? "Could not reach the ministry lead.");
+      else setMessage(result.delivery?.sent ? "Private alert sent to Kids Ministry leadership. Call directly if immediate help is needed." : "Leader notification not confirmed. Contact leadership directly.");
+    } catch { setError("Could not notify leadership. Call directly."); }
     finally { setAlertingId(""); }
   }
 
@@ -423,7 +433,7 @@ export function KidsMinistryPanel({
                 <h2 className="font-display text-xl font-semibold text-night-900">
                   Active roster
                 </h2>
-                {data.roster.length === 0 ? (
+                <p className="mt-2 text-sm leading-6 text-night-700 dark:text-slate-200">For each child: request a guardian, call directly, or alert your ministry lead. App alerts are not proof of receipt. For emergencies, follow the church safety plan and call 911 when appropriate.</p>\n                {data.roster.length === 0 ? (
                   <p className="mt-3 text-sm text-night-500">No children checked in for this service.</p>
                 ) : (
                   <ul className="mt-4 space-y-3">
@@ -473,7 +483,11 @@ export function KidsMinistryPanel({
                             )}
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            {entry.parentUserId && <Button variant="secondary" disabled={alertingId === entry.id} onClick={() => void messageParent(entry)}>{alertingId === entry.id ? "Sending…" : "Message parent"}</Button>}
+                            {entry.parentUserId && <div className="flex flex-wrap gap-2">
+                              <Button variant="secondary" disabled={alertingId === entry.id} onClick={() => void messageParent(entry, "Please come to the Shanah Kids check-in desk when you can.")}>Request parent</Button>
+                              <Button variant="secondary" disabled={alertingId === entry.id} onClick={() => void messageParent(entry, "Please contact the Shanah Kids teacher immediately.")}>Urgent parent alert</Button>
+                            </div>}
+                            <Button variant="secondary" disabled={alertingId === entry.id} onClick={() => void escalateToLead(entry)}>Alert ministry lead</Button>
                             {entry.authorizedPickup?.[0]?.phone && <a className="inline-flex min-h-10 items-center rounded-xl border border-night-900/15 px-3 py-2 font-semibold text-night-900" href={`tel:${entry.authorizedPickup[0].phone.replace(/[^+0-9]/g, "")}`}>Call guardian</a>}
                             <Button variant="secondary" onClick={() => prefillPickup(entry)}>
                               Verify pickup
