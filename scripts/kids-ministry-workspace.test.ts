@@ -23,7 +23,7 @@ const scopeTeacher = {
   canManage: false,
   service: "Sunday Morning",
   serviceDate: "2026-11-21",
-  assignedAgeGroups: ["Preschool (3-5)"],
+  confirmedAgeGroups: ["Preschool (3-5)"],
   canCheckIn: true,
   myAssignments: [],
 };
