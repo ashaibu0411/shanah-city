@@ -48,7 +48,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     roster: active.map(toRosterEntry),
-    directory: Array.from(new Map([...checkins].reverse().filter((entry) => entry.parentName.trim() && entry.childName.trim()).map((entry) => [`${entry.childName.trim().toLowerCase()}|${entry.parentName.trim().toLowerCase()}`, { childName: entry.childName, parentName: entry.parentName, ageGroup: entry.ageGroup, parentUserId: entry.parentUserId, allergies: entry.allergies, medicalNotes: entry.medicalNotes, authorizedPickup: entry.authorizedPickup }])).values()).sort((a, b) => a.childName.localeCompare(b.childName)).slice(0, 300),
+    directory: Array.from(new Map([...checkins].filter((entry) => entry.parentName.trim() && entry.childName.trim()).map((entry) => [`${entry.childName.trim().toLowerCase()}|${entry.parentName.trim().toLowerCase()}`, { childName: entry.childName, parentName: entry.parentName, ageGroup: entry.ageGroup, parentUserId: entry.parentUserId, allergies: entry.allergies, medicalNotes: entry.medicalNotes, authorizedPickup: entry.authorizedPickup }])).values()).sort((a, b) => a.childName.localeCompare(b.childName)).slice(0, 300),
     headcount: buildHeadcount(active),
     lessons: await listKidsLessons({ weekStarting }),
     incidents: await listKidsIncidents({ service, limit: 25 }),
