@@ -72,5 +72,6 @@ export const premiumHomeV3QuickTiles: PremiumHomeV3Tile[] = [
 
 export function premiumV3BottomNavTabs() {
   const media = site.nav.find((item) => item.href === "/live") ?? site.nav[1];
-  return [site.nav[0], site.nav[2], media] as const;
+  const devotions = site.nav.find((item) => item.href === "/devotions") ?? site.nav[3];
+  return [site.nav[0], devotions, media] as const;
 }
