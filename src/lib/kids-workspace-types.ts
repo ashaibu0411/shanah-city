@@ -32,7 +32,10 @@ export type KidsVolunteerProfile = {
   userName: string;
   roles: string[];
   onboardingComplete: boolean;
+  /** @deprecated use safeguardingLeaderVerifiedAt */
   safeguardingCompletedAt?: string;
+  safeguardingSelfAttestedAt?: string;
+  safeguardingLeaderVerifiedAt?: string;
   availabilityNotes?: string;
   updatedAt: string;
 };
@@ -67,10 +70,6 @@ export type KidsChildSearchResult = {
   childName: string;
   parentUserId: string;
   parentName: string;
-  birthYear?: string;
-  allergies?: string;
-  medicalNotes?: string;
-  authorizedPickup?: { name: string; phone?: string; relationship?: string }[];
   suggestedAgeGroup?: string;
 };
 

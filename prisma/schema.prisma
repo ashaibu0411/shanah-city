@@ -498,13 +498,15 @@ model KidsTeacherAssignment {
 }
 
 model KidsVolunteerProfile {
-  userId                  String    @id
-  userName                String
-  roles                   Json?
-  onboardingComplete      Boolean   @default(false)
-  safeguardingCompletedAt DateTime?
-  availabilityNotes       String?
-  updatedAt               DateTime
+  userId                        String    @id
+  userName                      String
+  roles                         Json?
+  onboardingComplete            Boolean   @default(false)
+  safeguardingCompletedAt       DateTime?
+  safeguardingSelfAttestedAt    DateTime?
+  safeguardingLeaderVerifiedAt  DateTime?
+  availabilityNotes             String?
+  updatedAt                     DateTime
 }
 
 model KidsLessonCompletion {

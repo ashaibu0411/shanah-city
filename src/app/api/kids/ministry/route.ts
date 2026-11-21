@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import type { FamilyMember } from "@/lib/auth-types";
-import { getUserById, getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
+import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import {
   canAccessKidsMinistry,
   canManageKidsMinistry,
@@ -37,6 +36,23 @@ import {
   saveKidsVolunteerProfile,
   searchRegisteredChildren,
 } from "@/lib/kids-workspace-server";
+import {
+  assertAllowedAgeGroupValue,
+  assertAllowedService,
+  assertActiveCheckInScope,
+  buildRegisteredCheckInPayload,
+  filterAnnouncementsForUser,
+  filterRosterByScope,
+  isAllowedAgeGroup,
+  kidsWorkspaceStorageError,
+  kidsWorkspaceStorageReady,
+  resolveKidsMinistryScope,
+  sanitizeRosterEntry,
+  searchKidsMinistryMembers,
+  verifyRegisteredChildForCheckIn,
+  volunteerEligibleForAssignment,
+  getKidsVolunteerProfile,
+} from "@/lib/kids-ministry-policy-server";
 import {
   enforceRateLimit,
   getClientIp,
@@ -102,55 +118,101 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
+  const ip = getClientIp(request);
+
+  if (url.searchParams.has("memberSearch")) {
+    if (!(await canManageKidsMinistry(user))) {
+      return NextResponse.json({ error: "Kids ministry admin access required." }, { status: 403 });
+    }
+  const query = String(url.searchParams.get("memberSearch") ?? "").trim();
+    if (query.length < 2) return NextResponse.json({ members: [] });
+    return NextResponse.json({ members: await searchKidsMinistryMembers(query, 30) });
+  }
+
   const childSearch = url.searchParams.get("childSearch");
   if (childSearch) {
-    return NextResponse.json({ children: await searchRegisteredChildren(childSearch, 30) });
+    const service = url.searchParams.get("service") ?? KIDS_SERVICES[1];
+    const serviceDate = url.searchParams.get("date") ?? getServiceDateLabel();
+    const scope = await resolveKidsMinistryScope(user, service, serviceDate);
+    if (!scope.canManage && !scope.canCheckIn) {
+      return NextResponse.json({ error: "Confirmed classroom assignment required for child search." }, { status: 403 });
+    }
+    const searchLimited = await enforceRateLimit(`kids:child-search:${user.id}:${ip}`, {
+      limit: 20,
+      windowSeconds: 5 * 60,
+    });
+    if (!searchLimited.allowed) return rateLimitResponse(searchLimited.retryAfterSeconds);
+    return NextResponse.json({ children: await searchRegisteredChildren(childSearch, 20) });
   }
 
   const service = url.searchParams.get("service") ?? KIDS_SERVICES[1];
   const weekStarting = url.searchParams.get("week") ?? getWeekStarting();
   const serviceDate = url.searchParams.get("date") ?? getServiceDateLabel();
+  assertAllowedService(service);
 
+  const scope = await resolveKidsMinistryScope(user, service, serviceDate);
   const checkins = await getKidCheckIns();
   const active = filterActiveCheckIns(checkins, { service });
-  const canManage = await canManageKidsMinistry(user);
-  const lessons = await listKidsLessons({ weekStarting });
-  const myAssignments = findTodayAssignments(
-    await listKidsAssignments({ serviceDate }),
-    user.id,
-    serviceDate,
-    service,
+  const allRoster = active.map(toRosterEntry);
+  const scopedRoster = filterRosterByScope(allRoster, scope).map((entry) =>
+    sanitizeRosterEntry(entry, scope.canManage || scope.assignedAgeGroups.includes(entry.ageGroup)),
   );
-  const todayAssignment = myAssignments[0] ?? null;
+
+  const lessonsAll = await listKidsLessons({ weekStarting });
+  const lessons = scope.canManage
+    ? lessonsAll
+  : lessonsAll.filter(
+        (lesson) =>
+          lesson.status === "published" && scope.assignedAgeGroups.includes(lesson.ageGroup),
+    );
+
+  const myAssignments = scope.canManage
+    ? await listKidsAssignments({ serviceDate, service })
+    : scope.myAssignments;
+  const todayAssignment = scope.canManage ? null : scope.myAssignments[0] ?? null;
   const myLesson = todayAssignment
-    ? pickLessonForRoom(lessons, todayAssignment.ageGroup, user.id)
-    : lessons.find((lesson) => lesson.status === "published") ?? null;
+    ? pickLessonForRoom(lessonsAll, todayAssignment.ageGroup, user.id)
+    : null;
   const rosterForRoom = todayAssignment
-    ? active.filter((entry) => entry.ageGroup === todayAssignment.ageGroup).map(toRosterEntry)
-    : active.map(toRosterEntry);
+    ? scopedRoster.filter((entry) => entry.ageGroup === todayAssignment.ageGroup)
+    : scopedRoster;
+
+  const incidents = scope.canManage
+    ? await listKidsIncidents({ service, limit: 25 })
+    : (await listKidsIncidents({ service, limit: 25 })).filter((entry) =>
+        scope.assignedAgeGroups.includes(entry.ageGroup),
+      );
+
+  const announcements = filterAnnouncementsForUser(await listKidsAnnouncements(20), scope.canManage);
 
   return NextResponse.json({
-    roster: active.map(toRosterEntry),
+    roster: scopedRoster,
     rosterForRoom,
-    directory: buildDirectory(checkins),
+    directory: scope.canManage ? buildDirectory(checkins) : [],
     headcount: buildHeadcount(active),
     lessons,
-    incidents: await listKidsIncidents({ service, limit: 25 }),
+    incidents,
     weekStarting,
     serviceDate,
     services: KIDS_SERVICES,
     ageGroups: KIDS_AGE_GROUPS,
-    canManageKidsMinistry: canManage,
-    myAssignments,
+    canManageKidsMinistry: scope.canManage,
+    workspaceDatabaseReady: kidsWorkspaceStorageReady(),
+    myAssignments: scope.canManage ? [] : myAssignments,
     myLesson,
     todayAssignment,
-    assignments: await listKidsAssignments({ serviceDate, service }),
-    volunteers: canManage ? await listKidsVolunteerProfiles() : [],
-    completions: await listKidsLessonCompletions({ weekStarting, service }),
-    announcements: await listKidsAnnouncements(20),
-    leaderSnapshot: canManage
+    assignments: scope.canManage ? await listKidsAssignments({ serviceDate, service }) : myAssignments,
+    volunteers: scope.canManage ? await listKidsVolunteerProfiles() : [],
+    completions: scope.canManage
+      ? await listKidsLessonCompletions({ weekStarting, service })
+      : (await listKidsLessonCompletions({ weekStarting, service })).filter((row) =>
+          scope.assignedAgeGroups.includes(row.ageGroup),
+        ),
+    announcements,
+    leaderSnapshot: scope.canManage
       ? await buildKidsLeaderSnapshot({ checkins, service, serviceDate, weekStarting })
       : null,
+    myVolunteerProfile: await getKidsVolunteerProfile(user.id),
     safeguardingGuideUrl: "/training/kids-ministry-leader.html",
   });
 }
@@ -180,12 +242,21 @@ export async function POST(request: Request) {
   const body = await request.json();
   const action = String(body.action ?? "");
 
+  const service = String(body.service ?? KIDS_SERVICES[1]).trim();
+  const serviceDate = String(body.serviceDate ?? getServiceDateLabel()).trim();
+  const scope = await resolveKidsMinistryScope(user, service, serviceDate);
+
   if (action === "message-parent") {
     const id = String(body.id ?? "").trim();
     const message = String(body.message ?? "").trim().slice(0, 300);
     if (!id || !message) return NextResponse.json({ error: "Select a checked-in child and enter a message." }, { status: 400 });
     const entry = (await getKidCheckIns()).find((item) => item.id === id && !item.checkedOutAt);
     if (!entry) return NextResponse.json({ error: "Active check-in not found." }, { status: 404 });
+    try {
+      await assertActiveCheckInScope(user, entry, scope);
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : "Not authorized." }, { status: 403 });
+    }
     if (!entry.parentUserId) return NextResponse.json({ error: "This guardian is not linked to an app account. Call the verified pickup contact instead." }, { status: 409 });
     const { sendPushToUsers } = await import("@/lib/push-server");
     const delivery = await sendPushToUsers([entry.parentUserId], {
@@ -200,6 +271,11 @@ export async function POST(request: Request) {
     const id = String(body.id ?? "").trim();
     const entry = (await getKidCheckIns()).find((item) => item.id === id && !item.checkedOutAt);
     if (!entry) return NextResponse.json({ error: "Active check-in not found." }, { status: 404 });
+    try {
+      await assertActiveCheckInScope(user, entry, scope);
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : "Not authorized." }, { status: 403 });
+    }
     const { getGroups } = await import("@/lib/group-server");
     const { isKidsMinistryGroup } = await import("@/lib/kids-types");
     const { isGroupAdmin } = await import("@/lib/group-admin-utils");
@@ -222,67 +298,86 @@ export async function POST(request: Request) {
   }
 
   if (action === "teacher-checkin") {
-    const childName = String(body.childName ?? "").trim().slice(0, 100);
-    let parentName = String(body.parentName ?? "").trim().slice(0, 100);
+    if (!scope.canManage && !scope.canCheckIn) {
+      return NextResponse.json({ error: "Confirmed classroom assignment required for check-in." }, { status: 403 });
+    }
     const ageGroup = String(body.ageGroup ?? "").trim();
-    const service = String(body.service ?? "").trim();
-    let pickupName = String(body.pickupName ?? "").trim().slice(0, 100);
-    let pickupPhone = String(body.pickupPhone ?? "").trim().slice(0, 40);
+    try {
+      assertAllowedService(service);
+      assertAllowedAgeGroupValue(ageGroup);
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : "Invalid service or room." }, { status: 400 });
+    }
+    if (!isAllowedAgeGroup(scope, ageGroup) && !scope.canManage) {
+      return NextResponse.json({ error: "Not assigned to this classroom." }, { status: 403 });
+    }
+
     const linkedParentUserId = String(body.parentUserId ?? "").trim();
-    const profileCheckIn = Boolean(linkedParentUserId);
-    if (
-      !childName ||
-      !KIDS_AGE_GROUPS.some((group) => group === ageGroup) ||
-      !KIDS_SERVICES.some((item) => item === service) ||
-      (!profileCheckIn && (!parentName || !pickupName || !pickupPhone))
-    ) {
+    const familyMemberId = String(body.familyMemberId ?? "").trim();
+    const guestMode = !linkedParentUserId && !familyMemberId;
+    const { randomInt, randomUUID } = await import("node:crypto");
+
+    if (!guestMode) {
+      if (!linkedParentUserId || !familyMemberId) {
+        return NextResponse.json({
+          error: "Registered check-in requires both guardian account and child profile id.",
+        }, { status: 400 });
+      }
+      const verified = await verifyRegisteredChildForCheckIn(linkedParentUserId, familyMemberId);
+      if (!verified) {
+        return NextResponse.json({ error: "Child does not match guardian records." }, { status: 403 });
+      }
+      const duplicate = (await getKidCheckIns()).find(
+        (entry) =>
+          !entry.checkedOutAt &&
+          entry.service === service &&
+          entry.familyMemberId === familyMemberId,
+      );
+      if (duplicate) {
+        return NextResponse.json({ error: "This child is already checked in for this service.", checkin: duplicate }, { status: 409 });
+      }
+      const payload = buildRegisteredCheckInPayload({
+        parent: verified.parent,
+        child: verified.child,
+        ageGroup,
+        service,
+        notes: String(body.notes ?? "").trim().slice(0, 500) || undefined,
+        securityCode: String(randomInt(100000, 1000000)),
+      });
+      const entry = await addKidCheckIn({ id: `kid-${randomUUID()}`, ...payload });
+      void notifyKidsCheckIn(entry);
+      return NextResponse.json({ checkin: entry }, { status: 201 });
+    }
+
+    const childName = String(body.childName ?? "").trim().slice(0, 100);
+    const parentName = String(body.parentName ?? "").trim().slice(0, 100);
+    const pickupName = String(body.pickupName ?? "").trim().slice(0, 100);
+    const pickupPhone = String(body.pickupPhone ?? "").trim().slice(0, 40);
+    if (!childName || !parentName || !pickupName || !pickupPhone) {
       return NextResponse.json({
-        error: profileCheckIn
-          ? "Child, registered guardian, room, and service are required."
-          : "Child, guardian, authorized pickup name and phone, valid room and service are required.",
+        error: "Guest check-in requires child, guardian, authorized pickup name and phone.",
       }, { status: 400 });
     }
-    const existing = (await getKidCheckIns()).find((entry) =>
-      !entry.checkedOutAt && entry.service === service &&
-      entry.childName.toLowerCase() === childName.toLowerCase() &&
-      entry.parentName.toLowerCase() === parentName.toLowerCase());
-    if (existing) {
-      return NextResponse.json({ error: "This child is already checked in for this service.", checkin: existing }, { status: 409 });
+    const duplicate = (await getKidCheckIns()).find(
+      (entry) =>
+        !entry.checkedOutAt &&
+        entry.service === service &&
+        entry.childName.toLowerCase() === childName.toLowerCase() &&
+        entry.parentName.toLowerCase() === parentName.toLowerCase(),
+    );
+    if (duplicate) {
+      return NextResponse.json({ error: "This child is already checked in for this service.", checkin: duplicate }, { status: 409 });
     }
-    const familyMemberId = body.familyMemberId ? String(body.familyMemberId).trim() : undefined;
-    let parentUserId: string | undefined;
-    let familyChild: FamilyMember | undefined;
-    if (linkedParentUserId) {
-      const parent = await getUserById(linkedParentUserId);
-      if (!parent) return NextResponse.json({ error: "Guardian account not found." }, { status: 403 });
-      parentUserId = parent.id;
-      parentName = parent.name;
-      familyChild = familyMemberId
-        ? parent.family.find((member) => member.id === familyMemberId && member.relationship === "child")
-        : parent.family.find(
-            (member) =>
-              member.relationship === "child" &&
-              member.name.trim().toLowerCase() === childName.toLowerCase(),
-          );
-      if (!familyChild && !pickupName) {
-        return NextResponse.json({ error: "Registered child not found on guardian profile." }, { status: 400 });
-      }
-    }
-    const { randomInt, randomUUID } = await import("node:crypto");
     const entry = await addKidCheckIn({
       id: `kid-${randomUUID()}`,
       childName,
       parentName,
       ageGroup,
       service,
-      parentUserId,
-      familyMemberId: familyChild?.id,
       notes: String(body.notes ?? "").trim().slice(0, 500) || undefined,
-      allergies: familyChild?.allergies ?? (String(body.allergies ?? "").trim().slice(0, 300) || undefined),
-      medicalNotes: familyChild?.medicalNotes ?? (String(body.medicalNotes ?? "").trim().slice(0, 300) || undefined),
-      authorizedPickup: familyChild?.authorizedPickup?.length
-        ? familyChild.authorizedPickup
-        : [{ name: pickupName, phone: pickupPhone }],
+      allergies: String(body.allergies ?? "").trim().slice(0, 300) || undefined,
+      medicalNotes: String(body.medicalNotes ?? "").trim().slice(0, 300) || undefined,
+      authorizedPickup: [{ name: pickupName, phone: pickupPhone }],
       securityCode: String(randomInt(100000, 1000000)),
       checkedInAt: new Date().toISOString(),
     });
@@ -307,6 +402,11 @@ export async function POST(request: Request) {
     }
     if ("error" in result) {
       return NextResponse.json({ error: "Security code does not match." }, { status: 403 });
+    }
+    try {
+      await assertActiveCheckInScope(user, result.checkin, scope);
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : "Not authorized." }, { status: 403 });
     }
 
     return NextResponse.json({ checkin: result.checkin });
@@ -368,6 +468,12 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    if (
+      !scope.canManage &&
+      !scope.myAssignments.some((row) => row.ageGroup === ageGroup && row.status === "confirmed")
+    ) {
+      return NextResponse.json({ error: "Confirmed classroom assignment required to report incidents." }, { status: 403 });
+    }
 
     const incident = await addKidsIncident({
       id: `kids-inc-${Date.now()}`,
@@ -400,6 +506,11 @@ export async function POST(request: Request) {
     if (!incident) {
       return NextResponse.json({ error: "Incident not found." }, { status: 404 });
     }
+    if (!(await canManageKidsMinistry(user))) {
+      if (!scope.assignedAgeGroups.includes(incident.ageGroup)) {
+        return NextResponse.json({ error: "Not authorized for incidents in this classroom." }, { status: 403 });
+      }
+    }
     if (!incident.parentUserId) {
       return NextResponse.json(
         { error: "No linked parent account for this incident." },
@@ -408,20 +519,35 @@ export async function POST(request: Request) {
     }
 
     const result = await notifyKidsIncident(incident);
+    if (!result || result.sent < 1) {
+      return NextResponse.json({
+        error: "Push delivery was not confirmed. Call the guardian directly and log follow-up in the incident notes.",
+        notify: result,
+      }, { status: 502 });
+    }
     const updated = await markKidsIncidentNotified(incidentId);
 
-    return NextResponse.json({ incident: updated, notify: result });
+    return NextResponse.json({ incident: updated, notify: result, parentNotified: true });
   }
 
   if (action === "complete-lesson") {
     const weekStarting = String(body.weekStarting ?? getWeekStarting()).trim();
     const ageGroup = String(body.ageGroup ?? "").trim();
-    const service = String(body.service ?? "").trim();
-    const serviceDate = String(body.serviceDate ?? getServiceDateLabel()).trim();
     const lessonId = String(body.lessonId ?? "").trim();
     if (!weekStarting || !ageGroup || !service || !lessonId) {
       return NextResponse.json({ error: "Lesson, room, and service are required." }, { status: 400 });
     }
+    if (!scope.canManage && !scope.myAssignments.some((row) => row.ageGroup === ageGroup && row.status === "confirmed")) {
+      return NextResponse.json({ error: "Confirmed assignment required for this classroom." }, { status: 403 });
+    }
+    const lesson = (await listKidsLessons({ weekStarting })).find((row) => row.id === lessonId);
+    if (!lesson || lesson.status !== "published" || lesson.ageGroup !== ageGroup) {
+      return NextResponse.json({ error: "Published lesson not found for this classroom." }, { status: 400 });
+    }
+    try {
+      if (!kidsWorkspaceStorageReady()) {
+        return NextResponse.json({ error: kidsWorkspaceStorageError() }, { status: 503 });
+      }
     const completion = await saveKidsLessonCompletion({
       id: `kids-complete-${weekStarting}-${ageGroup}-${serviceDate}`,
       lessonId,
@@ -435,6 +561,12 @@ export async function POST(request: Request) {
       completedAt: new Date().toISOString(),
     });
     return NextResponse.json({ completion });
+    } catch (e) {
+      return NextResponse.json(
+        { error: e instanceof Error ? e.message : kidsWorkspaceStorageError() },
+        { status: 503 },
+      );
+    }
   }
 
   const manageRequired = [
@@ -448,30 +580,60 @@ export async function POST(request: Request) {
   }
 
   if (action === "assign-teacher") {
+    if (!kidsWorkspaceStorageReady()) {
+      return NextResponse.json({ error: kidsWorkspaceStorageError() }, { status: 503 });
+    }
     const userId = String(body.userId ?? "").trim();
     const ageGroup = String(body.ageGroup ?? "").trim();
-    const service = String(body.service ?? "").trim();
     const serviceDate = String(body.serviceDate ?? getServiceDateLabel()).trim();
     const role = body.role === "assistant" || body.role === "substitute" ? body.role : "teacher";
     if (!userId || !ageGroup || !service) {
       return NextResponse.json({ error: "Teacher, room, and service are required." }, { status: 400 });
     }
+    try {
+      assertAllowedService(service);
+      assertAllowedAgeGroupValue(ageGroup);
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : "Invalid assignment." }, { status: 400 });
+    }
+    if (!(await volunteerEligibleForAssignment(userId, role))) {
+      return NextResponse.json({
+        error:
+          role === "teacher"
+            ? "Lead teachers must complete leader-verified safeguarding before assignment."
+            : "Volunteer must attest or complete leader-verified safeguarding before assignment.",
+      }, { status: 400 });
+    }
+    const current = await listKidsAssignments({ serviceDate, service, ageGroup });
+    if (current.some((row) => row.userId === userId && row.status !== "declined")) {
+      return NextResponse.json({ error: "This volunteer already has an assignment for this classroom." }, { status: 409 });
+    }
+    if (
+      role === "teacher" &&
+      current.some((row) => row.role === "teacher" && row.status === "confirmed")
+    ) {
+      return NextResponse.json({ error: "A confirmed lead teacher is already assigned to this room." }, { status: 409 });
+    }
     const userName = await resolveVolunteerName(userId);
     const now = new Date().toISOString();
-    const assignment = await saveKidsAssignment({
-      id: `kids-assign-${userId}-${serviceDate}-${ageGroup.replace(/\W+/g, "-")}`,
-      userId,
-      userName,
-      role,
-      ageGroup,
-      service,
-      serviceDate,
-      status: "pending",
-      assignedBy: user.id,
-      createdAt: now,
-      updatedAt: now,
-    });
-    return NextResponse.json({ assignment });
+    try {
+      const assignment = await saveKidsAssignment({
+        id: `kids-assign-${userId}-${serviceDate}-${ageGroup.replace(/\W+/g, "-")}-${role}`,
+        userId,
+        userName,
+        role,
+        ageGroup,
+        service,
+        serviceDate,
+        status: "pending",
+        assignedBy: user.id,
+        createdAt: now,
+        updatedAt: now,
+      });
+      return NextResponse.json({ assignment });
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : kidsWorkspaceStorageError() }, { status: 503 });
+    }
   }
 
   if (action === "remove-assignment") {
@@ -499,40 +661,87 @@ export async function POST(request: Request) {
   }
 
   if (action === "save-volunteer") {
+    if (!kidsWorkspaceStorageReady()) {
+      return NextResponse.json({ error: kidsWorkspaceStorageError() }, { status: 503 });
+    }
     const userId = String(body.userId ?? "").trim();
     if (!userId) return NextResponse.json({ error: "Volunteer user id required." }, { status: 400 });
+    const existing = await getKidsVolunteerProfile(userId);
     const userName = await resolveVolunteerName(userId);
+    try {
     const profile = await saveKidsVolunteerProfile({
       userId,
       userName,
       roles: Array.isArray(body.roles)
         ? body.roles.map((item: unknown) => String(item).trim()).filter(Boolean)
-        : [],
-      onboardingComplete: Boolean(body.onboardingComplete),
-      safeguardingCompletedAt: body.safeguardingCompletedAt
-        ? String(body.safeguardingCompletedAt)
-        : undefined,
-      availabilityNotes: body.availabilityNotes ? String(body.availabilityNotes).trim() : undefined,
+        : (existing?.roles ?? []),
+      onboardingComplete: existing?.onboardingComplete ?? false,
+      safeguardingSelfAttestedAt: existing?.safeguardingSelfAttestedAt,
+      safeguardingLeaderVerifiedAt: existing?.safeguardingLeaderVerifiedAt,
+      availabilityNotes: body.availabilityNotes
+        ? String(body.availabilityNotes).trim()
+        : existing?.availabilityNotes,
       updatedAt: new Date().toISOString(),
     });
     return NextResponse.json({ profile });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : kidsWorkspaceStorageError() }, { status: 503 });
+  }
   }
 
-  if (action === "mark-safeguarding-complete") {
-    const targetUserId = String(body.userId ?? user.id).trim();
-  if (targetUserId !== user.id && !(await canManageKidsMinistry(user))) {
-      return NextResponse.json({ error: "Not authorized." }, { status: 403 });
+  if (action === "attest-safeguarding-training") {
+    if (!kidsWorkspaceStorageReady()) {
+      return NextResponse.json({ error: kidsWorkspaceStorageError() }, { status: 503 });
     }
+    const targetUserId = String(body.userId ?? user.id).trim();
+    if (targetUserId !== user.id) {
+      return NextResponse.json({ error: "You can only attest training for your own account." }, { status: 403 });
+    }
+    const existing = await getKidsVolunteerProfile(targetUserId);
     const userName = await resolveVolunteerName(targetUserId);
-    const profile = await saveKidsVolunteerProfile({
-      userId: targetUserId,
-      userName,
-      roles: [],
-      onboardingComplete: true,
-      safeguardingCompletedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-    return NextResponse.json({ profile });
+    const now = new Date().toISOString();
+    try {
+      const profile = await saveKidsVolunteerProfile({
+        userId: targetUserId,
+        userName,
+        roles: existing?.roles ?? [],
+        onboardingComplete: existing?.onboardingComplete ?? false,
+        safeguardingSelfAttestedAt: now,
+        safeguardingLeaderVerifiedAt: existing?.safeguardingLeaderVerifiedAt,
+        updatedAt: now,
+      });
+      return NextResponse.json({ profile });
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : kidsWorkspaceStorageError() }, { status: 503 });
+    }
+  }
+
+  if (action === "verify-volunteer-safeguarding") {
+    if (!(await canManageKidsMinistry(user))) {
+      return NextResponse.json({ error: "Kids ministry admin access required." }, { status: 403 });
+    }
+    if (!kidsWorkspaceStorageReady()) {
+      return NextResponse.json({ error: kidsWorkspaceStorageError() }, { status: 503 });
+    }
+    const targetUserId = String(body.userId ?? "").trim();
+    if (!targetUserId) return NextResponse.json({ error: "Volunteer user id required." }, { status: 400 });
+    const existing = await getKidsVolunteerProfile(targetUserId);
+    const userName = await resolveVolunteerName(targetUserId);
+    const now = new Date().toISOString();
+    try {
+      const profile = await saveKidsVolunteerProfile({
+        userId: targetUserId,
+        userName,
+        roles: existing?.roles ?? [],
+        onboardingComplete: true,
+        safeguardingSelfAttestedAt: existing?.safeguardingSelfAttestedAt ?? now,
+        safeguardingLeaderVerifiedAt: now,
+        updatedAt: now,
+      });
+      return NextResponse.json({ profile });
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : kidsWorkspaceStorageError() }, { status: 503 });
+    }
   }
 
   if (action === "publish-announcement") {

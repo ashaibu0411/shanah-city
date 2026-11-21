@@ -42,11 +42,13 @@ export async function listKidsAssignments(options?: {
   serviceDate?: string;
   service?: string;
   userId?: string;
+  ageGroup?: string;
 }) {
-  const where: { serviceDate?: string; service?: string; userId?: string } = {};
+  const where: { serviceDate?: string; service?: string; userId?: string; ageGroup?: string } = {};
   if (options?.serviceDate) where.serviceDate = options.serviceDate;
   if (options?.service) where.service = options.service;
   if (options?.userId) where.userId = options.userId;
+  if (options?.ageGroup) where.ageGroup = options.ageGroup;
   const records = await prisma.kidsTeacherAssignment.findMany({
     where,
     orderBy: [{ serviceDate: "asc" }, { ageGroup: "asc" }],
@@ -102,6 +104,8 @@ export async function listKidsVolunteerProfiles() {
           : [],
       onboardingComplete: record.onboardingComplete,
       safeguardingCompletedAt: record.safeguardingCompletedAt?.toISOString(),
+      safeguardingSelfAttestedAt: record.safeguardingSelfAttestedAt?.toISOString(),
+      safeguardingLeaderVerifiedAt: record.safeguardingLeaderVerifiedAt?.toISOString(),
       availabilityNotes: record.availabilityNotes ?? undefined,
       updatedAt: record.updatedAt.toISOString(),
     }),
@@ -116,8 +120,14 @@ export async function saveKidsVolunteerProfile(profile: KidsVolunteerProfile) {
       userName: profile.userName,
       roles: profile.roles,
       onboardingComplete: profile.onboardingComplete,
-      safeguardingCompletedAt: profile.safeguardingCompletedAt
-        ? new Date(profile.safeguardingCompletedAt)
+      safeguardingCompletedAt: profile.safeguardingLeaderVerifiedAt
+        ? new Date(profile.safeguardingLeaderVerifiedAt)
+        : null,
+      safeguardingSelfAttestedAt: profile.safeguardingSelfAttestedAt
+        ? new Date(profile.safeguardingSelfAttestedAt)
+        : null,
+      safeguardingLeaderVerifiedAt: profile.safeguardingLeaderVerifiedAt
+        ? new Date(profile.safeguardingLeaderVerifiedAt)
         : null,
       availabilityNotes: profile.availabilityNotes,
       updatedAt: new Date(profile.updatedAt),
@@ -126,8 +136,14 @@ export async function saveKidsVolunteerProfile(profile: KidsVolunteerProfile) {
       userName: profile.userName,
       roles: profile.roles,
       onboardingComplete: profile.onboardingComplete,
-      safeguardingCompletedAt: profile.safeguardingCompletedAt
-        ? new Date(profile.safeguardingCompletedAt)
+      safeguardingCompletedAt: profile.safeguardingLeaderVerifiedAt
+        ? new Date(profile.safeguardingLeaderVerifiedAt)
+        : null,
+      safeguardingSelfAttestedAt: profile.safeguardingSelfAttestedAt
+        ? new Date(profile.safeguardingSelfAttestedAt)
+        : null,
+      safeguardingLeaderVerifiedAt: profile.safeguardingLeaderVerifiedAt
+        ? new Date(profile.safeguardingLeaderVerifiedAt)
         : null,
       availabilityNotes: profile.availabilityNotes,
       updatedAt: new Date(profile.updatedAt),
@@ -138,7 +154,9 @@ export async function saveKidsVolunteerProfile(profile: KidsVolunteerProfile) {
     userName: record.userName,
     roles: profile.roles,
     onboardingComplete: record.onboardingComplete,
-    safeguardingCompletedAt: record.safeguardingCompletedAt?.toISOString(),
+    safeguardingCompletedAt: record.safeguardingLeaderVerifiedAt?.toISOString(),
+    safeguardingSelfAttestedAt: record.safeguardingSelfAttestedAt?.toISOString(),
+    safeguardingLeaderVerifiedAt: record.safeguardingLeaderVerifiedAt?.toISOString(),
     availabilityNotes: record.availabilityNotes ?? undefined,
     updatedAt: record.updatedAt.toISOString(),
   };

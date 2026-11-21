@@ -15,6 +15,7 @@ import type {
   KidsLeaderSnapshot,
   KidsLessonCompletion,
   KidsTeacherAssignment,
+  KidsVolunteerProfile,
 } from "@/lib/kids-workspace-types";
 import {
   KidsLeaderTab,
@@ -44,7 +45,8 @@ type MinistryData = {
   completions?: KidsLessonCompletion[];
   leaderSnapshot?: KidsLeaderSnapshot | null;
   safeguardingGuideUrl?: string;
-  volunteers?: { userId: string; safeguardingCompletedAt?: string }[];
+  volunteers?: KidsVolunteerProfile[];
+  myVolunteerProfile?: KidsVolunteerProfile | null;
 };
 
 const tabs = [
@@ -146,14 +148,17 @@ export function KidsMinistryPanel({
       return;
     }
     const timer = window.setTimeout(async () => {
-      const response = await fetch(
-        `/api/kids/ministry?childSearch=${encodeURIComponent(query.slice(0, 1))}`,
-      );
+      const params = new URLSearchParams({
+        childSearch: query.slice(0, 1),
+        service,
+      });
+      if (data?.serviceDate) params.set("date", data.serviceDate);
+      const response = await fetch(`/api/kids/ministry?${params.toString()}`);
       const payload = await response.json();
       if (response.ok) setRegisteredChildren(payload.children ?? []);
     }, 200);
     return () => window.clearTimeout(timer);
-  }, [childSearch]);
+  }, [childSearch, service, data?.serviceDate]);
 
   useEffect(() => {
     const intervalMs = 15_000;
@@ -368,13 +373,23 @@ export function KidsMinistryPanel({
     }
   }
 
-  async function markSafeguarding() {
+  async function attestSafeguarding() {
     try {
-      await ministryAction({ action: "mark-safeguarding-complete" });
-      setMessage("Safeguarding training marked complete.");
+      await ministryAction({ action: "attest-safeguarding-training" });
+      setMessage("Safeguarding self-attestation saved. A leader must verify before lead teaching.");
       await load({ silent: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not update training record.");
+    }
+  }
+
+  async function verifyVolunteerSafeguarding(userId: string) {
+    try {
+      await ministryAction({ action: "verify-volunteer-safeguarding", userId });
+      setMessage("Volunteer safeguarding verified.");
+      await load({ silent: true });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not verify safeguarding.");
     }
   }
 
@@ -549,11 +564,12 @@ export function KidsMinistryPanel({
             <KidsTrainingTab
               announcements={data.announcements ?? []}
               safeguardingGuideUrl={data.safeguardingGuideUrl ?? "/training/kids-ministry-leader.html"}
-              onMarkSafeguarding={() => void markSafeguarding()}
-              safeguardingComplete={Boolean(
-                data.volunteers?.find((row) => row.userId === user?.id)?.safeguardingCompletedAt,
-              )}
+              onAttestSafeguarding={() => void attestSafeguarding()}
+              safeguardingSelfAttested={Boolean(data.myVolunteerProfile?.safeguardingSelfAttestedAt)}
+              safeguardingLeaderVerified={Boolean(data.myVolunteerProfile?.safeguardingLeaderVerifiedAt)}
               canManage={data.canManageKidsMinistry}
+              volunteers={data.volunteers ?? []}
+              onVerifyVolunteerSafeguarding={(userId) => void verifyVolunteerSafeguarding(userId)}
               onPublishAnnouncement={(title, body) => void publishAnnouncement(title, body)}
             />
           )}
@@ -582,10 +598,10 @@ export function KidsMinistryPanel({
                     if (entry.suggestedAgeGroup) setRoom(entry.suggestedAgeGroup);
                     setLinkedParentUserId(entry.parentUserId);
                     setFamilyMemberId(entry.familyMemberId);
-                    setAllergies(entry.allergies ?? "");
-                    setMedicalNotes(entry.medicalNotes ?? "");
-                    setPickupName(entry.authorizedPickup?.[0]?.name ?? "");
-                    setPickupPhone(entry.authorizedPickup?.[0]?.phone ?? "");
+                    setPickupName("");
+                    setPickupPhone("");
+                    setAllergies("");
+                    setMedicalNotes("");
                     setChildSearch("");
                   }}
                 />
@@ -632,15 +648,27 @@ export function KidsMinistryPanel({
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Medical alerts (ask guardian)<input value={medicalNotes} onChange={(e) => setMedicalNotes(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200 sm:col-span-2">Additional notes<textarea value={checkinNotes} onChange={(e) => setCheckinNotes(e.target.value)} rows={3} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-night-600 dark:text-slate-200">Teacher-assisted check-in requires a guardian and authorized pickup contact. At pickup, verify the adult's identity and matching security code before releasing the child.</p>
+                {linkedParentUserId && familyMemberId ? (
+                  <p className="mt-3 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                    Registered child linked to guardian records. Pickup contacts load from the family profile on check-in.
+                  </p>
+                ) : (
+                  <p className="mt-3 text-sm leading-6 text-night-600 dark:text-slate-200">
+                    Guest check-in: confirm guardian and authorized pickup contact before completing check-in.
+                  </p>
+                )}
+                <p className="mt-2 text-sm leading-6 text-night-600 dark:text-slate-200">At pickup, verify the adult&apos;s identity and matching security code before releasing the child.</p>
                 <Button
                   className="mt-4 min-h-12 w-full"
                   onClick={teacherCheckIn}
                   disabled={
                     checkinBusy ||
-                    !childName.trim() ||
-                    !guardianName.trim() ||
-                    (!linkedParentUserId && (!pickupName.trim() || !pickupPhone.trim()))
+                    (linkedParentUserId && familyMemberId
+                      ? false
+                      : !childName.trim() ||
+                        !guardianName.trim() ||
+                        !pickupName.trim() ||
+                        !pickupPhone.trim())
                   }
                 >
                   {checkinBusy ? "Checking in…" : "Check in child"}

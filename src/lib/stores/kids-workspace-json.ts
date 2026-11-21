@@ -32,11 +32,13 @@ export async function listKidsAssignments(options?: {
   serviceDate?: string;
   service?: string;
   userId?: string;
+  ageGroup?: string;
 }) {
   let rows = await readJson<KidsTeacherAssignment[]>(ASSIGNMENTS, []);
   if (options?.serviceDate) rows = rows.filter((r) => r.serviceDate === options.serviceDate);
   if (options?.service) rows = rows.filter((r) => r.service === options.service);
   if (options?.userId) rows = rows.filter((r) => r.userId === options.userId);
+  if (options?.ageGroup) rows = rows.filter((r) => r.ageGroup === options.ageGroup);
   return rows.sort((a, b) => a.serviceDate.localeCompare(b.serviceDate));
 }
 

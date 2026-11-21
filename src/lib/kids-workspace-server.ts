@@ -15,25 +15,66 @@ import * as workspaceDb from "@/lib/stores/kids-workspace-db";
 import * as workspaceJson from "@/lib/stores/kids-workspace-json";
 import { getUserById } from "@/lib/auth-server";
 
-const workspaceStore = () => (useDatabase() ? workspaceDb : workspaceJson);
+function assertWorkspaceWrite() {
+  if (!useDatabase()) {
+    throw new Error("Kids Ministry workspace records require a configured database.");
+  }
+}
 
-export const listKidsAssignments = (options?: Parameters<typeof workspaceJson.listKidsAssignments>[0]) =>
-  workspaceStore().listKidsAssignments(options);
-export const saveKidsAssignment = (assignment: Parameters<typeof workspaceJson.saveKidsAssignment>[0]) =>
-  workspaceStore().saveKidsAssignment(assignment);
-export const deleteKidsAssignment = (id: string) => workspaceStore().deleteKidsAssignment(id);
-export const listKidsVolunteerProfiles = () => workspaceStore().listKidsVolunteerProfiles();
-export const saveKidsVolunteerProfile = (profile: Parameters<typeof workspaceJson.saveKidsVolunteerProfile>[0]) =>
-  workspaceStore().saveKidsVolunteerProfile(profile);
+export const listKidsAssignments = (options?: Parameters<typeof workspaceJson.listKidsAssignments>[0]) => {
+  if (!useDatabase()) return workspaceJson.listKidsAssignments(options);
+  return workspaceDb.listKidsAssignments(options);
+};
+export const saveKidsAssignment = (assignment: Parameters<typeof workspaceJson.saveKidsAssignment>[0]) => {
+  assertWorkspaceWrite();
+  return workspaceDb.saveKidsAssignment(assignment);
+};
+export const deleteKidsAssignment = (id: string) => {
+  assertWorkspaceWrite();
+  return workspaceDb.deleteKidsAssignment(id);
+};
+export const listKidsVolunteerProfiles = () => {
+  if (!useDatabase()) return workspaceJson.listKidsVolunteerProfiles();
+  return workspaceDb.listKidsVolunteerProfiles();
+};
+export const saveKidsVolunteerProfile = async (
+  profile: Parameters<typeof workspaceJson.saveKidsVolunteerProfile>[0],
+) => {
+  assertWorkspaceWrite();
+  const existing = (await workspaceDb.listKidsVolunteerProfiles()).find((row) => row.userId === profile.userId);
+  const merged = {
+    ...profile,
+    roles: profile.roles.length ? profile.roles : (existing?.roles ?? []),
+    onboardingComplete: profile.onboardingComplete || (existing?.onboardingComplete ?? false),
+    safeguardingSelfAttestedAt:
+      profile.safeguardingSelfAttestedAt ?? existing?.safeguardingSelfAttestedAt,
+    safeguardingLeaderVerifiedAt:
+      profile.safeguardingLeaderVerifiedAt ?? existing?.safeguardingLeaderVerifiedAt,
+  };
+  return workspaceDb.saveKidsVolunteerProfile(merged);
+};
 export const listKidsLessonCompletions = (
   options?: Parameters<typeof workspaceJson.listKidsLessonCompletions>[0],
-) => workspaceStore().listKidsLessonCompletions(options);
+) => {
+  if (!useDatabase()) return workspaceJson.listKidsLessonCompletions(options);
+  return workspaceDb.listKidsLessonCompletions(options);
+};
 export const saveKidsLessonCompletion = (
   completion: Parameters<typeof workspaceJson.saveKidsLessonCompletion>[0],
-) => workspaceStore().saveKidsLessonCompletion(completion);
-export const listKidsAnnouncements = (limit?: number) => workspaceStore().listKidsAnnouncements(limit);
-export const saveKidsAnnouncement = (announcement: Parameters<typeof workspaceJson.saveKidsAnnouncement>[0]) =>
-  workspaceStore().saveKidsAnnouncement(announcement);
+) => {
+  assertWorkspaceWrite();
+  return workspaceDb.saveKidsLessonCompletion(completion);
+};
+export const listKidsAnnouncements = (limit?: number) => {
+  if (!useDatabase()) return workspaceJson.listKidsAnnouncements(limit);
+  return workspaceDb.listKidsAnnouncements(limit);
+};
+export const saveKidsAnnouncement = (
+  announcement: Parameters<typeof workspaceJson.saveKidsAnnouncement>[0],
+) => {
+  assertWorkspaceWrite();
+  return workspaceDb.saveKidsAnnouncement(announcement);
+};
 
 export async function searchRegisteredChildren(prefix: string, limit = 25): Promise<KidsChildSearchResult[]> {
   const query = prefix.trim().toLowerCase();
@@ -52,34 +93,18 @@ export async function searchRegisteredChildren(prefix: string, limit = 25): Prom
       id: true,
       name: true,
       birthYear: true,
-      allergies: true,
-      medicalNotes: true,
-      authorizedPickup: true,
       userId: true,
       user: { select: { name: true, displayName: true } },
     },
   });
 
-  const results: KidsChildSearchResult[] = [];
-  for (const member of members) {
-    const parentName = member.user.displayName || member.user.name;
-    let authorizedPickup: KidsChildSearchResult["authorizedPickup"];
-    if (Array.isArray(member.authorizedPickup)) {
-      authorizedPickup = member.authorizedPickup as KidsChildSearchResult["authorizedPickup"];
-    }
-    results.push({
-      familyMemberId: member.id,
-      childName: member.name,
-      parentUserId: member.userId,
-      parentName,
-      birthYear: member.birthYear ?? undefined,
-      allergies: member.allergies ?? undefined,
-      medicalNotes: member.medicalNotes ?? undefined,
-      authorizedPickup,
-      suggestedAgeGroup: suggestAgeGroupFromBirthYear(member.birthYear ?? undefined),
-    });
-  }
-  return results;
+  return members.map((member) => ({
+    familyMemberId: member.id,
+    childName: member.name,
+    parentUserId: member.userId,
+    parentName: member.user.displayName || member.user.name,
+    suggestedAgeGroup: suggestAgeGroupFromBirthYear(member.birthYear ?? undefined),
+  }));
 }
 
 export function findTodayAssignments(
@@ -111,18 +136,29 @@ export async function buildKidsLeaderSnapshot(options: {
   const published = lessons.filter((lesson) => lesson.status === "published");
   const incidents = await listKidsIncidents({ service: options.service, limit: 50 });
   const volunteers = await listKidsVolunteerProfiles();
+  const eligibleConfirmedLeads = new Set<string>();
+  for (const row of assignments) {
+    if (row.status !== "confirmed" || row.role !== "teacher") continue;
+    const profile = volunteers.find((entry) => entry.userId === row.userId);
+    if (!profile?.safeguardingLeaderVerifiedAt) continue;
+    eligibleConfirmedLeads.add(row.ageGroup);
+  }
 
   const roomsWithKids = new Set(headcount.filter((room) => room.count > 0).map((room) => room.ageGroup));
-  const roomsWithTeachers = new Set(assignments.map((row) => row.ageGroup));
   const uncoveredRooms = KIDS_AGE_GROUPS.filter(
-    (group) => roomsWithKids.has(group) && !roomsWithTeachers.has(group),
+    (group) => roomsWithKids.has(group) && !eligibleConfirmedLeads.has(group),
   );
 
   const attentionItems: string[] = [];
   if (uncoveredRooms.length) {
     attentionItems.push(`Classrooms missing teacher coverage: ${uncoveredRooms.join(", ")}`);
   }
-  const pending = assignments.filter((row) => row.status === "pending" || row.status === "needs_replacement");
+  const pending = assignments.filter(
+    (row) =>
+      row.status === "pending" ||
+      row.status === "needs_replacement" ||
+      row.status === "declined",
+  );
   if (pending.length) {
     attentionItems.push(`${pending.length} teaching assignment(s) need confirmation or coverage`);
   }
@@ -131,16 +167,25 @@ export async function buildKidsLeaderSnapshot(options: {
     attentionItems.push(`${urgent.length} urgent incident(s) may need parent follow-up`);
   }
 
+  const confirmedEligibleLeads = assignments.filter(
+    (row) =>
+      row.status === "confirmed" &&
+      row.role === "teacher" &&
+      volunteers.some(
+        (entry) => entry.userId === row.userId && Boolean(entry.safeguardingLeaderVerifiedAt),
+      ),
+  );
+
   return {
     totalChildrenCheckedIn: active.length,
     headcount,
-    assignmentsToday: assignments.length,
+    assignmentsToday: confirmedEligibleLeads.length,
     unconfirmedAssignments: pending.length,
     uncoveredRooms,
     publishedLessonsThisWeek: published.length,
     openIncidents: incidents.length,
     volunteersOnboarded: volunteers.filter((v) => v.onboardingComplete).length,
-    volunteersNeedingSafeguarding: volunteers.filter((v) => !v.safeguardingCompletedAt).length,
+    volunteersNeedingSafeguarding: volunteers.filter((v) => !v.safeguardingLeaderVerifiedAt).length,
     upcomingAssignments: futureAssignments,
     attentionItems,
   };

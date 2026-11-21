@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   KidsAnnouncement,
   KidsLeaderSnapshot,
@@ -231,6 +231,14 @@ export function KidsTeamTab({
   );
 }
 
+type MinistryMemberHit = {
+  id: string;
+  name: string;
+  email: string;
+  eligibleTeacher: boolean;
+  eligibleAssistant: boolean;
+};
+
 function AssignTeacherForm(props: {
   assignUserId: string;
   setAssignUserId: (value: string) => void;
@@ -241,17 +249,66 @@ function AssignTeacherForm(props: {
   ageGroups: string[];
   onAssign: () => void;
 }) {
+  const [memberQuery, setMemberQuery] = useState("");
+  const [memberHits, setMemberHits] = useState<MinistryMemberHit[]>([]);
+  const [selectedMemberName, setSelectedMemberName] = useState("");
+
+  useEffect(() => {
+    const query = memberQuery.trim();
+    if (query.length < 2) {
+      setMemberHits([]);
+      return;
+    }
+    const timer = window.setTimeout(async () => {
+      const response = await fetch(
+        `/api/kids/ministry?memberSearch=${encodeURIComponent(query)}`,
+      );
+      const payload = await response.json();
+      if (response.ok) setMemberHits(payload.members ?? []);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [memberQuery]);
+
   return (
     <div className="mt-3 grid gap-3 sm:grid-cols-2">
-      <label className="text-sm font-semibold">
-        Member user id
-        <input
-          value={props.assignUserId}
-          onChange={(e) => props.setAssignUserId(e.target.value)}
-          placeholder="Paste Shanah City user id"
-          className="mt-1 block w-full rounded-xl border border-night-900/20 px-3 py-3 text-base"
-        />
-      </label>
+      <div className="sm:col-span-2">
+        <label className="text-sm font-semibold">
+          Search team member
+          <input
+            value={memberQuery}
+            onChange={(e) => setMemberQuery(e.target.value)}
+            placeholder="Type first letters of name"
+            className="mt-1 block w-full rounded-xl border border-night-900/20 px-3 py-3 text-base"
+          />
+        </label>
+        {selectedMemberName && (
+          <p className="mt-2 text-sm text-night-700">
+            Selected: <strong>{selectedMemberName}</strong>
+          </p>
+        )}
+        {memberHits.length > 0 && (
+          <div className="mt-2 max-h-44 space-y-1 overflow-y-auto">
+            {memberHits.map((member) => (
+              <button
+                key={member.id}
+                type="button"
+                onClick={() => {
+                  props.setAssignUserId(member.id);
+                  setSelectedMemberName(member.name);
+                  setMemberQuery(member.name);
+                  setMemberHits([]);
+                }}
+                className="block w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2 text-left text-sm hover:bg-sand-100 dark:border-slate-600 dark:bg-slate-800"
+              >
+                <span className="block font-semibold">{member.name}</span>
+                <span className="text-xs text-night-600">
+                  {member.eligibleTeacher ? "Eligible lead teacher" : member.eligibleAssistant ? "Eligible assistant" : "Kids team member"}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <label className="text-sm font-semibold">
         Classroom
         <select
@@ -301,7 +358,7 @@ export function KidsLeaderTab({ snapshot }: { snapshot: KidsLeaderSnapshot | nul
         <h2 className="text-xl font-bold text-night-900 dark:text-white">Ministry pulse</h2>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label="Checked in" value={String(snapshot.totalChildrenCheckedIn)} />
-          <StatCard label="Teachers today" value={String(snapshot.assignmentsToday)} />
+          <StatCard label="Confirmed lead teachers" value={String(snapshot.assignmentsToday)} />
           <StatCard label="Lessons published" value={String(snapshot.publishedLessonsThisWeek)} />
           <StatCard label="Safeguarding gaps" value={String(snapshot.volunteersNeedingSafeguarding)} />
         </div>
@@ -333,16 +390,22 @@ export function KidsLeaderTab({ snapshot }: { snapshot: KidsLeaderSnapshot | nul
 export function KidsTrainingTab({
   announcements,
   safeguardingGuideUrl,
-  onMarkSafeguarding,
-  safeguardingComplete,
+  onAttestSafeguarding,
+  safeguardingSelfAttested,
+  safeguardingLeaderVerified,
   canManage,
+  volunteers,
+  onVerifyVolunteerSafeguarding,
   onPublishAnnouncement,
 }: {
   announcements: KidsAnnouncement[];
   safeguardingGuideUrl: string;
-  onMarkSafeguarding: () => void;
-  safeguardingComplete: boolean;
+  onAttestSafeguarding: () => void;
+  safeguardingSelfAttested: boolean;
+  safeguardingLeaderVerified: boolean;
   canManage: boolean;
+  volunteers: KidsVolunteerProfile[];
+  onVerifyVolunteerSafeguarding: (userId: string) => void;
   onPublishAnnouncement: (title: string, body: string) => void;
 }) {
   const [title, setTitle] = useState("");
@@ -361,9 +424,46 @@ export function KidsTrainingTab({
         >
           Open training guide
         </a>
-        <Button className="mt-3 min-h-11 w-full sm:w-auto" variant="secondary" onClick={onMarkSafeguarding}>
-          {safeguardingComplete ? "Safeguarding marked complete" : "Mark safeguarding complete"}
+        <Button
+          className="mt-3 min-h-11 w-full sm:w-auto"
+          variant="secondary"
+          disabled={safeguardingSelfAttested}
+          onClick={onAttestSafeguarding}
+        >
+          {safeguardingSelfAttested
+            ? "You attested safeguarding training"
+            : "I completed safeguarding training (self-attestation)"}
         </Button>
+        {safeguardingLeaderVerified ? (
+          <p className="mt-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+            Leader verified — cleared to lead a classroom.
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-night-600 dark:text-slate-300">
+            A Kids Ministry leader must verify safeguarding before you are assigned as lead teacher.
+          </p>
+        )}
+        {canManage && volunteers.length > 0 && (
+          <div className="mt-4 border-t border-night-900/10 pt-4">
+            <h3 className="text-sm font-bold text-night-900 dark:text-white">Leader safeguarding verification</h3>
+            <ul className="mt-2 space-y-2 text-sm">
+              {volunteers
+                .filter((row) => !row.safeguardingLeaderVerifiedAt)
+                .slice(0, 12)
+                .map((row) => (
+                  <li
+                    key={row.userId}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-sand-50 px-3 py-2 dark:bg-slate-800"
+                  >
+                    <span className="font-semibold">{row.userName}</span>
+                    <Button variant="secondary" className="min-h-10" onClick={() => onVerifyVolunteerSafeguarding(row.userId)}>
+                      Verify safeguarding
+                    </Button>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
       </Card>
       <Card>
         <h2 className="text-lg font-bold text-night-900 dark:text-white">Team announcements</h2>
