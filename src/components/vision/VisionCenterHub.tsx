@@ -355,8 +355,8 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                       <p className="text-lg font-extrabold text-slate-950 dark:text-white">{leaders.find(l => l.id === a.userId)?.name || "Assigned member"}</p>
                       <p className="text-sm font-semibold capitalize text-slate-600 dark:text-slate-300">{a.status.replaceAll("_"," ")} · {a.deadline ? "Due " + formatDeadline(a.deadline) : "No deadline set"}</p>
                       <div className="flex flex-wrap gap-2">
-                        <span className={"rounded-full px-3 py-1 text-xs font-bold " + (a.acknowledgedAt ? "bg-blue-100 text-blue-900" : "bg-slate-200 text-slate-800 dark:text-slate-100")}>{a.acknowledgedAt ? "Vision read" : "Awaiting acknowledgement"}</span>
-                        <span className={"rounded-full px-3 py-1 text-xs font-bold " + (a.submittedAt ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950")}>{a.submittedAt ? "Review submitted" : "Awaiting proposal"}</span>
+                        <span className={"rounded-full px-3 py-1 text-sm font-bold " + (a.acknowledgedAt ? "bg-blue-100 text-blue-900" : "bg-slate-200 text-slate-800 dark:text-slate-100")}>{a.acknowledgedAt ? "Vision read" : "Awaiting acknowledgement"}</span>
+                        <span className={"rounded-full px-3 py-1 text-sm font-bold " + (a.submittedAt ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950")}>{a.submittedAt ? "Review submitted" : "Awaiting proposal"}</span>
                       </div>
                       {a.proposal && <p className="whitespace-pre-wrap break-words pt-2 leading-[1.8]"><strong>Proposal: </strong>{a.proposal}</p>}
                       {a.capacity && <p><strong>Capacity: </strong>{a.capacity}</p>}
@@ -382,7 +382,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                         <button type="button" className={secondary} onClick={() => { setAssignUserId(""); setSelectedMember(null); setMemberQuery(""); }}>Change</button>
                       </div> : memberQuery.trim().length >= 2 && !memberSearching && !memberSearchError && memberResults.length === 0
                         ? <p className="text-sm text-slate-600 dark:text-slate-300">No matching registered members. Try another name or email.</p> : null}
-                      {!selectedMember && memberResults.length > 0 && <div role="listbox" aria-label="Matching church members" className="max-h-80 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-1">
+                      {!selectedMember && memberResults.length > 0 && <div role="listbox" aria-label="Matching church members" className="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-1">
                         {memberResults.map(member => <button key={member.id} type="button" role="option" aria-selected={false}
                           className="flex w-full min-w-0 flex-col gap-1 rounded-lg px-4 py-3 text-left hover:bg-blue-50 focus-visible:bg-blue-50"
                           onClick={() => { setSelectedMember(member); setAssignUserId(member.id); setMemberQuery(member.name); setMemberResults([]); }}>
@@ -420,15 +420,15 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                   <h3 className="text-2xl font-extrabold text-slate-950 dark:text-white">{selected.ministryKey === "churchwide" ? "Your pastoral assessment of this proposal" : "My response"}</h3>
                   <div className="grid gap-3 sm:grid-cols-3" aria-label="Your review progress">
                     <div className="rounded-xl bg-slate-50 dark:bg-slate-800 p-4">
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">Step 1 · Read</p>
+                      <p className="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">Step 1 · Read</p>
                       <p className="mt-1 font-bold text-slate-900 dark:text-slate-100">{myAssignment.acknowledgedAt ? "Acknowledged" : "Not yet acknowledged"}</p>
                     </div>
                     <div className="rounded-xl bg-slate-50 dark:bg-slate-800 p-4">
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">Step 2 · Respond</p>
+                      <p className="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">Step 2 · Respond</p>
                       <p className="mt-1 font-bold text-slate-900 dark:text-slate-100">{myAssignment.proposal?.trim() ? "Draft available" : "Write your response"}</p>
                     </div>
                     <div className="rounded-xl bg-slate-50 dark:bg-slate-800 p-4">
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">Step 3 · Submit</p>
+                      <p className="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">Step 3 · Submit</p>
                       <p className="mt-1 font-bold text-slate-900 dark:text-slate-100">{myAssignment.submittedAt ? "Submitted" : "Awaiting submission"}</p>
                     </div>
                   </div>
