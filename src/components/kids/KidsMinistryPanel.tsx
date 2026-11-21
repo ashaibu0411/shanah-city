@@ -542,6 +542,8 @@ export function KidsMinistryPanel({
               headcount={data.headcount}
               onOpenCheckIn={() => setTab("checkin")}
               onOpenRoster={() => setTab("roster")}
+              onOpenPickup={() => setTab("pickup")}
+              onOpenLessons={() => setTab("lessons")}
             />
           )}
           {tab === "team" && user && (
