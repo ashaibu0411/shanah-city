@@ -42,7 +42,7 @@ const header = readFileSync(
 );
 assert.match(
   header,
-  /BrandLogo size="sm" variant=\\{isDark \\? "dark" : "light"\\}/,
+  /BrandLogo size="sm" variant=\{isDark \? "dark" : "light"\}/,
   "mobile header logo must follow the current light/dark theme",
 );
 
