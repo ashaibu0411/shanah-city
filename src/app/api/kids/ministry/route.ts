@@ -106,6 +106,8 @@ export async function POST(request: Request) {
       id: `kid-${randomUUID()}`,
       childName, parentName, ageGroup, service,
       notes: String(body.notes ?? "").trim().slice(0, 500) || undefined,
+      allergies: String(body.allergies ?? "").trim().slice(0, 300) || undefined,
+      medicalNotes: String(body.medicalNotes ?? "").trim().slice(0, 300) || undefined,
       authorizedPickup: [{ name: pickupName, phone: pickupPhone }],
       securityCode: String(randomInt(100000, 1000000)),
       checkedInAt: new Date().toISOString(),
