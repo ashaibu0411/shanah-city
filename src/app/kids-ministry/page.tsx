@@ -29,7 +29,7 @@ export default async function KidsMinistryPage({
       <PageHeader
         eyebrow="Kids Ministry"
         title="Teacher dashboard"
-        description="Room roster, pickup verification, weekly lessons, and incident logs for Shanah Kids."
+        description="Mobile-first workspace for teachers and leaders — classrooms, curriculum, volunteers, and safeguarding."
       />
       <MarkFeedRead feed="kids" />
       <KidsMinistryPanel initialWeek={params.week} initialService={params.service} />

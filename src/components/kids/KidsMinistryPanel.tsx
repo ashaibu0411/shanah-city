@@ -8,24 +8,54 @@ import type {
   KidsRoomHeadcount,
 } from "@/lib/kids-types";
 import { Button, Card } from "@/components/ui";
+import { useAuth } from "@/components/auth/AuthProvider";
+import type { KidsChildSearchResult } from "@/lib/kids-workspace-types";
+import type {
+  KidsAnnouncement,
+  KidsLeaderSnapshot,
+  KidsLessonCompletion,
+  KidsTeacherAssignment,
+} from "@/lib/kids-workspace-types";
+import {
+  KidsLeaderTab,
+  KidsLessonCompletionButton,
+  KidsRegisteredChildPicker,
+  KidsTeacherHomeTab,
+  KidsTeamTab,
+  KidsTrainingTab,
+} from "@/components/kids/KidsMinistryWorkspaceTabs";
 
 type MinistryData = {
   roster: KidsRosterEntry[];
+  rosterForRoom?: KidsRosterEntry[];
   directory: { childName: string; parentName: string; ageGroup: string; parentUserId?: string; allergies?: string; medicalNotes?: string; authorizedPickup?: { name: string; phone?: string }[] }[];
   headcount: KidsRoomHeadcount[];
   lessons: KidsLesson[];
   incidents: KidsIncident[];
   weekStarting: string;
+  serviceDate?: string;
   services: string[];
   ageGroups: string[];
   canManageKidsMinistry: boolean;
+  todayAssignment?: KidsTeacherAssignment | null;
+  myLesson?: KidsLesson | null;
+  assignments?: KidsTeacherAssignment[];
+  announcements?: KidsAnnouncement[];
+  completions?: KidsLessonCompletion[];
+  leaderSnapshot?: KidsLeaderSnapshot | null;
+  safeguardingGuideUrl?: string;
+  volunteers?: { userId: string; safeguardingCompletedAt?: string }[];
 };
 
 const tabs = [
+  { id: "home", label: "Home" },
   { id: "checkin", label: "Check in" },
   { id: "roster", label: "Roster" },
   { id: "pickup", label: "Pickup" },
   { id: "lessons", label: "Lessons" },
+  { id: "team", label: "Team" },
+  { id: "leader", label: "Leader" },
+  { id: "training", label: "Training" },
   { id: "incidents", label: "Incidents" },
 ] as const;
 
@@ -38,7 +68,8 @@ export function KidsMinistryPanel({
   initialWeek?: string;
   initialService?: string;
 }) {
-  const [tab, setTab] = useState<TabId>("checkin");
+  const { user } = useAuth();
+  const [tab, setTab] = useState<TabId>("home");
   const [service, setService] = useState(initialService ?? "Sunday Morning");
   const [weekStarting, setWeekStarting] = useState(initialWeek ?? "");
   const [data, setData] = useState<MinistryData | null>(null);
@@ -48,6 +79,8 @@ export function KidsMinistryPanel({
 
   const [childSearch, setChildSearch] = useState("");
   const [linkedParentUserId, setLinkedParentUserId] = useState("");
+  const [familyMemberId, setFamilyMemberId] = useState("");
+  const [registeredChildren, setRegisteredChildren] = useState<KidsChildSearchResult[]>([]);
   const [alertingId, setAlertingId] = useState("");
   const [childName, setChildName] = useState("");
   const [guardianName, setGuardianName] = useState("");
@@ -65,6 +98,11 @@ export function KidsMinistryPanel({
   const [lessonAgeGroup, setLessonAgeGroup] = useState("");
   const [lessonTitle, setLessonTitle] = useState("");
   const [lessonContent, setLessonContent] = useState("");
+  const [lessonMemoryVerse, setLessonMemoryVerse] = useState("");
+  const [lessonBibleStory, setLessonBibleStory] = useState("");
+  const [lessonObjectives, setLessonObjectives] = useState("");
+  const [lessonActivities, setLessonActivities] = useState("");
+  const [lessonMaterialsUrl, setLessonMaterialsUrl] = useState("");
 
   const [incidentChild, setIncidentChild] = useState("");
   const [incidentAgeGroup, setIncidentAgeGroup] = useState("");
@@ -100,6 +138,22 @@ export function KidsMinistryPanel({
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const query = childSearch.trim();
+    if (query.length < 1) {
+      setRegisteredChildren([]);
+      return;
+    }
+    const timer = window.setTimeout(async () => {
+      const response = await fetch(
+        `/api/kids/ministry?childSearch=${encodeURIComponent(query.slice(0, 1))}`,
+      );
+      const payload = await response.json();
+      if (response.ok) setRegisteredChildren(payload.children ?? []);
+    }, 200);
+    return () => window.clearTimeout(timer);
+  }, [childSearch]);
 
   useEffect(() => {
     const intervalMs = 15_000;
@@ -146,7 +200,20 @@ export function KidsMinistryPanel({
       const response = await fetch("/api/kids/ministry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "teacher-checkin", childName, parentName: guardianName, ageGroup: room, service, pickupName, pickupPhone, notes: checkinNotes, allergies, medicalNotes, parentUserId: linkedParentUserId }),
+        body: JSON.stringify({
+          action: "teacher-checkin",
+          childName,
+          parentName: guardianName,
+          ageGroup: room,
+          service,
+          pickupName,
+          pickupPhone,
+          notes: checkinNotes,
+          allergies,
+          medicalNotes,
+          parentUserId: linkedParentUserId || undefined,
+          familyMemberId: familyMemberId || undefined,
+        }),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -164,6 +231,7 @@ export function KidsMinistryPanel({
       setMedicalNotes("");
       setChildSearch("");
       setLinkedParentUserId("");
+      setFamilyMemberId("");
       await load({ silent: true });
     } catch {
       setError("Check-in could not be completed. Please try again.");
@@ -208,6 +276,18 @@ export function KidsMinistryPanel({
         ageGroup: lessonAgeGroup,
         title: lessonTitle,
         content: lessonContent,
+        memoryVerse: lessonMemoryVerse,
+        materialsUrl: lessonMaterialsUrl,
+        curriculum: {
+          bibleStory: lessonBibleStory,
+          teachingObjectives: lessonObjectives,
+          activities: lessonActivities,
+          preparationChecklist: lessonContent
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .slice(0, 12),
+        },
       }),
     });
     const payload = await response.json();
@@ -219,6 +299,93 @@ export function KidsMinistryPanel({
     setLessonTitle("");
     setLessonContent("");
     load();
+  }
+
+  async function ministryAction(payload: Record<string, unknown>) {
+    const response = await fetch("/api/kids/ministry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error ?? "Request failed.");
+    return result;
+  }
+
+  async function confirmAssignment(id: string) {
+    try {
+      await ministryAction({ action: "confirm-assignment", id });
+      setMessage("Assignment confirmed.");
+      await load({ silent: true });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not confirm assignment.");
+    }
+  }
+
+  async function requestReplacement(id: string) {
+    try {
+      await ministryAction({ action: "request-replacement", id });
+      setMessage("Leaders notified that you need a substitute.");
+      await load({ silent: true });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not update assignment.");
+    }
+  }
+
+  async function assignTeacher(payload: { userId: string; ageGroup: string; role: string }) {
+    if (!data) return;
+    try {
+      await ministryAction({
+        action: "assign-teacher",
+        userId: payload.userId,
+        ageGroup: payload.ageGroup,
+        role: payload.role,
+        service,
+        serviceDate: data.serviceDate,
+      });
+      setMessage("Teacher assigned.");
+      await load({ silent: true });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not assign teacher.");
+    }
+  }
+
+  async function completeLesson(lesson: KidsLesson, ageGroup: string) {
+    if (!data) return;
+    try {
+      await ministryAction({
+        action: "complete-lesson",
+        lessonId: lesson.id,
+        weekStarting: data.weekStarting,
+        ageGroup,
+        service,
+        serviceDate: data.serviceDate,
+      });
+      setMessage("Lesson marked complete for today.");
+      await load({ silent: true });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save completion.");
+    }
+  }
+
+  async function markSafeguarding() {
+    try {
+      await ministryAction({ action: "mark-safeguarding-complete" });
+      setMessage("Safeguarding training marked complete.");
+      await load({ silent: true });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not update training record.");
+    }
+  }
+
+  async function publishAnnouncement(title: string, body: string) {
+    try {
+      await ministryAction({ action: "publish-announcement", title, body });
+      setMessage("Announcement published.");
+      await load({ silent: true });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not publish announcement.");
+    }
   }
 
   async function reportIncident() {
@@ -319,7 +486,9 @@ export function KidsMinistryPanel({
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {tabs.map((item) => (
+          {tabs
+            .filter((item) => item.id !== "leader" || data?.canManageKidsMinistry)
+            .map((item) => (
             <button
               key={item.id}
               type="button"
@@ -349,6 +518,45 @@ export function KidsMinistryPanel({
         </Card>
       ) : (
         <>
+          {tab === "home" && (
+            <KidsTeacherHomeTab
+              service={service}
+              todayAssignment={data.todayAssignment ?? null}
+              myLesson={data.myLesson ?? null}
+              rosterForRoom={data.rosterForRoom ?? data.roster}
+              headcount={data.headcount}
+              onOpenCheckIn={() => setTab("checkin")}
+              onOpenRoster={() => setTab("roster")}
+            />
+          )}
+          {tab === "team" && user && (
+            <KidsTeamTab
+              assignments={data.assignments ?? []}
+              myUserId={user.id}
+              canManage={data.canManageKidsMinistry}
+              ageGroups={data.ageGroups}
+              service={service}
+              serviceDate={data.serviceDate ?? data.weekStarting}
+              onConfirm={confirmAssignment}
+              onRequestReplacement={requestReplacement}
+              onAssign={assignTeacher}
+            />
+          )}
+          {tab === "leader" && data.canManageKidsMinistry && (
+            <KidsLeaderTab snapshot={data.leaderSnapshot ?? null} />
+          )}
+          {tab === "training" && (
+            <KidsTrainingTab
+              announcements={data.announcements ?? []}
+              safeguardingGuideUrl={data.safeguardingGuideUrl ?? "/training/kids-ministry-leader.html"}
+              onMarkSafeguarding={() => void markSafeguarding()}
+              safeguardingComplete={Boolean(
+                data.volunteers?.find((row) => row.userId === user?.id)?.safeguardingCompletedAt,
+              )}
+              canManage={data.canManageKidsMinistry}
+              onPublishAnnouncement={(title, body) => void publishAnnouncement(title, body)}
+            />
+          )}
           {tab === "checkin" && (
             <div className="space-y-4">
               <Card className="border-[#dfceb0] bg-[#faf5eb] dark:border-slate-600 dark:bg-slate-900">
@@ -362,14 +570,57 @@ export function KidsMinistryPanel({
               <Card>
                 <h3 className="text-lg font-bold text-night-900 dark:text-white">1. Find a child</h3>
                 <label className="mt-3 block text-sm font-semibold text-night-700 dark:text-slate-200">Search returning children</label>
-                <input value={childSearch} onChange={(event) => setChildSearch(event.target.value)} placeholder="Search child or guardian name" className="mt-1 w-full rounded-xl border border-night-900/20 bg-white px-4 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
-                {childSearch.trim().length >= 1 && <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
-                  {(data.directory ?? []).filter((entry) => `${entry.childName} ${entry.parentName}`.toLowerCase().includes(childSearch.toLowerCase())).slice(0, 12).map((entry) => (
-                    <button key={`${entry.childName}:${entry.parentName}`} type="button" onClick={() => { setChildName(entry.childName); setGuardianName(entry.parentName); setRoom(entry.ageGroup); setLinkedParentUserId(entry.parentUserId ?? ""); setAllergies(entry.allergies ?? ""); setMedicalNotes(entry.medicalNotes ?? ""); setPickupName(entry.authorizedPickup?.[0]?.name ?? ""); setPickupPhone(entry.authorizedPickup?.[0]?.phone ?? ""); setChildSearch(""); }} className="block w-full rounded-xl border border-night-900/10 bg-sand-50 px-4 py-3 text-left text-sm text-night-900 hover:bg-sand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
-                      <span className="block font-semibold">{entry.childName}</span><span className="text-xs">{entry.parentName} · {entry.ageGroup}</span>
-                    </button>
-                  ))}
-                </div>}
+                <input value={childSearch} onChange={(event) => setChildSearch(event.target.value)} placeholder="Type first letter of child's name" className="mt-1 w-full rounded-xl border border-night-900/20 bg-white px-4 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
+                <KidsRegisteredChildPicker
+                  letter={childSearch}
+                  results={registeredChildren.filter((entry) =>
+                    entry.childName.toLowerCase().startsWith(childSearch.trim().toLowerCase()),
+                  )}
+                  onSelect={(entry) => {
+                    setChildName(entry.childName);
+                    setGuardianName(entry.parentName);
+                    if (entry.suggestedAgeGroup) setRoom(entry.suggestedAgeGroup);
+                    setLinkedParentUserId(entry.parentUserId);
+                    setFamilyMemberId(entry.familyMemberId);
+                    setAllergies(entry.allergies ?? "");
+                    setMedicalNotes(entry.medicalNotes ?? "");
+                    setPickupName(entry.authorizedPickup?.[0]?.name ?? "");
+                    setPickupPhone(entry.authorizedPickup?.[0]?.phone ?? "");
+                    setChildSearch("");
+                  }}
+                />
+                {childSearch.trim().length >= 1 && (
+                  <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
+                    {(data.directory ?? [])
+                      .filter((entry) =>
+                        entry.childName.toLowerCase().startsWith(childSearch.trim().toLowerCase()),
+                      )
+                      .slice(0, 8)
+                      .map((entry) => (
+                        <button
+                          key={`${entry.childName}:${entry.parentName}`}
+                          type="button"
+                          onClick={() => {
+                            setChildName(entry.childName);
+                            setGuardianName(entry.parentName);
+                            setRoom(entry.ageGroup);
+                            setLinkedParentUserId(entry.parentUserId ?? "");
+                            setAllergies(entry.allergies ?? "");
+                            setMedicalNotes(entry.medicalNotes ?? "");
+                            setPickupName(entry.authorizedPickup?.[0]?.name ?? "");
+                            setPickupPhone(entry.authorizedPickup?.[0]?.phone ?? "");
+                            setChildSearch("");
+                          }}
+                          className="block w-full rounded-xl border border-night-900/10 bg-sand-50 px-4 py-3 text-left text-sm text-night-900 hover:bg-sand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        >
+                          <span className="block font-semibold">{entry.childName}</span>
+                          <span className="text-xs">
+                            {entry.parentName} · {entry.ageGroup} · previous visit
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                )}
                 <h3 className="mt-5 text-lg font-bold text-night-900 dark:text-white">2. Confirm check-in details</h3>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Child's full name<input value={childName} onChange={(e) => setChildName(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
@@ -382,7 +633,18 @@ export function KidsMinistryPanel({
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200 sm:col-span-2">Additional notes<textarea value={checkinNotes} onChange={(e) => setCheckinNotes(e.target.value)} rows={3} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-night-600 dark:text-slate-200">Teacher-assisted check-in requires a guardian and authorized pickup contact. At pickup, verify the adult's identity and matching security code before releasing the child.</p>
-                <Button className="mt-4 min-h-12 w-full" onClick={teacherCheckIn} disabled={checkinBusy || !childName.trim() || !guardianName.trim() || !pickupName.trim() || !pickupPhone.trim()}>{checkinBusy ? "Checking in…" : "Check in child"}</Button>
+                <Button
+                  className="mt-4 min-h-12 w-full"
+                  onClick={teacherCheckIn}
+                  disabled={
+                    checkinBusy ||
+                    !childName.trim() ||
+                    !guardianName.trim() ||
+                    (!linkedParentUserId && (!pickupName.trim() || !pickupPhone.trim()))
+                  }
+                >
+                  {checkinBusy ? "Checking in…" : "Check in child"}
+                </Button>
                 {lastCheckin && <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950"><p className="font-bold">Check-in complete: {lastCheckin.childName}</p><p className="mt-1 text-sm">Pickup code: <strong>{lastCheckin.securityCode}</strong></p><p className="mt-1 text-xs">Share this code privately with the authorized guardian. Do not display it on a public screen.</p></div>}
               </Card>
               <Card><h3 className="text-lg font-bold text-night-900 dark:text-white">3. Manage today's rooms</h3><p className="mt-2 text-sm text-night-600 dark:text-slate-200">{data.roster.length} children currently checked in for {service}.</p><Button className="mt-3" variant="secondary" onClick={() => setTab("roster")}>Open live room roster</Button></Card>
@@ -433,7 +695,12 @@ export function KidsMinistryPanel({
                 <h2 className="font-display text-xl font-semibold text-night-900">
                   Active roster
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-night-700 dark:text-slate-200">For each child: request a guardian, call directly, or alert your ministry lead. App alerts are not proof of receipt. For emergencies, follow the church safety plan and call 911 when appropriate.</p>\n                {data.roster.length === 0 ? (
+                <p className="mt-2 text-sm leading-6 text-night-700 dark:text-slate-200">
+                  For each child: request a guardian, call directly, or alert your ministry lead. App alerts are
+                  not proof of receipt. For emergencies, follow the church safety plan and call 911 when
+                  appropriate.
+                </p>
+                {data.roster.length === 0 ? (
                   <p className="mt-3 text-sm text-night-500">No children checked in for this service.</p>
                 ) : (
                   <ul className="mt-4 space-y-3">
@@ -569,12 +836,44 @@ export function KidsMinistryPanel({
                       className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
                     />
                   </div>
+                  <input
+                    value={lessonMemoryVerse}
+                    onChange={(event) => setLessonMemoryVerse(event.target.value)}
+                    placeholder="Memory verse"
+                    className="mt-3 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
+                  />
+                  <input
+                    value={lessonBibleStory}
+                    onChange={(event) => setLessonBibleStory(event.target.value)}
+                    placeholder="Bible story / passage"
+                    className="mt-3 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
+                  />
+                  <textarea
+                    value={lessonObjectives}
+                    onChange={(event) => setLessonObjectives(event.target.value)}
+                    placeholder="Teaching objectives"
+                    rows={3}
+                    className="mt-3 w-full rounded-xl border border-night-900/10 bg-sand-50 p-3 text-sm"
+                  />
                   <textarea
                     value={lessonContent}
                     onChange={(event) => setLessonContent(event.target.value)}
-                    placeholder="Lesson outline, activities, and discussion points"
-                    rows={6}
+                    placeholder="Preparation checklist (one item per line)"
+                    rows={5}
                     className="mt-3 w-full rounded-xl border border-night-900/10 bg-sand-50 p-3 text-sm"
+                  />
+                  <textarea
+                    value={lessonActivities}
+                    onChange={(event) => setLessonActivities(event.target.value)}
+                    placeholder="Games, crafts, and activities"
+                    rows={4}
+                    className="mt-3 w-full rounded-xl border border-night-900/10 bg-sand-50 p-3 text-sm"
+                  />
+                  <input
+                    value={lessonMaterialsUrl}
+                    onChange={(event) => setLessonMaterialsUrl(event.target.value)}
+                    placeholder="Downloadable materials link (optional)"
+                    className="mt-3 w-full rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
                   />
                   <div className="mt-4 flex flex-wrap gap-3">
                     <Button variant="secondary" onClick={() => saveLesson(false)} disabled={!lessonTitle.trim()}>
@@ -609,9 +908,34 @@ export function KidsMinistryPanel({
                             {lesson.status}
                           </span>
                         </div>
+                        {lesson.memoryVerse && (
+                          <p className="mt-2 text-night-700">Memory verse: {lesson.memoryVerse}</p>
+                        )}
+                        {lesson.curriculum?.bibleStory && (
+                          <p className="mt-2 text-night-700">{lesson.curriculum.bibleStory}</p>
+                        )}
                         {lesson.content && (
                           <p className="mt-2 whitespace-pre-wrap text-night-700">{lesson.content}</p>
                         )}
+                        {lesson.materialsUrl && (
+                          <a
+                            href={lesson.materialsUrl}
+                            className="mt-2 inline-block text-sm font-semibold text-blue-700 underline"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Download teaching materials
+                          </a>
+                        )}
+                        <KidsLessonCompletionButton
+                          lesson={lesson}
+                          service={service}
+                          serviceDate={data.serviceDate ?? data.weekStarting}
+                          weekStarting={data.weekStarting}
+                          ageGroup={lesson.ageGroup}
+                          completions={data.completions ?? []}
+                          onComplete={() => void completeLesson(lesson, lesson.ageGroup)}
+                        />
                       </li>
                     ))}
                   </ul>

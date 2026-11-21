@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { KidsLesson } from "@/lib/kids-types";
+import type { KidsLessonCurriculum } from "@/lib/kids-workspace-types";
 
 function mapLesson(record: {
   id: string;
@@ -7,6 +8,10 @@ function mapLesson(record: {
   ageGroup: string;
   title: string;
   content: string;
+  memoryVerse?: string | null;
+  curriculum?: unknown;
+  materialsUrl?: string | null;
+  assignedToUserId?: string | null;
   status: string;
   publishedAt: Date | null;
   createdBy: string;
@@ -20,6 +25,10 @@ function mapLesson(record: {
     ageGroup: record.ageGroup,
     title: record.title,
     content: record.content,
+    memoryVerse: record.memoryVerse ?? undefined,
+    curriculum: (record.curriculum as KidsLessonCurriculum | null) ?? undefined,
+    materialsUrl: record.materialsUrl ?? undefined,
+    assignedToUserId: record.assignedToUserId ?? undefined,
     status: record.status as KidsLesson["status"],
     publishedAt: record.publishedAt?.toISOString(),
     createdBy: record.createdBy,
@@ -62,6 +71,10 @@ export async function saveKidsLesson(input: Omit<KidsLesson, "updatedAt">) {
       ageGroup: input.ageGroup,
       title: input.title,
       content: input.content,
+      memoryVerse: input.memoryVerse,
+      curriculum: input.curriculum ?? undefined,
+      materialsUrl: input.materialsUrl,
+      assignedToUserId: input.assignedToUserId,
       status: input.status,
       publishedAt: input.publishedAt ? new Date(input.publishedAt) : null,
       createdBy: input.createdBy,
@@ -72,6 +85,10 @@ export async function saveKidsLesson(input: Omit<KidsLesson, "updatedAt">) {
     update: {
       title: input.title,
       content: input.content,
+      memoryVerse: input.memoryVerse,
+      curriculum: input.curriculum ?? undefined,
+      materialsUrl: input.materialsUrl,
+      assignedToUserId: input.assignedToUserId,
       status: input.status,
       publishedAt: input.publishedAt ? new Date(input.publishedAt) : null,
       updatedAt: new Date(),
