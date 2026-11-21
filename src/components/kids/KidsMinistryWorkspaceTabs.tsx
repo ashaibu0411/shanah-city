@@ -20,6 +20,8 @@ export function KidsTeacherHomeTab({
   headcount,
   onOpenCheckIn,
   onOpenRoster,
+  onOpenPickup,
+  onOpenLessons,
 }: {
   service: string;
   todayAssignment: KidsTeacherAssignment | null;
@@ -28,68 +30,86 @@ export function KidsTeacherHomeTab({
   headcount: { ageGroup: string; count: number }[];
   onOpenCheckIn: () => void;
   onOpenRoster: () => void;
+  onOpenPickup: () => void;
+  onOpenLessons: () => void;
 }) {
+  const isConfirmed = todayAssignment?.status === "confirmed";
   const roomCount = todayAssignment
     ? headcount.find((room) => room.ageGroup === todayAssignment.ageGroup)?.count ?? 0
-    : headcount.reduce((sum, room) => sum + room.count, 0);
+    : 0;
+  const readyLesson = myLesson?.status === "published";
+  const actions = [
+    { label: "Check in a child", detail: "Find a returning child or register a guest", action: onOpenCheckIn, primary: true },
+    { label: "My classroom roster", detail: "View children in your authorized room", action: onOpenRoster },
+    { label: "Secure pickup", detail: "Verify the adult and pickup code", action: onOpenPickup },
+    { label: "Today's lesson", detail: "Bible story, activities and teaching notes", action: onOpenLessons },
+  ];
 
   return (
-    <div className="space-y-4">
-      <Card className="border-[#dfceb0] bg-gradient-to-br from-[#faf5eb] to-white dark:border-slate-600 dark:from-slate-900 dark:to-slate-900">
-        <p className="text-xs font-bold uppercase tracking-wider text-[#85643d] dark:text-amber-200">
-          Today · {service}
-        </p>
-        <h2 className="mt-2 font-display text-2xl font-bold text-night-900 dark:text-white">
-          {todayAssignment
-            ? `Your room: ${todayAssignment.ageGroup}`
-            : "Teacher workspace"}
+    <div className="space-y-5">
+      <section className="overflow-hidden rounded-3xl border border-[#dbe5f2] bg-gradient-to-br from-[#f1f7ff] via-white to-[#fff8ed] p-5 shadow-sm dark:border-slate-700 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 sm:p-7">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#34649b] dark:text-sky-300">Shanah Kids · Sunday station</p>
+        <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-night-900 dark:text-white sm:text-3xl">
+          {isConfirmed ? todayAssignment?.ageGroup : "Welcome, teacher"}
         </h2>
-        <p className="mt-2 text-sm text-night-700 dark:text-slate-200">
-          {todayAssignment
-            ? `Role: ${todayAssignment.role.replaceAll("_", " ")} · ${todayAssignment.status.replaceAll("_", " ")}`
-            : "No classroom assignment for today yet. Leaders can assign you under Team."}
+        <p className="mt-2 max-w-xl text-sm leading-6 text-night-700 dark:text-slate-200">
+          {isConfirmed
+            ? `You're confirmed as ${todayAssignment?.role.replaceAll("_", " ")} for ${service}. Everything you need is below.`
+            : "Your classroom access begins after a leader assigns you and your assignment is confirmed. You can review your schedule and training while you wait."}
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatCard label="In your room" value={String(roomCount)} />
-          <StatCard label="On roster" value={String(rosterForRoom.length)} />
-          <StatCard
-            label="Lesson"
-            value={myLesson?.status === "published" ? "Ready" : "Pending"}
-          />
+        <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3" aria-label="Classroom overview">
+          <StatCard label="In my room" value={isConfirmed ? String(roomCount) : "—"} />
+          <StatCard label="My roster" value={isConfirmed ? String(rosterForRoom.length) : "—"} />
+          <StatCard label="Lesson" value={readyLesson ? "Ready" : "Pending"} />
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button className="min-h-12 flex-1 sm:flex-none" onClick={onOpenCheckIn}>
-            Quick check-in
-          </Button>
-          <Button variant="secondary" className="min-h-12" onClick={onOpenRoster}>
-            Open roster
-          </Button>
-        </div>
-      </Card>
+      </section>
 
-      {myLesson && (
-        <Card>
-          <h3 className="text-lg font-bold text-night-900 dark:text-white">Today&apos;s lesson</h3>
-          <p className="mt-1 font-semibold text-night-800 dark:text-slate-100">{myLesson.title}</p>
-          {myLesson.memoryVerse && (
-            <p className="mt-2 text-sm text-night-700 dark:text-slate-200">
-              Memory verse: {myLesson.memoryVerse}
-            </p>
-          )}
-          {myLesson.curriculum?.bibleStory && (
-            <p className="mt-2 text-sm text-night-600 dark:text-slate-300">
-              {myLesson.curriculum.bibleStory}
-            </p>
-          )}
-          {myLesson.curriculum?.preparationChecklist && myLesson.curriculum.preparationChecklist.length > 0 && (
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-night-700 dark:text-slate-200">
-              {myLesson.curriculum.preparationChecklist.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          )}
-        </Card>
+      {!isConfirmed && (
+        <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          No confirmed classroom assignment for this service. Contact your Kids Ministry leader before checking in children or accessing a room.
+        </div>
       )}
+
+      <section aria-labelledby="kids-quick-actions">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 id="kids-quick-actions" className="text-lg font-bold text-night-900 dark:text-white">Sunday quick actions</h3>
+          <span className="text-xs font-medium text-night-600 dark:text-slate-300">Choose a task</span>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {actions.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={item.action}
+              disabled={!isConfirmed}
+              className={`min-h-28 rounded-2xl border p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50 ${item.primary
+                ? "border-[#255e9d] bg-[#245c9c] text-white hover:bg-[#194b82]"
+                : "border-[#dbe5f2] bg-white text-night-900 hover:border-[#94b7df] hover:bg-[#f5f9ff] dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"}`}
+            >
+              <span className="block text-base font-bold">{item.label}</span>
+              <span className={`mt-1 block text-sm leading-5 ${item.primary ? "text-blue-50" : "text-night-600 dark:text-slate-300"}`}>{item.detail}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <Card>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-night-900 dark:text-white">Lesson preparation</h3>
+            <p className="mt-1 text-sm text-night-600 dark:text-slate-300">{readyLesson ? "Your lesson is published and ready." : "A published lesson is not available for this assignment yet."}</p>
+          </div>
+          <Button variant="secondary" onClick={onOpenLessons}>View lessons</Button>
+        </div>
+        {myLesson && (
+          <div className="mt-4 rounded-xl bg-sand-50 p-4 dark:bg-slate-800">
+            <p className="font-semibold text-night-900 dark:text-white">{myLesson.title}</p>
+            {myLesson.memoryVerse && <p className="mt-2 text-sm text-night-700 dark:text-slate-200">Memory verse: {myLesson.memoryVerse}</p>}
+            {myLesson.curriculum?.bibleStory && <p className="mt-2 text-sm text-night-700 dark:text-slate-200">{myLesson.curriculum.bibleStory}</p>}
+          </div>
+        )}
+      </Card>
+      <p className="text-xs leading-5 text-night-600 dark:text-slate-300">Safeguarding reminder: confirm each child's approved pickup adult in person. A pickup code alone does not establish identity. For urgent concerns, call the guardian or ministry leader directly.</p>
     </div>
   );
 }
