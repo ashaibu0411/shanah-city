@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent, type TextareaHTMLAttributes } from "react";
 import { VisionDocument } from "@/components/vision/VisionDocument";
-import { VisionAccountabilityOverview, VisionMilestonePanel } from "@/components/vision/VisionMilestonePanel";
+import { VisionAccountabilityOverview, VisionMilestonePanel, VisionMyUpcoming } from "@/components/vision/VisionMilestonePanel";
 import { MyLeadershipDashboard } from "@/components/vision/MyLeadershipDashboard";
 import { MenLegacyScorecard } from "@/components/vision/MenLegacyScorecard";
 import { TransformedWomenScorecard } from "@/components/vision/TransformedWomenScorecard";
@@ -196,6 +196,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
       {notice && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">{notice}</p>}
       <div className="space-y-8">
         {!planId && (owner ? <VisionAccountabilityOverview /> : <MyLeadershipDashboard plans={plans} />)}
+        {!planId && <VisionMyUpcoming />}
         {!planId && <div id="vision-reporting" className="scroll-mt-24"><VisionMinistryReporting owner={owner} /></div>}
         {!planId && <section aria-label="Ministry vision directory" id="vision-directory" className={panel + " scroll-mt-24 space-y-5"}>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">Ministry visions</h2>
