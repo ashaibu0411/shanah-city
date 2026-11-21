@@ -48,7 +48,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     roster: active.map(toRosterEntry),
-    directory: Array.from(new Map([...checkins].reverse().filter((entry) => entry.parentName.trim() && entry.childName.trim()).map((entry) => [`${entry.childName.trim().toLowerCase()}|${entry.parentName.trim().toLowerCase()}`, { childName: entry.childName, parentName: entry.parentName, ageGroup: entry.ageGroup }])).values()).sort((a, b) => a.childName.localeCompare(b.childName)).slice(0, 300),
+    directory: Array.from(new Map([...checkins].reverse().filter((entry) => entry.parentName.trim() && entry.childName.trim()).map((entry) => [`${entry.childName.trim().toLowerCase()}|${entry.parentName.trim().toLowerCase()}`, { childName: entry.childName, parentName: entry.parentName, ageGroup: entry.ageGroup, parentUserId: entry.parentUserId, allergies: entry.allergies, medicalNotes: entry.medicalNotes, authorizedPickup: entry.authorizedPickup }])).values()).sort((a, b) => a.childName.localeCompare(b.childName)).slice(0, 300),
     headcount: buildHeadcount(active),
     lessons: await listKidsLessons({ weekStarting }),
     incidents: await listKidsIncidents({ service, limit: 25 }),
@@ -84,6 +84,22 @@ export async function POST(request: Request) {
   const body = await request.json();
   const action = String(body.action ?? "");
 
+  if (action === "message-parent") {
+    const id = String(body.id ?? "").trim();
+    const message = String(body.message ?? "").trim().slice(0, 300);
+    if (!id || !message) return NextResponse.json({ error: "Select a checked-in child and enter a message." }, { status: 400 });
+    const entry = (await getKidCheckIns()).find((item) => item.id === id && !item.checkedOutAt);
+    if (!entry) return NextResponse.json({ error: "Active check-in not found." }, { status: 404 });
+    if (!entry.parentUserId) return NextResponse.json({ error: "This guardian is not linked to an app account. Call the verified pickup contact instead." }, { status: 409 });
+    const { sendPushToUsers } = await import("@/lib/push-server");
+    const delivery = await sendPushToUsers([entry.parentUserId], {
+      title: "Shanah Kids — please contact your child's teacher",
+      body: message,
+      url: "/profile",
+    }, "kids");
+    return NextResponse.json({ delivery });
+  }
+
   if (action === "teacher-checkin") {
     const childName = String(body.childName ?? "").trim().slice(0, 100);
     const parentName = String(body.parentName ?? "").trim().slice(0, 100);
@@ -91,6 +107,7 @@ export async function POST(request: Request) {
     const service = String(body.service ?? "").trim();
     const pickupName = String(body.pickupName ?? "").trim().slice(0, 100);
     const pickupPhone = String(body.pickupPhone ?? "").trim().slice(0, 40);
+    const linkedParentUserId = String(body.parentUserId ?? "").trim();
     if (!childName || !parentName || !pickupName || !pickupPhone || !KIDS_AGE_GROUPS.some((group) => group === ageGroup) || !KIDS_SERVICES.some((item) => item === service)) {
       return NextResponse.json({ error: "Child, guardian, authorized pickup name and phone, valid room and service are required." }, { status: 400 });
     }
@@ -101,10 +118,16 @@ export async function POST(request: Request) {
     if (existing) {
       return NextResponse.json({ error: "This child is already checked in for this service.", checkin: existing }, { status: 409 });
     }
+    const linked = linkedParentUserId ? (await getKidCheckIns()).some((item) =>
+      item.parentUserId === linkedParentUserId &&
+      item.childName.trim().toLowerCase() === childName.toLowerCase() &&
+      item.parentName.trim().toLowerCase() === parentName.toLowerCase()) : false;
+    if (linkedParentUserId && !linked) return NextResponse.json({ error: "Guardian account linkage could not be verified." }, { status: 403 });
     const { randomInt, randomUUID } = await import("node:crypto");
     const entry = await addKidCheckIn({
       id: `kid-${randomUUID()}`,
       childName, parentName, ageGroup, service,
+      parentUserId: linked ? linkedParentUserId : undefined,
       notes: String(body.notes ?? "").trim().slice(0, 500) || undefined,
       allergies: String(body.allergies ?? "").trim().slice(0, 300) || undefined,
       medicalNotes: String(body.medicalNotes ?? "").trim().slice(0, 300) || undefined,
