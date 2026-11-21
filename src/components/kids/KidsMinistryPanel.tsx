@@ -11,7 +11,7 @@ import { Button, Card } from "@/components/ui";
 
 type MinistryData = {
   roster: KidsRosterEntry[];
-  directory: { childName: string; parentName: string; ageGroup: string }[];
+  directory: { childName: string; parentName: string; ageGroup: string; parentUserId?: string; allergies?: string; medicalNotes?: string; authorizedPickup?: { name: string; phone?: string }[] }[];
   headcount: KidsRoomHeadcount[];
   lessons: KidsLesson[];
   incidents: KidsIncident[];
@@ -47,6 +47,8 @@ export function KidsMinistryPanel({
   const [error, setError] = useState<string | null>(null);
 
   const [childSearch, setChildSearch] = useState("");
+  const [linkedParentUserId, setLinkedParentUserId] = useState("");
+  const [alertingId, setAlertingId] = useState("");
   const [childName, setChildName] = useState("");
   const [guardianName, setGuardianName] = useState("");
   const [room, setRoom] = useState<string>("Preschool (3-5)");
@@ -109,6 +111,21 @@ export function KidsMinistryPanel({
     return () => window.clearInterval(id);
   }, [load]);
 
+  async function messageParent(entry: KidsRosterEntry) {
+    if (!entry.parentUserId) { setError("No linked guardian app account. Please call the verified pickup contact."); return; }
+    const message = window.prompt("Message to guardian (avoid sensitive medical details):", "Please contact the Shanah Kids teacher at the check-in desk.");
+    if (!message?.trim()) return;
+    setAlertingId(entry.id);
+    setError(null);
+    try {
+      const response = await fetch("/api/kids/ministry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "message-parent", id: entry.id, message }) });
+      const result = await response.json();
+      if (!response.ok) setError(result.error ?? "Unable to send notification.");
+      else setMessage(result.delivery?.sent ? "App notification sent. If urgent, call the guardian directly." : "Notification requested but delivery is not confirmed. Call the guardian directly.");
+    } catch { setError("Notification failed. Call the guardian directly."); }
+    finally { setAlertingId(""); }
+  }
+
   async function teacherCheckIn() {
     if (checkinBusy) return;
     setCheckinBusy(true);
@@ -119,7 +136,7 @@ export function KidsMinistryPanel({
       const response = await fetch("/api/kids/ministry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "teacher-checkin", childName, parentName: guardianName, ageGroup: room, service, pickupName, pickupPhone, notes: checkinNotes, allergies, medicalNotes }),
+        body: JSON.stringify({ action: "teacher-checkin", childName, parentName: guardianName, ageGroup: room, service, pickupName, pickupPhone, notes: checkinNotes, allergies, medicalNotes, parentUserId: linkedParentUserId }),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -136,6 +153,7 @@ export function KidsMinistryPanel({
       setAllergies("");
       setMedicalNotes("");
       setChildSearch("");
+      setLinkedParentUserId("");
       await load({ silent: true });
     } catch {
       setError("Check-in could not be completed. Please try again.");
@@ -335,9 +353,9 @@ export function KidsMinistryPanel({
                 <h3 className="text-lg font-bold text-night-900 dark:text-white">1. Find a child</h3>
                 <label className="mt-3 block text-sm font-semibold text-night-700 dark:text-slate-200">Search returning children</label>
                 <input value={childSearch} onChange={(event) => setChildSearch(event.target.value)} placeholder="Search child or guardian name" className="mt-1 w-full rounded-xl border border-night-900/20 bg-white px-4 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
-                {childSearch.trim().length >= 2 && <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
+                {childSearch.trim().length >= 1 && <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
                   {(data.directory ?? []).filter((entry) => `${entry.childName} ${entry.parentName}`.toLowerCase().includes(childSearch.toLowerCase())).slice(0, 12).map((entry) => (
-                    <button key={`${entry.childName}:${entry.parentName}`} type="button" onClick={() => { setChildName(entry.childName); setGuardianName(entry.parentName); setRoom(entry.ageGroup); setChildSearch(""); }} className="block w-full rounded-xl border border-night-900/10 bg-sand-50 px-4 py-3 text-left text-sm text-night-900 hover:bg-sand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                    <button key={`${entry.childName}:${entry.parentName}`} type="button" onClick={() => { setChildName(entry.childName); setGuardianName(entry.parentName); setRoom(entry.ageGroup); setLinkedParentUserId(entry.parentUserId ?? ""); setAllergies(entry.allergies ?? ""); setMedicalNotes(entry.medicalNotes ?? ""); setPickupName(entry.authorizedPickup?.[0]?.name ?? ""); setPickupPhone(entry.authorizedPickup?.[0]?.phone ?? ""); setChildSearch(""); }} className="block w-full rounded-xl border border-night-900/10 bg-sand-50 px-4 py-3 text-left text-sm text-night-900 hover:bg-sand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
                       <span className="block font-semibold">{entry.childName}</span><span className="text-xs">{entry.parentName} · {entry.ageGroup}</span>
                     </button>
                   ))}
@@ -455,6 +473,8 @@ export function KidsMinistryPanel({
                             )}
                           </div>
                           <div className="flex flex-wrap gap-2">
+                            {entry.parentUserId && <Button variant="secondary" disabled={alertingId === entry.id} onClick={() => void messageParent(entry)}>{alertingId === entry.id ? "Sending…" : "Message parent"}</Button>}
+                            {entry.authorizedPickup?.[0]?.phone && <a className="inline-flex min-h-10 items-center rounded-xl border border-night-900/15 px-3 py-2 font-semibold text-night-900" href={`tel:${entry.authorizedPickup[0].phone.replace(/[^+0-9]/g, "")}`}>Call guardian</a>}
                             <Button variant="secondary" onClick={() => prefillPickup(entry)}>
                               Verify pickup
                             </Button>
