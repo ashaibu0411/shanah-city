@@ -181,14 +181,14 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
     commentFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   return (
-    <div className="vision-center-readable mx-auto w-full max-w-[1440px] min-w-0 space-y-8 px-1 pb-24 text-slate-900 dark:text-slate-100 sm:px-3 lg:px-6">
+    <div className="vision-center-readable mx-auto w-full font-sans max-w-[1440px] min-w-0 space-y-8 px-1 pb-24 text-slate-900 dark:text-slate-100 sm:px-3 lg:px-6">
       <header className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 p-7 text-white shadow-lg sm:p-10 lg:p-12">
         <p className="text-sm font-extrabold uppercase tracking-[.1em] text-blue-100">Shanah City · Private leadership</p>
-        <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">{planId ? "Ministry Vision" : "2027 Vision Center"}</h1>
-        <p className="mt-4 max-w-3xl text-lg font-medium leading-relaxed text-slate-100">Expansion · Establishment · Excellence · Community Impact</p>
-        <p className="mt-4 text-base font-semibold text-blue-100">{owner ? "Senior Pastor workspace" : "My assigned ministry visions"}</p>
+        <h1 className="mt-3 text-[30px] font-bold leading-[1.2] tracking-tight sm:text-[38px]">{planId ? "Ministry Vision" : "2027 Vision Center"}</h1>
+        <p className="mt-4 max-w-3xl text-base font-normal leading-[1.65] text-slate-100">Expansion · Establishment · Excellence · Community Impact</p>
+        <p className="mt-4 text-sm font-semibold text-blue-100">{owner ? "Senior Pastor workspace" : "My assigned ministry visions"}</p>
         <div className="mt-7 flex flex-wrap gap-3">
-          <span className="rounded-full border border-white/30 bg-white dark:bg-slate-800/10 px-4 py-2 text-sm font-semibold text-white">Private leadership workspace</span>
+          <span className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white">Private leadership workspace</span>
           <span className="rounded-full border border-white/30 bg-white dark:bg-slate-800/10 px-4 py-2 text-sm font-semibold text-white">2027 · Year of Expansion</span>
         </div>
       </header>
@@ -254,10 +254,10 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
               <section className={panel + " space-y-7"}>
                 <Link href="/leadership/vision" className="inline-flex items-center gap-2 text-base font-bold text-blue-700 underline-offset-4 hover:underline">← Back to all ministry visions</Link>
                 <div className="flex min-w-0 flex-wrap items-start justify-between gap-5">
-                  <h2 className="min-w-0 break-words text-3xl font-extrabold leading-tight tracking-tight text-slate-950 dark:text-white sm:text-4xl">{selected.title}</h2>
+                  <h2 className="min-w-0 break-words text-[28px] font-bold leading-[1.25] tracking-tight text-slate-950 dark:text-white sm:text-[34px]">{selected.title}</h2>
                   <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold capitalize text-slate-700 dark:text-slate-200">{selected.status.replaceAll("_", " ")}</span>
                 </div>
-                <p className="max-w-5xl text-lg font-semibold leading-relaxed text-slate-700 dark:text-slate-200 sm:text-xl">{selected.summary}</p>
+                <p className="max-w-5xl text-base font-normal leading-[1.7] text-slate-700 dark:text-slate-200 sm:text-lg">{selected.summary}</p>
                 <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-6 sm:grid-cols-3" aria-label="This vision at a glance">
                   <div className="rounded-2xl bg-blue-50 p-4">
                     <p className="text-sm font-bold text-blue-900">Assigned reviewers</p>
