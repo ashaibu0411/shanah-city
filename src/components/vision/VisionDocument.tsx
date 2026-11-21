@@ -38,11 +38,11 @@ export function VisionDocument({ content, onSuggest }: { content: string; onSugg
   });
   const months = /^(January|February|March|April|May|June|July|August|September|October|November|December):/;
   return (
-    <article className="w-full min-w-0 space-y-5 text-[17px] leading-[1.85] tracking-normal text-slate-800 dark:text-slate-100 sm:text-[18px] sm:leading-[1.9]">
+    <article className="w-full min-w-0 space-y-5 font-sans text-[16px] font-normal leading-[1.72] tracking-normal text-slate-800 dark:text-slate-100 sm:text-[17px] sm:leading-[1.75]">
       {sections.map((part, index) => {
         if (part.kind === "heading") {
-          return <div key={index} className="!mt-9 min-w-0 space-y-3 border-b border-slate-200 dark:border-slate-600 pb-4 first:!mt-0">
-            <h3 className="w-full min-w-0 whitespace-normal break-normal text-[19px] font-bold leading-[1.35] tracking-normal text-slate-950 dark:text-white sm:text-2xl">{part.text}</h3>
+          return <div key={index} className="!mt-8 min-w-0 space-y-3 border-b border-slate-200 dark:border-slate-600 pb-4 first:!mt-0">
+            <h3 className="w-full min-w-0 whitespace-normal break-normal text-[20px] font-bold leading-[1.4] tracking-normal text-slate-950 dark:text-white sm:text-[22px]">{part.text}</h3>
             {onSuggest && <button type="button" className="inline-flex min-h-[44px] max-w-full items-center justify-center whitespace-normal rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-bold text-blue-800" onClick={() => onSuggest(part.text)}>Suggest change</button>}
           </div>;
         }
@@ -50,14 +50,14 @@ export function VisionDocument({ content, onSuggest }: { content: string; onSugg
         if (item) return (
           <div key={index} className="flex min-w-0 items-start gap-3 pl-1">
             <span aria-hidden className="min-w-7 flex-none font-extrabold text-blue-800">{item.marker}</span>
-            <p className="min-w-0 flex-1 break-words">{renderInline(item.text)}</p>
+            <p className="min-w-0 flex-1 break-words font-normal">{renderInline(item.text)}</p>
           </div>
         );
         const calendarMonth = part.text.match(months)?.[1];
         const priority = part.text.match(/^(Priority [1-5]|Training (?:One|Two|Three))\s*[—–:-]/)?.[1];
         const subject = calendarMonth ? "calendar:" + calendarMonth : priority || null;
         return <div key={index} className={subject && onSuggest ? "min-w-0 space-y-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 p-4" : "min-w-0"}>
-          <p className="min-w-0 break-words">{renderInline(part.text)}</p>
+          <p className="min-w-0 break-words font-normal">{renderInline(part.text)}</p>
           {subject && onSuggest && <button type="button" className="inline-flex rounded-lg border border-blue-200 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-blue-800" onClick={() => onSuggest(subject)}>{calendarMonth ? "Suggest a change for " + calendarMonth : "Suggest a change to " + priority}</button>}
         </div>;
       })}
