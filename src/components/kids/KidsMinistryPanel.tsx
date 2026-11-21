@@ -11,6 +11,7 @@ import { Button, Card } from "@/components/ui";
 
 type MinistryData = {
   roster: KidsRosterEntry[];
+  directory: { childName: string; parentName: string; ageGroup: string }[];
   headcount: KidsRoomHeadcount[];
   lessons: KidsLesson[];
   incidents: KidsIncident[];
@@ -21,6 +22,7 @@ type MinistryData = {
 };
 
 const tabs = [
+  { id: "checkin", label: "Check in" },
   { id: "roster", label: "Roster" },
   { id: "pickup", label: "Pickup" },
   { id: "lessons", label: "Lessons" },
@@ -36,7 +38,7 @@ export function KidsMinistryPanel({
   initialWeek?: string;
   initialService?: string;
 }) {
-  const [tab, setTab] = useState<TabId>("roster");
+  const [tab, setTab] = useState<TabId>("checkin");
   const [service, setService] = useState(initialService ?? "Sunday Morning");
   const [weekStarting, setWeekStarting] = useState(initialWeek ?? "");
   const [data, setData] = useState<MinistryData | null>(null);
@@ -44,6 +46,15 @@ export function KidsMinistryPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [childSearch, setChildSearch] = useState("");
+  const [childName, setChildName] = useState("");
+  const [guardianName, setGuardianName] = useState("");
+  const [room, setRoom] = useState<string>("Preschool (3-5)");
+  const [pickupName, setPickupName] = useState("");
+  const [pickupPhone, setPickupPhone] = useState("");
+  const [checkinNotes, setCheckinNotes] = useState("");
+  const [checkinBusy, setCheckinBusy] = useState(false);
+  const [lastCheckin, setLastCheckin] = useState<{ childName: string; securityCode: string } | null>(null);
   const [pickupId, setPickupId] = useState("");
   const [securityCode, setSecurityCode] = useState("");
 
@@ -95,6 +106,39 @@ export function KidsMinistryPanel({
     }, intervalMs);
     return () => window.clearInterval(id);
   }, [load]);
+
+  async function teacherCheckIn() {
+    if (checkinBusy) return;
+    setCheckinBusy(true);
+    setError(null);
+    setMessage(null);
+    setLastCheckin(null);
+    try {
+      const response = await fetch("/api/kids/ministry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "teacher-checkin", childName, parentName: guardianName, ageGroup: room, service, pickupName, pickupPhone, notes: checkinNotes }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setError(payload.error ?? "Could not check in child.");
+        return;
+      }
+      setLastCheckin({ childName: payload.checkin.childName, securityCode: payload.checkin.securityCode });
+      setMessage(`${payload.checkin.childName} checked into ${room}. Give the guardian the pickup code privately.`);
+      setChildName("");
+      setGuardianName("");
+      setPickupName("");
+      setPickupPhone("");
+      setCheckinNotes("");
+      setChildSearch("");
+      await load({ silent: true });
+    } catch {
+      setError("Check-in could not be completed. Please try again.");
+    } finally {
+      setCheckinBusy(false);
+    }
+  }
 
   async function verifyPickup() {
     setMessage(null);
@@ -273,6 +317,43 @@ export function KidsMinistryPanel({
         </Card>
       ) : (
         <>
+          {tab === "checkin" && (
+            <div className="space-y-4">
+              <Card className="border-[#dfceb0] bg-[#faf5eb] dark:border-slate-600 dark:bg-slate-900">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#85643d] dark:text-amber-200">Shanah Kids · Teacher station</p>
+                <h2 className="mt-2 font-display text-2xl font-bold text-night-900 dark:text-white">Welcome children into their rooms</h2>
+                <p className="mt-2 text-sm leading-6 text-night-700 dark:text-slate-200">Choose a returning child or add a new one. Confirm the guardian and authorized pickup adult before completing check-in.</p>
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {data.headcount.map((item) => <div key={item.ageGroup} className="rounded-xl border border-[#e4d4b9] bg-white p-3 dark:border-slate-600 dark:bg-slate-800"><p className="text-xs font-semibold text-night-600 dark:text-slate-300">{item.ageGroup}</p><p className="mt-1 text-2xl font-bold text-night-900 dark:text-white">{item.count}</p></div>)}
+                </div>
+              </Card>
+              <Card>
+                <h3 className="text-lg font-bold text-night-900 dark:text-white">1. Find a child</h3>
+                <label className="mt-3 block text-sm font-semibold text-night-700 dark:text-slate-200">Search returning children</label>
+                <input value={childSearch} onChange={(event) => setChildSearch(event.target.value)} placeholder="Search child or guardian name" className="mt-1 w-full rounded-xl border border-night-900/20 bg-white px-4 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
+                {childSearch.trim().length >= 2 && <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
+                  {(data.directory ?? []).filter((entry) => `${entry.childName} ${entry.parentName}`.toLowerCase().includes(childSearch.toLowerCase())).slice(0, 12).map((entry) => (
+                    <button key={`${entry.childName}:${entry.parentName}`} type="button" onClick={() => { setChildName(entry.childName); setGuardianName(entry.parentName); setRoom(entry.ageGroup); setChildSearch(""); }} className="block w-full rounded-xl border border-night-900/10 bg-sand-50 px-4 py-3 text-left text-sm text-night-900 hover:bg-sand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                      <span className="block font-semibold">{entry.childName}</span><span className="text-xs">{entry.parentName} · {entry.ageGroup}</span>
+                    </button>
+                  ))}
+                </div>}
+                <h3 className="mt-5 text-lg font-bold text-night-900 dark:text-white">2. Confirm check-in details</h3>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Child's full name<input value={childName} onChange={(e) => setChildName(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Parent / guardian name<input value={guardianName} onChange={(e) => setGuardianName(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Assign room<select value={room} onChange={(e) => setRoom(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white">{data.ageGroups.map((group) => <option key={group} value={group}>{group}</option>)}</select></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Authorized pickup adult<input value={pickupName} onChange={(e) => setPickupName(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Pickup contact phone<input type="tel" value={pickupPhone} onChange={(e) => setPickupPhone(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200 sm:col-span-2">Important notes / allergies<textarea value={checkinNotes} onChange={(e) => setCheckinNotes(e.target.value)} rows={3} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-night-600 dark:text-slate-200">Teacher-assisted check-in requires a guardian and authorized pickup contact. At pickup, verify the adult's identity and matching security code before releasing the child.</p>
+                <Button className="mt-4 min-h-12 w-full" onClick={teacherCheckIn} disabled={checkinBusy || !childName.trim() || !guardianName.trim() || !pickupName.trim() || !pickupPhone.trim()}>{checkinBusy ? "Checking in…" : "Check in child"}</Button>
+                {lastCheckin && <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950"><p className="font-bold">Check-in complete: {lastCheckin.childName}</p><p className="mt-1 text-sm">Pickup code: <strong>{lastCheckin.securityCode}</strong></p><p className="mt-1 text-xs">Share this code privately with the authorized guardian. Do not display it on a public screen.</p></div>}
+              </Card>
+              <Card><h3 className="text-lg font-bold text-night-900 dark:text-white">3. Manage today's rooms</h3><p className="mt-2 text-sm text-night-600 dark:text-slate-200">{data.roster.length} children currently checked in for {service}.</p><Button className="mt-3" variant="secondary" onClick={() => setTab("roster")}>Open live room roster</Button></Card>
+            </div>
+          )}
           {tab === "roster" && (
             <div className="space-y-6">
               {data.roster.some((e) => e.hasAllergyAlert || e.hasMedicalAlert) && (
