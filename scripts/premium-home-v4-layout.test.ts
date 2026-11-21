@@ -40,7 +40,11 @@ const header = readFileSync(
   path.join(process.cwd(), "src/components/app/MobileAppHeader.tsx"),
   "utf8",
 );
-assert.match(header, /BrandLogo size="sm" variant="dark"/);
+assert.match(
+  header,
+  /BrandLogo size="sm" variant=\{isDark \? "dark" : "light"\}/,
+  "mobile header logo must follow the current light/dark theme",
+);
 
 const tiles = readFileSync(
   path.join(process.cwd(), "src/lib/home-premium-v4.ts"),

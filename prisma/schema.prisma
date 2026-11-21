@@ -460,19 +460,79 @@ model KidCheckIn {
 }
 
 model KidsLesson {
-  id             String    @id
-  weekStarting   String
-  ageGroup       String
-  title          String
-  content        String
-  status         String    @default("draft")
-  publishedAt    DateTime?
-  createdBy      String
-  createdByName  String
-  createdAt      DateTime
-  updatedAt      DateTime
+  id                 String    @id
+  weekStarting       String
+  ageGroup           String
+  title              String
+  content            String
+  memoryVerse        String?
+  curriculum         Json?
+  materialsUrl       String?
+  assignedToUserId   String?
+  status             String    @default("draft")
+  publishedAt        DateTime?
+  createdBy          String
+  createdByName      String
+  createdAt          DateTime
+  updatedAt          DateTime
 
   @@unique([weekStarting, ageGroup])
+}
+
+model KidsTeacherAssignment {
+  id          String   @id
+  userId      String
+  userName    String
+  role        String
+  ageGroup    String
+  service     String
+  serviceDate String
+  status      String   @default("pending")
+  notes       String?
+  assignedBy  String
+  createdAt   DateTime
+  updatedAt   DateTime
+
+  @@index([serviceDate, service])
+  @@index([userId, serviceDate])
+}
+
+model KidsVolunteerProfile {
+  userId                        String    @id
+  userName                      String
+  roles                         Json?
+  onboardingComplete            Boolean   @default(false)
+  safeguardingCompletedAt       DateTime?
+  safeguardingSelfAttestedAt    DateTime?
+  safeguardingLeaderVerifiedAt  DateTime?
+  availabilityNotes             String?
+  updatedAt                     DateTime
+}
+
+model KidsLessonCompletion {
+  id              String   @id
+  lessonId        String
+  weekStarting    String
+  ageGroup        String
+  service         String
+  serviceDate     String
+  completedBy     String
+  completedByName String
+  notes           String?
+  completedAt     DateTime
+
+  @@unique([weekStarting, ageGroup, service, serviceDate])
+}
+
+model KidsAnnouncement {
+  id            String    @id
+  title         String
+  body          String
+  audience      String
+  createdBy     String
+  createdByName String
+  publishedAt   DateTime?
+  createdAt     DateTime
 }
 
 model KidsIncident {

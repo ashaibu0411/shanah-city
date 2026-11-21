@@ -38,11 +38,11 @@ export function VisionDocument({ content, onSuggest }: { content: string; onSugg
   });
   const months = /^(January|February|March|April|May|June|July|August|September|October|November|December):/;
   return (
-    <article className="w-full min-w-0 space-y-5 font-sans text-[16px] font-normal leading-[1.72] tracking-normal text-slate-800 dark:text-slate-100 sm:text-[17px] sm:leading-[1.75]">
+    <article className="w-full min-w-0 space-y-5 font-sans text-[17px] font-normal leading-[1.72] tracking-normal text-slate-800 dark:text-slate-100 sm:text-[18px] sm:leading-[1.75]">
       {sections.map((part, index) => {
         if (part.kind === "heading") {
           return <div key={index} className="!mt-8 min-w-0 space-y-3 border-b border-slate-200 dark:border-slate-600 pb-4 first:!mt-0">
-            <h3 className="w-full min-w-0 whitespace-normal break-normal text-[20px] font-bold leading-[1.4] tracking-normal text-slate-950 dark:text-white sm:text-[22px]">{part.text}</h3>
+            <h3 className="w-full min-w-0 whitespace-normal break-words text-[20px] font-extrabold leading-[1.4] tracking-normal text-slate-950 dark:text-white sm:text-[22px]">{part.text}</h3>
             {onSuggest && <button type="button" className="inline-flex min-h-[44px] max-w-full items-center justify-center whitespace-normal rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-bold text-blue-800" onClick={() => onSuggest(part.text)}>Suggest change</button>}
           </div>;
         }

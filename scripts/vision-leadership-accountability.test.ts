@@ -12,7 +12,12 @@ assert.equal(men.filter(t => t.kind === "men-fathers-day").length, 1);
 assert.equal(men.find(t => t.kind === "men-fathers-day")?.dueOn, "2027-06-18");
 assert.ok(men.every(t => /^2027-\d{2}-\d{2}$/.test(t.dueOn)), "Milestone dates must be valid YYYY-MM-DD");
 assert.ok(men.filter(t => t.kind === "men-breakfast").every(t => Number(t.period.slice(-2)) % 2 === 1));
-assert.equal(makeVisionMilestoneTemplates("worship").length, 16);
+const worship = makeVisionMilestoneTemplates("worship");
+assert.equal(worship.length, 32, "Worship includes monthly direction, monthly preparation, quarterly worship planning and reviews");
+assert.equal(worship.filter(t => t.kind === "monthly-direction").length, 12);
+assert.equal(worship.filter(t => t.kind === "worship-monthly").length, 12);
+assert.equal(worship.filter(t => t.kind === "worship-at-the-well").length, 4);
+assert.equal(worship.filter(t => t.kind === "quarterly-review").length, 4);
 assert.ok(men.every(t => !/published event/i.test(t.title)));
 
 const api = readFileSync("src/app/api/vision/plans/route.ts", "utf8");
