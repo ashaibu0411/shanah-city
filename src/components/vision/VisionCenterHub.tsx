@@ -83,6 +83,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
   const [memberSearchError, setMemberSearchError] = useState("");
   const [memberSearching, setMemberSearching] = useState(false);
   const [deadline, setDeadline] = useState("");
+  const [bulkDeadline, setBulkDeadline] = useState("");
   const [capacity, setCapacity] = useState("with_support");
   const [proposal, setProposal] = useState("");
   const [supportNeeds, setSupportNeeds] = useState("");
@@ -312,7 +313,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                     <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-5">
                       <p className="text-base leading-relaxed text-slate-800 dark:text-slate-100">Invite every pastor registered in Shanah City's pastoral-role directory to review this proposal privately, submit corrections and comment on specific calendar months. You can also assign additional pastors individually below if they aren't in that directory.</p>
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Registered pastoral reviewers: {pastoralReviewers.length ? pastoralReviewers.map(p => p.name).join(", ") : "No additional pastoral reviewers found in the role directory."}</p>
-                      <button type="button" className={button} disabled={busy || !pastoralReviewers.length} onClick={() => void run("POST", { action: "assign-pastoral-team", planId: selected.id }, selected.id)}>Share privately with registered pastoral team</button>
+                      <button type="button" className={button} disabled={busy || !pastoralReviewers.length} onClick={() => void run("POST", { action: "assign-pastoral-team", planId: selected.id, deadline: bulkDeadline || undefined }, selected.id)}>Share privately with registered pastoral team</button>
                       <button type="button" className={secondary} disabled={busy || selected.assignments.length === 0} onClick={async () => {
                         if (!window.confirm("Send another 2027 Master Vision push notification to all currently assigned reviewers?")) return;
                         setBusy(true); setError(""); setNotice("");
@@ -332,6 +333,20 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                         finally { setBusy(false); }
                       }}>Resend Master Vision notification to pastors</button>
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Use <strong>Share Vision</strong> above to send the canonical review link after pastors are assigned.</p>
+                    </div>
+                  )}
+                  {selected.status !== "approved" && (
+                    <div className="space-y-4 rounded-2xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-700 dark:bg-slate-800">
+                      <h4 className="text-xl font-extrabold text-slate-950 dark:text-white">Review deadlines</h4>
+                      <p className="text-base leading-[1.7] text-slate-700 dark:text-slate-200">Set one due date for everyone assigned to this proposal. New invitations can use the same date. You can extend it later without losing any responses.</p>
+                      <label className="block space-y-2 text-base font-bold text-slate-900 dark:text-white">
+                        Deadline for all invited reviewers
+                        <input type="date" className={field} value={bulkDeadline} min={new Date().toISOString().slice(0,10)} onChange={e => { setBulkDeadline(e.target.value); setDeadline(e.target.value); }} />
+                      </label>
+                      <div className="flex flex-wrap gap-3">
+                        <button type="button" className={button} disabled={busy || !bulkDeadline || !selected.assignments.length} onClick={() => void run("POST", { action: "set-review-deadline", planId: selected.id, deadline: bulkDeadline }, selected.id)}>Apply deadline to all {selected.assignments.length} reviewers</button>
+                      </div>
+                      <p className="text-sm leading-[1.6] text-slate-600 dark:text-slate-300">Deadline changes are visible to assigned reviewers. This date is informational and does not automatically lock their submissions.</p>
                     </div>
                   )}
                   {selected.assignments.length === 0 && <p className="text-base font-medium text-slate-600 dark:text-slate-300">No leaders assigned yet.</p>}
