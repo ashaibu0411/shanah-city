@@ -38,7 +38,7 @@ assert.match(hub, /calendar:" \+ month/);
 assert.match(hub, /My full pastoral review, corrections and additions/);
 assert.match(hub, /Share privately with registered pastoral team/);
 assert.match(hub, /Copy private review link/);
-assert.match(hub, /if \(saved\) \{ setCommentText\("")/, "Submission must preserve draft on failure");
+assert.match(hub, /if \(saved\) \{ setCommentText\(""\)/, "Submission must preserve draft on failure");
 assert.match(hub, /maxLength=\{8000\}/);
 
 const route = readFileSync("src/app/api/vision/plans/route.ts", "utf8");
