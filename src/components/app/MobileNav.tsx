@@ -29,6 +29,7 @@ export function MobileNav() {
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 className={`mobile-nav-link flex flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition active:scale-95 ${
                   active ? "is-active text-night-900" : "text-night-700"
                 }`}
@@ -54,6 +55,8 @@ export function MobileNav() {
           <button
             type="button"
             onClick={() => setMoreMenuOpen(true)}
+            aria-label="Open more navigation options"
+            aria-haspopup="dialog"
             className={`mobile-nav-link flex w-full flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition active:scale-95 ${
               moreActive ? "is-active text-night-900" : "text-night-700"
             }`}
