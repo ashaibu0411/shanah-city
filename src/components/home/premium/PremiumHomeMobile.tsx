@@ -66,12 +66,12 @@ export function PremiumHomeMobile({
 
         <AboutShanahHomeLink compact />
 
-        <div className="premium-home-v3__balance-lower">
+        <div className="premium-home-v3__balance-lower mx-4 mb-8 space-y-4 rounded-[28px] border border-[#dfd0b6] bg-[#f8f3e9] p-4 shadow-[0_14px_34px_rgba(31,42,54,0.10)] dark:border-slate-600 dark:bg-[#14243c] sm:p-5">
           <CheckInHomeBanner />
 
-          <Link href="/guest" className="premium-guest-cta">
-            <span>First time here?</span>
-            <span className="premium-guest-cta__pill">Connect</span>
+          <Link href="/guest" className="premium-guest-cta !min-h-[64px] !rounded-2xl !border !border-[#d7c3a4] !bg-white !px-4 !py-3 !text-[#17365a] shadow-sm dark:!border-slate-600 dark:!bg-[#203552] dark:!text-white">
+            <span className="font-semibold">First time here?</span>
+            <span className="premium-guest-cta__pill !bg-[#123d72] !px-5 !py-2 !text-white">Connect</span>
           </Link>
         </div>
       </div>

@@ -189,7 +189,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
         <p className="mt-4 text-sm font-semibold text-blue-100">{owner ? "Senior Pastor workspace" : "My assigned ministry visions"}</p>
         <div className="mt-7 flex flex-wrap gap-3">
           <span className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white">Private leadership workspace</span>
-          <span className="rounded-full border border-white/30 bg-white dark:bg-slate-800/10 px-4 py-2 text-sm font-semibold text-white">2027 · Year of Expansion</span>
+          <span className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white">2027 · Year of Expansion</span>
         </div>
       </header>
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
