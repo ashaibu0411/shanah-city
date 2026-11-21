@@ -197,7 +197,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
       <div className="space-y-8">
         {!planId && (owner ? <VisionAccountabilityOverview /> : <MyLeadershipDashboard plans={plans} />)}
         {!planId && <div id="vision-reporting" className="scroll-mt-24"><VisionMinistryReporting owner={owner} /></div>}
-        {!planId && <section id="vision-directory" aria-label="Ministry vision directory" className={panel + " scroll-mt-24 space-y-5"}>
+        {!planId && <section aria-label="Ministry vision directory" id="vision-directory" className={panel + " scroll-mt-24 space-y-5"}>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">Ministry visions</h2>
           <p className="text-base font-medium text-slate-600 dark:text-slate-300">Open a ministry to review its vision, submit feedback, and see next steps. Your work stays private to authorized leadership.</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Vision center overview">
