@@ -19,6 +19,12 @@ export const ADMIN_PORTAL_LINKS = [
     pastoralAllowed: true,
   },
   {
+    href: "/calendar#weekly-announcements",
+    label: "Manage Weekly Announcements",
+    description: "Write and publish this week or next week’s church bulletin to the app and website",
+    adminOnly: true,
+  },
+  {
     href: "/admin/comms",
     label: "Comms",
     description: "Calendar and ministry requests",
