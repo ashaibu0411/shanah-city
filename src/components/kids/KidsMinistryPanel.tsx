@@ -146,22 +146,25 @@ export function KidsMinistryPanel({
 
   useEffect(() => {
     const query = childSearch.trim();
-    if (query.length < 1) {
+    if (checkinMode !== "returning" || !query) {
       setRegisteredChildren([]);
       return;
     }
+    const controller = new AbortController();
     const timer = window.setTimeout(async () => {
-      const params = new URLSearchParams({
-        childSearch: query.slice(0, 1),
-        service,
-      });
-      if (data?.serviceDate) params.set("date", data.serviceDate);
-      const response = await fetch(`/api/kids/ministry?${params.toString()}`);
-      const payload = await response.json();
-      if (response.ok) setRegisteredChildren(payload.children ?? []);
+      try {
+        const params = new URLSearchParams({ childSearch: query.slice(0, 1), service });
+        if (data?.serviceDate) params.set("date", data.serviceDate);
+        const response = await fetch(`/api/kids/ministry?${params.toString()}`, { signal: controller.signal });
+        if (!response.ok) { setRegisteredChildren([]); return; }
+        const payload = await response.json();
+        if (!controller.signal.aborted) setRegisteredChildren(payload.children ?? []);
+      } catch {
+        if (!controller.signal.aborted) setRegisteredChildren([]);
+      }
     }, 200);
-    return () => window.clearTimeout(timer);
-  }, [childSearch, service, data?.serviceDate]);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [childSearch, checkinMode, service, data?.serviceDate]);
 
   useEffect(() => {
     const intervalMs = 15_000;
@@ -200,6 +203,10 @@ export function KidsMinistryPanel({
 
   async function teacherCheckIn() {
     if (checkinBusy) return;
+    if (Boolean(linkedParentUserId) !== Boolean(familyMemberId)) {
+      setError("Select the registered child again, or choose New / guest child.");
+      return;
+    }
     setCheckinBusy(true);
     setError(null);
     setMessage(null);
@@ -603,7 +610,7 @@ export function KidsMinistryPanel({
                 </div>
                 {checkinMode === "returning" && (<>
                 <label className="mt-3 block text-sm font-semibold text-night-700 dark:text-slate-200">Search returning children</label>
-                <input value={childSearch} onChange={(event) => setChildSearch(event.target.value)} placeholder="Type first letter of child's name" className="mt-1 w-full rounded-xl border border-night-900/20 bg-white px-4 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
+                <input value={childSearch} onChange={(event) => { setChildSearch(event.target.value); setRegisteredChildren([]); }} placeholder="Type first letter of child's name" className="mt-1 w-full rounded-xl border border-night-900/20 bg-white px-4 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
                 <KidsRegisteredChildPicker
                   letter={childSearch}
                   results={registeredChildren.filter((entry) =>
@@ -638,7 +645,8 @@ export function KidsMinistryPanel({
                             setChildName(entry.childName);
                             setGuardianName(entry.parentName);
                             setRoom(entry.ageGroup);
-                            setLinkedParentUserId(entry.parentUserId ?? "");
+                            setLinkedParentUserId("");
+                            setFamilyMemberId("");
                             setAllergies(entry.allergies ?? "");
                             setMedicalNotes(entry.medicalNotes ?? "");
                             setPickupName(entry.authorizedPickup?.[0]?.name ?? "");
@@ -658,8 +666,8 @@ export function KidsMinistryPanel({
                 </>)}
                 <h3 className="mt-5 text-lg font-bold text-night-900 dark:text-white">2. Confirm check-in details</h3>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Child's full name<input value={childName} onChange={(e) => setChildName(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
-                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Parent / guardian name<input value={guardianName} onChange={(e) => setGuardianName(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Child's full name<input value={childName} onChange={(e) => { setChildName(e.target.value); setLinkedParentUserId(""); setFamilyMemberId(""); }} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Parent / guardian name<input value={guardianName} onChange={(e) => { setGuardianName(e.target.value); setLinkedParentUserId(""); setFamilyMemberId(""); }} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Assign room<select value={room} onChange={(e) => setRoom(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white">{data.ageGroups.map((group) => <option key={group} value={group}>{group}</option>)}</select></label>
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Authorized pickup adult<input value={pickupName} onChange={(e) => setPickupName(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Pickup contact phone<input type="tel" value={pickupPhone} onChange={(e) => setPickupPhone(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
@@ -774,7 +782,7 @@ export function KidsMinistryPanel({
                             <p className="text-night-600">
                               {entry.ageGroup} · Parent: {entry.parentName}
                             </p>
-                            <p className="text-night-500">Code {entry.securityCode}</p>
+                            <p className="text-xs text-night-500">Pickup code is private. Verify it at the pickup station.</p>
                             {(entry.hasAllergyAlert || entry.hasMedicalAlert) && (
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {entry.hasAllergyAlert && (
