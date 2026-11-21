@@ -7600,3 +7600,73 @@ html.dark .couples-hub-page {
     min-height: 40px;
   }
 }
+
+
+/* Premium app-only bottom navigation: crisp icons, quiet inactive tabs and a clear active state. */
+body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium {
+  background: #fbf6ed;
+  border-top: 1px solid #e2d3bc;
+  box-shadow: 0 -8px 26px rgba(20, 38, 60, 0.09);
+}
+body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .app-mobile-inner {
+  max-width: 36rem;
+  gap: 0.2rem;
+  padding-top: 0.6rem;
+}
+body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-link {
+  min-height: 4.25rem;
+  border-radius: 1rem;
+  gap: 0.25rem;
+  color: #65738a;
+  -webkit-tap-highlight-color: transparent;
+}
+body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-icon-shell {
+  width: 2.65rem;
+  height: 2.45rem;
+  border: 1px solid transparent;
+  border-radius: 0.85rem;
+  background: transparent;
+  box-shadow: none;
+  color: #5b6c81;
+}
+body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-label {
+  color: #5b6c81;
+  font-size: 0.75rem;
+  line-height: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-link.is-active .mobile-nav-icon-shell {
+  color: #fff;
+  border-color: #315b8c;
+  background: linear-gradient(145deg, #1e4e82, #102f59);
+  box-shadow: 0 3px 9px rgba(13, 48, 85, 0.20);
+}
+body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-link.is-active .mobile-nav-label {
+  color: #123c70;
+  font-weight: 750;
+}
+body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-link:focus-visible {
+  outline: 2px solid #b18a4e;
+  outline-offset: 2px;
+}
+html.dark body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium {
+  background: #101d31;
+  border-top-color: #30435c;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.25);
+}
+html.dark body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-icon-shell,
+html.dark body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-label {
+  color: #b9c7da;
+}
+html.dark body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-link.is-active .mobile-nav-icon-shell {
+  color: #071c35;
+  border-color: #e7c88c;
+  background: linear-gradient(145deg, #f5dbab, #cba363);
+}
+html.dark body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium .mobile-nav-link.is-active .mobile-nav-label {
+  color: #f1d6a4;
+}
+html.dark body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium::after {
+  background: #101d31;
+}
