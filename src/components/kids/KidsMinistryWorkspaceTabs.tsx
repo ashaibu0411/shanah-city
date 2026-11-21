@@ -50,11 +50,11 @@ export function KidsTeacherHomeTab({
       <section className="overflow-hidden rounded-3xl border border-[#dbe5f2] bg-gradient-to-br from-[#f1f7ff] via-white to-[#fff8ed] p-5 shadow-sm dark:border-slate-700 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 sm:p-7">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#34649b] dark:text-sky-300">Shanah Kids · Sunday station</p>
         <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-night-900 dark:text-white sm:text-3xl">
-          {isConfirmed ? todayAssignment.ageGroup : "Welcome, teacher"}
+          {isConfirmed ? todayAssignment?.ageGroup : "Welcome, teacher"}
         </h2>
         <p className="mt-2 max-w-xl text-sm leading-6 text-night-700 dark:text-slate-200">
           {isConfirmed
-            ? `You're confirmed as ${todayAssignment.role.replaceAll("_", " ")} for ${service}. Everything you need is below.`
+            ? `You're confirmed as ${todayAssignment?.role.replaceAll("_", " ")} for ${service}. Everything you need is below.`
             : "Your classroom access begins after a leader assigns you and your assignment is confirmed. You can review your schedule and training while you wait."}
         </p>
         <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3" aria-label="Classroom overview">
