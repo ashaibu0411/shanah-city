@@ -20,7 +20,7 @@ type VisionShareButtonProps = {
 const primary =
   "rounded-xl bg-blue-700 px-5 py-3 text-base font-bold leading-snug text-white shadow-sm disabled:opacity-50";
 const secondary =
-  "rounded-xl border border-slate-300 bg-white px-5 py-3 text-base font-bold leading-snug text-slate-900 disabled:opacity-50";
+  "rounded-xl border border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800 px-5 py-3 text-base font-bold leading-snug text-slate-900 dark:text-slate-100 disabled:opacity-50";
 
 export function VisionShareButton({
   planId,
@@ -97,8 +97,8 @@ export function VisionShareButton({
       }
       aria-label="Share vision proposal"
     >
-      <h3 className="text-xl font-extrabold text-slate-950">Share Vision</h3>
-      <p className="mt-2 text-sm font-medium leading-relaxed text-slate-700">
+      <h3 className="text-xl font-extrabold text-slate-950 dark:text-white">Share Vision</h3>
+      <p className="mt-2 text-sm font-medium leading-relaxed text-slate-700 dark:text-slate-200">
         Assign pastors and ministry leaders in Vision Center first, then share through WhatsApp, Messenger,
         SMS, email, or any app. The link only works for people who already have an assignment after sign-in.
       </p>
