@@ -53,6 +53,7 @@ const tabs = [
   { id: "home", label: "Home" },
   { id: "checkin", label: "Check in" },
   { id: "roster", label: "Roster" },
+  { id: "parents", label: "Parents" },
   { id: "pickup", label: "Pickup" },
   { id: "lessons", label: "Lessons" },
   { id: "team", label: "Team" },
@@ -84,6 +85,9 @@ export function KidsMinistryPanel({
   const [familyMemberId, setFamilyMemberId] = useState("");
   const [registeredChildren, setRegisteredChildren] = useState<KidsChildSearchResult[]>([]);
   const [alertingId, setAlertingId] = useState("");
+  const [parentContactId, setParentContactId] = useState("");
+  const [parentMessage, setParentMessage] = useState("Please come to the Shanah Kids check-in desk when you can.");
+  const [deliveryStatus, setDeliveryStatus] = useState<Record<string, string>>({});
   const [childName, setChildName] = useState("");
   const [guardianName, setGuardianName] = useState("");
   const [room, setRoom] = useState<string>("Preschool (3-5)");
@@ -183,9 +187,18 @@ export function KidsMinistryPanel({
     try {
       const response = await fetch("/api/kids/ministry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "message-parent", id: entry.id, message }) });
       const result = await response.json();
-      if (!response.ok) setError(result.error ?? "Unable to send notification.");
-      else setMessage(result.delivery?.sent ? "Parent alert sent to the app. Not a read receipt — call if urgent." : "Push delivery not confirmed. Please call the guardian.");
-    } catch { setError("Notification failed. Call the guardian directly."); }
+      if (!response.ok) {
+        setError(result.error ?? "Unable to send notification.");
+        setDeliveryStatus((previous) => ({ ...previous, [entry.id]: "Notification failed. Call guardian directly." }));
+      } else {
+        const confirmed = Number(result.delivery?.sent ?? 0) > 0;
+        setDeliveryStatus((previous) => ({
+          ...previous,
+          [entry.id]: confirmed ? "Push accepted for delivery; not a read receipt." : "Push delivery unconfirmed. Call guardian.",
+        }));
+        setMessage(confirmed ? "Parent alert submitted to the app. Not a read receipt — call if urgent." : "Push delivery not confirmed. Please call the guardian.");
+      }
+    } catch { setError("Notification failed. Call the guardian directly."); setDeliveryStatus((previous) => ({ ...previous, [entry.id]: "Notification failed. Call guardian directly." })); }
     finally { setAlertingId(""); }
   }
 
@@ -473,6 +486,11 @@ export function KidsMinistryPanel({
     setIncidentCheckInId(entry.id);
     setIncidentParentUserId(entry.parentUserId ?? "");
     setTab("incidents");
+  }
+
+  function openParentContact(entry: KidsRosterEntry) {
+    setParentContactId(entry.id);
+    setTab("parents");
   }
 
   function prefillPickup(entry: KidsRosterEntry) {
@@ -811,6 +829,7 @@ export function KidsMinistryPanel({
                             </div>}
                             <Button variant="secondary" disabled={alertingId === entry.id} onClick={() => void escalateToLead(entry)}>Alert ministry lead</Button>
                             {entry.authorizedPickup?.[0]?.phone && <a className="inline-flex min-h-10 items-center rounded-xl border border-night-900/15 px-3 py-2 font-semibold text-night-900" href={`tel:${entry.authorizedPickup[0].phone.replace(/[^+0-9]/g, "")}`}>Call guardian</a>}
+                            <Button variant="secondary" onClick={() => openParentContact(entry)}>Contact parent</Button>
                             <Button variant="secondary" onClick={() => prefillPickup(entry)}>
                               Verify pickup
                             </Button>
@@ -827,6 +846,50 @@ export function KidsMinistryPanel({
             </div>
           )}
 
+          {tab === "parents" && (
+            <div className="space-y-4">
+              <Card className="border-[#dbe5f2] bg-gradient-to-br from-[#f1f7ff] to-white dark:border-slate-700 dark:from-slate-900 dark:to-slate-800">
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-sky-300">Shanah Kids · Guardian contact</p>
+                <h2 className="mt-2 text-2xl font-bold text-night-900 dark:text-white">Parent communication</h2>
+                <p className="mt-2 text-sm leading-6 text-night-700 dark:text-slate-200">Contact a verified guardian using the linked app account or an approved contact number. Push submission is not proof the parent saw the message.</p>
+              </Card>
+              <Card>
+                <label className="block text-sm font-semibold text-night-900 dark:text-white">
+                  Child currently checked in
+                  <select value={parentContactId} onChange={(event) => setParentContactId(event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-night-900/20 bg-white px-4 py-3 text-base dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                    <option value="">Choose a child</option>
+                    {data.roster.map((entry) => <option key={entry.id} value={entry.id}>{entry.childName} · {entry.ageGroup}</option>)}
+                  </select>
+                </label>
+                {(() => {
+                  const selected = data.roster.find((entry) => entry.id === parentContactId);
+                  if (!selected) return <p className="mt-4 text-sm text-night-600 dark:text-slate-300">Select a child to view authorized contact actions.</p>;
+                  const contact = selected.authorizedPickup?.find((person) => person.phone);
+                  return (
+                    <div className="mt-4 space-y-4">
+                      <div className="rounded-xl bg-sand-50 p-4 dark:bg-slate-800">
+                        <p className="font-bold text-night-900 dark:text-white">{selected.childName}</p>
+                        <p className="mt-1 text-sm text-night-700 dark:text-slate-200">Guardian on record: {selected.parentName}</p>
+                        <p className="mt-1 text-xs text-night-600 dark:text-slate-300">{selected.parentUserId ? "Linked app account available" : "No linked app account; call the verified contact"}</p>
+                      </div>
+                      <label className="block text-sm font-semibold text-night-900 dark:text-white">
+                        Message to guardian
+                        <textarea rows={3} maxLength={500} value={parentMessage} onChange={(event) => setParentMessage(event.target.value)} className="mt-2 w-full rounded-xl border border-night-900/20 bg-white p-3 text-base dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
+                      </label>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <Button className="min-h-12" disabled={!selected.parentUserId || !parentMessage.trim() || alertingId === selected.id} onClick={() => void messageParent(selected, parentMessage.trim())}>Send app notification</Button>
+                        {contact ? <a href={`tel:${contact.phone?.replace(/[^+0-9]/g, "")}`} className="inline-flex min-h-12 items-center justify-center rounded-xl border border-night-900/20 bg-white px-4 py-3 text-sm font-bold text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white">Call approved contact</a> : <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">No approved phone number available.</p>}
+                        <Button variant="secondary" className="min-h-12" disabled={alertingId === selected.id} onClick={() => void escalateToLead(selected)}>Alert ministry leader</Button>
+                        <Button variant="secondary" className="min-h-12" onClick={() => prefillIncident(selected)}>Log incident</Button>
+                      </div>
+                      {deliveryStatus[selected.id] && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950 dark:border-slate-600 dark:bg-slate-800 dark:text-white">{deliveryStatus[selected.id]}</p>}
+                    </div>
+                  );
+                })()}
+              </Card>
+              <p className="text-xs leading-5 text-night-600 dark:text-slate-300">For immediate danger, follow the church emergency procedure and call emergency services. Never wait for an app notification to be read.</p>
+            </div>
+          )}
           {tab === "pickup" && (
             <Card>
               <p className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-sky-300">Shanah Kids · Secure release</p>
