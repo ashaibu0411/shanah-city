@@ -18,7 +18,7 @@ import {
 } from "@/lib/kids-server";
 import { KIDS_AGE_GROUPS, KIDS_SERVICES, getWeekStarting } from "@/lib/kids-types";
 import { notifyKidsIncident, notifyKidsLessonPublished } from "@/lib/kids-notify-server";
-import { getKidCheckIns, verifyCheckoutKid } from "@/lib/member-server";
+import { addKidCheckIn, getKidCheckIns, verifyCheckoutKid } from "@/lib/member-server";
 import {
   enforceRateLimit,
   getClientIp,
@@ -48,6 +48,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     roster: active.map(toRosterEntry),
+    directory: Array.from(new Map([...checkins].reverse().filter((entry) => entry.parentName.trim() && entry.childName.trim()).map((entry) => [`${entry.childName.trim().toLowerCase()}|${entry.parentName.trim().toLowerCase()}`, { childName: entry.childName, parentName: entry.parentName, ageGroup: entry.ageGroup }])).values()).sort((a, b) => a.childName.localeCompare(b.childName)).slice(0, 300),
     headcount: buildHeadcount(active),
     lessons: await listKidsLessons({ weekStarting }),
     incidents: await listKidsIncidents({ service, limit: 25 }),
@@ -82,6 +83,37 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const action = String(body.action ?? "");
+
+  if (action === "teacher-checkin") {
+    const childName = String(body.childName ?? "").trim().slice(0, 100);
+    const parentName = String(body.parentName ?? "").trim().slice(0, 100);
+    const ageGroup = String(body.ageGroup ?? "").trim();
+    const service = String(body.service ?? "").trim();
+    const pickupName = String(body.pickupName ?? "").trim().slice(0, 100);
+    const pickupPhone = String(body.pickupPhone ?? "").trim().slice(0, 40);
+    if (!childName || !parentName || !pickupName || !pickupPhone || !KIDS_AGE_GROUPS.some((group) => group === ageGroup) || !KIDS_SERVICES.some((item) => item === service)) {
+      return NextResponse.json({ error: "Child, guardian, authorized pickup name and phone, valid room and service are required." }, { status: 400 });
+    }
+    const existing = (await getKidCheckIns()).find((entry) =>
+      !entry.checkedOutAt && entry.service === service &&
+      entry.childName.toLowerCase() === childName.toLowerCase() &&
+      entry.parentName.toLowerCase() === parentName.toLowerCase());
+    if (existing) {
+      return NextResponse.json({ error: "This child is already checked in for this service.", checkin: existing }, { status: 409 });
+    }
+    const { randomInt, randomUUID } = await import("node:crypto");
+    const entry = await addKidCheckIn({
+      id: `kid-${randomUUID()}`,
+      childName, parentName, ageGroup, service,
+      notes: String(body.notes ?? "").trim().slice(0, 500) || undefined,
+      allergies: String(body.allergies ?? "").trim().slice(0, 300) || undefined,
+      medicalNotes: String(body.medicalNotes ?? "").trim().slice(0, 300) || undefined,
+      authorizedPickup: [{ name: pickupName, phone: pickupPhone }],
+      securityCode: String(randomInt(100000, 1000000)),
+      checkedInAt: new Date().toISOString(),
+    });
+    return NextResponse.json({ checkin: entry }, { status: 201 });
+  }
 
   if (action === "verify-checkout") {
     const id = String(body.id ?? "").trim();
