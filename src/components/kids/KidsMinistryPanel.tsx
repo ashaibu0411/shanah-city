@@ -53,6 +53,8 @@ export function KidsMinistryPanel({
   const [pickupName, setPickupName] = useState("");
   const [pickupPhone, setPickupPhone] = useState("");
   const [checkinNotes, setCheckinNotes] = useState("");
+  const [allergies, setAllergies] = useState("");
+  const [medicalNotes, setMedicalNotes] = useState("");
   const [checkinBusy, setCheckinBusy] = useState(false);
   const [lastCheckin, setLastCheckin] = useState<{ childName: string; securityCode: string } | null>(null);
   const [pickupId, setPickupId] = useState("");
@@ -117,7 +119,7 @@ export function KidsMinistryPanel({
       const response = await fetch("/api/kids/ministry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "teacher-checkin", childName, parentName: guardianName, ageGroup: room, service, pickupName, pickupPhone, notes: checkinNotes }),
+        body: JSON.stringify({ action: "teacher-checkin", childName, parentName: guardianName, ageGroup: room, service, pickupName, pickupPhone, notes: checkinNotes, allergies, medicalNotes }),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -131,6 +133,8 @@ export function KidsMinistryPanel({
       setPickupName("");
       setPickupPhone("");
       setCheckinNotes("");
+      setAllergies("");
+      setMedicalNotes("");
       setChildSearch("");
       await load({ silent: true });
     } catch {
@@ -345,7 +349,9 @@ export function KidsMinistryPanel({
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Assign room<select value={room} onChange={(e) => setRoom(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white">{data.ageGroups.map((group) => <option key={group} value={group}>{group}</option>)}</select></label>
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Authorized pickup adult<input value={pickupName} onChange={(e) => setPickupName(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
                   <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Pickup contact phone<input type="tel" value={pickupPhone} onChange={(e) => setPickupPhone(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
-                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200 sm:col-span-2">Important notes / allergies<textarea value={checkinNotes} onChange={(e) => setCheckinNotes(e.target.value)} rows={3} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Allergies (ask guardian)<input value={allergies} onChange={(e) => setAllergies(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200">Medical alerts (ask guardian)<input value={medicalNotes} onChange={(e) => setMedicalNotes(e.target.value)} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
+                  <label className="text-sm font-semibold text-night-700 dark:text-slate-200 sm:col-span-2">Additional notes<textarea value={checkinNotes} onChange={(e) => setCheckinNotes(e.target.value)} rows={3} className="mt-1 block w-full rounded-xl border border-night-900/20 bg-white px-3 py-3 text-base text-night-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white" /></label>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-night-600 dark:text-slate-200">Teacher-assisted check-in requires a guardian and authorized pickup contact. At pickup, verify the adult's identity and matching security code before releasing the child.</p>
                 <Button className="mt-4 min-h-12 w-full" onClick={teacherCheckIn} disabled={checkinBusy || !childName.trim() || !guardianName.trim() || !pickupName.trim() || !pickupPhone.trim()}>{checkinBusy ? "Checking in…" : "Check in child"}</Button>
