@@ -2678,3 +2678,16 @@ model FastingGuideNotification {
   deliveredAt DateTime?
   sentCount Int @default(0)
 }
+
+model PushInboxItem {
+  id String @id @default(cuid())
+  userId String
+  title String
+  body String
+  href String
+  dedupeKey String
+  createdAt DateTime @default(now())
+  readAt DateTime?
+  @@unique([userId, dedupeKey])
+  @@index([userId, readAt, createdAt])
+}
