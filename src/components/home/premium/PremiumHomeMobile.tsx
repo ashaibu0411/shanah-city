@@ -45,6 +45,7 @@ export function PremiumHomeMobile({
       <PremiumHomeV3Chrome />
       <div className="premium-home-v3 premium-home-v4 premium-home-v3--spacing-v3 shanah-porcelain-home animate-fade-in">
         <div className="mx-4 pt-3"><PrayerHomeBanner variant="mobile" /></div>
+        <Link href="/fasting-prayer-2027" className="mx-4 block rounded-2xl border border-amber-200 bg-[#122c54] p-4 text-white shadow-lg"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-amber-200">14 Days · November 30 – December 13</p><p className="mt-1 text-lg font-semibold">Fasting & Prayer into 2027</p><p className="mt-1 text-sm text-slate-200">Explore the daily prayer guide →</p></Link>
         <PremiumStoriesSection
           sectionTitle="Stories"
           storiesPresentation="v6"
