@@ -420,6 +420,8 @@ export function KidsTrainingTab({
         </p>
         <a
           href={safeguardingGuideUrl}
+          target="_blank"
+          rel="noopener noreferrer"
           className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-night-900 px-4 text-sm font-semibold text-white"
         >
           Open training guide
