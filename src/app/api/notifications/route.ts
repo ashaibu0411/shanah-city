@@ -1,3 +1,4 @@
+import { markPushInboxRead } from "@/lib/push-inbox-server";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
@@ -35,11 +36,20 @@ export async function POST(request: Request) {
 
   if (body.action === "clearAllFeeds") {
     await markFeedsRead(user.id, FEED_READ_KEYS);
+    await markPushInboxRead(user.id);
     const summary = await getAppNotifications(user.id);
     void syncNativeAppBadgeForUser(user.id, summary.total);
     return NextResponse.json(summary);
   }
 
+  if (body.action === "markPushRead") {
+    const ids = Array.isArray(body.ids) ? body.ids.filter((id: unknown): id is string => typeof id === "string").map((id: string) => id.replace(/^push-/, "")) : [];
+    if (!ids.length) return NextResponse.json({error:"Push item ids required."},{status:400});
+    await markPushInboxRead(user.id, ids);
+    const summary = await getAppNotifications(user.id);
+    void syncNativeAppBadgeForUser(user.id, summary.total);
+    return NextResponse.json(summary);
+  }
   if (body.action !== "markFeedRead") {
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });
   }
