@@ -1,6 +1,7 @@
 "use client";
 
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
+import Link from "next/link";
 import { AboutShanahHomeLink } from "@/components/home/premium/AboutShanahHomeLink";
 
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
@@ -51,6 +52,7 @@ export function PremiumHomeDesktop({
         />
       ) : null}
 
+      <Link href="/fasting-prayer-2027" className="mb-6 block rounded-2xl bg-[#122c54] px-6 py-5 text-white"><span className="text-xs font-semibold uppercase tracking-widest text-amber-200">November 30 – December 13</span><h2 className="mt-2 text-2xl font-semibold">14 Days of Fasting & Prayer into 2027</h2><p className="mt-1 text-sm text-slate-200">Read the complete daily guide →</p></Link>
       <PremiumEngagementRail variant="desktop" />
 
       <PremiumHomeHero variant="desktop" firstName={firstName} />
