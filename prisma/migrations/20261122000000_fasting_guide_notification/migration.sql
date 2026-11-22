@@ -1,0 +1,1 @@
+CREATE TABLE "FastingGuideNotification" ("day" INTEGER NOT NULL, "claimedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "deliveredAt" TIMESTAMP(3), "sentCount" INTEGER NOT NULL DEFAULT 0, CONSTRAINT "FastingGuideNotification_pkey" PRIMARY KEY ("day"));
