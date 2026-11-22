@@ -1,4 +1,5 @@
 import type { Group } from "@/lib/group-types";
+import type { KidsLessonCurriculum } from "@/lib/kids-workspace-types";
 
 export const KIDS_GROUP_ID = "group-kids";
 
@@ -26,6 +27,10 @@ export type KidsLesson = {
   ageGroup: string;
   title: string;
   content: string;
+  memoryVerse?: string;
+  curriculum?: KidsLessonCurriculum;
+  materialsUrl?: string;
+  assignedToUserId?: string;
   status: "draft" | "published";
   publishedAt?: string;
   createdBy: string;

@@ -23,5 +23,5 @@ assert.match(ui, /memberQuery\.trim\(\)\.length < 2/);
 assert.match(ui, /AbortController/, "Prevent stale or cross-query search results");
 assert.match(ui, /setAssignUserId\(member\.id\)/);
 assert.match(ui, /disabled=\{busy \|\| !assignUserId\}/);
-assert.match(ui, /if \(saved\) \{ setAssignUserId\("")/, "Retain recipient on request failure");
+assert.match(ui, /if \(saved\) \{ setAssignUserId\(""\)/, "Retain recipient on request failure");
 console.log("Private Vision reviewer directory search regression checks passed.");

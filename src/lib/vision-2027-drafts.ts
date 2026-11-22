@@ -197,7 +197,8 @@ The Senior Pastor owns direction and final approvals; the assigned leader contri
     title: "2027 Shanah Kids Ministry Vision & Leadership Plan",
     summary: "Grow a safe, Christ-centered Shanah Kids ministry with Sunday teaching, June Vacation Bible School culminating in Kids Sunday Celebration, parent partnerships and volunteer development.",
     content: `2027 SHANAH KIDS — ANNUAL MINISTRY VISION & LEADERSHIP PLAN
-INTERNAL WORKING DRAFT — SPECIFIC PROGRAMS, DATES AND GOALS FOR PASTORAL REVIEW
+PROPOSED — NOT APPROVED: INTERNAL WORKING DRAFT FOR PASTORAL REVIEW
+SPECIFIC PROGRAMS, DATES AND GOALS REQUIRE PASTORAL APPROVAL
 Raise children who know Jesus, discover Scripture, experience God's love and grow within a safe, excellent and family-connected church environment. Equip parents and volunteers to nurture the next generation while supporting Shanah City's Year of Expansion.
 
 01 · CHILDREN'S SPIRITUAL FORMATION & SUNDAY DISCIPLESHIP
