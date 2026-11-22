@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
-import { canManageChurchEvents } from "@/lib/group-permissions-server";
+import { canUseDelegatedPermission } from "@/lib/delegated-permissions-server";
 import { prisma } from "@/lib/db";
 import { sendPushToAllMembers } from "@/lib/push-server";
 import { useDatabase } from "@/lib/use-database";
@@ -17,7 +17,7 @@ function selectedWeek(offset: number) {
 
 async function canEdit() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  return canManageChurchEvents(await getUserFromSession(token));
+  return canUseDelegatedPermission(await getUserFromSession(token), "announcements.manage");
 }
 
 function churchEventsForWeek(events: Awaited<ReturnType<typeof getEvents>>, since: string, until: string) {
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   if (["shanahcity.org", "www.shanahcity.org"].includes(new URL(request.url).hostname.toLowerCase())) {
     return NextResponse.json({ error: "Edit announcements from the Shanah City member app." }, { status: 403 });
   }
-  if (!(await canEdit())) return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+  if (!(await canEdit())) return NextResponse.json({ error: "Announcement management permission required." }, { status: 403 });
   if (!useDatabase()) return NextResponse.json({ error: "Bulletin storage is not configured." }, { status: 503 });
   const body = await request.json().catch(() => ({}));
   const offset = body.offset === 1 ? 1 : 0;
