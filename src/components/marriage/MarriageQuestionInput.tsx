@@ -49,9 +49,18 @@ export function MarriageQuestionInput({
   disabled?: boolean;
 }) {
   const options = question.options ?? [];
+  const isWritten = question.type === "long_reflection" || question.type === "short_answer";
+  const context = isWritten ? null : (
+    <div className="mt-3 rounded-xl border border-night-900/10 bg-sand-50/70 p-3 text-sm leading-relaxed text-night-700 dark:border-white/10 dark:bg-white/5 dark:text-sand-200">
+      <p><strong>What we mean: </strong>{question.explanation?.trim() || "Answer based on your own understanding and experience, not what you think your partner expects."}</p>
+      {question.type === "multiple_choice" && <p className="mt-2">Choose all options that apply.</p>}
+      {(question.type === "ranking" || question.type === "priorities") && <p className="mt-2">Rank the options from most important to least important to you.</p>}
+      {question.type === "partner_prediction" && <p className="mt-2">Predict your partner's answer rather than giving your own.</p>}
+    </div>
+  );
 
   if (question.type === "budget_worksheet") {
-    return <MarriageBudgetWorksheet value={value} onChange={onChange} disabled={disabled} />;
+    return <>{context}<MarriageBudgetWorksheet value={value} onChange={onChange} disabled={disabled} /></>;
   }
 
   if (question.type === "partner_prediction") {
@@ -62,7 +71,7 @@ export function MarriageQuestionInput({
           ? value
           : "";
     return (
-      <ul className="mt-4 space-y-2">
+      <div>{context}<ul className="mt-4 space-y-2">
         {options.map((opt) => (
           <li key={opt.id}>
             <button
@@ -75,7 +84,7 @@ export function MarriageQuestionInput({
             </button>
           </li>
         ))}
-      </ul>
+      </ul></div>
     );
   }
 
@@ -103,7 +112,7 @@ export function MarriageQuestionInput({
   if (question.type === "multiple_choice") {
     const selected = Array.isArray(value) ? (value as string[]) : [];
     return (
-      <ul className="mt-4 space-y-2">
+      <div>{context}<ul className="mt-4 space-y-2">
         {options.map((opt) => {
           const active = selected.includes(opt.id);
           return (
@@ -122,14 +131,14 @@ export function MarriageQuestionInput({
             </li>
           );
         })}
-      </ul>
+      </ul></div>
     );
   }
 
   if (question.type === "priorities" || question.type === "ranking") {
     const order = Array.isArray(value) ? (value as string[]) : options.map((o) => o.id);
     return (
-      <ul className="mt-4 space-y-2">
+      <div>{context}<ul className="mt-4 space-y-2">
         {order.map((id, rank) => {
           const opt = options.find((o) => o.id === id);
           if (!opt) return null;
@@ -167,12 +176,12 @@ export function MarriageQuestionInput({
             </li>
           );
         })}
-      </ul>
+      </ul></div>
     );
   }
 
   return (
-    <ul className="mt-4 space-y-2">
+    <div>{context}<ul className="mt-4 space-y-2">
       {options.map((opt) => {
         const active = value === opt.id;
         return (
@@ -188,6 +197,6 @@ export function MarriageQuestionInput({
           </li>
         );
       })}
-    </ul>
+    </ul></div>
   );
 }
