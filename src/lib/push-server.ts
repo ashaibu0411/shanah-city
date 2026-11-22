@@ -1,4 +1,5 @@
 import webpush from "web-push";
+import { recordPushInboxItem } from "@/lib/push-inbox-server";
 import { getUsers } from "@/lib/auth-server";
 import type { NotificationPrefs, NotificationTopic } from "@/lib/auth-types";
 import { getConfiguredWorshipGroupId } from "@/lib/worship-access-server";
@@ -284,6 +285,7 @@ async function dispatchPushToUsers(
     }
 
     if (userDelivered) {
+      try { await recordPushInboxItem(userId, payload); } catch (error) { console.error("[push-inbox] record failed", error); }
       result.deliveredUsers += 1;
     } else if (userFailed) {
       result.failedUsers += 1;
