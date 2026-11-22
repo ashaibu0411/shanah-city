@@ -7,6 +7,16 @@ async function handleCron(request: Request) {
   if (authError) return authError;
 
   const result = await processScheduledDevotionNotifications();
+  console.info("[devotion-cron] delivery", JSON.stringify({
+    denverDate: result.denverDate,
+    denverTime: result.denverTime,
+    notified: result.notified,
+    checked: result.checked,
+    reason: result.reason,
+    devotions: result.devotions,
+    pushConfigured: result.pushConfigured,
+    pushDiagnostics: result.pushDiagnostics,
+  }));
   return NextResponse.json(result);
 }
 
