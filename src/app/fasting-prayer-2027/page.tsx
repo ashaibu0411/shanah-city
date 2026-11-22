@@ -24,7 +24,7 @@ export default function FastingPrayerGuidePage() {
       </section>
       <section className="mt-10">
         <h2 className="font-display text-2xl font-semibold">The 14-day journey</h2>
-        <p className="mt-2 text-sm text-night-600 dark:text-sand-300">Select a day to see its focus and key scripture. The full original booklet content is being prepared for publication.</p>
+        <p className="mt-2 text-sm text-night-600 dark:text-sand-300">Select any day to read its full introduction, supporting scriptures, and five prophetic prayers. All 14 days are available to members and prayer leaders.</p>
         <ol className="mt-5 grid gap-3 sm:grid-cols-2">
           {FASTING_GUIDE_DAYS.map(([title, scripture], i) => (
             <li key={title} className={`rounded-2xl border p-4 ${current === i+1 ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20" : "border-night-900/10 bg-white dark:border-white/10 dark:bg-white/5"}`}>
@@ -35,7 +35,7 @@ export default function FastingPrayerGuidePage() {
           ))}
         </ol>
       </section>
-      <p className="mt-8 text-sm text-night-600 dark:text-sand-300">Daily push reminders are planned for 7:00 AM Denver time, November 30–December 13, 2026. Notification delivery will be enabled after the complete booklet is published and verified.</p>
+      <p className="mt-8 text-sm text-night-600 dark:text-sand-300">Daily push reminders are scheduled for 7:00 AM Denver time, November 30–December 13, 2026. Delivery requires enabled notifications and a registered device.</p>
       <Link href="/devotions" className="mt-6 inline-block text-sm font-semibold underline">Explore Shanah City devotions</Link>
     </main>
   );
