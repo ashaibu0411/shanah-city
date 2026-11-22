@@ -10,6 +10,7 @@ export type FeedReadKey =
   | "vision";
 
 export type AppNotificationItemType =
+  | "push"
   | "direct_message"
   | "group_chat"
   | "community"
