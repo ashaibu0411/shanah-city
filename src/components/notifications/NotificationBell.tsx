@@ -34,6 +34,8 @@ function notificationIcon(type: AppNotificationItemType) {
       return "🙏";
     case "devotion":
       return "📖";
+    case "push":
+      return "🔔";
     case "media":
       return "▶";
     case "worship":
@@ -89,6 +91,8 @@ function notificationTone(type: AppNotificationItemType) {
     case "community":
       return "bg-amber-500/15 text-amber-600";
     case "devotion":
+      return "bg-sky-500/15 text-sky-600";
+    case "push":
       return "bg-sky-500/15 text-sky-600";
     case "media":
       return "bg-rose-500/15 text-rose-600";
@@ -197,6 +201,9 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
     if (feed) {
       void markNotificationFeedsRead([feed]);
     }
+    if (item.type === "push") {
+      void fetch("/api/notifications", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"markPushRead",ids:[item.id]})});
+    }
     setOpen(false);
   }
 
@@ -267,7 +274,7 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
                   : "You're all caught up"}
               </p>
             </div>
-            {feedBadgeTotal > 0 && (
+            {items.some(item => item.type === "push") || feedBadgeTotal > 0 ? (
               <button
                 type="button"
                 disabled={clearing}
@@ -280,7 +287,7 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
               >
                 {clearing ? "Clearing…" : "Clear all"}
               </button>
-            )}
+            ) : null}
           </div>
 
           <div className="max-h-80 overflow-y-auto">
