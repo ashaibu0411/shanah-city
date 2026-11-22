@@ -1,5 +1,6 @@
 "use client";
 
+import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { AboutShanahHomeLink } from "@/components/home/premium/AboutShanahHomeLink";
 
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
@@ -41,6 +42,7 @@ export function PremiumHomeDesktop({
 
   return (
     <div className="premium-home premium-home--desktop">
+      <PrayerHomeBanner variant="desktop" />
       {urgentAlerts.length > 0 ? (
         <UrgentNewsHomeStrip
           alerts={urgentAlerts}
