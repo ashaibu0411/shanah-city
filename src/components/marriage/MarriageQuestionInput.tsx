@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
 import type { MarriageQuestionDefinition } from "@/lib/marriage-counseling-types";
 import { marriagePremium } from "@/components/marriage/marriage-counseling-premium";
 import { MarriageBudgetWorksheet } from "@/components/marriage/MarriageBudgetWorksheet";
@@ -20,18 +20,14 @@ function MarriageWrittenAnswerField({
   long: boolean;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    element.style.height = "auto";
-    element.style.height = Math.max(long ? 176 : 144, element.scrollHeight) + "px";
-  }, [value, long]);
+
 
   return (
     <textarea
       ref={ref}
-      rows={long ? 6 : 4}
-      className="mt-2 block min-h-36 w-full min-w-0 resize-y overflow-hidden whitespace-pre-wrap break-words rounded-xl border border-night-900/10 bg-white px-4 py-3 text-base leading-7 text-night-900 placeholder:text-night-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-white/12 dark:bg-[var(--color-bg-muted)] dark:text-sand-50 dark:placeholder:text-sand-400"
+      data-no-autogrow="true"
+      rows={long ? 8 : 5}
+      className="mt-2 block min-h-36 w-full min-w-0 resize-y overflow-auto whitespace-pre-wrap break-words rounded-xl border border-night-900/10 bg-white px-4 py-3 text-base leading-7 text-night-900 placeholder:text-night-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-white/12 dark:bg-[var(--color-bg-muted)] dark:text-sand-50 dark:placeholder:text-sand-400"
       value={value}
       disabled={disabled}
       aria-label="Your written answer; press Return for a new line"
