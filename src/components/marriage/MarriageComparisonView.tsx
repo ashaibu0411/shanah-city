@@ -158,6 +158,7 @@ export function MarriageComparisonView({ moduleId }: { moduleId: string }) {
                 </p>
               )}
               <p className="mt-2 text-sm font-semibold">{item.prompt}</p>
+              <p className="mt-2 text-sm leading-relaxed text-night-600 dark:text-sand-300">Before discussing differences, check that you both understood the question in the same way. Ask what each person meant before deciding you disagree.</p>
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
                 <div className="min-w-0 rounded-2xl border border-night-900/10 bg-stone-50/90 p-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
                   <p className="text-xs font-bold uppercase tracking-[0.14em] text-night-500">You</p>
