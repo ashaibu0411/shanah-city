@@ -29,7 +29,7 @@ export default function FastingPrayerGuidePage() {
           {FASTING_GUIDE_DAYS.map(([title, scripture], i) => (
             <li key={title} className={`rounded-2xl border p-4 ${current === i+1 ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20" : "border-night-900/10 bg-white dark:border-white/10 dark:bg-white/5"}`}>
               <p className="text-xs font-bold uppercase tracking-wider text-night-600 dark:text-sand-300">Day {i+1} · {new Date(Date.parse(FASTING_GUIDE_START+"T12:00:00Z")+i*86400000).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"})}</p>
-              <h3 className="mt-2 text-lg font-semibold leading-snug">{title}</h3>
+              <h3 className="mt-2 text-lg font-semibold leading-snug"><Link className="underline decoration-transparent hover:decoration-current" href={`/fasting-prayer-2027/day/${i+1}`}>{title} →</Link></h3>
               <p className="mt-2 text-sm text-night-600 dark:text-sand-300">{scripture}</p>
             </li>
           ))}
