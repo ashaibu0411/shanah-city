@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { canManageChurchEvents } from "@/lib/group-permissions-server";
 import { prisma } from "@/lib/db";
+import { sendPushToAllMembers } from "@/lib/push-server";
 import { useDatabase } from "@/lib/use-database";
 import { getDenverWeekRange, addDaysToDateKey } from "@/lib/denver-time";
 import { getEvents } from "@/lib/event-server";
@@ -73,10 +74,23 @@ export async function POST(request: Request) {
   const published = body.published !== false;
   if (!title && published) return NextResponse.json({ error: "Enter a bulletin title." }, { status: 400 });
   if (!content && published) return NextResponse.json({ error: "Enter at least one announcement." }, { status: 400 });
+  const previous = await prisma.weeklyBulletin.findUnique({ where: { weekStart } });
   await prisma.weeklyBulletin.upsert({
     where: { weekStart },
     create: { weekStart, title: title || "Weekly announcements", body: content, published },
     update: { title: title || "Weekly announcements", body: content, published },
   });
+  // Notify on new or changed published announcements, not drafts or identical saves.
+  const finalTitle = title || "Weekly announcements";
+  if (published && (!previous?.published || previous.title !== finalTitle || previous.body !== content)) {
+    try {
+      await sendPushToAllMembers(
+        { title: "Weekly announcements updated", body: finalTitle, url: "/calendar?view=announcements" },
+        "announcements",
+      );
+    } catch (error) {
+      console.error("Weekly announcements saved, but push delivery failed:", error);
+    }
+  }
   return NextResponse.json({ ok: true });
 }
