@@ -107,7 +107,6 @@ async function getDevotionItems(userId: string, since: Date) {
   const items: AppNotificationItem[] = [];
 
   for (const devotion of devotions) {
-    if (devotion.authorId === userId) continue;
     if (!isDevotionPubliclyVisible(devotion)) continue;
     const at = devotion.publishAt ?? devotion.createdAt;
     if (!isAfter(at, since)) continue;
@@ -117,7 +116,7 @@ async function getDevotionItems(userId: string, since: Date) {
       type: "devotion",
       title: "New devotion ready",
       body: devotion.title,
-      href: "/devotions",
+      href: `/devotions/${encodeURIComponent(devotion.id)}`,
       count: 1,
       at: at!,
     });
