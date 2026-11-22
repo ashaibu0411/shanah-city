@@ -1,6 +1,14 @@
 {
   "crons": [
     {
+      "path": "/api/cron/fasting-guide",
+      "schedule": "0,5,10 14 30 11 *"
+    },
+    {
+      "path": "/api/cron/fasting-guide",
+      "schedule": "0,5,10 14 1-13 12 *"
+    },
+    {
       "path": "/api/cron/publish-devotions",
       "schedule": "25,35,45,55 13 * * *"
     },
