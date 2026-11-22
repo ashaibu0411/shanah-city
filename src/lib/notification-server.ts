@@ -1,3 +1,4 @@
+import { getPushInboxItems } from "@/lib/push-inbox-server";
 import { getGroups } from "@/lib/group-server";
 import { getFeedNotificationItems } from "@/lib/feed-notification-items";
 import { getMinistryReportNotificationItems } from "@/lib/ministry-report-notification-items";
@@ -19,14 +20,15 @@ function countByType(items: { type: AppNotificationItemType; count: number }[], 
 
 export async function getAppNotifications(userId: string): Promise<AppNotificationsSummary> {
   const groups = await getGroups();
-  const [directItems, groupItems, feedItems, ministryReportItems] = await Promise.all([
+  const [directItems, groupItems, feedItems, ministryReportItems, pushItems] = await Promise.all([
     messageStore().getUnreadDirectMessageSummary(userId),
     groupChatStore().getUnreadGroupChatSummary(userId, groups),
     getFeedNotificationItems(userId),
     getMinistryReportNotificationItems(userId),
+    getPushInboxItems(userId),
   ]);
 
-  const items = [...directItems, ...groupItems, ...feedItems, ...ministryReportItems].sort(
+  const items = [...directItems, ...groupItems, ...feedItems, ...ministryReportItems, ...pushItems].sort(
     (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
   );
 
@@ -43,7 +45,7 @@ export async function getAppNotifications(userId: string): Promise<AppNotificati
   const feedTotal = community + devotions + media + worship + meetings + kids + vision;
 
   return {
-    total: directMessages + groupChat + feedTotal + ministryReports,
+    total: directMessages + groupChat + feedTotal + ministryReports + pushItems.length,
     directMessages,
     groupChat,
     community,
