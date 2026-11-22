@@ -2670,3 +2670,11 @@ model WeeklyBulletin {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// One delivery claim per fasting-guide day prevents repeated cron notifications.
+model FastingGuideNotification {
+  day Int @id
+  claimedAt DateTime @default(now())
+  deliveredAt DateTime?
+  sentCount Int @default(0)
+}
