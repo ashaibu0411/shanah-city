@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FASTING_GUIDE_DAYS, FASTING_GUIDE_START, FASTING_TIME_ZONE, fastingGuideDay } from "@/lib/fasting-guide-2026";
+import { FASTING_GUIDE_DAYS, FASTING_GUIDE_START, fastingGuideDay } from "@/lib/fasting-guide-2026";
 
 export const metadata = { title: "14 Days of Fasting & Prayer into 2027 | Shanah City", description: "Our Year of Expansion — 14 days of fasting and prophetic prayer." };
 
