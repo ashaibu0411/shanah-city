@@ -1,5 +1,6 @@
 "use client";
 
+import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { AboutShanahHomeLink } from "@/components/home/premium/AboutShanahHomeLink";
 
 import Link from "next/link";
@@ -43,6 +44,7 @@ export function PremiumHomeMobile({
     <>
       <PremiumHomeV3Chrome />
       <div className="premium-home-v3 premium-home-v4 premium-home-v3--spacing-v3 shanah-porcelain-home animate-fade-in">
+        <div className="mx-4 pt-3"><PrayerHomeBanner variant="mobile" /></div>
         <PremiumStoriesSection
           sectionTitle="Stories"
           storiesPresentation="v6"
