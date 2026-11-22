@@ -8,7 +8,7 @@ export default function FastingPrayerGuidePage() {
   return (
     <main className="mx-auto max-w-4xl px-4 pb-20 pt-8 text-night-900 dark:text-sand-100">
       <div className="rounded-[2rem] bg-[#122c54] px-6 py-10 text-white shadow-xl sm:px-10">
-        <p className="text-xs font-bold uppercase tracking-[.2em] text-amber-200">Shanah City · 14 days of fasting & prayer</p>
+        <p className="text-xs font-bold uppercase tracking-[.2em] text-amber-200">Shanah City · 14 days of fasting & prayers</p>
         <h1 className="mt-4 font-display text-4xl font-semibold leading-tight sm:text-5xl">Our Year of Expansion</h1>
         <p className="mt-4 text-lg text-slate-100">We Are Believing God to Carry Our Evidence!</p>
         <p className="mt-4 text-sm text-slate-200">November 30 – December 13, 2026 · America/Denver</p>
