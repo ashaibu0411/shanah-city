@@ -2691,3 +2691,13 @@ model PushInboxItem {
   @@unique([userId, dedupeKey])
   @@index([userId, readAt, createdAt])
 }
+
+model DelegatedPermission {
+  id String @id @default(cuid())
+  userId String
+  permission String
+  grantedBy String
+  createdAt DateTime @default(now())
+  @@unique([userId, permission])
+  @@index([permission])
+}
