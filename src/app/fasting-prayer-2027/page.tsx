@@ -15,7 +15,7 @@ export default function FastingPrayerGuidePage() {
       </div>
       <section className="mt-6 grid gap-3 sm:grid-cols-2" aria-label="Fasting and prayer schedule">
         <div className="rounded-2xl border border-night-900/10 bg-white p-5 dark:bg-white/5"><h2 className="font-semibold">Fasting</h2><p className="mt-2 text-lg">6:00 PM – 6:00 AM</p></div>
-        <div className="rounded-2xl border border-night-900/10 bg-white p-5 dark:bg-white/5"><h2 className="font-semibold">Prayer times</h2><p className="mt-2 text-lg">8:00 AM · 6:00 PM · 12:00 AM</p></div>
+        <div className="rounded-2xl border border-night-900/10 bg-white p-5 dark:bg-white/5"><h2 className="font-semibold">Prayer times</h2><p className="mt-2 text-lg">8:00 AM · 8:00 PM · 12:00 AM</p></div>
       </section>
       <section className="mt-8 rounded-2xl border border-night-900/10 bg-white p-6 dark:bg-white/5">
         <h2 className="text-xl font-semibold">Our declaration</h2>
