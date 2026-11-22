@@ -37,7 +37,11 @@ assert.match(hub, /commentFormRef\.current\?\.scrollIntoView/);
 assert.match(hub, /calendar:" \+ month/);
 assert.match(hub, /My full pastoral review, corrections and additions/);
 assert.match(hub, /Share privately with registered pastoral team/);
-assert.match(hub, /Copy private review link/);
+assert.match(hub, /<VisionShareButton/);
+const shareButton = readFileSync("src/components/vision/VisionShareButton.tsx", "utf8");
+assert.match(shareButton, /Copy link/);
+assert.match(shareButton, /Share Vision/);
+assert.match(shareButton, /Only invited leaders can open it after sign-in/);
 assert.match(hub, /if \(saved\) \{ setCommentText\(""\)/, "Submission must preserve draft on failure");
 assert.match(hub, /maxLength=\{8000\}/);
 
