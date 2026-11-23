@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     data: { guestId, kind, outcome, note: note || null, actorId: user.id, actorName: user.name },
   });
   if (outcome === "connected") {
+    await prisma.guestFollowUpAssignment.updateMany({ where: { guestId, workerId: user.id, completedAt: null }, data: { completedAt: new Date() } });
     await prisma.guestSubmission.updateMany({ where: { id: guestId, status: "new" }, data: { status: "contacted", reviewedAt: new Date(), reviewedBy: user.id, reviewedByName: user.name } });
   }
   return NextResponse.json({ activity }, { status: 201 });
