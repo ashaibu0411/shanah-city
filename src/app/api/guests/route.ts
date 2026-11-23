@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Enter a valid phone number." }, { status: 400 });
   }
 
-  if (body.smsConsent === true && !normalizeUsPhone(phone)) {
+  if ((body.smsConsent === true || body.whatsAppConsent === true) && !normalizeUsPhone(phone)) {
     return NextResponse.json({ error: "A valid US phone number is required for SMS consent." }, { status: 400 });
   }
 
@@ -110,6 +110,16 @@ export async function POST(request: Request) {
   }
   if (guest?.id && body.smsConsent === true) {
     await recordSmsConsent(phone, "guest-web-form");
+  }
+  if (guest?.id && body.whatsAppConsent === true) {
+    const normalized = normalizeUsPhone(phone);
+    if (normalized) {
+      await prisma.whatsAppContactState.upsert({
+        where: { phone: normalized },
+        create: { phone: normalized, optedIn: true, consentSource: "guest-web-form", consentAt: new Date() },
+        update: { optedIn: true, consentSource: "guest-web-form", consentAt: new Date(), optedOutAt: null },
+      });
+    }
   }
   const rating = Number(body.feedbackRating);
   const feedbackComment = typeof body.feedbackComment === "string" ? body.feedbackComment.trim().slice(0,500) : "";
