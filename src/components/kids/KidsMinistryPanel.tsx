@@ -583,7 +583,7 @@ export function KidsMinistryPanel({
           )}
           {tab === "checkin" && (
             <div className="space-y-4">
-              <KidsArrivalQueue />
+              <KidsArrivalQueue service={service} onCheckedIn={()=>void load({silent:true})} />
               <Card className="border-[#dfceb0] bg-[#faf5eb] dark:border-slate-600 dark:bg-slate-900">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#85643d] dark:text-amber-200">Shanah Kids · Teacher station</p>
                 <h2 className="mt-2 font-display text-2xl font-bold text-night-900 dark:text-white">Welcome children into their rooms</h2>
