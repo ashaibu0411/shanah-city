@@ -1075,8 +1075,26 @@ model GuestFollowUpAssignment {
   assignedAt DateTime @default(now())
   dueAt DateTime
   completedAt DateTime?
+  nextContactAt DateTime?
+  journeyStage String @default("first_visit")
+  lastReminderAt DateTime?
   @@index([workerId, completedAt, dueAt])
   @@index([dueAt, completedAt])
+  @@index([nextContactAt])
+}
+
+model GuestFollowUpMessage {
+  id String @id @default(cuid())
+  guestId String
+  channel String
+  templateKey String
+  status String @default("draft")
+  scheduledAt DateTime?
+  sentAt DateTime?
+  error String?
+  createdAt DateTime @default(now())
+  @@unique([guestId, channel, templateKey])
+  @@index([status, scheduledAt])
 }
 
 model GuestFollowUpActivity {
