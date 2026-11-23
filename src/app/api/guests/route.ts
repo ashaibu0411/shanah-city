@@ -87,6 +87,18 @@ export async function POST(request: Request) {
     notes: body.notes ? String(body.notes).trim() : undefined,
   });
 
+  if (guest?.id) {
+    const preferences = ["any","email","phone","text"];
+    const ministries = ["Men of Legacy","Transformed Women","Young Adults","Shanah Worship","Shanah Kids","Prayer Ministry"];
+    await prisma.guestCareProfile.create({data:{
+      guestId:guest.id,
+      emailConsent:body.emailConsent===true,
+      contactPreference:preferences.includes(body.contactPreference)?body.contactPreference:"any",
+      wantsPrayer:body.wantsPrayer===true,
+      wantsPastoralContact:body.wantsPastoralContact===true,
+      ministryInterest:ministries.includes(body.ministryInterest)?body.ministryInterest:null,
+    }});
+  }
   return NextResponse.json({ guest, message: "Thanks for connecting with us!" });
 }
 
