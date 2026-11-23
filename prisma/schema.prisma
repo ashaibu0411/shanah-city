@@ -2853,3 +2853,14 @@ model SmsConsentEvent {
   createdAt       DateTime @default(now())
   @@index([phone, createdAt])
 }
+
+
+/** WhatsApp consent is independent of SMS consent and must be explicitly recorded. */
+model WhatsAppContactState {
+  phone String @id
+  optedIn Boolean @default(false)
+  optedOutAt DateTime?
+  consentSource String?
+  consentAt DateTime?
+  updatedAt DateTime @updatedAt
+}
