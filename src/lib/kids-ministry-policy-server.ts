@@ -204,6 +204,8 @@ export async function executeAuthorizedKidCheckout(
   user: PublicMember,
   scope: KidsMinistryScope,
   deps: KidCheckoutDeps = { getKidCheckIns, verifyCheckoutKid },
+  pickupAdultName = "",
+  photoIdVerified = false,
 ): Promise<AuthorizedCheckoutResult> {
   const active = (await deps.getKidCheckIns()).find((entry) => entry.id === id && !entry.checkedOutAt);
   if (!active) {
@@ -218,6 +220,9 @@ export async function executeAuthorizedKidCheckout(
       error: e instanceof Error ? e.message : "Not authorized.",
     };
   }
+  const approved = active.authorizedPickup || [];
+  if (!photoIdVerified || !pickupAdultName.trim()) return {ok:false,status:403,error:"Verify the pickup adult’s photo ID and enter their full name before release."};
+  if (!approved.some(contact=>contact.name.trim().toLowerCase()===pickupAdultName.trim().toLowerCase())) return {ok:false,status:403,error:"This adult is not on the approved pickup list. Keep the child with staff and contact the verified guardian and ministry leader."};
   if (active.securityCode.trim() !== securityCode.trim()) {
     return { ok: false, status: 403, error: "Security code does not match." };
   }
