@@ -1,5 +1,6 @@
 "use client";
 
+import { FollowUpSundayChecklist } from "@/components/frontliners/FollowUpSundayChecklist";
 import { FollowUpJourney } from "@/components/frontliners/FollowUpJourney";
 import { FollowUpAssignments } from "@/components/frontliners/FollowUpAssignments";
 import { GuestContactHistory } from "@/components/frontliners/GuestContactHistory";
@@ -32,6 +33,7 @@ export function GuestQueuePanel({
   const [expandedGuestId, setExpandedGuestId] = useState<string | null>(null);
   const [showTeam, setShowTeam] = useState(false);
   const [showJourney, setShowJourney] = useState(false);
+  const [showSunday, setShowSunday] = useState(false);
 
   const canManage = permissions.canManageGuestSubmissions;
   const isFollowUp = variant === "follow-up";
@@ -125,6 +127,7 @@ export function GuestQueuePanel({
       </div>}
       {isFollowUp && <div className="space-y-2"><button type="button" aria-expanded={showTeam} onClick={()=>setShowTeam(!showTeam)} className="min-h-12 w-full rounded-xl border bg-white px-4 py-3 text-left font-semibold text-night-900">Team assignments & tasks {showTeam ? "−" : "+"}</button>{showTeam && !loading && <FollowUpAssignments guests={guests} onChanged={()=>void loadGuests()} />}</div>}
       {isFollowUp && <div className="space-y-2"><button type="button" aria-expanded={showJourney} onClick={()=>setShowJourney(!showJourney)} className="min-h-12 w-full rounded-xl border bg-white px-4 py-3 text-left font-semibold text-night-900">Guest journey & scheduled callbacks {showJourney ? "−" : "+"}</button>{showJourney && !loading && <FollowUpJourney guests={guests} />}</div>}
+      {isFollowUp && <div className="space-y-2"><button type="button" aria-expanded={showSunday} onClick={()=>setShowSunday(!showSunday)} className="min-h-12 w-full rounded-xl border bg-white px-4 py-3 text-left font-semibold text-night-900">Sunday guest care checklist {showSunday ? "−" : "+"}</button>{showSunday && <FollowUpSundayChecklist />}</div>}
       <input aria-label="Search guests" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search guests" className="min-h-12 w-full rounded-xl border bg-white px-4 text-base text-night-900" />
       <div className="flex flex-wrap gap-2">
         {(
