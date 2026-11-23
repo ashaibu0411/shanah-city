@@ -23,7 +23,10 @@ async function workers() {
     id: m.id, name: m.name,
     allowed: (await memberHasFullGroupAccess(m.id, group.id)).allowed,
   })));
-  return allowed.filter(m => m.allowed).map(({ id, name }) => ({ id, name }));
+  const eligible = allowed.filter(m => m.allowed).map(({ id, name }) => ({ id, name }));
+  const availability = await prisma.followUpWorkerAvailability.findMany({where:{userId:{in:eligible.map(w=>w.id)}}});
+  const unavailable = new Set(availability.filter(a=>!a.available).map(a=>a.userId));
+  return eligible.filter(w=>!unavailable.has(w.id));
 }
 
 export async function GET() {
