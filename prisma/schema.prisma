@@ -1083,6 +1083,21 @@ model GuestFollowUpAssignment {
   @@index([nextContactAt])
 }
 
+model GuestCareProfile {
+  guestId String @id
+  emailConsent Boolean @default(false)
+  contactPreference String @default("any")
+  wantsPrayer Boolean @default(false)
+  wantsPastoralContact Boolean @default(false)
+  ministryInterest String?
+  hospitalitySteps Json @default("[]")
+  referralStatus String @default("none")
+  referralMinistry String?
+  referralNote String? @db.Text
+  updatedById String?
+  updatedAt DateTime @updatedAt
+}
+
 model GuestReturnVisit {
   id String @id @default(cuid())
   guestId String
