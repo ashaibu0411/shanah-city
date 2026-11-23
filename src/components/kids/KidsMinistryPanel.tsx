@@ -7,6 +7,7 @@ import type {
   KidsRosterEntry,
   KidsRoomHeadcount,
 } from "@/lib/kids-types";
+import { KidsArrivalQueue } from "@/components/kids/KidsArrivalQueue";
 import { KidsParentAlerts } from "@/components/kids/KidsParentAlerts";
 import { Button, Card } from "@/components/ui";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -576,6 +577,7 @@ export function KidsMinistryPanel({
           )}
           {tab === "checkin" && (
             <div className="space-y-4">
+              <KidsArrivalQueue />
               <Card className="border-[#dfceb0] bg-[#faf5eb] dark:border-slate-600 dark:bg-slate-900">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#85643d] dark:text-amber-200">Shanah Kids · Teacher station</p>
                 <h2 className="mt-2 font-display text-2xl font-bold text-night-900 dark:text-white">Welcome children into their rooms</h2>
