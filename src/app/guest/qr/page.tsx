@@ -1,3 +1,4 @@
+import { ShareGuestQR } from "@/components/guest/ShareGuestQR";
 import QRCode from "qrcode";
 import Link from "next/link";
 
@@ -20,6 +21,7 @@ export default async function GuestCheckInCodesPage() {
         <img src={qr} alt="QR code for Shanah City guest connection form" width={320} height={320} />
       </div>
       <p className="mt-5 font-mono text-sm">shanahcity.org/guest</p>
+      <ShareGuestQR url="https://shanahcity.org/guest" label="First-Time Visitor Registration" />
       <Link href="/guest" className="mt-5 inline-block rounded-xl bg-blue-700 px-6 py-3 font-semibold text-white">
         Open visitor form
       </Link>
