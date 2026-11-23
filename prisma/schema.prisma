@@ -439,6 +439,31 @@ model VolunteerCheckIn {
   distanceMeters Float
 }
 
+model KidsParentAlert {
+ id String @id @default(cuid())
+ checkInId String
+ displayCode String @unique
+ status String @default("requested")
+ requestedById String
+ requestedAt DateTime @default(now())
+ escalatedAt DateTime?
+ approvedById String?
+ approvedAt DateTime?
+ displayedAt DateTime?
+ resolvedById String?
+ resolvedAt DateTime?
+ expiresAt DateTime
+ @@index([status, requestedAt])
+ @@index([checkInId, status])
+}
+model KidsParentAlertAudit {
+ id String @id @default(cuid())
+ alertId String
+ action String
+ actorId String
+ createdAt DateTime @default(now())
+ @@index([alertId, createdAt])
+}
 model KidCheckIn {
   id               String    @id
   parentName       String
