@@ -124,7 +124,7 @@ export const CHURCH_MINISTRY_GROUPS: ChurchGroupSeed[] = [
     description:
       "Welcome guests, make follow-up calls within 48 hours, and connect visitors to pastoral care. Admin approval required.",
     category: "ministry",
-    visibility: "private",
+    visibility: "public",
     requiresApproval: true,
     signupVisible: true,
     isSystem: true,
