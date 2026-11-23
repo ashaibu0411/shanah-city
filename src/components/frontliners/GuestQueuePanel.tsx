@@ -200,7 +200,7 @@ export function GuestQueuePanel({
                   {guest.phone && <a href={"sms:" + guest.phone} className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold text-night-900">Text</a>}
                   {guest.email && <a href={"mailto:" + guest.email} className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold text-night-900">Email</a>}
                 </div>
-                {guest.notes && <p className="whitespace-pre-wrap rounded-lg bg-sand-100 p-3 text-sm text-night-700">{guest.notes}</p>}
+                {guest.notes && (!isFollowUp || permissions.canManageFollowUp) && <p className="whitespace-pre-wrap rounded-lg bg-sand-100 p-3 text-sm text-night-700">{guest.notes}</p>}
                 <p className="text-xs text-night-600">Submitted {new Date(guest.submittedAt).toLocaleString()}</p>
                 {isFollowUp && <GuestCareProfile guestId={guest.id} isLeader={permissions.canManageFollowUp} />}
                 {isFollowUp && <GuestReturnVisit guestId={guest.id} />}
