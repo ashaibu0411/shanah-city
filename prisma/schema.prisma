@@ -2833,3 +2833,23 @@ model DelegatedPermission {
   @@unique([userId, permission])
   @@index([permission])
 }
+
+/** Number-level suppression applies across campaigns, even when a guest profile is duplicated. */
+model SmsContactState {
+  phone           String   @id
+  optedOut        Boolean  @default(false)
+  optedOutAt      DateTime?
+  lastKeyword     String?
+  updatedAt       DateTime @updatedAt
+}
+
+/** Audit log of explicit web consent, revocations and authenticated carrier callbacks. */
+model SmsConsentEvent {
+  id              String   @id @default(cuid())
+  phone           String
+  eventType       String
+  source          String
+  disclosureVersion String?
+  createdAt       DateTime @default(now())
+  @@index([phone, createdAt])
+}
