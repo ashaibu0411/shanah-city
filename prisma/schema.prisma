@@ -1083,6 +1083,20 @@ model GuestFollowUpAssignment {
   @@index([nextContactAt])
 }
 
+model FollowUpWorkerAvailability {
+ userId String @id
+ available Boolean @default(true)
+ updatedAt DateTime @updatedAt
+}
+model GuestFeedback {
+ id String @id @default(cuid())
+ guestId String
+ rating Int
+ comment String? @db.Text
+ wantsContact Boolean @default(false)
+ createdAt DateTime @default(now())
+ @@index([guestId, createdAt])
+}
 model GuestCareProfile {
   guestId String @id
   emailConsent Boolean @default(false)
