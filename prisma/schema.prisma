@@ -1083,6 +1083,13 @@ model GuestFollowUpAssignment {
   @@index([nextContactAt])
 }
 
+model GuestCareChecklist {
+  serviceDate String @id
+  completedSteps Json
+  updatedById String
+  updatedAt DateTime @updatedAt
+}
+
 model GuestFollowUpMessage {
   id String @id @default(cuid())
   guestId String
