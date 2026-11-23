@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { recordSmsConsent, normalizeUsPhone } from "@/lib/sms-server";
 import { canAccessFollowUp, canManageFollowUp } from "@/lib/follow-up-access-server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { cookies } from "next/headers";
@@ -77,6 +78,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Enter a valid phone number." }, { status: 400 });
   }
 
+  if (body.smsConsent === true && !normalizeUsPhone(phone)) {
+    return NextResponse.json({ error: "A valid US phone number is required for SMS consent." }, { status: 400 });
+  }
+
   const guest = await addGuestSubmission({
     name,
     email,
@@ -102,6 +107,9 @@ export async function POST(request: Request) {
       wantsPastoralContact:body.wantsPastoralContact===true,
       ministryInterest:ministries.includes(body.ministryInterest)?body.ministryInterest:null,
     }});
+  }
+  if (guest?.id && body.smsConsent === true) {
+    await recordSmsConsent(phone, "guest-web-form");
   }
   const rating = Number(body.feedbackRating);
   const feedbackComment = typeof body.feedbackComment === "string" ? body.feedbackComment.trim().slice(0,500) : "";
