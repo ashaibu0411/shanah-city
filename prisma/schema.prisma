@@ -1067,6 +1067,19 @@ model ChatAttachmentMeta {
   createdAt   DateTime
 }
 
+model GuestFollowUpActivity {
+  id String @id @default(cuid())
+  guestId String
+  kind String
+  outcome String
+  note String? @db.Text
+  actorId String
+  actorName String
+  createdAt DateTime @default(now())
+  @@index([guestId, createdAt])
+  @@index([actorId, createdAt])
+}
+
 model GuestSubmission {
   id             String    @id
   name           String
