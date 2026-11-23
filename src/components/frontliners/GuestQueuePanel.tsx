@@ -156,7 +156,7 @@ export function GuestQueuePanel({
       ) : (
         <div className="space-y-3">
           {filtered.map((guest) => (
-            <Card key={guest.id}>
+            <Card key={guest.id} className="overflow-hidden p-4 sm:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-display text-lg font-semibold text-night-900">{guest.name}</p>
@@ -165,20 +165,7 @@ export function GuestQueuePanel({
                     {guest.visitDate ? ` · ${guest.visitDate}` : ""}
                     {guest.serviceTime ? ` · ${serviceTimeLabel(guest.serviceTime)}` : ""}
                   </p>
-                  {(guest.email || guest.phone) && (
-                    <p className="mt-1 text-sm text-night-600">
-                      {guest.email}
-                      {guest.email && guest.phone ? " · " : ""}
-                      {guest.phone}
-                    </p>
-                  )}
                   {guest.status === "new" && Date.now() - new Date(guest.submittedAt).getTime() > 172800000 && <p className="mt-2 text-sm font-semibold text-red-700">Follow-up overdue · more than 48 hours</p>}
-                  {guest.notes && (
-                    <p className="mt-2 whitespace-pre-wrap text-sm text-night-700">{guest.notes}</p>
-                  )}
-                  <p className="mt-2 text-xs text-night-500">
-                    Submitted {new Date(guest.submittedAt).toLocaleString()}
-                  </p>
                 </div>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
@@ -193,24 +180,34 @@ export function GuestQueuePanel({
                 </span>
               </div>
 
-              {isFollowUp && <GuestContactHistory guestId={guest.id} onConnected={() => void loadGuests()} />}
-              <div className="mt-4 flex flex-wrap gap-2">
-                {guest.status !== "contacted" && (
+              {isFollowUp && <button type="button" aria-expanded={expandedGuestId === guest.id} onClick={() => setExpandedGuestId(expandedGuestId === guest.id ? null : guest.id)} className="mt-4 min-h-12 w-full rounded-xl bg-night-900 px-4 py-3 text-left text-sm font-semibold text-white">{expandedGuestId === guest.id ? "Close guest details −" : "Open guest & record follow-up +"}</button>}
+              {(!isFollowUp || expandedGuestId === guest.id) && <div className="mt-4 space-y-3 border-t border-night-900/10 pt-4">
+                <div className="flex flex-wrap gap-2">
+                  {guest.phone && <a href={"tel:" + guest.phone} className="inline-flex min-h-11 items-center rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white">Call</a>}
+                  {guest.phone && <a href={"sms:" + guest.phone} className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold text-night-900">Text</a>}
+                  {guest.email && <a href={"mailto:" + guest.email} className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold text-night-900">Email</a>}
+                </div>
+                {guest.notes && <p className="whitespace-pre-wrap rounded-lg bg-sand-100 p-3 text-sm text-night-700">{guest.notes}</p>}
+                <p className="text-xs text-night-600">Submitted {new Date(guest.submittedAt).toLocaleString()}</p>
+                {isFollowUp && <GuestContactHistory guestId={guest.id} onConnected={() => void loadGuests()} />}
+              <div className="flex flex-wrap gap-2">
+                {!isFollowUp && guest.status !== "contacted" && (
                   <Button variant="secondary" onClick={() => updateStatus(guest.id, "contacted")}>
                     Mark contacted
                   </Button>
                 )}
-                {guest.status !== "archived" && (
+                {permissions.canManageAdmin && guest.status !== "archived" && (
                   <Button variant="secondary" onClick={() => updateStatus(guest.id, "archived")}>
                     Archive
                   </Button>
                 )}
-                {guest.status !== "new" && (
+                {permissions.canManageAdmin && guest.status !== "new" && (
                   <Button variant="secondary" onClick={() => updateStatus(guest.id, "new")}>
                     Move back to new
                   </Button>
                 )}
               </div>
+              </div>}
             </Card>
           ))}
         </div>
