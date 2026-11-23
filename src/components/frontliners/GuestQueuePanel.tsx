@@ -70,6 +70,7 @@ export function GuestQueuePanel({
   const filtered =
     filter === "all" ? guests : guests.filter((guest) => guest.status === filter);
   const newCount = guests.filter((guest) => guest.status === "new").length;
+  const overdueCount = guests.filter((guest) => guest.status === "new" && Date.now() - new Date(guest.submittedAt).getTime() > 172800000).length;
 
   return (
     <div className="space-y-6">
@@ -112,6 +113,7 @@ export function GuestQueuePanel({
         </Card>
       ) : null}
 
+      {isFollowUp && <Card><p className="font-semibold text-night-900">Guest care overview</p><p className="mt-2 text-sm text-night-700">{guests.length} total guests · {newCount} awaiting contact · {overdueCount} overdue (48+ hours)</p></Card>}
       <div className="flex flex-wrap gap-2">
         {(
           [
@@ -161,6 +163,7 @@ export function GuestQueuePanel({
                       {guest.phone}
                     </p>
                   )}
+                  {guest.status === "new" && Date.now() - new Date(guest.submittedAt).getTime() > 172800000 && <p className="mt-2 text-sm font-semibold text-red-700">Follow-up overdue · more than 48 hours</p>}
                   {guest.notes && (
                     <p className="mt-2 whitespace-pre-wrap text-sm text-night-700">{guest.notes}</p>
                   )}
