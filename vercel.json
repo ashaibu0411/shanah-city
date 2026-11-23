@@ -1,5 +1,6 @@
 {
   "crons": [
+    { "path": "/api/cron/follow-up-reminders", "schedule": "0 15 * * *" },
     {
       "path": "/api/cron/fasting-guide",
       "schedule": "0,5,10 14 30 11 *"
