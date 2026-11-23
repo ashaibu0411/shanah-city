@@ -21,9 +21,9 @@ export default async function KidsPickupPage() {
     <main className="mx-auto max-w-2xl space-y-5 px-4 py-8">
       <header>
         <p className="text-sm font-semibold uppercase tracking-wider text-amber-700">Shanah Kids</p>
-        <h1 className="mt-2 text-3xl font-bold">My children's pickup codes</h1>
+        <h1 className="mt-2 text-3xl font-bold">My Kids · Pickup Pass</h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Only your signed-in family account can view these codes. Show the code to an authorized teacher at pickup.
+          Your active pickup passes are saved here while your children are checked in. Open this page again from your check-in notification whenever needed. Show the code to an authorized teacher at pickup.
           Staff must also verify the pickup adult's identity.
         </p>
       </header>
@@ -39,8 +39,9 @@ export default async function KidsPickupPage() {
         </section>
       ))}
       {entries.some((entry) => entry.checkedOutAt) && (
-        <p className="text-sm text-slate-600 dark:text-slate-300">Previously checked-out children no longer have an active pickup code.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300">Past visits are shown below for your records. Pickup codes expire at checkout.</p>
       )}
+      {entries.filter(entry=>entry.checkedOutAt).map(entry=><section key={entry.id} className="rounded-xl border p-4"><h2 className="font-semibold">{entry.childName} · Checked out</h2><p className="text-sm text-slate-600">{entry.ageGroup} · {entry.service}</p><p className="text-xs text-slate-500">Checked in: {new Date(entry.checkedInAt).toLocaleString()} · Checked out: {entry.checkedOutAt?new Date(entry.checkedOutAt).toLocaleString():""}</p></section>)}
     </main>
   );
 }
