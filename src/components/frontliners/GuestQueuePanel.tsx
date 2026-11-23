@@ -1,3 +1,4 @@
+import { GuestContactHistory } from "@/components/frontliners/GuestContactHistory";
 "use client";
 
 import { useEffect, useState } from "react";
@@ -184,6 +185,7 @@ export function GuestQueuePanel({
                 </span>
               </div>
 
+              {isFollowUp && <GuestContactHistory guestId={guest.id} onConnected={() => void loadGuests()} />}
               <div className="mt-4 flex flex-wrap gap-2">
                 {guest.status !== "contacted" && (
                   <Button variant="secondary" onClick={() => updateStatus(guest.id, "contacted")}>
