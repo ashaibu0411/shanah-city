@@ -99,6 +99,11 @@ export async function POST(request: Request) {
       ministryInterest:ministries.includes(body.ministryInterest)?body.ministryInterest:null,
     }});
   }
+  const rating = Number(body.feedbackRating);
+  const feedbackComment = typeof body.feedbackComment === "string" ? body.feedbackComment.trim().slice(0,500) : "";
+  if (guest?.id && Number.isInteger(rating) && rating >= 1 && rating <= 5) {
+    await prisma.guestFeedback.create({data:{guestId:guest.id,rating,comment:feedbackComment||null}});
+  }
   return NextResponse.json({ guest, message: "Thanks for connecting with us!" });
 }
 
