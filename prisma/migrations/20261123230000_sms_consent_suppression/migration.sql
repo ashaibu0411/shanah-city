@@ -1,0 +1,3 @@
+CREATE TABLE "SmsContactState" ("phone" TEXT NOT NULL, "optedOut" BOOLEAN NOT NULL DEFAULT false, "optedOutAt" TIMESTAMP(3), "lastKeyword" TEXT, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "SmsContactState_pkey" PRIMARY KEY ("phone"));
+CREATE TABLE "SmsConsentEvent" ("id" TEXT NOT NULL, "phone" TEXT NOT NULL, "eventType" TEXT NOT NULL, "source" TEXT NOT NULL, "disclosureVersion" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "SmsConsentEvent_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "SmsConsentEvent_phone_createdAt_idx" ON "SmsConsentEvent"("phone","createdAt");
