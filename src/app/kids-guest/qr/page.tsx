@@ -1,3 +1,4 @@
+import { ShareGuestQR } from "@/components/guest/ShareGuestQR";
 import QRCode from "qrcode";
 import Link from "next/link";
 
@@ -16,6 +17,7 @@ export default async function KidsGuestQRPage() {
         <img src={qr} alt="QR code to open Shanah Kids guest arrival form" width={320} height={320} />
       </div>
       <p className="mt-4 font-mono text-sm">shanahcity.org/kids-guest</p>
+      <ShareGuestQR url="https://shanahcity.org/kids-guest" label="Shanah Kids Guest Arrival" />
       <Link href="/kids-guest" className="mt-5 inline-block rounded-xl bg-blue-700 px-6 py-3 font-semibold text-white">Open guest form</Link>
     </main>
   );
