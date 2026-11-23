@@ -12,6 +12,8 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
   const [serviceTime, setServiceTime] = useState("10:00");
   const [isFirstVisit, setIsFirstVisit] = useState(true);
   const [notes, setNotes] = useState("");
+  const [feedbackRating,setFeedbackRating]=useState(0);
+  const [feedbackComment,setFeedbackComment]=useState("");
   const [emailConsent,setEmailConsent]=useState(false);
   const [contactPreference,setContactPreference]=useState("any");
   const [wantsPrayer,setWantsPrayer]=useState(false);
@@ -41,7 +43,7 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
         isFirstVisit,
         notes,
         website,
-        emailConsent,contactPreference,wantsPrayer,wantsPastoralContact,ministryInterest,
+        emailConsent,contactPreference,wantsPrayer,wantsPastoralContact,ministryInterest,feedbackRating,feedbackComment,
       }),
     });
     const data = await response.json();
@@ -59,7 +61,7 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
     setPhone("");
     setVisitDate("");
     setNotes("");
-    setEmailConsent(false);setWantsPrayer(false);setWantsPastoralContact(false);setMinistryInterest("");
+    setFeedbackRating(0);setFeedbackComment("");setEmailConsent(false);setWantsPrayer(false);setWantsPastoralContact(false);setMinistryInterest("");
   }
 
   const fieldClass =
@@ -195,6 +197,7 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
         <label className="block text-sm">I'm interested in<select value={ministryInterest} onChange={e=>setMinistryInterest(e.target.value)} className={fieldClass}><option value="">Select if interested</option><option value="Men of Legacy">Men of Legacy</option><option value="Transformed Women">Transformed Women</option><option value="Young Adults">Young Adults</option><option value="Shanah Worship">Shanah Worship</option><option value="Shanah Kids">Shanah Kids</option><option value="Prayer Ministry">Prayer Ministry</option></select></label>
         <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={emailConsent} onChange={e=>setEmailConsent(e.target.checked)} className="mt-1"/>I agree to receive welcome and follow-up emails from Shanah City. I can unsubscribe at any time.</label>
         </fieldset>
+        <fieldset className="space-y-2 rounded-xl border border-night-900/15 p-3"><legend className="px-1 text-sm font-semibold">Optional guest experience feedback</legend><label className="block text-sm">How welcoming was your visit?<select value={feedbackRating} onChange={e=>setFeedbackRating(Number(e.target.value))} className={fieldClass}><option value={0}>Prefer not to rate</option>{[1,2,3,4,5].map(n=><option key={n} value={n}>{n} of 5</option>)}</select></label><label className="block text-sm">Anything we can improve?<textarea value={feedbackComment} onChange={e=>setFeedbackComment(e.target.value)} maxLength={500} rows={2} className={fieldClass}/></label></fieldset>
         {error && (
           <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
         )}
