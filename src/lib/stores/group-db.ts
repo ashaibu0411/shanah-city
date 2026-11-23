@@ -252,6 +252,7 @@ export async function listGroupsForUser(userId?: string, options?: { mine?: bool
 }
 
 export async function getGroupDetail(groupId: string, userId?: string) {
+  if (CHURCH_MINISTRY_GROUPS.some(group => group.id === groupId)) await ensureChurchGroups();
   const record = await prisma.group.findUnique({ where: { id: groupId } });
   if (!record) {
     return null;
