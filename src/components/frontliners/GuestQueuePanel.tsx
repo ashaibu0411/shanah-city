@@ -1,5 +1,6 @@
 "use client";
 
+import { FollowUpJourney } from "@/components/frontliners/FollowUpJourney";
 import { FollowUpAssignments } from "@/components/frontliners/FollowUpAssignments";
 import { GuestContactHistory } from "@/components/frontliners/GuestContactHistory";
 
@@ -30,6 +31,7 @@ export function GuestQueuePanel({
   const [search, setSearch] = useState("");
   const [expandedGuestId, setExpandedGuestId] = useState<string | null>(null);
   const [showTeam, setShowTeam] = useState(false);
+  const [showJourney, setShowJourney] = useState(false);
 
   const canManage = permissions.canManageGuestSubmissions;
   const isFollowUp = variant === "follow-up";
@@ -122,6 +124,7 @@ export function GuestQueuePanel({
         {[{label:"To contact",value:newCount},{label:"Overdue",value:overdueCount},{label:"Contacted",value:guests.filter(g=>g.status==="contacted").length}].map(item=><div key={item.label} className="rounded-xl bg-white p-3 text-center ring-1 ring-night-900/10"><p className="text-2xl font-bold text-night-900">{item.value}</p><p className="text-xs text-night-600">{item.label}</p></div>)}
       </div>}
       {isFollowUp && <div className="space-y-2"><button type="button" aria-expanded={showTeam} onClick={()=>setShowTeam(!showTeam)} className="min-h-12 w-full rounded-xl border bg-white px-4 py-3 text-left font-semibold text-night-900">Team assignments & tasks {showTeam ? "−" : "+"}</button>{showTeam && !loading && <FollowUpAssignments guests={guests} onChanged={()=>void loadGuests()} />}</div>}
+      {isFollowUp && <div className="space-y-2"><button type="button" aria-expanded={showJourney} onClick={()=>setShowJourney(!showJourney)} className="min-h-12 w-full rounded-xl border bg-white px-4 py-3 text-left font-semibold text-night-900">Guest journey & scheduled callbacks {showJourney ? "−" : "+"}</button>{showJourney && !loading && <FollowUpJourney guests={guests} />}</div>}
       <input aria-label="Search guests" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search guests" className="min-h-12 w-full rounded-xl border bg-white px-4 text-base text-night-900" />
       <div className="flex flex-wrap gap-2">
         {(
