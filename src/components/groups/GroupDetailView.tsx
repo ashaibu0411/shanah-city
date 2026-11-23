@@ -200,7 +200,7 @@ export function GroupDetailView({
   const showChoirHome =
     isChoirGroup && hasMemberAccess && detailSection === "overview" && !detail.trainingPending;
   const showGuestQueueTab =
-    isFollowUpGroup && hasMemberAccess && permissions.canAccessFollowUp;
+    isFollowUpGroup && permissions.canAccessFollowUp && (hasMemberAccess || permissions.canManageAdmin);
   const groupLeaders = useMemo(
     () =>
       detail.members.filter(
@@ -219,7 +219,7 @@ export function GroupDetailView({
   const isSiteAdminManaging = siteAdminGroupOverride;
   const showManageTab =
     (canManageMembers || isSiteAdminManaging) && !detail.trainingPending;
-  const showInfoTab = hasMemberAccess;
+  const showInfoTab = hasMemberAccess || (isFollowUpGroup && permissions.canManageAdmin);
 
   const detailTabs = useMemo(() => {
     const tabs: { id: DetailSection; label: string }[] = [];
@@ -231,7 +231,7 @@ export function GroupDetailView({
 
     if (isPowerCouplesGroup && user) {
       tabs.push({ id: "overview", label: "Home" });
-    } else if (hasMemberAccess) {
+    } else if (hasMemberAccess || (isFollowUpGroup && permissions.canManageAdmin)) {
       tabs.push({ id: "overview", label: "Dashboard" });
     }
     if (showInfoTab) {
