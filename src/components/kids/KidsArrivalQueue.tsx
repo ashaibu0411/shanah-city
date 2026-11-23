@@ -1,0 +1,11 @@
+"use client";
+import {useEffect,useState} from "react";
+type Child={name:string;age:string;allergies:string;careNotes:string;familyMemberId?:string};
+type Arrival={id:string;guardianName:string;phone:string;email:string|null;children:Child[];createdAt:string};
+export function KidsArrivalQueue(){const [rows,setRows]=useState<Arrival[]>([]);const [error,setError]=useState("");const [busy,setBusy]=useState("");
+ async function load(){try{const r=await fetch("/api/kids/arrivals",{cache:"no-store"});const d=await r.json();if(!r.ok)throw Error(d.error||"Unable to load arrivals");setRows(d.arrivals||[])}catch(e){setError(e instanceof Error?e.message:"Unable to load arrivals")}}
+ useEffect(()=>{void load();const timer=setInterval(()=>void load(),10000);return()=>clearInterval(timer)},[]);
+ async function review(id:string){setBusy(id);try{const r=await fetch("/api/kids/arrivals",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,status:"reviewed"})});if(!r.ok)throw Error("Only a Kids Ministry leader can mark reviewed");await load()}catch(e){setError(e instanceof Error?e.message:"Unable to update")}finally{setBusy("")}}
+ return <section className="space-y-3 rounded-2xl border bg-white p-4"><h2 className="text-xl font-bold">QR arrivals awaiting teacher check-in</h2><p className="text-sm text-night-600">Verify each guardian in person, confirm safety details, then check children in using the existing teacher check-in workflow. Mark reviewed only after verification and check-in.</p>{rows.length===0&&<p className="text-sm">No pending QR arrivals.</p>}
+ {rows.map(r=><div key={r.id} className="space-y-2 rounded-xl border p-3"><p className="font-bold">{r.guardianName} · Ref {r.id.slice(-8).toUpperCase()}</p><p className="text-sm">{r.phone}{r.email?" · "+r.email:""}</p>{r.children.map((c,i)=><div key={i} className="rounded-lg bg-sand-100 p-3 text-sm"><p className="font-semibold">{c.name}{c.age?" · "+c.age:""}</p>{c.allergies&&<p>Allergies: {c.allergies}</p>}{c.careNotes&&<p>Care notes: {c.careNotes}</p>}</div>)}<button type="button" disabled={busy===r.id} onClick={()=>void review(r.id)} className="min-h-11 rounded-xl border px-4 font-semibold">Mark verified and checked in</button></div>)}
+ {error&&<p role="alert" className="text-sm text-red-700">{error}</p>}</section>}
