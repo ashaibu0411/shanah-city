@@ -93,6 +93,10 @@ export async function POST(request: Request) {
     await prisma.guestCareProfile.create({data:{
       guestId:guest.id,
       emailConsent:body.emailConsent===true,
+      smsConsent:body.smsConsent===true,
+      smsConsentAt:body.smsConsent===true?new Date():null,
+      smsConsentSource:body.smsConsent===true?"guest-web-form":null,
+      smsConsentDisclosureVersion:body.smsConsent===true?"2026-11-23":null,
       contactPreference:preferences.includes(body.contactPreference)?body.contactPreference:"any",
       wantsPrayer:body.wantsPrayer===true,
       wantsPastoralContact:body.wantsPastoralContact===true,
