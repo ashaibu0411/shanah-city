@@ -20,6 +20,8 @@ export async function GET(request: Request) {
   if (!guestId || guestId.length > 120) return NextResponse.json({ error: "Guest ID required." }, { status: 400 });
   const guest = await prisma.guestSubmission.findUnique({ where: { id: guestId }, select: { id: true } });
   if (!guest) return NextResponse.json({ error: "Guest not found." }, { status: 404 });
+  const assignment = await prisma.guestFollowUpAssignment.findUnique({ where: { guestId } });
+  if (!(await canManageFollowUp(user)) && assignment?.workerId !== user.id) return NextResponse.json({ error: "This guest is not assigned to you." }, { status: 403 });
   const activities = await prisma.guestFollowUpActivity.findMany({ where: { guestId }, orderBy: { createdAt: "desc" }, take: 100 });
   return NextResponse.json({ activities });
 }
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
   const guest = await prisma.guestSubmission.findUnique({ where: { id: guestId }, select: { id: true } });
   if (!guest) return NextResponse.json({ error: "Guest not found." }, { status: 404 });
   const assignment = await prisma.guestFollowUpAssignment.findUnique({ where: { guestId } });
-  if (assignment && assignment.workerId !== user.id && !(await canManageFollowUp(user))) return NextResponse.json({ error: "This guest is assigned to another worker." }, { status: 403 });
+  if (!(await canManageFollowUp(user)) && assignment?.workerId !== user.id) return NextResponse.json({ error: "This guest is assigned to another worker." }, { status: 403 });
   const activity = await prisma.guestFollowUpActivity.create({
     data: { guestId, kind, outcome, note: note || null, actorId: user.id, actorName: user.name },
   });
