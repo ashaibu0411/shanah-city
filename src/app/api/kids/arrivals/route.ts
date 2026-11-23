@@ -1,4 +1,4 @@
-import {createHash,randomBytes} from "node:crypto";import {cookies} from "next/headers";import {NextResponse} from "next/server";import {prisma} from "@/lib/db";import {getUserFromSession,SESSION_COOKIE} from "@/lib/auth-server";import {canAccessKidsMinistry,canManageKidsMinistry} from "@/lib/kids-access-server";import {enforceRateLimit,getClientIp,rateLimitResponse} from "@/lib/rate-limit-server";
+import type {Prisma} from "@prisma/client";import {createHash,randomBytes} from "node:crypto";import {cookies} from "next/headers";import {NextResponse} from "next/server";import {prisma} from "@/lib/db";import {getUserFromSession,SESSION_COOKIE} from "@/lib/auth-server";import {canAccessKidsMinistry,canManageKidsMinistry} from "@/lib/kids-access-server";import {enforceRateLimit,getClientIp,rateLimitResponse} from "@/lib/rate-limit-server";
 const digest=(token:string)=>createHash("sha256").update(token).digest("hex");
 export async function GET(request:Request){
  const token=new URL(request.url).searchParams.get("token")||"";
@@ -66,7 +66,7 @@ export async function PUT(request:Request){
   if(current.concat(added).some(x=>String(x.name).toLowerCase()===name.toLowerCase()))return NextResponse.json({error:"Child already added to this arrival"},{status:409});
   added.push({name,age,allergies:String(raw.allergies||"").trim().slice(0,300),careNotes:String(raw.careNotes||"").trim().slice(0,300),familyMemberId:known?.id||null});
  }
- const updated=await prisma.kidsArrivalRequest.updateMany({where:{id:row.id,status:"pending"},data:{children:[...current,...added]}});
+ const updated=await prisma.kidsArrivalRequest.updateMany({where:{id:row.id,status:"pending"},data:{children:[...current,...added] as Prisma.InputJsonValue}});
  if(!updated.count)return NextResponse.json({error:"Arrival changed; please retry"},{status:409});
  return NextResponse.json({reference:row.id.slice(-8).toUpperCase(),childCount:current.length+added.length});
 }
