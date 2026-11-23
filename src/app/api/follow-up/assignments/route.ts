@@ -55,5 +55,10 @@ export async function POST(request: Request) {
     create: { guestId, workerId, workerName: eligible.name, assignedById: user.id, dueAt, completedAt: guest.status === "contacted" ? new Date() : null },
     update: { workerId, workerName: eligible.name, assignedById: user.id, assignedAt: new Date(), dueAt, completedAt: guest.status === "contacted" ? new Date() : null },
   });
+  await prisma.pushInboxItem.upsert({
+    where: { userId_dedupeKey: { userId: workerId, dedupeKey: `follow-up-assigned:${guestId}:${assignment.assignedAt.toISOString()}` } },
+    create: { userId: workerId, dedupeKey: `follow-up-assigned:${guestId}:${assignment.assignedAt.toISOString()}`, title: "New guest follow-up assigned", body: `A guest has been assigned to you. Please make contact by ${dueAt.toLocaleDateString("en-US")}.`, href: "/follow-up/guests" },
+    update: {},
+  });
   return NextResponse.json({ assignment });
 }
