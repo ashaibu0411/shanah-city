@@ -1,0 +1,3 @@
+CREATE TABLE "GuestReturnVisit" ("id" TEXT NOT NULL,"guestId" TEXT NOT NULL,"visitDate" TEXT NOT NULL,"recordedById" TEXT NOT NULL,"recordedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "GuestReturnVisit_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "GuestReturnVisit_guestId_visitDate_key" ON "GuestReturnVisit"("guestId","visitDate");
+CREATE INDEX "GuestReturnVisit_visitDate_idx" ON "GuestReturnVisit"("visitDate");
