@@ -27,6 +27,9 @@ export function GuestQueuePanel({
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<GuestSubmissionStatus | "all">("new");
+  const [search, setSearch] = useState("");
+  const [expandedGuestId, setExpandedGuestId] = useState<string | null>(null);
+  const [showTeam, setShowTeam] = useState(false);
 
   const canManage = permissions.canManageGuestSubmissions;
   const isFollowUp = variant === "follow-up";
@@ -70,8 +73,7 @@ export function GuestQueuePanel({
     );
   }
 
-  const filtered =
-    filter === "all" ? guests : guests.filter((guest) => guest.status === filter);
+  const filtered = guests.filter(g => (filter === "all" || g.status === filter) && (g.name + " " + (g.email ?? "") + " " + (g.phone ?? "")).toLowerCase().includes(search.toLowerCase().trim()));
   const newCount = guests.filter((guest) => guest.status === "new").length;
   const overdueCount = guests.filter((guest) => guest.status === "new" && Date.now() - new Date(guest.submittedAt).getTime() > 172800000).length;
 
@@ -116,8 +118,11 @@ export function GuestQueuePanel({
         </Card>
       ) : null}
 
-      {isFollowUp && <Card><p className="font-semibold text-night-900">Guest care overview</p><p className="mt-2 text-sm text-night-700">{guests.length} total guests · {newCount} awaiting contact · {overdueCount} overdue (48+ hours)</p></Card>}
-      {isFollowUp && !loading && <FollowUpAssignments guests={guests} onChanged={() => void loadGuests()} />}
+      {isFollowUp && <div className="grid grid-cols-3 gap-2">
+        {[{label:"To contact",value:newCount},{label:"Overdue",value:overdueCount},{label:"Contacted",value:guests.filter(g=>g.status==="contacted").length}].map(item=><div key={item.label} className="rounded-xl bg-white p-3 text-center ring-1 ring-night-900/10"><p className="text-2xl font-bold text-night-900">{item.value}</p><p className="text-xs text-night-600">{item.label}</p></div>)}
+      </div>}
+      {isFollowUp && <div className="space-y-2"><button type="button" aria-expanded={showTeam} onClick={()=>setShowTeam(!showTeam)} className="min-h-12 w-full rounded-xl border bg-white px-4 py-3 text-left font-semibold text-night-900">Team assignments & tasks {showTeam ? "−" : "+"}</button>{showTeam && !loading && <FollowUpAssignments guests={guests} onChanged={()=>void loadGuests()} />}</div>}
+      <input aria-label="Search guests" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search guests" className="min-h-12 w-full rounded-xl border bg-white px-4 text-base text-night-900" />
       <div className="flex flex-wrap gap-2">
         {(
           [
