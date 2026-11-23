@@ -354,7 +354,6 @@ export async function POST(request: Request) {
       });
       const entry = await addKidCheckIn({ id: `kid-${randomUUID()}`, ...payload });
       void notifyKidsCheckIn(entry);
-    void notifyGuardianKidsCheckIn(entry);
       void notifyGuardianKidsCheckIn(entry);
       return NextResponse.json({ checkin: entry }, { status: 201 });
     }
@@ -392,6 +391,7 @@ export async function POST(request: Request) {
       checkedInAt: new Date().toISOString(),
     });
     void notifyKidsCheckIn(entry);
+    // Guest check-ins have no verified linked app guardian to notify.
     return NextResponse.json({ checkin: entry }, { status: 201 });
   }
 
