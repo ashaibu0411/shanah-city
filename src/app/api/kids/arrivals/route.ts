@@ -1,4 +1,4 @@
-import type {Prisma} from "@prisma/client";import {createHash,randomBytes} from "node:crypto";import {cookies} from "next/headers";import {NextResponse} from "next/server";import {prisma} from "@/lib/db";import {getUserFromSession,SESSION_COOKIE} from "@/lib/auth-server";import {canAccessKidsMinistry,canManageKidsMinistry} from "@/lib/kids-access-server";import {enforceRateLimit,getClientIp,rateLimitResponse} from "@/lib/rate-limit-server";
+import type {Prisma} from "@prisma/client";import {createHash,randomBytes} from "node:crypto";import {cookies} from "next/headers";import {NextResponse} from "next/server";import {prisma} from "@/lib/db";import {getUserFromSession,SESSION_COOKIE} from "@/lib/auth-server";import {canAccessKidsMinistry,canManageKidsMinistry} from "@/lib/kids-access-server";import {getKidCheckIns} from "@/lib/member-server";import {enforceRateLimit,getClientIp,rateLimitResponse} from "@/lib/rate-limit-server";
 const digest=(token:string)=>createHash("sha256").update(token).digest("hex");
 export async function GET(request:Request){
  const token=new URL(request.url).searchParams.get("token")||"";
@@ -9,7 +9,7 @@ export async function GET(request:Request){
  }
 
  const user=await getUserFromSession((await cookies()).get(SESSION_COOKIE)?.value);if(!user||!(await canAccessKidsMinistry(user)))return NextResponse.json({error:"Access denied"},{status:403});
- const arrivals=await prisma.kidsArrivalRequest.findMany({where:{status:"pending"},orderBy:{createdAt:"desc"},take:100});
+ const arrivals=await prisma.kidsArrivalRequest.findMany({where:{createdAt:{gte:new Date(Date.now()-7*86400000)}},orderBy:{createdAt:"desc"},take:100});
  return NextResponse.json({arrivals});
 }
 export async function POST(request:Request){
@@ -39,6 +39,14 @@ export async function POST(request:Request){
 export async function PATCH(request:Request){
  const user=await getUserFromSession((await cookies()).get(SESSION_COOKIE)?.value);if(!user||!(await canManageKidsMinistry(user)))return NextResponse.json({error:"Leader access required"},{status:403});
  const b=await request.json().catch(()=>null);if(!["reviewed","cancelled"].includes(b?.status)||typeof b?.id!=="string")return NextResponse.json({error:"Invalid request"},{status:400});
+ const arrival=await prisma.kidsArrivalRequest.findUnique({where:{id:b.id}});
+ if(!arrival)return NextResponse.json({error:"Arrival not found"},{status:404});
+ if(b.status==="reviewed"){
+  const checkins=await getKidCheckIns();
+  const children=Array.isArray(arrival.children)?arrival.children as {name?:string}[]:[];
+  const allCheckedIn=children.length>0&&children.every(child=>checkins.some(entry=>entry.childName.trim().toLowerCase()===String(child.name||"").trim().toLowerCase()&&entry.parentName.trim().toLowerCase()===arrival.guardianName.trim().toLowerCase()&&new Date(entry.checkedInAt).getTime()>=arrival.createdAt.getTime()-60000));
+  if(!allCheckedIn)return NextResponse.json({error:"Not all children have an official check-in. Use the Check in child form first; this family will remain visible."},{status:409});
+ }
  const result=await prisma.kidsArrivalRequest.updateMany({where:{id:b.id,status:"pending"},data:{status:b.status,reviewedAt:new Date(),reviewedById:user.id}});
  return NextResponse.json({updated:result.count});
 }
