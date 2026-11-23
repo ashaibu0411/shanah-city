@@ -1,3 +1,5 @@
+import { prisma } from "@/lib/db";
+import { normalizeUsPhone } from "@/lib/sms-server";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
@@ -23,6 +25,19 @@ export async function POST(request: Request) {
       title: String(body.title ?? ""),
       detail: String(body.detail ?? ""),
     });
+    if (body.channel === "whatsapp") {
+      const phone = normalizeUsPhone(String(body.phone ?? ""));
+      const consent = phone ? await prisma.whatsAppContactState.findUnique({ where: { phone } }) : null;
+      const configured = Boolean(process.env.TWILIO_WHATSAPP_SENDER && process.env.TWILIO_ACCOUNT_SID);
+      return NextResponse.json({
+        ...draft,
+        channel: "whatsapp",
+        eligible: false,
+        whatsAppOptedIn: consent?.optedIn === true,
+        senderConfigured: configured,
+        notice: "WhatsApp preview only. No message sent. Approved WhatsApp sender and templates are required before launch.",
+      }, { headers: { "Cache-Control": "no-store" } });
+    }
     return NextResponse.json({ ...draft, notice: "Preview only. No text message was sent." }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to prepare message." }, { status: 400 });
