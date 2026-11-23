@@ -51,7 +51,7 @@ export function resolvePublicLiveStreamDisplay(
     return { schedule: active, livePhase: "live" };
   }
 
-  const upcoming = filterUpcomingLiveStreamSchedules(sorted, now)[0] ?? null;
+  // Keep the next countdown hidden until two hours after the previous service ends.\n  // Scheduled services run three hours: Friday/Wednesday 7–10 PM and Sunday 10 AM–1 PM.\n  const latestEnded = [...sorted].reverse().find((item) => {\n    const started = Date.parse(item.startsAt);\n    return Number.isFinite(started) && started + windowMs <= nowMs;\n  });\n  if (latestEnded && nowMs < Date.parse(latestEnded.startsAt) + windowMs + 2 * 60 * 60 * 1000) {\n    return { schedule: null, livePhase: null };\n  }\n  const upcoming = filterUpcomingLiveStreamSchedules(sorted, now)[0] ?? null;
   if (upcoming) {
     return { schedule: upcoming, livePhase: "upcoming" };
   }
