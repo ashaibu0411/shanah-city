@@ -1,3 +1,6 @@
+import { prisma } from "@/lib/db";
+import { canAccessFollowUp, canManageFollowUp } from "@/lib/follow-up-access-server";
+import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { canManageGuestSubmissions } from "@/lib/frontliners-access-server";
@@ -29,7 +32,11 @@ export async function GET() {
   }
 
   const guests = await listGuestSubmissions();
-  return NextResponse.json({ guests });
+  if (await canManageAsAdmin(user) || await canManageFollowUp(user)) return NextResponse.json({ guests });
+  if (!(await canAccessFollowUp(user))) return NextResponse.json({ guests: [] });
+  const assigned = await prisma.guestFollowUpAssignment.findMany({ where: { workerId: user.id }, select: { guestId: true } });
+  const allowedIds = new Set(assigned.map(item => item.guestId));
+  return NextResponse.json({ guests: guests.filter(guest => allowedIds.has(guest.id)) });
 }
 
 export async function POST(request: Request) {
@@ -100,6 +107,9 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Guest id and status are required." }, { status: 400 });
   }
 
+  if (!(await canManageAsAdmin(user)) && !(await canManageFollowUp(user))) {
+    return NextResponse.json({ error: "Only Follow-Up Ministry leaders can change guest status. Record a contact outcome instead." }, { status: 403 });
+  }
   const guest = await updateGuestSubmission(id, {
     status,
     reviewedBy: user.id,
