@@ -2,7 +2,7 @@ import { site } from "@/lib/site";
 
 export const privacyPolicyMeta = {
   effectiveDate: "August 17, 2026",
-  lastUpdated: "August 17, 2026",
+  lastUpdated: "November 23, 2026",
   contactEmail: site.email,
   churchName: site.name,
   address: site.address,
@@ -64,7 +64,7 @@ export const privacyPolicySections: PrivacySection[] = [
     bullets: [
       "With other members when you choose to post publicly, join groups, send messages, or appear in ministry schedules visible to authorized teams.",
       "With church leaders and admins who need access to carry out ministry operations (for example, guest follow-up, approvals, finance records, or usher schedules).",
-      "With service providers that help us run the App, including hosting (Vercel), database storage (Neon PostgreSQL), file storage (Vercel Blob), email delivery (Resend for password reset), and payment processors for online giving.",
+      "With service providers that help us run the App, including hosting (Vercel), database storage (Neon PostgreSQL), file storage (Vercel Blob), email delivery (Resend), SMS delivery (Twilio), and payment processors for online giving.",
       "When required by law, court order, or to protect the safety of our community.",
     ],
   },
@@ -74,6 +74,15 @@ export const privacyPolicySections: PrivacySection[] = [
     paragraphs: [
       "The App may link to or embed content from YouTube, Facebook, Instagram, and other external giving or streaming services. Those services have their own privacy policies. Information you provide directly to them is governed by their terms, not this policy.",
       "When you tap to give through Cash App, Venmo, PayPal, Zelle, Stripe, or another external provider, you leave our in-app browser or are redirected to that provider’s platform.",
+    ],
+  },
+  {
+    id: "sms-privacy",
+    title: "SMS messaging and consent",
+    paragraphs: [
+      "If you separately opt in to receive Shanah City text messages, we use your phone number to send the types of messages described on the consent form, such as church announcements, service reminders, and guest follow-up. Consent is optional and is not a condition of attending services or using our website.",
+      "We do not sell or share SMS opt-in data or consent information with third parties or affiliates for their marketing or promotional purposes. Mobile information will not be shared with third parties or affiliates for marketing or promotional purposes. Text messaging originator opt-in data and consent are excluded from all other categories of data sharing, except with messaging providers and carriers as necessary to deliver messages.",
+      "Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for assistance, or contact us at the email or phone number below. We maintain consent records to honor your preferences.",
     ],
   },
   {
