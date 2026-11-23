@@ -1,0 +1,1 @@
+CREATE TABLE "GuestCareChecklist" ("serviceDate" TEXT NOT NULL,"completedSteps" JSONB NOT NULL,"updatedById" TEXT NOT NULL,"updatedAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "GuestCareChecklist_pkey" PRIMARY KEY ("serviceDate"));
