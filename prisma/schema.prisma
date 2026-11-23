@@ -1139,6 +1139,10 @@ model GuestFeedback {
 model GuestCareProfile {
   guestId String @id
   emailConsent Boolean @default(false)
+  smsConsent Boolean @default(false)
+  smsConsentAt DateTime?
+  smsConsentSource String?
+  smsConsentDisclosureVersion String?
   contactPreference String @default("any")
   wantsPrayer Boolean @default(false)
   wantsPastoralContact Boolean @default(false)
