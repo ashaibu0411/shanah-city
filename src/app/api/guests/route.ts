@@ -36,7 +36,7 @@ export async function GET() {
   if (!(await canAccessFollowUp(user))) return NextResponse.json({ guests: [] });
   const assigned = await prisma.guestFollowUpAssignment.findMany({ where: { workerId: user.id }, select: { guestId: true } });
   const allowedIds = new Set(assigned.map(item => item.guestId));
-  return NextResponse.json({ guests: guests.filter(guest => allowedIds.has(guest.id)) });
+  return NextResponse.json({ guests: guests.filter(guest => allowedIds.has(guest.id)).map(guest => ({ ...guest, notes: null })) });
 }
 
 export async function POST(request: Request) {
