@@ -41,7 +41,7 @@ export async function POST(request:Request){
  if(!alert)return NextResponse.json({error:"Alert not found"},{status:404});
  if(!active.includes(alert.status)||alert.expiresAt<new Date())return NextResponse.json({error:"Alert expired or closed"},{status:409});
  const activeCheckin=(await getKidCheckIns()).some(x=>x.id===alert.checkInId&&!x.checkedOutAt);
- if(!activeCheckin)return NextResponse.json({error:"Child is no longer checked in. Close the alert."},{status:409});
+ if(!activeCheckin&&action!=="resolve"&&action!=="cancel")return NextResponse.json({error:"Child is no longer checked in. Close the alert."},{status:409});
  if(action==="escalate"){
   if(!a.kids)return NextResponse.json({error:"Kids access required"},{status:403});
   if(alert.status!=="requested")return NextResponse.json({error:"Already escalated"},{status:409});
