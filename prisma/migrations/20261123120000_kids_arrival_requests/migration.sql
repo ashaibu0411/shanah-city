@@ -1,0 +1,2 @@
+CREATE TABLE "KidsArrivalRequest" ("id" TEXT NOT NULL,"guardianName" TEXT NOT NULL,"phone" TEXT NOT NULL,"email" TEXT,"parentUserId" TEXT,"children" JSONB NOT NULL,"status" TEXT NOT NULL DEFAULT 'pending',"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"reviewedAt" TIMESTAMP(3),"reviewedById" TEXT,CONSTRAINT "KidsArrivalRequest_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "KidsArrivalRequest_status_createdAt_idx" ON "KidsArrivalRequest"("status","createdAt");
