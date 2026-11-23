@@ -2,11 +2,16 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, getUsers, SESSION_COOKIE } from "@/lib/auth-server";
 import { canAccessKidsMinistry } from "@/lib/kids-access-server";
+import { resolveKidsMinistryScope } from "@/lib/kids-ministry-policy-server";
+import { KIDS_SERVICES } from "@/lib/kids-types";
+import { getServiceDateLabel } from "@/lib/kids-workspace-server";
 
 export async function GET() {
   const user = await getUserFromSession((await cookies()).get(SESSION_COOKIE)?.value);
   if (!user) return NextResponse.json({error:"Sign in required"},{status:401});
   if (!(await canAccessKidsMinistry(user))) return NextResponse.json({error:"Kids ministry access required"},{status:403});
+  const scope = await resolveKidsMinistryScope(user, KIDS_SERVICES[1], getServiceDateLabel());
+  if (!scope.canManage && !scope.canCheckIn) return NextResponse.json({error:"Confirmed check-in assignment required"},{status:403});
   const users = await getUsers();
   const children = users.flatMap(parent=>(parent.family??[])
     .filter(member=>member.relationship==="child" && member.name.trim())
@@ -16,7 +21,7 @@ export async function GET() {
       birthYear:member.birthYear,
       parentUserId:parent.id,
       parentName:parent.name,
-      parentPhone:parent.phone??null,
+
       hasAllergyAlert:Boolean(member.allergies?.trim()),
       hasMedicalAlert:Boolean(member.medicalNotes?.trim()),
     })));
