@@ -1,5 +1,6 @@
-import { GuestContactHistory } from "@/components/frontliners/GuestContactHistory";
 "use client";
+
+import { GuestContactHistory } from "@/components/frontliners/GuestContactHistory";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
