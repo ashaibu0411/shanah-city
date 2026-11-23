@@ -3,13 +3,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { canAccessFollowUp, canManageFollowUp } from "@/lib/follow-up-access-server";
-import { canManageGuestSubmissions } from "@/lib/frontliners-access-server";
 import { enforceRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit-server";
 
 async function authorize() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
-  if (!user || !(await canManageGuestSubmissions(user)) || !(await canAccessFollowUp(user))) return null;
+  if (!user || !(await canAccessFollowUp(user))) return null;
   return user;
 }
 
