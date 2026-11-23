@@ -1,0 +1,6 @@
+CREATE TABLE "KidsParentAlert" ("id" TEXT NOT NULL,"checkInId" TEXT NOT NULL,"displayCode" TEXT NOT NULL,"status" TEXT NOT NULL DEFAULT 'requested',"requestedById" TEXT NOT NULL,"requestedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"escalatedAt" TIMESTAMP(3),"approvedById" TEXT,"approvedAt" TIMESTAMP(3),"displayedAt" TIMESTAMP(3),"resolvedById" TEXT,"resolvedAt" TIMESTAMP(3),"expiresAt" TIMESTAMP(3) NOT NULL,CONSTRAINT "KidsParentAlert_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "KidsParentAlert_displayCode_key" ON "KidsParentAlert"("displayCode");
+CREATE INDEX "KidsParentAlert_status_requestedAt_idx" ON "KidsParentAlert"("status","requestedAt");
+CREATE INDEX "KidsParentAlert_checkInId_status_idx" ON "KidsParentAlert"("checkInId","status");
+CREATE TABLE "KidsParentAlertAudit" ("id" TEXT NOT NULL,"alertId" TEXT NOT NULL,"action" TEXT NOT NULL,"actorId" TEXT NOT NULL,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "KidsParentAlertAudit_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "KidsParentAlertAudit_alertId_createdAt_idx" ON "KidsParentAlertAudit"("alertId","createdAt");
