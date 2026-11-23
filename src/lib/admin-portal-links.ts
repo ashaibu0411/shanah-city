@@ -25,6 +25,12 @@ export const ADMIN_PORTAL_LINKS = [
     adminOnly: true,
   },
   {
+    href: "/admin/sms-notifications",
+    label: "Shanah City Notifications",
+    description: "Preview SMS announcements, event reminders, visitor follow-ups and private Kids Ministry alerts; sending remains disabled",
+    adminOnly: true,
+  },
+  {
     href: "/admin/comms",
     label: "Comms",
     description: "Calendar and ministry requests",
