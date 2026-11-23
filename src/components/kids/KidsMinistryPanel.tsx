@@ -98,6 +98,8 @@ export function KidsMinistryPanel({
   const [lastCheckin, setLastCheckin] = useState<{ childName: string; securityCode: string } | null>(null);
   const [pickupId, setPickupId] = useState("");
   const [securityCode, setSecurityCode] = useState("");
+  const [pickupAdultName, setPickupAdultName] = useState("");
+  const [photoIdVerified, setPhotoIdVerified] = useState(false);
 
   const [lessonAgeGroup, setLessonAgeGroup] = useState("");
   const [lessonTitle, setLessonTitle] = useState("");
@@ -257,6 +259,8 @@ export function KidsMinistryPanel({
         action: "verify-checkout",
         id: pickupId,
         securityCode,
+        pickupAdultName,
+        photoIdVerified,
       }),
     });
     const payload = await response.json();
@@ -267,6 +271,8 @@ export function KidsMinistryPanel({
     setMessage(`${payload.checkin.childName} checked out with verified pickup code.`);
     setPickupId("");
     setSecurityCode("");
+    setPickupAdultName("");
+    setPhotoIdVerified(false);
     load();
   }
 
@@ -795,7 +801,7 @@ export function KidsMinistryPanel({
                   <option value="">Select checked-in child</option>
                   {data.roster.map((entry) => (
                     <option key={entry.id} value={entry.id}>
-                      {entry.childName} · Code {entry.securityCode}
+                      {entry.childName}
                     </option>
                   ))}
                 </select>
@@ -806,7 +812,10 @@ export function KidsMinistryPanel({
                   className="rounded-xl border border-night-900/10 bg-sand-50 px-3 py-2.5 text-sm"
                 />
               </div>
-              <Button className="mt-4" onClick={verifyPickup} disabled={!pickupId || !securityCode.trim()}>
+              <label className="mt-3 block text-sm font-semibold">Full name on photo ID<input value={pickupAdultName} onChange={e=>setPickupAdultName(e.target.value)} placeholder="Approved pickup adult name" className="mt-1 w-full rounded-xl border p-3"/></label>
+              <label className="mt-3 flex items-start gap-2 text-sm"><input type="checkbox" checked={photoIdVerified} onChange={e=>setPhotoIdVerified(e.target.checked)}/><span>I personally checked the adult’s photo ID against the approved pickup list. The adult is authorized and there is no known safety restriction.</span></label>
+              <p className="mt-2 text-sm text-red-700">If the adult is not approved, do not release the child. Contact the verified guardian and Kids Ministry leader.</p>
+              <Button className="mt-4" onClick={verifyPickup} disabled={!pickupId || !securityCode.trim() || !pickupAdultName.trim() || !photoIdVerified}>
                 Verify & check out
               </Button>
             </Card>
