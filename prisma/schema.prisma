@@ -439,6 +439,19 @@ model VolunteerCheckIn {
   distanceMeters Float
 }
 
+model KidsArrivalRequest {
+ id String @id @default(cuid())
+ guardianName String
+ phone String
+ email String?
+ parentUserId String?
+ children Json
+ status String @default("pending")
+ createdAt DateTime @default(now())
+ reviewedAt DateTime?
+ reviewedById String?
+ @@index([status,createdAt])
+}
 model KidsParentAlert {
  id String @id @default(cuid())
  checkInId String
