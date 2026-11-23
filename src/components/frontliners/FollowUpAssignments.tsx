@@ -37,13 +37,14 @@ export function FollowUpAssignments({ guests, onChanged }: { guests: { id: strin
    <div><h3 className="font-display text-lg font-semibold text-night-900">{isLeader ? "Worker assignments" : "My follow-up assignments"}</h3><p className="text-sm text-night-600">{pending.length} open · {overdue.length} overdue</p></div>
    <button type="button" onClick={() => void load()} className="rounded-lg border px-3 py-2 text-sm font-semibold">Refresh</button>
   </div>
-  {isLeader && <div className="space-y-2">
+  {isLeader && workers.length === 0 && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">No active follow-up workers yet. Open Follow-Up Ministry → Manage to add team members and assign a leader. Assignments will become available after their access is approved.</p>}
+  {isLeader && workers.length > 0 && <div className="space-y-2">
    <p className="text-sm font-semibold text-night-800">Assign a guest to an active follow-up worker</p>
    {guests.filter(g => g.status === "new").map(g => {
     const current = assignments.find(a => a.guestId === g.id);
     return <div key={g.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-sand-100 p-3">
      <span className="text-sm font-semibold text-night-900">{g.name}{current ? " · " + current.workerName : " · Unassigned"}</span>
-     <select aria-label={"Assign " + g.name} disabled={busy === g.id} value={current?.workerId ?? ""} onChange={e => void assign(g.id,e.target.value)} className="max-w-full rounded-lg border bg-white p-2 text-sm text-night-900">
+     <select aria-label={"Assign " + g.name} disabled={busy === g.id} value={current?.workerId ?? ""} onChange={e => void assign(g.id,e.target.value)} className="min-h-11 w-full max-w-full rounded-lg border bg-white p-2 text-sm text-night-900">
       <option value="">Select worker</option>{workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
      </select>
     </div>;
