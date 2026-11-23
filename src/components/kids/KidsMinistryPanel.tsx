@@ -7,6 +7,7 @@ import type {
   KidsRosterEntry,
   KidsRoomHeadcount,
 } from "@/lib/kids-types";
+import { KidsParentAlerts } from "@/components/kids/KidsParentAlerts";
 import { Button, Card } from "@/components/ui";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { KidsChildSearchResult } from "@/lib/kids-workspace-types";
@@ -653,6 +654,7 @@ export function KidsMinistryPanel({
           )}
           {tab === "roster" && (
             <div className="space-y-6">
+              <KidsParentAlerts roster={(data.rosterForRoom ?? data.roster).map(entry=>({id:entry.id,childName:entry.childName,securityCode:entry.securityCode}))} />
               {data.roster.some((e) => e.hasAllergyAlert || e.hasMedicalAlert) && (
                 <Card className="border-amber-200 bg-amber-50">
                   <h2 className="font-display text-lg font-semibold text-amber-950">
