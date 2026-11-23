@@ -17,7 +17,7 @@ import {
   toRosterEntry,
 } from "@/lib/kids-server";
 import { KIDS_AGE_GROUPS, KIDS_SERVICES, getWeekStarting } from "@/lib/kids-types";
-import { notifyKidsCheckIn, notifyKidsIncident, notifyKidsLessonPublished } from "@/lib/kids-notify-server";
+import { notifyKidsCheckIn, notifyKidsIncident, notifyKidsLessonPublished, notifyGuardianKidsCheckIn, notifyGuardianKidsCheckOut } from "@/lib/kids-notify-server";
 import { addKidCheckIn, getKidCheckIns } from "@/lib/member-server";
 import type { KidsLessonCurriculum } from "@/lib/kids-workspace-types";
 import {
@@ -354,6 +354,8 @@ export async function POST(request: Request) {
       });
       const entry = await addKidCheckIn({ id: `kid-${randomUUID()}`, ...payload });
       void notifyKidsCheckIn(entry);
+    void notifyGuardianKidsCheckIn(entry);
+      void notifyGuardianKidsCheckIn(entry);
       return NextResponse.json({ checkin: entry }, { status: 201 });
     }
 
@@ -404,6 +406,7 @@ export async function POST(request: Request) {
     if (!checkout.ok) {
       return NextResponse.json({ error: checkout.error }, { status: checkout.status });
     }
+    void notifyGuardianKidsCheckOut(checkout.checkin);
     return NextResponse.json({ checkin: checkout.checkin });
   }
 
