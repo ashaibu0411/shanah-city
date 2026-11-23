@@ -27,7 +27,7 @@ export async function GET() {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   const user = await getUserFromSession(token);
 
-  if (!user || !(await canManageGuestSubmissions(user))) {
+  if (!user || (!(await canManageGuestSubmissions(user)) && !(await canAccessFollowUp(user)))) {
     return NextResponse.json({ error: "Guest follow-up access required." }, { status: 403 });
   }
 
