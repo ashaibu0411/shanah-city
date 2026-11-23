@@ -1,0 +1,3 @@
+CREATE TABLE "FollowUpWorkerAvailability" ("userId" TEXT NOT NULL,"available" BOOLEAN NOT NULL DEFAULT true,"updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "FollowUpWorkerAvailability_pkey" PRIMARY KEY ("userId"));
+CREATE TABLE "GuestFeedback" ("id" TEXT NOT NULL,"guestId" TEXT NOT NULL,"rating" INTEGER NOT NULL,"comment" TEXT,"wantsContact" BOOLEAN NOT NULL DEFAULT false,"createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "GuestFeedback_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "GuestFeedback_guestId_createdAt_idx" ON "GuestFeedback"("guestId","createdAt");
