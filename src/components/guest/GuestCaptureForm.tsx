@@ -17,6 +17,7 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
   const [feedbackComment,setFeedbackComment]=useState("");
   const [emailConsent,setEmailConsent]=useState(false);
   const [smsConsent,setSmsConsent]=useState(false);
+  const [whatsAppConsent,setWhatsAppConsent]=useState(false);
   const [contactPreference,setContactPreference]=useState("any");
   const [wantsPrayer,setWantsPrayer]=useState(false);
   const [wantsPastoralContact,setWantsPastoralContact]=useState(false);
@@ -45,7 +46,7 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
         isFirstVisit,
         notes,
         website,
-        emailConsent,smsConsent,contactPreference,wantsPrayer,wantsPastoralContact,ministryInterest,feedbackRating,feedbackComment,
+        emailConsent,smsConsent,whatsAppConsent,contactPreference,wantsPrayer,wantsPastoralContact,ministryInterest,feedbackRating,feedbackComment,
       }),
     });
     const data = await response.json();
@@ -63,7 +64,7 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
     setPhone("");
     setVisitDate("");
     setNotes("");
-    setFeedbackRating(0);setFeedbackComment("");setEmailConsent(false);setSmsConsent(false);setWantsPrayer(false);setWantsPastoralContact(false);setMinistryInterest("");
+    setFeedbackRating(0);setFeedbackComment("");setEmailConsent(false);setSmsConsent(false);setWhatsAppConsent(false);setWantsPrayer(false);setWantsPastoralContact(false);setMinistryInterest("");
   }
 
   const fieldClass =
@@ -201,6 +202,10 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
         <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3 text-sm text-night-800">
           <label className="flex items-start gap-3"><input type="checkbox" className="mt-1" checked={smsConsent} onChange={e=>setSmsConsent(e.target.checked)}/><span><strong>Optional SMS updates:</strong> I agree to receive recurring text messages from Shanah City about church services, events, announcements, and guest follow-up at the number I provided. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to attend church or submit this form.</span></label>
           <p className="mt-2 pl-6 text-xs">Read our <Link href="/privacy" className="font-semibold underline">Privacy Policy</Link> and <Link href="/terms" className="font-semibold underline">Terms &amp; Conditions</Link>. This checkbox is unchecked by default.</p>
+        </div>
+        <div className="rounded-xl border border-green-200 bg-green-50/60 p-3 text-sm text-night-800">
+          <label className="flex items-start gap-3"><input type="checkbox" className="mt-1" checked={whatsAppConsent} onChange={e=>setWhatsAppConsent(e.target.checked)}/><span><strong>Optional WhatsApp updates:</strong> I separately agree to receive WhatsApp messages from Shanah City at the phone number provided about services, events, church announcements and guest follow-up. Message frequency varies. I may opt out by replying STOP or contacting the church. This consent is optional and independent of SMS consent.</span></label>
+          <p className="mt-2 pl-6 text-xs">See our <Link href="/privacy" className="font-semibold underline">Privacy Policy</Link> and <Link href="/terms" className="font-semibold underline">Terms &amp; Conditions</Link>. Unchecked by default.</p>
         </div>
         </fieldset>
         <fieldset className="space-y-2 rounded-xl border border-night-900/15 p-3"><legend className="px-1 text-sm font-semibold">Optional guest experience feedback</legend><label className="block text-sm">How welcoming was your visit?<select value={feedbackRating} onChange={e=>setFeedbackRating(Number(e.target.value))} className={fieldClass}><option value={0}>Prefer not to rate</option>{[1,2,3,4,5].map(n=><option key={n} value={n}>{n} of 5</option>)}</select></label><label className="block text-sm">Anything we can improve?<textarea value={feedbackComment} onChange={e=>setFeedbackComment(e.target.value)} maxLength={500} rows={2} className={fieldClass}/></label></fieldset>
