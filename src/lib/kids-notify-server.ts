@@ -76,3 +76,30 @@ export async function notifyKidsIncident(incident: KidsIncident) {
     "kids",
   );
 }
+
+/** Notify the linked guardian without exposing the pickup secret on the lock screen. */
+export async function notifyGuardianKidsCheckIn(checkIn: KidCheckIn) {
+  if (!checkIn.parentUserId) return { sent: 0, skipped: 1, configured: false };
+  return sendPushToUsers(
+    [checkIn.parentUserId],
+    {
+      title: "Shanah Kids — check-in confirmed",
+      body: `${checkIn.childName} is checked in to ${checkIn.ageGroup}. Sign in to view your private pickup code.`,
+      url: "/kids-pickup",
+    },
+    "kids",
+  );
+}
+
+export async function notifyGuardianKidsCheckOut(checkIn: KidCheckIn) {
+  if (!checkIn.parentUserId) return { sent: 0, skipped: 1, configured: false };
+  return sendPushToUsers(
+    [checkIn.parentUserId],
+    {
+      title: "Shanah Kids — checkout confirmed",
+      body: `${checkIn.childName} has been checked out of Kids Ministry.`,
+      url: "/kids-pickup",
+    },
+    "kids",
+  );
+}
