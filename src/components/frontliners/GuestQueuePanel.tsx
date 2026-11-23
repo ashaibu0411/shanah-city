@@ -35,8 +35,9 @@ export function GuestQueuePanel({
   const [showJourney, setShowJourney] = useState(false);
   const [showSunday, setShowSunday] = useState(false);
 
-  const canManage = permissions.canManageGuestSubmissions;
   const isFollowUp = variant === "follow-up";
+  const canManage = isFollowUp ? permissions.canAccessFollowUp : permissions.canManageGuestSubmissions;
+  const canChangeStatus = permissions.canManageGuestSubmissions;
 
   async function loadGuests() {
     setLoading(true);
@@ -55,6 +56,7 @@ export function GuestQueuePanel({
   }, [canManage]);
 
   async function updateStatus(id: string, status: GuestSubmissionStatus) {
+    if (!canChangeStatus) return;
     const response = await fetch("/api/guests", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
