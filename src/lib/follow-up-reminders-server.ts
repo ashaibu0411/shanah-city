@@ -1,10 +1,8 @@
 import { prisma } from "@/lib/db";
 import { getGroups } from "@/lib/group-server";
 import { getConfiguredFollowUpGroupId } from "@/lib/follow-up-access-server";
-import { getUserById } from "@/lib/auth-server";
 import { sendPushToUsers } from "@/lib/push-server";
 
-const DAY = 86400000;
 export async function processFollowUpReminders(now = new Date()) {
  const assignments = await prisma.guestFollowUpAssignment.findMany({where:{completedAt:null},take:500});
  const groups = await getGroups();
