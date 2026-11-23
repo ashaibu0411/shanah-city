@@ -29,13 +29,10 @@ export async function notifyKidsCheckIn(checkIn: KidCheckIn) {
   const hasMedical = Boolean(checkIn.medicalNotes?.trim());
   const urgent = hasAllergy || hasMedical;
 
-  const alertParts: string[] = [];
-  if (hasAllergy) alertParts.push(`Allergy: ${checkIn.allergies!.trim()}`);
-  if (hasMedical) alertParts.push(`Medical: ${checkIn.medicalNotes!.trim()}`);
-
+  // Lock-screen notifications must never contain children's names or medical details.
   const body = urgent
-    ? `${checkIn.childName} → ${checkIn.ageGroup}. ${alertParts.join(" · ")}`
-    : `${checkIn.childName} checked in to ${checkIn.ageGroup} (${checkIn.service}).`;
+    ? "A child has a safety note requiring staff review. Open the secure Kids Ministry dashboard."
+    : "A child has checked in. Open the secure Kids Ministry dashboard for details.";
 
   return sendPushToUsers(
     userIds,
@@ -70,7 +67,7 @@ export async function notifyKidsIncident(incident: KidsIncident) {
     [incident.parentUserId],
     {
       title: "Kids ministry update",
-      body: `${incident.childName}: ${incident.summary}`,
+      body: "Please sign in to review a private Kids Ministry update.",
       url: "/profile",
     },
     "kids",
@@ -84,7 +81,7 @@ export async function notifyGuardianKidsCheckIn(checkIn: KidCheckIn) {
     [checkIn.parentUserId],
     {
       title: "Shanah Kids — check-in confirmed",
-      body: `${checkIn.childName} is checked in to ${checkIn.ageGroup}. Sign in to view your private pickup code.`,
+      body: "Check-in confirmed. Sign in to view your private pickup information.",
       url: "/kids-pickup",
     },
     "kids",
@@ -97,7 +94,7 @@ export async function notifyGuardianKidsCheckOut(checkIn: KidCheckIn) {
     [checkIn.parentUserId],
     {
       title: "Shanah Kids — checkout confirmed",
-      body: `${checkIn.childName} has been checked out of Kids Ministry.`,
+      body: "Checkout confirmed. Sign in to view your Kids Ministry record.",
       url: "/kids-pickup",
     },
     "kids",
