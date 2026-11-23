@@ -605,37 +605,10 @@ export function KidsMinistryPanel({
                     setChildSearch("");
                   }}
                 />
-                {childSearch.trim().length >= 1 && (
-                  <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
-                    {(data.directory ?? [])
-                      .filter((entry) =>
-                        entry.childName.toLowerCase().startsWith(childSearch.trim().toLowerCase()),
-                      )
-                      .slice(0, 8)
-                      .map((entry) => (
-                        <button
-                          key={`${entry.childName}:${entry.parentName}`}
-                          type="button"
-                          onClick={() => {
-                            setChildName(entry.childName);
-                            setGuardianName(entry.parentName);
-                            setRoom(entry.ageGroup);
-                            // A previous visit is not proof of a current family-profile link.\n                            // Treat this as guest check-in until a verified child profile is selected.\n                            setLinkedParentUserId("");\n                            setFamilyMemberId("");
-                            setAllergies(entry.allergies ?? "");
-                            setMedicalNotes(entry.medicalNotes ?? "");
-                            setPickupName(entry.authorizedPickup?.[0]?.name ?? "");
-                            setPickupPhone(entry.authorizedPickup?.[0]?.phone ?? "");
-                            setChildSearch("");
-                          }}
-                          className="block w-full rounded-xl border border-night-900/10 bg-sand-50 px-4 py-3 text-left text-sm text-night-900 hover:bg-sand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                        >
-                          <span className="block font-semibold">{entry.childName}</span>
-                          <span className="text-xs">
-                            {entry.parentName} · {entry.ageGroup} · previous visit
-                          </span>
-                        </button>
-                      ))}
-                  </div>
+                {linkedParentUserId && familyMemberId && (
+                  <p className="mt-3 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900" role="status">
+                    Verified family profile selected: {childName} · Guardian: {guardianName}
+                  </p>
                 )}
                 <h3 className="mt-5 text-lg font-bold text-night-900 dark:text-white">2. Confirm check-in details</h3>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
