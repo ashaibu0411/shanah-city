@@ -10,6 +10,7 @@ export function FollowUpAssignments({ guests, onChanged }: { guests: { id: strin
  const [viewerId, setViewerId] = useState("");
  const [message, setMessage] = useState("");
  const [busy, setBusy] = useState("");
+ const [available,setAvailable]=useState(true);
  async function load() {
   try {
    const res = await fetch("/api/follow-up/assignments");
@@ -18,7 +19,7 @@ export function FollowUpAssignments({ guests, onChanged }: { guests: { id: strin
    setAssignments(data.assignments ?? []);setWorkers(data.workers ?? []);setIsLeader(Boolean(data.isLeader));setViewerId(data.viewerId ?? "");
   } catch(e) { setMessage(e instanceof Error ? e.message : "Unable to load assignments"); }
  }
- useEffect(() => { void load(); }, []);
+ useEffect(() => { void load();void fetch("/api/follow-up/availability").then(r=>r.json()).then(d=>setAvailable(d.available!==false)).catch(()=>{}); }, []);
  async function assign(guestId: string, workerId: string) {
   if (!workerId) return;
   setBusy(guestId);setMessage("");
@@ -30,6 +31,8 @@ export function FollowUpAssignments({ guests, onChanged }: { guests: { id: strin
   } catch(e) {setMessage(e instanceof Error ? e.message : "Unable to assign");}
   finally {setBusy("");}
  }
+ async function setAvailability(value:boolean){const r=await fetch("/api/follow-up/availability",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({available:value})});if(r.ok){setAvailable(value);setMessage(value?"Available for new guests.":"Paused new assignments.")}else setMessage("Unable to update availability")}
+ async function autoAssign(){setBusy("auto");setMessage("");try{const r=await fetch("/api/follow-up/auto-assign",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({confirm:true})});const d=await r.json();if(!r.ok)throw Error(d.error||"Assignment failed");setMessage(d.created+" guests assigned.");await load();onChanged()}catch(e){setMessage(e instanceof Error?e.message:"Assignment failed")}finally{setBusy("")}}
  const pending = assignments.filter(a => !a.completedAt);
  const overdue = pending.filter(a => new Date(a.dueAt).getTime() < Date.now());
  return <section className="space-y-3 rounded-2xl border border-night-900/10 bg-white p-4">
@@ -37,6 +40,8 @@ export function FollowUpAssignments({ guests, onChanged }: { guests: { id: strin
    <div><h3 className="font-display text-lg font-semibold text-night-900">{isLeader ? "Worker assignments" : "My follow-up assignments"}</h3><p className="text-sm text-night-600">{pending.length} open · {overdue.length} overdue</p></div>
    <button type="button" onClick={() => void load()} className="rounded-lg border px-3 py-2 text-sm font-semibold">Refresh</button>
   </div>
+  <label className="flex items-center gap-2 rounded-xl bg-sand-100 p-3 text-sm"><input type="checkbox" checked={available} onChange={e=>void setAvailability(e.target.checked)}/>I am available for new guest assignments</label>
+  {isLeader && <button type="button" disabled={busy==="auto"} onClick={()=>void autoAssign()} className="min-h-11 w-full rounded-xl bg-blue-700 px-4 font-semibold text-white disabled:opacity-50">Assign unassigned guests fairly</button>}
   {isLeader && workers.length === 0 && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">No active follow-up workers yet. Open Follow-Up Ministry → Manage to add team members and assign a leader. Assignments will become available after their access is approved.</p>}
   {isLeader && workers.length > 0 && <div className="space-y-2">
    <p className="text-sm font-semibold text-night-800">Assign a guest to an active follow-up worker</p>
