@@ -1,5 +1,6 @@
 "use client";
 
+import { GuestReturnVisit } from "@/components/frontliners/GuestReturnVisit";
 import { FollowUpReports } from "@/components/frontliners/FollowUpReports";
 import { FollowUpSundayChecklist } from "@/components/frontliners/FollowUpSundayChecklist";
 import { FollowUpJourney } from "@/components/frontliners/FollowUpJourney";
@@ -200,6 +201,7 @@ export function GuestQueuePanel({
                 </div>
                 {guest.notes && <p className="whitespace-pre-wrap rounded-lg bg-sand-100 p-3 text-sm text-night-700">{guest.notes}</p>}
                 <p className="text-xs text-night-600">Submitted {new Date(guest.submittedAt).toLocaleString()}</p>
+                {isFollowUp && <GuestReturnVisit guestId={guest.id} />}
                 {isFollowUp && <GuestContactHistory guestId={guest.id} onConnected={() => void loadGuests()} />}
               <div className="flex flex-wrap gap-2">
                 {!isFollowUp && guest.status !== "contacted" && (
