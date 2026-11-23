@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
-import { canAccessFollowUp } from "@/lib/follow-up-access-server";
+import { canAccessFollowUp, canManageFollowUp } from "@/lib/follow-up-access-server";
 import { canManageGuestSubmissions } from "@/lib/frontliners-access-server";
 import { enforceRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit-server";
 
@@ -40,6 +40,8 @@ export async function POST(request: Request) {
   }
   const guest = await prisma.guestSubmission.findUnique({ where: { id: guestId }, select: { id: true } });
   if (!guest) return NextResponse.json({ error: "Guest not found." }, { status: 404 });
+  const assignment = await prisma.guestFollowUpAssignment.findUnique({ where: { guestId } });
+  if (assignment && assignment.workerId !== user.id && !(await canManageFollowUp(user))) return NextResponse.json({ error: "This guest is assigned to another worker." }, { status: 403 });
   const activity = await prisma.guestFollowUpActivity.create({
     data: { guestId, kind, outcome, note: note || null, actorId: user.id, actorName: user.name },
   });
