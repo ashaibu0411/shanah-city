@@ -440,6 +440,7 @@ model VolunteerCheckIn {
 }
 
 model KidsArrivalRequest {
+ accessTokenHash String? @unique
  id String @id @default(cuid())
  guardianName String
  phone String
