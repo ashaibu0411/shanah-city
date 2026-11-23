@@ -30,10 +30,9 @@ export function useUpcomingLiveStreamSchedule() {
   });
 
   useEffect(() => {
-    if (livePhase !== "live") return;
     const id = window.setInterval(() => void refresh(), 60_000);
     return () => window.clearInterval(id);
-  }, [livePhase, refresh]);
+  }, [refresh]);
 
   return {
     schedule,
