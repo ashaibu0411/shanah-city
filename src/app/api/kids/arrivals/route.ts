@@ -66,7 +66,7 @@ export async function PUT(request:Request){
   if(current.concat(added).some(x=>String(x.name).toLowerCase()===name.toLowerCase()))return NextResponse.json({error:"Child already added to this arrival"},{status:409});
   added.push({name,age,allergies:String(raw.allergies||"").trim().slice(0,300),careNotes:String(raw.careNotes||"").trim().slice(0,300),familyMemberId:known?.id||null});
  }
- const updated=await prisma.kidsArrivalRequest.updateMany({where:{id:row.id,status:"pending",children:row.children as object},data:{children:[...current,...added]}});
+ const updated=await prisma.kidsArrivalRequest.updateMany({where:{id:row.id,status:"pending"},data:{children:[...current,...added]}});
  if(!updated.count)return NextResponse.json({error:"Arrival changed; please retry"},{status:409});
  return NextResponse.json({reference:row.id.slice(-8).toUpperCase(),childCount:current.length+added.length});
 }
