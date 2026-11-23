@@ -34,7 +34,7 @@ export function GuestQueuePanel({
   const [filter, setFilter] = useState<GuestSubmissionStatus | "all">("new");
   const [search, setSearch] = useState("");
   const [expandedGuestId, setExpandedGuestId] = useState<string | null>(null);
-  const [showTeam, setShowTeam] = useState(false);
+  const [showTeam, setShowTeam] = useState(true);
   const [showJourney, setShowJourney] = useState(false);
   const [showSunday, setShowSunday] = useState(false);
   const [showReports, setShowReports] = useState(false);
