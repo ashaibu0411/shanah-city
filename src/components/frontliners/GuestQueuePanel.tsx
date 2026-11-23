@@ -1,5 +1,6 @@
 "use client";
 
+import { FollowUpAssignments } from "@/components/frontliners/FollowUpAssignments";
 import { GuestContactHistory } from "@/components/frontliners/GuestContactHistory";
 
 import { useEffect, useState } from "react";
@@ -116,6 +117,7 @@ export function GuestQueuePanel({
       ) : null}
 
       {isFollowUp && <Card><p className="font-semibold text-night-900">Guest care overview</p><p className="mt-2 text-sm text-night-700">{guests.length} total guests · {newCount} awaiting contact · {overdueCount} overdue (48+ hours)</p></Card>}
+      {isFollowUp && !loading && <FollowUpAssignments guests={guests} onChanged={() => void loadGuests()} />}
       <div className="flex flex-wrap gap-2">
         {(
           [
