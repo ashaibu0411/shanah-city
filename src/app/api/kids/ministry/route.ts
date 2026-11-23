@@ -402,7 +402,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Check-in id and security code are required." }, { status: 400 });
     }
 
-    const checkout = await executeAuthorizedKidCheckout(id, securityCode, user.id, user, scope);
+    const checkout = await executeAuthorizedKidCheckout(id, securityCode, user.id, user, scope, undefined, String(body.pickupAdultName ?? ""), body.photoIdVerified === true);
     if (!checkout.ok) {
       return NextResponse.json({ error: checkout.error }, { status: checkout.status });
     }
