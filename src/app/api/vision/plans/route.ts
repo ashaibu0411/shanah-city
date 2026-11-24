@@ -44,6 +44,16 @@ export async function GET(request: Request) {
       })),
     }, { headers: { "Cache-Control": "private, no-store" } });
   }
+  if (params.has("feedbackInbox")) {
+    if (!isOwner) return deny();
+    const feedback = await prisma.visionComment.findMany({
+      where: { plan: { year: 2027 }, authorId: { not: user.id } },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: 250,
+      select: { id: true, planId: true, authorName: true, kind: true, sectionKey: true, body: true, decision: true, createdAt: true, plan: { select: { title: true } } },
+    });
+    return NextResponse.json({ feedback }, { headers: { "Cache-Control": "private, no-store" } });
+  }
   const planId = params.get("planId");
   if (planId) {
     if (!(await canReadVision(planId, user.id, isOwner))) return deny();
@@ -99,9 +109,9 @@ export async function POST(request: Request) {
     await audit(planId, user.id, "comment", kind);
     if (isOwner) {
       const assigned = await prisma.visionAssignment.findMany({ where: { planId }, select: { userId: true } });
-      await Promise.all(assigned.filter(a => a.userId !== user.id).map(a => notifyVisionLeader(a.userId, planId, "comment")));
+      await Promise.all(assigned.filter(a => a.userId !== user.id).map(a => notifyVisionLeader(a.userId, planId, "comment", comment.id)));
     } else {
-      await notifyVisionPastor(planId, "comment");
+      await notifyVisionPastor(planId, "comment", comment.id);
     }
     return NextResponse.json({ comment }, { status: 201 });
   }
@@ -275,7 +285,7 @@ export async function PATCH(request: Request) {
       data: { decision, decisionNote: safeVisionString(body.note, 1000), decidedById: user.id, decidedAt: new Date() },
     });
     await audit(planId, user.id, "idea-" + decision, commentId);
-    if (updated.authorId !== user.id) await notifyVisionLeader(updated.authorId, planId, "decision");
+    if (updated.authorId !== user.id) await notifyVisionLeader(updated.authorId, planId, "decision", updated.id);
     return NextResponse.json({ comment: updated });
   }
   if (action === "update-plan") {
