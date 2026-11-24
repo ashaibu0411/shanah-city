@@ -28,6 +28,7 @@ export const VISION_MINISTRIES = [
   { key: "kids", title: "2027 Shanah Kids Ministry Vision & Leadership Plan" },
   { key: "men", title: "2027 Men of Legacy Ministry Vision & Leadership Plan" },
   { key: "women", title: "2027 Transformed Women Ministry Vision & Leadership Plan" },
+  { key: "power-couples", title: "2027 Power Couples Ministry Vision & Leadership Plan" },
   { key: "shift", title: "SHIFT Conference" },
   { key: "hail-the-king", title: "Hail the King" },
   { key: "cares", title: "Shanah Cares" },
