@@ -117,7 +117,7 @@ export async function POST(request: Request) {
       await prisma.whatsAppContactState.upsert({
         where: { phone: normalized },
         create: { phone: normalized, optedIn: true, consentSource: "guest-web-form", consentAt: new Date() },
-        update: { optedIn: true, consentSource: "guest-web-form", consentAt: new Date(), optedOutAt: null },
+        update: {}, // Never clear a prior WhatsApp STOP through a public form.
       });
     }
   }
