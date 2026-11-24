@@ -15,6 +15,13 @@ export function makeVisionMilestoneTemplates(ministryKey: string): DraftTask[] {
       title: "Review and act on " + period + " ministry priorities",
       description: "Review your approved vision, coordinate the month's priorities and record outcomes using existing ministry reports. This is a leadership checkpoint, not a published event.",
     });
+    if (ministryKey === "power-couples") {
+      tasks.push({ kind: "couples-prayer", period, dueOn: end, title: "Power Couples: monthly prayer and engagement", description: "Coordinate monthly couples prayer, encourage both spouses, offer practical marriage enrichment and report aggregate participation without private marital details." });
+      if ([5, 8, 11].includes(month)) tasks.push({ kind: "couples-fellowship", period, dueOn: end, title: "Power Couples: proposed in-person fellowship", description: "Confirm format, venue, budget and date with pastoral approval. Invite couples and follow up respectfully. Month-end is a reporting checkpoint, not an event date." });
+      if (month === 1) tasks.push({ kind: "couples-retreat-readiness", period, dueOn: end, title: "Power Couples: February retreat readiness", description: "Confirm dates, venue, budget, registration, facilitators and pastoral approval." });
+      if (month === 2) tasks.push({ kind: "couples-retreat", period, dueOn: end, title: "Power Couples: February weekend retreat", description: "Deliver the approved retreat and record aggregate outcomes. Month-end is not the retreat date." });
+      if (month === 3) tasks.push({ kind: "couples-retreat-followup", period, dueOn: end, title: "Power Couples: retreat follow-up", description: "Evaluate the retreat, thank participants and identify improvements without recording confidential disclosures." });
+    }
     if (ministryKey === "worship") {
       tasks.push({
         kind: "worship-monthly", period, dueOn: end,
