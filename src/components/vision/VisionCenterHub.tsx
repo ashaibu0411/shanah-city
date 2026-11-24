@@ -17,6 +17,7 @@ type Assignment = {
   proposal?: string | null; supportNeeds?: string | null; submittedAt?: string | null;
 };
 type Comment = { id: string; authorName: string; kind: string; sectionKey: string; body: string; referenceUrl?: string | null; decision: string; decisionNote?: string | null; createdAt: string };
+type InboxFeedback = Comment & { planId: string; plan: { title: string } };
 type AuditEvent = { id: string; actorId: string; action: string; detail?: string | null; createdAt: string };
 type Plan = { id: string; title: string; ministryKey: string; summary: string; content: string; status: string; version: number; assignments: Assignment[]; comments?: Comment[]; audits?: AuditEvent[]; _count?: { comments: number } };
 type Ministry = { key: string; title: string };
@@ -66,6 +67,10 @@ async function request(method: string, data: Record<string, unknown>): Promise<R
 }
 
 export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: string }) {
+  const [feedbackInbox, setFeedbackInbox] = useState<InboxFeedback[]>([]);
+  const [feedbackFilter, setFeedbackFilter] = useState("all");
+  const [feedbackError, setFeedbackError] = useState("");
+  const [focusedComment, setFocusedComment] = useState("");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [visionSearch, setVisionSearch] = useState("");
   const [visionStatus, setVisionStatus] = useState("all");
@@ -124,6 +129,23 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
 
   useEffect(() => { void refresh(planId).catch(e => setError(e instanceof Error ? e.message : String(e))); }, [refresh, planId]);
 
+  useEffect(() => {
+    if (!owner || planId) return;
+    const controller = new AbortController();
+    fetch("/api/vision/plans?feedbackInbox=1", { cache: "no-store", signal: controller.signal })
+      .then(async response => { if (!response.ok) throw new Error("Unable to load feedback."); return response.json(); })
+      .then(data => { if (!controller.signal.aborted) setFeedbackInbox(data.feedback || []); })
+      .catch(() => { if (!controller.signal.aborted) setFeedbackError("Unable to load feedback. Refresh to retry."); });
+    return () => controller.abort();
+  }, [owner, planId]);
+  useEffect(() => {
+    if (!selected || selected.id !== planId) return;
+    const id = new URLSearchParams(window.location.search).get("comment");
+    if (!id) return;
+    setFocusedComment(id);
+    const target = document.getElementById("vision-comment-" + id);
+    (target || document.getElementById("vision-feedback"))?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [selected?.id, planId]);
   useEffect(() => {
     if (!owner || !planId || memberQuery.trim().length < 2 || selectedMember) {
       setMemberResults([]);
@@ -195,6 +217,21 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
       {notice && <p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">{notice}</p>}
       <div className="space-y-8">
+        {!planId && owner && <section className={panel + " space-y-4"} id="feedback-inbox">
+          <h2 className="text-2xl font-extrabold">Leadership Feedback Inbox</h2>
+          <p className="text-base">Latest feedback across all 2027 visions · {feedbackInbox.filter(c => c.kind === "idea" && c.decision === "pending").length} pending suggestions in the latest 250 entries.</p>
+          <select aria-label="Filter feedback" className={field} value={feedbackFilter} onChange={e => setFeedbackFilter(e.target.value)}>
+            <option value="all">All feedback</option><option value="pending">Pending suggestions</option><option value="question">Questions</option><option value="reviewed">Reviewed suggestions</option>
+          </select>
+          {feedbackError && <p role="alert">{feedbackError}</p>}
+          {!feedbackError && !feedbackInbox.length && <p>No feedback loaded yet.</p>}
+          {feedbackInbox.filter(c => feedbackFilter === "all" || (feedbackFilter === "question" ? c.kind === "question" : c.kind === "idea" && (feedbackFilter === "pending" ? c.decision === "pending" : c.decision !== "pending"))).map(c => <Link key={c.id} href={"/leadership/vision/" + encodeURIComponent(c.planId) + "?comment=" + encodeURIComponent(c.id)} className="block rounded-xl border border-slate-300 dark:border-slate-500 p-4 space-y-2">
+            <p className="font-bold">{c.authorName} · {c.plan.title}</p>
+            <p className="text-sm">{c.sectionKey} · {new Date(c.createdAt).toLocaleString()} · {c.kind === "idea" ? c.decision : "Question"}</p>
+            <p className="whitespace-pre-wrap break-words">{c.body}</p>
+            <p className="font-bold text-blue-700 dark:text-blue-300">Open exact feedback and respond →</p>
+          </Link>)}
+        </section>}
         {!planId && (owner ? <VisionAccountabilityOverview /> : <MyLeadershipDashboard plans={plans} />)}
         {!planId && <VisionMyUpcoming />}
         {!planId && <div id="vision-reporting" className="scroll-mt-24"><VisionMinistryReporting owner={owner} /></div>}
@@ -238,7 +275,7 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
         </section>}
         <div className="min-w-0 space-y-8">
           {planId && !selected && !error && <div role="status" className={panel + " text-lg font-semibold text-slate-700 dark:text-slate-200"}>Opening ministry vision…</div>}
-          {owner && !planId && !selected && plans.length === 0 && <button type="button" className={button} disabled={busy} onClick={() => void run("POST", { action: "initialize-2027" })}>Load nine private 2027 working drafts</button>}
+          {owner && !planId && !selected && ministries.some(m => !plans.some(p => p.ministryKey === m.key)) && <button type="button" className={button} disabled={busy} onClick={() => void run("POST", { action: "initialize-2027" })}>Load missing private 2027 working drafts</button>}
           {owner && !planId && !selected && (
             <form className={panel + " space-y-4"} onSubmit={(event: FormEvent) => { event.preventDefault(); void run("POST", { action: "create", ministryKey, summary, content }); }}>
               <h2 className="text-2xl font-extrabold text-slate-950 dark:text-white">Create ministry vision</h2>
@@ -449,8 +486,9 @@ export function VisionCenterHub({ owner, planId }: { owner: boolean; planId?: st
                 <h3 className="text-2xl font-extrabold text-slate-950 dark:text-white">{selected.ministryKey === "churchwide" ? "Pastoral corrections, additions & calendar feedback" : "Questions, suggestions & corrections"}</h3>
                 <p className="text-base leading-relaxed text-slate-700 dark:text-slate-200">Select a specific section or calendar month, explain what should change and why, and submit your recommendation. You can comment as many times as needed. The Senior Pastor reviews every suggestion before revising the vision.</p>
                 {selected.comments?.length === 0 && <p className="text-base font-medium text-slate-600 dark:text-slate-300">No discussion yet.</p>}
-                {selected.comments?.map(c => <article key={c.id} className="min-w-0 space-y-3 break-words rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 p-5 sm:p-7">
-                  <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{c.authorName} · {c.kind} · {c.sectionKey}</p>
+                {selected.comments?.map(c => <article key={c.id} id={"vision-comment-" + c.id} className={"scroll-mt-28 min-w-0 space-y-3 break-words rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 p-5 sm:p-7 " + (focusedComment === c.id ? "ring-4 ring-blue-500" : "")}>
+                  <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{c.authorName} · {c.kind} · {c.sectionKey} · {new Date(c.createdAt).toLocaleString()}</p>
+                  <button type="button" className={secondary} onClick={() => { setSectionKey(c.sectionKey); setCommentKind("question"); setCommentText(old => old || ("Reply to " + c.authorName + ": ")); commentFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>Respond</button>
                   <p className="mt-3 whitespace-pre-wrap break-words text-[17px] leading-[1.8] text-slate-900 dark:text-slate-100">{c.body}</p>
                   {c.referenceUrl && <a href={c.referenceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 block break-all text-base font-bold text-blue-700 underline">Open creative reference</a>}
                   {c.kind === "idea" && <p className="mt-3 break-words text-base font-bold capitalize text-blue-800">Pastoral decision: {c.decision}{c.decisionNote ? " — " + c.decisionNote : ""}</p>}
