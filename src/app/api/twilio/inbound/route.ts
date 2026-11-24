@@ -1,3 +1,5 @@
+import { prisma } from "@/lib/db";
+import { normalizeUsPhone } from "@/lib/sms-server";
 import { NextResponse } from "next/server";
 import { recordSmsKeyword, verifyTwilioWebhook } from "@/lib/sms-server";
 
@@ -12,6 +14,19 @@ export async function POST(request: Request) {
   const url = publicOrigin.replace(/\/$/, "") + new URL(request.url).pathname;
   if (!verifyTwilioWebhook(url, params, request.headers.get("x-twilio-signature") ?? "")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+  // WhatsApp opt-outs must never mutate SMS consent.
+  if ((params.From ?? "").startsWith("whatsapp:")) {
+    const phone = normalizeUsPhone(params.From.slice("whatsapp:".length));
+    const keyword = (params.Body ?? "").trim().toUpperCase();
+    if (phone && ["STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"].includes(keyword)) {
+      await prisma.whatsAppContactState.upsert({
+        where: { phone },
+        create: { phone, optedIn: false, optedOutAt: new Date() },
+        update: { optedIn: false, optedOutAt: new Date() },
+      });
+    }
+    return new Response("<Response></Response>", { headers: { "Content-Type": "text/xml", "Cache-Control": "no-store" } });
   }
   const result = await recordSmsKeyword(params.From ?? "", params.Body ?? "");
   // Twilio's Messaging Service can handle standard keyword replies; do not duplicate them.
