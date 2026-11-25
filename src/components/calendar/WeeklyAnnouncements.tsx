@@ -16,6 +16,15 @@ function eventDay(iso:string) {
   return new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", {weekday:"short",month:"short",day:"numeric"});
 }
 
+function parseAnnouncements(body: string) {
+  return body.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+    const clean = line.replace(/^(?:\d+[.)]\s+|[-•]\s+)/, "");
+    const separator = clean.match(/:\s+|\s+\|\s+/);
+    if (separator && separator.index !== undefined) return { heading: clean.slice(0, separator.index), details: clean.slice(separator.index + separator[0].length) };
+    return { heading: clean, details: "" };
+  });
+}
+
 /** Unified public and member-app weekly announcement center. */
 export function WeeklyAnnouncements({ website = false }: { website?: boolean }) {
   const [offset, setOffset] = useState<0|1>(0);
@@ -66,6 +75,14 @@ export function WeeklyAnnouncements({ website = false }: { website?: boolean }) 
     } finally {setBusy(false);}
   }
 
+  async function shareBulletin() {
+    if (!data?.bulletin?.published) return;
+    const text = [data.bulletin.title, ...parseAnnouncements(data.bulletin.body).map((item, index) => (index + 1) + ". " + [item.heading, item.details].filter(Boolean).join(": "))].join("\n\n");
+    try {
+      if (navigator.share) await navigator.share({ title: data.bulletin.title, text });
+      else { await navigator.clipboard.writeText(text); setNotice("Bulletin copied. You can paste it into a message."); }
+    } catch (cause) { if (!(cause instanceof Error && cause.name === "AbortError")) setError("Unable to share the bulletin."); }
+  }
   return <section id="weekly-announcements" className="scroll-mt-28 overflow-hidden rounded-[26px] border border-[#d8e4eb] bg-white shadow-sm">
     <div className="flex flex-wrap items-center justify-between gap-5 bg-[#0b3556] px-6 py-7 text-white sm:px-9">
       <div>
@@ -78,13 +95,25 @@ export function WeeklyAnnouncements({ website = false }: { website?: boolean }) 
         <button type="button" onClick={() => setOffset(1)} aria-pressed={offset===1} className={`rounded-full px-4 py-2 text-xs font-extrabold ${offset===1 ? "bg-[#f7d39c] text-[#0b3556]" : "border border-white/40 text-white"}`}>Next week</button>
       </div>
     </div>
-    <div className="grid gap-8 p-6 sm:p-9 lg:grid-cols-[1.05fr_.95fr]">
+    <div className="grid gap-6 p-4 sm:p-7 lg:grid-cols-[1.05fr_.95fr]">
       <div>
         <p className="text-xs font-extrabold uppercase tracking-[0.15em] text-[#0b74a5]">Church bulletin</p>
         {loading ? <p className="mt-4 text-slate-600">Loading announcements…</p> : data?.bulletin?.published ? (
-          <div className="mt-4"><h3 className="font-display text-2xl font-semibold text-[#142d49]">{data.bulletin.title}</h3><p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-700">{data.bulletin.body}</p></div>
+          <div className="mt-3">
+            <h3 className="font-display text-xl font-bold leading-tight text-[#142d49] sm:text-2xl">{data.bulletin.title}</h3>
+            <p className="mt-2 text-xs font-semibold text-slate-600">{dateText(data.weekStart)} – {dateText(data.weekEnd)}</p>
+            <ol className="mt-4 divide-y divide-[#e6dfd2] border-y border-[#e6dfd2]">
+              {parseAnnouncements(data.bulletin.body).map((item,index)=><li key={index} className="flex items-start gap-3 py-4">
+                <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#f0e9dc] text-xs font-extrabold text-[#765c35]">{String(index+1).padStart(2,"0")}</span>
+                <div className="min-w-0 flex-1"><p className="break-words text-base font-bold leading-snug text-[#142d49]">{item.heading}</p>
+                  {item.details && <p className="mt-1 break-words text-sm leading-relaxed text-slate-700">{item.details}</p>}
+                </div>
+              </li>)}
+            </ol>
+            <button type="button" onClick={shareBulletin} className="mt-4 rounded-lg border border-[#d8c9af] px-4 py-2 text-sm font-semibold text-[#142d49]">Share bulletin</button>
+          </div>
         ) : <p className="mt-4 text-sm leading-7 text-slate-600">No weekly bulletin has been published yet. Check the upcoming events for this week.</p>}
-        {!website && data?.canManage && !editing ? <button type="button" onClick={() => setEditing(true)} className="mt-6 rounded-full border border-[#0b6899] px-5 py-2.5 text-xs font-bold text-[#0b6899]">Edit this week's announcements</button> : null}
+        {!website && data?.canManage && !editing ? <button type="button" onClick={() => setEditing(true)} className="mt-6 rounded-full border border-[#0b6899] px-5 py-2.5 text-xs font-bold text-[#0b6899]">Edit weekly announcements</button> : null}
         {!website && data?.canManage && editing ? <div className="mt-6 space-y-3 rounded-2xl bg-[#f0f6fa] p-5">
           <label className="block text-sm font-bold text-[#142d49]">Bulletin headline
             <input value={title} onChange={e=>setTitle(e.target.value)} maxLength={180} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-normal" placeholder="Announcements for this week"/>
