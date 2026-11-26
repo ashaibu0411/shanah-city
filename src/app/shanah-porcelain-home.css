@@ -685,3 +685,62 @@ body.premium-home-v3-active .shanah-porcelain-home .ph4-sermon__thumb {
     transform: scale(.985);
   }
 }
+
+
+/* Design V1 preview: retain live homepage content and photo readability. */
+html body.premium-home-v3-active.premium-home-v4-active:has(.shanah-porcelain-home) {
+  --editorial-canvas: #FAF9F6;
+  --editorial-surface: #FFFFFF;
+  --editorial-ink: #19283B;
+  --editorial-border: #E3E1DC;
+  background: var(--editorial-canvas) !important;
+}
+html.dark body.premium-home-v3-active.premium-home-v4-active:has(.shanah-porcelain-home) {
+  --editorial-canvas: #111418;
+  --editorial-surface: #1C222A;
+  --editorial-ink: #F3F3EF;
+  --editorial-border: #343C46;
+}
+html body.premium-home-v3-active.premium-home-v4-active:has(.shanah-porcelain-home) :is(.app-main,.mobile-app-header,.mobile-bottom-nav,.mobile-bottom-nav::after) {
+  background: var(--editorial-canvas) !important;
+  border-color: var(--editorial-border) !important;
+  box-shadow: none !important;
+}
+html body.premium-home-v3-active.premium-home-v4-active:has(.shanah-porcelain-home) .app-main::before,
+html body.premium-home-v3-active.premium-home-v4-active:has(.shanah-porcelain-home) .mobile-bottom-nav::before {
+  background: none !important;
+}
+html body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__glow,
+html body.premium-home-v3-active .shanah-porcelain-home .ph4-hero--v3 .ph4-hero__greeting::after {
+  display: none !important;
+}
+html body.premium-home-v3-active .shanah-porcelain-home :is(.ph4-section__title,.premium-section__title) {
+  color: var(--editorial-ink) !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+html body.premium-home-v3-active .shanah-porcelain-home :is(.ph4-event-row,.ph4-sermon,.premium-guest-cta,.premium-stories__guest) {
+  background: var(--editorial-surface) !important;
+  border-color: var(--editorial-border) !important;
+  box-shadow: none !important;
+}
+html body.premium-home-v3-active .shanah-porcelain-home .ph4-section:is(:has(.ph4-events),:has(.ph4-sermon)) {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+html body.premium-home-v3-active .shanah-porcelain-home .ph4-give {
+  background: #19283B !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html body.premium-home-v3-active .shanah-porcelain-home :is(.ph4-tile,.ph4-hero--v3.ph4-hero--editorial) {
+  box-shadow: none !important;
+  border-radius: 12px !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .shanah-porcelain-home *, .shanah-porcelain-home *::before, .shanah-porcelain-home *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
