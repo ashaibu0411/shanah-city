@@ -44,21 +44,6 @@ export function PremiumHomeMobile({
     <>
       <PremiumHomeV3Chrome />
       <div className="premium-home-v3 premium-home-v4 premium-home-v3--spacing-v3 shanah-porcelain-home animate-fade-in">
-        <div className="mx-4 pt-3"><PrayerHomeBanner variant="mobile" /></div>
-        <Link href="/fasting-prayer-2027" className="mx-4 block rounded-2xl border border-amber-200 bg-[#122c54] p-4 text-white shadow-lg"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-amber-200">14 Days · November 30 – December 13</p><p className="mt-1 text-lg font-semibold">Fasting & Praying into 2027</p><p className="mt-1 text-sm text-slate-200">Read all 14 days of scriptures and prophetic prayers →</p></Link>
-        <PremiumStoriesSection
-          sectionTitle="Stories"
-          storiesPresentation="v6"
-          homeV3
-        />
-
-        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} editorial heroV3 />
-
-        <PremiumHomeV3QuickTiles />
-        <PremiumHomeV4GiveBar />
-        <PremiumHomeV4UpcomingEvents rows={upcomingEventRows} />
-        <PremiumHomeV4LatestSermon video={latestSermon} />
-
         {urgentAlerts.length > 0 ? (
           <UrgentNewsHomeStrip
             alerts={urgentAlerts}
@@ -67,9 +52,26 @@ export function PremiumHomeMobile({
           />
         ) : null}
 
+        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} editorial heroV3 />
+
+        <div className="mx-4 pt-3"><PrayerHomeBanner variant="mobile" /></div>
+        <Link href="/fasting-prayer-2027" className="mx-4 block rounded-xl bg-[#19283B] p-4 text-white"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-amber-200">14 Days · November 30 – December 13</p><p className="mt-1 text-lg font-semibold">Fasting & Praying into 2027</p><p className="mt-1 text-sm text-slate-200">Read all 14 days of scriptures and prophetic prayers →</p></Link>
+        <PremiumStoriesSection
+          sectionTitle="Stories"
+          storiesPresentation="v6"
+          homeV3
+        />
+
+        <PremiumHomeV3QuickTiles />
+        <PremiumHomeV4GiveBar />
+        <PremiumHomeV4UpcomingEvents rows={upcomingEventRows} />
+        <PremiumHomeV4LatestSermon video={latestSermon} />
+
+
+
         <AboutShanahHomeLink compact />
 
-        <div className="premium-home-v3__balance-lower mx-4 mb-8 space-y-4 rounded-[28px] border border-[#dfd0b6] bg-[#f8f3e9] p-4 shadow-[0_14px_34px_rgba(31,42,54,0.10)] dark:border-slate-600 dark:bg-[#14243c] sm:p-5">
+        <div className="premium-home-v3__balance-lower mx-4 mb-8 space-y-4 border-t border-slate-200 pt-5 dark:border-slate-700">
           <CheckInHomeBanner />
 
           <Link href="/guest" className="premium-guest-cta !min-h-[64px] !rounded-2xl !border !border-[#d7c3a4] !bg-white !px-4 !py-3 !text-[#17365a] shadow-sm dark:!border-slate-600 dark:!bg-[#203552] dark:!text-white">
