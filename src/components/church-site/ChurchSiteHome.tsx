@@ -1,6 +1,7 @@
 import { StripIcon } from "@/components/church-site/ChurchSiteFrame";
 import {
   formatHomeEventMeta,
+  homeUpcomingEventHref,
   type HomeUpcomingEventRow,
 } from "@/lib/home-upcoming-events";
 import { homeSermonDisplayTitle, homeSermonInlineThumbnail } from "@/lib/home-sermon-display";
@@ -65,7 +66,7 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
             God&apos;s Word, and experience life-giving relationships.
           </p>
           <div className="church-premium-hero__actions">
-            <a href="/messages" className="church-premium__btn-primary">
+            <a href="/live" className="church-premium__btn-primary">
               Watch live
             </a>
             <a href="/visit" className="church-premium__btn-ghost">
@@ -169,7 +170,7 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
                   return (
                     <a
                       key={`${event.id}-${occurrenceDate}`}
-                      href="/events"
+                      href={homeUpcomingEventHref(event.id)}
                       className="church-premium-event-row"
                     >
                       <span className="church-premium-event-row__date">

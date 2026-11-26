@@ -69,6 +69,11 @@ export function pickUpcomingPublishedEvents(events: ChurchEvent[], limit = 3) {
   return pickUpcomingHomeEventRows(events, limit).map((row) => row.event);
 }
 
+/** Deep link to church calendar event detail when supported by CalendarHub. */
+export function homeUpcomingEventHref(eventId: string) {
+  return `/calendar?event=${encodeURIComponent(eventId)}`;
+}
+
 export function formatHomeEventMeta(event: ChurchEvent, occurrenceDate?: string) {
   const day = occurrenceDate
     ? new Date(`${occurrenceDate}T12:00:00`)

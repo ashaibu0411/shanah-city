@@ -110,7 +110,7 @@ export function ChurchSiteFooter() {
             <a href={site.mapsUrl} target="_blank" rel="noopener noreferrer">
               Get directions
             </a>
-            <a href="https://shanah-city.vercel.app/login">Member sign in</a>
+            <a href="/sign-in">Member sign in</a>
           </div>
         </div>
       </div>

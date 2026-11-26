@@ -63,6 +63,11 @@ const church = readFileSync(
 );
 assert.match(church, /church-premium-hero/);
 assert.match(church, /Changing Lives to Higher Levels in God/);
+assert.match(church, /href="\/live"/);
+assert.match(
+  readFileSync(path.join(process.cwd(), "src/components/church-site/ChurchSiteFrame.tsx"), "utf8"),
+  /href="\/sign-in"/,
+);
 assert.doesNotMatch(church, /#0074aa/);
 assert.doesNotMatch(church, /8B4DD8/i);
 
