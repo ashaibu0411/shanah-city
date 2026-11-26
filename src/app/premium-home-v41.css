@@ -65,54 +65,63 @@ html:not(.dark) body.premium-home-v4-active .premium-home-v4 .premium-section__l
   color: #926b35;
 }
 
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile {
+html:not(.dark) body.premium-home-v4-active .premium-home-v4.shanah-porcelain-home .ph4-tile,
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-tile {
   min-height: 4.85rem;
   border: 1px solid #e5dfd4;
   background: #fff;
   box-shadow: 0 2px 10px rgba(16, 38, 74, 0.06);
 }
 
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile__image,
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile__scrim {
+html:not(.dark) body.premium-home-v4-active .premium-home-v4.shanah-porcelain-home .ph4-tile__image,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4.shanah-porcelain-home .ph4-tile__scrim,
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-tile__image,
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-tile__scrim {
   display: none;
 }
 
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile__icon {
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-tile__icon {
   color: var(--shanah-v41-navy);
   filter: none;
 }
 
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile__label {
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-tile__label {
   color: var(--shanah-v41-navy);
   text-shadow: none;
   font-weight: 600;
 }
 
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row,
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-sermon,
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-devotion-card {
+html:not(.dark) body.premium-home-v4-active .premium-home-v4.shanah-porcelain-home .ph4-event-row,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4.shanah-porcelain-home .ph4-sermon,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4.shanah-porcelain-home .ph4-devotion-card,
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-event-row,
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-sermon,
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-devotion-card {
   background: #fff;
   border-color: #e5dfd4;
   color: var(--shanah-v41-navy);
   box-shadow: 0 2px 12px rgba(16, 38, 74, 0.05);
 }
 
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row__date {
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-event-row__date {
   background: var(--shanah-v41-navy);
   border-color: transparent;
 }
 
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row__title,
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-sermon__title,
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-devotion-card__title {
+html:not(.dark) .premium-home-v4.shanah-porcelain-home :is(.ph4-event-row__title, .ph4-sermon__title, .ph4-devotion-card__title) {
   color: var(--shanah-v41-navy);
 }
 
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row__meta,
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row__location,
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-sermon__speaker,
-html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-devotion-card__hint {
+html:not(.dark) .premium-home-v4.shanah-porcelain-home :is(.ph4-event-row__meta, .ph4-event-row__location, .ph4-sermon__speaker, .ph4-devotion-card__hint) {
   color: var(--shanah-v41-graphite);
+}
+
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-event-row__month {
+  color: var(--shanah-v41-gold);
+}
+
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-event-row__day {
+  color: #fff;
 }
 
 html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-give {

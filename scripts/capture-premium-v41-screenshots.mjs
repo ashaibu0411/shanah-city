@@ -31,7 +31,7 @@ async function main() {
       });
     }
     await page.goto(`${base}${shot.url}`, { waitUntil: "networkidle2", timeout: 120_000 });
-    await page.waitForTimeout(1800);
+    await new Promise((r) => setTimeout(r, 1800));
     const file = path.join(outDir, `${shot.name}.png`);
     await page.screenshot({ path: file, fullPage: true });
     console.log("saved", file);
