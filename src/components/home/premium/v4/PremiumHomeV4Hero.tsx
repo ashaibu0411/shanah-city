@@ -21,8 +21,7 @@ type PremiumHomeV4HeroProps = {
 export function PremiumHomeV4Hero({
   firstName,
   campusLabel,
-  editorial = false,
-  heroV3 = false,
+
 }: PremiumHomeV4HeroProps) {
   const [greeting, setGreeting] = useState<string | null>(null);
 
@@ -31,33 +30,16 @@ export function PremiumHomeV4Hero({
   }, [firstName]);
 
   return (
-    <section
-      className={`ph4-hero${editorial ? " ph4-hero--editorial" : ""}${heroV3 ? " ph4-hero--v3" : ""}`}
-      aria-label="Welcome"
-    >
-      <div className="ph4-hero__media">
-        <ChurchFlyerImage
-          src={premiumV4HeroMountainImage}
-          alt=""
-          priority
-          sizes="(max-width: 512px) 100vw, 768px"
-          quality={95}
-          className="ph4-hero__image"
-        />
-        <div className="ph4-hero__glow ph4-hero__glow--violet" aria-hidden />
-        <div className="ph4-hero__glow ph4-hero__glow--gold" aria-hidden />
-        <div className="ph4-hero__sunrise" aria-hidden="true" />
-        <div className="ph4-hero__scrim" aria-hidden />
+    <section aria-label="Welcome" className="mx-4 my-5 overflow-hidden rounded-xl bg-white text-[#19283B] dark:bg-[#1C222A] dark:text-[#F3F3EF]" style={{ display: "block" }}>
+      <div className="px-5 pb-5 pt-6">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#52647B] dark:text-[#B7C5D8]">{greeting || "Welcome home"}</p>
+        <h1 className="text-[40px] font-semibold leading-[1.04] tracking-[-0.045em]">Shanah City.</h1>
+        <p className="mt-3 max-w-[30ch] text-base leading-relaxed">{site.tagline}</p>
       </div>
-      <div className="ph4-hero__content">
-        {greeting ? <p className="ph4-hero__greeting">{greeting}</p> : null}
-        <div className="ph4-hero__title-block">
-          <p className="ph4-hero__welcome">Welcome to</p>
-          <h1 className="ph4-hero__title">Shanah City</h1>
-        </div>
-        <p className="ph4-hero__tagline">{site.tagline}</p>
-        <p className="ph4-hero__service">{premiumV4ServiceChip(campusLabel)}</p>
+      <div className="relative aspect-[16/9] overflow-hidden">
+        <ChurchFlyerImage src={premiumV4HeroMountainImage} alt="" priority sizes="(max-width: 512px) 100vw, 768px" quality={95} className="absolute inset-0 h-full w-full object-cover" />
       </div>
+      <p className="border-t border-slate-200 px-5 py-4 text-sm font-medium dark:border-slate-700">{premiumV4ServiceChip(campusLabel)}</p>
     </section>
   );
 }
