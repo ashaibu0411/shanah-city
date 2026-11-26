@@ -15,7 +15,9 @@ import { PremiumHomeV4GiveBar } from "@/components/home/premium/v4/PremiumHomeV4
 import { PremiumHomeV4UpcomingEvents } from "@/components/home/premium/v4/PremiumHomeV4UpcomingEvents";
 import { PremiumHomeV4LatestSermon } from "@/components/home/premium/v4/PremiumHomeV4LatestSermon";
 import { PremiumHomeV4DailyDevotion } from "@/components/home/premium/v4/PremiumHomeV4DailyDevotion";
+import { PremiumHomeV4Greeting } from "@/components/home/premium/v4/PremiumHomeV4Greeting";
 import { getPublicDisplayFirstName } from "@/lib/member-display-name";
+import type { Devotion } from "@/lib/types";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
@@ -27,6 +29,7 @@ type PremiumHomeMobileProps = {
   churchImages: ChurchSocialImages;
   latestSermon: SermonVideo | null;
   upcomingEventRows: HomeUpcomingEventRow[];
+  todayDevotion?: Devotion | null;
 };
 
 export function PremiumHomeMobile({
@@ -35,6 +38,7 @@ export function PremiumHomeMobile({
   churchImages: _churchImages,
   latestSermon,
   upcomingEventRows,
+  todayDevotion = null,
 }: PremiumHomeMobileProps) {
   const { campus } = useApp();
   const { user } = useAuth();
@@ -59,6 +63,7 @@ export function PremiumHomeMobile({
           <p className="mt-1 text-sm text-white/78">Read the daily guide →</p>
         </Link>
 
+        <PremiumHomeV4Greeting firstName={firstName} />
         <PremiumStoriesSection sectionTitle="Stories" storiesPresentation="v6" homeV3 />
 
         <PremiumHomeV4Hero
@@ -66,10 +71,11 @@ export function PremiumHomeMobile({
           campusLabel={campus.city}
           editorial
           heroV3
+          showPersonalGreeting={false}
         />
 
+        <PremiumHomeV4DailyDevotion devotion={todayDevotion} />
         <PremiumHomeV4QuickTiles />
-        <PremiumHomeV4DailyDevotion />
         <PremiumHomeV4GiveBar />
         <PremiumHomeV4UpcomingEvents rows={upcomingEventRows} />
         <PremiumHomeV4LatestSermon video={latestSermon} />

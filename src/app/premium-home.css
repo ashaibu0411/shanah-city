@@ -514,8 +514,12 @@ html.dark .premium-icon-well--more { background: rgba(55, 65, 81, 0.35); color: 
 /* Live panel */
 .premium-home__split {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: minmax(0, 1.55fr) minmax(17.5rem, 22.5rem);
   gap: 1.25rem;
+  align-items: stretch;
+}
+
+.premium-home--desktop-v4__split {
   align-items: start;
 }
 
@@ -570,6 +574,21 @@ html.dark .premium-icon-well--more { background: rgba(55, 65, 81, 0.35); color: 
 .premium-live__badge--live {
   background: #dc2626;
   color: #fff;
+}
+
+.premium-live__badge--upcoming {
+  background: #10264a;
+  color: #f8f7f4;
+  border: 1px solid rgba(201, 166, 107, 0.45);
+}
+
+.premium-live--desktop .premium-live__media {
+  aspect-ratio: 16 / 9;
+  max-height: 11.5rem;
+}
+
+.premium-home--desktop-v4 .premium-live--desktop .premium-live__body {
+  padding-top: 0.85rem;
 }
 
 .premium-live__body {

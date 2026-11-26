@@ -273,7 +273,7 @@ body.premium-home-v4-active .premium-home-v4 > .urgent-news-home-strip--embedded
   border-radius: 1rem;
   border: 1px solid rgba(233, 188, 114, 0.42);
   padding: 0.65rem 0.7rem;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(139, 77, 216, 0.12);
+  box-shadow: 0 8px 22px rgba(6, 19, 41, 0.28);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -294,9 +294,9 @@ body.premium-home-v4-active .premium-home-v4 > .urgent-news-home-strip--embedded
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(81, 45, 131, 0.15) 0%,
-    rgba(6, 19, 41, 0.45) 45%,
-    rgba(6, 19, 41, 0.92) 100%
+    rgba(16, 38, 74, 0.08) 0%,
+    rgba(6, 19, 41, 0.42) 45%,
+    rgba(6, 19, 41, 0.9) 100%
   );
 }
 
@@ -323,12 +323,32 @@ body.premium-home-v4-active .premium-home-v4 > .urgent-news-home-strip--embedded
   align-items: center;
   gap: 0.85rem;
   border-radius: 1rem;
-  border: 1px solid rgba(233, 188, 114, 0.5);
-  background: linear-gradient(95deg, #e9bc72 0%, #c9954a 28%, #512d83 72%, #152744 100%);
+  border: 1px solid rgba(201, 166, 107, 0.45);
+  background: linear-gradient(135deg, #10264a 0%, #16325c 55%, #1a3d6e 100%);
   padding: 0.95rem 1.1rem;
-  box-shadow: 0 12px 32px rgba(81, 45, 131, 0.35);
+  box-shadow: 0 10px 26px rgba(16, 38, 74, 0.22);
   text-decoration: none;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, border-color 0.2s ease;
+}
+
+.ph4-give:hover {
+  border-color: rgba(201, 166, 107, 0.65);
+}
+
+.ph4-give__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ph4-give__copy {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #f6ebd5d9;
 }
 
 .ph4-give:active {
@@ -441,7 +461,7 @@ body.premium-home-v4-active .premium-home-v4 > .urgent-news-home-strip--embedded
   gap: 0.65rem;
   border-radius: 1rem;
   border: 1px solid rgba(233, 188, 114, 0.32);
-  background: linear-gradient(120deg, rgba(27, 45, 75, 0.95), rgba(81, 45, 131, 0.35));
+  background: rgba(27, 45, 75, 0.92);
   padding: 0.65rem;
   min-height: 5.5rem;
 }
@@ -539,8 +559,8 @@ body.premium-home-v4-active .premium-home-v4 > .urgent-news-home-strip--embedded
   background: linear-gradient(
     95deg,
     rgba(6, 19, 41, 0.92) 0%,
-    rgba(81, 45, 131, 0.55) 55%,
-    rgba(6, 19, 41, 0.75) 100%
+    rgba(16, 38, 74, 0.72) 55%,
+    rgba(6, 19, 41, 0.82) 100%
   );
 }
 
@@ -602,7 +622,7 @@ body.premium-home-v4-active .premium-home-v4 .premium-guest-cta {
 }
 
 body.premium-home-v4-active .premium-home-v4 .premium-guest-cta__pill {
-  background: #512d83;
+  background: #10264a;
   color: #fff;
 }
 
@@ -771,5 +791,195 @@ html:not(.dark) .premium-home--desktop-v4 .ph4-devotion-card__hint {
   .premium-home--desktop-v4__grid,
   .premium-home--desktop-v4__sermon-row {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ── V4.1 App desktop + shared refinements ── */
+
+.premium-home--desktop-v4--v41 {
+  gap: 1.25rem;
+}
+
+.ph4-hero--desktop {
+  border-radius: 1.15rem;
+  min-height: clamp(12.5rem, 26vw, 16.5rem);
+  overflow: hidden;
+  border: 1px solid rgba(201, 166, 107, 0.25);
+  box-shadow: 0 12px 32px rgba(16, 38, 74, 0.1);
+}
+
+.ph4-hero--desktop .ph4-hero__content {
+  min-height: clamp(12.5rem, 26vw, 16.5rem);
+  padding: 1.15rem 1.35rem 1.35rem;
+  justify-content: flex-end;
+}
+
+.ph4-hero--desktop .ph4-hero__image {
+  object-position: center 36%;
+}
+
+.ph4-devotion-card__cta {
+  display: inline-flex;
+  margin-top: 0.45rem;
+  width: fit-content;
+  border-radius: 999px;
+  background: #10264a;
+  color: #f8f7f4;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+}
+
+html:not(.dark) .premium-home--desktop-v4 .ph4-devotion-card__cta {
+  background: #10264a;
+  color: #f8f7f4;
+}
+
+.ph4-devotion-card__body {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .premium-home--desktop-v4__grid .ph4-devotion-card {
+    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+    min-height: 6.25rem;
+  }
+
+  .premium-home--desktop-v4__grid .ph4-devotion-card__image {
+    height: 5.25rem;
+    width: 7.5rem;
+  }
+
+  .premium-home--desktop-v4 .ph4-section--quick-tiles .ph4-tile-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .premium-home--desktop-v4 .ph4-tile {
+    min-height: 6.25rem;
+    box-shadow: 0 6px 18px rgba(16, 38, 74, 0.12);
+  }
+
+  .premium-home--desktop-v4 .ph4-sermon--stack {
+    display: grid;
+    grid-template-columns: 10.5rem minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: 0.75rem 1rem;
+    padding: 0.85rem;
+  }
+
+  .premium-home--desktop-v4 .ph4-sermon__thumb {
+    width: 10.5rem;
+    aspect-ratio: 16 / 10;
+    grid-row: 1 / span 2;
+  }
+
+  .premium-home--desktop-v4 .ph4-sermon__actions {
+    grid-column: 2;
+  }
+}
+
+.ph4-sermon__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.15rem 0.35rem;
+}
+
+.ph4-sermon__listen {
+  min-height: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 166, 107, 0.45);
+  background: #10264a;
+  color: #f8f7f4;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+}
+
+.ph4-sermon__listen:disabled {
+  opacity: 0.65;
+}
+
+.ph4-sermon__error {
+  width: 100%;
+  font-size: 0.75rem;
+  color: #b91c1c;
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home {
+  color: var(--color-ink);
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home
+  :is(.ph4-section__title, .premium-section__title) {
+  color: #10264a;
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home
+  :is(.ph4-section__link, .premium-section__link) {
+  color: #926b35;
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home .ph4-tile {
+  border-color: #e2d5bf;
+  box-shadow: 0 6px 18px rgba(18, 59, 112, 0.1);
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home .ph4-tile__scrim {
+  background: linear-gradient(180deg, transparent, rgba(12, 37, 72, 0.84));
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home
+  :is(.ph4-event-row, .ph4-sermon) {
+  background: #fff;
+  border-color: #e5dfd4;
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home
+  :is(.ph4-event-row__title, .ph4-sermon__title) {
+  color: #123b70;
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home
+  :is(.ph4-event-row__month, .ph4-event-row__chevron, .ph4-sermon__date) {
+  color: #926b35;
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home
+  :is(.ph4-event-row__meta, .ph4-event-row__location, .ph4-sermon__speaker) {
+  color: #536a84;
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home .ph4-event-row__date {
+  background: #f8f7f4;
+  border-color: #e2d5bf;
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home .ph4-event-row__day {
+  color: #10264a;
+}
+
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home .ph4-give__title,
+html:not(.dark) body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home .ph4-give__copy {
+  color: #f8f7f4;
+}
+
+html.dark body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home
+  :is(.ph4-section__title, .premium-section__title) {
+  color: #f6ebd5;
+}
+
+html.dark body.premium-home-v4-desktop-active .premium-home--desktop-v4.shanah-porcelain-home .ph4-devotion-card__cta {
+  background: #234e7a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ph4-tile,
+  .ph4-give,
+  .ph4-devotion-card {
+    transition: none;
   }
 }

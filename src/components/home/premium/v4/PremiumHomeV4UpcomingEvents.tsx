@@ -16,7 +16,7 @@ export function PremiumHomeV4UpcomingEvents({ rows }: PremiumHomeV4UpcomingEvent
     <section className="ph4-section" aria-labelledby="ph4-events-heading">
       <div className="ph4-section__head">
         <h2 id="ph4-events-heading" className="ph4-section__title">
-          Upcoming Events
+          Upcoming at Shanah City
         </h2>
         <Link href="/calendar" className="ph4-section__link">
           View all →

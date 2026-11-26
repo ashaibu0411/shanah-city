@@ -16,6 +16,7 @@ assert.doesNotMatch(mobile, /PremiumMobileLauncher/);
 const bodyStart = mobile.indexOf('className="premium-home-v4');
 assert.ok(bodyStart >= 0, "premium home v4 mobile shell missing");
 const body = mobile.slice(bodyStart);
+const greetingIdx = body.indexOf("PremiumHomeV4Greeting");
 const storiesIdx = body.indexOf("PremiumStoriesSection");
 const heroIdx = body.indexOf("PremiumHomeV4Hero");
 const tilesIdx = body.indexOf("PremiumHomeV4QuickTiles");
@@ -25,10 +26,12 @@ const eventsIdx = body.indexOf("PremiumHomeV4UpcomingEvents");
 const sermonIdx = body.indexOf("PremiumHomeV4LatestSermon");
 const checkInIdx = body.indexOf("CheckInHomeBanner");
 assert.ok(
-  storiesIdx < heroIdx &&
-    heroIdx < tilesIdx &&
-    tilesIdx < devotionIdx &&
-    devotionIdx < giveIdx &&
+  greetingIdx >= 0 &&
+    greetingIdx < storiesIdx &&
+    storiesIdx < heroIdx &&
+    heroIdx < devotionIdx &&
+    devotionIdx < tilesIdx &&
+    tilesIdx < giveIdx &&
     giveIdx < eventsIdx &&
     eventsIdx < sermonIdx &&
     sermonIdx < checkInIdx,
@@ -41,20 +44,25 @@ const desktop = readFileSync(
   "utf8",
 );
 assert.match(desktop, /premium-home--desktop-v4/);
+assert.match(desktop, /PremiumHomeV4Hero/);
 assert.match(desktop, /PremiumHomeV4QuickTiles/);
 assert.match(desktop, /PremiumHomeV4DailyDevotion/);
+assert.doesNotMatch(desktop, /PremiumHomeHero/);
 
 const css = readFileSync(path.join(process.cwd(), "src/app/premium-home-v4.css"), "utf8");
 assert.match(css, /premium-home-v4-active/);
 assert.match(css, /ph4-hero__glow--navy/);
 assert.doesNotMatch(css, /ph4-hero__glow--violet/);
+assert.doesNotMatch(css, /#512d83/i);
+assert.match(css, /premium-home-v4-desktop-active/);
 assert.match(css, /\.ph4-section\s*\{[^}]*width:\s*auto;/s, "V4 sections must shrink inside the parent side margins");
 
 const church = readFileSync(
   path.join(process.cwd(), "src/components/church-site/ChurchSiteHome.tsx"),
   "utf8",
 );
-assert.match(church, /church-premium/);
+assert.match(church, /church-premium-hero/);
+assert.match(church, /Changing Lives to Higher Levels in God/);
 assert.doesNotMatch(church, /#0074aa/);
 assert.doesNotMatch(church, /8B4DD8/i);
 
@@ -72,7 +80,7 @@ const tiles = readFileSync(
   path.join(process.cwd(), "src/lib/home-premium-v4.ts"),
   "utf8",
 );
-assert.match(tiles, /Worship Live/);
+assert.match(tiles, /label: "Watch"/);
 assert.match(tiles, /premium-v4-mountain-hero/);
 assert.match(tiles, /premium-v4-devotions-bible/);
 

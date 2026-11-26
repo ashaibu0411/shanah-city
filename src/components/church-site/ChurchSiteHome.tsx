@@ -1,10 +1,11 @@
-import { brandLogos, site } from "@/lib/site";
+import { StripIcon } from "@/components/church-site/ChurchSiteFrame";
 import {
   formatHomeEventMeta,
   type HomeUpcomingEventRow,
 } from "@/lib/home-upcoming-events";
-import { homeSermonInlineThumbnail } from "@/lib/home-sermon-display";
+import { homeSermonDisplayTitle, homeSermonInlineThumbnail } from "@/lib/home-sermon-display";
 import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-shared";
+import { site } from "@/lib/site";
 
 const ministries = [
   {
@@ -31,7 +32,7 @@ const ministries = [
     href: "/groups",
     image: "/home/home-gallery-20.jpg",
   },
-];
+] as const;
 
 type ChurchSiteHomeProps = {
   upcomingEvents: HomeUpcomingEventRow[];
@@ -42,176 +43,105 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
   const sermonThumb = homeSermonInlineThumbnail(
     latestSermon?.thumbnailUrl ?? "/home/home-gallery-12.jpg",
   );
-  const sermonTitle = latestSermon?.title ?? "Watch our latest message";
-  const sermonDate = latestSermon?.publishedAt
-    ? formatSermonDate(latestSermon.publishedAt)
-    : null;
+  const sermonTitle = homeSermonDisplayTitle(latestSermon?.title ?? "Watch our latest message");
+  const sermonDate = latestSermon?.publishedAt ? formatSermonDate(latestSermon.publishedAt) : null;
+  const events = upcomingEvents.slice(0, 4);
 
   return (
-    <main className="church-premium">
-      <section className="relative isolate min-h-[min(92vh,44rem)] overflow-hidden bg-[var(--church-navy-deep)] text-white">
+    <main>
+      <section className="church-premium-hero" aria-label="Welcome">
         <div
-          className="absolute inset-0 bg-cover bg-[center_32%]"
+          className="church-premium-hero__media"
           style={{ backgroundImage: "url('/home/home-gallery-36.jpg')" }}
           role="img"
-          aria-label="Shanah City Church gathering"
+          aria-label="Shanah City worship gathering"
         />
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-[#061329]/92 via-[#10264a]/72 to-[#10264a]/25"
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-[#061329]/55 via-transparent to-transparent"
-          aria-hidden
-        />
-        <div className="relative mx-auto flex min-h-[min(92vh,44rem)] max-w-6xl flex-col justify-end px-6 pb-16 pt-28 sm:px-10 lg:px-14 lg:pb-20">
-          <p className="church-premium__eyebrow text-[var(--church-gold-soft)]">
-            Shanah City Church · Aurora, Colorado
+        <div className="church-premium-hero__scrim" aria-hidden />
+        <div className="church-premium__container church-premium-hero__content">
+          <p className="church-premium__eyebrow text-[var(--church-gold-soft)]">Shanah City Church</p>
+          <h1 className="church-premium-hero__title">Changing Lives to Higher Levels in God.</h1>
+          <p className="church-premium-hero__copy">
+            A diverse, family-oriented church in Aurora, Colorado — where people meet Jesus, grow in
+            God&apos;s Word, and experience life-giving relationships.
           </p>
-          <h1 className="church-premium__title mt-4 max-w-3xl text-[clamp(2.75rem,7vw,5.5rem)] text-white">
-            There is room for you here.
-          </h1>
-          <p className="mt-6 max-w-xl text-base leading-relaxed text-white/88 sm:text-lg">
-            Encounter God, find your people, and discover the life you were created for.
-            We would love to welcome you this Sunday at 10:00 AM.
-          </p>
-          <div className="mt-9 flex flex-wrap gap-3">
-            <a href="/visit" className="church-premium__btn-primary">
-              Plan your first visit
+          <div className="church-premium-hero__actions">
+            <a href="/messages" className="church-premium__btn-primary">
+              Watch live
             </a>
-            <a href="/messages" className="church-premium__btn-ghost">
-              Watch a service
+            <a href="/visit" className="church-premium__btn-ghost">
+              Plan your visit
             </a>
-          </div>
-          <p className="mt-10 border-t border-white/20 pt-5 text-sm text-white/75">
-            {site.address} · Sunday worship 10:00 AM
-          </p>
-        </div>
-      </section>
-
-      <section id="about" className="scroll-mt-24 px-6 py-20 sm:px-10 lg:py-28">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
-          <div>
-            <p className="church-premium__eyebrow">More than a Sunday service</p>
-            <h2 className="church-premium__title mt-4 text-[clamp(2.25rem,4.5vw,3.5rem)]">
-              A church where lives change.
-            </h2>
-            <div className="church-premium__rule" />
-            <p className="mt-6 max-w-lg text-base leading-8 text-[var(--church-ink-muted)]">
-              Shanah City is a diverse, family-oriented church in Colorado — a community
-              where people meet Jesus, grow in God&apos;s Word, and experience life-giving
-              relationships.
-            </p>
-            <p className="mt-4 max-w-lg text-base leading-8 text-[var(--church-ink-muted)]">
-              <strong className="font-semibold text-[var(--church-navy)]">
-                Changing lives to higher levels in God.
-              </strong>
-            </p>
-            <a href="/about" className="church-premium__link mt-8 inline-block">
-              Discover our story
-            </a>
-          </div>
-          <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/home/home-gallery-08.jpg"
-              alt="Shanah City church family"
-              className="aspect-[5/4] w-full rounded-2xl object-cover shadow-[0_20px_50px_rgba(16,38,74,0.12)]"
-            />
-            <div className="absolute -bottom-6 left-4 max-w-[17rem] rounded-xl border border-[var(--church-gold-soft)]/40 bg-[var(--church-navy)] px-5 py-4 text-white shadow-lg sm:-left-5">
-              <p className="text-xs font-semibold tracking-wide text-[var(--church-gold)]">
-                Our foundation
-              </p>
-              <p className="mt-1 font-display text-lg font-semibold leading-snug">
-                Changed into His image.
-              </p>
-              <p className="mt-1 text-xs text-white/70">2 Corinthians 3:18</p>
-            </div>
           </div>
         </div>
       </section>
 
-      <section id="visit" className="scroll-mt-20 border-y border-sand-200 bg-sand-50 px-6 py-20 sm:px-10 lg:py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="max-w-2xl">
-            <p className="church-premium__eyebrow">Your first Sunday</p>
-            <h2 className="church-premium__title mt-3 text-[clamp(2rem,4vw,3.25rem)]">
-              Come as you are.
-            </h2>
-          </div>
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
-            {[
-              {
-                title: "Sunday worship",
-                body: "Join us at 10:00 AM for worship, prayer, and teaching grounded in Scripture.",
-              },
-              {
-                title: "A warm welcome",
-                body: "Friendly faces, a multicultural congregation, and space for whole families.",
-              },
-              {
-                title: "Find us in Aurora",
-                body: site.address,
-                link: { href: site.mapsUrl, label: "Get directions" },
-              },
-            ].map((card) => (
-              <article
-                key={card.title}
-                className="rounded-2xl border border-sand-200 bg-white p-8 shadow-sm"
-              >
-                <h3 className="font-display text-xl font-semibold text-[var(--church-navy)]">
-                  {card.title}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-[var(--church-ink-muted)]">{card.body}</p>
-                {card.link ? (
-                  <a
-                    href={card.link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="church-premium__link mt-4 inline-block text-sm"
-                  >
-                    {card.link.label}
-                  </a>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="ministries" className="scroll-mt-20 px-6 py-20 sm:px-10 lg:py-28">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+      <section className="church-premium-strip" aria-label="Visit essentials">
+        <div className="church-premium__container church-premium-strip__grid">
+          <div className="church-premium-strip__item">
+            <StripIcon>
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <path d="M16 2v4M8 2v4M3 10h18" />
+            </StripIcon>
             <div>
-              <p className="church-premium__eyebrow">Life happens together</p>
-              <h2 className="church-premium__title mt-3 text-[clamp(2rem,4vw,3.25rem)]">
-                Find your community.
-              </h2>
+              <p className="church-premium-strip__label">Sunday worship</p>
+              <p className="church-premium-strip__meta">10:00 AM</p>
             </div>
-            <a href="/ministries" className="church-premium__link">
-              Explore ministries
+          </div>
+          <div className="church-premium-strip__item">
+            <StripIcon>
+              <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z" />
+              <circle cx="12" cy="10" r="2.5" />
+            </StripIcon>
+            <div>
+              <p className="church-premium-strip__label">Our location</p>
+              <p className="church-premium-strip__meta">
+                <a href={site.mapsUrl} target="_blank" rel="noopener noreferrer">
+                  {site.address}
+                </a>
+              </p>
+            </div>
+          </div>
+          <div className="church-premium-strip__item">
+            <StripIcon>
+              <path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+              <circle cx="10" cy="8" r="3.5" />
+              <path d="M23 20v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 4.13a4 4 0 0 1 0 7.75" />
+            </StripIcon>
+            <div>
+              <p className="church-premium-strip__label">A place for everyone</p>
+              <p className="church-premium-strip__meta">
+                All generations. All backgrounds. One family.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="ministries" className="church-premium-ministries scroll-mt-24">
+        <div className="church-premium__container church-premium-ministries__grid">
+          <div>
+            <p className="church-premium__eyebrow">Ministries</p>
+            <h2 className="church-premium__title mt-3 text-[clamp(1.85rem,4vw,2.75rem)]">
+              Find your community.
+            </h2>
+            <p className="mt-4 max-w-md text-base leading-7 text-[var(--church-ink-muted)]">
+              Grow in faith, build meaningful relationships, and serve with purpose through our
+              ministries.
+            </p>
+            <a href="/ministries" className="church-premium__btn-outline mt-6 inline-flex">
+              Explore all ministries →
             </a>
           </div>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2">
+          <div className="church-premium-ministries__cards">
             {ministries.map((item) => (
-              <a
-                key={item.title}
-                href={item.href}
-                className="group grid grid-cols-[7.5rem_1fr] gap-4 overflow-hidden rounded-2xl border border-sand-200 bg-white transition hover:border-[var(--church-gold-soft)]"
-              >
+              <a key={item.title} href={item.href} className="church-premium-ministry-card">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.image}
-                  alt=""
-                  className="h-full min-h-[8.5rem] w-full object-cover"
-                />
-                <div className="py-5 pr-5">
-                  <h3 className="font-display text-lg font-semibold text-[var(--church-navy)] group-hover:text-clay-600">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-[var(--church-ink-muted)]">
-                    {item.caption}
-                  </p>
+                <img src={item.image} alt="" className="church-premium-ministry-card__image" />
+                <div className="church-premium-ministry-card__scrim" aria-hidden />
+                <div className="church-premium-ministry-card__body">
+                  <p className="church-premium-ministry-card__title">{item.title}</p>
+                  <p className="church-premium-ministry-card__copy">{item.caption}</p>
                 </div>
               </a>
             ))}
@@ -219,141 +149,143 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
         </div>
       </section>
 
-      <section id="events" className="bg-[var(--church-navy)] px-6 py-20 text-white sm:px-10 lg:py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="church-premium__eyebrow text-[var(--church-gold-soft)]">
-                Life at Shanah City
-              </p>
-              <h2 className="church-premium__title mt-3 text-[clamp(2rem,4vw,3.25rem)] text-white">
-                Upcoming gatherings
+      <section id="events" className="church-premium-band scroll-mt-24" aria-labelledby="church-events-heading">
+        <div className="church-premium__container church-premium-band__grid">
+          <div>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <h2 id="church-events-heading" className="church-premium__title text-white text-[clamp(1.65rem,3.5vw,2.25rem)]">
+                What&apos;s happening at Shanah City
               </h2>
+              <a href="/events" className="church-premium__link church-premium__link--gold">
+                View all events →
+              </a>
             </div>
-            <a
-              href="/events"
-              className="rounded-full border border-white/35 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
-            >
-              View all events
+            <div className="mt-4">
+              {events.length > 0 ? (
+                events.map(({ event, occurrenceDate }) => {
+                  const { day, meta } = formatHomeEventMeta(event, occurrenceDate);
+                  const month = day?.toLocaleDateString(undefined, { month: "short" }).toUpperCase() ?? "—";
+                  const dayNum = day?.getDate() ?? "·";
+                  return (
+                    <a
+                      key={`${event.id}-${occurrenceDate}`}
+                      href="/events"
+                      className="church-premium-event-row"
+                    >
+                      <span className="church-premium-event-row__date">
+                        <span className="church-premium-event-row__month">{month}</span>
+                        <span className="church-premium-event-row__day">{dayNum}</span>
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="church-premium-event-row__title">{event.title}</span>
+                        <span className="church-premium-event-row__meta block">{meta}</span>
+                        {event.location?.trim() ? (
+                          <span className="church-premium-event-row__meta block">{event.location}</span>
+                        ) : null}
+                      </span>
+                      <span className="text-[var(--church-gold)]" aria-hidden>
+                        →
+                      </span>
+                    </a>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-white/78 py-2">
+                  Join us Sunday at 10:00 AM. Check back soon for special gatherings.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="church-premium-sermon">
+            <p className="church-premium__eyebrow text-[var(--church-gold-soft)]">Latest sermon</p>
+            <a href="/messages" className="church-premium-sermon__thumb">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={sermonThumb} alt="" />
+              <span className="church-premium-sermon__play" aria-hidden>
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-sm text-[var(--church-navy)]">
+                  ▶
+                </span>
+              </span>
+            </a>
+            <SermonFeatureCopy title={sermonTitle} date={sermonDate} />
+          </div>
+
+          <div className="church-premium-give-card">
+            <div>
+              <p className="church-premium__eyebrow text-[var(--church-midnight)]/80">Give</p>
+              <h2 className="church-premium-give-card__title mt-2">Support the vision</h2>
+              <p className="church-premium-give-card__copy">
+                Your generosity helps us change lives and serve our community.
+              </p>
+            </div>
+            <a href="/give" className="church-premium__btn-primary">
+              Give online →
             </a>
           </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {upcomingEvents.length ? (
-              upcomingEvents.map(({ event, occurrenceDate }) => {
-                const { meta } = formatHomeEventMeta(event, occurrenceDate);
-                const image =
-                  event.artworkWideUrl ||
-                  event.artworkBannerUrl ||
-                  event.artworkSquareUrl ||
-                  "/home/home-gallery-16.jpg";
-                return (
-                  <article
-                    key={event.id}
-                    className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={image} alt="" className="aspect-[16/10] w-full object-cover" />
-                    <div className="p-6">
-                      <p className="text-xs font-semibold tracking-wide text-[var(--church-gold)]">
-                        {meta}
-                      </p>
-                      <h3 className="mt-2 font-display text-xl font-semibold">{event.title}</h3>
-                      {event.location ? (
-                        <p className="mt-1 text-sm text-white/75">{event.location}</p>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })
-            ) : (
-              <p className="md:col-span-3 text-white/80">
-                Join us Sunday at 10:00 AM — check back soon for special events.
-              </p>
-            )}
-          </div>
         </div>
       </section>
 
-      <section id="messages" className="scroll-mt-20 px-6 py-20 sm:px-10 lg:py-28">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2">
-          <a href="/messages" className="group relative block overflow-hidden rounded-2xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={sermonThumb}
-              alt=""
-              className="aspect-video w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--church-navy-deep)]/80 via-transparent to-transparent" />
-            <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[var(--church-navy)]">
-              Play message
-            </span>
-          </a>
+      <section id="about" className="church-premium-welcome scroll-mt-24">
+        <div className="church-premium__container grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
-            <p className="church-premium__eyebrow">Latest sermon</p>
-            <h2 className="church-premium__title mt-3 text-[clamp(2rem,4vw,3rem)]">{sermonTitle}</h2>
-            {sermonDate ? (
-              <p className="mt-2 text-sm text-[var(--church-ink-muted)]">{sermonDate}</p>
-            ) : null}
-            <p className="mt-5 max-w-md text-base leading-8 text-[var(--church-ink-muted)]">
-              Carry Sunday into the week — explore messages, daily devotions, and practical
-              next steps for your walk with God.
+            <p className="church-premium__eyebrow">Welcome</p>
+            <h2 className="church-premium__title mt-3 text-[clamp(1.85rem,4vw,2.75rem)]">
+              There is room for you here.
+            </h2>
+            <p className="mt-4 max-w-lg text-base leading-8 text-[var(--church-ink-muted)]">
+              {site.description}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a href="/messages" className="church-premium__btn-primary !bg-[var(--church-navy)] !text-white hover:!bg-[#0d3158]">
-                Explore sermons
-              </a>
-              <a
-                href="/devotions"
-                className="rounded-full border border-sand-300 px-5 py-3 text-sm font-semibold text-[var(--church-navy)] hover:bg-sand-50"
-              >
-                Daily devotions
-              </a>
-            </div>
+            <p className="mt-3 text-base font-semibold text-[var(--church-navy)]">{site.welcome}</p>
+            <a href="/about" className="church-premium__link church-premium__link--gold mt-6 inline-block">
+              Discover our story →
+            </a>
           </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/home/home-gallery-08.jpg"
+            alt="Shanah City church family"
+            className="aspect-[5/4] w-full rounded-xl object-cover"
+          />
         </div>
       </section>
 
-      <section className="px-6 pb-20 sm:px-10 lg:pb-28">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 overflow-hidden rounded-2xl border border-sand-200 bg-white p-8 shadow-[0_16px_40px_rgba(16,38,74,0.08)] sm:p-12 lg:grid-cols-[1fr_11rem]">
+      <section className="church-premium-app">
+        <div className="church-premium__container church-premium-app__card">
           <div>
             <p className="church-premium__eyebrow">Stay connected</p>
-            <h2 className="church-premium__title mt-3 text-[clamp(2rem,4vw,3rem)]">
+            <h2 className="church-premium__title mt-3 text-[clamp(1.65rem,3.5vw,2.25rem)]">
               Your church family, in your pocket.
             </h2>
-            <p className="mt-4 max-w-xl text-base leading-8 text-[var(--church-ink-muted)]">
-              Sermons, devotions, events, prayer, and community — with the official Shanah City
-              app for iOS and Android.
+            <p className="mt-4 max-w-xl text-base leading-7 text-[var(--church-ink-muted)]">
+              Sermons, devotions, events, prayer, and community — with the official Shanah City app for
+              iOS and Android.
             </p>
-            <a href="/app" className="church-premium__btn-primary mt-8">
+            <a href="/app" className="church-premium__btn-primary mt-6 inline-flex">
               Get the free app
             </a>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/app-store-screenshots/01-home-1242x2688.png"
+            src="/app-store-screenshots/01-home-1284x2778.png"
             alt="Shanah City app home screen"
-            className="mx-auto w-[10.5rem] rounded-[1.75rem] border-[6px] border-night-900 shadow-xl"
+            className="church-premium-app__shot mx-auto"
           />
         </div>
       </section>
-
-      <section className="border-t border-sand-200 bg-sand-50 px-6 py-16 sm:px-10">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={brandLogos.default} alt="" className="h-10 w-auto opacity-90" />
-            <p className="max-w-md text-sm leading-7 text-[var(--church-ink-muted)]">
-              Generosity fuels ministry to families and our community in Aurora.
-            </p>
-          </div>
-          <a
-            href="/give"
-            className="rounded-full bg-clay-600 px-7 py-3.5 text-sm font-semibold text-white hover:bg-clay-500"
-          >
-            Give online
-          </a>
-        </div>
-      </section>
     </main>
+  );
+}
+
+function SermonFeatureCopy({ title, date }: { title: string; date: string | null }) {
+  return (
+    <div>
+      <h3 className="church-premium__title text-white text-lg leading-snug">{title}</h3>
+      <p className="mt-1 text-sm text-white/75">{site.leadPastor}</p>
+      {date ? <p className="mt-1 text-xs text-white/60">{date}</p> : null}
+      <a href="/messages" className="church-premium__link church-premium__link--gold mt-3 inline-block text-sm">
+        Watch message →
+      </a>
+    </div>
   );
 }

@@ -16,6 +16,10 @@ type PremiumHomeV4HeroProps = {
   editorial?: boolean;
   /** V3 mockup hero grading and compact ratio. */
   heroV3?: boolean;
+  /** Tighter editorial hero on desktop app home (V4.1). */
+  layout?: "mobile" | "desktop";
+  /** When false, omit time-based name line (shown in PremiumHomeV4Greeting instead). */
+  showPersonalGreeting?: boolean;
 };
 
 export function PremiumHomeV4Hero({
@@ -23,16 +27,22 @@ export function PremiumHomeV4Hero({
   campusLabel,
   editorial = false,
   heroV3 = false,
+  layout = "mobile",
+  showPersonalGreeting = true,
 }: PremiumHomeV4HeroProps) {
   const [greeting, setGreeting] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!showPersonalGreeting) {
+      setGreeting(null);
+      return;
+    }
     setGreeting(premiumV4HomeGreeting(firstName));
-  }, [firstName]);
+  }, [firstName, showPersonalGreeting]);
 
   return (
     <section
-      className={`ph4-hero${editorial ? " ph4-hero--editorial" : ""}${heroV3 ? " ph4-hero--v3" : ""}`}
+      className={`ph4-hero${editorial ? " ph4-hero--editorial" : ""}${heroV3 ? " ph4-hero--v3" : ""}${layout === "desktop" ? " ph4-hero--desktop" : ""}`}
       aria-label="Welcome"
     >
       <div className="ph4-hero__media">

@@ -19,7 +19,17 @@ export function PremiumLivePanel({ liveFlyerImage, variant = "desktop" }: Premiu
     liveStream.isLive || liveStream.youtube.isLive || liveStream.facebook.isLive;
   const scheduledLive = livePhase === "live";
   const showAsLive = anyLive || scheduledLive;
+  const upcoming = !loading && schedule && livePhase === "upcoming";
+  const offline = !showAsLive && !upcoming;
   const mobile = variant === "mobile";
+
+  const sectionTitle = showAsLive
+    ? "Live now"
+    : upcoming
+      ? "Starting soon"
+      : "Live stream";
+
+  const ctaLabel = showAsLive ? "Watch live" : upcoming ? "Remind me on live page" : "Open live player";
 
   const liveVideoId = liveStream.youtube.videoId?.trim();
   const liveThumbnail = liveVideoId ? getYouTubeThumbnail(liveVideoId) : null;
@@ -58,23 +68,20 @@ export function PremiumLivePanel({ liveFlyerImage, variant = "desktop" }: Premiu
         <div className="premium-live__scrim" aria-hidden />
         {showAsLive ? (
           <span className="premium-live__badge premium-live__badge--live">Live</span>
+        ) : upcoming ? (
+          <span className="premium-live__badge premium-live__badge--upcoming">Upcoming</span>
         ) : null}
       </div>
 
       <div className="premium-live__body">
-        {!mobile && (
-          <div className="premium-section__head premium-section__head--compact">
-            <h2 className="premium-section__title">Live Now</h2>
+        <div className="premium-section__head premium-section__head--compact">
+          <h2 className="premium-section__title">{sectionTitle}</h2>
+          {!mobile ? (
             <Link href="/live" className="premium-section__link">
               Open player →
             </Link>
-          </div>
-        )}
-        {mobile && (
-          <div className="premium-section__head premium-section__head--compact">
-            <h2 className="premium-section__title">Live Now</h2>
-          </div>
-        )}
+          ) : null}
+        </div>
 
         {showAsLive ? (
           <>
@@ -85,26 +92,28 @@ export function PremiumLivePanel({ liveFlyerImage, variant = "desktop" }: Premiu
                 : "Tap to join the stream"}
             </p>
           </>
-        ) : !loading && schedule && livePhase === "upcoming" ? (
+        ) : upcoming && schedule ? (
           mobile ? (
             <div className="premium-live__countdown premium-live__countdown--mobile">
               <LiveStreamCountdown schedule={schedule} variant="card" onComplete={refresh} />
             </div>
           ) : (
-            <LiveStreamCountdown schedule={schedule} variant="desktop-flyer" onComplete={refresh} />
+            <div className="premium-live__countdown">
+              <LiveStreamCountdown schedule={schedule} variant="card" onComplete={refresh} />
+            </div>
           )
         ) : (
           <>
-            <p className="premium-live__title">Watch live with us</p>
+            <p className="premium-live__title">{offline ? "Watch live with us" : "Next broadcast"}</p>
             <p className="premium-live__meta">{serviceSummary}</p>
           </>
         )}
 
-        <Link href="/live" className="premium-btn premium-btn--primary premium-btn--sm premium-live__cta">
+        <Link href="/live" className="premium-btn premium-btn--secondary premium-btn--sm premium-live__cta">
           <span className="premium-btn__play" aria-hidden>
             ▶
           </span>
-          {showAsLive ? "Watch Live" : "Open live player"}
+          {ctaLabel}
         </Link>
       </div>
     </div>

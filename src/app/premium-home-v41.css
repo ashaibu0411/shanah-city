@@ -1,0 +1,201 @@
+/* Premium App Home V4.1 — light + dark theme layers (mobile + desktop chrome) */
+
+/* ── Light mode: porcelain native app home ── */
+html:not(.dark) body.premium-home-v4-active {
+  background: var(--shanah-v41-porcelain) !important;
+}
+
+html:not(.dark) body.premium-home-v4-active .app-main {
+  background: var(--shanah-v41-porcelain);
+  color: var(--shanah-v41-navy);
+}
+
+html:not(.dark) body.premium-home-v4-active .mobile-app-header,
+html:not(.dark) body.premium-home-v4-active[data-shell="mobile"] .mobile-app-header {
+  background: rgba(248, 247, 244, 0.96) !important;
+  border-bottom: 1px solid #e5dfd4 !important;
+  box-shadow: 0 1px 0 rgba(16, 38, 74, 0.06) !important;
+  backdrop-filter: blur(12px);
+}
+
+html:not(.dark) body.premium-home-v4-active .ph4-header-wordmark {
+  color: var(--shanah-v41-navy);
+}
+
+html:not(.dark) body.premium-home-v4-active .app-mobile-bottom-nav,
+html:not(.dark) body.premium-home-v4-active[data-shell="mobile"] .mobile-bottom-nav {
+  background: #fff !important;
+  border-top: 1px solid #e5dfd4 !important;
+  box-shadow: 0 -4px 20px rgba(16, 38, 74, 0.06) !important;
+}
+
+html:not(.dark) body.premium-home-v4-active[data-shell="mobile"] .mobile-bottom-nav::after {
+  background: #fff !important;
+}
+
+html:not(.dark) body.premium-home-v4-active[data-shell="mobile"] .mobile-nav-link:not(.is-active),
+html:not(.dark) body.premium-home-v4-active[data-shell="mobile"] .mobile-nav-link:not(.is-active)
+  :is(.mobile-nav-icon, .mobile-nav-icon-shell) {
+  color: var(--shanah-v41-slate) !important;
+}
+
+html:not(.dark) body.premium-home-v4-active[data-shell="mobile"] .mobile-nav-link.is-active,
+html:not(.dark) body.premium-home-v4-active[data-shell="mobile"] .mobile-nav-link.is-active
+  :is(.mobile-nav-icon, .mobile-nav-icon-shell, .mobile-nav-label) {
+  color: var(--shanah-v41-navy) !important;
+}
+
+html:not(.dark) body.premium-home-v4-active[data-shell="mobile"] .mobile-bottom-nav .mobile-nav-link.is-active::after,
+html:not(.dark) body.premium-home-v4-active[data-shell="mobile"] .mobile-bottom-nav .mobile-nav-link.is-active {
+  position: relative;
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 {
+  color: var(--shanah-v41-navy);
+  gap: 1rem;
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-section__title,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .premium-section__title {
+  color: var(--shanah-v41-navy);
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-section__link,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .premium-section__link {
+  color: #926b35;
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile {
+  min-height: 4.85rem;
+  border: 1px solid #e5dfd4;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(16, 38, 74, 0.06);
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile__image,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile__scrim {
+  display: none;
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile__icon {
+  color: var(--shanah-v41-navy);
+  filter: none;
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile__label {
+  color: var(--shanah-v41-navy);
+  text-shadow: none;
+  font-weight: 600;
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-sermon,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-devotion-card {
+  background: #fff;
+  border-color: #e5dfd4;
+  color: var(--shanah-v41-navy);
+  box-shadow: 0 2px 12px rgba(16, 38, 74, 0.05);
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row__date {
+  background: var(--shanah-v41-navy);
+  border-color: transparent;
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row__title,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-sermon__title,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-devotion-card__title {
+  color: var(--shanah-v41-navy);
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row__meta,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-event-row__location,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-sermon__speaker,
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-devotion-card__hint {
+  color: var(--shanah-v41-graphite);
+}
+
+html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-give {
+  background: linear-gradient(135deg, var(--shanah-v41-navy) 0%, #16325c 100%);
+  border-color: rgba(201, 166, 107, 0.4);
+}
+
+/* ── Dark mode V4.1 refinements ── */
+html.dark body.premium-home-v4-active {
+  background: var(--shanah-v41-midnight) !important;
+}
+
+html.dark body.premium-home-v4-active .app-main {
+  background: linear-gradient(
+    180deg,
+    var(--shanah-v41-midnight) 0%,
+    var(--shanah-v41-surface-dark) 50%,
+    var(--shanah-v41-midnight) 100%
+  );
+}
+
+html.dark body.premium-home-v4-active .mobile-app-header,
+html.dark body.premium-home-v4-active[data-shell="mobile"] .mobile-app-header {
+  background: rgba(9, 22, 40, 0.94) !important;
+  border-bottom-color: var(--shanah-v41-border-dark) !important;
+  box-shadow: none !important;
+}
+
+html.dark body.premium-home-v4-active .app-mobile-bottom-nav,
+html.dark body.premium-home-v4-active[data-shell="mobile"] .mobile-bottom-nav {
+  background: var(--shanah-v41-midnight) !important;
+  border-top-color: var(--shanah-v41-border-dark) !important;
+  box-shadow: none !important;
+}
+
+html.dark body.premium-home-v4-active .premium-home-v4 .ph4-tile,
+html.dark body.premium-home-v4-active .premium-home-v4 .ph4-event-row,
+html.dark body.premium-home-v4-active .premium-home-v4 .ph4-sermon,
+html.dark body.premium-home-v4-active .premium-home-v4 .ph4-devotion-card {
+  background: var(--shanah-v41-surface-elevated);
+  border-color: var(--shanah-v41-border-dark);
+}
+
+/* Greeting block */
+.ph4-greeting {
+  padding: 0.25rem 1rem 0.15rem;
+}
+
+.ph4-greeting__title {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.65rem, 6vw, 2rem);
+  font-weight: 600;
+  line-height: 1.12;
+  color: inherit;
+  letter-spacing: -0.02em;
+}
+
+.ph4-greeting__sub {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--shanah-v41-graphite);
+}
+
+html.dark body.premium-home-v4-active .ph4-greeting__sub {
+  color: #b8c4d1;
+}
+
+body.premium-home-v4-active .ph4-hero.ph4-hero--v3.ph4-hero--editorial {
+  min-height: clamp(11rem, 42vw, 15rem);
+}
+
+body.premium-home-v4-active .ph4-hero.ph4-hero--v3 .ph4-hero__content {
+  min-height: clamp(11rem, 42vw, 15rem);
+  padding-bottom: 1.15rem;
+}
+
+body.premium-home-v4-active .ph4-hero.ph4-hero--v3 .ph4-hero__greeting {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.dark) body.premium-home-v4-active .premium-home-v4 .ph4-tile,
+  html.dark body.premium-home-v4-active .premium-home-v4 .ph4-tile {
+    transition: none;
+  }
+}

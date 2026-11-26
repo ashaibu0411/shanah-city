@@ -1,0 +1,18 @@
+/* Premium V4.1 — shared visitor + app tokens */
+
+:root {
+  --shanah-v41-navy: #10264a;
+  --shanah-v41-midnight: #091628;
+  --shanah-v41-porcelain: #f8f7f4;
+  --shanah-v41-ivory: #efece3;
+  --shanah-v41-gold: #c9a66b;
+  --shanah-v41-gold-bright: #e5bf79;
+  --shanah-v41-white: #ffffff;
+  --shanah-v41-slate: #344b65;
+  --shanah-v41-graphite: #667085;
+  --shanah-v41-surface-dark: #102033;
+  --shanah-v41-surface-elevated: #16283c;
+  --shanah-v41-border-dark: #304255;
+  --shanah-v41-content-max: 72rem;
+  --shanah-v41-gutter: 1.5rem;
+}

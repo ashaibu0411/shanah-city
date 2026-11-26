@@ -4,7 +4,8 @@ import { useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 
-const BODY_CLASS = "premium-home-v4-active";
+const BODY_V4 = "premium-home-v4-active";
+const BODY_V3 = "premium-home-v3-active";
 
 /** Applies full-page V4 chrome on mobile home only — other routes unchanged. */
 export function PremiumHomeV4Chrome() {
@@ -14,9 +15,11 @@ export function PremiumHomeV4Chrome() {
 
   useLayoutEffect(() => {
     if (typeof document === "undefined") return;
-    document.body.classList.toggle(BODY_CLASS, active);
+    document.body.classList.toggle(BODY_V4, active);
+    document.body.classList.toggle(BODY_V3, active);
     return () => {
-      document.body.classList.remove(BODY_CLASS);
+      document.body.classList.remove(BODY_V4);
+      document.body.classList.remove(BODY_V3);
     };
   }, [active]);
 

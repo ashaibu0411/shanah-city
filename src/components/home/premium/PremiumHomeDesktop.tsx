@@ -8,7 +8,9 @@ import { PremiumEngagementRail } from "@/components/home/premium/PremiumEngageme
 import { PremiumStoriesSection } from "@/components/home/premium/PremiumStoriesSection";
 import { PremiumLivePanel } from "@/components/home/premium/PremiumLivePanel";
 import { CheckInHomeBanner } from "@/components/home/DailyEngagementBanners";
-import { PremiumHomeHero } from "@/components/home/premium/PremiumHomeHero";
+import { useApp } from "@/components/app/AppProvider";
+import { PremiumHomeV4Hero } from "@/components/home/premium/v4/PremiumHomeV4Hero";
+import { PremiumHomeV4DesktopChrome } from "@/components/home/premium/v4/PremiumHomeV4DesktopChrome";
 import { PremiumHomeV4QuickTiles } from "@/components/home/premium/v4/PremiumHomeV4QuickTiles";
 import { PremiumHomeV4DailyDevotion } from "@/components/home/premium/v4/PremiumHomeV4DailyDevotion";
 import { PremiumHomeV4UpcomingEvents } from "@/components/home/premium/v4/PremiumHomeV4UpcomingEvents";
@@ -20,6 +22,7 @@ import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
 import type { UrgentAlert } from "@/lib/urgent-alert-types";
+import type { Devotion } from "@/lib/types";
 
 type PremiumHomeDesktopProps = {
   urgentAlerts: UrgentAlert[];
@@ -27,6 +30,7 @@ type PremiumHomeDesktopProps = {
   churchImages: ChurchSocialImages;
   latestSermon: SermonVideo | null;
   upcomingEventRows: HomeUpcomingEventRow[];
+  todayDevotion?: Devotion | null;
 };
 
 export function PremiumHomeDesktop({
@@ -35,12 +39,16 @@ export function PremiumHomeDesktop({
   churchImages,
   latestSermon,
   upcomingEventRows,
+  todayDevotion = null,
 }: PremiumHomeDesktopProps) {
   const { user } = useAuth();
+  const { campus } = useApp();
   const firstName = user ? getPublicDisplayFirstName(user) : null;
 
   return (
-    <div className="premium-home premium-home--desktop premium-home--desktop-v4">
+    <>
+      <PremiumHomeV4DesktopChrome />
+      <div className="premium-home premium-home--desktop premium-home--desktop-v4 shanah-porcelain-home premium-home--desktop-v4--v41">
       <PrayerHomeBanner variant="desktop" />
       {urgentAlerts.length > 0 ? (
         <UrgentNewsHomeStrip
@@ -65,11 +73,17 @@ export function PremiumHomeDesktop({
 
       <PremiumEngagementRail variant="desktop" />
       <PremiumStoriesSection />
-      <PremiumHomeHero variant="desktop" firstName={firstName} />
+      <PremiumHomeV4Hero
+        firstName={firstName}
+        campusLabel={campus.city}
+        editorial
+        heroV3
+        layout="desktop"
+      />
 
       <div className="premium-home--desktop-v4__grid">
         <PremiumHomeV4QuickTiles />
-        <PremiumHomeV4DailyDevotion />
+        <PremiumHomeV4DailyDevotion devotion={todayDevotion} />
       </div>
 
       <div className="premium-home__split premium-home--desktop-v4__split">
@@ -88,9 +102,21 @@ export function PremiumHomeDesktop({
 
       <AboutShanahHomeLink />
 
-      <div className="premium-engagement-rail premium-engagement-rail--footer">
+      <div className="premium-home--desktop-v4__footer space-y-3">
         <CheckInHomeBanner />
+        {!user ? (
+          <Link
+            href="/guest"
+            className="premium-guest-cta flex min-h-[3.25rem] items-center justify-between rounded-2xl border border-sand-300 bg-white px-5 py-3 text-[#10264a] shadow-sm dark:border-slate-600 dark:bg-[#203552] dark:text-white"
+          >
+            <span className="font-semibold">First time here?</span>
+            <span className="premium-guest-cta__pill rounded-full bg-[#10264a] px-5 py-2 text-sm font-semibold text-[#f8f7f4] dark:bg-[#234e7a]">
+              Connect
+            </span>
+          </Link>
+        ) : null}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
