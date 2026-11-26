@@ -8,7 +8,7 @@ const script = readFileSync(
 );
 assert.match(script, /feature\/premium-homepage-v4/);
 assert.match(script, /main\|staging/);
-assert.match(script, /VERCEL_ENV.*production/);
+assert.match(script, /"production"/);
 assert.match(script, /exit 1/, "build branches must exit 1");
 assert.match(script, /exit 0/, "skipped branches must exit 0");
 
