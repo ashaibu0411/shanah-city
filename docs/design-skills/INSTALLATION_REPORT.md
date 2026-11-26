@@ -87,3 +87,43 @@ npm run build
 ```
 
 `test:design:skills` asserts: seven core skills, full Impeccable reference + UI/UX data CSV, transitions snippet library, no `hooks.json`, `AGENTS.md` sections, and Shanah override notes in installed upstream skills.
+
+---
+
+## Final verification — November 26, 2026
+
+Pre-merge release checks on branch `chore/design-skills-installation-clean` (PR #162). **No application pages or `src/` UI were modified.**
+
+| Step | Result |
+|------|--------|
+| `npm run db:generate` | **Pass** — Prisma Client v7.9.1 |
+| `npm run test:design:skills` | **Pass** |
+| `npm run build` | **Pass** after client regenerate (earlier failure was stale client; `WhatsAppContactState` already on `origin/main`) |
+| Diff vs `origin/main` | Design tooling only — `.cursor/`, `AGENTS.md`, `docs/design-skills/`, `package.json` script, `scripts/verify-design-skills.test.ts`, `skills-lock.json` |
+| `.cursor/hooks.json` | **Absent** |
+| PR #161 | Closed (superseded), not merged |
+| Approved merge SHA (pre-doc) | `6a3c3cce2f9b40b43ab0178a1e69e6eb9413f3ea` |
+
+### UI/UX Pro Max — Python 3 prerequisite
+
+The bundled search CLI (`.cursor/skills/ui-ux-pro-max/scripts/search.py`) requires **Python 3** with **stdlib only** (no extra pip packages for normal search). On Windows use `python`; on macOS/Linux use `python3` unless your PATH aliases otherwise.
+
+If Python is not installed, agents must **not** install it autonomously (`winget`, `brew`, `sudo apt`, etc.). Ask the owner to install Python 3, or use the skill’s Quick Reference sections without running `search.py`. Local CSV data under `.cursor/skills/ui-ux-pro-max/data/` remains readable without Python.
+
+Optional maintenance scripts (`validate_data.py`, catalog refresh tests) may use `GOOGLE_FONTS_API_KEY` **only** when an agent runs those scripts explicitly with owner approval — not during merge or CI.
+
+### Prohibited without explicit owner approval
+
+Agents must **not** automatically run (or chain without confirmation):
+
+| Category | Examples in repo |
+|----------|------------------|
+| External asset generators | `.cursor/skills/design/scripts/logo/generate.py`, `icon/generate.py`, `cip/generate.py` (network + optional `GEMINI_API_KEY`) |
+| Credential-reading scripts | Any skill script that loads `.env`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_FONTS_API_KEY`, or `~/.claude/**/.env` |
+| Brand / token file writers | `.cursor/skills/brand/scripts/sync-brand-to-tokens.cjs`, `inject-brand-context.cjs`, `design-system/scripts/generate-tokens.cjs` |
+| Live browser injection | Impeccable `live-browser.js`, `transitions-refine live`, Impeccable **hooks**, Taste Skill gate |
+| Project package mutators | `.cursor/skills/ui-styling/scripts/shadcn_add.py` (`npx` / component install) |
+
+Impeccable engine download (`impeccable.cmd`) is allowed only when the user explicitly requests an Impeccable CLI command — not preemptively on every session.
+
+These rules preserve the existing Shanah City app and website design; skills are aids for critique, research, and copy-paste transitions only unless approved.

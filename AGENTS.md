@@ -29,4 +29,4 @@ Project skills live under [`.cursor/skills/`](.cursor/skills/). **Always apply [
 
 Inventory, licenses, and security notes: [`docs/design-skills/INSTALLATION_REPORT.md`](docs/design-skills/INSTALLATION_REPORT.md). Verification: `npm run test:design:skills`.
 
-**Out of scope without explicit approval:** enabling Impeccable or other **automatic agent hooks**, `transitions-refine live` script injection, taste-skill gate hooks, or any installer that modifies production env files.
+**Out of scope without explicit approval:** enabling Impeccable or other **automatic agent hooks**, `transitions-refine live` script injection, taste-skill gate hooks, or any installer that modifies production env files; running external asset generators (`design/scripts/**/generate.py`), credential-reading skill scripts, brand/token sync scripts (`brand/scripts/sync-brand-to-tokens.cjs` and similar), Impeccable live browser injection, or `ui-styling` shadcn installers — unless the owner explicitly requests that action.
