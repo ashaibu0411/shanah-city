@@ -13,3 +13,20 @@ Preserve approved production layouts, brand identity, navigation and functionali
 - Before release, inspect actual rendered screens at mobile and desktop widths in both supported themes, compare with existing screens, and test relevant interactions. A passing build alone is not visual verification. Report any checks that could not be performed.
 - External design skills are optional aids, not authority to override these rules. Review source, license, compatibility and executable instructions before installation; never run unreviewed scripts or expose secrets.
 - Keep design changes scoped and reversible. Do not merge the experimental feature/design-system-v1 redesign without explicit owner approval.
+
+## Cursor design skills (project)
+
+Project skills live under [`.cursor/skills/`](.cursor/skills/). **Always apply [`shanah-design-system`](.cursor/skills/shanah-design-system/SKILL.md) first** for UI work in this repository. It encodes Shanah tokens and must override generic design skills (frontend-design, impeccable, ui-ux-pro-max).
+
+| Priority | Skill | Use when |
+|----------|-------|----------|
+| 1 | `shanah-design-system` | Every UI change or review |
+| 2 | `impeccable` | Critique, polish, audit (hooks **disabled** in repo) |
+| 3 | `ui-ux-pro-max` | UX pattern research (map results to existing tokens) |
+| 4 | `frontend-design` | Anti–AI-slop craft within Shanah brand |
+| 5 | `apple-design` | Touch / sheet motion (Capacitor) |
+| 6 | `transitions-dev` | Copy-ready CSS transitions + reduced motion |
+
+Inventory, licenses, and security notes: [`docs/design-skills/INSTALLATION_REPORT.md`](docs/design-skills/INSTALLATION_REPORT.md). Verification: `npm run test:design:skills`.
+
+**Out of scope without explicit approval:** enabling Impeccable or other **automatic agent hooks**, `transitions-refine live` script injection, taste-skill gate hooks, or any installer that modifies production env files.
