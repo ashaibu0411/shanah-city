@@ -39,3 +39,5 @@ Store under `docs/premium-homepage-v4-screenshots/` when captured.
 ## Preview deploy
 
 Push branch and open Vercel preview URL from PR checks — **do not merge to production** until owner signs off on rendered previews.
+
+If **shanah-city** preview shows *Ignored Build Step*, see [`docs/VERCEL_IGNORED_BUILD_STEP.md`](VERCEL_IGNORED_BUILD_STEP.md). Until the main project builds, **`shanah-city-staging`** preview on the same branch is equivalent for UI review (not production).
