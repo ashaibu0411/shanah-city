@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { premiumHomeV4QuickTiles } from "@/lib/home-premium-v4";
 import { PremiumHomeV4TileIcon } from "@/components/home/premium/v4/PremiumHomeV4Icons";

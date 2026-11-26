@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { AboutShanahHomeLink } from "@/components/home/premium/AboutShanahHomeLink";
 import { useApp } from "@/components/app/AppProvider";
@@ -47,7 +47,9 @@ export function PremiumHomeMobile({
   return (
     <>
       <PremiumHomeV4Chrome />
-      <div className="premium-home-v4 premium-home-v4--signed-in shanah-porcelain-home animate-fade-in">
+      <div
+        className={`premium-home-v4 shanah-porcelain-home animate-fade-in${user ? " premium-home-v4--signed-in" : " premium-home-v4--signed-out"}`}
+      >
         <div className="mx-4 pt-3">
           <PrayerHomeBanner variant="mobile" />
         </div>

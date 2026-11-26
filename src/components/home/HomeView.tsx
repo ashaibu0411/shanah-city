@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { PremiumHomeDesktop } from "@/components/home/premium/PremiumHomeDesktop";
 import { PremiumHomeMobile } from "@/components/home/premium/PremiumHomeMobile";
@@ -31,7 +31,7 @@ export function HomeView({
   const [layoutReady, setLayoutReady] = useState(false);
   const highlightAlertId = useUrgentAlertHighlight(urgentAlerts);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setLayoutReady(true);
   }, []);
 
@@ -47,7 +47,7 @@ export function HomeView({
   if (!layoutReady) {
     return (
       <div
-        className="min-h-[40vh] bg-[#061329]"
+        className="min-h-[12rem] bg-[#f8f7f4] dark:bg-[#061329]"
         aria-busy="true"
         aria-label="Loading home"
       />

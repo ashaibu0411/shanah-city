@@ -1,5 +1,21 @@
 /* Premium App Home V4.1 — light + dark theme layers (mobile + desktop chrome) */
 
+/* Readable copy before PremiumHomeV4Chrome attaches body.*-active (first mobile paint). */
+html:not(.dark) .app-main:has(.premium-home-v4.shanah-porcelain-home) {
+  background: var(--shanah-v41-porcelain);
+  color: var(--shanah-v41-navy);
+}
+
+html:not(.dark) .premium-home-v4.shanah-porcelain-home {
+  color: var(--shanah-v41-navy);
+}
+
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-greeting__title,
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .premium-section__title,
+html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-section__title {
+  color: var(--shanah-v41-navy);
+}
+
 /* ── Light mode: porcelain native app home ── */
 html:not(.dark) body.premium-home-v4-active {
   background: var(--shanah-v41-porcelain) !important;
@@ -118,7 +134,7 @@ html:not(.dark) .premium-home-v4.shanah-porcelain-home .ph4-event-row__date {
 }
 
 html:not(.dark) .premium-home-v4.shanah-porcelain-home :is(.ph4-event-row__title, .ph4-sermon__title, .ph4-devotion-card__title) {
-  color: var(--shanah-v41-navy);
+  color: var(--shanah-v41-navy) !important;
 }
 
 html:not(.dark) .premium-home-v4.shanah-porcelain-home :is(.ph4-event-row__meta, .ph4-event-row__location, .ph4-sermon__speaker, .ph4-devotion-card__hint) {

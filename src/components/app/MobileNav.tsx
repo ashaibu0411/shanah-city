@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { appLinkPrefetchEnabled } from "@/components/app/app-link-prefetch";
 import { usePathname } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MobileTabIcon, navHrefToTabIcon } from "@/components/app/MobileTabIcon";
@@ -29,6 +30,7 @@ export function MobileNav() {
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
+                prefetch={appLinkPrefetchEnabled()}
                 aria-current={active ? "page" : undefined}
                 className={`mobile-nav-link flex flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition active:scale-95 ${
                   active ? "is-active text-night-900" : "text-night-700"

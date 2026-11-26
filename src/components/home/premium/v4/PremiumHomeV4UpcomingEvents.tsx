@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
 import { formatHomeEventMeta, homeUpcomingEventHref } from "@/lib/home-upcoming-events";
 import { PremiumHomeV4Chevron } from "@/components/home/premium/v4/PremiumHomeV4Icons";

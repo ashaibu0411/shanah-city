@@ -9,11 +9,19 @@ const mobile = readFileSync(
 assert.match(mobile, /PremiumHomeV4Hero/);
 assert.match(mobile, /PremiumHomeV4GiveBar/);
 assert.match(mobile, /PremiumHomeV4Chrome/);
+assert.match(mobile, /PremiumHomeV4Link/);
+assert.match(
+  readFileSync(
+    path.join(process.cwd(), "src/components/home/premium/v4/PremiumHomeV4Link.tsx"),
+    "utf8",
+  ),
+  /appLinkPrefetchEnabled/,
+);
 assert.match(mobile, /premium-home-v4/);
 assert.doesNotMatch(mobile, /PremiumHomeV3Chrome/);
 assert.doesNotMatch(mobile, /PremiumMobileLauncher/);
 
-const bodyStart = mobile.indexOf('className="premium-home-v4');
+const bodyStart = mobile.indexOf("premium-home-v4 shanah-porcelain-home");
 assert.ok(bodyStart >= 0, "premium home v4 mobile shell missing");
 const body = mobile.slice(bodyStart);
 const greetingIdx = body.indexOf("PremiumHomeV4Greeting");

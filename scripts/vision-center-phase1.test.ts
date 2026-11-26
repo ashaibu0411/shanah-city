@@ -5,8 +5,19 @@ import { VISION_2027_DRAFTS } from "../src/lib/vision-2027-drafts";
 import { VISION_MINISTRIES } from "../src/lib/vision-center-access-server";
 import { normalizeVisionReferenceUrl } from "../src/lib/vision-center-reference-url";
 
-assert.equal(VISION_2027_DRAFTS.length, 10, "ten private 2027 ministry drafts including Shanah Kids");
-assert.equal(VISION_MINISTRIES.length, 10);
+assert.equal(
+  VISION_2027_DRAFTS.length,
+  11,
+  "eleven private 2027 ministry drafts (incl. Power Couples, Shanah Kids, Operations)",
+);
+assert.equal(VISION_MINISTRIES.length, 11);
+const draftKeys = [...new Set(VISION_2027_DRAFTS.map((d) => d.ministryKey))].sort();
+const ministryKeys = [...VISION_MINISTRIES.map((m) => m.key)].sort();
+assert.deepEqual(
+  draftKeys,
+  ministryKeys,
+  "VISION_2027_DRAFTS and VISION_MINISTRIES must list the same ministry keys",
+);
 for (const draft of VISION_2027_DRAFTS) {
   assert.match(draft.content, /NOT APPROVED|not approved|proposed|Proposed/i, `${draft.ministryKey} must stay draft-only`);
 }

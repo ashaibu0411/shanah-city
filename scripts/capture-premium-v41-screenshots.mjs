@@ -8,13 +8,18 @@ import puppeteer from "puppeteer";
 
 const base = (process.argv[2] || "http://localhost:3010").replace(/\/$/, "");
 const outDir = path.join(process.cwd(), "docs", "premium-homepage-v4-screenshots");
+const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+const extraHeaders = bypass ? { "x-vercel-protection-bypass": bypass } : {};
 
 const shots = [
   { name: "church-desktop-1440", url: "/church-site", width: 1440, height: 900 },
   { name: "church-mobile-390", url: "/church-site", width: 390, height: 844 },
   { name: "app-desktop-light-1280", url: "/", width: 1280, height: 900 },
   { name: "app-mobile-light-390-signed-out", url: "/", width: 390, height: 844 },
+  { name: "app-mobile-light-430-signed-out", url: "/", width: 430, height: 932 },
+  { name: "church-mobile-430", url: "/church-site", width: 430, height: 932 },
   { name: "app-mobile-dark-390-signed-out", url: "/", width: 390, height: 844, dark: true },
+  { name: "app-mobile-dark-430-signed-out", url: "/", width: 430, height: 932, dark: true },
   { name: "app-desktop-dark-1280", url: "/", width: 1280, height: 900, dark: true },
 ];
 
@@ -23,6 +28,9 @@ async function main() {
   const browser = await puppeteer.launch({ headless: true });
   for (const shot of shots) {
     const page = await browser.newPage();
+    if (Object.keys(extraHeaders).length) {
+      await page.setExtraHTTPHeaders(extraHeaders);
+    }
     await page.setViewport({ width: shot.width, height: shot.height, deviceScaleFactor: 1 });
     if (shot.dark) {
       await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "dark" }]);

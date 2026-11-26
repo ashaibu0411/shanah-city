@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {

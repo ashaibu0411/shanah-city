@@ -75,4 +75,8 @@ Store under `docs/premium-homepage-v4-screenshots/` when captured.
 
 Push branch and open Vercel preview URL from PR checks — **do not merge to production** until owner signs off on rendered previews.
 
+### Vercel preview: 403 on `/calendar`, `/give`, etc.
+
+Those console errors are usually **Deployment Protection** blocking Next.js **RSC prefetch** (`RSC: 1`), not app `middleware.ts` (matcher is church-domain rewrites only). Sign in when the preview prompts; app home links use `appLinkPrefetchEnabled()` so **preview** builds disable prefetch (production unchanged). Owner notes: [`docs/premium-homepage-v4-screenshots/MOBILE_PREVIEW.md`](premium-homepage-v4-screenshots/MOBILE_PREVIEW.md).
+
 If **shanah-city** preview shows *Ignored Build Step*, see [`docs/VERCEL_IGNORED_BUILD_STEP.md`](VERCEL_IGNORED_BUILD_STEP.md). Until the main project builds, **`shanah-city-staging`** preview on the same branch is equivalent for UI review (not production).

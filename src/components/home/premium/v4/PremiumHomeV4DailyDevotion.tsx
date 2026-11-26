@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { getDevotionCoverArtwork } from "@/lib/devotion-artwork";
 import { premiumV4DevotionsBibleImage } from "@/lib/home-premium-v4";

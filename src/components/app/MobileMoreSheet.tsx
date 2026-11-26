@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { appLinkPrefetchEnabled } from "@/components/app/app-link-prefetch";
 import { usePathname } from "next/navigation";
 import { CampusSelector } from "@/components/app/CampusSelector";
 import { TextSizeControl } from "@/components/app/TextSizeControl";
@@ -84,6 +85,7 @@ export function MobileMoreSheet() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={appLinkPrefetchEnabled()}
                   onClick={() => setMoreMenuOpen(false)}
                   className={`relative flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition active:scale-[0.97] ${
                     active
@@ -105,6 +107,7 @@ export function MobileMoreSheet() {
 
           <Link
             href={site.visitCTA.href}
+            prefetch={appLinkPrefetchEnabled()}
             onClick={() => setMoreMenuOpen(false)}
             className="mt-4 block rounded-full bg-night-950 px-4 py-4 text-center text-sm font-semibold text-white shadow-[0_8px_24px_rgba(15,23,42,0.18)] transition hover:bg-night-900"
           >
@@ -115,6 +118,7 @@ export function MobileMoreSheet() {
             <div className="mt-3 grid grid-cols-2 gap-3">
               <Link
                 href="/sign-in"
+                prefetch={appLinkPrefetchEnabled()}
                 onClick={() => setMoreMenuOpen(false)}
                 className="rounded-2xl bg-white px-4 py-3 text-center text-sm font-semibold text-night-800 ring-1 ring-night-900/10 dark:bg-[var(--color-surface)] dark:text-sand-100 dark:ring-white/10"
               >
@@ -122,6 +126,7 @@ export function MobileMoreSheet() {
               </Link>
               <Link
                 href="/sign-up"
+                prefetch={appLinkPrefetchEnabled()}
                 onClick={() => setMoreMenuOpen(false)}
                 className="rounded-2xl bg-amber-400 px-4 py-3 text-center text-sm font-semibold text-night-950"
               >
@@ -132,6 +137,7 @@ export function MobileMoreSheet() {
 
           <Link
             href="/privacy"
+            prefetch={appLinkPrefetchEnabled()}
             onClick={() => setMoreMenuOpen(false)}
             className="mt-4 block text-center text-xs font-semibold text-night-500 underline dark:text-sand-400"
           >
@@ -139,6 +145,7 @@ export function MobileMoreSheet() {
           </Link>
           <Link
             href="/delete-account"
+            prefetch={appLinkPrefetchEnabled()}
             onClick={() => setMoreMenuOpen(false)}
             className="mt-1 block text-center text-xs font-semibold text-night-500 underline dark:text-sand-400"
           >
