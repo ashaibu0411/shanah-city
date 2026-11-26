@@ -6,9 +6,9 @@ const mobile = readFileSync(
   path.join(process.cwd(), "src/components/home/premium/PremiumHomeMobile.tsx"),
   "utf8",
 );
-assert.match(mobile, /premium-home-v3__balance-lower/);
+assert.match(mobile, /premium-home-v4__balance-lower/);
 assert.ok(
-  mobile.indexOf("PremiumHomeV4LatestSermon") < mobile.indexOf("premium-home-v3__balance-lower"),
+  mobile.indexOf("PremiumHomeV4LatestSermon") < mobile.indexOf("premium-home-v4__balance-lower"),
   "sermon must precede balance-lower footer group",
 );
 
