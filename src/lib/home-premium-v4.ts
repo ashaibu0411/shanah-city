@@ -1,14 +1,15 @@
 import { site } from "@/lib/site";
 
 /** Approved Premium Home V4 palette */
+/** V4 accents align with globals.css premium navy / gold — no standalone purple scale. */
 export const premiumHomeV4Colors = {
   midnight: "#061329",
-  deepBlue: "#152744",
+  deepBlue: "#10264a",
   cardNavy: "#1B2D4B",
-  royalPurple: "#512D83",
-  electricViolet: "#8B4DD8",
-  gold: "#E9BC72",
-  cream: "#F6EBD5",
+  gold: "#c9a66b",
+  goldBright: "#e9bc72",
+  cream: "#f8f7f4",
+  porcelain: "#f8f7f4",
   white: "#FFFFFF",
 } as const;
 

@@ -15,22 +15,22 @@ export const publicNav = [
 export function ChurchSiteHeader() {
   return (
     <>
-      <div className="bg-[#073356] px-4 py-2.5 text-center text-[11px] font-bold tracking-[0.1em] text-white">
-        A CHURCH FOR YOU AND YOUR FAMILY <span className="mx-2 text-[#efc783]">•</span> SUNDAY AT 10:00 AM · AURORA, CO
+      <div className="bg-[#10264a] px-4 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-[#e8d4b0]">
+        Sunday worship 10:00 AM · {site.address.split(",")[0]}
       </div>
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-xl">
-        <div className="mx-auto flex h-[78px] max-w-[1360px] items-center justify-between gap-4 px-5 sm:px-10">
+      <header className="sticky top-0 z-40 border-b border-sand-200/90 bg-[#f8f7f4]/95 backdrop-blur-md">
+        <div className="mx-auto flex h-[4.75rem] max-w-6xl items-center justify-between gap-4 px-5 sm:px-10">
           <a href="/" className="flex items-center gap-3" aria-label="Shanah City Church home">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={brandLogos.default} alt="Shanah City" className="h-11 w-auto max-w-[145px] object-contain" />
-            <span className="hidden border-l border-slate-200 pl-3 text-[10px] font-extrabold uppercase leading-4 tracking-[0.13em] text-slate-500 sm:block">Aurora<br/>Colorado</span>
+            <span className="hidden border-l border-sand-300 pl-3 text-[10px] font-semibold uppercase leading-4 tracking-[0.12em] text-night-600 sm:block">Aurora<br/>Colorado</span>
           </a>
-          <nav aria-label="Church website" className="hidden items-center gap-6 xl:flex">
-            {publicNav.map(item => <a key={item.href} href={item.href} className="text-[13px] font-bold text-slate-700 transition hover:text-[#0574ae]">{item.label}</a>)}
+          <nav aria-label="Church website" className="hidden items-center gap-7 xl:flex">
+            {publicNav.map(item => <a key={item.href} href={item.href} className="text-[13px] font-semibold text-night-800 transition hover:text-[#10264a]">{item.label}</a>)}
           </nav>
           <div className="flex items-center gap-2">
-            <a href="/give" className="hidden rounded-full px-4 py-3 text-sm font-bold text-[#08466f] hover:bg-blue-50 md:block">Give</a>
-            <a href="/visit" className="rounded-full bg-[#0b689c] px-4 py-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#08507c] sm:px-6 sm:text-sm">Plan a Visit ↗</a>
+            <a href="/give" className="hidden rounded-full px-4 py-3 text-sm font-semibold text-[#10264a] hover:bg-sand-100 md:block">Give</a>
+            <a href="/visit" className="rounded-full bg-[#10264a] px-4 py-3 text-xs font-semibold text-[#f8f7f4] transition hover:bg-[#0d3158] sm:px-6 sm:text-sm">Plan a visit</a>
             <details className="group relative xl:hidden">
               <summary aria-label="Open navigation" className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-xl border border-slate-200 text-2xl text-slate-800 marker:hidden [&::-webkit-details-marker]:hidden">☰</summary>
               <nav aria-label="Mobile church website" className="absolute right-0 top-14 z-50 w-[min(86vw,320px)] rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl">
@@ -47,7 +47,7 @@ export function ChurchSiteHeader() {
 
 export function ChurchSiteFooter() {
   return (
-    <footer className="bg-[#061f35] px-6 pb-9 pt-16 text-white sm:px-10">
+    <footer className="bg-[#061329] px-6 pb-9 pt-16 text-white sm:px-10">
       <div className="mx-auto grid max-w-[1210px] gap-12 border-b border-white/15 pb-12 lg:grid-cols-[1.4fr_1fr_1fr]">
         <div><p className="font-display text-3xl font-bold">Shanah City <span className="text-base text-[#f3c47c]">CHURCH</span></p><p className="mt-4 max-w-sm text-sm leading-7 text-blue-100">Changing Lives to Higher Levels in God.<br/>A welcoming, multicultural church family in Aurora, Colorado.</p><a href="/visit" className="mt-5 inline-flex rounded-full bg-[#eec98c] px-5 py-3 text-sm font-extrabold text-[#072d4b]">Join Us This Sunday ↗</a></div>
         <div><h3 className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#f3c47c]">Explore</h3><div className="mt-5 grid grid-cols-2 gap-3 text-sm text-blue-100">{publicNav.map(item=><a key={item.href} href={item.href} className="hover:text-white">{item.label}</a>)}<a href="/give">Give</a><a href="/app">Download Our App</a><a href="https://shanah-city.vercel.app">Member Sign In</a></div></div>
@@ -59,7 +59,7 @@ export function ChurchSiteFooter() {
 }
 
 export function ChurchSiteFrame({children}:{children:ReactNode}) {
-  return <div className="min-h-screen bg-[#f8f8f5] font-sans text-[#14233a] antialiased"><ChurchSiteHeader/>{children}<ChurchSiteFooter/></div>;
+  return <div className="church-premium min-h-screen font-sans antialiased"><ChurchSiteHeader/>{children}<ChurchSiteFooter/></div>;
 }
 
 export function ChurchPageIntro({eyebrow,title,description,image,imagePosition = "center"}:{eyebrow:string;title:string;description:string;image:string;imagePosition?:string}) {

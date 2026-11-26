@@ -44,7 +44,7 @@ export function PremiumHomeV4Hero({
           quality={95}
           className="ph4-hero__image"
         />
-        <div className="ph4-hero__glow ph4-hero__glow--violet" aria-hidden />
+        <div className="ph4-hero__glow ph4-hero__glow--navy" aria-hidden />
         <div className="ph4-hero__glow ph4-hero__glow--gold" aria-hidden />
         <div className="ph4-hero__sunrise" aria-hidden="true" />
         <div className="ph4-hero__scrim" aria-hidden />

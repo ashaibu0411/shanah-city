@@ -140,10 +140,9 @@ body.premium-home-v4-active .premium-home-v4 > .urgent-news-home-strip--embedded
   inset: 0;
   background: linear-gradient(
     175deg,
-    rgba(6, 19, 41, 0.2) 0%,
-    rgba(21, 39, 68, 0.35) 32%,
-    rgba(81, 45, 131, 0.52) 58%,
-    rgba(6, 19, 41, 0.94) 100%
+    rgba(6, 19, 41, 0.15) 0%,
+    rgba(16, 38, 74, 0.42) 40%,
+    rgba(6, 19, 41, 0.88) 100%
   );
 }
 
@@ -154,12 +153,12 @@ body.premium-home-v4-active .premium-home-v4 > .urgent-news-home-strip--embedded
   pointer-events: none;
 }
 
-.ph4-hero__glow--violet {
-  right: -10%;
-  top: 8%;
-  width: 60%;
-  height: 45%;
-  background: rgba(139, 77, 216, 0.42);
+.ph4-hero__glow--navy {
+  right: -12%;
+  top: 6%;
+  width: 58%;
+  height: 44%;
+  background: rgba(16, 38, 74, 0.55);
 }
 
 .ph4-hero__glow--gold {
@@ -671,4 +670,106 @@ body.premium-home-v4-active .premium-home-v4 .urgent-news-home-strip--embedded {
   border: 2px solid rgba(248, 113, 113, 0.55);
   border-radius: 0.85rem;
   margin: 0;
+}
+
+.ph4-devotion-card {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr auto;
+  gap: 0.85rem;
+  align-items: center;
+  min-height: 5.5rem;
+  padding: 0.65rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(201, 166, 107, 0.28);
+  background: rgba(27, 45, 75, 0.65);
+  color: #f6ebd5;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.ph4-devotion-card:hover {
+  border-color: rgba(201, 166, 107, 0.45);
+  background: rgba(27, 45, 75, 0.82);
+}
+
+.ph4-devotion-card__image {
+  height: 4.75rem;
+  width: 100%;
+  border-radius: 0.65rem;
+  object-fit: cover;
+}
+
+.ph4-devotion-card__label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e9bc72;
+}
+
+.ph4-devotion-card__title {
+  display: block;
+  margin-top: 0.2rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.ph4-devotion-card__hint {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: #f6ebd5b8;
+}
+
+.ph4-devotion-card__chevron {
+  padding-right: 0.35rem;
+  color: #e9bc72;
+}
+
+/* Desktop authenticated home — V4 sections on porcelain / dark */
+.premium-home--desktop-v4 .ph4-section {
+  width: auto;
+  margin: 0;
+}
+
+.premium-home--desktop-v4__grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1.2fr 0.8fr;
+  align-items: start;
+}
+
+.premium-home--desktop-v4__split .ph4-section {
+  margin: 0;
+}
+
+.premium-home--desktop-v4__sermon-row {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1.35fr 0.65fr;
+  align-items: start;
+}
+
+html:not(.dark) .premium-home--desktop-v4 .ph4-section__title,
+html:not(.dark) .premium-home--desktop-v4 .ph4-section__link {
+  color: var(--color-ink);
+}
+
+html:not(.dark) .premium-home--desktop-v4 .ph4-devotion-card {
+  background: #fff;
+  border-color: var(--color-border, #e5dfd4);
+  color: var(--color-ink);
+}
+
+html:not(.dark) .premium-home--desktop-v4 .ph4-devotion-card__hint {
+  color: var(--color-ink-soft);
+}
+
+@media (max-width: 1023px) {
+  .premium-home--desktop-v4__grid,
+  .premium-home--desktop-v4__sermon-row {
+    grid-template-columns: 1fr;
+  }
 }

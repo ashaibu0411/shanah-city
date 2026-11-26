@@ -8,15 +8,18 @@ const mobile = readFileSync(
 );
 assert.match(mobile, /PremiumHomeV4Hero/);
 assert.match(mobile, /PremiumHomeV4GiveBar/);
+assert.match(mobile, /PremiumHomeV4Chrome/);
 assert.match(mobile, /premium-home-v4/);
+assert.doesNotMatch(mobile, /PremiumHomeV3Chrome/);
 assert.doesNotMatch(mobile, /PremiumMobileLauncher/);
 
-const bodyStart = mobile.indexOf("premium-home-v3 premium-home-v4");
-assert.ok(bodyStart >= 0, "premium home mobile shell missing");
+const bodyStart = mobile.indexOf('className="premium-home-v4');
+assert.ok(bodyStart >= 0, "premium home v4 mobile shell missing");
 const body = mobile.slice(bodyStart);
 const storiesIdx = body.indexOf("PremiumStoriesSection");
 const heroIdx = body.indexOf("PremiumHomeV4Hero");
-const tilesIdx = body.indexOf("PremiumHomeV3QuickTiles");
+const tilesIdx = body.indexOf("PremiumHomeV4QuickTiles");
+const devotionIdx = body.indexOf("PremiumHomeV4DailyDevotion");
 const giveIdx = body.indexOf("PremiumHomeV4GiveBar");
 const eventsIdx = body.indexOf("PremiumHomeV4UpcomingEvents");
 const sermonIdx = body.indexOf("PremiumHomeV4LatestSermon");
@@ -24,17 +27,36 @@ const checkInIdx = body.indexOf("CheckInHomeBanner");
 assert.ok(
   storiesIdx < heroIdx &&
     heroIdx < tilesIdx &&
-    tilesIdx < giveIdx &&
+    tilesIdx < devotionIdx &&
+    devotionIdx < giveIdx &&
     giveIdx < eventsIdx &&
     eventsIdx < sermonIdx &&
     sermonIdx < checkInIdx,
-  "mobile home must follow stories → hero → tiles → give → events → sermon → check-in",
+  "mobile home must follow stories → hero → tiles → devotion → give → events → sermon → check-in",
 );
 assert.doesNotMatch(mobile, /PremiumHomeV4Community/);
 
+const desktop = readFileSync(
+  path.join(process.cwd(), "src/components/home/premium/PremiumHomeDesktop.tsx"),
+  "utf8",
+);
+assert.match(desktop, /premium-home--desktop-v4/);
+assert.match(desktop, /PremiumHomeV4QuickTiles/);
+assert.match(desktop, /PremiumHomeV4DailyDevotion/);
+
 const css = readFileSync(path.join(process.cwd(), "src/app/premium-home-v4.css"), "utf8");
 assert.match(css, /premium-home-v4-active/);
+assert.match(css, /ph4-hero__glow--navy/);
+assert.doesNotMatch(css, /ph4-hero__glow--violet/);
 assert.match(css, /\.ph4-section\s*\{[^}]*width:\s*auto;/s, "V4 sections must shrink inside the parent side margins");
+
+const church = readFileSync(
+  path.join(process.cwd(), "src/components/church-site/ChurchSiteHome.tsx"),
+  "utf8",
+);
+assert.match(church, /church-premium/);
+assert.doesNotMatch(church, /#0074aa/);
+assert.doesNotMatch(church, /8B4DD8/i);
 
 const header = readFileSync(
   path.join(process.cwd(), "src/components/app/MobileAppHeader.tsx"),

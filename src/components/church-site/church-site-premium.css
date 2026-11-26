@@ -1,0 +1,99 @@
+/* Public church site — Premium Homepage V4 (visitor /church-site only) */
+
+.church-premium {
+  --church-navy: #10264a;
+  --church-navy-deep: #061329;
+  --church-gold: #c9a66b;
+  --church-gold-soft: #e8d4b0;
+  --church-porcelain: #f8f7f4;
+  --church-ink: #14233a;
+  --church-ink-muted: #4a5c72;
+  background: var(--church-porcelain);
+  color: var(--church-ink);
+}
+
+.church-premium__eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--church-ink-muted);
+}
+
+.church-premium__title {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+  color: var(--church-navy);
+}
+
+.church-premium__rule {
+  height: 2px;
+  width: 3rem;
+  border-radius: 999px;
+  background: var(--church-gold);
+  margin-top: 1.25rem;
+}
+
+.church-premium__link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--church-navy);
+  text-decoration: none;
+  border-bottom: 2px solid var(--church-gold-soft);
+  padding-bottom: 0.15rem;
+  transition: opacity 0.2s ease;
+}
+
+.church-premium__link:hover {
+  opacity: 0.82;
+}
+
+.church-premium__btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.85rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--church-gold);
+  color: var(--church-navy-deep);
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.church-premium__btn-primary:hover {
+  background: #f0d9a8;
+}
+
+.church-premium__btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.85rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #fff;
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 0.2s ease;
+}
+
+.church-premium__btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .church-premium__btn-primary,
+  .church-premium__btn-ghost,
+  .church-premium__link {
+    transition: none;
+  }
+}
