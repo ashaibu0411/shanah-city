@@ -1291,6 +1291,16 @@ model FeedReadState {
   @@unique([userId, feedKey])
 }
 
+model NotificationDismissal {
+  id          String   @id @default(cuid())
+  userId      String
+  itemId      String
+  dismissedAt DateTime @default(now())
+
+  @@unique([userId, itemId])
+  @@index([userId])
+}
+
 model LiveStreamSchedule {
   id              String    @id @default(cuid())
   title           String

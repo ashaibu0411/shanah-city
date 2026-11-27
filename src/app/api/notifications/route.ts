@@ -4,7 +4,13 @@ import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { markFeedsRead } from "@/lib/feed-read-server";
 import { getAppNotifications } from "@/lib/notification-server";
+import {
+  clearAllMemberNotificationsWithBadge,
+  dismissNotificationItem,
+  markAllMemberNotificationsReadWithBadge,
+} from "@/lib/notification-actions-server";
 import { syncNativeAppBadgeForUser } from "@/lib/native-push-server";
+import type { AppNotificationItemType } from "@/lib/notification-types";
 import { FEED_READ_KEYS, type FeedReadKey } from "@/lib/notification-types";
 
 export async function GET(request: Request) {
@@ -34,9 +40,36 @@ export async function POST(request: Request) {
 
   const body = await request.json();
 
-  if (body.action === "clearAllFeeds") {
-    await markFeedsRead(user.id, FEED_READ_KEYS);
-    await markPushInboxRead(user.id);
+  if (body.action === "clearAllFeeds" || body.action === "clearAll") {
+    const summary = await clearAllMemberNotificationsWithBadge(user.id);
+    return NextResponse.json(summary);
+  }
+
+  if (body.action === "markAllAsRead") {
+    const summary = await markAllMemberNotificationsReadWithBadge(user.id);
+    return NextResponse.json(summary);
+  }
+
+  if (body.action === "dismissItem") {
+    const item = body.item as {
+      id?: string;
+      type?: AppNotificationItemType;
+      at?: string;
+      groupId?: string;
+    };
+    if (!item?.id || !item.type || !item.at) {
+      return NextResponse.json({ error: "Notification item required." }, { status: 400 });
+    }
+    await dismissNotificationItem(user.id, {
+      id: item.id,
+      type: item.type,
+      title: "",
+      body: "",
+      href: "#",
+      count: 1,
+      at: item.at,
+      groupId: item.groupId,
+    });
     const summary = await getAppNotifications(user.id);
     void syncNativeAppBadgeForUser(user.id, summary.total);
     return NextResponse.json(summary);

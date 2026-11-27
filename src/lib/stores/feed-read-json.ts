@@ -47,6 +47,30 @@ export async function markFeedRead(userId: string, feedKey: FeedReadKey) {
   await writeRecords(records);
 }
 
+export async function advanceFeedReadWatermark(
+  userId: string,
+  feedKey: FeedReadKey,
+  readThroughIso: string,
+) {
+  const readThrough = new Date(readThroughIso);
+  if (Number.isNaN(readThrough.getTime())) return;
+
+  const records = await readRecords();
+  const index = records.findIndex(
+    (record) => record.userId === userId && record.feedKey === feedKey,
+  );
+  const existingIso = index >= 0 ? records[index].lastReadAt : null;
+  const existing = existingIso ? new Date(existingIso) : new Date(0);
+  const nextIso = readThrough > existing ? readThrough.toISOString() : existingIso ?? readThrough.toISOString();
+
+  if (index === -1) {
+    records.push({ userId, feedKey, lastReadAt: nextIso });
+  } else {
+    records[index] = { ...records[index], lastReadAt: nextIso };
+  }
+  await writeRecords(records);
+}
+
 export async function markFeedsRead(userId: string, feedKeys: FeedReadKey[]) {
   for (const feedKey of feedKeys) {
     await markFeedRead(userId, feedKey);
