@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export const publicNavMain = [
   { label: "About", href: "/about" },
-  { label: "Plan a Visit", href: "/visit" },
+  { label: "Connect", href: "/contact" },
   { label: "Ministries", href: "/ministries" },
   { label: "Events", href: "/events" },
   { label: "Messages", href: "/messages" },
@@ -13,7 +13,7 @@ export const publicNavMain = [
 export const publicNavAll = [
   { label: "Home", href: "/" },
   ...publicNavMain,
-  { label: "Contact", href: "/contact" },
+  { label: "Plan Your Visit", href: "/visit" },
   { label: "Download App", href: "/app" },
   { label: "Member sign in", href: "/sign-in" },
 ] as const;
@@ -30,14 +30,14 @@ function StripIcon({ children }: { children: ReactNode }) {
 
 export function ChurchSiteHeader({ activePath = "/" }: { activePath?: string }) {
   return (
-    <header className="church-premium-header church-cine-header">
-      <div className="church-premium__container church-cine-header__inner">
-        <a href="/" className="church-cine-header__brand" aria-label="Shanah City Church home">
+    <header className="church-v5-header">
+      <div className="church-v5__container church-v5-header__inner">
+        <a href="/" className="shrink-0" aria-label="Shanah City Church home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={brandLogos.dark} alt="Shanah City" className="church-cine-header__logo" />
+          <img src={brandLogos.dark} alt="Shanah City" className="church-v5-header__logo" />
         </a>
 
-        <nav aria-label="Church website" className="church-cine-header__nav">
+        <nav aria-label="Church website" className="church-v5-header__nav">
           {publicNavMain.map((item) => (
             <a
               key={item.href}
@@ -49,18 +49,15 @@ export function ChurchSiteHeader({ activePath = "/" }: { activePath?: string }) 
           ))}
         </nav>
 
-        <div className="church-cine-header__actions">
-          <a href="/app" className="church-cine-header__utility">
-            Download App
+        <div className="flex items-center gap-2">
+          <a href="/visit" className="church-v5-header__cta">
+            Plan Your Visit <span className="church-v5-header__cta-arrow" aria-hidden>→</span>
           </a>
-          <a href="/sign-in" className="church-cine-header__utility church-cine-header__utility--member hidden md:inline-flex">
-            Member sign in
-          </a>
-          <details className="church-cine-header__menu">
+          <details className="church-v5-header__menu">
             <summary aria-label="Open navigation menu">
-              <span className="church-cine-header__menu-bars" aria-hidden />
+              <span className="church-v5-header__menu-bars" aria-hidden />
             </summary>
-            <nav aria-label="Mobile church website" className="church-cine-header__dropdown">
+            <nav aria-label="Mobile church website" className="church-v5-header__dropdown">
               {publicNavAll.map((item) => (
                 <a key={item.href} href={item.href}>
                   {item.label}
@@ -76,55 +73,64 @@ export function ChurchSiteHeader({ activePath = "/" }: { activePath?: string }) 
 
 export function ChurchSiteFooter() {
   const year = new Date().getFullYear();
+  const friday = site.serviceTimes.find((s) => s.day.toLowerCase().includes("friday"));
+  const sunday = site.serviceTimes.find((s) => s.day.toLowerCase().includes("sunday"));
+
   return (
-    <footer className="church-premium-footer">
-      <div className="church-premium__container church-premium-footer__grid">
+    <footer className="church-v5-footer">
+      <div className="church-v5__container church-v5-footer__grid">
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={brandLogos.dark} alt="Shanah City" className="h-10 w-auto" />
-          <p className="mt-4 max-w-sm text-sm leading-7 text-white/80">
-            Changing lives to higher levels in God. A welcoming, multicultural church family in Aurora,
-            Colorado.
+          <img src={brandLogos.light} alt="Shanah City" className="h-9 w-auto" />
+          <p className="mt-4 max-w-sm text-sm leading-7 text-white/75">
+            {site.mission} A welcoming church family in Aurora, Colorado.
           </p>
+          <div className="mt-4 space-y-1 text-sm text-white/75">
+            {sunday ? <p>Sunday worship · {sunday.time.split("–")[0].trim()}</p> : null}
+            {friday ? <p>Glory Encounter · Fridays · {friday.time.split("–")[0].trim()}</p> : null}
+            <p>{site.address}</p>
+            <a href={`tel:${site.phone.replace(/[^\d+]/g, "")}`}>{site.phone}</a>
+            <br />
+            <a href={`mailto:${site.email}`}>{site.email}</a>
+          </div>
         </div>
         <div>
-          <p className="church-premium-footer__title">Explore</p>
-          <div className="mt-4 grid gap-2 text-sm">
+          <p className="church-v5-footer__title">Explore</p>
+          <div className="mt-4 grid gap-2">
             {publicNavMain.map((item) => (
               <a key={item.href} href={item.href}>
                 {item.label}
               </a>
             ))}
-            <a href="/give">Give</a>
+            <a href="/visit">Plan Your Visit</a>
             <a href="/app">Download app</a>
           </div>
         </div>
         <div>
-          <p className="church-premium-footer__title">Visit &amp; connect</p>
-          <div className="mt-4 space-y-2 text-sm leading-7 text-white/80">
-            <p>Sunday worship · 10:00 AM</p>
-            <p>{site.address}</p>
-            <a href={`mailto:${site.email}`}>{site.email}</a>
+          <p className="church-v5-footer__title">Visit &amp; legal</p>
+          <div className="mt-4 grid gap-2">
             <a href={site.mapsUrl} target="_blank" rel="noopener noreferrer">
               Get directions
             </a>
             <a href="/sign-in">Member sign in</a>
+            <a href="/privacy">Privacy policy</a>
+            <a href="/terms">Terms</a>
+            <div className="mt-2 flex flex-wrap gap-3">
+              <a href={site.social.facebook[0].url} target="_blank" rel="noopener noreferrer">
+                Facebook
+              </a>
+              <a href={site.social.instagram[0].url} target="_blank" rel="noopener noreferrer">
+                Instagram
+              </a>
+              <a href={site.social.youtube} target="_blank" rel="noopener noreferrer">
+                YouTube
+              </a>
+            </div>
           </div>
         </div>
       </div>
-      <div className="church-premium__container church-premium-footer__bottom">
+      <div className="church-v5__container church-v5-footer__bottom">
         <span>© {year} Shanah City Church. All rights reserved.</span>
-        <div className="flex flex-wrap gap-4">
-          <a href={site.social.facebook[0].url} target="_blank" rel="noopener noreferrer">
-            Facebook
-          </a>
-          <a href={site.social.instagram[0].url} target="_blank" rel="noopener noreferrer">
-            Instagram
-          </a>
-          <a href={site.social.youtube} target="_blank" rel="noopener noreferrer">
-            YouTube
-          </a>
-        </div>
       </div>
     </footer>
   );
@@ -132,7 +138,7 @@ export function ChurchSiteFooter() {
 
 export function ChurchSiteFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="church-premium church-cine min-h-screen font-sans antialiased">
+    <div className="church-premium church-v5 min-h-screen antialiased">
       <ChurchSiteHeader />
       {children}
       <ChurchSiteFooter />

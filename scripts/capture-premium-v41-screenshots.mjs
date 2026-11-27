@@ -13,6 +13,8 @@ const extraHeaders = bypass ? { "x-vercel-protection-bypass": bypass } : {};
 
 const shots = [
   { name: "church-desktop-1440", url: "/church-site", width: 1440, height: 900 },
+  { name: "church-laptop-1280", url: "/church-site", width: 1280, height: 900 },
+  { name: "church-tablet-768", url: "/church-site", width: 768, height: 1024 },
   { name: "church-mobile-390", url: "/church-site", width: 390, height: 844 },
   { name: "app-desktop-light-1280", url: "/", width: 1280, height: 900 },
   { name: "app-mobile-light-390-signed-out", url: "/", width: 390, height: 844 },
