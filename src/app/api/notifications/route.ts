@@ -3,14 +3,13 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth-server";
 import { markFeedsRead } from "@/lib/feed-read-server";
-import { getAppNotifications } from "@/lib/notification-server";
+import { getAppNotifications, getRawAppNotificationItems } from "@/lib/notification-server";
 import {
   clearAllMemberNotificationsWithBadge,
   dismissNotificationItem,
   markAllMemberNotificationsReadWithBadge,
 } from "@/lib/notification-actions-server";
 import { syncNativeAppBadgeForUser } from "@/lib/native-push-server";
-import type { AppNotificationItemType } from "@/lib/notification-types";
 import { FEED_READ_KEYS, type FeedReadKey } from "@/lib/notification-types";
 
 export async function GET(request: Request) {
@@ -38,7 +37,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  }
 
   if (body.action === "clearAllFeeds" || body.action === "clearAll") {
     const summary = await clearAllMemberNotificationsWithBadge(user.id);
@@ -51,25 +53,15 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "dismissItem") {
-    const item = body.item as {
-      id?: string;
-      type?: AppNotificationItemType;
-      at?: string;
-      groupId?: string;
-    };
-    if (!item?.id || !item.type || !item.at) {
+    const requested = body.item;
+    if (typeof requested?.id !== "string" || typeof requested?.type !== "string" || typeof requested?.at !== "string") {
       return NextResponse.json({ error: "Notification item required." }, { status: 400 });
     }
-    await dismissNotificationItem(user.id, {
-      id: item.id,
-      type: item.type,
-      title: "",
-      body: "",
-      href: "#",
-      count: 1,
-      at: item.at,
-      groupId: item.groupId,
-    });
+    const items = await getRawAppNotificationItems(user.id);
+    const item = items.find((candidate) => candidate.id === requested.id && candidate.type === requested.type);
+    if (!item) return NextResponse.json({ error: "Notification not found." }, { status: 404 });
+    if (item.at !== requested.at) return NextResponse.json({ error: "Notification changed. Refresh and retry." }, { status: 409 });
+    await dismissNotificationItem(user.id, item);
     const summary = await getAppNotifications(user.id);
     void syncNativeAppBadgeForUser(user.id, summary.total);
     return NextResponse.json(summary);
@@ -78,7 +70,9 @@ export async function POST(request: Request) {
   if (body.action === "markPushRead") {
     const ids = Array.isArray(body.ids) ? body.ids.filter((id: unknown): id is string => typeof id === "string").map((id: string) => id.replace(/^push-/, "")) : [];
     if (!ids.length) return NextResponse.json({error:"Push item ids required."},{status:400});
-    await markPushInboxRead(user.id, ids);
+    const items = await getRawAppNotificationItems(user.id);
+    const allowed = new Set(items.filter((item) => item.type === "push").map((item) => item.id.replace(/^push-/, "")));
+    await markPushInboxRead(user.id, ids.filter((id: string) => allowed.has(id)));
     const summary = await getAppNotifications(user.id);
     void syncNativeAppBadgeForUser(user.id, summary.total);
     return NextResponse.json(summary);
