@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { appLinkPrefetchEnabled } from "@/components/app/app-link-prefetch";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CommunityStatusRow } from "@/components/community/CommunityStatusRow";
 
@@ -29,18 +30,22 @@ export function PremiumStoriesSection({
     >
       <div className="premium-section__head">
         <h2 className="premium-section__title">{sectionTitle}</h2>
-        <Link href="/community" className="premium-section__link">
+        <Link href="/community" prefetch={appLinkPrefetchEnabled()} className="premium-section__link">
           View all →
         </Link>
       </div>
 
-      {!loading && !user ? (
+      {loading ? (
+        <div className="premium-stories__guest" aria-busy="true" aria-label="Loading stories">
+          <p className="premium-stories__guest-copy text-sm opacity-80">Loading community…</p>
+        </div>
+      ) : !user ? (
         <div className="premium-stories__guest">
           <p className="premium-stories__guest-title">Stories from your church family</p>
           <p className="premium-stories__guest-copy">
             Sign in to see updates, share a moment, and celebrate what God is doing together.
           </p>
-          <Link href="/sign-in" className="premium-btn premium-btn--secondary premium-btn--sm">
+          <Link href="/sign-in" prefetch={appLinkPrefetchEnabled()} className="premium-btn premium-btn--secondary premium-btn--sm">
             Sign in to view stories
           </Link>
         </div>

@@ -1,14 +1,15 @@
 import { site } from "@/lib/site";
 
 /** Approved Premium Home V4 palette */
+/** V4 accents align with globals.css premium navy / gold — no standalone purple scale. */
 export const premiumHomeV4Colors = {
   midnight: "#061329",
-  deepBlue: "#152744",
+  deepBlue: "#10264a",
   cardNavy: "#1B2D4B",
-  royalPurple: "#512D83",
-  electricViolet: "#8B4DD8",
-  gold: "#E9BC72",
-  cream: "#F6EBD5",
+  gold: "#c9a66b",
+  goldBright: "#e9bc72",
+  cream: "#f8f7f4",
+  porcelain: "#f8f7f4",
   white: "#FFFFFF",
 } as const;
 
@@ -32,21 +33,21 @@ export type PremiumHomeV4Tile = {
 export const premiumHomeV4QuickTiles: PremiumHomeV4Tile[] = [
   {
     id: "live",
-    label: "Worship Live",
+    label: "Watch",
     href: "/live",
     image: "/home/home-gallery-88.jpg",
     imageClass: "object-[center_28%]",
   },
   {
     id: "devotions",
-    label: "Daily Devotions",
+    label: "Devotions",
     href: "/devotions",
     image: premiumV4DevotionsBibleImage,
     imageClass: "object-center",
   },
   {
     id: "community",
-    label: "Community",
+    label: "Connect",
     href: "/community",
     image: "/home/home-gallery-20.jpg",
     imageClass: "object-[center_40%]",
@@ -69,10 +70,18 @@ export function premiumV4ServiceChip(campusLabel?: string) {
   return `Sunday ${time} · ${campus}`;
 }
 
+export function premiumV4TimeGreeting() {
+  const hour = new Date().getHours();
+  return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+}
+
 export function premiumV4HomeGreeting(firstName?: string | null) {
   if (!firstName?.trim()) return null;
-  const hour = new Date().getHours();
-  const time =
-    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  return `${time}, ${firstName.trim().split(/\s+/)[0]}`;
+  return `${premiumV4TimeGreeting()}, ${firstName.trim().split(/\s+/)[0]}`;
+}
+
+export function premiumV4PublicGreeting(firstName?: string | null) {
+  const time = premiumV4TimeGreeting();
+  const name = firstName?.trim().split(/\s+/)[0];
+  return name ? `${time}, ${name}.` : `${time}.`;
 }

@@ -32,6 +32,14 @@ export function mergeHomeSermonVideo(
   return buildHomeSermonFallback();
 }
 
+/** Strip leading decorative emoji from sermon titles for UI display (metadata unchanged). */
+export function homeSermonDisplayTitle(title: string): string {
+  const trimmed = title.trim();
+  if (!trimmed) return trimmed;
+  // Remove one or more leading emoji / symbol clusters common in YouTube titles.
+  return trimmed.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, "").trim() || trimmed;
+}
+
 /** Sharper YouTube still for small home sermon thumbs (mqdefault ≈ 320×180). */
 export function homeSermonInlineThumbnail(url: string): string {
   if (!url) return url;

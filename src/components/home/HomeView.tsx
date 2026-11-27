@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { PremiumHomeDesktop } from "@/components/home/premium/PremiumHomeDesktop";
 import { PremiumHomeMobile } from "@/components/home/premium/PremiumHomeMobile";
@@ -10,12 +10,14 @@ import type { UrgentAlert } from "@/lib/urgent-alert-types";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
+import type { Devotion } from "@/lib/types";
 
 type HomeViewProps = {
   urgentAlerts: UrgentAlert[];
   churchImages: ChurchSocialImages;
   latestSermon?: SermonVideo | null;
   upcomingEventRows?: HomeUpcomingEventRow[];
+  todayDevotion?: Devotion | null;
 };
 
 export function HomeView({
@@ -23,12 +25,13 @@ export function HomeView({
   churchImages,
   latestSermon = null,
   upcomingEventRows = [],
+  todayDevotion = null,
 }: HomeViewProps) {
   const { isMobileApp } = useAppShell();
   const [layoutReady, setLayoutReady] = useState(false);
   const highlightAlertId = useUrgentAlertHighlight(urgentAlerts);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setLayoutReady(true);
   }, []);
 
@@ -38,12 +41,13 @@ export function HomeView({
     churchImages,
     latestSermon,
     upcomingEventRows,
+    todayDevotion,
   };
 
   if (!layoutReady) {
     return (
       <div
-        className="min-h-[40vh] bg-[#061329]"
+        className="min-h-[12rem] bg-[#f8f7f4] dark:bg-[#061329]"
         aria-busy="true"
         aria-label="Loading home"
       />

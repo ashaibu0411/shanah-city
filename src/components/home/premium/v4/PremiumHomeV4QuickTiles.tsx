@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import { ChurchFlyerImage } from "@/components/home/ChurchFlyerImage";
 import { premiumHomeV4QuickTiles } from "@/lib/home-premium-v4";
 import { PremiumHomeV4TileIcon } from "@/components/home/premium/v4/PremiumHomeV4Icons";
 
 export function PremiumHomeV4QuickTiles() {
   return (
-    <section className="ph4-section" aria-label="Quick actions">
+    <section className="ph4-section ph4-section--quick-tiles" aria-label="Quick actions">
       <div className="ph4-tile-grid">
         {premiumHomeV4QuickTiles.map((tile) => (
           <Link key={tile.id} href={tile.href} className="ph4-tile">

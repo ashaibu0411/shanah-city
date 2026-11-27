@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { appLinkPrefetchEnabled } from "@/components/app/app-link-prefetch";
 import { BrandLogo } from "@/components/app/BrandLogo";
 import { useTheme } from "@/components/app/ThemeProvider";
 import { useAppShell } from "@/components/app/AppShellContext";
@@ -73,7 +74,7 @@ export function MobileAppHeader() {
               <BrandLogo size="sm" variant={isDark ? "dark" : "light"} priority className="ph4-brand-logo" />
               <p className="ph4-header-wordmark hidden min-[360px]:block">Shanah City</p>
               {anyLive && (
-                <Link href="/live">
+                <Link href="/live" prefetch={appLinkPrefetchEnabled()}>
                   <Badge variant="live">
                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                     Live

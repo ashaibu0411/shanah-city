@@ -1,21 +1,23 @@
 "use client";
 
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import { PrayerHomeBanner } from "@/components/meetings/PrayerHomeBanner";
 import { AboutShanahHomeLink } from "@/components/home/premium/AboutShanahHomeLink";
-
-import Link from "next/link";
 import { useApp } from "@/components/app/AppProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { UrgentNewsHomeStrip } from "@/components/home/UrgentNewsHomeStrip";
 import { PremiumStoriesSection } from "@/components/home/premium/PremiumStoriesSection";
 import { CheckInHomeBanner } from "@/components/home/DailyEngagementBanners";
-import { PremiumHomeV3Chrome } from "@/components/home/premium/v3/PremiumHomeV3Chrome";
+import { PremiumHomeV4Chrome } from "@/components/home/premium/v4/PremiumHomeV4Chrome";
 import { PremiumHomeV4Hero } from "@/components/home/premium/v4/PremiumHomeV4Hero";
-import { PremiumHomeV3QuickTiles } from "@/components/home/premium/v3/PremiumHomeV3QuickTiles";
+import { PremiumHomeV4QuickTiles } from "@/components/home/premium/v4/PremiumHomeV4QuickTiles";
 import { PremiumHomeV4GiveBar } from "@/components/home/premium/v4/PremiumHomeV4GiveBar";
 import { PremiumHomeV4UpcomingEvents } from "@/components/home/premium/v4/PremiumHomeV4UpcomingEvents";
 import { PremiumHomeV4LatestSermon } from "@/components/home/premium/v4/PremiumHomeV4LatestSermon";
+import { PremiumHomeV4DailyDevotion } from "@/components/home/premium/v4/PremiumHomeV4DailyDevotion";
+import { PremiumHomeV4Greeting } from "@/components/home/premium/v4/PremiumHomeV4Greeting";
 import { getPublicDisplayFirstName } from "@/lib/member-display-name";
+import type { Devotion } from "@/lib/types";
 import type { ChurchSocialImages } from "@/lib/facebook-church-media";
 import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
 import type { SermonVideo } from "@/lib/youtube-sermons-server";
@@ -27,6 +29,7 @@ type PremiumHomeMobileProps = {
   churchImages: ChurchSocialImages;
   latestSermon: SermonVideo | null;
   upcomingEventRows: HomeUpcomingEventRow[];
+  todayDevotion?: Devotion | null;
 };
 
 export function PremiumHomeMobile({
@@ -35,6 +38,7 @@ export function PremiumHomeMobile({
   churchImages: _churchImages,
   latestSermon,
   upcomingEventRows,
+  todayDevotion = null,
 }: PremiumHomeMobileProps) {
   const { campus } = useApp();
   const { user } = useAuth();
@@ -42,19 +46,38 @@ export function PremiumHomeMobile({
 
   return (
     <>
-      <PremiumHomeV3Chrome />
-      <div className="premium-home-v3 premium-home-v4 premium-home-v3--spacing-v3 shanah-porcelain-home animate-fade-in">
-        <div className="mx-4 pt-3"><PrayerHomeBanner variant="mobile" /></div>
-        <Link href="/fasting-prayer-2027" className="mx-4 block rounded-2xl border border-amber-200 bg-[#122c54] p-4 text-white shadow-lg"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-amber-200">14 Days · November 30 – December 13</p><p className="mt-1 text-lg font-semibold">Fasting & Praying into 2027</p><p className="mt-1 text-sm text-slate-200">Read all 14 days of scriptures and prophetic prayers →</p></Link>
-        <PremiumStoriesSection
-          sectionTitle="Stories"
-          storiesPresentation="v6"
-          homeV3
+      <PremiumHomeV4Chrome />
+      <div
+        className={`premium-home-v4 shanah-porcelain-home animate-fade-in${user ? " premium-home-v4--signed-in" : " premium-home-v4--signed-out"}`}
+      >
+        <div className="mx-4 pt-3">
+          <PrayerHomeBanner variant="mobile" />
+        </div>
+
+        <Link
+          href="/fasting-prayer-2027"
+          className="mx-4 block rounded-2xl border border-[#c9a66b]/35 bg-[#10264a] p-4 text-[#f8f7f4] shadow-[0_8px_24px_rgba(6,19,41,0.35)]"
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#e8d4b0]">
+            November 30 – December 13
+          </p>
+          <p className="mt-1 text-lg font-semibold font-display">Fasting &amp; praying into 2027</p>
+          <p className="mt-1 text-sm text-white/78">Read the daily guide →</p>
+        </Link>
+
+        <PremiumHomeV4Greeting firstName={firstName} />
+        <PremiumStoriesSection sectionTitle="Stories" storiesPresentation="v6" homeV3 />
+
+        <PremiumHomeV4Hero
+          firstName={firstName}
+          campusLabel={campus.city}
+          editorial
+          heroV3
+          showPersonalGreeting={false}
         />
 
-        <PremiumHomeV4Hero firstName={firstName} campusLabel={campus.city} editorial heroV3 />
-
-        <PremiumHomeV3QuickTiles />
+        <PremiumHomeV4DailyDevotion devotion={todayDevotion} />
+        <PremiumHomeV4QuickTiles />
         <PremiumHomeV4GiveBar />
         <PremiumHomeV4UpcomingEvents rows={upcomingEventRows} />
         <PremiumHomeV4LatestSermon video={latestSermon} />
@@ -69,12 +92,16 @@ export function PremiumHomeMobile({
 
         <AboutShanahHomeLink compact />
 
-        <div className="premium-home-v3__balance-lower mx-4 mb-8 space-y-4 rounded-[28px] border border-[#dfd0b6] bg-[#f8f3e9] p-4 shadow-[0_14px_34px_rgba(31,42,54,0.10)] dark:border-slate-600 dark:bg-[#14243c] sm:p-5">
+        <div className="premium-home-v4__balance-lower mx-4 mb-8 space-y-4 rounded-2xl border border-[#c9a66b]/25 bg-[#f8f7f4] p-4 dark:border-[#c9a66b]/20 dark:bg-[#14243c] sm:p-5">
           <CheckInHomeBanner />
-
-          <Link href="/guest" className="premium-guest-cta !min-h-[64px] !rounded-2xl !border !border-[#d7c3a4] !bg-white !px-4 !py-3 !text-[#17365a] shadow-sm dark:!border-slate-600 dark:!bg-[#203552] dark:!text-white">
+          <Link
+            href="/guest"
+            className="premium-guest-cta !min-h-[64px] !rounded-2xl !border !border-sand-300 !bg-white !px-4 !py-3 !text-[#10264a] shadow-sm dark:!border-slate-600 dark:!bg-[#203552] dark:!text-white"
+          >
             <span className="font-semibold">First time here?</span>
-            <span className="premium-guest-cta__pill !bg-[#123d72] !px-5 !py-2 !text-white">Connect</span>
+            <span className="premium-guest-cta__pill !bg-[#10264a] !px-5 !py-2 !text-[#f8f7f4]">
+              Connect
+            </span>
           </Link>
         </div>
       </div>

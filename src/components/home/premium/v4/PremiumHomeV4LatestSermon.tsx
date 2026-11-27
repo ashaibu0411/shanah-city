@@ -1,9 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { homeSermonInlineThumbnail, mergeHomeSermonVideo } from "@/lib/home-sermon-display";
+import {
+  homeSermonDisplayTitle,
+  homeSermonInlineThumbnail,
+  mergeHomeSermonVideo,
+} from "@/lib/home-sermon-display";
 import { pickLatestEligibleSermon } from "@/lib/youtube-sermons-select";
 import { latestSermon, site } from "@/lib/site";
 import { formatSermonDate, type SermonVideo } from "@/lib/youtube-sermons-shared";
@@ -70,7 +74,8 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
   }, []);
 
   const playback = resolved?.id ? resolved : null;
-  const title = playback?.title ?? video?.title ?? latestSermon.title;
+  const rawTitle = playback?.title ?? video?.title ?? latestSermon.title;
+  const title = homeSermonDisplayTitle(rawTitle);
   const thumbnail = homeSermonInlineThumbnail(
     playback?.thumbnailUrl ?? video?.thumbnailUrl ?? "/sermons/latest-message.svg",
   );
@@ -92,7 +97,7 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
     <section className="ph4-section" aria-labelledby="ph4-sermon-heading">
       <div className="ph4-section__head">
         <h2 id="ph4-sermon-heading" className="ph4-section__title">
-          Latest Sermon
+          Latest message
         </h2>
         <Link href="/sermons" className="ph4-section__link">
           View all →
@@ -120,25 +125,22 @@ export function PremiumHomeV4LatestSermon({ video }: PremiumHomeV4LatestSermonPr
         </button>
         <SermonBody title={title} dateLabel={dateLabel} speaker={site.leadPastor} onPlay={openSermon} />
         {playback ? (
-          <div className="flex flex-wrap items-center gap-2 px-3 pb-3">
-            <button type="button" onClick={listenToSermon}
+          <div className="ph4-sermon__actions">
+            <button
+              type="button"
+              onClick={listenToSermon}
               disabled={loading && sermon?.id === playback.id}
-              className="min-h-11 rounded-full bg-[#123a67] px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-60">
+              className="ph4-sermon__listen"
+            >
               {loading && sermon?.id === playback.id ? "Preparing audio…" : "Listen in background"}
             </button>
-            <button type="button" onClick={openSermon}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[#123a67] bg-white px-5 py-2 text-sm font-extrabold text-[#123a67] shadow-sm transition-colors hover:bg-[#e8f1fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#123a67] active:bg-[#d9e8fa]">
-              <PremiumHomeV4Play className="h-4 w-4" />
-              Watch video
-            </button>
             {error && sermon?.id === playback.id ? (
-              <p role="status" className="w-full text-xs text-red-700">{error}</p>
+              <p role="status" className="ph4-sermon__error">
+                {error}
+              </p>
             ) : null}
           </div>
         ) : null}
-        <Link href="/sermons" className="ph4-sermon__all" aria-label="All sermons">
-          <PremiumHomeV4Chevron />
-        </Link>
       </div>
     </section>
   );

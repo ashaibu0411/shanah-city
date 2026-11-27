@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import { PremiumHomeV4Chevron, PremiumHomeV4Heart } from "@/components/home/premium/v4/PremiumHomeV4Icons";
 
 export function PremiumHomeV4GiveBar() {

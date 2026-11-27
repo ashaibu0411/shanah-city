@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { PremiumHomeV4Link as Link } from "@/components/home/premium/v4/PremiumHomeV4Link";
 import type { HomeUpcomingEventRow } from "@/lib/home-upcoming-events";
-import { formatHomeEventMeta } from "@/lib/home-upcoming-events";
+import { formatHomeEventMeta, homeUpcomingEventHref } from "@/lib/home-upcoming-events";
 import { PremiumHomeV4Chevron } from "@/components/home/premium/v4/PremiumHomeV4Icons";
 
 type PremiumHomeV4UpcomingEventsProps = {
@@ -16,7 +16,7 @@ export function PremiumHomeV4UpcomingEvents({ rows }: PremiumHomeV4UpcomingEvent
     <section className="ph4-section" aria-labelledby="ph4-events-heading">
       <div className="ph4-section__head">
         <h2 id="ph4-events-heading" className="ph4-section__title">
-          Upcoming Events
+          Upcoming at Shanah City
         </h2>
         <Link href="/calendar" className="ph4-section__link">
           View all →
@@ -30,7 +30,7 @@ export function PremiumHomeV4UpcomingEvents({ rows }: PremiumHomeV4UpcomingEvent
 
           return (
             <li key={`${event.id}-${occurrenceDate}`}>
-              <Link href="/calendar" className="ph4-event-row">
+              <Link href={homeUpcomingEventHref(event.id)} className="ph4-event-row">
                 <span className="ph4-event-row__date">
                   <span className="ph4-event-row__month">{month}</span>
                   <span className="ph4-event-row__day">{dayNum}</span>

@@ -7,6 +7,7 @@ import { getEvents } from "@/lib/event-server";
 import { pickUpcomingHomeEventRows } from "@/lib/home-upcoming-events";
 import { mergeHomeSermonVideo } from "@/lib/home-sermon-display";
 import { getChannelSermons } from "@/lib/youtube-sermons-server";
+import { getTodayDevotion } from "@/lib/devotion-server";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +21,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect(`/alerts/${encodeURIComponent(alert.trim())}`);
   }
 
-  const [urgentAlerts, churchImages, sermonVideos, churchEvents] = await Promise.all([
+  const [urgentAlerts, churchImages, sermonVideos, churchEvents, todayDevotion] = await Promise.all([
     listUrgentAlertsForHomeCarousel(),
     getChurchSocialImages(),
     getChannelSermons(),
     getEvents({ groupId: null }),
+    getTodayDevotion(),
   ]);
   const upcomingEventRows = pickUpcomingHomeEventRows(churchEvents, 3);
 
@@ -35,6 +37,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         churchImages={churchImages}
         latestSermon={mergeHomeSermonVideo(null, sermonVideos)}
         upcomingEventRows={upcomingEventRows}
+        todayDevotion={todayDevotion}
       />
     </Suspense>
   );
