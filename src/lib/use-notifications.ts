@@ -81,8 +81,6 @@ export function useNotifications() {
       const data = await refreshAppNotificationBadge();
       if (data) {
         setSummary(data);
-      } else {
-        setSummary(EMPTY);
       }
     } catch {
       setSummary(EMPTY);

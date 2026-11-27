@@ -10,3 +10,8 @@ export const markFeedRead = (userId: string, feedKey: FeedReadKey) =>
   store().markFeedRead(userId, feedKey);
 export const markFeedsRead = (userId: string, feedKeys: FeedReadKey[]) =>
   store().markFeedsRead(userId, feedKeys);
+export const advanceFeedReadWatermark = (
+  userId: string,
+  feedKey: FeedReadKey,
+  readThroughIso: string,
+) => store().advanceFeedReadWatermark(userId, feedKey, readThroughIso);

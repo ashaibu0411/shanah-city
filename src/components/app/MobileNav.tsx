@@ -1,25 +1,39 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { useAppShell } from "@/components/app/AppShellContext";
 import { MobileTabIcon, navHrefToTabIcon } from "@/components/app/MobileTabIcon";
 import { premiumTeal } from "@/components/app/mobile-premium";
 import { mobilePrimaryNavTabs } from "@/lib/mobile-primary-nav-tabs";
 import { useAppNavItems } from "@/lib/use-app-nav-items";
+import { useNotifications } from "@/lib/use-notifications";
 
 export function MobileNav() {
   const pathname = usePathname();
   const { setMoreMenuOpen, messagesImmersive } = useAppShell();
   const navItems = useAppNavItems();
+  const { directMessages, groupChat } = useNotifications();
+  const messageUnread = directMessages + groupChat;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (messagesImmersive) return null;
   const tabs = mobilePrimaryNavTabs;
   const moreActive = navItems
     .filter((item) => !tabs.some((tab) => tab.href === item.href))
     .some((item) => item.href === pathname);
 
-  return (
-    <nav className="app-mobile-bottom-nav mobile-bottom-nav mobile-bottom-nav-premium fixed bottom-0 left-0 right-0 z-40 lg:hidden">
+  const bar = (
+    <nav
+      className="app-mobile-bottom-nav mobile-bottom-nav mobile-bottom-nav-premium app-mobile-bottom-nav--dock fixed bottom-0 left-0 right-0 z-[55] lg:hidden"
+      aria-label="Primary"
+    >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-clay-400/20 to-transparent" />
       <ul className="app-mobile-inner mx-auto flex w-full items-stretch justify-around px-1 pb-[max(0.45rem,env(safe-area-inset-bottom))] pt-2">
         {tabs.map((item) => {
@@ -57,7 +71,7 @@ export function MobileNav() {
             onClick={() => setMoreMenuOpen(true)}
             aria-label="Open more navigation options"
             aria-haspopup="dialog"
-            className={`mobile-nav-link flex w-full flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition active:scale-95 ${
+            className={`mobile-nav-link relative flex w-full flex-col items-center gap-1 rounded-xl px-1 py-0.5 transition active:scale-95 ${
               moreActive ? "is-active text-night-900" : "text-night-700"
             }`}
           >
@@ -68,10 +82,18 @@ export function MobileNav() {
             >
               <MobileTabIcon name="more" className="mobile-nav-icon h-5 w-5" />
             </span>
+            {messageUnread > 0 ? (
+              <span className="absolute right-[22%] top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                {messageUnread > 99 ? "99+" : messageUnread}
+              </span>
+            ) : null}
             <span className="mobile-nav-label">More</span>
           </button>
         </li>
       </ul>
     </nav>
   );
+
+  if (!mounted) return null;
+  return createPortal(bar, document.body);
 }
