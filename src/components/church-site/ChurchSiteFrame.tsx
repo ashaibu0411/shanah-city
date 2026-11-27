@@ -2,18 +2,20 @@ import { brandLogos, site } from "@/lib/site";
 import type { ReactNode } from "react";
 
 export const publicNavMain = [
-  { label: "Home", href: "/" },
   { label: "About", href: "/about" },
-  { label: "Visit", href: "/visit" },
+  { label: "Plan a Visit", href: "/visit" },
   { label: "Ministries", href: "/ministries" },
-  { label: "Messages", href: "/messages" },
   { label: "Events", href: "/events" },
-  { label: "Contact", href: "/contact" },
+  { label: "Messages", href: "/messages" },
+  { label: "Give", href: "/give" },
 ] as const;
 
 export const publicNavAll = [
+  { label: "Home", href: "/" },
   ...publicNavMain,
+  { label: "Contact", href: "/contact" },
   { label: "Download App", href: "/app" },
+  { label: "Member sign in", href: "/sign-in" },
 ] as const;
 
 function StripIcon({ children }: { children: ReactNode }) {
@@ -28,46 +30,42 @@ function StripIcon({ children }: { children: ReactNode }) {
 
 export function ChurchSiteHeader({ activePath = "/" }: { activePath?: string }) {
   return (
-    <header className="church-premium-header">
-      <div className="church-premium__container church-premium-header__inner">
-        <a href="/" className="church-premium-header__brand" aria-label="Shanah City Church home">
+    <header className="church-premium-header church-cine-header">
+      <div className="church-premium__container church-cine-header__inner">
+        <a href="/" className="church-cine-header__brand" aria-label="Shanah City Church home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={brandLogos.light} alt="" className="h-10 w-auto max-w-[8.5rem] object-contain" />
-          <span className="church-premium-header__wordmark hidden sm:block">
-            Shanah City
-            <br />
-            Church
-          </span>
+          <img src={brandLogos.dark} alt="Shanah City" className="church-cine-header__logo" />
         </a>
 
-        <nav aria-label="Church website" className="church-premium-header__nav">
+        <nav aria-label="Church website" className="church-cine-header__nav">
           {publicNavMain.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className={item.href === activePath || (activePath === "/" && item.href === "/") ? "is-active" : ""}
+              className={item.href === activePath ? "is-active" : undefined}
             >
               {item.label}
             </a>
           ))}
         </nav>
 
-        <div className="church-premium-header__actions">
-          <a href="/app" className="church-premium-header__text-link">
+        <div className="church-cine-header__actions">
+          <a href="/app" className="church-cine-header__utility">
             Download App
           </a>
-          <a href="/give" className="church-premium__btn-primary hidden sm:inline-flex">
-            Give
+          <a href="/sign-in" className="church-cine-header__utility church-cine-header__utility--member hidden md:inline-flex">
+            Member sign in
           </a>
-          <details className="church-premium-header__menu">
-            <summary aria-label="Open navigation menu">☰</summary>
-            <nav aria-label="Mobile church website" className="church-premium-header__dropdown">
+          <details className="church-cine-header__menu">
+            <summary aria-label="Open navigation menu">
+              <span className="church-cine-header__menu-bars" aria-hidden />
+            </summary>
+            <nav aria-label="Mobile church website" className="church-cine-header__dropdown">
               {publicNavAll.map((item) => (
                 <a key={item.href} href={item.href}>
                   {item.label}
                 </a>
               ))}
-              <a href="/give">Give online</a>
             </nav>
           </details>
         </div>
@@ -134,7 +132,7 @@ export function ChurchSiteFooter() {
 
 export function ChurchSiteFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="church-premium min-h-screen font-sans antialiased">
+    <div className="church-premium church-cine min-h-screen font-sans antialiased">
       <ChurchSiteHeader />
       {children}
       <ChurchSiteFooter />

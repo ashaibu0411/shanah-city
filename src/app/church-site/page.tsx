@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ChurchSiteHome } from "@/components/church-site/ChurchSiteHome";
+import { getChurchSiteHomeBanner } from "@/lib/church-site-banner";
 import { getEvents } from "@/lib/event-server";
 import { pickUpcomingHomeEventRows } from "@/lib/home-upcoming-events";
 import { mergeHomeSermonVideo } from "@/lib/home-sermon-display";
@@ -22,14 +23,15 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ChurchSitePage() {
-  const [churchEvents, sermonVideos] = await Promise.all([
+  const [churchEvents, sermonVideos, banner] = await Promise.all([
     getEvents({ groupId: null }),
     getChannelSermons(),
+    getChurchSiteHomeBanner(),
   ]);
   const upcomingEvents = pickUpcomingHomeEventRows(churchEvents, 3);
   const latestSermon = mergeHomeSermonVideo(null, sermonVideos);
 
   return (
-    <ChurchSiteHome upcomingEvents={upcomingEvents} latestSermon={latestSermon} />
+    <ChurchSiteHome upcomingEvents={upcomingEvents} latestSermon={latestSermon} banner={banner} />
   );
 }

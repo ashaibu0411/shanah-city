@@ -69,12 +69,22 @@ const church = readFileSync(
   path.join(process.cwd(), "src/components/church-site/ChurchSiteHome.tsx"),
   "utf8",
 );
-assert.match(church, /church-premium-hero/);
-assert.match(church, /Changing Lives to Higher Levels in God/);
+assert.match(church, /church-cine-hero/);
+assert.match(church, /to higher levels/i);
 assert.match(church, /href="\/live"/);
+assert.match(church, /href="\/visit"/);
+assert.match(church, /Plan your visit/);
 assert.match(
   readFileSync(path.join(process.cwd(), "src/components/church-site/ChurchSiteFrame.tsx"), "utf8"),
   /href="\/sign-in"/,
+);
+assert.match(
+  readFileSync(path.join(process.cwd(), "src/components/church-site/ChurchSiteFrame.tsx"), "utf8"),
+  /Plan a Visit/,
+);
+assert.match(
+  readFileSync(path.join(process.cwd(), "src/components/church-site/church-site-premium.css"), "utf8"),
+  /church-cine-hero/,
 );
 assert.doesNotMatch(church, /#0074aa/);
 assert.doesNotMatch(church, /8B4DD8/i);

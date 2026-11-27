@@ -1,4 +1,6 @@
+import { ChurchSiteAnnouncementBar } from "@/components/church-site/ChurchSiteAnnouncementBar";
 import { StripIcon } from "@/components/church-site/ChurchSiteFrame";
+import type { ChurchSiteBanner } from "@/lib/church-site-banner";
 import {
   formatHomeEventMeta,
   homeUpcomingEventHref,
@@ -35,12 +37,15 @@ const ministries = [
   },
 ] as const;
 
+const CHURCH_HERO_IMAGE = "/home/home-gallery-88.jpg";
+
 type ChurchSiteHomeProps = {
   upcomingEvents: HomeUpcomingEventRow[];
   latestSermon: SermonVideo | null;
+  banner?: ChurchSiteBanner | null;
 };
 
-export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeProps) {
+export function ChurchSiteHome({ upcomingEvents, latestSermon, banner = null }: ChurchSiteHomeProps) {
   const sermonThumb = homeSermonInlineThumbnail(
     latestSermon?.thumbnailUrl ?? "/home/home-gallery-12.jpg",
   );
@@ -49,28 +54,30 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
   const events = upcomingEvents.slice(0, 4);
 
   return (
-    <main>
-      <section className="church-premium-hero" aria-label="Welcome">
+    <main className="church-cine-main">
+      <ChurchSiteAnnouncementBar banner={banner} />
+
+      <section className="church-cine-hero" aria-label="Welcome">
         <div
-          className="church-premium-hero__media"
-          style={{ backgroundImage: "url('/home/home-gallery-36.jpg')" }}
+          className="church-cine-hero__media"
+          style={{ backgroundImage: `url('${CHURCH_HERO_IMAGE}')` }}
           role="img"
           aria-label="Shanah City worship gathering"
         />
-        <div className="church-premium-hero__scrim" aria-hidden />
-        <div className="church-premium__container church-premium-hero__content">
-          <p className="church-premium__eyebrow text-[var(--church-gold-soft)]">Shanah City Church</p>
-          <h1 className="church-premium-hero__title">Changing Lives to Higher Levels in God.</h1>
-          <p className="church-premium-hero__copy">
-            A diverse, family-oriented church in Aurora, Colorado — where people meet Jesus, grow in
-            God&apos;s Word, and experience life-giving relationships.
-          </p>
-          <div className="church-premium-hero__actions">
-            <a href="/live" className="church-premium__btn-primary">
-              Watch live
+        <div className="church-cine-hero__scrim" aria-hidden />
+        <div className="church-premium__container church-cine-hero__content">
+          <p className="church-cine-hero__support">Experience God&apos;s presence with us this Sunday.</p>
+          <h1 className="church-cine-hero__title">
+            <span>Changing lives</span>
+            <span>to higher levels</span>
+            <span>in God.</span>
+          </h1>
+          <div className="church-cine-hero__actions">
+            <a href="/visit" className="church-cine-btn church-cine-btn--primary">
+              Plan your visit →
             </a>
-            <a href="/visit" className="church-premium__btn-ghost">
-              Plan your visit
+            <a href="/live" className="church-cine-btn church-cine-btn--secondary">
+              Watch online →
             </a>
           </div>
         </div>
@@ -119,7 +126,7 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
         </div>
       </section>
 
-      <section id="ministries" className="church-premium-ministries scroll-mt-24">
+      <section id="ministries" className="church-premium-ministries church-cine-ministries scroll-mt-24">
         <div className="church-premium__container church-premium-ministries__grid">
           <div>
             <p className="church-premium__eyebrow">Ministries</p>
@@ -136,7 +143,7 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
           </div>
           <div className="church-premium-ministries__cards">
             {ministries.map((item) => (
-              <a key={item.title} href={item.href} className="church-premium-ministry-card">
+              <a key={item.title} href={item.href} className="church-premium-ministry-card church-cine-ministry-tile">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={item.image} alt="" className="church-premium-ministry-card__image" />
                 <div className="church-premium-ministry-card__scrim" aria-hidden />
@@ -150,7 +157,7 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
         </div>
       </section>
 
-      <section id="events" className="church-premium-band scroll-mt-24" aria-labelledby="church-events-heading">
+      <section id="events" className="church-premium-band church-cine-band scroll-mt-24" aria-labelledby="church-events-heading">
         <div className="church-premium__container church-premium-band__grid">
           <div>
             <div className="flex flex-wrap items-end justify-between gap-3">
@@ -212,7 +219,7 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
             <SermonFeatureCopy title={sermonTitle} date={sermonDate} />
           </div>
 
-          <div className="church-premium-give-card">
+          <div className="church-premium-give-card church-cine-give">
             <div>
               <p className="church-premium__eyebrow text-[var(--church-midnight)]/80">Give</p>
               <h2 className="church-premium-give-card__title mt-2">Support the vision</h2>
@@ -227,12 +234,12 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
         </div>
       </section>
 
-      <section id="about" className="church-premium-welcome scroll-mt-24">
+      <section id="about" className="church-premium-welcome church-cine-welcome scroll-mt-24">
         <div className="church-premium__container grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
-            <p className="church-premium__eyebrow">Welcome</p>
+            <p className="church-premium__eyebrow">About our church</p>
             <h2 className="church-premium__title mt-3 text-[clamp(1.85rem,4vw,2.75rem)]">
-              There is room for you here.
+              Welcome to Shanah City.
             </h2>
             <p className="mt-4 max-w-lg text-base leading-8 text-[var(--church-ink-muted)]">
               {site.description}
@@ -246,13 +253,13 @@ export function ChurchSiteHome({ upcomingEvents, latestSermon }: ChurchSiteHomeP
           <img
             src="/home/home-gallery-08.jpg"
             alt="Shanah City church family"
-            className="aspect-[5/4] w-full rounded-xl object-cover"
+            className="church-cine-welcome__photo aspect-[5/4] w-full object-cover"
           />
         </div>
       </section>
 
-      <section className="church-premium-app">
-        <div className="church-premium__container church-premium-app__card">
+      <section className="church-premium-app church-cine-app">
+        <div className="church-premium__container church-premium-app__card church-cine-app__layout">
           <div>
             <p className="church-premium__eyebrow">Stay connected</p>
             <h2 className="church-premium__title mt-3 text-[clamp(1.65rem,3.5vw,2.25rem)]">

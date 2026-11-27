@@ -8,7 +8,7 @@
 | Phase | Scope | Status |
 |-------|--------|--------|
 | 1 | Shared V4.1 tokens (`premium-home-v41-tokens.css`, `premium-home-v41.css`) | Shipped |
-| 2 | Public website desktop + mobile (`ChurchSiteHome`, header, footer, strip, ministries band) | Shipped — owner screenshot pass pending |
+| 2 | Public website V4.2 cinematic editorial (`ChurchSiteHome`, midnight nav, bulletin banner, full-bleed hero) | Shipped — owner screenshot pass pending |
 | 3 | App mobile light (porcelain shell, greeting, compact hero, white tiles, live devotion data) | Shipped — visual QA pending |
 | 4 | App mobile dark (midnight surfaces, elevated cards in `premium-home-v41.css`) | Shipped — visual QA pending |
 | 5 | App desktop V4.1 (editorial hero, porcelain scope, live panel, sermon/give) | Shipped (prior pass + porcelain) |
