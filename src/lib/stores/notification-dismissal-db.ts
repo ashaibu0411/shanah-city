@@ -1,19 +1,39 @@
 import { prisma } from "@/lib/db";
+import type { NotificationDismissalInput } from "@/lib/stores/notification-dismissal-json";
 
-export async function getDismissedNotificationItemIds(userId: string) {
+export async function getDismissedNotificationWatermarks(userId: string) {
   const records = await prisma.notificationDismissal.findMany({
     where: { userId },
-    select: { itemId: true },
+    select: { itemId: true, dismissedThroughAt: true },
   });
-  return new Set(records.map((record) => record.itemId));
+  return new Map(records.map((record) => [record.itemId, record.dismissedThroughAt] as const));
 }
 
-export async function dismissNotificationItemIds(userId: string, itemIds: string[]) {
-  if (itemIds.length === 0) return;
+export async function dismissNotificationItems(userId: string, inputs: NotificationDismissalInput[]) {
+  if (inputs.length === 0) return;
 
-  const now = new Date();
-  await prisma.notificationDismissal.createMany({
-    data: itemIds.map((itemId) => ({ userId, itemId, dismissedAt: now })),
-    skipDuplicates: true,
-  });
+  await Promise.all(
+    inputs.map(async (input) => {
+      const through = new Date(input.throughAt);
+      if (Number.isNaN(through.getTime())) return;
+
+      const existing = await prisma.notificationDismissal.findUnique({
+        where: { userId_itemId: { userId, itemId: input.itemId } },
+      });
+
+      if (!existing) {
+        await prisma.notificationDismissal.create({
+          data: { userId, itemId: input.itemId, dismissedThroughAt: through },
+        });
+        return;
+      }
+
+      if (through > existing.dismissedThroughAt) {
+        await prisma.notificationDismissal.update({
+          where: { userId_itemId: { userId, itemId: input.itemId } },
+          data: { dismissedThroughAt: through },
+        });
+      }
+    }),
+  );
 }

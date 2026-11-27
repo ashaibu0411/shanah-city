@@ -2,7 +2,10 @@ import { getPushInboxItems } from "@/lib/push-inbox-server";
 import { getGroups } from "@/lib/group-server";
 import { getFeedNotificationItems } from "@/lib/feed-notification-items";
 import { getMinistryReportNotificationItems } from "@/lib/ministry-report-notification-items";
-import { getDismissedNotificationItemIds } from "@/lib/notification-dismissal-server";
+import {
+  getDismissedNotificationWatermarks,
+  isNotificationItemDismissed,
+} from "@/lib/notification-dismissal-server";
 import type { AppNotificationItem, AppNotificationItemType, AppNotificationsSummary } from "@/lib/notification-types";
 import * as groupChatDb from "@/lib/stores/group-chat-db";
 import * as groupChatJson from "@/lib/stores/group-chat-json";
@@ -36,8 +39,10 @@ export async function getRawAppNotificationItems(userId: string): Promise<AppNot
 
 export async function getAppNotifications(userId: string): Promise<AppNotificationsSummary> {
   const allItems = await getRawAppNotificationItems(userId);
-  const dismissed = await getDismissedNotificationItemIds(userId);
-  const items = allItems.filter((item) => !dismissed.has(item.id));
+  const dismissed = await getDismissedNotificationWatermarks(userId);
+  const items = allItems.filter(
+    (item) => !isNotificationItemDismissed(item.at, dismissed.get(item.id)),
+  );
 
   const directMessagesUnread = allItems
     .filter((item) => item.type === "direct_message")

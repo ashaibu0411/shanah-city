@@ -1292,10 +1292,10 @@ model FeedReadState {
 }
 
 model NotificationDismissal {
-  id          String   @id @default(cuid())
-  userId      String
-  itemId      String
-  dismissedAt DateTime @default(now())
+  id                 String   @id @default(cuid())
+  userId             String
+  itemId             String
+  dismissedThroughAt DateTime @default(now())
 
   @@unique([userId, itemId])
   @@index([userId])

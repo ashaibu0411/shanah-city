@@ -1,7 +1,7 @@
 import { feedKeyForNotificationType } from "@/lib/notification-feed-utils";
 import { advanceFeedReadWatermark, markFeedsRead } from "@/lib/feed-read-server";
 import { getAppNotifications, getRawAppNotificationItems } from "@/lib/notification-server";
-import { dismissNotificationItemIds } from "@/lib/notification-dismissal-server";
+import { dismissNotificationItems } from "@/lib/notification-dismissal-server";
 import { FEED_READ_KEYS, type AppNotificationItem } from "@/lib/notification-types";
 import { markPushInboxRead } from "@/lib/push-inbox-server";
 import { syncNativeAppBadgeForUser } from "@/lib/native-push-server";
@@ -24,7 +24,7 @@ export async function dismissNotificationItem(userId: string, item: AppNotificat
     case "direct_message":
     case "group_chat":
     case "ministry_report":
-      await dismissNotificationItemIds(userId, [item.id]);
+      await dismissNotificationItems(userId, [{ itemId: item.id, throughAt: item.at }]);
       return;
     default: {
       const feedKey = feedKeyForNotificationType(item.type);
@@ -44,8 +44,10 @@ export async function markAllMemberNotificationsRead(userId: string) {
 /** Dismisses all conversation rows from the bell without marking threads read. */
 async function dismissAllInboxNotificationRows(userId: string) {
   const rawItems = await getRawAppNotificationItems(userId);
-  const ids = rawItems.filter(inboxDismissableTypes).map((item) => item.id);
-  await dismissNotificationItemIds(userId, ids);
+  const inputs = rawItems
+    .filter(inboxDismissableTypes)
+    .map((item) => ({ itemId: item.id, throughAt: item.at }));
+  await dismissNotificationItems(userId, inputs);
 }
 
 export async function clearAllMemberNotifications(userId: string) {

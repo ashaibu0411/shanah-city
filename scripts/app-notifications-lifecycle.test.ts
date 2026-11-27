@@ -11,7 +11,8 @@ assert.match(api, /dismissNotificationItem/);
 assert.match(api, /action === "markAllAsRead"/);
 
 const actions = readFileSync(join(root, "src/lib/notification-actions-server.ts"), "utf8");
-assert.match(actions, /dismissNotificationItemIds/);
+assert.match(actions, /dismissNotificationItems/);
+assert.match(actions, /throughAt: item\.at/);
 assert.doesNotMatch(actions, /markThreadRead/);
 assert.doesNotMatch(actions, /markAllDirectThreadsRead/);
 assert.doesNotMatch(actions, /markGroupChatRead/);
@@ -19,7 +20,8 @@ assert.match(actions, /markAllMemberNotificationsRead/);
 assert.match(actions, /advanceFeedReadWatermark/);
 
 const server = readFileSync(join(root, "src/lib/notification-server.ts"), "utf8");
-assert.match(server, /getDismissedNotificationItemIds/);
+assert.match(server, /getDismissedNotificationWatermarks/);
+assert.match(server, /isNotificationItemDismissed/);
 assert.match(server, /getRawAppNotificationItems/);
 
 const client = readFileSync(join(root, "src/lib/notification-client.ts"), "utf8");

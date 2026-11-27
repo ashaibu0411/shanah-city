@@ -19,7 +19,7 @@ The tab bar was `position: fixed` but rendered inside the app shell tree, so on 
 
 - Portal `MobileNav` to `document.body` with `app-mobile-bottom-nav--dock` (fixed viewport, z-index 55, safe-area, GPU layer).
 - `AppMobileKeyboardDock` hides the dock while an input has focus (keyboard open); immersive overlays unchanged.
-- Server-persisted `NotificationDismissal` (Prisma + JSON fallback) keyed by stable notification `item.id`.
+- Server-persisted `NotificationDismissal` (Prisma + JSON fallback) keyed by `item.id` with a `dismissedThroughAt` watermark so newer DM/group activity resurfaces in the bell.
 - `dismissNotificationItem` — push marks inbox read; DM/group/ministry dismiss from the bell only; feeds use `advanceFeedReadWatermark`.
 - **Mark all read** — feeds + push only (`markAllMemberNotificationsRead`).
 - **Clear all** — mark all read plus dismiss all conversation rows from the bell without `markThreadRead`.
