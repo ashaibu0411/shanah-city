@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useEffect, useState } from "react";
 import { LiveStreamCountdown } from "@/components/live/LiveStreamCountdown";
 import { LiveStreamNotifyPanel } from "@/components/live/LiveStreamNotifyPanel";
@@ -30,6 +31,8 @@ type MediaLiveStageProps = {
 };
 
 export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
+  const { user, loading, permissions } = useAuth();
+  const canManage = !loading && user && permissions.canManageLiveStream;
   const isMobile = layout === "mobile";
   const [active, setActive] = useState<StreamPreview>(streamPreviews[0]);
   const anyLive =
@@ -96,7 +99,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
           {!showStageCountdown && !showBrandedOffline ? (
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/50 via-transparent to-night-950/25" />
           ) : null}
-          {!showBrandedOffline ? (
+          {!showBrandedOffline && !showStageCountdown ? (
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
             {showAsLive ? (
               <Badge variant="live">
@@ -158,7 +161,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
                 key={preview.id}
                 type="button"
                 onClick={() => setActive(preview)}
-                className="flex shrink-0 flex-col items-center gap-1.5"
+                className="media-v6-channel flex shrink-0 flex-col items-center gap-1.5"
               >
                 <span
                   className={`relative overflow-hidden rounded-full p-[2px] ${
@@ -176,7 +179,7 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
                   </span>
                 </span>
                 <span className="media-live-v4-channel-name max-w-[4.5rem] truncate text-[10px] font-semibold text-night-700">
-                  {preview.label.split(" ")[0]}
+                  {preview.label}
                 </span>
               </button>
             );
@@ -208,14 +211,14 @@ export function MediaLiveStage({ layout = "default" }: MediaLiveStageProps) {
         </div>
       </div>
 
-      <LiveStreamNotifyPanel
+      {canManage ? <details className="media-v6-manage"><summary>Manage Media</summary><div className="media-v6-admin space-y-3"><LiveStreamNotifyPanel
         compact={isMobile}
         isLive={showAsLive}
         platform={stagePreview.id}
         streamTitle={showAsLive ? stageTitle : active.label}
       />
 
-      <LiveStreamSchedulePanel compact={isMobile} />
+      <LiveStreamSchedulePanel compact={isMobile} /></div></details> : null}
     </div>
   );
 }
