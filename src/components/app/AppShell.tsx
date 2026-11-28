@@ -30,6 +30,7 @@ import { DevotionPlayerProvider } from "@/components/devotions/DevotionPlayerPro
 import { SermonPlayerProvider } from "@/components/sermons/SermonPlayerProvider";
 import { TopBar } from "@/components/app/TopBar";
 import { PremiumV4CinematicChrome } from "@/components/design/PremiumV4CinematicChrome";
+import { AppMobileKeyboardDock } from "@/components/app/AppMobileKeyboardDock";
 
 
 
@@ -55,6 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <PremiumV4CinematicChrome />
           <AppRefreshBridge />
           <AppNotificationBadgeSync />
+          <AppMobileKeyboardDock />
 
           <div className="min-h-screen bg-[var(--color-bg)]">
 

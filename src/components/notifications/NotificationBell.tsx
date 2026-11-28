@@ -5,8 +5,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { AppNotificationItem, AppNotificationItemType } from "@/lib/notification-types";
 import { getGroupArtwork } from "@/lib/group-artwork";
-import { clearAllFeedNotifications, markNotificationFeedsRead } from "@/lib/notification-client";
-import { feedKeyForNotificationType } from "@/lib/notification-feed-utils";
+import {
+  clearAllMemberNotifications,
+  dismissNotificationItem,
+  markAllNotificationsRead,
+} from "@/lib/notification-client";
 import { useNotifications } from "@/lib/use-notifications";
 
 type NotificationBellProps = {
@@ -116,13 +119,6 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
     total,
     items,
     refresh,
-    community,
-    devotions,
-    media,
-    worship,
-    meetings,
-    kids,
-    vision,
   } = useNotifications();
   const [open, setOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -197,28 +193,30 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
   const badgeLabel = total > 99 ? "99+" : String(total);
 
   async function handleItemClick(item: AppNotificationItem) {
-    const feed = feedKeyForNotificationType(item.type);
-    if (feed) {
-      void markNotificationFeedsRead([feed]);
-    }
-    if (item.type === "push") {
-      void fetch("/api/notifications", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"markPushRead",ids:[item.id]})});
-    }
+    const ok = await dismissNotificationItem(item);
+    if (ok) await refresh();
     setOpen(false);
   }
 
   async function handleClearAll() {
     setClearing(true);
     try {
-      await clearAllFeedNotifications();
-      await refresh();
+      const ok = await clearAllMemberNotifications();
+      if (ok) await refresh();
     } finally {
       setClearing(false);
     }
   }
 
-  const feedBadgeTotal =
-    community + devotions + media + worship + meetings + kids + vision;
+  async function handleMarkAllRead() {
+    setClearing(true);
+    try {
+      const ok = await markAllNotificationsRead();
+      if (ok) await refresh();
+    } finally {
+      setClearing(false);
+    }
+  }
 
   return (
     <div ref={rootRef} className="relative">
@@ -274,19 +272,31 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
                   : "You're all caught up"}
               </p>
             </div>
-            {items.some(item => item.type === "push") || feedBadgeTotal > 0 ? (
-              <button
-                type="button"
-                disabled={clearing}
-                onClick={() => void handleClearAll()}
-                className={`shrink-0 rounded-lg px-2 py-1 text-[11px] font-semibold transition disabled:opacity-50 ${
-                  isLight
-                    ? "text-sky-300 hover:bg-white/10"
-                    : "text-sky-700 hover:bg-sand-100"
-                }`}
-              >
-                {clearing ? "Clearing…" : "Clear all"}
-              </button>
+            {total > 0 ? (
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <button
+                  type="button"
+                  disabled={clearing}
+                  onClick={() => void handleMarkAllRead()}
+                  className={`rounded-lg px-2 py-1 text-[11px] font-semibold transition disabled:opacity-50 ${
+                    isLight
+                      ? "text-sky-300 hover:bg-white/10"
+                      : "text-sky-700 hover:bg-sand-100"
+                  }`}
+                >
+                  {clearing ? "Updating…" : "Mark all read"}
+                </button>
+                <button
+                  type="button"
+                  disabled={clearing}
+                  onClick={() => void handleClearAll()}
+                  className={`rounded-lg px-2 py-1 text-[11px] font-semibold transition disabled:opacity-50 ${
+                    isLight ? "text-white/70 hover:bg-white/10" : "text-night-500 hover:bg-sand-100"
+                  }`}
+                >
+                  Clear all
+                </button>
+              </div>
             ) : null}
           </div>
 
@@ -329,13 +339,6 @@ export function NotificationBell({ variant = "dark" }: NotificationBellProps) {
             )}
           </div>
 
-          {total > 0 && feedBadgeTotal === 0 && (
-            <div className={`border-t px-4 py-2.5 ${isLight ? "border-white/10" : "border-night-900/8"}`}>
-              <p className={`text-[11px] ${isLight ? "text-white/50" : "text-night-400"}`}>
-                Open a message thread to clear chat badges.
-              </p>
-            </div>
-          )}
         </div>,
         document.body,
         )}

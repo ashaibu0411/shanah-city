@@ -173,6 +173,23 @@
       0 -10px 32px rgba(0, 0, 0, 0.14);
   }
 
+  body[data-shell="mobile"] nav.app-mobile-bottom-nav.app-mobile-bottom-nav--dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 55;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  body[data-mobile-keyboard-open="true"] nav.app-mobile-bottom-nav.app-mobile-bottom-nav--dock {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   body[data-shell="mobile"] .mobile-bottom-nav::after {
     content: "";
     position: absolute;
