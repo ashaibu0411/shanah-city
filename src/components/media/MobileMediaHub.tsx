@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MobileTabPills } from "@/components/app/MobileTabPills";
 import { MediaClipUploadPanel } from "@/components/media/MediaClipUploadPanel";
@@ -44,7 +45,10 @@ export function MobileMediaHub({
 
   return (
     <div className="mobile-media-hub sc-v4 sc-v4-media space-y-3" data-sc-theme="cinematic">
+      <Link href="/" className="media-v5-back">← Back to Home</Link>
+      <header className="py-3"><p className="media-v5-label">Shanah City Media</p><h1 className="media-v5-heading">Watch &amp; Listen</h1><p className="text-sm leading-relaxed text-white/70">Experience worship, messages and moments from Shanah City.</p><Link href="/sermons" className="media-v5-back mt-4">Latest sermons →</Link></header>
       <MobileMediaHero
+        hideTitle
         tab={tab}
         anyLive={anyLive}
         clipsCount={clips.length}
