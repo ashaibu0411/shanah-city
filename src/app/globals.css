@@ -185,10 +185,7 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  body[data-mobile-keyboard-open="true"] nav.app-mobile-bottom-nav.app-mobile-bottom-nav--dock {
-    visibility: hidden;
-    pointer-events: none;
-  }
+  /* Keyboard focus alone must never hide the global navigation dock. */
 
   body[data-shell="mobile"] .mobile-bottom-nav::after {
     content: "";
@@ -7687,3 +7684,31 @@ html.dark body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-pre
 html.dark body[data-shell="mobile"] .app-mobile-bottom-nav.mobile-bottom-nav-premium::after {
   background: #101d31;
 }
+
+/* Global floating mobile dock: independent of document scrolling. */
+body[data-shell="mobile"] nav.app-mobile-bottom-nav.app-mobile-bottom-nav--dock {
+  position: fixed;
+  inset: auto 0 calc(env(safe-area-inset-bottom, 0px) + 10px);
+  width: min(88%, 420px);
+  margin-inline: auto;
+  padding: 4px;
+  border: 1px solid rgba(160, 148, 126, .28);
+  border-radius: 999px;
+  background: rgba(250, 247, 239, .94);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: 0 5px 24px rgba(16, 38, 74, .12);
+  transform: none;
+  -webkit-transform: none;
+  backface-visibility: visible;
+}
+body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock::after { display: none; }
+body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock > div:first-child { display: none; }
+body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .app-mobile-inner { padding: 0; gap: 2px; }
+body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link { min-height: 52px; border-radius: 999px; justify-content: center; gap: 2px; }
+body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-icon-shell { width: 28px; height: 25px; }
+body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active { background: rgba(16, 38, 74, .09); }
+body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active .mobile-nav-icon-shell { background: transparent; border-color: transparent; box-shadow: none; color: #10264a; }
+html.dark body[data-shell="mobile"] nav.app-mobile-bottom-nav.app-mobile-bottom-nav--dock { background: rgba(16, 29, 49, .94); border-color: rgba(185, 199, 218, .25); }
+html.dark body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active { background: rgba(241, 214, 164, .13); }
+html.dark body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active .mobile-nav-icon-shell { color: #f1d6a4; }
