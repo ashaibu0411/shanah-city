@@ -7736,3 +7736,8 @@ html:not(.dark) body[data-shell="mobile"].premium-home-v3-active.premium-home-v4
 html:not(.dark) body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active { color: #123c70 !important; }
 html.dark body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav--dock .mobile-nav-link { color: #b9c7da !important; }
 html.dark body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active { color: #f1d6a4 !important; }
+
+/* Mobile controls should respond to a single tap without double-tap zoom delay. */
+body[data-shell="mobile"] :is(a, button, input, select, textarea, summary, [role="button"], [role="link"], [role="tab"]) {
+  touch-action: manipulation;
+}
