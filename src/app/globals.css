@@ -7712,3 +7712,27 @@ body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-ac
 html.dark body[data-shell="mobile"] nav.app-mobile-bottom-nav.app-mobile-bottom-nav--dock { background: rgba(16, 29, 49, .94); border-color: rgba(185, 199, 218, .25); }
 html.dark body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active { background: rgba(241, 214, 164, .13); }
 html.dark body[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active .mobile-nav-icon-shell { color: #f1d6a4; }
+
+/* Home chrome must never move the shared floating dock into document flow. */
+body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav.app-mobile-bottom-nav--dock {
+  position: fixed !important;
+  inset: auto 0 calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
+  z-index: 55;
+  display: block;
+  margin-inline: auto;
+  transform: none !important;
+  -webkit-transform: none !important;
+  background: rgba(250, 247, 239, .94) !important;
+  border: 1px solid rgba(160, 148, 126, .28) !important;
+  box-shadow: 0 5px 24px rgba(16, 38, 74, .12) !important;
+}
+html.dark body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav.app-mobile-bottom-nav--dock {
+  background: rgba(16, 29, 49, .94) !important;
+  border-color: rgba(185, 199, 218, .25) !important;
+}
+body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav--dock::before,
+body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav--dock::after { display: none; }
+html:not(.dark) body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav--dock .mobile-nav-link { color: #5b6c81 !important; }
+html:not(.dark) body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active { color: #123c70 !important; }
+html.dark body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav--dock .mobile-nav-link { color: #b9c7da !important; }
+html.dark body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-active nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active { color: #f1d6a4 !important; }
