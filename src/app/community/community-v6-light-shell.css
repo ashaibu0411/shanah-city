@@ -84,8 +84,7 @@ body.community-v6-light-shell[data-shell="mobile"] nav.app-mobile-bottom-nav--do
 body.community-v6-light-shell[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link.is-active { background:rgba(20,25,30,.07)!important; border-radius:999px; }
 body.community-v6-light-shell[data-shell="mobile"] nav.app-mobile-bottom-nav--dock .mobile-nav-link .mobile-nav-icon-shell { background:transparent!important; color:inherit!important; box-shadow:none!important; }
 html.dark body.community-v6-light-shell,
-html.dark body.community-v6-light-shell .app-main,
-html.dark body.community-v6-light-shell .min-h-screen.bg-\\[var\\(--color-bg\\)\\] { background:#101113!important; }
+html.dark body.community-v6-light-shell .app-main { background:#101113!important; }
 html.dark body.community-v6-light-shell[data-shell="mobile"] .mobile-app-header { background:#101113!important; border-bottom-color:#292b30!important; }
 html.dark body.community-v6-light-shell .mobile-app-header :is(.text-night-900,.text-night-700,.text-night-600) { color:#f5f5f5!important; }
 html.dark body.community-v6-light-shell[data-shell="mobile"] nav.app-mobile-bottom-nav.app-mobile-bottom-nav--dock { background:rgba(28,29,32,.86)!important; border-color:rgba(255,255,255,.12)!important; }
