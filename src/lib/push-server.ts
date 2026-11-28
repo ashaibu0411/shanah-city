@@ -1,4 +1,5 @@
 import webpush from "web-push";
+import { prisma } from "@/lib/db";
 import { recordPushInboxItem } from "@/lib/push-inbox-server";
 import { getUsers } from "@/lib/auth-server";
 import type { NotificationPrefs, NotificationTopic } from "@/lib/auth-types";
@@ -187,6 +188,7 @@ async function dispatchPushToUsers(
   userIds: string[],
   payload: { title: string; body: string; url: string },
   passesPreference: (prefs: NotificationPrefs) => boolean,
+  devotionDedupe = false,
 ): Promise<PushDeliveryResult> {
   const webConfigured = configureWebPush();
   const nativeConfigured = isNativePushConfigured();
@@ -212,7 +214,7 @@ async function dispatchPushToUsers(
     }),
   );
 
-  for (const userId of userIds) {
+  for (const userId of uniqueUserIds) {
     const user = users.find((item) => item.id === userId);
     const prefs = resolveNotificationPrefs(user?.notificationPrefs);
     const badgeCount = Math.max(badgeCounts.get(userId) ?? 0, 1);
@@ -236,10 +238,24 @@ async function dispatchPushToUsers(
     }
 
     result.eligibleUsers += 1;
+    const dedupeKey = `devotion-delivery:${payload.url}`;
+    let claimed = false;
+    if (devotionDedupe && useDatabase()) {
+      // Atomic unique insert prevents concurrent cron runs from claiming the same recipient.
+      const claim = await prisma.pushInboxItem.createMany({
+        data: [{ userId, dedupeKey, title: payload.title, body: payload.body, href: payload.url, readAt: new Date() }],
+        skipDuplicates: true,
+      });
+      claimed = claim.count === 1;
+      if (!claimed) {
+        result.deliveredUsers += 1;
+        continue;
+      }
+    }
     let userDelivered = false;
     let userFailed = false;
 
-    for (const record of userSubs) {
+    for (const record of (devotionDedupe && userTokens.length ? [] : userSubs)) {
       try {
         await webpush.sendNotification(
           record.subscription,
@@ -284,6 +300,23 @@ async function dispatchPushToUsers(
       }
     }
 
+    if (devotionDedupe && !userDelivered && userTokens.length) {
+      for (const record of userSubs) {
+        try {
+          await webpush.sendNotification(record.subscription, JSON.stringify(brandedPayload));
+          result.sent += 1;
+          result.webSent += 1;
+          userDelivered = true;
+        } catch (error) {
+          userFailed = true;
+          if (shouldDropWebPushSubscription(error)) await store().removePushSubscription(userId, record.endpoint);
+          result.skipped += 1;
+        }
+      }
+    }
+    if (claimed && !userDelivered) {
+      await prisma.pushInboxItem.deleteMany({ where: { userId, dedupeKey } });
+    }
     if (userDelivered) {
       try { await recordPushInboxItem(userId, payload); } catch (error) { console.error("[push-inbox] record failed", error); }
       result.deliveredUsers += 1;
@@ -334,14 +367,15 @@ export async function notifyNewDevotion(input: {
     ? `/devotions/${encodeURIComponent(input.devotionId)}`
     : "/devotions";
 
-  return sendPushToUsersWithAnyPreference(
+  return dispatchPushToUsers(
     userIds,
     {
       title: "New devotion ready",
       body: input.title,
       url,
     },
-    ["devotions", "announcements", "worship"],
+    (prefs) => preferenceMatchesAnyTopic(prefs, ["devotions", "announcements", "worship"]),
+    Boolean(input.devotionId),
   );
 }
 
