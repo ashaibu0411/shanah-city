@@ -17,7 +17,8 @@ export function MobileMoreSheet() {
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const navItems = useAppNavItems();
-  const { total: unreadTotal } = useNotifications();
+  const { directMessages, groupChat } = useNotifications();
+  const unreadTotal = directMessages + groupChat;
 
   const primaryTabs = mobilePrimaryNavTabs;
 
