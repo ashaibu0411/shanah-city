@@ -5,9 +5,17 @@ import { NextRequest, NextResponse } from "next/server";
  * church domain. All routes on the original app domain remain unchanged.
  */
 const publicPages = new Set(["/", "/visit", "/about", "/ministries", "/messages", "/events", "/contact", "/giving", "/app"]);
+const standalonePublicPages = new Set(["/sms-consent", "/privacy", "/terms"]);
+
 export function middleware(request: NextRequest) {
   const host = (request.headers.get("host") || "").toLowerCase().split(":")[0];
   const path = request.nextUrl.pathname.replace(/\/$/, "") || "/";
+
+  if (standalonePublicPages.has(path)) {
+    const headers = new Headers(request.headers);
+    headers.set("x-shanah-standalone-public", "1");
+    return NextResponse.next({ request: { headers } });
+  }
   if ((host === "shanahcity.org" || host === "www.shanahcity.org") && path === "/giving") {
     const url = request.nextUrl.clone();
     url.pathname = "/give";
@@ -23,4 +31,19 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/", "/visit", "/about", "/ministries", "/messages", "/events", "/contact", "/giving", "/app"] };
+export const config = {
+  matcher: [
+    "/",
+    "/visit",
+    "/about",
+    "/ministries",
+    "/messages",
+    "/events",
+    "/contact",
+    "/giving",
+    "/app",
+    "/sms-consent",
+    "/privacy",
+    "/terms",
+  ],
+};

@@ -2845,12 +2845,13 @@ model SmsContactState {
 
 /** Audit log of explicit web consent, revocations and authenticated carrier callbacks. */
 model SmsConsentEvent {
-  id              String   @id @default(cuid())
-  phone           String
-  eventType       String
-  source          String
+  id                String   @id @default(cuid())
+  phone             String
+  eventType         String
+  source            String
   disclosureVersion String?
-  createdAt       DateTime @default(now())
+  subscriberName    String?
+  createdAt         DateTime @default(now())
   @@index([phone, createdAt])
 }
 

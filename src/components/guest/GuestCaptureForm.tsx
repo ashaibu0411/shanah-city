@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button, Card } from "@/components/ui";
 import { USHER_SERVICE_TIMES } from "@/lib/frontliners-types";
+import { SMS_CONSENT_DISCLOSURE_TEXT } from "@/lib/sms-consent-copy";
 
 export function GuestCaptureForm({ embedded = false, standalone = false }: { embedded?: boolean; standalone?: boolean }) {
   const [name, setName] = useState("");
@@ -200,7 +201,7 @@ export function GuestCaptureForm({ embedded = false, standalone = false }: { emb
         <label className="block text-sm">I'm interested in<select value={ministryInterest} onChange={e=>setMinistryInterest(e.target.value)} className={fieldClass}><option value="">Select if interested</option><option value="Men of Legacy">Men of Legacy</option><option value="Transformed Women">Transformed Women</option><option value="Young Adults">Young Adults</option><option value="Shanah Worship">Shanah Worship</option><option value="Shanah Kids">Shanah Kids</option><option value="Prayer Ministry">Prayer Ministry</option></select></label>
         <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={emailConsent} onChange={e=>setEmailConsent(e.target.checked)} className="mt-1"/>I agree to receive welcome and follow-up emails from Shanah City. I can unsubscribe at any time.</label>
         <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3 text-sm text-night-800">
-          <label className="flex items-start gap-3"><input type="checkbox" className="mt-1" checked={smsConsent} onChange={e=>setSmsConsent(e.target.checked)}/><span><strong>Optional SMS updates:</strong> I agree to receive recurring text messages from Shanah City about church services, events, announcements, and guest follow-up at the number I provided. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to attend church or submit this form.</span></label>
+          <label className="flex items-start gap-3"><input type="checkbox" className="mt-1" checked={smsConsent} onChange={e=>setSmsConsent(e.target.checked)}/><span><strong>Optional SMS updates:</strong> {SMS_CONSENT_DISCLOSURE_TEXT}</span></label>
           <p className="mt-2 pl-6 text-xs">Read our <Link href="/privacy" className="font-semibold underline">Privacy Policy</Link> and <Link href="/terms" className="font-semibold underline">Terms &amp; Conditions</Link>. This checkbox is unchecked by default.</p>
         </div>
         <div className="rounded-xl border border-green-200 bg-green-50/60 p-3 text-sm text-night-800">

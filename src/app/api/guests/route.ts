@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { recordSmsConsent, normalizeUsPhone } from "@/lib/sms-server";
+import { SMS_CONSENT_DISCLOSURE_VERSION } from "@/lib/sms-consent-copy";
 import { canAccessFollowUp, canManageFollowUp } from "@/lib/follow-up-access-server";
 import { canManageAsAdmin } from "@/lib/admin-access-server";
 import { cookies } from "next/headers";
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
       smsConsent:body.smsConsent===true,
       smsConsentAt:body.smsConsent===true?new Date():null,
       smsConsentSource:body.smsConsent===true?"guest-web-form":null,
-      smsConsentDisclosureVersion:body.smsConsent===true?"2026-11-23":null,
+      smsConsentDisclosureVersion:body.smsConsent===true?SMS_CONSENT_DISCLOSURE_VERSION:null,
       contactPreference:preferences.includes(body.contactPreference)?body.contactPreference:"any",
       wantsPrayer:body.wantsPrayer===true,
       wantsPastoralContact:body.wantsPastoralContact===true,
@@ -109,7 +110,7 @@ export async function POST(request: Request) {
     }});
   }
   if (guest?.id && body.smsConsent === true) {
-    await recordSmsConsent(phone, "guest-web-form");
+    await recordSmsConsent(phone, "guest-web-form", SMS_CONSENT_DISCLOSURE_VERSION, name);
   }
   if (guest?.id && body.whatsAppConsent === true) {
     const normalized = normalizeUsPhone(phone);
