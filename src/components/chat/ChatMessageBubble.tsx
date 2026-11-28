@@ -124,6 +124,8 @@ export function ChatMessageBubble({
   const [actionBusy, setActionBusy] = useState(false);
   const longPressTimerRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
+  const lastTapRef = useRef(0);
+  const swipeStartRef = useRef<{x:number;y:number} | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [selectionExcerpt, setSelectionExcerpt] = useState<string | null>(null);
 
@@ -527,15 +529,52 @@ export function ChatMessageBubble({
             if ((event.target as HTMLElement).closest("a, button, textarea, input")) return;
             const selection = window.getSelection();
             if (selection && !selection.isCollapsed) return;
+            if (hub || compact) {
+              const now = Date.now();
+              if (now - lastTapRef.current < 320) {
+                lastTapRef.current = 0;
+                onToggleReaction("❤️");
+              } else {
+                lastTapRef.current = now;
+              }
+              return;
+            }
             openReactionPicker();
           }}
           onMouseUp={captureSelectionExcerpt}
-          onTouchStart={startLongPress}
+          onTouchStart={(event) => {
+            suppressClickRef.current = false;
+            if (event.touches.length !== 1 || (event.target as HTMLElement).closest("a,button,input,textarea,video,audio")) {
+              swipeStartRef.current = null;
+              return;
+            }
+            const touch = event.touches[0];
+            swipeStartRef.current = { x: touch.clientX, y: touch.clientY };
+            startLongPress();
+          }}
           onTouchEnd={(event) => {
             clearLongPressTimer();
+            const start = swipeStartRef.current;
+            swipeStartRef.current = null;
+            const touch = event.changedTouches[0];
+            if (start && touch && !suppressClickRef.current && !editing && !unsent && onStartReply && (hub || compact)) {
+              const dx = touch.clientX - start.x;
+              const dy = touch.clientY - start.y;
+              if (dx > 65 && dx > Math.abs(dy) * 2) {
+                suppressClickRef.current = true;
+                lastTapRef.current = 0;
+                beginReply();
+                return;
+              }
+            }
             captureSelectionExcerpt();
           }}
           onTouchMove={clearLongPressTimer}
+          onTouchCancel={() => {
+            clearLongPressTimer();
+            swipeStartRef.current = null;
+            lastTapRef.current = 0;
+          }}
         >
           {!mine && senderName && !compact && !hub && (
             <p className="mb-1 text-xs font-semibold opacity-70">{senderName}</p>
