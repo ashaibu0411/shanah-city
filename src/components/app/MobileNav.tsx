@@ -13,7 +13,7 @@ import { useNotifications } from "@/lib/use-notifications";
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { setMoreMenuOpen, messagesImmersive } = useAppShell();
+  const { setMoreMenuOpen, messagesImmersive, isMobileApp } = useAppShell();
   const navItems = useAppNavItems();
   const { directMessages, groupChat } = useNotifications();
   const messageUnread = directMessages + groupChat;
@@ -31,7 +31,7 @@ export function MobileNav() {
 
   const bar = (
     <nav
-      className="app-mobile-bottom-nav mobile-bottom-nav mobile-bottom-nav-premium app-mobile-bottom-nav--dock fixed bottom-0 left-0 right-0 z-[55] lg:hidden"
+      className={`app-mobile-bottom-nav mobile-bottom-nav mobile-bottom-nav-premium app-mobile-bottom-nav--dock fixed bottom-0 left-0 right-0 z-[55] ${isMobileApp ? "block" : "lg:hidden"}`}
       aria-label="Primary"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-clay-400/20 to-transparent" />
