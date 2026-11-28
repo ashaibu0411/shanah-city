@@ -7741,3 +7741,74 @@ html.dark body[data-shell="mobile"].premium-home-v3-active.premium-home-v4-activ
 body[data-shell="mobile"] :is(a, button, input, select, textarea, summary, [role="button"], [role="link"], [role="tab"]) {
   touch-action: manipulation;
 }
+
+/* Messaging V3: native social surfaces, shared by inbox and conversation panes. */
+.messages-hub-root {
+  --native-chat-bg:#fff; --native-chat-ink:#101318; --native-chat-muted:#656b75;
+  --native-chat-soft:#eff0f3; --native-chat-border:#e5e7eb; --native-chat-blue:#315bd5;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--native-chat-bg)!important; color:var(--native-chat-ink);
+}
+html.dark .messages-hub-root {
+  --native-chat-bg:#101113; --native-chat-ink:#f5f5f5; --native-chat-muted:#a5a8ae;
+  --native-chat-soft:#25272c; --native-chat-border:#33353a; --native-chat-blue:#315bd5;
+}
+.messages-hub-root .messaging-v2-inbox,
+.messages-hub-root .messaging-v2-thread,
+.messages-hub-root .messaging-v2-inbox-header,
+.messages-hub-root .chat-premium-wallpaper,
+.messages-hub-root .messaging-v2-wallpaper { background:var(--native-chat-bg)!important; color:var(--native-chat-ink); }
+.messages-hub-root .messaging-v2-inbox-header { padding:12px 16px 10px; }
+.messages-hub-root .messaging-v2-inbox-title { font-family:inherit; font-size:26px; font-weight:750; color:var(--native-chat-ink); letter-spacing:-.045em; }
+.messages-hub-root .messaging-v2-inbox-icon-btn { color:var(--native-chat-ink); }
+.messages-hub-root .messaging-v2-search-input { height:46px; background:var(--native-chat-soft); border:0; color:var(--native-chat-ink); font-size:16px; border-radius:999px; }
+.messages-hub-root .messaging-v2-search-input::placeholder { color:var(--native-chat-muted); }
+.messages-hub-root .messaging-v2-search-icon,
+.messages-hub-root .messaging-v2-search-clear { color:var(--native-chat-muted); }
+.messages-hub-root .messaging-v2-filter-track { gap:8px; margin-top:16px; }
+.messages-hub-root .messaging-v2-filter-pill { flex-shrink:0; min-height:40px; height:auto; border:1px solid var(--native-chat-border); background:transparent; color:var(--native-chat-ink); font-size:14px; font-weight:650; }
+.messages-hub-root .messaging-v2-filter-pill-active { background:var(--native-chat-soft); border-color:transparent; }
+.messages-hub-root .messaging-v2-row,
+.messages-hub-root .messages-hub-thread { border:0!important; padding:12px 16px; gap:12px; min-height:76px; background:var(--native-chat-bg); }
+.messages-hub-root .messaging-v2-row-active,
+.messages-hub-root .messaging-v2-row:active,
+.messages-hub-root .messages-hub-thread:active { background:var(--native-chat-soft); }
+.messages-hub-root .messages-hub-inbox .messages-hub-avatar,
+.messages-hub-root .messaging-v2-row-avatar { width:56px; height:56px; font-size:18px; }
+.messages-hub-root .messaging-v2-thread-header,
+.messages-hub-root .chat-premium-group-header { background:var(--native-chat-bg); border:0; padding-inline:12px; box-shadow:0 1px 0 var(--native-chat-border); z-index:2; }
+.messages-hub-root .messaging-v2-thread-header > div:first-child { flex:1; min-width:0; }
+.messages-hub-root .messaging-v2-thread-header-back,
+.messages-hub-root .messaging-v2-thread-header-action,
+.messages-hub-root .chat-premium-header-icon-btn { flex-shrink:0; width:44px; height:44px; border-radius:50%; border:1px solid var(--native-chat-border); background:var(--native-chat-soft); color:var(--native-chat-ink); box-shadow:none; }
+.messages-hub-root .messaging-v2-thread-header-title { font-size:17px; font-weight:750; color:var(--native-chat-ink); }
+.messages-hub-root .messaging-v2-thread-header-subtitle { font-size:12px; color:var(--native-chat-muted); }
+.messages-hub-root .messaging-v2-thread-header-avatar { box-shadow:none; }
+.messages-hub-root .messaging-v2-bubble-in,
+.messages-hub-root .chat-premium-bubble-in { background:var(--native-chat-soft)!important; color:var(--native-chat-ink)!important; border:0!important; box-shadow:none!important; border-radius:22px!important; font-size:16px; line-height:1.4; }
+.messages-hub-root .messaging-v2-bubble-out,
+.messages-hub-root .chat-premium-bubble-out { background:var(--native-chat-blue)!important; color:white!important; border:0!important; box-shadow:none!important; border-radius:22px!important; font-size:16px; line-height:1.4; }
+.messages-hub-root .messages-hub-date-stamp,
+.messages-hub-root .chat-premium-date-pill,
+.messages-hub-root .messaging-v2-date-pill { background:transparent; color:var(--native-chat-muted); font-size:12px; font-weight:600; text-transform:uppercase; box-shadow:none; }
+.messages-hub-root .messages-hub-seen-receipt { color:var(--native-chat-muted); font-size:12px; }
+.messages-hub-root .chat-premium-reaction-pill { background:var(--native-chat-soft); border:2px solid var(--native-chat-bg); border-radius:999px; box-shadow:none; }
+.messages-hub-root .chat-premium-attachment-image { border-radius:18px; }
+.messages-hub-root .messaging-v2-composer-bar,
+.messages-hub-root .chat-premium-composer-bar { border:0; background:var(--native-chat-bg); }
+.messages-hub-root .messaging-v2-composer-row { gap:3px; align-items:center; border-radius:28px; background:var(--native-chat-soft); padding:3px; }
+.messages-hub-root .messaging-v2-composer-field { background:transparent; border:0; min-height:44px; padding-inline:6px; }
+.messages-hub-root .messaging-v2-composer-field textarea { font-size:16px; color:var(--native-chat-ink); }
+.messages-hub-root .messaging-v2-composer-plus,
+.messages-hub-root .messaging-v2-composer-icon,
+.messages-hub-root .messaging-v2-composer-voice,
+.messages-hub-root .messaging-v2-composer-send { width:44px; height:44px; flex-shrink:0; box-shadow:none; }
+.messages-hub-root .messaging-v2-composer-icon,
+.messages-hub-root .messaging-v2-composer-voice { background:transparent; color:var(--native-chat-ink); }
+.messages-hub-root .messaging-v2-composer-plus,
+.messages-hub-root .messaging-v2-composer-send { background:var(--native-chat-blue); color:white; }
+@media(max-width:380px) {
+ .messages-hub-root .messaging-v2-composer-row { gap:0; }
+ .messages-hub-root .messaging-v2-composer-icon,
+ .messages-hub-root .messaging-v2-composer-voice { width:40px; }
+}
