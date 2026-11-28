@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/db";
+import { SMS_CONSENT_DISCLOSURE_VERSION } from "@/lib/sms-consent-copy";
 
 export function normalizeUsPhone(value: string): string | null {
   const digits = value.replace(/\D/g, "");
@@ -19,11 +20,72 @@ export function verifyTwilioWebhook(url: string, params: Record<string, string>,
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
-export async function recordSmsConsent(phoneInput: string, source: string, disclosureVersion = "2026-11-23") {
+export async function recordSmsConsent(
+  phoneInput: string,
+  source: string,
+  disclosureVersion = SMS_CONSENT_DISCLOSURE_VERSION,
+  subscriberName?: string | null,
+) {
   const phone = normalizeUsPhone(phoneInput);
   if (!phone) throw new Error("Invalid US mobile number");
-  // A web checkbox cannot reverse a carrier STOP. Only a verified carrier opt-in can.
-  await prisma.smsConsentEvent.create({ data: { phone, eventType: "web_opt_in", source, disclosureVersion } });
+  const trimmedName = subscriberName?.trim().slice(0, 120) || null;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.smsConsentEvent.create({
+      data: {
+        phone,
+        eventType: "web_opt_in",
+        source,
+        disclosureVersion,
+        subscriberName: trimmedName,
+      },
+    });
+    await tx.smsContactState.upsert({
+      where: { phone },
+      create: { phone, optedOut: false },
+      update: { optedOut: false, optedOutAt: null },
+    });
+  });
+}
+
+/** Dedicated /sms-consent page — does not create guest records or follow-up tasks. */
+export async function subscribeSmsFromPublicForm(input: {
+  name: string;
+  phone: string;
+  consent: boolean;
+  source?: string;
+}) {
+  if (input.consent !== true) {
+    return { ok: false as const, error: "SMS consent checkbox is required.", status: 400 };
+  }
+  const phone = normalizeUsPhone(input.phone);
+  if (!phone) {
+    return { ok: false as const, error: "Enter a valid US mobile phone number.", status: 400 };
+  }
+  const name = input.name.trim();
+  if (name.length < 2) {
+    return { ok: false as const, error: "Enter your name.", status: 400 };
+  }
+
+  const source = input.source?.trim() || "sms-consent-page";
+  const existing = await prisma.smsConsentEvent.findFirst({
+    where: { phone, eventType: "web_opt_in" },
+    orderBy: { createdAt: "desc" },
+  });
+  const stopped = await prisma.smsConsentEvent.findFirst({
+    where: { phone, eventType: "carrier_stop" },
+    orderBy: { createdAt: "desc" },
+  });
+  if (
+    existing &&
+    (!stopped || existing.createdAt > stopped.createdAt) &&
+    existing.disclosureVersion === SMS_CONSENT_DISCLOSURE_VERSION
+  ) {
+    return { ok: true as const, alreadySubscribed: true };
+  }
+
+  await recordSmsConsent(phone, source, SMS_CONSENT_DISCLOSURE_VERSION, name);
+  return { ok: true as const, alreadySubscribed: false };
 }
 
 export async function recordSmsKeyword(phoneInput: string, keywordInput: string) {

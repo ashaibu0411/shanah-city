@@ -2,7 +2,7 @@ import { site } from "@/lib/site";
 
 export const privacyPolicyMeta = {
   effectiveDate: "August 17, 2026",
-  lastUpdated: "November 23, 2026",
+  lastUpdated: "November 27, 2026",
   contactEmail: site.email,
   churchName: site.name,
   address: site.address,
@@ -80,7 +80,7 @@ export const privacyPolicySections: PrivacySection[] = [
     id: "sms-privacy",
     title: "SMS messaging and consent",
     paragraphs: [
-      "If you separately opt in to receive Shanah City text messages, we use your phone number to send the types of messages described on the consent form, such as church announcements, service reminders, and guest follow-up. Consent is optional and is not a condition of attending services or using our website.",
+      "If you separately opt in to receive Shanah City text messages, we use your phone number to send the types of messages described on our public SMS consent form at https://shanahcity.org/sms-consent and on optional checkboxes elsewhere, such as church announcements, service reminders, and guest follow-up. Consent is optional and is not a condition of attending services or using our website.",
       "We do not sell or share SMS opt-in data or consent information with third parties or affiliates for their marketing or promotional purposes. Mobile information will not be shared with third parties or affiliates for marketing or promotional purposes. Text messaging originator opt-in data and consent are excluded from all other categories of data sharing, except with messaging providers and carriers as necessary to deliver messages.",
       "Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for assistance, or contact us at the email or phone number below. We maintain consent records to honor your preferences.",
     ],

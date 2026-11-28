@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { DM_Sans, Fraunces, Inter, Playfair_Display } from "next/font/google";
 import { AppShell } from "@/components/app/AppShell";
+import { PublicComplianceChrome } from "@/components/compliance/PublicComplianceChrome";
 import { APP_THEME_STORAGE_KEY } from "@/lib/theme";
 import { brandLogos, site } from "@/lib/site";
 import "./globals.css";
@@ -66,7 +67,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const publicHome = (await headers()).get("x-shanah-public-home") === "1";
+  const headerStore = await headers();
+  const publicHome = headerStore.get("x-shanah-public-home") === "1";
+  const standalonePublic = headerStore.get("x-shanah-standalone-public") === "1";
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -102,7 +105,13 @@ export default async function RootLayout({
             fetchPriority="high"
           />
         </div>
-        {publicHome ? children : <AppShell>{children}</AppShell>}
+        {standalonePublic ? (
+          <PublicComplianceChrome>{children}</PublicComplianceChrome>
+        ) : publicHome ? (
+          children
+        ) : (
+          <AppShell>{children}</AppShell>
+        )}
       </body>
     </html>
   );
