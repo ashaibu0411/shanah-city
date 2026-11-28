@@ -5,8 +5,10 @@ import { VISION_2027_DRAFTS } from "../src/lib/vision-2027-drafts";
 import { VISION_MINISTRIES } from "../src/lib/vision-center-access-server";
 import { normalizeVisionReferenceUrl } from "../src/lib/vision-center-reference-url";
 
-assert.equal(VISION_2027_DRAFTS.length, 10, "ten private 2027 ministry drafts including Shanah Kids");
-assert.equal(VISION_MINISTRIES.length, 10);
+assert.equal(VISION_2027_DRAFTS.length, 11, "eleven private 2027 ministry drafts including Shanah Kids and Power Couples");
+assert.equal(VISION_MINISTRIES.length, 11);
+assert.deepEqual(VISION_2027_DRAFTS.map(draft => draft.ministryKey).sort(), VISION_MINISTRIES.map(ministry => ministry.key).sort(), "every configured ministry has exactly one draft");
+assert.ok(VISION_2027_DRAFTS.some(draft => draft.ministryKey === "power-couples"));
 for (const draft of VISION_2027_DRAFTS) {
   assert.match(draft.content, /NOT APPROVED|not approved|proposed|Proposed/i, `${draft.ministryKey} must stay draft-only`);
 }
