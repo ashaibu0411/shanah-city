@@ -66,7 +66,8 @@ export function CommunityPortraitStoryCard({
         className={ringClass}
         onClick={() => {
           if (showAddBadge) {
-            onAddPress?.() ?? onPress();
+            if (onAddPress) onAddPress();
+            else onPress();
           } else {
             onPress();
           }
@@ -74,10 +75,11 @@ export function CommunityPortraitStoryCard({
         disabled={disabled}
         aria-label="Create story"
       >
+        <span className="community-portrait-story-card__create-avatar" aria-hidden><CommunityAvatar name={authorName} authorId={authorId} size="md" /></span>
         <span className="community-portrait-story-card__create-icon" aria-hidden>
           +
         </span>
-        <span className="community-portrait-story-card__create-label">Create Story</span>
+        <span className="community-portrait-story-card__create-label">Your story</span>
       </button>
     );
   }
