@@ -6,6 +6,8 @@ import { runAppRefresh } from "@/lib/app-refresh";
 
 const PULL_THRESHOLD = 64;
 const MAX_PULL = 108;
+const GESTURE_SLOP = 12;
+const INTERACTIVE_SELECTOR = "a, button, input, textarea, select, label, summary, [role=button], [role=link], [role=tab], [contenteditable], [data-no-pull-refresh]";
 
 /** Nested scroll UIs where pull-to-refresh must not hijack vertical pans. */
 const NO_PULL_SELECTOR =
@@ -97,6 +99,7 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startYRef = useRef<number | null>(null);
+  const startXRef = useRef(0);
   const scrollRootRef = useRef<Element | null>(null);
   const pullingRef = useRef(false);
   const pullRef = useRef(0);
@@ -128,12 +131,16 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     if (!enabled) return;
 
     function onTouchStart(event: TouchEvent) {
-      if (refreshingRef.current || isRefreshBlocked()) return;
+      startYRef.current = null;
+      pullingRef.current = false;
+      if (refreshingRef.current || isRefreshBlocked() || event.touches.length !== 1) return;
+      if (event.target instanceof Element && event.target.closest(INTERACTIVE_SELECTOR)) return;
       if (isInsideNoPullRegion(event.target)) return;
       if (isNestedScrollerNotAtTop(event.target)) return;
       scrollRootRef.current = findScrollableAncestor(event.target);
       if (!isAtScrollTop(scrollRootRef.current)) return;
       startYRef.current = event.touches[0]?.clientY ?? null;
+      startXRef.current = event.touches[0]?.clientX ?? 0;
       pullingRef.current = false;
     }
 
@@ -141,6 +148,7 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
       if (refreshingRef.current || startYRef.current == null || isRefreshBlocked()) return;
       if (isInsideNoPullRegion(event.target)) {
         startYRef.current = null;
+        pullRef.current = 0;
         setPull(0);
         pullingRef.current = false;
         return;
@@ -157,6 +165,14 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
 
       const currentY = event.touches[0]?.clientY ?? startYRef.current;
       const delta = currentY - startYRef.current;
+      const dx = Math.abs((event.touches[0]?.clientX ?? startXRef.current) - startXRef.current);
+      if (!pullingRef.current) {
+        if (event.touches.length !== 1 || dx > GESTURE_SLOP && dx >= Math.abs(delta) || delta < -GESTURE_SLOP) {
+          startYRef.current = null;
+          return;
+        }
+        if (delta < GESTURE_SLOP || delta <= dx) return;
+      }
       if (delta <= 0) {
         setPull(0);
         pullingRef.current = false;
@@ -165,8 +181,9 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
 
       pullingRef.current = true;
       const next = Math.min(MAX_PULL, delta * 0.5);
+      pullRef.current = next;
       setPull(next);
-      if (next > 0) {
+      if (next > 0 && event.cancelable) {
         event.preventDefault();
       }
     }
@@ -175,6 +192,7 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
       if (refreshingRef.current) return;
       const shouldRefresh = pullingRef.current && pullRef.current >= PULL_THRESHOLD;
       startYRef.current = null;
+      pullRef.current = 0;
       scrollRootRef.current = null;
       pullingRef.current = false;
       if (shouldRefresh) {
@@ -184,17 +202,25 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
       setPull(0);
     }
 
+    function onTouchCancel() {
+      startYRef.current = null;
+      scrollRootRef.current = null;
+      pullingRef.current = false;
+      pullRef.current = 0;
+      if (!refreshingRef.current) setPull(0);
+    }
+
     const opts = { capture: true };
     document.addEventListener("touchstart", onTouchStart, { ...opts, passive: true });
     document.addEventListener("touchmove", onTouchMove, { ...opts, passive: false });
     document.addEventListener("touchend", onTouchEnd, opts);
-    document.addEventListener("touchcancel", onTouchEnd, opts);
+    document.addEventListener("touchcancel", onTouchCancel, opts);
 
     return () => {
       document.removeEventListener("touchstart", onTouchStart, opts);
       document.removeEventListener("touchmove", onTouchMove, opts);
       document.removeEventListener("touchend", onTouchEnd, opts);
-      document.removeEventListener("touchcancel", onTouchEnd, opts);
+      document.removeEventListener("touchcancel", onTouchCancel, opts);
     };
   }, [enabled, triggerRefresh]);
 
